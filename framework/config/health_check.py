@@ -49,7 +49,7 @@ class HealthCheck:
 			cprint("")
 			cprint("WARNING!!!: "+str(Count)+" tools could not be found. Some suggestions:")
 			cprint(" - Define where your tools are here: "+str(self.Core.Config.Profiles['g']))
-			cprint(" - Use the "+self.Core.Config.RootDir+"/tools/install.sh script to install missing tools")
+			cprint(" - Use the "+self.Core.Config.RootDir+"/tools/bt5_install.sh script to install missing tools")
 			if self.Core.Config.Get('INTERACTIVE') and 'n' == raw_input("Continue anyway? [y/n]"):
 				self.Core.Error.FrameworkAbort("Aborted by user")
 		else:
