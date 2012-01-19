@@ -1,0 +1,18 @@
+- Missing tools:
+  owtf must respect the licence from other tool/dictionary authors, therefore other tools cannot be redistributed together with owtf 
+  In an upcoming release there will be a script to download all dependencies including tools and dictionaries to bypass this issue
+
+- SET Integration:
+  The phising auxiliary plugin for integration with SET works but requires to patch SET at the moment:
+  Fix: You need to change the "getpass" calls to "raw_input" on smtp_client.py, in BT5: grep -ir "getpass.getpass" /pentest/exploits/set/src/
+  Background issue: When you use set-automate you have no idea re whether your script worked or if the email was really sent
+  OWTF Approach: owtf emulates set-automate with visual feedback so that the pen tester has enough information to decide whether things worked (i.e. email was sent or not)
+  NOTE: Yes, this was reported to Rel1k and the wrapping code was sent to him too
+  Plans: There will be more SET integration in the future, SET rocks :)
+
+- Summary Report:
+  The flags and filters do not work yet, only the "refresh" button and counters work (enough to get by but development is not complete)
+  The report is somewhat useable but needs a lot of work, to be fixed in the future.
+
+- General:
+  This is a pre-alpha release, there are a lot of bugs so if you find one, please provide steps to replicate and it will be added to the to-do list  
