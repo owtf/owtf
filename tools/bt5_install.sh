@@ -30,68 +30,76 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-CUR_DIR=$(pwd)
-# NOTE: Arachni v0.4 is still a bit unstable, it's best to stick with Arachni v0.3 in the meantime
-#TOOL_DIR="arachni-v0.4.0.2-cde"
-#if [ ! -d $TOOL_DIR ]; then
-if [ 0 ]; then
-	#mkdir -p $TOOL_DIR
-	#cd $TOOL_DIR
-	TGZ_FILE="$TOOL_DIR.tar.gz"
-	wget https://github.com/Zapotek/arachni/downloads/$TGZ_FILE
-	tar xvfz $TGZ_FILE
-	rm -f $TGZ_FILE
-fi
+INSTALL_DIR=$(dirname $0)
+(
+    cd $INSTALL_DIR
+    # NOTE: Arachni v0.4 is still a bit unstable, it's best to stick with Arachni v0.3 in the meantime
+    #TOOL_DIR="arachni-v0.4.0.2-cde"
+    #if [ ! -d $TOOL_DIR ]; then
+    if [ 0 ]; then
+        #mkdir -p $TOOL_DIR
+        #cd $TOOL_DIR
+        TGZ_FILE="$TOOL_DIR.tar.gz"
+        wget https://github.com/Zapotek/arachni/downloads/$TGZ_FILE
+        tar xvfz $TGZ_FILE
+        rm -f $TGZ_FILE
+    fi
 
 
-TOOL_DIR="whatweb"
-mkdir -p $TOOL_DIR
-cd $TOOL_DIR
-TOOL_NAME="whatweb-0.4.7.tar.gz"
-if [ ! -f $TOOL_NAME ]; then
-	echo "Getting whatweb .."
-	wget http://www.morningstarsecurity.com/downloads/$TOOL_NAME
-	tar xvfz *
-	rm -f $TOOL_NAME
-fi
-cd $CUR_DIR
+    TOOL_DIR="whatweb"
+    mkdir -p $TOOL_DIR
+    (
+    cd $TOOL_DIR
+    TOOL_NAME="whatweb-0.4.7.tar.gz"
+    if [ ! -f $TOOL_NAME ]; then
+        echo "Getting whatweb .."
+        wget http://www.morningstarsecurity.com/downloads/$TOOL_NAME
+        tar xvfz *
+        rm -f $TOOL_NAME
+    fi
+    )
 
-echo "Getting websecurify .."
-TOOL_DIR="websecurify"
-mkdir -p $TOOL_DIR
-cd $TOOL_DIR
-wget http://websecurify.googlecode.com/files/Websecurify%20Scanner%200.9.tgz
-tar xvfz *
-rm -f Websecurify\ Scanner\ 0.9.tgz
-cd $CUR_DIR
+    echo "Getting websecurify .."
+    TOOL_DIR="websecurify"
+    mkdir -p $TOOL_DIR
+    ( 
+    cd $TOOL_DIR
+    wget http://websecurify.googlecode.com/files/Websecurify%20Scanner%200.9.tgz
+    tar xvfz *
+    rm -f Websecurify\ Scanner\ 0.9.tgz
+    )
 
-TOOL_DIR="dos/http"
-mkdir -p $TOOL_DIR
-cd $TOOL_DIR
-TOOL_NAME="slowloris.pl"
-if [ ! -f $TOOL_NAME ]; then
-	echo "Getting slowloris .."
-	wget http://ha.ckers.org/slowloris/$TOOL_NAME
-	chmod 700 $TOOL_NAME
-fi
-cd $CUR_DIR
+    TOOL_DIR="dos/http"
+    mkdir -p $TOOL_DIR
+    (
+    cd $TOOL_DIR
+    TOOL_NAME="slowloris.pl"
+    if [ ! -f $TOOL_NAME ]; then
+        echo "Getting slowloris .."
+        wget http://ha.ckers.org/slowloris/$TOOL_NAME
+        chmod 700 $TOOL_NAME
+    fi
+    )
 
-TOOL_DIR="decoding/cookies"
-mkdir -p $TOOL_DIR
-cd $TOOL_DIR
-if [ ! -f BIG-IP_cookie_decoder.py ]; then
-	echo "Getting BIG-IP_cookie_decoder .."
-	wget http://www.taddong.com/tools/BIG-IP_cookie_decoder.zip
-	unzip BIG-IP_cookie_decoder.zip
-	rm -f BIG-IP_cookie_decoder.zip
-fi
-cd $CUR_DIR
+    TOOL_DIR="decoding/cookies"
+    mkdir -p $TOOL_DIR
+    (
+    cd $TOOL_DIR
+    if [ ! -f BIG-IP_cookie_decoder.py ]; then
+        echo "Getting BIG-IP_cookie_decoder .."
+        wget http://www.taddong.com/tools/BIG-IP_cookie_decoder.zip
+        unzip BIG-IP_cookie_decoder.zip
+        rm -f BIG-IP_cookie_decoder.zip
+    fi
+    )
 
-TOOL_DIR="discovery/web/traceroute"
-mkdir -p $TOOL_DIR
-cd $TOOL_DIR
-if [ ! -f HTTP-Traceroute.py ]; then # Redistribution with OWTF allowed by author (Nicolas Gregoire), this file should exist, if not retrieve it
-	echo "Getting HTTP-Traceroute .."
-	wget http://www.agarri.fr/docs/HTTP-Traceroute.py
-fi
-cd $CUR_DIR
+    TOOL_DIR="discovery/web/traceroute"
+    mkdir -p $TOOL_DIR
+    (
+    cd $TOOL_DIR
+    if [ ! -f HTTP-Traceroute.py ]; then # Redistribution with OWTF allowed by author (Nicolas Gregoire), this file should exist, if not retrieve it
+        echo "Getting HTTP-Traceroute .."
+        wget http://www.agarri.fr/docs/HTTP-Traceroute.py
+    fi
+    )
+)
