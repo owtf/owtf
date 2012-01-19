@@ -1,0 +1,347 @@
+/* Table CSS credit: http://veerle-v2.duoh.com/blog/comments/a_css_styled_table/ */
+body {
+	font: normal 11px auto "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+	/*color: #4f6b72; -> contrast issues on tft screens */
+	color: #1f1b22;
+	/*background: #E6EAE9; -> original*/
+	/*background: #A6AAA9; -> too dark */
+	background: #D6DAD9;
+}
+
+div.detailed_report {
+	display: inline; 
+	align: left; 
+	position: fixed; 
+	top: 0px; 
+	z-index:0; 
+	opacity:1; 
+	background-color: #D6DAD9; 
+	width:100%;
+}
+
+/*a {
+	color: #c75f3e;
+}*/
+
+/*a.report_index {
+	font-weight: bold;
+	font-size: 20px;
+}*/
+
+span.counter {
+	text-decoration: none;
+	color: #1f1b22;
+	font: 24px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+	/*      ?   right ?  left */
+	padding:2px 2px 2px 2px;
+}
+
+div.counter {
+	display: inline;
+	text-decoration: none;
+	color: #1f1b22;
+	font: 24px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+	padding:2px 2px 2px 2px;
+}
+
+table.counter {
+}
+
+table.counter td {
+	border: 0;
+	padding: 0px 0px 0px 0px;
+	/*color: #4f6b72;*/
+        /*width: 100px;*/
+}
+
+table.counter td.active {
+	background: blue;
+}
+
+/* CSS Link buttons credit: http://cssglobe.com/post/1614/4-uber-cool-css-techniques-for-links*/
+a.button {
+	text-decoration: none;
+	/*float: left;*/
+	/*font-size:110%;*/
+	border-top:1px solid #999;
+	border-left:1px solid #999;
+	border-right:1px solid #333;
+	border-bottom:1px solid #333;
+	/*color:#333;*/
+	color: #1f1b22;
+	width:auto;
+	}	
+a.button:hover{	
+	border-top:1px solid #333;
+	border-left:1px solid #333;
+	border-right:1px solid #999;
+	border-bottom:1px solid #999;	
+	/*color:#333;*/
+	color: #1f1b22;
+	}	
+a.button span{
+	background:#d4d0c8 url(images/bg_btn.gif) repeat-x;			
+	/*float:left;*/
+	line-height:24px;
+	height:24px;	
+	padding:0 10px;							
+	border-right:1px solid #777;
+	border-bottom:1px solid #777;					
+	}		
+a.button:hover span{
+	border:none;						
+	border-top:1px solid #777;
+	border-left:1px solid #777;		
+	background:#d4d0c8 url(images/bg_btnOver.gif) repeat-x;	
+	cursor:pointer;	
+	}
+
+a.icon {
+	text-decoration: none;
+}
+
+
+a.report_index {
+	text-decoration: none;
+	float:left;
+	font-size:110%;
+	font-weight:bold;				
+	border-top:1px solid #999;
+	border-left:1px solid #999;
+	border-right:1px solid #333;
+	border-bottom:1px solid #333;
+	color:#333;		
+	width:auto;
+	}	
+a.report_index:hover{	
+	border-top:1px solid #333;
+	border-left:1px solid #333;
+	border-right:1px solid #999;
+	border-bottom:1px solid #999;	
+	color:#333;					
+	}	
+a.report_index span{
+	background:#d4d0c8 url(images/bg_btn.gif) repeat-x;			
+	float:left;
+	line-height:24px;
+	height:24px;	
+	padding:0 10px;							
+	border-right:1px solid #777;
+	border-bottom:1px solid #777;					
+	}		
+a.report_index:hover span{
+	border:none;						
+	border-top:1px solid #777;
+	border-left:1px solid #777;		
+	background:#d4d0c8 url(images/bg_btnOver.gif) repeat-x;	
+	cursor:pointer;	
+	}
+
+table {
+	table-layout:auto;
+	/*width: 100%; */
+	padding: 0;
+	margin: 0;
+}
+
+table.report_intro {
+	white-space: nowrap;
+}
+
+table.report_intro td.disguise {
+	background: #D6DAD9;
+}
+
+
+table.transaction_log {
+	width: 100%;
+	/*white-space: nowrap;*/
+}
+table.review{
+	width: 100%;
+	white-space: nowrap;
+}
+
+table.run_log {
+	width: 100%;
+	/*white-space: nowrap;*/
+}
+
+table.commanddump {
+	width: 100%;
+	table-layout:fixed;
+}
+
+table.commanddump th td {
+        overflow: hidden;
+        /*width: 100px;*/
+        width: 100%;
+}
+
+table.transactions {
+	width: 100%;
+	table-layout:fixed;
+}
+
+table.transactions th td {
+        overflow: hidden;
+        /*width: 100px;*/
+        width: 50%;
+}
+
+caption {
+	padding: 0 0 5px 0;
+	width: 700px;	 
+	font: italic 11px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+	text-align: right;
+}
+
+tr.alt {
+	/*background: #F5FAFA; --> original, hard to see*/
+	/*background: #A5AAAA;*/
+	/*background: #F4F9F9;*/
+	background: #E5EAEA;
+	/*color: #797268;*/
+	color: #292238;
+}
+
+th {
+	font: bold 11px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+	/*color: #4f6b72;*/
+	color: #1f1b22;
+	border-right: 1px solid #C1DAD7;
+	border-bottom: 1px solid #C1DAD7;
+	border-top: 1px solid #C1DAD7;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	text-align: left;
+	padding: 6px 6px 6px 12px;
+	background: #CAE8EA url(images/bg_header.jpg) no-repeat;
+}
+
+th.nobg {
+	border-top: 0;
+	border-left: 0;
+	border-right: 1px solid #C1DAD7;
+	background: none;
+}
+
+td {
+	border-right: 1px solid #C1DAD7;
+	border-bottom: 1px solid #C1DAD7;
+	background: #fff;
+	padding: 6px 6px 6px 12px;
+	/*color: #4f6b72;*/
+	color: #1f1b22;
+        overflow: hidden;
+        /*width: 100px;*/
+}
+
+td.alt {
+	/*background: #F5FAFA; -> original hard to spot*/
+	/*background: #F4F9F9;*/
+	/*background: #A5AAAA;*/
+	background: #E5EAEA; /*-> good*/
+	/*color: #797268;*/
+	color: #191228;
+        overflow: hidden;
+        width: 100px;
+}
+
+th.spec {
+	border-left: 1px solid #C1DAD7;
+	border-top: 0;
+	background: #fff url(images/bullet1.gif) no-repeat;
+	font: bold 10px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+}
+
+th.specalt {
+	border-left: 1px solid #C1DAD7;
+	border-top: 0;
+	background: #f5fafa url(images/bullet2.gif) no-repeat;
+	font: bold 10px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+	/*color: #797268;*/
+	color: #191228;
+}
+
+/*
+ul#report_index { list-style-type: circle; margin: 0 0 0 0; padding: 0 0 0 0; }
+ul#report_index { list-style-type: circle; margin: 2px 0 0 0; padding: 0 0 0.4em 0; }
+ul#report_index li { }
+*/
+
+/* Tab CSS credit: http://www.elated.com/articles/javascript-tabs/ */
+ul#tabs { list-style-type: none; margin: 12px 0 0 0; padding: 0 0 0.3em 0; }
+/* original -> ul#tabs { list-style-type: none; margin: 30px 0 0 0; padding: 0 0 0.3em 0; } */
+ul#tabs li { display: inline; }
+/*ul#tabs li a { color: #42454a; background-color: #dedbde; border: 1px solid #c9c3ba; border-bottom: none; padding: 0.3em; text-decoration: none; }*/
+ul#tabs li a { color: #12152a; background-color: #dedbde; border: 1px solid #c9c3ba; border-bottom: none; padding: 0.3em; text-decoration: none; }
+ul#tabs li a:hover { background-color: #f1f0ee; }
+ul#tabs li a.selected { color: #000; background-color: #f1f0ee; font-weight: bold; padding: 0.7em 0.3em 0.38em 0.3em; }
+ul#tabs li.icon { }
+ul#tabs li.icon a { text-decoration: none; color: none; background-color: none; border: none; border-bottom: none; padding: 0.3em; }
+ul#tabs li.check_green { background: url(../images/check_green.png) no-repeat; padding: 8px 0px 50px 32px; }
+ul#tabs li.attention_orange{ background: url(../images/attention_orange.png) no-repeat; padding: 8px 0px 50px 32px; }
+ul#tabs li.bonus_red{ background: url(../images/bonus_red.png) no-repeat; padding: 8px 0px 50px 32px; }
+ul#tabs li.flag_gray{ background: url(../images/flag_gray.png) no-repeat; padding: 8px 0px 50px 32px; }
+ul#tabs li.flag_green{ background: url(../images/flag_green.png) no-repeat; padding: 8px 0px 50px 32px; }
+ul#tabs li.flag_blue{ background: url(../images/flag_blue.png) no-repeat; padding: 8px 0px 50px 32px; }
+ul#tabs li.flag_yellow{ background: url(../images/flag_yellow.png) no-repeat; padding: 8px 0px 50px 32px; }
+ul#tabs li.flag_red{ background: url(../images/flag_red.png) no-repeat; padding: 8px 0px 50px 32px; }
+ul#tabs li.flag_violet{ background: url(../images/flag_violet.png) no-repeat; padding: 8px 0px 50px 32px; }
+ul#tabs li.delete { }
+
+/*ul.default { list-style-image: url(images/bluearrow.png); }*/
+ul.default_list { 
+	list-style-type: none; 
+	padding: 0 0 0 0;
+}
+ul.default_list li {
+        /*background: url(../images/play.png) no-repeat;*/
+        /*background: url(../images/play16x16.png) no-repeat;*/
+        background: url(../images/bluearrow.png) no-repeat;
+        padding-left: 16px;
+}
+
+div.tabContent { border: 1px solid #c9c3ba; padding: 0.5em; background-color: #f1f0ee; width: 100%; }
+div.tabContent.hide { display: none; }
+
+/* Thank you to this guy for below: http://natanvolkovich.com/jquery/using-jquery-ui-css-icons-inline */
+img.ui-icon { height: 16px; width: 16px; position: relative; display: inline; border: 0px }
+img.ui-icon { text-indent: 0px }
+/*
+cannot pick up + and - to look like here: http://jquery-ui.googlecode.com/svn/tags/1.6rc5/tests/static/icons.html
+.ui-corner-all {
+    	border-radius: 4px 4px 4px 4px;
+}
+ui.theme.css (line 236)
+.ui-state-default, .ui-widget-content .ui-state-default {
+    background: url("images/e6e6e6_40x100_textures_02_glass_75.png") repeat-x scroll 0 50% #E6E6E6;
+    border: 1px solid #D3D3D3;
+    color: #555555;
+    font-weight: normal;
+    outline: medium none;
+}
+ui.theme.css (line 20)
+li {
+    cursor: pointer;
+    float: left;
+    list-style: none outside none;
+    margin: 2px;
+    padding: 4px 0;
+    position: relative;
+}
+icons.html (line 17)
+Inherited fromul.ui-widget
+.ui-widget {
+    font-family: Verdana,Arial,sans-serif;
+    font-size: 1.1em;
+}
+ui.theme.css (line 11)
+Inherited frombody
+body {
+    color: #444444;
+    font-family: Verdana,sans-serif;
+    font-size: 62.5%;
+}
+*/

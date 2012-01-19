@@ -1,0 +1,202 @@
+- Install script: /root/owtf/install.sh 
+	Running this might be beneficial since some plugins need the dependencies installed there.
+
+        The script is very simple and it will ask before doing things as follows:
+        root@bt:~/owtf# ./install.sh
+        Upgrade Backtrack/Ubuntu? [y/n]
+
+        Patch SET? [y/n]
+        NOTE: This is only necessary if you would like to run PHISHING plugins
+
+        Install Selenium? [y/n]
+        NOTE: This is only necessary if you would like to run SELENIUM plugins
+
+-  I think it is cleaner to run owtf from a separate directory, that way the generated output files will be on that directory:
+
+        root@bt:~# cd test_here/
+        root@bt:~/test_here# /root/owtf/owtf.py -l aux <- list auxiliary plugins (all tests have been implemented as auxiliary plugins)
+
+- Plugins can be run one by one or in bulk, I think the quickest is to run plugins like this:
+
+        /root/owtf/owtf.py -o Spear_Phising <- run only the Spear Phising attack
+        /root/owtf/owtf.py -o Spear_Phising,Exploit_Launcher <- run only these two tests, so with "," you can specify all the tests you wish to run in one go.
+
+- IMPORTANT: Overriding defaults + Force overwrite option. Sometimes you may get a message like this:
+
+        [*] Plugin: Spear Phising (se) has already been run, skipping ..
+
+        To avoid that, use the "-f" option to "force overwrite", this will overwrite previous results in the output files but do what you probably want: Run the test again.
+        You can also delete the output directory to achieve the same result: rm -rf owtf_review
+
+        /root/owtf/owtf.py -f -o Spear_Phising PHISHING_PAYLOAD=5 <- In this case I am overwriting results "-f" + I am also overriding defaults: The commandline wins over the config file, you can override settings on the fly as you wish. In this example, even though Payloads are defaulted as 1,2,3,4,...18 I am explicitly making sure that only Payload 5 is used.
+
+- How do I know what parameters does an auxiliary plugin accept?
+
+        Similar to metasploit, just add the uppercase letter "O" as one of the arguments:
+        # /root/owtf/owtf.py -f -o Spear_Phising PHISHING_PAYLOAD=5 O
+        ....
+        Offensive (Web, etc) Testing Framework: An OWASP+PTES-focused try to unite great tools and make pen testing more efficient - http://owtf.org
+        Author: Abraham Aranguren <name.surname@gmail.com> - http://7-a.org - Twitter: @7a_
+
+        [*] Loading framework please wait..
+        [*] Defaulting Plugin Group to 'aux' based on list of plugins supplied
+        Loading web Plugin Order from: '/root/owtf/profiles/web_plugin_order/default.cfg' ...
+        [*] Loading/Initialising database ..
+        [*] WARNING: No outbound proxy selected. It is recommended to use an outbound proxy for tactical fuzzing later
+        [*] Proxy Check OK: No proxy is setup or no HTTP requests will be made
+        [*] PluginHandler: Processing aux plugins using breadth algorithm ..
+        [*] __________ 1 - Target: aux -> Plugin: Spear Phising (se) __________
+        [*]
+        [*] Information for Plugin: se/Spear_Phising@OWTF-ASEP-001.py
+        [*]
+        [*] Description: Spear Phising Testing plugin
+        [*]
+        [*] Mandatory parameters:
+        [*] - MSF_LISTENER_SETUP____________Setup the listener (yes/no): "no" can be useful when the goal is IDS testing
+        [*] - SMTP_HOST_____________________SMTP Host name or IP address to use to send emails
+        [*] - MSF_LISTENER_PORT_____________Port where metasploit multi-handler will be listening to get the shells back
+        [*] - PHISING_SCRIPT_DIR____________The directory where the SET phising wrapper scripts are located
+        [*] - PDF_TEMPLATE__________________PDF Template file to use for some of the SET payloads that need it/can use it
+        [*] - EMAIL_PRIORITY________________Send emails with high importance (use "yes") or no (use "no")
+        [*] - PHISHING_PAYLOAD______________SET Payload for the phising attack (1-18)
+        [*] - SET_EMAIL_TEMPLATE____________SET Email template number to use (1-9)
+        [*] - SMTP_PORT_____________________SMTP Port to connect to to send the emails
+        [*] - EMAIL_FROM____________________Source email address to use for phising attacks
+        [*] - SMTP_PASS_____________________SMTP Password to use to connect to the SMTP server
+        [*] - EMAIL_TARGET__________________Email or File containing the target email addresses for phising attacks
+        [*] - ATTACHMENT_NAME_______________Filename for the attachment to be sent
+        [*] - SMTP_LOGIN____________________Login to use to connect to the SMTP server
+        [*]
+        [*] Optional parameters:
+        [*] - REPEAT_DELIM__________________Delimiter to repeat the command (i.e. "," -> Means RHOST=1,2 will execute for 1, then 2.\nRHOST=1,2 RPORT=3,4 will execute for RHOST=1 RPORT=3, then RHOST=2 RPORT=3, then RHOST=1 RPORT=4, then RHOST=2 RPORT=4)
+        [*]
+        [*] Usage: MSF_LISTENER_SETUP=? SMTP_LOGIN=? SMTP_HOST=? SMTP_PORT=? MSF_LISTENER_PORT=? EMAIL_FROM=? ATTACHMENT_NAME=? SMTP_PASS=? EMAIL_TARGET=? REPEAT_DELIM=? PDF_TEMPLATE=? PHISING_SCRIPT_DIR=? SET_EMAIL_TEMPLATE=? EMAIL_PRIORITY=? PHISHING_PAYLOAD=?
+        [*]
+        [*] Aborted by Framework: User is only viewing options, exiting
+        [*] Saving DBs
+        [*] owtf iteration finished
+
+- Configuration: Yes above is just too easy to run, the magic happens in the configuration file, look at the bottom here:  /root/owtf/profiles/general/default.cfg
+        You will definitely want to change at least the target: Look at the RHOST and RPORT targets below. 
+
+        IMPORTANT: By default, "," is a multiplier (which can be changed in the config file: REPEAT_DELIM) this means the following:
+
+        Denial of Service
+        -----------------------
+        OWTF-ADoS-001_CATEGORY: HTTP_WIN,HTTP,SSL,TCP  <- Denial of Service Exploits will be searched for under all ( x 4 times) of these categories
+        OWTF-ADoS-001_RHOST: 127.0.0.1 <- The Denial of Service Target, you can also use "," as with any parameter and put several targets: "127.0.0.1,127.0.0.2"
+        OWTF-ADoS-001_RPORT: 80 <- The Denial of Service Port, you can add more "," like "80,443,8080" that will multiply firing all DoS exploits against each of those ports
+
+        How to run with the default setting above (you can override configuration settings by supplying space separated arguments such as CATEGORY=TCP or RHOST=target.com, etc):
+        /root/owtf/owtf.py -f -o Direct_DoS_Launcher
+
+        OS Exploits
+        ---------------
+        Very similar to above. "," is a multiplier. Some combinations will not exist but owtf does not care and keeps trying until the next combination that works. I verified that many exploits fire without a payload, there will be a smarter version of this for the next release (I think auto-learn how to fire each exploit is the way to go since metasploit will keep adding more exploits and payloads)
+        OWTF-AExP-001_CATEGORY: LINUX,OSX,WINDOWS
+        OWTF-AExP-001_SUBCATEGORY: DCERPC,FTP,HTTP,IIS,IMAP,ISAPI,LDAP,LPD,MDNS,MISC,MMSP,MSSQL,MYSQL,NFS,NNTP,NOVELL,NTP,ORACLE,PHP,POP3,POSTGRES,PPTP,PROXY,REALSERVER,RPC,RTSP,SAMBA,SCADA,SIP,SMB,SMTP,SSH,SSL,SUNRPC,SVN,TACACS,TELNET,TFTP,VNC,VPN,WINS,WYSE
+        OWTF-AExP-001_RHOST: 127.0.0.1
+        OWTF-AExP-001_RPORT: 80
+
+        How to run (you can override everything via the command line as described above):
+        /root/owtf/owtf.py -f -o Exploit_Launcher
+
+        Bruteforce
+        ---------------
+        Brute force is different, the parameters are more spread-out in the configuration file, here are the relevant settings:
+
+        # Default brute-force categories:
+        OWTF-ABrF-001_CATEGORY: FTP,FTPS,HTTP-PROXY,ICQ,IMAP,IRC,LDAP2,LDAP3,MSSQL,MYSQL,NCP,NNTP,ORACLE-LISTENER,ORACLE-SID,PCANYWHERE,PCNFS,POP3,POSTGRES,RDP,REXEC,RLOGIN,RSH,SIP,SMB,SMTP,SNMP,SOCKS5,SSH,SVN,TEAMSPEAK,TELNET,VMAUTHD,VNC,XMPP
+        OWTF-ABrF-001_RHOST: 127.0.0.1
+        OWTF-ABrF-001_RPORT: 80
+
+        Further up in the file, owtf is only compatible with hydra at the moment but that will obviously change in the future:
+        # ************************* Password brute-force dictionaries / defaults ******************************
+
+        # This is possibly one of the best pages on the internet for password lists: http://www.skullsecurity.org/wiki/index.php/Passwords
+        # Online password cracking lists must be smaller since they are for brute-forcing services, Offline password cracking is done locally
+        ONLINE_USER_LIST: @@@FRAMEWORK_DIR@@@/dictionaries/users/basic_windows.txt
+        ONLINE_USER_LIST_DESCRIP: Username list file separated by newline characters
+        # ONLINE_PASSWORD_LIST: /pentest/passwords/wordlists/darkc0de.lst
+        ONLINE_PASSWORD_LIST: @@@FRAMEWORK_DIR@@@/dictionaries/passwords/phpbb.txt
+        ONLINE_PASSWORD_LIST_DESCRIP: Password list file separated by newline characters
+        THREADS: 1
+        THREADS_DESCRIP: Number of threads to use
+        RESPONSE_WAIT: 40
+        RESPONSE_WAIT_DESCRIP: Number of seconds to wait until the response arrives
+        CONNECT_WAIT: 30
+        CONNECT_WAIT_DESCRIP: Number of seconds to wait until the next connection attempt
+        # Preferred bruteforcer program:
+        BRUTEFORCER: hydra
+
+        Usage (parameters above can be overriden via the command line as explained above):
+        /root/owtf/owtf.py -f -o Password_Bruteforce
+
+        Web attack vectors
+        --------------------------
+        The relevant items in the configuration file for this are:
+
+        SELENIUM_URL_VECTORS_XSS: @@@FRAMEWORK_DIR@@@/dictionaries/attack_vectors/web/xss/basic.txt
+        SELENIUM_URL_VECTORS_RCE: @@@FRAMEWORK_DIR@@@/dictionaries/attack_vectors/web/rce/basic.txt
+        SELENIUM_URL_VECTORS_SQLI: @@@FRAMEWORK_DIR@@@/dictionaries/attack_vectors/web/sqli/basic.txt
+        SELENIUM_URL_VECTORS_CHARSET: @@@FRAMEWORK_DIR@@@/dictionaries/attack_vectors/web/charset/basic.txt
+
+        OWTF-ASEL-001_selenium_CATEGORY: XSS,RCE,SQLI,CHARSET
+        OWTF-ASEL-001_selenium_BASE_URL: http://127.0.0.1/
+
+        Usage (everything overrideable as usual):
+        /root/owtf/owtf.py -f -o Selenium_URL_Launcher
+
+
+        Phising
+        ----------
+        This has probably been the most difficult to put together. The relevant configuration items are these:
+
+        # ************************* SE Spear Phising configuration (Auxiliary Plugin configuration) *************************************
+
+        PHISING_SCRIPT_DIR: @@@FRAMEWORK_DIR@@@/scripts/set/phising
+        PHISING_SCRIPT_DIR_DESCRIP: The directory where the SET phising wrapper scripts are located
+        #PHISHING_PAYLOAD: 1
+        PHISHING_PAYLOAD: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
+        PHISHING_PAYLOAD_DESCRIP: SET Payload for the phising attack (1-18)
+        ATTACHMENT_NAME: report
+        ATTACHMENT_NAME_DESCRIP: Filename for the attachment to be sent
+        #SET_EMAIL_TEMPLATE: 1
+        #All Email templates (i.e. IDS/Spam filter testing)
+        SET_EMAIL_TEMPLATE: 1,2,3,4,5,6,7,8,9
+        SET_EMAIL_TEMPLATE_DESCRIP: SET Email template number to use (1-9)
+        MSF_LISTENER_PORT: 443
+        MSF_LISTENER_PORT_DESCRIP: Port where metasploit multi-handler will be listening to get the shells back
+        MSF_LISTENER_SETUP: no
+        MSF_LISTENER_SETUP_DESCRIP: Setup the listener (yes/no): "no" can be useful when the goal is IDS testing
+        EMAIL_TARGET: /root/emails.txt
+        EMAIL_TARGET_DESCRIP: Email or File containing the target email addresses for phising attacks
+        EMAIL_PRIORITY: yes
+        EMAIL_PRIORITY_DESCRIP: Send emails with high importance (use "yes") or no (use "no")
+        PDF_TEMPLATE: /root/test.pdf
+        PDF_TEMPLATE_DESCRIP: PDF Template file to use for some of the SET payloads that need it/can use it
+
+        # ************************* SMTP Server configuration: SE Spear Phising configuration (Auxiliary Plugin configuration) *************************************
+
+        EMAIL_FROM: you@gmail.com
+        EMAIL_FROM_DESCRIP: Source email address to use for phising attacks
+        SMTP_LOGIN: you@gmail.com
+        SMTP_LOGIN_DESCRIP: Login to use to connect to the SMTP server
+        SMTP_PASS: ********
+        SMTP_PASS_DESCRIP: SMTP Password to use to connect to the SMTP server
+        SMTP_HOST: your.mail.server.com
+        SMTP_HOST_DESCRIP: SMTP Host name or IP address to use to send emails
+        SMTP_PORT: 25
+        SMTP_PORT_DESCRIP: SMTP Port to connect to to send the emails
+
+        Usage:
+        /root/owtf/owtf.py -f -o Spear_Phising <- run with defaults as per config file
+
+        Default override example:
+        /root/owtf/owtf.py -f -o Spear_Phising SET_EMAIL_TEMPLATE=1 EMAIL_PRIORITY=no <- only send SET_EMAIL_TEMPLATE 1 and use normal priority (EMAIL_PRIORITY=no)
+
+- When running anything in owtf it may happen that you would like to stop the current exploit/bruteforce/etc and would like to move on to the next try. It is also possible that you just want to stop the test completely. You can do all this via Control+C. When you do that a message like this will show, just choose want you want to do:
+
+[*] The Command was aborted by the user: Please check the report and plugin output files
+Options: 'e'+Enter= Exit, 'p'+Enter= Move on to next plugin, Enter= Next test
+

@@ -1,0 +1,142 @@
+19/01/2012 - 0.11 "Vienna" pre-alpha release: Dedicated with special love to BSides Vienna, its organisers and attendants
+ + Significant report improvements
+ + OWTF will now only execute external plugins once regardless of the number of targets (it was 1 x num_targets before, way slower)
+ + Host names are now retrieved properly from python via import socket + socket.gethostbyname -> i.e. cannot use dns/host when /etc/hosts is required in a pen test (Bug report credit: Sandro Gauci)
+ + Fixed licence to more accurately match 3-clause-BSD (the intended licence :))
+ + Created initial FAQ based on actual feedback/questions
+ + Added new grep + external plugins for HTML5 Cross Origin Resource Sharing (CORS) (OWTF-WGP-002) - Thanks to Krzyzstof Kotowicz for answering my questions + great PoCs :)
+ + Added links to interesting resources for manual exploitation, etc on the external CORS plugin (Thanks to Krzysztof Kotowicz)
+ + Added links to interesting resources for manual exploitation, etc on the external Cross Site Flashing plugin (Thanks to Krzysztof Kotowicz, Michele Orru, Mario Heiderich)
+ + Tweaked cross site flashing passive plugin (google hacking searches) to also search for Silverlight's stuff: clientaccesspolicy.xml, .xap and .scr files 
+ + Tweaked cross site flashing semi passive plugin to also try to get the clientaccesspolicy.xml file (Silverlight's equivalent to crossdomain.xml)
+ + Tweaked regexps for Application Configuration Management (OWASP-CM-004) to reduce false positives
+ + Added regexps to Application Configuration Management (OWASP-CM-004) to search for PHP+ASP source code disclosure too
+ + Added resources (Nicolas Gregoire's XLT wiki) to XML Injection external plugin (to assist with manual exploitation)
+ + Added Nicolas Gregoire's HTTP-Traceroute.py reverse proxy check script to tools/discovery/web/rev_proxy (Thanks to Nicolas for allowing direct redistribution with OWTF!)
+   Added a GET and TRACE reverse proxy checks using HTTP-Traceroute.py to: Infrastructure Configuration Management (OWASP-CM-003) - with WAF and Load Balancer checks - 
+   Link for background: http://www.agarri.fr/kom/archives/2011/11/12/traceroute-like_http_scanner/index.html
+ + Bug fix: owtf.py -l net (also owtf.py -g net) would crash because there are no net plugins yet: An error message explaining this is now shown instead (Bug report credit: am06, Michele Orru)
+ + Bug fix: semi_passive/Testing_for_Cross_site_flashing@OWASP-DV-004.py does no longer show duplicates + minor plugin clean-up
+ + Bug fix: Fixed some issues on Transaction DB comparisons that resulted in the Cache not working right
+ + Modified web/passive/Spiders_Robots_and_Crawlers\@OWASP-IG-001.py to directly submit the form on tool.motoricerca.info (because it does not work via link, uses POST only)
+ + Added Start, End and Runtime fields to Plugin Register + Modified report to display the Start + End Date/Time for each plugin (potentially useful to correlate log events)
+ + Added http://statsie.com passive analysis link (on Passive Search Engine Discovery)
+ + Created a configuration health-check module by massive popular demand :). When OWTF starts it will now warn you when tools are missing and suggest how to fix it.
+ + Created initial rudimentary owtf_dir/tools/bt5_install.sh script (incomplete, but getting there) to download tools missing or unreliable in Backtrack 5
+ + Updated install script (owtf_dir/install/bt5_install.sh) + /profiles/general/default.cfg to include the latest Arachni version (v0.4.0.2) and verified it works
+ + Experimental: Created a Command Register (owtf_review/db/command_register.txt) where information on all commands run is stored:
+   - Start+End Date/Time, Runtime, Status (Finished/Cancelled), Actual command run, Command without plugin output info (needed internally for the framework)
+   - Purpose 1: Avoid running the same command several times, very useful when you have several domain.com targets. A message like "command already run for target X" appears
+   - Purpose 2: Simple date and time correlation becomes possible: Useful for debugging and IDS testing (which exploit worked? what command brought the server down?, etc)
+   - Purpose 3: It is simply nice to have a log of every command that was run, and questions like "what tools did you run and how?" become easier to answer
+ + Added link to Gareth Heyes' awesome http://shazzer.co.uk project to assist with manual XSS exploitation
+ + Added Command execution start date/time information on the screen so that the pen tester can make a better decision (wait/stop it)
+ + Experimental: Created a redirect detection mechanism so that it is more intuitive to realise when all URLs are being redirected (i.e. blanket redirect from port 80 to 443)
+   - Status will be marked as "302 Found": Instead of the previous "200 OK", which did not reflect the redirect (not ideal but better than 200)
+   - URL will be set as the redirected URL: This way it is more obvious if the target is http:// but the transaction log is all https://, that there is a blanket redirect
+   - Known issue: The scope can be wrong if the redirect is performed to outside of the target URL, need to work more on this
+
+ + Experimental: If the user supplies only domain names, the scope expands to https + http for each domain
+ + Experimental: If a passed URL cannot be reached it is removed from the report (assumed it does not exist) -> useful for huge scopes!
+
+06/01/2012 - 0.10 "Berlin" pre-alpha release
+ + Thanks to Mario Heiderich for the sample attack vectors and Selenium research for IDS testing (used by the selenium aux plugin)
+ + Passive Plugins will now be run even if the target IP is internal because passive plugins now also make suggestions (i.e. potentially useful commands)
+ + Changed blue navigation arrows to + and - gray icons courtesy of http://www.app-bits.com/free-icons.html. plus/minus suggested as more intuitive (Idea Credit: Sandro Gauci)
+ + Changed text color to be darker for higher contrast and easier reading :) (Idea Credit: Sandro Gauci)
+ + Implemented dynamic counters beside each filter for a quick visual overview and know where data is (with colours too :)) + All icons are now configurable
+ + Bug fix: Comments where not being populated back upon screen reload
+ + Removed matches table (redundant now because of the counters) and added mechanism to highlight enabled filter icon with blue background: More intuitive, I think
+ + Several UI rearrangements to improve navigation and intuitiveness
+ + Implemented new CLI option for algorithm: breadth (default): runs each plugin against all targets first. And depth runs all plugins against each target first
+ + Massive refactoring/rewrite of significant portions of the framework to support: algorithm, multi-host targets, future net plugins, etc
+ + Changed Config to transparently handle multi-target configurations (i.e. self.Core.Config.Get('x') --> 'x' is relevant for the current target)
+ + Changed Config to transparently handle multi-target replacements (i.e. self.Core.Config.GetReplacementDict() --> Returns PLACE_HOLDER => VALUE pairs relevant for target)
+ + Serious refactoring to dynamically load plugins and plugin types from the file system along with a description of what they do
+ + Significant DB refactoring to accomodate to the new multi-host/multi-db problem, created plugin register db and improved DB simulation mode without touching disk
+ + Bug fix: New Plugin highlighting upon screen refresh is now working again
+ + robots.txt analysis: Added resource: http://tool.motoricerca.info/robots-checker.phtml + changed proxy from hexilion to anonymouse.org + passive robots.txt plugin clean-up
+ + Bug fix: Fixed an issue that resulted in many broken report links
+ + Significant reporting improvements, including Summary report counters working, etc
+ + Transaction Log DB handling improvements and clean up
+ + Added "external" plugins so that the pen tester has a way to write down information relevant to external tools and/or manual testing. Will have helpful info in the future.
+ + Added initial SSI grep plugin
+ + Added OWASP Codes to the detailed report
+ + Many more bugs were also fixed ..
+
+01/12/2011 - 0.07 pre-alpha release
+ + Fixed bug in spider plugin: Counter incorrect
+ + Cache Control Meta tags search added to grep plugin: Logout and Browser Cache Management (OWASP-AT-007)
+ + New plugins: autocomplete, cross site flashing
+ + Report navigation improved
+ + Added option to "Mark as Reviewed", "Mark as NOT Reviewed", "Clear Review", "Clear Review Storage" for more efficient review
+ + Reviewed items are stricken-through, so it's easy to see what has not been reviewed yet
+ + New plugin results are highlighted in white blackground, so that it is easy for the tester to identify what's new
+ + Made seed shorter and flipped top table to be horizontal and take a lot less space off the screen
+ + To the right of OWASP Index Item: Removed toggle + moved "show" and "hide" beside plugin tabs, refactor into tabcreator
+ + Added basic CSRF grep plugin that looks for hidden fields (in the hope that token will/will not be found)
+ + Added basic SQLi google-hacking passive plugin
+ + Added DoS grep plugin (show top 10 slowest queries and suggest to view log)
+ + Cleared up the HTTP Transactions table: Removed redundant links + Added link to transaction log
+ + Added new plugin for Credentials_transport_over_an_encrypted_channel
+ + Lots of UI improvements to use screen space better: Now Review, History, Logs, etc have their own tabs
+ + Tried to use cool jquery icons but failed miserably: They are displayed but background sucks need a web designer :)
+ + Had the bright idea of changing the naming convention, which broke everything for 1day+
+ + Bug fix: All URLs where being logged instead of only the valid ones
+ + Bug fix: DoS testing was taking into account transactions out of scope
+ + Bug fix: DoS plugin (and DB transaction manager) crashed when transaction DB empty
+ + Moved DirBuster to its own plugin: Old, Backup and Unreferenced Files (OWASP-CM-006)
+ + Moved each scanner to its own plugin for ease of review and flexibility (i.e. I want to run X but not Y, etc): arachni, wapiti, w3af, etc now have their own plugins
+ + Bug fix: Added check on plugin handler so that grep plugins are skipped when Transaction DB is empty (Grep plugins grep the DB so no DB = fail)
+ + Bug fix: Vuln search box was broken due to jquery port changes
+ + Added check so that passive plugins are not run if the target ip is an RFC1918 address (aka "private" or "LAN" address)
+ + Added passive Testing for Admin Interfaces (OWASP-CM-007)
+ + Split URL DB into "potential URL" (maybe third-party tool false positive) and "URL" (vetted) DBs -> potential URLs to be checked by spider plugins
+ + Improved Extract URLs mechanism to Visit links (adding to DB, which helps grep plugins) if >= 1 active plugin enabled + associated bugfixes, UI and timing improvements
+ + Improved log UI to indicate if there are error messages or not without having to click the button + Significant Log UI navigation improvements
+ + Implemented persistence via localStorage, serious JavaScript refactoring: Now there is a single Review JSON object, code simplified a lot
+ + Made the choice between localStorage and sessvars configurable so that the user can choose and use some form of persistance (sessvars) even on old browsers.
+ + Because of above 2 lines the Storage has been abstracted into separate libraries: the abstraction (sessvars or localStorage) is loaded depending on configuration setting
+ + Implemented ability to add notes to the results of each plugin, this is saved in the JavaScript storage as well
+ + Added a Filter tab at the top that includes the icons available to review each plugin and allows filtering by flag, by comments present, striken-through, etc
+ + Fixed lots of bugs in filter above, added "review size" and "total size" columns to top table for visibility of memory in use, the columns are updated on the fly
+ + Added a hidden token div inside plugin reports so that the report can detect whether a plugin's content has changed or not: If changed highlight tab background to white
+ + Added a counter to the filter so that the user has visibility about how many plugins matched the filter (handy to find bugs too)
+ + Made rating flags configurable: the user can now choose which flag icons they wish to view on the screen (i.e. only low, medium and high icons, etc)
+ + Added a new Grep plugin based on URL classification for "Old Backup and Unreferenced Files (OWASP-CM-006)"
+ + Bug fix: the grep plugin for "Old Backup and Unreferenced Files (OWASP-CM-006)" was showing URLs with 404 responses
+ + Bug fix: Solved a storage capacity calculation issue when sessvars was chosen as the JavaScript storage
+ + Installed the latest stable whatweb version, which fixed some issues after updating BT5 R1
+ + Enabled filter on load: Refreshing the report will now 1) Click on the Filter tab + 2) Click on the "show completed plugins only" filter => Showing only available info
+ + Bug fix: The unique html counter db was being corrupted under special circumstances (6+ multi-runs)
+ + Moved suggested commands from active fingerprint to passive: They are only suggested. Also created powerful primitive to suggest commands more efficiently
+ + Bug fix: Spider was using the previous DB instead of the one for scraped/potential URLs
+ + Bug fix/Enhancement: Serious improvements to CMS Explorer import dictionaries script: Dictionaries are now converted into DirBuster format and CMS-specific
+ + After above, created new configuration lines for CMS-specific dictionaries: all, wordpress all, wordpress plugins, etc from the DirBuster format import (thx CMS Explorer).
+
+18/11/2011 - 0.04 pre-alpha release - Lots of improvements, widely unpublished
+ + Re-architecture to simplify code a bit more (general clean-up)
+ + Lots of bug fixes
+ + Implemented (hopefully) robust error/exception handling that facilitates bug reporting and tries to save as much partial data as possible for the user when a crash happens
+ + Implemented new HTTP method support in reporter module (HEAD, OPTIONS, TRACE, DEBUG and PUT -PUT still buggy-)
+ + Improved DB format and implemented a few caching functions to speed the framework
+ + Implemented naming convention to distinguish scope from external DB transactions
+ + Implemented logging of transaction parts separately as well as in full: 4 files saved per transaction -> full, request, resp. headers and resp. body
+ + Created new Reporting functions to show Transactions as tables easily from plugins (reporter.py: DrawHTTPTransactionTable and relatives)
+ + Created new mRandom module to build random strings on the fly
+ + Centralised helper functions into a single library called general.py (will consider separating when there are more functions)
+ + Improved Transaction log and main report significantly and started to customise CSS a bit
+ + Main config.cfg split into framework_config.cfg and user_config.cfg to keep settings separate, the framework loads all settings on the Config object
+ + Added outbound proxy support for owtf requests only and a proxy check on start-up
+ + Serious refactoring of database and related fixes elsewhere in the framework: Now broken down into: db, url_manager, transaction_manager and run_manager
+ + Moved plugin_handler and plugin_helper into a plugin module (aka "directory")
+ + Significant improvements in Header Analysis and Reporting
+ + Lots of error handling bug fixes
+ + Moved transaction.py and requester.py into a http module (aka "directory")
+ + Added handy links section to report at the top: OWASP Testing Guide, CVSS advanced calculator, Hackvertor, etc
+ + Changed grep plugin behaviour: Grep plugins will automatically be run after semi_passive and then again after active plugins run + always overwritten
+ + Built reusable response pattern matching primitives
+ + Fixed nasty run DB data corruption bug (only happened on the first 2 runs)
+ + Added autocomplete plugin that looks for password fields
+
+01/11/2011 - 0.01 pre-alpha release - Basic proof of concept, widely unpublished :)

