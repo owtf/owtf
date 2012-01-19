@@ -1,0 +1,16 @@
+?sqli0=" OR 1=1#
+?sqli1=; DROP table Users --
+?sqli2=/**/S/**/E/**/L/**/E/**/C/**/T * FROM users WHERE 1 = 1
+?sqli3=admin\'--
+?sqli4=SELECT /*!32302 1/0, */ 1 FROM tablename
+?sqli5=10;DROP members --
+?sqli6= SELECT IF(1=1,\'true\',\'false\')
+?sqli7=SELECT CHAR(0x66)
+?sqli8=SELECT LOAD_FILE(0x633A5C626F6F742E696E69)
+?sqli9= EXEC(@stored_proc @param)
+?sqlia= chr(11)||chr(12)||char(13)
+?sqlib=MERGE INTO bonuses B USING (SELECT
+?sqlic=1 or name like \'%\'
+?sqlid=1 OR \'1\'!=0
+?sqlie=1 OR ASCII(2) = ASCII(2)
+?sqlif=1 OR+(1)=(1)

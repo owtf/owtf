@@ -1,0 +1,59 @@
+IMPORTANT NOTE: The documentation below is obsolete now but will help you get an idea
+Config files are now under ..../owtf/profiles
+Plugins have an additional "Plugin Group" directory before: i.e. "plugins/web/active" instead of "plugins/active"
+Documentation contributions welcome!
+
+
+How to write a new plugin
+-------------------------
+Step 1 - Think about the plugin category first: Is it active (sends "attack" traffic to target, i.e. SQL injection test), semi_passive (sends "normal" traffic to target, i.e. http://target.com/) or passive (does not send any traffic to target, i.e. Google search--> site:target.com)?
+Step 2 - Create the plugin on the correct plugin category directory inside plugins/ (i.e. plugins/active/ directory)
+Step 3 - Copy a short plugin from the same category and use it as a template
+Step 4 - Name your plugin following the convention of the other plugins: Plugin_Name@Code.py
+Step 5 - Write the plugin (see Basic plugin guide and Framework API instructions below)
+Step 6 - Register the plugin in plugin_order.cfg, this configuration file defines the order in which plugins will be run, if your plugin is fast it's ok to have it at the front but if it is slow please consider puting it at the end
+
+Basic plugin guide
+-------------------------------
+You are not limited to python: You can write code in any language the Linux shell can run (python, perl, bash, php, C, java, whatever)
+
+1st: Define the command on resources.cfg
+Example:
+ActiveHTTPMethods_____curl TRACE Check_____curl -i -A '@@@USER_AGENT@@@' -H 'Host: @@@HOST_NAME@@@' -X 'TRACE' -k @@@TARGET_URL@@@
+
+2nd: Call it via DrawCommandDump: 
+create plugin file: active/HTTP_Methods_and_XST@OWASP-CM-008.py
+Simplest plugin code to call your code example:
+def run(Core, PluginInfo):
+        return Core.mPluginHelper.DrawCommandDump('Test Command', 'Output', Core.mConfig.GetResources('ActiveHTTPMethods'), PluginInfo, "Previous plugin content or whatever you would like to have displayed before your command is run in the report")
+
+Notes: 
+- The framework will replace the @@@WHATEVER@@@ placeholders with the relevant information
+- If your tool/command crashes the framework will not crash and the error will be displayed both in the console and the report
+- By default, only the first 25 lines will be displayed on the report, with a link to the full text dump of information your tool/command produced on a separate file. You can alter this setting by passing i.e. 30 as an additional parameter to DrawCommandDump IF YOU REALLY NEED TO
+- If the user does Control + C while your command is running, the partial output until that point will be saved by the framework
+- By default (i.e. unless you cd to somewhere else) the framework will run the command from the plugin output directory, if your tool/command requires to be run from a different directory you can "cd wherever ; call_my_tool ###PLUGIN_OUTPUT_DIR###". ###PLUGIN_OUTPUT_DIR### is a special place holder that is modified on the fly whenever a new plugin runs, you can pass that as an argument to your tool so that you can still save your output (html or whatever) on the right directory. These files can be browsed from the DrawCommandDump output at the top of execution in the report "Browse Plugin output files"
+
+Framework API
+-------------
++ resources.cfg
+This configuration file is at the core of the framework and defines how to build links or run commands.
+
+Example:
+ActiveHTTPMethods_____curl TRACE Check_____curl -i -A '@@@USER_AGENT@@@' -H 'Host: @@@HOST_NAME@@@' -X 'TRACE' -k @@@TARGET_URL@@@
+
+From the example above the format breakdown is as follows:
+Resource Group: ActiveHTTPMethods
+Resource Name: curl TRACE Check
+Command or Link: curl -i -A '@@@USER_AGENT@@@' -H 'Host: @@@HOST_NAME@@@' -X 'TRACE' -k @@@TARGET_URL@@@
+
++ Core.mPluginHelper.DrawCommandDump
+
+Example:
+       PreviousContent = "This is a test"
+       Content += Core.mPluginHelper.DrawCommandDump('Test Command', 'Output', Core.mConfig.GetResources('ActiveHTTPMethods'), PluginInfo, PreviousContent)
+
+Description:
+The best way to call DrawCommandDump is by defining a number of resources with the same resource group on resources.cfg first
+
+
