@@ -307,12 +307,22 @@ class Config:
 
         def GetIPFromHostname(self, hostname):
                 ip = ''
-                if len(hostname.split('.')) == 4:
-                        ip=hostname #hostname = IPv4 address
-                elif len(hostname.split(':')) == 4:
-                        ip=hostname #hostname = IPv6 address
-                else: #Try to resolve address (IPv4 only!)
-			ip = socket.gethostbyname(hostname)
+                try:
+                    socket.inet_pton(socket.AF_INET, hostname)
+                    ip = hostname
+                except socket.error:
+                    # Check if it's an IPv6 address - not optimal
+                    # may be better to regex for : and decide
+                    # up front whether to check with AF_INET or AF_INET6
+                    try:
+                        socket.inet_pton(socket.AF_INET6, ip)
+                        ip = hostname
+                    except socket.error:
+                        # ideally we would not double up on this - wicky
+                        ip = socket.gethostbyname(hostname)
+                else:
+                    ip = socket.gethostbyname(hostname)
+
                         #ip=self.Core.Shell.shell_exec('host '+hostname+'|grep "has address"|cut -f4 -d" "')
 		ipchunks = ip.strip().split("\n")
 		AlternativeIPs = []
