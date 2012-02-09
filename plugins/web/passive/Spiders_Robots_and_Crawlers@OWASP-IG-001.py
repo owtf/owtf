@@ -26,20 +26,13 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
-import urllib2
-import re, cgi
-
-DESCRIPTION = "robots.txt analysis through third party site"
+DESCRIPTION = "robots.txt analysis through third party sites"
 
 def run(Core, PluginInfo):
 	TestResult = ''
 	Count = 1
-	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveRobotsAnalysisLinks'))
-	#Lame attempt to make the request via POST:
-	Request = Core.Config.GetResources('PassiveRobotsAnalysis')[0]
-	URL, POST = Request[1].split('###POST###')
-	Transaction = Core.Requester.GetTransaction(True, URL, 'POST', POST.strip())
-	Content += '<table width="100%" height="100%" border="0">'+Transaction.GetRawResponseBody()+'</table>' # I know, bad bad, need a workaround ..
+	Content = Core.PluginHelper.RequestAndDrawLinkList('Passive Analysis Results', Core.Config.GetResources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
+	Content += Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveRobotsAnalysisLinks'))
 	for Name, Resource in Core.Config.GetResources('PassiveRobots'): # Try to retrieve the robots.txt file from all defined resources
 		URL = Resource # Just for clarity
 		LinkStart, LinkFinish = URL.split('/robots.txt') # Preparing link chunks for disallowed entries

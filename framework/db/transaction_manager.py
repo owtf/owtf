@@ -287,4 +287,3 @@ $(document).ready(function() {
 			return [ Command, RegexpName, Matches ] # Return All matches and the file they were retrieved from
 		else: # wtf?
 			raise PluginAbortException("ERROR: Inforrect Configuration setting for Response Regexp: '"+str(ResponseRegexp)+"'")
-

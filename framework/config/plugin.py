@@ -46,7 +46,7 @@ class PluginConfig:
                 PluginTypes = []
                 for PluginType, Plugins in self.AllPlugins[PluginGroup].items():
                         PluginTypes.append(PluginType)
-                return PluginTypes
+                return sorted(PluginTypes) # Return list in alphabetical order
 
         def GetAllTypes(self):
                 AllPluginTypes = []
