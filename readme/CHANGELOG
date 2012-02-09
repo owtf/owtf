@@ -1,3 +1,59 @@
+10/02/2012 - 0.12 "Wicky" pre-alpha release: Dedicated to @marcwickenden for sending the first pull request!
+ + Merged pull request with IPv6 support and proper IP validation from @marcwickenden thanks!
+ + Added graceful framework abort when a hostname cannot be resolved (instead of python trace mess)
+ + Added Hurricane Electric passive recon link to discovery plugin (Thanks to Chris John Riley)
+ + Bug fix in plugin_handler.py and plugin_register.py to set a Start, RunTime and End date for external plugins that have been already run but require to be registered against a target to report display purposes. Only happened in separate iterations.
+ + Added a Sanitiser module to solve the "embedding untrusted HTML" issue, when POST is the only way to query a third party site. The filter is public and you are encouraged to break it :). An improved filter will be published shortly after each new public bypass. 
+   REMARKS: 
+   - Thank you very much to everybody that took the time to try to break the HTML filter!
+   - Congratulations + props to the successful breakers before this release: Mario Heiderich, @notracecc, @dreyercito
+   - If you did not try to break the filter, what are you waiting for? :)
+   - The challenge will run indefinitely and is available here: http://blog.7-a.org/2012/01/embedding-untrusted-html-xss-challenge.html
+ + Clean-up of passive robots.txt plugin to sanitise embedded HTML (via module above) + move this to an external file
+ + plugin_helper.py clean-up for flexibility, readability and code reuse around transparent filtering and sandboxing of embedded third-party HTML (related to above)
+ + When embedding HTML from a third party site OWTF will:
+     1) Filter the HTML using the Sanitiser module above
+     2) Save the filtered output to a file
+     3) Create a separate file that embeds the filtered output inside a sanboxed iframe (just in case an unpublished bypass whatever ;))
+     4) The OWTF report provides a link to the sanboxed file only
+     5) Both the sandboxed + non-sandboxed files are saved to another directory = they cannot access HTML 5 localstorage (where your review is), at least in Firefox 8
+ + Fixed minor but annoying bug whereby the filter was not showing up when the detailed report was collapsed, so detailed report totals were not being shown
+ + Added a more links to assist manual XSS exploitation: http://www.bindshell.net/tools/beef, http://xss-proxy.sourceforge.net/, http://www.gnucitizen.org/projects/backframe/
+ + Integration with CKEditor (http://ckeditor.com/):
+   1) Notes now have a full blown WYSIWYG editor -their permissive licensing allows redistribution, thank you!-
+   2) Above means you can now take notes with fancy formatting: tables, links, bullet points, font format, size, style, etc (useful for exploit/PoC links, etc)
+   3) The OWTF review works as usual but the notes are now saved with their formatting (HTML instead of plain text)
+   4) OWTF will show an automated preview on top of the editor, this is always displayed, which makes it more intuitive to see if there are notes present for a plugin
+   5) OWTF will also automatically save these formatted notes in the review for resilience: Even if your browser crashes or is closed by mistake you keep what you typed
+   6) The OWTF notes preview also modify links so that they are displayed on a new tab (most useful option and consistent with other links in the report)
+   7) OWTF will create/destroy CKEditor instances as follows: 1st lightbulb click: create, 2nd click: destroy = report is more lightweight, loads faster, etc
+   8) OWTF will destroy all plugin editors when a new one is created: This ensures only resources for a single editor are used at any point in time (report = lightweight)
+ + Bug fix: Changing the detailed report iframe size via onload event was messy: Now the iframe is created directly using the initial height defined on: COLLAPSED_REPORT_SIZE
+ + Enhancement: Added new review icons to be able to flag certain special cases. Icons can be removed on: profiles/general/default.cfg
+   1) LadyBug: Flag functional and/or business logic bugs (it's up to you how you interpret this, as usual)
+   2) Empty Star: To flag you had a brief look (already saw it) but no real analysis was done
+   3) Half Star: To flag you had an initial look but need to investigate more to be able to rate the output
+ + Created an initial help file that is linked to from the OWTF report via question mark icons
+ + Some clean-up around review icons code in the report a bit less messy now :P
+ + Plugin Review Icons are now highlighted like filters when the user clicks on them as well as when the report loads: More intuitive
+ + Multiple bug fixes around Import/Export Review from Summary report (Import was not working at all and other similar problems)
+ + Multiple space and colour optimisations in the report
+ + An initial Summary Report filter has been implemented, this triggers the same filter on all children iframes, resizing them, etc
+ + Added unit tests to allow more efficient testing of the Sanitiser module (i.e. test quickly all previous bypasses against new filter)
+ + Made the Sanitiser module a bit smarter so that:
+     1) It can be called from the framework: When this happens no tests are run, but all functionality is callable by the framework
+     2) It can be called from the commandline: When this happens the Sanitiser expects HTML on stdin (i.e. cat input.txt | sanitiser.py)
+     NOTE: I noticed it was handier to read from stdin (instead of a hard-coded file) so that I can regression test new filters faster
+ + Significant report memory usage improvements (single review object shared for all reports, it was num_targets x review + 1 before)
+ + Significant report performance improvements:
+     1) When the report loads for the first time, counters and colours are calculated and stored in localstorage
+     2) Counters will only be updated when the user rates plugins from then on
+     3) When the report loads again counters are not calculated (as previously= this was slow), instead they are read from localStorage
+ + Lots of small report tweaks to improve navigability, general usability and appearance
+ + Added rudimentary reporting functionality via magic bar: Builds a basic report for ease of copy-paste in your reporting
+ + Refactored owtf.js into smaller files: owtf_general.js, owtf_review.js, owtf_filter.js and owtf_reporting.js
+ + Reorganised dictionaries and tools into "restricted" (i.e. licensing) directories so that they are not committed by mistake to github
+
 19/01/2012 - 0.11 "Vienna" pre-alpha release: Dedicated with special love to BSides Vienna, its organisers and attendants
  + Significant report improvements
  + OWTF will now only execute external plugins once regardless of the number of targets (it was 1 x num_targets before, way slower)

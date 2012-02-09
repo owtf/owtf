@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 # Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -22,6 +22,16 @@
 # DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 # (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 #
+
+echo "Install lxml? [y/n]"
+echo "Tip for Ubuntu courtesy of Mario Heiderich: Python2.7-dev is needed to compile this lib properly"
+echo "See also: http://lxml.de/installation.html"
+read a
+if [ "$a" == "y" ]; then
+	cmd="/usr/bin/easy_install --allow-hosts=lxml.de,*.python.org lxml"
+	echo "[*] Running: $cmd"
+	/usr/bin/easy_install --allow-hosts=lxml.de,*.python.org lxml
+fi
 
 echo "Upgrade Backtrack/Ubuntu? [y/n]"
 read a

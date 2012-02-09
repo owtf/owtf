@@ -1,0 +1,1 @@
+<a href='feed:data:x,123456'>Click</a>

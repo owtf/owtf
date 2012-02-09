@@ -305,39 +305,29 @@ class Config:
         def IsHostNameNOTIP(self):
                 return self.Get('HOST_NAME') != self.Get('HOST_IP') # Host
 
-        def GetIPFromHostname(self, hostname):
-                ip = ''
-                try:
-                    socket.inet_pton(socket.AF_INET, hostname)
-                    ip = hostname
-                except socket.error:
-                    # Check if it's an IPv6 address - not optimal
-                    # may be better to regex for : and decide
-                    # up front whether to check with AF_INET or AF_INET6
-                    try:
-                        socket.inet_pton(socket.AF_INET6, ip)
-                        ip = hostname
-                    except socket.error:
-                        # ideally we would not double up on this - wicky
-                        ip = socket.gethostbyname(hostname)
-                else:
-                    ip = socket.gethostbyname(hostname)
-
-                        #ip=self.Core.Shell.shell_exec('host '+hostname+'|grep "has address"|cut -f4 -d" "')
-		ipchunks = ip.strip().split("\n")
+        def GetIPFromHostname(self, Hostname):
+                IP = ''
+		for Socket in [ socket.AF_INET, socket.AF_INET6 ]: # IP validation based on @marcwickenden's pull request, thanks!
+			try:
+				socket.inet_pton(Socket, Hostname)
+				IP = Hostname
+				break
+			except socket.error: continue
+		if not IP:
+			try: IP = socket.gethostbyname(Hostname)
+			except socket.gaierror: self.Core.Error.FrameworkAbort("Cannot resolve Hostname: "+Hostname)
+                        	
+		ipchunks = IP.strip().split("\n")
 		AlternativeIPs = []
 		if len(ipchunks) > 1:
-			ip = ipchunks[0]
-			cprint(hostname+" has several IP addresses: ("+", ".join(ipchunks)[0:-3]+"). Choosing first: "+ip+"")
+			IP = ipchunks[0]
+			cprint(Hostname+" has several IP addresses: ("+", ".join(ipchunks)[0:-3]+"). Choosing first: "+IP+"")
 			AlternativeIPs = ipchunks[1:]
 		self.Set('ALTERNATIVE_IPS', AlternativeIPs)
-                ip = ip.strip()
-		if len(ip.split('.')) != 4: # TODO: Add IPv6 support!
-			self.Core.Error.FrameworkAbort("Cannot resolve hostname: "+hostname)
-		# Good IPv4 IP
-		self.Set('INTERNAL_IP', self.Core.IsIPInternal(ip))
-		cprint("The IP address for "+hostname+" is: '"+ip+"'")
-		return ip
+                IP = IP.strip()
+		self.Set('INTERNAL_IP', self.Core.IsIPInternal(IP))
+		cprint("The IP address for "+Hostname+" is: '"+IP+"'")
+		return IP
 
 	def GetAll(self, Key): # Retrieves a config setting value on all target configurations
 		Matches = []

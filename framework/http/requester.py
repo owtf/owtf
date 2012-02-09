@@ -128,7 +128,7 @@ class Requester:
 		Dict = defaultdict(list)
 		Count = 0
 		PrevItem = ''
-		for Item in String.split('='):
+		for Item in String.strip().split('='):
 			if Count % 2 == 1: # Key
 				Dict[PrevItem] = Item
 			else: # Value

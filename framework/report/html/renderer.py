@@ -64,7 +64,7 @@ class HTMLRenderer:
 	def GetAttribsAsStr(self, Attribs = {}):
 		AttribStr = ""
 		for Attrib, Value in Attribs.items():
-			AttribStr += " "+Attrib+'="'+Value+'"'
+			AttribStr += " "+Attrib+'="'+cgi.escape(Value)+'"'
 		return AttribStr
 
 	def DrawImage(self, FileName, Attribs = {}):
@@ -118,3 +118,19 @@ class HTMLRenderer:
 	def DrawButton(self, Name, JavaScript):
 		return '<button onclick="javascript:'+JavaScript+'">'+Name+'</button>'
 
+	def DrawDiv(self, Content, Attribs = {}):
+		return "<div"+self.GetAttribsAsStr(Attribs)+">" + Content + "</div>"
+
+	def DrawOption(self, Descrip, Attribs):
+		return "<option"+self.GetAttribsAsStr(Attribs)+">" + cgi.escape(Descrip) + "</div>"
+
+	def DrawSelect(self, Data, SelectedValueList, Attribs = {}):
+		#multiple, size, autocomplete, disabled, name, id
+		Options = []
+		for Value, Descrip in Data:
+			#Attribs = defaultdict(list)
+			OptionAttribs = { 'value' : Value }.copy()
+			if Value in SelectedValueList:
+				OptionAttribs['selected'] = ''
+			Options.append(self.DrawOption(Descrip, OptionAttribs))
+		return "<select"+self.GetAttribsAsStr(Attribs)+">" + ''.join(Options) + "</div>"

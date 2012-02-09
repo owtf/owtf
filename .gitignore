@@ -1,0 +1,9 @@
+# Compiled source and other garbage #
+#####################################
+*.pyc
+*.swp
+
+# Directories with potential license restrictions that prevent re-distribution #
+################################################################################
+dictionaries/restricted/*
+tools/restricted/*
