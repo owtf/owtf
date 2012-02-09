@@ -127,7 +127,7 @@ class TabCreator:
 		return "&nbsp;".join(self.Renderer.DrawLinkPairs( [ 
 [self.DrawImageFromConfigPair( [ 'FIXED_ICON_EXPAND_PLUGINS', 'NAV_TOOLTIP_EXPAND_PLUGINS' ]), self.ShowDivs()+self.UnhighlightTabs() ]
 , [self.DrawImageFromConfigPair( [ 'FIXED_ICON_CLOSE_PLUGINS', 'NAV_TOOLTIP_CLOSE_PLUGINS' ]), self.HideDivs()+self.UnhighlightTabs()] 
-], 'DrawButtonJSLink', { 'class' : 'icon' }))+self.Renderer.DrawButtonJSLink(self.DrawImageFromConfigPair( [ 'FIXED_ICON_INFO', 'FILTER_TOOLTIP_INFO_UNFILTER' ]), self.UnhighlightTabs()+'UnfilterBrotherTabs(this)', { 'class' : 'icon_unfilter', 'style' : 'display: none;' }) 
+], 'DrawButtonJSLink', { 'class' : 'icon' }))+self.Renderer.DrawButtonJSLink( '&nbsp;' + self.DrawImageFromConfigPair( [ 'FIXED_ICON_PLUGIN_INFO', 'FILTER_TOOLTIP_INFO_UNFILTER' ]), self.UnhighlightTabs()+'UnfilterBrotherTabs(this)', { 'class' : 'icon_unfilter', 'style' : 'display: none;' }) 
 		#return "&nbsp;".join(self.Renderer.DrawLinkPairs( [ ["<img src='images/arrow_down16x16.png' />", self.ShowDivs()+self.UnhighlightTabs() ], ["<img src='images/arrow_up16x16.png' />", self.HideDivs()+self.UnhighlightTabs()] ], 'DrawButtonJSLink', { 'class' : 'icon' }))
 
 	def RenderTabs(self, Attribs = {}):

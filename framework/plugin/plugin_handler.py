@@ -210,8 +210,6 @@ class PluginHandler:
 		return PluginDir+"/"+Plugin['Type']+"/"+Plugin['File'] # Path to run the plugin 
 
 	def RunPlugin(self, PluginDir, Plugin):
-		self.Core.Timer.StartTimer('Plugin') # Time how long it takes the plugin to execute
-		Plugin['Start'] = self.Core.Timer.GetStartDateTimeAsStr('Plugin')
 		PluginPath = self.GetPluginFullPath(PluginDir, Plugin)
 		(Path, Name) = os.path.split(PluginPath)
 		#(Name, Ext) = os.path.splitext(Name)
@@ -220,6 +218,8 @@ class PluginHandler:
 		self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
 
 	def ProcessPlugin(self, PluginDir, Plugin, Status):
+		self.Core.Timer.StartTimer('Plugin') # Time how long it takes the plugin to execute
+		Plugin['Start'] = self.Core.Timer.GetStartDateTimeAsStr('Plugin')
 		if not self.CanPluginRun(Plugin, True):
 			return None # Skip 
 		Status['AllSkipped'] = False # A plugin is going to be run

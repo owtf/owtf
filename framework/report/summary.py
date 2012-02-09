@@ -31,6 +31,7 @@ The reporter module is in charge of producing the HTML Report as well as provide
 import os, re, cgi
 from framework.lib.general import *
 from collections import defaultdict
+import json
 
 class Summary:
 	def __init__(self, Core):
@@ -72,23 +73,20 @@ class Summary:
 		IPs = []
 		for IP in self.GetSortedIPs():
 			IPs.append(self.RenderIP(IP))
-		return self.Core.Reporter.Render.DrawHTMLList(IPs)
+		return self.Core.Reporter.Render.DrawHTMLList(IPs, { 'class' : 'ip_list' } )
+
+	def RenderIPValue(self, IP):
+		return '<div id="' + cgi.escape(IP) + '">' + cgi.escape(IP) + '</div>'	
 
 	def RenderIP(self, IP):
 		Ports = []
 		for Port in self.GetSortedPorts(IP):
 			Ports.append(self.RenderPortInfo(IP, Port))
-		return IP + self.Core.Reporter.Render.DrawHTMLList(Ports)
+		return self.RenderIPValue(IP) + self.Core.Reporter.Render.DrawHTMLList(Ports, { 'class' : 'port_list' })
 
 	def CountPluginsFinished(self, ReviewOffset):
 		FinishedForOffset = len(self.Core.DB.PluginRegister.Search( { 'ReviewOffset' : ReviewOffset } ))
 		self.PluginsFinished.append( { 'Offset' : ReviewOffset, 'NumFinished' : FinishedForOffset } )
-
-	def RenderPluginCountersAsJSON(self):
-		Output = []
-		for Info in self.PluginsFinished:# Offset, NumFinished 
-			Output.append("'"+Info['Offset']+"' : '"+str(Info['NumFinished'])+"'")
-		return "{" + ", ".join(Output) + "}"
 
 	def IsOffsetUnReachable(self, ReviewOffset):
 		OffsetPlugins = self.Core.DB.PluginRegister.Search( { 'ReviewOffset' : ReviewOffset } )
@@ -97,6 +95,9 @@ class Summary:
 			#print "Target="+Target
 			return self.Core.IsTargetUnreachable(Target)
 		return False # Assume false until proven otherwise :P -must do this for passive testing + external plugins-
+
+	def DrawHiddenOffsetIPAndPort(self, ReviewOffset, IP, Port): # Pass IP and Port mapping to offset for code simplification in JS
+		return self.Core.Reporter.Render.DrawDiv(IP, { 'id' : 'ip_' + ReviewOffset, 'style' : 'display: none' })+self.Core.Reporter.Render.DrawDiv(Port, { 'id' : 'port_' + ReviewOffset, 'style' : 'display: none' })
 
 	def RenderPortInfo(self, IP, Port):
 		Offsets = []
@@ -107,8 +108,7 @@ class Summary:
 			#self.Core.IsTargetUnreachable()
 			ReportPath = self.Core.DB.ReportRegister.Search( { 'ReviewOffset' : ReviewOffset } )[0]['ReportPath']
 			#print "IP="+str(IP)+", Port="+str(Port)+" -> ReviewOffset="+str(ReviewOffset)+", ReportPath="+str(ReportPath)
-			#Offsets.append(self.Core.Reporter.Render.DrawButtonLink(ReviewOffset, self.Core.GetPartialPath(ReportPath), { 'target' : '' } )+self.Core.Reporter.DrawCounters(False, ReviewOffset)+self.Core.Reporter.Render.DrawiFrame( { 'src' : self.Core.GetPartialPath(ReportPath), 'width' : '100%', 'height' : '100%' }))
-			Offsets.append('<div style="display:none;">'+self.Core.Reporter.DrawCounters(False, ReviewOffset)+'</div><a name="anchor_'+ReviewOffset+'">'+self.Core.Reporter.Render.DrawiFrame( { 'id' : 'iframe_'+ReviewOffset, 'src' : self.Core.GetPartialPath(ReportPath), 'width' : '100%', 'height' : '100%', 'frameborder' : '0', 'style' : "overflow-y:auto; overflow-x:hidden;", 'onload' : "this.style.height='"+self.Core.Config.Get('COLLAPSED_REPORT_SIZE')+"';" })+"</a>")
+			Offsets.append('<a name="anchor_'+ReviewOffset+'">'+self.Core.Reporter.Render.DrawiFrame( { 'id' : 'iframe_'+ReviewOffset, 'src' : self.Core.GetPartialPath(ReportPath), 'width' : '100%', 'height' : self.Core.Config.Get('COLLAPSED_REPORT_SIZE'), 'frameborder' : '0', 'class' : 'iframe_collapsed' })+"</a>" + self.DrawHiddenOffsetIPAndPort(ReviewOffset, IP, Port))
 			self.CountPluginsFinished(ReviewOffset)
 			UnReachable = False
 			#Output += "IP="+IP+", Port="+Port+"->"+
@@ -116,8 +116,11 @@ class Summary:
 		if UnReachable:
 			Output = "&nbsp;" * 5 + "<strike>Port unreachable</strike>"
 		else:
-			Output = self.Core.Reporter.Render.DrawHTMLList(Offsets)
-		return Port + Output
+			Output = self.Core.Reporter.Render.DrawHTMLList(Offsets, { 'class' : 'review_offset_list' } )
+		return self.RenderPortValue(Port) + Output
+
+	def RenderPortValue(self, Port):
+		return '<div id="' + cgi.escape(Port) + '">' + cgi.escape(Port) + '</div>'	
 
 	def RenderAUX(self):
 		AuxSearch = self.Core.DB.ReportRegister.Search( { 'ReportType' : 'AUX' } )
@@ -139,8 +142,12 @@ class Summary:
 		HTML += """
 <script>
 var DetailedReport = false
-var PluginCounters = """+self.RenderPluginCountersAsJSON()+"""
 """+self.Core.Reporter.DrawJSCounterList()+"""
+var CollapsedReportSize = '"""+self.Core.Config.Get('COLLAPSED_REPORT_SIZE')+"""'
+var NetMap = """ + json.dumps(self.NetMap)+"""
+var PluginDelim = '""" + self.Core.Reporter.GetPluginDelim() + """'
+var SeverityWeightOrder = """ + self.Core.Reporter.Render.DrawJSArrayFromList(self.Core.Config.Get('SEVERITY_WEIGHT_ORDER').split(',')) + """
+var PassedTestIcons = """ + self.Core.Reporter.Render.DrawJSArrayFromList(self.Core.Config.Get('PASSED_TEST_ICONS').split(',')) + """
 </script>
 """
                 with open(self.Core.Config.Get('HTML_REPORT_PATH'), 'a') as file:

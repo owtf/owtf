@@ -53,21 +53,48 @@ class PluginHelper:
 
         def DrawResourceLinkList(self, ResourceListName, ResourceList): # Draws an HTML Search box for defined Vuln Search resources
                 LinkList = []
-                List = [] 
+                HTMLLinkList = [] 
                 for Name, Resource in ResourceList:
                         URL = MultipleReplace(Resource.strip(), self.Core.Config.GetReplacementDict()).replace('"', '%22')
-                        #URL = Resource.replace('@@@PLACE_HOLDER@@@', self.Core.Config.Get('HOST_NAME')).strip()
                         LinkList.append(URL)
 			cprint("Generating link for "+Name+"..") # Otherwise there would be a lovely python exception and we would not be here :)
-                        #List += '<li>'+self.Core.Reporter.Render.DrawButtonLink(Name, URL)+"</li>\n"
-                        List.append(self.Core.Reporter.Render.DrawButtonLink(Name, URL))
-                #List += '</ul>'
+                        HTMLLinkList.append(self.Core.Reporter.Render.DrawButtonLink(Name, URL))
+		return self.DrawListPostProcessing(ResourceListName, LinkList, HTMLLinkList)
+
+	def DrawListPostProcessing(self, ResourceListName, LinkList, HTMLLinkList):
                 Content = '<hr />'+ResourceListName+': '
                 if len(LinkList) > 1: # Open All In Tabs only makes sense if num items > 1
                         Content += self.Core.Reporter.Render.DrawButton('Open All In Tabs', "OpenAllInTabs(new Array('"+"','".join(LinkList)+"'))")
-                #Content += '<br /><ul>\n'+List
-		Content += self.Core.Reporter.Render.DrawHTMLList(List)
+		Content += self.Core.Reporter.Render.DrawHTMLList(HTMLLinkList)
                 return Content
+
+	def RequestAndDrawLinkList(self, ResourceListName, ResourceList, PluginInfo):
+	        #for Name, Resource in Core.Config.GetResources('PassiveRobotsAnalysisHTTPRequests'):
+                LinkList = []
+                HTMLLinkList = [] 
+	        for Name, Resource in ResourceList:
+			Chunks = Resource.split('###POST###')
+			URL = Chunks[0]
+			POST = None
+			Method = 'GET'
+			if len(Chunks) > 1: # POST
+				Method = 'POST'
+				POST = Chunks[1]
+	                Transaction = self.Core.Requester.GetTransaction(True, URL, Method, POST)
+			if Transaction.Found:
+				Path, HTMLLink = self.SaveSandboxedTransactionHTML(Name, Transaction, PluginInfo)
+				HTMLLinkList.append(HTMLLink)
+				LinkList.append(Path)
+		return self.DrawListPostProcessing(ResourceListName, LinkList, HTMLLinkList)
+
+	def SaveSandboxedTransactionHTML(self, Name, Transaction, PluginInfo): # 1st filters HTML, 2nd builds sandboxed iframe, 3rd give link to sandboxed content
+		RawHTML = Transaction.GetRawResponseBody()
+		#print "RawHTML="+RawHTML
+		FilteredHTML = self.Core.Reporter.Sanitiser.CleanThirdPartyHTML(RawHTML)
+		#print "FilteredHTML="+FilteredHTML
+		NotSandboxedPath, Discarded = self.DumpFile("NOT_SANDBOXED_"+Name+".html", FilteredHTML, PluginInfo, Name)
+		SandboxedPath, HTMLLink = self.DumpFile("SANDBOXED_"+Name+".html", self.Core.Reporter.Render.DrawiFrame( { 'src' : NotSandboxedPath.split('/')[-1], 'sandbox' : '',  'security' : 'restricted', 'width' : '100%', 'height' : '100%', 'frameborder' : '0', 'style' : "overflow-y:auto; overflow-x:hidden;" } ), PluginInfo, Name)
+		return [ SandboxedPath, HTMLLink ]
 
         def DrawVulnerabilitySearchBox(self, SearchStr): # Draws an HTML Search box for defined Vuln Search resources
                 ProductId = 'prod'+self.Core.DB.GetNextHTMLID() # Keep product id unique among different search boxes (so that Javascript works)
@@ -222,15 +249,15 @@ class PluginHelper:
 				raise FrameworkAbortException(PreviousOutput+Content)
                 return Content
 
-	def DumpFile(self, Filename, Contents, PluginInfo):
+	def DumpFile(self, Filename, Contents, PluginInfo, LinkName = ''):
                 save_path = self.Core.PluginHandler.DumpPluginFile(Filename, Contents, PluginInfo)
+		if not LinkName:
+			LinkName = save_path
 		cprint("File: "+Filename+" saved to: "+save_path)
-                return [ save_path, '<br />Saved to: '+self.Core.Reporter.Render.DrawButtonLink(save_path, save_path, {}, True) ]
+                return [ save_path, self.Core.Reporter.Render.DrawButtonLink(LinkName, save_path, {}, True) ]
 
-	def DumpFileGetLink(self, Filename, Contents, PluginInfo, LinkName):
-                save_path = self.Core.PluginHandler.DumpPluginFile(Filename, Contents, PluginInfo)
-		cprint("File: "+Filename+" saved to: "+save_path)
-                return self.Core.Reporter.Render.DrawButtonLink(LinkName, save_path, {}, True)
+	def DumpFileGetLink(self, Filename, Contents, PluginInfo, LinkName = ''):
+		return self.DumpFile(Filename, Contents, PluginInfo, LinkName)[0]
 
 	def AnalyseRobotsEntries(self, Contents): # Find the entries of each kind and count them
                 num_lines = len(Contents.split("\n")) # Total number of robots.txt entries

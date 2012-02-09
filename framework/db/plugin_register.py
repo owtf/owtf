@@ -34,15 +34,16 @@ from framework.lib.general import *
 # Start, End, Runtime, Command, LogStatus = self.Core.DB.DBCache['RUN_DB'][-1]#.split(" | ")
 CODE = 0
 TYPE = 1
-PATH = 2
-TARGET = 3 # The same plugin and type can be run against different targets, they should have different paths, but we need the target to get the right codes in the report
-ARGS = 4 # Auxiliary plugins have metasploit-like arguments
-REVIEW_OFFSET = 5
-START = 6
-END = 7
-RUNTIME = 8
+GROUP = 2 
+PATH = 3 
+TARGET = 4 # The same plugin and type can be run against different targets, they should have different paths, but we need the target to get the right codes in the report
+ARGS = 5 # Auxiliary plugins have metasploit-like arguments
+REVIEW_OFFSET = 6 
+START = 7 
+END = 8 
+RUNTIME = 9 
 
-NAME_TO_OFFSET = { 'Code' : CODE, 'Type' : TYPE, 'Path' : PATH, 'Target' : TARGET, 'Args' : ARGS, 'ReviewOffset' : REVIEW_OFFSET, 'Start' : START, 'End' : END, 'RunTime' : RUNTIME }
+NAME_TO_OFFSET = { 'Code' : CODE, 'Type' : TYPE, 'Group' : GROUP, 'Path' : PATH, 'Target' : TARGET, 'Args' : ARGS, 'ReviewOffset' : REVIEW_OFFSET, 'Start' : START, 'End' : END, 'RunTime' : RUNTIME }
 
 class PluginRegister:
 	def __init__(self, Core):
@@ -56,7 +57,10 @@ class PluginRegister:
 
 	def Add(self, Plugin, Path, Target): # Registers a Plugin/Path/Target combination only if not already registered
 		if not self.AlreadyRegistered(Plugin, Path, Target):
-			self.Core.DB.Add('PLUGIN_REPORT_REGISTER', [ Plugin['Code'], Plugin['Type'], Path, Target, Plugin['Args'], self.Core.Config.Get('REVIEW_OFFSET'), Plugin['Start'], Plugin['End'], Plugin['RunTime'] ] )
+			if 'RunTime' not in Plugin:
+				Plugin['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr('Plugin')
+				Plugin['End'] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
+			self.Core.DB.Add('PLUGIN_REPORT_REGISTER', [ Plugin['Code'], Plugin['Type'], Plugin['Group'], Path, Target, Plugin['Args'], self.Core.Config.Get('REVIEW_OFFSET'), Plugin['Start'], Plugin['End'], Plugin['RunTime'] ] )
 
 	def Search(self, Criteria):
 		return self.Core.DB.Search('PLUGIN_REPORT_REGISTER', Criteria, NAME_TO_OFFSET)

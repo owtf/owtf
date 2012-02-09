@@ -108,7 +108,7 @@ class Header:
 ], 'DrawButtonLink', {})
 
         def DrawFilters(self):
-		return self.Core.Reporter.DrawCounters(True)
+		return self.Core.Reporter.DrawCounters(self.ReportType)
 
         def AddMiscelaneousTabs(self, Tabs):
                 Tabs.AddCustomDiv('Miscelaneous:') # First create custom tab, without javascript
@@ -120,19 +120,11 @@ class Header:
         def DrawOWTFBox(self):
                 OWTF = self.Core.Reporter.Render.CreateTable( { 'class' : 'report_intro' } )
                 OWTF.CreateRow( [ 'Seed', 'Review Size', 'Total Size', 'Version', 'Site' ], True)
-                OWTF.CreateRow( [ '<span id="seed">'+self.Core.GetSeed()+'</span>', '<div id="js_db_size"></div>', '<div id="total_js_db_size"></div>', self.Version, self.Core.Reporter.Render.DrawButtonLink('owtf.org', 'http://owtf.org') ] )
+                OWTF.CreateRow( [ '<span id="seed">'+self.Core.GetSeed()+'</span>', '<div id="js_db_size" style="float:left; display: inline; padding-top: 7px"></div><div style="float:right; inline">'+ self.Core.Reporter.DrawHelpLink('ReviewSize')+"</div>", '<div id="total_js_db_size"></div>', self.Version, self.Core.Reporter.Render.DrawButtonLink('owtf.org', 'http://owtf.org') ] )
                 return '<div style="position: absolute; top: 6px; right: 6px; float: right">'+OWTF.Render()+'</div>'
 
 	def DrawBackToSummaryIcon(self):
 		return self.Core.Reporter.Render.DrawLink(self.Core.Reporter.DrawImageFromConfigPair( [ 'FIXED_ICON_TO_SUMMARY', 'NAV_TOOLTIP_TO_SUMMARY' ] ), self.Core.Config.Get('HTML_REPORT'), { 'target' : '' } )
-
-	def ExpandDetailedReportJS(self):
-		return "window.parent.document.getElementById('iframe_"+self.Core.Config.Get('REVIEW_OFFSET')+"').style.height = '100%';"	
-	def CollapseDetailedReportJS(self):
-		return "var iframe = window.parent.document.getElementById('iframe_"+self.Core.Config.Get('REVIEW_OFFSET')+"'); iframe.style.height = '"+self.Core.Config.Get('COLLAPSED_REPORT_SIZE')+"'; window.location.hash = ''; window.parent.location.hash = '';"
-
-	def AnalyseDetailedReportJS(self):
-		return self.ExpandDetailedReportJS() + "window.parent.location.hash = 'anchor_"+self.Core.Config.Get('REVIEW_OFFSET')+"';"
 
 	def DrawURLTop(self, Embed = ''):
 		AlternativeIPsStr = ""
@@ -142,13 +134,14 @@ class Header:
 		# Target.CreateRow( [ 'Target URL', 'Target IP(s)', '&nbsp;' ], True)
 		# Target.CreateRow( [ self.Core.Reporter.Render.DrawButtonLink(self.TargetURL, self.TargetURL, {'id' : 'target_url'}), self.HostIP+AlternativeIPsStr, self.DrawBackToSummaryIcon() ] )
 		Icons = "&nbsp;" * 1 + ("&nbsp;" * 1).join(self.Core.Reporter.Render.DrawLinkPairs( [ 
-[ self.Core.Reporter.DrawImageFromConfigPair( [ 'FIXED_ICON_ANALYSE_REPORT', 'NAV_TOOLTIP_ANALYSE_REPORT' ]), self.AnalyseDetailedReportJS() ], 
-[ self.Core.Reporter.DrawImageFromConfigPair( [ 'FIXED_ICON_EXPAND_REPORT', 'NAV_TOOLTIP_EXPAND_REPORT' ]), self.ExpandDetailedReportJS() ],[ self.Core.Reporter.DrawImageFromConfigPair( [ 'FIXED_ICON_CLOSE_REPORT', 'NAV_TOOLTIP_CLOSE_REPORT' ]), self.CollapseDetailedReportJS() ] ], 'DrawButtonJSLink', { 'class' : 'icon' }))
-		Target.CreateCustomRow('<tr><th>'+self.Core.Reporter.Render.DrawButtonLink(self.TargetURL, self.TargetURL, {'id' : 'target_url'})+'</th><td>'+self.HostIP+AlternativeIPsStr+'</td><td class="disguise">'+Icons+'</td></tr>')
+[ self.Core.Reporter.DrawImageFromConfigPair( [ 'FIXED_ICON_GENERATE_REPORT', 'NAV_TOOLTIP_GENERATE_REPORT' ]), "ToggleReportMode()" ], 
+[ self.Core.Reporter.DrawImageFromConfigPair( [ 'FIXED_ICON_ANALYSE_REPORT', 'NAV_TOOLTIP_ANALYSE_REPORT' ]), "DetailedReportAnalyse()" ], 
+[ self.Core.Reporter.DrawImageFromConfigPair( [ 'FIXED_ICON_EXPAND_REPORT', 'NAV_TOOLTIP_EXPAND_REPORT' ]), 'DetailedReportAdjust()' ], [ self.Core.Reporter.DrawImageFromConfigPair( [ 'FIXED_ICON_CLOSE_REPORT', 'NAV_TOOLTIP_CLOSE_REPORT' ]), 'DetailedReportCollapse()' ] ], 'DrawButtonJSLink', { 'class' : 'icon' }))
+		Target.CreateCustomRow('<tr><th>'+self.Core.Reporter.Render.DrawButtonLink(self.TargetURL, self.TargetURL, {'id' : 'target_url'})+'</th><td>'+cgi.escape(self.HostIP+AlternativeIPsStr)+'</td><td>' + cgi.escape(self.PortNumber) + '</td><td class="disguise">'+Icons+'</td></tr>')
 #<td class="disguise">'+Embed+'</td>
 		#return '<div style="display:inline; align:left; position:fixed; top:0px; z-index:0; opacity:1; background-color:red; width:100%;">'+self.WrapTop(Target.Render())
 		Content = Target.Render() + '<div style="position: absolute; top: 6px; right: 6px; float: right;">'+Embed+'</div>'
-		return '<div class="detailed_report">'+self.WrapTop(Content)+'</div>' + '<br />' * 2
+		return '<div class="detailed_report" style="display: inline; float:left">'+self.WrapTop(Content)+'</div>'+'<div class="iframe_padding"></div>'
 		#return self.WrapTop(Target.Render())
 
 	def WrapTop(self, LeftBoxStr):
@@ -164,7 +157,8 @@ class Header:
 		if self.ReportType == 'URL':
 			return self.DrawURLTop(Embed)
 		elif self.ReportType == 'NetMap':
-			return self.WrapTop('<h2>Summary Report</h2><br />')
+			return self.WrapTop('<h2>Summary Report</h2>')
+			#return self.WrapTop('<h2>Summary Report</h2><div class="iframe_padding"></div>')
 		elif self.ReportType == 'AUX':
 			return self.WrapTop('<h2>Auxiliary Plugins '+self.DrawBackToSummaryIcon()+'</h2>')
 
@@ -175,7 +169,7 @@ class Header:
                 return "\n".join(Libraries)
 
         def Save(self, Report, Options):
-		self.TargetOutputDir, self.FrameworkDir, self.Version, self.TargetURL, self.HostIP, self.TransactionLogHTML, self.AlternativeIPs = self.Core.Config.GetAsList(['OUTPUT_PATH', 'FRAMEWORK_DIR', 'VERSION', 'TARGET_URL', 'HOST_IP', 'TRANSACTION_LOG_HTML', 'ALTERNATIVE_IPS'])
+		self.TargetOutputDir, self.FrameworkDir, self.Version, self.TargetURL, self.HostIP, self.PortNumber, self.TransactionLogHTML, self.AlternativeIPs = self.Core.Config.GetAsList(['OUTPUT_PATH', 'FRAMEWORK_DIR', 'VERSION', 'TARGET_URL', 'HOST_IP', 'PORT_NUMBER', 'TRANSACTION_LOG_HTML', 'ALTERNATIVE_IPS'])
 		self.ReportType = Options['ReportType']
 		if not self.Init:
                         self.CopyAccessoryFiles()
@@ -220,8 +214,12 @@ class Header:
 """+RenderTopStr+"""
 """+TabsStr+"""
 <script type="text/javascript" src="includes/jquery-1.6.4.js"></script>\n
-<script type="text/javascript" src="includes/owtf.js"></script>\n
+<script type="text/javascript" src="includes/owtf_general.js"></script>\n
+<script type="text/javascript" src="includes/owtf_review.js"></script>\n
+<script type="text/javascript" src="includes/owtf_filter.js"></script>\n
+<script type="text/javascript" src="includes/owtf_reporting.js"></script>\n
 <script type="text/javascript" src="includes/jsonStringify.js"></script>\n
+<script type="text/javascript" src="includes/ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="includes/ckeditor/adapters/jquery.js"></script>
 """+self.GetJavaScriptStorage()+"""
 """) # Init HTML Report
-

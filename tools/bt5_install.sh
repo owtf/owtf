@@ -30,7 +30,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-INSTALL_DIR=$(dirname $0)
+# This script needs to be run to download tools with potentially restrictive licensing (cannot be redistributed)
+INSTALL_DIR="$(dirname $0)/restricted"
 (
     cd $INSTALL_DIR
     # NOTE: Arachni v0.4 is still a bit unstable, it's best to stick with Arachni v0.3 in the meantime
@@ -69,6 +70,14 @@ INSTALL_DIR=$(dirname $0)
     rm -f Websecurify\ Scanner\ 0.9.tgz
     )
 
+    echo "Getting wpscan.."
+    TOOL_DIR="wpscan"
+    mkdir -p $TOOL_DIR
+    ( 
+    cd $TOOL_DIR
+    svn checkout http://wpscan.googlecode.com/svn/trunk/ ./wpscan-1.1
+    )
+
     TOOL_DIR="dos/http"
     mkdir -p $TOOL_DIR
     (
@@ -90,16 +99,6 @@ INSTALL_DIR=$(dirname $0)
         wget http://www.taddong.com/tools/BIG-IP_cookie_decoder.zip
         unzip BIG-IP_cookie_decoder.zip
         rm -f BIG-IP_cookie_decoder.zip
-    fi
-    )
-
-    TOOL_DIR="discovery/web/traceroute"
-    mkdir -p $TOOL_DIR
-    (
-    cd $TOOL_DIR
-    if [ ! -f HTTP-Traceroute.py ]; then # Redistribution with OWTF allowed by author (Nicolas Gregoire), this file should exist, if not retrieve it
-        echo "Getting HTTP-Traceroute .."
-        wget http://www.agarri.fr/docs/HTTP-Traceroute.py
     fi
     )
 )
