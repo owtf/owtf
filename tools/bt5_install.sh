@@ -36,6 +36,7 @@ INSTALL_DIR="$(dirname $0)/restricted"
     cd $INSTALL_DIR
     # NOTE: Arachni v0.4 is still a bit unstable, it's best to stick with Arachni v0.3 in the meantime
     #TOOL_DIR="arachni-v0.4.0.2-cde"
+    TOOL_DIR="arachni-v0.3-cde"
     #if [ ! -d $TOOL_DIR ]; then
     if [ 0 ]; then
         #mkdir -p $TOOL_DIR
