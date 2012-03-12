@@ -31,7 +31,7 @@
 #
 
 # This script contains installation for tools that can be re-distributed, no need to run this for the most part
-INSTALL_DIR="$(dirname $0)/restricted"
+INSTALL_DIR="$(dirname $0)"
 mkdir -p $INSTALL_DIR
 (
     cd $INSTALL_DIR
