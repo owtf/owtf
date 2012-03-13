@@ -54,6 +54,10 @@ W3AF_SCRIPT=$OUTFILE.script.w3af
 DIR=$(pwd) # Remember current dir
 cd "$TOOL_DIR" # W3AF needs to be run from its own folder
 
+# "set fuzzFormComboValues all" removed because: In a form with ~10 inputs where some of those are <select> the
+# following setting: "set fuzzFormComboValues all" might make w3af run for LOTS of time.
+# Please see: http://sourceforge.net/mailarchive/forum.php?thread_name=CA%2B1Rt67bN3-2OpB%2B7SOGO7%3D92KWXBMdbaztpa885f%3Du2GzjcFg%40mail.gmail.com&forum_name=w3af-users
+
 echo "# w3af script used for testing
 cleanup
 profiles 
@@ -74,7 +78,6 @@ back
 misc-settings
 set fuzzFileName True
 set fuzzCookie True
-set fuzzFormComboValues all
 set maxDiscoveryTime 240
 back
 http-settings
