@@ -1,15 +1,15 @@
 #!/bin/sh
 #
-# Description: Installation script for tools not in Backtrack or unreliable in Backtrack 
+# Description: Installation script for tools not in Backtrack or unreliable in Backtrack
 # (i.e. Backtrack chose the development version instead of the stable one)
 #
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 # Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# * Redistributions of source code must retain the above copyright 
+# * Redistributions of source code must retain the above copyright
 # notice, this list of conditions and the following disclaimer.
 # * Redistributions in binary form must reproduce the above copyright
 # notice, this list of conditions and the following disclaimer in the
@@ -17,7 +17,7 @@
 # * Neither the name of the copyright owner nor the
 # names of its contributors may be used to endorse or promote products
 # derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -32,20 +32,22 @@
 
 # This script needs to be run to download tools with potentially restrictive licensing (cannot be redistributed)
 INSTALL_DIR="$(dirname $0)/restricted"
+mkdir -p $INSTALL_DIR
 (
     cd $INSTALL_DIR
     # NOTE: Arachni v0.4 is still a bit unstable, it's best to stick with Arachni v0.3 in the meantime
     #TOOL_DIR="arachni-v0.4.0.2-cde"
-    #if [ ! -d $TOOL_DIR ]; then
-    if [ 0 ]; then
-        #mkdir -p $TOOL_DIR
-        #cd $TOOL_DIR
-        TGZ_FILE="$TOOL_DIR.tar.gz"
-        wget https://github.com/Zapotek/arachni/downloads/$TGZ_FILE
-        tar xvfz $TGZ_FILE
-        rm -f $TGZ_FILE
-    fi
-
+    TOOL_DIR="arachni-v0.3-cde"
+    TGZ_FILE="$TOOL_DIR.tar.gz"
+    mkdir -p $TOOL_DIR
+    (
+        cd $TOOL_DIR
+        if [ ! -f $TGZ_FILE ]; then
+            wget https://github.com/Zapotek/arachni/downloads/$TGZ_FILE
+            tar xvfz $TGZ_FILE
+            rm -f $TGZ_FILE
+        fi
+    )
 
     TOOL_DIR="whatweb"
     mkdir -p $TOOL_DIR
@@ -63,7 +65,7 @@ INSTALL_DIR="$(dirname $0)/restricted"
     echo "Getting websecurify .."
     TOOL_DIR="websecurify"
     mkdir -p $TOOL_DIR
-    ( 
+    (
     cd $TOOL_DIR
     wget http://websecurify.googlecode.com/files/Websecurify%20Scanner%200.9.tgz
     tar xvfz *
@@ -73,7 +75,7 @@ INSTALL_DIR="$(dirname $0)/restricted"
     echo "Getting wpscan.."
     TOOL_DIR="wpscan"
     mkdir -p $TOOL_DIR
-    ( 
+    (
     cd $TOOL_DIR
     svn checkout http://wpscan.googlecode.com/svn/trunk/ ./wpscan-1.1
     )
