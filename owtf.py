@@ -45,7 +45,7 @@ def Banner():
 \ \____/\ \___x___/'\ \__\\\ \_\ 
  \/___/  \/__//__/   \/__/ \/_/ 
 
-Offensive (Web, etc) Testing Framework: An OWASP+PTES-focused try to unite great tools and make pen testing more efficient @owtfp http://owtf.org
+Offensive (Web) Testing Framework: An OWASP+PTES-focused try to unite great tools and make pen testing more efficient @owtfp http://owtf.org
 Author: Abraham Aranguren <name.surname@gmail.com> - http://7-a.org - Twitter: @7a_
 """
 
@@ -60,6 +60,7 @@ def Usage(ErrorMessage):
 	print " -i <yes/no>			interactive: yes (default, more control) / no (script-friendly)"
 	print " -e <except plugin1,2,..>	comma separated list of plugins to be ignored in the test"
 	print " -o <only plugin1,2,..>	comma separated list of the only plugins to be used in the test"
+	print " -p (ip:)port            setup an inbound proxy for manual site analysis"
 	print " -x ip:port			send all owtf requests using the proxy for the given ip and port"
 	print " -s 				Do not do anything, simply simulate how plugins would run"
 	print " -m <g:f,w:f,n:f,r:f> 		Use my profile: 'f' = valid config file. g: general config, w: web plugin order, n: net plugin order, r: resources file"
@@ -97,20 +98,20 @@ def ValidateOnePluginGroup(PluginGroups):
 		Usage("The plugins specified belong to several Plugin Groups: '"+str(PluginGroups)+"'")
 
 def ProcessOptions(argv, Core):
-        try :
-        	opts, args = getopt.getopt(argv,"a:g:t:e:o:i:x:m:l:sf") # Don't forget the ":" at the end :) -IF YOU EXPECT A VALUE!! ;)-
+	try:
+		opts, args = getopt.getopt(argv,"a:g:t:e:o:i:x:p:m:l:sf") # Don't forget the ":" at the end :) -IF YOU EXPECT A VALUE!! ;)-
 	except getopt.GetoptError:
-                Usage("Invalid owtf option(s)")
+		Usage("Invalid OWTF option(s)")
 
 	# Default settings:
 	PluginType = 'all' 
 	Simulation = ForceOverwrite = False
 	Interactive = True
-	Proxy = OnlyPlugins = ExceptPlugins = ListPlugins = None 
+	InboundProxy = OutboundProxy = OnlyPlugins = ExceptPlugins = ListPlugins = None 
 	Algorithm = 'breadth'
 	PluginGroup = 'web'
 	Profiles = []
-        for opt,arg in opts:
+	for opt,arg in opts:
 		if opt == '-c':
 			PluginType = arg
 		if opt == '-a':
@@ -157,8 +158,12 @@ def ProcessOptions(argv, Core):
 			PluginGroups = Core.Config.Plugin.GetGroupsForPlugins(ExceptPlugins)
 			ValidateOnePluginGroup(PluginGroups)
 		elif opt == '-x':
-			Proxy = arg.split(':')
-			if len(Proxy) != 2: # Proxy should be ip:port
+			OutboundProxy = arg.split(':')
+			if len(OutboundProxy) != 2: # OutboundProxy should be ip:port
+				Usage()
+		elif opt == '-p':
+			InboundProxy = arg.split(':')
+			if len(InboundProxy) not in [ 1, 2]: # OutboundProxy should be (ip:)port
 				Usage()
 
 	if PluginGroup == 'net':
@@ -175,8 +180,8 @@ def ProcessOptions(argv, Core):
 
 	Scope = args # Arguments at the end are the URL target(s)
 	NumTargets = len(Scope)
-        if PluginGroup != 'aux' and NumTargets == 0 and not ListPlugins:
-                Usage("The scope must specify at least one target")
+	if PluginGroup != 'aux' and NumTargets == 0 and not ListPlugins:
+		Usage("The scope must specify at least one target")
 	elif NumTargets == 1: # Check if this is a file
 		if os.path.exists(Scope[0]):
 			cprint("The scope provided is a file, trying to load targets from it ..")
@@ -200,7 +205,22 @@ def ProcessOptions(argv, Core):
 		Scope = ['aux'] # Aux plugins do not have targets, they have metasploit-like parameters
 
 	try:
-		if Core.Start( { 'ListPlugins' : ListPlugins, 'Force_Overwrite' : ForceOverwrite, 'Interactive' : Interactive, 'Simulation' : Simulation, 'Scope' : Scope, 'argv' : sys.argv, 'PluginType' : PluginType, 'OnlyPlugins' : OnlyPlugins, 'ExceptPlugins' : ExceptPlugins, 'Proxy' : Proxy, 'Profiles' : Profiles, 'Algorithm' : Algorithm, 'PluginGroup' : PluginGroup, 'Args' : Args } ): # Only if Start is for real (i.e. not just listing plugins, etc)
+		if Core.Start( { 
+					'ListPlugins' : ListPlugins
+					, 'Force_Overwrite' : ForceOverwrite
+					, 'Interactive' : Interactive
+					, 'Simulation' : Simulation
+					, 'Scope' : Scope
+					, 'argv' : sys.argv
+					, 'PluginType' : PluginType
+					, 'OnlyPlugins' : OnlyPlugins
+					, 'ExceptPlugins' : ExceptPlugins
+					, 'InboundProxy' : InboundProxy
+					, 'OutboundProxy' : OutboundProxy
+					, 'Profiles' : Profiles
+					, 'Algorithm' : Algorithm
+					, 'PluginGroup' : PluginGroup
+					, 'Args' : Args } ): # Only if Start is for real (i.e. not just listing plugins, etc)
 			Core.Finish("Complete") # Not Interrupted or Crashed
 	except KeyboardInterrupt: # NOTE: The user chose to interact, so no need to check if interactivity was chosen or not here:
 		cprint("\nowtf was aborted by the user: Please check the report and plugin output files for partial results")

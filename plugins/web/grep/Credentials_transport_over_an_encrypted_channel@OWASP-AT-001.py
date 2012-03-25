@@ -48,7 +48,7 @@ def run(Core, PluginInfo):
 		if 'https' != Transaction.URL.split(":")[0]:
 			print "Transaction: "+ID+" contains passwords fields with a URL different than https"
 			InsecureMatches.append([ID, Transaction.URL+": "+FileMatch]) # Need to make the unique work by URL + password
-	Message = "Total insecure matches: "+str(len(InsecureMatches))
+	Message = "<br /><u>Total insecure matches: "+str(len(InsecureMatches))+'</u>'
 	print Message
 	Content += Message+"<br />"
 	Content += Core.PluginHelper.DrawResponseMatchesTables([Command, RegexpName, InsecureMatches], PluginInfo)

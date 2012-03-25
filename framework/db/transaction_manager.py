@@ -239,7 +239,7 @@ $(document).ready(function() {
 			Sort = "-r"
 		TXTTransactionLog = self.Core.Config.Get('TRANSACTION_LOG_TXT')
 		#Command = "sed 's/ | / /g' "+TXTTransactionLog+"  | sort -k 3 -n "+Sort+" | cut -f1 -d' ' | head -"+str(Num)
-		Command = "grep '"+self.Core.DB.GetFieldSeparator()+"T"+self.Core.DB.GetFieldSeparator()+"' "+TXTTransactionLog+" | sed 's/ | / /g'| sort -k 3 -n "+Sort+" | cut -f1 -d' ' | head -"+str(Num)
+		Command = "grep '"+self.Core.DB.GetFieldSeparator()+"T"+self.Core.DB.GetFieldSeparator()+"' "+TXTTransactionLog+" | sed 's/ "+self.Core.DB.GetFieldSeparator()+" / /g'| sort -k 3 -n "+Sort+" | cut -f1 -d' ' | head -"+str(Num)
 		return [ Command, self.Core.Shell.shell_exec_monitor(Command).strip().split("\n") ] # Return list of matched IDs
 
 	def GrepTransactionIDsForHeaders(self, HeaderList):

@@ -27,6 +27,15 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+#echo "Install python-twisted? [y/n]"
+#echo "See also: http://twistedmatrix.com/trac/wiki/Downloads"
+#read a
+#if [ "$a" == "y" ]; then
+#	cmd="apt-get install python-twisted"
+#	echo "[*] Running: $cmd"
+#	$cmd
+#fi
+
 echo "Install lxml? [y/n]"
 echo "Tip for Ubuntu courtesy of Mario Heiderich: Python2.7-dev is needed to compile this lib properly"
 echo "See also: http://lxml.de/installation.html"
@@ -47,12 +56,11 @@ if [ "$a" == "y" ]; then
 	done
 fi
 
-echo "Patch SET? [y/n]"
-echo "NOTE: This is only necessary if you would like to run PHISHING plugins"
-echo "NOTE 2: I cannot redistribute the patched SET version due to licence restrictions, just replace getpass.getpass with 'raw_input' calls (in SET's src directory) and you should be fine"
+echo "Install argparse? [y/n]"
+echo "NOTE: This is only necessary for the DoS aux plugin for now"
 read a
 if [ "$a" == "y" ]; then
-	for cmd in $(echo cp#/root/owtf/tools/set_patched.tar.gz#/pentest/exploits/ cd#/pentest/exploits mv#set#set_old tar#xvfz#set_patched.tar.gz); do
+	for cmd in $(echo easy_install#argparse); do
 		cmd=$(echo "$cmd"|tr '#' ' ')
 		echo "[*] Running: $cmd"
 		$cmd

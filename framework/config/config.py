@@ -218,7 +218,8 @@ class Config:
 
 	def DeriveURLSettings(self, TargetURL):
 		#print "self.Target="+self.Target
-		self.Set('TARGET_URL', TargetURL) # Set the target in the config	
+		self.Set('TARGET_URL', TargetURL) # Set the target in the config
+		# TODO: Use urlparse here	
 		protocol, crap, host = TargetURL.split('/')[0:3]
 		DotChunks = TargetURL.split(':')
 		URLScheme = DotChunks[0]
@@ -232,13 +233,13 @@ class Config:
 		self.Set('URL_SCHEME', URLScheme) # Some tools need this!
 		self.Set('PORT_NUMBER', Port) # Some tools need this!
 		self.Set('HOST_NAME', host) # Set the top URL
-                self.Set('HOST_IP', self.GetIPFromHostname(self.Get('HOST_NAME')))
+		self.Set('HOST_IP', self.GetIPFromHostname(self.Get('HOST_NAME')))
 
-                self.Set('IP_URL', self.Get('TARGET_URL').replace(self.Get('HOST_NAME'), self.Get('HOST_IP')))
-                self.Set('TOP_DOMAIN', self.Get('HOST_NAME'))
-                HostnameChunks = self.Get('HOST_NAME').split('.')
-                if self.IsHostNameNOTIP() and len(HostnameChunks) > 2:
-                        self.Set('TOP_DOMAIN', '.'.join(HostnameChunks[1:])) #Get "example.com" from "www.example.com"
+		self.Set('IP_URL', self.Get('TARGET_URL').replace(self.Get('HOST_NAME'), self.Get('HOST_IP')))
+		self.Set('TOP_DOMAIN', self.Get('HOST_NAME'))
+		HostnameChunks = self.Get('HOST_NAME').split('.')
+		if self.IsHostNameNOTIP() and len(HostnameChunks) > 2:
+			self.Set('TOP_DOMAIN', '.'.join(HostnameChunks[1:])) #Get "example.com" from "www.example.com"
 		self.Set('TOP_URL', protocol+"//"+host) # Set the top URL
 
 	def DeriveOutputSettingsFromURL(self, TargetURL):
@@ -302,11 +303,11 @@ class Config:
 	def GetTXTTransacLog(self, Partial = False):
 		return self.GetFileName('TRANSACTION_LOG_TXT', Partial)
 
-        def IsHostNameNOTIP(self):
-                return self.Get('HOST_NAME') != self.Get('HOST_IP') # Host
+	def IsHostNameNOTIP(self):
+		return self.Get('HOST_NAME') != self.Get('HOST_IP') # Host
 
-        def GetIPFromHostname(self, Hostname):
-                IP = ''
+	def GetIPFromHostname(self, Hostname):
+		IP = ''
 		for Socket in [ socket.AF_INET, socket.AF_INET6 ]: # IP validation based on @marcwickenden's pull request, thanks!
 			try:
 				socket.inet_pton(Socket, Hostname)
@@ -316,7 +317,7 @@ class Config:
 		if not IP:
 			try: IP = socket.gethostbyname(Hostname)
 			except socket.gaierror: self.Core.Error.FrameworkAbort("Cannot resolve Hostname: "+Hostname)
-                        	
+
 		ipchunks = IP.strip().split("\n")
 		AlternativeIPs = []
 		if len(ipchunks) > 1:
@@ -324,7 +325,7 @@ class Config:
 			cprint(Hostname+" has several IP addresses: ("+", ".join(ipchunks)[0:-3]+"). Choosing first: "+IP+"")
 			AlternativeIPs = ipchunks[1:]
 		self.Set('ALTERNATIVE_IPS', AlternativeIPs)
-                IP = IP.strip()
+		IP = IP.strip()
 		self.Set('INTERNAL_IP', self.Core.IsIPInternal(IP))
 		cprint("The IP address for "+Hostname+" is: '"+IP+"'")
 		return IP
