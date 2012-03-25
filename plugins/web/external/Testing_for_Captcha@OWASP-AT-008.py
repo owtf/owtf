@@ -25,9 +25,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-GREP Plugin for Testing for application configuration management (OWASP-CM-004) <- looks for HTML Comments
-https://www.owasp.org/index.php/Testing_for_application_configuration_management_%28OWASP-CM-004%29
-NOTE: GREP plugins do NOT send traffic to the target and only grep the HTTP Transaction Log
+EXTERNAL Plugin for CAPTCHA assistance
 """
 
 import string, re
@@ -37,6 +35,7 @@ DESCRIPTION = "Plugin to assist manual testing"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = "Intended to show helpful info in the future"
+	Content = Core.PluginHelper.DrawVulnerabilitySearchBox('')
+	Content += Core.PluginHelper.DrawResourceLinkList('Tools', Core.Config.GetResources('ExternalCAPTCHA'))
 	return Content
 

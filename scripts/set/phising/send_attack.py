@@ -51,8 +51,7 @@ def ShellExec(Command):
 			bufsize=1)
 		while True:
 			line = proc.stdout.readline()
-			if not line:
-                        	break
+			if not line: break
 			print MultipleReplace(line, { "\n":"", "\r":"" }) # Show progress on the screen too!
 			Output += line # Save as much output as possible before a tool crashes! :)
 	except KeyboardInterrupt:
@@ -61,10 +60,10 @@ def ShellExec(Command):
 
 # Perform multiple replacements in one go using the replace dictionary in format: { 'search' : 'replace' }
 def MultipleReplace(Text, ReplaceDict):
-        NewText = Text
-        for Search,Replace in ReplaceDict.items():
-                NewText = NewText.replace(Search, str(Replace))
-        return NewText
+	NewText = Text
+	for Search,Replace in ReplaceDict.items():
+		NewText = NewText.replace(Search, str(Replace))
+	return NewText
 
 def GetParams(): # Basic validation and parameter retrieval:
 	MandatoryParams = [ 'EMAIL_TARGET', 'EMAIL_FROM', 'SMTP_LOGIN', 'SMTP_PASS', 'SMTP_HOST', 'SMTP_PORT', 'EMAIL_PRIORITY', 'PDF_TEMPLATE', 'MSF_LISTENER_PORT', 'MSF_LISTENER_SETUP', 'ATTACHMENT_NAME', 'SET_EMAIL_TEMPLATE', 'PHISHING_PAYLOAD', 'PHISING_SCRIPT_DIR', 'TOOL_SET_DIR' ]

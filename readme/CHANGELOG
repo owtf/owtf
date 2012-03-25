@@ -1,3 +1,35 @@
+? - 0.13 "Trooper" pre-alpha release: Dedicated to Troopers, its organisers and attendants
+ + Inclusion of fuzzdb -allowed by licence- thanks!
+ + Inclusion of HashCollision-DOS-POC by Christian Mehlmauer (@_FireFart_) thanks!
+   Location: owtf_dir/tools/dos/web/HashCollision-DOS-POC
+   More info: https://github.com/FireFart/HashCollision-DOS-POC
+ + Installation script cleanup: tools/bt5_install.sh courtesy of Michael Kohl (@citizen428), thanks!
+ + Minor fixes to scripts/setrubyenv.sh also courtesy of Michael Kohl @citizen428), thanks!
+ + "set fuzzFormComboValues all" removed from scripts/run_w3af.sh because it may make w3af scans slow, thanks to Adi Mutu (am06) and Andrés Riancho (@w3af)!
+   More info: http://sourceforge.net/mailarchive/forum.php?thread_name=CA%2B1Rt67bN3-2OpB%2B7SOGO7%3D92KWXBMdbaztpa885f%3Du2GzjcFg%40mail.gmail.com&forum_name=w3af-users
+ + Created an initial basic targeted phising plugin to send anything via SMTP: aux/se/Targeted_Phishing@OWTF-ASEP-002.py
+ + Created the concept of "OWTF Agents": Small listeners that establish communication channels that allow to perform actions remotely (i.e. in a victim machine)
+   - Added sbd-based shared-password OWTF Agent for persistent shell access to other machines to be used during a test (i.e. victim emulation)
+   - Added ssh-based trusted-public-key OWTF Agent for an alternative to shared passwords (basic instructions to set this up with ssh)
+   - Added initial auxiliary plugins to communicate with OWTF agents:
+ 	  SBD_CommandChainer is working, the others in rce are WIP (see plugins/aux/rce)
+   - Added imapd OWTF agent: This checks email with a predefined account and loads the configured plugin to process the message.
+       Example: 
+       1) OWTF sends a targeted phising attack via aux/se/Targeted_Phishing@OWTF-ASEP-002.py
+       2) An OWTF imapd Agent processes any new email that arrives and emulates a user click for all links found in the message
+ + Added initial SMB handler to the framework and a related plugin: aux/smb/SMB_Handler@OWTF-SMB-001.py
+ + Added an Interactive Shell handler useful to interact with remote and local shells run in a subprocess
+ + Significant SET integration improvements: new OWTF SET handler + spear_phising modules and plugin/configurability tweaks 
+ + Added hopefully better comments in several places
+ + Started to use Eclipse and Fixed indentation on many framework files :P
+ + Bug fix: Commented out goohost shell one liners in profiles/general/default.cfg: When goohost is not installed cat hangs (Thanks to Sandro Gauci)
+ + Bug fix: Grep plugins were no longer showing links to Text, HTML, etc findings
+ + Added CAPTCHA breaker tool links to external plugin to assist manual exploitation: PWNtcha - captcha decoder, Captcha Breaker
+ + Added vulnerability search box to the CAPTCHA external plugin
+ + Added links to the "Session managament schema" external plugin: Gareth Hayes' HackVertor, Raul Siles' (Taddong) F5 BIG IP Cookie Decoder
+ + Added link to the "SSI Injection" external plugin: webappsec.org SSI Injection info
+ + Moved HTTP-Traceroute back into rev_proxy to avoid config changes
+
 10/02/2012 - 0.12 "Wicky" pre-alpha release: Dedicated to @marcwickenden for sending the first pull request!
  + Merged pull request with IPv6 support and proper IP validation from @marcwickenden thanks!
  + Added graceful framework abort when a hostname cannot be resolved (instead of python trace mess)

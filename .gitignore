@@ -7,3 +7,16 @@
 ################################################################################
 dictionaries/restricted/*
 tools/restricted/*
+
+# Tools with license restrictions that prevent re-distribution #
+################################################################
+*/sbd
+
+# Defined OWTF tests with potential proprietary information #
+################################################################
+tests/restricted/*
+
+# Eclipse files #
+#################
+.pydevproject
+.project

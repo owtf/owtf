@@ -1,0 +1,128 @@
+/*
+	Encapsulate Unicode site styles. 
+	M.Davis, 1998.12.16
+	To use, in <head>... 
+	insert:<link REL="stylesheet" HREF="http://www.unicode.org/unicode.css" TYPE="text/css">
+ */
+body		{ margin: 0; font-family: 'Lucida Sans Unicode', 'Arial Unicode MS', Arial, sans-serif;
+				color: black; background-color: white; background-repeat:repeat; 
+				background-attachment: scroll; background-position: 0% }
+
+table		{ border-spacing: 0; border-collapse: collapse;
+					border-style: solid; border-color: black; border-width: 1px;					}
+th, td		{ border-spacing: 0; border-collapse: collapse;
+					border-style: solid; border-color: black; border-width: 1px;
+					font-family: 'Lucida Sans Unicode', 'Arial Unicode MS', Arial, sans-serif;
+					color: black; vertical-align: top; text-align: left;				}
+							 
+div.body	{ margin: 3em}
+.syntax		{ background-color: #EEEEFF }
+.example	{ background-color: #EEFFEE }
+.values		{ background-color: #FFFFEE }
+li 			{margin-top: 0.25em; margin-bottom: 0.25em}
+table.body	{ border-style: none; width: 100%}
+caption		{ font-size: 120%; font-weight: bold; padding-bottom: 0.75em}
+td.icon 	{ border-style: none; border-width: 0; padding: 2px; margin: 0;
+				background-color: #990000; color: #fffffe;
+				font-size: 100%; text-align: left;
+				font-weight: bold; font-family: Arial, Geneva, sans-serif;}
+				
+td.gray 	{ border-style: none; border-width: 0; padding: 0px; margin: 0;
+				background-color: #999999; color: #FFFFFE;
+				font-size: 6pt; }
+
+td.body		{ border-style: none; padding: 20px; }
+table.header	{ border-style: none; border-width: 0; margin: 0; width: 100%}
+.noborder		{ border-style: none; border-width: 0; margin: 0;}
+.nb 		{ border-style: none; border-width: 0; margin: 0 }
+.nbwide 	{ width: 92%; border-style: none; border-width: 0; margin: 0 }
+.wide		{ width: 92% }
+
+.copyright	{ font-size: 75%}
+
+blockquote	{ margin: 20px }
+blockquote.tus	{ font-size: 11pt; font-family: Times New Roman, serif }
+ 
+dt			{ font-style: italic }
+
+/* Tables should inherit from body, but don't seem to in NN */
+a:link		{ color: red }
+a:active	{ color: blue }
+a:visited	{ color: #666666 }
+a:hover 	{ color: #ff3333 }
+
+h1, h2, h3, h4, h5, h6 { font-weight: bold; margin-top: 8px }
+h1			{ font-size: x-large; text-transform: uppercase; text-align: center }
+h2			{ font-size: large }
+h3			{ font-size: medium }
+h4			{ font-size: medium; font-style: italic }
+h5			{ font-size: small }
+h6			{ font-size: small; font-style: italic }
+
+p.bar		{ background-color: #990000; color: #fffffe; font-size: 100%; font-weight: bold;
+				font-family: Arial, Geneva, sans-serif; text-align: right; padding: 4px }
+
+a.bar:link	 { color: #fffffe }
+a.bar:visited { color: #fffffe }
+a.bar:active { color: #fffffe }
+a.bar:hover { color: #ff3333 }
+
+ 
+/* link style for character class */
+a.charclass { font-weight:bold; text-decoration: none; color: #808080 }
+
+span.name 	{text-transform: lowercase; font-variant: small-caps; font-size: 75% }
+	
+ 
+.bb 		 { page-break-before: always }
+.codeComment { color: #0000FF }
+
+ 
+/* syntax coloring for C source code samples */
+ 
+.CKeyword		{color: rgb(0,0,255)}
+.CComment		{color: rgb(0,128,0)}
+.CCommand		{ font-weight:bold; color: rgb(255,0,0)}
+.changed	 	{ background-color: #FFFF00; border-style: dotted; border-width: 1px }
+.removed	 	{  text-decoration: line-through; background-color: #FFFF00; border-style: dotted; border-width: 1px }
+.changed2	 { background-color: #00FFFF; border-style: dotted; border-width: 1px }
+.removed2	 {  text-decoration: line-through; background-color: #00FFFF; border-style: dotted; border-width: 1px }
+
+span.changedspan	 	{ background-color: #FFFF00; border-style: dotted; border-width: 1px }
+span.removedspan	 	{  text-decoration: line-through; background-color: #FFFF00; border-style: dotted; border-width: 1px }
+
+.reviewnote 	{ background-color: #FFFF80; color: #CC0000; border-style: dashed;
+					border-width: 1px }
+
+p.caption	 	{ page-break-after: avoid; font-weight: bold; text-align: center }
+ 
+ 
+/* table w/o a grid, except for lines in first and last row like in TR#25 */
+ 
+table.gray	 { border-collapse: collapse; border-style: none; border-width: medium }
+ 
+th.grayfirst, td.grayfirst { border-left-style: none; border-left-width: medium; border-right-style: none; 
+				border-right-width: medium; border-top: 1.5pt solid gray;
+				border-bottom: .75pt solid gray; padding-left: 5.4pt;
+				padding-right: 5.4pt; padding-top: 0in; padding-bottom: 0in }
+td.graymiddle, td.graymiddle { border-style: none; border-width: medium; padding-left: 5.4pt; 
+				padding-right:5.4pt; padding-top: 0in; padding-bottom: 0in }
+
+td.graylast, td.graylast { border-left-style: none; border-left-width: medium; border-right-style: none; 
+				border-right-width: medium; border-top-style: none;
+				border-top-width: medium; border-bottom: 1.5pt solid gray;
+				padding-left: 5.4pt; padding-right: 5.4pt; padding-top: 0in;
+				padding-bottom: 0in }
+
+
+/* list styles that work well in table of contents */
+ul.toc		{ list-style-position: outside; list-style-type: none; margin-left: 1em; margin-bottom: 0pt;
+					margin-top: 0pt; line-height: 90% }
+ 
+ol.toc		{ list-style-type: decimal; margin-bottom: 0pt }
+ 
+ol ul.toc	 { list-style-position: outside; list-style-type: none; margin-left: 0em; margin-bottom: 0pt;
+					margin-top: 0pt; line-height: 90% }
+ 
+ul ul.toc	 { list-style-position: outside; list-style-type: none; margin-left: 1.3em; margin-bottom: 0pt;
+					margin-top: 0pt; line-height: 90% }

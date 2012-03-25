@@ -38,8 +38,8 @@ class PluginHelper:
 	def __init__(self, CoreObj):
 		self.Core = CoreObj
 		# Compile regular expressions only once on init:
-                self.RobotsAllowRegexp = re.compile("Allow: ([^\n  #]+)")
-                self.RobotsDisallowRegexp = re.compile("Disallow: ([^\n #]+)")
+		self.RobotsAllowRegexp = re.compile("Allow: ([^\n  #]+)")
+		self.RobotsDisallowRegexp = re.compile("Disallow: ([^\n #]+)")
 		self.RobotsSiteMap = re.compile("Sitemap: ([^\n #]+)")
 
 	def MultipleReplace(self, Text, ReplaceDict): # This redundant method is here so that plugins can use it
@@ -51,28 +51,28 @@ class PluginHelper:
 			ResourceLikeLinks.append([Link, Link])
 		return self.DrawResourceLinkList(LinkListName, ResourceLikeLinks)
 
-        def DrawResourceLinkList(self, ResourceListName, ResourceList): # Draws an HTML Search box for defined Vuln Search resources
-                LinkList = []
-                HTMLLinkList = [] 
-                for Name, Resource in ResourceList:
-                        URL = MultipleReplace(Resource.strip(), self.Core.Config.GetReplacementDict()).replace('"', '%22')
-                        LinkList.append(URL)
+	def DrawResourceLinkList(self, ResourceListName, ResourceList): # Draws an HTML Search box for defined Vuln Search resources
+		LinkList = []
+		HTMLLinkList = [] 
+		for Name, Resource in ResourceList:
+			URL = MultipleReplace(Resource.strip(), self.Core.Config.GetReplacementDict()).replace('"', '%22')
+			LinkList.append(URL)
 			cprint("Generating link for "+Name+"..") # Otherwise there would be a lovely python exception and we would not be here :)
-                        HTMLLinkList.append(self.Core.Reporter.Render.DrawButtonLink(Name, URL))
+			HTMLLinkList.append(self.Core.Reporter.Render.DrawButtonLink(Name, URL))
 		return self.DrawListPostProcessing(ResourceListName, LinkList, HTMLLinkList)
 
 	def DrawListPostProcessing(self, ResourceListName, LinkList, HTMLLinkList):
-                Content = '<hr />'+ResourceListName+': '
-                if len(LinkList) > 1: # Open All In Tabs only makes sense if num items > 1
-                        Content += self.Core.Reporter.Render.DrawButton('Open All In Tabs', "OpenAllInTabs(new Array('"+"','".join(LinkList)+"'))")
+		Content = '<hr />'+ResourceListName+': '
+		if len(LinkList) > 1: # Open All In Tabs only makes sense if num items > 1
+			Content += self.Core.Reporter.Render.DrawButton('Open All In Tabs', "OpenAllInTabs(new Array('"+"','".join(LinkList)+"'))")
 		Content += self.Core.Reporter.Render.DrawHTMLList(HTMLLinkList)
-                return Content
+		return Content
 
 	def RequestAndDrawLinkList(self, ResourceListName, ResourceList, PluginInfo):
-	        #for Name, Resource in Core.Config.GetResources('PassiveRobotsAnalysisHTTPRequests'):
-                LinkList = []
-                HTMLLinkList = [] 
-	        for Name, Resource in ResourceList:
+		#for Name, Resource in Core.Config.GetResources('PassiveRobotsAnalysisHTTPRequests'):
+		LinkList = []
+		HTMLLinkList = [] 
+		for Name, Resource in ResourceList:
 			Chunks = Resource.split('###POST###')
 			URL = Chunks[0]
 			POST = None
@@ -80,7 +80,7 @@ class PluginHelper:
 			if len(Chunks) > 1: # POST
 				Method = 'POST'
 				POST = Chunks[1]
-	                Transaction = self.Core.Requester.GetTransaction(True, URL, Method, POST)
+				Transaction = self.Core.Requester.GetTransaction(True, URL, Method, POST)
 			if Transaction.Found:
 				Path, HTMLLink = self.SaveSandboxedTransactionHTML(Name, Transaction, PluginInfo)
 				HTMLLinkList.append(HTMLLink)
@@ -96,33 +96,33 @@ class PluginHelper:
 		SandboxedPath, HTMLLink = self.DumpFile("SANDBOXED_"+Name+".html", self.Core.Reporter.Render.DrawiFrame( { 'src' : NotSandboxedPath.split('/')[-1], 'sandbox' : '',  'security' : 'restricted', 'width' : '100%', 'height' : '100%', 'frameborder' : '0', 'style' : "overflow-y:auto; overflow-x:hidden;" } ), PluginInfo, Name)
 		return [ SandboxedPath, HTMLLink ]
 
-        def DrawVulnerabilitySearchBox(self, SearchStr): # Draws an HTML Search box for defined Vuln Search resources
-                ProductId = 'prod'+self.Core.DB.GetNextHTMLID() # Keep product id unique among different search boxes (so that Javascript works)
-                Count = 0
-                CellStr = ''
-                SearchAll = []
-                for Name, Resource in self.Core.Config.GetResources('VulnSearch'):
-                        LinkStart, LinkFinish = Resource.split('@@@PLACE_HOLDER@@@')
-                        LinkStart = LinkStart.strip()
-                        LinkFinish = LinkFinish.strip()
-                        JavaScript = "window.open('"+LinkStart+"'+GetById('"+ProductId+"').value+'"+LinkFinish+"')"
-                        SearchAll.append(JavaScript)
-                        CellStr += '<td>'+self.Core.Reporter.Render.DrawButton(Name, JavaScript)+'</td>'
-                        Count += 1
-                VulnSearch = """
+	def DrawVulnerabilitySearchBox(self, SearchStr): # Draws an HTML Search box for defined Vuln Search resources
+		ProductId = 'prod'+self.Core.DB.GetNextHTMLID() # Keep product id unique among different search boxes (so that Javascript works)
+		Count = 0
+		CellStr = ''
+		SearchAll = []
+		for Name, Resource in self.Core.Config.GetResources('VulnSearch'):
+			LinkStart, LinkFinish = Resource.split('@@@PLACE_HOLDER@@@')
+			LinkStart = LinkStart.strip()
+			LinkFinish = LinkFinish.strip()
+			JavaScript = "window.open('"+LinkStart+"'+GetById('"+ProductId+"').value+'"+LinkFinish+"')"
+			SearchAll.append(JavaScript)
+			CellStr += '<td>'+self.Core.Reporter.Render.DrawButton(Name, JavaScript)+'</td>'
+			Count += 1
+		VulnSearch = """
 <table>
-        <tr>
-                <th colspan="""+str(Count)+""">
-                        Search for Vulnerabilities: <input name="product" id='"""+ProductId+"""' type="text" size="35" value='"""+SearchStr+"""'>
-                        <button onclick="javascript:"""+';'.join(SearchAll)+"""">Search All</button>
-                </th>
-        </tr>
-        <tr>
-                """+str(CellStr)+"""
-        </tr>
+	<tr>
+		<th colspan="""+str(Count)+""">
+			Search for Vulnerabilities: <input name="product" id='"""+ProductId+"""' type="text" size="35" value='"""+SearchStr+"""'>
+			<button onclick="javascript:"""+';'.join(SearchAll)+"""">Search All</button>
+		</th>
+	</tr>
+	<tr>
+		"""+str(CellStr)+"""
+	</tr>
 """
-                VulnSearch += '</table><hr />'
-                return VulnSearch
+		VulnSearch += '</table><hr />'
+		return VulnSearch
 
 	def DrawSuggestedCommandBox(self, PluginInfo, CommandCategoryList, Header = ''): # Draws HTML tabs for a list of TabName => Resource Group (i.e. how to run hydra, etc)
 		cprint("Drawing suggested command box..")
@@ -133,35 +133,35 @@ class PluginHelper:
 		PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
 		for Tab, ResourceGroup in CommandCategoryList:
 			Table = self.Core.Reporter.Render.CreateTable({'class' : 'run_log'})
-		        for Name, Resource in self.Core.Config.GetResources(ResourceGroup):
-                		Table.CreateRow([Name], True)
+			for Name, Resource in self.Core.Config.GetResources(ResourceGroup):
+				Table.CreateRow([Name], True)
 				ModifiedCommand = self.Core.Shell.GetModifiedShellCommand(Resource.strip(), PluginOutputDir) # Replaces the plugin output dir, etc
-                		Table.CreateRow( [ self.Core.Reporter.DrawCommand(self.MultipleReplace(ModifiedCommand, self.Core.Config.GetReplacementDict())) ] )
-                		#Table.CreateRow([cgi.escape(self.MultipleReplace(ModifiedCommand, self.Core.Config.GetReplacementDict()))])
+				Table.CreateRow( [ self.Core.Reporter.DrawCommand(self.MultipleReplace(ModifiedCommand, self.Core.Config.GetReplacementDict())) ] )
+				#Table.CreateRow([cgi.escape(self.MultipleReplace(ModifiedCommand, self.Core.Config.GetReplacementDict()))])
 			Tabs.AddDiv(Tab.replace(' ', '_').lower(), Tab, Table.Render())
 		Tabs.CreateTabs()
-                Tabs.CreateTabButtons()
+		Tabs.CreateTabButtons()
 		return Header+Tabs.Render()
 
 	def SetConfigPluginOutputDir(self, PluginInfo):
-                PluginOutputDir = self.Core.PluginHandler.GetPluginOutputDir(PluginInfo)
-                self.Core.Config.Set('PLUGIN_OUTPUT_DIR', os.getcwd()+'/'+PluginOutputDir) # FULL output path for plugins to use
+		PluginOutputDir = self.Core.PluginHandler.GetPluginOutputDir(PluginInfo)
+		self.Core.Config.Set('PLUGIN_OUTPUT_DIR', os.getcwd()+'/'+PluginOutputDir) # FULL output path for plugins to use
 		self.Core.Shell.RefreshReplacements() # Get dynamic replacement, i.e. plugin-specific output directory
 		return PluginOutputDir
 
 	def InitPluginOutputDir(self, PluginInfo):
 		PluginOutputDir = self.SetConfigPluginOutputDir(PluginInfo)
-                self.Core.CreateMissingDirs(PluginOutputDir) # Create output dir so that scripts can cd to it :)
+		self.Core.CreateMissingDirs(PluginOutputDir) # Create output dir so that scripts can cd to it :)
 		return PluginOutputDir
 
 	def RunCommand(self, Command, PluginInfo, PluginOutputDir):
 		FrameworkAbort = PluginAbort = False
 		if not PluginOutputDir:
 			PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
-               	self.Core.Timer.StartTimer('FormatCommandAndOutput')
+		self.Core.Timer.StartTimer('FormatCommandAndOutput')
 		ModifiedCommand = self.Core.Shell.GetModifiedShellCommand(Command, PluginOutputDir)
 		try:
-	                RawOutput = self.Core.Shell.shell_exec_monitor(ModifiedCommand)
+			RawOutput = self.Core.Shell.shell_exec_monitor(ModifiedCommand)
 		except PluginAbortException, PartialOutput:
 			RawOutput = str(PartialOutput.parameter) # Save Partial Output
 			PluginAbort = True
@@ -169,8 +169,8 @@ class PluginHelper:
 			RawOutput = str(PartialOutput.parameter) # Save Partial Output
 			FrameworkAbort = True
 
-                TimeStr = self.Core.Timer.GetElapsedTimeAsStr('FormatCommandAndOutput')
-                cprint("Time="+TimeStr)
+		TimeStr = self.Core.Timer.GetElapsedTimeAsStr('FormatCommandAndOutput')
+		cprint("Time="+TimeStr)
 		return [ ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir ]
 
 	def GetCommandOutputFileNameAndExtension(self, InputName):
@@ -182,14 +182,14 @@ class PluginHelper:
 		return [ OutputName, OutputExtension ]
 
 	def TruncateOutput(self, FilePath, RawOutput, OutputLines):
-                TruncationWarningLinkToFile = self.Core.Reporter.Render.DrawButtonLink('Click here to see all output!', FilePath, {}, True)
-                BottomNote = ''
+		TruncationWarningLinkToFile = self.Core.Reporter.Render.DrawButtonLink('Click here to see all output!', FilePath, {}, True)
+		BottomNote = ''
 		NewLine = "\n" 
-                if len(OutputLines) > self.mNumLinesToShow: #Show first few lines of command, rest in file
-                	Snippet = NewLine.join(OutputLines[0:self.mNumLinesToShow])
-	                BottomNote = NewLine+"<b>NOTE: Output longer than "+str(self.mNumLinesToShow)+" lines, "+TruncationWarningLinkToFile+"</b>"
-                else: # Output fits in NumLinesToShow
-       	        	Snippet = RawOutput
+		if len(OutputLines) > self.mNumLinesToShow: #Show first few lines of command, rest in file
+			Snippet = NewLine.join(OutputLines[0:self.mNumLinesToShow])
+			BottomNote = NewLine+"<b>NOTE: Output longer than "+str(self.mNumLinesToShow)+" lines, "+TruncationWarningLinkToFile+"</b>"
+		else: # Output fits in NumLinesToShow
+			Snippet = RawOutput
 		return [ BottomNote, Snippet ]
 
 	def EscapeSnippet(self, Snippet, Extension):
@@ -203,10 +203,10 @@ class PluginHelper:
 		Table.CreateRow( [ CommandIntro ], True)
 		#Table.CreateRow( [ cgi.escape(str(ModifiedCommand)).replace(';', '<br />') ] ) 
 		Table.CreateRow( [ self.Core.Reporter.DrawCommand(ModifiedCommand) ] ) 
-                OutputLines = RawOutput.split("\n")
+		OutputLines = RawOutput.split("\n")
 		Name, Extension = self.GetCommandOutputFileNameAndExtension(Name)
-                FilePath = self.Core.PluginHandler.DumpPluginFile(Name+"."+Extension, RawOutput, PluginInfo)
-                LinkToFile = self.Core.Reporter.Render.DrawButtonLink(Name, FilePath, {}, True)
+		FilePath = self.Core.PluginHandler.DumpPluginFile(Name+"."+Extension, RawOutput, PluginInfo)
+		LinkToFile = self.Core.Reporter.Render.DrawButtonLink(Name, FilePath, {}, True)
 		BottomNote, Snippet = self.TruncateOutput(FilePath, RawOutput, OutputLines)
 		Table.CreateRow( [ LinkToFile+" "+OutputIntro+" (Execution Time: "+TimeStr+")" ], True)
 		Table.CreateRow( [ "<pre>"+self.EscapeSnippet(Snippet, Extension)+"<br />"+BottomNote+"</pre>" ] )
@@ -224,49 +224,49 @@ class PluginHelper:
 				if Transaction.Found:
 					NumFound += 1
 		TimeStr = self.Core.Timer.GetElapsedTimeAsStr('LogURLsFromStr')
-                cprint("Spider/URL scaper time="+TimeStr)
+		cprint("Spider/URL scaper time="+TimeStr)
 		Table = self.Core.Reporter.Render.CreateTable({'class' : 'commanddump'})
 		Table.CreateCustomRow('<tr><th colspan="2">Spider/URL scraper</th></tr>')
 		Table.CreateRow(['Time', 'URL stats'], True)
-                Table.CreateRow([TimeStr, self.Core.Reporter.Render.DrawHTMLList(['Visited URLs?: '+str(VisitURLs), str(len(URLList))+' URLs scraped', str(NumFound)+' URLs found'])])
+		Table.CreateRow([TimeStr, self.Core.Reporter.Render.DrawHTMLList(['Visited URLs?: '+str(VisitURLs), str(len(URLList))+' URLs scraped', str(NumFound)+' URLs found'])])
 		return Table.Render()
 
-        def DrawCommandDump(self, CommandIntro, OutputIntro, ResourceList, PluginInfo, PreviousOutput, NumLinesToShow = 25):
+	def DrawCommandDump(self, CommandIntro, OutputIntro, ResourceList, PluginInfo, PreviousOutput, NumLinesToShow = 25):
 		self.mNumLinesToShow = NumLinesToShow
 		PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
-                #Content = LinkToPluginOutputDir = '<br />'+self.Core.Reporter.Render.DrawButtonLink('Browse Plugin Output Files', self.Core.GetPartialPath(PluginOutputDir))+'<br />' <- This is now in the Plugin report box
+		#Content = LinkToPluginOutputDir = '<br />'+self.Core.Reporter.Render.DrawButtonLink('Browse Plugin Output Files', self.Core.GetPartialPath(PluginOutputDir))+'<br />' <- This is now in the Plugin report box
 		Content = ""
-                for Name, Command in ResourceList: #Command = Resource.strip()
+		for Name, Command in ResourceList: #Command = Resource.strip()
 			PluginAbort, FrameworkAbort, HTMLContent, RawOutput = self.FormatCommandAndOutput(CommandIntro, OutputIntro, Name, Command, PluginInfo, PluginOutputDir)
 			Content += HTMLContent
 			if Name == self.Core.Config.Get('EXTRACT_URLS_RESERVED_RESOURCE_NAME'): # This command returns URLs for processing
 				Content += self.LogURLsFromStr(RawOutput)
-                        if self.Core.Config.Get('UPDATE_REPORT_AFTER_EACH_COMMAND') == 'Yes':
-                                self.Core.Reporter.SavePluginReport(Content, PluginInfo) # Keep updating the report after each command/scanner runs
+			if self.Core.Config.Get('UPDATE_REPORT_AFTER_EACH_COMMAND') == 'Yes':
+				self.Core.Reporter.SavePluginReport(Content, PluginInfo) # Keep updating the report after each command/scanner runs
 			if PluginAbort: # Pass partial output to external handler:
 				raise PluginAbortException(PreviousOutput+Content)
 			if FrameworkAbort:
 				raise FrameworkAbortException(PreviousOutput+Content)
-                return Content
+		return Content
 
 	def DumpFile(self, Filename, Contents, PluginInfo, LinkName = ''):
-                save_path = self.Core.PluginHandler.DumpPluginFile(Filename, Contents, PluginInfo)
+		save_path = self.Core.PluginHandler.DumpPluginFile(Filename, Contents, PluginInfo)
 		if not LinkName:
 			LinkName = save_path
 		cprint("File: "+Filename+" saved to: "+save_path)
-                return [ save_path, self.Core.Reporter.Render.DrawButtonLink(LinkName, save_path, {}, True) ]
+		return [ save_path, self.Core.Reporter.Render.DrawButtonLink(LinkName, save_path, {}, True) ]
 
 	def DumpFileGetLink(self, Filename, Contents, PluginInfo, LinkName = ''):
-		return self.DumpFile(Filename, Contents, PluginInfo, LinkName)[0]
+		return self.DumpFile(Filename, Contents, PluginInfo, LinkName)[1]
 
 	def AnalyseRobotsEntries(self, Contents): # Find the entries of each kind and count them
-                num_lines = len(Contents.split("\n")) # Total number of robots.txt entries
-                AllowedEntries = self.RobotsAllowRegexp.findall(Contents)
-                num_allow = len(AllowedEntries) # Number of lines that start with "Allow:"
+		num_lines = len(Contents.split("\n")) # Total number of robots.txt entries
+		AllowedEntries = self.RobotsAllowRegexp.findall(Contents)
+		num_allow = len(AllowedEntries) # Number of lines that start with "Allow:"
 		DisallowedEntries = self.RobotsDisallowRegexp.findall(Contents)
-                num_disallow = len(DisallowedEntries) # Number of lines that start with "Disallow:"
+		num_disallow = len(DisallowedEntries) # Number of lines that start with "Disallow:"
 		SitemapEntries = self.RobotsSiteMap.findall(Contents)
-                num_sitemap = len(SitemapEntries) # Number of lines that start with "Sitemap:"
+		num_sitemap = len(SitemapEntries) # Number of lines that start with "Sitemap:"
 		NotStr = ''
 		if 0 == num_allow and 0 == num_disallow and 0 == num_sitemap:
 			NotStr = 'NOT '
@@ -274,15 +274,15 @@ class PluginHelper:
 
 	def ProcessRobots(self, PluginInfo, Contents, LinkStart, LinkEnd, Filename = 'robots.txt'):
 		num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = self.AnalyseRobotsEntries(Contents)
-                save_path = self.Core.PluginHandler.DumpPluginFile(Filename, Contents, PluginInfo)
-                TestResult = "robots.txt was "+NotStr+"found. "+str(num_lines)+" lines: "+str(num_allow)+" Allowed, "+str(num_disallow)+" Disallowed, "+str(num_sitemap)+" Sitemap.\n"
-                TestResult += '<br />Saved to: '+self.Core.Reporter.Render.DrawButtonLink(save_path, save_path, {}, True)#<a href="'+save_path+'" target="_blank">'+save_path+'</a>'
+		save_path = self.Core.PluginHandler.DumpPluginFile(Filename, Contents, PluginInfo)
+		TestResult = "robots.txt was "+NotStr+"found. "+str(num_lines)+" lines: "+str(num_allow)+" Allowed, "+str(num_disallow)+" Disallowed, "+str(num_sitemap)+" Sitemap.\n"
+		TestResult += '<br />Saved to: '+self.Core.Reporter.Render.DrawButtonLink(save_path, save_path, {}, True)#<a href="'+save_path+'" target="_blank">'+save_path+'</a>'
 		TopURL = self.Core.Config.Get('TOP_URL')
-                if num_disallow > 0 or num_allow > 0 or num_sitemap > 0: # robots.txt contains some entries, show browsable list! :)
+		if num_disallow > 0 or num_allow > 0 or num_sitemap > 0: # robots.txt contains some entries, show browsable list! :)
 			self.Core.DB.URL.AddURLsStart()
 			for Display, Entries in [ [ 'Disallowed Entries', DisallowedEntries ], [ 'Allowed Entries', AllowedEntries ], [ 'Sitemap Entries', SitemapEntries ] ]:
-	                        Links = [] # Initialise category-specific link list
-	                        for Entry in Entries:
+				Links = [] # Initialise category-specific link list
+				for Entry in Entries:
 					if 'Sitemap Entries' == Display:
 						URL = Entry
 						self.Core.DB.URL.AddURL(URL) # Store real links in the DB
@@ -291,9 +291,9 @@ class PluginHelper:
 						URL = TopURL+Entry
 						self.Core.DB.URL.AddURL(URL) # Store real links in the DB
 						Links.append( [ Entry, LinkStart+Entry+LinkEnd ] ) # Show link in defined format (passive/semi_passive)
-	                        TestResult += self.Core.PluginHelper.DrawResourceLinkList(Display, Links)
-			TestResult += self.Core.DB.URL.AddURLsEnd()
-                cprint("robots.txt was "+NotStr+"found")
+				TestResult += self.Core.PluginHelper.DrawResourceLinkList(Display, Links)
+		TestResult += self.Core.DB.URL.AddURLsEnd()
+		cprint("robots.txt was "+NotStr+"found")
 		return TestResult
 	
 	def LogURLs(self, PluginInfo, ResourceList):
@@ -302,7 +302,7 @@ class PluginHelper:
 		for Name, Command in ResourceList: #Command = Resource.strip()
 			HTMLOutput, RawOutput = self.FormatCommandAndOutput('Extract Links Command', 'Extract Links Output', Name, Command, PluginInfo)
 			self.LogURLsFromStr(RawOutput)
-                        #for line in RawOutput.split("\n"):
+			#for line in RawOutput.split("\n"):
 			#	self.Core.DB.URL.AddURL(line.strip())
 		self.Core.DB.SaveAllDBs() # Save URL DBs to disk
 		NumURLsAfter = self.Core.DB.URL.GetNumURLs()
@@ -313,7 +313,7 @@ class PluginHelper:
 		return self.Core.Reporter.DrawHTTPTransactionTable(self.Core.Requester.GetTransactions(UseCache, URLList, Method, Data))
 
 	def GetTransactionStats(self, NumMatchedTransactions):
-                TotalTransac = self.Core.DB.Transaction.GetNumTransactionsInScope()
+		TotalTransac = self.Core.DB.Transaction.GetNumTransactionsInScope()
 		Percentage = round(NumMatchedTransactions * 100 / max(TotalTransac,1), 2)
 		StatsStr = str(NumMatchedTransactions)+" out of "+str(TotalTransac)+" ("+str(Percentage)+"%)"
 		return [ NumMatchedTransactions, TotalTransac, Percentage, StatsStr ]
@@ -492,7 +492,7 @@ class PluginHelper:
 	def ResearchFingerprintInLog(self):
 		cprint("Researching Fingerprint in Log ..")
 		AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = self.ResearchHeaders(self.Core.Config.GetHeaderList('HEADERS_FOR_FINGERPRINT'))
-	        for Value in AllValues:
+		for Value in AllValues:
 			HeaderTable += self.DrawVulnerabilitySearchBox(Value) # Add Vulnerability search boxes after table
-	        return HeaderTable 
-
+		return HeaderTable 
+	

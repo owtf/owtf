@@ -36,44 +36,44 @@ class Timer:
 	def __init__(self, DateTimeFormat = "%d/%m/%Y-%H:%M"):
 		self.DateTimeFormat = DateTimeFormat
 
-        def StartTimer(self, OffSet = '0'):
-                self.Time[OffSet] = {}
-                self.Time[OffSet]['Start'] = self.GetCurrentDateTime()
-                self.Time[OffSet]['Time'] = time.time()
+	def StartTimer(self, OffSet = '0'):
+		self.Time[OffSet] = {}
+		self.Time[OffSet]['Start'] = self.GetCurrentDateTime()
+		self.Time[OffSet]['Time'] = time.time()
 		return [ self.Time[OffSet]['Start'], self.Time[OffSet]['Time'] ]
 
 	def GetCurrentDateTime(self):
 		return time.strftime(self.DateTimeFormat)
 
-        def GetElapsedTime(self, OffSet = '0'):
-                Time = time.time() - self.Time[OffSet]['Time']
+	def GetElapsedTime(self, OffSet = '0'):
+		Time = time.time() - self.Time[OffSet]['Time']
 		return Time
 
-        def GetTimeAsStr(self, seconds):
-                seconds, miliseconds = str(seconds).split('.')
-                seconds = int(seconds)
-                miliseconds = int(miliseconds[0:3])
-                hours = seconds / 3600
-                seconds -= 3600*hours
-                minutes = seconds / 60
-                seconds -= 60*minutes
-                TimeStr = ''
-                if hours > 0:
-                        TimeStr += "%2dh, " % hours
-                if minutes > 0:
-                        TimeStr += "%2dm, " % minutes
-                TimeStr += "%2ds, %3dms" % (seconds,miliseconds)
-                return TimeStr.strip() # Strip necessary to get rid of leading spaces sometimes
+	def GetTimeAsStr(self, seconds):
+		seconds, miliseconds = str(seconds).split('.')
+		seconds = int(seconds)
+		miliseconds = int(miliseconds[0:3])
+		hours = seconds / 3600
+		seconds -= 3600*hours
+		minutes = seconds / 60
+		seconds -= 60*minutes
+		TimeStr = ''
+		if hours > 0:
+			TimeStr += "%2dh, " % hours
+		if minutes > 0:
+			TimeStr += "%2dm, " % minutes
+		TimeStr += "%2ds, %3dms" % (seconds,miliseconds)
+		return TimeStr.strip() # Strip necessary to get rid of leading spaces sometimes
 
 	def EndTimer(self, Offset = '0'):
 		self.Time[Offset]['End'] = self.GetCurrentDateTime()
 
-        def GetElapsedTimeAsStr(self, Offset = '0'):
-                Elapsed = self.GetElapsedTime(Offset)
-                ToString = self.GetTimeAsStr(Elapsed)
+	def GetElapsedTimeAsStr(self, Offset = '0'):
+		Elapsed = self.GetElapsedTime(Offset)
+		ToString = self.GetTimeAsStr(Elapsed)
 		self.EndTimer(Offset)
-                #print "Elapsed="+str(Elapsed)+", ToString="+ToString
-                return ToString
+		#print "Elapsed="+str(Elapsed)+", ToString="+ToString
+		return ToString
 
 	def GetStartDateTimeAsStr(self, Offset = '0'):
 		return self.Time[Offset]['Start']

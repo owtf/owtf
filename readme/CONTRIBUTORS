@@ -4,3 +4,44 @@ Project page: http://owtf.org
 github page: https://github.com/7a/owtf
 owtf git installation script (very basic atm): owtf_dir/install/install_git.sh
 GIT installation/setup instructions: http://help.github.com/linux-set-up-git/
+
+Development IDE: After using only vi for months I switched to: eclipse + pydev
+Installation steps (should work fine on Ubuntu / Backtrack):
+1) apt-get install eclipse
+Below is mostly from these guides but correcting the pydev.org URL: 
+http://pluthon.garage.maemo.org/1st_edition/pydev.html
+http://cs.calvin.edu/curriculum/cs/106/resources/pythonOnEclipse/1.installingPyDev/
+2) (From Eclipse) Help / Install New Software / "Add"
+3) On the dialog box: Name -> PyDev. Location: http://pydev.org/updates
+4) Click on the PyDev checkbox that appears below
+5) Next / Next / Finish :)
+6) Trust the Atana certificate
+7) Restart Eclipse
+8) Create new OWTF project selecting PyDev
+9) Click on "Please configure an interpreter .."
+10) On the python interpreters box (at the top) click "New"
+11) Interpreter name: python2.6 + Interpreter Location: /usr/bin/python2.6 (or run whereis python2.6)
+12) ok, apply + fight until you get the settings you like :P
+13) This might help: http://stackoverflow.com/questions/186118/eclipse-fonts-and-background-color
+14) Right click on code window / Preferences / Click on "Show whitespace characters" and make sure that "insert spaces for tabs" is DISABLED!!!
+15) Ensure when you click on the "tab" key there are no dots "." and if so: right click on code window / Toggle force tabs
+NOTE: The OWTF codebase uses tabs for indentation, please be consistent with this. Thank you.
+If you are like me you might find the following helpful to have word wrap working in Eclipse: 
+http://ahtik.com/blog/projects/eclipse-word-wrap/
+16) External library method/properties completion:
+Project / PyDev - PYTHON PATH / External libraries tab / Add Source Folder:
+/usr/share/pyshared/twisted (for twisted completion, location on bactrack 5)
+
+right click on editor window / preferences DOES NOT WORK for many things you should:
+Go to Window / Preferences / PyDev / Editor and adjust your settings here (tab defaults here override the Eclipse defaults, for example)
+
+To use vim from Eclipse for free:
+TODO: http://sourceforge.net/projects/eclim/
+
+DID NOT WORK:
+1) Download this: http://sourceforge.net/projects/vimplugin/
+2) Copy it here (Backtrack 5, but you get the idea): /usr/lib/eclipse/plugins
+3) Restart Eclipse
+4) Go to Window / Preferences / Vim Plugin / set the location to: /usr/bin/vim
+5) 
+

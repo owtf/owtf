@@ -55,6 +55,7 @@ class CommandRegister:
 		return False # The command never finished
 
 	def Add(self, Command): # Must always register a command when it is run, we do not care if it was run before for this
+		#print "Command=" + str(Command)
 		self.Core.DB.Add('COMMAND_REGISTER', [ Command['Start'], Command['End'], Command['RunTime'], Command['Status'], Command['Target'], Command['ModifiedCommand'].strip(), Command['OriginalCommand'].strip() ] )
 		#if not self.AlreadyRegistered(Command['OriginalCommand']):
 
