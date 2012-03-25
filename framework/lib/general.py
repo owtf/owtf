@@ -23,19 +23,19 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-                                                                                                           
 
 This library contains helper functions and exceptions for the framework
 """
-import pprint, sys
+
+import pprint, sys, os
 from collections import defaultdict
 
 class FrameworkException(Exception):
-    def __init__(self, value):
-	    self.parameter = value
+	def __init__(self, value):
+		self.parameter = value
 
-    def __str__(self):
-	    return repr(self.parameter)
+	def __str__(self):
+		return repr(self.parameter)
 
 class FrameworkAbortException(FrameworkException):
 	pass
@@ -48,32 +48,41 @@ class UnreachableTargetException(FrameworkException):
 
 def ConfigGet(Key): # Kludge wrapper function
 	global Config # kludge global to avoid having to pass the config around to other components that need it (temporary until I figure out a better way!)
-        return Config.Get(Key)
+	return Config.Get(Key)
 
 def cprint(Message):
-        Pad = "[*] "
-        print Pad+str(Message).replace("\n", "\n"+Pad)
-        return Message
+	Pad = "[*] "
+	print Pad+str(Message).replace("\n", "\n"+Pad)
+	return Message
 
-def p(Variable):
+def p(Variable, CallFunctions = True):
+	for i in dir(Variable):
+		print i
+		try:
+			Attrib = getattr(Variable, i)
+			print str(Attrib)
+			if CallFunctions and callable(Attrib):
+				Attrib()
+		except:
+			pass
 	cprint("depth = 1")
 	pprint.PrettyPrinter(indent=4,depth=1).pprint(Variable)
 	cprint("depth = 2")
 	pprint.PrettyPrinter(indent=4,depth=2).pprint(Variable)
 	cprint("pprint")
-        pprint.pprint(Variable)
+	pprint.pprint(Variable)
 	cprint("print dir")
-        cprint(dir(Variable))
+	cprint(dir(Variable))
 
 # Perform multiple replacements in one go using the replace dictionary in format: { 'search' : 'replace' }
 def MultipleReplace(Text, ReplaceDict):
-        NewText = Text
-        for Search,Replace in ReplaceDict.items():
-                NewText = NewText.replace(Search, str(Replace))
-        return NewText
+	NewText = Text
+	for Search,Replace in ReplaceDict.items():
+		NewText = NewText.replace(Search, str(Replace))
+	return NewText
 
 def WipeBadCharsForFilename(Filename):
-        return MultipleReplace(Filename, { '(':'', ' ':'_', ')':'', '/':'_' })
+	return MultipleReplace(Filename, { '(':'', ' ':'_', ')':'', '/':'_' })
 
 def RemoveListBlanks(List):
 	NewList = []
@@ -106,10 +115,10 @@ def TruncLines(Str, NumLines, EOL = "\n"):
 
 def DeriveHTTPMethod(Method, Data): # Derives the HTTP method from Data, etc
 	DMethod = Method
-        if DMethod == None or DMethod == '': # Method not provided: Determine method from params
-        	DMethod = 'GET'
-                if Data != '' and Data != None:
-                	DMethod = 'POST'
+	if DMethod == None or DMethod == '': # Method not provided: Determine method from params
+		DMethod = 'GET'
+		if Data != '' and Data != None:
+			DMethod = 'POST'
 	return DMethod
 
 def GetDictValueOrBlank(Dict, Key): # Return the value if the key is present or blank otherwise
@@ -136,3 +145,10 @@ def GetFileAsList(Filename):
 		Output = []
 	return Output
 
+def PathsExist(PathList):
+	ValidPaths = True
+	for Path in PathList:
+		if not os.path.exists(Path):
+			cprint("WARNING: The path '" + Path + "' does not exist!")
+			ValidPaths = False
+	return ValidPaths

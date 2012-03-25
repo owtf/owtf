@@ -1,0 +1,2584 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><head>
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" href="UTR%23%2036:%20Unicode%20Security%20Considerations_files/reports.css" type="text/css">
+<title>UTR# 36: Unicode Security Considerations</title>
+<style type="text/css">
+<!--
+span.special { text-decoration: underline; font-weight: bold; color: #FF0000;font-family: monospace; font-size: 12px }
+.idn-head { font-size: 12px; background-color: #C0C0C0 }
+span.mono    { font-family: monospace; font-size: 12px }
+.idn-example {font-size:12px; font-family:Arial Unicode MS, san-serif}
+.noborder {border-width: 0; border-collapse: collapse; }
+.alert {border-style:outset; border-width:3px; background-color:#DDDDFF; border-collapse: collapse; width:80% }
+.alertcell {border-width: 0; padding: 1em}
+-->
+</style>
+</head><body>
+
+<form method="post" action="none">
+	<table class="header" cellpadding="0" cellspacing="0" width="100%">
+		<tbody><tr>
+			<td class="icon"><a href="http://www.unicode.org/">
+			<img alt="[Unicode]" src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/logo60s2.gif" align="middle" border="0" height="33" width="34"></a>&nbsp;
+			<a class="bar" href="http://www.unicode.org/reports/">Technical Reports</a></td>
+		</tr>
+		<tr>
+			<td class="gray">&nbsp;</td>
+		</tr>
+	</tbody></table>
+	<div class="body">
+		<h2 align="center">Unicode Technical Report #36</h2>
+		<h1>Unicode Security Considerations</h1>
+		<table style="border-collapse: collapse;" border="1" cellpadding="2" cellspacing="0" width="90%">
+			<tbody><tr>
+				<td valign="top">Authors</td>
+				<td valign="top">Mark Davis (<a href="mailto:markdavis@google.com">markdavis@google.com</a>),<br>
+				Michel Suignard (<a href="mailto:michel@suignard.com">michel@suignard.com</a>)</td>
+			</tr>
+			<tr>
+				<td valign="top">Date</td>
+				<td valign="top">2008-07-23</td>
+			</tr>
+			<tr>
+				<td valign="top">This Version</td>
+				<td valign="top">
+                <a href="http://www.unicode.org/reports/tr36/tr36-7.html">http://www.unicode.org/reports/tr36/tr36-7.html</a></td>
+			</tr>
+			<tr>
+				<td valign="top">Previous Version</td>
+				<td valign="top"><a href="http://www.unicode.org/reports/tr36/tr36-5.html">http://www.unicode.org/reports/tr36/tr36-5.html</a></td>
+			</tr>
+			<tr>
+				<td valign="top">Latest Version</td>
+				<td valign="top"><a href="http://www.unicode.org/reports/tr36/">http://www.unicode.org/reports/tr36/</a></td>
+			</tr>
+			<!-- Added proposed update line for 6.0 preparation. -->
+			<tr>
+				<td valign="top">Latest Proposed Update</td>
+				<td valign="top"><a href="http://www.unicode.org/reports/tr36/proposed.html">http://www.unicode.org/reports/tr36/proposed.html</a>
+				</td>
+			</tr>
+			<tr>
+				<td valign="top">Revision</td>
+				<td valign="top"><a href="#Modifications">7</a></td>
+			</tr>
+		</tbody></table>
+		<h3><br>
+		<i>Summary</i></h3>
+		<p><i>Because Unicode contains such a large number of characters and incorporates the varied 
+		writing systems of the world, incorrect usage can expose programs or systems to possible security 
+		attacks. This is especially important as more and more products are internationalized. This 
+		document describes some of the security considerations that programmers, system analysts, standards 
+		developers, and users should take into account, and provides specific recommendations to reduce 
+		the risk of problems.</i></p>
+		<h3><i>Status</i></h3>
+		<p>
+        <i>This document has been reviewed by Unicode members and other interested 
+        parties, and has been approved for publication by the Unicode 
+        Consortium. This is a stable document and may be used as reference 
+        material or cited as a normative reference by other specifications.</i></p>
+		<blockquote>
+			<p><i><b>A Unicode Technical Report (UTR) </b>contains informative material. Conformance 
+			to the Unicode Standard does not imply conformance to any UTR. Other specifications, however, 
+			are free to make normative references to a UTR.</i></p>
+		</blockquote>
+		<p><i>Please submit corrigenda and other comments with the online reporting form [<a href="#Feedback">Feedback</a>]. 
+		Related information that is useful in understanding this document is found in the
+		<a href="#References">References</a>. For the 
+		latest version of the Unicode Standard see [<a href="#Unicode">Unicode</a>]. 
+		For a list of current Unicode Technical Reports see [<a href="#Reports">Reports</a>]. 
+		For more information about versions of the Unicode Standard, see [<a href="#Versions">Versions</a>].</i></p>
+		<p><span><i>To allow access to the most recent work of the Unicode security subcommittee on 
+		this document, the "</i></span><i>Latest Working Draft" link in the header points to the latest 
+		working-draft document under development.</i></p>
+		<h3><i>Contents</i></h3>
+		<ul class="toc">
+			<li>1. <a href="#Introduction">Introduction</a><ul class="toc">
+				<li>1.1 <a href="#Structure">Structure</a></li>
+			</ul>
+			</li>
+			<li>2. <a href="#visual_spoofing">Visual Security Issues</a><ul class="toc">
+				<li>2.1 <a href="#international_domain_names">Internationalized Domain Names</a></li>
+				<li>2.2 <a href="#Mixed_Script_Spoofing">Mixed-Script Spoofing</a></li>
+				<li>2.3 <a href="#Single_Script_Spoofing">Single-Script Spoofing</a></li>
+				<li>2.4 <a href="#Inadequate_Rendering_Support">Inadequate Rendering Support</a></li>
+				<li>2.5 <a href="#Bidirectional_Text_Spoofing">Bidirectional Text Spoofing</a></li>
+				<li>2.6 <a href="#Syntax_Spoofing">Syntax Spoofing</a></li>
+				<li>2.7 <a href="#Numeric_Spoofs">Numeric Spoofs</a></li>
+				<li>2.8 <a href="#Techniques">Techniques</a><ul class="toc">
+					<li>2.8.1 <a href="#Case_Folded_Format">Case-Folded Format</a></li>
+					<li><span>2.8.2 <a href="#Mapping_and_Prohibition">Mapping and Prohibition</a></span></li>
+				</ul>
+				</li>
+				<li><span>2.9 <a href="#Security_Levels_and_Alerts">Restriction Levels and Alerts</a></span><ul class="toc">
+					<li>2.9.1 <a href="#Backwards_Compatibility">Backwards Compatibility</a></li>
+				</ul>
+				</li>
+				<li>2.10 <a href="#Visual_Spoofing_Recommendations">Recommendations</a><ul class="toc">
+					<li>2.10.1 <a href="#User_Recommendations">User Recommendations</a></li>
+					<li>2.10.2 <a href="#Recommendations_General">General Programmer Recommendations</a></li>
+					<li>2.10.3 <a href="#Recommendations_User_Agents">User Agent Recommendations</a></li>
+					<li>2.10.4 <a href="#Recommendations_Registries">Registry Recommendations</a></li>
+					<li>2.10.5 <a href="#Recommendations_Registrars">Registrar Recommendations</a></li>
+				</ul>
+				</li>
+			</ul>
+			</li>
+			<li>3. <a href="#Canonical_Represenation">Non-Visual Security Issues</a><ul class="toc">
+				<li>3.1 <a href="#UTF-8_Exploit">UTF-8 Exploits</a></li>
+				<li>3.2 <a href="#Text_Comparison">Text Comparison</a></li>
+				<li>3.3 <a href="#Buffer_Overflows">Buffer Overflows</a></li>
+				<li>3.4 <a href="#Property_and_Character_Stability">Property 
+				and Character Stability</a></li>
+				<li>3.5
+                <a href="#Deletion_of_Noncharacters">Deletion of Noncharacters</a></li>
+				<li>3.5 <a href="#Non_Visual_Recommendations">Recommendations</a></li>
+			</ul>
+			</li>
+			<li><span>Appendix A. <a href="#Identifier_Characters">Identifier Characters</a></span></li>
+			<li>Appendix B. <a href="#Confusable_Detection">Confusable Detection</a></li>
+			<li><span>Appendix C. <a href="#Missing_Glyph_Icons">Script Icons</a></span></li>
+			<li>Appendix D. <a href="#Mixed_Script_Detection">Mixed Script Detection</a></li>
+			<li>Appendix E. <a href="#Future_Topics">Future Topics</a></li>
+			<li><span>Appendix F. <a href="#Country_Specific_IDN_Restrictions">Country-Specific IDN 
+			Restrictions</a></span></li>
+			<li>Appendix G. <a href="#Language_Based_Security">Language-Based Security</a></li>
+			<li><a href="#Acknowledgements">Acknowledgements</a></li>
+			<li><a href="#References">References</a></li>
+			<li><a href="#Modifications">Modifications</a></li>
+			<li>&nbsp;</li>
+		</ul>
+		<hr>
+		<h2 align="left"><a name="Introduction"></a>1. Introduction</h2>
+		<p>The Unicode Standard represents a very significant advance over all previous methods of encoding 
+		characters. For the first time, all of the world's characters can be represented in a uniform 
+		manner, making it feasible for the vast majority of programs to be <i>globalized:</i> built 
+		to handle any language in the world.</p>
+		<p>In many ways, the use of Unicode makes programs much more robust and secure. When systems 
+		used a hodge-podge of different charsets for representing characters, there were security and 
+		corruption problems that resulted from differences between those charsets, or from the way in 
+		which programs converted to and from them.</p>
+		<p>But because Unicode contains such a large number of characters, and because it incorporates 
+		the varied writing systems of the world, incorrect usage can expose programs or systems to possible 
+		security attacks. This document describes some of the security considerations that programmers, 
+		system analysts, standards developers, and users should take into account.</p>
+		<p>For example, consider visual spoofing, where a similarity in visual appearance fools a user 
+		and causes him or her to take unsafe actions.</p>
+		<blockquote>
+			<p>Suppose that the user gets an email notification about an apparent problem in their citibank 
+			account. Security-savvy users realize that it might be a spoof; the HTML email might be 
+			presenting the URL <u>http://citibank.com/...</u> visually, but might be hiding the <i>real</i> 
+			URL. They realize that even what shows up in the status bar might be a lie, since clever 
+			Javascript or ActiveX can work around that. (And users may have these turned on unless they 
+			know to turn them off.) They click on the link, and carefully examine the browser's address 
+			box to make sure that it is actually going to <u>http://citibank.com/...</u>. They see that 
+			it is, and use their password. But what they saw was wrong
+			<font face="Lucida Sans Unicode">—</font> it is actually going to a spoof site with a fake 
+			"citibank.com", using the Cyrillic letter that looks precisely like a 'c'. They use the 
+			site without suspecting, and the password ends up compromised.</p>
+		</blockquote>
+		<p>This problem is not new to Unicode: it was possible to spoof even with ASCII characters alone. 
+		For example, "<font face="sans-serif">inteI.com</font>" uses a capital I instead of an L. The 
+		infamous example here involves "<font face="sans-serif">paypaI.com</font>": </p>
+		<blockquote>
+			<p class="stBodyText">... Not only was "Paypai.com" very convincing, but the scam artist 
+			even goes one step further. He or she is apparently emailing PayPal customers, saying they 
+			have a large payment waiting for them in their account.</p>
+			<p class="stBodyText">The message then offers up a link, urging the recipient to claim the 
+			funds. But the URL that is displayed for the unwitting victim uses a capital "i" (I), which 
+			looks just like a lowercase "L" (l), in many computer fonts. ...[<a href="#Paypal">Paypal</a>].</p>
+		</blockquote>
+		<p>While some browsers prevent this spoof by lowercasing domain names, others do not.</p>
+		<p>Thus to a certain extent, the new forms of visual spoofing available with Unicode are a matter 
+		of degree and not kind. However, because of the very large number of Unicode characters (over 
+		96,000 in the current version), the number of opportunities for visual spoofing is significantly 
+		larger than with a restricted character set such as ASCII.</p>
+		<h3>1.1 <a name="Structure">Structure</a></h3>
+		<p>The security situation changes as the result of continual innovation. Thus this document 
+		should grow over time, adding additional sections as needed. Initially, it is organized into 
+		two sections: visual security issues and non-visual security issues. For more information, see 
+		also the Unicode FAQ on <i>Security Issues</i> [<a href="#FAQSec">FAQSec</a>].</p>
+		<p>Each section presents background information on the kinds of problems that can occur, then 
+		lists specific recommendations for reducing the risk of such problems. </p>
+		<blockquote>
+			<p><b>Note: </b>Some of the examples below use Unicode characters which some browsers will 
+			not show, or may not show in a way that illustrates the problem. For more information about 
+			improving the display in your browser, see [<a href="#Display">Display</a>].</p>
+		</blockquote>
+		<p>For examples and background information, see the <a href="#References">References</a>, including 
+		the <a href="#Related_Material">Related Material</a>. For information on possible future topics, 
+		see <i>Appendix E. <a href="#Future_Topics">Future Topics</a></i>.</p>
+		<h2><a name="visual_spoofing"></a>2. Visual Security Issues</h2>
+		<p>Visual spoofs depend on the use of <i>visually confusable</i> strings: two different strings 
+		of Unicode characters whose appearance in common fonts in small sizes at typical screen resolutions 
+		is sufficiently close that people easily mistake one for the other.</p>
+		<p>There are no hard-and-fast rules for visual confusability: many characters look like others 
+		when used with sufficiently small sizes. "Small-sizes at screen resolutions", means fonts whose 
+		ascent + descent is from 9 to 12 pixels for most scripts, somewhat larger for scripts, such 
+		as Japanese, where the users typically select larger sizes. Confusability also depends on the 
+		style of the font: with a traditional Hebrew style, many characters are only distinguishable 
+		by fine differences which may be lost at small sizes. In some cases sequences of characters 
+		can be used to spoof: for example, "rn" ("r" followed by "n") is visually confusable with "m" 
+		in many sans-serif fonts.</p>
+		<p>Where two different strings can always be represented by the same sequence of glyphs, those 
+		strings are called <i>homographs</i>. For example, "AB" in Latin and "AB" in Greek are homographs. 
+		Spoofing is not dependent on just homographs; if the visual appearance is close enough at small 
+		sizes or in the most common fonts, that can be sufficient to cause problems. Note that some 
+		people use the term <i>homograph</i> broadly, encompassing all visually confusable strings.</p>
+		<p>Two characters with similar or identical glyph shapes are not visually confusable if the 
+		positioning of the respective shapes is sufficiently different. For example, foo<span title="U+00B7 MIDDLE DOT">·</span>com 
+		(using the hyphenation point instead of the period) should be distinguishable from foo.com by 
+		the positioning of the dot (except in faulty fonts).</p>
+		<p>It is important to be aware that identifiers are special-purpose strings used for identification, 
+		strings that are deliberately limited to particular repertoires for that purpose. Exclusion 
+		of characters from identifiers does not at all affect the general use of those characters, such 
+		as within documents.</p>
+		<p>The remainder of this section is concerned with identifiers that can be confused by ordinary 
+		users at typical sizes and screen resolutions. For examples of visually confusable characters, 
+		see <i>Section 4. Confusable Detection </i>[<a href="#UTS39">UTS39</a>].</p>
+		<h3>2.1 <a name="international_domain_names"></a>Internationalized Domain Names</h3>
+		<p>Visual spoofing is an especially important subject given the recent introduction of Internationalized 
+		Domain Names (IDN). There is a natural desire for people to see domain names in their own languages 
+		and writing systems; English speakers can understand this if they consider what it would be 
+		like if they always had to type web addresses with Japanese characters. So IDN represents a 
+		very significant advance for most people in the world. However, the larger repertoire of characters 
+		results in more opportunities for spoofing. Proper implementation in browsers and other programs 
+		is required to minimize security risks while still allowing for effective use of non-ASCII characters.</p>
+		<p>Internationalized Domain Names are, of course, not the only cases where visual spoofing can 
+		occur. For example, a message offering to install software from "IBM", authenticated with a 
+		certificate in which the "<span title="U+041C CYRILLIC CAPITAL LETTER EM">М</span>" character 
+		happens to be the Russian (Cyrillic) character that looks precisely like the English "M". Any 
+		place where strings are used as identifiers is subject to this kind of spoofing. </p>
+		<p>IDN provides a good starting point for a discussion of visual spoofing, and will be used 
+		as the focus for the remaining part of this section. However, the concepts and recommendations 
+		discussed here can be generalized to the use of other types of identifiers. For background information 
+		on identifiers, see UAX #31: <i>Identifier and Pattern Syntax</i> [<a href="#UAX31">UAX31</a>].</p>
+		<p>Certain parts of domain names are still required to be in ASCII, and thus not subject to 
+		the visual spoofing issues discussed here. For example, the top-level domain names (.com, .ru, 
+		etc.) are currently always ASCII (this may change in the future, however).</p>
+		<p>Fortunately the design of IDN prevents a huge number of spoofing attacks. All conformant 
+		users of IDN are required to process domain names to convert what are called <i>
+		<a href="http://www.unicode.org/glossary/#compatibility_equivalent">compatibility-equivalent</a></i> 
+		characters into a unique form using a process called compatibility normalization (NFKC) — for 
+		more information on this, see [<a href="#UAX15">UAX15</a>]. This processing eliminates most 
+		of the possibilities for visual spoofing by mapping away a large number of visually confusable 
+		characters and sequences. For example, <span>&nbsp;characters like the half-width Japanese
+		<i>katakana</i> character <span title="U+FF76 HALFWIDTH KATAKANA LETTER KA">ｶ</span><span title="U+30AB KATAKANA LETTER KA"> 
+		are converted to the regular character カ, and single ligature characters like </span>
+		<span title="U+FB01 LATIN SMALL LIGATURE FI">"ﬁ" to the sequence of regular characters "fi".
+		</span></span>Unicode contains the "<span title="U+00E4 LATIN SMALL LETTER A WITH DIAERESIS">ä</span>" 
+		(a-umlaut) character, but also contains a free-standing umlaut ("<span title="U+0308 COMBINING DIAERESIS">&nbsp; 
+		̈</span>") which can be used in combination with any character, including an "a". But the compatibility 
+		normalization will convert any sequence of "a" plus "<span title="U+0308 COMBINING DIAERESIS">&nbsp; 
+		̈</span>" into the regular "<span title="U+00E4 LATIN SMALL LETTER A WITH DIAERESIS">ä</span>".</p>
+		<p>Thus you can not spoof an <i>a-umlaut</i> with <i>a + umlaut</i>; it simply results in the 
+		same domain name. See the example <i>Safe Domain Names </i>below. The String column shows the 
+		actual characters; the UTF-16 shows the underlying encoding, while the ACE ("ASCII Compatible 
+		Encoding") column shows the internal format of the domain name. This is the result of applying 
+		the ToASCII() operation [<a href="#RFC3490">RFC3490</a>] to the original IDN, which is the way 
+		this IDN is stored and queried in the DNS (Domain Name System).</p>
+		<table style="border-collapse: collapse;" border="1" cellpadding="4" cellspacing="0">
+			<caption style="font-size: 14pt; font-weight: bold;"><b>Safe Domain Names</b></caption>
+			<tbody><tr>
+				<th class="idn-head">&nbsp;</th>
+				<th class="idn-head">String</th>
+				<th class="idn-head">UTF-16</th>
+				<th class="idn-head">ACE</th>
+				<th class="idn-head">Comments</th>
+			</tr>
+			<tr>
+				<th class="idn-head">1a</th>
+				<td class="idn-example">ät.com</td>
+				<td class="mono"><span class="special">0061 0308</span><span class="mono"> 0074 002E 
+				0063 006F 006D</span></td>
+				<td><span class="mono">xn--t-zfa.com</span></td>
+				<td class="idn-example">Uses the decomposed form, a + umlaut</td>
+			</tr>
+			<tr>
+				<th class="idn-head">1b</th>
+				<td class="idn-example">ät.com</td>
+				<td class="mono"><span class="special">00E4</span><span class="mono"> 0074 002E 0063 
+				006F 006D</span></td>
+				<td class="mono"><span class="mono">xn--t-zfa.com</span></td>
+				<td class="idn-example">But it ends up being identical to the composed form, in IDNA</td>
+			</tr>
+		</tbody></table>
+		<blockquote>
+			<p><b>Note: </b>The ICU demo at [<a href="#IDN-Demo">IDN-Demo</a>] can be used to demonstrate 
+			the results of processing different domain names. That demo was also used to get the ACE 
+			values shown here.</p>
+		</blockquote>
+		<p>Similarly, for<span title="U+0906 DEVANAGARI LETTER AA"> most scripts, two accents that do 
+		not interact typographically are put into a determinate order when the text is normalized</span><span><span title="U+0906 DEVANAGARI LETTER AA">. 
+		Thus the sequence &lt;x, dot_above, dot_below&gt; is reordered as &lt;x, dot_below, dot_above&gt;. This 
+		ensures that the two sequences that look ide</span>ntical (ẋ̣ and ẋ̣̇) have the same representation.</span></p>
+		<p>The IDN processing also removes case distinctions by performing a <i>case folding</i> to 
+		reduce characters to a lowercase form<i>.</i> This is also useful for avoiding spoofing problems, 
+		since characters are generally more distinctive in their lowercase forms. That means that people 
+		can focus on just the lowercase characters.</p>
+		<blockquote>
+			<p>This focus on lowercase letters only really helps for <i>Internationalized</i> Domain 
+			Names, because of two factors: First, the IDNA operation ToASCII() will map to lowercase 
+			if and only if the label contains some non-ASCII character. Thus ToASCII("paypaI.com") (where 
+			the 'I' is a capital 'i') produces no change.</p>
+			<p>Secondly, domain names are case-insensitive, but [<a href="#RFC1034">RFC1034</a>] and 
+			[<a href="#RFC1035">RFC1035</a>], as clarified by [<a href="#DNS-Case">DNS-Case</a>], introduce 
+			the concept of case preservation. Thus if someone queries the DNS for "paypaI.com", and 
+			the DNS contains information for "paypai.com", that information is delivered, but the answer 
+			from the DNS will be the original "paypaI.com".</p>
+		</blockquote>
+		<p>For a list of allowable characters in IDN, see [<a href="#idnhtml">idnhtml</a>]. There are 
+		many misperceptions about which characters are allowed in IDN, so referencing this explicit 
+		list should help dispel some of them.</p>
+		<blockquote>
+			<p><span><b>Note</b>: Users expect diacritical marks to distinguish domain names. For example, 
+			the domain names "resume.com" and "résumé.com" are (and should be) distinguished. In languages 
+			where the spelling may allow certain words with and without diacritics, </span>registrants 
+			would have to register two or more domain names so as to cover user expectations (just as 
+			one may register both "analyze.com" and "analyse.com" to cover variant spellings).</p>
+		</blockquote>
+		<p>Although normalization and case-folding prevent many possible spoofing attacks, visual spoofing 
+		can still occur with many Internationalized Domain Names. This poses the question of which parts 
+		of the infrastructure using and supporting domain names are best suited to minimize possible 
+		spoofing attacks.</p>
+		<p>Some of the problems of visual spoofing can be best handled on the registry side, while others 
+		can be best handled on the <i>user agent</i> side (browsers, emailers, and other programs that 
+		display and process URLs). The registry has the most data available about alternative registered 
+		names, and can process that information the most efficiently at the time of registration, using 
+		policies to reduce visual spoofing. For example, given the method described in <i>Section 4. 
+		Confusable Detection </i>[<a href="#UTS39">UTS39</a>], the registry can easily determine if 
+		a proposed registration could be visually confused with an existing one; that determination 
+		is much more difficult for user agents because of the sheer number of combinations that they 
+		would have to check.</p>
+		<p>However, there are certain issues much more easily addressed by the user agent:</p>
+		<ul>
+			<li>the user agent has more control over the display of characters, which is crucial to 
+			spoofing</li>
+			<li>there are legitimate cases of visually confusable characters that one may want to allow
+			<i>after</i> alerting the user<span>, such as single-script confusables discussed below</span>.</li>
+			<li>one cannot depend on all registries being equally responsive to security issues</li>
+			<li>due to the decentralized nature of DNS, registries do not control subdomains being established 
+			beyond the domain name registered</li>
+		</ul>
+		<p>Thus the problem of visual spoofing is most effectively addressed by a combination of strategies 
+		involving user-agents and registries.</p>
+		<h3><b>2.2 <a name="Mixed_Script_Spoofing">Mixed-Script Spoofing</a></b></h3>
+		<p>Visually confusable characters are not usually unified across scripts. Thus a Greek <i>omicron</i> 
+		is encoded as a different character from the Latin "o", even though it is usually identical 
+		or nearly identical in appearance. There are good reasons for this: often the characters were 
+		separate in legacy encodings, and preservation of those distinctions was necessary for existing 
+		data to be mapped to Unicode without loss. Moreover, the characters generally have very different 
+		behavior: two visually confusable characters may be different in casing behavior, in category 
+		(letter versus number), or in numeric value. After all, ASCII does not unify lowercase letter 
+		l and digit 1, even though those are visually confusable. <span>(Many fonts always distinguish 
+		them, but many do not.) </span>Encoding the Cyrillic character б (corresponding to the letter 
+		"b") by using the numeral 6, would clearly have been a mistake, even though they are visually 
+		confusable.</p>
+		<p>However, the existence of visually confusable characters across scripts leads to a significant 
+		number of spoofing possibilities using characters from different scripts. For example, a domain 
+		name can be spoofed by using a Greek omicron instead of an 'o', as in example 1a in the following 
+		table.</p>
+		<table style="border-collapse: collapse;" border="1" cellpadding="4" cellspacing="0">
+			<caption style="font-size: 14pt; font-weight: bold;"><b>Mixed-Script Spoofing</b></caption>
+			<tbody><tr>
+				<th class="idn-head">&nbsp;</th>
+				<th class="idn-head">String</th>
+				<th class="idn-head">UTF-16</th>
+				<th class="idn-head">ACE</th>
+				<th class="idn-head">Comments</th>
+			</tr>
+			<tr>
+				<th class="idn-head">1a</th>
+				<td class="idn-example">tοp.com</td>
+				<td><span class="mono">0074 </span><span class="special">03BF</span><span class="mono"> 
+				0070 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--tp-jbc.com</span></td>
+				<td class="idn-example">Uses a Greek omicron in place of the o</td>
+			</tr>
+			<tr>
+				<th class="idn-head">1b</th>
+				<td class="idn-example">tοp.com</td>
+				<td><span class="mono">0074 </span><span class="special">006F</span><span class="mono"> 
+				0070 002E 0063 006F 006D</span></td>
+				<td><span class="mono">top.com</span></td>
+				<td class="idn-example">&nbsp;</td>
+			</tr>
+		</tbody></table>
+		<p>There are many legitimate uses of mixed scripts. For example, it is quite common to mix English 
+		words (with Latin characters) in other languages, including languages using non-Latin scripts. 
+		For example, one could have XML-документы.com (which would be a site for "XML documents" in 
+		Russian). Even in English, legitimate product or organization names may contain non-Latin characters, 
+		such as Ωmega, Teχ, Toys-Я-Us, or HλLF-LIFE. The lack of IDNs in the past has also led to the 
+		usage in some registries (such as the .ru top-level domain) where Latin characters have been 
+		used to create pseudo-Cyrillic names in the .ru (Russian) top-level domain. For example, see
+		<u>http://caxap.ru/</u> (сахар means sugar in Russian).</p>
+		<p>For information on detecting mixed scripts, see <i>Appendix D.
+		<a href="#Mixed_Script_Detection">Mixed Script Detection</a>.</i></p>
+		<p>Cyrillic, Latin, and Greek represent special challenges, since the number of common glyphs 
+		shared between them is so high, as can be seen from <i>Section 4. Confusable Detection </i>[<a href="#UTS39">UTS39</a>]<span>. 
+		It may be possible to compose an entire domain name (except the top-level domain) in Cyrillic 
+		using letters that will be essentially always identical in form to Latin letters, such as "scope.com": 
+		with "scope" in Cyrillic looking just like "scope" in Latin. Such spoofs are called <i>whole-script 
+		spoofs, </i></span>and the strings that cause the problem are correspondingly called <i>whole-script 
+		confusables.</i></p>
+		<h3>2.3 <a name="Single_Script_Spoofing">Single-Script Spoofing</a></h3>
+		<p>Spoofing with characters entirely within one script, or using characters that are common 
+		across scripts (such as numbers), is called <i>single-script spoofing</i>, and the strings that 
+		cause it are correspondingly called <i>single-script confusables</i>. While compatibility normalization 
+		and mixed-script detection can handle the majority of cases, they do not handle single-script 
+		confusables. Especially at the smaller font sizes in the context of an address bar, any visual 
+		confusables within a single script can be used in spoofing. Importantly, these problems can 
+		be illustrated with common, widely available fonts on widely available operating systems — the 
+		problems are not specific to any single vendor.</p>
+		<p>Consider the following examples, all in the same script. In each numbered case, the strings 
+		will look identical or close to identical in most browsers</p>
+		<table style="border-collapse: collapse;" border="1" cellpadding="4" cellspacing="0">
+			<caption style="font-size: 14pt; font-weight: bold;">Single-Script Spoofing</caption>
+			<tbody><tr>
+				<th class="idn-head">&nbsp;</th>
+				<th class="idn-head">String</th>
+				<th class="idn-head">UTF-16</th>
+				<th class="idn-head">ACE</th>
+				<th class="idn-head">Comments</th>
+			</tr>
+			<tr>
+				<th class="idn-head">1a</th>
+				<td class="idn-example">a‐b.com</td>
+				<td><span class="mono">0061 </span><span class="special">2010</span><span class="mono"> 
+				0062 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--ab-v1t.com</span></td>
+				<td class="idn-example">Uses a real hyphen, instead of the ASCII hyphen-minus</td>
+			</tr>
+			<tr>
+				<th class="idn-head">1b</th>
+				<td class="idn-example">a-b.com</td>
+				<td><span class="mono">0061 </span><span class="special">002D</span><span class="mono"> 
+				0062 002E 0063 006F 006D</span></td>
+				<td><span class="mono">a-b.com</span></td>
+				<td class="idn-example">&nbsp;</td>
+			</tr>
+			<tr>
+				<th colspan="5" class="idn-head">&nbsp;</th>
+			</tr>
+			<tr>
+				<th class="idn-head">2a</th>
+				<td class="idn-example">so̷s.com</td>
+				<td><span class="mono">0073 </span><span class="special">006F 0337</span><span class="mono"> 
+				0073 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--sos-rjc.com</span></td>
+				<td class="idn-example">Uses o + combining slash</td>
+			</tr>
+			<tr>
+				<th class="idn-head">2b</th>
+				<td class="idn-example">søs.com</td>
+				<td><span class="mono">0073 </span><span class="special">00F8</span><span class="mono"> 
+				0073 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--ss-lka.com</span></td>
+				<td class="idn-example">&nbsp;</td>
+			</tr>
+			<tr>
+				<th colspan="5" class="idn-head">&nbsp;</th>
+			</tr>
+			<tr>
+				<th class="idn-head">3a</th>
+				<td class="idn-example">z̵o.com</td>
+				<td><span class="special">007A 0335</span><span class="mono"> 006F 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--zo-pyb.com</span></td>
+				<td class="idn-example">Uses z + combining bar</td>
+			</tr>
+			<tr>
+				<th class="idn-head">3b</th>
+				<td class="idn-example">ƶo.com</td>
+				<td><span class="special">01B6</span><span class="mono"> 006F 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--o-zra.com</span></td>
+				<td class="idn-example">&nbsp;</td>
+			</tr>
+			<tr>
+				<th colspan="5" class="idn-head">&nbsp;</th>
+			</tr>
+			<tr>
+				<th class="idn-head">4a</th>
+				<td class="idn-example">an͂o.com</td>
+				<td><span class="mono">0061 </span><span class="special">006E 0342</span><span class="mono"> 
+				006F 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--ano-0kc.com</span></td>
+				<td class="idn-example">Uses n + greek perispomeni</td>
+			</tr>
+			<tr>
+				<th class="idn-head">4b</th>
+				<td class="idn-example">año.com</td>
+				<td><span class="mono">0061 </span><span class="special">00F1</span><span class="mono"> 
+				006F 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--ao-zja.com</span></td>
+				<td class="idn-example">&nbsp;</td>
+			</tr>
+			<tr>
+				<th colspan="5" class="idn-head">&nbsp;</th>
+			</tr>
+			<tr>
+				<th class="idn-head">5a</th>
+				<td class="idn-example"><span><span title="U+02A3 LATIN SMALL LETTER DZ DIGRAPH">ʣe</span>.org</span></td>
+				<td><span class="special">02A3</span><span class="mono"> 0065 002E 006F 0072 0067</span></td>
+				<td><span><span class="mono">xn--e-j5a.org</span></span></td>
+				<td class="idn-example">Uses d-z digraph</td>
+			</tr>
+			<tr>
+				<th class="idn-head">5b</th>
+				<td class="idn-example">dze.org</td>
+				<td><span class="special">0064 007A</span><span class="mono"> 0065 002E 006F 0072 0067</span></td>
+				<td><span><span class="mono">dze.org</span></span></td>
+				<td class="idn-example">&nbsp;</td>
+			</tr>
+		</tbody></table>
+		<p>Examples exist in various scripts. For instance, 'rn' was already mentioned above, and the 
+		sequence<span> <span title="U+0905 DEVANAGARI LETTER A">अ</span> +
+		<span title="U+093E DEVANAGARI VOWEL SIGN AA">ा</span> typically looks identical to
+		<span title="U+0906 DEVANAGARI LETTER AA">आ.</span></span></p>
+		<p>As mentioned above, in most cases two sequences of accents that have the same visual appearance 
+		are put into a canonical order. This does not happen, however, for certain scripts used in Southeast 
+		Asia, so reordering characters may be used for spoofs in those cases. Example:</p>
+		<table style="border-collapse: collapse;" border="1" cellpadding="4" cellspacing="0">
+			<caption style="font-size: 14pt; font-weight: bold;">Combining Mark Order Spoofing</caption>
+			<tbody><tr>
+				<th class="idn-head">&nbsp;</th>
+				<th class="idn-head">String</th>
+				<th class="idn-head">UTF-16</th>
+				<th class="idn-head">ACE</th>
+				<th class="idn-head">Comments</th>
+			</tr>
+			<tr>
+				<th class="idn-head">1a</th>
+				<td class="idn-example">လို.com</td>
+				<td><span class="mono">101C </span><span class="special">102D</span><span class="mono"> 
+				102F</span></td>
+				<td><span class="mono">xn--gjd8ag.com</span></td>
+				<td class="idn-example">Reorders two combining marks</td>
+			</tr>
+			<tr>
+				<th class="idn-head">1b</th>
+				<td class="idn-example">လုိ.com</td>
+				<td><span class="mono">101C 102F </span><span class="special">102D</span></td>
+				<td><span class="mono">xn--gjd8af.com</span></td>
+				<td class="idn-example">&nbsp;</td>
+			</tr>
+		</tbody></table>
+		<h3>&nbsp;</h3>
+		<h3>2.4 <a name="Inadequate_Rendering_Support">Inadequate Rendering Support</a></h3>
+		<p>An additional problem arises when a font or rendering engine has inadequate support for certain 
+		sequences of characters. These are characters or sequences of characters that should be visually 
+		distinguishable, but do not appear that way. Examples 1a and 1b show the cases of lowercase 
+		L and digit one, mentioned above. While this depends on the font, on the computer used to write 
+		this document, in roughly 30% of the fonts the glyphs are essentially identical. In example 
+		2a, the <i>a-umlaut</i> is followed by another <i>umlaut</i>. The Unicode Standard guidelines 
+		indicate that the second <i>umlaut</i> should be 'stacked' above the first, producing a distinct 
+		visual difference. But as this example shows, common fonts will simply superimpose the second
+		<i>umlaut</i>; and if the positioning is close enough, the user will not see a difference between 
+		2a and 2b.</p>
+		<table style="border-collapse: collapse;" border="1" cellpadding="4" cellspacing="0">
+			<caption style="font-size: 14pt; font-weight: bold;">Inadequate Rendering Support
+			</caption>
+			<tbody><tr>
+				<th class="idn-head" bgcolor="#c0c0c0">&nbsp;</th>
+				<th class="idn-head" bgcolor="#c0c0c0">String</th>
+				<th class="idn-head" bgcolor="#c0c0c0">UTF-16</th>
+				<th class="idn-head" bgcolor="#c0c0c0">ACE</th>
+				<th class="idn-head" bgcolor="#c0c0c0">Comments</th>
+			</tr>
+			<tr>
+				<th class="idn-head">1a</th>
+				<td><span class="mono">al.com</span></td>
+				<td><span class="mono">0061 </span><span class="special">006C</span><span class="mono"> 
+				002E 0063 006F 006D</span></td>
+				<td><span class="mono">al.com</span></td>
+				<td><span class="idn-example">1 and l may appear alike, depending on font. </span>
+				</td>
+			</tr>
+			<tr>
+				<th class="idn-head">1b</th>
+				<td><span class="mono">a1.com</span></td>
+				<td><span class="mono">0061 </span><span class="special">0031</span><span class="mono"> 
+				002E 0063 006F 006D</span></td>
+				<td><span class="mono">a1.com</span></td>
+				<td>&nbsp;</td>
+			</tr>
+			<tr>
+				<th colspan="5" class="idn-head" bgcolor="#c0c0c0">&nbsp;</th>
+			</tr>
+			<tr>
+				<th class="idn-head">2a</th>
+				<td><span class="mono">ä<font face="Arial Unicode MS">̈</font>t.com</span></td>
+				<td><span class="special">00E4 0308</span><span class="mono"> 0074 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--t-zfa85n.com</span></td>
+				<td><span class="idn-example">a-umlaut + umlaut</span></td>
+			</tr>
+			<tr>
+				<th class="idn-head">2b</th>
+				<td><span class="mono">ät.com</span></td>
+				<td><span class="special">00E4</span><span class="mono"> 0074 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--t-zfa.com</span></td>
+				<td>&nbsp;</td>
+			</tr>
+			<tr>
+				<th colspan="5" class="idn-head" bgcolor="#c0c0c0">&nbsp;</th>
+			</tr>
+			<tr>
+				<th class="idn-head">3a</th>
+				<td><span class="mono">eḷ.com</span></td>
+				<td><span class="special">0065</span><span class="mono"> 006C </span>
+				<span class="special">0323</span><span class="mono"> 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--e-zom.com</span></td>
+				<td><span class="idn-example">Has a dot under the l; may appear under the e</span></td>
+			</tr>
+			<tr>
+				<th class="idn-head">3b</th>
+				<td><span class="mono">ẹl.com</span></td>
+				<td><span class="special">0065 0323</span><span class="mono"> 006C 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--l-ewm.com</span></td>
+				<td>&nbsp;</td>
+			</tr>
+			<tr>
+				<th class="idn-head">3c</th>
+				<td><span class="mono">ẹl.com</span></td>
+				<td><span class="special">1EB9</span><span class="mono"> 006C 002E 0063 006F 006D</span></td>
+				<td><span class="mono">xn--l-ewm.com</span></td>
+				<td>&nbsp;</td>
+			</tr>
+		</tbody></table>
+		<p>Examples 3 a, b, and c show an even worse case. The <i>underdot</i> character in 3a should 
+		appear under the 'l', but as rendered with many fonts, it appears under the 'e'. It is thus 
+		visually confusable with 3b (where the <i>underdot</i> is under the e) or the equivalent normalized 
+		form 3c.</p>
+		<p>There are a number of characters in Unicode that are invisible, although they may affect 
+		the rendering of the characters around them. An example is the Joiner character, used to request 
+		a cursive connection such as in Arabic. Such characters may often be in positions where they 
+		have no visual distinction, and are thus discouraged for use in identifiers. A sequence of ideographic 
+		description characters may be displayed as if it were a CJK character; thus they are also discouraged.</p>
+		<h4>2.4.1 <a name="Malicious_Rendering">Malicious Rendering</a></h4>
+		<p>Font technologies such as TrueType/OpenType are extremely powerful. A glyph in such a font 
+		actually may use a small programs to deform the shape radically according to resolution, platform, 
+		or language. This is used to chose an optimal shape for the character under different conditions. 
+		However, it can also be used in a security attack, since it is powerful enough to change the 
+		appearance of, say "$<b>1</b>00.00" on the screen to "$<b>2</b>00.00" when printed.</p>
+		<p>In addition CSS (style sheets) can change to a different font for printing versus screen 
+		display, which can open up the use of more confusable fonts.</p>
+		<p>As with many other cases, this is not specific to Unicode. To reduce the risk of this kind 
+		of exploit, programmers and users should only allow trusted fonts in such circumstances.</p>
+		<h3>2.5 <a name="Bidirectional_Text_Spoofing">Bidirectional Text Spoofing</a></h3>
+		<p>Some characters, such as those used in the Arabic and Hebrew script, have an inherent right-to-left 
+		writing direction. When these characters are mixed with characters of other scripts or symbol 
+		sets which are displayed left-to-right, the resulting text is called bidirectional (or bidi 
+		in short). The relationship between the memory representation of the text (logical order) and 
+		the display appearance (visual order) of bidi text is governed by the Unicode Bidirectional 
+		Algorithm [<a href="#UAX9">UAX9</a>].<br>
+		<br>
+		Because some characters have weak or neutral directionalities, as opposed to strong left-to-right 
+		or right-to-left, the Unicode Bidirectional Algorithm uses a precise set of rules to determine 
+		the final visual rendering. However, presented with arbitrary sequences of text, this may lead 
+		to text sequences which may be impossible to read intelligibly, or which may be visually confusable. 
+		To mitigate these issues, both the IDN and IRI specifications require that:</p>
+		<ul>
+			<li>each label of a host name must not use both right-to-left and left-to-right characters,</li>
+			<li>a label using right-to-left character must start and end with right-to-left characters.</li>
+		</ul>
+		<p>In addition, the IRI specification extends those requirements to other components of an IRI, 
+		not just the host name labels. Not respecting them would result in insurmountable visual confusion. 
+		A large part of the confusability in reading an IRI containing bidi characters is created by 
+		the weak or neutral directionality property of many IRI/URI delimiters such as '/', '.', '?' 
+		which makes them change directionality depending on their surrounding characters. For example, 
+		in example #1 in the table below, the dots following each label are colored the same as that 
+		label. Notice that the placement of that following punctuation may vary.</p>
+		<table style="border-collapse: collapse;" border="1" cellpadding="4" cellspacing="0">
+			<caption>Bidi Examples</caption>
+			<tbody><tr>
+				<td class="idn-head" valign="top">&nbsp;</td>
+				<td class="idn-head" valign="top">
+				<p style="text-align: center;">Samples</p>
+				</td>
+			</tr>
+			<tr>
+				<td class="idn-head" valign="top">1</td>
+				<td valign="top"><font size="4">http://<font color="#00ffff">سلام.</font><font color="#0000ff">دائم.</font>com
+				</font></td>
+			</tr>
+			<tr>
+				<td class="idn-head" valign="top">2</td>
+				<td valign="top"><font size="4">http://<font color="#00ffff">سلام.</font><font color="#00ff00">a.</font><font color="#0000ff">دائم.</font>com</font></td>
+			</tr>
+		</tbody></table>
+		<p>Adding the left-to-right label "<font color="#00ff00" size="4">a</font>" between the two 
+		Arabic labels splits them up and reverses their display order, as seen in example #2. The IRI 
+		specification [<a href="#RFC3987">RFC3987</a>] provides more examples of valid and invalid IRIs 
+		using various mixes of bidi text.</p>
+		<p>To minimize the opportunities for confusion, it is imperative that the IDN and IRI requirements 
+		concerning bidi processing be fully implemented in the processing of host names containing bidi 
+		characters. Nevertheless, even when these requirements are met, reading IRIs correctly is not 
+		trivial. Because of this, mixing right-to-left and left-to-right characters should be done with 
+		great care when creating bidi IRIs.</p>
+		<p><b>Recommendations:</b></p>
+		<ul>
+			<li>As much as possible, avoid mixing right-to-left and left-to-right characters in a single 
+			host name</li>
+			<li>When right-to-left characters are used, limit the usage of left-to-right characters 
+			to well-known cases such as TLD names and URI/IRI scheme names (such as http, ftp, mailto, 
+			etc...)</li>
+			<li>Minimize the use of digits in host names and other components of IRIs containing right-to-left 
+			characters.</li>
+			<li>Keep IRIs containing bidi content simple to read.</li>
+			<li>Reverse-bidi (visual order -&gt; storage order) can be used to detect bidi spoofs. That 
+			is, one can apply bidi, then reverse bidi: if the result does not match the original storage 
+			order, then the visual reading is ambiguous and the string can be rejected. This is, however, 
+			subject to false positives, so this should probably be presented to users for confirmation.</li>
+		</ul>
+		<h4>2.5.1 <a name="Complex_Scripts">Complex Scripts</a></h4>
+		<p>In complex scripts such as Arabic and South Asian scripts, characters may change shape according 
+		to the surrounding characters:</p>
+		<table style="border-width: 0pt; border-collapse: collapse;" border="0" cellspacing="0">
+			<tbody><tr>
+				<td class="noborder">1. </td>
+				<td class="noborder">Glyphs may change shape depending on their surroundings:</td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="2" width="10%">
+				<font face="Times New Roman" size="7">ﮦ</font></td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="2" width="10%">
+				<font face="Times New Roman" size="7">ﮦ</font></td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="2" width="10%">
+				<font face="Times New Roman" size="7">ﮦ</font></td>
+				<td class="noborder"><font face="Times New Roman" size="7">→</font></td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="3">
+				<font face="Times New Roman" size="7">ههه</font></td>
+			</tr>
+			<tr>
+				<td class="noborder" colspan="10">&nbsp;</td>
+			</tr>
+			<tr>
+				<td rowspan="3" class="noborder">2. </td>
+				<td rowspan="3" class="noborder">Multiple characters may produce a single glyph:</td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="3" width="15%">
+				<font face="Times New Roman" size="7">f</font></td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="3" width="15%">
+				<font face="Times New Roman" size="7">i</font></td>
+				<td class="noborder"><font face="Times New Roman" size="7">→</font></td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="3">
+				<font face="Times New Roman" size="7">ﬁ</font></td>
+			</tr>
+			<tr>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="3">
+				<font face="Times New Roman" size="7">ل</font></td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="3">
+				<font face="Times New Roman" size="7">١</font></td>
+				<td class="noborder"><font face="Times New Roman" size="7">→</font></td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="3">
+				<font face="Times New Roman" size="7">‎لا</font></td>
+			</tr>
+			<tr>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="2">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/deltaF1.gif" alt="image" border="0" height="40" width="57"></td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="2">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/deltaF2.gif" alt="image" border="0" height="55" width="38"></td>
+				<td style="text-align: center;" colspan="2">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/deltaF4.gif" alt="image" border="0" height="39" width="40"></td>
+				<td class="noborder"><font face="Times New Roman" size="7">→</font></td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="3">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/deltaF5.gif" alt="image" border="0" height="42" width="42"></td>
+			</tr>
+			<tr>
+				<td class="noborder" colspan="10">&nbsp;</td>
+			</tr>
+			<tr>
+				<td class="noborder">3. </td>
+				<td class="noborder">A single character may produce multiple glyphs:</td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="3">
+				<font size="7">க</font></td>
+				<td style="border: 1px solid rgb(0, 0, 255); text-align: center;" colspan="3"><span>
+				<font color="#0000ff" size="7">ொ</font></span></td>
+				<td class="noborder"><font face="Times New Roman" size="7">→</font></td>
+				<td style="border-top: 1px solid rgb(0, 0, 255); border-left: 1px solid rgb(0, 0, 255); border-bottom: 1px solid rgb(0, 0, 255); text-align: center;">
+				<span><font color="#0000ff" size="7">ெ</font></span></td>
+				<td style="border-top: 1px solid rgb(0, 0, 255); border-bottom: 1px solid rgb(0, 0, 255); text-align: center;">
+				<font size="7">க</font></td>
+				<td style="border-top: 1px solid rgb(0, 0, 255); border-right: 1px solid rgb(0, 0, 255); border-bottom: 1px solid rgb(0, 0, 255);">
+				<font color="#0000ff" size="7">ா</font></td>
+			</tr>
+		</tbody></table>
+		<p>In such cases, two characters may be visually distinct in a stand-alone form, but might not 
+		be distinct in a particular context.</p>
+		<h3><span>2.6 <a name="Syntax_Spoofing">Syntax Spoofing</a></span></h3>
+		<p><span>Spoofing syntax characters can be even worse than regular characters. For example, 
+		U+2044 ( <span title="U+2044 FRACTION SLASH">⁄ ) <span style="font-variant: small-caps;">FRACTION 
+		SLASH</span> can look like a regular ASCII '/' in many fonts
+		<font face="Lucida Sans Unicode">—</font> ideally the spacing and angle are sufficiently different 
+		to distinguish these characters. However, this is not always the case. When this character is 
+		allowed, the URL in line 1 of the following table may appear to be in the domain <b>macchiato.com</b>, 
+		but is actually in a particular subzone of the domain <b>bad.com</b>.</span></span></p>
+		<table style="border-collapse: collapse;" border="1" cellpadding="2" cellspacing="0">
+			<caption>Syntax Spoofing</caption>
+			<tbody><tr>
+				<th class="idn-head" valign="top">&nbsp;</th>
+				<th class="idn-head" valign="top">URL</th>
+				<th class="idn-head" valign="top">Subzone</th>
+				<th class="idn-head" valign="top">Domain</th>
+			</tr>
+			<tr>
+				<th class="idn-head" valign="top">1</th>
+				<td valign="top">http://macchiato.com/x.bad.com</td>
+				<td valign="top">macchiato.com/x</td>
+				<td valign="top">bad.com</td>
+			</tr>
+			<tr>
+				<th class="idn-head" valign="top">2</th>
+				<td valign="top">http://macchiato.com?x.bad.com</td>
+				<td valign="top">macchiato.com?x</td>
+				<td valign="top">bad.com</td>
+			</tr>
+			<tr>
+				<th class="idn-head" valign="top">3</th>
+				<td valign="top">http://macchiato.com.x.bad.com</td>
+				<td valign="top">macchiato.com.x</td>
+				<td valign="top">bad.com</td>
+			</tr>
+			<tr>
+				<th class="idn-head" valign="top">4</th>
+				<td valign="top">http://macchiato.com#x.bad.com</td>
+				<td valign="top">macchiato.com#x</td>
+				<td valign="top">bad.com</td>
+			</tr>
+		</tbody></table>
+		<p>Other syntax characters, if there are visual confusables, can be similarly spoofed, as in 
+		lines 2 through 4. Many <span title="U+2044 FRACTION SLASH">
+		<font face="Lucida Sans Unicode">— </font></span>but not all
+		<span title="U+2044 FRACTION SLASH"><font face="Lucida Sans Unicode">— </font></span>of these 
+		cases, such as U+2024 (·) <span style="font-variant: small-caps;">ONE DOT LEADER</span> are disallowed 
+		by Nameprep [<a href="#RFC3491">RFC3491</a>].</p>
+		<p>Of course, a spoof fooling the user into thinking that the domain name is the first part 
+		of the URL does not require internationalized domain names. For example, in the following the 
+		real domain name, bad.com, is also obscured for the casual user, who may not realize that -- 
+		does not terminate the domain name.</p>
+		<blockquote>
+			<p>http://macchiato.com--long-and-obscure-list-of-characters.<span>bad.com</span>?findid=12</p>
+		</blockquote>
+		<p>In retrospect, it would have been much better if domain names were customarily written with 
+		"most significant part first". The following hypothetical display would be harder to spoof: 
+		the fact that it is "com.bad" is not as easily lost.</p>
+		<blockquote>
+			<p>http://com.bad.org/x.example?findid=12<br>
+			http://com.bad.org--long-and-obscure-list-of-characters.<span>example</span>?findid=12</p>
+		</blockquote>
+		<p>But that would be an impossible change at this point: it is long past the time when such 
+		a radical change could have been made. However, a possible solution is to always visually distinguish 
+		the domain, for example:</p>
+		<blockquote>
+			<p><span>http://<b><font color="#0000ff">macchiato.com</font></b><br>
+			http://<b><font color="#0000ff">bad.com</font></b><br>
+			http://macchiato.com/<b><font color="#0000ff">x.bad.com</font></b><br>
+			http://<b><font color="#0000ff">macchiato.com--long-and-obscure-list-of-characters.bad.com</font></b>?findid=12</span><br>
+			http://<span><b><font color="#0000ff">220.135.25.171</font></b></span>/amazon/index.html</p>
+		</blockquote>
+		<p>Such visual distinction could be in different ways, such as highlighting in an address box 
+		as above, or extracting and displaying the domain name in a noticeable place.</p>
+		<p>User Agents already have to deal with syntax issues. For example, Firefox gives something 
+		like the following alert when given the URL <u>http://something@macchiato.com</u>:</p>
+		<div align="center">
+			<center>
+			<table class="alert">
+				<tbody><tr>
+					<td class="alertcell">
+					<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/warning_triangle.gif" alt="warning" border="0" height="38" width="37"></td>
+					<td class="alertcell">You are about to log into the site “macchiato.com” with the 
+					username “something”, but the web site does not require authentication. This may 
+					be an attempt to trick you.
+					<p>Is “macchiato.com” the site you want to visit?</p>
+					<p style="text-align: center;">
+					<input value="Yes" name="B4" style="width: 5em;" type="button">&nbsp;
+					<input value="No" name="B5" style="width: 5em;" type="submit"></p>
+					</td>
+				</tr>
+			</tbody></table>
+			</center></div>
+		<p>Such a mechanism can be used to alert the user to cases of syntax spoofing, as described 
+		below.</p>
+		<h4>2.6.1 <a name="Missing_Glyphs">Missing Glyphs</a></h4>
+		<p><span>It is very important not to show a missing glyph or character with a simple "?", since 
+		that makes every such character be visually confusable with a real question mark. Instead, follow 
+		the Unicode guidelines for displaying missing glyphs using a rounded-rectangle, as described 
+		in <i>Section 
+		<a href="http://www.unicode.org/versions/Unicode5.0.0/ch05.pdf#G7730">5.3 Unknown and Missing Characters</a></i> of [<a href="#Unicode">Unicode</a>] and 
+		listed in <i>Appendix C. <a href="#Missing_Glyph_Icons">Script Icons</a>.</i></span></p>
+		<p>Private use characters must be avoided in identifiers, except in closed environments. There 
+		is no predicting what either the visual display or the programmatic interpretation will be on 
+		any given machine, so this can obviously lead to security problems. This is not a problem for 
+		IDN, because private use characters are excluded by NamePrep.</p>
+		<p>What is true for <span>private use characters</span> is doubly true of unassigned code points. 
+		Secure systems will not use them: any future Unicode Standard could assign those codepoints 
+		to any new character. This is especially important in the case of certification.</p>
+		<h3><span>2.7 <a name="Numeric_Spoofs">Numeric Spoofs</a></span></h3>
+		<p><span>Turning away from the focus on domain names for a moment, there is another area where 
+		visual spoofs can be used. Many scripts have sets of decimal digits that are different in shape 
+		from the typical European digits {0}. For example, Bengali has
+		<span title="U+09E6 BENGALI DIGIT ZERO">{০ </span><span title="U+09E7 BENGALI DIGIT ONE">১</span><span title="U+09F4 BENGALI CURRENCY NUMERATOR ONE">
+		</span><span title="U+09E8 BENGALI DIGIT TWO">২</span><span title="U+09F5 BENGALI CURRENCY NUMERATOR TWO">
+		</span><span title="U+09E9 BENGALI DIGIT THREE">৩ </span>
+		<span title="U+09EA BENGALI DIGIT FOUR">৪ </span><span title="U+09EB BENGALI DIGIT FIVE">৫
+		</span><span title="U+09EC BENGALI DIGIT SIX">৬ </span>
+		<span title="U+09ED BENGALI DIGIT SEVEN">৭ </span><span title="U+09EE BENGALI DIGIT EIGHT">৮
+		</span><span title="U+09EF BENGALI DIGIT NINE">৯}, while Oriya has </span>{<span title="U+0B66 ORIYA DIGIT ZERO">୦
+		</span><span title="U+0B67 ORIYA DIGIT ONE">୧ </span><span title="U+0B68 ORIYA DIGIT TWO">୨
+		</span><span title="U+0B69 ORIYA DIGIT THREE">୩ </span>
+		<span title="U+0B6A ORIYA DIGIT FOUR">୪ </span><span title="U+0B6B ORIYA DIGIT FIVE">୫
+		</span><span title="U+0B6C ORIYA DIGIT SIX">୬ </span><span title="U+0B6D ORIYA DIGIT SEVEN">
+		୭ </span><span title="U+0B6E ORIYA DIGIT EIGHT">୮ </span>
+		<span title="U+0B6F ORIYA DIGIT NINE">୯}. While the sets taken as a whole are different in shape, 
+		individual digits may have the same shapes as digits from other scripts, even digits of different 
+		values. For example, the string </span><b><span title="U+09EA BENGALI DIGIT FOUR">
+		<font size="5">৪</font></span></b><span title="U+0B68 ORIYA DIGIT TWO"><b>୨</b> is visually 
+		confusable with <b>89</b> (at small sizes), but actually has the numeric value 42. Where software 
+		interprets the numeric value of a string of digits without detecting that the digits are from 
+		different scripts, it is possible to generate such spoofs.</span></span></p>
+		<h3><span>2.8 <a name="Techniques">Techniques</a></span></h3>
+		<p>This section lists techniques that can be used in reducing the risks of visual spoofing. 
+		These techniques are referenced by <i>Section 2.10
+		<a href="#Visual_Spoofing_Recommendations">Recommendations</a>.</i></p>
+		<h4><span>2.8.1 <a name="Case_Folded_Format">Case-Folded Format</a></span></h4>
+		<p>Many opportunities for spoofing can be removed by using a <i>case-folded</i> format. This 
+		format, defined by the Unicode Standard, produces a string that only contains lowercase characters 
+		where possible.</p>
+		<p>However, there is one particular situation where the pure case-folded format of a string 
+		as defined by the standard is not desired. The character U+03A3 "Σ" <i>capital sigma</i> lowercases 
+		to U+03C3 "σ" <i>small sigma</i> if it is followed by another letter, but lowercases to U+03C2 
+		"ς" <i>small final sigma</i> if it is not. Because both σ and ς have a case-insensitive match 
+		to Σ, and the case folding algorithm needs to map both of them together (so that transitivity 
+		is maintained), only one of them appears in the case-folded form.</p>
+		<p>When the case-folded format of a Greek string is to be displayed to the user, it should be 
+		processed so as to choose the proper form for the small sigma, depending on the context. The 
+		test for the context is provided in Table 3-13 of [<a href="#Unicode">Unicode</a>]. It is the 
+		test for Final_Sigma, where C represents the character σ. Basically, when σ comes after a cased 
+		letter, and not before a cased letter (where certain ignorable characters can come in between), 
+		it should be transformed into ς.</p>
+		<table style="border-collapse: collapse;" border="1" cellpadding="2" cellspacing="0">
+			<caption>Final Sigma Handling (from Table 3-13)</caption>
+			<tbody><tr>
+				<th class="idn-head">Context</th>
+				<th class="idn-head">Description</th>
+				<th colspan="2" class="idn-head">Regular Expressions</th>
+			</tr>
+			<tr>
+				<th rowspan="2" class="idn-head" valign="top">Final_Sigma</th>
+				<td rowspan="2" valign="top"><font size="2">C is preceded by a sequence consisting of 
+				a cased letter and a case-ignorable sequence, and C is not followed by a sequence consisting 
+				of a case ignorable sequence and then a cased letter.</font></td>
+				<td nowrap="nowrap" valign="top"><font size="2">Before C:</font></td>
+				<td nowrap="nowrap" valign="top"><font size="2">\p{cased} (\p{case-ignorable})*</font></td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" valign="top"><font size="2">After C:</font></td>
+				<td nowrap="nowrap" valign="top"><font size="2">! ( (\p{case-ignorable})* \p{cased} )</font></td>
+			</tr>
+		</tbody></table>
+		<p>For more information on case mapping and folding, see the following: <i>Section
+		<a href="http://www.unicode.org/versions/Unicode5.0.0/ch03.pdf#G33992">3.13 Default Case Operations</a></i>,
+		<i>Section <a href="http://www.unicode.org/versions/Unicode5.0.0/ch04.pdf#G124722">4.2 Case 
+		Normative</a></i>, and <i>Section
+		<a href="http://www.unicode.org/versions/Unicode5.0.0/ch05.pdf#G21180">5.18 Case Mappings</a></i> 
+		of [<a href="#Unicode">Unicode</a>].</p>
+		<h4><span>2.8.2 <a name="Mapping_and_Prohibition">Mapping and Prohibition</a></span></h4>
+		<p>There are <span>two techniques to reduce the risk of spoofing that can usefully be applied 
+		to identifiers: mapping and prohibition. IDNA uses both of these. A number of characters are 
+		included in Unicode for compatibility. What is called <i>Compatibility Normalization</i> (NFKC) 
+		can be used to map these characters to the regular variants (this is what is done in IDNA). 
+		For example, a half-width Japanese <i>katakana</i> character
+		<span title="U+FF76 HALFWIDTH KATAKANA LETTER KA">ｶ</span><span title="U+30AB KATAKANA LETTER KA"> 
+		is mapped to the regular character カ. Additional mappings can be added beyond compatibility 
+		mappings, for example, IDNA adds the following:</span></span></p>
+		<blockquote>
+			<p><span><code>200D; ZERO WIDTH JOINER</code> maps to nothing (that is, is removed)<br>
+			<code>0041; 0061;</code> Case maps 'A' to 'a'<br>
+			<code>20A8; 0072 0073;</code> Additional folding, mapping
+			<span title="U+20A8 RUPEE SIGN">₨</span> to "rs"</span></p>
+		</blockquote>
+		<p>In addition, characters may be prohibited. For example, IDNA prohibits
+		<span title="U+0384 GREEK TONOS"><i>space</i> </span>and <i>no-break s</i><span title="U+0384 GREEK TONOS"><i>pace</i> 
+		(U+00A0)</span>. Instead, for example, of removing a ZERO WIDTH JOINER, or mapping
+		<span title="U+20A8 RUPEE SIGN">₨</span> to "rs", one could prohibit these characters. There 
+		are pluses and minuses to both approaches. If compatibility characters are widely used in practice, 
+		in entering text, then it is much more user-friendly to remap them. This also extends to deletion; 
+		for example, the ZERO WIDTH JOINER is commonly used to affect the presentation of characters 
+		in languages such as Hindi or Arabic. In this case, text copied into the address box may often 
+		contain the character.</p>
+		<p><span>Where this is not the case, however, it may be advisable to simply prohibit the character. 
+		It is unlikely, for example, that <span title="U+32D5 CIRCLED KATAKANA KA">㋕ would be typed 
+		by a Japanese user, nor that it would need to work in copied text.</span></span></p>
+		<p><span>Where both mapping and prohibition are used, the mapping should be done before the 
+		prohibition, to ensure that characters do not "sneak past". For example, the Greek character 
+		TONOS <span title="U+0384 GREEK TONOS">(΄) ends up being prohibited, because it normalizes to
+		<i>space + acute</i>, and <i>space</i> itself is prohibited.</span></span></p>
+		<p>Many languages have words whose correct spelling requires 
+		the use of certain invisible characters, especially the Join_Control characters:</p>
+		<blockquote>
+			<p><code>
+			<a target="c" href="http://unicode.org/cldr/utility/character.jsp?a=200C">200C</a></code> 
+			ZERO WIDTH NON-JOINER<br>
+			<code><a target="c" href="http://unicode.org/cldr/utility/character.jsp?a=200D">200D</a></code> 
+			ZERO WIDTH JOINER</p>
+		</blockquote>
+		<p>For that reason, in version 5.1 of the Unicode Standard 
+		the recommendations for identifiers have been modified to allow these characters in certain 
+		circumstances. <i>&nbsp;</i>(For more information, see <i>UAX #31: Unicode Identifier and 
+		Pattern Syntax</i> [<a href="#UAX31">UAX31</a>].) There are very stringent constraints on the use of these characters, so that 
+		they are only allowed with certain scripts, and in certain circumscribed contexts. In particular, 
+		in Indic scripts the ZWJ and ZWNJ may only be used in combination with a <i>virama</i> character.</p>
+		<p>Even when the join controls are constrained to being next to a <i>virama</i>, in some 
+		contexts they may not result in a different visual appearance. For example, in roughly half of the 
+		possible pairs of Malayalam consonants linked by a <i>virama</i>, the 
+		ZWNJ makes a visual difference; in the remaining cases, the appearance is the same as if only 
+		the virama were present, without a ZWNJ.</p>
+		<p>Implementations or standards may place further restrictions on 
+		invisible characters. For join controls in Indic scripts, such restrictions would typically consist of 
+		providing a table per script, containing pairs of consonants which allow intervening <i>joiners</i>.</p>
+		<h3><span>2.9 <a name="Security_Levels_and_Alerts">Restriction Levels and Alerts</a></span></h3>
+		<p><span>The Restriction Levels 1-5 are defined below for use in implementations. These place 
+		restrictions on the use of identifiers according to the appropriate Identifier Profile as specified 
+		in <i>Section 3. Identifier Characters</i> </span>[<a href="#UTS39">UTS39</a>], and the determination 
+		of script as specified in <i>Section 4. Confusable Detection </i>[<a href="#UTS39">UTS39</a>]<i>.</i> 
+		For IDNA, the particular Identifier Profile will be one of the two specified in <i>Section 3.1. 
+		General Security Profile for Identifiers</i> [<a href="#UTS39">UTS39</a>].</p>
+		<ol>
+			<li><b>ASCII-Only</b><ul>
+				<li>All characters in each identifier must be ASCII</li>
+			</ul>
+			</li>
+			<li><b>Highly Restrictive</b><ul>
+				<li>All characters in each identifier must be from a <span>single script, or from the 
+				combinations:<br>
+				<i>ASCII + Han + Hiragana + Katakana</i>;<br>
+				<i>ASCII + Han + Bopomofo</i>; or<br>
+				<i>ASCII + Han + Hangul</i></span></li>
+				<li>No characters in the identifier can be outside of the Identifier Profile</li>
+				<li>Note that this level will satisfy the vast majority of Latin-script users.</li>
+			</ul>
+			</li>
+			<li><b>Moderately Restrictive</b><ul>
+				<li>A<span>llow <i>Latin</i> with other scripts except <i>Cyrillic</i>, <i>Greek</i>,
+				<i>Cherokee</i></span></li>
+				<li>Otherwise, the same as <b>Highly Restrictive</b></li>
+			</ul>
+			</li>
+			<li><b>Minimally Restrictive</b><ul>
+				<li>Allow arbitrary mixtures of scripts, e.g. Ωmega, Teχ, HλLF-LIFE, Toys-<span title="U+042F CYRILLIC CAPITAL LETTER YA">Я</span>-Us.</li>
+				<li>Otherwise, the same as <b>Moderately Restrictive</b></li>
+			</ul>
+			</li>
+			<li><b>Unrestricted</b><ul>
+				<li>Any valid identifiers, including characters outside of the Identifier Profile, e.g. 
+				I<span title="U+2665 BLACK HEART SUIT">♥</span>NY.org</li>
+			</ul>
+			</li>
+		</ol>
+		<p>An appropriate alert should be generated if an identifier fails to satisfy the Restriction 
+		Level chosen by the user. <span>Depending on the circumstances and the level difference, t</span>he 
+		form of such alerts could be minimal, such as special coloring or icons (perhaps with a tool-tip 
+		for more information); or more obvious, such as an alert dialog describing the issue and requiring 
+		user confirmation before continuing<span>; or even more stringent, such as disallowing the use 
+		of the identifier</span>. Where icons are used to indicate the presence of characters from scripts, 
+		the glyphs in <i>Appendix C. <a href="#Missing_Glyph_Icons">Script Icons</a></i> can be used.</p>
+		<p>The UI for giving users choice among restriction levels may vary considerably. In the case 
+		of domain names, only the middle three levels are interesting. Level 1 turns IDNs completely 
+		off, while level 5 is not recommended for IDNs.</p>
+		<p>Note that the examples in level 4 are chosen for their familiarity to English speakers. For 
+		most (but not all) languages that customarily use the Latin script, there is probably little 
+		need to mix in other scripts. That is not necessary the case for other languages. Because of 
+		the widespread commercial use of English and other Latin-based languages (such as "<a href="http://news.bbc.co.uk/hi/arabic/help/rss/newsid_3492000/3492193.stm?rss=http://newsrss.bbc.co.uk/rss/arabic/news/rss.xml" class="sel">خدمة 
+		RSS</a>"), it is quite common to have instances of Latin (especially ASCII) in text that principally 
+		consists of other scripts.</p>
+		<p><span><i>Section 3. Identifier Characters</i> </span>[<a href="#UTS39">UTS39</a>] provides 
+		for two profiles of identifiers that could be used in Restriction Levels 1 through 4. The strict 
+		profile is the recommended one. If the lenient one is also allowed, the user should have a choice 
+		in preferences, so that there is some way to limit the levels to using the strict input profile.</p>
+		<p>At all restriction levels, an appropriate alert should be generated if the domain name contains 
+		a syntax character that might be used in a spoof, as described in <i>Section 2.6
+		<a href="#Syntax_Spoofing">Syntax Spoofing</a></i>. For example:</p>
+		<div align="center">
+			<center>
+			<table class="alert">
+				<tbody><tr>
+					<td class="alertcell">
+					<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/warning_triangle.gif" alt="warning" border="0" height="38" width="37"></td>
+					<td class="alertcell">You are about to go to the site “bad.com”, but part of the 
+					address contains a character which may have led you to think you were going to “macchiato.com”. 
+					This may be an attempt to trick you.
+					<p>Is “bad.com” the site you want to visit?</p>
+					<p style="text-align: center;">
+					<input value="Yes" name="B3" style="width: 7em;" type="button">&nbsp;
+					<input value="No" name="B1" style="width: 7em;" type="submit">&nbsp;
+					<input value="Details &gt;&gt;&gt;" name="B6" style="width: 7em;" type="submit"></p>
+					<p><input name="C1" value="ON" checked="checked" type="checkbox"><font size="2">Remember my 
+					answer for future addresses with “<span>bad.com</span>”</font></p>
+					</td>
+				</tr>
+			</tbody></table>
+			</center></div>
+		<p>This does not need to be presented in a dialog window; there are a variety of ways to alert 
+		users, such as in an information bars.</p>
+		<p>User-agents <span>should</span> remember when the user has accepted an alert, for say <i>
+		Ωmega.com</i>, and permit future access without bothering the user again. This essentially builds 
+		up a whitelist of allowed values. This whitelist should contain the "nameprepped" form of each 
+		string. When used for visually confusable detection, each element in the whitelist should also 
+		have an associated transformed string as described in <i>Section 4. Confusable Detection </i>
+		[<a href="#UTS39">UTS39</a>]. If a system allows upper and lowercase forms, then both transforms 
+		should be available. The program should allow access to editing this whitelist directly, in 
+		case the user wants to correct the values. The whitelist may also include items know to the 
+		user agent to be 'safe'.</p>
+		<h4>2.9.1 <a name="Backwards_Compatibility">Backwards Compatibility</a></h4>
+		<p>The set of characters in the identifier profile and the results of the confusable mappings 
+		may be refined over time, so implementations should recognize and allow for that. Characters 
+		are continually being added to the Unicode Standard that may be valid for identifiers. The confusable 
+		information may add more characters as visually confusable over time.</p>
+		<p>There may also be cases where characters are no longer recommended for inclusion in identifiers, 
+		and more information becomes available about them. Thus the identifier profile may become more 
+		restrictive in a future version, for some characters. Of course, once identifiers are registered 
+		they cannot be withdrawn, but new proposed identifiers that contain such characters can be denied. 
+		A user-agent should give users a preference setting that essentially uses the union of the old 
+		and new identifier profiles in determining the Restriction Levels.</p>
+		<h3>2.10 <a name="Visual_Spoofing_Recommendations">Recommendations</a></h3>
+		<p>The Unicode Consortium recommends a somewhat conservative approach at this point, because 
+		is always easier to widen restrictions than narrow them. The Consortium is gathering data that 
+		would allow for a finer-grained approach, and expects to refine these recommendations in the 
+		future.</p>
+		<p>Some have proposed restricting domain names according to language, to prevent spoofing. In 
+		practice, that is very problematic: it is very difficult to determine the intended language 
+		of many terms, especially product or company names, which are often constructed to be neutral 
+		regarding language. Moreover, languages tend to be quite fluid; foreign words are continually 
+		being adopted. Except for registries with very special policies (such as the blocking used by 
+		some East Asian registries as described in [<a href="#RFC3743">RFC3743</a>]), the language association 
+		does not make too much sense. For more information, see Appendix G.
+		<a href="#Language_Based_Security">Language-Based Security</a>.</p>
+		<p>Instead, the recommendations call for combination of string preprocessing to remove basic 
+		equivalences, promoting adequate rendering support, and putting restrictions in place according 
+		to script and restricting by confusable characters. While the ICANN guidelines say "top-level 
+		domain registries will [...] associate each registered internationalized domain name with one 
+		language or set of languages" [<a href="#ICANN">ICANN</a>], that guidance is better interpreted 
+		as limiting to <i>script</i> rather than <i>language</i>.</p>
+		<p>Also see the security discussions in IRI [<a href="#RFC3987">RFC3987</a>], URI [<a href="#RFC3986">RFC3986</a>], 
+		and Nameprep [<a href="#RFC3491">RFC3491</a>].</p>
+		<h4><b><span>2.10.1 <a name="User_Recommendations">User Recommendations</a></span></b></h4>
+		<ol type="A">
+			<li>Use browsers, mail clients and software in general that have put user-agent guidelines 
+			into place to detect spoofing.</li>
+			<li>If registering domain names, verify that the registry follows appropriate guidelines 
+			for preventing spoofing. For more information, see <i>Appendix F.
+			<a href="#Country_Specific_IDN_Restrictions">Country-Specific IDN Restrictions</a></i>.</li>
+			<li>If the desired domain name can have any whole-script or single-script confusables (such 
+			as "scope" in Latin and Cyrillic), register those as well, if not automatically provided 
+			by the registry. For how to detect confusables, see <i>Section 4. Confusable Detection
+			</i>[<a href="#UTS39">UTS39</a>].</li>
+			<li>Where there are alternative domain names, choose those that are less spoofable.</li>
+			<li>When using bidi IRIs, follow the recommendations in <i>Section 2.5
+			<a href="#Bidirectional_Text_Spoofing">Bidirectional Text Spoofing</a></i>.</li>
+			<li>Be aware that fonts can be used in spoofing, as discussed in <i>Section 2.4.1
+			<a href="#Malicious_Rendering">Malicious Rendering</a></i>. If you are using documents with 
+			embedded fonts (aka web fonts), be aware that the content on printed form (the one, for 
+			example, that you may sign) can be different than what you see on the screen.</li>
+		</ol>
+		<h4><span>2.10.2 <a name="Recommendations_General">General Programmer Recommendations</a></span></h4>
+		<ol type="A">
+			<li>When parsing numbers: detect digits of mixed (or whole but unexpected) scripts and alert 
+			the user.</li>
+			<li>When defining identifiers in programming languages, protocols, and other environments:<ol>
+				<li><span>Use the general security profile for identifiers from <i>Section 3. Identifier 
+				Characters</i> </span>[<a href="#UTS39">UTS39</a>]<span><i>.</i></span></li>
+				<li>For equivalence of identifiers, preprocess both strings by applying NFKC and case 
+				folding. Display all such identifiers to users in their processed form. (There may be 
+				two displays: one in the original and one in the processed form.) An example of this 
+				methodology is Nameprep [<a href="#RFC3491">RFC3491</a>]. Although Nameprep itself is 
+				currently limited to Unicode 3.2, the same methodology can be applied by implementations 
+				that need to support more up-to-date versions of Unicode.</li>
+			</ol>
+			</li>
+			<li>In choosing or deploying fonts:<ol>
+				<li>If there is no available glyph for a character, <i>never</i> show a simple "?" or 
+				omit the character.</li>
+				<li>Use distinctive fonts, where possible.</li>
+				<li>Use a size that makes it easier to see the differences in characters. Disallow the 
+				use of font sizes that are so small as to cause even more characters to be visually 
+				confusable. Use larger sizes for East/South/South East Asian scripts, such as for Japanese 
+				and Thai.</li>
+				<li>Watch for clipping, vertically and horizontally. That is, make sure that the visible 
+				area extends outside of the text width and height, to the character bounding box: the 
+				maximum extent of the shape of the glyph.</li>
+				<li>Assess the font support of the OS/platform according to recommendations D1-D3 below 
+				(see also the W3C [<a href="#CharMod">CharMod</a>]). If it is inadequate, work with 
+				the OS/platform vendor to address those problems, or implement your own handling of 
+				problematic cases.</li>
+			</ol>
+			</li>
+			<li>In developing rendering systems or fonts:<ol>
+				<li>Verify that accents do not appear to apply to the wrong characters.</li>
+				<li>Follow <a href="http://www.unicode.org/notes/tn2/">UTN #2: <i>Rendering Combining 
+				Marks</i></a> in providing layout of nonspacing marks that would otherwise collide. 
+				If this is not done, follow the "Show Hidden" option of Section
+				<a href="http://www.unicode.org/versions/Unicode5.0.0/ch05.pdf#G1095">5.13 <i>Rendering Nonspacing 
+				Marks</i></a> of [<a href="#Unicode">Unicode</a>] for the display of nonspacing marks.</li>
+				<li>Follow the Unicode guidelines for displaying missing glyphs using a rounded-rectangle, 
+				as described in <i>Section 
+				<a href="http://www.unicode.org/versions/Unicode5.0.0/ch05.pdf#G7730">5.3 Unknown and Missing Characters</a></i> of [<a href="#Unicode">Unicode</a>].<span> 
+				The recommended glyphs according to scripts are shown in <i>Appendix C. </i></span>
+				<i><a href="#Missing_Glyph_Icons">Script Icons</a></i>.</li>
+			</ol>
+			</li>
+		</ol>
+		<h4><span><b>2.10.3 <a name="Recommendations_User_Agents">User Agent Recommendations</a></b></span></h4>
+		<p>The following recommendations are for user agents in handling domain names. The term 'user 
+		agent' is interpreted broadly to mean any program that displays Internationalized Domain Names 
+		to a user, including browsers and emailers.</p>
+		<p>For information on the confusable tests mentioned below, see <i>Section 4. Confusable Detection
+		</i>[<a href="#UTS39">UTS39</a>]<i>. </i>If the user can see the case-folded form, use the lowercase-only 
+		confusable mappings; otherwise use the broader mappings.</p>
+		<ol type="A">
+			<li>Follow Section 2.10.2 <a href="#Recommendations_General">General Programmer Recommendations</a>.</li>
+			<li>Display<ol>
+				<li>Either always show the domain name in nameprepped form<span> [<a href="#RFC3491">RFC3491</a>], 
+				or make it very easy for the user to see it (see <i>Section </i></span><i>2.8.1
+				<a href="#Case_Folded_Format">Case-Folded Format</a></i>). For example, this could be 
+				a tooltip interface, or a separate box.</li>
+				<li>Always display the domain name w<span>ith a visually highlighted domain name, to 
+				prevent syntax spoofs (see <i>Section 2.6 <a href="#Syntax_Spoofing">Syntax Spoofing</a></i>).</span></li>
+				<li>Always display IRIs with bidi content according to the IRI specification [<a href="#RFC3987">RFC3987</a>].</li>
+			</ol>
+			</li>
+			<li>Preferences<ol>
+				<li>In preferences, allow the user to select the desired Restriction Level to apply 
+				to domain names. Set the default to Restriction Level 2.</li>
+				<li>In preferences, allow the user to select among additional scripts that can be used 
+				without alerting. The default can be based on the user's locale.</li>
+				<li>In preferences, allow the user to choose a backwards compatibility setting; see
+				<i>Section 2.9.1 <a href="#Backwards_Compatibility">Backwards Compatibility</a></i>.</li>
+			</ol>
+			</li>
+			<li>Alerts<ol>
+				<li>If the user agent maintains a domain whitelist for the user, and the domain name 
+				is in the whitelist, allow it and skip the remaining items in this section. (The domain 
+				whitelist can take into account the documented policies of the registry as per <i>Section 
+				2.10.4 <a href="#Recommendations_Registries">Registry Recommendations</a></i>.)</li>
+				<li>If the visual appearance of a link (if it looks like a URL) does not match the end 
+				location, alert the user.</li>
+				<li>If the domain name does not satisfy the requirements of the user preferences (such 
+				as the Restriction Level), alert the user.</li>
+				<li>If the domain name contains any letters confusable with syntax characters, alert 
+				the user.</li>
+				<li>If there is a whitelist, and the domain name is visually confusable with a whitelist 
+				domain name, but not identical to it (after nameprep), alert the user.</li>
+				<li>If any label in the domain name is a whole-script or a mixed-script confusable, 
+				alert the user. </li>
+			</ol>
+			</li>
+		</ol>
+		<h4><span><b>2.10.4 <a name="Recommendations_Registries">Registry Recommendations</a></b></span></h4>
+		<p>The following recommendations are for registries in dealing with identifiers such as domain 
+		names. The term "Registry" is to be interpreted broadly, as any agency that sets the policy 
+		for which identifiers are accepted.</p>
+		<p>Thus he .com operator can impose restrictions on the 2nd level domain label, but if someone 
+		registers <i>foo.com</i>, then it is up to them to decide what will be allowed at the 3rd level 
+		(for example, <i>bar.foo.com</i>). So for that purpose, the owner of <i>foo.com</i> is treated 
+		as the "Registry" for the 3rd level (the <i>bar</i>). Similarly, the owner of a domain name 
+		is acting as an internal Registry in terms of the policies for the non-domain name portions 
+		of a URL, such as <i>banking </i>&nbsp;in <i>http://<span>bar.foo.com/banking. </span>Thus
+		</i>the following recommendations still hold. (In particular, StringPrep and the IDN Security 
+		Profiles should be used.)</p>
+		<p>For information on the confusable tests mentioned below, see <span><i>Section 4. </i>
+		</span><i>Confusable Detection</i> in [<a href="#UTS39">UTS39</a>].</p>
+		<ol type="A">
+			<li>Publicly document the Restriction Level being enforced. For IDN, the restriction level 
+			is not to be higher than Level 4: that is, no characters can be<span> </span>outside of 
+			the <i>IDN Security Profiles for Identifiers</i> in [<a href="#UTS39">UTS39</a>].</li>
+			<li>Publicly document the enforcement policy on confusables: whether two domain names are 
+			allowed to be single-script or mixed script confusables.</li>
+			<li>If there are any pre-existing exceptions to A or B, then document them also.</li>
+			<li>Define an IDN registration in terms of both its Nameprep-Normalized Unicode representation 
+			(the <i>output format</i>) and its ACE representation.</li>
+		</ol>
+		<h4><span><b>2.10.5 <a name="Recommendations_Registrars">Registrar Recommendations</a></b></span></h4>
+		<p>The following recommendations are for registrars in dealing with domain names. The term "Registrar" 
+		is to be interpreted broadly, as any agency that presents a UI for registering domain names, 
+		and allows users to see whether a name is registered. The same entity may be both a Registrar 
+		and Registry.</p>
+		<ol type="A">
+			<li>When a user's name is (or would be) rejected by the registry for security reasons, show 
+			the user why the name was rejected (such as the existence of an already-registered confusable).</li>
+		</ol>
+		<h2><a name="Canonical_Represenation"></a>3. Non-Visual Security Issues</h2>
+		<p>A common practice is to have a 'gatekeeper' for a system. That gatekeeper checks incoming 
+		data to ensure that it is safe, and passes only safe data through. Once in the system, the other 
+		components assume that the data is safe. A problem arises when a component treats two pieces 
+		of text as identical — typically by canonicalizing them to the same form — while the gatekeeper 
+		only detected that one of them was unsafe.</p>
+		<h3>3.1 <a name="UTF-8_Exploit">UTF-8 Exploit</a>s</h3>
+		<p>There are three equivalent encoding forms for Unicode: UTF-8, UTF-16, and UTF-32. UTF-8 is 
+		commonly used in XML and HTML; UTF-16 is the most common in program APIs; and UTF-32 is the 
+		best for representing single characters. While these forms are all equivalent in terms of the 
+		ability to express Unicode, the original usage of UTF-8 was open to a canonicalization exploit.</p>
+		<p>Up to <a href="http://www.unicode.org/uni2book/u2.html"><i>The Unicode Standard, Version 
+		3.0</i></a> the <i>generation</i> of "non-shortest form" UTF-8 was forbidden, as was the <i>
+		interpretation</i> of illegal sequences, but not the interpretation of what was called the "non-shortest 
+		form". Where software does interpret the non-shortest forms, security issues can arise. For 
+		example: </p>
+		<ul>
+			<li>Process <i>A</i> performs security checks, but does not check for non-shortest forms.
+			</li>
+			<li>Process <i>B</i> accepts the byte sequence from process <i>A</i>, and transforms it 
+			into UTF-16 while interpreting non-shortest forms. </li>
+			<li>The UTF-16 text may then contain characters that should have been filtered out by process
+			<i>A</i>.</li>
+		</ul>
+		<p>For example, the backslash character "\" can often be a dangerous character to let through 
+		a gatekeeper, since it can be used to access different directories. Thus a gatekeeper might 
+		specifically prevent it from getting through. The backslash is represented in UTF-8 as the byte 
+		sequence &lt;5C&gt;. However, as a non-shortest form, backslash could also be represented as the byte 
+		sequence&lt;C1 9C&gt;. When a gatekeeper does not check for non-shortest form, this situation can 
+		lead to a severe security breach. For more information, see [<a href="#Related_Material">Related 
+		Material</a>].</p>
+		<p>To address this issue, the Unicode Technical Committee modified the definition of UTF-8 in
+		<a href="http://www.unicode.org/reports/tr27/">Unicode 3.1</a> to forbid conformant implementations 
+		from interpreting non-shortest forms for
+		<a href="http://www.unicode.org/glossary/#BMP_character">BMP characters</a>, and clarified some 
+		of the conformance clauses.</p>
+		<h4>3.1.1 <a name="Ill-Formed_Subsequences">Ill-Formed Subsequences</a></h4>
+		<p>Suppose that a UTF-8 converter is iterating through input UTF-8 
+		bytes, converting to an output character encoding. If the converter encounters an ill-formed 
+		UTF-8 sequence it can treat it as an error in a number of different ways, including substituting 
+		a character like U+FFFD, SUB, "?", or SPACE. However, it <i>must not</i> consume any valid successor 
+		bytes. For example, suppose we have the sequence </p>
+		<blockquote>
+			<p>X = &lt;... 41 <u><b>C2</b></u> 3E 42 ... &gt;</p>
+		</blockquote>
+		<p>This sequence overall is ill-formed, because it contains an ill-formed 
+		substring, the &lt;<b>C2</b>&gt;. That is, there is no substring of X containing the &lt;<b>C2</b>&gt; byte 
+		which matches the specification for UTF-8 in Table 3-7 of Unicode 5.1 [<a href="#Unicode">Unicode</a>]. 
+		The UTF-8 converter can stop at the <b>C2</b> byte, or substitute a character or sequence like 
+		U+FFFD and continue. But it must not consume the <b>3E</b> byte if it does continue. That is, 
+		it is ok to convert X to ...<b>A &gt;B</b>..., but not ok to convert X to <b>...A B...</b> (that 
+		is, deleting the &gt;).</p>
+		<p>Consuming any subsequent byte is not only non-conformant; it can 
+		lead to security breaches. For example, suppose that a web page is constructed with user input. 
+		The user input is filtered to catch problem attributes such as onMouseOver. But incorrect conversion 
+		can defeat that filtering by removing important syntax characters like &gt; in HTML attribute values. 
+		Take the following string, where " " indicates a bare <b>C2</b> byte:</p>
+		<ul>
+			<li>&lt;span style=width:100% &gt; onMouseOver=doBadStuff()...</li>
+		</ul>
+		<p>When this is converted with a bad UTF-8 converter, the <b>C2</b> 
+		would cause the &gt; character to be consumed, and the HTML served up would be of the following 
+		form, allowing for a cross-site scripting attack:</p>
+		<ul>
+			<li>&lt;span style=width:100%  onMouseOver=doBadStuff()...</li>
+		</ul>
+		<p>For more information on precisely how to handle ill-formed 
+        subsequences, see <i><a href="http://www.unicode.org/versions/Unicode5.1.0/#Conformance_Changes">E. Conformance 
+        Changes to the Standard</a></i> in Unicode 5.1 [<a href="#Unicode">Unicode</a>].</p>
+		<h4>3.1.2 <a name="Substituting_for_Ill_Formed_Subsequences">
+        Substituting for Ill-Formed Subsequences</a></h4>
+		<p>Note that if characters <i>are</i> to be substituted for ill-formed 
+		subsequences, it is important that those characters be relatively safe.</p>
+		<ul>
+			<li>Deletion (substituting the empty string) can be quite nasty, 
+			since it joins characters that would have been separate (eg on MouseOver).</li>
+			<li>Substituting characters that are valid syntax for constructs 
+			such as file names has similar problems. The '.' for example can be very problematic.<ul>
+				<li>U+FFFD is usually unproblematic, because it is designed 
+				expressly for this kind of purpose. That is, because it doesn't have syntactic meaning 
+				in programming languages or structured data, it will typically just cause a failure 
+				in parsing. Where the output character set is not Unicode, though, this character may 
+				not be available.</li>
+				<li>Where U+FFFD is not available, a common alternative is 
+				"?". While this character may occur syntactically, it appears to be less subject to 
+				attack than most others. </li>
+			</ul>
+			</li>
+		</ul>
+		<p>UTF-16 converters that don't handle isolated surrogates correctly 
+		are subject to the same type of attack, although historically UTF-16 converters have had generally 
+		handled these well.</p>
+		<h3 dir="ltr">3.2 <a name="Text_Comparison">Text Comparison</a> <span>(Sorting, Searching, Matching)</span></h3>
+		<p dir="ltr">The UTF-8 Exploit is a special case of a general problem. Security problems may 
+		arise where a user and a system (or two systems) compare text differently. For example, where 
+		text does not compare as users expect, this can cause security problems. See the discussions 
+		in UTS#10: Unicode Collation Algorithm [<a href="#UTS10">UTS10</a>], especially Sections 1 1.5.</p>
+		<p dir="ltr">A system is particularly vulnerable when two different implementations of the same 
+		protocol use different mechanisms for text comparison, such as the comparison as to whether 
+		two identifiers are equivalent or not.</p>
+		<p dir="ltr">Assume a system consists of two modules - a user registry and the access control. 
+		Suppose that the user registry does not use NamePrep, while the access control module does. 
+		Two situations can arise:</p>
+		<ol dir="ltr">
+			<li dir="ltr">
+			<p dir="ltr">The user with valid access rights to a certain resource actually cannot access 
+			it, because the binary representation of user ID used for the user registry is different 
+			from the one specified in the access control list. This situation is actually not too bad 
+			from a security standpoint - because the person in this situation cannot access the protected 
+			resource.</p>
+			</li>
+			<li dir="ltr">
+			<p dir="ltr">In the opposite case, it's a security hole: a new user whose ID is NamePrep-equivalent 
+			to another user's in the directory system can get the access right to a protected resource.
+			</p>
+			</li>
+		</ol>
+		<p dir="ltr">For example, a fundamental standard, LDAP, is subject to this problem; thus steps 
+		are being taken to remedy this [<a href="#ldapbis">ldapbis</a>]. In the meantime, since you 
+		cannot rely on the implementation of any particular LDAP server, so you should wrap the user 
+		registration module so as to StringPrep the user IDs for registration, and then use exactly 
+		the same normalization logic to maintain the access control list.</p>
+		<p dir="ltr">There are some other areas to watch for. Where these are overlooked, it may leave 
+		a system open to the text comparison security problems.</p>
+		<ol>
+			<li dir="ltr">
+			<p dir="ltr">Normalization is context dependent; don't assume NFC(x + y) = NFC(x) + NFC(y).
+			</p>
+			</li>
+			<li>There are <i><b>two</b></i> binary Unicode orders: code point/UTF-8/UTF-32 and UTF16 
+			order. In the latter, U+10000 <b>&lt;</b> U+E000 (since U+10000 = D800 DC00).</li>
+			<li>Avoid using non-Unicode charsets where possible. IANA / MIME charset names are ill-defined: 
+			vendors often convert the same charset different ways. For example, in Shift-JIS the value 
+			0x5C converts to<i> <b>either</b> </i>U+005C <i><b>or</b></i> U+00A5 depending on the vendor, 
+			resulting in different, unrelated characters with unrelated glyphs.<br>
+			► <a class="moz-txt-link-freetext" href="http://www.w3.org/TR/japanese-xml/">http://www.w3.org/TR/japanese-xml/</a><br>
+			► <a class="moz-txt-link-freetext" href="http://icu.sourceforge.net/charts/charset/">http://icu.sourceforge.net/charts/charset/</a></li>
+			<li>When converting charsets, <i>never</i> simply omit characters that cannot be converted; 
+			at least substitute U+FFFD (when converting to Unicode) or 0x1A (when converting to bytes) 
+			to reduce security problems. See also [<a href="#UTS22">UTS22</a>].</li>
+			<li>Regular expression engines use character properties in matching. They may vary in how 
+			they match, depending on the interpretation of those properties. Where regex matching is 
+			important to security, ensure that the regular expression engine you are using conforms 
+			to the requirements of [<a href="#UTS18">UTS18</a>], and uses an up-to-date version of the 
+			Unicode Standard for its properties.</li>
+		</ol>
+		<h3 dir="ltr">3.3 <a name="Buffer_Overflows">Buffer Overflows</a></h3>
+		<p dir="ltr">Some programmers may rely on limitations that are true of ASCII or Latin-1, but 
+		fail with general Unicode text. These can cause failures such as buffer overruns if the length 
+		of text grows. In particular:</p>
+		<ol class="marked">
+			<li style="margin-top: 0pt; margin-bottom: 0.5em;">Strings may expand in casing: Flu<font color="#0000ff"><u>ß</u></font> 
+			→ FLU<font color="#0000ff"><u>SS</u></font> → flu<font color="#0000ff"><u>ss</u></font>. 
+			The expansion factor may change depending on the UTF as well. Table 3.3 contains the current 
+			maximum expansion factors for each casing operations, for each UTF.</li>
+			<li style="margin-top: 0pt; margin-bottom: 0.5em;">People assume that NFC always composes, 
+			and thus is the same or shorter length than the original source. However, some characters
+			<i>decompose</i> in NFC. The expansion factor may change depending on the UTF as well. Table 
+			3.3 <i>Maximum Expansion Factors in Unicode 5.0</i> contains the maximal expansion factors 
+			for each normalization form in each UTF. These are calculated for Unicode 5.0; this may 
+			change in the future.<ul class="marked">
+				<li>The very large factors in the case of NFKC/D are due to some extremely rare characters. 
+				Thus algorithms can use much smaller expansion factors for the typical cases <i>as long 
+				as</i> they have a fallback process that accounts for the possibility of these characters 
+				in data.</li>
+				<li>In Unicode 5.0, a new <i>Stream-Safe Text Format</i> is has been added to <i>UAX#15: 
+				Unicode Normalization Forms [<a href="#UAX15">UAX15</a>]</i>. This format allows protocols 
+				to limit the number of characters that they need to buffer in handling normalization.</li>
+			</ul>
+			</li>
+			<li>When doing character conversion, text may grow or shrink, sometimes substantially. Always 
+			account for that possibility in processing.</li>
+		</ol>
+		<div align="center">
+			<center>
+			<table style="margin: 1em; display: inline; border-collapse: collapse;" border="1" cellpadding="3" cellspacing="0">
+				<caption>Table 3.3<br>
+				Maximum Expansion Factors<br>
+				in Unicode 5.0</caption>
+				<tbody><tr>
+					<th class="idn-head">Operation</th>
+					<th class="idn-head" style="text-align: center;">UTF</th>
+					<th class="idn-head" style="text-align: center;">Factor</th>
+					<th colspan="2" class="idn-head" style="text-align: center;">Sample</th>
+				</tr>
+				<tr>
+					<th class="idn-example" rowspan="2" style="vertical-align: middle;">
+					<span style="font-weight: 400;">Lower</span></th>
+					<th class="idn-example" style="text-align: center; vertical-align: middle;">
+					<span style="font-weight: 400;">8</span></th>
+					<th class="idn-example" style="text-align: center; vertical-align: middle;">
+					<span style="font-weight: 400;">1.5X</span></th>
+					<td style="text-align: center; vertical-align: middle;">
+					<font face="Arial Unicode MS" size="5">Ⱥ</font></td>
+					<td style="text-align: right; vertical-align: middle;" align="right">
+					<font face="monospace">U+023A</font></td>
+				</tr>
+				<tr>
+					<th class="idn-example" style="text-align: center; vertical-align: middle;">
+					<span style="font-weight: 400;">16, 32</span></th>
+					<th class="idn-example" style="text-align: center; vertical-align: middle;">
+					<span style="font-weight: 400;">1X</span></th>
+					<td style="text-align: center; vertical-align: middle;">
+					<font face="Arial Unicode MS" size="5">A</font></td>
+					<td style="text-align: right; vertical-align: middle;" align="right">
+					<font face="monospace">U+0041</font></td>
+				</tr>
+				<tr>
+					<th class="idn-example" style="vertical-align: middle;">
+					<span style="font-weight: 400;">Upper/Title/Fold</span></th>
+					<th class="idn-example" style="text-align: center; vertical-align: middle;">
+					<span style="font-weight: 400;">8, 16, 32</span></th>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;" align="right">
+					3X</td>
+					<td style="text-align: center; vertical-align: middle;">
+					<font face="Arial Unicode MS" size="5">ΐ</font></td>
+					<td style="text-align: right; vertical-align: middle;" align="right">
+					<font face="monospace">U+0390</font></td>
+				</tr>
+				<tr>
+					<th class="idn-head">Operation</th>
+					<th class="idn-head" style="text-align: center;">UTF</th>
+					<th class="idn-head" style="text-align: center;">Factor</th>
+					<th colspan="2" class="idn-head" style="text-align: center;">Sample</th>
+				</tr>
+				<tr>
+					<td class="idn-example" rowspan="2" style="vertical-align: middle;">NFC</td>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;">8</td>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;" align="right">
+					3X</td>
+					<td style="text-align: center; vertical-align: middle;">
+					<font face="Arial Unicode MS" size="5">𝅘𝅥𝅮</font></td>
+					<td style="text-align: right; vertical-align: middle;" align="right">
+					<font face="monospace">U+1D160</font></td>
+				</tr>
+				<tr>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;">16, 32</td>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;" align="right">
+					3X</td>
+					<td style="text-align: center; vertical-align: middle;">
+					<font face="Arial Unicode MS" size="5">שּׁ</font></td>
+					<td style="text-align: right; vertical-align: middle;" align="right">
+					<font face="monospace">U+FB2C</font></td>
+				</tr>
+				<tr>
+					<td class="idn-example" rowspan="2" style="vertical-align: middle;">NFD</td>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;">8</td>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;" align="right">
+					3X</td>
+					<td style="text-align: center; vertical-align: middle;">
+					<font face="Arial Unicode MS" size="5">ΐ</font></td>
+					<td style="text-align: right; vertical-align: middle;" align="right">
+					<font face="monospace">U+0390</font></td>
+				</tr>
+				<tr>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;">16, 32</td>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;" align="right">
+					4X</td>
+					<td style="text-align: center; vertical-align: middle;">
+					<font face="Arial Unicode MS" size="5">ᾂ</font></td>
+					<td style="text-align: right; vertical-align: middle;" align="right">
+					<font face="monospace">U+1F82</font></td>
+				</tr>
+				<tr>
+					<td class="idn-example" rowspan="2" style="vertical-align: middle;">NFKC/NFKD</td>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;">8</td>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;" align="right">
+					11X</td>
+					<td rowspan="2" style="text-align: center; vertical-align: middle;">
+					<font face="Arial Unicode MS" size="5">ﷺ</font></td>
+					<td rowspan="2" style="text-align: right; vertical-align: middle;" align="right">
+					<font face="monospace">U+FDFA</font></td>
+				</tr>
+				<tr>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;">16, 32</td>
+					<td class="idn-example" style="text-align: center; vertical-align: middle;" align="right">
+					18X</td>
+				</tr>
+			</tbody></table>
+			</center></div>
+		<h3>3.4 <a name="Property_and_Character_Stability">Property and Character 
+		Stability</a></h3>
+		<p>The Unicode Consortium Stability Policy [<a href="#Stability">Stability</a>] 
+		limits the ways in which the standards developed by the Unicode Consortium can change. These 
+		policies are intended to ensure that text encoded in one version of the standard remains valid 
+		and unchanged in later versions. In many cases, the constraints imposed by these stability policies 
+		allow implementers to simplify support for particular features of the standard, with the assurance 
+		that their implementations will not be invalidated by a later update to the standard.</p>
+		<p>Implementations should not make assumptions beyond what is documented 
+		on these pages. For example, some implementations assumed that no new decomposable characters 
+		would be added to Unicode. The actual restriction is slightly looser: roughly that decomposable 
+		characters won't be added if their decompositions were already in Unicode. So a decomposable 
+		character can be added if one of the characters in its decomposition is also new. For example, 
+		decomposable Balinese characters were added to the standard in Version 5.0.</p>
+		<p>Similarly, some applications assumed that all Chinese characters 
+		were 3 bytes in UTF-8. Thus once a string was known to be all Chinese, then iteration through 
+		the string could take the form of simply advancing an offset or pointer by 3 bytes. This assumption 
+		proved incorrect and caused problems for implementations when Chinese characters were added 
+		on Plane 2, requiring 4-byte representations in UTF-8.</p>
+		<p>Making such unwarranted assumptions can lead to security problems. 
+		For example, advancing uniformly by 3 bytes for Chinese will corrupt the interpretation of text, 
+		leading to problems like those mentioned in Section 3.1.1 <a href="#Ill-Formed_Subsequences">
+		Ill-Formed_Subsequences</a>. Implementers should thus be careful to only depend on the documented 
+		stability policies.</p>
+		<p>An implementation may need to make certain assumptions for performance
+		<font face="Arial">—</font> ones that are not guaranteed by the policies. In such a case, it 
+		is recommended to at least have unit tests that detect whether those assumptions have become 
+		invalid when the implementation is upgraded to a new version of Unicode. That allows the code 
+		to be revised if that were to happen.</p>
+		<h3>3.5 <a name="Deletion_of_Noncharacters">Deletion of Noncharacters</a></h3>
+		<p>Conformance clause C7 reads:</p>
+		<blockquote>
+          C7. When a process purports not to modify the interpretation of a
+valid coded character sequence, it shall make no change to that coded
+character sequence other than the possible replacement of character
+sequences by their canonical-equivalent sequences <i>or the deletion
+of noncharacter code points</i>.</blockquote>
+        <p>Although the last phrase permits the deletion of noncharacter code 
+        points, for security reasons, they only should be removed with caution.</p>
+        <p>Whenever a character is invisibly deleted (instead of replaced),
+it may cause a security problem. The issue is the following:
+A gateway might be checking for a sensitive sequence of characters,
+say "delete". If what is passed in is "deXlete", where X is a noncharacter, the 
+        gateway lets it through: the sequence "deXlete" may be in and of 
+        itself harmless. But suppose that later on, past the gateway, an 
+        internal process invisibly deletes the X. In that case, the sensitive 
+        sequence of characters is formed, and can lead to a security breach.</p>
+		<h3>3.6 <a name="Non_Visual_Recommendations">Recommendations</a></h3>
+		<blockquote>
+			<ol type="A">
+				<li>Ensure that all implementations of UTF-8 used in a system are conformant to the 
+				latest version of Unicode. In particular,<ol type="A">
+					<li>Always use the so-called "shortest form" of UTF-8</li>
+					<li>With UTF-8 (or UTF-16) conversion, never consume bytes 
+					from well-formed sequences as part of error handling</li>
+					<li>Avoid problematic substitutions for ill-formed substrings.</li>
+					<li>Never go outside of 0..10FFFF<sub>16</sub></li>
+					<li>Never use 5 or 6 byte UTF-8.</li>
+				</ol>
+				</li>
+				<li>Those designing a protocol should ensure that the text comparison operation is precisely 
+				defined, including the Unicode casing folding operation, and the normalization (NFKC) 
+				operation. Identifiers should be limited to those specified in <i>Section 3.1. General 
+				Security Profile for Identifiers</i> [<a href="#UTS39">UTS39</a>].</li>
+				<li>If a registration system does not precisely specify the comparison operation, a 
+				work-around is to wrap the user registration module so as to NamePrep the user IDs for 
+				registration, and then use exactly the same normalization logic to maintain the access 
+				control list.</li>
+				<li>Be aware of the possible pitfalls with text comparison, removal of noncharacters, and buffer overflows; follow 
+				the recommendations in Sections 3.3 - 3.5.</li>
+			</ol>
+		</blockquote>
+		<hr width="50%">
+		<h2><span>Appendix A. <a name="Identifier_Characters">Identifier Characters</a></span></h2>
+		<p>The mechanisms described in this section have been moved to [<a href="#UTS39">UTS39</a>], 
+		Section 3.</p>
+		<h2><b>Appendix B. <a name="Confusable_Detection">Confusable Detection</a></b></h2>
+		<p>The mechanisms described in this section have been moved to [<a href="#UTS39">UTS39</a>], 
+		Section 4.</p>
+		<h2><span>Appendix C. <a name="Missing_Glyph_Icons">Script Icons</a></span></h2>
+		<p>The following are icons that can be used to indicate scripts, and also to indicate missing 
+		glyphs (for characters in those scripts).</p>
+		<table style="border-color: rgb(192, 192, 192); border-collapse: collapse;" border="1" cellpadding="2" cellspacing="0">
+			<tbody><tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/arabic.gif" alt="X" height="24" width="24"> Arabic</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/armenian.gif" alt="X" height="24" width="24"> Armenian</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/bengali.gif" alt="X" height="24" width="24"> Bengali</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/bopomofo.gif" alt="X" height="24" width="24"> Bopomofo</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/braillesymbols.gif" alt="X" height="24" width="24"> Braille</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/buginese.gif" alt="X" height="24" width="24"> Buginese</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/buhid.gif" alt="X" height="24" width="24"> Buhid</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/canadiansyllabics.gif" alt="X" height="24" width="24"> Canadian Aboriginal</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/cherokee.gif" alt="X" height="24" width="24"> Cherokee</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/coptic.gif" alt="X" height="24" width="24"> Coptic</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/cypriot.gif" alt="X" height="24" width="24"> Cypriot</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/cyrillic.gif" alt="X" height="24" width="24"> Cyrillic</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/deseret.gif" alt="X" height="24" width="24"> Deseret</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/devanagari.gif" alt="X" height="24" width="24"> Devanagari</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/ethiopic.gif" alt="X" height="24" width="24"> Ethiopic</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/georgian.gif" alt="X" height="24" width="24"> Georgian</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/glagolitic.gif" alt="X" height="24" width="24"> Glagolitic</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/gothic.gif" alt="X" height="24" width="24"> Gothic</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/greek.gif" alt="X" height="24" width="24"> Greek</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/gujarati.gif" alt="X" height="24" width="24"> Gujarati</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/gurmukhi.gif" alt="X" height="24" width="24"> Gurmukhi</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/hangulsyllables.gif" alt="X" height="24" width="24"> Hangul</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/kangxiradicals.gif" alt="X" height="24" width="24"> Han</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/hanunoo.gif" alt="X" height="24" width="24"> Hanunoo</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/hebrew.gif" alt="X" height="24" width="24"> Hebrew</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/hiragana.gif" alt="X" height="24" width="24"> Hiragana</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/latin.gif" alt="X" height="24" width="24"> Latin</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/lao.gif" alt="X" height="24" width="24"> Lao</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/limbu.gif" alt="X" height="24" width="24"> Limbu</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/linearbsyllabary.gif" alt="X" height="24" width="24"> Linear B</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/kannada.gif" alt="X" height="24" width="24"> Kannada</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/katakana.gif" alt="X" height="24" width="24"> Katakana</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/kharoshthi.gif" alt="X" height="24" width="24"> Kharoshthi</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/khmer.gif" alt="X" height="24" width="24"> Khmer</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/mongolian.gif" alt="X" height="24" width="24"> Mongolian</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/myanmar.gif" alt="X" height="24" width="24"> Myanmar</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/malayalam.gif" alt="X" height="24" width="24"> Malayalam</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/ogham.gif" alt="X" height="24" width="24"> Ogham</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/olditalic.gif" alt="X" height="24" width="24"> Old Italic</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/oldpersiancuneiform.gif" alt="X" height="24" width="24"> Old Persian</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/oriya.gif" alt="X" height="24" width="24"> Oriya</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/osmanya.gif" alt="X" height="24" width="24"> Osmanya</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/newtailu.gif" alt="X" height="24" width="24"> New Tai Lue</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/runic.gif" alt="X" height="24" width="24"> Runic</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/shavian.gif" alt="X" height="24" width="24"> Shavian</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/sinhala.gif" alt="X" height="24" width="24"> Sinhala</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/silotinagri.gif" alt="X" height="24" width="24"> Syloti Nagri</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/syriac.gif" alt="X" height="24" width="24"> Syriac</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/tagalog.gif" alt="X" height="24" width="24"> Tagalog</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/tagbanwa.gif" alt="X" height="24" width="24"> Tagbanwa</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/taile.gif" alt="X" height="24" width="24"> Tai Le</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/tamil.gif" alt="X" height="24" width="24"> Tamil</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/telugu.gif" alt="X" height="24" width="24"> Telugu</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/thaana.gif" alt="X" height="24" width="24"> Thaana</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/thai.gif" alt="X" height="24" width="24"> Thai</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/tibetan.gif" alt="X" height="24" width="24"> Tibetan</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/tifinagh.gif" alt="X" height="24" width="24"> Tifinagh</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/ugaritic.gif" alt="X" height="24" width="24"> Ugaritic</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/yi.gif" alt="X" height="24" width="24"> Yi</td>
+				<td class="script" style="border-color: rgb(192, 192, 192);" width="20%">&nbsp;</td>
+			</tr>
+			<tr>
+				<td class="script" colspan="3" style="border-color: rgb(255, 255, 255);" bgcolor="#eeeeff" width="20%">
+				Special cases</td>
+			</tr>
+			<tr>
+				<td class="script" style="border-color: rgb(255, 255, 255);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/common.gif" alt="X" height="24" width="24"> Common</td>
+				<td class="script" style="border-color: rgb(255, 255, 255);" width="20%">
+				<img src="UTR%23%2036:%20Unicode%20Security%20Considerations_files/combiningdiacritics.gif" alt="X" height="24" width="24"> Inherited</td>
+				<td class="script" style="border-color: rgb(255, 255, 255);" width="20%">&nbsp;</td>
+			</tr>
+		</tbody></table>
+		<h2><span><br>
+		Appendix D. <a name="Mixed_Script_Detection">Mixed Script Detection</a></span></h2>
+		<p>The mechanisms described in this section have been moved to [<a href="#UTS39">UTS39</a>], 
+		Section 5.</p>
+		<h2>Appendix E. <a name="Future_Topics">Future Topics</a></h2>
+		<p>The former contents have been incorporated into the document proper, or moved elsewhere.</p>
+		<h2>Appendix F. <a name="Country_Specific_IDN_Restrictions">Country-Specific IDN Restrictions</a></h2>
+		<p>ICANN (Internet Corporation For Assigned Names and Numbers), among other tasks, is responsible 
+		for coordinating the management of the technical elements of the DNS to ensure universal resolvability. 
+		As such, after the IDNA RFCs were published in March 2003, ICANN and a cross-section of IDN-implementing 
+		registries published in June 2003 the first version of the "Guidelines for the Implementation 
+		of Internationalized Domain Names" [<a href="#ICANN">ICANN</a>]. These guidelines include the 
+		following items:</p>
+		<ul>
+			<li>strict compliance with the IDN RFCs</li>
+			<li>inclusion-based approach (characters not explicitly allowed are prohibited)</li>
+			<li>based on the need of a language or a group of languages</li>
+			<li>symbol characters, icons, dingbats, punctuations should not be included</li>
+			<li>consistent approach for language-specific registration policies</li>
+			<li>each domain label should be restricted to a single language or appropriate<br>
+			group of languages</li>
+		</ul>
+		<p>These guidelines have been endorsed by the .cn, .info, .jp, .org, and .tw registries. Furthermore, 
+		IANA (Internet Assigned Numbers Authority), following the ICANN guidelines about IDN, has created 
+		a registry for IDN Language Tables [<a href="#IDNReg">IDNReg</a>] which contains entries for:</p>
+		<ul>
+			<li>.biz (German)</li>
+			<li>.info (German)</li>
+			<li>.jp (Japanese)</li>
+			<li>.kr (Korean)</li>
+			<li>.museum (Danish, Icelandic, Norwegian, Swedish, for more see [<a href="#Museum">Museum</a>])</li>
+			<li>.pl (Arabic, Hebrew, Greek, Polish)</li>
+			<li>.th (Thai)</li>
+		</ul>
+		<p>Other registries have published their own IDN recommendations using 
+        various formats, such as the following.<i> These are only for 
+        illustration: the exact sets may change over time, so the particular 
+        authorities should be consulted rather than relying on these contents. 
+        Some registrars now also offer machine-readable formats.</i></p>
+		<table style="border-collapse: collapse;" border="1" cellpadding="2" cellspacing="0">
+			<caption><a name="Sample_Country_Registries">Sample Country Registries</a></caption>
+			<tbody><tr>
+				<td valign="top">Brazil</td>
+				<td valign="top">.br</td>
+				<td valign="top">àáâã ç éê í óôõ úü</td>
+				<td valign="top"><a href="http://registro.br/faq/faq6.html#8">http://registro.br/faq/faq6.html#8</a></td>
+			</tr>
+			<tr>
+				<td valign="top">Denmark </td>
+				<td valign="top">.dk</td>
+				<td valign="top">åä æ é öø ü </td>
+				<td valign="top"><a href="http://www.difo.dk/regler/Tegn-01-01-2004.pdf">http://www.difo.dk/regler/Tegn-01-01-2004.pdf</a></td>
+			</tr>
+			<tr>
+				<td valign="top">Chinese </td>
+				<td valign="top">.cn</td>
+				<td valign="top">(large list)</td>
+				<td valign="top">http://www.ietf.org/internet-drafts/draft-xdlee-idn-cdnadmin-03.txt<br>
+				(draft RFC expired in August 22nd 2005, so the link has become invalid. There may be 
+				a successor.)</td>
+			</tr>
+			<tr>
+				<td valign="top">Germany</td>
+				<td valign="top">.de</td>
+				<td valign="top">àáâãäåāăą æ çćĉċč ďđ ð èéêëēĕėęě ĝğġģ ĥħ ìíîïĩīĭįı ĵ ķĸ ĺļľł ńņňŋñ 
+				òóôõöøōŏő œ ŕŗř śŝşš ţťŧ ŵ ùúûüũūŭůűų ýÿŷ źżž þ </td>
+				<td valign="top"><a href="http://www.denic.de/en/domains/idns/liste.html">http://www.denic.de/en/domains/idns/liste.html</a></td>
+			</tr>
+			<tr>
+				<td valign="top">Hungary </td>
+				<td valign="top">.hu</td>
+				<td valign="top">á é í óöő úüű</td>
+				<td valign="top"><a href="http://www.domain.hu/domain/ekes/">http://www.domain.hu/domain/ekes/</a></td>
+			</tr>
+			<tr>
+				<td valign="top">Iceland </td>
+				<td valign="top">.is</td>
+				<td valign="top">á æ ð é í óö ú ý þ</td>
+				<td valign="top"><a href="https://www.isnic.is/">https://www.isnic.is/</a></td>
+			</tr>
+			<tr>
+				<td valign="top">Latvia </td>
+				<td valign="top">.lv </td>
+				<td valign="top">ā č ē ģ ī ķ ļ ņ ō ŗ š ū ž</td>
+				<td valign="top"><a href="http://www.nic.lv/DNS/">http://www.nic.lv/DNS/</a></td>
+			</tr>
+			<tr>
+				<td valign="top">Lithuania </td>
+				<td valign="top">.lt</td>
+				<td valign="top">ą č ęė į š ųū ž</td>
+				<td valign="top"><a href="http://www.domreg.lt/lt/nutar/leistini_simboliai.pdf">http://www.domreg.lt/lt/nutar/leistini_simboliai.pdf</a></td>
+			</tr>
+			<tr>
+				<td valign="top">Norway </td>
+				<td valign="top">.no</td>
+				<td valign="top">áàäå æ čç đ éèê ŋńñ óòôöø š ŧ ü ž</td>
+				<td valign="top">
+				<a href="http://www.norid.no/domeneregistrering/idn/idn_nyetegn.en.html">http://www.norid.no/domeneregistrering/idn/idn_nyetegn.en.html</a></td>
+			</tr>
+			<tr>
+				<td valign="top">Portugal </td>
+				<td valign="top">.pt</td>
+				<td valign="top">àáâã ç éê í óôõ ú</td>
+				<td valign="top">
+				<a href="https://online.dns.pt/imagens/site/home_227/fotos/64493641012224581016.pdf">
+				https://online.dns.pt/imagens/site/home_227/fotos/64493641012224581016.pdf</a></td>
+			</tr>
+			<tr>
+				<td valign="top">Sweden </td>
+				<td valign="top">.se</td>
+				<td valign="top">åä ö</td>
+				<td valign="top"><a href="http://www.nic-se.se/teknik/programvara_idn.shtml">http://www.nic-se.se/teknik/programvara_idn.shtml</a></td>
+			</tr>
+			<tr>
+				<td valign="top">Switzerland </td>
+				<td valign="top">.ch</td>
+				<td valign="top">àáâãäå æ ç èéêë ìíîï ð ñ òóôõöø œ ùúûü ýÿ þ</td>
+				<td valign="top"><a href="http://www.switch.ch/id/faq/idn.html">http://www.switch.ch/id/faq/idn.html</a> 
+				(English, French, German, Italian)</td>
+			</tr>
+		</tbody></table>
+		<blockquote>
+			<p><b>Note: </b>When documents are published in their native language, the IDN additions 
+			to the basic ASCII DNS repertoire have been mentioned in parenthesis. </p>
+			<p><b>Note: </b>Some of the country-based registries do not strictly follow the language-based 
+			approach recommended by ICANN because they cover a group of languages, such as in Switzerland 
+			or in Germany. Furthermore, two countries using the same language may differ in their list 
+			of additional characters (for example, Brazil and Portugal).</p>
+		</blockquote>
+		<p>There are probably more country-specific IDN recommendations, so this enumeration is by no 
+		mean exhaustive. As of now, the output list from <span><i>Section 3. Identifier Characters</i>
+		</span>[<a href="#UTS39">UTS39</a>] is a strict superset of all country-specific restricted 
+		IDN lists itemized above.</p>
+		<h2>Appendix G. <a name="Language_Based_Security">Language-Based Security</a></h2>
+		<p class="MsoNormal">It is very hard to determine exactly which characters are used by a language. 
+		For example, English is commonly thought of as having letters A-Z, but in customary practice 
+		many other letters appear as well. For examples, consider proper names such as "Zoë", words 
+		from the Oxford English Dictionary such as "coöperate", and many foreign words, proper or not, 
+		that are in common use: "René", ‘naïve’, ‘déjà vu’, ‘résumé’, etc… Thus the problem with restricting 
+		identifiers by language is the difficulty in defining exactly what that implies. The problem 
+		with using language identifier in a security approach derives from the complexity to define 
+		what a language is. See the following definitions:</p>
+		<blockquote>
+			<p><b>Language</b>: Communication of thoughts and feelings through a system of arbitrary 
+			signals, such as voice sounds, gestures, or written symbols. Such a system including its 
+			rules for combining its components, such as words. Such a system as used by a nation, people, 
+			or other distinct community; often contrasted with dialect. <i>(From American Heritage, 
+			Web search)</i></p>
+		</blockquote>
+		<blockquote>
+			<p><b>Language</b>: The systematic, conventional use of sounds, signs, or written symbols 
+			in a human society for communication and self-expression. Within this broad definition, 
+			it is possible to distinguish several uses, operating at different levels of abstraction. 
+			In particular, linguists distinguish between language viewed as an act of speaking, writing, 
+			or signing, in a given situation […], the linguistic system underlying an individual’s use 
+			of speech, writing, or sign […], and the abstract system underlying the spoken, written, 
+			or signed behaviour of a whole community. <i>(David Crystal, An Encyclopedia of Language 
+			and Languages)</i></p>
+		</blockquote>
+		<blockquote>
+			<p><b>Language</b> is a finite system of arbitrary symbols combined according to rules of 
+			grammar for the purpose of communication. Individual languages use sounds, gestures, and 
+			other symbols to represent objects, concepts, emotions, ideas, and thoughts…</p>
+			<p>Making a principled distinction between one language and another is usually impossible. 
+			For example, the boundaries between named language groups are in effect arbitrary due to 
+			blending between populations (the dialect continuum). For instance, there are dialects of 
+			German very similar to Dutch which are not mutually intelligible with other dialects of 
+			(what Germans call) German.</p>
+			<p>Some like to make parallels with biology, where it is not always possible to make a well-defined 
+			distinction between one species and the next. In either case, the ultimate difficulty may 
+			stem from the interactions between languages and populations. <i>
+			<a href="http://en.wikipedia.org/wiki/Language" style="color: blue; text-decoration: underline;">
+			http://en.wikipedia.org/wiki/Language</a>, September 2005</i></p>
+		</blockquote>
+		<p class="MsoNormal" style="">For example, the Unicode Common Locale Data 
+		Repository (CLDR) supplies a set of exemplar characters per language, the characters used to 
+		write that language. Originally, there was a single set per language. However, it became clear 
+		that a single set per language was far too restrictive, and the structure was revised to provide 
+		auxiliary characters, other characters that are in more or less common use in newspapers, product 
+		and company names, etc. For example, auxiliary set provided for English is: [áà éè íì óò úù 
+		âêîôû æœ äëïöüÿ āēīōū ăĕĭŏŭ åø çñß]. As this set makes clear, (a) the frequency of occurrence 
+		of a given character may depend greatly on the domain of discourse, and (b) it is difficult 
+		to draw a precise line; instead there is a trailing off of frequency of occurrence.</p>
+		<p class="MsoNormal">In contrast, the definitions of writing systems and scripts are much simpler:</p>
+		<blockquote>
+			<p><b>Writing system</b>: A determined collection of characters or signs together with an 
+			associated conventional spelling of texts, and the principle therefore. <i>(extrapolated 
+			from Daniels/Bright: The World's Writing Systems)</i> </p>
+			<p><b>Script</b>: A collection of symbols used to represent textual information in one or 
+			more writing systems. <i>(Unicode 4.1.0 UAX #24)</i> </p>
+		</blockquote>
+		<p class="MsoNormal">The simplification originates from the fact that writing systems and scripts 
+		only relate to the written form of the language and do not require judgment calls concerning 
+		language boundaries. Therefore security considerations that relate to written form of languages 
+		are much better served by using the concept of writing system and/or script.</p>
+		<p class="MsoNormal" style="margin-left: 0.5in;"><b>Note: </b>A writing system uses one or more 
+		scripts, plus additional symbols such as punctuation. For example, the Japanese writing system 
+		uses the scripts Hiragana, Katakana, Kanji (Han ideographs), and sometimes Latin.</p>
+		<p class="MsoNormal" style="">Nevertheless, language identifiers are extremely 
+		useful in other contexts. They allow cultural tailoring for all sorts of processing such as 
+		sorting, line breaking, and text formatting.</p>
+		<p class="MsoNormal" style="margin-left: 0.5in;"><b>Note: </b>As mentioned below, language identifiers 
+		(called language tags), may contain information about the writing system and can help to determine 
+		an appropriate script.</p>
+		<p class="MsoNormal">As explained in the section <i>
+		<a href="http://www.unicode.org/versions/Unicode5.0.0/ch06.pdf#G7382">6.1 Writing Systems</a></i> 
+		of <span>[<a href="#Unicode">Unicode</a>]</span>, scripts can be classified in various groups: Alphabets, Abjads, Abugidas, Logosyllabaries, 
+		Simple or Featural Syllabaries. That classification, in addition to historic evidence, makes 
+		it reasonably easy to arrange encoded characters into script classes.</p>
+		<p class="MsoNormal">The set of characters sharing the same script value determines a script 
+		set. The script value can be easily determined by using the information available in the Unicode 
+		Standard Annex UAX#24 (Script Names). No such concept exists for languages. It is generally 
+		not possible to attach a single language property value to a given character. Similarly, it 
+		is not possible to determine the exact repertoire of characters used for the written expression 
+		of most common languages. Languages tend to be fluid; words are added or disappear, foreign 
+		words using new characters from the original script may be borrowed.</p>
+		<p class="MsoNormal" style="margin-left: 0.5in;"><b>Note: </b>A well known example is English itself 
+		which is commonly considered to only use the Latin letters A to Z, while in fact the large borrowing 
+		from the French language has introduced words or expressions such as ‘naïve’, ‘déjà vu’, ‘résumé’, 
+		etc.</p>
+		<p class="MsoNormal" style="margin-left: 0.5in;"><b>Note: </b>There are a few cases where script 
+		and languages are tightly connected, like Armenian, Lao, etc…However, using scripts in these 
+		cases preserves the general model.</p>
+		<p class="MsoNormal" style="">Creating ‘safe character sets’ is an important 
+		goal in a security context. The benefit is to create a collection of characters that are deemed 
+		familiar for a given cultural environment. Incorporating all characters necessary to express 
+		the written language associated with the culture is the obvious choice. However, because of 
+		the indeterminate set of characters used for a language, it is much more effective to move to 
+		the higher level, the script, which can be determinately specified and tested.</p>
+		<p class="MsoNormal">Customarily, languages are written in a small number of scripts. This is 
+		reflected in the structure of language tags, as defined by RFC 3066 "Tags for the Identification 
+		of Languages", which are the industry standard for the identification of languages. Languages 
+		that require more than one script are given separate language tags. Examples can be found in
+		<a href="http://www.iana.org/assignments/language-tags" style="color: blue; text-decoration: underline;">
+		http://www.iana.org/assignments/language-tags</a>.</p>
+		<p class="MsoNormal">The proposed successor to RFC3066, which was approved by the IETF in November 
+		of 2005 (but has not yet been published), makes this relationship with scripts more explicit, 
+		and provides information as to which scripts are implicit for which languages. CLDR also provides 
+		a mapping from languages to scripts which is being extended over time to more languages. The 
+		following table below provides examples of the association between language tags and scripts.</p>
+		<table class="MsoTableProfessional" style="border: medium none ; margin-left: 36.9pt; border-collapse: collapse;" border="1" cellpadding="0" cellspacing="0">
+			<tbody><tr>
+				<td style="border: 1pt solid black; padding: 0in 5.4pt; background: rgb(191, 191, 191) none repeat scroll 0% 0%; width: 1in; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial;" valign="top" width="96">
+				<p class="MsoNormal"><b>Language tag</b></p>
+				</td>
+				<td style="border-style: solid solid solid none; border-color: black black black -moz-use-text-color; border-width: 1pt 1pt 1pt medium; padding: 0in 5.4pt; background: rgb(191, 191, 191) none repeat scroll 0% 0%; width: 85.5pt; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial;" valign="top" width="114">
+				<p class="MsoNormal"><b>Script(s)</b></p>
+				</td>
+				<td style="border-style: solid solid solid none; border-color: black black black -moz-use-text-color; border-width: 1pt 1pt 1pt medium; padding: 0in 5.4pt; background: rgb(191, 191, 191) none repeat scroll 0% 0%; width: 229.5pt; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial;" valign="top" width="306">
+				<p class="MsoNormal"><b>Comment</b></p>
+				</td>
+			</tr>
+			<tr>
+				<td style="border-style: none solid solid; border-color: -moz-use-text-color black black; border-width: medium 1pt 1pt; padding: 0in 5.4pt; width: 1in;" valign="top" width="96">
+				<p class="MsoNormal">en</p>
+				</td>
+				<td style="border-style: none solid solid none; border-color: -moz-use-text-color black black -moz-use-text-color; border-width: medium 1pt 1pt medium; padding: 0in 5.4pt; width: 85.5pt;" valign="top" width="114">
+				<p class="MsoNormal">Latin</p>
+				</td>
+				<td style="border-style: none solid solid none; border-color: -moz-use-text-color black black -moz-use-text-color; border-width: medium 1pt 1pt medium; padding: 0in 5.4pt; width: 229.5pt;" valign="top" width="306">
+				<p class="MsoNormal">Content in ‘en’ is presumed to be in Latin script, unless where 
+				explicitly marked</p>
+				</td>
+			</tr>
+			<tr>
+				<td style="border-style: none solid solid; border-color: -moz-use-text-color black black; border-width: medium 1pt 1pt; padding: 0in 5.4pt; width: 1in;" valign="top" width="96">
+				<p class="MsoNormal">az- Cyrl-AZ</p>
+				</td>
+				<td style="border-style: none solid solid none; border-color: -moz-use-text-color black black -moz-use-text-color; border-width: medium 1pt 1pt medium; padding: 0in 5.4pt; width: 85.5pt;" valign="top" width="114">
+				<p class="MsoNormal">Cyrillic</p>
+				</td>
+				<td style="border-style: none solid solid none; border-color: -moz-use-text-color black black -moz-use-text-color; border-width: medium 1pt 1pt medium; padding: 0in 5.4pt; width: 229.5pt;" valign="top" width="306">
+				<p class="MsoNormal">Azeri in Cyrillic script used in Azerbaijan</p>
+				</td>
+			</tr>
+			<tr>
+				<td style="border-style: none solid solid; border-color: -moz-use-text-color black black; border-width: medium 1pt 1pt; padding: 0in 5.4pt; width: 1in;" valign="top" width="96">
+				<p class="MsoNormal">az-Latn-AZ</p>
+				</td>
+				<td style="border-style: none solid solid none; border-color: -moz-use-text-color black black -moz-use-text-color; border-width: medium 1pt 1pt medium; padding: 0in 5.4pt; width: 85.5pt;" valign="top" width="114">
+				<p class="MsoNormal">Latin</p>
+				</td>
+				<td style="border-style: none solid solid none; border-color: -moz-use-text-color black black -moz-use-text-color; border-width: medium 1pt 1pt medium; padding: 0in 5.4pt; width: 229.5pt;" valign="top" width="306">
+				<p class="MsoNormal">Azeri in Latin script used in Azerbaijan</p>
+				</td>
+			</tr>
+			<tr>
+				<td style="border-style: none solid solid; border-color: -moz-use-text-color black black; border-width: medium 1pt 1pt; padding: 0in 5.4pt; width: 1in;" valign="top" width="96">
+				<p class="MsoNormal">az</p>
+				</td>
+				<td style="border-style: none solid solid none; border-color: -moz-use-text-color black black -moz-use-text-color; border-width: medium 1pt 1pt medium; padding: 0in 5.4pt; width: 85.5pt;" valign="top" width="114">
+				<p class="MsoNormal">Latin, Cyrillic</p>
+				</td>
+				<td style="border-style: none solid solid none; border-color: -moz-use-text-color black black -moz-use-text-color; border-width: medium 1pt 1pt medium; padding: 0in 5.4pt; width: 229.5pt;" valign="top" width="306">
+				<p class="MsoNormal">Azeri as used generically, can be Latin or Cyrillic</p>
+				</td>
+			</tr>
+			<tr>
+				<td style="border-style: none solid solid; border-color: -moz-use-text-color black black; border-width: medium 1pt 1pt; padding: 0in 5.4pt; width: 1in;" valign="top" width="96">
+				<p class="MsoNormal">ja or ja-JP</p>
+				</td>
+				<td style="border-style: none solid solid none; border-color: -moz-use-text-color black black -moz-use-text-color; border-width: medium 1pt 1pt medium; padding: 0in 5.4pt; width: 85.5pt;" valign="top" width="114">
+				<p class="MsoNormal">Han, Hiragana, Katakana</p>
+				</td>
+				<td style="border-style: none solid solid none; border-color: -moz-use-text-color black black -moz-use-text-color; border-width: medium 1pt 1pt medium; padding: 0in 5.4pt; width: 229.5pt;" valign="top" width="306">
+				<p class="MsoNormal">Japanese as used in Japan or elsewhere</p>
+				</td>
+			</tr>
+		</tbody></table>
+		<p class="MsoNormal">The strategy of using scripts works extremely well for most of the encoded 
+		scripts because users are either familiar with the entirety of the script content, or the outlying 
+		characters are not very confusable. There are however a few important exceptions, such as the 
+		Latin and Han scripts. In those cases, it is recommended to exclude certain technical and historic 
+		characters except where there is a clear requirement for them in a language. </p>
+		<p class="MsoNormal">Lastly, text confusability is an inherent attribute of many writing systems. 
+		However, if the character collection is restricted to the set familiar to a culture, it is expected 
+		by the user, and he or she can therefore weight the accuracy of the written or displayed text. 
+		The key is to (normally) restrict identifiers to a single script, thus vastly reducing the problems 
+		with confusability.</p>
+		<blockquote>
+			<p class="MsoNormal"><i>Example:</i> In Devanagari, the letter aa: आ can be confused with 
+			the sequence consisting of the letter a अ followed by the vowel sign aa ा. But this is a 
+			confusability a Hindi speaking user may be familiar as it relates to the structure of the 
+			Devanagari script.</p>
+		</blockquote>
+		<p class="MsoNormal">In contrast, text confusability that crosses script boundary is completely 
+		unexpected by users within a culture, and unless some mitigation is in place, it will create 
+		significant security risk.</p>
+		<blockquote>
+			<p class="MsoNormal">Example: The Cyrillic small letter п ("pe") is undistinguishable from 
+			the Greek letter π (at least with some fonts), and the confusion is likely to be unknown 
+			to users in cultural context using either script. Restricting the set to either Greek or 
+			Cyrillic will eliminate this issue.</p>
+		</blockquote>
+		<p class="MsoNormal">Although a language identifier can uniquely determine a safe set of characters 
+		in some rare cases, it is preferable to use the script property as predicate on a given culture 
+		to determine the safe character set.</p>
+		<p></p>
+		<h2><a name="Acknowledgements">Acknowledgements</a></h2>
+		<p>Steven Loomis and other people on the ICU team were very helpful in developing the original 
+		proposal for this technical report. Thanks also to the following people for their feedback or 
+		contributions to this document or earlier versions of it: Douglas Davidson, Martin Dürst, Asmus 
+		Freytag, Deborah Goldsmith, Paul Hoffman, <span>Peter Karlsson, Gervase Markham, Eric Muller, 
+		Erik van der Poel, Michael van Riper, Marcos Sanz, Alexander Savenkov, Dominikus Scherkl, Kenneth 
+		Whistler, and Yoshito Umaoka.</span></p>
+		<h2><a name="References">References</a></h2>
+		<p><i>Warning: all internet-drafts and news links have unstable links; you may have to adjust 
+		the URL to get to the latest document.</i></p>
+		<table class="noborder" style="border-collapse: collapse;" border="0" cellpadding="4" cellspacing="0">
+			<tbody><tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="CharMod">CharMod</a>]</td>
+				<td class="noborder" valign="top">Character Model for the World Wide Web 1.0: Fundamentals<br>
+				<a href="http://www.w3.org/TR/charmod/">http://www.w3.org/TR/charmod/</a> </td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="Charts">Charts</a>]</td>
+				<td class="noborder" valign="top">Unicode Charts (with Last Resort Glyphs)<br>
+				<a href="http://www.unicode.org/charts/lastresort.html">http://www.unicode.org/charts/lastresort.html</a>
+				<p>See also:<br>
+				<a href="http://developer.apple.com/fonts/LastResortFont/">http://developer.apple.com/fonts/LastResortFont/</a>
+				<br>
+				<a href="http://developer.apple.com/fonts/LastResortFont/LastResortTable.html">http://developer.apple.com/fonts/LastResortFont/LastResortTable.html</a>
+				</p>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="DCore">DCore</a>]</td>
+				<td class="noborder" valign="top">Derived Core Properties<br>
+				<a href="http://www.unicode.org/Public/UNIDATA/DerivedCoreProperties.txt">http://www.unicode.org/Public/UNIDATA/DerivedCoreProperties.txt</a></td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="Display">Display</a>]</td>
+				<td class="noborder" valign="top">Display Problems?<br>
+				<a href="http://www.unicode.org/help/display_problems.html">http://www.unicode.org/help/display_problems.html</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="DNS-Case">DNS-Case</a>]</td>
+				<td class="noborder" valign="top">Donald E. Eastlake 3rd. "Domain Name System (DNS) 
+				Case Insensitivity Clarification". Internet Draft, January 2005<br>
+				<a href="http://www.ietf.org/internet-drafts/draft-ietf-dnsext-insensitive-06.txt">http://www.ietf.org/internet-drafts/draft-ietf-dnsext-insensitive-06.txt</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="FAQSec">FAQSec</a>]</td>
+				<td class="noborder" valign="top">Unicode FAQ on Security Issues<br>
+				<a href="http://www.unicode.org/faq/security.html">http://www.unicode.org/faq/security.html</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="ICANN">ICANN</a>]</td>
+				<td class="noborder" valign="top"><span>Guidelines for the Implementation of Internationalized 
+				Domain Names <br>
+				<a href="http://icann.org/general/idn-guidelines-20sep05.htm">http://icann.org/general/idn-guidelines-20sep05.htm</a></span><br>
+				(These are in development, and undergoing changes)</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="ICU">ICU</a>]</td>
+				<td class="noborder" valign="top">International Components for Unicode<br>
+				<a href="http://www.ibm.com/software/globalization/icu/">http://www.ibm.com/software/globalization/icu/</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="idnhtml">idnhtml</a>]</td>
+				<td class="noborder" valign="top">IDN Characters, categorized into different sets.<br>
+				<a href="http://www.unicode.org/reports/tr36/idn-chars.html">idn-chars.html</a></td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="IDNReg">IDNReg</a>]</td>
+				<td class="noborder" valign="top">Registry for IDN Language Tables<br>
+				<a href="http://www.iana.org/assignments/idn/">http://www.iana.org/assignments/idn/</a><br>
+				Tables are found at:<br>
+				<a href="http://www.iana.org/assignments/idn/registered.htm">http://www.iana.org/assignments/idn/registered.htm</a></td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="IDN-Demo">IDN-Demo</a>]</td>
+				<td class="noborder" valign="top"><span>ICU (International Components for Unicode) IDN 
+				Demo<br>
+				<a href="http://demo.icu-project.org/icu-bin/icudemos">http://demo.icu-project.org/icu-bin/icudemos</a></span></td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="Feedback">Feedback</a>]</td>
+				<td class="noborder" valign="top">Reporting Errors and Requesting Information Online<i><br>
+				</i><a href="http://www.unicode.org/reporting.html">http://www.unicode.org/reporting.html</a><br>
+				<b>Type of Message: Technical Report...</b></td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="ldapbis">ldapbis</a>]</td>
+				<td class="noborder" valign="top">LDAP: Internationalized String Preparation<br>
+				<a href="http://www.ietf.org/internet-drafts/draft-ietf-ldapbis-strprep-06.txt">http://www.ietf.org/internet-drafts/draft-ietf-ldapbis-strprep-06.txt</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="Museum">Museum</a>]</td>
+				<td class="noborder" valign="top">Internationalized Domain Names (IDN) in .museum - 
+				Supported Languages<br>
+				<a href="http://about.museum/idn/language.html">http://about.museum/idn/language.html</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="Paypal">Paypal</a>]</td>
+				<td class="noborder" valign="top">
+				<p class="stBodyText"><span class="h1">Beware the 'PaypaI' scam<br>
+				<a href="http://news.zdnet.co.uk/internet/security/0,39020375,2080344,00.htm">http://news.zdnet.co.uk/internet/security/0,39020375,2080344,00.htm</a>
+				</span></p>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="Reports">Reports</a>]</td>
+				<td class="noborder" valign="top">Unicode Technical Reports<br>
+				<a href="http://www.unicode.org/reports/">http://www.unicode.org/reports/<br>
+				</a><i>For information on the status and development process for technical reports, 
+				and for a list of technical reports.</i></td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="RFC1034">RFC1034</a>]</td>
+				<td class="noborder" valign="top">P. Mockapetris. "DOMAIN NAMES - CONCEPTS AND FACILITIES", 
+				RFC 1034, November 1987.<br>
+				<a href="http://ietf.org/rfc/rfc1034.txt">http://ietf.org/rfc/rfc1034.txt</a> </td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="RFC1035">RFC1035</a>]</td>
+				<td class="noborder" valign="top">P. Mockapetris. "DOMAIN NAMES - IMPLEMENTATION AND 
+				SPECIFICATION", RFC 1034, November 1987.<br>
+				<a href="http://ietf.org/rfc/rfc1035.txt">http://ietf.org/rfc/rfc1035.txt</a> </td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="RFC1535">RFC1535</a>]</td>
+				<td class="noborder" valign="top">E. Gavron. "A Security Problem and Proposed Correction 
+				With Widely Deployed DNS Software", RFC 1535, October 1993<br>
+				<a href="http://ietf.org/rfc/rfc1535.txt">http://ietf.org/rfc/rfc1535.txt</a> </td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="RFC3454">RFC3454</a>]</td>
+				<td class="noborder" valign="top">P. Hoffman, M. Blanchet. "Preparation of Internationalized 
+				Strings ("stringprep")", RFC 3454, December 2002.<br>
+				<a href="http://ietf.org/rfc/rfc3454.txt">http://ietf.org/rfc/rfc3454.txt</a> </td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="RFC3490">RFC3490</a>]</td>
+				<td class="noborder" valign="top">Faltstrom, P., Hoffman, P. and A. Costello, "Internationalizing 
+				Domain Names in Applications (IDNA)", RFC 3490, March 2003.<br>
+				<a href="http://ietf.org/rfc/rfc3490.txt">http://ietf.org/rfc/rfc3490.txt</a> </td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="RFC3491">RFC3491</a>]</td>
+				<td class="noborder" valign="top">Hoffman, P. and M. Blanchet, "Nameprep: A Stringprep 
+				Profile for Internationalized Domain Names (IDN)", RFC 3491, March 2003.<br>
+				<a href="http://ietf.org/rfc/rfc3491.txt">http://ietf.org/rfc/rfc3491.txt</a> </td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="RFC3492">RFC3492</a>]</td>
+				<td class="noborder" valign="top">Costello, A., "Punycode: A Bootstring encoding of 
+				Unicode for Internationalized Domain Names in Applications (IDNA)", RFC 3492, March 
+				2003.<br>
+				<a href="http://ietf.org/rfc/rfc3492.txt">http://ietf.org/rfc/rfc3492.txt</a> </td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="RFC3743">RFC3743</a>]</td>
+				<td class="noborder" valign="top">Konishi, K., Huang, K., Qian, H. and Y. Ko, "Joint 
+				Engineering Team (JET) Guidelines for Internationalized Domain Names (IDN) Registration 
+				and Administration for Chinese, Japanese, and Korean", RFC 3743, April 2004.<br>
+				<a href="http://ietf.org/rfc/rfc3743.txt">http://ietf.org/rfc/rfc3743.txt</a> </td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="RFC3986">RFC3986</a>]</td>
+				<td class="noborder" valign="top"><span>T. Berners-Lee, R. Fielding, L. Masinter. "Uniform 
+				Resource Identifier (URI): Generic Syntax", RFC 3986, January 2005.<br>
+				<a href="http://ietf.org/rfc/rfc3986.txt">http://ietf.org/rfc/rfc3986.txt</a></span></td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="RFC3987">RFC3987</a>]</td>
+				<td class="noborder" valign="top">M. Duerst, M. Suignard. "Internationalized Resource 
+				Identifiers (IRIs)", RFC 3987, January 2005.<br>
+				<a href="http://ietf.org/rfc/rfc3987.txt">http://ietf.org/rfc/rfc3987.txt</a> </td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="Stability">Stability</a>]</td>
+				<td class="noborder" valign="top">Stability Policy for the 
+				Unicode Standard<br>
+				<a href="http://www.unicode.org/standard/stability_policy.html">http://www.unicode.org/standard/stability_policy.html</a> </td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="UCD">UCD</a>]</td>
+				<td class="noborder" valign="top">Unicode Character Database.<br>
+				<a href="http://www.unicode.org/ucd/">http://www.unicode.org/ucd/</a><br>
+				<i>For an overview of the Unicode Character Database and a list of its associated files.</i></td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="UCDFormat">UCDFormat</a>]</td>
+				<td class="noborder" valign="top">UCD File Format<br>
+				<a href="http://www.unicode.org/Public/UNIDATA/UCD.html#UCD_File_Format">http://www.unicode.org/Public/UNIDATA/UCD.html#UCD_File_Format</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="UAX9">UAX9</a>]</td>
+				<td class="noborder" valign="top">UAX #9: The Bidirectional Algorithm<br>
+				<a href="http://www.unicode.org/reports/tr9/">http://www.unicode.org/reports/tr9/</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="UAX15">UAX15</a>]</td>
+				<td class="noborder" valign="top">
+				<p align="left">UAX #15: Unicode Normalization Forms<br>
+				<a href="http://www.unicode.org/reports/tr15/">http://www.unicode.org/reports/tr15/</a></p>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top">[<a name="UAX24">UAX24</a>]</td>
+				<td class="noborder" valign="top">UAX #24: Script Names<br>
+				<a href="http://www.unicode.org/reports/tr24/">http://www.unicode.org/reports/tr24/</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top">[<a name="UAX31">UAX31</a>]</td>
+				<td class="noborder" valign="top">UAX #31, Identifier and Pattern Syntax<br>
+				<a href="http://www.unicode.org/reports/tr31/">http://www.unicode.org/reports/tr31/</a></td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top">[<a name="UTS10">UTS10</a>]</td>
+				<td class="noborder" valign="top">UTS #10: Unicode Collation Algorithm<br>
+				<a href="http://www.unicode.org/reports/tr10/">http://www.unicode.org/reports/tr10/</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top">[<a name="UTS18">UTS18</a>]</td>
+				<td class="noborder" valign="top">UTS #18: Unicode Regular Expressions<br>
+				<a href="http://www.unicode.org/reports/tr18/">http://www.unicode.org/reports/tr18/</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top">[<a name="UTS22">UTS22</a>]</td>
+				<td class="noborder" valign="top">UTS #22: Character Mapping Markup Language (CharMapML)<br>
+				<a href="http://www.unicode.org/reports/tr22/">http://www.unicode.org/reports/tr22/</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="UTS39">UTS39</a>]</td>
+				<td class="noborder" valign="top">UTS #39: Unicode Security Mechanisms<br>
+				<a href="http://www.unicode.org/reports/tr39/">http://www.unicode.org/reports/tr39/</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="Unicode">Unicode</a>]</td>
+				<td class="noborder" valign="top">The Unicode Standard, Version 5.1.0<br>
+				<a href="http://www.unicode.org/versions/Unicode5.1.0/">http://www.unicode.org/versions/Unicode5.1.0/</a> </td>
+			</tr>
+			<tr>
+				<td class="noborder" nowrap="nowrap" valign="top" width="1">[<a name="Versions">Versions</a>]</td>
+				<td class="noborder" valign="top">Versions of the Unicode Standard<br>
+				<a href="http://www.unicode.org/standard/versions/">http://www.unicode.org/standard/versions/</a><br>
+				<i>For information on version numbering, and citing and referencing the Unicode Standard, 
+				the Unicode Character Database, and Unicode Technical Reports.</i></td>
+			</tr>
+			<tr>
+				<td class="noborder" colspan="2" valign="top">
+				<h3><a name="Related_Material">Related Material</a></h3>
+				<p>The following points to background information that may be useful.</p>
+				</td>
+			</tr>
+			<tr>
+				<td class="noborder" colspan="2" valign="top">
+				<h3>Canonical Representation</h3>
+				<ul>
+					<li><span>
+					<a href="http://www.microsoft.com/technet/security/bulletin/MS00-078.mspx">Microsoft 
+					Security Bulletin (MS00-078): Patch Available for 'Web Server Folder Traversal' 
+					Vulnerability</a></span></li>
+					<li><span>
+					<a href="http://www.ins.com/downloads/whitepapers/ins_white_paper_ms_iis_unicode_exploit_0801.pdf">
+					INS: Microsoft IIS Unicode Exploit</a></span></li>
+					<li>Creating Arbitrary Shellcode In Unicode Expanded Strings<ul>
+						<li>See: http://www.phrack.org/show.php?p=61&amp;a=11</li>
+					</ul>
+					</li>
+				</ul>
+				<h3>Visual Spoofing</h3>
+				<ul>
+					<li><span>
+					<a href="http://www.cs.technion.ac.il/%7Egabr/papers/homograph_full.pdf">The Homograph 
+					Attack</a></span></li>
+					<li><span>
+					<a href="http://news.zdnet.co.uk/internet/security/0,39020375,2080344,00.htm">PayPal 
+					alert! Beware the 'PaypaI' scam</a></span></li>
+					<li><span><a href="http://www.icann.org/topics/news022305.html">gTLD Registry Constutuency: 
+					Potential of IDN for malicious abuse</a></span></li>
+					<li><span><a href="http://www.icann.org/topics/idn.html">ICANN | Internationalized 
+					Domain Names</a></span></li>
+					<li><span>
+					<a href="http://www.ietf.org/IESG/STATEMENTS/IDNstatement.txt" target="_blank">IESG 
+					statement of 11 February 2003</a></span></li>
+					<li><span><a href="http://forum.icann.org/lists/idn-homograph/">ICANN Email Archives 
+					[idn-homograph]</a></span></li>
+					<li>Suggested Practices for Registration of Internationalized Domain Names (IDN)<ul>
+						<li>At the time of this publication, at: http://www.ietf.org/internet-drafts/draft-klensin-reg-guidelines-08.txt</li>
+					</ul>
+					</li>
+					<li><span><a href="http://secunia.com/multiple_browsers_idn_spoofing_test/">Multiple 
+					Browsers IDN Spoofing Test</a></span></li>
+				</ul>
+				</td>
+			</tr>
+		</tbody></table>
+		<h2><a name="Modifications">Modifications</a></h2>
+		<p>The following summarizes modifications from the previous revision of this document.</p>
+		<h3>Revision 7</h3>
+		<ul>
+			<li>Added explanation of UTF-8 over-consumption attack in 3.1 
+			<a href="#UTF-8_Exploit">UTF-8 Exploits</a></li>
+			<li>Added subsection of 2.8.2
+			<a href="#Mapping_and_Prohibition">Mapping and Prohibition</a> describing the Unicode 5.1 
+			changes in identifiers.</li>
+			<li>Added 3.4 <a href="#Property_and_Character_Stability">Property 
+			and Character Stability</a></li>
+			<li>Updated Unicode reference.</li>
+			<li>Broke 3.1.1 into two sections, adding header 3.1.2:
+            <a href="#Substituting_for_Ill_Formed_Subsequences">Substituting for 
+            Ill-Formed Subsequences</a>, with some small wording changes around 
+            it. In particular, pointed to <i>E. Conformance Changes to the 
+            Standard</i> in Unicode 5.1.</li>
+			<li>Added 3.5
+                <a href="#Deletion_of_Noncharacters">Deletion of Noncharacters</a></li>
+			<li>Added before <a href="#Sample_Country_Registries">Sample Country 
+            Registries</a>: "These are only for illustration: the exact sets may 
+            change over time, so the particular authorities should be consulted 
+            rather than relying on these contents. Some registrars now also 
+            offer machine-readable formats."</li>
+			<li>Minor editing</li>
+		</ul>
+		<p>Revision 6 being a proposed update, only changes between revisions 5 
+		and 7 are noted here.</p>
+		<h3>Revision 4</h3>
+		<ul>
+			<li>Moved the contents of <i>Appendix A.
+			<a href="http://www.unicode.org/draft/reports/tr36/tr36.html#Identifier_Characters">Identifier 
+			Characters</a></i>, <i>Appendix B.
+			<a href="http://www.unicode.org/draft/reports/tr36/tr36.html#Confusable_Detection">Confusable 
+			Detection</a></i>, and&nbsp; <i>Appendix D.
+			<a href="http://www.unicode.org/draft/reports/tr36/tr36.html#Mixed_Script_Detection">Mixed 
+			Script Detection</a> </i>to the new [<a href="#UTS39">UTS39</a>]. The appendices remain 
+			(to avoid renumbering), but simply point to the new locations. Changed references to point 
+			to the new sections in [<a href="#UTS39">UTS39</a>].</li>
+			<li>Alphabetized <i><span>Appendix C. <a href="#Missing_Glyph_Icons">Script Icons</a>.</span></i></li>
+			<li>Added <i><u>Appendix G. </u><a href="#Language_Based_Security">Language-Based Security</a>.</i></li>
+			<li>Changed the "highlighting" of the core domain name to the whole domain name in Section 
+			2.6 <a href="http://www.unicode.org/draft/reports/tr36/tr36.html#Syntax_Spoofing">Syntax 
+			Spoofing</a>.</li>
+			<li>Replaced <i>Section 2.10.4
+			<a href="http://www.unicode.org/draft/reports/tr36/tr36.html#Recommendations_Registries">
+			Registry Recommendations</a></i> based on the UTC decisions.</li>
+			<li>Removed the contents of <i>Appendix E.
+			<a href="http://www.unicode.org/draft/reports/tr36/tr36.html#Future_Topics">Future Topics</a></i>, 
+			incorporating material to address the issues in <i>Section 3.2
+			<a href="http://www.unicode.org/draft/reports/tr36/tr36.html#Text_Comparison">Text Comparison</a>, 
+			Section 3.3
+			<a href="http://www.unicode.org/draft/reports/tr36/tr36.html#Buffer_Overflows">Buffer Overflows</a></i>, 
+			and a few other places in the document.</li>
+			<li>Minor editing</li>
+		</ul>
+		<h3><span><b>Revision 3</b></span></h3>
+		<ul>
+			<li>Cleaned up references</li>
+			<li>Added <a href="#Related_Material">Related Material</a> section</li>
+			<li><span>Add section on <a href="#Case_Folded_Format">Case-Folded Format</a></span></li>
+			<li>Refined recommendations on single-script confusables</li>
+			<li>Reorganized introduction, and reversed the order of the main sections.</li>
+			<li>Retitled the main sections</li>
+			<li>Restructured the recommendations for Visual Security</li>
+			<li>Added more examples</li>
+			<li>Incorporated changes for user feedback</li>
+			<li>Major restructuring, especially appendices. Moved data files and other references into 
+			the references, added section on confusables, scripts, future topics, revised the identifiers 
+			section to point at the newer data file.</li>
+			<li>Incorporated changes for all the editorial notes: shifted some sections.</li>
+			<li>Added sections on BIDI, appendix F</li>
+			<li>Revised data files</li>
+		</ul>
+		<h3><b>Revision 2</b></h3>
+		<ul>
+			<li>Moved recommendations to separate section</li>
+			<li>Added new descriptions, recommendations</li>
+			<li>Pointed to draft data files.</li>
+		</ul>
+		<h3><b>Revision 1</b></h3>
+		<ul>
+			<li>Initial version, following proposal to UTC</li>
+			<li>Incorporated comments, restructured, added To Do items</li>
+		</ul>
+		<hr>
+		<p class="copyright">Copyright © 2004-2008 Unicode, Inc. All 
+		Rights Reserved. The Unicode Consortium makes no expressed or implied warranty of any kind, 
+		and assumes no liability for errors or omissions. No liability is assumed for incidental and 
+		consequential damages in connection with or arising out of the use of the information or programs 
+		contained or accompanying this technical report. The Unicode
+		<a href="http://www.unicode.org/copyright.html">Terms of Use</a> apply.</p>
+		<p class="copyright">Unicode and the Unicode logo are trademarks of Unicode, Inc., and are registered 
+		in some jurisdictions.</p>
+	</div>
+</form>
+
+</body></html>

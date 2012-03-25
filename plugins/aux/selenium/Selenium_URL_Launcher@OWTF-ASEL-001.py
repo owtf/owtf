@@ -37,7 +37,7 @@ def run(Core, PluginInfo):
 'Mandatory' : { 
 		'BASE_URL' : 'The URL to be pre-pended to the tests',
 		'CATEGORY' : 'Category to use (i.e. '+', '.join(sorted(CATEGORIES))+')'
-	      },
+		},
 'Optional' : {
 		'REPEAT_DELIM' : Core.Config.Get('REPEAT_DELIM_DESCRIP')
 	     } }, PluginInfo):

@@ -30,8 +30,12 @@ Description:
 The core is the glue that holds the components together and allows some of them to communicate with each other
 '''
 import os, re
-from framework import timer, shell, error_handler, random
+from framework import timer, error_handler, random
+from framework.shell import blocking_shell, interactive_shell
+from framework.wrappers.set import set_handler
+from framework.protocols import smtp, smb
 from framework.config import config
+from framework.http.proxy import proxy
 from framework.http import requester
 from framework.db import db
 from framework.plugin import plugin_handler, plugin_helper, plugin_params
@@ -45,7 +49,7 @@ class Core:
 		cprint("Loading framework please wait..")
 		# Tightly coupled, cohesive framework components:
 		self.Error = error_handler.ErrorHandler(self)
-		self.Shell = shell.Shell(self) # Config needs to find plugins via shell = instantiate shell first
+		self.Shell = blocking_shell.Shell(self) # Config needs to find plugins via shell = instantiate shell first
 		self.Config = config.Config(RootDir, self)
 		self.Config.Init() # Now the the config is hooked to the core, init config sub-components
 		self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
@@ -53,8 +57,12 @@ class Core:
 		self.IsIPInternalRegexp = re.compile("^127.\d{123}.\d{123}.\d{123}$|^10.\d{123}.\d{123}.\d{123}$|^192.168.\d{123}$|^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{123}.[0-9]{123}$")
 		self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
 		self.Selenium = selenium_handler.Selenium(self)
+		self.InteractiveShell = interactive_shell.InteractiveShell(self)
+		self.SET = set_handler.SETHandler(self)
+		self.SMTP = smtp.SMTP(self)
+		self.SMB = smb.SMB(self)
 
-        def IsInScopeURL(self, URL): # To avoid following links to other domains
+	def IsInScopeURL(self, URL): # To avoid following links to other domains
 		URLHostName = URL.split("/")[2]
 		for HostName in self.Config.GetAll('HOST_NAME'): # Get all known Host Names in Scope
 			if URLHostName == HostName:
@@ -63,22 +71,25 @@ class Core:
 
 	def CreateMissingDirs(self, Path):
 		Dir = os.path.dirname(Path)
-                if not os.path.exists(Dir):
-                        os.makedirs(Dir) # Create any missing directories
+		if not os.path.exists(Dir):
+			os.makedirs(Dir) # Create any missing directories
 
-        def DumpFile(self, Filename, Contents, Directory):
-                SavePath=Directory+WipeBadCharsForFilename(Filename)
-                self.CreateMissingDirs(Directory)
-                with open(SavePath, 'wb') as file:
-                        file.write(Contents)
-                return SavePath
+	def DumpFile(self, Filename, Contents, Directory):
+		SavePath=Directory+WipeBadCharsForFilename(Filename)
+		self.CreateMissingDirs(Directory)
+		with open(SavePath, 'wb') as file:
+			file.write(Contents)
+		return SavePath
 
-        def GetPartialPath(self, Path):
+	def GetPartialPath(self, Path):
 		#return MultipleReplace(Path, List2DictKeys(RemoveListBlanks(self.Config.GetAsList( [ 'HOST_OUTPUT', 'OUTPUT_PATH' ]))))
 		#print str(self.Config.GetAsList( [ 'HOST_OUTPUT', 'OUTPUT_PATH' ] ))
 		#print "Path before="+Path
-		Path = MultipleReplace(Path, List2DictKeys(RemoveListBlanks(self.Config.GetAsList( [ 'OUTPUT_PATH' ]))))
+		#Path = MultipleReplace(Path, List2DictKeys(RemoveListBlanks(self.Config.GetAsList( [ 'OUTPUT_PATH' ]))))
+		#Need to replace URL OUTPUT first so that "View Unique as HTML" Matches on body links work
+		Path = MultipleReplace(Path, List2DictKeys(RemoveListBlanks(self.Config.GetAsList( [ 'HOST_OUTPUT', 'OUTPUT_PATH' ]))))
 		#print "Path after="+Path
+		
 		if '/' == Path[0]: # Stripping out leading "/" if present
 			Path = Path[1:]
 		return Path
@@ -104,10 +115,11 @@ class Core:
 		self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
 		self.DB.Init()
 		Command = self.GetCommand(Options['argv'])
-                self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
+		self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
 		if self.Config.Get('SIMULATION'):
 			cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
-		self.Requester = requester.Requester(self, Options['Proxy'])
+		self.Requester = requester.Requester(self, Options['OutboundProxy'])
+		self.Proxy = proxy.ProxyServer(self.Requester, Options['InboundProxy'])
 		# Proxy Check
 		ProxySuccess, Message = self.Requester.ProxyCheck()
 		cprint(Message)
@@ -131,13 +143,13 @@ class Core:
 			try:
 				cprint("Saving DBs")
 				self.DB.Run.EndRun(Status)
-		                self.DB.SaveDBs() # Save DBs prior to producing the report :)
+				self.DB.SaveDBs() # Save DBs prior to producing the report :)
 				if Report:
 					cprint("Finishing iteration and assembling report again (with updated run information)")
 					PreviousTarget = self.Config.GetTarget()
 					for Target in self.Config.GetTargets(): # We have to finish all the reports in this run to update run information
 						self.Config.SetTarget(Target) # Much save the report for each target
-			       	         	self.Reporter.ReportFinish() # Must save the report again at the end regarless of Status => Update Run info
+						self.Reporter.ReportFinish() # Must save the report again at the end regarless of Status => Update Run info
 					self.Config.SetTarget(PreviousTarget) # Restore previous target
 				cprint("owtf iteration finished")
 				if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
@@ -152,7 +164,7 @@ class Core:
 		except AttributeError: # DB not instantiated yet
 			return ""
 
-        def IsIPInternal(self, IP):
+	def IsIPInternal(self, IP):
 		return len(self.IsIPInternalRegexp.findall(IP)) == 1
 	
 	def IsTargetUnreachable(self, Target = ''):
@@ -160,6 +172,9 @@ class Core:
 			Target = self.Config.GetTarget() 
 		#print "Target="+Target+" in "+str(self.DB.GetData('UNREACHABLE_DB'))+"?? -> "+str(Target in self.DB.GetData('UNREACHABLE_DB'))
 		return Target in self.DB.GetData('UNREACHABLE_DB')
+	
+	def GetFileAsList(self, FileName):
+		return GetFileAsList(FileName)
 
 def Init(RootDir):
 	return Core(RootDir)

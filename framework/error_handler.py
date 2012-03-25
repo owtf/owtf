@@ -26,8 +26,9 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-The time module allows the rest of the framework to time how long it takes for certain actions to execute and present this information in both seconds and human-readable form
+The error handler provides a centralised control for aborting the application and logging errors for debugging later
 '''
+
 import traceback, sys, cgi
 from framework.lib.general import *
 
@@ -35,8 +36,8 @@ class ErrorHandler:
 	Command = ''
 	PaddingLength = 100
 
-	def __init__(self, CoreObj):
-		self.Core = CoreObj
+	def __init__(self, Core):
+		self.Core = Core
 		self.Padding = "\n" + "_" * self.PaddingLength + "\n\n"
 		self.SubPadding = "\n" + "*" * self.PaddingLength + "\n"
 
@@ -49,19 +50,19 @@ class ErrorHandler:
 		self.Core.Finish(Message, Report)
 		return Message
 
-        def UserAbort(self, Level, PartialOutput = ''): # Levels so far can be Command or Plugin
-                Message = cprint("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
-                Options = ""
-                if 'Command' == Level:
-                	Options = ", 'p'+Enter= Move on to next plugin"
-                Option = raw_input("Options: 'e'+Enter= Exit"+Options+", Enter= Next test\n")
-                if 'e' == Option:
+	def UserAbort(self, Level, PartialOutput = ''): # Levels so far can be Command or Plugin
+		Message = cprint("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
+		Options = ""
+		if 'Command' == Level:
+			Options = ", 'p'+Enter= Move on to next plugin"
+		Option = raw_input("Options: 'e'+Enter= Exit"+Options+", Enter= Next test\n")
+		if 'e' == Option:
 			if 'Command' == Level: # Try to save partial plugin results
 				raise FrameworkAbortException(PartialOutput)
-                        self.Core.Finish("Aborted by user") # Interrupted
-                elif 'p' == Option: # Move on to next plugin
-                        raise PluginAbortException(PartialOutput) # Jump to next handler and pass partial output to avoid losing results
-                return Message
+				self.Core.Finish("Aborted by user") # Interrupted
+			elif 'p' == Option: # Move on to next plugin
+				raise PluginAbortException(PartialOutput) # Jump to next handler and pass partial output to avoid losing results
+		return Message
 
 	def LogError(self, Message):
 		try:

@@ -70,24 +70,24 @@ class PluginHandler:
 		self.ExceptPluginsSet = len(self.ExceptPluginsList) > 0
 		self.InitExecutionRegistry()
 
-        def ValidateAndFormatPluginList(self, PluginList):
-                List = [] # Ensure there is always a list to iterate from! :)
-                if PluginList != None:
-                        List = PluginList
-
-                ValidatedList = []
+	def ValidateAndFormatPluginList(self, PluginList):
+		List = [] # Ensure there is always a list to iterate from! :)
+		if PluginList != None:
+			List = PluginList
+		
+		ValidatedList = []
 		#print "List to validate="+str(List)
-                for Item in List:
-                        Found = False
-                        for Plugin in self.Core.Config.Plugin.GetPlugins( { 'Group' : self.PluginGroup } ): # Processing Loop
-                                if Item in [ Plugin['Code'], Plugin['Name'] ]:
-                			ValidatedList.append(Plugin['Code'])
-                                        Found = True
-                                        break
-                        if not Found:
-                                cprint("ERROR: The code '"+Item+"' is not a valid plugin, please use the -l option to see available plugin names and codes")
-                                exit()
-                return ValidatedList # Return list of Codes
+		for Item in List:
+			Found = False
+			for Plugin in self.Core.Config.Plugin.GetPlugins( { 'Group' : self.PluginGroup } ): # Processing Loop
+				if Item in [ Plugin['Code'], Plugin['Name'] ]:
+					ValidatedList.append(Plugin['Code'])
+					Found = True
+					break
+			if not Found:
+				cprint("ERROR: The code '"+Item+"' is not a valid plugin, please use the -l option to see available plugin names and codes")
+				exit()
+		return ValidatedList # Return list of Codes
 
 	def InitExecutionRegistry(self): # Initialises the Execution registry: As plugins execute they will be tracked here, useful to avoid calling plugins stupidly :)
 		self.ExecutionRegistry = defaultdict(list) 
@@ -143,30 +143,30 @@ class PluginHandler:
 		#return [ 'grep' ] != self.Core.Config.GetAllowedPluginTypes('web')
 		return [ 'grep' ] != self.Core.Config.Plugin.GetAllowedTypes('web')
 
-        def DumpPluginFile(self, Filename, Contents, Plugin):
-                SaveDir = self.GetPluginOutputDir(Plugin)
-                return self.Core.DumpFile(Filename, Contents, SaveDir)
+	def DumpPluginFile(self, Filename, Contents, Plugin):
+		SaveDir = self.GetPluginOutputDir(Plugin)
+		return self.Core.DumpFile(Filename, Contents, SaveDir)
 
-        def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
+	def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
 		#print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.Core.Config.Get('TARGET')
 		if Plugin['Group'] == 'web':
 			if Plugin['Type'] == 'external': # Same path for all targets = do this only once
-		                return self.Core.Config.Get('OUTPUT_PATH')+"/external/"+WipeBadCharsForFilename(Plugin['Title'])+"/"
+				return self.Core.Config.Get('OUTPUT_PATH')+"/external/"+WipeBadCharsForFilename(Plugin['Title'])+"/"
 			else:
-		                return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/" 
+				return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/" 
 		elif Plugin['Group'] == 'aux':
-	                return self.Core.Config.Get('AUX_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/" 
+			return self.Core.Config.Get('AUX_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/" 
 
-        def PluginAlreadyRun(self, PluginInfo):
+	def PluginAlreadyRun(self, PluginInfo):
 		if self.Simulation:
 			return self.HasPluginExecuted(PluginInfo)
-                SaveDir = self.GetPluginOutputDir(PluginInfo)
-                if not os.path.exists(SaveDir): # At least one directory is missing
-                        return False # This is the first time the plugin is going to run (i.e. some directory was missing)
-                return True # The path already exists, therefore the plugin has been run before
+		SaveDir = self.GetPluginOutputDir(PluginInfo)
+		if not os.path.exists(SaveDir): # At least one directory is missing
+			return False # This is the first time the plugin is going to run (i.e. some directory was missing)
+		return True # The path already exists, therefore the plugin has been run before
 
 	def GetModule(self, ModuleName, ModuleFile, ModulePath):# Python fiddling to load a module from a file, there is probably a better way...
-	        f, Filename, desc = imp.find_module(ModuleFile.split('.')[0], [ModulePath]) #ModulePath = os.path.abspath(ModuleFile)
+		f, Filename, desc = imp.find_module(ModuleFile.split('.')[0], [ModulePath]) #ModulePath = os.path.abspath(ModuleFile)
 		return imp.load_module(ModuleName, f, Filename, desc)
 
 	def IsChosenPlugin(self, Plugin):
