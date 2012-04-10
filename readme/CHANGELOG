@@ -5,7 +5,7 @@
    The home-brew parsing was resulting in an error like below with URLs like http://example.com:81 
    "Aborted by Framework: Cannot resolve Hostname: example.com:81"
    URL parsing is now done via the urlparse library
- + Fixed bug introduced above whereby urlparse was returning "None" for the port:
+ + Fixed bug introduced above whereby urlparse was returning "None" for the port in the summary report:
    Reintroduced scheme check to handle this case and ensure the port is never blank regardless of URL format
  + Fixed bug similar to the one in DeriveURLSettings on the OWTF Core:
    IsInScopeURL was parsing the hostname from the URL in a home-brew fashion this worked ok most of the time
