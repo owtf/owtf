@@ -1,4 +1,18 @@
-25/03/2012 - 0.13 "Trooper" pre-alpha release: Dedicated to Troopers, its organisers and attendants
+10/04/2012 - 0.13b "HackPra" pre-alpha release: Dedicated to HackPra (http://www.nds.rub.de/teaching/hackpra/), its organisers and attendants
+ + Inclusion of slowloris, thanks to RSNake for allowing redistribution!
+ + More indentation clean up in various files
+ + Fixed bug on DeriveURLSettings: Thanks to Sandro Gauci for reporting! 
+   The home-brew parsing was resulting in an error like below with URLs like http://example.com:81 
+   "Aborted by Framework: Cannot resolve Hostname: example.com:81"
+   URL parsing is now done via the urlparse library
+ + Fixed bug introduced above whereby urlparse was returning "None" for the port:
+   Reintroduced scheme check to handle this case and ensure the port is never blank regardless of URL format
+ + Fixed bug similar to the one in DeriveURLSettings on the OWTF Core:
+   IsInScopeURL was parsing the hostname from the URL in a home-brew fashion this worked ok most of the time
+   but in some cases could lead to bugs, core.py is now using urlparse for parsing the hostname from the URL
+ + Added regression test shell scripts to tests directory
+
+25/03/2012 - 0.13 "Trooper" pre-alpha release: Dedicated to Troopers (http://www.troopers.de/), its organisers and attendants
  + Inclusion of fuzzdb -allowed by licence- thanks!
  + Inclusion of HashCollision-DOS-POC by Christian Mehlmauer (@_FireFart_) thanks!
    Location: owtf_dir/tools/dos/web/HashCollision-DOS-POC

@@ -129,7 +129,7 @@ class Summary:
 			return self.Core.Reporter.Render.DrawButtonLink('Auxiliary Plugins', self.Core.GetPartialPath(AuxSearch[0]['ReportPath']), { 'class' : 'report_index', 'target' : '' } )
 		return "" # Nothing to show
 
-        def ReportStart(self):
+	def ReportStart(self):
 		self.Core.Reporter.CounterList = []
 		self.Core.Reporter.Header.Save('HTML_REPORT_PATH', { 'ReportType' : 'NetMap', 'Title' : 'Summary Report' } )
 
@@ -150,7 +150,7 @@ var SeverityWeightOrder = """ + self.Core.Reporter.Render.DrawJSArrayFromList(se
 var PassedTestIcons = """ + self.Core.Reporter.Render.DrawJSArrayFromList(self.Core.Config.Get('PASSED_TEST_ICONS').split(',')) + """
 </script>
 """
-                with open(self.Core.Config.Get('HTML_REPORT_PATH'), 'a') as file:
-                        file.write(HTML) # Closing HTML Report
+		with open(self.Core.Config.Get('HTML_REPORT_PATH'), 'a') as file:
+			file.write(HTML) # Closing HTML Report
 		cprint("Summary report written to: "+self.Core.Config.Get('HTML_REPORT_PATH'))
 

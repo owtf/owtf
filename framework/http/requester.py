@@ -56,15 +56,15 @@ class MyHTTPSHandler(urllib2.HTTPSHandler):
 
 # SmartRedirectHandler is courtesy of: http://www.diveintopython.net/http_web_services/redirects.html
 class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
-    def http_error_301(self, req, fp, code, msg, headers):
-        result = urllib2.HTTPRedirectHandler.http_error_301(self, req, fp, code, msg, headers)
-        result.status = code
-        return result
+	def http_error_301(self, req, fp, code, msg, headers):
+		result = urllib2.HTTPRedirectHandler.http_error_301(self, req, fp, code, msg, headers)
+		result.status = code
+		return result
 
-    def http_error_302(self, req, fp, code, msg, headers):
-        result = urllib2.HTTPRedirectHandler.http_error_302(self, req, fp, code, msg, headers)
-        result.status = code
-        return result
+	def http_error_302(self, req, fp, code, msg, headers):
+		result = urllib2.HTTPRedirectHandler.http_error_302(self, req, fp, code, msg, headers)
+		result.status = code
+		return result
 
 class Requester:
 	def __init__(self, Core, Proxy):
@@ -100,7 +100,7 @@ class Requester:
 			URL = self.Core.Config.Get('PROXY_CHECK_URL')
 			#if self.NeedToAskBeforeRequest() and 'y' != raw_input("Proxy Check: Need to send a GET request to "+URL+". Is this ok?: 'y'+Enter= Continue, Enter= Abort Proxy Check\n"):
 			#	return [ True, "Proxy Check OK: Proxy Check Aborted by User" ]
-                	RefusedBefore = self.RequestCountRefused
+			RefusedBefore = self.RequestCountRefused
 			cprint("Proxy Check: Avoid logging request again if already in DB..")
 			LogSettingBackup = False
 			if self.Core.DB.Transaction.IsTransactionAlreadyAdded(URL.strip()):
@@ -108,7 +108,7 @@ class Requester:
 			Transaction = self.GET(URL)
 			if LogSettingBackup:
 				self.LogTransactions(LogSettingBackup)
-                	RefusedAfter = self.RequestCountRefused
+			RefusedAfter = self.RequestCountRefused
 			if RefusedBefore < RefusedAfter: # Proxy is refusing connections
 				return [ False, "ERROR: Proxy Check error: The proxy is not listening or is refusing connections" ]
 			else:
@@ -167,9 +167,9 @@ class Requester:
 		# MUST create a new Transaction object each time so that lists of transactions can be created and process at plugin-level
 		self.Transaction = transaction.HTTP_Transaction(self.Core.Timer) # Pass the timer object to avoid instantiating each time	
 		self.Transaction.Start(URL, POST, Method, self.Core.IsInScopeURL(URL))
-                self.RequestCountTotal += 1 
-                try:
-                        Response = urllib2.urlopen(request)
+		self.RequestCountTotal += 1 
+		try:
+			Response = urllib2.urlopen(request)
 			self.Transaction.SetTransaction(True, RawRequest[0], Response)
 		except urllib2.HTTPError, Error: # page NOT found
 			self.Transaction.SetTransaction(False, RawRequest[0], Error) # Error is really a response for anything other than 200 OK in urllib2 :)
