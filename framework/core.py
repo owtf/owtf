@@ -30,6 +30,7 @@ Description:
 The core is the glue that holds the components together and allows some of them to communicate with each other
 '''
 import os, re
+from urlparse import urlparse
 from framework import timer, error_handler, random
 from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
@@ -63,9 +64,11 @@ class Core:
 		self.SMB = smb.SMB(self)
 
 	def IsInScopeURL(self, URL): # To avoid following links to other domains
-		URLHostName = URL.split("/")[2]
+		ParsedURL = urlparse(URL)
+		#URLHostName = URL.split("/")[2]
 		for HostName in self.Config.GetAll('HOST_NAME'): # Get all known Host Names in Scope
-			if URLHostName == HostName:
+			#if URLHostName == HostName:
+			if ParsedURL.hostname == HostName:
 				return True
 		return False
 

@@ -38,14 +38,14 @@ class Selenium:
 	def SetDisplay(self):
 		cprint("Setting Selenium's display ..")
 		from pyvirtualdisplay import Display
-                self.Display = Display(visible=0, size=(800, 600))
-                self.Display.start()
+		self.Display = Display(visible=0, size=(800, 600))
+		self.Display.start()
 
 	def SetDriver(self):
 		cprint("Setting Selenium's driver ..")
 		from selenium import webdriver
-                self.Driver = webdriver.Firefox()
-                self.Driver.implicitly_wait(30)
+		self.Driver = webdriver.Firefox()
+		self.Driver.implicitly_wait(30)
 
 	def InitSelenium(self):
 		if not self.Init: # Perform this expensive operation only once
@@ -58,4 +58,3 @@ class Selenium:
 		self.InitSelenium()
 		from framework.selenium import url_launcher
 		return url_launcher.URLLauncher(self, Args['BASE_URL'], Args['INPUT_FILE'])
-
