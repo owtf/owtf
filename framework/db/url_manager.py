@@ -111,17 +111,16 @@ class URLManager:
 		return self.AddURLToDB(URL, DBPrefix, Found)
 
 	def AddURLsStart(self):
-                self.NumURLsBefore = self.GetNumURLs()
+		self.NumURLsBefore = self.GetNumURLs()
 
 	def AddURLsEnd(self):
-                NumURLsAfter = self.GetNumURLs()
-                return cprint(str(NumURLsAfter-self.NumURLsBefore)+" URLs have been added and classified")
+		NumURLsAfter = self.GetNumURLs()
+		return cprint(str(NumURLsAfter-self.NumURLsBefore)+" URLs have been added and classified")
 
-        def ImportURLs(self, URLList): # Extracts and classifies all URLs passed. Expects a newline separated URL list
+	def ImportURLs(self, URLList): # Extracts and classifies all URLs passed. Expects a newline separated URL list
 		self.AddURLsStart()
 		for URL in URLList:
-                        self.AddURL(URL)
+			self.AddURL(URL)
 		Message = self.AddURLsEnd()
 		cprint(Message)
 		return Message
-

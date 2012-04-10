@@ -167,7 +167,8 @@ $(document).ready(function() {
 		return Prefix+ID+".txt" 
 
 	def SaveFullTransactionFile(self, ID, Transaction):
-		FileName = self.GetFileNameForID(ID, self.Core.IsInScopeURL(Transaction.URL))
+		#FileName = self.GetFileNameForID(ID, self.Core.IsInScopeURL(Transaction.URL))
+		FileName = self.GetFileNameForID(ID, Transaction.InScope)
 		return [ FileName, self.Core.DumpFile(FileName, self.AssembleTransactionForDB(Transaction), self.Core.Config.Get('TRANSACTION_LOG_TRANSACTIONS')) ] # Saving actual transaction
 
 	def SaveTransactionFiles(self, ID, Transaction):

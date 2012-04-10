@@ -136,15 +136,6 @@ def GetUnique(List):
 			NewList.append(Item)
 	return NewList
 
-def GetFileAsList(Filename):
-	try:
-		Output = open(Filename, 'r').read().split("\n")
-		cprint("Loaded file: '"+Filename+"'")
-	except IOError, error:
-		cprint("Cannot open file: '"+Filename+"' ("+str(sys.exc_info())+")")
-		Output = []
-	return Output
-
 def PathsExist(PathList):
 	ValidPaths = True
 	for Path in PathList:

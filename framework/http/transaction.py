@@ -40,6 +40,9 @@ class HTTP_Transaction:
 
 	def ScopeToStr(self):
 		return str(self.IsInScope)[0]
+	
+	def InScope(self):
+		return self.IsInScope
 
 	def Start(self, URL, Data, Method, IsInScope):
 		self.IsInScope = IsInScope

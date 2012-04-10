@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The Configuration object parses all configuration files, loads them into memory, derives some settings and provides framework modules with a central repository to get info
 '''
 import sys, os, re, socket
+from urlparse import urlparse
 from collections import defaultdict
 from framework.config import plugin, health_check
 from framework.lib.general import *
@@ -83,13 +84,13 @@ class Config:
 				self.Core.Error.FrameworkAbort("Problem in config file: '"+ConfigPath+"' -> Cannot parse line: "+line)
 
 	def ProcessOptions(self, Options):
-                self.Set('FORCE_OVERWRITE', Options['Force_Overwrite']) # True/False
-                self.Set('INTERACTIVE', Options['Interactive']) # True/False
-                self.Set('SIMULATION', Options['Simulation']) # True/False
+		self.Set('FORCE_OVERWRITE', Options['Force_Overwrite']) # True/False
+		self.Set('INTERACTIVE', Options['Interactive']) # True/False
+		self.Set('SIMULATION', Options['Simulation']) # True/False
 		self.Plugin.LoadWebTestGroupsFromFile()
-                self.LoadProfiles(Options['Profiles'])
-                self.DeriveGlobalSettings()
-                self.DeriveFromTarget(Options)
+		self.LoadProfiles(Options['Profiles'])
+		self.DeriveGlobalSettings()
+		self.DeriveFromTarget(Options)
 		# After all initialisations, run health-check:
 		self.HealthCheck.Run()
 
@@ -116,7 +117,7 @@ class Config:
 			for TargetURL in self.PrepareURLScope(Options['Scope']):
 				#print "Processing TargetURL="+str(TargetURL)
 				self.SetTarget(TargetURL) # Set the Target URL as the configuration offset, changes will be performed here
-                        	self.DeriveConfigFromURL(TargetURL) # Derive some settings from Target URL and initialise everything
+				self.DeriveConfigFromURL(TargetURL) # Derive some settings from Target URL and initialise everything
 				self.Set('REVIEW_OFFSET', TargetURL)
 				# All virtual host URLs to be displayed under ip/port in summary:
 				self.Set('SUMMARY_HOST_IP', self.Get('HOST_IP')) 
@@ -219,20 +220,30 @@ class Config:
 	def DeriveURLSettings(self, TargetURL):
 		#print "self.Target="+self.Target
 		self.Set('TARGET_URL', TargetURL) # Set the target in the config
-		# TODO: Use urlparse here	
-		protocol, crap, host = TargetURL.split('/')[0:3]
-		DotChunks = TargetURL.split(':')
-		URLScheme = DotChunks[0]
-		Port = '80'
-		if len(DotChunks) == 2: # Case: http://myhost.com -> Derive port from http / https
+		# TODO: Use urlparse here
+		ParsedURL = urlparse(TargetURL)
+		URLScheme = Protocol = ParsedURL.scheme
+		if ParsedURL.port == None: # Port is blank: Derive from scheme
+			Port = "80"
 			if 'https' == URLScheme:
-				Port = '443'	
-		else: # Derive port from ":xyz" URL part
-			Port = DotChunks[2].split('/')[0]	
+				Port = '443'
+		else: # Port found by urlparse:
+			Port = str(ParsedURL.port)
+		#print "Port=" + Port
+		Host = ParsedURL.hostname
+		#protocol, crap, host = TargetURL.split('/')[0:3]
+		#DotChunks = TargetURL.split(':')
+		#URLScheme = DotChunks[0]
+		#Port = '80'
+		#if len(DotChunks) == 2: # Case: http://myhost.com -> Derive port from http / https
+		#	if 'https' == URLScheme:
+		#		Port = '443'	
+		#else: # Derive port from ":xyz" URL part
+		#	Port = DotChunks[2].split('/')[0]
 
 		self.Set('URL_SCHEME', URLScheme) # Some tools need this!
 		self.Set('PORT_NUMBER', Port) # Some tools need this!
-		self.Set('HOST_NAME', host) # Set the top URL
+		self.Set('HOST_NAME', Host) # Set the top URL
 		self.Set('HOST_IP', self.GetIPFromHostname(self.Get('HOST_NAME')))
 
 		self.Set('IP_URL', self.Get('TARGET_URL').replace(self.Get('HOST_NAME'), self.Get('HOST_IP')))
@@ -240,7 +251,7 @@ class Config:
 		HostnameChunks = self.Get('HOST_NAME').split('.')
 		if self.IsHostNameNOTIP() and len(HostnameChunks) > 2:
 			self.Set('TOP_DOMAIN', '.'.join(HostnameChunks[1:])) #Get "example.com" from "www.example.com"
-		self.Set('TOP_URL', protocol+"//"+host) # Set the top URL
+		self.Set('TOP_URL', Protocol+"://" + Host + ":" + Port) # Set the top URL
 
 	def DeriveOutputSettingsFromURL(self, TargetURL):
 		self.Set('HOST_OUTPUT', self.Get('OUTPUT_PATH')+"/"+self.Get('HOST_IP')) # Set the output directory

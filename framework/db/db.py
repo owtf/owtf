@@ -99,11 +99,11 @@ class DB:
 	def ModifyRecord(self, DBName, Index, Value, Path = None):
 		self.GetData(DBName, Path)[Index] = Value
 
-        def GetRecordAsMatch(self, Record, NAME_TO_OFFSET):
-                Match = defaultdict(list)
-                for Name, Offset in NAME_TO_OFFSET.items():
+	def GetRecordAsMatch(self, Record, NAME_TO_OFFSET):
+		Match = defaultdict(list)
+		for Name, Offset in NAME_TO_OFFSET.items():
 			try:
-	                        Match[Name] = Record[Offset]
+				Match[Name] = Record[Offset]
 			except IndexError:
 				self.Core.Error.Add("""DB.GetRecordsAsMatch ERROR: Match[Name] = Record[Offset] -> Index Error
 Name="""+str(Name)+"""
@@ -111,25 +111,25 @@ Offset="""+str(Offset)+"""
 Match="""+str(Match)+"""
 Record="""+str(Record)+"""
 """)
-                return Match
+		return Match
 
 	def Search(self, DBName, Criteria, NAME_TO_OFFSET): # Returns DB Records in an easy-to-use dictionary format { 'field1' : 'value1', ... }
-                Matches = []
-                for Record in self.Core.DB.GetData(DBName):
-                        Matched = True
-                        for Name, Value in Criteria.items():
+		Matches = []
+		for Record in self.Core.DB.GetData(DBName):
+			Matched = True
+			for Name, Value in Criteria.items():
 				try:
 					if isinstance(Value, list):
-		                                if Record[NAME_TO_OFFSET[Name]] not in Value:
-       		                                	Matched = False
+						if Record[NAME_TO_OFFSET[Name]] not in Value:
+							Matched = False
 					else: # Not a list
-       		                         	if Value != Record[NAME_TO_OFFSET[Name]]:
-       		                                	Matched = False
+						if Value != Record[NAME_TO_OFFSET[Name]]:
+							Matched = False
 				except IndexError:
 					self.Core.Error.Add("DB.Search ERROR: The offset '"+Name+"' is undefined! NAME_TO_OFFSET="+str(NAME_TO_OFFSET)+", Record="+str(Record))
-                        if Matched:
-                                Matches.append( self.GetRecordAsMatch(Record, NAME_TO_OFFSET) )
-                return Matches
+			if Matched:
+				Matches.append( self.GetRecordAsMatch(Record, NAME_TO_OFFSET) )
+		return Matches
 
 	def GetSyncCount(self, DBName, Path = None):
 		return self.Get(DBName, Path)['SyncCount']
@@ -250,4 +250,3 @@ Record="""+str(Record)+"""
 
 	def ErrorCount(self):
 		return self.GetLength('ERROR_DB') # Counts error lines but we only want to know if there has been a framework error or not
-
