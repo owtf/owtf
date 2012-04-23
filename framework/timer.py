@@ -41,6 +41,9 @@ class Timer:
 		self.Time[OffSet]['Start'] = self.GetCurrentDateTime()
 		self.Time[OffSet]['Time'] = time.time()
 		return [ self.Time[OffSet]['Start'], self.Time[OffSet]['Time'] ]
+	
+	def GetCurrentDateTimeAsStr(self):
+		return self.GetTimeAsStr(self.GetCurrentDateTime())
 
 	def GetCurrentDateTime(self):
 		return time.strftime(self.DateTimeFormat)

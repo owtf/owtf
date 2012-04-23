@@ -44,12 +44,13 @@ def run(Core, PluginInfo):
 		'SMTP_PORT' : Core.Config.Get('SMTP_PORT_DESCRIP'),
 		'EMAIL_PRIORITY' : Core.Config.Get('EMAIL_PRIORITY_DESCRIP'),
 		'PDF_TEMPLATE' : Core.Config.Get('PDF_TEMPLATE_DESCRIP'),
+		'WORD_TEMPLATE' : Core.Config.Get('WORD_TEMPLATE_DESCRIP'),
 		'MSF_LISTENER_IP' : Core.Config.Get('MSF_LISTENER_IP_DESCRIP'),
 		'MSF_LISTENER_PORT' : Core.Config.Get('MSF_LISTENER_PORT_DESCRIP'),
 		'MSF_LISTENER_SETUP' : Core.Config.Get('MSF_LISTENER_SETUP_DESCRIP'),
 		'ATTACHMENT_NAME' : Core.Config.Get('ATTACHMENT_NAME_DESCRIP'),
 		'PHISHING_SCRIPT_DIR' : Core.Config.Get('PHISHING_SCRIPT_DIR_DESCRIP') 
-	      },
+		},
 'Optional' : {
 		'PHISHING_CUSTOM_EXE_PAYLOAD_DIR' : Core.Config.Get('PHISHING_CUSTOM_EXE_PAYLOAD_DIR_DESCRIP'),
 		'PHISHING_CUSTOM_EXE_PAYLOAD' : Core.Config.Get('PHISHING_CUSTOM_EXE_PAYLOAD_DESCRIP'),
@@ -58,8 +59,9 @@ def run(Core, PluginInfo):
 		'ISHELL_COMMANDS_BEFORE_EXIT' : Core.Config.Get('ISHELL_COMMANDS_BEFORE_EXIT_DESCRIP'),
 		'ISHELL_COMMANDS_BEFORE_EXIT_DELIM' : Core.Config.Get('ISHELL_COMMANDS_BEFORE_EXIT_DELIM_DESCRIP'),
 		'REPEAT_DELIM' : Core.Config.Get('REPEAT_DELIM_DESCRIP')
-	     } }, PluginInfo):
-		Args['ATTACHMENT_NAME'] = Args['ATTACHMENT_NAME']+"_"+Args['PHISHING_PAYLOAD']+"-"+Args['SET_EMAIL_TEMPLATE']
+		} }, PluginInfo):
+		#Let user specify the attachment name:
+		#Args['ATTACHMENT_NAME'] = Args['ATTACHMENT_NAME']+"_"+Args['PHISHING_PAYLOAD']+"-"+Args['SET_EMAIL_TEMPLATE']
 		Core.PluginParams.SetConfig(Args) # Only now, after modifying ATTACHMENT_NAME, update config
 		#print "Args="+str(Args)
 		Content += Core.SET.SpearPhishing.Run(Args, PluginInfo)

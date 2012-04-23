@@ -70,7 +70,8 @@ class Config:
 		return self.Targets
 
 	def LoadConfigFromFile(self, ConfigPath): # Load the configuration frominto a global dictionary
-		cprint("Loading Config from: "+ConfigPath+" ..")
+		if 'framework_config' not in ConfigPath:
+			cprint("Loading Config from: "+ConfigPath+" ..")
 		ConfigFile = open(ConfigPath, 'r')
 		for line in ConfigFile:
 			try:

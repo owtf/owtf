@@ -1,3 +1,22 @@
+? - 0.14 "London" pre-alpha release: Dedicated to BSides London (http://www.securitybsides.org.uk/), its organisers and attendants
+ + Fixed URL regexp on the link_clicker.py payload for the OWTF imap client Agent
+   It was missing IP-only URLs like: http://192..., regexp changed to: 'http[:0-9a-zA-Z\.\/]+'
+ + Upgraded SET spear phising scripts from SET version 2.5.3 to SET version 3.2.2
+ + Bug fix: Added GetFileAsList and AppendToFile convenience functions (required by some existing code)
+ + Added Version information at the bottom of the OWTF banner and arranged some loading messages to suit
+ + Added GetCurrentDateTimeAsStr convenience method to the Timer class
+ + Added SET script for new payload (19)
+ + Replaced /etc/motd by new parameter WORD_TEMPLATE in SET payload script 3, and added parameter to Spear_Phising plugin
+ + Added better error handling to the Spear Phishing handler so that it aborts when a payload script is not found (instead of crashing in SET, after)
+ + Fixed SET payload 15 to take advantage of the custom PDF template
+ + Added a bit of SET's documentation to the readme directory
+ + Commented out the Attachment name modification in the Spear Phising plugin (sometimes you may want to control this from outside the plugin)
+ + Added better exception handling to OWTF's SMTP class so that failure to perform the SMTP Login assumes open relay and moves on
+ + Added slightly better message to OWTF's SMTP START TLS exception handling error message
+ + Added warning to SET handler when sending blank values
+ + Added check to Spear Phishing module to verify the word template exists
+ + Improved exception handling on the SMTP class for Targeted Phising, thanks Sam!  
+
 10/04/2012 - 0.13b "HackPra" pre-alpha release: Dedicated to HackPra (http://www.nds.rub.de/teaching/hackpra/), its organisers and attendants
  + Inclusion of slowloris, thanks to RSNake for allowing redistribution!
  + More indentation clean up in various files
@@ -100,7 +119,7 @@
  + Refactored owtf.js into smaller files: owtf_general.js, owtf_review.js, owtf_filter.js and owtf_reporting.js
  + Reorganised dictionaries and tools into "restricted" (i.e. licensing) directories so that they are not committed by mistake to github
 
-19/01/2012 - 0.11 "Vienna" pre-alpha release: Dedicated with special love to BSides Vienna, its organisers and attendants
+19/01/2012 - 0.11 "Vienna" pre-alpha release: Dedicated with special love to BSides Vienna (http://www.bsidesvienna.info/), its organisers and attendants
  + Significant report improvements
  + OWTF will now only execute external plugins once regardless of the number of targets (it was 1 x num_targets before, way slower)
  + Host names are now retrieved properly from python via import socket + socket.gethostbyname -> i.e. cannot use dns/host when /etc/hosts is required in a pen test (Bug report credit: Sandro Gauci)
@@ -141,7 +160,7 @@
  + Experimental: If the user supplies only domain names, the scope expands to https + http for each domain
  + Experimental: If a passed URL cannot be reached it is removed from the report (assumed it does not exist) -> useful for huge scopes!
 
-06/01/2012 - 0.10 "Berlin" pre-alpha release
+06/01/2012 - 0.10 "Berlin" pre-alpha release dedicated to BerlinSides (http://berlinsides.org/), its organisers and attendants
  + Thanks to Mario Heiderich for the sample attack vectors and Selenium research for IDS testing (used by the selenium aux plugin)
  + Passive Plugins will now be run even if the target IP is internal because passive plugins now also make suggestions (i.e. potentially useful commands)
  + Changed blue navigation arrows to + and - gray icons courtesy of http://www.app-bits.com/free-icons.html. plus/minus suggested as more intuitive (Idea Credit: Sandro Gauci)

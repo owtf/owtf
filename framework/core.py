@@ -47,7 +47,6 @@ from collections import defaultdict
 
 class Core:
 	def __init__(self, RootDir):
-		cprint("Loading framework please wait..")
 		# Tightly coupled, cohesive framework components:
 		self.Error = error_handler.ErrorHandler(self)
 		self.Shell = blocking_shell.Shell(self) # Config needs to find plugins via shell = instantiate shell first
@@ -108,10 +107,11 @@ class Core:
 		return Command
 
 	def Start(self, Options):
+		cprint("Loading framework please wait..")
 		self.PluginHandler = plugin_handler.PluginHandler(self, Options)
 		self.Config.ProcessOptions(Options)
+		self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT')) # Requires user config
 		self.PluginParams = plugin_params.PluginParams(self, Options)
-		self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT'))
 		if Options['ListPlugins']:
 			self.PluginHandler.ShowPluginList()
 			return False # No processing required, just list available modules
@@ -181,4 +181,3 @@ class Core:
 
 def Init(RootDir):
 	return Core(RootDir)
-

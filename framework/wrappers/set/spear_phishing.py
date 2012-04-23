@@ -66,8 +66,8 @@ class SpearPhishing:
 				]
 	
 	def InitPaths(self, Args):
-		MandatoryPaths = self.Core.Config.GetAsList( [ 'TOOL_SET_DIR', '_PDF_TEMPLATE', '_EMAIL_TARGET' ] )
-		if not PathsExist(MandatoryPaths):
+		MandatoryPaths = self.Core.Config.GetAsList( [ 'TOOL_SET_DIR', '_PDF_TEMPLATE', '_WORD_TEMPLATE', '_EMAIL_TARGET' ] )
+		if not PathsExist(MandatoryPaths) or not PathsExist(self.GetSETScripts(Args)):
 			self.Core.Error.FrameworkAbort("USER ERROR: Some mandatory paths were not found your filesystem", 'user')
 			return False
 		return True
