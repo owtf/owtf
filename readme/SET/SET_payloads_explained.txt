@@ -1,0 +1,36 @@
+Below is largely from the SET menus and trial and error - Official site: www.secmaniac.com
+
+SET payload list:
+
+ Select the file format exploit you want.
+ The default is the PDF embedded EXE.
+
+           ********** PAYLOADS **********
+==> Payloads using exploits (unreliable): <==
+   1) SET Custom Written DLL Hijacking Attack Vector (RAR, ZIP)
+   
+   Windows/office:
+   2) SET Custom Written Document UNC LM SMB Capture Attack
+   3) Microsoft Windows CreateSizedDIBSECTION Stack Buffer Overflow
+   4) Microsoft Word RTF pFragments Stack Buffer Overflow (MS10-087)
+   
+   Adobe reader/flash:
+   5) Adobe Flash Player "Button" Remote Code Execution
+   6) Adobe CoolType SING Table "uniqueName" Overflow
+   7) Adobe Flash Player "newfunction" Invalid Pointer Use
+   8) Adobe Collab.collectEmailInfo Buffer Overflow
+   9) Adobe Collab.getIcon Buffer Overflow
+  10) Adobe JBIG2Decode Memory Corruption Exploit
+  12) Adobe util.printf() Buffer Overflow
+  14) Adobe U3D CLODProgressiveMeshDeclaration Array Overrun
+  19) Adobe Reader u3D Memory Corruption Vulnerability
+  
+  Other software:
+  16) Foxit PDF Reader v4.1.1 Title Stack Buffer Overflow
+  17) Apple QuickTime PICT PnSize Buffer Overflow
+  18) Nuance PDF Reader v6.0 Launch Stack Buffer Overflow
+  
+==> Payloads without exploits (more reliable): <==
+  11) Adobe PDF Embedded EXE Social Engineering
+  13) Custom EXE to VBA (sent via RAR) (RAR required)
+  15) Adobe PDF Embedded EXE Social Engineering (NOJS)

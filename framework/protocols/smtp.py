@@ -46,9 +46,12 @@ class SMTP:
 		MailServer.ehlo()
 		try:
 			MailServer.starttls() # Give start TLS a shot
-		except smtplib.SMTPException, e:
-			self.Print(str(e) + " - Moving on..")
-		MailServer.login(Options['SMTP_LOGIN'], Options['SMTP_PASS'])
+		except Exception, e:
+			self.Print(str(e) + " - Assuming TLS unsupported and trying to continue..")
+		try:
+			MailServer.login(Options['SMTP_LOGIN'], Options['SMTP_PASS'])
+		except Exception, e:
+			self.Print('ERROR: ' + str(e) + " - Assuming open-relay and trying to continue..")
 		return MailServer
 	
 	def BuildTargetList(self, Options): # Build a list of targets for simplification purposes
@@ -69,7 +72,7 @@ class SMTP:
 				MailServer = self.Connect(Options)
 				MailServer.sendmail(Options['SMTP_LOGIN'], Target, Message.as_string())
 				self.Print("Email relay successful!")
-			except smtplib.SMTPException, e:
+			except Exception, e:
 				self.Core.Error.Add("Error delivering email: " + str(e))
 				NumErrors += 1
 		return (NumErrors == 0)

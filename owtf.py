@@ -46,8 +46,7 @@ def Banner():
  \/___/  \/__//__/   \/__/ \/_/ 
 
 Offensive (Web) Testing Framework: An OWASP+PTES-focused try to unite great tools and make pen testing more efficient @owtfp http://owtf.org
-Author: Abraham Aranguren <name.surname@gmail.com> - http://7-a.org - Twitter: @7a_
-"""
+Author: Abraham Aranguren <name.surname@gmail.com> - http://7-a.org - Twitter: @7a_"""
 
 def Usage(ErrorMessage):
 	FullPath = sys.argv[0].strip()
@@ -233,4 +232,5 @@ def ProcessOptions(argv, Core):
 
 Banner()
 Core = core.Init(RootDir) # Initialise Framework
+print "OWTF Version: " + Core.Config.Get('VERSION') + "\n"
 ProcessOptions(sys.argv[1:], Core)

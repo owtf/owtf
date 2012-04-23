@@ -49,6 +49,8 @@ class SETHandler(pexpect_shell.PExpectShell):
 			#Output += self.Read(5)
 			#print "self.CommandInfo=" + str(self.CommandInfo)
 			#p(self.CommandInfo)
+			if not Step.strip(): 
+				cprint("WARNING: Sending Blank!") #Necessary sometimes, but warn
 			if Debug:
 				print "Step: " + str(Step)
 			else:

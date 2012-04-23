@@ -139,7 +139,23 @@ def GetUnique(List):
 def PathsExist(PathList):
 	ValidPaths = True
 	for Path in PathList:
-		if not os.path.exists(Path):
+		if Path and not os.path.exists(Path):
 			cprint("WARNING: The path '" + Path + "' does not exist!")
 			ValidPaths = False
 	return ValidPaths
+
+def GetFileAsList(Filename):
+	try:
+		Output = open(Filename, 'r').read().split("\n")
+		cprint("Loaded file: '"+Filename+"'")
+	except IOError, error:
+		cprint("Cannot open file: '"+Filename+"' ("+str(sys.exc_info())+")")
+		Output = []
+	return Output
+
+def AppendToFile(Filename, Data):
+	try:
+		cprint("Writing to file: '"+Filename+"'")
+		open(Filename, 'a').write(Data)
+	except IOError, error:
+		cprint("Cannot write to file: '"+Filename+"' ("+str(sys.exc_info())+")")
