@@ -30,77 +30,102 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+IsInstalled() {
+	directory=$1
+	if [ -d $directory ]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
+DecompressTBZ2() {
+	bunzip2 *
+	tar xvf *
+	rm -f *.tar 2> /dev/null
+}
+
+DecompressTGZ() {
+	tar xvfz *
+	rm -f *.tar.gz 2> /dev/null
+	rm -f *.tgz 2> /dev/null
+}
+
+DecompressZIP() {
+	unzip *.zip
+	rm -f *.zip
+}
+
+Chmod700() {
+	chmod 700 *
+}
+
+WgetInstall() {
+	download_url=$1
+	directory=$2
+	decompress_method="tar.gz"
+	if [ $3 ]; then
+		decompress_method=$3
+	fi
+
+	IsInstalled "$directory"
+	if [ $? -eq 0 ]; then # Not installed
+		mkdir -p $directory
+		(
+			cd $directory
+			echo "$directory not found, downloading it.."
+			wget -A "MSIE 6.0" $download_url
+			if [ "$decompress_method" == "tar.gz" ]; then
+				DecompressTGZ
+			elif [ "$decompress_method" == "tar.bz2" ]; then
+				DecompressTBZ2
+			elif [ "$decompress_method" == "zip" ]; then
+				DecompressZIP
+			elif [ "$decompress_method" == "chmod700" ]; then
+				Chmod700
+			fi
+		)
+	else
+		echo "$directory ($download_url) is already installed, skipping"
+	fi
+}
+
 # This script needs to be run to download tools with potentially restrictive licensing (cannot be redistributed)
-INSTALL_DIR="$(dirname $0)/restricted"
+TOOLS_DIRECTORY="$(dirname $0)"
+INSTALL_DIR="$TOOLS_DIRECTORY/restricted"
 mkdir -p $INSTALL_DIR
 (
-    cd $INSTALL_DIR
-    # NOTE: Arachni v0.4 is still a bit unstable, it's best to stick with Arachni v0.3 in the meantime
-    #TOOL_DIR="arachni-v0.4.0.2-cde"
-    TOOL_DIR="arachni-v0.3-cde"
-    TGZ_FILE="$TOOL_DIR.tar.gz"
-    mkdir -p $TOOL_DIR
-    (
-        cd $TOOL_DIR
-        if [ ! -f $TGZ_FILE ]; then
-            wget https://github.com/Zapotek/arachni/downloads/$TGZ_FILE
-            tar xvfz $TGZ_FILE
-            rm -f $TGZ_FILE
-        fi
-    )
+	cd $INSTALL_DIR
+	# NOTE 2: Even Arachni v.0.4.0.2 HOTFIX doesn't work (infinite loop): https://github.com/Arachni/arachni/issues/290
+    	# NOTE: Arachni v0.4 is still a bit unstable, it's best to stick with Arachni v0.3 in the meantime
+	#WgetInstall "https://github.com/downloads/Arachni/arachni/arachni-v0.4.0.2-cde.tar.gz" "arachni-v0.4.0.2-cde"
+	#The charts for arachni-v0.3 no longer show up, but this is the closest thing to "working": third party JavaScript missing?
+	WgetInstall "https://github.com/downloads/Arachni/arachni/arachni-v0.3-cde.tar.gz" "arachni-v0.3-cde" "tar.gz"
 
-    TOOL_DIR="whatweb"
-    mkdir -p $TOOL_DIR
-    (
-    cd $TOOL_DIR
-    TOOL_NAME="whatweb-0.4.7.tar.gz"
-    if [ ! -f $TOOL_NAME ]; then
-        echo "Getting whatweb .."
-        wget http://www.morningstarsecurity.com/downloads/$TOOL_NAME
-        tar xvfz *
-        rm -f $TOOL_NAME
-    fi
-    )
+	#This is the right Arachni version to use but the shell wrapper script can't handle this structure. TODO: next release
+	#arachni_baseurl="http://downloads.arachni-scanner.com/nightlies"
+	#if [ "$(uname -a | cut -f12 -d' '|cut -f2 -d'_')" == "64" ]; then # Get arachni 64bits
+	#	arachni_url="$arachni_baseurl/arachni-0.4.1dev-linux-x86_64.tar.gz"
+	#else # Get 32 bit version
+	#	arachni_url="$arachni_baseurl/arachni-0.4.1dev-linux-i386.tar.gz"
+	#fi
+	#WgetInstall $arachni_url "arachni-v0.4.1dev" "tar.gz"
 
-    echo "Getting websecurify .."
-    TOOL_DIR="websecurify"
-    mkdir -p $TOOL_DIR
-    (
-    cd $TOOL_DIR
-    wget http://websecurify.googlecode.com/files/Websecurify%20Scanner%200.9.tgz
-    tar xvfz *
-    rm -f Websecurify\ Scanner\ 0.9.tgz
-    )
-
-    echo "Getting wpscan.."
-    TOOL_DIR="wpscan"
-    mkdir -p $TOOL_DIR
-    (
-    cd $TOOL_DIR
-    svn checkout http://wpscan.googlecode.com/svn/trunk/ ./wpscan-1.1
-    )
-
-    TOOL_DIR="dos/http"
-    mkdir -p $TOOL_DIR
-    (
-    cd $TOOL_DIR
-    TOOL_NAME="slowloris.pl"
-    if [ ! -f $TOOL_NAME ]; then
-        echo "Getting slowloris .."
-        wget http://ha.ckers.org/slowloris/$TOOL_NAME
-        chmod 700 $TOOL_NAME
-    fi
-    )
-
-    TOOL_DIR="decoding/cookies"
-    mkdir -p $TOOL_DIR
-    (
-    cd $TOOL_DIR
-    if [ ! -f BIG-IP_cookie_decoder.py ]; then
-        echo "Getting BIG-IP_cookie_decoder .."
-        wget http://www.taddong.com/tools/BIG-IP_cookie_decoder.zip
-        unzip BIG-IP_cookie_decoder.zip
-        rm -f BIG-IP_cookie_decoder.zip
-    fi
-    )
+	# We don't need to download whatweb anymore since the Backtrack version is now stable:
+	#WgetInstall "http://www.morningstarsecurity.com/downloads/whatweb-0.4.7.tar.gz" "whatweb-0.4.7" "tar.gz"
+	WgetInstall "http://websecurify.googlecode.com/files/Websecurify%20Scanner%200.9.tgz" "websecurify" "tar.gz"
+	WgetInstall "http://www.taddong.com/tools/BIG-IP_cookie_decoder.zip" "decoding/cookies" "zip"
+	WgetInstall "http://labs.portcullis.co.uk/download/hoppy-1.8.1.tar.bz2" "hoppy-1.8.1" "tar.bz2"
+	WgetInstall "http://unspecific.com/ssl/ssl-cipher-check.pl" "ssl/ssl-cipher-check" "chmod700"
+	WgetInstall "http://www.taddong.com/tools/TLSSLed_v1.2.sh" "ssl/TLSSLed" "chmod700"
+	TOOL_DIR="wpscan"
+	if [ ! -d $TOOL_DIR ]; then
+		echo "wpscan not found, downloading it.."
+		mkdir -p $TOOL_DIR
+		(
+			cd $TOOL_DIR
+			svn checkout http://wpscan.googlecode.com/svn/trunk/ ./wpscan-1.1
+		)
+	fi
 )
+"$TOOLS_DIRECTORY/bt5_patch_nikto.sh"
