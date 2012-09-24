@@ -44,4 +44,15 @@ mkdir -p $INSTALL_DIR
         wget http://www.agarri.fr/docs/HTTP-Traceroute.py
     fi
     )
+    TOOL_DIR="dos/http"
+    mkdir -p $TOOL_DIR
+    (
+    cd $TOOL_DIR
+    TOOL_NAME="slowloris.pl"
+    if [ ! -f $TOOL_NAME ]; then
+        echo "Getting slowloris .."
+        wget http://ha.ckers.org/slowloris/$TOOL_NAME
+        chmod 700 $TOOL_NAME
+    fi
+    )
 )

@@ -45,7 +45,7 @@ def Banner():
 \ \____/\ \___x___/'\ \__\\\ \_\ 
  \/___/  \/__//__/   \/__/ \/_/ 
 
-Offensive (Web) Testing Framework: An OWASP+PTES-focused try to unite great tools and make pen testing more efficient @owtfp http://owtf.org
+OWASP OWTF, the Offensive (Web) Testing Framework, is an OWASP+PTES-focused try to unite great tools and make pen testing more efficient @owtfp http://owtf.org
 Author: Abraham Aranguren <name.surname@gmail.com> - http://7-a.org - Twitter: @7a_"""
 
 def Usage(ErrorMessage):

@@ -62,7 +62,7 @@ class HTMLSanitiser:
 				Element.set(Attribute, Link.replace(Link, ''))
 		return lxml.html.tostring(ParsedHTML)
 
-        def CleanThirdPartyHTML(self, HTML): 
+	def CleanThirdPartyHTML(self, HTML): 
 		# 1st clean URLs, 2nd get rid of basics, 3rd apply white list
 		return self.Cleaner.clean_html(clean_html(self.CleanURLs(HTML)))
 

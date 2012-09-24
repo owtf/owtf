@@ -195,8 +195,9 @@ class PluginHandler:
 			return False # Cannot run plugin if target is unreachable
 		if not self.IsChosenPlugin(Plugin):
 			return False # Skip not chosen plugins
-		# Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active):
-		if self.PluginAlreadyRun(Plugin) and ((not self.Core.Config.Get('FORCE_OVERWRITE') and not ('grep' == Plugin['Type'])) or Plugin['Type'] == 'external'): #not Code == 'OWASP-WU-SPID': 
+		# Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active): 
+		#if self.PluginAlreadyRun(Plugin) and not self.Core.Config.Get('FORCE_OVERWRITE'): #not Code == 'OWASP-WU-SPID': # For external plugin forced re-run (development)
+		if self.PluginAlreadyRun(Plugin) and ((not self.Core.Config.Get('FORCE_OVERWRITE') and not ('grep' == Plugin['Type'])) or Plugin['Type'] == 'external'): #not Code == 'OWASP-WU-SPID':
 			if ShowMessages:
 				cprint("Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") has already been run, skipping ..")
 			if Plugin['Type'] == 'external': # Register external plugin so that it shows on the reports!! (DB checks integrity)

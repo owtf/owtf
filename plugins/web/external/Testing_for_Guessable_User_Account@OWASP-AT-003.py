@@ -37,6 +37,6 @@ DESCRIPTION = "Plugin to assist manual testing"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = "Intended to show helpful info in the future"
+	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('ExternalDefaultGuessableUserAccount'))
 	return Content
 

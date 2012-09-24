@@ -51,10 +51,10 @@ class TransactionManager:
 		self.Core = Core # Need access to reporter for pretty html trasaction log
 		self.TransactionFilePrefixes = { 'T': 'scope_', 'F' : 'external_' }
 
-        def Search(self, Criteria):
+	def Search(self, Criteria):
 		if 'Method' in Criteria: # Ensure a valid HTTP Method is used instead of "" when the Method is specified in the Criteria
 			Criteria['Method'] = DeriveHTTPMethod(Criteria['Method'], GetDictValueOrBlank(Criteria, 'Data'))
-                return self.Core.DB.Search('TRANSACTION_LOG_TXT', Criteria, NAME_TO_OFFSET)
+		return self.Core.DB.Search('TRANSACTION_LOG_TXT', Criteria, NAME_TO_OFFSET)
 
 	def NumTransactions(self, Scope = 'T'): # Return num transactions in scope by default
 		return len(self.Search( { 'Scope' : Scope } ))

@@ -1,4 +1,45 @@
-? - 0.14 "London" pre-alpha release: Dedicated to BSides London (http://www.securitybsides.org.uk/), its organisers and attendants
+24/09/2012 - 0.15 "Brucon" pre-alpha release: Dedicated to Brucon (http://brucon.org), its organisers and attendants
++ Changed name to OWASP OWTF since this is an OWASP project now, thank you OWASP! - https://www.owasp.org/index.php/OWASP_OWTF
++ Bug fix: General clean-up of the bt5_install.sh script + OWTF's tool locations for a smoother install experience, thanks to Xavier Mertens (@xme) for reporting!
++ Bug fix: Removed Slowloris download code from bt5_install.sh script since redistribution was allowed by RSnake and it's packaged with OWASP OWTF
++ Bug fix: Commented out whatweb download from bt5_install.sh since the Backtrack version is now stable, default config also points to Backtrack path now
++ Bug fix: requester.py was referencing "Core.mError" which could sometimes result in the following error: "AttributeError: Core instance has no attribute 'mError'"
++ New feature: Instead of having to use our own nikto binaries, the OWTF's install script will now patch's nikto's poor default user agent (blocked by basic WAF blacklists)
++ Added to Sandro Gauci's Webapp Exploit Payloads to the following external plugins: XSS, CSRF and Cross Site Flashing
++ Added cross-site flashing link to get swfdump from www.swftools.org
++ Added external plugin link to bAdmin project (from whitehat) for default admin interfaces passwords
++ Added xss external plugin link to Gareth's Heyes HackVertor
++ Added xss external plugin link to Mario Heiderich's html5sec.org
++ Changed default UA to a more believable FF15
++ Added udl filetype to blanket google hacking searches (ica and rdp were already there), thanks to Chema Alonso (@chemaalonso)!
++ Added external cross-site flashing link to Adobe's SWFInvestigator
++ Added external xss link to Krzysztof Kotowicz's Chrome extension exploitation framework (XSS ChEF)
++ Added external xss link to Michal Zalewski's post-XSS ideas on XSS exploitation
++ Added external session management schema link to .NET VIEWSTATE vulnerabilities blog post
++ Added external SQLi plugin link to InfoSec Institute's SQLi Backdoor creation article
++ Added external file extension handling + SQLi link to contagiodump.blogspot.com's Collection of Web Backdoors & Shells
++ Added external file extension handling + SQLi link to Laudanum's Project for shells and utilities
++ Added external Bypassing Authentication Schema plugin link to OWASP's Password Storage Cheat Sheet
++ Added external Clickjacking plugin link to OWASP's ClickJacking article
++ Added external Bypassing Authorisation Schema link to OWASP's Access Control Cheat Sheet
++ Added external plugin link to bAdmin project (from whitehat) for default or guessable user accounts plugin
++ Added external plugin link to OWASP's XSS Filter Evasion Cheat Sheet
++ Added external plugin link to OWASP's XSS Prevention Cheat Sheet
++ Added external plugin link to OWASP's DOM XSS Prevention Cheat Sheet
++ Added external plugin link to OWASP's Web Service Security Cheat Sheet
++ Added external plugin link to OWASP's Transport Layer Protection Cheat Sheet
++ Added external plugin link to OWASP's SQL Injection Prevention Cheat Sheet
++ Added external plugin link to OWASP's Query Parameterization Cheat Sheet (complements SQLi cheat sheet)
++ Added external plugin link to OWASP's Session Management Cheat Sheet
++ Added external plugin link to OWASP's Logging Cheat Sheet
++ Added external plugin link to OWASP's JAAS Authentication Cheat Sheet
++ Added external plugin link to OWASP's Forgot Password Cheat Sheet
++ Added external plugin link to OWASP's Cryptographic Storage Cheat Sheet
++ Added external plugin link to OWASP's Cross-Site Request Forgery (CSRF) Prevention Cheat Sheet
++ Added external plugin link to OWASP's Choosing and Using Security Questions Cheat Sheet
++ Added external plugin link to OWASP's Authentication Cheat Sheet
+
+23/04/2012 - 0.14 "London" pre-alpha release: Dedicated to BSides London (http://www.securitybsides.org.uk/), its organisers and attendants
  + Fixed URL regexp on the link_clicker.py payload for the OWTF imap client Agent
    It was missing IP-only URLs like: http://192..., regexp changed to: 'http[:0-9a-zA-Z\.\/]+'
  + Upgraded SET spear phising scripts from SET version 2.5.3 to SET version 3.2.2
@@ -11,7 +52,7 @@
  + Fixed SET payload 15 to take advantage of the custom PDF template
  + Added a bit of SET's documentation to the readme directory
  + Commented out the Attachment name modification in the Spear Phising plugin (sometimes you may want to control this from outside the plugin)
- + Added better exception handling to OWTF's SMTP class so that failure to perform the SMTP Login assumes open relay and moves on
+ + Added better exception handling to OWTF's SMTP class so that failure to perform the SMTP Login assumes open relay and moves on (also sent as a patch to SET)
  + Added slightly better message to OWTF's SMTP START TLS exception handling error message
  + Added warning to SET handler when sending blank values
  + Added check to Spear Phishing module to verify the word template exists
