@@ -185,10 +185,10 @@ class Requester:
 
 	def ProcessHTTPErrorCode(self, Error, URL):
 		if str(Error.reason).startswith("[Errno 111]"):
-			Message = "ERROR: The connection was refused!"
-                	self.RequestCountRefused += 1 
+			Message = "ERROR: The connection was refused!: " +  str(Error)
+			self.RequestCountRefused += 1 
 		if str(Error.reason).startswith("[Errno -2]"):
-			self.Core.mError.FrameworkAbort("ERROR: cannot resolve hostname!")
+			self.Core.Error.FrameworkAbort("ERROR: cannot resolve hostname!: " + str(Error))
 		else:
 			Message = "ERROR: The connection was not refused, unknown error!"
 		cprint(Message)

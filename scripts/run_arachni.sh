@@ -50,7 +50,7 @@ echo "DATE=$DATE"
 OUTFILE="arachni_report$DATE"
 DIR=$(pwd) # Remember current dir
 echo "[*] Moving to Tool directory: $TOOL_DIR"
-cd $TOOL_DIR # arachni works better when run from its folder, sounds familiar? :)
+cd "$TOOL_DIR" # arachni works better when run from its folder, sounds familiar? :)
 #COMMAND="./arachni --only-positives --user-agent=\"$USER_AGENT\" --http-req-limit=30 --report=\"html:outfile=$OUTFILE.html\" --report=\"txt:outfile=$OUTFILE.txt\" --report=\"metareport:outfile=$OUTFILE.msf\" --report=\"ap:outfile=$OUTFILE.ap\" --report=\"xml:outfile=$OUTFILE.xml\" --report=\"afr:outfile=$OUTFILE.afr\" $URL"
 COMMAND="./arachni --user-agent=\"$USER_AGENT\" --http-req-limit=20 --report=\"html:outfile=$OUTFILE.html\" --report=\"txt:outfile=$OUTFILE.txt\" --report=\"metareport:outfile=$OUTFILE.msf\" --report=\"ap:outfile=$OUTFILE.ap\" --report=\"xml:outfile=$OUTFILE.xml\" --report=\"afr:outfile=$OUTFILE.afr\" $URL"
 echo
