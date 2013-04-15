@@ -232,6 +232,7 @@ class Config:
 			Port = str(ParsedURL.port)
 		#print "Port=" + Port
 		Host = ParsedURL.hostname
+		HostPath = ParsedURL.hostname + ParsedURL.path
 		#protocol, crap, host = TargetURL.split('/')[0:3]
 		#DotChunks = TargetURL.split(':')
 		#URLScheme = DotChunks[0]
@@ -241,7 +242,7 @@ class Config:
 		#		Port = '443'	
 		#else: # Derive port from ":xyz" URL part
 		#	Port = DotChunks[2].split('/')[0]
-
+		self.Set('HOST_PATH',HostPath) # Needed for google resource search
 		self.Set('URL_SCHEME', URLScheme) # Some tools need this!
 		self.Set('PORT_NUMBER', Port) # Some tools need this!
 		self.Set('HOST_NAME', Host) # Set the top URL
