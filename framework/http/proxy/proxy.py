@@ -124,7 +124,7 @@ class ProxyServer:
 
 	def SetupProxy(self):
 		if len(self.ProxyOptions) == 2:
-			self.Interface, self.Port = self.ProxyOptions.split(':')
+			self.Interface, self.Port = self.ProxyOptions
 		else: # Only the port was passed
 			self.Port = self.ProxyOptions[0]
 			# If the interface was not specified listen on 127.0.0.1 only:
