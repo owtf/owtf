@@ -36,10 +36,10 @@ OWTF_DIR=$1
 
 # Note you can obviously run as many variants as you would like for each test ..
 
-echo "[*] Running all defined Spear Phising tests .."
-$OWTF_DIR/owtf.py -f -o Spear_Phising # Run as defined in config file
-#$OWTF_DIR/owtf.py -f -o Spear_Phising PHISHING_PAYLOAD=1 EMAIL_PRIORITY=no SET_EMAIL_TEMPLATE=1 # Run specific test
-#$OWTF_DIR/owtf.py -f -o Spear_Phising EMAIL_TARGET=/root/emails_new.txt # Specify alternative email targets
+echo "[*] Running all defined Spear Phishing tests .."
+$OWTF_DIR/owtf.py -f -o Spear_Phishing # Run as defined in config file
+#$OWTF_DIR/owtf.py -f -o Spear_Phishing PHISHING_PAYLOAD=1 EMAIL_PRIORITY=no SET_EMAIL_TEMPLATE=1 # Run specific test
+#$OWTF_DIR/owtf.py -f -o Spear_Phishing EMAIL_TARGET=/root/emails_new.txt # Specify alternative email targets
 
 echo "[*] Running all defined Web tests .."
 $OWTF_DIR/owtf.py -f -o Selenium_URL_Launcher # Run as defined in config file

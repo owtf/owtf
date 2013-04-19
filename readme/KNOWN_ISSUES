@@ -3,7 +3,7 @@
   In an upcoming release there will be a script to download all dependencies including tools and dictionaries to bypass this issue
 
 - SET Integration:
-  The phising auxiliary plugin for integration with SET works but requires to patch SET at the moment:
+  The phishing auxiliary plugin for integration with SET works but requires to patch SET at the moment:
   Fix: You need to change the "getpass" calls to "raw_input" on smtp_client.py, in BT5: grep -ir "getpass.getpass" /pentest/exploits/set/src/
   Background issue: When you use set-automate you have no idea re whether your script worked or if the email was really sent
   OWTF Approach: owtf emulates set-automate with visual feedback so that the pen tester has enough information to decide whether things worked (i.e. email was sent or not)

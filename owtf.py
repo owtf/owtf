@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This is the command-line front-end in charge of processing arguments and call the framework
 '''
-import getopt, sys, os
+import argparse, sys, os
 
 RootDir = os.path.dirname(os.path.abspath(sys.argv[0])) or '.' # Get tool path from script path
 
@@ -45,8 +45,28 @@ def Banner():
 \ \____/\ \___x___/'\ \__\\\ \_\ 
  \/___/  \/__//__/   \/__/ \/_/ 
 
-OWASP OWTF, the Offensive (Web) Testing Framework, is an OWASP+PTES-focused try to unite great tools and make pen testing more efficient @owtfp http://owtf.org
-Author: Abraham Aranguren <name.surname@gmail.com> - http://7-a.org - Twitter: @7a_"""
+"""
+
+def GetArgs(Core):
+	ValidPluginGroups = [ 'web', 'net', 'aux' ]
+	ValidPluginTypes = Core.Config.Plugin.GetAllTypes() + [ 'all', 'quiet' ]
+	
+	Parser = argparse.ArgumentParser(description="OWASP OWTF, the Offensive (Web) Testing Framework, is an OWASP+PTES-focused try to unite great tools and make pen testing more efficient @owtfp http://owtf.org\nAuthor: Abraham Aranguren <name.surname@owasp.org> - http://7-a.org - Twitter: @7a_")
+	Parser.add_argument("-l", "--list_plugins", dest="ListPlugins", default=None, choices=ValidPluginGroups, help="List available plugins in the plugin group (web, net or aux)")
+	Parser.add_argument("-f", "--force", dest="ForceOverwrite", action='store_true', help="Force plugin result overwrite (default is avoid overwrite)")
+	Parser.add_argument("-i", "--interactive", dest="Interactive", default="yes", help="Interactive: yes (default, more control) / no (script-friendly)")
+	Parser.add_argument("-e", "--except", dest="ExceptPlugins", default=None, help="Comma separated list of plugins to be ignored in the test")
+	Parser.add_argument("-o", "--only", dest="OnlyPlugins", default=None, help="Comma separated list of the only plugins to be used in the test")
+	Parser.add_argument("-p", "--inbound_proxy", dest="InboundProxy", default=None, help="(ip:)port - Setup an inbound proxy for manual site analysis")
+	Parser.add_argument("-x", "--outbound_proxy", dest="OutboundProxy", default=None, help="ip:port - Send all OWTF requests using the proxy for the given ip and port")
+	Parser.add_argument("-s", "--simulation", dest="Simulation", action='store_true', help="Do not do anything, simply simulate how plugins would run")
+	Parser.add_argument("-m", "--custom_profile", dest="CustomProfile", default=None, help="<g:f,w:f,n:f,r:f> - Use my profile: 'f' = valid config file. g: general config, w: web plugin order, n: net plugin order, r: resources file")
+	Parser.add_argument("-a", "--algorithm", dest="Algorithm", default="breadth", choices=Core.Config.Get('ALGORITHMS'), help="<depth/breadth> - Multi-target algorithm: breadth (default)=each plugin runs for all targets first | depth=all plugins run for each target first")
+	Parser.add_argument("-g", "--plugin_group", dest="PluginGroup", default="web", choices=ValidPluginGroups, help="<web/net/aux> - Initial plugin group: web (default) = targets are interpreted as URLs = web assessment only\nnet = targets are interpreted as hosts/network ranges = traditional network discovery and probing\naux = targets are NOT interpreted, it is up to the plugin/resource definition to decide what to do with the target")
+	Parser.add_argument("-t", "--plugin_type", dest="PluginType", default="all", choices=ValidPluginTypes, help="<plugin type> - For web plugins: passive, semi_passive, quiet (passive + semi_passive), grep, active, all (default)\nNOTE: grep plugins run automatically after semi_passive and active in the default profile")
+	Parser.add_argument('Targets', nargs='+', help='List of Targets')
+
+	return Parser.parse_args()
 
 def Usage(ErrorMessage):
 	FullPath = sys.argv[0].strip()
@@ -54,23 +74,6 @@ def Usage(ErrorMessage):
 	print "Current Path: "+FullPath
 	print "Syntax: "+Main+" [ options ] <target1 target2 target3 ..> where target can be: <target URL / hostname / IP>"
 	print "					NOTE: targets can also be provided via a text file\n"
-	print " -l <web/net/aux>:		list available plugins in the plugin group (web, net or aux)"
-	print " -f:				force plugin result overwrite (default is avoid overwrite)"
-	print " -i <yes/no>			interactive: yes (default, more control) / no (script-friendly)"
-	print " -e <except plugin1,2,..>	comma separated list of plugins to be ignored in the test"
-	print " -o <only plugin1,2,..>	comma separated list of the only plugins to be used in the test"
-	print " -p (ip:)port            setup an inbound proxy for manual site analysis"
-	print " -x ip:port			send all owtf requests using the proxy for the given ip and port"
-	print " -s 				Do not do anything, simply simulate how plugins would run"
-	print " -m <g:f,w:f,n:f,r:f> 		Use my profile: 'f' = valid config file. g: general config, w: web plugin order, n: net plugin order, r: resources file"
-	print " -a <depth/breadth> 		Multi-target algorithm: breadth (default)=each plugin runs for all targets first | depth=all plugins run for each target first"
-	print ""
-	print " -g <web/net/aux> 		Initial plugin group: web (default) = targets are interpreted as URLs = web assessment only"
-	print "				net = targets are interpreted as hosts/network ranges = traditional network discovery and probing"
-	print "				aux = targets are NOT interpreted, it is up to the plugin/resource definition to decide what to do with the target"
-	print ""
-	print " -t <plugin type>		For web plugins: passive, semi_passive, quiet (passive + semi_passive), grep, active, all (default)"
-	print "				NOTE: grep plugins run automatically after semi_passive and active in the default profile"
 	print "\nExamples:\n"
 	print "Run all web plugins: 						"+Main+" http://my.website.com"
 	print "Run only passive + semi_passive plugins:		 	"+Main+" -t quiet http://my.website.com"
@@ -87,99 +90,72 @@ def Usage(ErrorMessage):
 	print "\nERROR: "+ErrorMessage
 	exit(-1)
 
-def ValidatePluginGroup(PluginGroup):
-	if PluginGroup not in [ 'web', 'net', 'aux' ]:
-		Usage("Invalid Plugin Group: '"+str(PluginGroup)+"'")
-	return PluginGroup
-
 def ValidateOnePluginGroup(PluginGroups):
 	if len(PluginGroups) > 1:
 		Usage("The plugins specified belong to several Plugin Groups: '"+str(PluginGroups)+"'")
+		
+def GetPluginsFromArg(Arg):
+	Plugins = Arg.split(',')
+	PluginGroups = Core.Config.Plugin.GetGroupsForPlugins(Plugins)
+	ValidateOnePluginGroup(PluginGroups)
+	return [ Plugins, PluginGroups ]
 
-def ProcessOptions(argv, Core):
+def ProcessOptions(Core):
 	try:
-		opts, args = getopt.getopt(argv,"a:g:t:e:o:i:x:p:m:l:sf") # Don't forget the ":" at the end :) -IF YOU EXPECT A VALUE!! ;)-
-	except getopt.GetoptError:
-		Usage("Invalid OWTF option(s)")
+		Arg = GetArgs(Core)
+		#opts, args = getopt.getopt(argv,"a:g:t:e:o:i:x:p:m:l:sf") # Don't forget the ":" at the end :) -IF YOU EXPECT A VALUE!! ;)-
+	except Exception, e:
+		Usage("Invalid OWTF option(s) " + e)
 
 	# Default settings:
-	PluginType = 'all' 
-	Simulation = ForceOverwrite = False
-	Interactive = True
-	InboundProxy = OutboundProxy = OnlyPlugins = ExceptPlugins = ListPlugins = None 
-	Algorithm = 'breadth'
-	PluginGroup = 'web'
 	Profiles = []
-	for opt,arg in opts:
-		if opt == '-c':
-			PluginType = arg
-		if opt == '-a':
-			Algorithm = arg
-			if Algorithm not in Core.Config.Get('ALGORITHMS'):#[ 'breadth', 'depth' ]:
-				Usage("Invalid Algorithm")
-		if opt == '-g':
-			PluginGroup = ValidatePluginGroup(arg)
-		if opt == '-t':
-			PluginType = arg
-			#if PluginType not in [ 'semi_passive', 'passive', 'active', 'grep' ]:
-			if PluginType != 'all' and PluginType != 'quiet' and PluginType not in Core.Config.Plugin.GetAllTypes():
-				Usage("Invalid Plugin Type '"+str(PluginType)+"'")
-		elif opt == '-l':
-			ListPlugins = True
-			PluginGroup = ValidatePluginGroup(arg)
-		elif opt == '-s':
-			Simulation = True
-		elif opt == '-f':
-			ForceOverwrite = True
-		elif opt == '-i':
-			if arg == 'no':
-				Interactive = False
-#		elif opt == '-t': # Threads = to be implemented
-#			TargetURL = arg
-		elif opt == '-m': # Custom profiles specified
-			for Profile in arg.split(','): # Quick pseudo-validation check
+	PluginGroup = Arg.PluginGroup
+	if Arg.CustomProfile: # Custom profiles specified
+		for Profile in Arg.CustomProfile.split(','): # Quick pseudo-validation check
 				Chunks = Profile.split(':')
 				if len(Chunks) != 2 or not os.path.exists(Chunks[1]):
 					Usage("Invalid Profile")
 				else: # Profile "ok" :)
 					Profiles.append(Chunks)
-		elif opt == '-o':
-			OnlyPlugins = arg.split(',')
-			PluginGroups = Core.Config.Plugin.GetGroupsForPlugins(OnlyPlugins)
-			ValidateOnePluginGroup(PluginGroups)
-			try:
-				PluginGroup = PluginGroups[0] # Set Plugin Group according to plugin list specified
-			except IndexError:
-				Usage("Please use either OWASP/OWTF codes or Plugin names")
-			cprint("Defaulting Plugin Group to '"+PluginGroup+"' based on list of plugins supplied")
-		elif opt == '-e':
-			ExceptPlugins = arg.split(',')
-			PluginGroups = Core.Config.Plugin.GetGroupsForPlugins(ExceptPlugins)
-			ValidateOnePluginGroup(PluginGroups)
-		elif opt == '-x':
-			OutboundProxy = arg.split(':')
-			if len(OutboundProxy) != 2: # OutboundProxy should be ip:port
-				Usage()
-		elif opt == '-p':
-			InboundProxy = arg.split(':')
-			if len(InboundProxy) not in [ 1, 2]: # OutboundProxy should be (ip:)port
-				Usage()
+					
+	if Arg.OnlyPlugins:
+		Arg.OnlyPlugins, PluginGroups = GetPluginsFromArg(Arg.OnlyPlugins)
+		try:
+			PluginGroup = PluginGroups[0] # Set Plugin Group according to plugin list specified
+		except IndexError:
+			Usage("Please use either OWASP/OWTF codes or Plugin names")
+		cprint("Defaulting Plugin Group to '"+PluginGroup+"' based on list of plugins supplied")
+		
+	if Arg.ExceptPlugins:
+		Arg.ExceptPlugins, PluginGroups = GetPluginsFromArg(Arg.ExceptPlugins)
+		print "ExceptPlugins=" + str(Arg.ExceptPlugins)
+		
+	if Arg.OutboundProxy:
+		Arg.OutboundProxy = Arg.OutboundProxy.split(':')
+		if len(Arg.OutboundProxy) != 2: # OutboundProxy should be ip:port
+			Usage()
+			
+	if Arg.InboundProxy:
+		Arg.InboundProxy = Arg.InboundProxy.split(':')
+		if len(Arg.InboundProxy) not in [ 1, 2 ]: # OutboundProxy should be (ip:)port
+			Usage()
 
 	if PluginGroup == 'net':
 		Usage('Sorry, net plugins are not implemented yet')
+		
 	PluginTypesForGroup = Core.Config.Plugin.GetTypesForGroup(PluginGroup)
-	if PluginType == 'all':
-		PluginType = PluginTypesForGroup
-	elif PluginType == 'quiet':
-		PluginType = [ 'passive', 'semi_passive' ]
+	if Arg.PluginType == 'all':
+		Arg.PluginType = PluginTypesForGroup
+	elif Arg.PluginType == 'quiet':
+		Arg.PluginType = [ 'passive', 'semi_passive' ]
 		if PluginGroup != 'web':
 			Usage("The quiet plugin type can only be used for the web plugin group currently")
-	elif PluginType not in PluginTypesForGroup:
+	elif Arg.PluginType not in PluginTypesForGroup:
 		Usage("Invalid Plugin Type '"+str(PluginType)+"' for Plugin Group '"+str(PluginGroup)+"'. Valid Types: "+', '.join(PluginTypesForGroup))
 
-	Scope = args # Arguments at the end are the URL target(s)
+	Scope = Arg.Targets # Arguments at the end are the URL target(s)
 	NumTargets = len(Scope)
-	if PluginGroup != 'aux' and NumTargets == 0 and not ListPlugins:
+	if PluginGroup != 'aux' and NumTargets == 0 and not Arg.ListPlugins:
 		Usage("The scope must specify at least one target")
 	elif NumTargets == 1: # Check if this is a file
 		if os.path.exists(Scope[0]):
@@ -193,31 +169,31 @@ def ProcessOptions(argv, Core):
 			if len(NewScope) == 0: # Bad file
 				Usage("Please provide a scope file where each line is a target")
 			Scope = NewScope
-
+			
 	for Target in Scope:
 		if Target[0] == "-":
 			Usage("Invalid Target: "+Target)
-
+			
 	Args = ''
 	if PluginGroup == 'aux':
 		Args = Scope # For Aux plugins, the Scope are the parameters
 		Scope = ['aux'] # Aux plugins do not have targets, they have metasploit-like parameters
-
+		
 	try:
 		if Core.Start( { 
-					'ListPlugins' : ListPlugins
-					, 'Force_Overwrite' : ForceOverwrite
-					, 'Interactive' : Interactive
-					, 'Simulation' : Simulation
+					'ListPlugins' : Arg.ListPlugins
+					, 'Force_Overwrite' : Arg.ForceOverwrite
+					, 'Interactive' : Arg.Interactive == 'yes'
+					, 'Simulation' : Arg.Simulation
 					, 'Scope' : Scope
 					, 'argv' : sys.argv
-					, 'PluginType' : PluginType
-					, 'OnlyPlugins' : OnlyPlugins
-					, 'ExceptPlugins' : ExceptPlugins
-					, 'InboundProxy' : InboundProxy
-					, 'OutboundProxy' : OutboundProxy
+					, 'PluginType' : Arg.PluginType
+					, 'OnlyPlugins' : Arg.OnlyPlugins
+					, 'ExceptPlugins' : Arg.ExceptPlugins
+					, 'InboundProxy' : Arg.InboundProxy
+					, 'OutboundProxy' : Arg.OutboundProxy
 					, 'Profiles' : Profiles
-					, 'Algorithm' : Algorithm
+					, 'Algorithm' : Arg.Algorithm
 					, 'PluginGroup' : PluginGroup
 					, 'Args' : Args } ): # Only if Start is for real (i.e. not just listing plugins, etc)
 			Core.Finish("Complete") # Not Interrupted or Crashed
@@ -233,4 +209,4 @@ def ProcessOptions(argv, Core):
 Banner()
 Core = core.Init(RootDir) # Initialise Framework
 print "OWTF Version: " + Core.Config.Get('VERSION') + "\n"
-ProcessOptions(sys.argv[1:], Core)
+ProcessOptions(Core)
