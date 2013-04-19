@@ -137,7 +137,7 @@ def ProcessOptions(Core):
 			
 	if Arg.InboundProxy:
 		Arg.InboundProxy = Arg.InboundProxy.split(':')
-		if len(Arg.InboundProxy) not in [ 1, 2 ]: # OutboundProxy should be (ip:)port
+		if len(Arg.InboundProxy) not in [ 1, 2 ]: # InboundProxy should be (ip:)port
 			Usage()
 
 	if PluginGroup == 'net':
