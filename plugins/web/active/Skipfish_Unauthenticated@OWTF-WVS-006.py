@@ -1,4 +1,4 @@
-"""
+""" 
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -25,17 +25,13 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-GREP Plugin for Testing for application configuration management (OWASP-CM-004) <- looks for HTML Comments
-https://www.owasp.org/index.php/Testing_for_application_configuration_management_%28OWASP-CM-004%29
-NOTE: GREP plugins do NOT send traffic to the target and only grep the HTTP Transaction Log
+ACTIVE Plugin for Generic Unauthenticated Web App Fuzzing via Arachni
+This will perform a "low-hanging-fruit" pass on the web app for easy to find (tool-findable) vulns
+
 """
 
-import string, re
-import cgi
-
-DESCRIPTION = "Tools to assist credential transport vulnerability exploitation"
+DESCRIPTION = "Active Vulnerability Scanning without credentials via Skipfish"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('ExternalCredentialsTransport'))
-	return Content
+	return Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('Skipfish_Unauth'), PluginInfo, "")
