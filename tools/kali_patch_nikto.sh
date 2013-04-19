@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 #
 # Description:
-#       Script to run nikto with appropriate switches for basic and time-efficient web app/web server vuln detection
-#	Because of above no directory brute-forcing will be done here (too slow and would be done later with dirbuster, etc)
+#       Script to fix the nikto config to use a normal-looking User Agent so that we can hopefully bypass simple WAF blacklists
 #
-# Date:    2011-10-02
-# Version: 2.0
+# Date:    2012-09-24
 #
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 # Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -34,44 +32,17 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
-if [ $# -ne 2 -a $# -ne 3 -a $# -ne 4 ]; then
-        echo "Usage $0 <tool_dir> <target_ip> (<target_port>) (<target hostname>)"
-	echo "Tip: Change the USER_AGENT on nikto.conf to something normal.."
-        exit
+NIKTO_CONF_FILE="/etc/nikto/config.txt"
+NIKTO_CONF_BACKUP="$NIKTO_CONF_FILE.backup"
+if [ $(grep 'USERAGENT=Mozilla/.* (Nikto' $NIKTO_CONF_FILE|wc -l) -gt 0 ]; then
+	echo "Nikto is currently set to display a NIKTO USER AGENT, do you want to replace this with a normal looking one? [y/n]"
+	read a
+	if [ "$a" == "y" ]; then
+		echo "Backing up previous $NIKTO_CONF_FILE to $NIKTO_CONF_BACKUP.."
+		cp $NIKTO_CONF_FILE $NIKTO_CONF_BACKUP
+		echo "Updating nikto configuration to use a normal-looking user agent.."
+		cat $NIKTO_CONF_BACKUP | sed 's|^USERAGENT=Mozilla/.* (Nikto.*$|USERAGENT=Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/20.0|' > $NIKTO_CONF_FILE
+	fi
+else
+	echo "Nikto configuration is already set to use a normal-looking user agent"
 fi
-
-PORT=80
-if [ $3 ]; then
-        PORT=$3
-fi
-
-TOOL_DIR=$1
-IP=$2
-HOST_NAME=$ip
-NIKTO_NOLOOKUP="-nolookup"
-if [ $4 ] && [ "$4" != "$ip" ]; then
-        HOST_NAME=$4
-        NIKTO_NOLOOKUP="" #Host name passed: must look up
-fi
-
-NIKTO_SSL=""
-SSL_HANDSHAKE_LINES=$((sleep 5 ; echo -e "^C" 2> /dev/null) |  openssl s_client -connect $HOST_NAME:$PORT 2> /dev/null | wc -l)
-if [ $SSL_HANDSHAKE_LINES -gt 10 ]; then # SSL Handshake successful, proceed with nikto -ssl switch
-        NIKTO_SSL="-ssl"
-fi
-
-DATE=$(date +%F_%R:%S | sed 's/:/_/g')
-OUTFILE="nikto$DATE"
-LOG_XML=$OUTFILE.xml
-DIR=$(pwd) # Remember current dir
-cd "$TOOL_DIR" # Nikto needs to be run from its own folder
-if [ ! -f ./nikto.pl ]; then # Kali linux hack
-	cp /usr/bin/nikto /usr/share/nikto/nikto.pl # Ensure the executable is on the right place, so that below runs even if the user did not run the install script
-fi
-COMMAND="./nikto.pl $NIKTO_NOLOOKUP -evasion 1 $NIKTO_SSL -host $HOST_NAME -port $PORT -output $DIR/$LOG_XML -Format xml"
-echo "[*] Running: $COMMAND"
-$COMMAND
-
-echo
-echo "[*] Done!]"
