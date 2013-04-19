@@ -12,6 +12,7 @@
 + Substituted getopt with argparse for argument parsing
 + Fixed www.company.com/subdir issue thanks to Adi Mutu (@an_animal) for reporting it and Bharadwaj Machiraju (@tunnelshade) for fixing it! - https://github.com/7a/owtf/pull/15
 + Fixed bug on draft Inbound proxy thanks to Bharadwaj Machiraju (@tunnelshade) for finding + fixing it! - https://github.com/7a/owtf/pull/16
++ Initial Kali Linux port (some tools still missing, the install script needs more work) thanks to Bharadwaj Machiraju (@tunnelshade) for a lot of help on this!
 
 24/09/2012 - 0.15 "Brucon" pre-alpha release: Dedicated to Brucon (http://brucon.org), its organisers and attendants
 + Changed name to OWASP OWTF since this is an OWASP project now, thank you OWASP! - https://www.owasp.org/index.php/OWASP_OWTF
