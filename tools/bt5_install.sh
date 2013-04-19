@@ -97,22 +97,24 @@ mkdir -p $INSTALL_DIR
 (
 	cd $INSTALL_DIR
 	# NOTE 2: Even Arachni v.0.4.0.2 HOTFIX doesn't work (infinite loop): https://github.com/Arachni/arachni/issues/290
-    	# NOTE: Arachni v0.4 is still a bit unstable, it's best to stick with Arachni v0.3 in the meantime
+	# NOTE: Arachni v0.4 is still a bit unstable, it's best to stick with Arachni v0.3 in the meantime
 	#WgetInstall "https://github.com/downloads/Arachni/arachni/arachni-v0.4.0.2-cde.tar.gz" "arachni-v0.4.0.2-cde"
 	#The charts for arachni-v0.3 no longer show up, but this is the closest thing to "working": third party JavaScript missing?
-	WgetInstall "https://github.com/downloads/Arachni/arachni/arachni-v0.3-cde.tar.gz" "arachni-v0.3-cde" "tar.gz"
+	#WgetInstall "https://github.com/downloads/Arachni/arachni/arachni-v0.3-cde.tar.gz" "arachni-v0.3-cde" "tar.gz"
 
 	#This is the right Arachni version to use but the shell wrapper script can't handle this structure. TODO: next release
+	arachni_baseurl="http://downloads.arachni-scanner.com"
 	#arachni_baseurl="http://downloads.arachni-scanner.com/nightlies"
-	#if [ "$(uname -a | cut -f12 -d' '|cut -f2 -d'_')" == "64" ]; then # Get arachni 64bits
-	#	arachni_url="$arachni_baseurl/arachni-0.4.1dev-linux-x86_64.tar.gz"
-	#else # Get 32 bit version
-	#	arachni_url="$arachni_baseurl/arachni-0.4.1dev-linux-i386.tar.gz"
-	#fi
-	#WgetInstall $arachni_url "arachni-v0.4.1dev" "tar.gz"
+	if [ "$(uname -a | cut -f12 -d' '|cut -f2 -d'_')" == "64" ]; then # Get arachni 64bits
+		arachni_url="$arachni_baseurl/arachni-0.4.1-linux-x86_64.tar.gz"
+	else # Get 32 bit version
+		arachni_url="$arachni_baseurl/arachni-0.4.1-linux-i386.tar.gz"
+	fi
+	WgetInstall $arachni_url "arachni-v0.4.1" "tar.gz"
 
 	# We don't need to download whatweb anymore since the Backtrack version is now stable:
 	#WgetInstall "http://www.morningstarsecurity.com/downloads/whatweb-0.4.7.tar.gz" "whatweb-0.4.7" "tar.gz"
+	WgetInstall "http://skipfish.googlecode.com/files/skipfish-2.09b.tgz" "skipfish" "tar.gz"
 	WgetInstall "http://websecurify.googlecode.com/files/Websecurify%20Scanner%200.9.tgz" "websecurify" "tar.gz"
 	WgetInstall "http://www.taddong.com/tools/BIG-IP_cookie_decoder.zip" "decoding/cookies" "zip"
 	WgetInstall "http://labs.portcullis.co.uk/download/hoppy-1.8.1.tar.bz2" "hoppy-1.8.1" "tar.bz2"

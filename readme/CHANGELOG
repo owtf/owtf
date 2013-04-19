@@ -1,3 +1,17 @@
+? - 0.16 "shady citizen" alpha release: Dedicated to Michael Kohl (@citizen428) and Bharadwaj Machiraju (@tunnelshade) for contributing to OWTF, thank you!
++ Created an alternative phishing3.2.2_listenerIP SET script directory to use in profiles/general/default.cfg:
+  - The point of this is to be able to simply change the PHISHING_SCRIPT_DIR to use when SET adds an additional "ask listener IP" manual step (happens sometimes)
+  - If SET stops asking the MSF listener IP then simply change PHISHING_SCRIPT_DIR back to phishing3.2.2 to use the correct scripts
++ Fixed legacy misspelled "phishing" typo bug around a few files
++ Added external links to assist Credential Transport vulnerability exploitation: SSLStrip, Firesheep, CookieCadger
++ Added external link to SpiderLabs' Blogpost: Adding Anti-CRSF support to Burp Intruder
++ Added Skipfish support via a new Skipfish plugin: Skipfish_Unauthenticated
++ Added Arachni v.0.4.1 support
++ Removed demos directory to place demos in a dedicated repository (https://github.com/7a/owtf_demos) and keep the main owtf repository more lightweight
++ Removed releases directory to place demos in a dedicated repository (https://github.com/7a/owtf_releases) and keep the main owtf repository more lightweight
++ Substituted getopt with argparse for argument parsing
++ Fixed www.company.com/subdir issue thanks to @an_animal for reporting and @tunnelshade for fixing!
+
 24/09/2012 - 0.15 "Brucon" pre-alpha release: Dedicated to Brucon (http://brucon.org), its organisers and attendants
 + Changed name to OWASP OWTF since this is an OWASP project now, thank you OWASP! - https://www.owasp.org/index.php/OWASP_OWTF
 + Bug fix: General clean-up of the bt5_install.sh script + OWTF's tool locations for a smoother install experience, thanks to Xavier Mertens (@xme) for reporting!
@@ -42,21 +56,21 @@
 23/04/2012 - 0.14 "London" pre-alpha release: Dedicated to BSides London (http://www.securitybsides.org.uk/), its organisers and attendants
  + Fixed URL regexp on the link_clicker.py payload for the OWTF imap client Agent
    It was missing IP-only URLs like: http://192..., regexp changed to: 'http[:0-9a-zA-Z\.\/]+'
- + Upgraded SET spear phising scripts from SET version 2.5.3 to SET version 3.2.2
+ + Upgraded SET spear phishing scripts from SET version 2.5.3 to SET version 3.2.2
  + Bug fix: Added GetFileAsList and AppendToFile convenience functions (required by some existing code)
  + Added Version information at the bottom of the OWTF banner and arranged some loading messages to suit
  + Added GetCurrentDateTimeAsStr convenience method to the Timer class
  + Added SET script for new payload (19)
- + Replaced /etc/motd by new parameter WORD_TEMPLATE in SET payload script 3, and added parameter to Spear_Phising plugin
+ + Replaced /etc/motd by new parameter WORD_TEMPLATE in SET payload script 3, and added parameter to Spear_Phishing plugin
  + Added better error handling to the Spear Phishing handler so that it aborts when a payload script is not found (instead of crashing in SET, after)
  + Fixed SET payload 15 to take advantage of the custom PDF template
  + Added a bit of SET's documentation to the readme directory
- + Commented out the Attachment name modification in the Spear Phising plugin (sometimes you may want to control this from outside the plugin)
+ + Commented out the Attachment name modification in the Spear Phishing plugin (sometimes you may want to control this from outside the plugin)
  + Added better exception handling to OWTF's SMTP class so that failure to perform the SMTP Login assumes open relay and moves on (also sent as a patch to SET)
  + Added slightly better message to OWTF's SMTP START TLS exception handling error message
  + Added warning to SET handler when sending blank values
  + Added check to Spear Phishing module to verify the word template exists
- + Improved exception handling on the SMTP class for Targeted Phising, thanks Sam!  
+ + Improved exception handling on the SMTP class for Targeted Phishing, thanks Sam!  
 
 10/04/2012 - 0.13b "HackPra" pre-alpha release: Dedicated to HackPra (http://www.nds.rub.de/teaching/hackpra/), its organisers and attendants
  + Inclusion of slowloris, thanks to RSNake for allowing redistribution!
@@ -81,7 +95,7 @@
  + Minor fixes to scripts/setrubyenv.sh also courtesy of Michael Kohl @citizen428), thanks!
  + "set fuzzFormComboValues all" removed from scripts/run_w3af.sh because it may make w3af scans slow, thanks to Adi Mutu (am06) and Andrés Riancho (@w3af)!
    More info: http://sourceforge.net/mailarchive/forum.php?thread_name=CA%2B1Rt67bN3-2OpB%2B7SOGO7%3D92KWXBMdbaztpa885f%3Du2GzjcFg%40mail.gmail.com&forum_name=w3af-users
- + Created an initial basic targeted phising plugin to send anything via SMTP: aux/se/Targeted_Phishing@OWTF-ASEP-002.py
+ + Created an initial basic targeted phishing plugin to send anything via SMTP: aux/se/Targeted_Phishing@OWTF-ASEP-002.py
  + Created the concept of "OWTF Agents": Small listeners that establish communication channels that allow to perform actions remotely (i.e. in a victim machine)
    - Added sbd-based shared-password OWTF Agent for persistent shell access to other machines to be used during a test (i.e. victim emulation)
    - Added ssh-based trusted-public-key OWTF Agent for an alternative to shared passwords (basic instructions to set this up with ssh)
@@ -89,11 +103,11 @@
  	  SBD_CommandChainer is working, the others in rce are WIP (see plugins/aux/rce)
    - Added imapd OWTF agent: This checks email with a predefined account and loads the configured plugin to process the message.
        Example: 
-       1) OWTF sends a targeted phising attack via aux/se/Targeted_Phishing@OWTF-ASEP-002.py
+       1) OWTF sends a targeted phishing attack via aux/se/Targeted_Phishing@OWTF-ASEP-002.py
        2) An OWTF imapd Agent processes any new email that arrives and emulates a user click for all links found in the message
  + Added initial SMB handler to the framework and a related plugin: aux/smb/SMB_Handler@OWTF-SMB-001.py
  + Added an Interactive Shell handler useful to interact with remote and local shells run in a subprocess
- + Significant SET integration improvements: new OWTF SET handler + spear_phising modules and plugin/configurability tweaks 
+ + Significant SET integration improvements: new OWTF SET handler + spear_phishing modules and plugin/configurability tweaks 
  + Added hopefully better comments in several places
  + Started to use Eclipse and Fixed indentation on many framework files :P
  + Bug fix: Commented out goohost shell one liners in profiles/general/default.cfg: When goohost is not installed cat hangs (Thanks to Sandro Gauci)

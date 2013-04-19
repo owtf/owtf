@@ -37,7 +37,7 @@ def GetName():
 
 def Usage(Message):
 	print "Usage:"
-	print GetName()+" EMAIL_TARGET=? EMAIL_FROM=? SMTP_LOGIN=? SMTP_PASS=? SMTP_HOST=? SMTP_PORT=? EMAIL_PRIORITY=? PDF_TEMPLATE=? MSF_LISTENER_PORT=? MSF_LISTENER_SETUP=? ATTACHMENT_NAME=? SET_EMAIL_TEMPLATE=? PHISHING_PAYLOAD=? PHISING_SCRIPT_DIR=? TOOL_SET_DIR=?"
+	print GetName()+" EMAIL_TARGET=? EMAIL_FROM=? SMTP_LOGIN=? SMTP_PASS=? SMTP_HOST=? SMTP_PORT=? EMAIL_PRIORITY=? PDF_TEMPLATE=? MSF_LISTENER_PORT=? MSF_LISTENER_SETUP=? ATTACHMENT_NAME=? SET_EMAIL_TEMPLATE=? PHISHING_PAYLOAD=? PHISHING_SCRIPT_DIR=? TOOL_SET_DIR=?"
 	print "ERROR: "+Message
 	sys.exit(-1)
 
@@ -66,7 +66,7 @@ def MultipleReplace(Text, ReplaceDict):
 	return NewText
 
 def GetParams(): # Basic validation and parameter retrieval:
-	MandatoryParams = [ 'EMAIL_TARGET', 'EMAIL_FROM', 'SMTP_LOGIN', 'SMTP_PASS', 'SMTP_HOST', 'SMTP_PORT', 'EMAIL_PRIORITY', 'PDF_TEMPLATE', 'MSF_LISTENER_PORT', 'MSF_LISTENER_SETUP', 'ATTACHMENT_NAME', 'SET_EMAIL_TEMPLATE', 'PHISHING_PAYLOAD', 'PHISING_SCRIPT_DIR', 'TOOL_SET_DIR' ]
+	MandatoryParams = [ 'EMAIL_TARGET', 'EMAIL_FROM', 'SMTP_LOGIN', 'SMTP_PASS', 'SMTP_HOST', 'SMTP_PORT', 'EMAIL_PRIORITY', 'PDF_TEMPLATE', 'MSF_LISTENER_PORT', 'MSF_LISTENER_SETUP', 'ATTACHMENT_NAME', 'SET_EMAIL_TEMPLATE', 'PHISHING_PAYLOAD', 'PHISHING_SCRIPT_DIR', 'TOOL_SET_DIR' ]
 
 	ScriptName = GetName()
 	try:
@@ -87,8 +87,8 @@ def GetParams(): # Basic validation and parameter retrieval:
 		if Mandatory not in Params:
 			Usage("Must include parameter: "+Mandatory)
 
-	SETScript = Params['PHISING_SCRIPT_DIR']+"/set_scripts/payload"+Params['PHISHING_PAYLOAD']+".set"
-	SETDebugAutomate = Params['PHISING_SCRIPT_DIR']+"/set_debug_automate.sh"
+	SETScript = Params['PHISHING_SCRIPT_DIR']+"/set_scripts/payload"+Params['PHISHING_PAYLOAD']+".set"
+	SETDebugAutomate = Params['PHISHING_SCRIPT_DIR']+"/set_debug_automate.sh"
 	MandatoryPaths = [ Params['TOOL_SET_DIR'], Params['PDF_TEMPLATE'], Params['EMAIL_TARGET'], SETScript, SETDebugAutomate ]
 	for Path in MandatoryPaths:
 		if not os.path.exists(Path):
