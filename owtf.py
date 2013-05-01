@@ -51,7 +51,7 @@ def GetArgs(Core):
 	ValidPluginGroups = [ 'web', 'net', 'aux' ]
 	ValidPluginTypes = Core.Config.Plugin.GetAllTypes() + [ 'all', 'quiet' ]
 	
-	Parser = argparse.ArgumentParser(description="OWASP OWTF, the Offensive (Web) Testing Framework, is an OWASP+PTES-focused try to unite great tools and make pen testing more efficient @owtfp http://owtf.org\nAuthor: Abraham Aranguren <name.surname@owasp.org> - http://7-a.org - Twitter: @7a_")
+	Parser = argparse.ArgumentParser(description="OWASP OWTF, the Offensive (Web) Testing Framework, is an OWASP+PTES-focused try to unite great tools and make pentesting more efficient @owtfp http://owtf.org\nAuthor: Abraham Aranguren <name.surname@owasp.org> - http://7-a.org - Twitter: @7a_")
 	Parser.add_argument("-l", "--list_plugins", dest="ListPlugins", default=None, choices=ValidPluginGroups, help="List available plugins in the plugin group (web, net or aux)")
 	Parser.add_argument("-f", "--force", dest="ForceOverwrite", action='store_true', help="Force plugin result overwrite (default is avoid overwrite)")
 	Parser.add_argument("-i", "--interactive", dest="Interactive", default="yes", help="Interactive: yes (default, more control) / no (script-friendly)")
