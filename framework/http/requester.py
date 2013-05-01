@@ -42,7 +42,12 @@ class MyHTTPConnection(httplib.HTTPConnection):
 
 class MyHTTPHandler(urllib2.HTTPHandler):
 	def http_open(self, req):
-		return self.do_open(MyHTTPConnection, req)
+		try:
+			return self.do_open(MyHTTPConnection, req)
+		except KeyboardInterrupt:
+			raise KeyboardInterrupt # Not handled here
+		except Exception, e:
+			return '' # Can't have OWTF crash due to a library exception -i.e. raise BadStatusLine(line)-
 
 class MyHTTPSConnection(httplib.HTTPSConnection):
 	def send(self, s):
@@ -52,7 +57,12 @@ class MyHTTPSConnection(httplib.HTTPSConnection):
 
 class MyHTTPSHandler(urllib2.HTTPSHandler):
 	def https_open(self, req):
-		return self.do_open(MyHTTPSConnection, req)
+		try:
+			return self.do_open(MyHTTPSConnection, req)
+		except KeyboardInterrupt:
+			raise KeyboardInterrupt # Not handled here
+		except Exception, e:
+			return '' # Can't have OWTF crash due to a library exception -i.e. raise BadStatusLine(line)-
 
 # SmartRedirectHandler is courtesy of: http://www.diveintopython.net/http_web_services/redirects.html
 class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
