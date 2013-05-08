@@ -28,8 +28,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-CMS_EXPLORER_DIR="/pentest/enumeration/web/cms-explorer" # Backtrack 5 location, you may need to change this
-CMS_DICTIONARIES_DIR="/root/owtf/dictionaries/restricted/cms" # CMS dictionaries location, you may need to change this
+CMS_EXPLORER_DIR="$(dirname $0)/cms-explorer/cms-explorer-1.0"
+CMS_DICTIONARIES_DIR="$(dirname $0)/restricted/cms" 
 
 DICTIONARIES="$CMS_EXPLORER_DIR/drupal_plugins.txt
 $CMS_EXPLORER_DIR/joomla_themes.txt
@@ -40,16 +40,19 @@ $CMS_EXPLORER_DIR/joomla_plugins.txt"
 
 echo "[*] Going into directory: $CMS_EXPLORER_DIR"
 cd $CMS_EXPLORER_DIR
+
 echo "[*] Updating cms-explorer.pl dictionaries.."
 ./cms-explorer.pl -update
 
-echo "[*] Going into directory: $CMS_DICTIONARIES_DIR"
-cd $CMS_DICTIONARIES_DIR
+# leaving the directory in order to copy the lists from dict_root
+cd ../../
 
 echo "[*] Copying updated dictionaries from $CMS_EXPLORER_DIR to $CMS_DICTIONARIES_DIR"
 for i in $(echo $DICTIONARIES); do
 	cp $i $CMS_DICTIONARIES_DIR # echo "[*] Copying $i .."
 done
+
+cd $CMS_DICTIONARIES_DIR
 
 DIRBUSTER_PREFIX="dir_buster"
 for cms in $(echo "drupal joomla wp"); do
@@ -76,5 +79,3 @@ for bruteforcer in $(echo "$DIRBUSTER_PREFIX"); do
 	cat $ALLINONE_DICT | sort -u > $ALLINONE_DICT.tmp # Remove duplicates, just in case
 	mv $ALLINONE_DICT.tmp $ALLINONE_DICT
 done
-
-echo "[*] Done!]"
