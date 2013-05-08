@@ -94,41 +94,46 @@ DICTS_DIRECTORY="$(dirname $0)"
 INSTALL_DIR="$DICTS_DIRECTORY/restricted"
 mkdir -p $INSTALL_DIR
 (
-    # Copying raft dicts from shipped files in OWTF
-    echo "[*] Copying RAFT dictionaries"
-    mkdir -p $INSTALL_DIR/raft
-    for file in $(ls $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/ | grep raft); do
-        cp $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/$file $DICTS_DIRECTORY/restricted/raft/
-    done
-    echo "[*] Done"
+	cd $DICTS_DIRECTORY
+	DICTS_DIRECTORY=$(pwd) # Ensuring full path to avoid symbolic link issues below
+	# Copying raft dicts from shipped files in OWTF
+	echo "[*] Linking RAFT dictionaries from Fuzz DB"
+	mkdir -p $INSTALL_DIR/raft
+	for file in $(ls $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/ | grep raft); do
+		#cp $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/$file $DICTS_DIRECTORY/restricted/raft/
+		ln -s $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/$file $DICTS_DIRECTORY/restricted/raft/$file
+	done
+	echo "[*] Done"
 
-    # Fetching cms-explorer dicts, update them and copy the updated dicts
-    WgetInstall "http://cms-explorer.googlecode.com/files/cms-explorer-1.0.tar.bz2" "cms-explorer" "tar.bz2"
-    mkdir -p $INSTALL_DIR/cms
-    "$DICTS_DIRECTORY/update_convert_cms_explorer_dicts.sh"
-    echo "[*] Cleaning Up"
-    rm -rf cms-explorer
-    echo "[*] Done"
+	# Fetching cms-explorer dicts, update them and copy the updated dicts
+	WgetInstall "http://cms-explorer.googlecode.com/files/cms-explorer-1.0.tar.bz2" "cms-explorer" "tar.bz2"
+	mkdir -p $INSTALL_DIR/cms
+	"$DICTS_DIRECTORY/update_convert_cms_explorer_dicts.sh"
+	echo "[*] Cleaning Up"
+	rm -rf cms-explorer
+	echo "[*] Done"
     
 	cd $INSTALL_DIR
 
-    #Fetching svndigger dicts
-    echo "\n[*] Fetching SVNDigger dictionaries"
+	#Fetching svndigger dicts
+	echo "\n[*] Fetching SVNDigger dictionaries"
 	WgetInstall "http://www.mavitunasecurity.com/s/research/SVNDigger.zip" "svndigger" "zip"
-    echo "[*] Done"
+	echo "[*] Done"
     
-    # Copying dirbuster dicts
-    echo "\n[*] Copying Dirbuster dictionaries"
-    mkdir -p dirbuster
-    cp -r /usr/share/dirbuster/wordlists/. dirbuster/.
-    echo "[*] Done"
+	# Copying dirbuster dicts
+	echo "\n[*] Copying Dirbuster dictionaries"
+	mkdir -p dirbuster
+	cp -r /usr/share/dirbuster/wordlists/. dirbuster/.
+	echo "[*] Done"
 
-    cd ../
-    
-    # Merging svndigger and raft dicts to form hybrid dicts based on case
-    echo "\n[*] Please wait while dictionaries are merged, this may take a few minutes.."
-    mkdir -p $INSTALL_DIR/combined
-    "./svndigger_raft_dict_merger.py"
-    echo "[*] Done"
+	# Returning to parent directory
+	cd ..
+
+	# Merging svndigger and raft dicts to form hybrid dicts based on case
+	echo "\n[*] Please wait while dictionaries are merged, this may take a few minutes.."
+	mkdir -p $INSTALL_DIR/combined
+	pwd
+	"./svndigger_raft_dict_merger.py"
+	echo "[*] Done"
 
 )
