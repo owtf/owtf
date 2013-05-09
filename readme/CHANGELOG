@@ -19,7 +19,7 @@
 + Kali Linux fix: Fixed DirBuster path and centralised binary name on profiles/general/default.cfg
 + fixed minor pentesting vs. pen testing typo on owtf.py :)
 + Merged new pull request from Bharadwaj Machiraju (@tunnelshade): OWTF restricted dictionary installation and merging scripts thank you!
-+ Minor improvements to pull request above after testing (linking raft files instead of copying again) 
++ Minor improvements to pull request above after testing (linking raft files instead of copying again, fixing svndigger_raft_dict_merger.py permissions) 
 
 24/09/2012 - 0.15 "Brucon" pre-alpha release: Dedicated to Brucon (http://brucon.org), its organisers and attendants
 + Changed name to OWASP OWTF since this is an OWASP project now, thank you OWASP! - https://www.owasp.org/index.php/OWASP_OWTF

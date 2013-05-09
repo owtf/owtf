@@ -116,12 +116,12 @@ mkdir -p $INSTALL_DIR
 	cd $INSTALL_DIR
 
 	#Fetching svndigger dicts
-	echo "\n[*] Fetching SVNDigger dictionaries"
+	echo -e "\n[*] Fetching SVNDigger dictionaries"
 	WgetInstall "http://www.mavitunasecurity.com/s/research/SVNDigger.zip" "svndigger" "zip"
 	echo "[*] Done"
     
 	# Copying dirbuster dicts
-	echo "\n[*] Copying Dirbuster dictionaries"
+	echo -e "\n[*] Copying Dirbuster dictionaries"
 	mkdir -p dirbuster
 	cp -r /usr/share/dirbuster/wordlists/. dirbuster/.
 	echo "[*] Done"
@@ -130,10 +130,8 @@ mkdir -p $INSTALL_DIR
 	cd ..
 
 	# Merging svndigger and raft dicts to form hybrid dicts based on case
-	echo "\n[*] Please wait while dictionaries are merged, this may take a few minutes.."
+	echo -e "\n[*] Please wait while dictionaries are merged, this may take a few minutes.."
 	mkdir -p $INSTALL_DIR/combined
-	pwd
-	"./svndigger_raft_dict_merger.py"
+	"./dict_merger_svndigger_raft.py"
 	echo "[*] Done"
-
 )
