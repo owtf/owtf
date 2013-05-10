@@ -15,8 +15,3 @@ tools/restricted/*
 # Defined OWTF tests with potential proprietary information #
 ################################################################
 tests/restricted/*
-
-# Eclipse files #
-#################
-.pydevproject
-.project
