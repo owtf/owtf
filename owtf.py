@@ -151,7 +151,7 @@ def ProcessOptions(Core):
 		if PluginGroup != 'web':
 			Usage("The quiet plugin type can only be used for the web plugin group currently")
 	elif Arg.PluginType not in PluginTypesForGroup:
-		Usage("Invalid Plugin Type '"+str(PluginType)+"' for Plugin Group '"+str(PluginGroup)+"'. Valid Types: "+', '.join(PluginTypesForGroup))
+		Usage("Invalid Plugin Type '"+str(Arg.PluginType)+"' for Plugin Group '"+str(PluginGroup)+"'. Valid Types: "+', '.join(PluginTypesForGroup))
 
 	Scope = Arg.Targets # Arguments at the end are the URL target(s)
 	NumTargets = len(Scope)
