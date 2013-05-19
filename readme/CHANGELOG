@@ -21,7 +21,8 @@
 + Merged new pull request from Bharadwaj Machiraju (@tunnelshade): OWTF restricted dictionary installation and merging scripts thank you!
 + Minor improvements to pull request above after testing (linking raft files instead of copying again, fixing svndigger_raft_dict_merger.py permissions) 
 + Added .project files in order to allow importing of OWTF project into Eclipse, revised readme/CONTRIBUTORS and a bug fix in owtf.py <=> @tunnelshade 
-+ Removing big-size binaries from the git repo and purge thier history in order to have a small repository <=> @assem-ch (Assem Chelli) 
++ Removing big-size binaries from the git repo and purge thier history in order to have a small repository <=> @assem-ch (Assem Chelli)
++ Fixed the plugin listing option. It is no longer necessary to specify a Target when listing plugins. <=> @alessandrofg (Alessandro Fanio Gonzalez)
 
 24/09/2012 - 0.15 "Brucon" pre-alpha release: Dedicated to Brucon (http://brucon.org), its organisers and attendants
 + Changed name to OWASP OWTF since this is an OWASP project now, thank you OWASP! - https://www.owasp.org/index.php/OWASP_OWTF
