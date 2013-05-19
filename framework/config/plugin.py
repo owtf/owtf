@@ -44,9 +44,13 @@ class PluginConfig:
 
         def GetTypesForGroup(self, PluginGroup):
                 PluginTypes = []
-                for PluginType, Plugins in self.AllPlugins[PluginGroup].items():
-                        PluginTypes.append(PluginType)
-                return sorted(PluginTypes) # Return list in alphabetical order
+                if (self.AllPlugins[PluginGroup]):
+                    for PluginType, Plugins in self.AllPlugins[PluginGroup].items():
+                            PluginTypes.append(PluginType)
+                    return sorted(PluginTypes) # Return list in alphabetical order
+                else:
+                    cprint("Plugins not found for group: " + PluginGroup)
+                    return []
 
         def GetAllTypes(self):
                 AllPluginTypes = []
