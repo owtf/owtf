@@ -95,10 +95,11 @@ INSTALL_DIR="$TOOLS_DIRECTORY/restricted"
 mkdir -p $INSTALL_DIR
 (
 	cd $INSTALL_DIR
-	WgetInstall "http://websecurify.googlecode.com/files/Websecurify%20Scanner%200.9.tgz" "websecurify" "tar.gz"
-	WgetInstall "http://www.taddong.com/tools/BIG-IP_cookie_decoder.zip" "decoding/cookies" "zip"
-	WgetInstall "http://labs.portcullis.co.uk/download/hoppy-1.8.1.tar.bz2" "hoppy-1.8.1" "tar.bz2"
-	WgetInstall "http://unspecific.com/ssl/ssl-cipher-check.pl" "ssl/ssl-cipher-check" "chmod700"
+    WgetInstall "http://www.net-square.com/zip%20folders/httprint_linux_301.zip" "httprint" "zip"
+    WgetInstall "http://websecurify.googlecode.com/files/Websecurify%20Scanner%200.9.tgz" "websecurify" "tar.gz"
+    WgetInstall "http://www.taddong.com/tools/BIG-IP_cookie_decoder.zip" "decoding/cookies" "zip"
+    WgetInstall "http://labs.portcullis.co.uk/download/hoppy-1.8.1.tar.bz2" "hoppy-1.8.1" "tar.bz2"
+    WgetInstall "http://unspecific.com/ssl/ssl-cipher-check.pl" "ssl/ssl-cipher-check" "chmod700"
 
 	#tlssled in present by default in Kali linux
 	#WgetInstall "http://www.taddong.com/tools/TLSSLed_v1.2.sh" "ssl/TLSSLed" "chmod700"
