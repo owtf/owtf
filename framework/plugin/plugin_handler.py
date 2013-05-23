@@ -57,7 +57,7 @@ class PluginHandler:
 		#self.PluginGroups = [ 'web', 'net', 'aux' ]
 		#self.PluginTypes = [ 'passive', 'semi_passive', 'active', 'grep' ]
 	        #self.AllowedPluginTypes = self.GetAllowedPluginTypes(Options['PluginType'].split(','))
-		self.Simulation, self.Scope, self.PluginGroup, self.Algorithm = [ Options['Simulation'], Options['Scope'], Options['PluginGroup'], Options['Algorithm'] ]
+		self.Simulation, self.Scope, self.PluginGroup, self.Algorithm, self.ListPlugins = [ Options['Simulation'], Options['Scope'], Options['PluginGroup'], Options['Algorithm'], Options['ListPlugins'] ]
 		self.OnlyPluginsList = self.ValidateAndFormatPluginList(Options['OnlyPlugins'])
 		self.ExceptPluginsList = self.ValidateAndFormatPluginList(Options['ExceptPlugins'])
 		#print "OnlyPlugins="+str(self.OnlyPluginsList)
@@ -289,11 +289,11 @@ class PluginHandler:
 		self.Core.Reporter.SavePluginReport(PluginOutput, Plugin) # Timer retrieved by Reporter
 
 	def ShowPluginList(self):
-		if self.PluginGroup == 'web':
+		if self.ListPlugins == 'web':
 			self.ShowWebPluginsBanner()
-		elif self.PluginGroup == 'aux':
+		elif self.ListPlugins == 'aux':
 			self.ShowAuxPluginsBanner()
-		self.ShowPluginGroupPlugins(self.PluginGroup)
+		self.ShowPluginGroupPlugins(self.ListPlugins)
 
 	def ShowAuxPluginsBanner(self):
 	        print(INTRO_BANNER_GENERAL+"\n Available AUXILIARY plugins:""")

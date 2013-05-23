@@ -20,8 +20,15 @@
 + fixed minor pentesting vs. pen testing typo on owtf.py :)
 + Merged new pull request from Bharadwaj Machiraju (@tunnelshade): OWTF restricted dictionary installation and merging scripts thank you!
 + Minor improvements to pull request above after testing (linking raft files instead of copying again, fixing svndigger_raft_dict_merger.py permissions) 
-+ Added .project files in order to allow importing of OWTF project into Eclipse, revised readme/CONTRIBUTORS and a bug fix in owtf.py <=> @tunnelshade 
-+ Removing big-size binaries from the git repo and purge thier history in order to have a small repository <=> @assem-ch (Assem Chelli) 
++ Added .project files in order to allow importing of OWTF project into Eclipse, revised readme/CONTRIBUTORS and a bug fix in owtf.py <=> Bharadwaj Machiraju (@tunnelshade)
++ Removing big-size binaries from the git repo and purge thier history in order to have a small repository <=> Assem Chelli (@assem-ch)
++ Fixed the plugin listing option. It is no longer necessary to specify a Target when listing plugins. <=> Alessandro Fanio Gonzalez (@alessandrofg)
++ Commented out TOOL_GOOHOST as it is not being called by OWTF (since there are better tools doing same job) <=> Bharadwaj Machiraju (@tunnelshade)
++ Revhosts is replaced by dnsrecon as revhosts is discontinued in kali linux. <=> Bharadwaj Machiraju (@tunnelshade)
++ httprint is added to install script as the tool is not present in kali by default <=> Bharadwaj Machiraju (@tunnelshade)
++ Added missing gnutls-bin package to Kali Linux script <=> Abraham Aranguren (@7a_)
++ Added wrapper install scripts around other install scripts and fixed cms-explorer installation & path <=> Bharadwaj Machiraju (@tunnelshade)
++ Fixed the dictionary path for skipfish <=> Bharadwaj Machiraju (@tunnelshade)
 
 24/09/2012 - 0.15 "Brucon" pre-alpha release: Dedicated to Brucon (http://brucon.org), its organisers and attendants
 + Changed name to OWASP OWTF since this is an OWASP project now, thank you OWASP! - https://www.owasp.org/index.php/OWASP_OWTF

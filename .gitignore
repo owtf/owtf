@@ -15,3 +15,7 @@ tools/restricted/*
 # Defined OWTF tests with potential proprietary information #
 ################################################################
 tests/restricted/*
+
+# Directory with the output of OWTF
+###################################
+owtf_review/*

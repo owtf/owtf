@@ -64,7 +64,7 @@ def GetArgs(Core):
 	Parser.add_argument("-a", "--algorithm", dest="Algorithm", default="breadth", choices=Core.Config.Get('ALGORITHMS'), help="<depth/breadth> - Multi-target algorithm: breadth (default)=each plugin runs for all targets first | depth=all plugins run for each target first")
 	Parser.add_argument("-g", "--plugin_group", dest="PluginGroup", default="web", choices=ValidPluginGroups, help="<web/net/aux> - Initial plugin group: web (default) = targets are interpreted as URLs = web assessment only\nnet = targets are interpreted as hosts/network ranges = traditional network discovery and probing\naux = targets are NOT interpreted, it is up to the plugin/resource definition to decide what to do with the target")
 	Parser.add_argument("-t", "--plugin_type", dest="PluginType", default="all", choices=ValidPluginTypes, help="<plugin type> - For web plugins: passive, semi_passive, quiet (passive + semi_passive), grep, active, all (default)\nNOTE: grep plugins run automatically after semi_passive and active in the default profile")
-	Parser.add_argument('Targets', nargs='+', help='List of Targets')
+	Parser.add_argument('Targets', nargs='*', help='List of Targets')
 
 	return Parser.parse_args()
 
@@ -153,7 +153,7 @@ def ProcessOptions(Core):
 	elif Arg.PluginType not in PluginTypesForGroup:
 		Usage("Invalid Plugin Type '"+str(Arg.PluginType)+"' for Plugin Group '"+str(PluginGroup)+"'. Valid Types: "+', '.join(PluginTypesForGroup))
 
-	Scope = Arg.Targets # Arguments at the end are the URL target(s)
+	Scope = Arg.Targets or [] # Arguments at the end are the URL target(s)
 	NumTargets = len(Scope)
 	if PluginGroup != 'aux' and NumTargets == 0 and not Arg.ListPlugins:
 		Usage("The scope must specify at least one target")

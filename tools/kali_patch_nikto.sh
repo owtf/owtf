@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 #
 # Description:
 #       Script to fix the nikto config to use a normal-looking User Agent so that we can hopefully bypass simple WAF blacklists
