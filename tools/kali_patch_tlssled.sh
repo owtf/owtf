@@ -1,5 +1,10 @@
 #!/usr/bin/env sh
 #
+# Description:
+#       Script to fix a bug in tlssled
+#
+# Date:    2012-09-24
+#
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 # Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 # All rights reserved.
@@ -11,14 +16,14 @@
 # * Redistributions in binary form must reproduce the above copyright
 # notice, this list of conditions and the following disclaimer in the
 # documentation and/or other materials provided with the distribution.
-# * Neither the name of the <organization> nor the
+# * Neither the name of the copyright owner nor the
 # names of its contributors may be used to endorse or promote products
 # derived from this software without specific prior written permission.
 # 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
 # DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 # (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
@@ -26,31 +31,19 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-echo "\n[*] Running the master install script for OWASP Offensive Web Testing Framework"
 
-# It is easier to work from the root folder of OWTF
-cd ../
+TLSSLED_FILE="/usr/bin/tlssled"
+TLSSLED_BACKUP="$TLSSLED_FILE.backup"
+if [ $(grep 'SSL_HANDSHAKE_LINES -lt 5' $TLSSLED_FILE|wc -l) -gt 0 ]; then
 
-echo "\n[*] Install restricted tools? [y/n]"
-read a
-if [ "$a" = "y" ]; then
-    cd tools
-    echo "$(pwd)"
-    "$(pwd)/kali_install.sh"
-    cd ../
+	echo "The current tlssled in Kali Linux needs patching to work.Do you wish to patch? [y/n]"
+	read a
+	if [ "$a" = "y" ]; then
+        echo "Backing up previous $TLSSLED_FILE to $TLSSLED_BACKUP.."
+        cp $TLSSLED_FILE $TLSSLED_BACKUP
+        echo "Patching TLSSLED :)"
+        cat $TLSSLED_BACKUP | sed "s|if \[ \$SSL_HANDSHAKE_LINES -lt 5 \] ; then|if \[ \$SSL_HANDSHAKE_LINES -lt 15 \] ; then|" > $TLSSLED_FILE
+    fi
+else
+	echo "Tlssed is already patched"
 fi
-
-echo "\n[*] Install restricted dictionaries? [y/n]"
-read a
-if [ "$a" = "y" ]; then
-    cd dictionaries
-    echo "$(pwd)"
-    "$(pwd)/install_dicts.sh"
-    cd ../
-fi
-
-echo "\n[*] Moving cms-explorer to tools folder"
-cp -r dictionaries/cms-explorer tools/restricted/.
-rm -r dictionaries/cms-explorer
-
-echo "\n[*] Installation script ended"
