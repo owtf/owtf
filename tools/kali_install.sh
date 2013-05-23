@@ -128,5 +128,5 @@ mkdir -p $INSTALL_DIR
 #cp /usr/bin/theharvester /usr/share/theharvester/theHarvester.py
 #cp /usr/bin/nikto /usr/share/nikto/nikto.pl
 
-echo "Installing LBD from Kali Repos"
-sudo apt-get install lbd
+echo "Installing LBD and gnutls-bin from Kali Repos"
+apt-get install lbd gnutls-bin
