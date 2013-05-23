@@ -59,7 +59,6 @@ if [ "$a" = "y" ]; then
 fi
 
 echo "\n[*] Install argparse? [y/n]"
-echo "[*] NOTE: This is only necessary for the DoS aux plugin for now"
 read a
 if [ "$a" = "y" ]; then
 	echo "[*] Running: sudo pip install argparse"
