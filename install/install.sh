@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 #
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 # Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -26,58 +26,31 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+echo "\n[*] Running the master install script for OWASP Offensive Web Testing Framework"
 
-#echo "Install python-twisted? [y/n]"
-#echo "See also: http://twistedmatrix.com/trac/wiki/Downloads"
-#read a
-#if [ "$a" == "y" ]; then
-#	cmd="apt-get install python-twisted"
-#	echo "[*] Running: $cmd"
-#	$cmd
-#fi
+# It is easier to work from the root folder of OWTF
+cd ../
 
-echo "Install lxml? [y/n]"
-echo "Tip for Ubuntu courtesy of Mario Heiderich: Python2.7-dev is needed to compile this lib properly"
-echo "See also: http://lxml.de/installation.html"
+echo "\n[*] Install restricted tools? [y/n]"
 read a
-if [ "$a" == "y" ]; then
-	cmd="/usr/bin/easy_install --allow-hosts=lxml.de,*.python.org lxml"
-	echo "[*] Running: $cmd"
-	/usr/bin/easy_install --allow-hosts=lxml.de,*.python.org lxml
+if [ "$a" = "y" ]; then
+    cd tools
+    echo "$(pwd)"
+    "$(pwd)/kali_install.sh"
+    cd ../
 fi
 
-echo "Upgrade Backtrack/Ubuntu? [y/n]"
+echo "\n[*] Install restricted dictionaries? [y/n]"
 read a
-if [ "$a" == "y" ]; then
-	for cmd in $(echo apt-get#update apt-get#upgrade apt-get#dist-upgrade); do
-		cmd=$(echo "$cmd"|tr '#' ' ')
-		echo "[*] Running: $cmd"
-		$cmd
-	done
+if [ "$a" = "y" ]; then
+    cd dictionaries
+    echo "$(pwd)"
+    "$(pwd)/install_dicts.sh"
+    cd ../
 fi
 
-echo "Install argparse? [y/n]"
-echo "NOTE: This is only necessary for the DoS aux plugin for now"
-read a
-if [ "$a" == "y" ]; then
-	for cmd in $(echo easy_install#argparse); do
-		cmd=$(echo "$cmd"|tr '#' ' ')
-		echo "[*] Running: $cmd"
-		$cmd
-	done
-fi
+echo "\n[*] Moving cms-explorer to tools folder"
+cp -r dictionaries/cms-explorer tools/restricted/.
+rm -r dictionaries/cms-explorer
 
-echo "Install Selenium? [y/n]"
-echo "NOTE: This is only necessary if you would like to run SELENIUM plugins"
-read a
-if [ "$a" == "y" ]; then
-	echo "[*] Installing pip, selenium and headless driver support"
-	# NOTE: rdflib seems broken via pip, thus separate install
-	for cmd in $(echo apt-get#install#python-pip pip#install#selenium apt-get#install#python-rdflib apt-get#install#xvfb#xserver-xephyr pip#install#pyvirtualdisplay); do
-		cmd=$(echo "$cmd"|tr '#' ' ')
-		echo "[*] Running: $cmd"
-		$cmd
-	done
-fi
-
-echo "[*] In the future, there will be a separate 'get dependencies' script to download all tools/dictionaries from their websites: cannot redistribute due to licence restrictions"
+echo "\n[*] Installation script ended"

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 #
 # Description: Installation script for dictionaries with licensing issues.
 #
@@ -109,19 +109,20 @@ mkdir -p $INSTALL_DIR
 	WgetInstall "http://cms-explorer.googlecode.com/files/cms-explorer-1.0.tar.bz2" "cms-explorer" "tar.bz2"
 	mkdir -p $INSTALL_DIR/cms
 	"$DICTS_DIRECTORY/update_convert_cms_explorer_dicts.sh"
-	echo "[*] Cleaning Up"
-	rm -rf cms-explorer
+    # Instead of deleting, the cms-explorer is copied to tools by the wrapper install script
+	#echo "[*] Cleaning Up"
+	#rm -rf cms-explorer
 	echo "[*] Done"
     
 	cd $INSTALL_DIR
 
 	#Fetching svndigger dicts
-	echo -e "\n[*] Fetching SVNDigger dictionaries"
+	echo "\n[*] Fetching SVNDigger dictionaries"
 	WgetInstall "http://www.mavitunasecurity.com/s/research/SVNDigger.zip" "svndigger" "zip"
 	echo "[*] Done"
     
 	# Copying dirbuster dicts
-	echo -e "\n[*] Copying Dirbuster dictionaries"
+	echo "\n[*] Copying Dirbuster dictionaries"
 	mkdir -p dirbuster
 	cp -r /usr/share/dirbuster/wordlists/. dirbuster/.
 	echo "[*] Done"
@@ -130,7 +131,7 @@ mkdir -p $INSTALL_DIR
 	cd ..
 
 	# Merging svndigger and raft dicts to form hybrid dicts based on case
-	echo -e "\n[*] Please wait while dictionaries are merged, this may take a few minutes.."
+	echo "\n[*] Please wait while dictionaries are merged, this may take a few minutes.."
 	mkdir -p $INSTALL_DIR/combined
 	"./dict_merger_svndigger_raft.py"
 	echo "[*] Done"

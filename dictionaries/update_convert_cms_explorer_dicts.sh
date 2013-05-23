@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 # Description: This script grabs all the excellent CMS Explorer dictionaries, updates them and converts them into DirBuster format (much faster than CMS Explorer)
 #
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
