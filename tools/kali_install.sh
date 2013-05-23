@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 #
 # Description: Installation script for tools not in Kali Linux or unreliable in Kali
 #
