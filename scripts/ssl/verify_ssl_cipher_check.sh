@@ -54,7 +54,7 @@ PORT=$3
  
 # Added by Abraham: First check the service can actually speak SSL:
 SSL_HANDSHAKE_LINES=$((sleep 5 ; echo -e "^C" 2> /dev/null) |  openssl s_client -connect $HOST:$PORT 2> /dev/null | wc -l)
-if [ $SSL_HANDSHAKE_LINES -lt 10 ]; then # Handshake failed
+if [ $SSL_HANDSHAKE_LINES -lt 15 ]; then # Handshake failed
 	echo
 	echo "[*] SSL Checks skipped!: The host $HOST does not appear to speak SSL/TLS on port: $PORT"
 	echo

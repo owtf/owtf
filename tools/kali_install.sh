@@ -124,6 +124,7 @@ mkdir -p $INSTALL_DIR
 	#WgetInstall "http://www.morningstarsecurity.com/downloads/whatweb-0.4.7.tar.gz" "whatweb-0.4.7" "tar.gz"
 )
 "$TOOLS_DIRECTORY/kali_patch_nikto.sh"
+"$TOOLS_DIRECTORY/kali_patch_tlssled.sh"
 #echo "Fixing missing links for theHarvester and nikto"
 #cp /usr/bin/theharvester /usr/share/theharvester/theHarvester.py
 #cp /usr/bin/nikto /usr/share/nikto/nikto.pl

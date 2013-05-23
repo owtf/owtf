@@ -30,6 +30,7 @@
 + Added wrapper install scripts around other install scripts and fixed cms-explorer installation & path <=> Bharadwaj Machiraju (@tunnelshade)
 + Fixed the dictionary path for skipfish <=> Bharadwaj Machiraju (@tunnelshade)
 + Created the AUTHORS file <=> Assem Chelli (@assem-ch)
++ Added script for patching Tlssled and revised master install script <=> Bharadwaj Machiraju (@tunnelshade)
 
 24/09/2012 - 0.15 "Brucon" pre-alpha release: Dedicated to Brucon (http://brucon.org), its organisers and attendants
 + Changed name to OWASP OWTF since this is an OWASP project now, thank you OWASP! - https://www.owasp.org/index.php/OWASP_OWTF

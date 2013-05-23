@@ -96,14 +96,19 @@ mkdir -p $INSTALL_DIR
 (
 	cd $DICTS_DIRECTORY
 	DICTS_DIRECTORY=$(pwd) # Ensuring full path to avoid symbolic link issues below
-	# Copying raft dicts from shipped files in OWTF
-	echo "[*] Linking RAFT dictionaries from Fuzz DB"
-	mkdir -p $INSTALL_DIR/raft
-	for file in $(ls $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/ | grep raft); do
-		#cp $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/$file $DICTS_DIRECTORY/restricted/raft/
-		ln -s $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/$file $DICTS_DIRECTORY/restricted/raft/$file
-	done
-	echo "[*] Done"
+    IsInstalled "$INSTALL_DIR/raft"
+	if [ $? -eq 0 ]; then # Not installed
+        # Copying raft dicts from shipped files in OWTF
+        echo "[*] Linking RAFT dictionaries from Fuzz DB"
+        mkdir -p $INSTALL_DIR/raft
+        for file in $(ls $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/ | grep raft); do
+            #cp $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/$file $DICTS_DIRECTORY/restricted/raft/
+            ln -s $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/$file $DICTS_DIRECTORY/restricted/raft/$file
+        done
+        echo "[*] Done"
+    else
+        echo "[*] RAFT dictionaries are already installed, skipping"
+    fi
 
 	# Fetching cms-explorer dicts, update them and copy the updated dicts
 	WgetInstall "http://cms-explorer.googlecode.com/files/cms-explorer-1.0.tar.bz2" "cms-explorer" "tar.bz2"
