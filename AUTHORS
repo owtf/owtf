@@ -15,7 +15,7 @@ OWTF much better:
  * Anant Shrivastava @anantshri
  * Andrés Riancho @w3af - http://www.bonsai-sec.com
  * Assem Chelli @assem-ch 
- * Bharadwaj Machiraju @tunnelshade 
+ * Bharadwaj Machiraju @tunnelshade  - http://blog.tunnelshade.in
  * Chema Alonso @chemaalonso - http://www.elladodelmal.com
  * Chris John Riley @ChrisJohnRiley - http://blog.c22.cc
  * Christian Mehlmauer @_FireFart_
@@ -39,6 +39,5 @@ A big THANK YOU goes to:
   * Google for offering sponsoring for many opensource projects, such as OWTF, 
     under the umbrella of the Google Summer of Code - https://google-melange.appspot.com
   
-  * Brucon is a non-profit organization that runs the Brucon security conference
-    in Belgium, EU. They had excess funds from the last conference and decided 
-    to give it away to open-source initiatives - http://brucon.org 
+  * Brucon for kindly giving away funds to support open-source initiatives such 
+    as OWASP OWTF - http://brucon.org http://blog.brucon.org/2013/02/the-5by5-race-is-on.html
