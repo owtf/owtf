@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 # Description: Installation script for tools not in Backtrack or unreliable in Backtrack
 # (i.e. Backtrack chose the development version instead of the stable one)
