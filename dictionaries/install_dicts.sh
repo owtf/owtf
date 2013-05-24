@@ -107,37 +107,57 @@ mkdir -p $INSTALL_DIR
         done
         echo "[*] Done"
     else
-        echo "[*] RAFT dictionaries are already installed, skipping"
+        echo "WARNING: RAFT dictionaries are already installed, skipping"
     fi
 
-	# Fetching cms-explorer dicts, update them and copy the updated dicts
-	WgetInstall "http://cms-explorer.googlecode.com/files/cms-explorer-1.0.tar.bz2" "cms-explorer" "tar.bz2"
-	mkdir -p $INSTALL_DIR/cms
-	"$DICTS_DIRECTORY/update_convert_cms_explorer_dicts.sh"
-    # Instead of deleting, the cms-explorer is copied to tools by the wrapper install script
-	#echo "[*] Cleaning Up"
-	#rm -rf cms-explorer
-	echo "[*] Done"
+    IsInstalled "$INSTALL_DIR/cms"
+    if [ $? -eq 0 ]; then # Not installed
+        # Fetching cms-explorer dicts, update them and copy the updated dicts
+        WgetInstall "http://cms-explorer.googlecode.com/files/cms-explorer-1.0.tar.bz2" "cms-explorer" "tar.bz2"
+        mkdir -p $INSTALL_DIR/cms
+        "$DICTS_DIRECTORY/update_convert_cms_explorer_dicts.sh"
+        # Instead of deleting, the cms-explorer is copied to tools by the wrapper install script
+        #echo "[*] Cleaning Up"
+        #rm -rf cms-explorer
+        echo "[*] Done"
+    else
+        echo "WARNING: CMS dictionaries are already installed, skipping"
+    fi
     
 	cd $INSTALL_DIR
 
-	#Fetching svndigger dicts
-	echo "\n[*] Fetching SVNDigger dictionaries"
-	WgetInstall "http://www.mavitunasecurity.com/s/research/SVNDigger.zip" "svndigger" "zip"
-	echo "[*] Done"
-    
-	# Copying dirbuster dicts
-	echo "\n[*] Copying Dirbuster dictionaries"
-	mkdir -p dirbuster
-	cp -r /usr/share/dirbuster/wordlists/. dirbuster/.
-	echo "[*] Done"
+    IsInstalled "svndigger" # Not using $INSTALL_DIR because we did a cd into $INSTALL_DIR
+    if [ $? -eq 0 ]; then # Not installed
+        #Fetching svndigger dicts
+        echo "\n[*] Fetching SVNDigger dictionaries"
+        WgetInstall "http://www.mavitunasecurity.com/s/research/SVNDigger.zip" "svndigger" "zip"
+        echo "[*] Done"
+    else
+        echo "WARNING: SVNDIGGER dictionaries are already installed, skipping"
+    fi
+
+    IsInstalled "dirbuster"
+    if [ $? -eq 0 ]; then # Not installed    
+        # Copying dirbuster dicts
+        echo "\n[*] Copying Dirbuster dictionaries"
+        mkdir -p dirbuster
+        cp -r /usr/share/dirbuster/wordlists/. dirbuster/.
+        echo "[*] Done"
+    else
+        echo "WARNING: Dirbuster dictionaries are already installed, skipping"
+    fi
 
 	# Returning to parent directory
 	cd ..
 
-	# Merging svndigger and raft dicts to form hybrid dicts based on case
-	echo "\n[*] Please wait while dictionaries are merged, this may take a few minutes.."
-	mkdir -p $INSTALL_DIR/combined
-	"./dict_merger_svndigger_raft.py"
-	echo "[*] Done"
+    IsInstalled "$INSTALL_DIR/combined"
+    if [ $? -eq 0 ]; then # Not installed
+        # Merging svndigger and raft dicts to form hybrid dicts based on case
+        echo "\n[*] Please wait while dictionaries are merged, this may take a few minutes.."
+        mkdir -p $INSTALL_DIR/combined
+        "./dict_merger_svndigger_raft.py"
+        echo "[*] Done"
+    else
+        echo "WARNING: Combined dictionaries are already installed, skipping"
+    fi
 )

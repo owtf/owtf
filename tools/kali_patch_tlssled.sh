@@ -3,7 +3,7 @@
 # Description:
 #       Script to fix a bug in tlssled
 #
-# Date:    2012-09-24
+# Date:    2013-05-23
 #
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 # Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
