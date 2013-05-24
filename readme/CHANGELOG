@@ -35,6 +35,7 @@
 + Added checks before installation of dictionaries and updated date for tlssled patch <=> Bharadwaj Machiraju (@tunnelshade)
 + Revised the extract_urls.sh to use DirBuster.txt instead of generated report and other minor fixes <=> Bharadwaj Machiraju (@tunnelshade)
 + Skipfish is now linked to from the report, this was the final step to solve https://github.com/7a/owtf/issues/13 <=> Abraham Aranguren (@7a_)
++ Fixed a bug in invoking nikto (scripts/run_nikto.sh) <=> Bharadwaj Machiraju (@tunnelshade)
 
 24/09/2012 - 0.15 "Brucon" pre-alpha release: Dedicated to Brucon (http://brucon.org), its organisers and attendants
 + Changed name to OWASP OWTF since this is an OWASP project now, thank you OWASP! - https://www.owasp.org/index.php/OWASP_OWTF

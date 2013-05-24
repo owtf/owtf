@@ -57,7 +57,7 @@ fi
 
 NIKTO_SSL=""
 SSL_HANDSHAKE_LINES=$((sleep 5 ; echo -e "^C" 2> /dev/null) |  openssl s_client -connect $HOST_NAME:$PORT 2> /dev/null | wc -l)
-if [ $SSL_HANDSHAKE_LINES -gt 10 ]; then # SSL Handshake successful, proceed with nikto -ssl switch
+if [ $SSL_HANDSHAKE_LINES -gt 15 ]; then # SSL Handshake successful, proceed with nikto -ssl switch
         NIKTO_SSL="-ssl"
 fi
 
