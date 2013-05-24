@@ -1,4 +1,4 @@
-? - 0.16 "shady citizen" alpha release: Dedicated to Michael Kohl (@citizen428) and Bharadwaj Machiraju (@tunnelshade) for contributing to OWTF, thank you!
+24/05/2013 - 0.16 "shady citizen" alpha release: Dedicated to Michael Kohl (@citizen428) and Bharadwaj Machiraju (@tunnelshade) for contributing to OWTF, thank you!
 + Created an alternative phishing3.2.2_listenerIP SET script directory to use in profiles/general/default.cfg:
   - The point of this is to be able to simply change the PHISHING_SCRIPT_DIR to use when SET adds an additional "ask listener IP" manual step (happens sometimes)
   - If SET stops asking the MSF listener IP then simply change PHISHING_SCRIPT_DIR back to phishing3.2.2 to use the correct scripts
@@ -31,6 +31,7 @@
 + Fixed the dictionary path for skipfish <=> Bharadwaj Machiraju (@tunnelshade)
 + Created the AUTHORS file <=> Assem Chelli (@assem-ch)
 + Added script for patching Tlssled and revised master install script <=> Bharadwaj Machiraju (@tunnelshade)
++ Removed misleading note about argparse since owtf.py now uses this library <=> Abraham Aranguren (@7a_)
 
 24/09/2012 - 0.15 "Brucon" pre-alpha release: Dedicated to Brucon (http://brucon.org), its organisers and attendants
 + Changed name to OWASP OWTF since this is an OWASP project now, thank you OWASP! - https://www.owasp.org/index.php/OWASP_OWTF
