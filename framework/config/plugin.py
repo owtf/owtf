@@ -32,7 +32,7 @@ import os, base64
 from collections import defaultdict
 from framework.lib.general import *
 
-PLUGIN_GROUP_FOR_REPORT_TYPE = { 'URL' : 'web', 'AUX' : 'aux' }
+PLUGIN_GROUP_FOR_REPORT_TYPE = { 'URL' : 'web', 'AUX' : 'aux','NET' : 'net' }
 
 class PluginConfig:
 	def __init__(self, Core):
@@ -41,6 +41,8 @@ class PluginConfig:
                 self.PluginOrder = defaultdict(list)
 		self.LoadFromFileSystem()
 		self.LoadWebTestGroupsFromFile() # here???
+		self.LoadNetTestGroupsFromFile() # here???
+        
 
         def GetTypesForGroup(self, PluginGroup):
                 PluginTypes = []
@@ -118,6 +120,27 @@ class PluginConfig:
                 if Type == None:
                         return self.AllPlugins[Group]
                 return self.AllPlugins[Group][Type]
+
+        def GetNetTestGroups(self):
+                return self.NetTestGroups
+
+        def LoadNetTestGroupsFromFile(self): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
+                self.NetTestGroups = []
+                ConfigFile = open(self.Core.Config.Get('NET_TEST_GROUPS'), 'r')
+                for line in ConfigFile:
+                        if '#' == line[0]:
+                                continue # Skip comments
+                        try:
+                                Code, Descrip, Hint, URL = line.strip().split(' | ')
+                        except ValueError:
+                                self.Core.Error.FrameworkAbort("Problem in Web Test Groups file: '"+self.Get('WEB_TEST_GROUPS')+"' -> Cannot parse line: "+line)
+                        if len(Descrip) < 2:
+                                Descrip = Hint
+                        if len(Hint) < 2:
+                                Hint = ""
+                        self.NetTestGroups.append( { 'Code' : Code, 'Descrip' : Descrip, 'Hint' : Hint, 'URL' : URL } )
+
+
 
         def GetWebTestGroups(self):
                 return self.WebTestGroups

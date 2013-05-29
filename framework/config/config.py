@@ -112,18 +112,20 @@ class Config:
 
 	def DeriveFromTarget(self, Options):
 		self.TargetConfig = defaultdict(list) # General + Target-specific configuration
-		if Options['PluginGroup'] not in [ 'web', 'aux' ]:
+		if Options['PluginGroup'] not in [ 'web', 'aux' ,'net']:
 			self.Core.Error.FrameworkAbort("Sorry, not implemented yet!")
-		if Options['PluginGroup'] == 'web': # Target to be interpreted as a URL
+		if Options['PluginGroup'] == 'web' or Options['PluginGroup']== 'net': # Target to be interpreted as a URL
 			for TargetURL in self.PrepareURLScope(Options['Scope']):
-				#print "Processing TargetURL="+str(TargetURL)
 				self.SetTarget(TargetURL) # Set the Target URL as the configuration offset, changes will be performed here
-				self.DeriveConfigFromURL(TargetURL) # Derive some settings from Target URL and initialise everything
+				self.DeriveConfigFromURL(TargetURL,Options) # Derive some settings from Target URL and initialise everything
 				self.Set('REVIEW_OFFSET', TargetURL)
 				# All virtual host URLs to be displayed under ip/port in summary:
 				self.Set('SUMMARY_HOST_IP', self.Get('HOST_IP')) 
 				self.Set('SUMMARY_PORT_NUMBER', self.Get('PORT_NUMBER')) 
-				self.Set('REPORT_TYPE', 'URL')
+				if Options['PluginGroup'] == 'web':
+					self.Set('REPORT_TYPE', 'URL')
+				else:
+					self.Set('REPORT_TYPE', 'NET')
 		elif Options['PluginGroup'] == 'aux': # Target to NOT be interpreted as anything
 			self.Set('AUX_OUTPUT_PATH', self.Get('OUTPUT_PATH')+"/aux")
 			self.Set('HTML_DETAILED_REPORT_PATH', self.Get('OUTPUT_PATH')+"/aux.html") # IMPORTANT: For localStorage to work Url reports must be on the same directory
@@ -218,19 +220,23 @@ class Config:
 				NewScope.append(TargetURL) # Append "as-is"
 		return NewScope
 
-	def DeriveURLSettings(self, TargetURL):
+	def DeriveURLSettings(self, TargetURL,Options):
 		#print "self.Target="+self.Target
 		self.Set('TARGET_URL', TargetURL) # Set the target in the config
 		# TODO: Use urlparse here
 		ParsedURL = urlparse(TargetURL)
 		URLScheme = Protocol = ParsedURL.scheme
+        
 		if ParsedURL.port == None: # Port is blank: Derive from scheme
-			Port = "80"
-			if 'https' == URLScheme:
+			if Options['PluginGroup'] == 'net':
+				Port = Options['RPort']
+			elif 'http' == URLScheme:
+				Port = '80'
+			elif 'https' == URLScheme:
 				Port = '443'
 		else: # Port found by urlparse:
 			Port = str(ParsedURL.port)
-		#print "Port=" + Port
+		#\print "Port=" + Port
 		Host = ParsedURL.hostname
 		HostPath = ParsedURL.hostname + ParsedURL.path
 		#protocol, crap, host = TargetURL.split('/')[0:3]
@@ -247,9 +253,9 @@ class Config:
 		self.Set('PORT_NUMBER', Port) # Some tools need this!
 		self.Set('HOST_NAME', Host) # Set the top URL
 		self.Set('HOST_IP', self.GetIPFromHostname(self.Get('HOST_NAME')))
-
 		self.Set('IP_URL', self.Get('TARGET_URL').replace(self.Get('HOST_NAME'), self.Get('HOST_IP')))
 		self.Set('TOP_DOMAIN', self.Get('HOST_NAME'))
+		
 		HostnameChunks = self.Get('HOST_NAME').split('.')
 		if self.IsHostNameNOTIP() and len(HostnameChunks) > 2:
 			self.Set('TOP_DOMAIN', '.'.join(HostnameChunks[1:])) #Get "example.com" from "www.example.com"
@@ -300,8 +306,8 @@ class Config:
 		self.Set('POTENTIAL_FUZZABLE_URLS_DB', DBPath+'potential_fuzzable_urls.txt') # Potentially fuzzable URLs
 		self.Set('POTENTIAL_EXTERNAL_URLS_DB', DBPath+'potential_external_urls.txt') # Out of scope URLs
 
-	def DeriveConfigFromURL(self, TargetURL): # Basic configuration tweaks to make things simpler for the plugins
-		self.DeriveURLSettings(TargetURL)
+	def DeriveConfigFromURL(self, TargetURL,Options): # Basic configuration tweaks to make things simpler for the plugins
+		self.DeriveURLSettings(TargetURL,Options)
 		self.DeriveOutputSettingsFromURL(TargetURL)
 
 	def GetFileName(self, Setting, Partial = False):
