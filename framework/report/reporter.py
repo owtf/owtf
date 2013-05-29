@@ -289,6 +289,24 @@ self.Render.DrawSelect(self.GetSelectListFromDict(self.Core.Config.Plugin.GetWeb
 , 'RegisteredPlugins' : RegisteredPluginList } )
 			#'TestGroupHeaderStr' : '<div id="'+TestGroup['Code']+'"><br />'+self.Render.DrawButtonLink(TestGroup['Descrip']+" ("+TestGroup['Code']+")", TestGroup['URL'], { 'class' : 'report_index' })+"&nbsp;"+TestGroup['Hint']
 		return TestGroups
+        
+	def GetRegisteredNetPlugins(self, ReportType): # Web Plugins go in OWASP Testing Guide order
+		TestGroups = []
+		for TestGroup in self.Core.Config.Plugin.GetNetTestGroups(): #Follow defined web test group order, NOT execution order
+			RegisteredPlugins = self.Core.DB.PluginRegister.Search( { 'Code' : TestGroup['Code'], 'Target' : self.Core.Config.GetTarget() } )
+			if not RegisteredPlugins:
+				continue # The plugin has not been registered yet
+			RegisteredPluginList = []
+			for Match in RegisteredPlugins:
+				Match['Label'] = Match['Type'] # For url plugins the Label is a display of the plugin type (passive, semi_passive, etc)
+				RegisteredPluginList.append(Match)
+			TestGroups.append( { 
+'TestGroupHeaderStr' : '<div id="'+TestGroup['Code']+'" class="testgroup">'+self.Render.DrawButtonLink(TestGroup['Descrip']+" ("+TestGroup['Code']+")", TestGroup['URL'], { 'class' : 'report_index' })+"&nbsp;"+TestGroup['Hint']
+, 'RegisteredPlugins' : RegisteredPluginList } )
+			#'TestGroupHeaderStr' : '<div id="'+TestGroup['Code']+'"><br />'+self.Render.DrawButtonLink(TestGroup['Descrip']+" ("+TestGroup['Code']+")", TestGroup['URL'], { 'class' : 'report_index' })+"&nbsp;"+TestGroup['Hint']
+		return TestGroups
+
+
 
 	def GetRegisteredAuxPlugins(self, ReportType): # Web Plugins go in OWASP Testing Guide order
 		TestGroups = []
@@ -306,10 +324,14 @@ self.Render.DrawSelect(self.GetSelectListFromDict(self.Core.Config.Plugin.GetWeb
 		return TestGroups
 
 	def GetTestGroups(self, ReportType):
+		
 		if ReportType == 'URL':
 			return self.GetRegisteredWebPlugins(ReportType)
 		elif ReportType == 'AUX':
 			return self.GetRegisteredAuxPlugins(ReportType)
+		elif ReportType == 'NET':
+			return self.GetRegisteredNetPlugins(ReportType)
+		
 
 	def DrawReportSkeleton(self): # Create Div + Tab structure for Review + Report ease of navigation
 		Tabs = self.Render.CreateTabs()
@@ -335,6 +357,7 @@ self.Render.DrawSelect(self.GetSelectListFromDict(self.Core.Config.Plugin.GetWeb
 			AllPluginsTabIdList = []
 			AllPluginsDivIdList = []
 			AllCodes = []
+			
 			for TestGroup in self.GetTestGroups(self.Core.Config.Get('REPORT_TYPE')):
 		                HeaderStr = TestGroup['TestGroupHeaderStr']
 				Tabs = self.Render.CreateTabs()

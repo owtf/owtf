@@ -154,7 +154,7 @@ class Header:
 		return Output
 
 	def DrawTop(self, Embed = ''):
-		if self.ReportType == 'URL':
+		if self.ReportType == 'URL' or self.ReportType == 'NET':
 			return self.DrawURLTop(Embed)
 		elif self.ReportType == 'NetMap':
 			return self.WrapTop('<h2>Summary Report</h2>')
@@ -204,7 +204,7 @@ class Header:
 			else: # Normal tab render
 				RenderTopStr = self.DrawTop()
 				TabsStr = Tabs.Render()
-                        file.write("""<html>
+			file.write("""<html>
 <head>
 	<title>"""+Options['Title']+"""</title>
 	<link rel="stylesheet" href="includes/stylesheet.css" type="text/css">

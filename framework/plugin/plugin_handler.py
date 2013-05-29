@@ -153,7 +153,9 @@ class PluginHandler:
 			if Plugin['Type'] == 'external': # Same path for all targets = do this only once
 				return self.Core.Config.Get('OUTPUT_PATH')+"/external/"+WipeBadCharsForFilename(Plugin['Title'])+"/"
 			else:
-				return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/" 
+				return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/"
+		elif Plugin['Group'] == 'net':
+			return self.Core.Config.Get('OUTPUT_PATH')+"/net/"+WipeBadCharsForFilename(Plugin['Title'])+"/" 
 		elif Plugin['Group'] == 'aux':
 			return self.Core.Config.Get('AUX_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/" 
 
@@ -256,7 +258,7 @@ class PluginHandler:
 
 	def ProcessPlugins(self):
 		Status = { 'SomeAborted' : False, 'SomeSuccessful' : False, 'AllSkipped' : True }
-		if self.PluginGroup in [ 'web', 'aux' ]:
+		if self.PluginGroup in [ 'web', 'aux','net' ]:
 			#self.ProcessPluginsForTargetList(self.PluginGroup, Status, self.Scope) <--- config can change the scope, must retrieve from config instead
 			self.ProcessPluginsForTargetList(self.PluginGroup, Status, self.Core.Config.GetAll('TARGET'))
 		return Status

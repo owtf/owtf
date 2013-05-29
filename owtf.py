@@ -64,6 +64,7 @@ def GetArgs(Core):
 	Parser.add_argument("-a", "--algorithm", dest="Algorithm", default="breadth", choices=Core.Config.Get('ALGORITHMS'), help="<depth/breadth> - Multi-target algorithm: breadth (default)=each plugin runs for all targets first | depth=all plugins run for each target first")
 	Parser.add_argument("-g", "--plugin_group", dest="PluginGroup", default="web", choices=ValidPluginGroups, help="<web/net/aux> - Initial plugin group: web (default) = targets are interpreted as URLs = web assessment only\nnet = targets are interpreted as hosts/network ranges = traditional network discovery and probing\naux = targets are NOT interpreted, it is up to the plugin/resource definition to decide what to do with the target")
 	Parser.add_argument("-t", "--plugin_type", dest="PluginType", default="all", choices=ValidPluginTypes, help="<plugin type> - For web plugins: passive, semi_passive, quiet (passive + semi_passive), grep, active, all (default)\nNOTE: grep plugins run automatically after semi_passive and active in the default profile")
+	Parser.add_argument("-port", "--port", dest="RPort", default=None, help="<port> - Port to run probes")
 	Parser.add_argument('Targets', nargs='*', help='List of Targets')
 
 	return Parser.parse_args()
@@ -139,9 +140,6 @@ def ProcessOptions(Core):
 		Arg.InboundProxy = Arg.InboundProxy.split(':')
 		if len(Arg.InboundProxy) not in [ 1, 2 ]: # InboundProxy should be (ip:)port
 			Usage()
-
-	if PluginGroup == 'net':
-		Usage('Sorry, net plugins are not implemented yet')
 		
 	PluginTypesForGroup = Core.Config.Plugin.GetTypesForGroup(PluginGroup)
 	if Arg.PluginType == 'all':
@@ -178,7 +176,6 @@ def ProcessOptions(Core):
 	if PluginGroup == 'aux':
 		Args = Scope # For Aux plugins, the Scope are the parameters
 		Scope = ['aux'] # Aux plugins do not have targets, they have metasploit-like parameters
-		
 	try:
 		if Core.Start( { 
 					'ListPlugins' : Arg.ListPlugins
@@ -195,6 +192,7 @@ def ProcessOptions(Core):
 					, 'Profiles' : Profiles
 					, 'Algorithm' : Arg.Algorithm
 					, 'PluginGroup' : PluginGroup
+					, 'RPort' : Arg.RPort
 					, 'Args' : Args } ): # Only if Start is for real (i.e. not just listing plugins, etc)
 			Core.Finish("Complete") # Not Interrupted or Crashed
 	except KeyboardInterrupt: # NOTE: The user chose to interact, so no need to check if interactivity was chosen or not here:
