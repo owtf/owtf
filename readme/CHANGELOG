@@ -1,3 +1,7 @@
+28/06/2013 - 0.20 "Summer Storm I" alpha release: Dedicated to Alessandro Fanio Gonzalez (@alessandrofg), Ankush Jindal (@ankushjindal278), Assem Chelli (@assem-ch) and Bharadwaj Machiraju (@tunnelshade)
++ Port of Abraham Aranguren's network security OSCP scripts into OWASP OWTF <=> Ankush Jindal (@ankushjindal278) 
++ Fixed a small bug in the calling of metagoofil, thanks to Adi Mutu (@an_animal) for reporting <=> Bharadwaj Machiraju (@tunnelshade)
+
 24/05/2013 - 0.16 "shady citizen" alpha release: Dedicated to Michael Kohl (@citizen428) and Bharadwaj Machiraju (@tunnelshade) for contributing to OWTF, thank you!
 + Created an alternative phishing3.2.2_listenerIP SET script directory to use in profiles/general/default.cfg: <=> Abraham Aranguren (@7a_)
   - The point of this is to be able to simply change the PHISHING_SCRIPT_DIR to use when SET adds an additional "ask listener IP" manual step (happens sometimes)
