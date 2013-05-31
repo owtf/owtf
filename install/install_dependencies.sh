@@ -76,4 +76,15 @@ if [ "$a" = "y" ]; then
 	done
 fi
 
+echo "\n[*] Install dependencies needed for W3AF? [y/n]"
+read a
+if [ "$a" = "y" ]; then
+    # The below commands were given by w3af when latest version was run on Kali
+    sudo apt-get install python2.7-dev libsqlite3-dev
+    sudo pip install clamd PyGithub GitPython pybloomfiltermmap esmre nltk pdfminer futures guess-language cluster msgpack-python python-ntlm
+    sudo pip install -e git+git://github.com/ramen/phply.git#egg=phply
+    sudo rm -r src # pip leaves the src folder
+    sudo pip install xdot
+fi
+
 echo "\n[*] Completed installing dependencies\n"
