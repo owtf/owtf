@@ -4,6 +4,7 @@
 + Added w3af and it's dependencies to install script <=> Bharadwaj Machiraju (@tunnelshade)
 + Fixed scripts/run_arachni.sh to save arachni output files into relevant owtf_review directory - https://github.com/7a/owtf/issues/41 <=> Abraham Aranguren (@7a_)
 + Fixed release name in framework/config/framework_config.cfg <=> Abraham Aranguren (@7a_)
++ Fixed the installation of phply ( a dependency of w3af ) <=> Bharadwaj Machiraju (@tunnelshade)
 
 24/05/2013 - 0.16 "shady citizen" alpha release: Dedicated to Michael Kohl (@citizen428) and Bharadwaj Machiraju (@tunnelshade) for contributing to OWTF, thank you!
 + Created an alternative phishing3.2.2_listenerIP SET script directory to use in profiles/general/default.cfg: <=> Abraham Aranguren (@7a_)
