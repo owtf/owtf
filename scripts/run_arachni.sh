@@ -59,7 +59,9 @@ echo "[*] Running: $COMMAND"
 ./arachni --user-agent="$USER_AGENT" --http-req-limit=20 --report="html:outfile=$OUTFILE.html" --report="txt:outfile=$OUTFILE.txt" --report="metareport:outfile=$OUTFILE.msf" --report="ap:outfile=$OUTFILE.ap" --report="xml:outfile=$OUTFILE.xml" --report="afr:outfile=$OUTFILE.afr" $URL
 #./arachni --only-positives --user-agent="$USER_AGENT" --http-req-limit=30 --report="html:outfile=$OUTFILE.html" --report="txt:outfile=$OUTFILE.txt" --report="metareport:outfile=$OUTFILE.msf" --report="ap:outfile=$OUTFILE.ap" --report="xml:outfile=$OUTFILE.xml" --report="afr:outfile=$OUTFILE.afr" $URL
 
-REPORT_LOCATION="$TOOL_DIR/cde-package/cde-root"
+#REPORT_LOCATION="$TOOL_DIR/cde-package/cde-root"
+# Arachni reports are now saved on /usr/share/arachni/bin instead of (previous) /usr/share/arachni/bin/cde-package/cde-root
+REPORT_LOCATION="$TOOL_DIR"
 echo "[*] Moving reports from $REPORT_LOCATION to $DIR"
 mv $REPORT_LOCATION/$OUTFILE* $DIR
 cd $DIR
