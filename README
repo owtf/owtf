@@ -31,14 +31,14 @@ Features
 Requirements
 ------------
 - Linux (any Ubuntu derivative should work just fine) and python 2.6.5 or greater
-- Latest Backtrack version not required but helpful (almost 0 setup time)
+- Latest Kali version not required but helpful (almost 0 setup time)
 - You do NOT have to have all tools installed: owtf will move on with an error for the missing tools
 
 Installation
 ------------
-- Backtrack 5: if you uncompress owtf on /root/owtf/ (i.e. so that you can run it like this /root/owtf/owtf.py you're done :))
+- Kali: if you uncompress owtf on /root/owtf/ (i.e. so that you can run it like this /root/owtf/owtf.py you're done :))
 - Other Linux systems: uncompress wherever and then modify config.cfg and perhaps resources.cfg to suit, you can install missing tools for further testing coverage
-- You may also want to run /root/owtf/install.sh to install a couple of dependencies needed by 2 plugins
+- You may also want to run /root/owtf/install/kali_install.sh to install a couple of dependencies needed by 2 plugins
 
 FAQ
 ---
