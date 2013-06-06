@@ -31,26 +31,27 @@ The health-check module verifies the integrity of the configuration, mainly chec
 import os
 from framework.lib.general import *
 
+
 class HealthCheck:
-	def __init__(self, Core):
-		self.Core = Core
+    def __init__(self, Core):
+        self.Core = Core
 
-	def Run(self):
-		Count = 0
-		for Key, Value in self.Core.Config.GetConfig()['string'].items():
-			Setting = self.Core.Config.StripKey(Key)
-			if Setting.startswith('TOOL_') and not os.path.exists(Value):
-				cprint("WARNING: Tool path not found for: "+str(Value))
-				Count += 1
-		self.ShowHelp(Count)
+    def Run(self):
+        Count = 0
+        for Key, Value in self.Core.Config.GetConfig()['string'].items():
+            Setting = self.Core.Config.StripKey(Key)
+            if Setting.startswith('TOOL_') and not os.path.exists(Value):
+                cprint("WARNING: Tool path not found for: " + str(Value))
+                Count += 1
+        self.ShowHelp(Count)
 
-	def ShowHelp(self, Count):
-		if Count > 0:
-			cprint("")
-			cprint("WARNING!!!: "+str(Count)+" tools could not be found. Some suggestions:")
-			cprint(" - Define where your tools are here: "+str(self.Core.Config.Profiles['g']))
-			cprint(" - Use the "+self.Core.Config.RootDir+"/tools/bt5_install.sh script to install missing tools")
-			if self.Core.Config.Get('INTERACTIVE') and 'n' == raw_input("Continue anyway? [y/n]"):
-				self.Core.Error.FrameworkAbort("Aborted by user")
-		else:
-			cprint("SUCCESS: Integrity Check successful -> All tools were found")
+    def ShowHelp(self, Count):
+        if Count > 0:
+            cprint("")
+            cprint("WARNING!!!: "+str(Count)+" tools could not be found. Some suggestions:")
+            cprint(" - Define where your tools are here: "+str(self.Core.Config.Profiles['g']))
+            cprint(" - Use the "+self.Core.Config.RootDir+"/install/kali_install.sh script to install missing tools")
+            if self.Core.Config.Get('INTERACTIVE') and 'n' == raw_input("Continue anyway? [y/n]"):
+                self.Core.Error.FrameworkAbort("Aborted by user")
+        else:
+            cprint("SUCCESS: Integrity Check successful -> All tools were found")
