@@ -126,6 +126,7 @@ mkdir -p $INSTALL_DIR
 )
 "$TOOLS_DIRECTORY/kali_patch_nikto.sh"
 "$TOOLS_DIRECTORY/kali_patch_tlssled.sh"
+"$TOOLS_DIRECTORY/kali_patch_w3af.sh"
 #echo "Fixing missing links for theHarvester and nikto"
 #cp /usr/bin/theharvester /usr/share/theharvester/theHarvester.py
 #cp /usr/bin/nikto /usr/share/nikto/nikto.pl
