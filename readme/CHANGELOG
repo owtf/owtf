@@ -10,6 +10,7 @@
 + Minor README fix replacing references from backtrack to Kali <=> Abraham Aranguren (@7a_)
 + Added arachni to install script along with some minor fixes, thanks to @fataku for reporting <=> Bharadwaj Machiraju (@tunnelshade)
 + Fixed unicode urls for dirbuster combined dictionaries <=> Bharadwaj Machiraju (@tunnelshade)
++ Fixed ssl-cipher-check bug Issue - https://github.com/7a/owtf/issues/38 <=> Abraham Aranguren (@7a_)
 
 24/05/2013 - 0.16 "shady citizen" alpha release: Dedicated to Michael Kohl (@citizen428) and Bharadwaj Machiraju (@tunnelshade) for contributing to OWTF, thank you!
 + Created an alternative phishing3.2.2_listenerIP SET script directory to use in profiles/general/default.cfg: <=> Abraham Aranguren (@7a_)
