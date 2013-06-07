@@ -8,6 +8,7 @@
 + Fixed most PEP standard warnings on owtf.py <=> Abraham Aranguren (@7a_)
 + Fixed most PEP standard warnings on framework/config/health_check.py <=> Abraham Aranguren (@7a_)
 + Minor README fix replacing references from backtrack to Kali <=> Abraham Aranguren (@7a_)
++ Added arachni to install script along with some minor fixes, thanks to @fataku for reporting <=> Bharadwaj Machiraju (@tunnelshade)
 
 24/05/2013 - 0.16 "shady citizen" alpha release: Dedicated to Michael Kohl (@citizen428) and Bharadwaj Machiraju (@tunnelshade) for contributing to OWTF, thank you!
 + Created an alternative phishing3.2.2_listenerIP SET script directory to use in profiles/general/default.cfg: <=> Abraham Aranguren (@7a_)
