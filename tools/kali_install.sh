@@ -100,7 +100,7 @@ mkdir -p $INSTALL_DIR
     WgetInstall "http://www.taddong.com/tools/BIG-IP_cookie_decoder.zip" "decoding/cookies" "zip"
     WgetInstall "http://labs.portcullis.co.uk/download/hoppy-1.8.1.tar.bz2" "hoppy-1.8.1" "tar.bz2"
     WgetInstall "http://unspecific.com/ssl/ssl-cipher-check.pl" "ssl/ssl-cipher-check" "chmod700"
-    WgetInstall "https://github.com/andresriancho/w3af/archive/master.zip" "w3af" "zip"
+    git clone https://github.com/andresriancho/w3af.git
         
 	#tlssled in present by default in Kali linux
 	#WgetInstall "http://www.taddong.com/tools/TLSSLed_v1.2.sh" "ssl/TLSSLed" "chmod700"
@@ -131,5 +131,5 @@ mkdir -p $INSTALL_DIR
 #cp /usr/bin/theharvester /usr/share/theharvester/theHarvester.py
 #cp /usr/bin/nikto /usr/share/nikto/nikto.pl
 
-echo "Installing LBD and gnutls-bin from Kali Repos"
-apt-get install lbd gnutls-bin
+echo "Installing LBD, arachni and gnutls-bin from Kali Repos"
+apt-get install lbd gnutls-bin arachni
