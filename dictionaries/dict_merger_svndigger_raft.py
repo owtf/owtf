@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 2013/05/08 - Bharadwaj Machiraju (@tunnelshade) - Initial merge script creation
 """
-import os
+import os, urllib, codecs
 
 #Order of the files in the list is important
 raft_lowercase = [
@@ -57,17 +57,22 @@ output_path = os.path.join(abs_path,'restricted/combined')
 
 # Two files will be formed
 for case in ['lowercase','mixedcase']:
-    f = open(os.path.join(output_path,'combined_'+case+'.txt'),'w')
+    f = codecs.open(os.path.join(output_path,'combined_'+case+'.txt'),'w','UTF-8')
     merged_list = []
 
     # The svndigger list is added at the beginning
-    for line in open(os.path.join(svndigger_path,'all.txt'),'r').readlines():
-        f.write(line)
-        merged_list.append(line[:-2])
+    for line in codecs.open(os.path.join(svndigger_path,'all.txt'),'r','UTF-8').readlines():
+        f.write(line.rstrip()+'\n')
+        merged_list.append(line.rstrip())
     # Non repeated entries from raft dicts are added
     for file_path in case_dict[case]:
-        for line in open(os.path.join(raft_path,file_path),'r').readlines():
-            if line[:-2] not in merged_list:
-                f.write(line)
+        for line in codecs.open(os.path.join(raft_path,file_path),'r','ISO-8859-1').readlines():
+            if line.rstrip() not in merged_list:
+                f.write(line.rstrip()+'\n')
 
+    f.close()
+    # Prepare filtered version for using with dirbuster
+    f = codecs.open(os.path.join(output_path,'filtered_combined_'+case+'.txt'),'w','UTF-8')
+    for line in codecs.open(os.path.join(output_path,'combined_'+case+'.txt'),'r','UTF-8').readlines():
+        f.write(urllib.quote_plus(line.encode('utf-8'),'./\r\n'))
     f.close()
