@@ -44,17 +44,30 @@ echo ------------------------------------------------------
 echo
  
 if [ $# -ne 3 ]; then 
-   echo Usage: $0 IP PORT
+   echo "Usage: $0 <full path to ssl-cipher-check.pl> IP PORT"
    exit
 fi
  
 SSL_CIPHER_CHECK=$1
 HOST=$2
 PORT=$3
+RENEG_FILE='reneg.log'
+RENEG_FILE_ERRORS='reneg_errors.log'
  
-# Added by Abraham: First check the service can actually speak SSL:
-SSL_HANDSHAKE_LINES=$((sleep 5 ; echo -e "^C" 2> /dev/null) |  openssl s_client -connect $HOST:$PORT 2> /dev/null | wc -l)
-if [ $SSL_HANDSHAKE_LINES -lt 15 ]; then # Handshake failed
+#echo "Before handshake.."
+# Check if the target service speaks SSL/TLS (& check renegotiation)
+(echo R; sleep 5) | openssl s_client -connect $HOST:$PORT > $RENEG_FILE 2> $RENEG_FILE_ERRORS &
+pid=$!
+sleep 5
+#echo "After handshake.."
+
+SSL_HANDSHAKE_LINES=$(cat $RENEG_FILE | wc -l)
+
+if [ $SSL_HANDSHAKE_LINES -lt 15 ] ; then
+        # SSL handshake failed - Non SSL/TLS service
+        # If the target service does not speak SSL/TLS, openssl does not terminate
+        kill -s SIGINT ${pid}
+
 	echo
 	echo "[*] SSL Checks skipped!: The host $HOST does not appear to speak SSL/TLS on port: $PORT"
 	echo
