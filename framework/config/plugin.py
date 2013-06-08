@@ -217,6 +217,8 @@ class PluginConfig:
 	def DeriveAllowedTypes(self, PluginGroup, PluginTypeFilter):
 		if PluginGroup == 'web':
 			self.AllowedPluginTypes[PluginGroup] = self.DeriveWebAllowedTypes(PluginGroup, PluginTypeFilter)
+        	elif PluginGroup == 'net':
+            		self.AllowedPluginTypes[PluginGroup] = self.DeriveNetAllowedTypes(PluginGroup, PluginTypeFilter)    
 		else:
 			self.AllowedPluginTypes[PluginGroup] = self.GetTypesForGroup(PluginGroup)
 
@@ -240,4 +242,15 @@ class PluginConfig:
                         AllowedPluginTypes = sorted(PluginTypes + [ 'external' ])
 		#print "Derived AllowedPluginTypes="+str(AllowedPluginTypes)
                 return AllowedPluginTypes
+	def DeriveNetAllowedTypes(self, PluginGroup, PluginTypeFilter):
+		#print "Deriving Net Allowed Types from PluginGroup="+PluginGroup+", PluginTypeFilter="+str(PluginTypeFilter)
+		AllowedPluginTypes = self.GetTypesForGroup(PluginGroup) # Default: All plugins enabled
+		PluginTypes = []
+		for PluginType in PluginTypeFilter:
+                	if PluginType != 'all':
+                        	PluginTypes.append(PluginType)
+                        elif PluginType == 'all':
+                                PluginTypes = self.PluginTypes
+		#print "Derived AllowedPluginTypes="+str(PluginTypes)
+                return PluginTypes
 
