@@ -155,7 +155,7 @@ class PluginHandler:
 			else:
 				return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/"
 		elif Plugin['Group'] == 'net':
-			return self.Core.Config.Get('OUTPUT_PATH')+"/net/"+WipeBadCharsForFilename(Plugin['Title'])+"/" 
+			return self.Core.Config.Get('OUTPUT_PATH')+"/net/"+WipeBadCharsForFilename(Plugin['Title'])+"/" +Plugin['Type']+"/"
 		elif Plugin['Group'] == 'aux':
 			return self.Core.Config.Get('AUX_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/" 
 

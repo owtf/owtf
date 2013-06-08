@@ -88,7 +88,10 @@ class Config:
 		self.Set('FORCE_OVERWRITE', Options['Force_Overwrite']) # True/False
 		self.Set('INTERACTIVE', Options['Interactive']) # True/False
 		self.Set('SIMULATION', Options['Simulation']) # True/False
-		self.Plugin.LoadWebTestGroupsFromFile()
+		if(Options['PluginGroup']=='web'):
+			self.Plugin.LoadWebTestGroupsFromFile()
+		elif(Options['PluginGroup']=='net'):
+			self.Plugin.LoadNetTestGroupsFromFile()
 		self.LoadProfiles(Options['Profiles'])
 		self.DeriveGlobalSettings()
 		self.DeriveFromTarget(Options)
@@ -115,7 +118,7 @@ class Config:
 		if Options['PluginGroup'] not in [ 'web', 'aux' ,'net']:
 			self.Core.Error.FrameworkAbort("Sorry, not implemented yet!")
 		if Options['PluginGroup'] == 'web' or Options['PluginGroup']== 'net': # Target to be interpreted as a URL
-			for TargetURL in self.PrepareURLScope(Options['Scope']):
+			for TargetURL in self.PrepareURLScope(Options['Scope'],Options['PluginGroup']):
 				self.SetTarget(TargetURL) # Set the Target URL as the configuration offset, changes will be performed here
 				self.DeriveConfigFromURL(TargetURL,Options) # Derive some settings from Target URL and initialise everything
 				self.Set('REVIEW_OFFSET', TargetURL)
@@ -206,7 +209,7 @@ class Config:
 		self.Set('SHORT_USER_AGENT', self.Get('USER_AGENT').split(' ')[0]) # For tools that choke with blank spaces in UA!?
 		self.Set('HTML_REPORT_PATH', self.Get('OUTPUT_PATH')+"/"+self.Get('HTML_REPORT'))
 
-	def PrepareURLScope(self, Scope): # Convert all targets to URLs
+	def PrepareURLScope(self, Scope,Group): # Convert all targets to URLs
 		NewScope = []
 		for TargetURL in Scope:
 			if TargetURL[-1] == "/":
@@ -214,8 +217,11 @@ class Config:
 			if TargetURL[0:4] != 'http':
 				# Add both "http" and "https" if not present:
 				# the connection check will then remove from the report if one does not exist
-				for Prefix in [ 'http', 'https' ]:
-					NewScope.append( Prefix+'://'+TargetURL )
+				if Group == "net":
+                                	NewScope.append('net://' + TargetURL)
+				else:
+					for Prefix in [ 'http', 'https' ]:
+						NewScope.append( Prefix+'://'+TargetURL )
 			else:
 				NewScope.append(TargetURL) # Append "as-is"
 		return NewScope
