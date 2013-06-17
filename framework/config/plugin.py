@@ -133,7 +133,7 @@ class PluginConfig:
                         try:
                                 Code, Descrip, Hint, URL = line.strip().split(' | ')
                         except ValueError:
-                                self.Core.Error.FrameworkAbort("Problem in Web Test Groups file: '"+self.Get('WEB_TEST_GROUPS')+"' -> Cannot parse line: "+line)
+                                self.Core.Error.FrameworkAbort("Problem in Net Test Groups file: '"+self.Get('NET_TEST_GROUPS')+"' -> Cannot parse line: "+line)
                         if len(Descrip) < 2:
                                 Descrip = Hint
                         if len(Hint) < 2:

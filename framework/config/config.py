@@ -88,6 +88,10 @@ class Config:
 		self.Set('FORCE_OVERWRITE', Options['Force_Overwrite']) # True/False
 		self.Set('INTERACTIVE', Options['Interactive']) # True/False
 		self.Set('SIMULATION', Options['Simulation']) # True/False
+                if(Options['PortWaves']==None):
+			self.Set('PORTWAVES' ,'10,100,1000')
+		else:
+			self.Set('PORTWAVES' ,Options['PortWaves'])   
 		if(Options['PluginGroup']=='web'):
 			self.Plugin.LoadWebTestGroupsFromFile()
 		elif(Options['PluginGroup']=='net'):
@@ -171,6 +175,21 @@ class Config:
 
 	def IsResourceType(self, ResourceType):
 		return ResourceType in self.Resources
+        
+    	def GetTcpPorts(self,startport,endport):
+		PortFile = open(self.Core.Config.Get('TCP_PORT_FILE'), 'r')
+		for line in PortFile:
+			PortList = line.split(',')
+			response = ','.join(PortList[int(startport):int(endport)])
+		return response
+	
+	def GetUdpPorts(self,startport,endport):
+		PortFile = open(self.Core.Config.Get('UDP_PORT_FILE'), 'r')
+		for line in PortFile:
+			PortList = line.split(',')
+			response = ','.join(PortList[int(startport):int(endport)])
+		return response		
+        	
 
 	def GetResources(self, ResourceType): # Transparently replaces the Resources placeholders with the relevant config information 
 		ReplacedResources = []
@@ -228,17 +247,20 @@ class Config:
 
 	def DeriveURLSettings(self, TargetURL,Options):
 		#print "self.Target="+self.Target
+		PORT_FOR_SERVICES = { "ftp":"21","x11":"6000","vnc":"5900","snmp":"161","smtp":"25","smb":"445","emc":"3000","mssql":"1434","msrpc":"135","httprpc":"593"}
 		self.Set('TARGET_URL', TargetURL) # Set the target in the config
 		# TODO: Use urlparse here
 		ParsedURL = urlparse(TargetURL)
 		URLScheme = Protocol = ParsedURL.scheme
-        
 		if ParsedURL.port == None: # Port is blank: Derive from scheme
 			if Options['PluginGroup'] == 'net':
-				Port = Options['RPort']
-			elif 'http' == URLScheme:
-				Port = '80'
-			elif 'https' == URLScheme:
+				if Options['RPort'] != None:
+					Port = Options['RPort']
+					if Options['OnlyPlugins']!= None:
+						for only_plugin in Options['OnlyPlugins']:
+							PORT_FOR_SERVICES[only_plugin]=Port
+			Port = '80'
+			if 'https' == URLScheme:
 				Port = '443'
 		else: # Port found by urlparse:
 			Port = str(ParsedURL.port)
@@ -261,7 +283,16 @@ class Config:
 		self.Set('HOST_IP', self.GetIPFromHostname(self.Get('HOST_NAME')))
 		self.Set('IP_URL', self.Get('TARGET_URL').replace(self.Get('HOST_NAME'), self.Get('HOST_IP')))
 		self.Set('TOP_DOMAIN', self.Get('HOST_NAME'))
-		
+		self.Set('FTP_PORT_NUMBER',PORT_FOR_SERVICES['ftp'])
+		self.Set('X11_PORT_NUMBER',PORT_FOR_SERVICES['x11'])
+		self.Set('SMB_PORT_NUMBER',PORT_FOR_SERVICES['smb'])
+		self.Set('SMTP_PORT_NUMBER',PORT_FOR_SERVICES['smtp'])
+		self.Set('SNMP_PORT_NUMBER',PORT_FOR_SERVICES['snmp'])
+		self.Set('MSSQL_PORT_NUMBER',PORT_FOR_SERVICES['mssql'])
+		self.Set('MSRPC_PORT_NUMBER',PORT_FOR_SERVICES['msrpc'])
+		self.Set('HTTP_RPC_PORT_NUMBER',PORT_FOR_SERVICES['httprpc'])
+		self.Set('VNC_PORT_NUMBER',PORT_FOR_SERVICES['vnc'])
+		self.Set('EMC_PORT_NUMBER',PORT_FOR_SERVICES['emc'])
 		HostnameChunks = self.Get('HOST_NAME').split('.')
 		if self.IsHostNameNOTIP() and len(HostnameChunks) > 2:
 			self.Set('TOP_DOMAIN', '.'.join(HostnameChunks[1:])) #Get "example.com" from "www.example.com"
@@ -324,6 +355,9 @@ class Config:
 
 	def GetHTMLTransacLog(self, Partial = False):
 		return self.GetFileName('TRANSACTION_LOG_HTML', Partial)
+	
+	def GetPortWaves(self):
+		return self.Get('PORTWAVES')	
 
 	def GetTXTTransacLog(self, Partial = False):
 		return self.GetFileName('TRANSACTION_LOG_TXT', Partial)

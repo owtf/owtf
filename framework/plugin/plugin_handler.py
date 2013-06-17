@@ -31,6 +31,7 @@ The PluginHandler is in charge of running all plugins taking into account the ch
 import os, sys, imp
 from collections import defaultdict
 from framework.lib.general import *
+from framework.plugin.scanner import Scanner
 
 INTRO_BANNER_GENERAL = """
 Short Intro:
@@ -68,6 +69,7 @@ class PluginHandler:
 		self.Core.Config.Plugin.DeriveAllowedTypes(self.PluginGroup, Options['PluginType'])
 		self.OnlyPluginsSet = len(self.OnlyPluginsList) > 0
 		self.ExceptPluginsSet = len(self.ExceptPluginsList) > 0
+	        self.scanner = Scanner(self.Core)
 		self.InitExecutionRegistry()
 
 	def ValidateAndFormatPluginList(self, PluginList):
@@ -223,7 +225,7 @@ class PluginHandler:
 	def ProcessPlugin(self, PluginDir, Plugin, Status):
 		self.Core.Timer.StartTimer('Plugin') # Time how long it takes the plugin to execute
 		Plugin['Start'] = self.Core.Timer.GetStartDateTimeAsStr('Plugin')
-		if not self.CanPluginRun(Plugin, True):
+		if not self.CanPluginRun(Plugin, True):		
 			return None # Skip 
 		Status['AllSkipped'] = False # A plugin is going to be run
 		self.PluginCount += 1
@@ -273,19 +275,53 @@ class PluginHandler:
 	def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList): # TargetList param will be useful for netsec stuff to call this
 		PluginDir = self.GetPluginGroupDir(PluginGroup)
 		cprint("PluginHandler: Processing "+PluginGroup+" plugins using "+self.Algorithm+" algorithm ..")
-		if 'breadth' == self.Algorithm: # Loop plugins, then targets
-			for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
-				#print "Processing Plugin="+str(Plugin)
-				for Target in TargetList: # For each Target 
-					#print "Processing Target="+str(Target)
-					self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-					self.ProcessPlugin( PluginDir, Plugin, Status )
-		elif 'depth' == self.Algorithm: # Loop Targets, then plugins
-			for Target in TargetList: # For each Target
+            	if PluginGroup == 'net':
+			portwaves =  self.Core.Config.GetPortWaves()
+			wave1 = portwaves.split(',')[0]
+			wave2 = portwaves.split(',')[1]				
+			wave3 = portwaves.split(',')[2]
+			#print wave1 +"  "+wave2+"  "+wave3
+			Top_Wave1_Ports_TCP = self.Core.Config.GetTcpPorts(0,wave1)
+			Rem_Wave2_Ports_TCP = self.Core.Config.GetTcpPorts(wave1,wave2)
+			Rem_Wave3_Ports_TCP = self.Core.Config.GetTcpPorts(wave2,wave3)
+			Rem_Ports_TCP = self.Core.Config.GetTcpPorts(wave3,-1)
+			for Target in TargetList: # For each Target 
+				#print "Processing Target="+str(Target)
+				self.scanner.scan_network(Target)
+           			#Scanning and processing the first part of the ports
+				self.scanner.probe_network(Target,"tcp",Top_Wave1_Ports_TCP)
 				self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
 				for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
 					self.ProcessPlugin( PluginDir, Plugin, Status )
-
+				#scanning and processing second part of the ports
+				self.scanner.probe_network(Target,"tcp",Rem_Wave2_Ports_TCP)
+				self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
+				for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
+					self.ProcessPlugin( PluginDir, Plugin, Status )
+				#scanning and processing third parts of the ports
+				self.scanner.probe_network(Target,"tcp",Rem_Wave3_Ports_TCP)
+				self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
+				for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
+					self.ProcessPlugin( PluginDir, Plugin, Status )
+				#scanning and processing rest of the ports
+				self.scanner.probe_network(Target,"tcp",Rem_Ports_TCP)
+				self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
+				for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
+					self.ProcessPlugin( PluginDir, Plugin, Status )
+		else:
+			if 'breadth' == self.Algorithm: # Loop plugins, then targets
+				for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
+					#print "Processing Plugin="+str(Plugin)
+					for Target in TargetList: # For each Target 
+						#print "Processing Target="+str(Target)
+						self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
+						self.ProcessPlugin( PluginDir, Plugin, Status )
+			elif 'depth' == self.Algorithm: # Loop Targets, then plugins
+				for Target in TargetList: # For each Target
+					self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
+					for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
+						self.ProcessPlugin( PluginDir, Plugin, Status )
+	
 	def SavePluginInfo(self, PluginOutput, Plugin):
 		self.Core.DB.SaveDBs() # Save new URLs to DB after each request
 		self.Core.Reporter.SavePluginReport(PluginOutput, Plugin) # Timer retrieved by Reporter
