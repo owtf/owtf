@@ -113,6 +113,10 @@ def GetArgs(Core):
                         dest="RPort",
                         default=None,
                         help="<port> - Port to run probes")
+    Parser.add_argument("-portwaves", "--portwaves",
+                        dest="PortWaves",
+                        default=None,
+                        help="<wave1,wave2,wave3> - Waves to run network scanning")
     Parser.add_argument('Targets', nargs='*', help='List of Targets')
 
     return Parser.parse_args()
@@ -255,6 +259,7 @@ def ProcessOptions(Core):
                         'Algorithm': Arg.Algorithm,
                         'PluginGroup': PluginGroup,
                         'RPort': Arg.RPort,
+                        'PortWaves' : Arg.PortWaves,
                         'Args': Args,
                         }):
             # Only if Start is for real (i.e. not just listing plugins, etc)
