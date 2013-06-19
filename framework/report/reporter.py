@@ -290,7 +290,7 @@ self.Render.DrawSelect(self.GetSelectListFromDict(self.Core.Config.Plugin.GetWeb
 			#'TestGroupHeaderStr' : '<div id="'+TestGroup['Code']+'"><br />'+self.Render.DrawButtonLink(TestGroup['Descrip']+" ("+TestGroup['Code']+")", TestGroup['URL'], { 'class' : 'report_index' })+"&nbsp;"+TestGroup['Hint']
 		return TestGroups
         
-	def GetRegisteredNetPlugins(self, ReportType): # Web Plugins go in OWASP Testing Guide order
+	def GetRegisteredNetPlugins(self, ReportType): # netPlugins go in OWASP Testing Guide order
 		TestGroups = []
 		for TestGroup in self.Core.Config.Plugin.GetNetTestGroups(): #Follow defined web test group order, NOT execution order
 			RegisteredPlugins = self.Core.DB.PluginRegister.Search( { 'Code' : TestGroup['Code'], 'Target' : self.Core.Config.GetTarget() } )
@@ -357,10 +357,10 @@ self.Render.DrawSelect(self.GetSelectListFromDict(self.Core.Config.Plugin.GetWeb
 			AllPluginsTabIdList = []
 			AllPluginsDivIdList = []
 			AllCodes = []
-			
 			for TestGroup in self.GetTestGroups(self.Core.Config.Get('REPORT_TYPE')):
 		                HeaderStr = TestGroup['TestGroupHeaderStr']
 				Tabs = self.Render.CreateTabs()
+				
 				for Match in  TestGroup['RegisteredPlugins']:
 					if Match['Code'] not in AllCodes:
 						AllCodes.append(Match['Code'])

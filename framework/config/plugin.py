@@ -122,7 +122,7 @@ class PluginConfig:
                 return self.AllPlugins[Group][Type]
 
         def GetNetTestGroups(self):
-                return self.NetTestGroups
+                return self.NetTestGroups + self.WebTestGroups
 
         def LoadNetTestGroupsFromFile(self): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
                 self.NetTestGroups = []
@@ -218,7 +218,9 @@ class PluginConfig:
 		if PluginGroup == 'web':
 			self.AllowedPluginTypes[PluginGroup] = self.DeriveWebAllowedTypes(PluginGroup, PluginTypeFilter)
         	elif PluginGroup == 'net':
-            		self.AllowedPluginTypes[PluginGroup] = self.DeriveNetAllowedTypes(PluginGroup, PluginTypeFilter)    
+            		self.AllowedPluginTypes[PluginGroup] = self.DeriveNetAllowedTypes(PluginGroup, PluginTypeFilter)   
+            		self.AllowedPluginTypes['web'] = self.DeriveWebAllowedTypes('web', {"active"})
+			
 		else:
 			self.AllowedPluginTypes[PluginGroup] = self.GetTypesForGroup(PluginGroup)
 
@@ -240,7 +242,6 @@ class PluginConfig:
 		#print "Derived PluginTypes="+str(PluginTypes)
                 if PluginTypes:
                         AllowedPluginTypes = sorted(PluginTypes + [ 'external' ])
-		#print "Derived AllowedPluginTypes="+str(AllowedPluginTypes)
                 return AllowedPluginTypes
 	def DeriveNetAllowedTypes(self, PluginGroup, PluginTypeFilter):
 		#print "Deriving Net Allowed Types from PluginGroup="+PluginGroup+", PluginTypeFilter="+str(PluginTypeFilter)

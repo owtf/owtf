@@ -181,7 +181,7 @@ class PluginHandler:
 			if self.ExceptPluginsSet and Plugin['Code'] in self.ExceptPluginsList:
 				Chosen = False # Skip plugins present in the black-list defined by the user
 		if Plugin['Type'] not in self.Core.Config.Plugin.GetAllowedTypes(Plugin['Group']):
-			Chosen = False # Skip plugin: Not matching selected type
+			Chosen = False # Skip plugin: Not matching selected type    
 		return Chosen
 
 	def IsActiveTestingPossible(self): # Checks if 1 active plugin is enabled = active testing possible:
@@ -274,40 +274,28 @@ class PluginHandler:
 
 	def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList): # TargetList param will be useful for netsec stuff to call this
 		PluginDir = self.GetPluginGroupDir(PluginGroup)
-		cprint("PluginHandler: Processing "+PluginGroup+" plugins using "+self.Algorithm+" algorithm ..")
             	if PluginGroup == 'net':
 			portwaves =  self.Core.Config.GetPortWaves()
-			wave1 = portwaves.split(',')[0]
-			wave2 = portwaves.split(',')[1]				
-			wave3 = portwaves.split(',')[2]
-			#print wave1 +"  "+wave2+"  "+wave3
-			Top_Wave1_Ports_TCP = self.Core.Config.GetTcpPorts(0,wave1)
-			Rem_Wave2_Ports_TCP = self.Core.Config.GetTcpPorts(wave1,wave2)
-			Rem_Wave3_Ports_TCP = self.Core.Config.GetTcpPorts(wave2,wave3)
-			Rem_Ports_TCP = self.Core.Config.GetTcpPorts(wave3,-1)
+			waves = portwaves.split(',')
+			waves.append('-1')
+			lastwave=0
 			for Target in TargetList: # For each Target 
-				#print "Processing Target="+str(Target)
 				self.scanner.scan_network(Target)
            			#Scanning and processing the first part of the ports
-				self.scanner.probe_network(Target,"tcp",Top_Wave1_Ports_TCP)
-				self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-				for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
-					self.ProcessPlugin( PluginDir, Plugin, Status )
-				#scanning and processing second part of the ports
-				self.scanner.probe_network(Target,"tcp",Rem_Wave2_Ports_TCP)
-				self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-				for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
-					self.ProcessPlugin( PluginDir, Plugin, Status )
-				#scanning and processing third parts of the ports
-				self.scanner.probe_network(Target,"tcp",Rem_Wave3_Ports_TCP)
-				self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-				for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
-					self.ProcessPlugin( PluginDir, Plugin, Status )
-				#scanning and processing rest of the ports
-				self.scanner.probe_network(Target,"tcp",Rem_Ports_TCP)
-				self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-				for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
-					self.ProcessPlugin( PluginDir, Plugin, Status )
+                		for i in range(len(waves)):
+					ports = self.Core.Config.GetTcpPorts(lastwave,waves[i])      
+					http = self.scanner.probe_network(Target,"tcp",ports)
+					self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
+					for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
+						self.ProcessPlugin( PluginDir, Plugin, Status )
+					lastwave = waves[i]
+					for http_ports in http:
+						if http_ports == '443':
+                            				self.ProcessPluginsForTargetList('web',{ 'SomeAborted' : False, 'SomeSuccessful' : False, 'AllSkipped' : True },{"https://"+Target.split("//")[1]})
+                        			else:
+                            				self.ProcessPluginsForTargetList('web',{ 'SomeAborted' : False, 'SomeSuccessful' : False, 'AllSkipped' : True },{Target})
+                                   
+                    
 		else:
 			if 'breadth' == self.Algorithm: # Loop plugins, then targets
 				for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
