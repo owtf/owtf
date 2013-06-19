@@ -146,13 +146,12 @@ class Scanner:
         return response
         
     
-    def probe_service_for_hosts(self,nmap_file):
+    def probe_service_for_hosts(self,nmap_file,target):
         services={"snmp","smb","smtp","ms-sql","ftp","X11","ppp","vnc","http-rpc-epmap","msrpc","http"}
-        PORT_FOR_SERVICES = { "ftp":"21","x11":"6000","vnc":"5900","snmp":"161","smtp":"25","smb":"445","emc":"3000","mssql":"1434","msrpc":"135","httprpc":"593"}
         total_tasks=0
         tasklist=""
         plugin_list = []
-
+        http = []
         for service in services: 
             tasks_for_service = len(self.target_service(nmap_file,service).split("##"))-1
             total_tasks = total_tasks+tasks_for_service
@@ -170,22 +169,19 @@ class Scanner:
                         plugin_to_invoke='httprpc'
                     if(service == 'X11'):
                         plugin_to_invoke='x11'     
-                    PORT_FOR_SERVICES[plugin_to_invoke]=port
+                    service1 = plugin_to_invoke
+                    if service1 =='httprpc':
+                        service1 = 'http_rpc'
+                    self.core.Config.Set(service1.upper()+"_PORT_NUMBER",port)
                     if(service != 'http'):
                         plugin_list.append(plugin_to_invoke)
+                    else:
+                        self.core.PluginHandler.OnlyPluginsSet = 0;
+                        http.append(port)
                     print "we have to probe "+str(ip)+":"+str(port)+" for service "+plugin_to_invoke
-        self.core.Config.Set('FTP_PORT_NUMBER',PORT_FOR_SERVICES['ftp'])
-        self.core.Config.Set('X11_PORT_NUMBER',PORT_FOR_SERVICES['x11'])
-        self.core.Config.Set('SMB_PORT_NUMBER',PORT_FOR_SERVICES['smb'])
-        self.core.Config.Set('SMTP_PORT_NUMBER',PORT_FOR_SERVICES['smtp'])
-        self.core.Config.Set('SNMP_PORT_NUMBER',PORT_FOR_SERVICES['snmp'])
-        self.core.Config.Set('MSSQL_PORT_NUMBER',PORT_FOR_SERVICES['mssql'])
-        self.core.Config.Set('MSRPC_PORT_NUMBER',PORT_FOR_SERVICES['msrpc'])
-        self.core.Config.Set('HTTP_RPC_PORT_NUMBER',PORT_FOR_SERVICES['httprpc'])
-        self.core.Config.Set('VNC_PORT_NUMBER',PORT_FOR_SERVICES['vnc'])
-        self.core.Config.Set('EMC_PORT_NUMBER',PORT_FOR_SERVICES['emc'])
         self.core.PluginHandler.OnlyPluginsList = self.core.PluginHandler.ValidateAndFormatPluginList(plugin_list)        
         self.core.PluginHandler.OnlyPluginsSet = max(1,len(plugin_list))
+        return http
         
     def scan_network(self,target):
         self.ping_sweep(target.split("//")[1],"full")
@@ -193,4 +189,4 @@ class Scanner:
     
     def probe_network(self,target,protocol,port):
         self.scan_and_grab_banners(PING_SWEEP_FILE+".ips",FAST_SCAN_FILE,protocol,"-p "+port)
-        self.probe_service_for_hosts(FAST_SCAN_FILE+"."+protocol+".gnmap")            
+        return self.probe_service_for_hosts(FAST_SCAN_FILE+"."+protocol+".gnmap",target.split("//")[1])            
