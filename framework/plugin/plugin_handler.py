@@ -157,7 +157,7 @@ class PluginHandler:
 			else:
 				return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/"
 		elif Plugin['Group'] == 'net':
-			return self.Core.Config.Get('OUTPUT_PATH')+"/net/"+WipeBadCharsForFilename(Plugin['Title'])+"/" +Plugin['Type']+"/"
+			return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/" +Plugin['Type']+"/"
 		elif Plugin['Group'] == 'aux':
 			return self.Core.Config.Get('AUX_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/" 
 
@@ -309,7 +309,7 @@ class PluginHandler:
 					self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
 					for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
 						self.ProcessPlugin( PluginDir, Plugin, Status )
-	
+                        
 	def SavePluginInfo(self, PluginOutput, Plugin):
 		self.Core.DB.SaveDBs() # Save new URLs to DB after each request
 		self.Core.Reporter.SavePluginReport(PluginOutput, Plugin) # Timer retrieved by Reporter
