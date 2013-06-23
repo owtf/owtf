@@ -86,4 +86,10 @@ if [ "$a" = "y" ]; then
     sudo pip install xdot
 fi
 
+echo "\n[*] Install dependencies needed for Inbound Proxy? [y/n]"
+read a
+if [ "$a" = "y" ]; then
+    sudo pip install tornado pycurl
+fi
+
 echo "\n[*] Completed installing dependencies\n"
