@@ -61,4 +61,16 @@ if [ "$a" = "y" ]; then
     cd ../
 fi
 
+echo "\n[*] Create local CA for OWTF Inbound Proxy? [y/n]"
+read a
+if [ "$a" = "y" ]; then
+    mkdir -p ~/.owtf/proxy/certs
+    echo "-----------------------------------------------"
+    echo "[*] Please use \"owtf\" as password for the key"
+    echo "-----------------------------------------------"
+    openssl genrsa -des3 -out ~/.owtf/proxy/ca.key 1024
+    openssl req -new -x509 -days 3650 -key ~/.owtf/proxy/ca.key -out ~/.owtf/proxy/ca.crt
+    echo "\n[*] Donot forget to add the ~/.owtf/proxy/ca.crt as a trusted CA in your browser"
+fi
+
 echo "\n[*] Installation script ended"
