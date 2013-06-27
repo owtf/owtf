@@ -117,6 +117,10 @@ def GetArgs(Core):
                         dest="PortWaves",
                         default=None,
                         help="<wave1,wave2,wave3> - Waves to run network scanning")
+    Parser.add_argument("-d", "--dev",
+                        dest="DevMode",
+                        action="store_true",
+                        help="Use this flag to run modules which are under development")
     Parser.add_argument('Targets', nargs='*', help='List of Targets')
 
     return Parser.parse_args()
@@ -260,6 +264,7 @@ def ProcessOptions(Core):
                         'PluginGroup': PluginGroup,
                         'RPort': Arg.RPort,
                         'PortWaves' : Arg.PortWaves,
+                        'DevMode': Arg.DevMode,
                         'Args': Args,
                         }):
             # Only if Start is for real (i.e. not just listing plugins, etc)

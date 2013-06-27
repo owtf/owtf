@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Description:
 The core is the glue that holds the components together and allows some of them to communicate with each other
 '''
-import os, re
+import os, re, signal, subprocess
 from urlparse import urlparse
 from framework import timer, error_handler, random
 from framework.shell import blocking_shell, interactive_shell
@@ -44,7 +44,6 @@ from framework.report import reporter, summary
 from framework.selenium import selenium_handler
 from framework.lib.general import *
 from collections import defaultdict
-from multiprocessing import Process
 
 class Core:
     def __init__(self, RootDir):
@@ -123,21 +122,23 @@ class Core:
         if self.Config.Get('SIMULATION'):
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
         # The proxy is being spawned as a seperate process
-        if Options['InboundProxy']:
-            if len(Options['InboundProxy']) == 1:
-                Options['InboundProxy'] = [self.Config.Get('INBOUND_PROXY_IP'), Options['InboundProxy'][0]]
+        self.DevMode = Options["DevMode"]
+        if Options["DevMode"]:
+            if Options['InboundProxy']:
+                if len(Options['InboundProxy']) == 1:
+                    Options['InboundProxy'] = [self.Config.Get('INBOUND_PROXY_IP'), Options['InboundProxy'][0]]
+            else:
+                Options['InboundProxy'] = [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')]
+            self.ProxyProcess = proxy.ProxyProcess(
+                                                self.Config.Get('INBOUND_PROXY_PROCESSES'),
+                                                Options['InboundProxy'],
+                                                Options['OutboundProxy']
+                                                )
+            cprint("Starting Inbound proxy at " + ":".join(Options['InboundProxy']))
+            self.ProxyProcess.start()
+            self.Requester = requester.Requester(self, Options['InboundProxy'])
         else:
-            Options['InboundProxy'] = [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')]
-        self.ProxyProcess = Process(target=proxy.ProxyServer,
-                                    args=(
-                                        self.Config.Get('INBOUND_PROXY_PROCESSES'),
-                                        Options['InboundProxy'],
-                                        Options['OutboundProxy'],)
-                                        )
-        #cprint("Starting Inbound proxy at " + ":".join(Options['InboundProxy']))
-        #self.ProxyProcess.start()
-        #self.Requester = requester.Requester(self, Options['InboundProxy'])
-        self.Requester = requester.Requester(self, Options['OutboundProxy'])
+            self.Requester = requester.Requester(self, Options['OutboundProxy'])
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
@@ -175,6 +176,10 @@ class Core:
             except AttributeError: # DB not instantiated yet!
                 cprint("owtf finished: No time to report anything! :P")
             finally:
+                if self.DevMode:
+                    cprint("Stopping inbound proxy and cleaning up, Please wait!")
+                    self.KillChildProcesses(self.ProxyProcess.pid)
+                    self.ProxyProcess.terminate()
                 exit()
 
     def GetSeed(self):
@@ -194,6 +199,14 @@ class Core:
 
     def GetFileAsList(self, FileName):
         return GetFileAsList(FileName)
+
+    def KillChildProcesses(self, parent_pid, sig=signal.SIGINT):
+        PsCommand = subprocess.Popen("ps -o pid --ppid %d --noheaders" % parent_pid, shell=True, stdout=subprocess.PIPE)
+        PsOutput = PsCommand.stdout.read()
+        RetCode = PsCommand.wait()
+        assert RetCode == 0, "ps command returned %d" % RetCode
+        for PidStr in PsOutput.split("\n")[:-1]:
+                os.kill(int(PidStr), sig)
 
 def Init(RootDir):
     return Core(RootDir)

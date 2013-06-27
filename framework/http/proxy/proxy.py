@@ -39,15 +39,14 @@ import tornado.httputil
 import tornado.options
 import socket
 import ssl
-
-from .socket_wrapper import wrap_socket
-
+from multiprocessing import Process
+from socket_wrapper import wrap_socket
 
 class ProxyHandler(tornado.web.RequestHandler):
     """
     This RequestHandler processes all the requests that the application recieves
     """
-    SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+    SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS']
 
     def set_status(self, status_code, reason=None):
         """Sets the status code for our response.
@@ -154,7 +153,7 @@ class ProxyHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def options(self):
         return self.get()
-
+        
     @tornado.web.asynchronous
     def connect(self):
         """
@@ -189,10 +188,10 @@ class ProxyHandler(tornado.web.RequestHandler):
             self.write(b"Server Not Found")
             self.finish()
 
-
-class ProxyServer(object):
+class ProxyProcess(Process):
 
     def __init__(self, instances, inbound_options, outbound_options=[]):
+        Process.__init__(self)
         self.application = tornado.web.Application(handlers=[(r".*", ProxyHandler)], debug=False, gzip=True)
         self.application.inbound_ip = inbound_options[0]
         self.application.inbound_port = int(inbound_options[1])
@@ -204,18 +203,18 @@ class ProxyServer(object):
         global server
         server = tornado.httpserver.HTTPServer(self.application)
         self.server = server
-        self.start(instances)
-        
-    # "0" equals the number of cores present in a machine
-    def start(self, instances):
-        self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
-        # Useful for using custom loggers because of relative paths in secure requests
-        # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
-        tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/fix.log","--logging=warning"])
-        # To run any number of instances
-        self.server.start(int(instances))
-        tornado.ioloop.IOLoop.instance().start()
+        self.instances = instances
 
-    def stop(self):
-        self.server.stop()
-        # print("[!] Shutting down the proxy server")
+    # "0" equals the number of cores present in a machine
+    def run(self):
+        try:
+            self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
+            # Useful for using custom loggers because of relative paths in secure requests
+            # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
+            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/fix.log","--logging=info"])
+            # To run any number of instances
+            self.server.start(int(self.instances))
+            tornado.ioloop.IOLoop.instance().start()
+        except:
+            # Cleanup code
+            pass
