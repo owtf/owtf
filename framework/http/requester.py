@@ -88,7 +88,7 @@ class Requester:
 			cprint("WARNING: No outbound proxy selected. It is recommended to use an outbound proxy for tactical fuzzing later")
 			self.Opener = urllib2.build_opener(MyHTTPHandler, MyHTTPSHandler, SmartRedirectHandler) # "Smart" redirect handler not really working
 		else: # All requests must use the outbound proxy
-			cprint("Setting up outbound proxy ..")
+			cprint("Setting up proxy(inbound) for OWTF requests..")
 			IP, Port = Proxy
 			ProxyConf = { 'http':'http://'+IP+":"+Port, 'https':'http://'+IP+":"+Port }
 			ProxyHandler = urllib2.ProxyHandler(ProxyConf)
