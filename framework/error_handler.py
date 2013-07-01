@@ -50,18 +50,21 @@ class ErrorHandler:
 		self.Core.Finish(Message, Report)
 		return Message
 
+	def get_option_from_user(self, Options):
+	    return raw_input("Options: 'e'+Enter= Exit" + Options + ", Enter= Next test\n")
+
 	def UserAbort(self, Level, PartialOutput = ''): # Levels so far can be Command or Plugin
 		Message = cprint("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
 		Options = ""
 		if 'Command' == Level:
 			Options = ", 'p'+Enter= Move on to next plugin"
-		Option = raw_input("Options: 'e'+Enter= Exit"+Options+", Enter= Next test\n")
+		Option = self.get_option_from_user(Options)
 		if 'e' == Option:
 			if 'Command' == Level: # Try to save partial plugin results
 				raise FrameworkAbortException(PartialOutput)
-				self.Core.Finish("Aborted by user") # Interrupted
-			elif 'p' == Option: # Move on to next plugin
-				raise PluginAbortException(PartialOutput) # Jump to next handler and pass partial output to avoid losing results
+				#self.Core.Finish("Aborted by user") # Interrupted
+		elif 'p' == Option: # Move on to next plugin
+			raise PluginAbortException(PartialOutput) # Jump to next handler and pass partial output to avoid losing results
 		return Message
 
 	def LogError(self, Message):
