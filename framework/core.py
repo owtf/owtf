@@ -107,6 +107,7 @@ class Core:
         return Command
 
     def Start(self, Options):
+        self.DevMode = Options["DevMode"]
         cprint("Loading framework please wait..")
         self.PluginHandler = plugin_handler.PluginHandler(self, Options)
         self.Config.ProcessOptions(Options)
@@ -122,7 +123,6 @@ class Core:
         if self.Config.Get('SIMULATION'):
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
         # The proxy is being spawned as a seperate process
-        self.DevMode = Options["DevMode"]
         if Options["DevMode"]:
             if Options['InboundProxy']:
                 if len(Options['InboundProxy']) == 1:
@@ -177,9 +177,12 @@ class Core:
                 cprint("owtf finished: No time to report anything! :P")
             finally:
                 if self.DevMode:
-                    cprint("Stopping inbound proxy and cleaning up, Please wait!")
-                    self.KillChildProcesses(self.ProxyProcess.pid)
-                    self.ProxyProcess.terminate()
+                    try:
+                        cprint("Stopping inbound proxy and cleaning up, Please wait!")
+                        self.KillChildProcesses(self.ProxyProcess.pid)
+                        self.ProxyProcess.terminate()
+                    except: # It means the proxy was not started
+                        pass
                 exit()
 
     def GetSeed(self):

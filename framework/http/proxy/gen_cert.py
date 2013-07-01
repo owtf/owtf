@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from OpenSSL import crypto
 import os
 import hashlib
-
+import re
 from filelock import FileLock
 
 
@@ -47,8 +47,8 @@ def gen_signed_cert(domain,
     """
     certs_folder = os.path.expanduser("~/.owtf/proxy/certs/")
 
-    key_path = os.path.join(certs_folder, domain.replace('.', '_') + ".key")
-    cert_path = os.path.join(certs_folder, domain.replace('.', '_') + ".crt")
+    key_path = os.path.join(certs_folder, re.sub('[^-0-9a-zA-Z_]', '_', domain) + ".key")
+    cert_path = os.path.join(certs_folder, re.sub('[^-0-9a-zA-Z_]', '_', domain) + ".crt")
 
     # The first conditions checks if file exists, and does nothing if true
     # If file doenst exist lock is obtained for writing (Other processes in race must wait)
