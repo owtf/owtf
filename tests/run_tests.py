@@ -33,6 +33,7 @@ import nose  # @UnresolvedImport
 import argparse
 from sys import argv
 
+TEST_CASES_FOLDER = "test_cases"
 
 class ArgumentParser():
 
@@ -101,22 +102,40 @@ def build_nose_arguments(args):
     nose_arguments = ""
     category = ""
     modules_path = []
-    if (args.category == "framework" or args.category == "plugin"):
+    all_categories = ["framework", "plugin", "testing_framework"]
+    if (args.category in all_categories):
         category += args.category
-        nose_arguments = category + "/"
+        nose_arguments = TEST_CASES_FOLDER + "/" + category + "/"
     if (args.modules is not None):
         modules = args.modules.split(",")
         for i in modules:
-            modules_path.append(category + "/" + i)
+            modules_path.append(TEST_CASES_FOLDER + "/" + category + "/" + i + ".py")
         nose_arguments = " ".join(modules_path)
     if (args.only is not None):
         nose_arguments += args.only.replace(",", " ")
+    if (args.all == True):
+        nose_arguments = ""
+        for c in all_categories:
+            nose_arguments += TEST_CASES_FOLDER + "/" + c + "/ "
+    nose_arguments += " --verbose --detailed-errors"
     return "nosetests " + nose_arguments
 
+
+def include_owtf_path_in_pythonpath():
+    from os import path as os_path
+    from sys import path as sys_path
+    framework_path = os_path.abspath('..')
+    print "[+] Setting up environment..."
+    sys_path.append(framework_path)
+    print framework_path + " appended to the PYTHON_PATH"
+
+
+include_owtf_path_in_pythonpath()
 parser = ArgumentParser()
 if (len(argv) == 1):
     parser.print_usage()
 else:
     args = parser.parse_arguments(argv[1:len(argv)])
     nose_arguments = build_nose_arguments(args)
+    print "[+] Running tests..."
     nose.run(argv=nose_arguments.split(" "))
