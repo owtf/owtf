@@ -13,7 +13,7 @@ class ErrorHandlerTests(BaseTestCase):
     def test_FrameworkAbort_printing_and_core_delegation(self):
         message = "Message"
         self.core_mock.should_receive('Finish').with_args(str, bool).once()
-        error_handler = self.create_error_handler_with_core_mock()
+        error_handler = self._create_error_handler_with_core_mock()
 
         self.init_stdout_recording()
         error_handler.FrameworkAbort(message)
@@ -22,14 +22,14 @@ class ErrorHandlerTests(BaseTestCase):
         assert_that(stdout_content is not None)
 
     def test_UserAbort_with_options_Exit_and_Command_should_raise_an_exception(self):
-        error_handler = self.create_error_handler_with_core_mock()
+        error_handler = self._create_error_handler_with_core_mock()
         flexmock(error_handler)
         error_handler.should_receive("get_option_from_user").and_return("e").once()
 
         self.assertRaises(FrameworkAbortException, error_handler.UserAbort, "Command")
 
     def test_UserAbort_with_options_Exit_and_Next_plugin_should_raise_and_exception(self):
-        error_handler = self.create_error_handler_with_core_mock()
+        error_handler = self._create_error_handler_with_core_mock()
         flexmock(error_handler)
         error_handler.should_receive("get_option_from_user").and_return("p").once()
 
@@ -40,7 +40,7 @@ class ErrorHandlerTests(BaseTestCase):
         db_mock = flexmock()
         db_mock.should_receive("AddError").with_args(message).once()
         self.core_mock.DB = db_mock
-        error_handler = self.create_error_handler_with_core_mock()
+        error_handler = self._create_error_handler_with_core_mock()
 
         error_handler.LogError(message)
 
@@ -48,7 +48,7 @@ class ErrorHandlerTests(BaseTestCase):
         db_mock = flexmock()
         db_mock.should_receive("AddError").and_raise(AttributeError).once()
         self.core_mock.DB = db_mock
-        error_handler = self.create_error_handler_with_core_mock()
+        error_handler = self._create_error_handler_with_core_mock()
 
         self.init_stdout_recording()
         error_handler.LogError("Error message")
@@ -57,7 +57,7 @@ class ErrorHandlerTests(BaseTestCase):
         assert_that(stdout_content is not None)
 
     def test_Add_should_print_and_save_to_the_DB_a_non_OWTF_error(self):
-        error_handler = self.create_error_handler_with_core_mock()
+        error_handler = self._create_error_handler_with_core_mock()
         flexmock(error_handler)
         error_handler.should_receive("LogError").once()
 
@@ -68,7 +68,7 @@ class ErrorHandlerTests(BaseTestCase):
         assert_that(stdout_content is not None)
 
     def test_Add_should_notify_the_user_when_an_OWTF_bug_is_found(self):
-        error_handler = self.create_error_handler_with_core_mock()
+        error_handler = self._create_error_handler_with_core_mock()
         flexmock(error_handler)
         error_handler.should_receive("LogError").once()
 
@@ -78,5 +78,5 @@ class ErrorHandlerTests(BaseTestCase):
 
         assert_that(stdout_content is not None)
 
-    def create_error_handler_with_core_mock(self):
+    def _create_error_handler_with_core_mock(self):
         return ErrorHandler(self.core_mock)
