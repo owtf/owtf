@@ -41,8 +41,12 @@ class SMTP:
 	def Print(self, Message):
 		cprint(self.MsgPrefix + Message)
 		
+
+	def create_connection_with_mail_server(self, Options):
+	    return smtplib.SMTP(Options['SMTP_HOST'], int(Options['SMTP_PORT']))
+
 	def Connect(self, Options):
-		MailServer = smtplib.SMTP(Options['SMTP_HOST'], int(Options['SMTP_PORT']))
+		MailServer = self.create_connection_with_mail_server(Options)
 		MailServer.ehlo()
 		try:
 			MailServer.starttls() # Give start TLS a shot
@@ -54,9 +58,16 @@ class SMTP:
 			self.Print('ERROR: ' + str(e) + " - Assuming open-relay and trying to continue..")
 		return MailServer
 	
+
+	def is_file(self, target):
+	    return os.path.isfile(target)
+
+	def get_file_content_as_list(self, Options):
+	    return GetFileAsList(Options['EMAIL_TARGET'])
+
 	def BuildTargetList(self, Options): # Build a list of targets for simplification purposes
-		if os.path.isfile(Options['EMAIL_TARGET']):
-			TargetList = GetFileAsList(Options['EMAIL_TARGET'])
+		if self.is_file(Options['EMAIL_TARGET']):
+			TargetList = self.get_file_content_as_list(Options)
 		else:
 			TargetList = [ Options['EMAIL_TARGET'] ]
 		return TargetList
