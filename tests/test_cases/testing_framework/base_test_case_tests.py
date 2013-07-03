@@ -1,6 +1,7 @@
 from tests.testing_framework.base_test_cases import BaseTestCase
 from hamcrest import *
 import sys
+from nose.tools.nontrivial import with_setup
 
 
 class BaseTestCaseTests(BaseTestCase):
@@ -50,3 +51,9 @@ class BaseTestCaseTests(BaseTestCase):
 
         assert_that(received is not None)
         assert_that(sys.stdout, same_instance(original_stdout))
+
+    def before(self):
+        self.custom_set_up_has_been_invoked = True
+
+    def test_setup_and_tear_down_functions(self):
+        assert_that(self.custom_set_up_has_been_invoked)

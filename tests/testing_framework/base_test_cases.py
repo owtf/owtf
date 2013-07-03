@@ -1,9 +1,16 @@
 import unittest
 import sys
 from io import BytesIO as StringIO
+from flexmock import flexmock
 
 
 class BaseTestCase(unittest.TestCase):
+
+    def setUp(self):
+        try:
+            self.before()
+        except AttributeError:
+            pass # The subclass does not implement the set up method
 
     def init_stdout_recording(self):
         self.stdout_backup = sys.stdout
