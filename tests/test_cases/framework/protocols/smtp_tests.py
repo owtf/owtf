@@ -6,7 +6,7 @@ from framework.protocols.smtp import SMTP
 
 class SMTPTests(BaseTestCase):
 
-    def setUp(self):
+    def before(self):
         self.core_mock = flexmock()
 
     def test_Connect_if_TLS_is_not_enabled_the_execution_should_continue(self):

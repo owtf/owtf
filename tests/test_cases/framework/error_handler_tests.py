@@ -7,7 +7,7 @@ from framework import error_handler
 
 
 class ErrorHandlerTests(BaseTestCase):
-    def setUp(self):
+    def before(self):
         self.core_mock = flexmock()
 
     def test_FrameworkAbort_printing_and_core_delegation(self):
