@@ -32,6 +32,8 @@ This is the command-line tool for running tests.
 import nose  # @UnresolvedImport
 import argparse
 from sys import argv
+from os import path as os_path
+from sys import path as sys_path
 
 TEST_CASES_FOLDER = "test_cases"
 
@@ -46,6 +48,7 @@ class ArgumentParser():
         parser.add_argument("-a", "--all", action="store_true", default=False, dest="all", help="This flag tells the framework to run all the tests associated to the selected category.")
         parser.add_argument("-m", "--modules", dest="modules", metavar="module1,module2...", help="Comma separated list of modules to run inside the current category.")
         parser.add_argument("-o", "--only", dest="only", metavar="file1.py,file2.py", help="Comma separated list of test cases to run.")
+        parser.add_argument("-c", "--with-coverage", dest="coverage", action="store_true", default=None, help="Tell the runner to perform test coverage analysis.")
         return parser
 
     def parse_arguments(self, arguments):
@@ -114,20 +117,33 @@ def build_nose_arguments(args):
     if (args.only is not None):
         nose_arguments += args.only.replace(",", " ")
     if (args.all == True):
-        nose_arguments = ""
-        for c in all_categories:
-            nose_arguments += TEST_CASES_FOLDER + "/" + c + "/ "
+        nose_arguments = TEST_CASES_FOLDER + "/"
     nose_arguments += " --verbose --detailed-errors"
+    print "The arguments passed are: " + nose_arguments
     return "nosetests " + nose_arguments
 
 
 def include_owtf_path_in_pythonpath():
-    from os import path as os_path
-    from sys import path as sys_path
     framework_path = os_path.abspath('..')
     print "[+] Setting up environment..."
     sys_path.append(framework_path)
     print framework_path + " appended to the PYTHON_PATH"
+
+
+def run_nose_with_coverage(args):
+    from coverage import coverage
+    framework_path = os_path.abspath('..')
+    cov = coverage(source=[os_path.join(framework_path, "framework"),
+                           os_path.join(framework_path, "tests/testing_framework")])
+    cov.start()
+    run_nose(args)
+    cov.stop()
+    print "Generating coverage reports..."
+    cov.html_report(directory="cover")
+
+
+def run_nose(args):
+    nose.run(argv=nose_arguments.split(" "))
 
 
 include_owtf_path_in_pythonpath()
@@ -138,4 +154,8 @@ else:
     args = parser.parse_arguments(argv[1:len(argv)])
     nose_arguments = build_nose_arguments(args)
     print "[+] Running tests..."
-    nose.run(argv=nose_arguments.split(" "))
+    if (args.coverage is not None) and (args.all == True):
+        # Coverage reports only have sense with all test
+        run_nose_with_coverage(nose_arguments)
+    else:
+        run_nose(nose_arguments)

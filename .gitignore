@@ -19,3 +19,8 @@ tests/restricted/*
 # Directory with the output of OWTF
 ###################################
 owtf_review/*
+
+# Unit Testing Framework coverage files #
+#########################################
+tests/cover/*
+tests/.coverage
