@@ -41,6 +41,7 @@ import socket
 import ssl
 from multiprocessing import Process
 from socket_wrapper import wrap_socket
+from cache_handler import CacheHandler
 
 class ProxyHandler(tornado.web.RequestHandler):
     """
@@ -70,6 +71,7 @@ class ProxyHandler(tornado.web.RequestHandler):
           then processed by this function
         """
         # Data for handling headers through a streaming callback
+        self.request.response_buffer = ''
         restricted_headers = ['Content-Length',
                             'Content-Encoding',
                             'Etag',
@@ -89,20 +91,17 @@ class ProxyHandler(tornado.web.RequestHandler):
                 else:
                     if header not in restricted_headers:
                         self.set_header(header, value)
+            if self.request.response_buffer:
+                self.cache_handler.dump(response)
+            else:
+                self.write(response.body)
             self.finish()
 
         # This function is a callback when a small chunk is recieved
         def handle_data_chunk(data):
             if data:
                 self.write(data)
-
-        # The requests that come through ssl streams are relative requests, so transparent
-        # proxying is required. The following snippet decides the url that should be passed
-        # to the async client
-        if self.request.host in self.request.uri.split('/'):  # Normal Proxy Request
-            url = self.request.uri
-        else:  # Transparent Proxy Request
-            url = self.request.protocol + "://" + self.request.host + self.request.uri
+                self.request.response_buffer += data
 
         # More headers are to be removed
         for header in ('Connection', 'Pragma', 'Cache-Control'):
@@ -111,11 +110,25 @@ class ProxyHandler(tornado.web.RequestHandler):
             except:
                 continue
 
+        # The requests that come through ssl streams are relative requests, so transparent
+        # proxying is required. The following snippet decides the url that should be passed
+        # to the async client
+        if self.request.host in self.request.uri.split('/'):  # Normal Proxy Request
+            self.request.url = self.request.uri
+        else:  # Transparent Proxy Request
+            self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
+
+        # This block here checks for already cached response and if present returns one
+        self.cache_handler = CacheHandler(self.application.cache_dir, self.request)
+        cached_response = self.cache_handler.load()
+        #if cached_response:
+            #handle_response(cached_response)
+        
         # httprequest object is created and then passed to async client with a callback
         # pycurl is needed for curl client
         async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
         request = tornado.httpclient.HTTPRequest(
-                url=url,
+                url=self.request.url,
                 method=self.request.method,
                 body=self.request.body,
                 headers=self.request.headers,
@@ -190,11 +203,12 @@ class ProxyHandler(tornado.web.RequestHandler):
 
 class ProxyProcess(Process):
 
-    def __init__(self, instances, inbound_options, outbound_options=[]):
+    def __init__(self, instances, inbound_options, cache_dir, outbound_options=[]):
         Process.__init__(self)
         self.application = tornado.web.Application(handlers=[(r".*", ProxyHandler)], debug=False, gzip=True)
         self.application.inbound_ip = inbound_options[0]
         self.application.inbound_port = int(inbound_options[1])
+        self.application.cache_dir = cache_dir
         if outbound_options:
             self.application.outbound_ip = outbound_options[0]
             self.application.outbound_port = int(outbound_options[1])
