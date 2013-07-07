@@ -29,14 +29,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Description:
 The core is the glue that holds the components together and allows some of them to communicate with each other
 '''
-import os, re, signal, subprocess
+import os, re, signal, subprocess, shutil
 from urlparse import urlparse
 from framework import timer, error_handler, random
 from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
 from framework.protocols import smtp, smb
 from framework.config import config
-from framework.http.proxy import proxy
+from framework.http.proxy import proxy, transaction_logger
 from framework.http import requester
 from framework.db import db
 from framework.plugin import plugin_handler, plugin_helper, plugin_params
@@ -105,7 +105,39 @@ class Core:
             if Host: # Value is not blank
                 Command.replace(Host, 'some.target.com')
         return Command
-
+        
+    def StartProxy(self, Options):
+        # The proxy along with supporting processes are started
+        if Options["DevMode"]:
+            if Options['InboundProxy']:
+                if len(Options['InboundProxy']) == 1:
+                    Options['InboundProxy'] = [self.Config.Get('INBOUND_PROXY_IP'), Options['InboundProxy'][0]]
+            else:
+                Options['InboundProxy'] = [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')]
+            if not os.path.exists(self.Config.Get('CACHE_DIR')):
+                os.makedirs(self.Config.Get('CACHE_DIR'))
+            else:
+                shutil.rmtree(self.Config.Get('CACHE_DIR'))
+                os.makedirs(self.Config.Get('CACHE_DIR'))
+            self.ProxyProcess = proxy.ProxyProcess(
+                                                    self.Config.Get('INBOUND_PROXY_PROCESSES'),
+                                                    Options['InboundProxy'],
+                                                    self.Config.Get('CACHE_DIR'),
+                                                    Options['OutboundProxy']
+                                                  )
+            transaction_db_path = os.path.join(self.Config.Get('OUTPUT_PATH'), self.Config.Get('HOST_IP'), 'proxy_transactions')
+            if not os.path.exists(transaction_db_path):
+                os.makedirs(transaction_db_path)
+            self.TransactionLogger = transaction_logger.TransactionLogger(
+                                                                            self.Config.Get('CACHE_DIR'),
+                                                                            transaction_db_path
+                                                                         )
+            self.ProxyProcess.start()
+            self.TransactionLogger.start()
+            self.Requester = requester.Requester(self, Options['InboundProxy'])
+        else:
+            self.Requester = requester.Requester(self, Options['OutboundProxy'])        
+        
     def Start(self, Options):
         self.DevMode = Options["DevMode"]
         cprint("Loading framework please wait..")
@@ -122,23 +154,8 @@ class Core:
         self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
         if self.Config.Get('SIMULATION'):
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
-        # The proxy is being spawned as a seperate process
-        if Options["DevMode"]:
-            if Options['InboundProxy']:
-                if len(Options['InboundProxy']) == 1:
-                    Options['InboundProxy'] = [self.Config.Get('INBOUND_PROXY_IP'), Options['InboundProxy'][0]]
-            else:
-                Options['InboundProxy'] = [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')]
-            self.ProxyProcess = proxy.ProxyProcess(
-                                                self.Config.Get('INBOUND_PROXY_PROCESSES'),
-                                                Options['InboundProxy'],
-                                                Options['OutboundProxy']
-                                                )
-            cprint("Starting Inbound proxy at " + ":".join(Options['InboundProxy']))
-            self.ProxyProcess.start()
-            self.Requester = requester.Requester(self, Options['InboundProxy'])
-        else:
-            self.Requester = requester.Requester(self, Options['OutboundProxy'])
+        self.StartProxy(Options)
+        cprint("Started Inbound proxy at " + ":".join(Options['InboundProxy']))
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
@@ -178,9 +195,10 @@ class Core:
             finally:
                 if self.DevMode:
                     try:
-                        cprint("Stopping inbound proxy and cleaning up, Please wait!")
+                        cprint("Stopping inbound proxy processes and cleaning up, Please wait!")
                         self.KillChildProcesses(self.ProxyProcess.pid)
                         self.ProxyProcess.terminate()
+                        self.TransactionLogger.terminate()
                     except: # It means the proxy was not started
                         pass
                 exit()
