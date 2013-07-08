@@ -132,6 +132,7 @@ class Core:
                                                                             self.Config.Get('CACHE_DIR'),
                                                                             transaction_db_path
                                                                          )
+            cprint("Started Inbound proxy at " + ":".join(Options['InboundProxy']))
             self.ProxyProcess.start()
             self.TransactionLogger.start()
             self.Requester = requester.Requester(self, Options['InboundProxy'])
@@ -155,7 +156,6 @@ class Core:
         if self.Config.Get('SIMULATION'):
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
         self.StartProxy(Options)
-        cprint("Started Inbound proxy at " + ":".join(Options['InboundProxy']))
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
