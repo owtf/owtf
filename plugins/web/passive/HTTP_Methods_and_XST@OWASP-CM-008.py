@@ -27,13 +27,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 PASSIVE Plugin for HTTP Methods Testing
 """
-
+import logging
 DESCRIPTION = "Third party resources"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 	#Vuln search box to be built in core and resued in different plugins:
+        log = logging.getLogger('general')    
 	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveMethods'))
-	print "Passive links generated for target"
+	log.info("Passive links generated for target")
 	return Content
 

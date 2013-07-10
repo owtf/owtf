@@ -30,7 +30,7 @@ https://www.owasp.org/index.php/Testing_for_Session_Management_Schema_%28OWASP-S
 """
 
 import string, re
-import cgi
+import cgi,logging
 from framework.lib import general
 
 DESCRIPTION = "Normal requests to gather session managament info"
@@ -41,6 +41,7 @@ def run(Core, PluginInfo):
 	# Step 1 - Find transactions that set cookies
         # Step 2 - Request 10 times per URL that sets cookies
         # Step 3 - Compare values and calculate randomness
+        log = logging.getLogger('general')        
 	URLList = []
 	TransactionList = []
 	Result = ""
@@ -55,9 +56,9 @@ def run(Core, PluginInfo):
 				#Cookies = Transaction.GetResponseHeaders().getheader('Set-Cookie').split(',')
 				for Cookie in Transaction.GetCookies():
 					CookieValues[Cookie.Name].append(Transaction.ID, Cookie.Value)
-					print "Cookie="+str(Cookie)
+					log.info("Cookie="+str(Cookie))
 					Result += str(Cookie)
-					print dir(Cookie)
+					log.info(dir(Cookie))
 	return Result
 """
 	for i in range(0,10):

@@ -28,13 +28,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This plugin does not perform ANY test: The aim is to visit all URLs grabbed so far and build the transaction log to feed data to other plugins
 NOTE: This is an active plugin because it may visit URLs retrieved by vulnerability scanner spiders which may be considered sensitive or include vulnerability probing
 """
+import logging
 
 DESCRIPTION = "Visit URLs found by other tools, some could be sensitive: need permission"
 
+log = logging.getLogger('general')
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 	crap = { 'test' : '1', 'test2' : '2' }
-	print "Crap="+str(crap)
+	log.info("Crap="+str(crap))
 	return 'test'
 	Count = 0
 	Core.DB.URL.AddURLsStart() # Keep cocunt of URLs
@@ -44,6 +46,6 @@ def run(Core, PluginInfo):
 		Core.Requester.GetTransaction(True, URL) # Use cache if possible
 	Core.DB.URL.AddURLsEnd()
 	Content = str(Count)+" URLs were visited"
-	print Content
+	log.info(Content)
 	return Content
 

@@ -207,9 +207,9 @@ class Core:
         PsCommand = subprocess.Popen("ps -o pid --ppid %d --noheaders" % parent_pid, shell=True, stdout=subprocess.PIPE)
         PsOutput = PsCommand.stdout.read()
         RetCode = PsCommand.wait()
-        assert RetCode == 0, "ps command returned %d" % RetCode
+        #assert RetCode == 0, "ps command returned %d" % RetCode
         for PidStr in PsOutput.split("\n")[:-1]:
+                self.KillChildProcesses(int(PidStr),sig)
                 os.kill(int(PidStr), sig)
-
 def Init(RootDir):
     return Core(RootDir)

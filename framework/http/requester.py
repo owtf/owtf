@@ -28,10 +28,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The Requester module is in charge of simplifying HTTP requests and automatically log HTTP transactions by calling the DB module
 '''
-import cgi, sys
-import httplib, urllib2, urllib
+from framework.http import transaction #, httplib_to_urllib2
 from framework.lib.general import *
-from framework.http import transaction#, httplib_to_urllib2
+import cgi
+import httplib
+import logging
+import sys
+import urllib
+import urllib2
 
 # Intercept raw request trick from: http://stackoverflow.com/questions/6085709/get-headers-sent-in-urllib2-http-request
 class MyHTTPConnection(httplib.HTTPConnection):
@@ -201,7 +205,8 @@ class Requester:
 			self.Core.Error.FrameworkAbort("ERROR: cannot resolve hostname!: " + str(Error))
 		else:
 			Message = "ERROR: The connection was not refused, unknown error!"
-		cprint(Message)
+        	log = logging.getLogger('general')
+		log.info(Message)
 		ErrorMessage = Message+" (Requester Object): "+URL+"\n"+str(sys.exc_info())
 		return ErrorMessage
 

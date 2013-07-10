@@ -28,9 +28,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This module contains helper functions to make plugins simpler to read and write, centralising common functionality easy to reuse
 '''
-import os, re, cgi
-from framework.lib.general import *
 from collections import defaultdict
+from framework.lib.general import *
+import logging
+import os
+import re
+import cgi
 
 class PluginHelper:
 	mNumLinesToShow = 25
@@ -57,7 +60,8 @@ class PluginHelper:
 		for Name, Resource in ResourceList:
 			URL = MultipleReplace(Resource.strip(), self.Core.Config.GetReplacementDict()).replace('"', '%22')
 			LinkList.append(URL)
-			cprint("Generating link for "+Name+"..") # Otherwise there would be a lovely python exception and we would not be here :)
+			log = logging.getLogger('general')
+			log.info("Generating link for "+Name+"..") # Otherwise there would be a lovely python exception and we would not be here :)
 			HTMLLinkList.append(self.Core.Reporter.Render.DrawButtonLink(Name, URL))
 		return self.DrawListPostProcessing(ResourceListName, LinkList, HTMLLinkList)
 
@@ -125,7 +129,8 @@ class PluginHelper:
 		return VulnSearch
 
 	def DrawSuggestedCommandBox(self, PluginInfo, CommandCategoryList, Header = ''): # Draws HTML tabs for a list of TabName => Resource Group (i.e. how to run hydra, etc)
-		cprint("Drawing suggested command box..")
+		log = logging.getLogger('general')
+		log.info("Drawing suggested command box..")
 		if Header == '': # Default header if not supplied
 			Header = "Suggested potentially interesting commands"
 		Header = "<hr /><h4>"+Header+"</h4>"
@@ -162,6 +167,7 @@ class PluginHelper:
 		ModifiedCommand = self.Core.Shell.GetModifiedShellCommand(Command, PluginOutputDir)
 		try:
 			RawOutput = self.Core.Shell.shell_exec_monitor(ModifiedCommand)
+
 		except PluginAbortException, PartialOutput:
 			RawOutput = str(PartialOutput.parameter) # Save Partial Output
 			PluginAbort = True
@@ -170,7 +176,8 @@ class PluginHelper:
 			FrameworkAbort = True
 
 		TimeStr = self.Core.Timer.GetElapsedTimeAsStr('FormatCommandAndOutput')
-		cprint("Time="+TimeStr)
+                log = logging.getLogger('general')
+		log.info("Time="+TimeStr)
 		return [ ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir ]
 
 	def GetCommandOutputFileNameAndExtension(self, InputName):
@@ -224,7 +231,8 @@ class PluginHelper:
 				if Transaction.Found:
 					NumFound += 1
 		TimeStr = self.Core.Timer.GetElapsedTimeAsStr('LogURLsFromStr')
-		cprint("Spider/URL scaper time="+TimeStr)
+                log = logging.getLogger('general')        
+		log.info("Spider/URL scaper time="+TimeStr)
 		Table = self.Core.Reporter.Render.CreateTable({'class' : 'commanddump'})
 		Table.CreateCustomRow('<tr><th colspan="2">Spider/URL scraper</th></tr>')
 		Table.CreateRow(['Time', 'URL stats'], True)
@@ -253,7 +261,8 @@ class PluginHelper:
 		save_path = self.Core.PluginHandler.DumpPluginFile(Filename, Contents, PluginInfo)
 		if not LinkName:
 			LinkName = save_path
-		cprint("File: "+Filename+" saved to: "+save_path)
+                log = logging.getLogger('general')            
+		log.info("File: "+Filename+" saved to: "+save_path)
 		return [ save_path, self.Core.Reporter.Render.DrawButtonLink(LinkName, save_path, {}, True) ]
 
 	def DumpFileGetLink(self, Filename, Contents, PluginInfo, LinkName = ''):
@@ -293,7 +302,8 @@ class PluginHelper:
 						Links.append( [ Entry, LinkStart+Entry+LinkEnd ] ) # Show link in defined format (passive/semi_passive)
 				TestResult += self.Core.PluginHelper.DrawResourceLinkList(Display, Links)
 		TestResult += self.Core.DB.URL.AddURLsEnd()
-		cprint("robots.txt was "+NotStr+"found")
+                log = logging.getLogger('general')        
+		log.info("robots.txt was "+NotStr+"found")
 		return TestResult
 	
 	def LogURLs(self, PluginInfo, ResourceList):
@@ -306,8 +316,10 @@ class PluginHelper:
 			#	self.Core.DB.URL.AddURL(line.strip())
 		self.Core.DB.SaveAllDBs() # Save URL DBs to disk
 		NumURLsAfter = self.Core.DB.URL.GetNumURLs()
-		Message = cprint(str(NumURLsAfter-NumURLsBefore)+" URLs have been added and classified")
-		return HTMLOutput+"<br />"+Message
+                log = logging.getLogger('general')        
+		Message =(str(NumURLsAfter-NumURLsBefore)+" URLs have been added and classified")
+                log.info(Message)
+        	return HTMLOutput+"<br />"+Message
 
 	def DrawTransactionTableForURLList(self, UseCache, URLList, Method = '', Data = ''):
 		return self.Core.Reporter.DrawHTTPTransactionTable(self.Core.Requester.GetTransactions(UseCache, URLList, Method, Data))
@@ -490,7 +502,8 @@ class PluginHelper:
 		#return Table
 					
 	def ResearchFingerprintInLog(self):
-		cprint("Researching Fingerprint in Log ..")
+                log = logging.getLogger('general')
+		log.info("Researching Fingerprint in Log ..")
 		AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = self.ResearchHeaders(self.Core.Config.GetHeaderList('HEADERS_FOR_FINGERPRINT'))
 		for Value in AllValues:
 			HeaderTable += self.DrawVulnerabilitySearchBox(Value) # Add Vulnerability search boxes after table

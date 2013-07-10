@@ -28,12 +28,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The reporter module is in charge of producing the HTML Report as well as provide plugins with common HTML Rendering functions
 '''
-import os, re, cgi, sys
+from collections import defaultdict
 from framework.lib.general import *
+from framework.report import header, summary
 from framework.report.html import renderer
 from framework.report.html.filter import sanitiser
-from framework.report import header, summary
-from collections import defaultdict
+from psycopg2.extras import logging
+import os
+import re
+import cgi
+import sys
+import time
 
 PLUGIN_DELIM = '__' # Characters like ; | . or / trip CKEditor as separators
 REPORT_PREFIX = '__rep__'
@@ -243,6 +248,8 @@ self.Render.DrawSelect(self.GetSelectListFromDict(self.Core.Config.Plugin.GetWeb
                         PluginHeader += "<div>"+NotesBox.Render()+"</div><hr />"
                         #PluginHeader += "<div id='notes_"+DivId+"' style='display: none;'>"+NotesBox.Render()+"</div><hr />"
                         file.write("\n"+PluginHeader+HTMLtext+"\n")
+            	#log = logging.getLogger('register') 
+            	#log.info(str(os.getpid())+','+str(Plugin['RunTime'])+','+str(Plugin['End'])+','+str(Plugin['Start']))       
 		#print "Plugin="+str(Plugin)
 		self.Core.DB.PluginRegister.Add(Plugin, PluginReportPath, self.Core.Config.GetTarget())
                 #self.RegisterPartialReport(PluginReportPath) # Partial report saved ok, register partial report in register file for grouping later
@@ -398,7 +405,8 @@ var ReportMode = false
 var REPORT_PREFIX = '""" + REPORT_PREFIX + """'
 </script>
 </body></html>""") # Closing HTML Report
-			cprint("Report written to: "+self.Core.Config.Get('HTML_DETAILED_REPORT_PATH'))
+                        log = logging.getLogger('general')
+			log.info("Report written to: "+self.Core.Config.Get('HTML_DETAILED_REPORT_PATH'))
 			self.Core.DB.ReportRegister.Add(self.Core.Config.GetAsList( [ 'REVIEW_OFFSET', 'SUMMARY_HOST_IP', 'SUMMARY_PORT_NUMBER', 'HTML_DETAILED_REPORT_PATH', 'REPORT_TYPE' ] )) # Register report
 			self.Summary.ReportFinish() # Build summary report
 
