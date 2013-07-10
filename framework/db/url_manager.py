@@ -28,8 +28,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The DB stores HTTP transactions, unique URLs and more. 
 '''
-import re
 from framework.lib.general import *
+import logging
+import re
 
 class URLManager:
 	NumURLsBefore = 0
@@ -76,13 +77,15 @@ class URLManager:
 
 	def AddURLToDB(self, URL, DBPrefix = '', Found = None):
 		Message = ''
+                log = logging.getLogger("general")
 		DBName = "vetted DB"
 		if DBPrefix != "":
 			DBName = "potential DB"
 		if not self.IsURLAlreadyAdded(URL, DBPrefix) and self.IsURL(URL): # New URL
 			URL = URL.strip() # Make sure URL is clean prior to saving in DB, nasty bugs can happen without this
 			if self.Core.IsInScopeURL(URL):
-				Message = cprint("Adding new URL to "+DBName+": "+URL)
+				Message = "Adding new URL to "+DBName+": "+URL
+                		log.info(Message)
 				if Found in [ None, True ]:
 					#self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'].append(URL)
 					self.Core.DB.Add(DBPrefix+'ALL_URLS_DB', URL)
@@ -99,7 +102,8 @@ class URLManager:
 					#self.Core.DB.DBCache[DBPrefix+'ERROR_URLS_DB'].append(URL)
 					self.Core.DB.Add(DBPrefix+'ERROR_URLS_DB', URL)
 			else:
-				Message = cprint("Adding new EXTERNAL URL to EXTERNAL "+DBName+": "+URL)
+				Message = "Adding new EXTERNAL URL to EXTERNAL "+DBName+": "+URL
+				log.info(Message)
 				#self.Core.DB.DBCache[DBPrefix+'EXTERNAL_URLS_DB'].append(URL)
 				self.Core.DB.Add(DBPrefix+'EXTERNAL_URLS_DB', URL)
 		return Message
@@ -115,12 +119,16 @@ class URLManager:
 
 	def AddURLsEnd(self):
 		NumURLsAfter = self.GetNumURLs()
-		return cprint(str(NumURLsAfter-self.NumURLsBefore)+" URLs have been added and classified")
+                Message = str(NumURLsAfter-self.NumURLsBefore)+" URLs have been added and classified"
+                log = logging.getLogger('general')
+                log.info(Message)
+		return Message
 
 	def ImportURLs(self, URLList): # Extracts and classifies all URLs passed. Expects a newline separated URL list
 		self.AddURLsStart()
 		for URL in URLList:
 			self.AddURL(URL)
 		Message = self.AddURLsEnd()
-		cprint(Message)
+                log=logging.getLogger('general')
+		log.info(Message)
 		return Message

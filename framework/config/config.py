@@ -351,7 +351,13 @@ class Config:
 		return self.GetFileName('TRANSACTION_LOG_HTML', Partial)
 	
 	def GetPortWaves(self):
-		return self.Get('PORTWAVES')	
+		return self.Get('PORTWAVES')
+       
+        def GetProcessPerCore(self):
+            return self.Get('PROCESS_PER_CORE')
+        
+        def GetMinRam(self):
+            return self.Get('MIN_RAM_NEEDED')    	
 
 	def GetTXTTransacLog(self, Partial = False):
 		return self.GetFileName('TRANSACTION_LOG_TXT', Partial)

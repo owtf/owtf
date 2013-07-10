@@ -28,10 +28,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The reporter module is in charge of producing the HTML Report as well as provide plugins with common HTML Rendering functions
 '''
-import os, re, cgi
-from framework.lib.general import *
 from collections import defaultdict
+from framework.lib.general import *
 import json
+import logging
+import os
+import re
+import cgi
 
 class Summary:
 	def __init__(self, Core):
@@ -152,5 +155,6 @@ var PassedTestIcons = """ + self.Core.Reporter.Render.DrawJSArrayFromList(self.C
 """
 		with open(self.Core.Config.Get('HTML_REPORT_PATH'), 'a') as file:
 			file.write(HTML) # Closing HTML Report
-		cprint("Summary report written to: "+self.Core.Config.Get('HTML_REPORT_PATH'))
+                log = logging.getLogger('general')
+		log.info("Summary report written to: "+self.Core.Config.Get('HTML_REPORT_PATH'))
 

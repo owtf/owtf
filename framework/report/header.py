@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The reporter module is in charge of producing the HTML Report as well as provide plugins with common HTML Rendering functions
 '''
-import os, re, cgi, sys
+import os, re, cgi, sys,logging
 from framework.lib.general import *
 from collections import defaultdict
 
@@ -38,9 +38,10 @@ class Header:
 		self.Init = False
 
         def CopyAccessoryFiles(self):
-                cprint("Copying report images ..")
+                log = logging.getLogger('general')
+                log.info("Copying report images ..")
                 self.Core.Shell.shell_exec("cp -r "+self.FrameworkDir+"/images/ "+self.TargetOutputDir)
-                cprint("Copying report includes (stylesheet + javascript files)..")
+                log.info("Copying report includes (stylesheet + javascript files)..")
                 self.Core.Shell.shell_exec("cp -r "+self.FrameworkDir+"/includes/ "+self.TargetOutputDir)
 
         def DrawRunDetailsTable(self):

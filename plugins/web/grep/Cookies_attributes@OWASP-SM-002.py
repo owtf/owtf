@@ -31,14 +31,17 @@ NOTE: GREP plugins do NOT send traffic to the target and only grep the HTTP Tran
 
 import string, re
 import cgi
+import logging
 
 DESCRIPTION = "Searches transaction DB for Cookie attributes"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
+        log = logging.getLogger('general')
+    
 	Content = "This plugin looks for cookie setting headers (TODO: Check vuln scanners' output!)<br />"
 	AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = Core.PluginHelper.ResearchHeaders(Core.Config.GetHeaderList('HEADERS_FOR_COOKIES'))
-	print "Analysing cookie attributes .."
+	log.info("Analysing cookie attributes ..")
 	AttributeAnalysis = Core.PluginHelper.CookieAttributeAnalysis(AllValues, Header2TransacDict)
 	return Content + HeaderTable + AttributeAnalysis 
 

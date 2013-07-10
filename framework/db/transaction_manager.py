@@ -28,10 +28,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The DB stores HTTP transactions, unique URLs and more. 
 '''
-import os, re
+from collections import defaultdict
 from framework.http import transaction
 from framework.lib.general import *
-from collections import defaultdict
+import os
+import re,logging
 
 # Transaction DB field order:
 # LogID, LogTime, LogTimeHuman, LogStatus, LogMethod, LogURL, LogData
@@ -139,7 +140,8 @@ $(document).ready(function() {
 
 	def IsTransactionAlreadyAdded(self, Criteria): # To avoid requests already made
 		Result = len(self.Search( Criteria )) > 0
-		cprint(str(Criteria)+" in DB: "+str(Result))
+                log = logging.getLogger('general')
+		log.info(str(Criteria)+" in DB: "+str(Result))
 		return Result
 
 	def SaveTransactionTXTIndex(self, Transaction): # Saves a transaction in the Text Index DB

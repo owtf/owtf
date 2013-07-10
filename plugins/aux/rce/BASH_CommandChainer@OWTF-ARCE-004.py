@@ -31,9 +31,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
 import time
+import logging
 DESCRIPTION = "Runs a chain of commands on an agent server via SBD -i.e. for IDS testing-"
 def run(Core, PluginInfo):
 	#Core.Config.Show()
+        log = logging.getLogger('general')
 	Content = DESCRIPTION + " Results:<br />"
 	Iteration = 1 # Iteration counter initialisation
 	for Args in Core.PluginParams.GetArgs( { 
@@ -72,9 +74,9 @@ def run(Core, PluginInfo):
 				, 'RPORT' : Args['SBD_PORT']
 							  }, PluginInfo)
 		else:
-			print "Reusing initial connection.."
+			log.info("Reusing initial connection..")
 		Core.InteractiveShell.Run(Args['COMMAND_PREFIX']+Args['TEST']+Args['COMMAND_SUFIX'])
-		print "Sleeping " + DELAY_BETWEEN_COMMANDS + " second(s) (increases reliability).."
+		log.info("Sleeping " + DELAY_BETWEEN_COMMANDS + " second(s) (increases reliability)..")
 		time.sleep(int(DELAY_BETWEEN_COMMANDS))
 		#Core.RemoteShell.Run("sleep " + str(WAIT_SECONDS))
 		if not REUSE_CONNECTION:

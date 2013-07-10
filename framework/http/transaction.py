@@ -29,9 +29,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 HTTP_Transaction is a container of useful HTTP Transaction information to simplify code both in the framework and the plugins
 '''
 from framework import timer
-from framework.lib.general import *
 from framework.http.cookies import cookie_factory
+from framework.lib.general import *
 import cgi
+import logging
 
 class HTTP_Transaction:
 	def __init__(self, Timer):
@@ -111,7 +112,8 @@ class HTTP_Transaction:
 		self.ID = ID
 		self.HTMLLinkToID = HTMLLinkToID
 		if self.New: # Only for new transactions, not when retrieved from DB, etc
-			cprint("New owtf HTTP Transaction: "+" - ".join([self.ID, self.TimeHuman, self.Status, self.Method, self.URL]))
+                        log = logging.getLogger('general')
+			log.info("New owtf HTTP Transaction: "+" - ".join([self.ID, self.TimeHuman, self.Status, self.Method, self.URL]))
 
 	def GetHTMLLink(self, LinkName = ''):
 		if '' == LinkName:
