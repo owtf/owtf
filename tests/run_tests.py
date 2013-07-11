@@ -118,8 +118,7 @@ def build_nose_arguments(args):
         nose_arguments += args.only.replace(",", " ")
     if (args.all == True):
         nose_arguments = TEST_CASES_FOLDER + "/"
-    nose_arguments += " --verbose --detailed-errors"
-    print "The arguments passed are: " + nose_arguments
+    nose_arguments += " --verbose --detailed-errors --no-byte-compile"
     return "nosetests " + nose_arguments
 
 

@@ -50,14 +50,17 @@ class Config:
 	def __init__(self, RootDir, CoreObj):
 		self.RootDir = RootDir
 		self.Core = CoreObj
+		self.initialize_attributes()
+		# Available profiles = g -> General configuration, n -> Network plugin order, w -> Web plugin order, r -> Resources file
+		self.LoadConfigFromFile( self.RootDir+'/framework/config/framework_config.cfg' )
+
+ 	def initialize_attributes(self):
 		self.Config = defaultdict(list) # General configuration information
 		for Type in CONFIG_TYPES:
 			self.Config[Type] = {} # Distinguish strings from everything else in the config = easier + more efficient to replace resources later
 		#print str(self.Config)
 		self.TargetConfig = {} # General + Target-specific configuration
 		self.Targets = [] # List of targets
-		# Available profiles = g -> General configuration, n -> Network plugin order, w -> Web plugin order, r -> Resources file
-		self.LoadConfigFromFile( self.RootDir+'/framework/config/framework_config.cfg' )
 
 	def Init(self):
 		self.Plugin = plugin.PluginConfig(self.Core)
@@ -92,15 +95,21 @@ class Config:
 			self.Set('PORTWAVES' ,'10,100,1000')
 		else:
 			self.Set('PORTWAVES' ,Options['PortWaves'])   
-		if(Options['PluginGroup']=='web'):
-			self.Plugin.LoadWebTestGroupsFromFile()
-		elif(Options['PluginGroup']=='net'):
-			self.Plugin.LoadNetTestGroupsFromFile()
-		self.LoadProfiles(Options['Profiles'])
-		self.DeriveGlobalSettings()
-		self.DeriveFromTarget(Options)
+		self.LoadPluginTestGroups(Options['PluginGroup'])
+		self.LoadProfilesAndSettings(Options)
 		# After all initialisations, run health-check:
 		self.HealthCheck.Run()
+
+        def LoadPluginTestGroups(self, PluginGroup):
+            if(PluginGroup == 'web'):
+            	self.Plugin.LoadWebTestGroupsFromFile()
+            elif(PluginGroup == 'net'):
+    	        self.Plugin.LoadNetTestGroupsFromFile()
+
+        def LoadProfilesAndSettings(self, Options):
+            self.LoadProfiles(Options['Profiles'])
+            self.DeriveGlobalSettings()
+            self.DeriveFromTarget(Options)
 
 	def DeepCopy(self, Config): # function to perform a "deep" copy of the config Obj passed
 		Copy = defaultdict(list)
@@ -177,7 +186,7 @@ class Config:
 		return ResourceType in self.Resources
         
     	def GetTcpPorts(self,startport,endport):
-		PortFile = open(self.Core.Config.Get('TCP_PORT_FILE'), 'r')
+		PortFile = open(self.Get('TCP_PORT_FILE'), 'r')
 		for line in PortFile:
 			PortList = line.split(',')
 			response = ','.join(PortList[int(startport):int(endport)])
@@ -185,7 +194,7 @@ class Config:
 		return response
 	
 	def GetUdpPorts(self,startport,endport):
-		PortFile = open(self.Core.Config.Get('UDP_PORT_FILE'), 'r')
+		PortFile = open(self.Get('UDP_PORT_FILE'), 'r')
 		for line in PortFile:
 			PortList = line.split(',')
 			response = ','.join(PortList[int(startport):int(endport)])
