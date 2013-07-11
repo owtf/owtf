@@ -37,21 +37,37 @@ class HealthCheck:
         self.Core = Core
 
     def Run(self):
+        Count = self.get_count_of_not_installed_tools()
+        self.ShowHelp(Count)
+
+    def get_count_of_not_installed_tools(self):
         Count = 0
         for Key, Value in self.Core.Config.GetConfig()['string'].items():
             Setting = self.Core.Config.StripKey(Key)
-            if Setting.startswith('TOOL_') and not os.path.exists(Value):
+            if self.is_tool(Setting) and not self.is_installed(Value):
                 cprint("WARNING: Tool path not found for: " + str(Value))
                 Count += 1
-        self.ShowHelp(Count)
+        return Count
+
+    def is_tool(self, Setting):
+        return Setting.startswith('TOOL_')
+
+    def is_installed(self, Value):
+        return os.path.exists(Value)
 
     def ShowHelp(self, Count):
         if Count > 0:
-            cprint("")
-            cprint("WARNING!!!: "+str(Count)+" tools could not be found. Some suggestions:")
-            cprint(" - Define where your tools are here: "+str(self.Core.Config.Profiles['g']))
-            cprint(" - Use the "+self.Core.Config.RootDir+"/install/kali_install.sh script to install missing tools")
-            if self.Core.Config.Get('INTERACTIVE') and 'n' == raw_input("Continue anyway? [y/n]"):
-                self.Core.Error.FrameworkAbort("Aborted by user")
+            self.print_warning(Count)
         else:
-            cprint("SUCCESS: Integrity Check successful -> All tools were found")
+            self.print_success()
+
+    def print_warning(self, Count):
+        cprint("")
+        cprint("WARNING!!!: " + str(Count) + " tools could not be found. Some suggestions:")
+        cprint(" - Define where your tools are here: " + str(self.Core.Config.Profiles['g']))
+        cprint(" - Use the " + self.Core.Config.RootDir + "/install/kali_install.sh script to install missing tools")
+        if self.Core.Config.Get('INTERACTIVE') and 'n' == raw_input("Continue anyway? [y/n]"):
+            self.Core.Error.FrameworkAbort("Aborted by user")
+
+    def print_success(self):
+        return cprint("SUCCESS: Integrity Check successful -> All tools were found")

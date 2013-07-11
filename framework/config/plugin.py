@@ -46,7 +46,7 @@ class PluginConfig:
 
         def GetTypesForGroup(self, PluginGroup):
                 PluginTypes = []
-                if (self.AllPlugins[PluginGroup]):
+                if (self.AllPlugins.has_key(PluginGroup)):
                     for PluginType, Plugins in self.AllPlugins[PluginGroup].items():
                             PluginTypes.append(PluginType)
                     return sorted(PluginTypes) # Return list in alphabetical order
@@ -238,7 +238,7 @@ class PluginConfig:
                                         PluginTypes.append('grep') # grep plugins will be run after semi_passive and active plugins
                                 #AllowedPluginTypes = [ PluginTypeFilter ]
                         elif PluginType == 'all':
-                                PluginTypes = self.PluginTypes
+                                PluginTypes = AllowedPluginTypes
 		#print "Derived PluginTypes="+str(PluginTypes)
                 if PluginTypes:
                         AllowedPluginTypes = sorted(PluginTypes + [ 'external' ])
@@ -251,7 +251,7 @@ class PluginConfig:
                 	if PluginType != 'all':
                         	PluginTypes.append(PluginType)
                         elif PluginType == 'all':
-                                PluginTypes = self.PluginTypes
+                                PluginTypes = AllowedPluginTypes
 		#print "Derived AllowedPluginTypes="+str(PluginTypes)
                 return PluginTypes
 
