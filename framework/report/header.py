@@ -119,8 +119,8 @@ class Header:
 
         def DrawOWTFBox(self):
                 OWTF = self.Core.Reporter.Render.CreateTable( { 'class' : 'report_intro' } )
-                OWTF.CreateRow( [ 'Seed', 'Review Size', 'Total Size', 'Version', 'Site' ], True)
-                OWTF.CreateRow( [ '<span id="seed">'+self.Core.GetSeed()+'</span>', '<div id="js_db_size" style="float:left; display: inline; padding-top: 7px"></div><div style="float:right; inline">'+ self.Core.Reporter.DrawHelpLink('ReviewSize')+"</div>", '<div id="total_js_db_size"></div>', self.Version, self.Core.Reporter.Render.DrawButtonLink('owtf.org', 'http://owtf.org') ] )
+                OWTF.CreateRow( [ 'Seed', 'Review Size', 'Total Size', 'Version', 'Release', 'Site' ], True )
+                OWTF.CreateRow( [ '<span id="seed">' + self.Core.GetSeed() + '</span>', '<div id="js_db_size" style="float:left; display: inline; padding-top: 7px"></div><div style="float:right; inline">' + self.Core.Reporter.DrawHelpLink( 'ReviewSize' ) + "</div>", '<div id="total_js_db_size"></div>', self.Version, self.Release, self.Core.Reporter.Render.DrawButtonLink( 'owtf.org', 'http://owtf.org' ) ] )
                 return '<div style="position: absolute; top: 6px; right: 6px; float: right">'+OWTF.Render()+'</div>'
 
 	def DrawBackToSummaryIcon(self):
@@ -169,7 +169,7 @@ class Header:
                 return "\n".join(Libraries)
 
         def Save(self, Report, Options):
-		self.TargetOutputDir, self.FrameworkDir, self.Version, self.TargetURL, self.HostIP, self.PortNumber, self.TransactionLogHTML, self.AlternativeIPs = self.Core.Config.GetAsList(['OUTPUT_PATH', 'FRAMEWORK_DIR', 'VERSION', 'TARGET_URL', 'HOST_IP', 'PORT_NUMBER', 'TRANSACTION_LOG_HTML', 'ALTERNATIVE_IPS'])
+		self.TargetOutputDir, self.FrameworkDir, self.Version, self.Release, self.TargetURL, self.HostIP, self.PortNumber, self.TransactionLogHTML, self.AlternativeIPs = self.Core.Config.GetAsList( ['OUTPUT_PATH', 'FRAMEWORK_DIR', 'VERSION', 'RELEASE', 'TARGET_URL', 'HOST_IP', 'PORT_NUMBER', 'TRANSACTION_LOG_HTML', 'ALTERNATIVE_IPS'] )
 		self.ReportType = Options['ReportType']
 		if not self.Init:
                         self.CopyAccessoryFiles()

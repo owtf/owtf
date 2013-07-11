@@ -284,5 +284,5 @@ def ProcessOptions(Core):
 
 Banner()
 Core = core.Init(RootDir)  # Initialise Framework
-print "OWTF Version: " + Core.Config.Get('VERSION') + "\n"
+print "OWTF Version: %s, Release: %s \n" % ( Core.Config.Get( 'VERSION' ), Core.Config.Get( 'RELEASE' ) )
 ProcessOptions(Core)
