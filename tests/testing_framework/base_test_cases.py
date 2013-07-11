@@ -10,7 +10,13 @@ class BaseTestCase(unittest.TestCase):
         try:
             self.before()
         except AttributeError:
-            pass # The subclass does not implement the set up method
+            pass  # The subclass does not implement the set up method
+
+    def tearDown(self):
+        try:
+            self.after()
+        except AttributeError:
+            pass  # The subclass does not implement the tear down method
 
     def init_stdout_recording(self):
         self.stdout_backup = sys.stdout
