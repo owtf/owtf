@@ -27,104 +27,149 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This library contains helper functions and exceptions for the framework
 """
+from jinja2 import Template, Environment
+
 from framework.lib.general import *
 from framework.report.html import tabcreator
 from framework.report.html import tablecreator
 import cgi
 
 class HTMLRenderer:
-	def __init__(self, Core):
+	def __init__( self, Core ):
 		self.Core = Core # Keep reference to config object, which needs to be used + passed on
 
-	def CreateTabs(self):
-		return tabcreator.TabCreator(self)
+	def CreateTabs( self ):
+		return tabcreator.TabCreator( self )
 
-	def CreateTable(self, Attribs = {}):
-		return tablecreator.TableCreator(self, Attribs)
+	def CreateTable( self, Attribs = {} ):
+		return tablecreator.TableCreator( self, Attribs )
 
-	def DrawJSArrayFromList(self, List): # Turns a Python List into a string to create a JavaScript Array
-		return "new Array('"+"','".join(List)+"')"
+	def DrawJSArrayFromList( self, List ): # Turns a Python List into a string to create a JavaScript Array
+		return "new Array('" + "','".join( List ) + "')"
 
-	def GetAttribsForJS(self, JSCode, Attribs):
+	def GetAttribsForJS( self, JSCode, Attribs ):
 		Attribs['onclick'] = JSCode
 		Attribs['target'] = ''
 		return Attribs
 
-	def DrawiFrame(self, Attribs):
-		return "<iframe "+self.GetAttribsAsStr(Attribs)+">Your browser does not support iframes</iframe>"
+	def DrawiFrame( self, Attribs ):
+		return "<iframe " + self.GetAttribsAsStr( Attribs ) + ">Your browser does not support iframes</iframe>"
 
-	def DrawJSLink(self, Name, JSCode, Attribs = {}, IgnoredParam = ''):
-		Attribs = self.GetAttribsForJS(JSCode, Attribs)
-		return self.DrawLink(Name, 'javascript:void(0);', Attribs)
+	def DrawJSLink( self, Name, JSCode, Attribs = {}, IgnoredParam = '' ):
+		Attribs = self.GetAttribsForJS( JSCode, Attribs )
+		return self.DrawLink( Name, 'javascript:void(0);', Attribs )
 
-	def DrawButtonJSLink(self, Name, JSCode, Attribs = None, IgnoredParam = ''):
-		Attribs = self.GetAttribsForJS(JSCode, Attribs) 
-		return self.DrawButtonLink(Name, 'javascript:void(0);', Attribs)
+	def DrawButtonJSLink( self, Name, JSCode, Attribs = None, IgnoredParam = '' ):
+		Attribs = self.GetAttribsForJS( JSCode, Attribs )
+		return self.DrawButtonLink( Name, 'javascript:void(0);', Attribs )
 
-	def GetAttribsAsStr(self, Attribs = {}):
-		AttribStr = ""
-		for Attrib, Value in Attribs.items():
-			AttribStr += " "+Attrib+'="'+cgi.escape(Value)+'"'
-		return AttribStr
+	def GetAttribsAsStr( self, Attribs = {} ):
+		template = Template( """
+		{% for Attrib, Value in Attribs.items() %}
+		   "{{ Attrib|e }}"="{{ Value|e }}"
+		{% endfor %}
+		""" )
+		return template.render( Attribs = Attribs )
 
-	def DrawImage(self, FileName, Attribs = {}):
-                if len(FileName.split('.')) == 1:# No extension = append ".png"
+	def DrawImage( self, FileName, Attribs = {} ):
+                if len( FileName.split( '.' ) ) == 1:# No extension = append ".png"
                         FileName += '.png'
-                return '<img src="images/'+FileName+'" '+self.GetAttribsAsStr(Attribs)+'>'
+                return '<img src="images/' + FileName + '" ' + self.GetAttribsAsStr( Attribs ) + '>'
 
-	def RenderLink(self, Name, Link, Attribs = {}):
-		#print "Link="+str(Link)+", Attribs="+str(self.GetAttribsAsStr(Attribs))+", Name="+Name	
-		return '<a href="'+Link+'" '+self.GetAttribsAsStr(Attribs)+'>'+Name+'</a>'
+	def RenderLink( self, Name, Link, Attribs = {} ):
+		template = Template( """
+			<a href="{{ Link }}" 
+			{% for Attrib, Value in Attribs.items() %}
+			   "{{ Attrib|e }}"="{{ Value|e }}"
+			{% endfor %}
+			>
+			{{ Name }}
+			</a>
+		""" )
+		return template.render( Link = Link, Name = Name, Attribs = Attribs )
 
-	def GetPartialPathForLink(self, Link, ToFile = False, FromPlugin = False):
+	def GetPartialPathForLink( self, Link, ToFile = False, FromPlugin = False ):
 		PartialPath = Link
-		if str(ToFile) == 'URL_OUTPUT': # Different transaction log for each URL = different link path for files
-			PartialPath = PartialPath.replace(self.Core.Config.Get('URL_OUTPUT'), '')
+		if str( ToFile ) == 'URL_OUTPUT': # Different transaction log for each URL = different link path for files
+			PartialPath = PartialPath.replace( self.Core.Config.Get( 'URL_OUTPUT' ), '' )
 		elif ToFile:
-			PartialPath = self.Core.GetPartialPath(PartialPath)
+			PartialPath = self.Core.GetPartialPath( PartialPath )
 		if FromPlugin:
-			PartialPath = "../../../"+PartialPath # For HTML files built from a plugin
+			PartialPath = "../../../" + PartialPath # For HTML files built from a plugin
 		return PartialPath
 
-	def DrawLink(self, Name, Link, Attribs = {}, ToFile = False, FromPlugin = False):
+	def DrawLink( self, Name, Link, Attribs = {}, ToFile = False, FromPlugin = False ):
 		#return '<a href="'+self.GetPartialPathForLink(Link, ToFile, FromPlugin)+'" target="_blank">'+Name+'</a>'
 		if not 'target' in Attribs:
 			Attribs['target'] = '_blank' # By default open everything in a new tab
-		return self.RenderLink(Name, self.GetPartialPathForLink(Link, ToFile, FromPlugin), Attribs)
+		template = Template( """
+			<a href="{{ Link }}" 
+			{% for Attrib, Value in Attribs.items() %}
+			   "{{ Attrib|e }}"="{{ Value|e }}"
+			{% endfor %}
+			>
+			{{ Name }}
+			</a>
+		""" )
+		return template.render( Link = self.GetPartialPathForLink( Link, ToFile, FromPlugin ), Name = Name, Attribs = Attribs )
 
-	def DrawButtonLink(self, Name, Link, Attribs = {}, ToFile = False, FromPlugin = False):
-		#print "Name="+Name+", Link="+Link
+	def DrawButtonLink( self, Name, Link, Attribs = {}, ToFile = False, FromPlugin = False ):
 		if 'class' not in Attribs:
 			Attribs['class'] = 'button' # By default set Links to button class
-		return self.DrawLink('<span>'+Name+'</span>', Link, Attribs, ToFile, FromPlugin)
-		#return '<a class="button" href="'+self.GetPartialPathForLink(Link, ToFile, FromPlugin)+'" target="_blank"><span>'+Name+'</span></a>'
-		#return self.RenderLink('<span>'+Name+'</span>', self.GetPartialPathForLink(Link, ToFile, FromPlugin), { 'target' : '_blank' })
+		if not 'target' in Attribs:
+			Attribs['target'] = '_blank' # By default open everything in a new tab
+		template = Template( """
+			<a href="{{ Link }}" 
+			{% for Attrib, Value in Attribs.items() %}
+			   "{{ Attrib|e }}"="{{ Value|e }}"
+			{% endfor %}
+			>
+			<span> {{ Name }} </span>
+			</a>
+		""" )
+		return template.render( Link = self.GetPartialPathForLink( Link, ToFile, FromPlugin ), Name = Name, Attribs = Attribs )
 
-	def DrawLinkPairs(self, PairList, Method = 'DrawLink', Attribs = {}, ToFile = False):
+	def DrawLinkPairs( self, PairList, Method = 'DrawLink', Attribs = {}, ToFile = False ):
 		Links = []
 		for LinkName, LinkURL in PairList:
-			Links.append(CallMethod(self, Method, [LinkName, LinkURL, Attribs, ToFile]))
+			Links.append( CallMethod( self, Method, [LinkName, LinkURL, Attribs, ToFile] ) )
 			#Links.append(self.DrawLink(LinkName, LinkURL, Attribs, ToFile))
 		return Links
 
-	def DrawHTMLList(self, ItemList, Attribs = { 'class' : 'default_list' }):
-		return "<ul"+self.GetAttribsAsStr(Attribs)+"><li>"+"</li><li>".join(ItemList)+"</li></ul>"
+	def DrawHTMLList( self, ItemList, Attribs = { 'class' : 'default_list' } ):
+		template = Template( """
+		<ul  
+		{% for Attrib, Value in Attribs.items() %}
+		   "{{ Attrib|e }}"="{{ Value|e }}"
+		{% endfor %}
+		>
+    		{% for Item in ItemList %}
+    			<li>{{ Item }}</li>
+    		{% endfor %}
+		</ul>
+		""" )
+		return template.render( ItemList = ItemList, Attribs = Attribs )
 
-	def DrawLinkPairsAsHTMLList(self, PairList, Method = 'DrawLink', Attribs = {}, ToFile = False):
+	def DrawLinkPairsAsHTMLList( self, PairList, Method = 'DrawLink', Attribs = {}, ToFile = False ):
 		#return "<ul><li>"+"</li><li>".join(self.DrawLinkPairs(PairList, Method, Attribs, ToFile))+"</li></ul>"
-		Result = self.DrawHTMLList(self.DrawLinkPairs(PairList, Method, Attribs, ToFile))
+		Result = self.DrawHTMLList( self.DrawLinkPairs( PairList, Method, Attribs, ToFile ) )
 		return Result
 
-	def DrawButton(self, Name, JavaScript):
-		return '<button onclick="javascript:'+JavaScript+'">'+Name+'</button>'
+	def DrawButton( self, Name, JavaScript ):
+		template = Template( """
+		
+		<button onclick="javascript: {{ JavaScript }}"> {{ Name }} </button>
+		
+		""" )
+		return template.render( Name = Name, JavaScript = JavaScript, )
 
-	def DrawDiv(self, Content, Attribs = {}):
-		return "<div"+self.GetAttribsAsStr(Attribs)+">" + Content + "</div>"
+	def DrawDiv( self, Content, Attribs = {} ):
+		return "<div" + self.GetAttribsAsStr( Attribs ) + ">" + Content + "</div>"
 
-	def DrawOption(self, Descrip, Attribs):
-		return "<option"+self.GetAttribsAsStr(Attribs)+">" + cgi.escape(Descrip) + "</div>"
+	def DrawOption( self, Descrip, Attribs ):
+		return "<option" + self.GetAttribsAsStr( Attribs ) + ">" + cgi.escape( Descrip ) + "</div>"
 
-	def DrawSelect(self, Data, SelectedValueList, Attribs = {}):
+	def DrawSelect( self, Data, SelectedValueList, Attribs = {} ):
 		#multiple, size, autocomplete, disabled, name, id
 		Options = []
 		for Value, Descrip in Data:
@@ -132,5 +177,5 @@ class HTMLRenderer:
 			OptionAttribs = { 'value' : Value }.copy()
 			if Value in SelectedValueList:
 				OptionAttribs['selected'] = ''
-			Options.append(self.DrawOption(Descrip, OptionAttribs))
-		return "<select"+self.GetAttribsAsStr(Attribs)+">" + ''.join(Options) + "</div>"
+			Options.append( self.DrawOption( Descrip, OptionAttribs ) )
+		return "<select" + self.GetAttribsAsStr( Attribs ) + ">" + ''.join( Options ) + "</div>"

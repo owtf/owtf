@@ -28,10 +28,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The tab module simplifies tab creation via CSS
 '''
+from jinja2 import Template
 from framework.lib.general import *
 
 class TabCreator:
-	def __init__(self, Renderer):
+	def __init__( self, Renderer ):
 		self.Renderer = Renderer
 		self.Config = self.Renderer.Core.Config # Shortcut to config
 		self.Tabs = [] # List to contain drawn tab text
@@ -41,101 +42,111 @@ class TabCreator:
 		self.TabList = [] # Holds relationship of divid, tabid and tabname, important for rendering and js
 		self.FlowButtons = []
 
-	def GetNumDivs(self):
-		return len(self.DivIdList)
+	def GetNumDivs( self ):
+		return len( self.DivIdList )
 
-	def AddCustomDiv(self, TabContent, DivContent = ''):
+	def AddCustomDiv( self, TabContent, DivContent = '' ):
 		Custom = True
-		self.TabList.append([ '', '', TabContent, DivContent, Custom ])
-	
-	def AddDiv(self, DivId, TabName, DivContent):
-		Custom = False	
-		self.DivIdList.append(DivId)
-		TabId = self.GetTabIdForDiv(DivId)
-		self.TabList.append([ DivId, TabId, TabName, DivContent, Custom ])
-		self.TabIdList.append(TabId) # Derive Tab Ids from Div Ids
+		self.TabList.append( [ '', '', TabContent, DivContent, Custom ] )
+
+	def AddDiv( self, DivId, TabName, DivContent ):
+		Custom = False
+		self.DivIdList.append( DivId )
+		TabId = self.GetTabIdForDiv( DivId )
+		self.TabList.append( [ DivId, TabId, TabName, DivContent, Custom ] )
+		self.TabIdList.append( TabId ) # Derive Tab Ids from Div Ids
 		#print "Added div="+DivId+", TabName="+TabName
 		#print "TabList="+str(self.TabList)
 		#print "TabIdList="+str(self.TabIdList)
 
-	def AddDivs(self, DivIdTabNamePairList):
+	def AddDivs( self, DivIdTabNamePairList ):
 		for DivId, TabName in DivIdTabNamePairList:
-			self.AddDiv(DivId, TabName) 
+			self.AddDiv( DivId, TabName )
 
-	def GetTabIdForDiv(self, DivId):
-		return 'tab_'+DivId
+	def GetTabIdForDiv( self, DivId ):
+		return 'tab_' + DivId
 
-	def DivOpsWrapper(self, Operation):
-		return Operation+"("+self.Renderer.DrawJSArrayFromList(self.DivIdList)+");"
+	def DivOpsWrapper( self, Operation ):
+		return Operation + "(" + self.Renderer.DrawJSArrayFromList( self.DivIdList ) + ");"
 
-	def ShowDivs(self):
-		return self.DivOpsWrapper('ShowDivs')
+	def ShowDivs( self ):
+		return self.DivOpsWrapper( 'ShowDivs' )
 
-	def HideDivs(self):
-		return self.DivOpsWrapper('HideDivs')
+	def HideDivs( self ):
+		return self.DivOpsWrapper( 'HideDivs' )
 
-	def UnhighlightTabs(self):
-		return "SetClassNameToElems("+self.Renderer.DrawJSArrayFromList(self.TabIdList)+", '');"
+	def UnhighlightTabs( self ):
+		return "SetClassNameToElems(" + self.Renderer.DrawJSArrayFromList( self.TabIdList ) + ", '');"
 
-	def SelectDiv(self, DivId):
-		return self.UnhighlightTabs()+";"+self.HideDivs()+"; this.className = 'selected'; ToggleDiv('"+DivId+"');"
+	def SelectDiv( self, DivId ):
+		return self.UnhighlightTabs() + ";" + self.HideDivs() + "; this.className = 'selected'; ToggleDiv('" + DivId + "');"
 
-	def DrawCustomTab(self, Content):
-		return "<li>"+Content+"</li>"
+	def DrawCustomTab( self, Content ):
+		return "<li>" + Content + "</li>"
 
-	def DrawTab(self, TabInfo):
+	def DrawTab( self, TabInfo ):
 		#print "TabInfo="+str(TabInfo)
 		DivId, TabId, TabName, DivContent, Custom = TabInfo
 		if Custom:
-			return [ self.DrawCustomTab(TabName), DivContent ]
-		return [ self.DrawCustomTab(self.Renderer.DrawJSLink(TabName, self.SelectDiv(DivId), { 'id' : TabId } )), DivContent ]
+			return [ self.DrawCustomTab( TabName ), DivContent ]
+		return [ self.DrawCustomTab( self.Renderer.DrawJSLink( TabName, self.SelectDiv( DivId ), { 'id' : TabId } ) ), DivContent ]
 
-	def CreateRawTab(self, RawTab, RawDivContent):
-		self.Tabs.append(RawTab)
-		self.DivContent.append(RawDivContent)
+	def CreateRawTab( self, RawTab, RawDivContent ):
+		self.Tabs.append( RawTab )
+		self.DivContent.append( RawDivContent )
 
-	def CreateCustomTab(self, TabContent, DivContent = ''):
+	def CreateCustomTab( self, TabContent, DivContent = '' ):
 		#self.Tabs.append(self.DrawCustomTab(Content))
-		self.CreateRawTab(self.DrawCustomTab(TabContent), DivContent)
+		self.CreateRawTab( self.DrawCustomTab( TabContent ), DivContent )
 
-	def CreateTab(self, TabInfo):
+	def CreateTab( self, TabInfo ):
 		#self.Tabs.append(self.DrawTab(TabInfo))
-		TabContent, DivContent = self.DrawTab(TabInfo)
+		TabContent, DivContent = self.DrawTab( TabInfo )
 		DivId, TabId, TabName, DivContent, Custom = TabInfo
-		self.CreateRawTab(TabContent, '<div id="'+DivId+'" class="tabContent" style="display:none">'+DivContent+'</div>')
+		self.CreateRawTab( TabContent, '<div id="' + DivId + '" class="tabContent" style="display:none">' + DivContent + '</div>' )
 
-	def CreateTabs(self):
+	def CreateTabs( self ):
 		#p(self.TabList)
 		for TabInfo in self.TabList:
 			#print "TabInfo in loop="+str(TabInfo)
-			self.CreateTab(TabInfo)
+			self.CreateTab( TabInfo )
 
-	def CreateTabButtons(self):
+	def CreateTabButtons( self ):
 		# -> working before but ugly: see tabs behind icons -> self.CreateCustomTab(self.DrawTabFlowButtons())
-		self.CreateRawTab('<li class="icon">'+self.DrawTabFlowButtons()+'</li>', '')
+		self.CreateRawTab( '<li class="icon">' + self.DrawTabFlowButtons() + '</li>', '' )
 		#self.FlowButtons = self.DrawTabFlowButtons()
 
-        def DrawImageFromConfigPair(self, ConfigList):
+        def DrawImageFromConfigPair( self, ConfigList ):
                 #FileName, ToolTip = self.Core.Config.GetAsList(ConfigList)
-                FileName, ToolTip = self.Config.GetAsList(ConfigList)
-                return self.Renderer.DrawImage(FileName, { 'title' : ToolTip } )
+                FileName, ToolTip = self.Config.GetAsList( ConfigList )
+                return self.Renderer.DrawImage( FileName, { 'title' : ToolTip } )
 
-	def DrawTabFlowButtons(self):
+	def DrawTabFlowButtons( self ):
                 # TODO: Buttons not as horrible as before but still not as cool as here:
                 # http://jquery-ui.googlecode.com/svn/tags/1.6rc5/tests/static/icons.html
-		self.DrawImageFromConfigPair( [ 'FIXED_ICON_NOTES', 'REVIEW_TOOLTIP_NOTES' ])
-		return "&nbsp;".join(self.Renderer.DrawLinkPairs( [ 
-[self.DrawImageFromConfigPair( [ 'FIXED_ICON_EXPAND_PLUGINS', 'NAV_TOOLTIP_EXPAND_PLUGINS' ]), self.ShowDivs()+self.UnhighlightTabs() ]
-, [self.DrawImageFromConfigPair( [ 'FIXED_ICON_CLOSE_PLUGINS', 'NAV_TOOLTIP_CLOSE_PLUGINS' ]), self.HideDivs()+self.UnhighlightTabs()] 
-], 'DrawButtonJSLink', { 'class' : 'icon' }))+self.Renderer.DrawButtonJSLink( '&nbsp;' + self.DrawImageFromConfigPair( [ 'FIXED_ICON_PLUGIN_INFO', 'FILTER_TOOLTIP_INFO_UNFILTER' ]), self.UnhighlightTabs()+'UnfilterBrotherTabs(this)', { 'class' : 'icon_unfilter', 'style' : 'display: none;' }) 
+		self.DrawImageFromConfigPair( [ 'FIXED_ICON_NOTES', 'REVIEW_TOOLTIP_NOTES' ] )
+		return "&nbsp;".join( self.Renderer.DrawLinkPairs( [
+[self.DrawImageFromConfigPair( [ 'FIXED_ICON_EXPAND_PLUGINS', 'NAV_TOOLTIP_EXPAND_PLUGINS' ] ), self.ShowDivs() + self.UnhighlightTabs() ]
+, [self.DrawImageFromConfigPair( [ 'FIXED_ICON_CLOSE_PLUGINS', 'NAV_TOOLTIP_CLOSE_PLUGINS' ] ), self.HideDivs() + self.UnhighlightTabs()]
+], 'DrawButtonJSLink', { 'class' : 'icon' } ) ) + self.Renderer.DrawButtonJSLink( '&nbsp;' + self.DrawImageFromConfigPair( [ 'FIXED_ICON_PLUGIN_INFO', 'FILTER_TOOLTIP_INFO_UNFILTER' ] ), self.UnhighlightTabs() + 'UnfilterBrotherTabs(this)', { 'class' : 'icon_unfilter', 'style' : 'display: none;' } )
 		#return "&nbsp;".join(self.Renderer.DrawLinkPairs( [ ["<img src='images/arrow_down16x16.png' />", self.ShowDivs()+self.UnhighlightTabs() ], ["<img src='images/arrow_up16x16.png' />", self.HideDivs()+self.UnhighlightTabs()] ], 'DrawButtonJSLink', { 'class' : 'icon' }))
 
-	def RenderTabs(self, Attribs = {}):
-		AttribsStr = self.Renderer.GetAttribsAsStr(Attribs)		
-		return """<ul id="tabs" """+AttribsStr+""">"""+"\n".join(self.Tabs)+"""</ul>"""+"".join(self.FlowButtons)
+	def RenderTabs( self, Attribs = {} ):
+		template = Template( """
+		<ul id="tabs"
+		{% for Attrib, Value in Attribs.items() %}
+		"{{ Attrib|e }}"="{{ Value|e }}"
+		{% endfor %}
+		>
+		{{ Tabs|join("\n") }}
+		</ul>
+		{{ FlowButtons|join }}
+		""" )
+		return template.render( Attribs = Attribs, Tabs = self.Tabs, FlowButtons = self.FlowButtons )
 
-	def RenderDivs(self):
-		return "".join(self.DivContent)
-	
-	def Render(self, Attribs = {}):
-		return self.RenderTabs(Attribs) + self.RenderDivs()
+	def RenderDivs( self ):
+		template = Template( """ {{ DivContent|join }} """ )
+		return template.render( DivContent = unicode( self.DivContent ) )
+
+	def Render( self, Attribs = {} ):
+		return self.RenderTabs( Attribs ) + self.RenderDivs()
