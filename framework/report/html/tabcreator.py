@@ -135,7 +135,7 @@ class TabCreator:
 		template = Template( """
 		<ul id="tabs"
 		{% for Attrib, Value in Attribs.items() %}
-		"{{ Attrib|e }}"="{{ Value|e }}"
+		{{ Attrib|e }}="{{ Value }}"
 		{% endfor %}
 		>
 		{{ Tabs|join("\n") }}
@@ -145,8 +145,8 @@ class TabCreator:
 		return template.render( Attribs = Attribs, Tabs = self.Tabs, FlowButtons = self.FlowButtons )
 
 	def RenderDivs( self ):
-		template = Template( """ {{ DivContent|join }} """ )
-		return template.render( DivContent = unicode( self.DivContent ) )
+		template = Template( """  {{ DivContent|join }} """ )
+		return unicode( template.render( DivContent = self.DivContent ) )
 
 	def Render( self, Attribs = {} ):
 		return self.RenderTabs( Attribs ) + self.RenderDivs()
