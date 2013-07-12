@@ -6,6 +6,7 @@ import re
 from os import path
 from StringIO import StringIO
 from compiler.ast import And
+from tests.testing_framework.doubles.files import FileMock
 
 NMAP_SERVICES_FILE = path.abspath("test_cases/resources/nmap-services")
 
@@ -59,13 +60,9 @@ class ScannerTests(BaseTestCase):
             assert_that(port_list is not None)
 
     def test_target_service_scans_nmap_output_file(self):
-        file_content = "Host: 127.0.0.1\tPorts: 7/filtered/tcp//echo//, 80/open/tcp//http/Microsoft IIS\t\n"
-        fake_file = flexmock()
-        fake_file.should_receive("read").and_return(file_content).once()
-        fake_file.should_receive("close").once()
+        file_lines = ["Host: 127.0.0.1\tPorts: 7/filtered/tcp//echo//, 80/open/tcp//http/Microsoft IIS\t\n"]
         flexmock(self.scanner)
-        self.scanner.should_receive("get_ports_for_service").and_return(["7", "80"])
-        self.scanner.should_receive("open_file").and_return(fake_file)
+        self.scanner.should_receive("open_file").and_return(FileMock(file_lines))
 
         self.scanner.target_service("nmap_file", "service")
 
@@ -126,5 +123,6 @@ class ScannerTests(BaseTestCase):
         self._mock_shell_method_with_args_once("shell_exec", grep_open_53_port_regex)
         self._mock_shell_method_with_args_once("shell_exec", rm_old_files_regex)
 
-    def _stub_open_file(self, args, return_value):
-        self.scanner.should_receive("open_file").with_args(args).and_return(return_value)
+    def _stub_open_file(self, args, file_lines):
+        returned_file = FileMock(file_lines)
+        self.scanner.should_receive("open_file").with_args(args).and_return(returned_file)
