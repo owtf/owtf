@@ -88,7 +88,7 @@ function GetPluginInfo(PluginId) {
 	var Chunks = PluginId.split(PluginDelim)
 	var Plugin = { 'Group' : Chunks[0], 'Type' : Chunks[1], 'Code' : Chunks[2], 'Title' : '' }
 	var CodeDiv = document.getElementById(Plugin['Code'])
-	if (CodeDiv != null) Plugin['Title'] = CodeDiv.firstChild.firstChild.innerHTML
+	if (CodeDiv != null) Plugin['Title'] = CodeDiv.firstChild.innerHTML
 	return Plugin
 }
 

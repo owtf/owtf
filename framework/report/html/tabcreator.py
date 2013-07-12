@@ -113,7 +113,8 @@ class TabCreator:
 	def CreateTab( self, TabInfo ):
 		TabContent, DivContent = self.DrawTab( TabInfo )
 		DivId, TabId, TabName, DivContent, Custom = TabInfo
-		self.CreateRawTab( TabContent, '<div id="' + DivId + '" class="tabContent" style="display:none">' + DivContent + '</div>' )
+		template = Template( """<div id="{{ DivId }}" class="tabContent" style="display:none">{{ DivContent }}</div>""" )
+		self.CreateRawTab( TabContent, template.render( DivId = DivId, DivContent = DivContent ) )
 
 	def CreateTabs( self ):
 		#p(self.TabList)
@@ -123,8 +124,9 @@ class TabCreator:
 
 	def CreateTabButtons( self ):
 		# -> working before but ugly: see tabs behind icons -> self.CreateCustomTab(self.DrawTabFlowButtons())
-		self.CreateRawTab( '<li class="icon">' + self.DrawTabFlowButtons() + '</li>', '' )
-		#self.FlowButtons = self.DrawTabFlowButtons()
+		template = Template( """<li class="icon">{{ TabFlowButtons }} </li>""" )
+		self.CreateRawTab( template.render( TabFlowButtons = self.DrawTabFlowButtons() ), '' )
+
 
 	def DrawImageFromConfigPair( self, ConfigList ):
 		#FileName, ToolTip = self.Core.Config.GetAsList(ConfigList)
@@ -135,17 +137,39 @@ class TabCreator:
 		return template.render( FileName = FileName, ToolTip = ToolTip )
 
 	def DrawTabFlowButtons( self ):
-		self.DrawImageFromConfigPair( [ 'FIXED_ICON_NOTES', 'REVIEW_TOOLTIP_NOTES' ] )
-		template = Template( """		
-					<img src="images/{{ FileName }}.png" title="{{ ToolTip }}">&nbsp;
-					
-				""" )
-		#return template.render( FileName = FileName, ToolTip = ToolTip )
-		return "&nbsp;".join( self.Renderer.DrawLinkPairs( [
-[self.DrawImageFromConfigPair( [ 'FIXED_ICON_EXPAND_PLUGINS', 'NAV_TOOLTIP_EXPAND_PLUGINS' ] ), self.ShowDivs() + self.UnhighlightTabs() ]
-, [self.DrawImageFromConfigPair( [ 'FIXED_ICON_CLOSE_PLUGINS', 'NAV_TOOLTIP_CLOSE_PLUGINS' ] ), self.HideDivs() + self.UnhighlightTabs()]
-], 'DrawButtonJSLink', { 'class' : 'icon' } ) ) + self.Renderer.DrawButtonJSLink( '&nbsp;' + self.DrawImageFromConfigPair( [ 'FIXED_ICON_PLUGIN_INFO', 'FILTER_TOOLTIP_INFO_UNFILTER' ] ), self.UnhighlightTabs() + 'UnfilterBrotherTabs(this)', { 'class' : 'icon_unfilter', 'style' : 'display: none;' } )
-		#return "&nbsp;".join(self.Renderer.DrawLinkPairs( [ ["<img src='images/arrow_down16x16.png' />", self.ShowDivs()+self.UnhighlightTabs() ], ["<img src='images/arrow_up16x16.png' />", self.HideDivs()+self.UnhighlightTabs()] ], 'DrawButtonJSLink', { 'class' : 'icon' }))
+		FIXED_ICON_EXPAND_PLUGINS, NAV_TOOLTIP_EXPAND_PLUGINS = self.Config.GetAsList([ 'FIXED_ICON_EXPAND_PLUGINS', 'NAV_TOOLTIP_EXPAND_PLUGINS' ])
+		FIXED_ICON_CLOSE_PLUGINS, NAV_TOOLTIP_CLOSE_PLUGINS = self.Config.GetAsList( [ 'FIXED_ICON_CLOSE_PLUGINS', 'NAV_TOOLTIP_CLOSE_PLUGINS' ] )
+		FIXED_ICON_PLUGIN_INFO, FILTER_TOOLTIP_INFO_UNFILTER = self.Config.GetAsList( [ 'FIXED_ICON_PLUGIN_INFO', 'FILTER_TOOLTIP_INFO_UNFILTER' ] )
+		
+		template = Template( """
+		<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');">
+			<span>
+				<img src="images/{{ FIXED_ICON_EXPAND_PLUGINS }}.png" title="{{ NAV_TOOLTIP_EXPAND_PLUGINS }}">&nbsp; 
+			</span>
+		</a>	
+		&nbsp;
+		<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');">
+			<span>
+				<img src="images/{{ FIXED_ICON_CLOSE_PLUGINS }}.png" title="{{ NAV_TOOLTIP_CLOSE_PLUGINS }}">&nbsp; 
+			</span>
+		</a>
+		&nbsp;	
+		<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');UnfilterBrotherTabs(this);">
+			<span>
+				<img src="images/{{ FIXED_ICON_PLUGIN_INFO }}.png" title="{{ NAV_TOOLTIP_CLOSE_PLUGINS }}">&nbsp; 
+			</span>
+		</a>
+		""" )
+		return template.render( 
+								FIXED_ICON_EXPAND_PLUGINS = FIXED_ICON_EXPAND_PLUGINS,
+								NAV_TOOLTIP_EXPAND_PLUGINS = NAV_TOOLTIP_EXPAND_PLUGINS,
+								FIXED_ICON_CLOSE_PLUGINS = FIXED_ICON_CLOSE_PLUGINS,
+								NAV_TOOLTIP_CLOSE_PLUGINS = NAV_TOOLTIP_CLOSE_PLUGINS,
+								FIXED_ICON_PLUGIN_INFO = FIXED_ICON_PLUGIN_INFO,
+								FILTER_TOOLTIP_INFO_UNFILTER = FILTER_TOOLTIP_INFO_UNFILTER,
+								DivIdList = self.DivIdList,
+								TabIdList = self.TabIdList
+							  )
 
 	def RenderTabs( self, Attribs = {} ):
 		template = Template( """
