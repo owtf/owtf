@@ -211,4 +211,4 @@ class HTMLRenderer:
 			if Value in SelectedValueList:
 				OptionAttribs['selected'] = ''
 			Options.append( self.DrawOption( Descrip, OptionAttribs ) )
-		return "<select" + self.GetAttribsAsStr( Attribs ) + ">" + ''.join( Options ) + "</div>"
+		return "<select" + self.GetAttribsAsStr( Attribs ) + ">" + ''.join( Options ) + "</select>"
