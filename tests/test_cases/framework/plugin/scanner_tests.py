@@ -5,6 +5,7 @@ from framework.plugin.scanner import Scanner
 import re
 from os import path
 from StringIO import StringIO
+from compiler.ast import And
 
 NMAP_SERVICES_FILE = path.abspath("test_cases/resources/nmap-services")
 
@@ -48,7 +49,7 @@ class ScannerTests(BaseTestCase):
         self.scanner.scan_and_grab_banners("file_with_ips", "file_prefix", "udp", "")
 
     def test_get_ports_for_service_returns_the_list_of_ports_associated_to_services(self):
-        services = ["snmp","smb","smtp","ms-sql","ftp","X11","ppp","vnc","http-rpc-epmap","msrpc","http"]
+        services = ["snmp", "smb", "smtp", "ms-sql", "ftp", "X11", "ppp", "vnc", "http-rpc-epmap", "msrpc", "http"]
         flexmock(self.scanner)
         self.scanner.should_receive("get_nmap_services_file").and_return(NMAP_SERVICES_FILE)
 
@@ -75,11 +76,33 @@ class ScannerTests(BaseTestCase):
         self.core_mock.Config.should_receive("Set")
         self.core_mock.PluginHandler = flexmock()
         self.core_mock.PluginHandler.should_receive("ValidateAndFormatPluginList").once()
-        
+
         http_ports = self.scanner.probe_service_for_hosts("nmap_file", "target")
-        
+
         assert_that(isinstance(http_ports, list))
         assert_that(http_ports, has_length(greater_than(0)))
+
+    def test_dns_sweep_looks_for_DNS_servers_and_abort_execution_if_no_domain_is_found(self):
+        self._record_dns_sweep_first_steps()
+
+        flexmock(self.scanner)
+        self._stub_open_file(re.compile(".*\.dns_server.ips"), ["127.0.0.1\n", "127.0.0.1\n"])
+        self.scanner.should_receive("open_file").with_args(re.compile(".*\.domain_names")).and_raise(IOError).once()
+
+        self.scanner.dns_sweep("file_with_ips.txt", "file_prefix")
+
+    def test_dns_sweep_looks_for_DNS_servers_and_tries_to_do_a_zone_transfer_on_found_domains(self):
+        self._record_dns_sweep_first_steps()
+
+        flexmock(self.scanner)
+        self._stub_open_file(re.compile(".*\.dns_server.ips"), ["127.0.0.1\n", "127.0.0.1\n"])
+        self._stub_open_file(re.compile(".*\.domain_names"), ["domain1.com"])
+
+        self._mock_shell_method_with_args_once("shell_exec", re.compile("host [-]l.*"))  # Retrieve domains
+        self._mock_shell_method_with_args_once("shell_exec", re.compile("wc\s[-]l.*cut.*"), return_value=4)  # Determines if succeeded
+        self._mock_shell_method_with_args_once("shell_exec", re.compile("rm\s[-]f\s.*\.axfr.*"))
+
+        self.scanner.dns_sweep("file_with_ips.txt", "file_prefix")
 
     def _create_core_mock(self):
         self.core_mock = flexmock()
@@ -89,5 +112,19 @@ class ScannerTests(BaseTestCase):
     def _stub_shell_method(self, method, expected_result):
         self.core_mock.Shell.should_receive(method).and_return(expected_result)
 
-    def _mock_shell_method_with_args_once(self, method, args):
-        self.core_mock.Shell.should_receive(method).with_args(args).once()
+    def _mock_shell_method_with_args_once(self, method, args, return_value=None):
+        if (return_value is None):
+            self.core_mock.Shell.should_receive(method).with_args(args).once()
+        else:
+            self.core_mock.Shell.should_receive(method).with_args(args).and_return(return_value).once()
+
+    def _record_dns_sweep_first_steps(self):
+        nmap_dns_discovery_regex = re.compile("nmap.*[-]sS.*[-]p\s53.*")
+        grep_open_53_port_regex = re.compile("grep.*53/open")
+        rm_old_files_regex = re.compile("rm [-]f .*\.domain_names")
+        self._mock_shell_method_with_args_once("shell_exec", nmap_dns_discovery_regex)
+        self._mock_shell_method_with_args_once("shell_exec", grep_open_53_port_regex)
+        self._mock_shell_method_with_args_once("shell_exec", rm_old_files_regex)
+
+    def _stub_open_file(self, args, return_value):
+        self.scanner.should_receive("open_file").with_args(args).and_return(return_value)

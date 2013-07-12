@@ -73,7 +73,7 @@ class Scanner:
                 self.core.Shell.shell_exec("host "+dns_server+" "+dns_server+" | grep 'domain name' | cut -f 5 -d' ' | cut -f 2,3,4,5,6,7 -d. | sed 's/\.$//' >> "+domain_names)
                 num_dns_servers = num_dns_servers+1
         try:
-            file = open(domain_names)
+            file = self.open_file(domain_names)
         except IOError:
             return
         
@@ -88,7 +88,7 @@ class Scanner:
                 axfr=file_prefix+"."+dns_server+"."+domain+".axfr"
                 self.core.Shell.shell_exec("rm -f "+axfr)
                 print self.core.Shell.shell_exec("grep 'has address' "+raw_axfr+" | cut -f 1,4 -d ' ' | sort -k 2 -t ' ' | sed 's/ /#/g'")
-            else :
+            else:
                 print "Attempting zone transfer on $dns_server using domain $domain .. Success!"
                 self.core.Shell.shell_exec("rm -f "+raw_axfr)
         if num_dns_servers==0:
