@@ -45,30 +45,51 @@ class HTMLRenderer:
 		return tablecreator.TableCreator( self, Attribs )
 
 	def DrawJSArrayFromList( self, List ): # Turns a Python List into a string to create a JavaScript Array
-		return "new Array('" + "','".join( List ) + "')"
-
-	def GetAttribsForJS( self, JSCode, Attribs ):
-		Attribs['onclick'] = JSCode
-		Attribs['target'] = ''
-		return Attribs
+		template = Template( """
+		new Array('{{ List|join("','") }}')
+		""" )
+		return template.render( List = List )
 
 	def DrawiFrame( self, Attribs ):
 		template = Template( """
 		<iframe {% for Attrib, Value in Attribs.items() %}
 		  			 {{ Attrib|e }}="{{ Value }}"
 				{% endfor %}>
-		Your browser does not support iframes
+				Your browser does not support iframes
 		</iframe>
 		""" )
 		return template.render( Attribs = Attribs )
 
 	def DrawJSLink( self, Name, JSCode, Attribs = {}, IgnoredParam = '' ):
-		Attribs = self.GetAttribsForJS( JSCode, Attribs )
-		return self.DrawLink( Name, 'javascript:void(0);', Attribs )
+		Attribs['onclick'] = JSCode
+		Attribs['target'] = ''
+		template = Template( """
+		<a href="javascript:void(0);" 
+			{% for Attrib, Value in Attribs.items() %}
+			   {{ Attrib|e }}="{{ Value }}"
+			{% endfor %}
+			>
+			{{ Name }}
+		</a>
+		""" )
+		return template.render( Name = Name, Attribs = Attribs )
+
 
 	def DrawButtonJSLink( self, Name, JSCode, Attribs = None, IgnoredParam = '' ):
-		Attribs = self.GetAttribsForJS( JSCode, Attribs )
-		return self.DrawButtonLink( Name, 'javascript:void(0);', Attribs )
+		Attribs['onclick'] = JSCode
+		Attribs['target'] = ''
+		if 'class' not in Attribs:
+			Attribs['class'] = 'button' # By default set Links to button class
+		template = Template( """
+			<a href="javascript:void(0);" 
+			{% for Attrib, Value in Attribs.items() %}
+			   {{ Attrib|e }}="{{ Value }}"
+			{% endfor %}
+			>
+			<span> {{ Name }} </span>
+			</a>
+		""" )
+		return template.render( Name = Name, Attribs = Attribs )
 
 	def GetAttribsAsStr( self, Attribs = {} ):
 		template = Template( """
@@ -79,9 +100,14 @@ class HTMLRenderer:
 		return template.render( Attribs = Attribs )
 
 	def DrawImage( self, FileName, Attribs = {} ):
-                if len( FileName.split( '.' ) ) == 1:# No extension = append ".png"
-                        FileName += '.png'
-                return '<img src="images/' + FileName + '" ' + self.GetAttribsAsStr( Attribs ) + '>'
+		template = Template( """
+		<img src="images/{{ FileName }}.png" 
+			{% for Attrib, Value in Attribs.items() %}
+			   {{ Attrib|e }}="{{ Value }}"
+			{% endfor %}
+		>
+		""" )
+		return template.render( FileName = FileName, Attribs = Attribs )
 
 	def RenderLink( self, Name, Link, Attribs = {} ):
 		template = Template( """
@@ -174,7 +200,7 @@ class HTMLRenderer:
 		return "<div" + self.GetAttribsAsStr( Attribs ) + ">" + Content + "</div>"
 
 	def DrawOption( self, Descrip, Attribs ):
-		return "<option" + self.GetAttribsAsStr( Attribs ) + ">" + cgi.escape( Descrip ) + "</div>"
+		return "<option" + self.GetAttribsAsStr( Attribs ) + ">" + cgi.escape( Descrip ) + "</option>"
 
 	def DrawSelect( self, Data, SelectedValueList, Attribs = {} ):
 		#multiple, size, autocomplete, disabled, name, id
