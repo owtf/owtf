@@ -53,7 +53,14 @@ class HTMLRenderer:
 		return Attribs
 
 	def DrawiFrame( self, Attribs ):
-		return "<iframe " + self.GetAttribsAsStr( Attribs ) + ">Your browser does not support iframes</iframe>"
+		template = Template( """
+		<iframe {% for Attrib, Value in Attribs.items() %}
+		  			 {{ Attrib|e }}="{{ Value }}"
+				{% endfor %}>
+		Your browser does not support iframes
+		</iframe>
+		""" )
+		return template.render( Attribs = Attribs )
 
 	def DrawJSLink( self, Name, JSCode, Attribs = {}, IgnoredParam = '' ):
 		Attribs = self.GetAttribsForJS( JSCode, Attribs )
@@ -66,7 +73,7 @@ class HTMLRenderer:
 	def GetAttribsAsStr( self, Attribs = {} ):
 		template = Template( """
 		{% for Attrib, Value in Attribs.items() %}
-		   "{{ Attrib|e }}"="{{ Value|e }}"
+		   {{ Attrib|e }}="{{ Value }}"
 		{% endfor %}
 		""" )
 		return template.render( Attribs = Attribs )
@@ -80,7 +87,7 @@ class HTMLRenderer:
 		template = Template( """
 			<a href="{{ Link }}" 
 			{% for Attrib, Value in Attribs.items() %}
-			   "{{ Attrib|e }}"="{{ Value|e }}"
+			   {{ Attrib|e }}="{{ Value }}"
 			{% endfor %}
 			>
 			{{ Name }}
@@ -105,7 +112,7 @@ class HTMLRenderer:
 		template = Template( """
 			<a href="{{ Link }}" 
 			{% for Attrib, Value in Attribs.items() %}
-			   "{{ Attrib|e }}"="{{ Value|e }}"
+			   {{ Attrib|e }}="{{ Value }}"
 			{% endfor %}
 			>
 			{{ Name }}
@@ -121,7 +128,7 @@ class HTMLRenderer:
 		template = Template( """
 			<a href="{{ Link }}" 
 			{% for Attrib, Value in Attribs.items() %}
-			   "{{ Attrib|e }}"="{{ Value|e }}"
+			   {{ Attrib|e }}="{{ Value }}"
 			{% endfor %}
 			>
 			<span> {{ Name }} </span>
@@ -140,7 +147,7 @@ class HTMLRenderer:
 		template = Template( """
 		<ul  
 		{% for Attrib, Value in Attribs.items() %}
-		   "{{ Attrib|e }}"="{{ Value|e }}"
+		   {{ Attrib|e }}="{{ Value }}"
 		{% endfor %}
 		>
     		{% for Item in ItemList %}

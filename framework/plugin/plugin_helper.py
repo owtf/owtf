@@ -56,7 +56,7 @@ class PluginHelper:
 		<ul class="default_list">
     		{% for Link in Links %}
     			<li> 
-    				<a href="{{ Link|urlencode }}" class="button" class="_blank">
+    				<a href="{{ Link|urlencode }}" class="button" target="_blank">
     					<span> {{ Link }} </span> 
 					</a> 
 				</li>
@@ -75,7 +75,7 @@ class PluginHelper:
 		<ul class="default_list">
     		{% for Name, Resource in ResourceList %}
     			<li> 
-    				<a href="{{ Resource|urlencode }}" class="button" class="_blank">
+    				<a href="{{ Resource|urlencode }}" class="button" target="_blank">
     					<span> {{ Name }} </span> 
 					</a> 
 				</li>
@@ -136,12 +136,25 @@ class PluginHelper:
 	def SaveSandboxedTransactionHTML( self, Name, Transaction, PluginInfo ): # 1st filters HTML, 2nd builds sandboxed iframe, 3rd give link to sandboxed content
 		RawHTML = Transaction.GetRawResponseBody()
 		FilteredHTML = self.Core.Reporter.Sanitiser.CleanThirdPartyHTML( RawHTML )
+		NotSandboxedPath = self.Core.PluginHandler.DumpPluginFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo )
+		cprint( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
+		iframe_template = Template( """
+		<iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder = '0' style = "overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
+		Your browser does not support iframes
+		</iframe>
+		""" )
 
-		NotSandboxedPath, Discarded = self.DumpFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo, Name )
-
-
-
-		SandboxedPath, HTMLLink = self.DumpFile( "SANDBOXED_" + Name + ".html", self.Core.Reporter.Render.DrawiFrame( { 'src' : NotSandboxedPath.split( '/' )[-1], 'sandbox' : '', 'security' : 'restricted', 'width' : '100%', 'height' : '100%', 'frameborder' : '0', 'style' : "overflow-y:auto; overflow-x:hidden;" } ), PluginInfo, Name )
+		iframe = iframe_template.render( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
+		save_path = self.Core.PluginHandler.DumpPluginFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
+		if not Name:
+			Name = save_path
+		cprint( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + save_path )
+		template = Template( """
+			<a href="{{ Link }}" class="button" target="_blank">
+				<span> {{ LinkName }} </span>
+			</a>
+		""" )
+		SandboxedPath, HTMLLink = ( save_path, template.render( LinkName = Name, Link = "../../../" + save_path ) )
 		return [ SandboxedPath, HTMLLink ]
 
 	def DrawVulnerabilitySearchBox( self, SearchStr ): # Draws an HTML Search box for defined Vuln Search resources
