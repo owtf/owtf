@@ -28,34 +28,35 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The tab module simplifies tab creation via CSS
 '''
+from jinja2 import Template
 from framework.lib.general import *
 from collections import defaultdict
 import cgi
 
 class TableCreator:
-	def __init__(self, Renderer, Attribs = {}):
+	def __init__( self, Renderer, Attribs = {} ):
 		self.Renderer = Renderer
 		self.Attribs = Attribs
-                self.CSSAltClass = { True : ' class="alt"', False : '' }
-                self.RowAltTracker = defaultdict(list)
+
+                self.RowAltTracker = defaultdict( list )
 		self.Rows = []
 
-        def InitRowAlt(self, NumItems, RowNum = None):
+        def InitRowAlt( self, NumItems, RowNum = None ):
                 if None == RowNum:
                         Index = NumItems
                         self.RowAltTracker[Index] = False # Init to alternative row = False when headers are drawn
 
-        def GetRowAlt(self, NumItems, RowNum = None):
+        def GetRowAlt( self, NumItems, RowNum = None ):
                 if None != RowNum:
-                        Modulus = int(RowNum) % 2
-                        IsZero = (Modulus == 0)
-                        return self.CSSAltClass[IsZero]
+                        Modulus = int( RowNum ) % 2
+                        IsZero = ( Modulus == 0 )
+                        return IsZero
                 IsAlt = False
                 if self.RowAltTracker[NumItems]:
                         IsAlt = True
-                return self.CSSAltClass[IsAlt]
+                return IsAlt
 
-        def UpdateRowAlt(self, NumItems, RowNum = None):
+        def UpdateRowAlt( self, NumItems, RowNum = None ):
                 if None != RowNum:
                         return None
                 if self.RowAltTracker[NumItems]:
@@ -64,40 +65,60 @@ class TableCreator:
                         IsAlt = True
                 self.RowAltTracker[NumItems] = IsAlt
 
-        def DrawTableRow(self, ColumnList, Header = False, RowAttribs = {}, RowNum = None):
-                NumItems = len(ColumnList)
+        def DrawTableRow( self, ColumnList, Header = False, RowAttribs = {}, RowNum = None ):
+                NumItems = len( ColumnList )
                 if Header:
-                        self.InitRowAlt(NumItems, RowNum)
-                        PadS = "<th>"
-                        PadF = "</th>"
+                        self.InitRowAlt( NumItems, RowNum )
+                        IsAlt = None
                 else:
-                        PadS = "<td"+self.GetRowAlt(NumItems, RowNum)+">"
-                        #PadS = "<td>"
-                        PadF = "</td>"
-                        self.UpdateRowAlt(NumItems, RowNum)
-                CellS = PadF+PadS
-		#print "self.Renderer.GetAttribsAsStr(RowAttribs)="+str(self.Render.GetAttribsAsStr(RowAttribs))
-                return "<tr"+self.Renderer.GetAttribsAsStr(RowAttribs)+">"+PadS+CellS.join(ColumnList)+PadF+"</tr>"#.replace(PadF, "&nbsp;"+PadF) # Replace blanks by space
-                #return "<tr"+self.GetRowAlt(NumItems, RowNum)+">"+PadS+CellS.join(ColumnList)+PadF+"</tr>"
+                        IsAlt = self.GetRowAlt( NumItems, RowNum )
+                        self.UpdateRowAlt( NumItems, RowNum )
+                template = Template( """
+                <tr {% for Attrib, Value in Attribs.items() %}
+						{{ Attrib|e }}="{{ Value }}"
+				{% endfor %}> 
+				{% for Column in ColumnList %}
+					{% if Header %} 
+							<th> 
+					{% else %} 
+							<td 
+								{% if IsAlt %} 
+									class="alt" 
+								{% endif %}> 
+					{% endif %}
+						{{ Column }}
+					{% if Header %} 
+							</th> 
+					{% else %} 
+							</td> 
+					{% endif %}
+				{% endfor %}
+				</tr>
+				 """ )
 
-	def EscapeCells(self, CellList):
+                return  template.render( ColumnList = ColumnList, Attribs = RowAttribs, Header = Header, IsAlt = IsAlt );
+	def EscapeCells( self, CellList ):
 		CleanList = []
 		for Cell in CellList:
-			CleanList.append(cgi.escape(Cell))
+			CleanList.append( cgi.escape( Cell ) )
 		return CleanList
-	
-	def CreateRow(self, ColumnList, Header = False, RowAttribs = {}, RowNum = None):
-		self.Rows.append(self.DrawTableRow(ColumnList, Header, RowAttribs, RowNum))
 
-	def CreateCustomRow(self, HTML):
-		self.Rows.append(HTML)
+	def CreateRow( self, ColumnList, Header = False, RowAttribs = {}, RowNum = None ):
+		self.Rows.append( self.DrawTableRow( ColumnList, Header, RowAttribs, RowNum ) )
 
-	def GetNumRows(self):
-		return len(self.Rows)
+	def CreateCustomRow( self, HTML ):
+		self.Rows.append( HTML )
 
-	def Render(self):
-		return """
-<table"""+self.Renderer.GetAttribsAsStr(self.Attribs)+""">
-	"""+"\n".join(self.Rows)+"""
-</table>"""
+	def GetNumRows( self ):
+		return len( self.Rows )
 
+	def Render( self ):
+		template = Template( """<table {% for Attrib, Value in Attribs.items() %}
+											{{ Attrib|e }}="{{ Value }}"
+									{% endfor %}> 
+									{% for Row in Rows %}
+										{{ Row }}
+									{% endfor %}
+								</table>
+								""" )
+		return template.render( Attribs = self.Attribs, Rows = self.Rows )

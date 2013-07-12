@@ -103,7 +103,6 @@ class PluginHelper:
 	def RequestAndDrawLinkList( self, ResourceListName, ResourceList, PluginInfo ):
 		#for Name, Resource in Core.Config.GetResources('PassiveRobotsAnalysisHTTPRequests'):
 		LinkList = []
-		HTMLLinkList = []
 		for Name, Resource in ResourceList:
 			Chunks = Resource.split( '###POST###' )
 			URL = Chunks[0]
@@ -114,9 +113,19 @@ class PluginHelper:
 				POST = Chunks[1]
 				Transaction = self.Core.Requester.GetTransaction( True, URL, Method, POST )
 			if Transaction.Found:
-				Path, HTMLLink = self.SaveSandboxedTransactionHTML( Name, Transaction, PluginInfo )
-				HTMLLinkList.append( HTMLLink )
-				LinkList.append( Path )
+				RawHTML = Transaction.GetRawResponseBody()
+				FilteredHTML = self.Core.Reporter.Sanitiser.CleanThirdPartyHTML( RawHTML )
+				NotSandboxedPath = self.Core.PluginHandler.DumpPluginFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo )
+				cprint( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
+				iframe_template = Template( """
+				<iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder = '0' style = "overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
+				Your browser does not support iframes
+				</iframe>
+				""" )
+				iframe = iframe_template.render( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
+				SandboxedPath = self.Core.PluginHandler.DumpPluginFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
+				cprint( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
+				LinkList.append( ( Name, SandboxedPath ) )
 
 		template = Template( """
 		<hr />{{ ResourceListName }}: 
@@ -125,73 +134,83 @@ class PluginHelper:
 		{% endif %}
 		 
 		<ul class="default_list">
-    		{% for HTMLLink in HTMLLinkList %}
-    			<li> {{ HTMLLink }} </li>
+    		{% for LinkName, Link in LinkList %}
+    			<li> <a href="../../../{{ Link }}" class="button" target="_blank">
+						<span> {{ LinkName }} </span>
+					</a> </li>
     		{% endfor %}
 		</ul>}
 		""" )
 
-		return template.render( ResourceListName = ResourceListName, LinkList = LinkList, HTMLLinkList = HTMLLinkList )
-
-	def SaveSandboxedTransactionHTML( self, Name, Transaction, PluginInfo ): # 1st filters HTML, 2nd builds sandboxed iframe, 3rd give link to sandboxed content
-		RawHTML = Transaction.GetRawResponseBody()
-		FilteredHTML = self.Core.Reporter.Sanitiser.CleanThirdPartyHTML( RawHTML )
-		NotSandboxedPath = self.Core.PluginHandler.DumpPluginFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo )
-		cprint( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
-		iframe_template = Template( """
-		<iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder = '0' style = "overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
-		Your browser does not support iframes
-		</iframe>
-		""" )
-
-		iframe = iframe_template.render( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
-		save_path = self.Core.PluginHandler.DumpPluginFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
-		if not Name:
-			Name = save_path
-		cprint( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + save_path )
-		template = Template( """
-			<a href="{{ Link }}" class="button" target="_blank">
-				<span> {{ LinkName }} </span>
-			</a>
-		""" )
-		SandboxedPath, HTMLLink = ( save_path, template.render( LinkName = Name, Link = "../../../" + save_path ) )
-		return [ SandboxedPath, HTMLLink ]
+		return template.render( ResourceListName = ResourceListName, LinkList = LinkList )
 
 	def DrawVulnerabilitySearchBox( self, SearchStr ): # Draws an HTML Search box for defined Vuln Search resources
-		ProductId = 'prod' + self.Core.DB.GetNextHTMLID() # Keep product id unique among different search boxes (so that Javascript works)
-		Count = 0
-		CellStr = ''
-		SearchAll = []
-		for Name, Resource in self.Core.Config.GetResources( 'VulnSearch' ):
-			LinkStart, LinkFinish = Resource.split( '@@@PLACE_HOLDER@@@' )
-			LinkStart = LinkStart.strip()
-			LinkFinish = LinkFinish.strip()
-			JavaScript = "window.open('" + LinkStart + "'+GetById('" + ProductId + "').value+'" + LinkFinish + "')"
-			SearchAll.append( JavaScript )
-			CellStr += '<td>' + self.Core.Reporter.Render.DrawButton( Name, JavaScript ) + '</td>'
-			Count += 1
-		VulnSearch = """
-<table>
-	<tr>
-		<th colspan=""" + str( Count ) + """>
-			Search for Vulnerabilities: <input name="product" id='""" + ProductId + """' type="text" size="35" value='""" + SearchStr + """'>
-			<button onclick="javascript:""" + ';'.join( SearchAll ) + """">Search All</button>
-		</th>
-	</tr>
-	<tr>
-		""" + str( CellStr ) + """
-	</tr>
-"""
-		VulnSearch += '</table><hr />'
-		return VulnSearch
+		template = Template( """
+		<table>
+			<tr>
+				<th colspan="{{ VulnSearchResources|count }}">
+					Search for Vulnerabilities: <input name="product" id='prod{{ ProductId }}' type="text" size="35" value='{{ SearchStr }}'>
+					<button onclick="javascript:
+									{% for Name, Resource in VulnSearchResources %}
+										{% set js_selector = "'+GetById('prod"+ ProductId + "').value+'" %}
+			 							{% set js_link = Resource|replace("@@@PLACE_HOLDER@@@",js_selector) %}
+											window.open({{ js_link }});
+									{% endfor %}
+									">Search All</button>
+				</th>
+			</tr>
+			<tr>
+			 {% for Name, Resource in VulnSearchResources %}
+			 	<td>  
+			 		{% set js_selector = "'+GetById('prod"+ ProductId + "').value+'" %}
+			 		{% set js_link = Resource|replace("@@@PLACE_HOLDER@@@",js_selector) %}
+			 		<button onclick="javascript:window.open({{ js_link }}) "> 
+			 			{{ Name }} 
+			 		</button>   
+			 	</td>
+			 {% endfor %}
+			</tr>
+		</table>
+		<hr />
+		""" )
+		return template.render( ProductId = self.Core.DB.GetNextHTMLID() , SearchStr = SearchStr, VulnSearchResources = self.Core.Config.GetResources( 'VulnSearch' ) )
 
 	def DrawSuggestedCommandBox( self, PluginInfo, CommandCategoryList, Header = '' ): # Draws HTML tabs for a list of TabName => Resource Group (i.e. how to run hydra, etc)
-		cprint( "Drawing suggested command box.." )
+		PluginOutputDir = self.InitPluginOutputDir( PluginInfo )
+		template = Template( """
+			<hr />
+			<h4> 
+				{% if Header %}
+					Header 
+				{% else %}
+				Suggested potentially interesting commands
+			</h4>
+			{% for Tab, ResourceGroup in CommandCategoryList %}
+				<table class="run_log"> 
+					{% for Name, Resource in  ResourceGroup %} 
+					 <tr> 
+						{% for Column in ColumnList %}
+							<th>
+								{{ Column }}
+							</th>
+						{% endfor %}
+					</tr>
+					 <tr> 
+					{% for Column in ColumnList %}
+					 	<td {% loop.cycle('class="alt"','') %}> 
+							{{ Column }}
+						</td>
+					{% endfor %}
+					</tr>
+				
+					{% endfor %}
+				</table>
+			{% endfor %}
+		""" )
 		if Header == '': # Default header if not supplied
 			Header = "Suggested potentially interesting commands"
 		Header = "<hr /><h4>" + Header + "</h4>"
 		Tabs = self.Core.Reporter.Render.CreateTabs()
-		PluginOutputDir = self.InitPluginOutputDir( PluginInfo )
 		for Tab, ResourceGroup in CommandCategoryList:
 			Table = self.Core.Reporter.Render.CreateTable( {'class' : 'run_log'} )
 			for Name, Resource in self.Core.Config.GetResources( ResourceGroup ):

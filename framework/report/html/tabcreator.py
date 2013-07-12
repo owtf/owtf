@@ -66,41 +66,51 @@ class TabCreator:
 	def GetTabIdForDiv( self, DivId ):
 		return 'tab_' + DivId
 
-	def DivOpsWrapper( self, Operation ):
-		return Operation + "(" + self.Renderer.DrawJSArrayFromList( self.DivIdList ) + ");"
-
 	def ShowDivs( self ):
-		return self.DivOpsWrapper( 'ShowDivs' )
+		template = Template( """
+		ShowDivs(new Array('{{ List|join("','") }}'));
+		""" )
+		return template.render( List = self.DivIdList )
 
 	def HideDivs( self ):
-		return self.DivOpsWrapper( 'HideDivs' )
+		template = Template( """
+		HideDivs(new Array('{{ List|join("','") }}'));
+		""" )
+		return template.render( List = self.DivIdList )
 
 	def UnhighlightTabs( self ):
-		return "SetClassNameToElems(" + self.Renderer.DrawJSArrayFromList( self.TabIdList ) + ", '');"
-
-	def SelectDiv( self, DivId ):
-		return self.UnhighlightTabs() + ";" + self.HideDivs() + "; this.className = 'selected'; ToggleDiv('" + DivId + "');"
-
-	def DrawCustomTab( self, Content ):
-		return "<li>" + Content + "</li>"
+		template = Template( """
+		SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');
+		""" )
+		return template.render( TabIdList = self.TabIdList )
 
 	def DrawTab( self, TabInfo ):
-		#print "TabInfo="+str(TabInfo)
 		DivId, TabId, TabName, DivContent, Custom = TabInfo
-		if Custom:
-			return [ self.DrawCustomTab( TabName ), DivContent ]
-		return [ self.DrawCustomTab( self.Renderer.DrawJSLink( TabName, self.SelectDiv( DivId ), { 'id' : TabId } ) ), DivContent ]
+		template = Template( """
+		<li>
+			 {% if  Custom %}
+				{{ TabName }}
+			 {% else %}
+				<a href="javascript:void(0);" id="{{ TabId }}" target=""
+						onclick="SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');
+								 HideDivs(new Array('{{ DivIdList|join("','") }}'));
+								 this.className = 'selected'; 
+								 ToggleDiv('{{ DivId }}');" >
+					{{ TabName }}
+				</a>
+			 {% endif %}
+		</li>
+		""" )
+		return [template.render( Custom = Custom, TabIdList = self.TabIdList, DivIdList = self.DivIdList, DivId = DivId, TabId = TabId, TabName = TabName ), DivContent]
 
 	def CreateRawTab( self, RawTab, RawDivContent ):
 		self.Tabs.append( RawTab )
 		self.DivContent.append( RawDivContent )
 
 	def CreateCustomTab( self, TabContent, DivContent = '' ):
-		#self.Tabs.append(self.DrawCustomTab(Content))
-		self.CreateRawTab( self.DrawCustomTab( TabContent ), DivContent )
+		self.CreateRawTab( "<li>" + TabContent + "</li>", DivContent )
 
 	def CreateTab( self, TabInfo ):
-		#self.Tabs.append(self.DrawTab(TabInfo))
 		TabContent, DivContent = self.DrawTab( TabInfo )
 		DivId, TabId, TabName, DivContent, Custom = TabInfo
 		self.CreateRawTab( TabContent, '<div id="' + DivId + '" class="tabContent" style="display:none">' + DivContent + '</div>' )
@@ -116,15 +126,21 @@ class TabCreator:
 		self.CreateRawTab( '<li class="icon">' + self.DrawTabFlowButtons() + '</li>', '' )
 		#self.FlowButtons = self.DrawTabFlowButtons()
 
-        def DrawImageFromConfigPair( self, ConfigList ):
-                #FileName, ToolTip = self.Core.Config.GetAsList(ConfigList)
-                FileName, ToolTip = self.Config.GetAsList( ConfigList )
-                return self.Renderer.DrawImage( FileName, { 'title' : ToolTip } )
+	def DrawImageFromConfigPair( self, ConfigList ):
+		#FileName, ToolTip = self.Core.Config.GetAsList(ConfigList)
+		FileName, ToolTip = self.Config.GetAsList( ConfigList )
+		template = Template( """		
+					<img src="images/{{ FileName }}.png" title="{{ ToolTip }}">
+				""" )
+		return template.render( FileName = FileName, ToolTip = ToolTip )
 
 	def DrawTabFlowButtons( self ):
-                # TODO: Buttons not as horrible as before but still not as cool as here:
-                # http://jquery-ui.googlecode.com/svn/tags/1.6rc5/tests/static/icons.html
 		self.DrawImageFromConfigPair( [ 'FIXED_ICON_NOTES', 'REVIEW_TOOLTIP_NOTES' ] )
+		template = Template( """		
+					<img src="images/{{ FileName }}.png" title="{{ ToolTip }}">&nbsp;
+					
+				""" )
+		#return template.render( FileName = FileName, ToolTip = ToolTip )
 		return "&nbsp;".join( self.Renderer.DrawLinkPairs( [
 [self.DrawImageFromConfigPair( [ 'FIXED_ICON_EXPAND_PLUGINS', 'NAV_TOOLTIP_EXPAND_PLUGINS' ] ), self.ShowDivs() + self.UnhighlightTabs() ]
 , [self.DrawImageFromConfigPair( [ 'FIXED_ICON_CLOSE_PLUGINS', 'NAV_TOOLTIP_CLOSE_PLUGINS' ] ), self.HideDivs() + self.UnhighlightTabs()]
@@ -134,13 +150,13 @@ class TabCreator:
 	def RenderTabs( self, Attribs = {} ):
 		template = Template( """
 		<ul id="tabs"
-		{% for Attrib, Value in Attribs.items() %}
-		{{ Attrib|e }}="{{ Value }}"
-		{% endfor %}
-		>
-		{{ Tabs|join("\n") }}
+			{% for Attrib, Value in Attribs.items() %}
+			{{ Attrib|e }}="{{ Value }}"
+			{% endfor %}
+			>
+			{{ Tabs|join("\n") }}
 		</ul>
-		{{ FlowButtons|join }}
+			{{ FlowButtons|join }}
 		""" )
 		return template.render( Attribs = Attribs, Tabs = self.Tabs, FlowButtons = self.FlowButtons )
 
