@@ -29,21 +29,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Description:
 The core is the glue that holds the components together and allows some of them to communicate with each other
 '''
-import os, re, signal, subprocess
-from urlparse import urlparse
+from collections import defaultdict
 from framework import timer, error_handler, random
-from framework.shell import blocking_shell, interactive_shell
-from framework.wrappers.set import set_handler
-from framework.protocols import smtp, smb
 from framework.config import config
-from framework.http.proxy import proxy
-from framework.http import requester
 from framework.db import db
+from framework.http import requester
+from framework.http.proxy import proxy
+from framework.lib.general import *
 from framework.plugin import plugin_handler, plugin_helper, plugin_params
+from framework.protocols import smtp, smb
 from framework.report import reporter, summary
 from framework.selenium import selenium_handler
-from framework.lib.general import *
-from collections import defaultdict
+from framework.shell import blocking_shell, interactive_shell
+from framework.wrappers.set import set_handler
+from urlparse import urlparse
+import logging
+import os
+import re
+import signal
+import subprocess
 
 class Core:
     def __init__(self, RootDir):
@@ -207,9 +211,14 @@ class Core:
         PsCommand = subprocess.Popen("ps -o pid --ppid %d --noheaders" % parent_pid, shell=True, stdout=subprocess.PIPE)
         PsOutput = PsCommand.stdout.read()
         RetCode = PsCommand.wait()
+        log = logging.getLogger('general')
         #assert RetCode == 0, "ps command returned %d" % RetCode
         for PidStr in PsOutput.split("\n")[:-1]:
                 self.KillChildProcesses(int(PidStr),sig)
-                os.kill(int(PidStr), sig)
+                try:
+                    os.kill(int(PidStr), sig)
+                except:
+                    print("unable to kill it")    
+                    
 def Init(RootDir):
     return Core(RootDir)
