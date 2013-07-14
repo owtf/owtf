@@ -242,8 +242,8 @@ class PluginHandler:
 	def ProcessPlugin(self, PluginDir, Plugin, Status):
 		self.Core.Timer.StartTimer('Plugin') # Time how long it takes the plugin to execute
 		Plugin['Start'] = self.Core.Timer.GetStartDateTimeAsStr('Plugin')
-		if not self.CanPluginRun(Plugin, True):		
-			return None # Skip 
+		#if not self.CanPluginRun(Plugin, True):		
+		#	return None # Skip 
 		Status['AllSkipped'] = False # A plugin is going to be run
 		self.PluginCount += 1
                 log = logging.getLogger('general')
@@ -351,6 +351,7 @@ class PluginHandler:
                                 self.SwitchToTarget(target)
                                 if(self.CanPluginRun(plugin, True)):
                                     self.worklist.append((target,plugin))
+                        print("total number of tasks "+ str(len(self.worklist)))
                         numprocess=0
                         workers = []
                         queues = []
@@ -397,9 +398,12 @@ class PluginHandler:
                             
                         for i in range(numprocess):
                             workers[i].join() 
-                        input.join()
-                        queue.put('end')     
+                        print "joining input"    
+                        input.join()    
+                        queue.put('end')    
+                        print "joining output" 
                         output.join()
+                        
                        # queue1.put('end')     
                        # register_output.join()
                             
@@ -419,14 +423,21 @@ class PluginHandler:
 			#		for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
 			#			self.ProcessPlugin( PluginDir, Plugin, Status )
         def worker(self,work,queue,start,status):
+            log=logging.getLogger('general')
             while True:
                 if start!=1:
-                    queue.put(work)
-                    work1 = queue.get()
-                    
-                    while work1==work:
+                   # signal.signal(signal.SIGINT,signal.SIG_IGN)
+                    try:
                         queue.put(work)
                         work1 = queue.get()
+                    
+                        while work1==work:
+                            queue.put(work)
+                            work1 = queue.get()
+                    except:
+                        log.info("exception while get")
+                        continue        
+                    #signal.signal(signal.SIGINT,signal.SIG_DFL)    
                     work = work1    
                 if work == ():
                     sys.exit()
@@ -440,21 +451,30 @@ class PluginHandler:
         
     	def output(self,q):
         	t=""
+                flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL)
+                fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
         	while True:
                 	try:
                         	k = q.get()
-                        except q.Empty:
-                        	break
+                        except:
+                            continue
                             #self.register_plugin(k[15])
                         if k=='end':
-                            print(t)
-                            sys.stdout.flush()
+                            try:
+                                sys.stdout.write(t)
+                            except:
+                                print "some error in wrirtin"
+                                pass
                             break
                         t = t+k
-                        if(self.showOutput):    
-                            print(t),
-                            sys.stdout.flush()
-                            t=""       
+                        if(self.showOutput): 
+                            try:   
+                                sys.stdout.write(t)
+                                t=""
+                            except:
+                                print "some error in writing"
+                                pass    
+                                                    
                                 
         def keyinput(self,newstdin):
             #sys.stdin = newstdin
@@ -503,6 +523,7 @@ class PluginHandler:
                
             os.kill(pid,signal.SIGINT)
         def stop_process(self):
+            log = logging.getLogger('general')
             stdscr = curses.initscr()
             curses.noecho()
             curses.raw()
@@ -543,6 +564,24 @@ class PluginHandler:
                	elif c==curses.KEY_UP:
                    	if(selected != 0):
                        		selected = selected-1
+                elif c==ord('e'):
+                    self.worklist={}
+                    curses.nocbreak()
+                    stdscr.keypad(0)
+                    curses.echo()
+                    curses.endwin()
+                    for pid in self.running_plugin:
+                        work = self.running_plugin[pid]
+                        if work==():
+                            continue
+                        self.Core.KillChildProcesses(pid,signal.SIGINT)
+                        try:  
+                            log.info("kill" + str(pid))   
+                            os.kill(pid,signal.SIGINT)
+                        except:
+                            log.info("some error in os.kill. but dont worry")
+                             
+                    return         
                 elif c== ord('p'):
                     k=0
                     for pid in self.running_plugin:
@@ -555,9 +594,13 @@ class PluginHandler:
                     curses.nocbreak()
                     stdscr.keypad(0)
                     curses.echo()
-                    curses.endwin()   
-                    self.Core.KillChildProcesses(pid,signal.SIGINT)     
-                    os.kill(pid,signal.SIGINT)
+                    curses.endwin() 
+                    log.info("kill child "+ str(pid))  
+                    self.Core.KillChildProcesses(pid,signal.SIGINT)
+                    try:     
+                        os.kill(pid,signal.SIGINT)
+                    except:
+                        log.info("big papa not dying")    
                     selected=0 
                     #print pid  
                     #sys.stdout.flush()   
