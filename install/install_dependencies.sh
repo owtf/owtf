@@ -65,6 +65,13 @@ if [ "$a" = "y" ]; then
     sudo pip install argparse    
 fi
 
+echo "\n[*] Install Jinja2 templating engine? [y/n]"
+read a
+if [ "$a" = "y" ]; then
+	echo "[*] Running: sudo pip install jinja2"
+    sudo pip install jinja2    
+fi
+
 echo "\n[*] Install Selenium? [y/n]"
 echo "[*] NOTE: This is only necessary if you would like to run SELENIUM plugins"
 read a
