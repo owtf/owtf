@@ -52,7 +52,7 @@ class TabCreator:
 	def AddDiv( self, DivId, TabName, DivContent ):
 		Custom = False
 		self.DivIdList.append( DivId )
-		TabId = self.GetTabIdForDiv( DivId )
+		TabId = 'tab_' + DivId
 		self.TabList.append( [ DivId, TabId, TabName, DivContent, Custom ] )
 		self.TabIdList.append( TabId ) # Derive Tab Ids from Div Ids
 		#print "Added div="+DivId+", TabName="+TabName
@@ -62,9 +62,6 @@ class TabCreator:
 	def AddDivs( self, DivIdTabNamePairList ):
 		for DivId, TabName in DivIdTabNamePairList:
 			self.AddDiv( DivId, TabName )
-
-	def GetTabIdForDiv( self, DivId ):
-		return 'tab_' + DivId
 
 	def ShowDivs( self ):
 		template = Template( """
@@ -111,10 +108,30 @@ class TabCreator:
 		self.CreateRawTab( "<li>" + TabContent + "</li>", DivContent )
 
 	def CreateTab( self, TabInfo ):
-		TabContent, DivContent = self.DrawTab( TabInfo )
 		DivId, TabId, TabName, DivContent, Custom = TabInfo
-		template = Template( """<div id="{{ DivId }}" class="tabContent" style="display:none">{{ DivContent }}</div>""" )
-		self.CreateRawTab( TabContent, template.render( DivId = DivId, DivContent = DivContent ) )
+		TabContent_template = Template( """
+				<li>
+					 {% if  Custom %}
+						{{ TabName }}
+					 {% else %}
+						<a href="javascript:void(0);" id="{{ TabId }}" target=""
+								onclick="SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');
+										 HideDivs(new Array('{{ DivIdList|join("','") }}'));
+										 this.className = 'selected'; 
+										 ToggleDiv('{{ DivId }}');" >
+							{{ TabName }}
+						</a>
+					 {% endif %}
+				</li>
+		""" )
+
+		TabDiv_template = Template( """<div id="{{ DivId }}" class="tabContent" style="display:none">
+									{{ DivContent }}
+								</div>""" )
+
+		TabContent = TabContent_template.render( Custom = Custom, TabIdList = self.TabIdList, DivIdList = self.DivIdList, DivId = DivId, TabId = TabId, TabName = TabName )
+		TabDiv = TabDiv_template.render( DivId = DivId, DivContent = DivContent )
+		self.CreateRawTab( TabContent, TabDiv )
 
 	def CreateTabs( self ):
 		#p(self.TabList)
@@ -123,9 +140,38 @@ class TabCreator:
 			self.CreateTab( TabInfo )
 
 	def CreateTabButtons( self ):
-		# -> working before but ugly: see tabs behind icons -> self.CreateCustomTab(self.DrawTabFlowButtons())
-		template = Template( """<li class="icon">{{ TabFlowButtons }} </li>""" )
-		self.CreateRawTab( template.render( TabFlowButtons = self.DrawTabFlowButtons() ), '' )
+		template = Template( """
+		<li class="icon">
+			<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');">
+				<span>
+					<img src="images/{{ FIXED_ICON_EXPAND_PLUGINS }}.png" title="{{ NAV_TOOLTIP_EXPAND_PLUGINS }}">&nbsp; 
+				</span>
+			</a>	
+			&nbsp;
+			<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');">
+				<span>
+					<img src="images/{{ FIXED_ICON_CLOSE_PLUGINS }}.png" title="{{ NAV_TOOLTIP_CLOSE_PLUGINS }}">&nbsp; 
+				</span>
+			</a>
+			&nbsp;	
+			<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');UnfilterBrotherTabs(this);">
+				<span>
+					<img src="images/{{ FIXED_ICON_PLUGIN_INFO }}.png" title="{{ NAV_TOOLTIP_CLOSE_PLUGINS }}">&nbsp; 
+				</span>
+			</a>
+		</li>
+		""" )
+		TabFlowButtons = template.render( 
+								FIXED_ICON_EXPAND_PLUGINS = self.Config.Get( 'FIXED_ICON_EXPAND_PLUGINS' ),
+								NAV_TOOLTIP_EXPAND_PLUGINS = self.Config.Get( 'NAV_TOOLTIP_EXPAND_PLUGINS' ),
+								FIXED_ICON_CLOSE_PLUGINS = self.Config.Get( 'FIXED_ICON_CLOSE_PLUGINS' ),
+								NAV_TOOLTIP_CLOSE_PLUGINS = self.Config.Get( 'NAV_TOOLTIP_CLOSE_PLUGINS' ),
+								FIXED_ICON_PLUGIN_INFO = self.Config.Get( 'FIXED_ICON_PLUGIN_INFO' ),
+								FILTER_TOOLTIP_INFO_UNFILTER = self.Config.Get( 'FILTER_TOOLTIP_INFO_UNFILTER' ),
+								DivIdList = self.DivIdList,
+								TabIdList = self.TabIdList
+							  )
+		self.CreateRawTab( TabFlowButtons, '' )
 
 
 	def DrawImageFromConfigPair( self, ConfigList ):
@@ -135,41 +181,6 @@ class TabCreator:
 					<img src="images/{{ FileName }}.png" title="{{ ToolTip }}">
 				""" )
 		return template.render( FileName = FileName, ToolTip = ToolTip )
-
-	def DrawTabFlowButtons( self ):
-		FIXED_ICON_EXPAND_PLUGINS, NAV_TOOLTIP_EXPAND_PLUGINS = self.Config.GetAsList([ 'FIXED_ICON_EXPAND_PLUGINS', 'NAV_TOOLTIP_EXPAND_PLUGINS' ])
-		FIXED_ICON_CLOSE_PLUGINS, NAV_TOOLTIP_CLOSE_PLUGINS = self.Config.GetAsList( [ 'FIXED_ICON_CLOSE_PLUGINS', 'NAV_TOOLTIP_CLOSE_PLUGINS' ] )
-		FIXED_ICON_PLUGIN_INFO, FILTER_TOOLTIP_INFO_UNFILTER = self.Config.GetAsList( [ 'FIXED_ICON_PLUGIN_INFO', 'FILTER_TOOLTIP_INFO_UNFILTER' ] )
-		
-		template = Template( """
-		<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');">
-			<span>
-				<img src="images/{{ FIXED_ICON_EXPAND_PLUGINS }}.png" title="{{ NAV_TOOLTIP_EXPAND_PLUGINS }}">&nbsp; 
-			</span>
-		</a>	
-		&nbsp;
-		<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');">
-			<span>
-				<img src="images/{{ FIXED_ICON_CLOSE_PLUGINS }}.png" title="{{ NAV_TOOLTIP_CLOSE_PLUGINS }}">&nbsp; 
-			</span>
-		</a>
-		&nbsp;	
-		<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');UnfilterBrotherTabs(this);">
-			<span>
-				<img src="images/{{ FIXED_ICON_PLUGIN_INFO }}.png" title="{{ NAV_TOOLTIP_CLOSE_PLUGINS }}">&nbsp; 
-			</span>
-		</a>
-		""" )
-		return template.render( 
-								FIXED_ICON_EXPAND_PLUGINS = FIXED_ICON_EXPAND_PLUGINS,
-								NAV_TOOLTIP_EXPAND_PLUGINS = NAV_TOOLTIP_EXPAND_PLUGINS,
-								FIXED_ICON_CLOSE_PLUGINS = FIXED_ICON_CLOSE_PLUGINS,
-								NAV_TOOLTIP_CLOSE_PLUGINS = NAV_TOOLTIP_CLOSE_PLUGINS,
-								FIXED_ICON_PLUGIN_INFO = FIXED_ICON_PLUGIN_INFO,
-								FILTER_TOOLTIP_INFO_UNFILTER = FILTER_TOOLTIP_INFO_UNFILTER,
-								DivIdList = self.DivIdList,
-								TabIdList = self.TabIdList
-							  )
 
 	def RenderTabs( self, Attribs = {} ):
 		template = Template( """
@@ -185,8 +196,19 @@ class TabCreator:
 		return template.render( Attribs = Attribs, Tabs = self.Tabs, FlowButtons = self.FlowButtons )
 
 	def RenderDivs( self ):
-		template = Template( """  {{ DivContent|join }} """ )
-		return unicode( template.render( DivContent = self.DivContent ) )
+		template = Template( """ {{ DivContent|join }} """ )
+		return  template.render()
 
 	def Render( self, Attribs = {} ):
-		return self.RenderTabs( Attribs ) + self.RenderDivs()
+		template = Template( """
+		<ul id="tabs"
+			{% for Attrib, Value in Attribs.items() %}
+			{{ Attrib|e }}="{{ Value }}"
+			{% endfor %}
+			>
+			{{ Tabs|join("\n") }}
+		</ul>
+			{{ FlowButtons|join }}
+			{{ DivContent|join }}
+		""" )
+		return template.render( Attribs = Attribs, Tabs = self.Tabs, FlowButtons = self.FlowButtons, DivContent = self.DivContent )
