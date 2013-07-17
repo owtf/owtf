@@ -97,7 +97,6 @@ class PluginHelper:
     		{% endfor %}
 		</ul>}
 		""" )
-
 		return template.render( ResourceListName = ResourceListName, LinkList = LinkList, HTMLLinkList = HTMLLinkList )
 
 	def RequestAndDrawLinkList( self, ResourceListName, ResourceList, PluginInfo ):
@@ -141,7 +140,6 @@ class PluginHelper:
     		{% endfor %}
 		</ul>}
 		""" )
-
 		return template.render( ResourceListName = ResourceListName, LinkList = LinkList )
 
 	def DrawVulnerabilitySearchBox( self, SearchStr ): # Draws an HTML Search box for defined Vuln Search resources
@@ -207,6 +205,7 @@ class PluginHelper:
 				</table>
 			{% endfor %}
 		""" )
+		print "$$$>>", template.render( Header = Header )
 		if Header == '': # Default header if not supplied
 			Header = "Suggested potentially interesting commands"
 		Header = "<hr /><h4>" + Header + "</h4>"

@@ -81,8 +81,7 @@ class TableCreator:
 					{% if Header %} 
 							<th> 
 					{% else %} 
-							<td 
-								{% if IsAlt %} 
+							<td {% if IsAlt %} 
 									class="alt" 
 								{% endif %}> 
 					{% endif %}
