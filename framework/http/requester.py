@@ -164,6 +164,18 @@ class Requester:
 		#if Method == 'PUT':
 		#	POST = "data="+POST
 
+
+	def perform_request(self, request):
+	    return urllib2.urlopen(request)
+
+
+	def set_succesful_transaction(self, RawRequest, Response):
+	    return self.Transaction.SetTransaction(True, RawRequest[0], Response)
+
+
+	def log_transaction(self):
+	    return self.Core.DB.Transaction.LogTransaction(self.Transaction)
+
 	def Request(self, URL, Method = None, POST = None):
 		global RawRequest # kludge: necessary to get around urllib2 limitations: Need this to get the exact request that was sent
 
@@ -179,8 +191,8 @@ class Requester:
 		self.Transaction.Start(URL, POST, Method, self.Core.IsInScopeURL(URL))
 		self.RequestCountTotal += 1 
 		try:
-			Response = urllib2.urlopen(request)
-			self.Transaction.SetTransaction(True, RawRequest[0], Response)
+			Response = self.perform_request(request)
+			self.set_succesful_transaction(RawRequest, Response)
 		except urllib2.HTTPError, Error: # page NOT found
 			self.Transaction.SetTransaction(False, RawRequest[0], Error) # Error is really a response for anything other than 200 OK in urllib2 :)
 		except urllib2.URLError, Error: # Connection refused?
@@ -190,7 +202,7 @@ class Requester:
 			ErrorMessage = "ERROR: Requester Object -> Unknown HTTP Request error: "+URL+"\n"+str(sys.exc_info())
 			self.Transaction.SetError(ErrorMessage)
 		if self.LogTransactions:
-			self.Core.DB.Transaction.LogTransaction(self.Transaction) # Log transaction in DB for analysis later and return modified Transaction with ID
+			self.log_transaction() # Log transaction in DB for analysis later and return modified Transaction with ID
 		return self.Transaction
 
 	def ProcessHTTPErrorCode(self, Error, URL):
