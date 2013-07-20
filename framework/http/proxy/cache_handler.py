@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
 #                     as a part of Google Summer of Code 2013
 '''
-import cPickle as pickle
+import json as pickle
 import os
 import hashlib
 from filelock import FileLock
@@ -88,18 +88,22 @@ class CacheHandler(object):
         # This is the function which is called for every request. If file is not
         # found in cache, then a file lock is created for that and a None is
         # returned.
+        self.file_lock = FileLock(self.file_path)
+        self.file_lock.acquire()
+        """
         if os.path.isfile(self.file_path):
             return(self.create_response_object())
         else:
             self.file_lock = FileLock(self.file_path)
             self.file_lock.acquire()
+            
             # For handling race conditions
             if os.path.isfile(self.file_path):
                 self.file_lock.release()
                 return(self.create_response_object())
             else:
                 return None
-
+        """        
 class DummyResponse(object):
     """
     This class is just used to create a fake response object
