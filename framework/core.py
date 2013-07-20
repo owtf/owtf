@@ -109,19 +109,15 @@ class Core:
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
         if Options["DevMode"]:
-            if Options['InboundProxy']:
-                if len(Options['InboundProxy']) == 1:
-                    Options['InboundProxy'] = [self.Config.Get('INBOUND_PROXY_IP'), Options['InboundProxy'][0]]
-            else:
-                Options['InboundProxy'] = [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')]
             if not os.path.exists(self.Config.Get('CACHE_DIR')):
                 os.makedirs(self.Config.Get('CACHE_DIR'))
             else:
                 shutil.rmtree(self.Config.Get('CACHE_DIR'))
                 os.makedirs(self.Config.Get('CACHE_DIR'))
+            InboundProxyOptions = [self.Config.Get('IPROXY_IP'), self.Config.Get('IPROXY_PORT')]    
             self.ProxyProcess = proxy.ProxyProcess(
                                                     self.Config.Get('INBOUND_PROXY_PROCESSES'),
-                                                    Options['InboundProxy'],
+                                                    InboundProxyOptions,
                                                     self.Config.Get('CACHE_DIR'),
                                                     Options['OutboundProxy']
                                                   )
@@ -132,10 +128,10 @@ class Core:
                                                                             self.Config.Get('CACHE_DIR'),
                                                                             transaction_db_path
                                                                          )
-            cprint("Started Inbound proxy at " + ":".join(Options['InboundProxy']))
+            cprint("Started Inbound proxy at " + self.Config.Get('IPROXY'))
             self.ProxyProcess.start()
             self.TransactionLogger.start()
-            self.Requester = requester.Requester(self, Options['InboundProxy'])
+            self.Requester = requester.Requester(self, InboundProxyOptions)
         else:
             self.Requester = requester.Requester(self, Options['OutboundProxy'])        
         

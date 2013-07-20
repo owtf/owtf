@@ -34,7 +34,8 @@ import codecs
 import os
 import glob
 import httplib
-import cPickle as pickle
+import json as pickle
+import time
 
 class TransactionLogger(Process):
     """
@@ -91,10 +92,14 @@ class TransactionLogger(Process):
     def run(self):
         try:
             while True:
-                for file_path in glob.glob(os.path.join(self.cache_dir, "*.rd")):
-                    dumped_dict = pickle.load(open(file_path[:-3], 'rb'))
-                    self.save_to_file(dumped_dict, file_path.split('/')[-1][:-3])
-                    os.remove(file_path)
+                if glob.glob(os.path.join(self.cache_dir, "*.rd")):
+                    for file_path in glob.glob(os.path.join(self.cache_dir, "*.rd")):
+                        dumped_dict = pickle.load(open(file_path[:-3], 'rb'))
+                        self.save_to_file(dumped_dict, file_path.split('/')[-1][:-3])
+                        os.remove(file_path)
+                else:
+                    time.sleep(1)
+
         except:
             for file_path in glob.glob(os.path.join(self.cache_dir, "*.rd")):
                 dumped_dict = pickle.load(open(file_path[:-3], 'rb'))
