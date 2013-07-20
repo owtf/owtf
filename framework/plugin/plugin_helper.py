@@ -182,6 +182,7 @@ class PluginHelper:
 					Header 
 				{% else %}
 				Suggested potentially interesting commands
+				{% endif %}
 			</h4>
 			{% for Tab, ResourceGroup in CommandCategoryList %}
 				<table class="run_log"> 
@@ -195,7 +196,7 @@ class PluginHelper:
 					</tr>
 					 <tr> 
 					{% for Column in ColumnList %}
-					 	<td {% loop.cycle('class="alt"','') %}> 
+					 	<td> 
 							{{ Column }}
 						</td>
 					{% endfor %}
@@ -205,7 +206,7 @@ class PluginHelper:
 				</table>
 			{% endfor %}
 		""" )
-		print "$$$>>", template.render( Header = Header )
+		#print "$$$>>", template.render( Header = Header )
 		if Header == '': # Default header if not supplied
 			Header = "Suggested potentially interesting commands"
 		Header = "<hr /><h4>" + Header + "</h4>"

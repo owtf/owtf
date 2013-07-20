@@ -94,8 +94,14 @@ class TableCreator:
 				{% endfor %}
 				</tr>
 				 """ )
+                vars = {
+							"ColumnList": [ unicode( Column , "utf-8" ) if Column.__class__ is not unicode else Column  for Column in ColumnList],
+							"Attribs" : RowAttribs,
+							"Header" :Header ,
+							"IsAlt" : IsAlt ,
+						}
 
-                return  template.render( ColumnList = ColumnList, Attribs = RowAttribs, Header = Header, IsAlt = IsAlt );
+                return  template.render( vars );
 	def EscapeCells( self, CellList ):
 		CleanList = []
 		for Cell in CellList:

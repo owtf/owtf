@@ -142,13 +142,15 @@ class Summary:
 		HTML += """
 <script>
 var DetailedReport = false
-"""+self.Core.Reporter.DrawJSCounterList()+"""
+var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
 var CollapsedReportSize = '"""+self.Core.Config.Get('COLLAPSED_REPORT_SIZE')+"""'
 var NetMap = """ + json.dumps(self.NetMap)+"""
 var PluginDelim = '""" + self.Core.Reporter.GetPluginDelim() + """'
 var SeverityWeightOrder = """ + self.Core.Reporter.Render.DrawJSArrayFromList(self.Core.Config.Get('SEVERITY_WEIGHT_ORDER').split(',')) + """
 var PassedTestIcons = """ + self.Core.Reporter.Render.DrawJSArrayFromList(self.Core.Config.Get('PASSED_TEST_ICONS').split(',')) + """
 </script>
+</body>
+</html>
 """
 		with open(self.Core.Config.Get('HTML_REPORT_PATH'), 'a') as file:
 			file.write(HTML) # Closing HTML Report

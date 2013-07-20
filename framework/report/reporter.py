@@ -80,132 +80,6 @@ class Reporter:
                 Table.CreateRow( [ self.DrawCommand( Command ) ] )
                 return Table.Render()
 
-	def GetIconLinks( self, IconList, Options ):
-		List = []
-		for I in IconList:
-			if I['Icon'] == I['Icon'].upper(): # Icon in capitals = config setting
-				for Item in [ 'Icon', 'ToolTip' ]:
-					I[Item] = self.Core.Config.Get( I[Item] ) # Override settings with config values
-			Image = self.Render.DrawImage( I['Icon'], { 'title' : I['ToolTip'] } )
-			Attribs = { 'class' : 'icon' }
-			if 'Attribs' in I:
-				Attribs = I['Attribs'].copy()
-			if 'id' in Attribs:
-				pass # id already passed, ignore below
-			elif 'CounterName' in I:
-				Attribs['id'] = Options['IdPrefix'] + I['CounterName'] # Give each counter a unique id
-			elif 'IdPrefix' in Options: # Each link must have a unique id
-				#Attribs['id'] = Options['IdPrefix'] + I['Function'].split('(')[0] # Give each link a unique id
-				Attribs['id'] = Options['IdPrefix'] + I['Icon']
-                        LinkImage = self.Render.DrawButtonJSLink( Image, I['Function'], Attribs )
-			PrefixStr = ''
-			if 'Counters' in Options and 'IdPrefix' in Options:
-				#Counters are drawn in a table, list is a row of HTML table cells with counters:
-				CounterName = I['Icon']
-				if 'CounterName' in I:
-					CounterName = I['CounterName']
-				CounterId = Options['IdPrefix'] + CounterName + '_counter'
-                                self.CounterList.append( CounterId )
-				PrefixStr = '<td>' + self.Render.DrawDiv( '', { 'id' : CounterId, 'class' : 'counter' } ) + '</td>'
-			List.append( PrefixStr + '<td>' + LinkImage + '</td>' )
-		return List
-
-        def DrawReviewIconLinks( self, IconList, Options ): # Options = {}
-		Table = self.Render.CreateTable( {'class' : 'counter'} )
-		Table.CreateCustomRow( '<tr>' + ''.join( self.GetIconLinks( IconList, Options ) ) + '</tr>' )
-		DivStyle = 'display:inline;'
-		if not 'Counters' in Options:
-			DivStyle += 'float:right;'
-		return self.Render.DrawDiv( Table.Render() + self.DrawFilterOptions(), { 'style' : DivStyle } )
-
-	def GetSelectListFromList( self, List ):
-		NewList = []
-		for Item in List:
-			NewList.append( [ Item, Item ] )
-		return NewList
-
-	def GetSelectListFromDict( self, Dict, ValueField, ConcatDescripFieldList, ConcatStr = '-' ):
-		List = []
-		for Item in Dict:
-			FieldList = []
-			for Field in ConcatDescripFieldList:
-				#if not Field.strip(): continue
-				#print "Field=" + str(Field) + str(ConcatDescripFieldList)
-				FieldList.append( Item[Field] )
-			List.append( [ Item[ValueField], ConcatStr.join( FieldList ) ] )
-		return List
-
-	def DrawFilterOptions( self ):
-		TableG = self.Render.CreateTable( { 'class' : 'transaction_log' } )
-		TableG.CreateRow( [ 'Plugin Groups', 'Web Plugin Types', 'Aux Plugin Types' ], True )
-		#multiple, size, autocomplete, disabled, name, id
-		TableG.CreateRow( [
-self.Render.DrawSelect( self.GetSelectListFromList( self.Core.Config.Plugin.GetAllGroups() ), [], { 'multiple' : 'multiple', 'id' : 'SelectPluginGroup', 'onchange' : 'SetSelectFilterOptions(this)' } )
-, self.Render.DrawSelect( self.GetSelectListFromList( self.Core.Config.Plugin.GetTypesForGroup( 'web' ) ), [], { 'multiple' : 'multiple', 'id' : 'SelectPluginTypesWeb', 'size' : '6', 'onchange' : 'SetSelectFilterOptions(this)' } )
-, self.Render.DrawSelect( self.GetSelectListFromList( self.Core.Config.Plugin.GetTypesForGroup( 'aux' ) ), [], { 'multiple' : 'multiple', 'id' : 'SelectPluginTypesAux', 'size' : '6', 'onchange' : 'SetSelectFilterOptions(this)' } )
-] )
-		TableD = self.Render.CreateTable( { 'class' : 'transaction_log' } )
-		TableD.CreateRow( [ 'Web Test Groups' ], True )
-		TableD.CreateRow( [
-self.Render.DrawSelect( self.GetSelectListFromDict( self.Core.Config.Plugin.GetWebTestGroups(), 'Code', [ 'Code', 'Descrip', 'Hint' ], ' - ' ), [], { 'multiple' : 'multiple', 'id' : 'SelectWebTestGroups', 'size' : '10', 'onchange' : 'SetSelectFilterOptions(this)' } )
-] )
-		return self.Render.DrawDiv( '<h4>Filter Options</h4><p>Tip: Hold the Ctrl key while selecting or unselecting for multiple choices.<br />NOTE: Clicking on any filter will apply these options from now on. Options will survive a screen refresh</p>' + TableG.Render() + TableD.Render(), { 'id' : 'advanced_filter_options', 'style' : 'display: none;' } )
-
-        def DrawCounters( self, ReportType, IdPrefix = 'filter' ):
-		ReportTypeStr = "'" + ReportType + "'"
-		FixedStartIcons = [
-{ 'Icon' : 'FIXED_ICON_MATCHES', 'ToolTip' : 'FILTER_TOOLTIP_MATCHES', 'Function' : "", 'CounterName' : 'matches' },
-{ 'Icon' : 'FIXED_ICON_INFO', 'ToolTip' : 'FILTER_TOOLTIP_INFO', 'Function' : "FilterResults('info', " + ReportTypeStr + ")", 'CounterName' : 'info' },
-{ 'Icon' : 'FIXED_ICON_NOFLAG', 'ToolTip' : 'FILTER_TOOLTIP_NOFLAG', 'Function' : "FilterResults('no_flag', " + ReportTypeStr + ")", 'CounterName' : 'no_flag' },
-{ 'Icon' : 'FIXED_ICON_UNSTRIKETHROUGH', 'ToolTip' : 'FILTER_TOOLTIP_UNSTRIKETHROUGH', 'Function' : "FilterResults('unseen', " + ReportTypeStr + ")", 'CounterName' : 'unseen' },
-{ 'Icon' : 'FIXED_ICON_STRICKETHROUGH', 'ToolTip' : 'FILTER_TOOLTIP_STRIKETHROUGH', 'Function' : "FilterResults('seen', " + ReportTypeStr + ")", 'CounterName' : 'seen' },
-{ 'Icon' : 'FIXED_ICON_NOTES', 'ToolTip' : 'FILTER_TOOLTIP_NOTES', 'Function' : "FilterResults('notes', " + ReportTypeStr + ")", 'CounterName' : 'notes' }
-]
-		DynamicIcons = self.GetChosenReviewIconList( '', 'FilterResults', ReportTypeStr )
-
-		Counters = FixedStartIcons + DynamicIcons
-
-		Counters += [
-{ 'Icon' : 'FIXED_ICON_REMOVE', 'ToolTip' : 'FILTER_TOOLTIP_REMOVE_FILTER', 'Function' : "FilterResults('delete', " + ReportTypeStr + ")" },
-{ 'Icon' : 'FIXED_ICON_OPTIONS', 'ToolTip' : 'FILTER_TOOLTIP_OPTIONS', 'Function' : "ToggleFilterOptions()" },
-{ 'Icon' : 'FIXED_ICON_REFRESH', 'ToolTip' : 'FILTER_TOOLTIP_REFRESH', 'Function' : "FilterResults('refresh', " + ReportTypeStr + ")" }
-]
-		return self.DrawReviewIconLinks( Counters, { 'IdPrefix' : IdPrefix, 'Counters' : True } )
-
-	def GetChosenReviewIconList( self, DivId, Function, ReportTypeStr = '' ): # This list is dynamic: depends on what the user configured
-		List = []
-                Setting = 'CHOSEN_ICONS_FOR_REVIEW'
-		for IconInfo in self.Core.Config.Get( Setting ).split( ',' ):
-                        IconInfo = IconInfo.split( '@' ) # Convert from config file
-                        if len( IconInfo ) != 2:
-                                self.Core.Error.Add( "USER ERROR: Error in conf. file setting: CHOSEN_ICONS_FOR_REVIEW -> icon@title (" + str( IconInfo ) + ")", 'user' )
-                                break # Abort loop + end processing
-                        Icon, Title = IconInfo
-			FunctionStr = "FilterResults('" + Icon + "', " + ReportTypeStr + ")"
-			if 'Rate' == Function:
-				FunctionStr = "Rate('" + DivId + "', '" + Icon + "', this)"
-			List.append( { 'Icon' : Icon, 'ToolTip' : Title, 'Function' : FunctionStr } )
-                if len( List ) == 0: # Must select at least 1 flag
-                        self.Core.Error.Add( "USER ERROR: Error in configuration file -> no items selected for setting: " + Setting, 'user' )
-                        return []
-		return List
-
-	def GetReviewIconList( self, DivId ):
-		FixedStartIcons = [
-{ 'Icon' : 'FIXED_ICON_NOTES', 'ToolTip' : 'REVIEW_TOOLTIP_NOTES', 'Function' : "ToggleNotesBox('" + DivId + "')" },
-{ 'Icon' : 'FIXED_ICON_STRICKETHROUGH', 'ToolTip' : 'REVIEW_TOOLTIP_STRIKETHROUGH', 'Function' : "MarkAsSeen('" + DivId + "')", 'Attribs' : { 'id' : 'l' + DivId, 'class' : 'icon' } }
-]
-		DynamicIcons = self.GetChosenReviewIconList( DivId, 'Rate' )
-
-		FixedEndIcons = [
-{ 'Icon' : 'FIXED_ICON_REMOVE', 'ToolTip' : 'REVIEW_TOOLTIP_REMOVE', 'Function' : "Rate('" + DivId + "', 'delete', this)" },
-{ 'Icon' : 'FIXED_ICON_CLOSE_PLUGIN', 'ToolTip' : 'REVIEW_TOOLTIP_CLOSE_PLUGIN', 'Function' : "HidePlugin('" + DivId + "')" }
-]
-		return FixedStartIcons + DynamicIcons + FixedEndIcons
-
-        def DrawReviewButtons( self, DivId ):
-		return self.DrawReviewIconLinks( self.GetReviewIconList( DivId ), { 'IdPrefix' : DivId } )
-
         def DrawTransacLinksStr( self, PathList, ToFile = True ):
                 URL, TransacPath, ReqPath, ResHeadersPath, ResBodyPath = PathList
                 LinksStr = self.Render.DrawButtonLink( 'Site', URL ) + " "
@@ -230,24 +104,208 @@ self.Render.DrawSelect( self.GetSelectListFromDict( self.Core.Config.Plugin.GetW
                 PluginReportPath = save_dir + "report.html"
                 self.Core.CreateMissingDirs( save_dir )
                 with open( PluginReportPath, 'w' ) as file: # 'w' is important to overwrite the partial report, necesary for scanners
-                        Table = self.Render.CreateTable( { 'class' : 'report_intro' } )
-                        Table.CreateRow( ['Plugin', 'Start', 'End', 'Runtime', 'Output Files'], True )
-			Plugin['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr( 'Plugin' )
-			Plugin['End'] = self.Core.Timer.GetEndDateTimeAsStr( 'Plugin' )
-                        Table.CreateRow( [ Plugin['Type'] + '/' + Plugin['File'], Plugin['Start'], Plugin['End'], Plugin['RunTime'], self.Core.Reporter.Render.DrawButtonLink( 'Browse', self.Core.GetPartialPath( save_dir ) ) ] )
-                        PluginHeader = '<h4 id="h' + DivId + '"><u>' + Plugin['Title'] + '</u> - <i>' + Plugin['Type'].replace( '_', ' ' ).upper() + '</i>'
-                        PluginHeader += "&nbsp;" * 2 + self.DrawReviewButtons( DivId ) + '</h4>' + Table.Render()
-                        # Generate unique id every time to detect if plugin report changed to highlight modified stuff without losing review data (i.e. same plugin id):
-                        PluginHeader += "<div id='token_" + DivId + "' style='display: none;'>" + self.Core.DB.GetNextHTMLID() + "</div>"
-                        NotesBox = self.Render.CreateTable( { 'class' : 'transaction_log' } )
-                        NotesBox.CreateRow( ['Notes'], True )
-                        # NOTE: autocomplete must be off because otherwise you see the text but is not saved in the review at all, which is counter-intuitive
-			NotesBox.CreateRow( [ '<div id="note_preview_' + DivId + '"></div><div style="float: right;"><a href="javascript:ToggleNotesBox(\'' + DivId + '\')">Edit</a></div><div id="notes_' + DivId + '" style="display: none;"><textarea id="note_text_' + DivId + '" autocomplete="off" rows=15 cols=150></textarea> </div>' ] )
-                       # NotesBox.CreateRow(['<textarea id="'+TextAreaId+'" autocomplete="off" onChange="SaveComments(\''+DivId+'\')" rows=15 cols=150></textarea><script type="text/javascript">CKEDITOR.replace( "'+TextAreaId+'" );</script>'])
-                       # Better with auto-save: NotesBox.CreateCustomRow('<tr><td align="right">'+self.Render.DrawButtonJSLink('<img src="images/floppy.png" />', "SaveComments('"+DivId+"')", { 'class' : 'icon' })+'</td></tr>')
-                        PluginHeader += "<div>" + NotesBox.Render() + "</div><hr />"
-                        #PluginHeader += "<div id='notes_"+DivId+"' style='display: none;'>"+NotesBox.Render()+"</div><hr />"
-                        file.write( "\n" + PluginHeader + HTMLtext + "\n" )
+                        Plugin['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr( 'Plugin' )
+                        Plugin['End'] = self.Core.Timer.GetEndDateTimeAsStr( 'Plugin' )
+                        template = Template( """
+                        	<h4 id="h{{ DivId }}"><u> {{ Plugin['Title'] }} </u> - <i> {{ Plugin['Type']|replace( '_', ' ' )|upper }} </i>
+                            &nbsp;&nbsp;
+                            <div style="display:inline;{% if 'Counters' not in Options %}float:right;{% endif %}">
+								<table class="counter"> 
+									<tr>
+																<td>
+																<a href="javascript:void(0);" class="icon" onclick="ToggleNotesBox('{{ DivId }}')" id="{{ DivId }}lamp_active" >
+																<span> <img src="images/lamp_active.png" title="Hide/Show Notes Box"> </span>
+																	</a>
+																</td>
+																<td>
+																<a href="javascript:void(0);" class="icon" onclick="MarkAsSeen('{{ DivId }}')" id="l{{ DivId }}" >
+																<span> <img src="images/pencil.png" title="Strike-through"> </span>
+																	</a>
+																</td>
+														
+																<td>
+																<a href="javascript:void(0);" class="icon"  onclick="Rate('{{ DivId }}','attention_orange', this)" id="{{ DivId }}attention_orange">
+																<span> <img src="images/attention_orange.png" title="Warning"> </span>
+																	</a>
+																</td>
+																<td>
+																<a href="javascript:void(0);" class="icon"  onclick="Rate('{{ DivID }}','bonus_red', this)"  id="{{ DivID }}bonus_red">
+																<span> <img src="images/bonus_red.png" title="Exploitable"> </span>
+																	</a>
+																</td>
+																<td>
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','star_3', this)"  id='{{ DivID }}star_3'>
+																<span> <img src="images/star_3.png" title="Brief look (no analysis)"> </span>
+																	</a>
+																</td>
+																<td>
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','star_3', this)" id="{{ DivID }}star_2">
+																<span> <img src="images/star_2.png" title="Initial look (analysis incomplete)"> </span>
+																	</a>
+																</td>
+																<td>
+																<a href="javascript:void(0);" class="icon"  onclick="Rate('{{ DivID }}','check_green', this)" id="{{ DivID }}check_green">
+																<span> 
+																	<img src="images/check_green.png" title="Test Passed"> </span>
+																	</a>
+																</td>
+																<td>
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','bug', this)" id="{{ DivID }}bug">
+																<span> <img src="images/bug.png" title="Functional/Business Logic bug"> </span>
+																	</a>
+																</td>
+																<td>
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','flag_blue', this)" id="{{ DivID }}flag_blue">
+																<span> <img src="images/flag_blue.png" title="Low Severity"> </span>
+																	</a>
+																</td>
+						
+																<td>
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','flag_yellow', this)" id="{{ DivID }}flag_yellow">
+																<span> <img src="images/flag_yellow.png" title="Medium Severity"> </span>
+																	</a>
+																</td>
+						
+																<td>
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','flag_red', this)" id="{{ DivID }}flag_red">
+																<span> <img src="images/flag_red.png" title="High Severity"> </span>
+																	</a>
+																</td>
+																<td>
+																	<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','flag_violet', this)" id="{{ DivID }}flag_violet">
+																		<span> <img src="images/flag_violet.png" title="Critical Severity"> </span>
+																	</a>
+																</td>
+																<td>
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','delete', this)" id="{{ DivID }}delete">
+																<span> <img src="images/delete.png" title="Remove Flag"> </span>
+																	</a>
+																</td>
+																<td>
+																<a href="javascript:void(0);" class="icon" onclick="HidePlugin('{{ DivId }}')" id="{{ DivID }}options">
+																<span> <img src="images/arrow_up.png" title="Close Plugin Report"> </span>
+																	</a>
+																</td>
+															</tr>
+													</table>
+											</div>
+													<div id='advanced_filter_options' style='display: none;'>
+													<h4>Filter Options</h4><p>Tip: Hold the Ctrl key while selecting or unselecting for multiple choices.<br />NOTE: Clicking on any filter will apply these options from now on. Options will survive a screen refresh</p>
+													<table class="transaction_log"> 
+																			<tr>
+																				<th>Plugin Groups</th>
+																				<th>Web Plugin Types</th>
+																				<th>Aux Plugin Types</th>
+																			</tr>
+																			<tr>
+																				<td>
+																						<select multiple='multiple'  id='SelectPluginGroup' onchange='SetSelectFilterOptions(this)'> 
+																							{% for Value in PluginTypes %}
+																								<option value="{{ Value }}"> 
+																									{{ Value|e }}
+																								 </option>
+																							{% endfor %}
+																						</select>
+																						
+																				</td>
+																				<td>
+																						<select multiple='multiple'  id='SelectPluginTypesWeb' size='6' onchange='SetSelectFilterOptions(this)'> 
+																							{% for Value in WebPluginTypes %}
+																								<option value="{{ Value }}"> 
+																									{{ Value|e }}
+																								 </option>
+																							{% endfor %}
+																						</select>
+																				</td>
+																				<td>
+																					<select multiple='multiple'  id='SelectPluginTypesAux' size='6' onchange='SetSelectFilterOptions(this)'> 
+																							{% for Value in AuxPluginsTypes %}
+																								<option value="{{ Value }}"> 
+																									{{ Value|e }}
+																								 </option>
+																							{% endfor %}
+																						</select>
+																				</td>
+																			</tr>
+																		</table>
+																		<table class="transaction_log"> 
+																			<tr>
+																				<th>Web Test Groups</th>
+																			</tr>
+																			<tr>
+																				<td>
+																					<select multiple='multiple'  id='SelectWebTestGroups' size='10' onchange='SetSelectFilterOptions(this)'> 
+																							{% for Item in WebTestGroups %}
+																								<option value="{{ Item["Code"] }}"> 
+																									{{ Item["Code"] }} - {{ Item["Descript"] }} - {{ Item["Hint"] }} 
+																								 </option>
+																							{% endfor %}
+																						</select>
+																				</td>
+																			</tr>
+													</table>
+													</div>
+
+									
+						<table class="report_intro"> 
+                        		<tr>
+                        			<th>Plugin</th>
+                        			<th>Start</th>
+                        			<th>End</th>
+                        			<th>Runtime</th>
+                        			<th>Output Files</th>
+                        		</tr>
+                        		<tr>
+                        			<td>{{ Plugin['Type'] }}/{{ Plugin['File'] }}</td>
+                        			<td>{{ Plugin['Start'] }}</td>
+                        			<td>{{ Plugin['End'] }}</td>
+                        			<td>{{ Plugin['RunTime'] }}</td>
+                        			<td>
+	                        			<a href="SAVE_DIR" class="button" target="_blank">
+											<span> Browse </span>
+										</a>
+									</td>
+                        		</tr>
+
+						</table>
+						{# Generate unique id every time to detect if plugin report changed to highlight modified stuff without losing review data (i.e. same plugin id) #}
+						<div id='token_{{ DivId }}' style='display: none;'> {{ NextHTMLID }} </div>
+                        <div>
+							<table class="transaction_log">
+								<tr>
+									<th> Notes </th>
+								</tr>
+								<tr>
+									<td> 
+										<div id="note_preview_{{ DivId }}"></div>
+										<div style="float: right;">
+											<a href="javascript:ToggleNotesBox('{{ DivId }}')">Edit</a>
+										</div>
+										<div id="notes_{{ DivId }}" style="display: none;">
+											<!-- autocomplete must be off because otherwise you see the text but is not saved in the review at all, which is counter-intuitive -->
+											<textarea id="note_text_{{ DivId }}" autocomplete="off" rows=15 cols=150></textarea> 
+										</div>
+									</td>
+								</tr>
+							</table>
+							   </div>
+						<hr />
+                            {{ HTMLtext }}
+                         </div>
+                     
+                        	""" )
+                        vars = {
+								"DivId": DivId,
+								"SAVE_DIR": self.Core.GetPartialPath( save_dir ),
+								"NextHTMLID": self.Core.DB.GetNextHTMLID(),
+								"Plugin": Plugin,
+								"HTMLtext": unicode( HTMLtext, "utf-8" ) if HTMLtext.__class__ is not unicode else HTMLtext,
+								"PluginTypes": self.Core.Config.Plugin.GetAllGroups(),
+								"WebPluginTypes": self.Core.Config.Plugin.GetTypesForGroup( 'web' ),
+								"AuxPluginsTypes": self.Core.Config.Plugin.GetTypesForGroup( 'aux' ),
+								"WebTestGroups":self.Core.Config.Plugin.GetWebTestGroups(),
+								}
+                        file.write( template.render( vars ) )
 		#print "Plugin="+str(Plugin)
 		self.Core.DB.PluginRegister.Add( Plugin, PluginReportPath, self.Core.Config.GetTarget() )
                 #self.RegisterPartialReport(PluginReportPath) # Partial report saved ok, register partial report in register file for grouping later
@@ -276,16 +334,15 @@ self.Render.DrawSelect( self.GetSelectListFromDict( self.Core.Config.Plugin.GetW
 				 "NumLinesRes": NumLinesRes,
 				"TransactionList":[
 								{
-									"HTMLLink": Transaction.HTMLLinkToID.replace( '@@@PLACE_HOLDER@@@', "See Transaction " + Transaction.ID ),
-							        "TimeHuman": Transaction.TimeHuman,
-							        "LinksForID": self.DrawTransacLinksForID( Transaction.ID ),
-								    "RawRequest":Transaction.GetRawRequest(),
-								    "RawResponse": Transaction.GetRawResponse(),
+									"HTMLLink": unicode( Transaction.HTMLLinkToID.replace( '@@@PLACE_HOLDER@@@', "See Transaction " + Transaction.ID ) ),
+							        "TimeHuman":  unicode( Transaction.TimeHuman ),
+							        "LinksForID":  unicode( self.DrawTransacLinksForID( Transaction.ID ) ),
+								    "RawRequest":  unicode( Transaction.GetRawRequest() ),
+								    "RawResponse":  unicode( Transaction.GetRawResponse()  , "utf-8" ),
 								} for Transaction in TransactionList
 								]
 
 			}
-
 		return template.render( vars )
 
 	def GetTransactionLink( self, TransacPath ):
@@ -429,7 +486,7 @@ self.Render.DrawSelect( self.GetSelectListFromDict( self.Core.Config.Plugin.GetW
 				<!-- Div Content -->
 			</div>
 		<div id="review_content" class="review_content">
-		
+
 		"""
 			% {
 				"DivIdList" : "{{ REPORT_PREFIX }}stats,{{ REPORT_PREFIX }}passed, {{ REPORT_PREFIX }}findings, {{ REPORT_PREFIX }}unrated",
@@ -492,15 +549,12 @@ self.Render.DrawSelect( self.GetSelectListFromDict( self.Core.Config.Plugin.GetW
 				cprint( "ERROR: No plugins found, cannot write report" )
 				return None # No plugins found (should not happe)
 			template = Template( """
-						<div id="GlobalReportButtonsTop" style="display:none;"></div>
-			
-						</div>
 							<br />
 							<div id='GlobalReportButtonsBottom' style='display:none;'>
-								<a id="expand_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ AllPluginsTabIdList|join("','") }}'), ''); ShowDivs(new Array('{{ AllPluginsDivIdList|join("','") }}'))>
+								<a id="expand_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ AllPluginsTabIdList|join("','") }}'), ''); ShowDivs(new Array('{{ AllPluginsDivIdList|join("','") }}'))">
 									<span> + </span>
-								</a>&nbsp;
-								<a id="collapse_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ AllPluginsTabIdList|join("','") }}'), ''); HideDivs(new Array('{{ AllPluginsDivIdList|join("','") }}'))>
+								</a>
+								<a id="collapse_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ AllPluginsTabIdList|join("','") }}'), ''); HideDivs(new Array('{{ AllPluginsDivIdList|join("','") }}'))">
 									<span> - </span>
 								</a>
 							</div>
@@ -508,9 +562,9 @@ self.Render.DrawSelect( self.GetSelectListFromDict( self.Core.Config.Plugin.GetW
 								var AllPlugins = new Array('{{ AllPluginsDivIdList|join("','") }}')
 								var AllCodes = new Array('{{ AllCodes|join("','") }}')
 								var Offset = '{{ REVIEW_OFFSET }}'
-								var AllCounters = new Array('{{ CounterList|join("','") }}')
+								var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
 								var DetailedReport = true
-								var PluginDelim = '{{ PLUGIN_DELIM }}
+								var PluginDelim = '{{ PLUGIN_DELIM }}'
 								var ReportMode = false
 								var REPORT_PREFIX = '{{ REPORT_PREFIX }}'
 							</script>
@@ -522,7 +576,6 @@ self.Render.DrawSelect( self.GetSelectListFromDict( self.Core.Config.Plugin.GetW
 						"AllPluginsDivIdList" : AllPluginsDivIdList,
 						"AllCodes" : AllCodes,
 						"REVIEW_OFFSET" : self.Core.Config.Get( 'REVIEW_OFFSET' ),
-						"CounterList" : self.CounterList,
 						"PLUGIN_DELIM" : PLUGIN_DELIM,
 						"REPORT_PREFIX"  : REPORT_PREFIX ,
 					}
@@ -532,9 +585,6 @@ self.Render.DrawSelect( self.GetSelectListFromDict( self.Core.Config.Plugin.GetW
 			self.Core.DB.ReportRegister.Add( self.Core.Config.GetAsList( [ 'REVIEW_OFFSET', 'SUMMARY_HOST_IP', 'SUMMARY_PORT_NUMBER', 'HTML_DETAILED_REPORT_PATH', 'REPORT_TYPE' ] ) ) # Register report
 			self.Summary.ReportFinish() # Build summary report
 
-	def DrawJSCounterList( self ):
-		template = Template( """var AllCounters = new Array('{{ CounterList|join("','") }}')""" )
-		return template.render( CounterList = self.CounterList )
 
         def ReportWrite( self, html, text ):
                 cprint( text ) # Text displayed on console only, html saved in report
