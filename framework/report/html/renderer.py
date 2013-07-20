@@ -197,18 +197,37 @@ class HTMLRenderer:
 		return template.render( Name = Name, JavaScript = JavaScript, )
 
 	def DrawDiv( self, Content, Attribs = {} ):
-		return "<div" + self.GetAttribsAsStr( Attribs ) + ">" + Content + "</div>"
+		template = Template( """
+		<div {% for Attrib, Value in Attribs.items() %}
+		   {{ Attrib|e }}="{{ Value }}"
+		{% endfor %}>
+		{{ Content }}
+		</div>
+		""" )
+		vars = {
+					'Content': Content,
+					'Attribs': Attribs,
+				}
+		return template.render( vars )
 
-	def DrawOption( self, Descrip, Attribs ):
-		return "<option" + self.GetAttribsAsStr( Attribs ) + ">" + cgi.escape( Descrip ) + "</option>"
 
 	def DrawSelect( self, Data, SelectedValueList, Attribs = {} ):
-		#multiple, size, autocomplete, disabled, name, id
-		Options = []
-		for Value, Descrip in Data:
-			#Attribs = defaultdict(list)
-			OptionAttribs = { 'value' : Value }.copy()
-			if Value in SelectedValueList:
-				OptionAttribs['selected'] = ''
-			Options.append( self.DrawOption( Descrip, OptionAttribs ) )
-		return "<select" + self.GetAttribsAsStr( Attribs ) + ">" + ''.join( Options ) + "</select>"
+		template = Template( """
+		<select {% for Attrib, Value in Attribs.items() %}
+		   {{ Attrib|e }}="{{ Value }}"
+		{% endfor %}> 
+			{% for Value, Descrip in Data %}
+				<option value="{{ Value }}" {% if Value in SelectedValueList %} selected {% endif %}> 
+					{{ Descrip|e }}
+				 </option>
+			{% endfor %}
+		</select>
+		
+		""" )
+		vars = {
+				"Data": Data,
+				"SelectedValueList": SelectedValueList,
+				"Attribs": Attribs,
+				}
+
+		return template.render( vars )
