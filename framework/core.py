@@ -121,7 +121,7 @@ class Core:
                                                     self.Config.Get('CACHE_DIR'),
                                                     Options['OutboundProxy']
                                                   )
-            transaction_db_path = os.path.join(self.Config.Get('OUTPUT_PATH'), self.Config.Get('HOST_IP'), 'proxy_transactions')
+            transaction_db_path = os.path.join(self.Config.Get('OUTPUT_PATH'), self.Config.Get('HOST_IP'))
             if not os.path.exists(transaction_db_path):
                 os.makedirs(transaction_db_path)
             self.TransactionLogger = transaction_logger.TransactionLogger(
@@ -194,7 +194,7 @@ class Core:
                         cprint("Stopping inbound proxy processes and cleaning up, Please wait!")
                         self.KillChildProcesses(self.ProxyProcess.pid)
                         self.ProxyProcess.terminate()
-                        self.TransactionLogger.terminate()
+                        os.kill(int(self.TransactionLogger.pid), signal.SIGINT)
                     except: # It means the proxy was not started
                         pass
                 exit()

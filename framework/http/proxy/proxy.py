@@ -193,10 +193,12 @@ class ProxyHandler(tornado.web.RequestHandler):
         def ssl_success(client_socket):
             client = tornado.iostream.SSLIOStream(client_socket)
             server.handle_stream(client, self.application.inbound_ip)
-            
+
+        # Tiny Hack to satisfy proxychains CONNECT request to HTTP port.
+        # HTTPS fail check has to be improvised
         def ssl_fail():
-            self.request.connection.stream.write(b"HTTP/1.1 405 Method Not Allowed\r\n\r\n")
-            self.finish()
+            self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
+            server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
 
         try:
             s = ssl.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0))
