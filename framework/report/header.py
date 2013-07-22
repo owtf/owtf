@@ -48,14 +48,14 @@ class Header:
                 Table = self.Core.Reporter.Render.CreateTable({'class' : 'run_log'})
                 Table.CreateCustomRow('<tr><th colspan="5">Run Log</th></tr>')
                 Table.CreateRow(['Start', 'End', 'Runtime', 'Command', 'Status'], True)
-                for line in self.Core.DB.GetData('RUN_DB'):
+                for line in self.Core.DB.DBHandler.GetData('RUN_DB'):
                         Start, End, Runtime, Command, Status = line
                         Table.CreateRow(Table.EscapeCells([Start, End, Runtime, Command, Status]))
                 return Table.Render()
 
         def GetDBButtonLabel(self, LabelStart, RedFound, NormalNotFound, DBName):
                 DBLabel = LabelStart
-                if self.Core.DB.GetLength(DBName) > 0:
+                if self.Core.DB.DBHandler.GetLength(DBName) > 0:
                         DBLabel += RedFound
                         DBLabel = "<font color='red'>"+DBLabel+"</font>"
                 else:

@@ -269,7 +269,8 @@ class PluginHandler:
 			self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Plugin Only)", Plugin) # Save the partial output, but continue to process other plugins
 			Status['SomeAborted'] = True
 		except UnreachableTargetException, PartialOutput:
-			self.DB.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
+                        print "I am stucking here??"
+			self.DB.DBHandler.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
 			Status['SomeAborted'] = True
 		except FrameworkAbortException, PartialOutput:
 			self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Framework Exit)", Plugin) # Save the partial output and exit
@@ -328,11 +329,11 @@ class PluginHandler:
                                    
                     
 		else:
+                        q = multiprocessing.Queue()
                         target_used={}
                         newstdin = os.fdopen(os.dup(sys.stdin.fileno()))
-                        input = Thread(target=self.keyinput, args=(newstdin,))
+                        input = Thread(target=self.keyinput, args=(newstdin,q))
                         input.start()
-                        
                         ## general logger
                         queue = multiprocessing.Queue()
                         result_queue = logQueue(queue)
@@ -345,6 +346,9 @@ class PluginHandler:
                         output =Thread(target=self.output, args=(queue,))
                         output.start()
                         
+                        ##resource monitor
+                        #resourceMonitor = Thread(target=self.resource_monitor, args=())
+                        #resourceMonitor.start()
                         for plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):
                             for target in TargetList:
                                 target_used[target]=False
@@ -376,6 +380,7 @@ class PluginHandler:
                             if queues[k].empty()==False:
                                 target,plugin = queues[k].get()
                                 self.running_plugin[workers[k].pid] = ()
+                                
                                 #queues[k].task_done()
                                 busy_processes[k]=False
                                 target_used[target]=False
@@ -398,10 +403,9 @@ class PluginHandler:
                             
                         for i in range(numprocess):
                             workers[i].join() 
-                        print "joining input"    
+                        q.put("end")
                         input.join()    
                         queue.put('end')    
-                        print "joining output" 
                         output.join()
                         
                        # queue1.put('end')     
@@ -476,7 +480,7 @@ class PluginHandler:
                                 pass    
                                                     
                                 
-        def keyinput(self,newstdin):
+        def keyinput(self,newstdin,q):
             #sys.stdin = newstdin
             fd = sys.stdin.fileno()
             oldterm = termios.tcgetattr(fd)
@@ -489,6 +493,9 @@ class PluginHandler:
             i=0
             try:
                 while 1:
+                    if q.empty()==False:
+                        self.showOutput=True
+                        break
                     r, w, e = select.select([fd], [], [])
                     if r and self.accept_input:
                         c = sys.stdin.read(1)
@@ -500,28 +507,13 @@ class PluginHandler:
                             i=i+1
                             self.showOutput=True
                             self.accept_input = True
-                        if c == "q":
-                            self.showOutput=True
-                            break # quit
             finally:
                 termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
                 fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
                     
              
-        def stop_process1(self,selected):
-            k=0
-            for pid in self.running_plugin:
-                print pid
-                work = self.running_plugin[pid]
-                print work
-                if work==():
-                    continue
-                if k==selected:
-                    break
-                k = k+1
-            print pid 
-               
-            os.kill(pid,signal.SIGINT)
+        #def resource_monitor(self):
+            
         def stop_process(self):
             log = logging.getLogger('general')
             stdscr = curses.initscr()
@@ -551,12 +543,12 @@ class PluginHandler:
             while 1:
             	c = stdscr.getch()
             	if c == ord('s'):
-                    	self.showOutput=True
-                        self.accept_input = True
                 	curses.nocbreak()
                 	stdscr.keypad(0)
                 	curses.echo()
                 	curses.endwin()   
+                        self.showOutput=True
+                        self.accept_input = True
                 	return
 		elif c==curses.KEY_DOWN:
                 	if(selected != (i-1)):
@@ -576,13 +568,16 @@ class PluginHandler:
                             continue
                         self.Core.KillChildProcesses(pid,signal.SIGINT)
                         try:  
-                            log.info("kill" + str(pid))   
                             os.kill(pid,signal.SIGINT)
                         except:
                             log.info("some error in os.kill. but dont worry")
                              
-                    return         
-                elif c== ord('p'):
+                    return
+                elif c==ord('t'):
+                    curses.nocbreak()
+                    stdscr.keypad(0)
+                    curses.echo()
+                    curses.endwin()
                     k=0
                     for pid in self.running_plugin:
                         work = self.running_plugin[pid]
@@ -591,11 +586,33 @@ class PluginHandler:
                         if k==selected:
                             break
                         k = k+1
+                    target1,plugin1= work
+                    for target,plugin in self.worklist:
+                        if target==target1:
+                            self.worklist.remove((target,plugin))
+                            
+                    self.Core.KillChildProcesses(pid,signal.SIGINT)
+                    try:     
+                        os.kill(pid,signal.SIGINT)
+                    except:
+                        log.info("big papa not dying")    
+                    selected=0        
+                    return
+                             
+                elif c== ord('p'):
+                    k=0
                     curses.nocbreak()
                     stdscr.keypad(0)
                     curses.echo()
-                    curses.endwin() 
-                    log.info("kill child "+ str(pid))  
+                    curses.endwin()
+                    for pid in self.running_plugin:
+                        work = self.running_plugin[pid]
+                        if work==():
+                            continue
+                        if k==selected:
+                            break
+                        k = k+1
+                       
                     self.Core.KillChildProcesses(pid,signal.SIGINT)
                     try:     
                         os.kill(pid,signal.SIGINT)
@@ -628,7 +645,7 @@ class PluginHandler:
                       
 
 	def SavePluginInfo(self, PluginOutput, Plugin):
-		self.Core.DB.SaveDBs() # Save new URLs to DB after each request
+		self.Core.DB.DBHandler.SaveDBs() # Save new URLs to DB after each request
 		self.Core.Reporter.SavePluginReport(PluginOutput, Plugin) # Timer retrieved by Reporter
 
 	def ShowPluginList(self):
