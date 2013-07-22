@@ -56,8 +56,8 @@ class CommandRegister:
 
 	def Add(self, Command): # Must always register a command when it is run, we do not care if it was run before for this
 		#print "Command=" + str(Command)
-		self.Core.DB.Add('COMMAND_REGISTER', [ Command['Start'], Command['End'], Command['RunTime'], Command['Status'], Command['Target'], Command['ModifiedCommand'].strip(), Command['OriginalCommand'].strip() ] )
+		self.Core.DB.DBHandler.Add('COMMAND_REGISTER', [ Command['Start'], Command['End'], Command['RunTime'], Command['Status'], Command['Target'], Command['ModifiedCommand'].strip(), Command['OriginalCommand'].strip() ] )
 		#if not self.AlreadyRegistered(Command['OriginalCommand']):
 
 	def Search(self, Criteria):
-		return self.Core.DB.Search('COMMAND_REGISTER', Criteria, NAME_TO_OFFSET)
+		return self.Core.DB.DBHandler.Search('COMMAND_REGISTER', Criteria, NAME_TO_OFFSET)

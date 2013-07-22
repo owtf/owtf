@@ -496,7 +496,7 @@ class PluginHandler:
                     if q.empty()==False:
                         self.showOutput=True
                         break
-                    r, w, e = select.select([fd], [], [])
+                    r, w, e = select.select([fd], [], [],0.5)
                     if r and self.accept_input:
                         c = sys.stdin.read(1)
                         
@@ -504,7 +504,6 @@ class PluginHandler:
                             self.showOutput=False
                             self.accept_input = False
                             self.stop_process()
-                            i=i+1
                             self.showOutput=True
                             self.accept_input = True
             finally:
@@ -571,7 +570,8 @@ class PluginHandler:
                             os.kill(pid,signal.SIGINT)
                         except:
                             log.info("some error in os.kill. but dont worry")
-                             
+                    self.showOutput=True
+                    self.accept_input = True         
                     return
                 elif c==ord('t'):
                     curses.nocbreak()
@@ -596,7 +596,9 @@ class PluginHandler:
                         os.kill(pid,signal.SIGINT)
                     except:
                         log.info("big papa not dying")    
-                    selected=0        
+                    selected=0  
+                    self.showOutput=True
+                    self.accept_input = True      
                     return
                              
                 elif c== ord('p'):
@@ -619,6 +621,8 @@ class PluginHandler:
                     except:
                         log.info("big papa not dying")    
                     selected=0 
+                    self.showOutput=True
+                    self.accept_input = True
                     #print pid  
                     #sys.stdout.flush()   
                     return  
