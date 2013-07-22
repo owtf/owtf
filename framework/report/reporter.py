@@ -34,9 +34,9 @@ from framework.report import header, summary
 from framework.report.html import renderer
 from framework.report.html.filter import sanitiser
 from psycopg2.extras import logging
+import cgi
 import os
 import re
-import cgi
 import sys
 import time
 
@@ -238,7 +238,7 @@ self.Render.DrawSelect(self.GetSelectListFromDict(self.Core.Config.Plugin.GetWeb
                         PluginHeader = '<h4 id="h'+DivId+'"><u>'+Plugin['Title']+'</u> - <i>'+Plugin['Type'].replace('_', ' ').upper()+'</i>'
                         PluginHeader += "&nbsp;" * 2 +self.DrawReviewButtons(DivId)+'</h4>'+Table.Render()
                         # Generate unique id every time to detect if plugin report changed to highlight modified stuff without losing review data (i.e. same plugin id):
-                        PluginHeader += "<div id='token_"+DivId+"' style='display: none;'>"+self.Core.DB.GetNextHTMLID()+"</div>"
+                        PluginHeader += "<div id='token_"+DivId+"' style='display: none;'>"+self.Core.DB.DBHandler.GetNextHTMLID()+"</div>"
                         NotesBox = self.Render.CreateTable({ 'class' : 'transaction_log' })
                         NotesBox.CreateRow(['Notes'], True)
                         # NOTE: autocomplete must be off because otherwise you see the text but is not saved in the review at all, which is counter-intuitive
@@ -247,7 +247,12 @@ self.Render.DrawSelect(self.GetSelectListFromDict(self.Core.Config.Plugin.GetWeb
                        # Better with auto-save: NotesBox.CreateCustomRow('<tr><td align="right">'+self.Render.DrawButtonJSLink('<img src="images/floppy.png" />', "SaveComments('"+DivId+"')", { 'class' : 'icon' })+'</td></tr>')
                         PluginHeader += "<div>"+NotesBox.Render()+"</div><hr />"
                         #PluginHeader += "<div id='notes_"+DivId+"' style='display: none;'>"+NotesBox.Render()+"</div><hr />"
-                        file.write("\n"+PluginHeader+HTMLtext+"\n")
+                        #encoding1 = type(HTMLtext)
+                        #print encoding1
+                        #HTMLtext = HTMLtext.decode(encoding1).encode("utf-8")
+                        #encoding1 = type(PluginHeader)
+                        #PluginHeader = PluginHeader.decode(encoding1).encode("utf-8")
+                        file.write("\n"+PluginHeader+HTMLtext.decode('ascii','ignore').encode("utf8")+"\n")
             	#log = logging.getLogger('register') 
             	#log.info(str(os.getpid())+','+str(Plugin['RunTime'])+','+str(Plugin['End'])+','+str(Plugin['Start']))       
 		#print "Plugin="+str(Plugin)

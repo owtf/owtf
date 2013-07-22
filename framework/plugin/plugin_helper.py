@@ -101,7 +101,7 @@ class PluginHelper:
 		return [ SandboxedPath, HTMLLink ]
 
 	def DrawVulnerabilitySearchBox(self, SearchStr): # Draws an HTML Search box for defined Vuln Search resources
-		ProductId = 'prod'+self.Core.DB.GetNextHTMLID() # Keep product id unique among different search boxes (so that Javascript works)
+		ProductId = 'prod'+self.Core.DB.DBHandler.GetNextHTMLID() # Keep product id unique among different search boxes (so that Javascript works)
 		Count = 0
 		CellStr = ''
 		SearchAll = []
@@ -314,7 +314,7 @@ class PluginHelper:
 			self.LogURLsFromStr(RawOutput)
 			#for line in RawOutput.split("\n"):
 			#	self.Core.DB.URL.AddURL(line.strip())
-		self.Core.DB.SaveAllDBs() # Save URL DBs to disk
+		self.Core.DB.DBHandler.SaveAllDBs() # Save URL DBs to disk
 		NumURLsAfter = self.Core.DB.URL.GetNumURLs()
                 log = logging.getLogger('general')        
 		Message =(str(NumURLsAfter-NumURLsBefore)+" URLs have been added and classified")

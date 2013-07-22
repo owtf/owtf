@@ -44,6 +44,7 @@ from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
 from urlparse import urlparse
 import logging
+import multiprocessing
 import os
 import re
 import signal
@@ -122,6 +123,8 @@ class Core:
             return False # No processing required, just list available modules
         self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
         self.DB.Init()
+        self.dbHandlerProcess = multiprocessing.Process(target=self.DB.DBHandler.handledb, args=())
+        self.dbHandlerProcess.start()
         Command = self.GetCommand(Options['argv'])
         self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
         if self.Config.Get('SIMULATION'):
@@ -166,7 +169,8 @@ class Core:
             try:
                 cprint("Saving DBs")
                 self.DB.Run.EndRun(Status)
-                self.DB.SaveDBs() # Save DBs prior to producing the report :)
+                self.DB.DBHandler.SaveDBs() # Save DBs prior to producing the report :)
+
                 if Report:
                     cprint("Finishing iteration and assembling report again (with updated run information)")
                     PreviousTarget = self.Config.GetTarget()
@@ -175,8 +179,10 @@ class Core:
                         self.Reporter.ReportFinish() # Must save the report again at the end regarless of Status => Update Run info
                     self.Config.SetTarget(PreviousTarget) # Restore previous target
                 cprint("owtf iteration finished")
-                if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
+                if self.DB.DBHandler.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
                     cprint("Please report the sanitised errors saved to "+self.Config.Get('ERROR_DB'))
+                self.dbHandlerProcess.terminate()    
+                #self.dbHandlerProcess.join()    
             except AttributeError: # DB not instantiated yet!
                 cprint("owtf finished: No time to report anything! :P")
             finally:
@@ -191,7 +197,7 @@ class Core:
 
     def GetSeed(self):
         try:
-            return self.DB.GetSeed()
+            return self.DB.DBHandler.GetSeed()
         except AttributeError: # DB not instantiated yet
             return ""
 
@@ -202,7 +208,7 @@ class Core:
         if not Target:
             Target = self.Config.GetTarget()
         #print "Target="+Target+" in "+str(self.DB.GetData('UNREACHABLE_DB'))+"?? -> "+str(Target in self.DB.GetData('UNREACHABLE_DB'))
-        return Target in self.DB.GetData('UNREACHABLE_DB')
+        return Target in self.DB.DBHandler.GetData('UNREACHABLE_DB')
 
     def GetFileAsList(self, FileName):
         return GetFileAsList(FileName)

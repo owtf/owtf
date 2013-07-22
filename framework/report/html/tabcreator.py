@@ -102,7 +102,8 @@ class TabCreator:
 		#self.Tabs.append(self.DrawTab(TabInfo))
 		TabContent, DivContent = self.DrawTab(TabInfo)
 		DivId, TabId, TabName, DivContent, Custom = TabInfo
-		self.CreateRawTab(TabContent, '<div id="'+DivId+'" class="tabContent" style="display:none">'+DivContent+'</div>')
+                
+		self.CreateRawTab(TabContent, '<div id="'+DivId+'" class="tabContent" style="display:none">'+DivContent.decode('ascii','ignore').encode("utf8")+'</div>')
 
 	def CreateTabs(self):
 		#p(self.TabList)
