@@ -95,7 +95,7 @@ class Shell:
 			Message = "The command was already run for target: "+Target	
 			return Message
 		log = logging.getLogger('general')
-        	log.info("\nExecuting (Control+C to abort THIS COMMAND ONLY):\n"+Command)
+        	log.info("\nExecuting (s to abort THIS COMMAND ONLY):\n"+Command)
 		log.info("")
 		log.info("------> Execution Start Date/Time: "+self.Core.Timer.GetStartDateTimeAsStr('Command'))
 		log.info("")
