@@ -10,4 +10,6 @@ echo -e "[+] Installing PyHamcrest..."
 pip install pyhamcrest
 echo -e "[+] Installing coverage..."
 pip install coverage
+echo -e "[+] Installing nose-html..."
+pip install nose-html
 echo -e "[+] Installation finished."
