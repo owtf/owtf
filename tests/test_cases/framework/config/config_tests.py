@@ -15,6 +15,7 @@ class ConfigTests(BaseTestCase):
     def before(self):
         self.config = self.__class__.config_proxy.get_instance()
         self.config_status_backup = ConfigState(self.config)
+        self.config.Core.DevMode = False
 
     def after(self):
         ConfigState.restore_state(self.config, self.config_status_backup)

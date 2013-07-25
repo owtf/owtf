@@ -82,6 +82,13 @@ class Shell:
 			return [Target, False ]
 		return [ None, True ] # Command was not run before
 
+
+	def create_subprocess(self, Command):
+	    proc = subprocess.Popen(Command, shell=True, stdout=subprocess.PIPE, 
+	        stderr=subprocess.STDOUT, 
+	        bufsize=1)
+	    return proc
+
 	def shell_exec_monitor(self, Command):
 		#if not self.CommandInfo:
 		CommandInfo = self.StartCommand(Command, Command)
@@ -97,10 +104,7 @@ class Shell:
 		Output = ''
 		Cancelled = False
 		try: # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-in-a-separate-process-in-a-wxpyt
-			proc = subprocess.Popen(Command, shell=True,
-								stdout=subprocess.PIPE,
-								stderr=subprocess.STDOUT, 
-								bufsize=1)
+			proc = self.create_subprocess(Command)
 			while True:
 				line = proc.stdout.readline()
 				if not line: break
