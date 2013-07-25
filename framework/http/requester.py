@@ -105,15 +105,23 @@ class Requester:
 	def NeedToAskBeforeRequest(self):
 		return not self.Core.PluginHandler.NormalRequestsAllowed() and self.Core.Config.Get('Interactive')
 
+
+	def is_transaction_already_added(self, URL):
+	    return self.Core.DB.Transaction.IsTransactionAlreadyAdded(URL.strip())
+
+
+	def is_request_possible(self):
+	    return self.Core.PluginHandler.RequestsPossible()
+
 	def ProxyCheck(self):
-		if self.Proxy != None and self.Core.PluginHandler.RequestsPossible(): # Verify proxy works! www.google.com might not work in a restricted network, try target URL :)
+		if self.Proxy != None and self.is_request_possible(): # Verify proxy works! www.google.com might not work in a restricted network, try target URL :)
 			URL = self.Core.Config.Get('PROXY_CHECK_URL')
 			#if self.NeedToAskBeforeRequest() and 'y' != raw_input("Proxy Check: Need to send a GET request to "+URL+". Is this ok?: 'y'+Enter= Continue, Enter= Abort Proxy Check\n"):
 			#	return [ True, "Proxy Check OK: Proxy Check Aborted by User" ]
 			RefusedBefore = self.RequestCountRefused
 			cprint("Proxy Check: Avoid logging request again if already in DB..")
 			LogSettingBackup = False
-			if self.Core.DB.Transaction.IsTransactionAlreadyAdded(URL.strip()):
+			if self.is_transaction_already_added(URL):
 				LogSettingBackup = self.LogTransactions(False)
 			Transaction = self.GET(URL)
 			if LogSettingBackup:
@@ -206,10 +214,11 @@ class Requester:
 		return self.Transaction
 
 	def ProcessHTTPErrorCode(self, Error, URL):
+        	Message = ""
 		if str(Error.reason).startswith("[Errno 111]"):
 			Message = "ERROR: The connection was refused!: " +  str(Error)
 			self.RequestCountRefused += 1 
-		if str(Error.reason).startswith("[Errno -2]"):
+		elif str(Error.reason).startswith("[Errno -2]"):
 			self.Core.Error.FrameworkAbort("ERROR: cannot resolve hostname!: " + str(Error))
 		else:
 			Message = "ERROR: The connection was not refused, unknown error!"
