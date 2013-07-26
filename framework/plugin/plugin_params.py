@@ -135,7 +135,7 @@ class PluginParams:
 
 	def SetArgsBasic(self, AllArgs, Plugin):
 		if not AllArgs:
-			return NoArgs 
+			return self.NoArgs 
 		ArgsStr = []
 		#print "self.Args="+str(self.Args)
 		for ArgName, ArgValue in AllArgs.items():
@@ -155,7 +155,7 @@ class PluginParams:
 		#print "Args="+str(Args)
 		Permutations = defaultdict(list)
 		if not 'REPEAT_DELIM' in Args:
-			return Permulations # No permutations
+			return Permutations # No permutations
 		Separator = Args['REPEAT_DELIM']
 		for ArgName, ArgValue in Args.items():
 			if ArgName == 'REPEAT_DELIM':

@@ -118,7 +118,7 @@ def build_nose_arguments(args):
         nose_arguments += args.only.replace(",", " ")
     if (args.all == True):
         nose_arguments = TEST_CASES_FOLDER + "/"
-    nose_arguments += " --verbose --detailed-errors --no-byte-compile"
+    nose_arguments += " --verbose --detailed-errors --no-byte-compile --with-html --html-file=tests.log.html"
     return "nosetests " + nose_arguments
 
 

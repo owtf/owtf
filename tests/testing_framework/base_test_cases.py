@@ -2,6 +2,7 @@ import unittest
 import sys
 from io import BytesIO as StringIO
 from flexmock import flexmock
+from os import path
 
 
 class BaseTestCase(unittest.TestCase):
@@ -41,3 +42,6 @@ class BaseTestCase(unittest.TestCase):
         output = self.get_recorded_stdout()
         self.stop_stdout_recording()
         return output
+
+    def get_abs_path(self, relative_path):
+        return path.abspath(relative_path)

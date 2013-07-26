@@ -161,11 +161,15 @@ class PluginHandler:
 		elif Plugin['Group'] == 'aux':
 			return self.Core.Config.Get('AUX_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/" 
 
+
+	def exists(self, dir):
+	    return os.path.exists(dir)
+
 	def PluginAlreadyRun(self, PluginInfo):
 		if self.Simulation:
 			return self.HasPluginExecuted(PluginInfo)
 		SaveDir = self.GetPluginOutputDir(PluginInfo)
-		if not os.path.exists(SaveDir): # At least one directory is missing
+		if not self.exists(SaveDir): # At least one directory is missing
 			return False # This is the first time the plugin is going to run (i.e. some directory was missing)
 		return True # The path already exists, therefore the plugin has been run before
 
@@ -194,6 +198,14 @@ class PluginHandler:
 				break
 		return Possible
 
+
+	def register_plugin(self, Plugin):
+	    return self.Core.DB.PluginRegister.Add(Plugin, self.GetPluginOutputDir(Plugin) + "report.html", self.Core.Config.Get('TARGET'))
+
+
+	def force_overwrite(self):
+	    return self.Core.Config.Get('FORCE_OVERWRITE')
+
 	def CanPluginRun(self, Plugin, ShowMessages = False):
 		if self.Core.IsTargetUnreachable():
 			return False # Cannot run plugin if target is unreachable
@@ -201,11 +213,11 @@ class PluginHandler:
 			return False # Skip not chosen plugins
 		# Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active): 
 		#if self.PluginAlreadyRun(Plugin) and not self.Core.Config.Get('FORCE_OVERWRITE'): #not Code == 'OWASP-WU-SPID': # For external plugin forced re-run (development)
-		if self.PluginAlreadyRun(Plugin) and ((not self.Core.Config.Get('FORCE_OVERWRITE') and not ('grep' == Plugin['Type'])) or Plugin['Type'] == 'external'): #not Code == 'OWASP-WU-SPID':
+		if self.PluginAlreadyRun(Plugin) and ((not self.force_overwrite() and not ('grep' == Plugin['Type'])) or Plugin['Type'] == 'external'): #not Code == 'OWASP-WU-SPID':
 			if ShowMessages:
 				cprint("Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") has already been run, skipping ..")
 			if Plugin['Type'] == 'external': # Register external plugin so that it shows on the reports!! (DB checks integrity)
-				self.Core.DB.PluginRegister.Add(Plugin, self.GetPluginOutputDir(Plugin) + "report.html", self.Core.Config.Get('TARGET'))
+				self.register_plugin(Plugin)
 			return False 
 		if 'grep' == Plugin['Type'] and self.HasPluginExecuted(Plugin) and not self.HasPluginCategoryRunSinceLastTime(Plugin, [ 'active', 'semi_passive' ]):
 			return False # Grep plugins can only run if some active or semi_passive plugin was run since the last time
@@ -272,6 +284,10 @@ class PluginHandler:
 	def SwitchToTarget(self, Target):
 		self.Core.Config.SetTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
 
+
+	def get_plugins_in_order_for_PluginGroup(self, PluginGroup):
+	    return self.Core.Config.Plugin.GetOrder(PluginGroup)
+
 	def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList): # TargetList param will be useful for netsec stuff to call this
 		PluginDir = self.GetPluginGroupDir(PluginGroup)
             	if PluginGroup == 'net':
@@ -286,7 +302,7 @@ class PluginHandler:
 					ports = self.Core.Config.GetTcpPorts(lastwave,waves[i])      
 					http = self.scanner.probe_network(Target,"tcp",ports)
 					self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-					for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
+					for Plugin in self.get_plugins_in_order_for_PluginGroup(PluginGroup):# For each Plugin
 						self.ProcessPlugin( PluginDir, Plugin, Status )
 					lastwave = waves[i]
 					for http_ports in http:
@@ -298,7 +314,7 @@ class PluginHandler:
                     
 		else:
 			if 'breadth' == self.Algorithm: # Loop plugins, then targets
-				for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
+				for Plugin in self.get_plugins_in_order_for_PluginGroup(PluginGroup):# For each Plugin
 					#print "Processing Plugin="+str(Plugin)
 					for Target in TargetList: # For each Target 
 						#print "Processing Target="+str(Target)
@@ -307,7 +323,7 @@ class PluginHandler:
 			elif 'depth' == self.Algorithm: # Loop Targets, then plugins
 				for Target in TargetList: # For each Target
 					self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-					for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
+					for Plugin in self.get_plugins_in_order_for_PluginGroup(PluginGroup):# For each Plugin
 						self.ProcessPlugin( PluginDir, Plugin, Status )
                         
 	def SavePluginInfo(self, PluginOutput, Plugin):

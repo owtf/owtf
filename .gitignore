@@ -20,7 +20,8 @@ tests/restricted/*
 ###################################
 owtf_review/*
 
-# Unit Testing Framework coverage files #
-#########################################
+# Unit Testing Framework files #
+################################
 tests/cover/*
 tests/.coverage
+tests/tests.log.html

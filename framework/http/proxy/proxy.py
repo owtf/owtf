@@ -85,6 +85,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         # This method will be improvised with more headers from original responses
         def handle_response(response):
             self.set_status(response.code)
+            del self._headers['Server']
             for header, value in list(response.headers.items()):
                 if header == "Set-Cookie":
                     self.add_header(header, value)
@@ -184,21 +185,27 @@ class ProxyHandler(tornado.web.RequestHandler):
 
         def start_tunnel():
             try:
-                self.request.connection.stream.write(b"HTTP/1.1 200 OK CONNECTION ESTABLISHED\r\n\r\n")
+                self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
                 wrap_socket(self.request.connection.stream.socket, host, success=ssl_success)
             except tornado.iostream.StreamClosedError:
                 pass
 
         def ssl_success(client_socket):
             client = tornado.iostream.SSLIOStream(client_socket)
-            server.handle_stream(client, self.application.inbound_ip)  # lint:ok
+            server.handle_stream(client, self.application.inbound_ip)
+
+        # Tiny Hack to satisfy proxychains CONNECT request to HTTP port.
+        # HTTPS fail check has to be improvised
+        def ssl_fail():
+            self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
+            server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
 
         try:
             s = ssl.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0))
             upstream = tornado.iostream.SSLIOStream(s)
+            #upstream.set_close_callback(ssl_fail)
             upstream.connect((host, int(port)), start_tunnel)
         except Exception:
-            self.write(b"Server Not Found")
             self.finish()
 
 class ProxyProcess(Process):
