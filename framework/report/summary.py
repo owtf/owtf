@@ -28,131 +28,172 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The reporter module is in charge of producing the HTML Report as well as provide plugins with common HTML Rendering functions
 '''
-import os, re, cgi
+import json
+from jinja2 import Template
 from framework.lib.general import *
 from collections import defaultdict
-import json
+
 
 class Summary:
-	def __init__(self, Core):
+	def __init__( self, Core ):
 		self.Core = Core # Keep Reference to Core Object
 
-	def InitNetMap(self):
+	def InitNetMap( self ):
 		self.PluginsFinished = []
-		self.NetMap = defaultdict(list)
+		self.NetMap = defaultdict( list )
 
-	def InitMap(self, IP, Port):
+	def InitMap( self, IP, Port ):
 		if IP not in self.NetMap:
-			self.NetMap[IP] = defaultdict(list)
+			self.NetMap[IP] = defaultdict( list )
 		if Port not in self.NetMap[IP]:
 			self.NetMap[IP][Port] = []
 
-	def GetSortedIPs(self):
+	def GetSortedIPs( self ):
 		IPs = []
 		for IP, Ports in self.NetMap.items():
-			IPs.append(IP)
-		return sorted(IPs)
+			IPs.append( IP )
+		return sorted( IPs )
 
-	def GetSortedPorts(self, IP):
+	def GetSortedPorts( self, IP ):
 		Ports = []
 		for Port, PortInfo in self.NetMap[IP].items():
-			Ports.append(Port)
-		return sorted(Ports)
+			Ports.append( Port )
+		return sorted( Ports )
 
-	def AddToNetMap(self, Report):
+	def AddToNetMap( self, Report ):
 		IP = Report['SummaryHostIP']
 		Port = Report['SummaryPortNumber']
-		self.InitMap(IP, Port)
+		self.InitMap( IP, Port )
 		self.NetMap[IP][Port].append( Report['ReviewOffset'] )
 
-	def MapReportsToNetMap(self, ReportType): 
+	def MapReportsToNetMap( self, ReportType ):
 		for Report in self.Core.DB.ReportRegister.Search( { 'ReportType' : ReportType } ):
-			self.AddToNetMap(Report)
+			self.AddToNetMap( Report )
 
-	def RenderNetMap(self):
-		IPs = []
-		for IP in self.GetSortedIPs():
-			IPs.append(self.RenderIP(IP))
-		return self.Core.Reporter.Render.DrawHTMLList(IPs, { 'class' : 'ip_list' } )
 
-	def RenderIPValue(self, IP):
-		return '<div id="' + cgi.escape(IP) + '">' + cgi.escape(IP) + '</div>'	
-
-	def RenderIP(self, IP):
-		Ports = []
-		for Port in self.GetSortedPorts(IP):
-			Ports.append(self.RenderPortInfo(IP, Port))
-		return self.RenderIPValue(IP) + self.Core.Reporter.Render.DrawHTMLList(Ports, { 'class' : 'port_list' })
-
-	def CountPluginsFinished(self, ReviewOffset):
-		FinishedForOffset = len(self.Core.DB.PluginRegister.Search( { 'ReviewOffset' : ReviewOffset } ))
+	def CountPluginsFinished( self, ReviewOffset ):
+		FinishedForOffset = len( self.Core.DB.PluginRegister.Search( { 'ReviewOffset' : ReviewOffset } ) )
 		self.PluginsFinished.append( { 'Offset' : ReviewOffset, 'NumFinished' : FinishedForOffset } )
 
-	def IsOffsetUnReachable(self, ReviewOffset):
+	def IsOffsetUnReachable( self, ReviewOffset ):
 		OffsetPlugins = self.Core.DB.PluginRegister.Search( { 'ReviewOffset' : ReviewOffset } )
-		if len(OffsetPlugins) > 0:
+		if len( OffsetPlugins ) > 0:
 			Target = OffsetPlugins[0]['Target']
 			#print "Target="+Target
-			return self.Core.IsTargetUnreachable(Target)
+			return self.Core.IsTargetUnreachable( Target )
 		return False # Assume false until proven otherwise :P -must do this for passive testing + external plugins-
 
-	def DrawHiddenOffsetIPAndPort(self, ReviewOffset, IP, Port): # Pass IP and Port mapping to offset for code simplification in JS
-		return self.Core.Reporter.Render.DrawDiv(IP, { 'id' : 'ip_' + ReviewOffset, 'style' : 'display: none' })+self.Core.Reporter.Render.DrawDiv(Port, { 'id' : 'port_' + ReviewOffset, 'style' : 'display: none' })
 
-	def RenderPortInfo(self, IP, Port):
+	def PortInfo( self, IP, Port ):
 		Offsets = []
 		UnReachable = True
-		for ReviewOffset in sorted(self.NetMap[IP][Port]):
-			if self.IsOffsetUnReachable(ReviewOffset):
+		for ReviewOffset in sorted( self.NetMap[IP][Port] ):
+			if self.IsOffsetUnReachable( ReviewOffset ):
 				continue # Skip targets that are not reachable in the summary
 			#self.Core.IsTargetUnreachable()
 			ReportPath = self.Core.DB.ReportRegister.Search( { 'ReviewOffset' : ReviewOffset } )[0]['ReportPath']
 			#print "IP="+str(IP)+", Port="+str(Port)+" -> ReviewOffset="+str(ReviewOffset)+", ReportPath="+str(ReportPath)
-			Offsets.append('<a name="anchor_'+ReviewOffset+'">'+self.Core.Reporter.Render.DrawiFrame( { 'id' : 'iframe_'+ReviewOffset, 'src' : self.Core.GetPartialPath(ReportPath), 'width' : '100%', 'height' : self.Core.Config.Get('COLLAPSED_REPORT_SIZE'), 'frameborder' : '0', 'class' : 'iframe_collapsed' })+"</a>" + self.DrawHiddenOffsetIPAndPort(ReviewOffset, IP, Port))
-			self.CountPluginsFinished(ReviewOffset)
+			Offsets.append( {"ReviewOffset": ReviewOffset, "ReviewPath": self.Core.GetPartialPath( ReportPath )} )
+			self.CountPluginsFinished( ReviewOffset )
 			UnReachable = False
-			#Output += "IP="+IP+", Port="+Port+"->"+
-		#print "UnReachable="+str(UnReachable)
-		if UnReachable:
-			Output = "&nbsp;" * 5 + "<strike>Port unreachable</strike>"
-		else:
-			Output = self.Core.Reporter.Render.DrawHTMLList(Offsets, { 'class' : 'review_offset_list' } )
-		return self.RenderPortValue(Port) + Output
 
-	def RenderPortValue(self, Port):
-		return '<div id="' + cgi.escape(Port) + '">' + cgi.escape(Port) + '</div>'	
+		return {  "Port": Port,
+				  "UnReachable": UnReachable,
+				  "Offsets": Offsets
+				 }
 
-	def RenderAUX(self):
+	def AuxInfo( self ):
 		AuxSearch = self.Core.DB.ReportRegister.Search( { 'ReportType' : 'AUX' } )
-		if len(AuxSearch) > 0: # Aux plugin report present, link to it from summary
-			# To be passed to JavaScript: AuxSearch[0]['ReviewOffset']
-			return self.Core.Reporter.Render.DrawButtonLink('Auxiliary Plugins', self.Core.GetPartialPath(AuxSearch[0]['ReportPath']), { 'class' : 'report_index', 'target' : '' } )
-		return "" # Nothing to show
+		if len( AuxSearch ) > 0:
+			AuxLink = self.Core.GetPartialPath( AuxSearch[0]['ReportPath'] )
+		else:
+			AuxLink = None
 
-	def ReportStart(self):
+		return {
+					"AuxSearch":AuxSearch,
+					"AuxLink": AuxLink
+				}
+
+	def ReportStart( self ):
 		self.Core.Reporter.CounterList = []
-		self.Core.Reporter.Header.Save('HTML_REPORT_PATH', { 'ReportType' : 'NetMap', 'Title' : 'Summary Report' } )
+		self.Core.Reporter.Header.Save( 'HTML_REPORT_PATH', { 'ReportType' : 'NetMap', 'Title' : 'Summary Report' } )
 
-	def ReportFinish(self):
+	def ReportFinish( self ):
 		self.ReportStart()
 		self.InitNetMap()
-		self.MapReportsToNetMap('URL')
-		HTML = self.RenderNetMap()
-		HTML += self.RenderAUX()
-		HTML += """
-<script>
-var DetailedReport = false
-var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
-var CollapsedReportSize = '"""+self.Core.Config.Get('COLLAPSED_REPORT_SIZE')+"""'
-var NetMap = """ + json.dumps(self.NetMap)+"""
-var PluginDelim = '""" + self.Core.Reporter.GetPluginDelim() + """'
-var SeverityWeightOrder = """ + self.Core.Reporter.Render.DrawJSArrayFromList(self.Core.Config.Get('SEVERITY_WEIGHT_ORDER').split(',')) + """
-var PassedTestIcons = """ + self.Core.Reporter.Render.DrawJSArrayFromList(self.Core.Config.Get('PASSED_TEST_ICONS').split(',')) + """
+		self.MapReportsToNetMap( 'URL' )
+		template = Template( """
+			<!-- NetMap -->
+			<ul class="ip_list">
+				{% for IPInfo in IPs %}
+					<li>
+					<div id="{{ IPInfo.IP|e }}"> {{ IPInfo.IP|e }} </div>
+					<ul  class="port_list">
+			    		{% for PortInfo in IPInfo.Ports %}
+			    			<li>
+								<div id="{{ PortInfo.Port|e }}"> {{ PortInfo.Port|e }} </div>
+								{% if PortInfo.UnReachable %}
+									<strike>Port unreachable</strike>
+								{% else %}
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+											<ul class='review_offset_list'>
+									    		{% for Offset in PortInfo.Offsets %}
+									    			<li>
+									    				<a name="anchor_{{ Offset.ReviewOffset }}">
+									    					<iframe id="iframe_{{ Offset.ReviewOffset }}" src="{{ Offset.ReviewPath }}" width= '100%' height = "{{ COLLAPSED_REPORT_SIZE }}"  frameborder = '0' class = 'iframe_collapsed' >
+																Your browser does not support iframes
+															</iframe>
+														</a>
+														<div id="ip_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ IPInfo.IP }}</div>
+														<div id="port_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ PortInfo.Port }}</div>
+									    			</li>
+									    		{% endfor %}
+											</ul>
+								{% endif %}
+							</li>
+			    		{% endfor %}
+					</ul>
+					</li>
+				{% endfor %}
+			</ul>
+			<!-- end NetMap -->
+			<!-- start AUX -->
+			{% if AuxInfo.AuxSearch|count %}
+				<a href="{{ AuxInfo.AuxLink }}" class='report_index'>
+					<span> Auxiliary Plugins </span>
+				</a>
+			{% endif %}
+			<!-- end AUX -->
+		<script>
+		var DetailedReport = false
+		var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
+		var CollapsedReportSize = '{{ COLLAPSED_REPORT_SIZE }}'
+		var NetMap = {{ JsonNetMap }}
+		var PluginDelim = '{{ PLUGIN_DELIM }}'
+		var SeverityWeightOrder = new Array('bonus_red','flag_violet','flag_red','flag_yellow','flag_blue','bug')
+		var PassedTestIcons = new Array('check_green')
 </script>
 </body>
 </html>
-"""
-		with open(self.Core.Config.Get('HTML_REPORT_PATH'), 'a') as file:
-			file.write(HTML) # Closing HTML Report
-		cprint("Summary report written to: "+self.Core.Config.Get('HTML_REPORT_PATH'))
+		
+		""" )
+
+
+
+
+		vars = {
+					"IPs": [{
+							"IP": IP,
+							"Ports": [ self.PortInfo( IP, Port ) for Port in self.GetSortedPorts( IP )]
+							} for IP in self.GetSortedIPs()],
+					"AuxInfo":  self.AuxInfo(),
+					"COLLAPSED_REPORT_SIZE": self.Core.Config.Get( 'COLLAPSED_REPORT_SIZE' ),
+					"JsonNetMap": json.dumps( self.NetMap ),
+					"PLUGIN_DELIM":  self.Core.Reporter.GetPluginDelim(),
+				}
+
+		HTML = template.render( vars )
+		with open( self.Core.Config.Get( 'HTML_REPORT_PATH' ), 'a' ) as file:
+			file.write( HTML ) # Closing HTML Report
+		cprint( "Summary report written to: " + self.Core.Config.Get( 'HTML_REPORT_PATH' ) )
 

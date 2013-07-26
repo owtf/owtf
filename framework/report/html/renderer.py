@@ -195,39 +195,3 @@ class HTMLRenderer:
 		
 		""" )
 		return template.render( Name = Name, JavaScript = JavaScript, )
-
-	def DrawDiv( self, Content, Attribs = {} ):
-		template = Template( """
-		<div {% for Attrib, Value in Attribs.items() %}
-		   {{ Attrib|e }}="{{ Value }}"
-		{% endfor %}>
-		{{ Content }}
-		</div>
-		""" )
-		vars = {
-					'Content': Content,
-					'Attribs': Attribs,
-				}
-		return template.render( vars )
-
-
-	def DrawSelect( self, Data, SelectedValueList, Attribs = {} ):
-		template = Template( """
-		<select {% for Attrib, Value in Attribs.items() %}
-		   {{ Attrib|e }}="{{ Value }}"
-		{% endfor %}> 
-			{% for Value, Descrip in Data %}
-				<option value="{{ Value }}" {% if Value in SelectedValueList %} selected {% endif %}> 
-					{{ Descrip|e }}
-				 </option>
-			{% endfor %}
-		</select>
-		
-		""" )
-		vars = {
-				"Data": Data,
-				"SelectedValueList": SelectedValueList,
-				"Attribs": Attribs,
-				}
-
-		return template.render( vars )

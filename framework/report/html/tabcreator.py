@@ -168,14 +168,6 @@ class TabCreator:
 		self.CreateRawTab( TabFlowButtons, '' )
 
 
-	def DrawImageFromConfigPair( self, ConfigList ):
-		#FileName, ToolTip = self.Core.Config.GetAsList(ConfigList)
-		FileName, ToolTip = self.Config.GetAsList( ConfigList )
-		template = Template( """		
-					<img src="images/{{ FileName }}.png" title="{{ ToolTip }}">
-				""" )
-		return template.render( FileName = FileName, ToolTip = ToolTip )
-
 	def RenderTabs( self, Attribs = {} ):
 		template = Template( """
 		<ul id="tabs"

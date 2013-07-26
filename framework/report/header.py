@@ -44,42 +44,6 @@ class Header:
                 cprint( "Copying report includes (stylesheet + javascript files).." )
                 self.Core.Shell.shell_exec( "cp -r " + self.FrameworkDir + "/includes/ " + self.TargetOutputDir )
 
-        def DrawRunDetailsTable( self ):
-                template = Template( """
-                <table class="run_log">
-					 <tr>
-	                	<th colspan="5"> Run Log </th>
-	                </tr>
-	                <tr> 
-						<th> Start </th> 
-						<th> End </th> 
-						<th> Runtime </th> 
-						<th> Command </th> 
-						<th> Status </th> 
-					</tr>
-				{% for Start, End, Runtime, Command, Status in RUN_DB  %}
-					<tr> 
-						<td> {{ Start }} </td> 
-						<td	class="alt"> {{ End }} </td> 
-						<td> {{ Runtime }} </td> 
-						<td	class="alt"> {{ Command }} </td> 
-						<td> {{ Status }} </td> 
-					</tr>
-				{% endfor %}
-				</table>
-                """ )
-                return template.render( RUN_DB = self.Core.DB.GetData( 'RUN_DB' ) )
-
-        def GetDBButtonLabel( self, LabelStart, RedFound, NormalNotFound, DBName ):
-                DBLabel = LabelStart
-                if self.Core.DB.GetLength( DBName ) > 0:
-                        DBLabel += RedFound
-                        DBLabel = "<font color='red'>" + DBLabel + "</font>"
-                else:
-                        DBLabel += NormalNotFound
-                return DBLabel
-
-
 	def Save( self, Report, Options ):
 		self.TargetOutputDir, self.FrameworkDir, self.Version, self.Release, self.TargetURL, self.HostIP, self.PortNumber, self.TransactionLogHTML, self.AlternativeIPs = self.Core.Config.GetAsList( ['OUTPUT_PATH', 'FRAMEWORK_DIR', 'VERSION', 'RELEASE', 'TARGET_URL', 'HOST_IP', 'PORT_NUMBER', 'TRANSACTION_LOG_HTML', 'ALTERNATIVE_IPS'] )
 		self.ReportType = Options['ReportType']

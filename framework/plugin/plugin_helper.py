@@ -45,6 +45,24 @@ class PluginHelper:
 
 	def MultipleReplace( self, Text, ReplaceDict ): # This redundant method is here so that plugins can use it
 		return MultipleReplace( Text, ReplaceDict )
+	
+	def DrawCommandTable( self, Command ):
+		template = Template ( """
+				<table class="run_log"> 
+					<tr>
+						<th> Analysis Command </th>
+					</tr>
+					<tr> 
+						<td>
+							{{ Command|e }}
+						</td>
+					</tr>
+				</table>
+				""" )
+		vars = {
+						 "Command": Command,
+						}
+		return template.render( vars )
 
 	def DrawLinkList( self, LinkListName, Links ): # Wrapper to allow rendering a bunch of links -without name- as resource links with name = link
 		template = Template( """
