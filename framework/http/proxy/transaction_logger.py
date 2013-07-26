@@ -34,7 +34,9 @@ import codecs
 import os
 import glob
 import httplib
-import cPickle as pickle
+import urlparse
+import json as pickle
+import time
 
 class TransactionLogger(Process):
     """
@@ -54,11 +56,26 @@ class TransactionLogger(Process):
             return(httplib.responses[int(response_code)])
         except:
             return("Code Not Known")
-    
+
+    # This function helps in retrieving port number when they are not present in request url
+    def port_from_scheme(self, scheme):
+        scheme_defaults = { 'http':80, 'https':443, 'ftp':21}
+        return scheme_defaults[scheme]
+
+    # This function will generate path based on request url
+    def path_from_url(self, url):
+        parsed_url = urlparse.urlparse(url)
+        port = str(parsed_url.port or self.port_from_scheme(parsed_url.scheme))
+        folder_path = os.path.join(port, parsed_url.scheme + "__" + parsed_url.hostname, 'transactions')
+        folder_path = os.path.join(self.db_dir, folder_path, "/".join(parsed_url.path.split("/")[1:-1]))
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        return folder_path
+        
     # This is the main function which dumps the transactions into
     # human readable form
     def save_to_file(self, dumped_dict, request_hash):
-        file_path = os.path.join(self.db_dir, request_hash)
+        file_path = os.path.join(self.path_from_url(dumped_dict['request_url']), request_hash)
         transaction_file = codecs.open(file_path, 'w', 'UTF-8')
         
         transaction_file.write("="*50 + " HTTP URL " + "="*50 + "\r\n")
@@ -91,12 +108,17 @@ class TransactionLogger(Process):
     def run(self):
         try:
             while True:
-                for file_path in glob.glob(os.path.join(self.cache_dir, "*.rd")):
-                    dumped_dict = pickle.load(open(file_path[:-3], 'rb'))
-                    self.save_to_file(dumped_dict, file_path.split('/')[-1][:-3])
-                    os.remove(file_path)
+                if glob.glob(os.path.join(self.cache_dir, "*.rd")):
+                    for file_path in glob.glob(os.path.join(self.cache_dir, "*.rd")):
+                        dumped_dict = pickle.load(open(file_path[:-3], 'rb'))
+                        self.save_to_file(dumped_dict, file_path.split('/')[-1][:-3])
+                        os.remove(file_path)
+                else:
+                    time.sleep(1)
+
         except:
             for file_path in glob.glob(os.path.join(self.cache_dir, "*.rd")):
                 dumped_dict = pickle.load(open(file_path[:-3], 'rb'))
                 self.save_to_file(dumped_dict, file_path.split('/')[-1][:-3])
                 os.remove(file_path)
+            exit()

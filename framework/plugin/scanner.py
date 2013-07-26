@@ -62,7 +62,7 @@ class Scanner:
 # Step 2 - Extract IPs
         dns_servers=file_prefix+".dns_server.ips"
         self.core.Shell.shell_exec("grep \"53/open/tcp\" "+file_prefix+".gnmap | cut -f 2 -d \" \" > "+dns_servers)
-        file = open(dns_servers)
+        file = self.open_file(dns_servers)
         domain_names=file_prefix+".domain_names"
         self.core.Shell.shell_exec("rm -f "+domain_names)
         num_dns_servers = 0
@@ -73,7 +73,7 @@ class Scanner:
                 self.core.Shell.shell_exec("host "+dns_server+" "+dns_server+" | grep 'domain name' | cut -f 5 -d' ' | cut -f 2,3,4,5,6,7 -d. | sed 's/\.$//' >> "+domain_names)
                 num_dns_servers = num_dns_servers+1
         try:
-            file = open(domain_names)
+            file = self.open_file(domain_names)
         except IOError:
             return
         
@@ -88,7 +88,7 @@ class Scanner:
                 axfr=file_prefix+"."+dns_server+"."+domain+".axfr"
                 self.core.Shell.shell_exec("rm -f "+axfr)
                 print self.core.Shell.shell_exec("grep 'has address' "+raw_axfr+" | cut -f 1,4 -d ' ' | sort -k 2 -t ' ' | sed 's/ /#/g'")
-            else :
+            else:
                 print "Attempting zone transfer on $dns_server using domain $domain .. Success!"
                 self.core.Shell.shell_exec("rm -f "+raw_axfr)
         if num_dns_servers==0:
@@ -105,11 +105,15 @@ class Scanner:
                self.core.Shell.shell_exec("nmap -PN -n -v --min-parallelism=10 -iL "+file_with_ips+" -sU -sV -O -oA "+file_prefix+".udp "+nmap_options)
                self.core.Shell.shell_exec("amap -1 -i "+file_prefix+".udp.gnmap -Abq -m -o "+file_prefix+".udp.amap")
     
+
+    def get_nmap_services_file(self):
+        return '/usr/share/nmap/nmap-services'
+
     def get_ports_for_service(self,service, protocol):
         regexp = '(.*?)\t(.*?/.*?)\t(.*?)($|\t)(#.*){0,1}'
         re.compile(regexp)
         list = []
-        f = open('/usr/share/nmap/nmap-services')
+        f = open(self.get_nmap_services_file())
         for line in f.readlines():
             if line.lower().find(service) >= 0:
                 match = re.findall(regexp, line)
@@ -120,10 +124,13 @@ class Scanner:
                         list.append(port)
         f.close()
         return list
-    
-    def target_service(self,nmap_file,service):
+
+    def open_file(self, filename):
+        return open(filename)
+
+    def target_service(self, nmap_file, service):
         ports_for_service = self.get_ports_for_service(service,"")
-        f = open(nmap_file.strip())
+        f = self.open_file(nmap_file.strip())
         response = ""
         for host_ports in re.findall('Host: (.*?)\tPorts: (.*?)[\t\n]', f.read()):
             host = host_ports[0].split(' ')[0] # Remove junk at the end

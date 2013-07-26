@@ -48,14 +48,18 @@ class SMB(pexpect_shell.PExpectShell):
 	def SetMounted(self, Value):
 		self.Mounted = Value
 	
+
+	def check_mount_point_existence(self, Options):
+	    if not os.path.exists(Options['SMB_MOUNT_POINT']):
+	        os.makedirs(Options['SMB_MOUNT_POINT'])
+
 	def Mount(self, Options, PluginInfo):
 		if self.IsMounted():
 			return True
 		cprint("Initialising shell..")
 		self.Open(Options, PluginInfo)
 		cprint("Ensuring Mount Point " + Options['SMB_MOUNT_POINT'] + " exists..")
-		if not os.path.exists(Options['SMB_MOUNT_POINT']):
-			os.makedirs(Options['SMB_MOUNT_POINT'])
+		self.check_mount_point_existence(Options)
 		#self.Core.CreateMissingDirs(Options['SMB_MOUNT_POINT'])
 		MountCmd = "smbmount //" + Options['SMB_HOST'] + "/" + Options['SMB_SHARE'] + " " + Options['SMB_MOUNT_POINT']
 		if Options['SMB_USER']: # Pass user if specified

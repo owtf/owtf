@@ -69,7 +69,7 @@ class PluginConfigTests(BaseTestCase):
 
         assert_that(groups, has_item("web"))
 
-    def test_GetPlugin_should_return_the_first_plugin_mathing_the_criteria(self):
+    def test_GetPlugin_should_return_the_first_plugin_matching_the_criteria(self):
         criteria = {"Group": "web",
                     "Type": "active"}
         plugin = self.plugin_config.GetPlugin(criteria)

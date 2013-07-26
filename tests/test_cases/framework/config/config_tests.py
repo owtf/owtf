@@ -5,7 +5,6 @@ from hamcrest import *
 from tests.testing_framework.config.environments import ConfigEnvironmentBuilder
 from framework.lib.general import PluginAbortException
 from tests.testing_framework.config.config_state import ConfigState
-from os import path
 
 
 class ConfigTests(BaseTestCase):
@@ -15,6 +14,7 @@ class ConfigTests(BaseTestCase):
     def before(self):
         self.config = self.__class__.config_proxy.get_instance()
         self.config_status_backup = ConfigState(self.config)
+        self.config.Core.DevMode = False
 
     def after(self):
         ConfigState.restore_state(self.config, self.config_status_backup)
@@ -146,7 +146,7 @@ class ConfigTests(BaseTestCase):
         assert_that(obtained_filename, equal_to(expected_filename))
 
     def test_LoadResourcesFromFile_parses_resources_succesfully(self):
-        path_to_file = path.abspath("test_cases/resources/resources_example.cfg")
+        path_to_file = self.get_abs_path("test_cases/resources/resources_example.cfg")
 
         self.config.LoadResourcesFromFile(path_to_file)
 
