@@ -391,7 +391,7 @@ div.testgroup { padding: 8px 0 0 0; }
 	overflow-y: auto; 
 	overflow-x: auto;
 }
-div.iframe_padding { border: 0px; padding: 0 0 22px 0; }
+div.iframe_padding { border: 0px; padding: 0 0 40px 0; }
 div.tabContent { border: 1px solid #c9c3ba; padding: 0 0 0 0.5em; background-color: #f1f0ee; width: 100%; }
 div.tabContent.hide { display: none; }
 

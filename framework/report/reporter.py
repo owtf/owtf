@@ -50,17 +50,6 @@ class Reporter:
 		self.PluginDivIds = {}
 		self.CounterList = []
 
-        def DrawImageFromConfigPair( self, ConfigList ):
-                FileName, ToolTip = self.Core.Config.GetAsList( ConfigList )
-                template = Template( """
-                		<img src="images/{{ FileName }}.png" title="{{ ToolTip }}">
-                """ )
-                vars = {
-						"FileName" : FileName,
-						"ToolTip": ToolTip
-						}
-                return template.render( vars )
-
 	def GetPluginDelim( self ):
 		return PLUGIN_DELIM
 
@@ -73,12 +62,6 @@ class Reporter:
         def DrawCommand( self, Command ):
                 #cgi.escape(MultipleReplace(ModifiedCommand, self.Core.Config.GetReplacementDict()))
                 return cgi.escape( Command )#.replace(';', '<br />') -> Sometimes ";" encountered in UA, cannot do this and it is not as helpful anyway
-
-        def DrawCommandTable( self, Command ):
-                Table = self.Render.CreateTable( {'class' : 'run_log'} )
-                Table.CreateRow( [ 'Analysis Command' ], True )
-                Table.CreateRow( [ self.DrawCommand( Command ) ] )
-                return Table.Render()
 
         def DrawTransacLinksStr( self, PathList, ToFile = True ):
                 URL, TransacPath, ReqPath, ResHeadersPath, ResBodyPath = PathList
@@ -129,55 +112,55 @@ class Reporter:
 																	</a>
 																</td>
 																<td>
-																<a href="javascript:void(0);" class="icon"  onclick="Rate('{{ DivID }}','bonus_red', this)"  id="{{ DivID }}bonus_red">
+																<a href="javascript:void(0);" class="icon"  onclick="Rate('{{ DivId }}','bonus_red', this)"  id="{{ DivID }}bonus_red">
 																<span> <img src="images/bonus_red.png" title="Exploitable"> </span>
 																	</a>
 																</td>
 																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','star_3', this)"  id='{{ DivID }}star_3'>
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','star_3', this)"  id='{{ DivID }}star_3'>
 																<span> <img src="images/star_3.png" title="Brief look (no analysis)"> </span>
 																	</a>
 																</td>
 																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','star_3', this)" id="{{ DivID }}star_2">
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','star_3', this)" id="{{ DivID }}star_2">
 																<span> <img src="images/star_2.png" title="Initial look (analysis incomplete)"> </span>
 																	</a>
 																</td>
 																<td>
-																<a href="javascript:void(0);" class="icon"  onclick="Rate('{{ DivID }}','check_green', this)" id="{{ DivID }}check_green">
+																<a href="javascript:void(0);" class="icon"  onclick="Rate('{{ DivId }}','check_green', this)" id="{{ DivID }}check_green">
 																<span> 
 																	<img src="images/check_green.png" title="Test Passed"> </span>
 																	</a>
 																</td>
 																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','bug', this)" id="{{ DivID }}bug">
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','bug', this)" id="{{ DivID }}bug">
 																<span> <img src="images/bug.png" title="Functional/Business Logic bug"> </span>
 																	</a>
 																</td>
 																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','flag_blue', this)" id="{{ DivID }}flag_blue">
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','flag_blue', this)" id="{{ DivID }}flag_blue">
 																<span> <img src="images/flag_blue.png" title="Low Severity"> </span>
 																	</a>
 																</td>
 						
 																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','flag_yellow', this)" id="{{ DivID }}flag_yellow">
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','flag_yellow', this)" id="{{ DivID }}flag_yellow">
 																<span> <img src="images/flag_yellow.png" title="Medium Severity"> </span>
 																	</a>
 																</td>
 						
 																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','flag_red', this)" id="{{ DivID }}flag_red">
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','flag_red', this)" id="{{ DivID }}flag_red">
 																<span> <img src="images/flag_red.png" title="High Severity"> </span>
 																	</a>
 																</td>
 																<td>
-																	<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','flag_violet', this)" id="{{ DivID }}flag_violet">
+																	<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','flag_violet', this)" id="{{ DivID }}flag_violet">
 																		<span> <img src="images/flag_violet.png" title="Critical Severity"> </span>
 																	</a>
 																</td>
 																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivID }}','delete', this)" id="{{ DivID }}delete">
+																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','delete', this)" id="{{ DivID }}delete">
 																<span> <img src="images/delete.png" title="Remove Flag"> </span>
 																	</a>
 																</td>
@@ -422,15 +405,23 @@ class Reporter:
 			return self.GetRegisteredNetPlugins( ReportType )
 
 
-	def DrawReportSkeleton( self ): # Create Div + Tab structure for Review + Report ease of navigation
-		template = Template( """	
-		<div id="generated_report" class="generated_report" style="display:none;">
+	def ReportFinish( self ): # Group all partial reports (whether done before or now) into the final report
+		Target = self.Core.Config.GetTarget()
+		NumPluginsForTarget = self.Core.DB.PluginRegister.NumPluginsForTarget( Target )
+		if not NumPluginsForTarget > 0:
+			cprint( "No plugins completed for target, cannot generate report" )
+			return None # Must abort here, before report is generated
+		self.ReportStart() # Wipe report
+		with open( self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ), 'a' ) as file:
+			template = Template( """
+			<div id="GlobalReportButtonsTop" style="display:none;"></div>
+			<div id="generated_report" class="generated_report" style="display:none;">
 			<div id='{{ REPORT_PREFIX }}intro'></div>
 				<ul id="tabs">
 					<li>
 						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}stats" target=""
-								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats,tab_{{ REPORT_PREFIX }}passed, tab_{{ REPORT_PREFIX }}findings, tab_{{ REPORT_PREFIX }}unrated'), '');
-										 HideDivs(new Array('{{ REPORT_PREFIX }}stats,{{ REPORT_PREFIX }}passed, {{ REPORT_PREFIX }}findings, {{ REPORT_PREFIX }}unrated'));
+								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
+										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
 										 this.className = 'selected'; 
 										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
 							Statistics
@@ -438,8 +429,8 @@ class Reporter:
 				 </li>
 				 <li>
 						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}passed" target=""
-								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats,tab_{{ REPORT_PREFIX }}passed, tab_{{ REPORT_PREFIX }}findings, tab_{{ REPORT_PREFIX }}unrated'), '');
-										 HideDivs(new Array('{{ REPORT_PREFIX }}stats,{{ REPORT_PREFIX }}passed, {{ REPORT_PREFIX }}findings, {{ REPORT_PREFIX }}unrated'));
+								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
+										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
 										 this.className = 'selected'; 
 										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
 							Passed Tests
@@ -447,8 +438,8 @@ class Reporter:
 				 </li>
 				 <li>
 						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}findings" target=""
-								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats,tab_{{ REPORT_PREFIX }}passed, tab_{{ REPORT_PREFIX }}findings, tab_{{ REPORT_PREFIX }}unrated'), '');
-										 HideDivs(new Array('{{ REPORT_PREFIX }}stats,{{ REPORT_PREFIX }}passed, {{ REPORT_PREFIX }}findings, {{ REPORT_PREFIX }}unrated'));
+								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
+										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
 										 this.className = 'selected'; 
 										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
 							Findings
@@ -456,29 +447,29 @@ class Reporter:
 				 </li>
 				 <li>
 						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}unrated" target=""
-								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats,tab_{{ REPORT_PREFIX }}passed, tab_{{ REPORT_PREFIX }}findings, tab_{{ REPORT_PREFIX }}unrated'), '');
-										 HideDivs(new Array('{{ REPORT_PREFIX }}stats,{{ REPORT_PREFIX }}passed, {{ REPORT_PREFIX }}findings, {{ REPORT_PREFIX }}unrated'));
+								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
+										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
 										 this.className = 'selected'; 
-										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
+									 	 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
 							Not Rated
 						</a>
 				 </li>
 				<li class="icon">
-						<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ DivIdList|join("','") }}'));SetClassNameToElems(new Array('%(TabIdList)s'), '');">
+						<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');">
 							<span>
-								<img src="images/{{ FIXED_ICON_EXPAND_PLUGINS }}.png" title="{{ NAV_TOOLTIP_EXPAND_PLUGINS }}">&nbsp; 
+								<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
 							</span>
 						</a>	
 						&nbsp;
-						<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ DivIdList|join("','") }}'));SetClassNameToElems(new Array('%(TabIdList)s'), '');">
+						<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');">
 							<span>
-								<img src="images/{{ FIXED_ICON_CLOSE_PLUGINS }}.png" title="{{ NAV_TOOLTIP_CLOSE_PLUGINS }}">&nbsp; 
+								<img src="images/minus_gray16x16.png" title="Close Plugins">&nbsp; 
 							</span>
 						</a>
 						&nbsp;	
-						<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('%(TabIdList)s'), '');UnfilterBrotherTabs(this);">
+						<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');UnfilterBrotherTabs(this);">
 							<span>
-								<img src="images/{{ FIXED_ICON_PLUGIN_INFO }}.png" title="{{ NAV_TOOLTIP_CLOSE_PLUGINS }}">&nbsp; 
+								<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
 							</span>
 						</a>
 				</li>
@@ -486,81 +477,69 @@ class Reporter:
 				<!-- Div Content -->
 			</div>
 		<div id="review_content" class="review_content">
-
-		"""
-			% {
-				"DivIdList" : "{{ REPORT_PREFIX }}stats,{{ REPORT_PREFIX }}passed, {{ REPORT_PREFIX }}findings, {{ REPORT_PREFIX }}unrated",
-				"TabIdList" : "tab_{{ REPORT_PREFIX }}stats,tab_{{ REPORT_PREFIX }}passed, tab_{{ REPORT_PREFIX }}findings, tab_{{ REPORT_PREFIX }}unrated"
-				}
-
-		 )
-
-		vars = {
-					"REPORT_PREFIX" : REPORT_PREFIX,
-					"FIXED_ICON_EXPAND_PLUGINS" : self.Core.Config.Get( 'FIXED_ICON_EXPAND_PLUGINS' ),
-					"NAV_TOOLTIP_EXPAND_PLUGINS" : self.Core.Config.Get( 'NAV_TOOLTIP_EXPAND_PLUGINS' ),
-					"FIXED_ICON_CLOSE_PLUGINS" : self.Core.Config.Get( 'FIXED_ICON_CLOSE_PLUGINS' ),
-					"NAV_TOOLTIP_CLOSE_PLUGINS" : self.Core.Config.Get( 'NAV_TOOLTIP_CLOSE_PLUGINS' ),
-					"FIXED_ICON_PLUGIN_INFO" : self.Core.Config.Get( 'FIXED_ICON_PLUGIN_INFO' ),
-					"FILTER_TOOLTIP_INFO_UNFILTER" : self.Core.Config.Get( 'FILTER_TOOLTIP_INFO_UNFILTER' ),
-				}
-
-		return template.render( vars )
-
-	def ReportFinish( self ): # Group all partial reports (whether done before or now) into the final report
-		Target = self.Core.Config.GetTarget()
-		NumPluginsForTarget = self.Core.DB.PluginRegister.NumPluginsForTarget( Target )
-		template = Template( """
-		{% if NumPluginsForTarget %}
-		
-		
-		{% endif %}
-		""" )
-		if not NumPluginsForTarget > 0:
-			cprint( "No plugins completed for target, cannot generate report" )
-			return None # Must abort here, before report is generated
-		self.ReportStart() # Wipe report
-		with open( self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ), 'a' ) as file:
-			file.write( '<div id="GlobalReportButtonsTop" style="display:none;"></div>' + self.DrawReportSkeleton() ) # Start OWASP Testing Guide Item List
-			AllPluginsTabIdList = []
-			AllPluginsDivIdList = []
-			AllCodes = []
-			for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) ):
-				HeaderStr = TestGroup['TestGroupHeaderStr']
-				Tabs = self.Render.CreateTabs()
-
-				for Match in  TestGroup['RegisteredPlugins']:
-					if Match['Code'] not in AllCodes:
-						AllCodes.append( Match['Code'] )
-					#PluginType = Match['Type']
-					#DivId = self.GetPluginDivId(Match['Code'], PluginType)
-					DivId = self.GetPluginDivId( Match )
-					Tabs.AddDiv( DivId, Match['Label'], open( Match['Path'] ).read() )
-					AllPluginsTabIdList.append( "tab_" + DivId )
-					AllPluginsDivIdList.append( DivId )
-				if Tabs.GetNumDivs() > 0:
-					Tabs.CreateCustomTab( 'Results:' ) # First create custom tab, without javascript
-					Tabs.CreateTabs() # Create the hide/show deal tabs
-					Tabs.CreateTabButtons() # Add handy tab navigation buttons to the right
-					HeaderStr += "&nbsp;" * 1 + ( "&nbsp;" * 1 ).join( self.Render.DrawLinkPairs( [ [ self.DrawImageFromConfigPair( [ 'FIXED_ICON_EXPAND_REPORT', 'NAV_TOOLTIP_EXPAND_REPORT' ] ), "ClickLinkById('expand_report')" ], [ self.DrawImageFromConfigPair( [ 'FIXED_ICON_CLOSE_REPORT', 'NAV_TOOLTIP_CLOSE_REPORT' ] ), "ClickLinkById('collapse_report')" ] ], 'DrawButtonJSLink', { 'class' : 'icon' } ) )
-				#HeaderStr += "<br />"
-       				file.write( HeaderStr + Tabs.Render() + "</div>" ) # Save plugin reports in OWASP Guide order => 1 write per item = less memory-intensive
-			if len( AllPluginsTabIdList ) == 0:
-				cprint( "ERROR: No plugins found, cannot write report" )
-				return None # No plugins found (should not happe)
-			template = Template( """
-							<br />
+			{% for TestGroup in TestGroups %}
+				{{ TestGroup.TestGroupHeaderStr }}
+						&nbsp;
+						<a href="javascript:void(0);" class="icon" onclick="ClickLinkById('expand_report')">
+							<span> 	<img src="images/plus_gray24x24.png" title="Expand Report"> </span>
+						</a>&nbsp;
+						<a href="javascript:void(0);" class="icon" onclick="ClickLinkById('collapse_report')">
+							<span> 	<img src="images/minus_gray24x24.png" title="Close Report"> </span>
+						</a>&nbsp;
+					{% if TestGroup.Matches %}								
+						<ul id="tabs">
+							 <li>  Results: </li>
+							{% for Match in TestGroup.Matches %}
+								<li>
+										<a href="javascript:void(0);" id="{{ Match.TabId }}" 
+												onclick="SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');
+														 HideDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));
+														 this.className = 'selected'; 
+														 ToggleDiv('{{ Match.DivId }}');" >
+											{{ Match.TabName }}
+										</a>		
+								</li>
+								<li class="icon">
+									<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');">
+										<span>
+											<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
+										</span>
+									</a>	
+									&nbsp;
+									<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');">
+										<span>
+											<img src="images/minus_gray16x16.png" title="Close Plugins">&nbsp; 
+										</span>
+									</a>
+									&nbsp;	
+									<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');UnfilterBrotherTabs(this);">
+										<span>
+											<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
+										</span>
+									</a>
+								</li>	
+							{% endfor %}	
+						</ul>
+							{% for Match in TestGroup.Matches %}
+							<div id="{{ Match.DivId }}" class="tabContent" style="display:none">
+								{{ Match.DivContent }}
+							</div>
+							{% endfor %}
+						{%  endif %}
+					</div>
+			{% endfor %}
+					<br />
 							<div id='GlobalReportButtonsBottom' style='display:none;'>
-								<a id="expand_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ AllPluginsTabIdList|join("','") }}'), ''); ShowDivs(new Array('{{ AllPluginsDivIdList|join("','") }}'))">
+								<a id="expand_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ Globals.AllPluginsTabIdList|join("','") }}'), ''); ShowDivs(new Array('{{ Globals.AllPluginsDivIdList|join("','") }}'))">
 									<span> + </span>
 								</a>
-								<a id="collapse_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ AllPluginsTabIdList|join("','") }}'), ''); HideDivs(new Array('{{ AllPluginsDivIdList|join("','") }}'))">
+								<a id="collapse_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ Globals.AllPluginsTabIdList|join("','") }}'), ''); HideDivs(new Array('{{ Globals.AllPluginsDivIdList|join("','") }}'))">
 									<span> - </span>
 								</a>
 							</div>
 							<script>
-								var AllPlugins = new Array('{{ AllPluginsDivIdList|join("','") }}')
-								var AllCodes = new Array('{{ AllCodes|join("','") }}')
+								var AllPlugins = new Array('{{ Globals.AllPluginsDivIdList|join("','") }}')
+								var AllCodes = new Array('{{ Globals.AllCodes|join("','") }}')
 								var Offset = '{{ REVIEW_OFFSET }}'
 								var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
 								var DetailedReport = true
@@ -568,25 +547,57 @@ class Reporter:
 								var ReportMode = false
 								var REPORT_PREFIX = '{{ REPORT_PREFIX }}'
 							</script>
-						</body></html>
-			""" )
+							</body>
+						</html>
+			"""
+			)
 
 			vars = {
-						"AllPluginsTabIdList" : AllPluginsTabIdList,
-						"AllPluginsDivIdList" : AllPluginsDivIdList,
-						"AllCodes" : AllCodes,
-						"REVIEW_OFFSET" : self.Core.Config.Get( 'REVIEW_OFFSET' ),
-						"PLUGIN_DELIM" : PLUGIN_DELIM,
-						"REPORT_PREFIX"  : REPORT_PREFIX ,
+					"Globals": {
+								"AllPluginsTabIdList": [
+										"tab_" + self.GetPluginDivId( Match )
+										 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins'] 
+										 ],
+								"AllPluginsDivIdList":[
+										 self.GetPluginDivId( Match )
+										 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins'] 
+										 ],
+								"AllCodes": [
+										 Match['Code'] #eliminate repetitions,
+										 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins'] 
+										 ],
+								},
+					"TestGroups": [
+								{
+									"TestGroupHeaderStr": TestGroup['TestGroupHeaderStr'],
+									"Matches" : [
+													{
+													 "DivId": self.GetPluginDivId( Match ),
+													 'TabId': "tab_" + self.GetPluginDivId( Match ),
+													 "TabName": Match["Label"],
+													 "DivContent": open( Match['Path'] ).read(),
+													}
+													for Match in TestGroup['RegisteredPlugins']
+													],
+									 "TabIdList": [
+													"tab_" + self.GetPluginDivId( Match )
+													for Match in TestGroup['RegisteredPlugins']
+													],
+									"DivIdList": [
+													self.GetPluginDivId( Match )
+													for Match in TestGroup['RegisteredPlugins']
+													]
+								}
+								 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )
+								],
+					"REVIEW_OFFSET" : self.Core.Config.Get( 'REVIEW_OFFSET' ),
+					"PLUGIN_DELIM" : PLUGIN_DELIM,
+					"REPORT_PREFIX"  : REPORT_PREFIX ,
 					}
+
+
 
 			file.write( template.render( vars ) ) # Closing HTML Report
 			cprint( "Report written to: " + self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ) )
 			self.Core.DB.ReportRegister.Add( self.Core.Config.GetAsList( [ 'REVIEW_OFFSET', 'SUMMARY_HOST_IP', 'SUMMARY_PORT_NUMBER', 'HTML_DETAILED_REPORT_PATH', 'REPORT_TYPE' ] ) ) # Register report
 			self.Summary.ReportFinish() # Build summary report
-
-
-        def ReportWrite( self, html, text ):
-                cprint( text ) # Text displayed on console only, html saved in report
-                with open( self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ), 'a' ) as file:
-                        file.write( html ) # Closing HTML Report
