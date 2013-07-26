@@ -1,11 +1,9 @@
 from tests.testing_framework.base_test_cases import BaseTestCase
 from hamcrest import *
 from flexmock import flexmock
-from framework.shell.interactive_shell import InteractiveShell
 from tests.testing_framework.shell.environments import InteractiveShellEnvironmentBuilder
 from framework.shell.async_subprocess import AsyncPopen
 from hamcrest.library.text.stringmatches import matches_regexp
-from os import path
 from tests.testing_framework.utils import ExpensiveResourceProxy
 
 
@@ -23,13 +21,13 @@ class InteractiveShellTests(BaseTestCase):
     def test_Run_command_in_a_shell(self):
         output = self.interactive_shell.Run('pwd')
 
-        expected = path.abspath(".")
+        expected = self.get_abs_path(".")
         assert_that(output, matches_regexp(expected))
 
     def test_RunCommandList_runs_more_than_one_command_in_a_shell(self):
         output = self.interactive_shell.RunCommandList(['pwd', "echo 1234"])
 
-        pwd_expected = path.abspath(".")
+        pwd_expected = self.get_abs_path(".")
         echo_expected = "1234"
 
         assert_that(output, matches_regexp(pwd_expected))
@@ -60,6 +58,7 @@ class InteractiveShellTests(BaseTestCase):
     def _restore_backup(self, target, backup):
         for name, obj in backup.items():
             setattr(target, name, obj)
+
 
 class MethodMock():
 
