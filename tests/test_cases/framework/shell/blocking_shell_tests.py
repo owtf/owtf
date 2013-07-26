@@ -3,7 +3,6 @@ from hamcrest import *
 from flexmock import flexmock
 from framework.shell.blocking_shell import Shell
 from tests.testing_framework.shell.environments import InteractiveShellEnvironmentBuilder
-from os import path
 from hamcrest.library.text.stringmatches import matches_regexp
 
 
@@ -17,7 +16,7 @@ class BlockingShellTests(BaseTestCase):
 
     def test_shell_exec_monitor_runs_a_command_logging_the_output(self):
         command = 'pwd'
-        expected_command_output = path.abspath(".")
+        expected_command_output = self.get_abs_path(".")
         expected_time_logging_message = "Execution Start Date/Time"
 
         self.init_stdout_recording()

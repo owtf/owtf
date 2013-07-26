@@ -1,6 +1,7 @@
 from tests.testing_framework.base_test_cases import BaseTestCase
 from hamcrest import *
 import sys
+from hamcrest.library.text.stringmatches import matches_regexp
 
 
 class BaseTestCaseTests(BaseTestCase):
@@ -54,6 +55,12 @@ class BaseTestCaseTests(BaseTestCase):
     def before(self):
         self.custom_set_up_has_been_invoked = True
 
-    def test_setup_and_tear_down_functions(self):
+    def test_setup_function(self):
         assert_that(self.custom_set_up_has_been_invoked)
+
+    def test_get_abs_path(self):
+        relative_path = "test_cases/resources"  # Relative to owtf/tests directory
+        abs_path = self.get_abs_path(relative_path)
+
+        assert_that(abs_path, matches_regexp("/(.+/)*" + relative_path + "/?"))
 
