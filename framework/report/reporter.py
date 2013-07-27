@@ -30,6 +30,7 @@ The reporter module is in charge of producing the HTML Report as well as provide
 '''
 import os, re, cgi, sys
 from jinja2 import Template
+from jinja2 import Environment, PackageLoader
 from framework.lib.general import *
 from framework.report.html import renderer
 from framework.report.html.filter import sanitiser
@@ -49,6 +50,8 @@ class Reporter:
 		self.Sanitiser = sanitiser.HTMLSanitiser()
 		self.PluginDivIds = {}
 		self.CounterList = []
+		self.Template_env = env = Environment( loader = PackageLoader( 'framework.report', 'templates' ) )
+
 
 	def GetPluginDelim( self ):
 		return PLUGIN_DELIM
@@ -65,9 +68,34 @@ class Reporter:
 
         def DrawTransacLinksStr( self, PathList, ToFile = True ):
                 URL, TransacPath, ReqPath, ResHeadersPath, ResBodyPath = PathList
-                LinksStr = self.Render.DrawButtonLink( 'Site', URL ) + " "
-                LinksStr += " ".join( self.Render.DrawLinkPairs( [['F', TransacPath ], ['R', ReqPath], ['H', ResHeadersPath], ['B', ResBodyPath]], 'DrawButtonLink', {}, ToFile ) )
-                return LinksStr
+                template = Template( """
+                			<!-- Start Transactions Links -->
+	                			<a href="{{ Transaction_URL }}" class="button" target="_blank">
+									<span> Site </span>
+								</a><br />
+								<a href="{{ Transaction_Path }}" class="button" target="_blank">
+									<span> F </span>
+								</a><br />
+								<a href="{{ Request_Path }}" class="button" target="_blank">
+									<span> R </span>
+								</a><br />
+								<a href="{{ Resource_Headers_Path }}" class="button" target="_blank">
+									<span> H </span>
+								</a><br />
+								<a href="{{ Resource_Body_Path }}" class="button" target="_blank">
+									<span> B </span>
+								</a><br />
+							<!-- End Transactions Links -->
+                			""" )
+                vars = {
+							"Transaction_URL": URL,
+							"Transaction_Path":  TransacPath,
+							"Request_Path": ReqPath,
+							"Resource_Headers_Path": ResHeadersPath ,
+							"Resource_Body_Path": ResBodyPath,
+						}
+
+                return template.render( vars )
 
         def DrawTransacLinksForID( self, ID, ForPlugin = False ):
                 PathList = self.Core.DB.Transaction.GetTransactionPathsForID( ID ) # Returns the URL and Transaction Paths for a given Transaction ID
@@ -89,194 +117,7 @@ class Reporter:
                 with open( PluginReportPath, 'w' ) as file: # 'w' is important to overwrite the partial report, necesary for scanners
                         Plugin['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr( 'Plugin' )
                         Plugin['End'] = self.Core.Timer.GetEndDateTimeAsStr( 'Plugin' )
-                        template = Template( """
-                        	<h4 id="h{{ DivId }}"><u> {{ Plugin['Title'] }} </u> - <i> {{ Plugin['Type']|replace( '_', ' ' )|upper }} </i>
-                            &nbsp;&nbsp;
-                            <div style="display:inline;{% if 'Counters' not in Options %}float:right;{% endif %}">
-								<table class="counter"> 
-									<tr>
-																<td>
-																<a href="javascript:void(0);" class="icon" onclick="ToggleNotesBox('{{ DivId }}')" id="{{ DivId }}lamp_active" >
-																<span> <img src="images/lamp_active.png" title="Hide/Show Notes Box"> </span>
-																	</a>
-																</td>
-																<td>
-																<a href="javascript:void(0);" class="icon" onclick="MarkAsSeen('{{ DivId }}')" id="l{{ DivId }}" >
-																<span> <img src="images/pencil.png" title="Strike-through"> </span>
-																	</a>
-																</td>
-														
-																<td>
-																<a href="javascript:void(0);" class="icon"  onclick="Rate('{{ DivId }}','attention_orange', this)" id="{{ DivId }}attention_orange">
-																<span> <img src="images/attention_orange.png" title="Warning"> </span>
-																	</a>
-																</td>
-																<td>
-																<a href="javascript:void(0);" class="icon"  onclick="Rate('{{ DivId }}','bonus_red', this)"  id="{{ DivID }}bonus_red">
-																<span> <img src="images/bonus_red.png" title="Exploitable"> </span>
-																	</a>
-																</td>
-																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','star_3', this)"  id='{{ DivID }}star_3'>
-																<span> <img src="images/star_3.png" title="Brief look (no analysis)"> </span>
-																	</a>
-																</td>
-																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','star_3', this)" id="{{ DivID }}star_2">
-																<span> <img src="images/star_2.png" title="Initial look (analysis incomplete)"> </span>
-																	</a>
-																</td>
-																<td>
-																<a href="javascript:void(0);" class="icon"  onclick="Rate('{{ DivId }}','check_green', this)" id="{{ DivID }}check_green">
-																<span> 
-																	<img src="images/check_green.png" title="Test Passed"> </span>
-																	</a>
-																</td>
-																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','bug', this)" id="{{ DivID }}bug">
-																<span> <img src="images/bug.png" title="Functional/Business Logic bug"> </span>
-																	</a>
-																</td>
-																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','flag_blue', this)" id="{{ DivID }}flag_blue">
-																<span> <img src="images/flag_blue.png" title="Low Severity"> </span>
-																	</a>
-																</td>
-						
-																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','flag_yellow', this)" id="{{ DivID }}flag_yellow">
-																<span> <img src="images/flag_yellow.png" title="Medium Severity"> </span>
-																	</a>
-																</td>
-						
-																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','flag_red', this)" id="{{ DivID }}flag_red">
-																<span> <img src="images/flag_red.png" title="High Severity"> </span>
-																	</a>
-																</td>
-																<td>
-																	<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','flag_violet', this)" id="{{ DivID }}flag_violet">
-																		<span> <img src="images/flag_violet.png" title="Critical Severity"> </span>
-																	</a>
-																</td>
-																<td>
-																<a href="javascript:void(0);" class="icon" onclick="Rate('{{ DivId }}','delete', this)" id="{{ DivID }}delete">
-																<span> <img src="images/delete.png" title="Remove Flag"> </span>
-																	</a>
-																</td>
-																<td>
-																<a href="javascript:void(0);" class="icon" onclick="HidePlugin('{{ DivId }}')" id="{{ DivID }}options">
-																<span> <img src="images/arrow_up.png" title="Close Plugin Report"> </span>
-																	</a>
-																</td>
-															</tr>
-													</table>
-											</div>
-													<div id='advanced_filter_options' style='display: none;'>
-													<h4>Filter Options</h4><p>Tip: Hold the Ctrl key while selecting or unselecting for multiple choices.<br />NOTE: Clicking on any filter will apply these options from now on. Options will survive a screen refresh</p>
-													<table class="transaction_log"> 
-																			<tr>
-																				<th>Plugin Groups</th>
-																				<th>Web Plugin Types</th>
-																				<th>Aux Plugin Types</th>
-																			</tr>
-																			<tr>
-																				<td>
-																						<select multiple='multiple'  id='SelectPluginGroup' onchange='SetSelectFilterOptions(this)'> 
-																							{% for Value in PluginTypes %}
-																								<option value="{{ Value }}"> 
-																									{{ Value|e }}
-																								 </option>
-																							{% endfor %}
-																						</select>
-																						
-																				</td>
-																				<td>
-																						<select multiple='multiple'  id='SelectPluginTypesWeb' size='6' onchange='SetSelectFilterOptions(this)'> 
-																							{% for Value in WebPluginTypes %}
-																								<option value="{{ Value }}"> 
-																									{{ Value|e }}
-																								 </option>
-																							{% endfor %}
-																						</select>
-																				</td>
-																				<td>
-																					<select multiple='multiple'  id='SelectPluginTypesAux' size='6' onchange='SetSelectFilterOptions(this)'> 
-																							{% for Value in AuxPluginsTypes %}
-																								<option value="{{ Value }}"> 
-																									{{ Value|e }}
-																								 </option>
-																							{% endfor %}
-																						</select>
-																				</td>
-																			</tr>
-																		</table>
-																		<table class="transaction_log"> 
-																			<tr>
-																				<th>Web Test Groups</th>
-																			</tr>
-																			<tr>
-																				<td>
-																					<select multiple='multiple'  id='SelectWebTestGroups' size='10' onchange='SetSelectFilterOptions(this)'> 
-																							{% for Item in WebTestGroups %}
-																								<option value="{{ Item["Code"] }}"> 
-																									{{ Item["Code"] }} - {{ Item["Descript"] }} - {{ Item["Hint"] }} 
-																								 </option>
-																							{% endfor %}
-																						</select>
-																				</td>
-																			</tr>
-													</table>
-													</div>
-
-									
-						<table class="report_intro"> 
-                        		<tr>
-                        			<th>Plugin</th>
-                        			<th>Start</th>
-                        			<th>End</th>
-                        			<th>Runtime</th>
-                        			<th>Output Files</th>
-                        		</tr>
-                        		<tr>
-                        			<td>{{ Plugin['Type'] }}/{{ Plugin['File'] }}</td>
-                        			<td>{{ Plugin['Start'] }}</td>
-                        			<td>{{ Plugin['End'] }}</td>
-                        			<td>{{ Plugin['RunTime'] }}</td>
-                        			<td>
-	                        			<a href="SAVE_DIR" class="button" target="_blank">
-											<span> Browse </span>
-										</a>
-									</td>
-                        		</tr>
-
-						</table>
-						{# Generate unique id every time to detect if plugin report changed to highlight modified stuff without losing review data (i.e. same plugin id) #}
-						<div id='token_{{ DivId }}' style='display: none;'> {{ NextHTMLID }} </div>
-                        <div>
-							<table class="transaction_log">
-								<tr>
-									<th> Notes </th>
-								</tr>
-								<tr>
-									<td> 
-										<div id="note_preview_{{ DivId }}"></div>
-										<div style="float: right;">
-											<a href="javascript:ToggleNotesBox('{{ DivId }}')">Edit</a>
-										</div>
-										<div id="notes_{{ DivId }}" style="display: none;">
-											<!-- autocomplete must be off because otherwise you see the text but is not saved in the review at all, which is counter-intuitive -->
-											<textarea id="note_text_{{ DivId }}" autocomplete="off" rows=15 cols=150></textarea> 
-										</div>
-									</td>
-								</tr>
-							</table>
-							   </div>
-						<hr />
-                            {{ HTMLtext }}
-                         </div>
-                     
-                        	""" )
+                        template = self.Template_env.get_template( 'plugin_report.html' )
                         vars = {
 								"DivId": DivId,
 								"SAVE_DIR": self.Core.GetPartialPath( save_dir ),
@@ -295,23 +136,7 @@ class Reporter:
                 self.ReportFinish() # Provide a full partial report at the end of each plugin
 
 	def DrawHTTPTransactionTable( self, TransactionList, NumLinesReq = 15, NumLinesRes = 15 ): # Draws a table of HTTP Transactions
-		template = Template( """
-		<table class='transactions'>
-				<tr><th colspan="2" align="center">HTTP Transactions</th></tr>
-				<tr><th> Request </th><th> Response </th></tr>
-				{% for Transaction in TransactionList %}
-					<tr> 
-						<td class="alt"> 
-							{{ Transaction.HTMLLink }} ( {{ Transaction.TimeHuman }} ) 
-							{{ Transaction.LinksForID }}
-							 <br /> 
-							<pre> {{ Transaction.RawRequest|e|slice(NumLinesReq) }} </pre>
-						 </td>
-						<td><pre> {{ Transaction.RawResponse|e|slice(NumLinesRes) }} </pre> </td> 
-					</tr>
-				{% endfor %}
-		</table>
-		""" )
+		template = self.Template_env.get_template( 'http_transaction_table.html' )
 
 		vars = { "NumLinesReq":  NumLinesReq,
 				 "NumLinesRes": NumLinesRes,
@@ -341,7 +166,7 @@ class Reporter:
                         InfoList.append( self.GetIconInfoAsStr( IconInfoList ) )
                 return InfoList
 
-        def ReportStart( self ):
+	def ReportStart( self ):
 		self.CounterList = []
 		ReportType = self.Core.Config.Get( 'REPORT_TYPE' )
 		self.Header.Save( 'HTML_DETAILED_REPORT_PATH', { 'ReportType' : ReportType, 'Title' :  ReportType + " Report" } )
@@ -413,159 +238,21 @@ class Reporter:
 			return None # Must abort here, before report is generated
 		self.ReportStart() # Wipe report
 		with open( self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ), 'a' ) as file:
-			template = Template( """
-			<div id="GlobalReportButtonsTop" style="display:none;"></div>
-			<div id="generated_report" class="generated_report" style="display:none;">
-			<div id='{{ REPORT_PREFIX }}intro'></div>
-				<ul id="tabs">
-					<li>
-						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}stats" target=""
-								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
-										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
-										 this.className = 'selected'; 
-										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
-							Statistics
-						</a>
-				 </li>
-				 <li>
-						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}passed" target=""
-								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
-										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
-										 this.className = 'selected'; 
-										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
-							Passed Tests
-						</a>
-				 </li>
-				 <li>
-						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}findings" target=""
-								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
-										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
-										 this.className = 'selected'; 
-										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
-							Findings
-						</a>
-				 </li>
-				 <li>
-						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}unrated" target=""
-								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
-										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
-										 this.className = 'selected'; 
-									 	 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
-							Not Rated
-						</a>
-				 </li>
-				<li class="icon">
-						<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');">
-							<span>
-								<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
-							</span>
-						</a>	
-						&nbsp;
-						<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');">
-							<span>
-								<img src="images/minus_gray16x16.png" title="Close Plugins">&nbsp; 
-							</span>
-						</a>
-						&nbsp;	
-						<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');UnfilterBrotherTabs(this);">
-							<span>
-								<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
-							</span>
-						</a>
-				</li>
-				</ul>
-				<!-- Div Content -->
-			</div>
-		<div id="review_content" class="review_content">
-			{% for TestGroup in TestGroups %}
-				{{ TestGroup.TestGroupHeaderStr }}
-						&nbsp;
-						<a href="javascript:void(0);" class="icon" onclick="ClickLinkById('expand_report')">
-							<span> 	<img src="images/plus_gray24x24.png" title="Expand Report"> </span>
-						</a>&nbsp;
-						<a href="javascript:void(0);" class="icon" onclick="ClickLinkById('collapse_report')">
-							<span> 	<img src="images/minus_gray24x24.png" title="Close Report"> </span>
-						</a>&nbsp;
-					{% if TestGroup.Matches %}								
-						<ul id="tabs">
-							 <li>  Results: </li>
-							{% for Match in TestGroup.Matches %}
-								<li>
-										<a href="javascript:void(0);" id="{{ Match.TabId }}" 
-												onclick="SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');
-														 HideDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));
-														 this.className = 'selected'; 
-														 ToggleDiv('{{ Match.DivId }}');" >
-											{{ Match.TabName }}
-										</a>		
-								</li>
-								
-							{% endfor %}	
-							<li class="icon">
-									<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');">
-										<span>
-											<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
-										</span>
-									</a>	
-									&nbsp;
-									<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');">
-										<span>
-											<img src="images/minus_gray16x16.png" title="Close Plugins">&nbsp; 
-										</span>
-									</a>
-									&nbsp;	
-									<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');UnfilterBrotherTabs(this);">
-										<span>
-											<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
-										</span>
-									</a>
-							</li>	
-						</ul>
-							{% for Match in TestGroup.Matches %}
-							<div id="{{ Match.DivId }}" class="tabContent" style="display:none">
-								{{ Match.DivContent }}
-							</div>
-							{% endfor %}
-						{%  endif %}
-					</div>
-			{% endfor %}
-					<br />
-							<div id='GlobalReportButtonsBottom' style='display:none;'>
-								<a id="expand_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ Globals.AllPluginsTabIdList|join("','") }}'), ''); ShowDivs(new Array('{{ Globals.AllPluginsDivIdList|join("','") }}'))">
-									<span> + </span>
-								</a>
-								<a id="collapse_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ Globals.AllPluginsTabIdList|join("','") }}'), ''); HideDivs(new Array('{{ Globals.AllPluginsDivIdList|join("','") }}'))">
-									<span> - </span>
-								</a>
-							</div>
-							<script>
-								var AllPlugins = new Array('{{ Globals.AllPluginsDivIdList|join("','") }}')
-								var AllCodes = new Array('{{ Globals.AllCodes|join("','") }}')
-								var Offset = '{{ REVIEW_OFFSET }}'
-								var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
-								var DetailedReport = true
-								var PluginDelim = '{{ PLUGIN_DELIM }}'
-								var ReportMode = false
-								var REPORT_PREFIX = '{{ REPORT_PREFIX }}'
-							</script>
-							</body>
-						</html>
-			"""
-			)
+			template = self.Template_env.get_template( 'report.html' )
 
 			vars = {
 					"Globals": {
 								"AllPluginsTabIdList": [
 										"tab_" + self.GetPluginDivId( Match )
-										 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins'] 
+										 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins']
 										 ],
 								"AllPluginsDivIdList":[
 										 self.GetPluginDivId( Match )
-										 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins'] 
+										 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins']
 										 ],
 								"AllCodes": [
 										 Match['Code'] #eliminate repetitions,
-										 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins'] 
+										 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins']
 										 ],
 								},
 					"TestGroups": [

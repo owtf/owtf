@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The DB stores HTTP transactions, unique URLs and more. 
 '''
 import os, re
+from jinja2 import Environment, PackageLoader, Template
 from framework.http import transaction
 from framework.lib.general import *
 from collections import defaultdict
@@ -50,6 +51,8 @@ class TransactionManager:
 	def __init__(self, Core):
 		self.Core = Core # Need access to reporter for pretty html trasaction log
 		self.TransactionFilePrefixes = { 'T': 'scope_', 'F' : 'external_' }
+		self.Template_env = env = Environment( loader = PackageLoader( 'framework.report', 'templates' ) )
+
 
 	def Search(self, Criteria):
 		if 'Method' in Criteria: # Ensure a valid HTTP Method is used instead of "" when the Method is specified in the Criteria
@@ -80,40 +83,14 @@ class TransactionManager:
 		self.TBoundaryURL, self.TBoundaryReq, self.TBoundaryResHeaders, self.TBoundaryResBody = Boundaries
 
 	def InitTransacLogHTMLIndex(self, file):
-#		if not os.path.exists(Path):
-#			with open(Path, 'w') as file:
-		ReviewPath = "../../../"
-		file.write("""<html>
-<head>
-	<title>OWTF Transaction Log</title>
-	<LINK rel="stylesheet" href='"""+ReviewPath+"""includes/stylesheet.css' type="text/css">
-	<script type="text/javascript" src='"""+ReviewPath+"""includes/jquery-1.6.4.js'></script>
-	<script type="text/javascript" src='"""+ReviewPath+"""includes/jquery.tablesorter.min.js'></script>
-	<script>
-$(document).ready(function() { 
-        $("#transaction_log").tablesorter(); 
-} 
-); 
-	</script>
-</head>
-<body>
-<h1>OWTF Transaction Log</h1>
-<h3>Usage</h3>
-<ul>
-	<li>Click on a column header to sort</li>
-	<li>Hold the Shift key for cummulative sorts (i.e. sort column A, then B in descending order, then C)</li>
-</ul>
-<h3>Legend</h3>
-<ul>
-	<li>F - Link to full transaction (Request + Response headers + Response body)</li>
-	<li>R - Link to raw request only</li>
-	<li>H - Link to raw response headers only</li>
-	<li>B - Link to raw response body only</li>
-</ul>
-\n""")
-		#NOTE: This table is a bit tricky: Cannot finish it because transactions are created on the fly, the table is
-		#never closed, too much for the TableCreator at present (i.e. way easier by hand):
-		file.write('<table id="transaction_log" class="transaction_log"><thead>'+self.Core.Reporter.Render.CreateTable().DrawTableRow( ['Scope', 'Links', 'ID', 'Seconds', 'Time', 'Status', 'Method', 'URL', 'Data'], True)+"</thead><tbody>\n")
+		template = self.Template_env.get_template( 'transaction_log.html' )
+
+		vars = { 
+				"ReviewPath": "../../../",
+				}
+
+		file.write( template.render( vars ) )
+
 
 	def GetPath(self, Path = None):
 		if Path == None:
