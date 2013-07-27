@@ -1,0 +1,52 @@
+			<!-- NetMap -->
+			<ul class="ip_list">
+				{% for IPInfo in IPs %}
+					<li>
+					<div id="{{ IPInfo.IP|e }}"> {{ IPInfo.IP|e }} </div>
+					<ul  class="port_list">
+			    		{% for PortInfo in IPInfo.Ports %}
+			    			<li>
+								<div id="{{ PortInfo.Port|e }}"> {{ PortInfo.Port|e }} </div>
+								{% if PortInfo.UnReachable %}
+									<strike>Port unreachable</strike>
+								{% else %}
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+											<ul class='review_offset_list'>
+									    		{% for Offset in PortInfo.Offsets %}
+									    			<li>
+									    				<a name="anchor_{{ Offset.ReviewOffset }}">
+									    					<iframe id="iframe_{{ Offset.ReviewOffset }}" src="{{ Offset.ReviewPath }}" width= '100%' height = "{{ COLLAPSED_REPORT_SIZE }}"  frameborder = '0' class = 'iframe_collapsed' >
+																Your browser does not support iframes
+															</iframe>
+														</a>
+														<div id="ip_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ IPInfo.IP }}</div>
+														<div id="port_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ PortInfo.Port }}</div>
+									    			</li>
+									    		{% endfor %}
+											</ul>
+								{% endif %}
+							</li>
+			    		{% endfor %}
+					</ul>
+					</li>
+				{% endfor %}
+			</ul>
+			<!-- end NetMap -->
+			<!-- start AUX -->
+			{% if AuxInfo.AuxSearch|count %}
+				<a href="{{ AuxInfo.AuxLink }}" class='report_index'>
+					<span> Auxiliary Plugins </span>
+				</a>
+			{% endif %}
+			<!-- end AUX -->
+		<script>
+		var DetailedReport = false
+		var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
+		var CollapsedReportSize = '{{ COLLAPSED_REPORT_SIZE }}'
+		var NetMap = {{ JsonNetMap }}
+		var PluginDelim = '{{ PLUGIN_DELIM }}'
+		var SeverityWeightOrder = new Array('bonus_red','flag_violet','flag_red','flag_yellow','flag_blue','bug')
+		var PassedTestIcons = new Array('check_green')
+</script>
+</body>
+</html>

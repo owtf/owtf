@@ -30,6 +30,7 @@ The reporter module is in charge of producing the HTML Report as well as provide
 '''
 import json
 from jinja2 import Template
+from jinja2 import Environment, PackageLoader
 from framework.lib.general import *
 from collections import defaultdict
 
@@ -37,6 +38,8 @@ from collections import defaultdict
 class Summary:
 	def __init__( self, Core ):
 		self.Core = Core # Keep Reference to Core Object
+		self.Template_env = env = Environment( loader = PackageLoader( 'framework.report', 'templates' ) )
+
 
 	def InitNetMap( self ):
 		self.PluginsFinished = []
@@ -122,64 +125,7 @@ class Summary:
 		self.ReportStart()
 		self.InitNetMap()
 		self.MapReportsToNetMap( 'URL' )
-		template = Template( """
-			<!-- NetMap -->
-			<ul class="ip_list">
-				{% for IPInfo in IPs %}
-					<li>
-					<div id="{{ IPInfo.IP|e }}"> {{ IPInfo.IP|e }} </div>
-					<ul  class="port_list">
-			    		{% for PortInfo in IPInfo.Ports %}
-			    			<li>
-								<div id="{{ PortInfo.Port|e }}"> {{ PortInfo.Port|e }} </div>
-								{% if PortInfo.UnReachable %}
-									<strike>Port unreachable</strike>
-								{% else %}
-									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-											<ul class='review_offset_list'>
-									    		{% for Offset in PortInfo.Offsets %}
-									    			<li>
-									    				<a name="anchor_{{ Offset.ReviewOffset }}">
-									    					<iframe id="iframe_{{ Offset.ReviewOffset }}" src="{{ Offset.ReviewPath }}" width= '100%' height = "{{ COLLAPSED_REPORT_SIZE }}"  frameborder = '0' class = 'iframe_collapsed' >
-																Your browser does not support iframes
-															</iframe>
-														</a>
-														<div id="ip_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ IPInfo.IP }}</div>
-														<div id="port_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ PortInfo.Port }}</div>
-									    			</li>
-									    		{% endfor %}
-											</ul>
-								{% endif %}
-							</li>
-			    		{% endfor %}
-					</ul>
-					</li>
-				{% endfor %}
-			</ul>
-			<!-- end NetMap -->
-			<!-- start AUX -->
-			{% if AuxInfo.AuxSearch|count %}
-				<a href="{{ AuxInfo.AuxLink }}" class='report_index'>
-					<span> Auxiliary Plugins </span>
-				</a>
-			{% endif %}
-			<!-- end AUX -->
-		<script>
-		var DetailedReport = false
-		var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
-		var CollapsedReportSize = '{{ COLLAPSED_REPORT_SIZE }}'
-		var NetMap = {{ JsonNetMap }}
-		var PluginDelim = '{{ PLUGIN_DELIM }}'
-		var SeverityWeightOrder = new Array('bonus_red','flag_violet','flag_red','flag_yellow','flag_blue','bug')
-		var PassedTestIcons = new Array('check_green')
-</script>
-</body>
-</html>
-		
-		""" )
-
-
-
+		template = self.Template_env.get_template( 'summary.html' )
 
 		vars = {
 					"IPs": [{

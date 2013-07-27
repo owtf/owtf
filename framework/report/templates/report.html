@@ -1,0 +1,136 @@
+<div id="GlobalReportButtonsTop" style="display:none;"></div>
+			<div id="generated_report" class="generated_report" style="display:none;">
+			<div id='{{ REPORT_PREFIX }}intro'></div>
+				<ul id="tabs">
+					<li>
+						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}stats" target=""
+								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
+										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
+										 this.className = 'selected'; 
+										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
+							Statistics
+						</a>
+				 </li>
+				 <li>
+						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}passed" target=""
+								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
+										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
+										 this.className = 'selected'; 
+										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
+							Passed Tests
+						</a>
+				 </li>
+				 <li>
+						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}findings" target=""
+								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
+										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
+										 this.className = 'selected'; 
+										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
+							Findings
+						</a>
+				 </li>
+				 <li>
+						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}unrated" target=""
+								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
+										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
+										 this.className = 'selected'; 
+									 	 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
+							Not Rated
+						</a>
+				 </li>
+				<li class="icon">
+						<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');">
+							<span>
+								<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
+							</span>
+						</a>	
+						&nbsp;
+						<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');">
+							<span>
+								<img src="images/minus_gray16x16.png" title="Close Plugins">&nbsp; 
+							</span>
+						</a>
+						&nbsp;	
+						<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');UnfilterBrotherTabs(this);">
+							<span>
+								<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
+							</span>
+						</a>
+				</li>
+				</ul>
+				<!-- Div Content -->
+			</div>
+		<div id="review_content" class="review_content">
+			{% for TestGroup in TestGroups %}
+				{{ TestGroup.TestGroupHeaderStr }}
+						&nbsp;
+						<a href="javascript:void(0);" class="icon" onclick="ClickLinkById('expand_report')">
+							<span> 	<img src="images/plus_gray24x24.png" title="Expand Report"> </span>
+						</a>&nbsp;
+						<a href="javascript:void(0);" class="icon" onclick="ClickLinkById('collapse_report')">
+							<span> 	<img src="images/minus_gray24x24.png" title="Close Report"> </span>
+						</a>&nbsp;
+					{% if TestGroup.Matches %}								
+						<ul id="tabs">
+							 <li>  Results: </li>
+							{% for Match in TestGroup.Matches %}
+								<li>
+										<a href="javascript:void(0);" id="{{ Match.TabId }}" 
+												onclick="SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');
+														 HideDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));
+														 this.className = 'selected'; 
+														 ToggleDiv('{{ Match.DivId }}');" >
+											{{ Match.TabName }}
+										</a>		
+								</li>
+								
+							{% endfor %}	
+							<li class="icon">
+									<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');">
+										<span>
+											<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
+										</span>
+									</a>	
+									&nbsp;
+									<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');">
+										<span>
+											<img src="images/minus_gray16x16.png" title="Close Plugins">&nbsp; 
+										</span>
+									</a>
+									&nbsp;	
+									<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');UnfilterBrotherTabs(this);">
+										<span>
+											<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
+										</span>
+									</a>
+							</li>	
+						</ul>
+							{% for Match in TestGroup.Matches %}
+							<div id="{{ Match.DivId }}" class="tabContent" style="display:none">
+								{{ Match.DivContent }}
+							</div>
+							{% endfor %}
+						{%  endif %}
+					</div>
+			{% endfor %}
+					<br />
+							<div id='GlobalReportButtonsBottom' style='display:none;'>
+								<a id="expand_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ Globals.AllPluginsTabIdList|join("','") }}'), ''); ShowDivs(new Array('{{ Globals.AllPluginsDivIdList|join("','") }}'))">
+									<span> + </span>
+								</a>
+								<a id="collapse_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ Globals.AllPluginsTabIdList|join("','") }}'), ''); HideDivs(new Array('{{ Globals.AllPluginsDivIdList|join("','") }}'))">
+									<span> - </span>
+								</a>
+							</div>
+							<script>
+								var AllPlugins = new Array('{{ Globals.AllPluginsDivIdList|join("','") }}')
+								var AllCodes = new Array('{{ Globals.AllCodes|join("','") }}')
+								var Offset = '{{ REVIEW_OFFSET }}'
+								var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
+								var DetailedReport = true
+								var PluginDelim = '{{ PLUGIN_DELIM }}'
+								var ReportMode = false
+								var REPORT_PREFIX = '{{ REPORT_PREFIX }}'
+							</script>
+							</body>
+						</html>

@@ -1,0 +1,15 @@
+<table class='transactions'>
+				<tr><th colspan="2" align="center">HTTP Transactions</th></tr>
+				<tr><th> Request </th><th> Response </th></tr>
+				{% for Transaction in TransactionList %}
+					<tr> 
+						<td class="alt"> 
+							{{ Transaction.HTMLLink }} ( {{ Transaction.TimeHuman }} ) 
+							{{ Transaction.LinksForID }}
+							 <br /> 
+							<pre> {{ Transaction.RawRequest|e|slice(NumLinesReq) }} </pre>
+						 </td>
+						<td><pre> {{ Transaction.RawResponse|e|slice(NumLinesRes) }} </pre> </td> 
+					</tr>
+				{% endfor %}
+</table>
