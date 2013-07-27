@@ -117,29 +117,88 @@ class Summary:
 					"AuxLink": AuxLink
 				}
 
-	def ReportStart( self ):
-		self.Core.Reporter.CounterList = []
-		self.Core.Reporter.Header.Save( 'HTML_REPORT_PATH', { 'ReportType' : 'NetMap', 'Title' : 'Summary Report' } )
 
 	def ReportFinish( self ):
-		self.ReportStart()
+		self.Core.Reporter.CounterList = []
+		#self.TargetOutputDir, self.FrameworkDir, self.Version, self.Release, self.TargetURL, self.HostIP, self.PortNumber, self.TransactionLogHTML, self.AlternativeIPs = self.Core.Config.GetAsList( ['OUTPUT_PATH', 'FRAMEWORK_DIR', 'VERSION', 'RELEASE', 'TARGET_URL', 'HOST_IP', 'PORT_NUMBER', 'TRANSACTION_LOG_HTML', 'ALTERNATIVE_IPS'] )
+		if not self.Core.Reporter.Init:
+			self.Core.Reporter.CopyAccessoryFiles()
+			self.Core.Reporter.Init = True # The report is re-generated several times, this ensures images, stylesheets, etc are only copied once at the start
+
 		self.InitNetMap()
 		self.MapReportsToNetMap( 'URL' )
 		template = self.Template_env.get_template( 'summary.html' )
 
 		vars = {
-					"IPs": [{
-							"IP": IP,
-							"Ports": [ self.PortInfo( IP, Port ) for Port in self.GetSortedPorts( IP )]
-							} for IP in self.GetSortedIPs()],
-					"AuxInfo":  self.AuxInfo(),
-					"COLLAPSED_REPORT_SIZE": self.Core.Config.Get( 'COLLAPSED_REPORT_SIZE' ),
-					"JsonNetMap": json.dumps( self.NetMap ),
-					"PLUGIN_DELIM":  self.Core.Reporter.GetPluginDelim(),
+						"Seed": self.Core.GetSeed(),
+						"Version": self.Core.Config.Get( 'VERSION' ),
+						"Release": self.Core.Config.Get( 'RELEASE' ),
+						"HTML_REPORT": self.Core.Config.Get( 'HTML_REPORT' ),
+						"TargetLink": self.Core.Config.Get( 'TARGET_URL' ),
+						"HostIP":  self.Core.Config.Get( 'HOST_IP' ),
+						"AlternativeIPs": self.Core.Config.Get( 'ALTERNATIVE_IPS' ),
+						"PortNumber":  self.Core.Config.Get( 'PORT_NUMBER' ),
+						"RUN_DB": self.Core.DB.GetData( 'RUN_DB' ),
+						"PluginTypes": self.Core.Config.Plugin.GetAllGroups(),
+						"WebPluginTypes": self.Core.Config.Plugin.GetTypesForGroup( 'web' ),
+						"AuxPluginsTypes": self.Core.Config.Plugin.GetTypesForGroup( 'aux' ),
+						"WebTestGroups":self.Core.Config.Plugin.GetWebTestGroups(),
+						"Logs": {
+								 "Errors": {
+											  "nb": self.Core.DB.GetLength( 'ERROR_DB' ),
+											  "link":  str( self.Core.Config.GetAsPartialPath( 'ERROR_DB' ) )
+											},
+							    "Unreachables": {
+											  "nb": self.Core.DB.GetLength( 'UNREACHABLE_DB' ),
+											  "link":  str( self.Core.Config.GetAsPartialPath( 'UNREACHABLE_DB' ) ) ,
+												 },
+							    "Transaction_Log_HTML": {
+													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_HTML' ),
+													},
+						    	"All_Downloaded_Files": {
+													"link": '#',
+													},
+							    "All_Transactions": {
+													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_TRANSACTIONS' ),
+													},
+								"All_Requests": {
+													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_REQUESTS' ),
+													},
+								"All_Response_Headers": {
+													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_RESPONSE_HEADERS' ),
+													},
+								"All_Response_Bodies": {
+													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_RESPONSE_BODIES' ),
+													},
+							      },
+						"Urls":  {
+								    "All_URLs_link": self.Core.Config.GetAsPartialPath( 'ALL_URLS_DB' ),
+							    	"File_URLs_link": self.Core.Config.GetAsPartialPath( 'FILE_URLS_DB' ),
+								    "Fuzzable_URLs_link": self.Core.Config.GetAsPartialPath( 'FUZZABLE_URLS_DB' ),
+									"Image_URLs_link":  self.Core.Config.GetAsPartialPath( 'IMAGE_URLS_DB' ),
+									"Error_URLs_link": self.Core.Config.GetAsPartialPath( 'ERROR_URLS_DB' ),
+									"External_URLs_link":  self.Core.Config.GetAsPartialPath( 'EXTERNAL_URLS_DB' ),
+									},
+						"Urls_Potential":  {
+								    "All_URLs_link": self.Core.Config.GetAsPartialPath( 'POTENTIAL_ALL_URLS_DB' ),
+							    	"File_URLs_link": self.Core.Config.GetAsPartialPath( 'POTENTIAL_FILE_URLS_DB' ),
+								    "Fuzzable_URLs_link": self.Core.Config.GetAsPartialPath( 'POTENTIAL_FUZZABLE_URLS_DB' ),
+									"Image_URLs_link":  self.Core.Config.GetAsPartialPath( 'POTENTIAL_IMAGE_URLS_DB' ),
+									"Error_URLs_link": self.Core.Config.GetAsPartialPath( 'POTENTIAL_ERROR_URLS_DB' ),
+									"External_URLs_link":  self.Core.Config.GetAsPartialPath( 'POTENTIAL_EXTERNAL_URLS_DB' ),
+									},
+						"IPs": [{
+								"IP": IP,
+								"Ports": [ self.PortInfo( IP, Port ) for Port in self.GetSortedPorts( IP )]
+								} for IP in self.GetSortedIPs()],
+						"AuxInfo":  self.AuxInfo(),
+						"COLLAPSED_REPORT_SIZE": self.Core.Config.Get( 'COLLAPSED_REPORT_SIZE' ),
+						"JsonNetMap": json.dumps( self.NetMap ),
+						"PLUGIN_DELIM":  self.Core.Reporter.GetPluginDelim(),
 				}
 
 		HTML = template.render( vars )
-		with open( self.Core.Config.Get( 'HTML_REPORT_PATH' ), 'a' ) as file:
+		with open( self.Core.Config.Get( 'HTML_REPORT_PATH' ), 'w' ) as file:
 			file.write( HTML ) # Closing HTML Report
 		cprint( "Summary report written to: " + self.Core.Config.Get( 'HTML_REPORT_PATH' ) )
 
