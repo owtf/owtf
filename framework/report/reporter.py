@@ -499,7 +499,9 @@ class Reporter:
 											{{ Match.TabName }}
 										</a>		
 								</li>
-								<li class="icon">
+								
+							{% endfor %}	
+							<li class="icon">
 									<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');">
 										<span>
 											<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
@@ -517,8 +519,7 @@ class Reporter:
 											<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
 										</span>
 									</a>
-								</li>	
-							{% endfor %}	
+							</li>	
 						</ul>
 							{% for Match in TestGroup.Matches %}
 							<div id="{{ Match.DivId }}" class="tabContent" style="display:none">
