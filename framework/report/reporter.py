@@ -34,7 +34,7 @@ from jinja2 import Environment, PackageLoader
 from framework.lib.general import *
 from framework.report.html import renderer
 from framework.report.html.filter import sanitiser
-from framework.report import header, summary
+from framework.report import summary
 from collections import defaultdict
 
 PLUGIN_DELIM = '__' # Characters like ; | . or / trip CKEditor as separators
@@ -45,7 +45,6 @@ class Reporter:
 		self.Core = CoreObj # Keep Reference to Core Object
 		self.Init = False
 		self.Render = renderer.HTMLRenderer( self.Core )
-		self.Header = header.Header( self.Core )
 		self.Summary = summary.Summary( self.Core )
 		self.Sanitiser = sanitiser.HTMLSanitiser()
 		self.PluginDivIds = {}
@@ -55,6 +54,14 @@ class Reporter:
 
 	def GetPluginDelim( self ):
 		return PLUGIN_DELIM
+
+	def CopyAccessoryFiles( self ):
+		TargetOutputDir = self.Core.Config.Get( 'OUTPUT_PATH' )
+		FrameworkDir = self.Core.Config.Get( 'FRAMEWORK_DIR' )
+		cprint( "Copying report images .." )
+		self.Core.Shell.shell_exec( "cp -r " + FrameworkDir + "/images/ " + TargetOutputDir )
+		cprint( "Copying report includes (stylesheet + javascript files).." )
+		self.Core.Shell.shell_exec( "cp -r " + FrameworkDir + "/includes/ " + TargetOutputDir )
 
         def GetPluginDivId( self, Plugin ):
                 # "Compression" attempt while keeping uniqueness:
@@ -166,10 +173,6 @@ class Reporter:
                         InfoList.append( self.GetIconInfoAsStr( IconInfoList ) )
                 return InfoList
 
-	def ReportStart( self ):
-		self.CounterList = []
-		ReportType = self.Core.Config.Get( 'REPORT_TYPE' )
-		self.Header.Save( 'HTML_DETAILED_REPORT_PATH', { 'ReportType' : ReportType, 'Title' :  ReportType + " Report" } )
 
 	def GetRegisteredWebPlugins( self, ReportType ): # Web Plugins go in OWASP Testing Guide order
 		TestGroups = []
@@ -236,51 +239,117 @@ class Reporter:
 		if not NumPluginsForTarget > 0:
 			cprint( "No plugins completed for target, cannot generate report" )
 			return None # Must abort here, before report is generated
-		self.ReportStart() # Wipe report
-		with open( self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ), 'a' ) as file:
+		#ReportStart -- Wipe report
+		self.CounterList = []
+
+		if not self.Init:
+			self.CopyAccessoryFiles()
+			self.Init = True # The report is re-generated several times, this ensures images, stylesheets, etc are only copied once at the start
+
+		with open( self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ), 'w' ) as file:
 			template = self.Template_env.get_template( 'report.html' )
 
 			vars = {
-					"Globals": {
-								"AllPluginsTabIdList": [
-										"tab_" + self.GetPluginDivId( Match )
-										 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins']
-										 ],
-								"AllPluginsDivIdList":[
-										 self.GetPluginDivId( Match )
-										 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins']
-										 ],
-								"AllCodes": [
-										 Match['Code'] #eliminate repetitions,
-										 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins']
-										 ],
-								},
-					"TestGroups": [
-								{
-									"TestGroupHeaderStr": TestGroup['TestGroupHeaderStr'],
-									"Matches" : [
-													{
-													 "DivId": self.GetPluginDivId( Match ),
-													 'TabId': "tab_" + self.GetPluginDivId( Match ),
-													 "TabName": Match["Label"],
-													 "DivContent": open( Match['Path'] ).read(),
-													}
-													for Match in TestGroup['RegisteredPlugins']
-													],
-									 "TabIdList": [
-													"tab_" + self.GetPluginDivId( Match )
-													for Match in TestGroup['RegisteredPlugins']
-													],
-									"DivIdList": [
-													self.GetPluginDivId( Match )
-													for Match in TestGroup['RegisteredPlugins']
-													]
-								}
-								 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )
-								],
-					"REVIEW_OFFSET" : self.Core.Config.Get( 'REVIEW_OFFSET' ),
-					"PLUGIN_DELIM" : PLUGIN_DELIM,
-					"REPORT_PREFIX"  : REPORT_PREFIX ,
+
+						"ReportType" :  self.Core.Config.Get( 'REPORT_TYPE' ),
+						"Title" :  self.Core.Config.Get( 'REPORT_TYPE' ) + " Report",
+						"Seed": self.Core.GetSeed(),
+						"Version": self.Core.Config.Get( 'VERSION' ),
+						"Release": self.Core.Config.Get( 'RELEASE' ),
+						"HTML_REPORT": self.Core.Config.Get( 'HTML_REPORT' ),
+						"TargetLink": self.Core.Config.Get( 'TARGET_URL' ),
+						"HostIP":  self.Core.Config.Get( 'HOST_IP' ),
+						"AlternativeIPs": self.Core.Config.Get( 'ALTERNATIVE_IPS' ),
+						"PortNumber":  self.Core.Config.Get( 'PORT_NUMBER' ),
+						"RUN_DB": self.Core.DB.GetData( 'RUN_DB' ),
+						"PluginTypes": self.Core.Config.Plugin.GetAllGroups(),
+						"WebPluginTypes": self.Core.Config.Plugin.GetTypesForGroup( 'web' ),
+						"AuxPluginsTypes": self.Core.Config.Plugin.GetTypesForGroup( 'aux' ),
+						"WebTestGroups":self.Core.Config.Plugin.GetWebTestGroups(),
+						"Logs": {
+								 "Errors": {
+											  "nb": self.Core.DB.GetLength( 'ERROR_DB' ),
+											  "link":  str( self.Core.Config.GetAsPartialPath( 'ERROR_DB' ) )
+											},
+							    "Unreachables": {
+											  "nb": self.Core.DB.GetLength( 'UNREACHABLE_DB' ),
+											  "link":  str( self.Core.Config.GetAsPartialPath( 'UNREACHABLE_DB' ) ) ,
+												 },
+							    "Transaction_Log_HTML": {
+													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_HTML' ),
+													},
+						    	"All_Downloaded_Files": {
+													"link": '#',
+													},
+							    "All_Transactions": {
+													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_TRANSACTIONS' ),
+													},
+								"All_Requests": {
+													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_REQUESTS' ),
+													},
+								"All_Response_Headers": {
+													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_RESPONSE_HEADERS' ),
+													},
+								"All_Response_Bodies": {
+													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_RESPONSE_BODIES' ),
+													},
+							      },
+						"Urls":  {
+								    "All_URLs_link": self.Core.Config.GetAsPartialPath( 'ALL_URLS_DB' ),
+							    	"File_URLs_link": self.Core.Config.GetAsPartialPath( 'FILE_URLS_DB' ),
+								    "Fuzzable_URLs_link": self.Core.Config.GetAsPartialPath( 'FUZZABLE_URLS_DB' ),
+									"Image_URLs_link":  self.Core.Config.GetAsPartialPath( 'IMAGE_URLS_DB' ),
+									"Error_URLs_link": self.Core.Config.GetAsPartialPath( 'ERROR_URLS_DB' ),
+									"External_URLs_link":  self.Core.Config.GetAsPartialPath( 'EXTERNAL_URLS_DB' ),
+									},
+						"Urls_Potential":  {
+								    "All_URLs_link": self.Core.Config.GetAsPartialPath( 'POTENTIAL_ALL_URLS_DB' ),
+							    	"File_URLs_link": self.Core.Config.GetAsPartialPath( 'POTENTIAL_FILE_URLS_DB' ),
+								    "Fuzzable_URLs_link": self.Core.Config.GetAsPartialPath( 'POTENTIAL_FUZZABLE_URLS_DB' ),
+									"Image_URLs_link":  self.Core.Config.GetAsPartialPath( 'POTENTIAL_IMAGE_URLS_DB' ),
+									"Error_URLs_link": self.Core.Config.GetAsPartialPath( 'POTENTIAL_ERROR_URLS_DB' ),
+									"External_URLs_link":  self.Core.Config.GetAsPartialPath( 'POTENTIAL_EXTERNAL_URLS_DB' ),
+									},
+						"Globals": {
+									"AllPluginsTabIdList": [
+											"tab_" + self.GetPluginDivId( Match )
+											 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins']
+											 ],
+									"AllPluginsDivIdList":[
+											 self.GetPluginDivId( Match )
+											 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins']
+											 ],
+									"AllCodes": [
+											 Match['Code'] #eliminate repetitions,
+											 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins']
+											 ],
+									},
+						"TestGroups": [
+									{
+										"TestGroupHeaderStr": TestGroup['TestGroupHeaderStr'],
+										"Matches" : [
+														{
+														 "DivId": self.GetPluginDivId( Match ),
+														 'TabId': "tab_" + self.GetPluginDivId( Match ),
+														 "TabName": Match["Label"],
+														 "DivContent": open( Match['Path'] ).read(),
+														}
+														for Match in TestGroup['RegisteredPlugins']
+														],
+										 "TabIdList": [
+														"tab_" + self.GetPluginDivId( Match )
+														for Match in TestGroup['RegisteredPlugins']
+														],
+										"DivIdList": [
+														self.GetPluginDivId( Match )
+														for Match in TestGroup['RegisteredPlugins']
+														]
+									}
+									 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )
+									],
+						"REVIEW_OFFSET" : self.Core.Config.Get( 'REVIEW_OFFSET' ),
+						"PLUGIN_DELIM" : PLUGIN_DELIM,
+						"REPORT_PREFIX"  : REPORT_PREFIX ,
 					}
 
 
