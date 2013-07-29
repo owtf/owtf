@@ -165,6 +165,8 @@ class Core:
         return True # Scan was successful
 
     def Finish(self, Status = 'Complete', Report = True):
+        if self.Config.Get('SIMULATION'):
+            self.dbHandlerProcess.terminate()  
         if not self.Config.Get('SIMULATION'):
             try:
                 cprint("Saving DBs")
