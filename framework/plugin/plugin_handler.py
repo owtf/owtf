@@ -242,8 +242,8 @@ class PluginHandler:
 	def ProcessPlugin(self, PluginDir, Plugin, Status):
 		self.Core.Timer.StartTimer('Plugin') # Time how long it takes the plugin to execute
 		Plugin['Start'] = self.Core.Timer.GetStartDateTimeAsStr('Plugin')
-		#if not self.CanPluginRun(Plugin, True):		
-		#	return None # Skip 
+		if not self.CanPluginRun(Plugin, True):		
+			return None # Skip 
 		Status['AllSkipped'] = False # A plugin is going to be run
 		self.PluginCount += 1
                 log = logging.getLogger('general')
@@ -352,9 +352,9 @@ class PluginHandler:
                         for plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):
                             for target in TargetList:
                                 target_used[target]=False
-                                self.SwitchToTarget(target)
-                                if(self.CanPluginRun(plugin, True)):
-                                    self.worklist.append((target,plugin))
+                                #self.SwitchToTarget(target)
+                                #if(self.CanPluginRun(plugin, True)):
+                                self.worklist.append((target,plugin))
                         print("total number of tasks "+ str(len(self.worklist)))
                         numprocess=0
                         workers = []
