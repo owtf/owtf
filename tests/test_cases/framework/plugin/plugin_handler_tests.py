@@ -111,7 +111,8 @@ class PluginHandlerTests(BaseTestCase):
 
     def test_SavePluginInfo_should_save_to_DB_and_to_the_reporter(self):
         self.core_mock.DB, self.core_mock.Reporter = flexmock(), flexmock()
-        self.core_mock.DB.should_receive("SaveDBs").once()
+        self.core_mock.DB.DBHandler = flexmock()
+        self.core_mock.DB.DBHandler.should_receive("SaveDBs").once()
         self.core_mock.Reporter.should_receive("SavePluginReport").once()
 
         self.plugin_handler.SavePluginInfo("PluginOutput", "Plugin")
@@ -158,44 +159,6 @@ class PluginHandlerTests(BaseTestCase):
         self.plugin_handler.should_receive("SavePluginInfo").once()
 
         self.plugin_handler.RunPlugin(PLUGINS_DIR, plugin)
-
-    def test_ProcessPluginsForTargetList_with_breadth_algorithm(self):
-        targets = ["domain1", "domain2"]
-        self.plugin_handler.Algorithm = "breadth"
-        flexmock(self.plugin_handler)
-        self.plugin_handler.should_receive("get_plugins_in_order_for_PluginGroup").and_return(["Plugin1", "Plugin2"])
-        self.core_mock.Config.should_receive("Get").with_args("PLUGINS_DIR").and_return(PLUGINS_DIR)
-        order_register = OrderedExecutionMock(self.plugin_handler)
-        order_register.register("SwitchToTarget", targets[0])
-        order_register.register("ProcessPlugin")
-        order_register.register("SwitchToTarget", targets[1])
-        order_register.register("ProcessPlugin")
-        order_register.register("SwitchToTarget", targets[0])
-        order_register.register("ProcessPlugin")
-        order_register.register("SwitchToTarget", targets[1])
-        order_register.register("ProcessPlugin")
-
-        self.plugin_handler.ProcessPluginsForTargetList("web", {}, targets)
-
-        order_register.verify_order()
-
-    def test_ProcessPluginsForTargetList_with_depth_algorithm(self):
-        targets = ["domain1", "domain2"]
-        self.plugin_handler.Algorithm = "depth"
-        flexmock(self.plugin_handler)
-        self.plugin_handler.should_receive("get_plugins_in_order_for_PluginGroup").and_return(["Plugin1", "Plugin2"])
-        self.core_mock.Config.should_receive("Get").with_args("PLUGINS_DIR").and_return(PLUGINS_DIR)
-        order_register = OrderedExecutionMock(self.plugin_handler)
-        order_register.register("SwitchToTarget", targets[0])
-        order_register.register("ProcessPlugin")
-        order_register.register("ProcessPlugin")
-        order_register.register("SwitchToTarget", targets[1])
-        order_register.register("ProcessPlugin")
-        order_register.register("ProcessPlugin")
-
-        self.plugin_handler.ProcessPluginsForTargetList("web", {}, targets)
-
-        order_register.verify_order()
 
     def test_ProcessPluginsForTargetList_with_net_plugins(self):
         self.core_mock.Config.should_receive("GetPortWaves").and_return("10")
