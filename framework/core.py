@@ -116,22 +116,26 @@ class Core:
                 shutil.rmtree(self.Config.Get('CACHE_DIR'))
                 os.makedirs(self.Config.Get('CACHE_DIR'))
             InboundProxyOptions = [self.Config.Get('IPROXY_IP'), self.Config.Get('IPROXY_PORT')]    
+            transaction_db_path = os.path.join(self.Config.Get('OUTPUT_PATH'), self.Config.Get('HOST_IP'), 'transactions')
+            if not os.path.exists(transaction_db_path):
+                os.makedirs(transaction_db_path)
+            for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body']:
+                os.mkdir(os.path.join(transaction_db_path, folder_name))
             self.ProxyProcess = proxy.ProxyProcess(
                                                     self.Config.Get('INBOUND_PROXY_PROCESSES'),
                                                     InboundProxyOptions,
-                                                    self.Config.Get('CACHE_DIR'),
+                                                    transaction_db_path,
                                                     Options['OutboundProxy']
                                                   )
-            transaction_db_path = os.path.join(self.Config.Get('OUTPUT_PATH'), self.Config.Get('HOST_IP'))
-            if not os.path.exists(transaction_db_path):
-                os.makedirs(transaction_db_path)
+            """
             self.TransactionLogger = transaction_logger.TransactionLogger(
                                                                             self.Config.Get('CACHE_DIR'),
                                                                             transaction_db_path
                                                                          )
+            """
             cprint("Started Inbound proxy at " + self.Config.Get('IPROXY'))
             self.ProxyProcess.start()
-            self.TransactionLogger.start()
+            #self.TransactionLogger.start()
             self.Requester = requester.Requester(self, InboundProxyOptions)
         else:
             self.Requester = requester.Requester(self, Options['OutboundProxy'])        
@@ -202,7 +206,7 @@ class Core:
                         cprint("Stopping inbound proxy processes and cleaning up, Please wait!")
                         self.KillChildProcesses(self.ProxyProcess.pid)
                         self.ProxyProcess.terminate()
-                        os.kill(int(self.TransactionLogger.pid), signal.SIGINT)
+                        #os.kill(int(self.TransactionLogger.pid), signal.SIGINT)
                     except: # It means the proxy was not started
                         pass
                 exit()
