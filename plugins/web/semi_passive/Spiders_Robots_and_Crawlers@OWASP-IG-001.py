@@ -27,11 +27,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Robots.txt semi-passive plugin, parses robots.txt file to generate on-screen links and save them for later spidering and analysis
 """
-import re, cgi
+import re, cgi,logging
 
 DESCRIPTION = "Normal request for robots.txt analysis"
 
 def run(Core, PluginInfo):
+
+    log = logging.getLogger('general')    
     TopURL = Core.Config.Get('TOP_URL')
     URL = TopURL+"/robots.txt"
     TestResult = Core.Reporter.Render.DrawButtonLink(URL, URL)
@@ -40,7 +42,7 @@ def run(Core, PluginInfo):
         TestResult += Core.PluginHelper.ProcessRobots(PluginInfo, HTTP_Transaction.GetRawResponseBody(), TopURL, '')
     else: # robots.txt NOT found
 		TestResult += " was NOT found<br />"#<pre>"+cgi.escape(RawResponse)+"</pre>"
-		print "robots.txt was NOT found"
+		log.info("robots.txt was NOT found")
     TestResult += Core.Reporter.DrawHTTPTransactionTable([ HTTP_Transaction ])
     return TestResult
 

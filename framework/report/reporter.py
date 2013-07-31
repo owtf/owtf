@@ -36,6 +36,8 @@ from framework.report.html import renderer
 from framework.report.html.filter import sanitiser
 from framework.report import summary
 from collections import defaultdict
+import logging
+import time
 
 PLUGIN_DELIM = '__' # Characters like ; | . or / trip CKEditor as separators
 REPORT_PREFIX = '__rep__'
@@ -58,9 +60,10 @@ class Reporter:
 	def CopyAccessoryFiles( self ):
 		TargetOutputDir = self.Core.Config.Get( 'OUTPUT_PATH' )
 		FrameworkDir = self.Core.Config.Get( 'FRAMEWORK_DIR' )
-		cprint( "Copying report images .." )
+        	log = logging.getLogger('general')
+        	log.info( "Copying report images .." )
 		self.Core.Shell.shell_exec( "cp -r " + FrameworkDir + "/images/ " + TargetOutputDir )
-		cprint( "Copying report includes (stylesheet + javascript files).." )
+		log.info( "Copying report includes (stylesheet + javascript files).." )
 		self.Core.Shell.shell_exec( "cp -r " + FrameworkDir + "/includes/ " + TargetOutputDir )
 
         def GetPluginDivId( self, Plugin ):
@@ -236,12 +239,12 @@ class Reporter:
 	def ReportFinish( self ): # Group all partial reports (whether done before or now) into the final report
 		Target = self.Core.Config.GetTarget()
 		NumPluginsForTarget = self.Core.DB.PluginRegister.NumPluginsForTarget( Target )
+		log = logging.getLogger('general')
 		if not NumPluginsForTarget > 0:
-			cprint( "No plugins completed for target, cannot generate report" )
+			log.info( "No plugins completed for target, cannot generate report" )
 			return None # Must abort here, before report is generated
 		#ReportStart -- Wipe report
 		self.CounterList = []
-
 		if not self.Init:
 			self.CopyAccessoryFiles()
 			self.Init = True # The report is re-generated several times, this ensures images, stylesheets, etc are only copied once at the start
@@ -355,6 +358,6 @@ class Reporter:
 
 
 			file.write( template.render( vars ) ) # Closing HTML Report
-			cprint( "Report written to: " + self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ) )
+			log.info( "Report written to: " + self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ) )
 			self.Core.DB.ReportRegister.Add( self.Core.Config.GetAsList( [ 'REVIEW_OFFSET', 'SUMMARY_HOST_IP', 'SUMMARY_PORT_NUMBER', 'HTML_DETAILED_REPORT_PATH', 'REPORT_TYPE' ] ) ) # Register report
 			self.Summary.ReportFinish() # Build summary report

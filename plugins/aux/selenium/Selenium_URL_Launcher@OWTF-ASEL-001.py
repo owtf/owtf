@@ -26,11 +26,14 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
+import logging
 DESCRIPTION = "Sends a bunch of URLs through selenium"
 CATEGORIES = [ 'RCE', 'SQLI', 'XSS', 'CHARSET' ] 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	print "WARNING: This plugin requires a small selenium installation, please run '"+Core.Config.Get('INSTALL_SCRIPT')+"' if you have issues"
+        log = logging.getLogger('general')
+    
+	log.info("WARNING: This plugin requires a small selenium installation, please run '"+Core.Config.Get('INSTALL_SCRIPT')+"' if you have issues")
 	Content = DESCRIPTION + " Results:<br />"
 	for Args in Core.PluginParams.GetArgs( { 
 'Description' : DESCRIPTION,

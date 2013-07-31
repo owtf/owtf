@@ -27,11 +27,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Cross Site Flashing semi passive plugin: Tries to retrieve the crossdomain.xml file and display it for review
 """
-import re, cgi
+import re, cgi,logging
 
 DESCRIPTION = "Normal requests for XSF analysis"
 
 def run(Core, PluginInfo):
+        log = logging.getLogger('general')
 	NotFoundMsg = "Not Found"
 	Table = Core.Reporter.Render.CreateTable()
 	URLList = []
@@ -45,5 +46,5 @@ def run(Core, PluginInfo):
 			Table.CreateRow(["<br/><pre>"+cgi.escape(Transaction.GetRawResponseBody())+"</pre>"])
 		else:
 			Table.CreateRow([NotFoundMsg])
-			print NotFoundMsg
+			log.info(NotFoundMsg)
 	return Table.Render() + Core.Reporter.DrawHTTPTransactionTable(TransactionList)

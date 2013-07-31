@@ -50,8 +50,8 @@ class ReportRegister:
 
 	def Add(self, FieldList): # Registers a Plugin/Path/Target combination only if not already registered
 		if not self.AlreadyRegistered(FieldList):
-			self.Core.DB.Add('DETAILED_REPORT_REGISTER', FieldList)
+			self.Core.DB.DBHandler.Add('DETAILED_REPORT_REGISTER', FieldList)
 
 	def Search(self, Criteria):
-		return self.Core.DB.Search('DETAILED_REPORT_REGISTER', Criteria, NAME_TO_OFFSET)
+		return self.Core.DB.DBHandler.Search('DETAILED_REPORT_REGISTER', Criteria, NAME_TO_OFFSET)
 
