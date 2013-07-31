@@ -33,7 +33,7 @@ from OpenSSL import crypto
 import os
 import hashlib
 import re
-from filelock import FileLock
+from framework.lib.filelock import FileLock
 
 
 def gen_signed_cert(domain,

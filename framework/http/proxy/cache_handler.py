@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import json as pickle
 import os
 import hashlib
-from filelock import FileLock
+from framework.lib.filelock import FileLock
 
 class CacheHandler(object):
     """
