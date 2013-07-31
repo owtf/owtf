@@ -159,6 +159,7 @@ class Core:
         if self.Config.Get('SIMULATION'):
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
         self.StartProxy(Options)
+        #self.ProxyProcess.join()
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
