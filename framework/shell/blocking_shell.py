@@ -29,9 +29,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The shell module allows running arbitrary shell commands and is critical to the framework in order to run third party tools
 '''
 #import shlex
-import subprocess
-from framework.lib.general import * 
 from collections import defaultdict
+from framework.lib.general import *
+import signal
+import subprocess
+import logging
 
 class Shell:
 	def __init__(self, Core):
@@ -82,7 +84,6 @@ class Shell:
 			return [Target, False ]
 		return [ None, True ] # Command was not run before
 
-
 	def create_subprocess(self, Command):
 	    proc = subprocess.Popen(Command, shell=True, stdout=subprocess.PIPE, 
 	        stderr=subprocess.STDOUT, 
@@ -97,10 +98,11 @@ class Shell:
 		if not CanRun:
 			Message = "The command was already run for target: "+Target	
 			return Message
-		cprint("\nExecuting (Control+C to abort THIS COMMAND ONLY):\n"+Command)
-		cprint("")
-		cprint("------> Execution Start Date/Time: "+self.Core.Timer.GetStartDateTimeAsStr('Command'))
-		cprint("")
+		log = logging.getLogger('general')
+        	log.info("\nExecuting (s to abort THIS COMMAND ONLY):\n"+Command)
+		log.info("")
+		log.info("------> Execution Start Date/Time: "+self.Core.Timer.GetStartDateTimeAsStr('Command'))
+		log.info("")
 		Output = ''
 		Cancelled = False
 		try: # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-in-a-separate-process-in-a-wxpyt
@@ -109,7 +111,7 @@ class Shell:
 				line = proc.stdout.readline()
 				if not line: break
 				# NOTE: Below MUST BE print instead of "cprint" to clearly distinguish between owtf output and tool output
-				print MultipleReplace(line, { "\n":"", "\r":"" }) # Show progress on the screen too!
+				log.info(MultipleReplace(line, { "\n":"", "\r":"" })) # Show progress on the screen too!
 				Output += line # Save as much output as possible before a tool crashes! :)
 		except KeyboardInterrupt:
 			Cancelled = True

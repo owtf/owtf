@@ -31,7 +31,7 @@ The DB stores HTTP transactions, unique URLs and more.
 import os
 from collections import defaultdict
 from framework.lib.general import *
-from framework.db import transaction_manager, url_manager, run_manager, command_register, plugin_register, report_register, debug
+from framework.db import transaction_manager, url_manager, run_manager, command_register, plugin_register, report_register, debug, db_handler
 
 FIELD_SEPARATOR = ' || '
 
@@ -59,6 +59,7 @@ class DB:
 		self.ReportRegister = report_register.ReportRegister(Core)
 		self.CommandRegister = command_register.CommandRegister(Core)
 		self.Debug = debug.DebugDB(Core)
+                self.DBHandler = db_handler.DBHandler(Core)
 	
 	def GetFieldSeparator(self):
 		return FIELD_SEPARATOR

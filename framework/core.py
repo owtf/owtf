@@ -32,18 +32,19 @@ The core is the glue that holds the components together and allows some of them 
 import os, re, signal, subprocess, shutil
 from urlparse import urlparse
 from framework import timer, error_handler, random
-from framework.shell import blocking_shell, interactive_shell
-from framework.wrappers.set import set_handler
-from framework.protocols import smtp, smb
 from framework.config import config
 from framework.http.proxy import proxy, transaction_logger
 from framework.http import requester
 from framework.db import db
+from framework.lib.general import *
 from framework.plugin import plugin_handler, plugin_helper, plugin_params
+from framework.protocols import smtp, smb
 from framework.report import reporter, summary
 from framework.selenium import selenium_handler
-from framework.lib.general import *
-from collections import defaultdict
+from framework.shell import blocking_shell, interactive_shell
+from framework.wrappers.set import set_handler
+import logging
+import multiprocessing
 
 class Core:
     def __init__(self, RootDir):
@@ -147,6 +148,8 @@ class Core:
             return False # No processing required, just list available modules
         self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
         self.DB.Init()
+        self.dbHandlerProcess = multiprocessing.Process(target=self.DB.DBHandler.handledb, args=())
+        self.dbHandlerProcess.start()
         Command = self.GetCommand(Options['argv'])
         self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
         if self.Config.Get('SIMULATION'):
@@ -171,11 +174,14 @@ class Core:
         return True # Scan was successful
 
     def Finish(self, Status = 'Complete', Report = True):
+        if self.Config.Get('SIMULATION'):
+            self.dbHandlerProcess.terminate()  
         if not self.Config.Get('SIMULATION'):
             try:
                 cprint("Saving DBs")
                 self.DB.Run.EndRun(Status)
-                self.DB.SaveDBs() # Save DBs prior to producing the report :)
+                self.DB.DBHandler.SaveDBs() # Save DBs prior to producing the report :)
+
                 if Report:
                     cprint("Finishing iteration and assembling report again (with updated run information)")
                     PreviousTarget = self.Config.GetTarget()
@@ -184,8 +190,10 @@ class Core:
                         self.Reporter.ReportFinish() # Must save the report again at the end regarless of Status => Update Run info
                     self.Config.SetTarget(PreviousTarget) # Restore previous target
                 cprint("owtf iteration finished")
-                if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
+                if self.DB.DBHandler.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
                     cprint("Please report the sanitised errors saved to "+self.Config.Get('ERROR_DB'))
+                self.dbHandlerProcess.terminate()    
+                #self.dbHandlerProcess.join()    
             except AttributeError: # DB not instantiated yet!
                 cprint("owtf finished: No time to report anything! :P")
             finally:
@@ -201,7 +209,7 @@ class Core:
 
     def GetSeed(self):
         try:
-            return self.DB.GetSeed()
+            return self.DB.DBHandler.GetSeed()
         except AttributeError: # DB not instantiated yet
             return ""
 
@@ -212,7 +220,7 @@ class Core:
         if not Target:
             Target = self.Config.GetTarget()
         #print "Target="+Target+" in "+str(self.DB.GetData('UNREACHABLE_DB'))+"?? -> "+str(Target in self.DB.GetData('UNREACHABLE_DB'))
-        return Target in self.DB.GetData('UNREACHABLE_DB')
+        return Target in self.DB.DBHandler.GetData('UNREACHABLE_DB')
 
     def GetFileAsList(self, FileName):
         return GetFileAsList(FileName)
@@ -221,9 +229,14 @@ class Core:
         PsCommand = subprocess.Popen("ps -o pid --ppid %d --noheaders" % parent_pid, shell=True, stdout=subprocess.PIPE)
         PsOutput = PsCommand.stdout.read()
         RetCode = PsCommand.wait()
-        assert RetCode == 0, "ps command returned %d" % RetCode
+        log = logging.getLogger('general')
+        #assert RetCode == 0, "ps command returned %d" % RetCode
         for PidStr in PsOutput.split("\n")[:-1]:
-                os.kill(int(PidStr), sig)
-
+                self.KillChildProcesses(int(PidStr),sig)
+                try:
+                    os.kill(int(PidStr), sig)
+                except:
+                    print("unable to kill it")    
+                    
 def Init(RootDir):
     return Core(RootDir)

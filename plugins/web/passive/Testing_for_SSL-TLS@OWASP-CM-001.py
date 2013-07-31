@@ -27,13 +27,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 PASSIVE Plugin for Testing_for_SSL-TLS_(OWASP-CM-001)
 """
-
+import logging
 DESCRIPTION = "Third party resources"
 
 def run(Core, PluginInfo):
+        log = logging.getLogger('general')    
 	#Core.Config.Show()
 	#Vuln search box to be built in core and resued in different plugins:
 	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveSSL'))
-	print "Passive links generated for target"
+	log.info("Passive links generated for target")
 	return Content
 

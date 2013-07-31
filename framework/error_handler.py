@@ -29,8 +29,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The error handler provides a centralised control for aborting the application and logging errors for debugging later
 '''
 
-import traceback, sys, cgi
 from framework.lib.general import *
+import logging
+import traceback
+import sys
+import cgi
 
 class ErrorHandler:
 	Command = ''
@@ -54,17 +57,19 @@ class ErrorHandler:
 	    return raw_input("Options: 'e'+Enter= Exit" + Options + ", Enter= Next test\n")
 
 	def UserAbort(self, Level, PartialOutput = ''): # Levels so far can be Command or Plugin
-		Message = cprint("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
-		Options = ""
-		if 'Command' == Level:
-			Options = ", 'p'+Enter= Move on to next plugin"
-		Option = self.get_option_from_user(Options)
-		if 'e' == Option:
-			if 'Command' == Level: # Try to save partial plugin results
-				raise FrameworkAbortException(PartialOutput)
-				#self.Core.Finish("Aborted by user") # Interrupted
-		elif 'p' == Option: # Move on to next plugin
-			raise PluginAbortException(PartialOutput) # Jump to next handler and pass partial output to avoid losing results
+        	log = logging.getLogger('general')
+            	Message = log.info("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
+            	Message = ("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
+                Options = ""
+    	    	if 'Command' == Level:
+ 			Options = ", 'p'+Enter= Move on to next plugin"
+    			Option = 'p'#raw_input("Options: 'e'+Enter= Exit"+Options+", Enter= Next test\n")
+    			if 'e' == Option:
+    				if 'Command' == Level: # Try to save partial plugin results
+    					raise FrameworkAbortException(PartialOutput)
+    					self.Core.Finish("Aborted by user") # Interrupted
+    			elif 'p' == Option: # Move on to next plugin
+    				raise PluginAbortException(PartialOutput) # Jump to next handler and pass partial output to avoid losing results
 		return Message
 
 	def LogError(self, Message):

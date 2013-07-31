@@ -27,12 +27,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 PASSIVE Plugin for Testing: WS Information Gathering (OWASP-WS-001)
 """
-
+import logging
 DESCRIPTION = "Google Hacking/Third party sites for Web Services"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
+        log = logging.getLogger('general')    
 	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('WSPassiveSearchEngineDiscoveryLnk'))
-	print "Done!"
+	log.info("Done!")
 	return Content
 

@@ -28,8 +28,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The DB stores HTTP transactions, unique URLs and more. 
 '''
-import re
 from framework.lib.general import *
+import logging
+import re
 
 class URLManager:
 	NumURLsBefore = 0
@@ -67,41 +68,44 @@ class URLManager:
 		return self.IsRegexpURL(URL, self.IsURLRegexp)
 
 	def GetNumURLs(self, DBPrefix = "POTENTIAL_"):
-		return self.Core.DB.GetLength(DBPrefix+'ALL_URLS_DB')
+		return self.Core.DB.DBHandler.GetLength(DBPrefix+'ALL_URLS_DB')
 		#return len(self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'])
 
 	def IsURLAlreadyAdded(self, URL, DBPrefix = ''):
-		return URL in self.Core.DB.GetData(DBPrefix+'ALL_URLS_DB') or URL in self.Core.DB.GetData(DBPrefix+'EXTERNAL_URLS_DB') or URL in self.Core.DB.GetData(DBPrefix+'ERROR_URLS_DB')
+		return URL in self.Core.DB.DBHandler.GetData(DBPrefix+'ALL_URLS_DB') or URL in self.Core.DB.DBHandler.GetData(DBPrefix+'EXTERNAL_URLS_DB') or URL in self.Core.DB.DBHandler.GetData(DBPrefix+'ERROR_URLS_DB')
 		#return URL in self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'] or URL in self.Core.DB.DBCache[DBPrefix+'EXTERNAL_URLS_DB'] or URL in self.Core.DB.DBCache[DBPrefix+'ERROR_URLS_DB']
 
 	def AddURLToDB(self, URL, DBPrefix = '', Found = None):
 		Message = ''
+                log = logging.getLogger("general")
 		DBName = "vetted DB"
 		if DBPrefix != "":
 			DBName = "potential DB"
 		if not self.IsURLAlreadyAdded(URL, DBPrefix) and self.IsURL(URL): # New URL
 			URL = URL.strip() # Make sure URL is clean prior to saving in DB, nasty bugs can happen without this
 			if self.Core.IsInScopeURL(URL):
-				Message = cprint("Adding new URL to "+DBName+": "+URL)
+				Message = "Adding new URL to "+DBName+": "+URL
+                		log.info(Message)
 				if Found in [ None, True ]:
 					#self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'].append(URL)
-					self.Core.DB.Add(DBPrefix+'ALL_URLS_DB', URL)
+					self.Core.DB.DBHandler.Add(DBPrefix+'ALL_URLS_DB', URL)
 					if self.IsFileURL(URL): # Classify URL for testing later:
 						#self.Core.DB.DBCache[DBPrefix+'FILE_URLS_DB'].append(URL)
-						self.Core.DB.Add(DBPrefix+'FILE_URLS_DB', URL)
+						self.Core.DB.DBHandler.Add(DBPrefix+'FILE_URLS_DB', URL)
 					elif self.IsImageURL(URL):
 						#self.Core.DB.DBCache[DBPrefix+'IMAGE_URLS_DB'].append(URL)
-						self.Core.DB.Add(DBPrefix+'IMAGE_URLS_DB', URL)
+						self.Core.DB.DBHandler.Add(DBPrefix+'IMAGE_URLS_DB', URL)
 					else:
 						#self.Core.DB.DBCache[DBPrefix+'FUZZABLE_URLS_DB'].append(URL)
-						self.Core.DB.Add(DBPrefix+'FUZZABLE_URLS_DB', URL)
+						self.Core.DB.DBHandler.Add(DBPrefix+'FUZZABLE_URLS_DB', URL)
 				else: # Some error code (404, etc)
 					#self.Core.DB.DBCache[DBPrefix+'ERROR_URLS_DB'].append(URL)
-					self.Core.DB.Add(DBPrefix+'ERROR_URLS_DB', URL)
+					self.Core.DB.DBHandler.Add(DBPrefix+'ERROR_URLS_DB', URL)
 			else:
-				Message = cprint("Adding new EXTERNAL URL to EXTERNAL "+DBName+": "+URL)
+				Message = "Adding new EXTERNAL URL to EXTERNAL "+DBName+": "+URL
+				log.info(Message)
 				#self.Core.DB.DBCache[DBPrefix+'EXTERNAL_URLS_DB'].append(URL)
-				self.Core.DB.Add(DBPrefix+'EXTERNAL_URLS_DB', URL)
+				self.Core.DB.DBHandler.Add(DBPrefix+'EXTERNAL_URLS_DB', URL)
 		return Message
 
 	def AddURL(self, URL, Found = None): # Adds a URL to the relevant DBs if not already added
@@ -115,12 +119,16 @@ class URLManager:
 
 	def AddURLsEnd(self):
 		NumURLsAfter = self.GetNumURLs()
-		return cprint(str(NumURLsAfter-self.NumURLsBefore)+" URLs have been added and classified")
+                Message = str(NumURLsAfter-self.NumURLsBefore)+" URLs have been added and classified"
+                log = logging.getLogger('general')
+                log.info(Message)
+		return Message
 
 	def ImportURLs(self, URLList): # Extracts and classifies all URLs passed. Expects a newline separated URL list
 		self.AddURLsStart()
 		for URL in URLList:
 			self.AddURL(URL)
 		Message = self.AddURLsEnd()
-		cprint(Message)
+                log=logging.getLogger('general')
+		log.info(Message)
 		return Message

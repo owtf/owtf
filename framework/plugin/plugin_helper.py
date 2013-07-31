@@ -32,6 +32,7 @@ import os, re, cgi
 from jinja2 import Template
 from framework.lib.general import *
 from collections import defaultdict
+import logging
 
 class PluginHelper:
 	mNumLinesToShow = 25
@@ -133,7 +134,8 @@ class PluginHelper:
 				RawHTML = Transaction.GetRawResponseBody()
 				FilteredHTML = self.Core.Reporter.Sanitiser.CleanThirdPartyHTML( RawHTML )
 				NotSandboxedPath = self.Core.PluginHandler.DumpPluginFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo )
-				cprint( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
+		                log = logging.getLogger('general')
+				log.info( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
 				iframe_template = Template( """
 				<iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder = '0' style = "overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
 				Your browser does not support iframes
@@ -141,7 +143,7 @@ class PluginHelper:
 				""" )
 				iframe = iframe_template.render( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
 				SandboxedPath = self.Core.PluginHandler.DumpPluginFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
-				cprint( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
+				log.info( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
 				LinkList.append( ( Name, SandboxedPath ) )
 
 		template = Template( """
@@ -260,6 +262,7 @@ class PluginHelper:
 		ModifiedCommand = self.Core.Shell.GetModifiedShellCommand( Command, PluginOutputDir )
 		try:
 			RawOutput = self.Core.Shell.shell_exec_monitor( ModifiedCommand )
+
 		except PluginAbortException, PartialOutput:
 			RawOutput = str( PartialOutput.parameter ) # Save Partial Output
 			PluginAbort = True
@@ -267,8 +270,9 @@ class PluginHelper:
 			RawOutput = str( PartialOutput.parameter ) # Save Partial Output
 			FrameworkAbort = True
 
-		TimeStr = self.Core.Timer.GetElapsedTimeAsStr( 'FormatCommandAndOutput' )
-		cprint( "Time=" + TimeStr )
+		TimeStr = self.Core.Timer.GetElapsedTimeAsStr('FormatCommandAndOutput')
+                log = logging.getLogger('general')
+		log.info("Time="+TimeStr)
 		return [ ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir ]
 
 	def GetCommandOutputFileNameAndExtension( self, InputName ):
@@ -321,12 +325,13 @@ class PluginHelper:
 			for Transaction in self.Core.Requester.GetTransactions( True, self.Core.DB.URL.GetURLsToVisit( URLList ) ): # Visit all URLs if not in Cache
 				if Transaction.Found:
 					NumFound += 1
-		TimeStr = self.Core.Timer.GetElapsedTimeAsStr( 'LogURLsFromStr' )
-		cprint( "Spider/URL scaper time=" + TimeStr )
-		Table = self.Core.Reporter.Render.CreateTable( {'class' : 'commanddump'} )
-		Table.CreateCustomRow( '<tr><th colspan="2">Spider/URL scraper</th></tr>' )
-		Table.CreateRow( ['Time', 'URL stats'], True )
-		Table.CreateRow( [TimeStr, self.Core.Reporter.Render.DrawHTMLList( ['Visited URLs?: ' + str( VisitURLs ), str( len( URLList ) ) + ' URLs scraped', str( NumFound ) + ' URLs found'] )] )
+		TimeStr = self.Core.Timer.GetElapsedTimeAsStr('LogURLsFromStr')
+                log = logging.getLogger('general')        
+		log.info("Spider/URL scaper time="+TimeStr)
+		Table = self.Core.Reporter.Render.CreateTable({'class' : 'commanddump'})
+		Table.CreateCustomRow('<tr><th colspan="2">Spider/URL scraper</th></tr>')
+		Table.CreateRow(['Time', 'URL stats'], True)
+		Table.CreateRow([TimeStr, self.Core.Reporter.Render.DrawHTMLList(['Visited URLs?: '+str(VisitURLs), str(len(URLList))+' URLs scraped', str(NumFound)+' URLs found'])])
 		return Table.Render()
 
 	def DrawCommandDump( self, CommandIntro, OutputIntro, ResourceList, PluginInfo, PreviousOutput, NumLinesToShow = 25 ):
@@ -351,8 +356,9 @@ class PluginHelper:
 		save_path = self.Core.PluginHandler.DumpPluginFile( Filename, Contents, PluginInfo )
 		if not LinkName:
 			LinkName = save_path
-		cprint( "File: " + Filename + " saved to: " + save_path )
-		template = Template( """
+        	log = logging.getLogger('general')            
+        	log.info("File: "+Filename+" saved to: "+save_path)		
+        	template = Template( """
 			<a href="{{ Link }}" class="button" target="_blank">
 				<span> {{ LinkName }} </span>
 			</a>
@@ -396,7 +402,8 @@ class PluginHelper:
 						Links.append( [ Entry, LinkStart + Entry + LinkEnd ] ) # Show link in defined format (passive/semi_passive)
 				TestResult += self.Core.PluginHelper.DrawResourceLinkList( Display, Links )
 		TestResult += self.Core.DB.URL.AddURLsEnd()
-		cprint( "robots.txt was " + NotStr + "found" )
+                log = logging.getLogger('general')        
+		log.info("robots.txt was "+NotStr+"found")
 		return TestResult
 
 	def LogURLs( self, PluginInfo, ResourceList ):
@@ -407,10 +414,12 @@ class PluginHelper:
 			self.LogURLsFromStr( RawOutput )
 			#for line in RawOutput.split("\n"):
 			#	self.Core.DB.URL.AddURL(line.strip())
-		self.Core.DB.SaveAllDBs() # Save URL DBs to disk
+		self.Core.DB.DBHandler.SaveAllDBs() # Save URL DBs to disk
 		NumURLsAfter = self.Core.DB.URL.GetNumURLs()
-		Message = cprint( str( NumURLsAfter - NumURLsBefore ) + " URLs have been added and classified" )
-		return HTMLOutput + "<br />" + Message
+        	log = logging.getLogger('general')        
+		Message =(str(NumURLsAfter-NumURLsBefore)+" URLs have been added and classified")
+                log.info(Message)
+        	return HTMLOutput+"<br />"+Message
 
 	def DrawTransactionTableForURLList( self, UseCache, URLList, Method = '', Data = '' ):
 		return self.Core.Reporter.DrawHTTPTransactionTable( self.Core.Requester.GetTransactions( UseCache, URLList, Method, Data ) )
@@ -591,11 +600,11 @@ class PluginHelper:
 		return "<h3>Cookie Attribute Analysis</h3>" + Table.Render()
 		#Table = "<h3>Cookie Attribute Analysis</h3><table class='report_intro'>"+Table+"</table>"
 		#return Table
-
-	def ResearchFingerprintInLog( self ):
-		cprint( "Researching Fingerprint in Log .." )
-		AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = self.ResearchHeaders( self.Core.Config.GetHeaderList( 'HEADERS_FOR_FINGERPRINT' ) )
+					
+	def ResearchFingerprintInLog(self):
+                log = logging.getLogger('general')
+		log.info("Researching Fingerprint in Log ..")
+		AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = self.ResearchHeaders(self.Core.Config.GetHeaderList('HEADERS_FOR_FINGERPRINT'))
 		for Value in AllValues:
-			HeaderTable += self.DrawVulnerabilitySearchBox( Value ) # Add Vulnerability search boxes after table
-		return HeaderTable
-
+			HeaderTable += self.DrawVulnerabilitySearchBox(Value) # Add Vulnerability search boxes after table
+		return HeaderTable 
