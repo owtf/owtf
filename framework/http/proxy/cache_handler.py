@@ -54,20 +54,32 @@ class CacheHandler(object):
         md5_hash = hashlib.md5()
         md5_hash.update(request_mod)
         self.request_hash = md5_hash.hexdigest()
-        
-        self.file_path = os.path.join(self.cache_dir, self.request_hash)
+        # This is the path to file inside url folder. This can be used for updating a html file
+        self.file_path = os.path.join(self.cache_dir, 'url', self.request_hash)
 
     def create_response_object(self):
         # A fake response object is created with necessary attributes so 
         # that only one handle_response function can handle both cached 
         # and normal responses
-        cache_dict = pickle.load(open(self.file_path, 'rb'))
-        return DummyResponse(cache_dict['response_code'], cache_dict['response_headers'], cache_dict['response_body'])
+        #cache_dict = pickle.load(open(self.file_path, 'rb'))
+        
+        response_code = int(open(os.path.join(self.cache_dir, 'resp-code', self.request_hash), 'r').read())
+            
+        response_headers = {}
+        resHeaders = open(os.path.join(self.cache_dir, 'resp-headers', self.request_hash), 'r').readlines()
+        for line in resHeaders:
+            name, value = line.split(":", 1)
+            response_headers[name] = value.rstrip()
+        
+        response_body = open(os.path.join(self.cache_dir, 'resp-body', self.request_hash), 'r').read()
+
+        return DummyResponse(response_code, response_headers, response_body)
                 
     def dump(self, response):
         # This function takes in a HTTPResponse object and dumps the request
         # and response data. It also creates a .rd file with same file name
-        # This is used by transaction logger process
+        # This is used by transaction logger 
+        """
         cache_dict = {
                             'request_method':self.request.method,
                             'request_url':self.request.url,
@@ -78,11 +90,44 @@ class CacheHandler(object):
                             'response_headers':response.headers,
                             'response_body':self.request.response_buffer
                      }
-        cache_file = open(self.file_path, 'wb')
-        pickle.dump(cache_dict, cache_file)
-        cache_file.close()
-        self.file_lock.release()
+        """
+        #cache_file = open(self.file_path, 'wb')
+        #pickle.dump(cache_dict, cache_file)
+        #cache_file.close()
+        
+        url_file = open(self.file_path, 'w')
+        url_file.write("%s %s %s\r\n"%(self.request.method, self.request.url, self.request.version))
+        url_file.close()
+        
+        reqHeaders_file = open(os.path.join(self.cache_dir, 'req-headers', self.request_hash), 'w')
+        for name, value in self.request.headers.iteritems():
+            reqHeaders_file.write("%s: %s\r\n"%(name, value))
+        reqHeaders_file.close()
+
+        reqBody_file = open(os.path.join(self.cache_dir, 'req-body', self.request_hash), 'w')
+        reqBody_file.write(self.request.body)
+        reqBody_file.close()
+
+        resCode_file = open(os.path.join(self.cache_dir, 'resp-code', self.request_hash), 'w')
+        resCode_file.write(str(response.code))
+        resCode_file.close()
+                
+        resHeaders_file = open(os.path.join(self.cache_dir, 'resp-headers', self.request_hash), 'w')
+        for name, value in response.headers.iteritems():
+            resHeaders_file.write("%s: %s\r\n"%(name, value))
+        resHeaders_file.close()
+        
+        resBody_file = open(os.path.join(self.cache_dir, 'resp-body', self.request_hash), 'w')
+        try:
+            resBody_file.write(self.request.response_buffer)
+        except:
+            resBody_file = open(os.path.join(self.cache_dir, 'resp-body', self.request_hash), 'wb')
+            resBody_file.write(self.request.response_buffer)
+        finally:
+            resBody_file.close()
+        
         open(self.file_path + '.rd', 'w').close()
+        self.file_lock.release()
     
     def load(self):
         # This is the function which is called for every request. If file is not
@@ -103,7 +148,8 @@ class CacheHandler(object):
                 return(self.create_response_object())
             else:
                 return None
-        """        
+        """
+
 class DummyResponse(object):
     """
     This class is just used to create a fake response object
