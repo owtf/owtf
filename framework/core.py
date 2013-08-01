@@ -115,7 +115,7 @@ class Core:
             else:
                 shutil.rmtree(self.Config.Get('CACHE_DIR'))
                 os.makedirs(self.Config.Get('CACHE_DIR'))
-            InboundProxyOptions = [self.Config.Get('IPROXY_IP'), self.Config.Get('IPROXY_PORT')]    
+            InboundProxyOptions = [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')]    
             transaction_db_path = os.path.join(self.Config.Get('OUTPUT_PATH'), self.Config.Get('HOST_IP'), 'transactions')
             if not os.path.exists(transaction_db_path):
                 os.makedirs(transaction_db_path)
@@ -125,7 +125,9 @@ class Core:
                                                     self.Config.Get('INBOUND_PROXY_PROCESSES'),
                                                     InboundProxyOptions,
                                                     transaction_db_path,
-                                                    Options['OutboundProxy']
+                                                    self.Config.Get('INBOUND_PROXY_SSL'),
+                                                    Options['OutboundProxy'],
+                                                    Options['OutboundProxyAuth'],
                                                   )
             """
             self.TransactionLogger = transaction_logger.TransactionLogger(
@@ -133,7 +135,7 @@ class Core:
                                                                             transaction_db_path
                                                                          )
             """
-            cprint("Started Inbound proxy at " + self.Config.Get('IPROXY'))
+            cprint("Started Inbound proxy at " + self.Config.Get('INBOUND_PROXY'))
             self.ProxyProcess.start()
             #self.TransactionLogger.start()
             self.Requester = requester.Requester(self, InboundProxyOptions)

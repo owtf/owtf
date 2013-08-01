@@ -36,17 +36,12 @@ import re
 from framework.lib.filelock import FileLock
 
 
-def gen_signed_cert(domain,
-            ca_crt=os.path.expanduser("~/.owtf/proxy/ca.crt"),
-            ca_key=os.path.expanduser("~/.owtf/proxy/ca.key")
-            ):
+def gen_signed_cert(domain, ca_crt, ca_key, certs_folder):
     """
     This function takes a domain name as a parameter and then creates a certificate and key with the
     domain name(replacing dots by underscores), finally signing the certificate using specified CA and
     returns the path of key and cert files. If you are yet to generate a CA then check the top comments
     """
-    certs_folder = os.path.expanduser("~/.owtf/proxy/certs/")
-
     key_path = os.path.join(certs_folder, re.sub('[^-0-9a-zA-Z_]', '_', domain) + ".key")
     cert_path = os.path.join(certs_folder, re.sub('[^-0-9a-zA-Z_]', '_', domain) + ".crt")
 

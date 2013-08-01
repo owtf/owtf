@@ -118,10 +118,14 @@ class Config:
                 Options['InboundProxy'] = [self.Get('INBOUND_PROXY_IP'), Options['InboundProxy'][0]]
         else:
             Options['InboundProxy'] = [self.Get('INBOUND_PROXY_IP'), self.Get('INBOUND_PROXY_PORT')]
-        self.Set('IPROXY_IP', Options['InboundProxy'][0])
-        self.Set('IPROXY_PORT', Options['InboundProxy'][1])
-        self.Set('IPROXY', ':'.join(Options['InboundProxy']))
+        self.Set('INBOUND_PROXY_IP', Options['InboundProxy'][0])
+        self.Set('INBOUND_PROXY_PORT', Options['InboundProxy'][1])
+        self.Set('INBOUND_PROXY', ':'.join(Options['InboundProxy']))
         self.Set('PROXY', ':'.join(Options['InboundProxy']))
+        self.Set('INBOUND_PROXY_SSL', { 'CA_CERT': os.path.expanduser(self.Get('CA_CERT')),
+                                        'CA_KEY': os.path.expanduser(self.Get('CA_KEY')),
+                                        'CERTS_FOLDER': os.path.expanduser(self.Get('CERTS_FOLDER'))
+                                      })
 
     def DeepCopy(self, Config): # function to perform a "deep" copy of the config Obj passed
         Copy = defaultdict(list)
