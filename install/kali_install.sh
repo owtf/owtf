@@ -26,6 +26,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+GetValue(){
+    
+    parameter=$1
+    file=$2
+    
+    echo "$(grep -i $parameter $file | sed  "s|$parameter: ||g;s|~|$HOME|g")"
+}
+
 echo "\n[*] Running the master install script for OWASP Offensive Web Testing Framework"
 
 # It is easier to work from the root folder of OWTF
@@ -64,13 +72,21 @@ fi
 echo "\n[*] Create local CA for OWTF Inbound Proxy? [y/n]"
 read a
 if [ "$a" = "y" ]; then
-    mkdir -p ~/.owtf/proxy/certs
-    echo "-----------------------------------------------"
-    echo "[*] Please use \"owtf\" as password for the key"
-    echo "-----------------------------------------------"
-    openssl genrsa -des3 -out ~/.owtf/proxy/ca.key 1024
-    openssl req -new -x509 -days 3650 -key ~/.owtf/proxy/ca.key -out ~/.owtf/proxy/ca.crt
-    echo "\n[*] Donot forget to add the ~/.owtf/proxy/ca.crt as a trusted CA in your browser"
+    config_file="$(pwd)/profiles/general/default.cfg"
+    certs_folder=$(GetValue CERTS_FOLDER $config_file)
+    ca_cert=$(GetValue CA_CERT $config_file)
+    ca_key=$(GetValue CA_KEY $config_file)
+    if [ ! -d $certs_folder ]; then
+        mkdir -p $certs_folder
+    fi
+    if [ ! -f $ca_cert ]; then
+        echo "-----------------------------------------------"
+        echo "[*] Please use \"owtf\" as password for the key"
+        echo "-----------------------------------------------"
+        openssl genrsa -des3 -out "$ca_key" 1024
+        openssl req -new -x509 -days 3650 -key "$ca_key" -out "$ca_cert"
+        echo "\n[*] Donot forget to add the $ca_cert as a trusted CA in your browser"
+    fi
 fi
 
 echo "\n[*] Installation script ended"
