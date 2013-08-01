@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-#!/usr/bin/env python
 '''
 owtf is an OWASP+PTES-focused try to unite great tools & facilitate pentesting
 Copyright (c) 2013, Abraham Aranguren <name.surname@gmail.com>  http://7-a.org
