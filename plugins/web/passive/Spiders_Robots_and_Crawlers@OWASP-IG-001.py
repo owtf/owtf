@@ -30,7 +30,6 @@ import logging
 DESCRIPTION = "robots.txt analysis through third party sites"
 
 def run(Core, PluginInfo):
-        log = logging.getLogger('general')    
 	TestResult = ''
 	Count = 1
 	Content = Core.PluginHelper.RequestAndDrawLinkList('Passive Analysis Results', Core.Config.GetResources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
@@ -49,7 +48,7 @@ def run(Core, PluginInfo):
 			Count += 1
 		else: # Not found or unknown request error
 			Message = "could not be retrieved using resource: "+Resource
-			log.info(Message)
+			Log(Message)
 			#TestResult += Message+".: \n"+cgi.escape(Transaction.GetRawResponse())
 		TestResult += Core.Reporter.DrawHTTPTransactionTable([ Transaction ])
 	return Content+TestResult

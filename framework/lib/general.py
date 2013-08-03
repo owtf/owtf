@@ -27,8 +27,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This library contains helper functions and exceptions for the framework
 """
 
-import pprint, sys, os
 from collections import defaultdict
+import logging
+import multiprocessing
+import os
+import pprint
+import sys
+import threading
 
 class FrameworkException(Exception):
 	def __init__(self, value):
@@ -159,3 +164,71 @@ def AppendToFile(Filename, Data):
 		open(Filename, 'a').write(Data)
 	except IOError, error:
 		cprint("Cannot write to file: '"+Filename+"' ("+str(sys.exc_info())+")")
+
+#logging function
+#log levels
+CRITICAL = logging.CRITICAL
+ERROR = logging.ERROR
+WARNING = logging.WARNING
+INFO = logging.INFO
+DEBUG = logging.DEBUG
+#LOG_THRESHOLD=7
+
+#log level to string mapping
+LOG_LEVELS = { CRITICAL : 'CRITICAL'
+            , ERROR : 'ERROR'
+            , WARNING : 'WARNING'
+            , INFO : 'INFO'
+            , DEBUG : 'DEBUG' }
+
+def get_short_info():
+    fr = sys._getframe(3)
+    #XXX ^-- still depends on call-depth.
+    #XXX     we go from get_short_info-frame, up to log-frame, up to log's caller frame
+    if 'self' in fr.f_locals:
+        name = fr.f_locals['self'].__class__.__name__
+        # we resolve 'self' if present and get the classname out of it
+    else:
+        name = fr.f_code.co_name
+    return {'filename': fr.f_code.co_filename, 'name': name}
+       
+def get_source_info():
+    """
+    Retrieves the Source class, function, process and thread, useful to know/process based on where things came from
+    """
+    process_name = multiprocessing.current_process().name # Obviously, you need to create processes giving them a reasonable name for this to be useful!
+
+    #XXX moving this code into another function/scope will cause it to FAIL.
+    #XXX  the offests in inspect.stack() depend on the call stack. increasing
+    #XXX  or decreasing function nesting will therefore mess things up.
+    source = get_short_info()['name']
+    return {
+            'Process' : process_name
+            , 'Thread' : threading.currentThread().getName() # MainThread if not threading
+            , 'Source' : source # Class Name / Func Name logging the message
+            }
+
+def getDefaultLog(source_info):
+    """
+        Give default log element for given source_info.. 
+        For now it is simply returning general log
+    """
+    return logging.getLogger("general")
+    
+def getDefaultlogFile(source_info):
+    """
+        Give default log file for given source_info.. 
+        For now it is simply returning log file given in config file
+    """
+    return logging.getLogger("logfile")
+
+def Log(message, type = INFO, Overrides = {}.copy()):
+    """
+    Logs a message to call
+    """
+    source_info = get_source_info() # Retrieve Source class, function, process and thread
+    defaultlog = getDefaultLog(source_info)
+    defaultfile = getDefaultlogFile(source_info)
+    defaultlog.log(type,message)
+    log_enteries = {'processname':source_info['Process'],'functionname':source_info['Source']}
+    defaultfile.log(type,message,extra=log_enteries)

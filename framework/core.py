@@ -29,13 +29,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Description:
 The core is the glue that holds the components together and allows some of them to communicate with each other
 '''
-import os, re, signal, subprocess, shutil
-from urlparse import urlparse
 from framework import timer, error_handler, random
+from framework.logQueue import logQueue
 from framework.config import config
-from framework.http.proxy import proxy, transaction_logger
-from framework.http import requester
 from framework.db import db
+from framework.http import requester
+from framework.http.proxy import proxy, transaction_logger
 from framework.lib.general import *
 from framework.plugin import plugin_handler, plugin_helper, plugin_params
 from framework.protocols import smtp, smb
@@ -43,8 +42,16 @@ from framework.report import reporter, summary
 from framework.selenium import selenium_handler
 from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
+from threading import Thread
+from urlparse import urlparse
+import fcntl
 import logging
 import multiprocessing
+import os
+import re
+import shutil
+import signal
+import subprocess
 
 class Core:
     def __init__(self, RootDir):
@@ -62,6 +69,8 @@ class Core:
         self.SET = set_handler.SETHandler(self)
         self.SMTP = smtp.SMTP(self)
         self.SMB = smb.SMB(self)
+        self.showOutput=True
+
 
     def IsInScopeURL(self, URL): # To avoid following links to other domains
         ParsedURL = urlparse(URL)
@@ -135,9 +144,65 @@ class Core:
             self.Requester = requester.Requester(self, InboundProxyOptions)
         else:
             self.Requester = requester.Requester(self, Options['OutboundProxy'])        
+    
+    def outputfunc(self,q):
+        """
+            This is the function/thread which writes on terminal
+        """
+        t=""
+        #flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL)
+        #fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+        while True:
+            try:
+                k = q.get()
+                #print k
+            except:
+                continue
+            if k=='end':
+                try:
+                    sys.stdout.write(t)
+                except:
+                    print "some error in wrirtin"
+                    pass
+                return
+            t = t+k
+            if(self.showOutput): 
+                try:   
+                    sys.stdout.write(t)
+                    t=""
+                except:
+                    print "some error in writing"
+                    pass    
+                                                    
+                                
         
+    def initlogger(self):
+        """
+            This function init two logger one for output in log file and stdout
+        """
+        #logger for output in console
+        self.outputqueue = multiprocessing.Queue()
+        result_queue = logQueue(self.outputqueue)
+        log = logging.getLogger('general')
+        infohandler = logging.StreamHandler(result_queue)
+        log.setLevel(logging.INFO)
+        infoformatter = logging.Formatter("%(message)s")
+        infohandler.setFormatter(infoformatter)
+        log.addHandler(infohandler)
+        self.outputthread =Thread(target=self.outputfunc, args=(self.outputqueue,))
+        self.outputthread.start()
+        
+        #logger for output in log file
+        log = logging.getLogger('logfile')
+        infohandler = logging.FileHandler('logfile',mode="w+")
+        log.setLevel(logging.INFO)
+        infoformatter = logging.Formatter("%(asctime)s - %(processname)s - %(functionname)s - %(message)s")
+        infohandler.setFormatter(infoformatter)
+        log.addHandler(infohandler)
+    
     def Start(self, Options):
         self.DevMode = Options["DevMode"]
+        self.initlogger()
         cprint("Loading framework please wait..")
         self.PluginHandler = plugin_handler.PluginHandler(self, Options)
         self.Config.ProcessOptions(Options)
@@ -175,13 +240,18 @@ class Core:
 
     def Finish(self, Status = 'Complete', Report = True):
         if self.Config.Get('SIMULATION'):
-            self.dbHandlerProcess.terminate()  
-        if not self.Config.Get('SIMULATION'):
+            if hasattr(self,'dbHandlerProcess'):
+                self.dbHandlerProcess.terminate()
+            self.outputqueue.put('end')    
+            self.outputthread.join()
+            exit()
+        else:
             try:
                 cprint("Saving DBs")
                 self.DB.Run.EndRun(Status)
-                self.DB.DBHandler.SaveDBs() # Save DBs prior to producing the report :)
-
+                if hasattr(self,'dbHandlerProcess'):
+                    self.DB.DBHandler.SaveDBs() # Save DBs prior to producing the report :)
+                
                 if Report:
                     cprint("Finishing iteration and assembling report again (with updated run information)")
                     PreviousTarget = self.Config.GetTarget()
@@ -192,7 +262,10 @@ class Core:
                 cprint("owtf iteration finished")
                 if self.DB.DBHandler.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
                     cprint("Please report the sanitised errors saved to "+self.Config.Get('ERROR_DB'))
-                self.dbHandlerProcess.terminate()    
+                if hasattr(self,'dbHandlerProcess'):
+                    self.dbHandlerProcess.terminate()
+                self.outputqueue.put('end')    
+                self.outputthread.join()    
                 #self.dbHandlerProcess.join()    
             except AttributeError: # DB not instantiated yet!
                 cprint("owtf finished: No time to report anything! :P")
@@ -229,7 +302,6 @@ class Core:
         PsCommand = subprocess.Popen("ps -o pid --ppid %d --noheaders" % parent_pid, shell=True, stdout=subprocess.PIPE)
         PsOutput = PsCommand.stdout.read()
         RetCode = PsCommand.wait()
-        log = logging.getLogger('general')
         #assert RetCode == 0, "ps command returned %d" % RetCode
         for PidStr in PsOutput.split("\n")[:-1]:
                 self.KillChildProcesses(int(PidStr),sig)

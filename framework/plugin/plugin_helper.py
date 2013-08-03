@@ -134,8 +134,7 @@ class PluginHelper:
 				RawHTML = Transaction.GetRawResponseBody()
 				FilteredHTML = self.Core.Reporter.Sanitiser.CleanThirdPartyHTML( RawHTML )
 				NotSandboxedPath = self.Core.PluginHandler.DumpPluginFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo )
-		                log = logging.getLogger('general')
-				log.info( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
+				Log( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
 				iframe_template = Template( """
 				<iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder = '0' style = "overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
 				Your browser does not support iframes
@@ -143,7 +142,7 @@ class PluginHelper:
 				""" )
 				iframe = iframe_template.render( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
 				SandboxedPath = self.Core.PluginHandler.DumpPluginFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
-				log.info( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
+				Log( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
 				LinkList.append( ( Name, SandboxedPath ) )
 
 		template = Template( """
@@ -271,8 +270,7 @@ class PluginHelper:
 			FrameworkAbort = True
 
 		TimeStr = self.Core.Timer.GetElapsedTimeAsStr('FormatCommandAndOutput')
-                log = logging.getLogger('general')
-		log.info("Time="+TimeStr)
+		Log("Time="+TimeStr)
 		return [ ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir ]
 
 	def GetCommandOutputFileNameAndExtension( self, InputName ):
@@ -326,8 +324,7 @@ class PluginHelper:
 				if Transaction.Found:
 					NumFound += 1
 		TimeStr = self.Core.Timer.GetElapsedTimeAsStr('LogURLsFromStr')
-                log = logging.getLogger('general')        
-		log.info("Spider/URL scaper time="+TimeStr)
+		Log("Spider/URL scaper time="+TimeStr)
 		Table = self.Core.Reporter.Render.CreateTable({'class' : 'commanddump'})
 		Table.CreateCustomRow('<tr><th colspan="2">Spider/URL scraper</th></tr>')
 		Table.CreateRow(['Time', 'URL stats'], True)
@@ -356,8 +353,7 @@ class PluginHelper:
 		save_path = self.Core.PluginHandler.DumpPluginFile( Filename, Contents, PluginInfo )
 		if not LinkName:
 			LinkName = save_path
-        	log = logging.getLogger('general')            
-        	log.info("File: "+Filename+" saved to: "+save_path)		
+        	Log("File: "+Filename+" saved to: "+save_path)		
         	template = Template( """
 			<a href="{{ Link }}" class="button" target="_blank">
 				<span> {{ LinkName }} </span>
@@ -402,8 +398,7 @@ class PluginHelper:
 						Links.append( [ Entry, LinkStart + Entry + LinkEnd ] ) # Show link in defined format (passive/semi_passive)
 				TestResult += self.Core.PluginHelper.DrawResourceLinkList( Display, Links )
 		TestResult += self.Core.DB.URL.AddURLsEnd()
-                log = logging.getLogger('general')        
-		log.info("robots.txt was "+NotStr+"found")
+		Log("robots.txt was "+NotStr+"found")
 		return TestResult
 
 	def LogURLs( self, PluginInfo, ResourceList ):
@@ -416,9 +411,8 @@ class PluginHelper:
 			#	self.Core.DB.URL.AddURL(line.strip())
 		self.Core.DB.DBHandler.SaveAllDBs() # Save URL DBs to disk
 		NumURLsAfter = self.Core.DB.URL.GetNumURLs()
-        	log = logging.getLogger('general')        
 		Message =(str(NumURLsAfter-NumURLsBefore)+" URLs have been added and classified")
-                log.info(Message)
+                Log(Message)
         	return HTMLOutput+"<br />"+Message
 
 	def DrawTransactionTableForURLList( self, UseCache, URLList, Method = '', Data = '' ):
@@ -602,8 +596,7 @@ class PluginHelper:
 		#return Table
 					
 	def ResearchFingerprintInLog(self):
-                log = logging.getLogger('general')
-		log.info("Researching Fingerprint in Log ..")
+		Log("Researching Fingerprint in Log ..")
 		AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = self.ResearchHeaders(self.Core.Config.GetHeaderList('HEADERS_FOR_FINGERPRINT'))
 		for Value in AllValues:
 			HeaderTable += self.DrawVulnerabilitySearchBox(Value) # Add Vulnerability search boxes after table

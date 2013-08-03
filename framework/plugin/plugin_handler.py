@@ -30,6 +30,7 @@ The PluginHandler is in charge of running all plugins taking into account the ch
 '''
 from collections import defaultdict
 from framework.lib.general import *
+from framework.plugin.ProcessManager import ProcessManager
 from framework.plugin.logQueue import logQueue
 from framework.plugin.scanner import Scanner
 from threading import Thread
@@ -82,12 +83,10 @@ class PluginHandler:
 		self.OnlyPluginsSet = len(self.OnlyPluginsList) > 0
 		self.ExceptPluginsSet = len(self.ExceptPluginsList) > 0
 	        self.scanner = Scanner(self.Core)
-		self.InitExecutionRegistry()
-                self.worklist = []
-                self.running_plugin = {}
+		self.ProcessManager = ProcessManager(self.Core)
+                self.InitExecutionRegistry()
                 self.showOutput = True
-                self.accept_input = True
-
+                
 	def ValidateAndFormatPluginList(self, PluginList):
 		List = [] # Ensure there is always a list to iterate from! :)
 		if PluginList != None:
@@ -223,7 +222,6 @@ class PluginHandler:
 	    return self.Core.Config.Get('FORCE_OVERWRITE')
 
 	def CanPluginRun(self, Plugin, ShowMessages = False):
-		log = logging.getLogger('general')
 		if self.Core.IsTargetUnreachable():
 			return False # Cannot run plugin if target is unreachable
 		if not self.IsChosenPlugin(Plugin):
@@ -232,7 +230,7 @@ class PluginHandler:
 		#if self.PluginAlreadyRun(Plugin) and not self.Core.Config.Get('FORCE_OVERWRITE'): #not Code == 'OWASP-WU-SPID': # For external plugin forced re-run (development)
 		if self.PluginAlreadyRun(Plugin) and ((not self.force_overwrite() and not ('grep' == Plugin['Type'])) or Plugin['Type'] == 'external'): #not Code == 'OWASP-WU-SPID':
 			if ShowMessages:
-				log.info("Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") has already been run, skipping ..")
+				Log("Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") has already been run, skipping ..")
 			if Plugin['Type'] == 'external': # Register external plugin so that it shows on the reports!! (DB checks integrity)
 				self.register_plugin(Plugin)
 			return False 
@@ -258,15 +256,14 @@ class PluginHandler:
 			return None # Skip 
 		Status['AllSkipped'] = False # A plugin is going to be run
 		self.PluginCount += 1
-                log = logging.getLogger('general')
 		#cprint("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
-                log.info("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
+                Log("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
 		self.LogPluginExecution(Plugin)
 		if self.Simulation:
 			return None # Skip processing in simulation mode, but show until line above to illustrate what will run
 		if 'grep' == Plugin['Type'] and self.Core.DB.Transaction.NumTransactions() == 0: # DB empty = grep plugins will fail, skip!!
 			#cprint("Skipped - Cannot run grep plugins: The Transaction DB is empty")
-                    	log.info("Skipped - Cannot run grep plugins: The Transaction DB is empty")
+                    	Log("Skipped - Cannot run grep plugins: The Transaction DB is empty")
 			return None
 		try:
 			self.RunPlugin(PluginDir, Plugin)
@@ -304,17 +301,6 @@ class PluginHandler:
 
 	def SwitchToTarget(self, Target):
 		self.Core.Config.SetTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-    
-        def getWork(self,target_used):
-            free_mem = self.Core.Shell.shell_exec("free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
-            for target,plugin in self.worklist:
-                
-                if (target_used[target]==False) and (int(free_mem)>int(self.Core.Config.GetMinRam())):
-                    
-                    self.worklist.remove((target,plugin))
-                    return (target,plugin)
-            return ()        
-                                
 
 
 	def get_plugins_in_order_for_PluginGroup(self, PluginGroup):
@@ -345,91 +331,12 @@ class PluginHandler:
                                    
                     
 		else:
-                        q = multiprocessing.Queue()
-                        target_used={}
-                        newstdin = os.fdopen(os.dup(sys.stdin.fileno()))
-                        input = Thread(target=self.keyinput, args=(newstdin,q))
-                        input.start()
-                        ## general logger
-                        queue = multiprocessing.Queue()
-                        result_queue = logQueue(queue)
-                        log = logging.getLogger('general')
-                        infohandler = logging.StreamHandler(result_queue)
-                        log.setLevel(logging.INFO)
-                        infoformatter = logging.Formatter("%(message)s")
-                        infohandler.setFormatter(infoformatter)
-                        log.addHandler(infohandler)
-                        output =Thread(target=self.output, args=(queue,))
-                        output.start()
-                        
-                        ##resource monitor
-                        #resourceMonitor = Thread(target=self.resource_monitor, args=())
-                        #resourceMonitor.start()
-                        for plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):
-                            for target in TargetList:
-                                target_used[target]=False
-                                #self.SwitchToTarget(target)
-                                #if(self.CanPluginRun(plugin, True)):
-                                self.worklist.append((target,plugin))
-                        print("total number of tasks "+ str(len(self.worklist)))
-                        numprocess=0
-                        workers = []
-                        queues = []
-                        busy_processes = []
-                        while (numprocess<(int(self.Core.Config.GetProcessPerCore())*multiprocessing.cpu_count())):
-                            work = self.getWork(target_used)
-                            if work==():
-                                break
-                            target_used[work[0]]=True
-                            queues.append(multiprocessing.Queue())     
-                            p = multiprocessing.Process(target=self.worker, args=(work,queues[numprocess],1,Status))                               
-                            p.start()
-                            workers.append(p)              
-                            self.running_plugin[p.pid] = work
-                            busy_processes.append(True)
-                            numprocess=numprocess+1
-                        
-                        print "number of workers "+str(numprocess)
-                        #self.stop_process()
-                        k=0
-                        while k<numprocess and len(self.worklist)>0:
-                            if queues[k].empty()==False:
-                                target,plugin = queues[k].get()
-                                self.running_plugin[workers[k].pid] = ()
-                                
-                                #queues[k].task_done()
-                                busy_processes[k]=False
-                                target_used[target]=False
-                                work_to_assign = self.getWork(target_used)
-                                if work_to_assign!=():
-                                    queues[k].put(work_to_assign)
-                                    target_used[work_to_assign[0]]=True
-                                    self.running_plugin[workers[k].pid] = work_to_assign
-                                    busy_processes[k]=True
-                                    
-                            k=(k+1)%numprocess
-                            
-                        for i in range(numprocess):
-                            if busy_processes[i]==True:
-                                target,plugin = queues[i].get()
-                                busy_processes[i] = False
-                                self.running_plugin[workers[i].pid] = ()
-                            #queues[i].task_done()
-                            queues[i].put(())
-                            
-                        for i in range(numprocess):
-                            workers[i].join() 
-                        q.put("end")
-                        input.join()    
-                        queue.put('end')    
-                        output.join()
-                        
-                       # queue1.put('end')     
-                       # register_output.join()
-                            
-                        
-                        
-                                   
+                        self.ProcessManager.startinput()
+                        self.ProcessManager.fillWorkList(PluginGroup,TargetList)
+                        self.ProcessManager.spawnWorkers(Status)
+                        self.ProcessManager.manageProcess()
+                        self.ProcessManager.poisonPillToWorkers()
+                        self.ProcessManager.joinWorker()
 			#if 'breadth' == self.Algorithm: # Loop plugins, then targets
 			#	for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
 			#		#print "Processing Plugin="+str(Plugin)
@@ -442,227 +349,6 @@ class PluginHandler:
 			#		self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
 			#		for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
 			#			self.ProcessPlugin( PluginDir, Plugin, Status )
-        def worker(self,work,queue,start,status):
-            log=logging.getLogger('general')
-            while True:
-                if start!=1:
-                   # signal.signal(signal.SIGINT,signal.SIG_IGN)
-                    try:
-                        queue.put(work)
-                        work1 = queue.get()
-                    
-                        while work1==work:
-                            queue.put(work)
-                            work1 = queue.get()
-                    except:
-                        log.info("exception while get")
-                        continue        
-                    #signal.signal(signal.SIGINT,signal.SIG_DFL)    
-                    work = work1    
-                if work == ():
-                    sys.exit()
-                target,plugin = work
-                pluginGroup = plugin['Group']
-                pluginDir = self.GetPluginGroupDir(pluginGroup)
-                self.SwitchToTarget(target)
-                self.ProcessPlugin( pluginDir, plugin, status )      
-                start=0
-
-        
-    	def output(self,q):
-        	t=""
-                flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL)
-                fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-        	while True:
-                	try:
-                        	k = q.get()
-                        except:
-                            continue
-                            #self.register_plugin(k[15])
-                        if k=='end':
-                            try:
-                                sys.stdout.write(t)
-                            except:
-                                print "some error in wrirtin"
-                                pass
-                            break
-                        t = t+k
-                        if(self.showOutput): 
-                            try:   
-                                sys.stdout.write(t)
-                                t=""
-                            except:
-                                print "some error in writing"
-                                pass    
-                                                    
-                                
-        def keyinput(self,newstdin,q):
-            #sys.stdin = newstdin
-            fd = sys.stdin.fileno()
-            oldterm = termios.tcgetattr(fd)
-            newattr = oldterm[:]
-            newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
-            termios.tcsetattr(fd, termios.TCSANOW, newattr)
-
-            oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
-            fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
-            i=0
-            try:
-                while 1:
-                    if q.empty()==False:
-                        self.showOutput=True
-                        break
-                    r, w, e = select.select([fd], [], [],0.5)
-                    if r and self.accept_input:
-                        c = sys.stdin.read(1)
-                        
-                        if c=="s":
-                            self.showOutput=False
-                            self.accept_input = False
-                            self.stop_process()
-                            self.showOutput=True
-                            self.accept_input = True
-            finally:
-                termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
-                fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
-                    
-             
-        #def resource_monitor(self):
-            
-        def stop_process(self):
-            log = logging.getLogger('general')
-            stdscr = curses.initscr()
-            curses.noecho()
-            curses.raw()
-            
-            stdscr.timeout(2000)
-            selected = 0
-            i=0
-            stdscr.refresh()
-            stdscr.keypad(1)
-            stdscr.addstr(0,0,"PID\t\t\tTarget\t\t\tPlugin")
-            height,width = stdscr.getmaxyx()
-            for pid in self.running_plugin:
-                work = self.running_plugin[pid]
-                if work==():
-                    continue
-                plugin = work[1]
-                if selected == i:
-                    stdscr.addstr(0+(i+1)*1, 0,str(pid) +"\t\t" +work[0]+"\t\t"+plugin['Title']+" ("+plugin['Type']+")",curses.A_STANDOUT)
-                else:
-                    stdscr.addstr(0+(i+1)*1, 0,str(pid )+"\t\t" +work[0]+"\t\t"+plugin['Title']+" ("+plugin['Type']+")")    
-                i=i+1    
-            stdscr.addstr(height-1,0,"e Exit Owtf\tp Stop Plugin\tt Stop Tests for Target")
-            stdscr.refresh()
-    
-            while 1:
-            	c = stdscr.getch()
-            	if c == ord('s'):
-                	curses.nocbreak()
-                	stdscr.keypad(0)
-                	curses.echo()
-                	curses.endwin()   
-                        self.showOutput=True
-                        self.accept_input = True
-                	return
-		elif c==curses.KEY_DOWN:
-                	if(selected != (i-1)):
-                       		selected = selected+1
-               	elif c==curses.KEY_UP:
-                   	if(selected != 0):
-                       		selected = selected-1
-                elif c==ord('e'):
-                    self.worklist={}
-                    curses.nocbreak()
-                    stdscr.keypad(0)
-                    curses.echo()
-                    curses.endwin()
-                    for pid in self.running_plugin:
-                        work = self.running_plugin[pid]
-                        if work==():
-                            continue
-                        self.Core.KillChildProcesses(pid,signal.SIGINT)
-                        try:  
-                            os.kill(pid,signal.SIGINT)
-                        except:
-                            log.info("some error in os.kill. but dont worry")
-                    self.showOutput=True
-                    self.accept_input = True         
-                    return
-                elif c==ord('t'):
-                    curses.nocbreak()
-                    stdscr.keypad(0)
-                    curses.echo()
-                    curses.endwin()
-                    k=0
-                    for pid in self.running_plugin:
-                        work = self.running_plugin[pid]
-                        if work==():
-                            continue
-                        if k==selected:
-                            break
-                        k = k+1
-                    target1,plugin1= work
-                    for target,plugin in self.worklist:
-                        if target==target1:
-                            self.worklist.remove((target,plugin))
-                            
-                    self.Core.KillChildProcesses(pid,signal.SIGINT)
-                    try:     
-                        os.kill(pid,signal.SIGINT)
-                    except:
-                        log.info("big papa not dying")    
-                    selected=0  
-                    self.showOutput=True
-                    self.accept_input = True      
-                    return
-                             
-                elif c== ord('p'):
-                    k=0
-                    curses.nocbreak()
-                    stdscr.keypad(0)
-                    curses.echo()
-                    curses.endwin()
-                    for pid in self.running_plugin:
-                        work = self.running_plugin[pid]
-                        if work==():
-                            continue
-                        if k==selected:
-                            break
-                        k = k+1
-                       
-                    self.Core.KillChildProcesses(pid,signal.SIGINT)
-                    try:     
-                        os.kill(pid,signal.SIGINT)
-                    except:
-                        log.info("big papa not dying")    
-                    selected=0 
-                    self.showOutput=True
-                    self.accept_input = True
-                    #print pid  
-                    #sys.stdout.flush()   
-                    return  
-                      
-                   
-                         
-		i=0
-                stdscr.clear()
-                stdscr.refresh()
-                stdscr.addstr(0,0,"PID\t\t\tTarget\t\t\tPlugin")
-                height,width = stdscr.getmaxyx()    
-              	for pid in self.running_plugin:
-                	work = self.running_plugin[pid]
-                	if work==():
-                    		continue
-                	plugin = work[1]
-                	if selected == i:
-                    		stdscr.addstr(0+(i+1), 0,str(pid) +"\t\t" +work[0]+"\t\t"+plugin['Title']+" ("+plugin['Type']+")",curses.A_STANDOUT)
-                	else:
-                    		stdscr.addstr(0+(i+1)*1, 0,str(pid )+"\t\t" +work[0]+"\t\t"+plugin['Title']+" ("+plugin['Type']+")")    
-                	i=i+1    
-            	stdscr.addstr(height-1,0,"e Exit Owtf\tp Stop Plugin\tt Stop Tests for Target")
-                stdscr.refresh()                 
-                      
 
 	def SavePluginInfo(self, PluginOutput, Plugin):
 		self.Core.DB.DBHandler.SaveDBs() # Save new URLs to DB after each request

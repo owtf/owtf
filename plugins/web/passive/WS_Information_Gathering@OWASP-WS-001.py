@@ -32,8 +32,7 @@ DESCRIPTION = "Google Hacking/Third party sites for Web Services"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-        log = logging.getLogger('general')    
 	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('WSPassiveSearchEngineDiscoveryLnk'))
-	log.info("Done!")
+	Log("Done!")
 	return Content
 

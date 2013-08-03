@@ -77,7 +77,6 @@ class URLManager:
 
 	def AddURLToDB(self, URL, DBPrefix = '', Found = None):
 		Message = ''
-                log = logging.getLogger("general")
 		DBName = "vetted DB"
 		if DBPrefix != "":
 			DBName = "potential DB"
@@ -85,7 +84,7 @@ class URLManager:
 			URL = URL.strip() # Make sure URL is clean prior to saving in DB, nasty bugs can happen without this
 			if self.Core.IsInScopeURL(URL):
 				Message = "Adding new URL to "+DBName+": "+URL
-                		log.info(Message)
+                		Log(Message)
 				if Found in [ None, True ]:
 					#self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'].append(URL)
 					self.Core.DB.DBHandler.Add(DBPrefix+'ALL_URLS_DB', URL)
@@ -103,7 +102,7 @@ class URLManager:
 					self.Core.DB.DBHandler.Add(DBPrefix+'ERROR_URLS_DB', URL)
 			else:
 				Message = "Adding new EXTERNAL URL to EXTERNAL "+DBName+": "+URL
-				log.info(Message)
+				Log(Message)
 				#self.Core.DB.DBCache[DBPrefix+'EXTERNAL_URLS_DB'].append(URL)
 				self.Core.DB.DBHandler.Add(DBPrefix+'EXTERNAL_URLS_DB', URL)
 		return Message
@@ -120,8 +119,7 @@ class URLManager:
 	def AddURLsEnd(self):
 		NumURLsAfter = self.GetNumURLs()
                 Message = str(NumURLsAfter-self.NumURLsBefore)+" URLs have been added and classified"
-                log = logging.getLogger('general')
-                log.info(Message)
+                Log(Message)
 		return Message
 
 	def ImportURLs(self, URLList): # Extracts and classifies all URLs passed. Expects a newline separated URL list
@@ -129,6 +127,5 @@ class URLManager:
 		for URL in URLList:
 			self.AddURL(URL)
 		Message = self.AddURLsEnd()
-                log=logging.getLogger('general')
-		log.info(Message)
+		Log(Message)
 		return Message
