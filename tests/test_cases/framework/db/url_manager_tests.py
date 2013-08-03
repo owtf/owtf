@@ -51,7 +51,8 @@ class URLManagerTests(BaseTestCase):
                 "http://notinscope.com"]
         self.core_mock.IsInScopeURL = lambda url: url != "http://notinscope.com"
         self.core_mock.DB = flexmock()
-        self.core_mock.DB.should_receive("Add").times(5)  # The two first URLs will be stored twice
+        self.core_mock.DB.DBHandler = flexmock()
+        self.core_mock.DB.DBHandler.should_receive("Add").times(5)  # The two first URLs will be stored twice
         flexmock(self.url_manager)
         self.url_manager.should_receive("IsURLAlreadyAdded").and_return(False)
 

@@ -6,10 +6,13 @@ from tests.testing_framework.db.environments import DBEnvironmentBuilder
 class DBTests(BaseTestCase):
 
     def before(self):
-        environment_builder = DBEnvironmentBuilder()
-        self.db = environment_builder.build()
-        self.core_mock = environment_builder.core_mock
-        self.db.Init()
+        try:
+            environment_builder = DBEnvironmentBuilder()
+            self.db = environment_builder.build()
+            self.core_mock = environment_builder.core_mock
+            self.db.Init()
+        except:
+            print "Exception!"
 
     def test_Init_initializes_the_DBs(self):
         assert_that("db1" in self.db.Storage)

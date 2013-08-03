@@ -10,17 +10,13 @@ class CommandRegisterTests(BaseTestCase):
         self.core_mock = flexmock()
 
     def test_Add_should_save_a_command_through_a_core_call(self):
-        db_mock = flexmock()
-        db_mock.should_receive("Add").once()
-        self.core_mock.DB = db_mock
+        self._mock_db_handler_method_once("Add")
         command_register = self._create_command_register_with_core_mock()
 
         command_register.Add(self._create_command_dictionary())
 
     def test_Search_should_use_a_core_call(self):
-        db_mock = flexmock()
-        db_mock.should_receive("Search").once()
-        self.core_mock.DB = db_mock
+        self._mock_db_handler_method_once("Search")
         command_register = self._create_command_register_with_core_mock()
 
         command_register.Search("Criteria")
@@ -43,6 +39,12 @@ class CommandRegisterTests(BaseTestCase):
 
         assert_that(registered, is_not(False))
         assert_that(registered is not None)
+
+    def _mock_db_handler_method_once(self, method):
+        db_mock = flexmock()
+        db_mock.DBHandler = flexmock()
+        db_mock.DBHandler.should_receive(method).once()
+        self.core_mock.DB = db_mock
 
     def _create_command_register_with_core_mock(self):
         return CommandRegister(self.core_mock)

@@ -308,7 +308,7 @@ class PluginHandler:
 
 	def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList): # TargetList param will be useful for netsec stuff to call this
 		PluginDir = self.GetPluginGroupDir(PluginGroup)
-            	if PluginGroup == 'net1':
+            	if PluginGroup == 'net':
 			portwaves =  self.Core.Config.GetPortWaves()
 			waves = portwaves.split(',')
 			waves.append('-1')
