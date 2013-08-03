@@ -1,12 +1,15 @@
 from flexmock import flexmock
 from framework.db.db import DB
+import framework.db.db_handler as db_handler
 from framework.random import Random
+from framework.db.db_handler import DB_Handler
 
 
 class DBEnvironmentBuilder():
 
     def build(self):
         self._create_core_mock()
+        flexmock(db_handler).should_receive("DBHandler").and_return(flexmock())
         db = flexmock(DB(self.core_mock))
         db.should_receive("InitDB")  # Neutralize the access to the file system
         db.GetDBNames_old = db.GetDBNames

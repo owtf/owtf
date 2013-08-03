@@ -45,7 +45,7 @@ from cache_handler import CacheHandler
 
 class ProxyHandler(tornado.web.RequestHandler):
     """
-    This RequestHandler processes all the requests that the application recieves
+    This RequestHandler processes all the requests that the application received
     """
     SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS']
 
@@ -94,18 +94,19 @@ class ProxyHandler(tornado.web.RequestHandler):
                         self.set_header(header, value)
             if self.request.response_buffer:
                 self.cache_handler.dump(response)
-            else:
-                self.write(response.body)
+            # Better handling to be dont to use cached responses
+            #else:
+            #    self.write(response.body)
             self.finish()
 
-        # This function is a callback when a small chunk is recieved
+        # This function is a callback when a small chunk is received
         def handle_data_chunk(data):
             if data:
                 self.write(data)
                 self.request.response_buffer += data
 
         # More headers are to be removed
-        for header in ('Connection', 'Pragma', 'Cache-Control'):
+        for header in ('Connection', 'Pragma', 'Cache-Control', 'If-Modified-Since'):
             try:
                 del self.request.headers[header]
             except:
@@ -139,6 +140,8 @@ class ProxyHandler(tornado.web.RequestHandler):
                 header_callback=None,
                 proxy_host=self.application.outbound_ip,
                 proxy_port=self.application.outbound_port,
+                proxy_username=self.application.outbound_username,
+                proxy_password=self.application.outbound_password,
                 allow_nonstandard_methods=True,
                 validate_cert=False)
 
@@ -171,7 +174,7 @@ class ProxyHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def connect(self):
         """
-        This function gets called when a connect request is recieved.
+        This function gets called when a connect request is received.
         * The host and port are obtained from the request uri
         * A socket is created, wrapped in ssl and then added to SSLIOStream
         * This stream is used to connect to speak to the remote host on given port
@@ -182,11 +185,17 @@ class ProxyHandler(tornado.web.RequestHandler):
         * The stream is added back to the server for monitoring
         """
         host, port = self.request.uri.split(':')
-
         def start_tunnel():
             try:
                 self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
-                wrap_socket(self.request.connection.stream.socket, host, success=ssl_success)
+                wrap_socket(
+                            self.request.connection.stream.socket,
+                            host,
+                            self.application.ca_cert,
+                            self.application.ca_key,
+                            self.application.certs_folder,
+                            success=ssl_success
+                           )
             except tornado.iostream.StreamClosedError:
                 pass
 
@@ -199,7 +208,8 @@ class ProxyHandler(tornado.web.RequestHandler):
         def ssl_fail():
             self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
             server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
-
+        
+        # Hacking to be done here, so as to check for ssl using proxy and auth    
         try:
             s = ssl.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0))
             upstream = tornado.iostream.SSLIOStream(s)
@@ -208,19 +218,27 @@ class ProxyHandler(tornado.web.RequestHandler):
         except Exception:
             self.finish()
 
+
 class ProxyProcess(Process):
 
-    def __init__(self, instances, inbound_options, cache_dir, outbound_options=[]):
+    def __init__(self, instances, inbound_options, cache_dir, ssl_options, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
         self.application = tornado.web.Application(handlers=[(r".*", ProxyHandler)], debug=False, gzip=True)
         self.application.inbound_ip = inbound_options[0]
         self.application.inbound_port = int(inbound_options[1])
         self.application.cache_dir = cache_dir
+        self.application.ca_cert = ssl_options['CA_CERT']
+        self.application.ca_key = ssl_options['CA_KEY']
+        self.application.certs_folder = ssl_options['CERTS_FOLDER']
         if outbound_options:
             self.application.outbound_ip = outbound_options[0]
             self.application.outbound_port = int(outbound_options[1])
         else:
             self.application.outbound_ip, self.application.outbound_port = None, None
+        if outbound_auth:
+            self.application.outbound_username, self.application.outbound_password = outbound_auth.split(":")
+        else:
+            self.application.outbound_username, self.application.outbound_password = None, None
         global server
         server = tornado.httpserver.HTTPServer(self.application)
         self.server = server

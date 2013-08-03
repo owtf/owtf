@@ -4,6 +4,16 @@ from flexmock import flexmock
 from framework.shell.blocking_shell import Shell
 from tests.testing_framework.shell.environments import InteractiveShellEnvironmentBuilder
 from hamcrest.library.text.stringmatches import matches_regexp
+import logging
+
+
+class FakeLogger():
+
+    def __init__(self):
+        self.content = ""
+
+    def info(self, message):
+        self.content += message
 
 
 class BlockingShellTests(BaseTestCase):
@@ -15,6 +25,8 @@ class BlockingShellTests(BaseTestCase):
         self.shell = Shell(self.core_mock)
 
     def test_shell_exec_monitor_runs_a_command_logging_the_output(self):
+        logger = FakeLogger()
+        flexmock(logging).should_receive("getLogger").and_return(logger)
         command = 'pwd'
         expected_command_output = self.get_abs_path(".")
         expected_time_logging_message = "Execution Start Date/Time"
@@ -24,7 +36,8 @@ class BlockingShellTests(BaseTestCase):
         stdout_content = self.get_recorded_stdout_and_close()
 
         assert_that(command_output, matches_regexp(expected_command_output))
-        assert_that(stdout_content, matches_regexp(expected_command_output))
+        assert_that(logger.content, matches_regexp(expected_time_logging_message))
+        assert_that(logger.content, matches_regexp(expected_command_output))
 
     def test_shell_exec_monitor_with_KeyboardInterrupt_should_cancel_the_command(self):
         subprocess = flexmock()

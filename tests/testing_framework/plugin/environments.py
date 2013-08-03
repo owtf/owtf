@@ -19,8 +19,12 @@ class PluginHandlerEnvironmentBuilder():
 
     def _create_core_mock(self):
         self.core_mock = flexmock()
+        self._create_config_mock()
+
+    def _create_config_mock(self):
         self.core_mock.Config = flexmock()
         self.core_mock.Config.Plugin = self.__class__.plugin_config_proxy.get_instance()
+        self.core_mock.Config.should_receive("GetProcessPerCore").and_return(1)
 
     def _mock_shell_calls_for_scanner(self):
         self.core_mock.Shell = flexmock()

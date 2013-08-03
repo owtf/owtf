@@ -35,7 +35,7 @@ import ssl
 from gen_cert import gen_signed_cert
 
 
-def wrap_socket(socket, domain, success=None, failure=None, io=None, **options):
+def wrap_socket(socket, domain, ca_crt, ca_key, certs_folder, success=None, failure=None, io=None, **options):
     """Wrap an active socket in an SSL socket."""
 
     # # Default Options
@@ -45,9 +45,9 @@ def wrap_socket(socket, domain, success=None, failure=None, io=None, **options):
 
     # The idea is to handle domains with greater than 3 dots using wildcard certs
     if domain.count(".") >= 3:
-        key, cert = gen_signed_cert("*." + ".".join(domain.split(".")[-3:]))
+        key, cert = gen_signed_cert("*." + ".".join(domain.split(".")[-3:]), ca_crt, ca_key, certs_folder)
     else:
-        key, cert = gen_signed_cert(domain)
+        key, cert = gen_signed_cert(domain, ca_crt, ca_key, certs_folder)
     options.setdefault('certfile', cert)
     options.setdefault('keyfile', key)
 

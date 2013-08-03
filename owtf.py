@@ -87,6 +87,10 @@ def GetArgs(Core):
                         dest="OutboundProxy",
                         default=None,
                         help="ip:port - Send all OWTF requests using the proxy for the given ip and port")
+    Parser.add_argument("-xa", "--outbound_proxy_auth",
+                        dest="OutboundProxyAuth",
+                        default=None,
+                        help="username:password - Credentials if any for outbound proxy")
     Parser.add_argument("-s", "--simulation",
                         dest="Simulation",
                         action='store_true',
@@ -259,6 +263,7 @@ def ProcessOptions(Core):
                         'ExceptPlugins': Arg.ExceptPlugins,
                         'InboundProxy': Arg.InboundProxy,
                         'OutboundProxy': Arg.OutboundProxy,
+                        'OutboundProxyAuth': Arg.OutboundProxyAuth,
                         'Profiles': Profiles,
                         'Algorithm': Arg.Algorithm,
                         'PluginGroup': PluginGroup,

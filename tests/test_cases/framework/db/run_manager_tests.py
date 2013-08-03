@@ -34,7 +34,8 @@ class RunManagerTests(BaseTestCase):
 
     def _mock_DB_logging(self):
         db = flexmock()
-        db.should_receive("Add").once()
+        db.DBHandler = flexmock()
+        db.DBHandler.should_receive("Add").once()
         return db
 
     def _create_RunManager_instance_with_core_mock(self):
@@ -54,6 +55,7 @@ class RunManagerTests(BaseTestCase):
 
     def _mock_DB_for_EndRun(self):
         db = flexmock()
-        db.should_receive("GetRecord").and_return({}).once()
-        db.should_receive("ModifyRecord").once()
+        db.DBHandler = flexmock()
+        db.DBHandler.should_receive("GetRecord").and_return({}).once()
+        db.DBHandler.should_receive("ModifyRecord").once()
         return db
