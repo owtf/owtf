@@ -57,8 +57,7 @@ class ErrorHandler:
 	    return raw_input("Options: 'e'+Enter= Exit" + Options + ", Enter= Next test\n")
 
 	def UserAbort(self, Level, PartialOutput = ''): # Levels so far can be Command or Plugin
-        	log = logging.getLogger('general')
-            	Message = log.info("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
+            	Message = Log("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
             	Message = ("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
                 Options = ""
     	    	if 'Command' == Level:

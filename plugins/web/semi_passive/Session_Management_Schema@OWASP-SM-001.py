@@ -41,7 +41,6 @@ def run(Core, PluginInfo):
 	# Step 1 - Find transactions that set cookies
         # Step 2 - Request 10 times per URL that sets cookies
         # Step 3 - Compare values and calculate randomness
-        log = logging.getLogger('general')        
 	URLList = []
 	TransactionList = []
 	Result = ""
@@ -56,9 +55,9 @@ def run(Core, PluginInfo):
 				#Cookies = Transaction.GetResponseHeaders().getheader('Set-Cookie').split(',')
 				for Cookie in Transaction.GetCookies():
 					CookieValues[Cookie.Name].append(Transaction.ID, Cookie.Value)
-					log.info("Cookie="+str(Cookie))
+					Log("Cookie="+str(Cookie))
 					Result += str(Cookie)
-					log.info(dir(Cookie))
+					Log(dir(Cookie))
 	return Result
 """
 	for i in range(0,10):

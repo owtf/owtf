@@ -33,8 +33,7 @@ DESCRIPTION = "Third party resources"
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 	#Vuln search box to be built in core and resued in different plugins:
-        log = logging.getLogger('general')    
 	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveMethods'))
-	log.info("Passive links generated for target")
+	Log("Passive links generated for target")
 	return Content
 

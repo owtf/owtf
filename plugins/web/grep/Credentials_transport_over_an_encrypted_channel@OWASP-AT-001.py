@@ -34,7 +34,6 @@ DESCRIPTION = "Searches transaction DB for credentials protections"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-        log = logging.getLogger('general')
 	Content = "This plugin looks for password fields and then checks the URL (i.e. http vs. https)<br />"
 	Content += "Uniqueness in this case is performed via URL + password field"
 	# This retrieves all hidden password fields found in the DB response bodies:
@@ -47,10 +46,10 @@ def run(Core, PluginInfo):
 			IDs.append(ID) # Process each transaction only once
 			Transaction = Core.DB.Transaction.GetByID(ID)
 		if 'https' != Transaction.URL.split(":")[0]:
-			log.info("Transaction: "+ID+" contains passwords fields with a URL different than https")
+			Log("Transaction: "+ID+" contains passwords fields with a URL different than https")
 			InsecureMatches.append([ID, Transaction.URL+": "+FileMatch]) # Need to make the unique work by URL + password
 	Message = "<br /><u>Total insecure matches: "+str(len(InsecureMatches))+'</u>'
-	log.info(Message)
+	Log(Message)
 	Content += Message+"<br />"
 	Content += Core.PluginHelper.DrawResponseMatchesTables([Command, RegexpName, InsecureMatches], PluginInfo)
 	return Content
