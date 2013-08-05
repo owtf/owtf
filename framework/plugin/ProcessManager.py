@@ -104,6 +104,7 @@ class ProcessManager:
             #if worker k has completed its work
             if self.queues[k].empty()==False:
                 target,plugin = self.queues[k].get()
+                #self.queues[k].task_done()
                 self.running_plugin[self.workers[k].pid] = ()
                 #worker is idle
                 self.busy_processes[k]=False
@@ -133,6 +134,16 @@ class ProcessManager:
             self.workers[i].join()            
         self.inputqueue.put("end")
         self.inputthread.join()
+    #this function is used by workers to get new task
+    def getNewWork(self,work,queue):
+        queue.put(work)
+        work1 = queue.get()
+        while work1==work:
+            queue.put(work)
+            work1 = queue.get()      
+                    #signal.signal(signal.SIGINT,signal.SIG_DFL)    
+        return work1
+    
     #worker code
     def worker(self,work,queue,start,status):
         print 
@@ -140,17 +151,10 @@ class ProcessManager:
             if start!=1:
                 # work has been completed. Put that into queue and wait for new work to be assigned
                 try:
-                    queue.put(work)
-                    work1 = queue.get()
-                    
-                    while work1==work:
-                        queue.put(work)
-                        work1 = queue.get()
+                    work = self.getNewWork(work,queue)    
                 except:
                     Log("exception while get")
-                    continue        
-                    #signal.signal(signal.SIGINT,signal.SIG_DFL)    
-                work = work1    
+                    continue
                 #if work is empty this means no work is there
                 if work == ():
                     sys.exit()

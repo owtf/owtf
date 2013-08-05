@@ -31,7 +31,7 @@ The PluginHandler is in charge of running all plugins taking into account the ch
 from collections import defaultdict
 from framework.lib.general import *
 from framework.plugin.ProcessManager import ProcessManager
-from framework.plugin.logQueue import logQueue
+from framework.logQueue import logQueue
 from framework.plugin.scanner import Scanner
 from threading import Thread
 import curses
