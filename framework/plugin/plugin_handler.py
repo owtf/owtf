@@ -320,6 +320,10 @@ class PluginHandler:
 	def get_plugins_in_order_for_PluginGroup(self, PluginGroup):
 	    return self.Core.Config.Plugin.GetOrder(PluginGroup)
 
+
+	def get_plugins_in_order(self, PluginGroup):
+	    return self.Core.Config.Plugin.GetOrder(PluginGroup)
+
 	def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList): # TargetList param will be useful for netsec stuff to call this
 		PluginDir = self.GetPluginGroupDir(PluginGroup)
             	if PluginGroup == 'net':
@@ -365,7 +369,7 @@ class PluginHandler:
                         ##resource monitor
                         #resourceMonitor = Thread(target=self.resource_monitor, args=())
                         #resourceMonitor.start()
-                        for plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):
+                        for plugin in self.get_plugins_in_order(PluginGroup):
                             for target in TargetList:
                                 target_used[target]=False
                                 #self.SwitchToTarget(target)
