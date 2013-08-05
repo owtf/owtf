@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This file handles all the database transactions.
 '''
-from framework.plugin import logQueue
+from framework.logQueue import logQueue
 import json
 import logging
 import multiprocessing

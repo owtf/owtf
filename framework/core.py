@@ -256,9 +256,7 @@ class Core:
             try:
                 cprint("Saving DBs")
                 self.DB.Run.EndRun(Status)
-                if hasattr(self,'dbHandlerProcess'):
-                    self.DB.DBHandler.SaveDBs() # Save DBs prior to producing the report :)
-                
+                self.DB.DBHandler.SaveDBs() # Save DBs prior to producing the report :)
                 if Report:
                     cprint("Finishing iteration and assembling report again (with updated run information)")
                     PreviousTarget = self.Config.GetTarget()
@@ -269,10 +267,6 @@ class Core:
                 cprint("owtf iteration finished")
                 if self.DB.DBHandler.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
                     cprint("Please report the sanitised errors saved to "+self.Config.Get('ERROR_DB'))
-                if hasattr(self,'dbHandlerProcess'):
-                    self.dbHandlerProcess.terminate()
-                self.outputqueue.put('end')    
-                self.outputthread.join()    
                 #self.dbHandlerProcess.join()    
             except AttributeError: # DB not instantiated yet!
                 cprint("owtf finished: No time to report anything! :P")
@@ -285,6 +279,10 @@ class Core:
                         #os.kill(int(self.TransactionLogger.pid), signal.SIGINT)
                     except: # It means the proxy was not started
                         pass
+                if hasattr(self,'dbHandlerProcess'):
+                    self.dbHandlerProcess.terminate()
+                self.outputqueue.put('end')    
+                self.outputthread.join()
                 exit()
 
     def GetSeed(self):
@@ -312,6 +310,7 @@ class Core:
         #assert RetCode == 0, "ps command returned %d" % RetCode
         for PidStr in PsOutput.split("\n")[:-1]:
                 self.KillChildProcesses(int(PidStr),sig)
+                #print PidStr
                 try:
                     os.kill(int(PidStr), sig)
                 except:
