@@ -216,6 +216,7 @@ class Core:
         self.PluginParams = plugin_params.PluginParams(self, Options)
         if Options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
+            self.exitOutput()
             return False # No processing required, just list available modules
         self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
         self.DB.Init()
@@ -249,8 +250,7 @@ class Core:
         if self.Config.Get('SIMULATION'):
             if hasattr(self,'dbHandlerProcess'):
                 self.dbHandlerProcess.terminate()
-            self.outputqueue.put('end')    
-            self.outputthread.join()
+            self.exitOutput()    
             exit()
         else:
             try:
@@ -281,10 +281,13 @@ class Core:
                         pass
                 if hasattr(self,'dbHandlerProcess'):
                     self.dbHandlerProcess.terminate()
-                self.outputqueue.put('end')    
-                self.outputthread.join()
+                self.exitOutput()    
                 exit()
 
+    def exitOutput(self):
+        self.outputqueue.put('end')    
+        self.outputthread.join()
+        
     def GetSeed(self):
         try:
             return self.DB.DBHandler.GetSeed()
