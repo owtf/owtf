@@ -32,7 +32,6 @@ import re, cgi,logging
 DESCRIPTION = "Normal requests for XSF analysis"
 
 def run(Core, PluginInfo):
-        log = logging.getLogger('general')
 	NotFoundMsg = "Not Found"
 	Table = Core.Reporter.Render.CreateTable()
 	URLList = []
@@ -46,5 +45,5 @@ def run(Core, PluginInfo):
 			Table.CreateRow(["<br/><pre>"+cgi.escape(Transaction.GetRawResponseBody())+"</pre>"])
 		else:
 			Table.CreateRow([NotFoundMsg])
-			log.info(NotFoundMsg)
+			Log(NotFoundMsg)
 	return Table.Render() + Core.Reporter.DrawHTTPTransactionTable(TransactionList)
