@@ -60,10 +60,9 @@ class Reporter:
 	def CopyAccessoryFiles( self ):
 		TargetOutputDir = self.Core.Config.Get( 'OUTPUT_PATH' )
 		FrameworkDir = self.Core.Config.Get( 'FRAMEWORK_DIR' )
-        	log = logging.getLogger('general')
-        	log.info( "Copying report images .." )
+        	Log( "Copying report images .." )
 		self.Core.Shell.shell_exec( "cp -r " + FrameworkDir + "/images/ " + TargetOutputDir )
-		log.info( "Copying report includes (stylesheet + javascript files).." )
+		Log( "Copying report includes (stylesheet + javascript files).." )
 		self.Core.Shell.shell_exec( "cp -r " + FrameworkDir + "/includes/ " + TargetOutputDir )
 
         def GetPluginDivId( self, Plugin ):
@@ -239,9 +238,8 @@ class Reporter:
 	def ReportFinish( self ): # Group all partial reports (whether done before or now) into the final report
 		Target = self.Core.Config.GetTarget()
 		NumPluginsForTarget = self.Core.DB.PluginRegister.NumPluginsForTarget( Target )
-		log = logging.getLogger('general')
 		if not NumPluginsForTarget > 0:
-			log.info( "No plugins completed for target, cannot generate report" )
+			Log( "No plugins completed for target, cannot generate report" )
 			return None # Must abort here, before report is generated
 		#ReportStart -- Wipe report
 		self.CounterList = []
@@ -358,6 +356,6 @@ class Reporter:
 
 
 			file.write( template.render( vars ) ) # Closing HTML Report
-			log.info( "Report written to: " + self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ) )
+			Log( "Report written to: " + self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ) )
 			self.Core.DB.ReportRegister.Add( self.Core.Config.GetAsList( [ 'REVIEW_OFFSET', 'SUMMARY_HOST_IP', 'SUMMARY_PORT_NUMBER', 'HTML_DETAILED_REPORT_PATH', 'REPORT_TYPE' ] ) ) # Register report
 			self.Summary.ReportFinish() # Build summary report

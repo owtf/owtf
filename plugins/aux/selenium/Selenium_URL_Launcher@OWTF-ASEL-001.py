@@ -31,9 +31,8 @@ DESCRIPTION = "Sends a bunch of URLs through selenium"
 CATEGORIES = [ 'RCE', 'SQLI', 'XSS', 'CHARSET' ] 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-        log = logging.getLogger('general')
     
-	log.info("WARNING: This plugin requires a small selenium installation, please run '"+Core.Config.Get('INSTALL_SCRIPT')+"' if you have issues")
+	Log("WARNING: This plugin requires a small selenium installation, please run '"+Core.Config.Get('INSTALL_SCRIPT')+"' if you have issues")
 	Content = DESCRIPTION + " Results:<br />"
 	for Args in Core.PluginParams.GetArgs( { 
 'Description' : DESCRIPTION,

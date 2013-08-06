@@ -32,11 +32,10 @@ import logging
 
 DESCRIPTION = "Visit URLs found by other tools, some could be sensitive: need permission"
 
-log = logging.getLogger('general')
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 	crap = { 'test' : '1', 'test2' : '2' }
-	log.info("Crap="+str(crap))
+	Log("Crap="+str(crap))
 	return 'test'
 	Count = 0
 	Core.DB.URL.AddURLsStart() # Keep cocunt of URLs
@@ -46,6 +45,6 @@ def run(Core, PluginInfo):
 		Core.Requester.GetTransaction(True, URL) # Use cache if possible
 	Core.DB.URL.AddURLsEnd()
 	Content = str(Count)+" URLs were visited"
-	log.info(Content)
+	Log(Content)
 	return Content
 

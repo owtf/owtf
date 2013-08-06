@@ -31,10 +31,9 @@ import logging
 DESCRIPTION = "Third party resources"
 
 def run(Core, PluginInfo):
-        log = logging.getLogger('general')    
 	#Core.Config.Show()
 	#Vuln search box to be built in core and resued in different plugins:
 	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveSSL'))
-	log.info("Passive links generated for target")
+	Log("Passive links generated for target")
 	return Content
 
