@@ -95,38 +95,113 @@
                      <li class="dropdown-submenu">
                          <a tabindex="-1" href="#">General</a>
                          <ul class="dropdown-menu">
-                             <li><a href="db/errors.txt" target="_blank"> Errors: Not found </a></li>
-                             <li><a href="db/unreachable.txt" target="_blank"> Unreachable targets: No </a></li>
-                             <li><a href="./transaction_log.html" target="_blank"> Transaction Log (HTML) </a></li>
-                             <li><a href="#" target="_blank"> All Downloaded Files - To be implemented </a></li>
-                             <li><a href="transactions/" target="_blank"> All Transactions </a></li>
-                               <li><a href="requests/" target="_blank"> All Requests </a></li>
-                             <li><a href="response_header/" target="_blank"> All Response Headers </a></li>
-                             <li><a href="response_bodies/" target="_blank"> All Response Bodies </a></li>
+									<li><a href="{{ Logs.Errors.link }}" target="_blank">
+										 
+											
+											{% if Logs.Errors.nb %} 
+												<span class="text-error"> Errors found, please report!
+											{% else  %}
+												<span class="text-success"> No errors found
+											{% endif %}
+												
+									    </span>
+									    
+									</a></li>
+									<li>
+									<a href="{{ Logs.Unreachables.link }}" target="_blank">
+										
+											
+											{% if Logs.Unreachables.nb %} 
+												<span class="text-warning"> Unreachable targets!
+											{% else  %}
+												<span class="text-success">  No unreachable targets
+											{% endif %}
+											</span>	
+									    
+									</a></li>
+									<li>
+									<a href="{{ Logs.Transaction_Log_HTML.link }}" target="_blank">
+										<span> 	Transaction Log (HTML) </span>
+									</a></li>
+									<li>
+									<a href="{{ Logs.All_Downloaded_Files.link }}" target="_blank">
+										<span> 	All Downloaded Files - To be implemented </span>
+									</a></li>
+									<li>
+									<a href="{{ Logs.All_Transactions.link }}" target="_blank">
+										<span> All Transactions </span>
+									</a></li>
+									<li>
+									<a href="{{ Logs.All_Requests.link }}"  target="_blank">
+										<span> 	All Requests </span>
+									</a></li>
+									<li>
+									<a href="{{ Logs.All_Response_Headers.link }}"  target="_blank">
+										<span> 	All Response Headers </span>
+									</a></li>
+									<li>
+									<a href="{{ Logs.All_Response_Bodies.link }}" target="_blank">
+										<span> 	All Response Bodies </span>
+									</a></li>
                         </ul>
                         </li>
                      <li class="dropdown-submenu">
                          <a tabindex="-1" href="#">Verified URLs</a>
                          <ul class="dropdown-menu">
-                          <li><a href="db/all_urls.txt"> All URLs </a></li>
-                          <li><a href="db/file_urls.txt" target="_blank"> File URLs </a></li>
-                             <li><a href="db/fuzzable_urls.txt" target="_blank"> Fuzzable URLs</a></li>
-                             <li><a href="db/image_urls.txt"> Image URLs </a></li>
-                              <li><a href="db/error_urls.txt" target="_blank"> Error URLs </a></li>
-                             <li><a href="db/external_urls.txt" target="_blank"> External URLs </a></li>
-                             
-              
+                         			<li>
+									<a href="{{ Urls.All_URLs_link }}"  target="_blank">
+										<span> 	All URLs </span>
+									</a></li>
+									<li>
+									<a href="{{ Urls.File_URLs_link }}"  target="_blank">
+										<span> File URLs </span>
+									</a></li>
+									<li>
+									<a href="{{ Urls.Fuzzable_URLs_link }}"  target="_blank">
+										<span> Fuzzable URLs </span>
+									</a></li>
+									<li>
+									<a href="{{ Urls.Image_URLs_link }}"  target="_blank">
+										<span> 	Image URLs </span>
+									</a></li>
+									<li>
+									<a href="{{ Urls.Error_URLs_link }}"  target="_blank">
+										<span> 	Error URLs </span>
+									</a></li>
+									<li>
+									<a href="{{ Urls.External_URLs_link }}"  target="_blank">
+										<span> 	External URLs </span>
+									</a></li>
                         </ul>
                     </li>
                      <li class="dropdown-submenu">
                          <a tabindex="-1" href="#">Potential URLs</a>
                          <ul class="dropdown-menu">
-                          <li><a href="db/potential_urls.txt"> All URLs </a></li>
-                          <li><a href="db/potential_file_urls.txt" target="_blank"> File URLs </a></li>
-                             <li><a href="db/potential_fuzzable_urls.txt" target="_blank"> Fuzzable URLs</a></li>
-                             <li><a href="db/potential_image_urls.txt"> Image URLs </a></li>
-                              <li><a href="db/potential_error_urls.txt" target="_blank"> Error URLs </a></li>
-                             <li><a href="db/potential_external_urls.txt" target="_blank"> External URLs </a></li>
+											<li>
+											<a href="{{ Urls_Potential.All_URLs_link }}"  target="_blank">
+												<span> 	All URLs </span>
+											</a></li>
+											<li>
+											<a href="{{ Urls_Potential.File_URLs_link }}"  target="_blank">
+												<span> File URLs </span>
+											</a></li>
+											<li>
+											<a href="{{ Urls_Potential.Fuzzable_URLs_link }}"  target="_blank">
+												<span> Fuzzable URLs </span>
+											</a></li>
+											<li>
+											<a href="{{ Urls_Potential.Image_URLs_link }}" target="_blank">
+												<span> 	Image URLs </span>
+											</a></li>
+											<li>
+											<a href="{{ Urls_Potential.Error_URLs_link }}"  target="_blank">
+												<span> 	Error URLs </span>
+											</a></li>
+											<li>
+											<a href="{{ Urls_Potential.External_URLs_link }}"  target="_blank">
+												<span> 	External URLs </span>
+											</a>
+											</li>
 
                         </ul>
                     </li>
@@ -239,127 +314,6 @@
 								</tr>
 							{% endfor %}
 						</table>
-					<table class="run_log"> 
-						<tr> 
-							<th> General </th> 
-							<th> Verified URLs </th> 
-							<th> Potential URLs </th> 
-						</tr>
-						<tr>
-							<td> 
-								<ul class="default_list">
-									
-								<li><a href="{{ Logs.Errors.link }}" class="button" target="_blank">
-									<span> 
-										
-										{% if Logs.Errors.nb %} 
-											<font color='red'>Errors:Found, please report!</font>
-										{% else  %}
-											Errors: Not found
-										{% endif %}
-											
-								    </span>
-								    
-								</a></li>
-								<li>
-								<a href="{{ Logs.Unreachables.link }}" class="button" target="_blank">
-									<span> 
-										
-										{% if Logs.Unreachables.nb %} 
-											<font color='red'>Unreachable targets: 'Yes!</font>
-										{% else  %}
-											Unreachable targets: No
-										{% endif %}
-											
-								    </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.Transaction_Log_HTML.link }}" class="button" target="_blank">
-									<span> 	Transaction Log (HTML) </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Downloaded_Files.link }}" class="button" target="_blank">
-									<span> 	All Downloaded Files - To be implemented </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Transactions.link }}" class="button" target="_blank">
-									<span> All Transactions </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Requests.link }}" class="button" target="_blank">
-									<span> 	All Requests </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Response_Headers.link }}" class="button" target="_blank">
-									<span> 	All Response Headers </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Response_Bodies.link }}" class="button" target="_blank">
-									<span> 	All Response Bodies </span>
-								</a></li>
-								</ul>
-
-							 </td> 
-							<td> 
-								<ul class="default_list">
-									<li>
-									<a href="{{ Urls.All_URLs_link }}" class="button" target="_blank">
-										<span> 	All URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.File_URLs_link }}" class="button" target="_blank">
-										<span> File URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.Fuzzable_URLs_link }}" class="button" target="_blank">
-										<span> Fuzzable URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.Image_URLs_link }}" class="button" target="_blank">
-										<span> 	Image URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.Error_URLs_link }}" class="button" target="_blank">
-										<span> 	Error URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.External_URLs_link }}" class="button" target="_blank">
-										<span> 	External URLs </span>
-									</a></li>
-									</ul>
-
-							 </td> 
-									<td> 
-										<ul class="default_list">
-											<li>
-											<a href="{{ Urls_Potential.All_URLs_link }}" class="button" target="_blank">
-												<span> 	All URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.File_URLs_link }}" class="button" target="_blank">
-												<span> File URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.Fuzzable_URLs_link }}" class="button" target="_blank">
-												<span> Fuzzable URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.Image_URLs_link }}" class="button" target="_blank">
-												<span> 	Image URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.Error_URLs_link }}" class="button" target="_blank">
-												<span> 	Error URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.External_URLs_link }}" class="button" target="_blank">
-												<span> 	External URLs </span>
-											</a>
-											</li>
-										</ul>
-									 </td> 
-						</tr>
-					</table>
 				</div>
 				<div class="tab-pane" id="filter">
 						<!-- filters -->
