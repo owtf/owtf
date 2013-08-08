@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 $(document).ready(function() { 
 	if (!DetailedReport) {//Summary Report:
 		InitDB() //Working DB only initialised on summary
-		ClickLinkById('tab_filter') //Enable Filter tab by default
 		
 		DisplayCounters(GetWorkReview(), '__SummaryCounters', '')
 		DisplaySelectFilterOptions()

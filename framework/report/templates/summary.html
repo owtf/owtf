@@ -1,126 +1,367 @@
-<html>
-				<head>
-					<title> Summary Report </title>
-					<link rel="stylesheet" href="includes/stylesheet.css" type="text/css">
-					<link rel="stylesheet" href="includes/jquery-ui-1.9m6/themes/base/jquery.ui.all.css">
-				</head>
-			<body style="overflow-x:hidden;">
-						<div style="display: inline; align: left"> <h2>Summary Report</h2>' </div>
-						<div style="position: absolute; top: 6px; right: 6px; float: right">
-							<table class="report_intro"> 
-								<tr>
-									<th> Seed </th> 
-									<th> Review Size </th> 
-									<th> Total Size </th> 
-									<th> Version </th> 
-									<th> Release </th> 
-									<th> Site </th> 
-								</tr>	
-								<tr>
-									<td> <span id="seed"> {{ Seed }} </span></td> 
-									<td><div id="js_db_size" style="float:left; display: inline; padding-top: 7px"></div><div style="float:right; inline"> <a href="includes/help/help.html#ReviewSize" target="_blank">
-												<img src="images/help.png" title="In Firefox localStorage is configurable: 1) Go to: 'about:config' 2) Search for 'dom.storage.default_quota' (value in KB, see: http://arty.name/localstorage.html)">
-									</a>				 </div></td> 
-									<td> <div id="total_js_db_size"></div> </td> 
-									<td> {{ Version }} </td> 
-									<td> {{ Release }} </td> 
-									<td> <a href="http://owtf.org" class="button" target="_blank"><span> owtf.org </span></a>			</td> 
-								</tr>				
-							</table>
-						</div>
-				
-					<!-- header tabs -->
-					<ul id="tabs">
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>OWASP OWTF Summary Report</title>
+	    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	    <meta charset="utf-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <meta name="description" content="OWASP OWTF Summary Report">
+	    <meta name="author" content="OWASP OWTF Team">
+	
+	
+	    <!-- styles -->
+	    <link href="includes/css/bootstrap.css" rel="stylesheet">
+	    <link href="includes/css/font-awesome/css/font-awesome.min.css" rel="stylesheet"> 
+	    <link href="includes/css/bootstrap-responsive.css" rel="stylesheet" >
+	    <link href="includes/js/aloha/css/aloha.css" rel="stylesheet" >
+	    
+	    <!-- to remove # old style -->
+	    <link rel="stylesheet" href="includes/stylesheet.css" type="text/css"> 
+	    
+	    <style>
+	    .nav-tabs-container {
+	                            padding: 3px;
+	                            border: 1px solid @grayLight;
+	                            .border-radius(4px);
+	                        }
+	    </style>
+	</head>
+			<body class="container">
+		<!-- start page header -->
+	    <div class="page-header">
+	    	<h2>
+	    		<a href="http://www.owtf.org" >
+	    			<img src="includes/img/OWASP%20OWTF%20LOGO.png" class="img-rounded" alt="OWASP OWTF">
+	    		</a> 
+	    		Summary Report 
+	    		<small>
+				Version <sup>{{ Version }}<span class="icon-info-sign" id="info"  rel="tooltip" data-original-title="{{ Release }}"  data-trigger="hover" data-html="true" data-placement="right"></span></sup>
+	    		, Seed <sup><span id="seed"> {{ Seed }} </span></sup></small>
+	    		<a class="btn btn-info pull-right filter disabled" href="#" rel="tooltip" data-original-title="Help!" data-placement="bottom"><i class="icon-question-sign icon-light"></i></a>
+	    	</h2>
+	    </div>
+		<!-- end page header -->
+		
+		
+			<!--  navbar row-->
+         <div class="row">
+         	 <div class="span12">
+         	   <div class="row-fluid">
+
+	   				 <div class="navbar navbar-inverse" >
+		    <div class="navbar-inner">
+		    <a class="brand" href="#">Summary</a>
+		    <ul class="nav">
+		    <li class="active"><a href="#main" data-toggle="tab">Home</a></li>
+		    <li class=""><a href="#filter" data-toggle="tab">Browse</a></li>
+            <li><a href="#review" data-toggle="tab">Review</a></li>
+            
+           <li class="divider-vertical"></li>
+           	<!--	  
+           		   <li class="dropdown">
+               				 <a class="dropdown-toggle"
+             					   data-toggle="dropdown"
+            				    href="#">
+            				    Targets (4)
+               				 <b class="caret"></b>
+              				  </a>
+              				  <ul class="dropdown-menu">
+              					<li><a> 193.168.77.199</a></li>
+              					</ul>
+              			</li>
+             <li class="dropdown">
+               				 <a class="dropdown-toggle"
+             					   data-toggle="dropdown"
+            				    href="#">
+            				    Plugins (23)
+               				 <b class="caret"></b>
+              				  </a>
+              				  <ul class="dropdown-menu">
+              					<li><a> OWASP-IG-005 <small>Application Discovery</small></a></li>
+              					</ul>
+              			</li>
+              -->
+              			
+      
+              <li class="divider-vertical"></li>
+             <li class="dropdown">
+                <a class="dropdown-toggle"
+                data-toggle="dropdown"
+                href="#">
+                Logs
+                <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">General</a>
+                         <ul class="dropdown-menu">
+                             <li><a href="db/errors.txt" target="_blank"> Errors: Not found </a></li>
+                             <li><a href="db/unreachable.txt" target="_blank"> Unreachable targets: No </a></li>
+                             <li><a href="./transaction_log.html" target="_blank"> Transaction Log (HTML) </a></li>
+                             <li><a href="#" target="_blank"> All Downloaded Files - To be implemented </a></li>
+                             <li><a href="transactions/" target="_blank"> All Transactions </a></li>
+                               <li><a href="requests/" target="_blank"> All Requests </a></li>
+                             <li><a href="response_header/" target="_blank"> All Response Headers </a></li>
+                             <li><a href="response_bodies/" target="_blank"> All Response Bodies </a></li>
+                        </ul>
+                        </li>
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Verified URLs</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="db/all_urls.txt"> All URLs </a></li>
+                          <li><a href="db/file_urls.txt" target="_blank"> File URLs </a></li>
+                             <li><a href="db/fuzzable_urls.txt" target="_blank"> Fuzzable URLs</a></li>
+                             <li><a href="db/image_urls.txt"> Image URLs </a></li>
+                              <li><a href="db/error_urls.txt" target="_blank"> Error URLs </a></li>
+                             <li><a href="db/external_urls.txt" target="_blank"> External URLs </a></li>
+                             
+              
+                        </ul>
+                    </li>
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Potential URLs</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="db/potential_urls.txt"> All URLs </a></li>
+                          <li><a href="db/potential_file_urls.txt" target="_blank"> File URLs </a></li>
+                             <li><a href="db/potential_fuzzable_urls.txt" target="_blank"> Fuzzable URLs</a></li>
+                             <li><a href="db/potential_image_urls.txt"> Image URLs </a></li>
+                              <li><a href="db/potential_error_urls.txt" target="_blank"> Error URLs </a></li>
+                             <li><a href="db/potential_external_urls.txt" target="_blank"> External URLs </a></li>
+
+                        </ul>
+                    </li>
+                </ul>
+                        
+            </li>
+             <li class="divider-vertical"></li>
+             <li class="dropdown">
+                <a class="dropdown-toggle"
+                data-toggle="dropdown"
+                href="#">
+                Links
+                <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Exploitation</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="http://hackvertor.co.uk/public" target="_blank"> Hackvertor </a></li>
+                             <li><a href="http://hackarmoury.com/" target="_blank"> Hackarmoury </a></li>
+                             <li><a href="http://www.exploit-db.com/" target="_blank"> ExploitDB </a></li>
+                             <li><a href="http://www.exploitsearch.net/" target="_blank"> ExploitSearch </a></li>
+                             <li><a href="http://www.hakipedia.com/index.php/Hakipedia" target="_blank"> Hackipedia </a></li>
+                        </ul>
+                        </li>
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Methodology</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="https://www.owasp.org/index.php/OWASP_Testing_Guide_v3_Table_of_Contents" target="_blank"> OWASP </a></li>
+                             <li><a href="http://www.pentest-standard.org/index.php/Main_Page" target="_blank"> Pentest Standard </a></li>
+                             <li><a href="http://www.isecom.org/osstmm/"> OSSTMM </a></li>
+              
+                        </ul>
+                    </li>
+                    <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Calculators</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="http://nvd.nist.gov/cvss.cfm?adv&calculator&version=2" target="_blank"> CVSS Advanced </a></li>
+                             <li><a href="http://nvd.nist.gov/cvss.cfm?calculator&version=2" target="_blank"> CVSS Normal </a></li>
+              
+                        </ul>
+                    </li>
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Test/Learn</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="http://blog.taddong.com/2011/10/hacking-vulnerable-web-applications.html" target="_blank"> Taddong </a></li>
+                             <li><a href="http://securitythoughts.wordpress.com/2010/03/22/vulnerable-web-applications-for-learning/" target="_blank"> Securitythoughts </a></li>
+                             <li><a href="http://danielmiessler.com/projects/webappsec_testing_resources/" target="_blank"> Danielmiessler </a></li>
+              
+                        </ul>
+                    </li>
+                    
+                
+                </ul>
+                        
+            </li>
+			<li class="divider-vertical"></li>
+			<li class="dropdown ">
+	                <a class="dropdown-toggle"
+	                data-toggle="dropdown"
+	                href="#">
+	               Skins
+	                <b class="caret  text-info"></b>
+	                </a>
+	                <ul class="dropdown-menu">
+		                <li><a href="#">Default</a></li>
+		                <li><a href="#">Cerulean</a></li>
+		                <li><a href="#">Cyborg</a></li>
+		                <li><a href="#">Readable</a></li>
+		                <li><a href="#">Slate</a></li>
+		                <li><a href="#">Spacelab</a></li>
+		                <li><a href="#">SuperHeroes</a></li>
+		                <li><a href="#">United</a></li>
+	                </ul>
+				</li>
+		    </ul>
+		    </div>
+    	</div>
+
+   	 </div>
+   
+         	
+         	        		</div>
+          </div>
+          <!--  end navbar row -->
+		
+		<!-- start Content -->
+		<div class="row">
+         	<div class="span12">
+        	  <div class="tab-content">
+       		   	<div class="tab-pane active" id="main">
+						<table class="run_log">
+								 <tr>
+				                	<th colspan="5"> Run Log </th>
+				                </tr>
+				                <tr> 
+									<th> Start </th> 
+									<th> End </th> 
+									<th> Runtime </th> 
+									<th> Command </th> 
+									<th> Status </th> 
+								</tr>
+							{% for Start, End, Runtime, Command, Status in RUN_DB  %}
+								<tr> 
+									<td> {{ Start }} </td> 
+									<td	class="alt"> {{ End }} </td> 
+									<td> {{ Runtime }} </td> 
+									<td	class="alt"> {{ Command }} </td> 
+									<td> {{ Status }} </td> 
+								</tr>
+							{% endfor %}
+						</table>
+					<table class="run_log"> 
+						<tr> 
+							<th> General </th> 
+							<th> Verified URLs </th> 
+							<th> Potential URLs </th> 
+						</tr>
+						<tr>
+							<td> 
+								<ul class="default_list">
+									
+								<li><a href="{{ Logs.Errors.link }}" class="button" target="_blank">
+									<span> 
+										
+										{% if Logs.Errors.nb %} 
+											<font color='red'>Errors:Found, please report!</font>
+										{% else  %}
+											Errors: Not found
+										{% endif %}
+											
+								    </span>
+								    
+								</a></li>
+								<li>
+								<a href="{{ Logs.Unreachables.link }}" class="button" target="_blank">
+									<span> 
+										
+										{% if Logs.Unreachables.nb %} 
+											<font color='red'>Unreachable targets: 'Yes!</font>
+										{% else  %}
+											Unreachable targets: No
+										{% endif %}
+											
+								    </span>
+								</a></li>
+								<li>
+								<a href="{{ Logs.Transaction_Log_HTML.link }}" class="button" target="_blank">
+									<span> 	Transaction Log (HTML) </span>
+								</a></li>
+								<li>
+								<a href="{{ Logs.All_Downloaded_Files.link }}" class="button" target="_blank">
+									<span> 	All Downloaded Files - To be implemented </span>
+								</a></li>
+								<li>
+								<a href="{{ Logs.All_Transactions.link }}" class="button" target="_blank">
+									<span> All Transactions </span>
+								</a></li>
+								<li>
+								<a href="{{ Logs.All_Requests.link }}" class="button" target="_blank">
+									<span> 	All Requests </span>
+								</a></li>
+								<li>
+								<a href="{{ Logs.All_Response_Headers.link }}" class="button" target="_blank">
+									<span> 	All Response Headers </span>
+								</a></li>
+								<li>
+								<a href="{{ Logs.All_Response_Bodies.link }}" class="button" target="_blank">
+									<span> 	All Response Bodies </span>
+								</a></li>
+								</ul>
+
+							 </td> 
+							<td> 
+								<ul class="default_list">
 									<li>
-											<a href="javascript:void(0);" id="tab_filter" 
-													onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');
-															 HideDivs(new Array('filter','review','runlog','logs','exploit', 'methodology','calculators','learn'));
-															 this.className = 'selected'; 
-															 ToggleDiv('filter');" >
-												Filter
+									<a href="{{ Urls.All_URLs_link }}" class="button" target="_blank">
+										<span> 	All URLs </span>
+									</a></li>
+									<li>
+									<a href="{{ Urls.File_URLs_link }}" class="button" target="_blank">
+										<span> File URLs </span>
+									</a></li>
+									<li>
+									<a href="{{ Urls.Fuzzable_URLs_link }}" class="button" target="_blank">
+										<span> Fuzzable URLs </span>
+									</a></li>
+									<li>
+									<a href="{{ Urls.Image_URLs_link }}" class="button" target="_blank">
+										<span> 	Image URLs </span>
+									</a></li>
+									<li>
+									<a href="{{ Urls.Error_URLs_link }}" class="button" target="_blank">
+										<span> 	Error URLs </span>
+									</a></li>
+									<li>
+									<a href="{{ Urls.External_URLs_link }}" class="button" target="_blank">
+										<span> 	External URLs </span>
+									</a></li>
+									</ul>
+
+							 </td> 
+									<td> 
+										<ul class="default_list">
+											<li>
+											<a href="{{ Urls_Potential.All_URLs_link }}" class="button" target="_blank">
+												<span> 	All URLs </span>
+											</a></li>
+											<li>
+											<a href="{{ Urls_Potential.File_URLs_link }}" class="button" target="_blank">
+												<span> File URLs </span>
+											</a></li>
+											<li>
+											<a href="{{ Urls_Potential.Fuzzable_URLs_link }}" class="button" target="_blank">
+												<span> Fuzzable URLs </span>
+											</a></li>
+											<li>
+											<a href="{{ Urls_Potential.Image_URLs_link }}" class="button" target="_blank">
+												<span> 	Image URLs </span>
+											</a></li>
+											<li>
+											<a href="{{ Urls_Potential.Error_URLs_link }}" class="button" target="_blank">
+												<span> 	Error URLs </span>
+											</a></li>
+											<li>
+											<a href="{{ Urls_Potential.External_URLs_link }}" class="button" target="_blank">
+												<span> 	External URLs </span>
 											</a>
-									</li>
-									<li>
-											<a href="javascript:void(0);" id="tab_review" 
-													onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');
-															 HideDivs(new Array('filter','review','runlog','logs','exploit', 'methodology','calculators','learn'));
-															 this.className = 'selected'; 
-															 ToggleDiv('review');" >
-												Review
-											</a>
-									</li>
-									<li>
-											<a href="javascript:void(0);" id="tab_runlog" 
-													onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');
-															 HideDivs(new Array('filter','review','runlog','logs','exploit', 'methodology','calculators','learn'));
-															 this.className = 'selected'; 
-															 ToggleDiv('runlog');" >
-												History
-											</a>
-									</li>
-									<li>
-											<a href="javascript:void(0);" id="tab_logs"
-													onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');
-															 HideDivs(new Array('filter','review','runlog','logs','exploit', 'methodology','calculators','learn'));
-															 this.className = 'selected'; 
-															 ToggleDiv('logs');" >
-												Logs
-											</a>
-									</li>
-									<li>
-											Miscelaneous
-									</li>
-									<li>
-											<a href="javascript:void(0);" id="tab_exploit"
-													onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');
-															 HideDivs(new Array('filter','review','runlog','logs','exploit', 'methodology','calculators','learn'));
-															 this.className = 'selected'; 
-															 ToggleDiv('exploit');" >
-												Exploitation
-											</a>
-									</li>
-									<li>
-											<a href="javascript:void(0);" id="tab_methodology"
-													onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');
-															 HideDivs(new Array('filter','review','runlog','logs','exploit', 'methodology','calculators','learn'));
-															 this.className = 'selected'; 
-															 ToggleDiv('methodology');" >
-												Methodology
-											</a>
-									</li>
-									<li>
-											<a href="javascript:void(0);" id="tab_calculators"
-													onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');
-															 HideDivs(new Array('filter','review','runlog','logs','exploit', 'methodology','calculators','learn'));
-															 this.className = 'selected'; 
-															 ToggleDiv('calculators');" >
-												Calculators
-											</a>
-									</li>
-									<li>
-											<a href="javascript:void(0);" id="tab_learn"
-													onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');
-															 HideDivs(new Array('filter','review','runlog','logs','exploit', 'methodology','calculators','learn'));
-															 this.className = 'selected'; 
-															 ToggleDiv('learn');" >
-												Test/Learn
-											</a>
-									</li>
-									<li class="icon">
-										<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('filter','review','runlog','logs','exploit','methodology','calculators','learn'));SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');" target="">
-											<span><img src="images/plus_gray16x16.png" title="Expand Plugins"></span>
-										</a>&nbsp;
-										<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('filter','review','runlog','logs','exploit','methodology','calculators','learn'));SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');" target="">
-											<span><img src="images/minus_gray16x16.png" title="Close Plugins"></span></a>
-									    <a href="javascript:void(0);" style="display: none;" class="icon_unfilter" onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');UnfilterBrotherTabs(this)" target="">
-									    <span>&nbsp;<img src="images/info24x24.png" title="Show all plugins under this test item"></span>
-									    </a>
-									</li>
-					</ul>
-					
-					<!-- end header tabs-->
-				<div class="iframe_padding"></div>
-				<div id="filter" class="tabContent" style="display:none">
+											</li>
+										</ul>
+									 </td> 
+						</tr>
+					</table>
+				</div>
+				<div class="tab-pane" id="filter">
 						<!-- filters -->
 						<div style="display:inline;">
 							<table class="counter"> 
@@ -313,10 +554,51 @@
 													</tr>
 												</table>
 							</div>
-						</div>
 
+					</div>
+						<!-- NetMap -->
+			<ul class="ip_list">
+				{% for IPInfo in IPs %}
+					<li>
+					<div id="{{ IPInfo.IP|e }}"> {{ IPInfo.IP|e }} </div>
+					<ul  class="port_list">
+			    		{% for PortInfo in IPInfo.Ports %}
+			    			<li>
+								<div id="{{ PortInfo.Port|e }}"> {{ PortInfo.Port|e }} </div>
+								{% if PortInfo.UnReachable %}
+									<strike>Port unreachable</strike>
+								{% else %}
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+											<ul class='review_offset_list'>
+									    		{% for Offset in PortInfo.Offsets %}
+									    			<li>
+									    				<a name="anchor_{{ Offset.ReviewOffset }}">
+									    					<iframe id="iframe_{{ Offset.ReviewOffset }}" src="{{ Offset.ReviewPath }}" width= '100%' height = "{{ COLLAPSED_REPORT_SIZE }}"  frameborder = '0' class = 'iframe_collapsed' >
+																Your browser does not support iframes
+															</iframe>
+														</a>
+														<div id="ip_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ IPInfo.IP }}</div>
+														<div id="port_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ PortInfo.Port }}</div>
+									    			</li>
+									    		{% endfor %}
+											</ul>
+								{% endif %}
+							</li>
+			    		{% endfor %}
+					</ul>
+					</li>
+				{% endfor %}
+			</ul>
+			<!-- end NetMap -->
+			<!-- start AUX -->
+			{% if AuxInfo.AuxSearch|count %}
+				<a href="{{ AuxInfo.AuxLink }}" class='report_index'>
+					<span> Auxiliary Plugins </span>
+				</a>
+			{% endif %}
+			<!-- end AUX -->
 				</div>
-				<div id="review" class="tabContent" style="display:none">
+				<div class="tab-pane" id="review">
 					<ul id="tabs">
 						<li>
 								<a href="javascript:void(0);" id="tab_review_import_export" target=""
@@ -389,9 +671,8 @@
 									<li><a href="javascript:void(0);" class="button" onclick="DeleteStorage();">
 										<span> Delete ALL Reviews </span>
 									</a></li>
-								</ul>
 					</div>
-					&nbsp;
+						&nbsp;
 					<div id="review_miscelaneous" class="tabContent" style="display:none">
 								<ul class="default_list">
 									<li><a href="javascript:void(0);" class="button" onclick="ShowUsedMem();">
@@ -408,272 +689,55 @@
 									</a>
 								</ul>
 					</div>
-				</div>
-				<div id="runlog" class="tabContent" style="display:none">
-					<table class="run_log">
-							 <tr>
-			                	<th colspan="5"> Run Log </th>
-			                </tr>
-			                <tr> 
-								<th> Start </th> 
-								<th> End </th> 
-								<th> Runtime </th> 
-								<th> Command </th> 
-								<th> Status </th> 
-							</tr>
-						{% for Start, End, Runtime, Command, Status in RUN_DB  %}
-							<tr> 
-								<td> {{ Start }} </td> 
-								<td	class="alt"> {{ End }} </td> 
-								<td> {{ Runtime }} </td> 
-								<td	class="alt"> {{ Command }} </td> 
-								<td> {{ Status }} </td> 
-							</tr>
-						{% endfor %}
-					</table>
-				</div>
-				<div id="logs" class="tabContent" style="display:none">
-					<table class="run_log"> 
-						<tr> 
-							<th> General </th> 
-							<th> Verified URLs </th> 
-							<th> Potential URLs </th> 
-						</tr>
-						<tr>
-							<td> 
-								<ul class="default_list">
-									
-								<li><a href="{{ Logs.Errors.link }}" class="button" target="_blank">
-									<span> 
-										
-										{% if Logs.Errors.nb %} 
-											<font color='red'>Errors:Found, please report!</font>
-										{% else  %}
-											Errors: Not found
-										{% endif %}
-											
-								    </span>
-								    
-								</a></li>
-								<li>
-								<a href="{{ Logs.Unreachables.link }}" class="button" target="_blank">
-									<span> 
-										
-										{% if Logs.Unreachables.nb %} 
-											<font color='red'>Unreachable targets: 'Yes!</font>
-										{% else  %}
-											Unreachable targets: No
-										{% endif %}
-											
-								    </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.Transaction_Log_HTML.link }}" class="button" target="_blank">
-									<span> 	Transaction Log (HTML) </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Downloaded_Files.link }}" class="button" target="_blank">
-									<span> 	All Downloaded Files - To be implemented </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Transactions.link }}" class="button" target="_blank">
-									<span> All Transactions </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Requests.link }}" class="button" target="_blank">
-									<span> 	All Requests </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Response_Headers.link }}" class="button" target="_blank">
-									<span> 	All Response Headers </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Response_Bodies.link }}" class="button" target="_blank">
-									<span> 	All Response Bodies </span>
-								</a></li>
-								</ul>
-
-							 </td> 
-							<td> 
-								<ul class="default_list">
-									<li>
-									<a href="{{ Urls.All_URLs_link }}" class="button" target="_blank">
-										<span> 	All URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.File_URLs_link }}" class="button" target="_blank">
-										<span> File URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.Fuzzable_URLs_link }}" class="button" target="_blank">
-										<span> Fuzzable URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.Image_URLs_link }}" class="button" target="_blank">
-										<span> 	Image URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.Error_URLs_link }}" class="button" target="_blank">
-										<span> 	Error URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.External_URLs_link }}" class="button" target="_blank">
-										<span> 	External URLs </span>
-									</a></li>
-									</ul>
-
-							 </td> 
-									<td> 
-										<ul class="default_list">
-											<li>
-											<a href="{{ Urls_Potential.All_URLs_link }}" class="button" target="_blank">
-												<span> 	All URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.File_URLs_link }}" class="button" target="_blank">
-												<span> File URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.Fuzzable_URLs_link }}" class="button" target="_blank">
-												<span> Fuzzable URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.Image_URLs_link }}" class="button" target="_blank">
-												<span> 	Image URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.Error_URLs_link }}" class="button" target="_blank">
-												<span> 	Error URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.External_URLs_link }}" class="button" target="_blank">
-												<span> 	External URLs </span>
-											</a>
-											</li>
-										</ul>
-									 </td> 
-						</tr>
-					</table>
-				</div>
-				<div id="exploit" class="tabContent" style="display:none">
-					<ul class="default_list">
-						<li>
-						<a href="http://hackvertor.co.uk/public" class="button" target="_blank">
-							<span> Hackvertor </span>
-						</a></li>
-						<li>
-						<a href="http://hackarmoury.com/" class="button" target="_blank">
-							<span> Hackarmoury </span>
-						</a></li>
-						<li>
-						<a href="http://www.exploit-db.com/" class="button" target="_blank">
-							<span> ExploitDB </span>
-						</a></li>
-						<li>
-						<a href="http://www.exploitsearch.net" class="button" target="_blank">
-							<span> ExploitSearch </span>
-						</a></li>
-						<li>
-						<a href="http://www.hakipedia.com/index.php/Hakipedia" class="button" target="_blank">
-							<span> hackipedia </span>
-						</a></li>
-					</ul>
-				</div>	
-				<div id="methodology" class="tabContent" style="display:none">
-					<ul class="default_list">
-					<li>
-						<a href="https://www.owasp.org/index.php/OWASP_Testing_Guide_v3_Table_of_Contents" class="button" target="_blank">
-							<span> OWASP </span>
-						</a></li>
-					<li>
-						<a href="http://www.pentest-standard.org/index.php/Main_Page" class="button" target="_blank">
-							<span> Pentest Standard </span>
-						</a></li>
-					<li>
-						<a href="http://www.isecom.org/osstmm/" class="button" target="_blank">
-							<span> OSSTMM </span>
-						</a></li>
-					</ul>
-				</div>
-			
-				<div id="calculators" class="tabContent" style="display:none">
-					<ul class="default_list">
-						<li><a href="http://nvd.nist.gov/cvss.cfm?adv&calculator&version=2" class="button" target="_blank">
-							<span> CVSS Advanced </span>
-						</a></li><li>
-						<a href="http://nvd.nist.gov/cvss.cfm?calculator&version=2" class="button" target="_blank">
-							<span> CVSS Normal </span>
-						</a></li>
-					</ul>
-				</div>		
-				<div id="learn" class="tabContent" style="display:none">
-					<ul class="default_list">
-						<li><a href="http://blog.taddong.com/2011/10/hacking-vulnerable-web-applications.html" class="button" target="_blank">
-							<span> Taddong </span>
-						</a></li>
-						<li>
-							<a href="http://securitythoughts.wordpress.com/2010/03/22/vulnerable-web-applications-for-learning/" class="button" target="_blank">
-							<span> Securitythoughts </span>
-						</a></li>
-						<li>
-						<a href="http://danielmiessler.com/projects/webappsec_testing_resources/" class="button" target="_blank">
-							<span> Danielmiessler </span>
-						</a></li>
-					</ul>
-				</div>		
+			  </div>
+			</div>
+		</div>
+		<!-- end Content -->
 
 
-			<!-- NetMap -->
-			<ul class="ip_list">
-				{% for IPInfo in IPs %}
-					<li>
-					<div id="{{ IPInfo.IP|e }}"> {{ IPInfo.IP|e }} </div>
-					<ul  class="port_list">
-			    		{% for PortInfo in IPInfo.Ports %}
-			    			<li>
-								<div id="{{ PortInfo.Port|e }}"> {{ PortInfo.Port|e }} </div>
-								{% if PortInfo.UnReachable %}
-									<strike>Port unreachable</strike>
-								{% else %}
-									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-											<ul class='review_offset_list'>
-									    		{% for Offset in PortInfo.Offsets %}
-									    			<li>
-									    				<a name="anchor_{{ Offset.ReviewOffset }}">
-									    					<iframe id="iframe_{{ Offset.ReviewOffset }}" src="{{ Offset.ReviewPath }}" width= '100%' height = "{{ COLLAPSED_REPORT_SIZE }}"  frameborder = '0' class = 'iframe_collapsed' >
-																Your browser does not support iframes
-															</iframe>
-														</a>
-														<div id="ip_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ IPInfo.IP }}</div>
-														<div id="port_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ PortInfo.Port }}</div>
-									    			</li>
-									    		{% endfor %}
-											</ul>
-								{% endif %}
-							</li>
-			    		{% endfor %}
-					</ul>
-					</li>
-				{% endfor %}
-			</ul>
-			<!-- end NetMap -->
-			<!-- start AUX -->
-			{% if AuxInfo.AuxSearch|count %}
-				<a href="{{ AuxInfo.AuxLink }}" class='report_index'>
-					<span> Auxiliary Plugins </span>
-				</a>
-			{% endif %}
-			<!-- end AUX -->
+		
+
+
+	    <!-- Placed at the end of the document so the pages load faster -->
+	    <script src="includes/js/jquery.js"></script>
+	    <script src="includes/js/bootstrap.js"></script>
+	    
+	        <script>
+			  /*
+	        	$('#tooltip').tooltip();
+			    $('#tooltip2').tooltip();
+			    $('#tooltip3').tooltip();
+			    $('#tooltip4').tooltip();
+			    $('#tooltip5').tooltip();
+			    $('#tooltip6').tooltip();
+			    $('#tooltip7').tooltip();
+			    $('#tooltip8').tooltip();
+			    $('#tooltip9').tooltip();
+			    $('#tooltip10').tooltip();
+			    $('#tooltip11').tooltip();
+			  */
+			   // $('#tooltip12').tooltip();
+			   // $('#myTab a:first').tab('show');
+			   //  $('#myTab2 a:first').tab('show');
+			   // $('#sidebar').affix();
+			   // $('body').scrollspy({ target: '#sidebar' });
+			   // $("#info").tooltip();
+			   // $(".filter").tooltip();
+			   // $("#refresh").tooltip();
+			   // $("#more_options").tooltip();
+			</script>
+	    
+	    <!--  old javascript files -->
 		<script>
-		var DetailedReport = false
-		var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
-		var CollapsedReportSize = '{{ COLLAPSED_REPORT_SIZE }}'
-		var NetMap = {{ JsonNetMap }}
-		var PluginDelim = '{{ PLUGIN_DELIM }}'
-		var SeverityWeightOrder = new Array('bonus_red','flag_violet','flag_red','flag_yellow','flag_blue','bug')
-		var PassedTestIcons = new Array('check_green')
-</script>
-					<script type="text/javascript" src="includes/jquery-1.6.4.js"></script>
+				var DetailedReport = false
+				var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
+				var CollapsedReportSize = '{{ COLLAPSED_REPORT_SIZE }}'
+				var NetMap = {{ JsonNetMap }}
+				var PluginDelim = '{{ PLUGIN_DELIM }}'
+				var SeverityWeightOrder = new Array('bonus_red','flag_violet','flag_red','flag_yellow','flag_blue','bug')
+				var PassedTestIcons = new Array('check_green')
+		</script>
+					<!-- overriden <script type="text/javascript" src="includes/jquery-1.6.4.js"></script> -->
 					<script type="text/javascript" src="includes/owtf_general.js"></script>
 					<script type="text/javascript" src="includes/owtf_review.js"></script>
 					<script type="text/javascript" src="includes/owtf_filter.js"></script>
