@@ -55,9 +55,9 @@
 		    <li class="active"><a href="#main" data-toggle="tab">Home</a></li>
 		    <li class=""><a href="#filter" data-toggle="tab">Browse</a></li>
             <li><a href="#review" data-toggle="tab">Review</a></li>
-            
+            	<!--
            <li class="divider-vertical"></li>
-           	<!--	  
+           	  
            		   <li class="dropdown">
                				 <a class="dropdown-toggle"
              					   data-toggle="dropdown"
@@ -273,8 +273,6 @@
 		                <li><a href="#">Readable</a></li>
 		                <li><a href="#">Slate</a></li>
 		                <li><a href="#">Spacelab</a></li>
-		                <li><a href="#">SuperHeroes</a></li>
-		                <li><a href="#">United</a></li>
 	                </ul>
 				</li>
 		    </ul>
@@ -293,27 +291,97 @@
          	<div class="span12">
         	  <div class="tab-content">
        		   	<div class="tab-pane active" id="main">
-						<table class="run_log">
-								 <tr>
-				                	<th colspan="5"> Run Log </th>
-				                </tr>
-				                <tr> 
-									<th> Start </th> 
-									<th> End </th> 
-									<th> Runtime </th> 
-									<th> Command </th> 
-									<th> Status </th> 
-								</tr>
-							{% for Start, End, Runtime, Command, Status in RUN_DB  %}
-								<tr> 
+						
+				<div class="row-fluid">
+          		   <div class="span7">
+		          		<h3>Status <small class="text-info">Running...</small></h3>
+		          		
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-terminal icon-light"></i></span> <strong>Current Command: </strong>owtf.py -f -3 www.esi.dz</div>
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-screenshot icon-light"></i></span> <strong>Current Target: </strong>123.19.29.23</div>
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-stethoscope icon-light"></i></span> <strong>Current plugin: </strong>plugin_name</div>
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-spinner icon-light"></i></span> <strong>Completion rate: </strong>0/1 targets - 11/24 plugins</div>
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-time icon-light"></i></span> <strong>Running time: </strong> 1h 23m 33s</div>
+		          			          		
+		          		<h3> History </h3>
+		          				    <table class="table table-bordered table-striped table-hover">
+					<thead>
+						<tr>
+							<th> N° </th>
+							<th> COMMAND </th>
+							<th> START </th>
+							<th> END </th>
+							<th> RUNTIME </th>
+							<th> STATUS </th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for Start, End, Runtime, Command, Status in RUN_DB  %}
+								<tr class=""> 
+									<td> {{ loop.index }} </td>
 									<td> {{ Start }} </td> 
-									<td	class="alt"> {{ End }} </td> 
+									<td> {{ End }} </td> 
 									<td> {{ Runtime }} </td> 
-									<td	class="alt"> {{ Command }} </td> 
+									<td> {{ Command }} </td> 
 									<td> {{ Status }} </td> 
 								</tr>
-							{% endfor %}
-						</table>
+						{% endfor %}
+						<!-- 
+						<tr class="text-warning">
+							<td>3</td>
+							<td>owtf.py www.esi.dz</td>
+							<td> 16/06/2013-18:40 </td>
+							<td> 16/06/2013-18:42 </td>
+							<td>2m, 14s, 478ms</td>
+							<td>Aborted by user</td>
+						</tr>
+						<tr class="text-success">
+							<td>2</td>
+							<td>owtf.py www.esi.dz</td>
+							<td> 16/06/2013-18:40 </td>
+							<td> 16/06/2013-18:42 </td>
+							<td>2m, 14s, 478ms</td>
+							<td>Completed</td>
+						</tr>
+						<tr class="text-error">
+							<td>1</td>
+							<td>owtf.py www.esi.dz</td>
+							<td> 16/06/2013-18:40 </td>
+							<td> 16/06/2013-18:42 </td>
+							<td>2m, 14s, 478ms</td>
+							<td>Crashed</td>
+						</tr>
+						 -->
+					</tbody>
+   				 </table>
+		
+		          		<h3> Stats </h3>
+		          		+analysin stats
+		          		+review stats
+		          		<hr/>
+		          
+		          		
+		          	</div>
+		          	<div class="span5">
+		          		<div class="well well-small"> 
+		          			<h3><i class="icon-screenshot"></i> Targets <small>(4)</small> </h3>
+		          			<ul>
+		          				<li><a href="link_to_target">193.28.32.121</a></li>
+		          				<li><a href="link_to_target">193.28.32.223</a></li>
+		          				<li><a href="link_to_target">193.28.32.232</a></li>
+		          				<li><a href="link_to_target">193.28.32.11</a></li>
+		          			</ul>
+		          		</div>
+		          	    <div class="well well-small"> 
+			          		<h3><i class="icon-stethoscope"></i> Test Plugins <small>(25)</small></h3>
+			          		    <ul>
+				          		    <li><a href="link_to_plugin">OWASP-IG-01</a>  </li>
+			          				<li><a href="link_to_plugin">OWASP-IG-02</a></li>
+			          				<li><a href="link_to_plugin">OWASP-IG-03</a></li>
+			          				<li><a href="link_to_plugin">OWASP-IG-04</a></li>
+		          				</ul>
+			          	</div>
+		          	</div>
+	            </div>
 				</div>
 				<div class="tab-pane" id="filter">
 						<!-- filters -->
