@@ -10,13 +10,12 @@
 	
 	
 	    <!-- styles -->
-	    <link href="includes/css/bootstrap.css" rel="stylesheet">
+	    <link id="skin_css" href="includes/css/bootstrap.css" rel="stylesheet">
 	    <link href="includes/css/font-awesome/css/font-awesome.min.css" rel="stylesheet"> 
 	    <link href="includes/css/bootstrap-responsive.css" rel="stylesheet" >
 	    <link href="includes/js/aloha/css/aloha.css" rel="stylesheet" >
 	    
-	    <!-- to remove # old style -->
-	    <link rel="stylesheet" href="includes/stylesheet.css" type="text/css"> 
+
 	    
 	    <style>
 	    .nav-tabs-container {
@@ -31,11 +30,12 @@
 	    <div class="page-header">
 	    	<h2>
 	    		<a href="http://www.owtf.org" >
-	    			<img src="includes/img/OWASP%20OWTF%20LOGO.png" class="img-rounded" alt="OWASP OWTF">
+	    			<img src="includes/img/logo_dark.png" class="img-rounded" alt="OWASP_OWTF_LOGO">
 	    		</a> 
 	    		Summary Report 
 	    		<small>
-				Version <sup>{{ Version }}<span class="icon-info-sign" id="info"  rel="tooltip" data-original-title="{{ Release }}"  data-trigger="hover" data-html="true" data-placement="right"></span></sup>
+				Version <sup>{{ Version }}</sup>
+				, Release <sup>{{ Release }}</sup>
 	    		, Seed <sup><span id="seed"> {{ Seed }} </span></sup></small>
 	    		<a class="btn btn-info pull-right filter disabled" href="#" rel="tooltip" data-original-title="Help!" data-placement="bottom"><i class="icon-question-sign icon-light"></i></a>
 	    	</h2>
@@ -267,12 +267,11 @@
 	                <b class="caret  text-info"></b>
 	                </a>
 	                <ul class="dropdown-menu">
-		                <li><a href="#">Default</a></li>
-		                <li><a href="#">Cerulean</a></li>
-		                <li><a href="#">Cyborg</a></li>
-		                <li><a href="#">Readable</a></li>
-		                <li><a href="#">Slate</a></li>
-		                <li><a href="#">Spacelab</a></li>
+  	                    <li><a href="#" onclick="change_skin('default','light');" id="default_skin">Default</a></li>
+						<li><a href="#" onclick="change_skin('cerulean','light');" id="cerulean_skin">Cerulean</a></li>
+						<li><a href="#" onclick="change_skin('cyborg','dark');" id="cyborg_skin">Cyborg</a></li>
+						<li><a href="#" onclick="change_skin('slate','dark');" id="slate_skin">Slate</a></li>
+						<li><a href="#" onclick="change_skin('united','light');" id="united_skin">United</a></li>
 	                </ul>
 				</li>
 		    </ul>
@@ -723,6 +722,7 @@
 	    <!-- Placed at the end of the document so the pages load faster -->
 	    <script src="includes/js/jquery.js"></script>
 	    <script src="includes/js/bootstrap.js"></script>
+	    <script src="includes/js/style_switcher.js"></script>
 	    
 	        <script>
 			  /*

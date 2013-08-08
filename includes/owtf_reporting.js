@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 $(document).ready(function() {
+	GetSkinCookieAndApply(); //change the skin based on the cookie value
 	if (DetailedReport) { //Take weights from parent window:
 		window.SeverityWeightOrder = window.parent.SeverityWeightOrder
 		window.PassedTestIcons = window.parent.PassedTestIcons
