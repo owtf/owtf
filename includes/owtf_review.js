@@ -33,7 +33,7 @@ $(document).ready(function() {
 	if (!DetailedReport) {//Summary Report:
 		InitDB() //Working DB only initialised on summary
 		ClickLinkById('tab_filter') //Enable Filter tab by default
-		UpdateMemoryCounters()
+		
 		DisplayCounters(GetWorkReview(), '__SummaryCounters', '')
 		DisplaySelectFilterOptions()
 	}
@@ -147,13 +147,6 @@ function GetDB() {
 	return FromStr(Storage[Seed])
 }
 
-function UpdateMemoryCounters() {
-	if (DetailedReport) { window.parent.UpdateMemoryCounters() } //Trigger update on parent report
-	else { //Parent report only:
-		GetById('js_db_size').innerHTML = GetDBUsedMemory()+' KB' //Update DB Size on screen
-		GetById('total_js_db_size').innerHTML = GetStorageUsedMemory()+' KB'
-	}
-}
 
 function SaveDB() {
 	Storage = GetStorage()
@@ -162,7 +155,7 @@ function SaveDB() {
 	//Storage[GetSeed()] = ToStr(window.Review)
 	Storage[GetSeed()] = ToStr(GetWorkReview())
 	//alert(ToStr(Storage))
-	UpdateMemoryCounters()
+	
 }
 
 function GetUsedMemory(DB) {
@@ -334,7 +327,7 @@ function ClearReview() {
 		BlankReview()
 		InitDB()
 		ApplyReview()
-		UpdateMemoryCounters()
+		
 	}
 }
 
@@ -344,7 +337,6 @@ function DeleteStorage() {
 		DestroyStorage()
 		InitDB()
 		ApplyReview()
-		UpdateMemoryCounters()
 	}
 }
 
