@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #                     as a part of Google Summer of Code 2013
 '''
 import json as pickle
+import re
 import os
 import hashlib
 from framework.lib.filelock import FileLock
@@ -44,12 +45,25 @@ class CacheHandler(object):
     * .rd files are created here
     """
     
-    def __init__(self, cache_dir, request):
+    def __init__(self, cache_dir, request, cookie_regex, blacklist):
         # Initialized with the root cache directory and HTTP request object
         self.request = request
         self.cache_dir = cache_dir
-        request_mod = request.method + ' ' + request.full_url() + ' ' + request.version
-        request_mod = request_mod + request.body
+        cookie_string = ''
+        try:
+            if blacklist:
+                string_with_spaces = re.sub(cookie_regex, '', self.request.headers['Cookie']).strip()
+                cookie_string = ''.join(string_with_spaces.split(' '))
+            else:
+                cookies_matrix = re.findall(cookie_regex, self.request.headers['Cookie'])
+                for cookie_tuple in cookies_matrix:
+                    for item in cookie_tuple:
+                        if item:
+                            cookie_string += item.strip()
+        except KeyError:
+            pass
+        request_mod = request.method + request.full_url() + request.version
+        request_mod = request_mod + request.body + cookie_string
         
         md5_hash = hashlib.md5()
         md5_hash.update(request_mod)
@@ -133,6 +147,7 @@ class CacheHandler(object):
         # This is the function which is called for every request. If file is not
         # found in cache, then a file lock is created for that and a None is
         # returned.
+        """
         self.file_lock = FileLock(self.file_path)
         self.file_lock.acquire()
         """
@@ -148,7 +163,6 @@ class CacheHandler(object):
                 return(self.create_response_object())
             else:
                 return None
-        """
 
 class DummyResponse(object):
     """
