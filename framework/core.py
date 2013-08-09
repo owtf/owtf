@@ -136,11 +136,23 @@ class Core:
                 os.makedirs(transaction_db_path)
             for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body']:
                 os.mkdir(os.path.join(transaction_db_path, folder_name))
+            if self.Config.Get('COOKIES_BLACKLIST_NATURE'):
+                regex_cookies_list = [ cookie + "=([^;]+;?)" for cookie in self.Config.Get('COOKIES_LIST') ]
+                regex_string = '|'.join(regex_cookies_list)
+                cookie_regex = re.compile(regex_string)
+                blacklist = True
+            else:
+                regex_cookies_list = [ "(" + cookie + "=[^;]+;?)" for cookie in self.Config.Get('COOKIES_LIST') ]
+                regex_string = '|'.join(regex_cookies_list)
+                cookie_regex = re.compile(regex_string)
+                blacklist = False
+            cookie_filter = {'BLACKLIST':blacklist, 'REGEX':cookie_regex}
             self.ProxyProcess = proxy.ProxyProcess(
                                                     self.Config.Get('INBOUND_PROXY_PROCESSES'),
                                                     InboundProxyOptions,
                                                     transaction_db_path,
                                                     self.Config.Get('INBOUND_PROXY_SSL'),
+                                                    cookie_filter,
                                                     Options['OutboundProxy'],
                                                     Options['OutboundProxyAuth'],
                                                   )
@@ -232,7 +244,8 @@ class Core:
         if self.Config.Get('SIMULATION'):
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
         self.StartProxy(Options)
-        #self.ProxyProcess.join()
+        if self.DevMode:
+            self.ProxyProcess.join()
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
