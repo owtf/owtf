@@ -41,7 +41,7 @@ def run(Core, PluginInfo):
         TestResult += Core.PluginHelper.ProcessRobots(PluginInfo, HTTP_Transaction.GetRawResponseBody(), TopURL, '')
     else: # robots.txt NOT found
 		TestResult += " was NOT found<br />"#<pre>"+cgi.escape(RawResponse)+"</pre>"
-		Log("robots.txt was NOT found")
+		Core.log("robots.txt was NOT found")
     TestResult += Core.Reporter.DrawHTTPTransactionTable([ HTTP_Transaction ])
     return TestResult
 

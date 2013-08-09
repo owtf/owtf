@@ -118,7 +118,7 @@ class PluginHandlerTests(BaseTestCase):
     def test_SavePluginInfo_should_save_to_DB_and_to_the_reporter(self):
         self.core_mock.DB, self.core_mock.Reporter = flexmock(), flexmock()
         self.core_mock.DB.DBHandler = flexmock()
-        self.core_mock.DB.DBHandler.should_receive("SaveDBs").once()
+        self.core_mock.DB.should_receive("SaveDBs").once()
         self.core_mock.Reporter.should_receive("SavePluginReport").once()
 
         self.plugin_handler.SavePluginInfo("PluginOutput", "Plugin")

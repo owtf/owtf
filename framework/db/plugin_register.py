@@ -60,7 +60,7 @@ class PluginRegister:
 			if 'RunTime' not in Plugin:
 				Plugin['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr('Plugin')
 				Plugin['End'] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
-			self.Core.DB.DBHandler.Add('PLUGIN_REPORT_REGISTER', [ Plugin['Code'], Plugin['Type'], Plugin['Group'], Path, Target, Plugin['Args'], self.Core.Config.Get('REVIEW_OFFSET'), Plugin['Start'], Plugin['End'], Plugin['RunTime'] ] )
+			self.Core.DB.Add('PLUGIN_REPORT_REGISTER', [ Plugin['Code'], Plugin['Type'], Plugin['Group'], Path, Target, Plugin['Args'], self.Core.Config.Get('REVIEW_OFFSET'), Plugin['Start'], Plugin['End'], Plugin['RunTime'] ] )
 
 	def Search(self, Criteria):
-		return self.Core.DB.DBHandler.Search('PLUGIN_REPORT_REGISTER', Criteria, NAME_TO_OFFSET)
+		return self.Core.DB.Search('PLUGIN_REPORT_REGISTER', Criteria, NAME_TO_OFFSET)

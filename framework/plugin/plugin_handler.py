@@ -279,7 +279,7 @@ class PluginHandler:
 			Status['SomeAborted'] = True
 		except UnreachableTargetException, PartialOutput:
                         print "I am stucking here??"
-			self.DB.DBHandler.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
+			self.DB.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
 			Status['SomeAborted'] = True
 		except FrameworkAbortException, PartialOutput:
 			self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Framework Exit)", Plugin) # Save the partial output and exit
@@ -356,7 +356,7 @@ class PluginHandler:
 			#			self.ProcessPlugin( PluginDir, Plugin, Status )
 
 	def SavePluginInfo(self, PluginOutput, Plugin):
-		self.Core.DB.DBHandler.SaveDBs() # Save new URLs to DB after each request
+		self.Core.DB.SaveDBs() # Save new URLs to DB after each request
 		self.Core.Reporter.SavePluginReport(PluginOutput, Plugin) # Timer retrieved by Reporter
 
 	def ShowPluginList(self):
