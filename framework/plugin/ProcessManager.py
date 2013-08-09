@@ -207,7 +207,7 @@ class ProcessManager:
         stdscr.refresh()
         height,width = stdscr.getmaxyx()
         stdscr.keypad(1)
-        self.refreshScreen(height, stdscr, selected)
+        i = self.refreshScreen(height, stdscr, selected)
        
         while 1:
             c = stdscr.getch()
@@ -255,9 +255,9 @@ class ProcessManager:
                 return  
                       
 
-        i=0
-        stdscr.clear()
-        self.refreshScreen(height, stdscr, selected)
+            i=0
+            stdscr.clear()
+            i=self.refreshScreen(height, stdscr, selected)
 
     #this function iterates over running plugin list and show it on curses screen
     def refreshScreen(self,height,stdscr,selected):
@@ -276,7 +276,7 @@ class ProcessManager:
             i=i+1    
         stdscr.addstr(height-1,0,"e Exit Owtf\tp Stop Plugin\tt Stop Tests for Target")
         stdscr.refresh()
-    
+        return i
     #This function empties the pending work list and aborts all processes                 
     def exitOwtf(self):
         self.worklist={}

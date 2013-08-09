@@ -68,11 +68,11 @@ class URLManager:
 		return self.IsRegexpURL(URL, self.IsURLRegexp)
 
 	def GetNumURLs(self, DBPrefix = "POTENTIAL_"):
-		return self.Core.DB.DBHandler.GetLength(DBPrefix+'ALL_URLS_DB')
+		return self.Core.DB.GetLength(DBPrefix+'ALL_URLS_DB')
 		#return len(self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'])
 
 	def IsURLAlreadyAdded(self, URL, DBPrefix = ''):
-		return URL in self.Core.DB.DBHandler.GetData(DBPrefix+'ALL_URLS_DB') or URL in self.Core.DB.DBHandler.GetData(DBPrefix+'EXTERNAL_URLS_DB') or URL in self.Core.DB.DBHandler.GetData(DBPrefix+'ERROR_URLS_DB')
+		return URL in self.Core.DB.GetData(DBPrefix+'ALL_URLS_DB') or URL in self.Core.DB.GetData(DBPrefix+'EXTERNAL_URLS_DB') or URL in self.Core.DB.GetData(DBPrefix+'ERROR_URLS_DB')
 		#return URL in self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'] or URL in self.Core.DB.DBCache[DBPrefix+'EXTERNAL_URLS_DB'] or URL in self.Core.DB.DBCache[DBPrefix+'ERROR_URLS_DB']
 
 	def AddURLToDB(self, URL, DBPrefix = '', Found = None):
@@ -87,24 +87,24 @@ class URLManager:
                 		Log(Message)
 				if Found in [ None, True ]:
 					#self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'].append(URL)
-					self.Core.DB.DBHandler.Add(DBPrefix+'ALL_URLS_DB', URL)
+					self.Core.DB.Add(DBPrefix+'ALL_URLS_DB', URL)
 					if self.IsFileURL(URL): # Classify URL for testing later:
 						#self.Core.DB.DBCache[DBPrefix+'FILE_URLS_DB'].append(URL)
-						self.Core.DB.DBHandler.Add(DBPrefix+'FILE_URLS_DB', URL)
+						self.Core.DB.Add(DBPrefix+'FILE_URLS_DB', URL)
 					elif self.IsImageURL(URL):
 						#self.Core.DB.DBCache[DBPrefix+'IMAGE_URLS_DB'].append(URL)
-						self.Core.DB.DBHandler.Add(DBPrefix+'IMAGE_URLS_DB', URL)
+						self.Core.DB.Add(DBPrefix+'IMAGE_URLS_DB', URL)
 					else:
 						#self.Core.DB.DBCache[DBPrefix+'FUZZABLE_URLS_DB'].append(URL)
-						self.Core.DB.DBHandler.Add(DBPrefix+'FUZZABLE_URLS_DB', URL)
+						self.Core.DB.Add(DBPrefix+'FUZZABLE_URLS_DB', URL)
 				else: # Some error code (404, etc)
 					#self.Core.DB.DBCache[DBPrefix+'ERROR_URLS_DB'].append(URL)
-					self.Core.DB.DBHandler.Add(DBPrefix+'ERROR_URLS_DB', URL)
+					self.Core.DB.Add(DBPrefix+'ERROR_URLS_DB', URL)
 			else:
 				Message = "Adding new EXTERNAL URL to EXTERNAL "+DBName+": "+URL
 				Log(Message)
 				#self.Core.DB.DBCache[DBPrefix+'EXTERNAL_URLS_DB'].append(URL)
-				self.Core.DB.DBHandler.Add(DBPrefix+'EXTERNAL_URLS_DB', URL)
+				self.Core.DB.Add(DBPrefix+'EXTERNAL_URLS_DB', URL)
 		return Message
 
 	def AddURL(self, URL, Found = None): # Adds a URL to the relevant DBs if not already added
@@ -116,11 +116,11 @@ class URLManager:
 	def AddURLsStart(self):
 		self.NumURLsBefore = self.GetNumURLs()
 
-	def AddURLsEnd(self):
-		NumURLsAfter = self.GetNumURLs()
-                Message = str(NumURLsAfter-self.NumURLsBefore)+" URLs have been added and classified"
-                Log(Message)
-		return Message
+    	def AddURLsEnd(self):
+        	NumURLsAfter = self.GetNumURLs()
+        	Message = str(NumURLsAfter-self.NumURLsBefore)+" URLs have been added and classified"
+        	Log(Message)
+        	return Message
 
 	def ImportURLs(self, URLList): # Extracts and classifies all URLs passed. Expects a newline separated URL list
 		self.AddURLsStart()

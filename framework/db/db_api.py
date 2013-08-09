@@ -1,4 +1,5 @@
-"""
+#!/usr/bin/env python
+'''
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -24,20 +25,34 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+APIs used for DB
+'''
+from collections import defaultdict
+from framework.lib import *
+import os
+import time
 
-SEMI-PASSIVE Plugin for Testing for Web Application Fingerprint (OWASP-IG-004)
-"""
+class db_api:
+    
+    def __init__(self, Core):
+        self.Core = Core # Need access to reporter for pretty html trasaction log
+        self.function_list = defaultdict(list)
+        #lists of functions for push and pull with expected number of arguments
+        self.function_list['push']= {'Add':{3},'ModifyRecord':{4},'IncreaseSync':{2},'CalcSync':{2},'LoadDB':{2},'SaveDB':{2}
+                      ,'SaveDBs':{0},'SaveDBLine':{3},'AdError':{1}}
+        self.function_list['pull'] = {'GetPath':{1},'Get':{2},'GetData':{2},'GetRecord':{3},'GetRecordAsMatch':{2},
+                 'Search':{3},'GetSyncCount':{2},'GetLength':{2},'IsEmpty':{2},'GetDBNames':{0},'GetNextHTMLID':{0}
+                 ,'ErrorCount':{0},'GetSeed':{0}}
 
-import string, re
-import cgi
-
-DESCRIPTION = "Normal requests to gather fingerprint info"
-
-def run(Core, PluginInfo):
-	#Core.Config.Show()
-	# True = Use Transaction Cache if possible: Visit the start URLs if not already visited
-	TransactionTable = Core.PluginHelper.DrawTransactionTableForURLList(True, Core.Config.GetAsList(['TARGET_URL', 'TOP_URL'])) 
-	Content = Core.PluginHelper.ResearchFingerprintInCore.log() + TransactionTable
-	Content += Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('SemiPassiveFingerPrint'), PluginInfo, Content)
-	return Content
-
+    #check if function is valid or not
+    def is_valid(self,function_name,arguments,response_type):
+        #check if function name is there in list corresponding to response type
+        #if yes then check if number of arguments are expected in numbers
+        if(function_name in self.function_list[response_type]):
+            num_args = len(arguments)
+            if(num_args in self.function_list[response_type].get(function_name)):
+                return True
+        return False
+    
+    
+    #initializes all the queues directories for messagin system     

@@ -73,9 +73,9 @@ def run(Core, PluginInfo):
 				, 'RPORT' : Args['SBD_PORT']
 							  }, PluginInfo)
 		else:
-			Log("Reusing initial connection..")
+			Core.log("Reusing initial connection..")
 		Core.InteractiveShell.Run(Args['COMMAND_PREFIX']+Args['TEST']+Args['COMMAND_SUFIX'])
-		Log("Sleeping " + DELAY_BETWEEN_COMMANDS + " second(s) (increases reliability)..")
+		Core.log("Sleeping " + DELAY_BETWEEN_COMMANDS + " second(s) (increases reliability)..")
 		time.sleep(int(DELAY_BETWEEN_COMMANDS))
 		#Core.RemoteShell.Run("sleep " + str(WAIT_SECONDS))
 		if not REUSE_CONNECTION:
