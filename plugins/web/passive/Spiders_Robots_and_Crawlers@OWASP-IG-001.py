@@ -48,7 +48,7 @@ def run(Core, PluginInfo):
 			Count += 1
 		else: # Not found or unknown request error
 			Message = "could not be retrieved using resource: "+Resource
-			Log(Message)
+			Core.log(Message)
 			#TestResult += Message+".: \n"+cgi.escape(Transaction.GetRawResponse())
 		TestResult += Core.Reporter.DrawHTTPTransactionTable([ Transaction ])
 	return Content+TestResult

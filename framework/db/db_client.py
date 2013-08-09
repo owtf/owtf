@@ -1,4 +1,5 @@
-"""
+#!/usr/bin/env python
+'''
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -25,19 +26,45 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-SEMI-PASSIVE Plugin for Testing for Web Application Fingerprint (OWASP-IG-004)
-"""
+Client to connect with messaging and DB
+'''
+from collections import defaultdict
+from framework.db import db_api
+from framework.lib import *
+from framework.lib.messaging import pull_client
+from framework.lib.messaging import push_client
+import json
+import os
+import time
+from framework.lib.general import CallMethod
 
-import string, re
-import cgi
+class db_client:
+    
+    def __init__(self, Core):
+        self.Core = Core 
+        self.dbapi = db_api.db_api(Core)
+        self.push = push_client.push_client(Core)
+        self.pull = pull_client.pull_client(Core)
 
-DESCRIPTION = "Normal requests to gather fingerprint info"
-
-def run(Core, PluginInfo):
-	#Core.Config.Show()
-	# True = Use Transaction Cache if possible: Visit the start URLs if not already visited
-	TransactionTable = Core.PluginHelper.DrawTransactionTableForURLList(True, Core.Config.GetAsList(['TARGET_URL', 'TOP_URL'])) 
-	Content = Core.PluginHelper.ResearchFingerprintInCore.log() + TransactionTable
-	Content += Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('SemiPassiveFingerPrint'), PluginInfo, Content)
-	return Content
-
+    #this functions sends request to messaging system depending on what is response type(push or pull)
+    def db_send(self,argumentlist,request_type):
+        if request_type=='push':
+            #if it is a push simply push the arguments
+            self.push.file_push(json.dumps(argumentlist))
+        else:
+            #if it is pull request we have to return the result
+            result = self.pull.file_pull(json.dumps(argumentlist))
+            if result:
+                return json.loads(result)
+            return result
+    
+    #callback function which calls DB functions and is invoked by messaging server
+    def db_callback_function(self,data,response_type):
+        message = json.loads(data)
+        function = message['function']
+        args = message['arguments']
+        #checks if function is valid or not
+        if(self.dbapi.is_valid(function, args, response_type)):
+            
+            result = CallMethod(self.Core.DB.DBHandler, function, args)
+            return json.dumps(result)

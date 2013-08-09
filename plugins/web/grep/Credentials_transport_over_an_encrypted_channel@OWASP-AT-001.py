@@ -46,10 +46,10 @@ def run(Core, PluginInfo):
 			IDs.append(ID) # Process each transaction only once
 			Transaction = Core.DB.Transaction.GetByID(ID)
 		if 'https' != Transaction.URL.split(":")[0]:
-			Log("Transaction: "+ID+" contains passwords fields with a URL different than https")
+			Core.log("Transaction: "+ID+" contains passwords fields with a URL different than https")
 			InsecureMatches.append([ID, Transaction.URL+": "+FileMatch]) # Need to make the unique work by URL + password
 	Message = "<br /><u>Total insecure matches: "+str(len(InsecureMatches))+'</u>'
-	Log(Message)
+	Core.log(Message)
 	Content += Message+"<br />"
 	Content += Core.PluginHelper.DrawResponseMatchesTables([Command, RegexpName, InsecureMatches], PluginInfo)
 	return Content

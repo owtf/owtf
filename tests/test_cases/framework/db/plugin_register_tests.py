@@ -15,14 +15,14 @@ class PluginRegisterTests(BaseTestCase):
         self.plugin_register = PluginRegister(self.core_mock)
 
     def test_NumPluginsForTarget_and_AlreadyRegistered_delegate_on_the_DB_Search_engine(self):
-        self.core_mock.DB.DBHandler.should_receive("Search").and_return(["one result"]).times(2)
+        self.core_mock.DB.should_receive("Search").and_return(["one result"]).times(2)
         plugin = self._get_plugin_example()
 
         self.plugin_register.AlreadyRegistered(plugin, "Path", "Target")
         self.plugin_register.NumPluginsForTarget("Target")
 
     def test_Add_uses_the_DB_to_register_a_plugin(self):
-        self.core_mock.DB.DBHandler.should_receive("Add").once()
+        self.core_mock.DB.should_receive("Add").once()
         flexmock(self.plugin_register)
         self.plugin_register.should_receive("AlreadyRegistered").and_return(False)
         plugin = self._get_plugin_example()

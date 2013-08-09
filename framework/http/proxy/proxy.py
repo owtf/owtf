@@ -70,9 +70,10 @@ class ProxyHandler(tornado.web.RequestHandler):
         * Once ssl stream is formed between browser and proxy, the requests are
           then processed by this function
         """
-        # Data for handling headers through a streaming callback
         self.request.response_buffer = ''
-        restricted_headers = ['Content-Length',
+        # Data for handling headers through a streaming callback
+        # Need to work around for something
+        restricted_response_headers = ['Content-Length',
                             'Content-Encoding',
                             'Etag',
                             'Transfer-Encoding',
@@ -90,14 +91,22 @@ class ProxyHandler(tornado.web.RequestHandler):
                 if header == "Set-Cookie":
                     self.add_header(header, value)
                 else:
-                    if header not in restricted_headers:
+                    if header not in restricted_response_headers:
                         self.set_header(header, value)
             if self.request.response_buffer:
                 self.cache_handler.dump(response)
-            # Better handling to be dont to use cached responses
-            #else:
-            #    self.write(response.body)
             self.finish()
+            
+        def handle_cached_response(response):
+            self.set_status(response.code)
+            for header, value in list(response.headers.items()):
+                if header == "Set-Cookie":
+                    self.add_header(header, value)
+                else:
+                    if header not in restricted_response_headers:
+                        self.set_header(header, value)
+            self.write(response.body)
+            self.finish()            
 
         # This function is a callback when a small chunk is received
         def handle_data_chunk(data):
@@ -121,34 +130,40 @@ class ProxyHandler(tornado.web.RequestHandler):
             self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
 
         # This block here checks for already cached response and if present returns one
-        self.cache_handler = CacheHandler(self.application.cache_dir, self.request)
+        self.cache_handler = CacheHandler(
+                                            self.application.cache_dir,
+                                            self.request,
+                                            self.application.cookie_regex,
+                                            self.application.cookie_blacklist
+                                         )
         cached_response = self.cache_handler.load()
-        #if cached_response:
-            #handle_response(cached_response)
         
-        # httprequest object is created and then passed to async client with a callback
-        # pycurl is needed for curl client
-        async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
-        request = tornado.httpclient.HTTPRequest(
-                url=self.request.url,
-                method=self.request.method,
-                body=self.request.body,
-                headers=self.request.headers,
-                follow_redirects=False,
-                use_gzip=True,
-                streaming_callback=handle_data_chunk,
-                header_callback=None,
-                proxy_host=self.application.outbound_ip,
-                proxy_port=self.application.outbound_port,
-                proxy_username=self.application.outbound_username,
-                proxy_password=self.application.outbound_password,
-                allow_nonstandard_methods=True,
-                validate_cert=False)
+        if cached_response:
+            handle_cached_response(cached_response)
+        else:
+            # httprequest object is created and then passed to async client with a callback
+            # pycurl is needed for curl client
+            async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
+            request = tornado.httpclient.HTTPRequest(
+                    url=self.request.url,
+                    method=self.request.method,
+                    body=self.request.body,
+                    headers=self.request.headers,
+                    follow_redirects=False,
+                    use_gzip=True,
+                    streaming_callback=handle_data_chunk,
+                    header_callback=None,
+                    proxy_host=self.application.outbound_ip,
+                    proxy_port=self.application.outbound_port,
+                    proxy_username=self.application.outbound_username,
+                    proxy_password=self.application.outbound_password,
+                    allow_nonstandard_methods=True,
+                    validate_cert=False)
 
-        try:
-            async_client.fetch(request, callback=handle_response)
-        except Exception:
-            pass
+            try:
+                async_client.fetch(request, callback=handle_response)
+            except Exception:
+                pass
 
     # The following 5 methods can be handled through the above implementation
     @tornado.web.asynchronous
@@ -221,7 +236,7 @@ class ProxyHandler(tornado.web.RequestHandler):
 
 class ProxyProcess(Process):
 
-    def __init__(self, instances, inbound_options, cache_dir, ssl_options, outbound_options=[], outbound_auth=""):
+    def __init__(self, instances, inbound_options, cache_dir, ssl_options, cookie_filter, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
         self.application = tornado.web.Application(handlers=[(r".*", ProxyHandler)], debug=False, gzip=True)
         self.application.inbound_ip = inbound_options[0]
@@ -230,6 +245,8 @@ class ProxyProcess(Process):
         self.application.ca_cert = ssl_options['CA_CERT']
         self.application.ca_key = ssl_options['CA_KEY']
         self.application.certs_folder = ssl_options['CERTS_FOLDER']
+        self.application.cookie_blacklist = cookie_filter['BLACKLIST']
+        self.application.cookie_regex = cookie_filter['REGEX']
         if outbound_options:
             self.application.outbound_ip = outbound_options[0]
             self.application.outbound_port = int(outbound_options[1])
@@ -250,7 +267,7 @@ class ProxyProcess(Process):
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
-            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/fix.log","--logging=info"])
+            #tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/fix.log","--logging=info"])
             # To run any number of instances
             self.server.start(int(self.instances))
             tornado.ioloop.IOLoop.instance().start()
