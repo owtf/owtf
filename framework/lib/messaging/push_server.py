@@ -26,20 +26,50 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-The random module allows the rest of the framework to have access to random functionality
+This File is for server who will entertain push requests
 '''
-#import random, string
-import os, base64 
-from framework.lib.general import *
+from collections import defaultdict
+from framework.lib import *
+import os
+import random
+import time
 
-class Random:
-    
+class push_server:
     def __init__(self):
         pass
+    
+    def handle_request(self,callback_function,queue,queue_name="push"):
+        #push server to handle the push requests
+        request_dir = general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name]
         
-    def GetStr(self, Length):
-        return base64.urlsafe_b64encode(os.urandom(Length))[0:Length]
-		#p(random)
- 		#return ''.join(random.choice(string.letters + string.digits) for i in xrange(Length))
-		# import os --> return os.urandom(Length) ---> unicode, messy for http requests
-
+        delay = 0.1
+        
+        general.wait_until_dir_exists(request_dir,delay)
+        while True:
+            if queue.empty()==False:
+                break
+            try:
+                files = general.get_files(request_dir)
+                #while we have files for procesing
+                while len(files)>0:
+                    for full_filename in files:
+                        filen = full_filename.split("/")
+                        filename = filen[len(filen)-1]
+                        #skip lock files
+                        if ".lock" in filename:
+                            continue
+                        #skip_if_locked is True then file is skipped if it is locked
+                        data = general.atomic_read_from_file(request_dir, filename, skip_if_locked=True)
+                        if data:
+                            callback_function(data,"push")
+                            #remove the processed file
+                            os.remove(os.path.join(request_dir,filename))
+                    files = general.get_files(request_dir)
+                #give away cpu
+                time.sleep(delay)
+            except KeyboardInterrupt:
+                break
+            except Exception,e:
+                general.Log("Unexpected Push server error: "+str(e))
+                break
+                   

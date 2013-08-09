@@ -26,301 +26,220 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-This file handles all the database transactions.
+The DB stores HTTP transactions, unique URLs and more. 
 '''
-from framework.logQueue import logQueue
-import json
-import logging
-import multiprocessing
 import os
-import random
-import string
+from collections import defaultdict
+from framework.lib.general import *
+from framework.db import transaction_manager, url_manager, run_manager, command_register, plugin_register, report_register, debug
 
-DB_Handler = '/tmp/owtf/db_handler'
-Request_Folder = DB_Handler+"/request"
-Response_Folder = DB_Handler+"/response"
-file_name_length=50
+FIELD_SEPARATOR = ' || '
 
 class DBHandler:
-        
-    def __init__(self,CoreObj):
-        self.core = CoreObj
-        self.core.Shell.shell_exec("rm -rf "+DB_Handler)
-        self.core.Shell.shell_exec("mkdir /tmp/owtf")
-        self.core.Shell.shell_exec("mkdir "+DB_Handler)
-        self.core.Shell.shell_exec("mkdir "+Request_Folder)
-        self.core.Shell.shell_exec("mkdir "+Response_Folder)
-      
-    def randomnum(self):
-        return ''.join(random.choice(string.lowercase) for x in range(file_name_length))  
-      
-    def dorequest(self,args):
-        content = json.dumps(args)
-        pid = self.randomnum()
-        self.filename = pid
-        filename = Request_Folder+"/"+str(pid)
-        try:
-            while(os.path.exists(filename)==True):
-                pass
-        except KeyboardInterrupt:
-            raise KeyboardInterrupt    
-        #print "requesting "+filename + "writing "+str(args)
-        fo = open(filename, "w+")
-        fo.write(content);
-        fo.close()
+    FieldDBNames = [ 'TRANSACTION_LOG_TXT', 'RUN_DB', 'COMMAND_REGISTER', 'PLUGIN_REPORT_REGISTER', 'DETAILED_REPORT_REGISTER' ] # Field-based DBs
+    LineDBNames = [ 
+# Vetted URL DBs:
+'ALL_URLS_DB', 'ERROR_URLS_DB', 'FILE_URLS_DB', 'IMAGE_URLS_DB', 'FUZZABLE_URLS_DB', 'EXTERNAL_URLS_DB'
+# Potential URL DBs (scraped from other tools):
+, 'POTENTIAL_ALL_URLS_DB', 'POTENTIAL_ERROR_URLS_DB', 'POTENTIAL_FILE_URLS_DB', 'POTENTIAL_IMAGE_URLS_DB', 'POTENTIAL_FUZZABLE_URLS_DB', 'POTENTIAL_EXTERNAL_URLS_DB' 
+# Other DBs:
+, 'TRANSACTION_LOG_HTML', 'ERROR_DB', 'SEED_DB', 'HTMLID_DB', 'DEBUG_DB', 'UNREACHABLE_DB' ] # Line-based DBs
+    # DBs which have rows that could change (most are append-only):
+    EditableRowDBs = [ 'RUN_DB', 'HTMLID_DB' ]
 
-    def getresponse(self):
-        pid = self.filename
-        filename = Response_Folder+"/"+str(pid)
-        try:
-            while(os.path.exists(filename)==False):
-                pass
-            while os.path.getsize(filename)==0:
-                pass
-        except KeyboardInterrupt:
-            raise KeyboardInterrupt    
-        fo = open(filename, "r")
-        content = fo.read()
-        fo.close()
-        #print "deleting response file "+ filename
-        self.core.Shell.shell_exec("rm -rf "+filename)
-        return json.loads(content)
+    def __init__(self, Core):
+        cprint("Loading/Initialising database ..")
+        self.DBNames = sorted(self.FieldDBNames + self.LineDBNames)
+        self.Core = Core # Need access to reporter for pretty html trasaction log
+        self.Storage = defaultdict(list)
     
-    def process_request(self,pid):
-        filename = Request_Folder+"/"+str(pid)
-        #print "reading request "+filename
-        try:
-            while os.path.getsize(filename)==0:
-                pass
-        except KeyboardInterrupt:
-            raise KeyboardInterrupt    
-        fo = open(filename, "r")
-        content = fo.readline()
-        fo.close()
-        #print "request gonne be "+content
-        request = json.loads(content)
-        self.core.Shell.shell_exec("rm -rf "+filename)
-            
-        flag = True
-        function = request[0]
-        #print "function is "+function
-        if function == 'GetFieldSeparator':
-            response = self.core.DB.GetFieldSeparator()
-        elif function == 'GetPath':
-            DBName = request[1]
-            response = self.core.DB.GetPath(DBName)
-        elif function == 'Get':
-            DBName = request[1]
-            Path = request[2]
-            response = self.core.DB.Get(DBName,Path)
-        elif function == 'GetData':
-            DBName = request[1]
-            Path = request[2]
-            response = self.core.DB.GetData(DBName,Path)
-        elif function == 'GetRecord':
-            DBName = request[1]
-            index = request[2]
-            Path = request[3]
-            response = self.core.DB.GetRecord(DBName,index,Path)             
-        elif function == 'ModifyRecord':
-            flag=False
-            DBName = request[1]
-            index = request[2]
-            value = request[3]
-            Path = request[4]
-            response = self.core.DB.ModifyRecord(DBName,index,value,Path)
-        elif function == 'GetRecordAsMatch':
-            Record = request[1]
-            NAME_TO_OFFSET= request[2]
-            response = self.core.DB.GetRecordAsMatch(Record,NAME_TO_OFFSET) 
-        elif function == 'Search':
-            DBName = request[1]   
-            Criteria = request[2]
-            NAME_TO_OFFSET= request[3] 
-            response = self.core.DB.Search(DBName,Criteria,NAME_TO_OFFSET)
-        elif function == 'GetSyncCount': 
-            DBName = request[1]
-            Path = request[2]
-            response = self.core.DB.GetSyncCount(DBName,Path)
-        elif function == 'IncreaseSync':
-            flag=False
-            DBName = request[1]
-            Path = request[2]
-            response = self.core.DB.IncreaseSync(DBName,Path)
-        elif function == 'CalcSync':
-            flag=False
-            DBName = request[1]
-            Path = request[2]
-            response = self.core.DB.CalcSync(DBName,Path) 
-        elif function == 'Add':
-            flag=False
-            DBName = request[1]
-            Data = request[2]
-            Path = request[3]
-            response = self.core.DB.Add(DBName,Data,Path)
-        elif function == 'GetLength':
-            DBName = request[1]
-            Path = request[2]
-            response = self.core.DB.GetLength(DBName,Path)         
-        elif function == 'IsEmpty':
-            DBName = request[1]
-            Path = request[2]
-            response = self.core.DB.IsEmpty(DBName,Path)
-        elif function == 'GetDBNames':
-            response = self.core.DB.GetDBNames()              
-        elif function == 'GetNextHTMLID':
-            response = self.core.DB.GetNextHTMLID()
-        elif function == 'LoadDB':
-            flag=False
-            Path = request[1]
-            DBName = request[2]
-            response = self.core.DB.LoadDB(Path,DBName)     
-        elif function == 'SaveDBs':
-            flag=False
-            response = self.core.DB.SaveDBs()       
-        elif function == 'SaveDBLine':
-            flag=False
-            file = request[1]
-            DBName = request[2]
-            Line = request[3]
-            response = self.core.DB.SaveDBLine(file,DBName,Line)
-        elif function ==  'SaveDB':
-            flag=False  
-            Path = request[1]
-            DBName = request[2]
-            response = self.core.DB.SaveDB(Path,DBName)
-        elif function == 'GetSeed':
-            response = self.core.DB.GetSeed()
-        elif function == 'AddError':
-            flag=False
-            ErrorTrace = request[1]
-            response = self.core.DB.AddError()            
-        elif function == 'ErrorCount':
-            response = self.core.DB.ErrorCount()    
-        if flag:
-            
-            content = json.dumps(response)
-            
-            filename = Response_Folder+"/"+str(pid)
-            #print "writing response "+filename
-            fo = open(filename, "w+")
-            fo.write(content);
-            fo.close()
-   
     def GetFieldSeparator(self):
-        arguments=['GetFieldSeparator']
-        self.dorequest(arguments)
-        return self.getresponse()
+        return FIELD_SEPARATOR
+
+    def Init(self):
+        self.InitDBs()
+        # Each owtf test will have a long random seed, this is used to distinguish the transaction sections in the DB
+        # By having a random seed we make it considerably hard for a website to try to fool owtf to parse transactions incorrectly
+        #print "self.Storage="
+        #p(self.Storage)
+        if self.IsEmpty('SEED_DB'): # Seed is global for everything in scope: URLs, Aux modules and Net plugins
+            cprint("SEED DB is empty, initialising..")
+            self.Add('SEED_DB', self.Core.Random.GetStr(10)) # Generate a long random seed for this test
+        self.RandomSeed = self.GetRecord('SEED_DB', 0)
+        self.Core.DB.Transaction.SetRandomSeed(self.RandomSeed)
 
     def GetPath(self, DBName):
-        arguments=['GetPath',DBName]
-        self.dorequest(arguments)
-        return self.getresponse()
+        return self.Core.Config.Get(DBName)
+
+    def InitStore(self, Path, DBName): # The Store now works by file path: That way, we do not care about targets, etc at the DB level (Config will return the right path)
+        if DBName not in self.Storage:
+            self.Storage[DBName] = { Path : { 'Data' : [], 'SyncCount' : 0 } }
+        if Path not in self.Storage[DBName]:
+            self.Storage[DBName][Path] = { 'Data' : [], 'SyncCount' : 0 }
 
     def Get(self, DBName, Path = None):
-        arguments=['Get',DBName,Path]
-        self.dorequest(arguments)
-        return self.getresponse()
+        if not Path:
+            Path = self.GetPath(DBName)
+        #print "Get(self, "+str(DBName)+", "+str(Path)+")"
+        return self.Storage[DBName][Path]
 
     def GetData(self, DBName, Path = None):
-        arguments=['GetData',DBName,Path]
-        self.dorequest(arguments)
-        return self.getresponse()
+        return self.Get(DBName, Path)['Data']
 
     def GetRecord(self, DBName, Index, Path = None):
-        arguments=['GetRecord',DBName,Index,Path]
-        self.dorequest(arguments)
-        return self.getresponse()
+        return self.GetData(DBName, Path)[Index]
 
     def ModifyRecord(self, DBName, Index, Value, Path = None):
-        arguments=['ModifyRecord',DBName,Index, Value,Path]
-        self.dorequest(arguments)
+        self.GetData(DBName, Path)[Index] = Value
 
     def GetRecordAsMatch(self, Record, NAME_TO_OFFSET):
-        arguments=['GetRecordAsMatch',Record, NAME_TO_OFFSET]
-        self.dorequest(arguments)
-        return self.getresponse()
+        Match = defaultdict(list)
+        for Name, Offset in NAME_TO_OFFSET.items():
+            try:
+                Match[Name] = Record[Offset]
+            except IndexError:
+                self.Core.Error.Add("""DB.GetRecordsAsMatch ERROR: Match[Name] = Record[Offset] -> Index Error
+Name="""+str(Name)+"""
+Offset="""+str(Offset)+"""
+Match="""+str(Match)+"""
+Record="""+str(Record)+"""
+""")
+        return Match
 
     def Search(self, DBName, Criteria, NAME_TO_OFFSET): # Returns DB Records in an easy-to-use dictionary format { 'field1' : 'value1', ... }
-        arguments=['Search', DBName, Criteria, NAME_TO_OFFSET]
-        self.dorequest(arguments)
-        return self.getresponse()
+        Matches = []
+        for Record in self.GetData(DBName):
+            Matched = True
+            for Name, Value in Criteria.items():
+                try:
+                    if isinstance(Value, list):
+                        if Record[NAME_TO_OFFSET[Name]] not in Value:
+                            Matched = False
+                    else: # Not a list
+                        if Value != Record[NAME_TO_OFFSET[Name]]:
+                            Matched = False
+                except IndexError:
+                    self.Core.Error.Add("DB.Search ERROR: The offset '"+Name+"' is undefined! NAME_TO_OFFSET="+str(NAME_TO_OFFSET)+", Record="+str(Record))
+            if Matched:
+                Matches.append( self.GetRecordAsMatch(Record, NAME_TO_OFFSET) )
+        return Matches
 
     def GetSyncCount(self, DBName, Path = None):
-        arguments=['GetSyncCount', DBName, Path]
-        self.dorequest(arguments)
-        return self.getresponse()
+        return self.Get(DBName, Path)['SyncCount']
 
     def IncreaseSync(self, DBName, Path = None):
-        arguments=['IncreaseSync', DBName, Path]
-        self.dorequest(arguments)
+        self.Get(DBName, Path)['SyncCount'] += 1
 
     def CalcSync(self, DBName, Path = None):
-        arguments=['CalcSync', DBName, Path]
-        self.dorequest(arguments)
+        self.Get(DBName, Path)['SyncCount'] = self.GetLength(DBName, Path)
 
     def Add(self, DBName, Data, Path = None):
-        arguments=['Add', DBName, Data,Path]
-        self.dorequest(arguments)
+        self.Get(DBName, Path)['Data'].append(Data)
 
     def GetLength(self, DBName, Path = None):
-        arguments=['GetLength', DBName, Path]
-        self.dorequest(arguments)
-        return self.getresponse()
-    
+        return len(self.GetData(DBName, Path))
+
     def IsEmpty(self, DBName, Path = None):
-        arguments=['IsEmpty', DBName, Path]
-        self.dorequest(arguments)
-        return self.getresponse()
+        return self.GetLength(DBName, Path) < 1
+
+    def InitPath(self, Path, DBName):
+        self.InitStore(Path, DBName)
+        self.InitDB(Path, DBName)
+        self.LoadDB(Path, DBName)
+
+    def InitDBs(self):
+        #print "InitDBs.."
+        for DBName in self.GetDBNames(): # Get only the DBs relevant for the type of assessment we are doing
+            #print "Processing DBName="+DBName
+            #self.Core.Error.FrameworkAbort("Test self.Core.Config.GetAll(DBName)="+str(self.Core.Config.GetAll(DBName)))
+            for Path in self.Core.Config.GetAll(DBName): # Separate by file path value for each given DB
+                #print "Before initpath for "+Path
+                self.InitPath(Path, DBName)
+                #print "Processing Path="+Path+", NumLines="+str(self.GetLength(DBName, Path))
+                if DBName == 'HTMLID_DB' and self.IsEmpty('HTMLID_DB', Path): # There could be several HTMLID_DBs, i.e. one per URL
+                    cprint("HTML ID DB is empty, initialising..")
+                    self.Add('HTMLID_DB', "0", Path)
 
     def GetDBNames(self):
-        arguments=['GetDBNames']
-        self.dorequest(arguments)
-        return self.getresponse()
+        DBNameList = []
+        for DBName in self.DBNames:
+            Path = self.Core.Config.Get(DBName)
+            if Path: # No path set = This assessment does not need it (i.e. aux assessment does not need url db)
+                DBNameList.append(DBName)
+        return DBNameList
 
     def GetNextHTMLID(self):
-        arguments=['GetNextHTMLID']
-        self.dorequest(arguments)
-        return self.getresponse()
+        IDRecord = self.GetRecord('HTMLID_DB', 0)
+        ID = str(int(IDRecord) + 1)
+        self.ModifyRecord('HTMLID_DB', 0, ID)
+        return ID
+
+    def InitDB(self, Path, DBName):
+        if self.Core.Config.Get('SIMULATION'):
+            return None # Skip processing below, just simulating
+        self.Core.CreateMissingDirs(Path)
+        if not os.path.exists(Path):
+            with open(Path, 'w') as file:
+                if DBName == 'TRANSACTION_LOG_HTML': # Start the HTML Transaction log:
+                    self.Core.DB.Transaction.InitTransacLogHTMLIndex(file)
             
     def LoadDB(self, Path, DBName): # Load DB to memory
-        arguments=['LoadDB',Path,DBName]
-        self.dorequest(arguments)
-        
+        if self.Core.Config.Get('SIMULATION'):
+            return None # Skip processing below, just simulating
+        for Line in open(Path).read().split("\n"):
+            if not Line:
+                continue # Skip blank lines
+            if DBName in self.FieldDBNames: # Field DBs need split to convert fields into a list
+                #cprint("Field DBName: "+DBName)
+                LineAsList = Line.split(FIELD_SEPARATOR)
+                self.Add(DBName, LineAsList, Path) # Create list in memory for faster access
+            else:
+                self.Add(DBName, Line, Path) # Create list in memory for faster access
+        self.CalcSync(DBName, Path) # Keep count of synced lines
+
     def SaveDBs(self):
-        arguments=['SaveDBs']
-        self.dorequest(arguments)
+        if self.Core.Config.Get('SIMULATION'):
+            return None # Skip processing below, just simulating
+        for DBName in self.GetDBNames(): # Get only the DBs relevant for the type of assessment we are doing
+            #if DBName == 'TRANSACTION_LOG_TXT': self.Core.DB.Debug.Add('Saving DB='+DBName)
+            for Path in self.Storage[DBName]: # Separate by file path value for each given DB
+                #if DBName == 'TRANSACTION_LOG_TXT': self.Core.DB.Debug.Add('Saving Path='+Path+", Length="+str(self.GetLength(DBName, Path)))
+                self.SaveDB(Path, DBName)
 
     def SaveDBLine(self, file, DBName, Line): # Contains the logic on how each line must be saved depending on the type of DB
-        arguments=['SaveDBLine', file, DBName, Line]
-        self.dorequest(arguments)
+        try:
+            if DBName in self.FieldDBNames: # Field DBs need split to convert fields into a list
+                file.write(FIELD_SEPARATOR.join(Line)+"\n")
+            else:
+                file.write(Line+"\n")
+        except TypeError:
+            self.Core.Error.Add("DB.SaveDBLine Type Error on DBName="+DBName+", Line="+str(Line))
 
     def SaveDB(self, Path, DBName):
-        arguments=['SaveDB', Path, DBName]
-        self.dorequest(arguments)
-    
+        if self.Core.Config.Get('SIMULATION'):
+            #if DBName == 'TRANSACTION_LOG_TXT': self.Core.DB.Debug.Add('DBName='+DBName+", Path="+Path+" will NOT be saved because of SIMULATION MODE")
+            return None # Skip processing below, just simulating
+        if self.GetLength(DBName, Path) < 1:
+            #if DBName == 'TRANSACTION_LOG_TXT': self.Core.DB.Debug.Add('DBName='+DBName+", Path="+Path+" will NOT be saved because of blank DB")
+            return # Avoid wiping the DB by mistake
+        if DBName in self.EditableRowDBs: # DBs that are modified (Run, htmlid) need to be wiped + recreated each time
+            with open(Path, 'w') as file: # Delete + Re-create file to reflect modified last line
+                for Line in self.GetData(DBName, Path): # Save all
+                    self.SaveDBLine(file, DBName, Line)
+        else:
+            with open(Path, 'a') as file: # Append the missing lines at the end
+                #if DBName == 'TRANSACTION_LOG_TXT': self.Core.DB.Debug.Add('Saving DBName='+DBName+", Path="+Path+" from "+str(self.GetSyncCount(DBName, Path))+' until '+str(self.GetLength(DBName, Path)))
+                # Only save new DB lines, instead of the full database (in the hope that it's faster)
+                for Line in self.GetData(DBName, Path)[self.GetSyncCount(DBName, Path):]: 
+                    self.SaveDBLine(file, DBName, Line)
+        self.CalcSync(DBName, Path) # Keep count of synced lines
+
     def GetSeed(self):
-        arguments=['GetSeed']
-        self.dorequest(arguments)
-        return self.getresponse()
+        return self.RandomSeed
 
     def AddError(self, ErrorTrace):
-        arguments=['AddError', ErrorTrace]
-        self.dorequest(arguments)
+        for Line in ErrorTrace.split("\n"):
+            self.Add('ERROR_DB', Line)
 
     def ErrorCount(self):
-        arguments=['ErrorCount']
-        self.dorequest(arguments)
-        return self.getresponse()
-    
-    def handledb(self):
-        while 1:
-            if(len(os.walk(Request_Folder).next()[2]) > 0):
-                    files = os.listdir(Request_Folder)
-                    files = [os.path.join(Request_Folder, f) for f in files] # add path to each file
-                    files.sort(key=lambda x: os.path.getmtime(x))
-                    for f in files:
-                       ar = f.split('/')
-                       pid = ar[len(ar)-1]
-                       self.process_request(pid)
-        
+        return self.GetLength('ERROR_DB') # Counts error lines but we only want to know if there has been a framework error or not

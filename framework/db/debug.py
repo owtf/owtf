@@ -35,5 +35,5 @@ class DebugDB:
 		self.Core = Core
 
 	def Add(self, Message):
-		self.Core.DB.DBHandler.Add('DEBUG_DB', Message)
+		self.Core.DB.Add('DEBUG_DB', Message)
 

@@ -1,4 +1,5 @@
-"""
+#!/usr/bin/env python
+'''
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -25,19 +26,31 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-SEMI-PASSIVE Plugin for Testing for Web Application Fingerprint (OWASP-IG-004)
-"""
+This File is for client which has to send a pull message
+'''
+from collections import defaultdict
+from framework.lib import *
+from framework.random import Random
+import json
+import os
+import random
 
-import string, re
-import cgi
-
-DESCRIPTION = "Normal requests to gather fingerprint info"
-
-def run(Core, PluginInfo):
-	#Core.Config.Show()
-	# True = Use Transaction Cache if possible: Visit the start URLs if not already visited
-	TransactionTable = Core.PluginHelper.DrawTransactionTableForURLList(True, Core.Config.GetAsList(['TARGET_URL', 'TOP_URL'])) 
-	Content = Core.PluginHelper.ResearchFingerprintInCore.log() + TransactionTable
-	Content += Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('SemiPassiveFingerPrint'), PluginInfo, Content)
-	return Content
-
+class pull_client:
+    
+    def __init__(self,Core):
+        self.core=Core
+    
+    def file_pull(self,data,queue_name="pull"):
+        #Creates a random file inside the /Requests subdirectory within a Queue, 
+        #the PullServer will process these files and then this file will wait for the response as
+        #skip_if_locked is false
+        file_id = self.core.Random.GetStr(100) + '.msg'
+        try:
+            general.atomic_write_to_file(general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name], file_id, data)
+            result = general.atomic_read_from_file(general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name], file_id,False)
+            os.remove(general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name]+"/"+file_id)
+            return result
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
+    
+                   

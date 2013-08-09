@@ -35,7 +35,7 @@ DESCRIPTION = "Visit URLs found by other tools, some could be sensitive: need pe
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 	crap = { 'test' : '1', 'test2' : '2' }
-	Log("Crap="+str(crap))
+	Core.log("Crap="+str(crap))
 	return 'test'
 	Count = 0
 	Core.DB.URL.AddURLsStart() # Keep cocunt of URLs
@@ -45,6 +45,6 @@ def run(Core, PluginInfo):
 		Core.Requester.GetTransaction(True, URL) # Use cache if possible
 	Core.DB.URL.AddURLsEnd()
 	Content = str(Count)+" URLs were visited"
-	Log(Content)
+	Core.log(Content)
 	return Content
 

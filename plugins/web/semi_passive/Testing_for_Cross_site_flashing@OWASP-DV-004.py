@@ -45,5 +45,5 @@ def run(Core, PluginInfo):
 			Table.CreateRow(["<br/><pre>"+cgi.escape(Transaction.GetRawResponseBody())+"</pre>"])
 		else:
 			Table.CreateRow([NotFoundMsg])
-			Log(NotFoundMsg)
+			Core.log(NotFoundMsg)
 	return Table.Render() + Core.Reporter.DrawHTTPTransactionTable(TransactionList)
