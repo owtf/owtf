@@ -15,8 +15,6 @@
 	    <link href="includes/css/bootstrap-responsive.css" rel="stylesheet" >
 	    <link href="includes/js/aloha/css/aloha.css" rel="stylesheet" >
 	    
-
-	    
 	    <style>
 	    .nav-tabs-container {
 	                            padding: 3px;
@@ -271,7 +269,7 @@
 						<li><a href="#" onclick="change_skin('cerulean','light');" id="cerulean_skin">Cerulean</a></li>
 						<li><a href="#" onclick="change_skin('cyborg','dark');" id="cyborg_skin">Cyborg</a></li>
 						<li><a href="#" onclick="change_skin('slate','dark');" id="slate_skin">Slate</a></li>
-						<li><a href="#" onclick="change_skin('united','light');" id="united_skin">United</a></li>
+						<li><a href="#" onclick="change_skin('readable','light');" id="readable_skin">Readable</a></li>
 	                </ul>
 				</li>
 		    </ul>
@@ -620,96 +618,50 @@
 			<!-- end AUX -->
 				</div>
 				<div class="tab-pane" id="review">
-					<ul id="tabs">
-						<li>
-								<a href="javascript:void(0);" id="tab_review_import_export" target=""
-										onclick="SetClassNameToElems(new Array('tab_review_import_export','tab_review_delete','tab_review_miscelaneous'), '');
-												 HideDivs(new Array('review_import_export','review_delete', 'review_miscelaneous'));
-												 this.className = 'selected'; 
-												 ToggleDiv('review_import_export');" >
-									Import/Export
-								</a>
-							</li>
-							<li>
-								<a href="javascript:void(0);" id="tab_review_delete" target=""
-										onclick="SetClassNameToElems(new Array('tab_review_import_export','tab_review_delete','tab_review_miscelaneous'), '');
-												 HideDivs(new Array('review_import_export','review_delete', 'review_miscelaneous'));
-												 this.className = 'selected'; 
-												 ToggleDiv('review_delete');" >
-									Delete
-								</a>
-							</li>
-							<li>
-								<a href="javascript:void(0);" id="tab_review_miscelaneous" target=""
-										onclick="SetClassNameToElems(new Array('tab_review_import_export','tab_review_delete','tab_review_miscelaneous'), '');
-												 HideDivs(new Array('review_import_export','review_delete', 'review_miscelaneous'));
-												 this.className = 'selected'; 
-												 ToggleDiv('review_miscelaneous');" >
-									Miscelaneous
-								</a>
-							</li>
-							
-							<li class="icon">
-								<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('review_import_export','review_delete', 'review_miscelaneous'));SetClassNameToElems(new Array('tab_review_import_export','tab_review_delete','tab_review_miscelaneous'), '');">
-									<span>
-										<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
-									</span>
-								</a>	
-								&nbsp;
-								<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('review_import_export','review_delete', 'review_miscelaneous'));SetClassNameToElems(new Array('tab_review_import_export','tab_review_delete','tab_review_miscelaneous'), '');">
-									<span>
-										<img src="images/minus_gray16x16.png" title="Close Plugins">&nbsp; 
-									</span>
-								</a>
-								&nbsp;	
-								<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('tab_review_import_export','tab_review_delete','tab_review_miscelaneous'), '');UnfilterBrotherTabs(this);">
-									<span>
-										<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
-									</span>
-								</a>
-							</li>
-				</ul>
+					
 				&nbsp;
-					<div id="review_import_export" class="tabContent" style="display:none">
-								<ul class="default_list">
-										<li><a href="javascript:void(0);" class="button" onclick="ImportReview();">
-											<span> Import Review </span>
-										</a></li>
-										<li><a href="javascript:void(0);" class="button" onclick="ExportReviewAsText();">
-											<span> Export Review as text </span>
-										</a></li>
-									</ul>
-									<li><textarea rows="20" cols="100" id="import_export_box"></textarea></li>
+
+								<div class="btn-toolbar">
+										<button class="btn" onclick="ImportReview();">
+											<span> Import </span>
+										</button>
+										<div class="btn-group">
+						    				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Export
+						    					<span class="caret"></span>
+											</a>
+											<ul class="dropdown-menu">
+											  <li><a href="#" onclick="ExportReviewAsText();">TEXT</a></li>
+											  <li><a class="disabled" href="#">PDF</a></li>
+											  <li><a class="disabled" href="#">HTML</a></li>
+											</ul>
+						    			</div>
+						    			<button class="btn btn-success disabled">Share</button>
+						    			<div class="btn-group">
+		    				
+						    				<a class="btn btn-danger dropdown-toggle " data-toggle="dropdown" href="#">Delete
+						    					<span class="caret"></span>
+											</a>
+											<ul class="dropdown-menu">
+											  <li><a href="#" onclick="ClearReview();">This review!</a></li>
+											  <li><a href="#" onclick="DeleteStorage();">All reviews!</a></li>
+											</ul>
+						    			</div>
+						    			<div class="btn-group">
+		    				
+						    				<a class="btn btn-inverse dropdown-toggle " data-toggle="dropdown" href="#">Memory
+						    					<span class="caret"></span>
+											</a>
+											<ul class="dropdown-menu">
+											  <li><a href="#" onclick="ShowUsedMem();">Show Used Memory (KB)</a></li>
+											  <li><a href="#" onclick="ShowUsedMemPercentage();">Show Used Memory (%)</a></li>
+											</ul>
+						    			</div>
+						    			
+								</div>
+									<textarea rows="30" cols="100" id="import_export_box" class="span12"></textarea> 
 								
 					</div>
-					&nbsp;
-					<div id="review_delete" class="tabContent" style="display:none">
-								<ul class="default_list">
-									
-									<li><a href="javascript:void(0);" class="button" onclick="ClearReview();">
-										<span> Delete THIS Review </span>
-									</a></li>
-									<li><a href="javascript:void(0);" class="button" onclick="DeleteStorage();">
-										<span> Delete ALL Reviews </span>
-									</a></li>
-					</div>
-						&nbsp;
-					<div id="review_miscelaneous" class="tabContent" style="display:none">
-								<ul class="default_list">
-									<li><a href="javascript:void(0);" class="button" onclick="ShowUsedMem();">
-										<span> Show Used Memory (KB) </span>
-									</a></li>
-									<li><a href="javascript:void(0);" class="button" onclick="ShowUsedMemPercentage();">
-										<span> Show Used Memory (%) </span>
-									</a></li>
-									<li><a href="javascript:void(0);" class="button" onclick="ShowDebugWindow();">
-										<span> Show Debug Window </span>
-									</a></li>
-									<li><a href="javascript:void(0);" class="button" onclick="HideDebugWindow();">
-										<span> Hide Debug Window </span>
-									</a>
-								</ul>
-					</div>
+			
 			  </div>
 			</div>
 		</div>
