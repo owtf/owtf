@@ -39,6 +39,7 @@ import tornado.httputil
 import tornado.options
 import socket
 import ssl
+import os
 from multiprocessing import Process
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
@@ -220,9 +221,9 @@ class ProxyHandler(tornado.web.RequestHandler):
 
         # Tiny Hack to satisfy proxychains CONNECT request to HTTP port.
         # HTTPS fail check has to be improvised
-        def ssl_fail():
-            self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
-            server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
+        #def ssl_fail():
+        #    self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
+        #    server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
         
         # Hacking to be done here, so as to check for ssl using proxy and auth    
         try:
@@ -233,17 +234,41 @@ class ProxyHandler(tornado.web.RequestHandler):
         except Exception:
             self.finish()
 
+class PnHandler(tornado.web.RequestHandler):
+    """
+    This handles the requests which are used for firefox configuration
+    """
+    @tornado.web.asynchronous
+    def get(self, ext):
+        base_url = self.request.protocol + "://" + self.request.host + "/proxy"
+        if ext == "":
+            manifest_url = base_url + ".json"
+            self.write("Hey")
+            
+        elif ext == ".json":
+            self.write("Manifest")
+        elif ext == ".pac":
+            self.write("function FindProxyForURL(url,host) {return \"PROXY "+self.application.inbound_ip+":"+str(self.application.inbound_port)+"\"; }")
+            self.set_header('Content-Type','text/plain')
+        elif ext == ".crt":
+            self.write(open(self.application.ca_cert, 'r').read())
+            self.set_header('Content-Type','text/plain; charset=UTF-8')
+        self.finish()
 
 class ProxyProcess(Process):
 
     def __init__(self, instances, inbound_options, cache_dir, ssl_options, cookie_filter, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
-        self.application = tornado.web.Application(handlers=[(r".*", ProxyHandler)], debug=False, gzip=True)
+        self.application = tornado.web.Application(handlers=[
+                                                            (r'/proxy(.*)', PnHandler),
+                                                            (r".*", ProxyHandler)
+                                                            ], debug=False, gzip=True)
         self.application.inbound_ip = inbound_options[0]
         self.application.inbound_port = int(inbound_options[1])
         self.application.cache_dir = cache_dir
         self.application.ca_cert = ssl_options['CA_CERT']
         self.application.ca_key = ssl_options['CA_KEY']
+        self.application.proxy_folder = os.path.dirname(ssl_options['CA_CERT'])
         self.application.certs_folder = ssl_options['CERTS_FOLDER']
         self.application.cookie_blacklist = cookie_filter['BLACKLIST']
         self.application.cookie_regex = cookie_filter['REGEX']
@@ -260,7 +285,7 @@ class ProxyProcess(Process):
         server = tornado.httpserver.HTTPServer(self.application)
         self.server = server
         self.instances = instances
-
+        
     # "0" equals the number of cores present in a machine
     def run(self):
         try:

@@ -135,7 +135,9 @@ class Core:
             if not os.path.exists(transaction_db_path):
                 os.makedirs(transaction_db_path)
             for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body']:
-                os.mkdir(os.path.join(transaction_db_path, folder_name))
+                folder_path = os.path.join(transaction_db_path, folder_name)
+                if not os.path.exists(folder_path):
+                    os.mkdir(folder_path)
             if self.Config.Get('COOKIES_BLACKLIST_NATURE'):
                 regex_cookies_list = [ cookie + "=([^;]+;?)" for cookie in self.Config.Get('COOKIES_LIST') ]
                 regex_string = '|'.join(regex_cookies_list)
@@ -245,7 +247,13 @@ class Core:
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
         self.StartProxy(Options)
         if self.DevMode:
-            self.ProxyProcess.join()
+            cprint("Proxy Mode is activated. Press Cntrl+C to stop inbound proxy")
+            try:
+                self.ProxyProcess.join()
+            except KeyboardInterrupt:
+                cprint("Exiting from proxy mode")
+                # Grep plugins launch
+                pass
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
