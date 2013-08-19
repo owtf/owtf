@@ -36,8 +36,9 @@ import time
 
 class pull_server:
     
-    def __init__(self):
-        pass
+    def __init__(self,Core):
+        self.Core = Core
+        
     
     def handle_request(self,callback_function,queue,queue_name="pull"):
         #pull server to handle the pull requests, It returns the response by making file of same name in 
@@ -45,7 +46,7 @@ class pull_server:
         request_dir = general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name]
         response_dir = general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name]
         
-        delay = 0.1
+        delay = 0.025
                     #wait for request directory to exist in starting
         general.wait_until_dir_exists(request_dir,delay)
         
@@ -64,7 +65,9 @@ class pull_server:
                         if ".lock" in filename:
                             continue
                         #skip_if_locked is True then file is skipped if it is locked    
+                        self.Core.Timer.StartTimer('read')
                         data = general.atomic_read_from_file(request_dir, filename, skip_if_locked=True)
+                        self.Core.log("pull server "+filename[0:3]+"    "+self.Core.Timer.GetElapsedTimeAsStr('read'),0)
                         if data:
                             
                             result = callback_function(data,"pull")
@@ -74,10 +77,12 @@ class pull_server:
                             os.remove(os.path.join(request_dir,filename))
                     files = general.get_files(request_dir)
                 #give away cpu
+                self.Core.Timer.StartTimer('sleep')
                 time.sleep(delay)
+                self.Core.log("pull server after sleeping "+self.Core.Timer.GetElapsedTimeAsStr('sleep'),0)
             except KeyboardInterrupt:
                 break
             except Exception,e:
-                general.Log("Unexpected Pull server error: "+str(e))
+                self.Core.log("Unexpected Pull server error: "+str(e))
                 break
                    
