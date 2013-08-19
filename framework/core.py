@@ -135,7 +135,9 @@ class Core:
             if not os.path.exists(transaction_db_path):
                 os.makedirs(transaction_db_path)
             for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body']:
-                os.mkdir(os.path.join(transaction_db_path, folder_name))
+                folder_path = os.path.join(transaction_db_path, folder_name)
+                if not os.path.exists(folder_path):
+                    os.mkdir(folder_path)
             if self.Config.Get('COOKIES_BLACKLIST_NATURE'):
                 regex_cookies_list = [ cookie + "=([^;]+;?)" for cookie in self.Config.Get('COOKIES_LIST') ]
                 regex_string = '|'.join(regex_cookies_list)
@@ -220,7 +222,7 @@ class Core:
         log = logging.getLogger('logfile')
         infohandler = logging.FileHandler('logfile',mode="w+")
         log.setLevel(logging.INFO)
-        infoformatter = logging.Formatter("%(asctime)s - %(processname)s - %(functionname)s - %(message)s")
+        infoformatter = logging.Formatter("%(type)s - %(asctime)s - %(processname)s - %(functionname)s - %(message)s")
         infohandler.setFormatter(infoformatter)
         log.addHandler(infohandler)
 
@@ -234,6 +236,7 @@ class Core:
         cprint("Loading framework please wait..")
         self.Config.ProcessOptions(Options)
         self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT')) # Requires user config
+        self.Timer.StartTimer('core')
         self.initialise_plugin_handler_and_params(Options)
         if Options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
@@ -248,7 +251,13 @@ class Core:
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
         self.StartProxy(Options)
         if self.DevMode:
-            self.ProxyProcess.join()
+            cprint("Proxy Mode is activated. Press Cntrl+C to stop inbound proxy")
+            try:
+                self.ProxyProcess.join()
+            except KeyboardInterrupt:
+                cprint("Exiting from proxy mode")
+                # Grep plugins launch
+                pass
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
@@ -309,7 +318,7 @@ class Core:
                         pass
                 if hasattr(self,'messaging_admin'):
                     self.messaging_admin.finishMessaging()
-                self.exitOutput()    
+                self.exitOutput()
                 exit()
 
     def exitOutput(self):
