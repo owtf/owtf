@@ -211,11 +211,12 @@ def atomic_read_from_file(requests_dir, partial_filename, skip_if_locked = True)
     else: 
         delay=30
     try:
+        
         filename = requests_dir+"/"+partial_filename
         data=""
         while not os.path.exists(filename):
             #AppendToFile("file1", "file is not there "+filename+"\n")
-            time.sleep(0.1)
+            time.sleep(0.025)
             
         with FileLock(filename, timeout=delay):
             fd = open(filename,'r')
@@ -244,6 +245,7 @@ ERROR = logging.ERROR
 WARNING = logging.WARNING
 INFO = logging.INFO
 DEBUG = logging.DEBUG
+BENCHMARK = 0
 #LOG_THRESHOLD=7
 
 #log level to string mapping
@@ -251,7 +253,8 @@ LOG_LEVELS = { CRITICAL : 'CRITICAL'
             , ERROR : 'ERROR'
             , WARNING : 'WARNING'
             , INFO : 'INFO'
-            , DEBUG : 'DEBUG' }
+            , DEBUG : 'DEBUG' 
+            ,BENCHMARK:'BENCHMARK'}
 
 def get_short_info():
     fr = sys._getframe(3)
@@ -301,6 +304,7 @@ def Log(message, type = INFO, Overrides = {}.copy()):
     source_info = get_source_info() # Retrieve Source class, function, process and thread
     defaultlog = getDefaultLog(source_info)
     defaultfile = getDefaultlogFile(source_info)
-    defaultlog.log(type,message)
-    log_enteries = {'processname':source_info['Process'],'functionname':source_info['Source']}
-    defaultfile.log(type,message,extra=log_enteries)
+    if type!=BENCHMARK:
+        defaultlog.info(message)
+    log_enteries = {'processname':source_info['Process'],'functionname':source_info['Source'],'type':LOG_LEVELS[type]}
+    defaultfile.info(message,extra=log_enteries)

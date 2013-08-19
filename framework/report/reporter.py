@@ -255,7 +255,6 @@ class Reporter:
 
 		with open( self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ), 'w' ) as file:
 			template = self.Template_env.get_template( 'report.html' )
-
 			vars = {
 
 						"ReportType" :  self.Core.Config.Get( 'REPORT_TYPE' ),
