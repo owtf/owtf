@@ -41,8 +41,8 @@ class message_admin:
     
     def __init__(self, Core):
         self.Core = Core # Need access to reporter for pretty html trasaction log
-        self.pullserver = pull_server.pull_server()
-        self.pushserver = push_server.push_server()
+        self.pullserver = pull_server.pull_server(Core)
+        self.pushserver = push_server.push_server(Core)
     
     #initializing 
     def Init(self):

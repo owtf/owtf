@@ -222,7 +222,7 @@ class Core:
         log = logging.getLogger('logfile')
         infohandler = logging.FileHandler('logfile',mode="w+")
         log.setLevel(logging.INFO)
-        infoformatter = logging.Formatter("%(asctime)s - %(processname)s - %(functionname)s - %(message)s")
+        infoformatter = logging.Formatter("%(type)s - %(asctime)s - %(processname)s - %(functionname)s - %(message)s")
         infohandler.setFormatter(infoformatter)
         log.addHandler(infohandler)
     
@@ -233,6 +233,7 @@ class Core:
         self.PluginHandler = plugin_handler.PluginHandler(self, Options)
         self.Config.ProcessOptions(Options)
         self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT')) # Requires user config
+        self.Timer.StartTimer('core')
         self.PluginParams = plugin_params.PluginParams(self, Options)
         if Options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
@@ -307,7 +308,7 @@ class Core:
                         pass
                 if hasattr(self,'messaging_admin'):
                     self.messaging_admin.finishMessaging()
-                self.exitOutput()    
+                self.exitOutput()
                 exit()
 
     def exitOutput(self):
