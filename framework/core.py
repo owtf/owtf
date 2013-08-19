@@ -223,15 +223,18 @@ class Core:
         infoformatter = logging.Formatter("%(asctime)s - %(processname)s - %(functionname)s - %(message)s")
         infohandler.setFormatter(infoformatter)
         log.addHandler(infohandler)
-    
+
     def Start(self, Options):
+        if self.initialise_framework(Options):
+            return self.run_plugins()
+
+    def initialise_framework(self, Options):
         self.DevMode = Options["DevMode"]
         self.initlogger()
         cprint("Loading framework please wait..")
-        self.PluginHandler = plugin_handler.PluginHandler(self, Options)
         self.Config.ProcessOptions(Options)
         self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT')) # Requires user config
-        self.PluginParams = plugin_params.PluginParams(self, Options)
+        self.initialise_plugin_handler_and_params(Options)
         if Options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
             self.exitOutput()
@@ -253,6 +256,13 @@ class Core:
             self.Error.FrameworkAbort(Message) # Abort if proxy check failed
         # Each Plugin adds its own results to the report, the report is updated on the fly after each plugin completes (or before!)
         self.Error.SetCommand(self.AnonymiseCommand(Command)) # Set anonymised invoking command for error dump info
+        return True
+
+    def initialise_plugin_handler_and_params(self, Options):
+        self.PluginHandler = plugin_handler.PluginHandler(self, Options)
+        self.PluginParams = plugin_params.PluginParams(self, Options)
+
+    def run_plugins(self):
         Status = self.PluginHandler.ProcessPlugins()
         if Status['AllSkipped']:
             self.Finish('Complete: Nothing to do')
