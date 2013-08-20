@@ -137,16 +137,19 @@ class ProcessManager:
     #this function is used by workers to get new task
     def getNewWork(self,work,queue):
         queue.put(work)
+        #time.sleep(0.1)
+
         work1 = queue.get()
         while work1==work:
             queue.put(work)
+           # time.sleep(0.1)       #signal.signal(signal.SIGINT,signal.SIG_DFL)    
+
             work1 = queue.get()      
-                    #signal.signal(signal.SIGINT,signal.SIG_DFL)    
         return work1
     
     #worker code
     def worker(self,work,queue,start,status):
-        print 
+        
         while True:
             if start!=1:
                 # work has been completed. Put that into queue and wait for new work to be assigned

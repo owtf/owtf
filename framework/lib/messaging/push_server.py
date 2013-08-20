@@ -35,14 +35,14 @@ import random
 import time
 
 class push_server:
-    def __init__(self):
-        pass
+    def __init__(self,Core):
+        self.Core = Core
     
     def handle_request(self,callback_function,queue,queue_name="push"):
         #push server to handle the push requests
         request_dir = general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name]
         
-        delay = 0.1
+        delay = 0.025
         
         general.wait_until_dir_exists(request_dir,delay)
         while True:

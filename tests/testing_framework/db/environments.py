@@ -2,19 +2,26 @@ from flexmock import flexmock
 from framework.db.db import DB
 import framework.db.db_handler as db_handler
 from framework.random import Random
-from framework.db.db_handler import DB_Handler
+from collections import defaultdict
+from framework.lib import general
 
 
 class DBEnvironmentBuilder():
 
     def build(self):
         self._create_core_mock()
-        flexmock(db_handler).should_receive("DBHandler").and_return(flexmock())
         db = flexmock(DB(self.core_mock))
-        db.should_receive("InitDB")  # Neutralize the access to the file system
-        db.GetDBNames_old = db.GetDBNames
-        db.should_receive("GetDBNames").and_return(["db1", "db2", "HTMLID_DB"])
-        db.Storage['SEED_DB'] = {"seed/path": {'Data': [], 'SyncCount': 0}}
+        flexmock(db.DBHandler)
+        db.DBHandler.should_receive("InitDB")  # Neutralize the access to the file system
+        db.DBHandler.Storage['SEED_DB'] = {"seed/path": {'Data': [], 'SyncCount': 0}}
+        db.DBHandler.GetDBNames_old = db.DBHandler.GetDBNames
+        db.DBHandler.should_receive("GetDBNames").and_return(["db1", "db2", "HTMLID_DB"])
+        flexmock(db.DBClient)
+        db.DBClient.should_receive("db_send")
+
+        general.INCOMING_QUEUE_TO_DIR_MAPPING = defaultdict(list)
+        general.OUTGOING_QUEUE_TO_DIR_MAPPING = defaultdict(list)
+        self.core_mock.DB = db
         return db
 
     def _create_core_mock(self):

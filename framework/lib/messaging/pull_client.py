@@ -46,8 +46,14 @@ class pull_client:
         #skip_if_locked is false
         file_id = self.core.Random.GetStr(100) + '.msg'
         try:
+            self.core.Timer.StartTimer('pull')
+
             general.atomic_write_to_file(general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name], file_id, data)
+            self.core.log("pull client1 "+ file_id[0:3]+"  "+self.core.Timer.GetElapsedTimeAsStr('pull'),0)
+
             result = general.atomic_read_from_file(general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name], file_id,False)
+            self.core.log("pull client "+ file_id[0:3]+"  "+self.core.Timer.GetElapsedTimeAsStr('pull'),0)
+
             os.remove(general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name]+"/"+file_id)
             return result
         except KeyboardInterrupt:
