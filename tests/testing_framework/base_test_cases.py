@@ -118,14 +118,16 @@ class WebPluginTestCase(BaseTestCase):
             self.stop_server()
         super(WebPluginTestCase, self).tearDown()
 
-    def set_response(self, path, content="", headers={}, method="get"):
-        if not (path in self.responses): 
+    def set_response(self, path, content="", headers={}, method="get", status_code=200):
+        if not (path in self.responses):
             self.responses[path] = {}
-        self.responses[path][method] = {"content": content, "headers": headers}
+        self.responses[path][method] = {"content": content,
+                                        "headers": headers,
+                                        "code": status_code}
 
-    def set_response_from_file(self, path, file_path, headers={}, method="get"):
+    def set_response_from_file(self, path, file_path, headers={}, method="get", status_code=200):
         response_file = open(file_path, "r")
-        self.set_response(path, response_file.read(), headers, method)
+        self.set_response(path, response_file.read(), headers, method, status_code)
         response_file.close()
 
     def set_custom_handler(self, path, handler_class, init_params={}):
@@ -164,13 +166,13 @@ class WebPluginTestCase(BaseTestCase):
         else:
             raise AttributeError("'WebPluginTestCase' object has no attribute '" + name + "'")
 
-    def generate_callable_for_set_response(self, name, from_file):
+    def generate_callable_for_set_response(self, method_name, from_file):
         """Returns a function that will be called to set a response."""
-        def dynamic_method(path, content="", headers={}):
+        def dynamic_method(path, content="", headers={}, status_code=200):
                 if from_file:
-                    self.set_response_from_file(path, content, headers, name)
+                    self.set_response_from_file(path, content, headers, method_name, status_code)
                 else:
-                    self.set_response(path, content, headers, name)
+                    self.set_response(path, content, headers, method_name, status_code)
         return dynamic_method
 
     def owtf(self, args_string=""):
