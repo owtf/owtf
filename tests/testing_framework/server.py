@@ -77,12 +77,11 @@ class HandlerBuilder():
         #handler_class = self.create_handler_class()
         methods = {}
         for method_name, options in params.items():
-            method_impl = self.create_method_implementation(options["headers"], options["content"])
-            methods[method_name] = method_impl 
-            #setattr(handler_class, method_name, types.MethodType(method_impl, handler_class.__class__))
+            method_impl = self.create_method_implementation(options["headers"], options["content"], options["code"])
+            methods[method_name] = method_impl
         return self.create_handler_class(methods)
 
-    def create_method_implementation(self, headers, content):
+    def create_method_implementation(self, headers, content, code):
         """Creates the implementation of the dynamic method"""
         def implementation(self):
             for name, value in headers.items():
@@ -93,6 +92,7 @@ class HandlerBuilder():
                     self.write('\r\n')
             else:
                 self.write(content)
+            self.set_status(code)
         return implementation
 
     def create_handler_class(self, methods):
