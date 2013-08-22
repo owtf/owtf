@@ -33,23 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	This file contains the code to handle the OWTF Review filtering
 */
 
-function GetColourFromName(CounterId) {
-        Colour = CounterId.replace('filter', '').replace('_counter', '').split('_')[1]
-        if (InArray(Colour, [ 'green', 'blue', 'yellow', 'orange', 'red', 'violet' ])) {//Colour is valid
-                return GetColourFromWord(Colour)
-        }
-        return ''
-}
-
-function GetColourFromWord(Word) {
-        if (Word == 'yellow') { //Chosee darker tones so that the number can be seen :)
-                Word = '#C0C000'
-        }
-        else if (Word == 'orange') {
-                Word = '#FF8C0D'
-        }
-        return Word
-}
 
 function IsCounter(CounterName) {
         return (!InArray(CounterName, [ 'filtermatches_counter', 'filteroptions_counter', 'filterrefresh_counter', 'filterdelete_counter' ]))
@@ -60,7 +43,7 @@ function InitReviewCounters(ReviewObj, Offset) {
         for (I in window.AllCounters) {
                 CounterName = window.AllCounters[I] //Below: Init only valid counters (options, refresh, delete are extra buttons only)
                 if (IsCounter(CounterName)) {
-                        ReviewObj[Offset][CounterName] = { 'Count': 0, 'Colour' : GetColourFromName(CounterName) }
+                        ReviewObj[Offset][CounterName] = { 'Count': 0 }
                 }
         }
 }
@@ -264,12 +247,6 @@ function FilterResultsSummary(Parameter, FromReportType) { //Filter from Summary
 
 function DisplayMatches(NumMatches) {
         GetById('filtermatches_counter').innerHTML = NumMatches
-        if (InArray(NumMatches, [ null, '' ])) {
-                HighlightFilter('filtermatches', '') //No filter => unhighlight
-        }
-        else {
-                HighlightFilter('filtermatches', 'active') //Highlight filter
-        }
 }
 
 function HideDetailedReportData() {
@@ -346,21 +323,9 @@ function FilterResults(Parameter, FromReportType) {
         return AffectedPlugins
 }
 
-function ToggleFilterOptions() {
-        ToggleDivs( [ 'advanced_filter_options' ] )
-        if (GetById('advanced_filter_options').style.display != 'none') {
-                HighlightFilter('filteroptions', 'active')
-                DisplaySelectFilterOptions() //Refresh dropdown selection to filter options (could change in summary but not detailed, etc)
-        }
-        else {
-                HighlightFilter('filteroptions', '')
-        }
-}
 
-function HideFilterOptions() {
-        HideDivs( [ 'advanced_filter_options' ] )
-        HighlightFilter('filteroptions', '')
-}
+
+
 function HighlightFilter(FilterId, Highlight) {
         GetById(FilterId).parentNode.className = Highlight
 }
