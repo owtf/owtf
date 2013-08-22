@@ -58,7 +58,7 @@ class TransactionManager:
 	def Search(self, Criteria):
 		if 'Method' in Criteria: # Ensure a valid HTTP Method is used instead of "" when the Method is specified in the Criteria
 			Criteria['Method'] = DeriveHTTPMethod(Criteria['Method'], GetDictValueOrBlank(Criteria, 'Data'))
-		return self.Core.DB.DBHandler.Search('TRANSACTION_LOG_TXT', Criteria, NAME_TO_OFFSET)
+		return self.Core.DB.Search('TRANSACTION_LOG_TXT', Criteria, NAME_TO_OFFSET)
 
 	def NumTransactions(self, Scope = 'T'): # Return num transactions in scope by default
 		return len(self.Search( { 'Scope' : Scope } ))
@@ -95,7 +95,7 @@ class TransactionManager:
 
 	def GetPath(self, Path = None):
 		if Path == None:
-			Path = self.Core.DB.DBHandler.GetPath('TRANSACTION_LOG_TXT')
+			Path = self.Core.DB.GetPath('TRANSACTION_LOG_TXT')
 		return Path
 
 	def TransactionInScopeStr(self, IndexRec):
@@ -122,11 +122,11 @@ class TransactionManager:
 
 	def SaveTransactionTXTIndex(self, Transaction): # Saves a transaction in the Text Index DB
 		ID = self.GetNewID()
-		self.Core.DB.DBHandler.Add('TRANSACTION_LOG_TXT', [ ID, Transaction.ScopeToStr(), Transaction.Time, Transaction.TimeHuman, Transaction.Status, Transaction.Method, Transaction.URL, Transaction.Data ] ) # Text entry to transaction log
+		self.Core.DB.Add('TRANSACTION_LOG_TXT', [ ID, Transaction.ScopeToStr(), Transaction.Time, Transaction.TimeHuman, Transaction.Status, Transaction.Method, Transaction.URL, Transaction.Data ] ) # Text entry to transaction log
 		return ID
 
 	def GetNewID(self):
-		return str(self.Core.DB.DBHandler.GetLength('TRANSACTION_LOG_TXT')+1)
+		return str(self.Core.DB.GetLength('TRANSACTION_LOG_TXT')+1)
 
 	def GetTransactionPathsForID(self, ID): # Returns the URL and Transaction Paths for a given Transaction ID
 		IndexRec = self.Search( { 'ID' : ID } )[0]
@@ -163,7 +163,7 @@ class TransactionManager:
 		#print "TransacPath="+TransacPath
 		LinksStr = self.Core.Reporter.DrawTransacLinksStr([Transaction.URL, TransacPath, ReqPath, ResHeadersPath, ResBodyPath], 'URL_OUTPUT')
 		TransactionHTML = self.Core.Reporter.Render.CreateTable().DrawTableRow([ Transaction.ScopeToStr(), LinksStr, ID, Transaction.Time, Transaction.TimeHuman, Transaction.Status, Transaction.Method, Transaction.URL, Transaction.Data], False, {}, ID)+"\n" # Pass Transaction ID as Row Number
-		self.Core.DB.DBHandler.Add('TRANSACTION_LOG_HTML', TransactionHTML)
+		self.Core.DB.Add('TRANSACTION_LOG_HTML', TransactionHTML)
 
 	def LogTransaction(self, Transaction):# The Transaction Obj will be modified here with a new Transaction ID and HTML Link to it
 		self.Core.DB.URL.AddURL(Transaction.URL, Transaction.Found) # Log Transaction URL in URL DB (this also classifies the URL: scope, external, file, etc)
@@ -218,7 +218,7 @@ class TransactionManager:
 			Sort = "-r"
 		TXTTransactionLog = self.Core.Config.Get('TRANSACTION_LOG_TXT')
 		#Command = "sed 's/ | / /g' "+TXTTransactionLog+"  | sort -k 3 -n "+Sort+" | cut -f1 -d' ' | head -"+str(Num)
-		Command = "grep '"+self.Core.DB.DBHandler.GetFieldSeparator()+"T"+self.Core.DB.DBHandler.GetFieldSeparator()+"' "+TXTTransactionLog+" | sed 's/ "+self.Core.DB.GetFieldSeparator()+" / /g'| sort -k 3 -n "+Sort+" | cut -f1 -d' ' | head -"+str(Num)
+		Command = "grep '"+self.Core.DB.GetFieldSeparator()+"T"+self.Core.DB.GetFieldSeparator()+"' "+TXTTransactionLog+" | sed 's/ "+self.Core.DB.GetFieldSeparator()+" / /g'| sort -k 3 -n "+Sort+" | cut -f1 -d' ' | head -"+str(Num)
 		return [ Command, self.Core.Shell.shell_exec_monitor(Command).strip().split("\n") ] # Return list of matched IDs
 
 	def GrepTransactionIDsForHeaders(self, HeaderList):

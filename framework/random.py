@@ -33,11 +33,12 @@ import os, base64
 from framework.lib.general import *
 
 class Random:
-	def __init__(self):
-		pass
-
-	def GetStr(self, Length):
-		return base64.urlsafe_b64encode(os.urandom(Length))[0:Length]
+    
+    def __init__(self):
+        pass
+        
+    def GetStr(self, Length):
+        return base64.urlsafe_b64encode(os.urandom(Length))[0:Length]
 		#p(random)
  		#return ''.join(random.choice(string.letters + string.digits) for i in xrange(Length))
 		# import os --> return os.urandom(Length) ---> unicode, messy for http requests

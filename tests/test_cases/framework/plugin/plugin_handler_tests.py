@@ -9,6 +9,12 @@ from os import path
 from framework.lib.general import PluginAbortException,\
     UnreachableTargetException
 from tests.testing_framework.doubles.mock import OrderedExecutionMock
+import multiprocessing
+import time
+import sys
+from os import path
+import Queue
+import unittest
 
 PLUGINS_DIR = path.abspath("test_cases/resources_plugins_dir") + "/"
 
@@ -112,7 +118,7 @@ class PluginHandlerTests(BaseTestCase):
     def test_SavePluginInfo_should_save_to_DB_and_to_the_reporter(self):
         self.core_mock.DB, self.core_mock.Reporter = flexmock(), flexmock()
         self.core_mock.DB.DBHandler = flexmock()
-        self.core_mock.DB.DBHandler.should_receive("SaveDBs").once()
+        self.core_mock.DB.should_receive("SaveDBs").once()
         self.core_mock.Reporter.should_receive("SavePluginReport").once()
 
         self.plugin_handler.SavePluginInfo("PluginOutput", "Plugin")
@@ -159,6 +165,39 @@ class PluginHandlerTests(BaseTestCase):
         self.plugin_handler.should_receive("SavePluginInfo").once()
 
         self.plugin_handler.RunPlugin(PLUGINS_DIR, plugin)
+
+    @unittest.skip("Infinite loop prevents this test to finish")
+    def test_ProcessPluginsForTargetList_with_multiprocessing(self):
+        num_cores = 1
+        num_proc_per_core = 4
+        flexmock(multiprocessing).should_receive("cpu_count").and_return(num_cores)
+        self.core_mock.Config.should_receive("GetProcessPerCore").and_return(num_proc_per_core)
+        num_process = num_cores * num_proc_per_core
+        plugins_path = path.abspath("test_cases/resources/plugins_dir/web")
+        flexmock(self.plugin_handler)
+        self.plugin_handler.should_receive("GetPluginGroupDir").and_return(plugins_path)
+        self.plugin_handler.should_receive("get_plugins_in_order").and_return(["plugin1", "plugin2", "plugin3", "plugin4", "plugin5", "plugin6", "plugin7", "plugin8"])
+        def fake_worker(work,queue,start,status):
+            # I has to consume the items from the queue not to get a deadlock
+            while True:
+                try:
+                    work = queue.get()
+                    if work == (): sys.exit()
+                except Queue.Empty:
+                    pass
+                finally:
+                    time.sleep(0.5)
+        self.plugin_handler.worker = fake_worker
+        def fake_output(q): pass  #  In this test we are not taking care of the commands output
+        self.plugin_handler.output = fake_output
+
+        self.init_stdout_recording()
+        self.plugin_handler.ProcessPluginsForTargetList("web", {}, ["target1", "target2", "target3", "target4"])
+        stdout_content = self.get_recorded_stdout_and_close()
+
+        assert_that(stdout_content, contains_string("number of workers " + str(num_process)))
+        # Restore the num. of process as the config object is not renewed
+        self.core_mock.Config.should_receive("GetProcessPerCore").and_return(1)
 
     def test_ProcessPluginsForTargetList_with_net_plugins(self):
         self.core_mock.Config.should_receive("GetPortWaves").and_return("10")

@@ -32,7 +32,7 @@ CATEGORIES = [ 'RCE', 'SQLI', 'XSS', 'CHARSET' ]
 def run(Core, PluginInfo):
 	#Core.Config.Show()
     
-	Log("WARNING: This plugin requires a small selenium installation, please run '"+Core.Config.Get('INSTALL_SCRIPT')+"' if you have issues")
+	Core.log("WARNING: This plugin requires a small selenium installation, please run '"+Core.Config.Get('INSTALL_SCRIPT')+"' if you have issues")
 	Content = DESCRIPTION + " Results:<br />"
 	for Args in Core.PluginParams.GetArgs( { 
 'Description' : DESCRIPTION,

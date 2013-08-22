@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Description:
 The core is the glue that holds the components together and allows some of them to communicate with each other
 '''
-from framework import timer, error_handler, random
+from framework import timer, error_handler
 from framework.logQueue import logQueue
 from framework.config import config
 from framework.db import db
@@ -52,7 +52,9 @@ import re
 import shutil
 import signal
 import subprocess
-
+from framework import random
+from framework.lib.messaging import messaging_admin
+ 
 class Core:
     def __init__(self, RootDir):
         # Tightly coupled, cohesive framework components:
@@ -69,9 +71,13 @@ class Core:
         self.SET = set_handler.SETHandler(self)
         self.SMTP = smtp.SMTP(self)
         self.SMB = smb.SMB(self)
+        self.messaging_admin = messaging_admin.message_admin(self)
         self.showOutput=True
 
-
+    #wrapper to log function
+    def log(self,*args):
+        Log(*args)
+        
     def IsInScopeURL(self, URL): # To avoid following links to other domains
         ParsedURL = urlparse(URL)
         #URLHostName = URL.split("/")[2]
@@ -129,7 +135,9 @@ class Core:
             if not os.path.exists(transaction_db_path):
                 os.makedirs(transaction_db_path)
             for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body']:
-                os.mkdir(os.path.join(transaction_db_path, folder_name))
+                folder_path = os.path.join(transaction_db_path, folder_name)
+                if not os.path.exists(folder_path):
+                    os.mkdir(folder_path)
             if self.Config.Get('COOKIES_BLACKLIST_NATURE'):
                 regex_cookies_list = [ cookie + "=([^;]+;?)" for cookie in self.Config.Get('COOKIES_LIST') ]
                 regex_string = '|'.join(regex_cookies_list)
@@ -214,33 +222,37 @@ class Core:
         log = logging.getLogger('logfile')
         infohandler = logging.FileHandler('logfile',mode="w+")
         log.setLevel(logging.INFO)
-        infoformatter = logging.Formatter("%(asctime)s - %(processname)s - %(functionname)s - %(message)s")
+        infoformatter = logging.Formatter("%(type)s - %(asctime)s - %(processname)s - %(functionname)s - %(message)s")
         infohandler.setFormatter(infoformatter)
         log.addHandler(infohandler)
-    
+
     def Start(self, Options):
+        if self.initialise_framework(Options):
+            return self.run_plugins()
+
+    def initialise_framework(self, Options):
         self.DevMode = Options["DevMode"]
         self.initlogger()
         cprint("Loading framework please wait..")
-        self.PluginHandler = plugin_handler.PluginHandler(self, Options)
         self.Config.ProcessOptions(Options)
         self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT')) # Requires user config
-        self.PluginParams = plugin_params.PluginParams(self, Options)
+        self.Timer.StartTimer('core')
+        self.initialise_plugin_handler_and_params(Options)
         if Options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
             self.exitOutput()
             return False # No processing required, just list available modules
         self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
         self.DB.Init()
-        self.dbHandlerProcess = multiprocessing.Process(target=self.DB.DBHandler.handledb, args=())
-        self.dbHandlerProcess.start()
+        self.messaging_admin.Init()
         Command = self.GetCommand(Options['argv'])
         self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
         if self.Config.Get('SIMULATION'):
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
         self.StartProxy(Options)
         if self.DevMode:
-            self.ProxyProcess.join()
+            cprint("Proxy Mode is activated. Press Enter to continue to owtf")
+            raw_input()
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
@@ -248,6 +260,13 @@ class Core:
             self.Error.FrameworkAbort(Message) # Abort if proxy check failed
         # Each Plugin adds its own results to the report, the report is updated on the fly after each plugin completes (or before!)
         self.Error.SetCommand(self.AnonymiseCommand(Command)) # Set anonymised invoking command for error dump info
+        return True
+
+    def initialise_plugin_handler_and_params(self, Options):
+        self.PluginHandler = plugin_handler.PluginHandler(self, Options)
+        self.PluginParams = plugin_params.PluginParams(self, Options)
+
+    def run_plugins(self):
         Status = self.PluginHandler.ProcessPlugins()
         if Status['AllSkipped']:
             self.Finish('Complete: Nothing to do')
@@ -261,15 +280,15 @@ class Core:
 
     def Finish(self, Status = 'Complete', Report = True):
         if self.Config.Get('SIMULATION'):
-            if hasattr(self,'dbHandlerProcess'):
-                self.dbHandlerProcess.terminate()
+            if hasattr(self,'messaging_admin'):
+                self.messaging_admin.finishMessaging()
             self.exitOutput()    
             exit()
         else:
             try:
                 cprint("Saving DBs")
                 self.DB.Run.EndRun(Status)
-                self.DB.DBHandler.SaveDBs() # Save DBs prior to producing the report :)
+                self.DB.SaveDBs() # Save DBs prior to producing the report :)
                 if Report:
                     cprint("Finishing iteration and assembling report again (with updated run information)")
                     PreviousTarget = self.Config.GetTarget()
@@ -278,7 +297,7 @@ class Core:
                         self.Reporter.ReportFinish() # Must save the report again at the end regarless of Status => Update Run info
                     self.Config.SetTarget(PreviousTarget) # Restore previous target
                 cprint("owtf iteration finished")
-                if self.DB.DBHandler.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
+                if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
                     cprint("Please report the sanitised errors saved to "+self.Config.Get('ERROR_DB'))
                 #self.dbHandlerProcess.join()    
             except AttributeError: # DB not instantiated yet!
@@ -292,9 +311,9 @@ class Core:
                         #os.kill(int(self.TransactionLogger.pid), signal.SIGINT)
                     except: # It means the proxy was not started
                         pass
-                if hasattr(self,'dbHandlerProcess'):
-                    self.dbHandlerProcess.terminate()
-                self.exitOutput()    
+                if hasattr(self,'messaging_admin'):
+                    self.messaging_admin.finishMessaging()
+                self.exitOutput()
                 exit()
 
     def exitOutput(self):
@@ -303,7 +322,7 @@ class Core:
         
     def GetSeed(self):
         try:
-            return self.DB.DBHandler.GetSeed()
+            return self.DB.GetSeed()
         except AttributeError: # DB not instantiated yet
             return ""
 
@@ -314,7 +333,7 @@ class Core:
         if not Target:
             Target = self.Config.GetTarget()
         #print "Target="+Target+" in "+str(self.DB.GetData('UNREACHABLE_DB'))+"?? -> "+str(Target in self.DB.GetData('UNREACHABLE_DB'))
-        return Target in self.DB.DBHandler.GetData('UNREACHABLE_DB')
+        return Target in self.DB.GetData('UNREACHABLE_DB')
 
     def GetFileAsList(self, FileName):
         return GetFileAsList(FileName)
