@@ -28,12 +28,16 @@ This library contains helper functions and exceptions for the framework
 """
 
 from collections import defaultdict
+from framework.lib.filelock import FileLock
 import logging
 import multiprocessing
 import os
 import pprint
+import random
+import string
 import sys
 import threading
+import time
 
 class FrameworkException(Exception):
 	def __init__(self, value):
@@ -160,10 +164,79 @@ def GetFileAsList(Filename):
 
 def AppendToFile(Filename, Data):
 	try:
-		cprint("Writing to file: '"+Filename+"'")
+		#cprint("Writing to file: '"+Filename+"'")
 		open(Filename, 'a').write(Data)
 	except IOError, error:
 		cprint("Cannot write to file: '"+Filename+"' ("+str(sys.exc_info())+")")
+
+def get_files(request_dir):
+    files = os.listdir(request_dir)
+    files = [os.path.join(request_dir, f) for f in files if ".lock" not in f]
+    files.sort(key=lambda x: os.path.getmtime(x))
+    return files
+#this function waits for the directory existance.
+# if it doesnot it sleeps for delay seconds and then it try again
+# if there is some exception it raises the exception
+def wait_until_dir_exists(request_dir,delay):
+    while True:
+        if(os.path.exists(request_dir)):
+            return
+    time.sleep(delay)
+   
+    
+#this function writes to a file atomically
+def atomic_write_to_file(dirname,file,data):
+    filename = dirname+"/"+file
+    try:
+        
+        with FileLock(filename):
+            fd = open(filename,'w+')
+            fd.write(data)
+            fd.close()
+            
+        return 1
+    except KeyboardInterrupt:
+        raise KeyboardInterrupt
+    except:
+        return 0
+
+#this function atomically read from the given file
+#if skip_if_locked is true then it tries 2 times to acquire the lock and if 
+#lock is not available it returns with ""
+#else if skip_if_locked is false then default settings are used
+
+def atomic_read_from_file(requests_dir, partial_filename, skip_if_locked = True):
+    if skip_if_locked:
+        delay=0.30
+    else: 
+        delay=30
+    try:
+        
+        filename = requests_dir+"/"+partial_filename
+        data=""
+        while not os.path.exists(filename):
+            #AppendToFile("file1", "file is not there "+filename+"\n")
+            time.sleep(0.025)
+            
+        with FileLock(filename, timeout=delay):
+            fd = open(filename,'r')
+            data = fd.read()
+            fd.close()
+
+        return data
+    except KeyboardInterrupt:
+        raise KeyboardInterrupt
+    except:
+        return ""    
+
+#cleanly remove directories
+def removeDirs(dir):
+    for f in os.listdir(dir):
+        os.remove(dir+"/"+f)
+    os.rmdir(dir)
+
+# Files for messaging system
+OWTF_FILE_QUEUE_DIR = "/tmp/owtf/"
 
 #logging function
 #log levels
@@ -172,6 +245,7 @@ ERROR = logging.ERROR
 WARNING = logging.WARNING
 INFO = logging.INFO
 DEBUG = logging.DEBUG
+BENCHMARK = 0
 #LOG_THRESHOLD=7
 
 #log level to string mapping
@@ -179,7 +253,8 @@ LOG_LEVELS = { CRITICAL : 'CRITICAL'
             , ERROR : 'ERROR'
             , WARNING : 'WARNING'
             , INFO : 'INFO'
-            , DEBUG : 'DEBUG' }
+            , DEBUG : 'DEBUG' 
+            ,BENCHMARK:'BENCHMARK'}
 
 def get_short_info():
     fr = sys._getframe(3)
@@ -229,6 +304,7 @@ def Log(message, type = INFO, Overrides = {}.copy()):
     source_info = get_source_info() # Retrieve Source class, function, process and thread
     defaultlog = getDefaultLog(source_info)
     defaultfile = getDefaultlogFile(source_info)
-    defaultlog.log(type,message)
-    log_enteries = {'processname':source_info['Process'],'functionname':source_info['Source']}
-    defaultfile.log(type,message,extra=log_enteries)
+    if type!=BENCHMARK:
+        defaultlog.info(message)
+    log_enteries = {'processname':source_info['Process'],'functionname':source_info['Source'],'type':LOG_LEVELS[type]}
+    defaultfile.info(message,extra=log_enteries)

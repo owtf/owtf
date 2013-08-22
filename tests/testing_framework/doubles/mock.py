@@ -86,3 +86,18 @@ class ReplacedMethod():
         for i, arg in enumerate(self.args):
             if (arg != args[i]):
                 raise BadArgumentException(error_message)
+
+
+class StreamMock():
+
+    def __init__(self):
+        self.content = []
+
+    def write(self, arg):
+        self.content.append(arg)
+
+    def flush(self):
+        pass
+
+    def get_content(self):
+        return "\n".join(self.content)

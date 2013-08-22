@@ -152,18 +152,16 @@ class Reporter:
 				 "NumLinesRes": NumLinesRes,
 				"TransactionList":[
 								{
-									"HTMLLink": unicode( Transaction.HTMLLinkToID.replace( '@@@PLACE_HOLDER@@@', "See Transaction " + Transaction.ID ) ),
-							        "TimeHuman":  unicode( Transaction.TimeHuman ),
-							        "LinksForID":  unicode( self.DrawTransacLinksForID( Transaction.ID ) ),
-								    "RawRequest":  unicode( Transaction.GetRawRequest() ),
-								    "RawResponse":  unicode( Transaction.GetRawResponse()  , "utf-8" ),
+									"HTMLLink": self.unicode( Transaction.HTMLLinkToID.replace( '@@@PLACE_HOLDER@@@', "See Transaction " + Transaction.ID ) ),
+							        "TimeHuman":  self.unicode( Transaction.TimeHuman ),
+							        "LinksForID":  self.unicode( self.DrawTransacLinksForID( Transaction.ID ) ),
+								    "RawRequest":  self.unicode( Transaction.GetRawRequest() ),
+								    "RawResponse":  self.unicode( Transaction.GetRawResponse()  , "utf-8" ),
 								} for Transaction in TransactionList
 								]
 
 			}
 		return template.render( vars )
-
-
 
 	def GetRegisteredWebPlugins( self, ReportType ): # Web Plugins go in OWASP Testing Guide order
 		TestGroups = []
@@ -248,7 +246,6 @@ class Reporter:
 
 		with open( self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ), 'w' ) as file:
 			template = self.Template_env.get_template( 'report.html' )
-
 			vars = {
 
 						"ReportType" :  self.Core.Config.Get( 'REPORT_TYPE' ),

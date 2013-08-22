@@ -10,7 +10,7 @@ class PluginHandlerEnvironmentBuilder():
 
     def __init__(self):
         self._create_core_mock()
-        self._mock_shell_calls_for_scanner()
+        self._create_shell_mock()
         self.plugin_handler = PluginHandler(self.core_mock, self._get_options())
         flexmock(self.plugin_handler.scanner)
 
@@ -25,10 +25,11 @@ class PluginHandlerEnvironmentBuilder():
         self.core_mock.Config = flexmock()
         self.core_mock.Config.Plugin = self.__class__.plugin_config_proxy.get_instance()
         self.core_mock.Config.should_receive("GetProcessPerCore").and_return(1)
+        self.core_mock.Config.should_receive("GetMinRam").and_return(0)
 
-    def _mock_shell_calls_for_scanner(self):
+    def _create_shell_mock(self):
         self.core_mock.Shell = flexmock()
-        self.core_mock.Shell.should_receive("shell_exec")
+        self.core_mock.Shell.should_receive("shell_exec").and_return(100)
 
     def _get_options(self):
         return {"Simulation": False,

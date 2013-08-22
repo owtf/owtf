@@ -34,6 +34,6 @@ def run(Core, PluginInfo):
 	#Core.Config.Show()
 	#Vuln search box to be built in core and resued in different plugins:
 	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveSSL'))
-	Log("Passive links generated for target")
+	Core.log("Passive links generated for target")
 	return Content
 

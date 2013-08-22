@@ -443,7 +443,7 @@ class PluginHelper:
 			self.LogURLsFromStr( RawOutput )
 			#for line in RawOutput.split("\n"):
 			#	self.Core.DB.URL.AddURL(line.strip())
-		self.Core.DB.DBHandler.SaveAllDBs() # Save URL DBs to disk
+		self.Core.DB.SaveAllDBs() # Save URL DBs to disk
 		NumURLsAfter = self.Core.DB.URL.GetNumURLs()
 		Message =(str(NumURLsAfter-NumURLsBefore)+" URLs have been added and classified")
                 Log(Message)

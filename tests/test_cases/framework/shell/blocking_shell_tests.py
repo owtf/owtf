@@ -5,15 +5,9 @@ from framework.shell.blocking_shell import Shell
 from tests.testing_framework.shell.environments import InteractiveShellEnvironmentBuilder
 from hamcrest.library.text.stringmatches import matches_regexp
 import logging
-
-
-class FakeLogger():
-
-    def __init__(self):
-        self.content = ""
-
-    def info(self, message):
-        self.content += message
+from framework.lib.general import getDefaultLog
+import sys
+from tests.testing_framework.doubles.mock import StreamMock
 
 
 class BlockingShellTests(BaseTestCase):
@@ -25,19 +19,17 @@ class BlockingShellTests(BaseTestCase):
         self.shell = Shell(self.core_mock)
 
     def test_shell_exec_monitor_runs_a_command_logging_the_output(self):
-        logger = FakeLogger()
-        flexmock(logging).should_receive("getLogger").and_return(logger)
+        stream = StreamMock()
+        self.redirect_logging_to_stream(stream)
         command = 'pwd'
         expected_command_output = self.get_abs_path(".")
         expected_time_logging_message = "Execution Start Date/Time"
 
-        self.init_stdout_recording()
         command_output = self.shell.shell_exec_monitor(command)
-        stdout_content = self.get_recorded_stdout_and_close()
 
         assert_that(command_output, matches_regexp(expected_command_output))
-        assert_that(logger.content, matches_regexp(expected_time_logging_message))
-        assert_that(logger.content, matches_regexp(expected_command_output))
+        assert_that(stream.get_content(), matches_regexp(expected_time_logging_message))
+        assert_that(stream.get_content(), matches_regexp(expected_command_output))
 
     def test_shell_exec_monitor_with_KeyboardInterrupt_should_cancel_the_command(self):
         subprocess = flexmock()
@@ -50,3 +42,8 @@ class BlockingShellTests(BaseTestCase):
         self.shell.FinishCommand = fake_finish_command
 
         self.shell.shell_exec_monitor("pwd")
+
+    def redirect_logging_to_stream(self, stream):
+        logging_handler = logging.StreamHandler(stream)
+        logger = getDefaultLog("info")
+        logger.addHandler(logging_handler)

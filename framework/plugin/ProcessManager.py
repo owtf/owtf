@@ -137,16 +137,19 @@ class ProcessManager:
     #this function is used by workers to get new task
     def getNewWork(self,work,queue):
         queue.put(work)
+        #time.sleep(0.1)
+
         work1 = queue.get()
         while work1==work:
             queue.put(work)
+           # time.sleep(0.1)       #signal.signal(signal.SIGINT,signal.SIG_DFL)    
+
             work1 = queue.get()      
-                    #signal.signal(signal.SIGINT,signal.SIG_DFL)    
         return work1
     
     #worker code
     def worker(self,work,queue,start,status):
-        print 
+        
         while True:
             if start!=1:
                 # work has been completed. Put that into queue and wait for new work to be assigned
@@ -207,7 +210,7 @@ class ProcessManager:
         stdscr.refresh()
         height,width = stdscr.getmaxyx()
         stdscr.keypad(1)
-        self.refreshScreen(height, stdscr, selected)
+        i = self.refreshScreen(height, stdscr, selected)
        
         while 1:
             c = stdscr.getch()
@@ -255,9 +258,9 @@ class ProcessManager:
                 return  
                       
 
-        i=0
-        stdscr.clear()
-        self.refreshScreen(height, stdscr, selected)
+            i=0
+            stdscr.clear()
+            i=self.refreshScreen(height, stdscr, selected)
 
     #this function iterates over running plugin list and show it on curses screen
     def refreshScreen(self,height,stdscr,selected):
@@ -276,7 +279,7 @@ class ProcessManager:
             i=i+1    
         stdscr.addstr(height-1,0,"e Exit Owtf\tp Stop Plugin\tt Stop Tests for Target")
         stdscr.refresh()
-    
+        return i
     #This function empties the pending work list and aborts all processes                 
     def exitOwtf(self):
         self.worklist={}

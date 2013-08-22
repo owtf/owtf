@@ -241,13 +241,15 @@ class PluginHandler:
 	def GetPluginFullPath(self, PluginDir, Plugin):
 		return PluginDir+"/"+Plugin['Type']+"/"+Plugin['File'] # Path to run the plugin 
 
-	def RunPlugin(self, PluginDir, Plugin):
+	def RunPlugin(self, PluginDir, Plugin, save_output=True):
 		PluginPath = self.GetPluginFullPath(PluginDir, Plugin)
 		(Path, Name) = os.path.split(PluginPath)
 		#(Name, Ext) = os.path.splitext(Name)
 		self.Core.DB.Debug.Add("Running Plugin -> Plugin="+str(Plugin)+", PluginDir="+str(PluginDir))
 		PluginOutput = self.GetModule("", Name, Path+"/").run(self.Core, Plugin)
-		self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
+		if save_output:
+			self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
+		return PluginOutput
 
 	def ProcessPlugin(self, PluginDir, Plugin, Status):
 		self.Core.Timer.StartTimer('Plugin') # Time how long it takes the plugin to execute
@@ -266,8 +268,9 @@ class PluginHandler:
                     	Log("Skipped - Cannot run grep plugins: The Transaction DB is empty")
 			return None
 		try:
-			self.RunPlugin(PluginDir, Plugin)
+			output = self.RunPlugin(PluginDir, Plugin)
 			Status['SomeSuccessful'] = True
+            		return output
 		except KeyboardInterrupt:
 			self.SavePluginInfo("Aborted by user", Plugin) # cannot save anything here, but at least explain why
 			self.Core.Error.UserAbort("Plugin")
@@ -279,7 +282,7 @@ class PluginHandler:
 			Status['SomeAborted'] = True
 		except UnreachableTargetException, PartialOutput:
                         print "I am stucking here??"
-			self.DB.DBHandler.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
+			self.DB.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
 			Status['SomeAborted'] = True
 		except FrameworkAbortException, PartialOutput:
 			self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Framework Exit)", Plugin) # Save the partial output and exit
@@ -304,6 +307,10 @@ class PluginHandler:
 
 
 	def get_plugins_in_order_for_PluginGroup(self, PluginGroup):
+	    return self.Core.Config.Plugin.GetOrder(PluginGroup)
+
+
+	def get_plugins_in_order(self, PluginGroup):
 	    return self.Core.Config.Plugin.GetOrder(PluginGroup)
 
 	def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList): # TargetList param will be useful for netsec stuff to call this
@@ -337,6 +344,7 @@ class PluginHandler:
                         self.ProcessManager.manageProcess()
                         self.ProcessManager.poisonPillToWorkers()
                         self.ProcessManager.joinWorker()
+
 			#if 'breadth' == self.Algorithm: # Loop plugins, then targets
 			#	for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
 			#		#print "Processing Plugin="+str(Plugin)
@@ -351,7 +359,7 @@ class PluginHandler:
 			#			self.ProcessPlugin( PluginDir, Plugin, Status )
 
 	def SavePluginInfo(self, PluginOutput, Plugin):
-		self.Core.DB.DBHandler.SaveDBs() # Save new URLs to DB after each request
+		self.Core.DB.SaveDBs() # Save new URLs to DB after each request
 		self.Core.Reporter.SavePluginReport(PluginOutput, Plugin) # Timer retrieved by Reporter
 
 	def ShowPluginList(self):
