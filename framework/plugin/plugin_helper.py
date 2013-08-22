@@ -46,7 +46,7 @@ class PluginHelper:
 
 	def MultipleReplace( self, Text, ReplaceDict ): # This redundant method is here so that plugins can use it
 		return MultipleReplace( Text, ReplaceDict )
-	
+
 	def DrawCommandTable( self, Command ):
 		template = Template ( """
 				<table class="run_log"> 
@@ -200,47 +200,81 @@ class PluginHelper:
 				{% if Header %}
 					Header 
 				{% else %}
-				Suggested potentially interesting commands
+					Suggested potentially interesting commands
 				{% endif %}
 			</h4>
-			{% for Tab, ResourceGroup in CommandCategoryList %}
-				<table class="run_log"> 
-					{% for Name, Resource in  ResourceGroup %} 
-					 <tr> 
-						{% for Column in ColumnList %}
-							<th>
-								{{ Column }}
-							</th>
-						{% endfor %}
-					</tr>
-					 <tr> 
-					{% for Column in ColumnList %}
-					 	<td> 
-							{{ Column }}
-						</td>
-					{% endfor %}
-					</tr>
-				
-					{% endfor %}
-				</table>
+			<ul id="tabs">
+				{% for CommandCategory in CommandCategoryList %}
+					<li>
+							<a href="javascript:void(0);" id="tab_{{ CommandCategory.Tab|replace( ' ', '_' )|lower }}" target=""
+									onclick="SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');
+											 HideDivs(new Array('{{ DivIdList|join("','") }}'));
+											 this.className = 'selected'; 
+											 ToggleDiv('{{ CommandCategory.Tab|replace( ' ', '_' )|lower }}');" >
+								{{ CommandCategory.Tab }}
+							</a>
+					</li>
+				{% endfor %}
+				<li class="icon">
+					<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');">
+						<span>
+							<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
+						</span>
+					</a>	
+					&nbsp;
+					<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');">
+						<span>
+							<img src="images/minus_gray16x16.png" title="Close Plugins">&nbsp; 
+						</span>
+					</a>
+					&nbsp;	
+					<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');UnfilterBrotherTabs(this);">
+						<span>
+							<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
+						</span>
+					</a>
+				</li>
+			</ul>
+			{% for CommandCategory in CommandCategoryList %}
+				<div id="{{ CommandCategory.Tab|replace( ' ', '_' )|lower }}" class="tabContent" style="display:none">
+									<table class="run_log"> 
+										{% for ResourceGroup in  CommandCategory.ResourceGroups %} 
+										 <tr> 
+										 	<th> {{ ResourceGroup.Name }}	</th>
+										</tr>
+										 <tr> 
+										 	<td> {{ ResourceGroup.ModifiedCommand }} </td>
+										</tr>
+										{% endfor %}
+									</table>
+								</div>
 			{% endfor %}
+
+
+			
 		""" )
-		#print "$$$>>", template.render( Header = Header )
-		if Header == '': # Default header if not supplied
-			Header = "Suggested potentially interesting commands"
-		Header = "<hr /><h4>" + Header + "</h4>"
-		Tabs = self.Core.Reporter.Render.CreateTabs()
-		for Tab, ResourceGroup in CommandCategoryList:
-			Table = self.Core.Reporter.Render.CreateTable( {'class' : 'run_log'} )
-			for Name, Resource in self.Core.Config.GetResources( ResourceGroup ):
-				Table.CreateRow( [Name], True )
-				ModifiedCommand = self.Core.Shell.GetModifiedShellCommand( Resource.strip(), PluginOutputDir ) # Replaces the plugin output dir, etc
-				Table.CreateRow( [ self.Core.Reporter.DrawCommand( self.MultipleReplace( ModifiedCommand, self.Core.Config.GetReplacementDict() ) ) ] )
-				#Table.CreateRow([cgi.escape(self.MultipleReplace(ModifiedCommand, self.Core.Config.GetReplacementDict()))])
-			Tabs.AddDiv( Tab.replace( ' ', '_' ).lower(), Tab, Table.Render() )
-		Tabs.CreateTabs()
-		Tabs.CreateTabButtons()
-		return Header + Tabs.Render()
+
+		vars = {
+					"TabIdList": [ "tab_" + Tab.replace( ' ', '_' ).lower() for Tab, ResourceGroup in CommandCategoryList ],
+					"DivIdList": [ Tab.replace( ' ', '_' ).lower() for Tab, ResourceGroup in CommandCategoryList ],
+					"CommandCategoryList": [
+										{
+										"Tab": Tab,
+										"ResourceGroups": [
+															 {
+															 "Name": Name,
+															 "ModifiedCommand": self.MultipleReplace( self.Core.Shell.GetModifiedShellCommand( Resource.strip(), PluginOutputDir ), self.Core.Config.GetReplacementDict() )
+
+															} for Name, Resource in self.Core.Config.GetResources( ResourceGroup )
+														]
+
+										} for Tab, ResourceGroup in CommandCategoryList
+
+										]
+
+		}
+
+		return template.render()
 
 	def SetConfigPluginOutputDir( self, PluginInfo ):
 		PluginOutputDir = self.Core.PluginHandler.GetPluginOutputDir( PluginInfo )
@@ -458,36 +492,58 @@ class PluginHelper:
 		#AllTable += "</table>"
 		NuTransactions, TotalTransac, Percentage, StatsStr = self.GetTransactionStats( len( TransactionsMatched ) )
 		# NOTE: Table Creator does not support table structure below yet:
-		SummaryTable = """
-<h3>""" + SearchName + """</h3>
-<table>
-	<tr>
-		<th>Stats</th>
-		<td>
-			<ul>
-				<li>""" + str( len( Matches ) ) + """ Unique """ + SearchName + """ found</li>
-				<li>""" + StatsStr + """ transactions matched</li>
-			</ul>
-		</td>
-	</tr>
-	<tr>
-		<th>""" + SearchName + """</th>
-		<td class="alt">
-			<ul>
-				<li>""" + self.DumpFileGetLink( 'unique' + WipeBadCharsForFilename( SearchName ) + '.txt', "\n".join( Matches ), PluginInfo, 'Unique as TEXT' ) + """</li>
-				<li>""" + self.DumpFileGetLink( 'unique' + WipeBadCharsForFilename( SearchName ) + '.html', "<h3>Unique Matches</h3>" + UniqueTable.Render(), PluginInfo, 'Unique as HTML' ) + """</li>
-				<li>""" + self.DumpFileGetLink( 'all' + WipeBadCharsForFilename( SearchName ) + '.html', "<h3>All Matches</h3>" + AllTable.Render(), PluginInfo, 'All as HTML' ) + """</li>
-			</ul>
-		</td>
-	</tr>
-	<tr>
-		<th>Command</th><td>""" + self.Core.Reporter.DrawCommand( Command ) + """</td>
-	</tr>
-	<tr>
-		<th>Log</th><td class="alt">""" + self.Core.Reporter.Render.DrawButtonLink( 'See log', self.Core.Config.GetHTMLTransacLog( True ) ) + """</td>
-	</tr>
-</table>
-"""
+		SummaryTable = Template( """
+		<h3> {{ SearchName }} </h3>
+		<table>
+			<tr>
+				<th>Stats</th>
+				<td>
+					<ul>
+						<li> {{ Matches|count }} Unique  {{ SearchName }}  found</li>
+						<li> {{ StatsStr }} transactions matched</li>
+					</ul>
+				</td>
+			</tr>
+			<tr>
+				<th> {{ SearchName }} </th>
+				<td class="alt">
+					<ul>
+						<li>  <a href="{{ Unique_as_TEXTPath }}" class="button" target="_blank">
+								<span> Unique as TEXT </span>
+							</a> </li>
+						<li>  <a href="{{ Unique_as_HTMLPath }}" class="button" target="_blank">
+								<span> Unique as HTML </span>
+							</a> </li>
+						<li>  <a href="{{ All_as_HTMLPath }}" class="button" target="_blank">
+								<span> All as HTML </span>
+							</a> </li>
+					</ul>
+				</td>
+			</tr>
+			<tr>
+				<th>Command</th><td> {{ Command }} </td>
+			</tr>
+			<tr>
+				<th>Log</th>
+				<td class="alt">
+					<a href="{{ HTMLTransacLogLink }}" class="button" target="_button">
+						<span> See log </span>
+					</a> 
+				</td>
+			</tr>
+		</table>
+""" )
+
+		vars = {
+					"SearchName": SearchName,
+					"Matches": Matches,
+					"StatsStr":StatsStr,
+					"Command": Command,
+					"HTMLTransacLogLink": self.Core.Config.GetHTMLTransacLog( True ),
+					"Unique_as_TEXTPath": "../../../" + self.DumpFile( 'unique' + WipeBadCharsForFilename( SearchName ) + '.txt', "\n".join( Matches ), PluginInfo, 'Unique as TEXT' )[0],
+					"Unique_as_HTMLPath": "../../../" + self.DumpFile( 'unique' + WipeBadCharsForFilename( SearchName ) + '.html', "<h3>Unique Matches</h3>" + UniqueTable.Render(), PluginInfo, 'Unique as HTML' )[0],
+					"All_as_HTMLPath": "../../../" + self.DumpFile( 'all' + WipeBadCharsForFilename( SearchName ) + '.html', "<h3>All Matches</h3>" + AllTable.Render(), PluginInfo, 'All as HTML' )[0] ,
+				}
 		return SummaryTable
 
 	def FindMultilineResponseMatchesForRegexp( self, ResponseRegexp, PluginInfo ):
@@ -530,38 +586,109 @@ class PluginHelper:
 	def ResearchHeaders( self, HeaderList ):
 		Command, HeaderDict, AllValues, Header2TransacDict, NuTransactions = self.FindHeaders( HeaderList )
 		NuTransactions, TotalTransac, Percentage, StatsStr = self.GetTransactionStats( NuTransactions )
-		Table = '<h3>Header Analysis Summary</h3>'
-		Table += "<table>" # NOTE: Table structure not supported by table creator
-		Table += "<tr><th>Log</th><td>" + self.Core.Reporter.Render.DrawButtonLink( 'See log', self.Core.Config.GetHTMLTransacLog( True ) ) + "</td></tr>"
-		Table += "<tr><th>HTTP Transaction Stats</th><td class='alt'>" + StatsStr + " matched" + "</td></tr>"
-		Table += "<tr><th>Analysis Command</th><td>" + self.Core.Reporter.DrawCommand( Command ) + "</td></tr>"
-		#Table += self.Core.Reporter.DrawTableRow(['Log', 'HTTP Transaction Stats', 'Command'], True)
-		#Table += self.Core.Reporter.DrawTableRow([self.Core.Reporter.Render.DrawButtonLink('See log', self.Core.Config.GetHTMLTransacLog(True)), str(NuTransactions)+" out of "+str(TotalTransac)+" ("+str(Percentage)+"%) matches", cgi.escape(Command)])
-#		Table = "Header Value Analysis: "+str(NuTransactions)+" out of "+str(TotalTransac)+" ("+str(Percentage)+"%) HTTP transaction(s) matched "+self.Core.Reporter.Render.DrawButtonLink('See log', self.Core.Config.GetHTMLTransacLog(True))+":<br />"
-#		Table += "Command used to investigate headers: "+cgi.escape(Command)+"<br />"
-		Table += "</table>"
-		Table += '<h3>Header Value Analysis</h3>'
-		Table += '<p>NOTE: Only <u>unique values per header</u> are shown with a link to an example transaction</p>'
-		HTable = self.Core.Reporter.Render.CreateTable( {'class' : 'report_intro'} )
-		#Table += "<table class='report_intro'>"
-		#Table += self.Core.Reporter.DrawTableRow(['Header', 'Values'], True)
-		HTable.CreateRow( ['Header', 'Values'], True )
-		for Header in HeaderList:
-			LHeader = Header.lower() # Force lowercase to ensure match
-			if LHeader not in HeaderDict:
-				#Table += self.Core.Reporter.DrawTableRow([cgi.escape(Header), "Not Found"])
-				HTable.CreateRow( [cgi.escape( Header ), "Not Found"] )
-			else: # Header found
-				LinkList = []
-				for Value in HeaderDict[LHeader]:
-					LinkList.append( self.Core.Reporter.Render.DrawButtonLink( cgi.escape( Value ), Header2TransacDict[LHeader + Value] ) )
-				#Table += self.Core.Reporter.DrawTableRow([cgi.escape(Header), "<br />".join(LinkList)])
-				HTable.CreateRow( [cgi.escape( Header ), "<br />".join( LinkList )] )
-		#Table += "</table>"
-		Table += HTable.Render() # Append header table at the end of the string
-		return [ AllValues, Table, HeaderDict, Header2TransacDict , NuTransactions ]
+		template = Template( """
+		<h3>Header Analysis Summary</h3>
+		<table>
+			<tr>
+				<th>Log</th>
+				<td><a href="{{ HTMLTransacLogLink }}" class="button" target="_blank">
+					<span> See log </span>
+					</a>
+				</td>
+			</tr>
+			<tr>
+				<th>HTTP Transaction Stats</th>
+				<td class='alt'> {{ StatsStr }} matched </td>
+			</tr>
+			<tr>
+				<th>Analysis Command</th>
+				<td>{{ Command|e }}</td>
+			</tr>
+		</table>
+		
+		<h3>Header Value Analysis</h3>
+		<p>NOTE: Only <u>unique values per header</u> are shown with a link to an example transaction</p>
+		<table class="report_intro"> 
+			<tr>
+				<th> Header </th> 
+ 				<th> Values </th>
+			</tr>
+			{% for Header in HeaderList %}
+				
+					<tr>
+						<td> {{ Header }} </td>
+						<td>
+							{% if Header|lower not in  HeaderDict %}
+								Not Found
+							{% else %}
+								{% for HeaderValue in HeaderDict[Header|lower] %}
+								
+									<a href="{{ Header2TransacDict[Header|lower + HeaderValue] }}" class="button" target="_blank">
+										<span> {{ HeaderValue }} </span>
+									</a>
+									<br />
+								{% endfor %}
+							{% endif %}
+						</td>
+						
+					</tr>
+				
+				
+			{% endfor %}
+		</table>
+		""" )
+
+		vars = {
+					"HTMLTransacLogLink":self.Core.Config.GetHTMLTransacLog( True ),
+					"StatsStr": StatsStr,
+					"Command": Command,
+					"HeaderList":HeaderList,
+					"HeaderDict": HeaderDict,
+					"Header2TransacDict": Header2TransacDict,
+					}
+
+
+		return [ AllValues, template.render( vars ), HeaderDict, Header2TransacDict , NuTransactions ]
 
 	def CookieAttributeAnalysis( self, CookieValueList, Header2TransacDict ):
+		template = Template( """
+		<h3>Cookie Attribute Analysis</h3>
+		<table class="report_intro"> 
+			{% for self.Core.Config.Get( 'HEADERS_FOR_COOKIES' ).lower()in Cookies %}
+				<tr>
+					<th colspan="2">
+						Cookie: 
+						<a href="{{ Cookie.Link }}" class="button" target="_blank">
+							<span> {{ Cookie.Name }} </span>
+						</a>
+					</th>
+				</tr>
+				<tr>
+					<th>Attribute</th>
+					<th>Value</th>
+				</tr>
+				<tr>
+					<td>Value</td>
+					<td>{% if CookieAttribs[0] %} 
+							{{ CookieAttribs[0] }}
+						{% else %}
+							<b>Not Found</b>
+						{% endif %}
+					</td>
+				</tr>
+			{% endfor %}
+		</table>
+		""" )
+
+		vars = {
+			"Cookies": [
+						{
+							"Name": Cookie.split( '=' )[0],
+							"Link":  Header2TransacDict[self.Core.Config.Get( 'HEADERS_FOR_COOKIES' ).lower() + Cookie],
+							"Attribs": Cookie.replace( Cookie.split( '=' )[0] + "=", "" ).replace( "; ", ";" ).split( ";" ),
+						} for Cookie in CookieValueList
+					   ],
+			}
 		Table = self.Core.Reporter.Render.CreateTable( {'class' : 'report_intro'} )
 		SetCookie = self.Core.Config.Get( 'HEADERS_FOR_COOKIES' ).lower()
 		PossibleCookieAttributes = self.Core.Config.Get( 'COOKIE_ATTRIBUTES' ).split( ',' )

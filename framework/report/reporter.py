@@ -28,7 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The reporter module is in charge of producing the HTML Report as well as provide plugins with common HTML Rendering functions
 '''
-import os, re, cgi, sys
+
+import cgi
 from jinja2 import Template
 from jinja2 import Environment, PackageLoader
 from framework.lib.general import *
@@ -60,7 +61,7 @@ class Reporter:
 	def CopyAccessoryFiles( self ):
 		TargetOutputDir = self.Core.Config.Get( 'OUTPUT_PATH' )
 		FrameworkDir = self.Core.Config.Get( 'FRAMEWORK_DIR' )
-        	Log( "Copying report images .." )
+		Log( "Copying report images .." )
 		self.Core.Shell.shell_exec( "cp -r " + FrameworkDir + "/images/ " + TargetOutputDir )
 		Log( "Copying report includes (stylesheet + javascript files).." )
 		self.Core.Shell.shell_exec( "cp -r " + FrameworkDir + "/includes/ " + TargetOutputDir )
@@ -162,18 +163,6 @@ class Reporter:
 			}
 		return template.render( vars )
 
-	def GetTransactionLink( self, TransacPath ):
-		return "/".join( TransacPath.split( "/" )[-5:] )
-
-        def GetIconInfoAsStr( self, InfoList ):
-                FileName, Title = self.Core.Config.GetAsList( InfoList )
-                return FileName + '@' + Title
-
-        def GetIconInfoPairsAsStrList( self, IconInfoPairs ):
-                InfoList = []
-                for IconInfoList in IconInfoPairs:
-                        InfoList.append( self.GetIconInfoAsStr( IconInfoList ) )
-                return InfoList
 
 
 	def GetRegisteredWebPlugins( self, ReportType ): # Web Plugins go in OWASP Testing Guide order
@@ -186,9 +175,13 @@ class Reporter:
 			for Match in RegisteredPlugins:
 				Match['Label'] = Match['Type'] # For url plugins the Label is a display of the plugin type (passive, semi_passive, etc)
 				RegisteredPluginList.append( Match )
-			TestGroups.append( {
-'TestGroupHeaderStr' : '<div id="' + TestGroup['Code'] + '" class="testgroup">' + self.Render.DrawButtonLink( TestGroup['Descrip'] + " (" + TestGroup['Code'] + ")", TestGroup['URL'], { 'class' : 'report_index' } ) + "&nbsp;" + TestGroup['Hint']
-, 'RegisteredPlugins' : RegisteredPluginList } )
+
+			TestGroups.append( 
+								{
+								'TestGroupInfo':  TestGroup ,
+								 'RegisteredPlugins' : RegisteredPluginList
+								 }
+							 )
 			#'TestGroupHeaderStr' : '<div id="'+TestGroup['Code']+'"><br />'+self.Render.DrawButtonLink(TestGroup['Descrip']+" ("+TestGroup['Code']+")", TestGroup['URL'], { 'class' : 'report_index' })+"&nbsp;"+TestGroup['Hint']
 		return TestGroups
 
@@ -202,9 +195,13 @@ class Reporter:
 			for Match in RegisteredPlugins:
 				Match['Label'] = Match['Type'] # For url plugins the Label is a display of the plugin type (passive, semi_passive, etc)
 				RegisteredPluginList.append( Match )
-			TestGroups.append( {
-'TestGroupHeaderStr' : '<div id="' + TestGroup['Code'] + '" class="testgroup">' + self.Render.DrawButtonLink( TestGroup['Descrip'] + " (" + TestGroup['Code'] + ")", TestGroup['URL'], { 'class' : 'report_index' } ) + "&nbsp;" + TestGroup['Hint']
-, 'RegisteredPlugins' : RegisteredPluginList } )
+
+			TestGroups.append( 
+								{
+									'TestGroupInfo': TestGroup,
+									'RegisteredPlugins' : RegisteredPluginList
+								}
+							)
 			#'TestGroupHeaderStr' : '<div id="'+TestGroup['Code']+'"><br />'+self.Render.DrawButtonLink(TestGroup['Descrip']+" ("+TestGroup['Code']+")", TestGroup['URL'], { 'class' : 'report_index' })+"&nbsp;"+TestGroup['Hint']
 		return TestGroups
 
@@ -220,13 +217,15 @@ class Reporter:
 			for Match in RegisteredPlugins:
 				Match['Label'] = Match['Args'] # For aux plugins the Label is a display of the arguments passed
 				RegisteredPluginList.append( Match )
+
 			TestGroups.append( {
-'TestGroupHeaderStr' : '<div id="' + PluginType.lower() + '"><br />' + self.Render.DrawButtonLink( PluginType.upper(), '#', { 'class' : 'report_index' } ) + "&nbsp;" # No hint ..
-, 'RegisteredPlugins' : RegisteredPluginList } )
+								'TestGroupInfo': { "PluginType":PluginType },
+								'RegisteredPlugins' : RegisteredPluginList
+								 }
+							 )
 		return TestGroups
 
 	def GetTestGroups( self, ReportType ):
-
 		if ReportType == 'URL':
 			return self.GetRegisteredWebPlugins( ReportType )
 		elif ReportType == 'AUX':
@@ -327,7 +326,7 @@ class Reporter:
 									},
 						"TestGroups": [
 									{
-										"TestGroupHeaderStr": TestGroup['TestGroupHeaderStr'],
+										"TestGroupInfo": TestGroup['TestGroupInfo'],
 										"Matches" : [
 														{
 														 "DivId": self.GetPluginDivId( Match ),
