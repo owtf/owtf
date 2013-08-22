@@ -44,82 +44,7 @@ class HTMLRenderer:
 	def CreateTable( self, Attribs = {} ):
 		return tablecreator.TableCreator( self, Attribs )
 
-	def DrawJSArrayFromList( self, List ): # Turns a Python List into a string to create a JavaScript Array
-		template = Template( """
-		new Array('{{ List|join("','") }}')
-		""" )
-		return template.render( List = List )
 
-	def DrawiFrame( self, Attribs ):
-		template = Template( """
-		<iframe {% for Attrib, Value in Attribs.items() %}
-		  			 {{ Attrib|e }}="{{ Value }}"
-				{% endfor %}>
-				Your browser does not support iframes
-		</iframe>
-		""" )
-		return template.render( Attribs = Attribs )
-
-	def DrawJSLink( self, Name, JSCode, Attribs = {}, IgnoredParam = '' ):
-		Attribs['onclick'] = JSCode
-		Attribs['target'] = ''
-		template = Template( """
-		<a href="javascript:void(0);" 
-			{% for Attrib, Value in Attribs.items() %}
-			   {{ Attrib|e }}="{{ Value }}"
-			{% endfor %}
-			>
-			{{ Name }}
-		</a>
-		""" )
-		return template.render( Name = Name, Attribs = Attribs )
-
-
-	def DrawButtonJSLink( self, Name, JSCode, Attribs = None, IgnoredParam = '' ):
-		Attribs['onclick'] = JSCode
-		Attribs['target'] = ''
-		if 'class' not in Attribs:
-			Attribs['class'] = 'button' # By default set Links to button class
-		template = Template( """
-			<a href="javascript:void(0);" 
-			{% for Attrib, Value in Attribs.items() %}
-			   {{ Attrib|e }}="{{ Value }}"
-			{% endfor %}
-			>
-			<span> {{ Name }} </span>
-			</a>
-		""" )
-		return template.render( Name = Name, Attribs = Attribs )
-
-	def GetAttribsAsStr( self, Attribs = {} ):
-		template = Template( """
-		{% for Attrib, Value in Attribs.items() %}
-		   {{ Attrib|e }}="{{ Value }}"
-		{% endfor %}
-		""" )
-		return template.render( Attribs = Attribs )
-
-	def DrawImage( self, FileName, Attribs = {} ):
-		template = Template( """
-		<img src="images/{{ FileName }}.png" 
-			{% for Attrib, Value in Attribs.items() %}
-			   {{ Attrib|e }}="{{ Value }}"
-			{% endfor %}
-		>
-		""" )
-		return template.render( FileName = FileName, Attribs = Attribs )
-
-	def RenderLink( self, Name, Link, Attribs = {} ):
-		template = Template( """
-			<a href="{{ Link }}" 
-			{% for Attrib, Value in Attribs.items() %}
-			   {{ Attrib|e }}="{{ Value }}"
-			{% endfor %}
-			>
-			{{ Name }}
-			</a>
-		""" )
-		return template.render( Link = Link, Name = Name, Attribs = Attribs )
 
 	def GetPartialPathForLink( self, Link, ToFile = False, FromPlugin = False ):
 		PartialPath = Link
@@ -153,11 +78,11 @@ class HTMLRenderer:
 			Attribs['target'] = '_blank' # By default open everything in a new tab
 		template = Template( """
 			<a href="{{ Link }}" 
-			{% for Attrib, Value in Attribs.items() %}
-			   {{ Attrib|e }}="{{ Value }}"
-			{% endfor %}
-			>
-			<span> {{ Name }} </span>
+				{% for Attrib, Value in Attribs.items() %}
+				   {{ Attrib|e }}="{{ Value }}"
+				{% endfor %}
+				>
+				<span> {{ Name }} </span>
 			</a>
 		""" )
 		return template.render( Link = self.GetPartialPathForLink( Link, ToFile, FromPlugin ), Name = Name, Attribs = Attribs )
@@ -183,15 +108,9 @@ class HTMLRenderer:
 		""" )
 		return template.render( ItemList = ItemList, Attribs = Attribs )
 
-	def DrawLinkPairsAsHTMLList( self, PairList, Method = 'DrawLink', Attribs = {}, ToFile = False ):
-		#return "<ul><li>"+"</li><li>".join(self.DrawLinkPairs(PairList, Method, Attribs, ToFile))+"</li></ul>"
-		Result = self.DrawHTMLList( self.DrawLinkPairs( PairList, Method, Attribs, ToFile ) )
-		return Result
 
 	def DrawButton( self, Name, JavaScript ):
 		template = Template( """
-		
 		<button onclick="javascript: {{ JavaScript }}"> {{ Name }} </button>
-		
 		""" )
 		return template.render( Name = Name, JavaScript = JavaScript, )

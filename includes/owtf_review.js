@@ -489,12 +489,6 @@ function PluginCommentsPresent(PluginId) {
 	return (Review[Offset][GetRealPluginId(PluginId)].notes.length > 0)
 }
 
-function GetCollapsedReportSize() {
-	if (DetailedReport) {
-		return window.parent.CollapsedReportSize
-	}
-	return CollapsedReportSize
-}
 
 function SelfGetDetailedReport() { //Gets the iframe from parent window
 	return window.parent.document.getElementById('iframe_' + Offset) //Retrieve self from parent
@@ -502,7 +496,6 @@ function SelfGetDetailedReport() { //Gets the iframe from parent window
 
 function DetailedReportCollapse() {
 	IFrame = SelfGetDetailedReport()
-	IFrame.style.height = GetCollapsedReportSize()
 	IFrame.className = 'iframe_collapsed' //Without horizontal scrollbar
 	window.location.hash = ''
 	window.parent.location.hash = ''

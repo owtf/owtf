@@ -197,7 +197,6 @@ class Summary:
 								"Ports": [ self.PortInfo( IP, Port ) for Port in self.GetSortedPorts( IP )]
 								} for IP in self.GetSortedIPs()],
 						"AuxInfo":  self.AuxInfo(),
-						"COLLAPSED_REPORT_SIZE": self.Core.Config.Get( 'COLLAPSED_REPORT_SIZE' ),
 						"JsonNetMap": json.dumps( self.NetMap ),
 						"PLUGIN_DELIM":  self.Core.Reporter.GetPluginDelim(),
 				}
