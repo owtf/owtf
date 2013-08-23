@@ -654,7 +654,7 @@ class PluginHelper:
 		template = Template( """
 		<h3>Cookie Attribute Analysis</h3>
 		<table class="report_intro"> 
-			{% for self.Core.Config.Get( 'HEADERS_FOR_COOKIES' ).lower()in Cookies %}
+			{% for Cookie in Cookies %}
 				<tr>
 					<th colspan="2">
 						Cookie: 
