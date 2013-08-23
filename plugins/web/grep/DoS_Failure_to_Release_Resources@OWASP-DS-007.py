@@ -45,7 +45,7 @@ def run(Core, PluginInfo):
 		if Transaction: # Transaction Found in DB
 			SlowTransactions.append(Transaction)
 	Content = "<p>Top "+str(len(SlowTransactions))+" slowest transactions</p>"
-	Content += "<p>Hint: You can also sort by time in descending order on the "+Core.Reporter.Render.DrawButtonLink('Transaction log', Core.Config.GetHTMLTransacCore.log(True))+"</p>"
+	Content += "<p>Hint: You can also sort by time in descending order on the "+Core.Reporter.Render.DrawButtonLink('Transaction log', Core.Config.GetHTMLTransacLog(True))+"</p>"
 	Content += Core.Reporter.DrawHTTPTransactionTable(SlowTransactions)
 	Content += Core.PluginHelper.DrawCommandTable( Command ) # Show command used to generate info
 	return Content
