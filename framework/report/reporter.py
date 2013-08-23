@@ -163,6 +163,12 @@ class Reporter:
 			}
 		return template.render( vars )
 
+	def unicode(self, *args):
+		try:
+			return unicode(*args)
+		except TypeError:
+			return args[0]  # Input is already Unicode
+
 	def GetRegisteredWebPlugins( self, ReportType ): # Web Plugins go in OWASP Testing Guide order
 		TestGroups = []
 		for TestGroup in self.Core.Config.Plugin.GetWebTestGroups(): #Follow defined web test group order, NOT execution order
