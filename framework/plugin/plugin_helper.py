@@ -544,7 +544,7 @@ class PluginHelper:
 					"Unique_as_HTMLPath": "../../../" + self.DumpFile( 'unique' + WipeBadCharsForFilename( SearchName ) + '.html', "<h3>Unique Matches</h3>" + UniqueTable.Render(), PluginInfo, 'Unique as HTML' )[0],
 					"All_as_HTMLPath": "../../../" + self.DumpFile( 'all' + WipeBadCharsForFilename( SearchName ) + '.html', "<h3>All Matches</h3>" + AllTable.Render(), PluginInfo, 'All as HTML' )[0] ,
 				}
-		return SummaryTable
+		return SummaryTable.render(vars)
 
 	def FindMultilineResponseMatchesForRegexp( self, ResponseRegexp, PluginInfo ):
 		return self.DrawResponseMatchesTables( self.Core.DB.Transaction.GrepMultiLineResponseRegexp( ResponseRegexp ), PluginInfo )
