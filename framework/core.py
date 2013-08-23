@@ -251,13 +251,8 @@ class Core:
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
         self.StartProxy(Options)
         if self.DevMode:
-            cprint("Proxy Mode is activated. Press Cntrl+C to stop inbound proxy")
-            try:
-                self.ProxyProcess.join()
-            except KeyboardInterrupt:
-                cprint("Exiting from proxy mode")
-                # Grep plugins launch
-                pass
+            cprint("Proxy Mode is activated. Press Enter to continue to owtf")
+            raw_input()
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
