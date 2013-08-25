@@ -737,6 +737,9 @@
 					$(".subreport_refresh").click(function(){
 						target_subreport = $(this).data('value'); 
 						$(target_subreport).load($(target_subreport).data('value')); 
+						$('html, body').animate({
+					        scrollTop: $(this).offset().top - 40
+					    }, 500);
 					});
 
 		
