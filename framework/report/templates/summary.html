@@ -525,7 +525,6 @@
 						 <div  id="sidebar" class="bs-docs-sidebar">
 			          		<ul class="nav nav-pills nav-stacked bs-docs-sidenav affix ">
 			          		<li class="nav-header"><i class="icon-screenshot icon-white"> </i> Targets</li>
-			          				{% set index = 0 %}
 			          				{% for IPInfo in IPs %}
 											{% set first = loop.first %}
 										 	{% for PortInfo in IPInfo.Ports %}
@@ -534,8 +533,8 @@
 											 		{% set first = loop.first and first %}
 											 			{% for Offset in PortInfo.Offsets %}
 											 			  {% set first = loop.first and first %}
-											 			  {% set index = index + 2 %}
-			                      						 <li><a href="#{{ index }}"  class="tooltip_sidebar" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{ Offset.ReviewOffset }}"><i class="icon-chevron-right"></i> {{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}</a></li>
+											 			  {% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
+			                      						 <li><a href="#{{ TargetID }}"  class="tooltip_sidebar" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{ Offset.ReviewOffset }}"><i class="icon-chevron-right"></i> {{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}</a></li>
 			                						 {% endfor %}
 												{% endif %}
 										    {% endfor %}
@@ -544,29 +543,42 @@
 			          </div>
 		          </div>
 		          <div class="span10" id="content" data-spy="scroll" data-target="#sidebar">
-		          	{% set index = 0 %}
+
 		          	{% for IPInfo in IPs %}
 										{% set first = loop.first %}
 									 	{% for PortInfo in IPInfo.Ports %}
 									 		{% set first = loop.first and first %}
 									 		{% for Offset in PortInfo.Offsets %}
 									 			{% set first = loop.first and first %}
+											 	{% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
 									 			
-							
-		              	 {% set index = index + 1 %}
-							<section id="{{ index }}" class="well well-small">
+							<section id="{{ TargetID }}" class="well well-small">
 		                      <div class="page-header">
 		                        <h3><span class="icon-screenshot icon-white"> </span>{{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}
-		                        <small class="text-info"><a href="{{ Offset.ReviewOffset }}" target="_blank">{{ Offset.ReviewOffset }}</a> </small> 
-		                        <a class="btn btn-success disabled" href="#review_modal" role="button" data-toggle="modal">Review</a>
+		                        <small class="text-info">
+		                        <a href="{{ Offset.ReviewOffset }}" target="_blank">{{ Offset.ReviewOffset }}</a> </small> 
+		                        <a class="btn btn-info disabled" href="#review_modal" role="button" data-toggle="modal">Review</a>
+		                        <a class="btn btn-success disabled" href="#export_subreport" role="button" data-toggle="modal">Export</a>
+		                       	<a class="btn btn-warning subreport_refresh" href="#" role="button"  data-value="#subreport_{{ TargetID }}"><i class="icon-refresh"></i></a>
 		                        </h3>
 		                        	
 				         		 </div>
+				         		 
+				         		 
+								 
+								 <div id="subreport_{{ TargetID }}" class="subreport" data-value="{{ Offset.ReviewPath }}">
+								 	<span class="alert alert-warning">
+								 		<i class="icon-spinner icon-spin icon-large"></i> 
+								 			Subreport is not loaded yet ... click <strong>Refresh <i class="icon-refresh"></i></strong> button!   
+								 	</span>
+								 </div>
+								<!-- 
 				         		 <iframe id="iframe_{{ Offset.ReviewOffset }}" src="{{ Offset.ReviewPath }}"   frameborder="0"  width="100%" height="100%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen>
 																Your browser does not support iframes
 															</iframe>
 									<div id="ip_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ IPInfo.IP }}</div>
 									<div id="port_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ PortInfo.Port }}</div>
+								 -->
 				         	</section>
 		         			{% endfor %}
 						{% endfor %}
@@ -664,13 +676,14 @@
 			   $('.tooltip_sidebar').tooltip();
 			   // $('#myTab a:first').tab('show');
 			   // $('#myTab2 a:first').tab('show');
-			   // $('#sidebar').affix();
-			   // $('body').scrollspy({ target: '#sidebar' });
+			   $('#sidebar').affix();
+			   $('body').scrollspy({ target: '#sidebar' });
 			   // $("#info").tooltip();
 			   $(".filter").tooltip();
 			   $(".counter").tooltip();
 			   $("#refresh").tooltip();
 			   $("#more_options").tooltip();
+
 			</script>
 	    
 	    <!--  old javascript files -->
@@ -681,6 +694,7 @@
 				var PluginDelim = '{{ PLUGIN_DELIM }}'
 				var SeverityWeightOrder = new Array('bonus_red','flag_violet','flag_red','flag_yellow','flag_blue','bug')
 				var PassedTestIcons = new Array('check_green')
+
 		</script>
 					<!-- overriden <script type="text/javascript" src="includes/jquery-1.6.4.js"></script> -->
 					<script type="text/javascript" src="includes/owtf_general.js"></script>
@@ -691,5 +705,28 @@
 					<script type="text/javascript" src="includes/ckeditor/ckeditor.js"></script>
 					<script type="text/javascript" src="includes/ckeditor/adapters/jquery.js"></script>
 					<script type="text/javascript" src="includes/owtf_localStorage.js"></script>
+		
+		<script>
+		// load subreports 
+					$(".subreport").each(function(){
+						/*$.ajax({ 
+								url:$(this).data('value'),
+								async:true, 
+								success: function(result){
+									$(this).html(result);
+									}
+						});*/
+						$(this).load($(this).data('value')); 
+					});
+					
+		
+					$(".subreport_refresh").click(function(){
+						target_subreport = $(this).data('value'); 
+						$(target_subreport).load($(target_subreport).data('value')); 
+					});
+
+		
+					
+		</script>
 </body>
 </html>
