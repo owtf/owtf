@@ -196,6 +196,9 @@ class Summary:
 								"IP": IP,
 								"Ports": [ self.PortInfo( IP, Port ) for Port in self.GetSortedPorts( IP )]
 								} for IP in self.GetSortedIPs()],
+						"Stats": {
+								"Targets": sum([len(self.GetSortedPorts(IP)) for IP in self.GetSortedIPs() ]),
+								},
 						"AuxInfo":  self.AuxInfo(),
 						"JsonNetMap": json.dumps( self.NetMap ),
 						"PLUGIN_DELIM":  self.Core.Reporter.GetPluginDelim(),
