@@ -313,7 +313,21 @@
 					</thead>
 					<tbody>
 						{% for Start, End, Runtime, Command, Status in RUN_DB  %}
-								<tr class=""> 
+								<tr 
+								{% if Status == "Complete" %}	
+										class="text-success"
+								{% elif Status == "Skipped" %}	
+										class="muted"
+								{% elif Status == "Aborted" %}
+										class="text-warning"
+								{% elif Status == "Crashed" %}
+										class="text-error"
+								{% elif Status == "Running" %}
+										class="text-info"
+								{% else %}
+										class=""
+								{% endif %}		
+								> 
 									<td> {{ loop.index }} </td>
 									<td> {{ Start }} </td> 
 									<td> {{ End }} </td> 
