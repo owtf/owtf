@@ -80,21 +80,21 @@ class Reporter:
                 URL, TransacPath, ReqPath, ResHeadersPath, ResBodyPath = PathList
                 template = Template( """
                 			<!-- Start Transactions Links -->
-	                			<a href="{{ Transaction_URL }}" class="button" target="_blank">
-									<span> Site </span>
-								</a><br />
-								<a href="{{ Transaction_Path }}" class="button" target="_blank">
-									<span> F </span>
-								</a><br />
-								<a href="{{ Request_Path }}" class="button" target="_blank">
-									<span> R </span>
-								</a><br />
-								<a href="{{ Resource_Headers_Path }}" class="button" target="_blank">
-									<span> H </span>
-								</a><br />
-								<a href="{{ Resource_Body_Path }}" class="button" target="_blank">
-									<span> B </span>
-								</a><br />
+	                			<a href="{{ Transaction_URL }}" class="label" target="_blank">
+									Site
+								</a>
+								<a href="{{ Transaction_Path }}" class="label" target="_blank">
+									F
+								</a>
+								<a href="{{ Request_Path }}" class="label" target="_blank">
+									R
+								</a>
+								<a href="{{ Resource_Headers_Path }}" class="label" target="_blank">
+									H
+								</a>
+								<a href="{{ Resource_Body_Path }}" class="label" target="_blank">
+									B
+								</a>
 							<!-- End Transactions Links -->
                 			""" )
                 vars = {

@@ -146,18 +146,18 @@ class PluginHelper:
 				LinkList.append( ( Name, SandboxedPath ) )
 
 		template = Template( """
-		<hr />{{ ResourceListName }}: 
-		{% if LinkList|count > 1 %}
-			<button onclick="javascript:  OpenAllInTabs(new Array('','{{ LinkList|join }}'))">  Open All In Tabs  </button>
-		{% endif %}
+		<div class="well  well-small">
+			{{ ResourceListName }}: 
 		 
-		<ul class="default_list">
-    		{% for LinkName, Link in LinkList %}
-    			<li> <a href="../../../{{ Link }}" class="button" target="_blank">
-						<span> {{ LinkName }} </span>
-					</a> </li>
-    		{% endfor %}
-		</ul>}
+			<ul class="icons-ul">
+	    		{% for LinkName, Link in LinkList %}
+	    			<li><i class="icon-li icon-chevron-sign-right"></i>
+	    			 <a href="../../../{{ Link }}" class="button" target="_blank">
+							<span> {{ LinkName }} </span>
+						</a> </li>
+	    		{% endfor %}
+			</ul>
+		</div>
 		""" )
 		return template.render( ResourceListName = ResourceListName, LinkList = LinkList )
 
@@ -414,8 +414,26 @@ class PluginHelper:
 	def ProcessRobots( self, PluginInfo, Contents, LinkStart, LinkEnd, Filename = 'robots.txt' ):
 		num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = self.AnalyseRobotsEntries( Contents )
 		save_path = self.Core.PluginHandler.DumpPluginFile( Filename, Contents, PluginInfo )
-		TestResult = "robots.txt was " + NotStr + "found. " + str( num_lines ) + " lines: " + str( num_allow ) + " Allowed, " + str( num_disallow ) + " Disallowed, " + str( num_sitemap ) + " Sitemap.\n"
-		TestResult += '<br />Saved to: ' + self.Core.Reporter.Render.DrawButtonLink( save_path, save_path, {}, True )#<a href="'+save_path+'" target="_blank">'+save_path+'</a>'
+		template = Template(
+						"""
+						<div class="alert {% if NotStr == "not" %}alert-warning{% else %}alert-success{% endif %}">
+						  robots.txt was <strong>{{ NotStr }}</strong> found.
+						  <br />
+						  <strong>{{ num_lines }} lines:</strong> {{ num_allow }} Allowed,  {{ num_disallow }} Disallowed, {{ num_sitemap }} Sitemap.
+						  <br />
+						  Saved to: {{ SaveLink }}
+						</div>
+						"""
+						)
+		vars = {
+				 "NotStr":  NotStr,
+				 "num_lines": num_lines, 
+				 "num_allow": num_allow,
+				 "num_disallow": num_disallow,
+				 "num_sitemap": num_sitemap,
+				 "SaveLink": self.Core.Reporter.Render.DrawButtonLink( save_path, save_path, {}, True ),
+			}
+		TestResult =  template.render(vars)
 		TopURL = self.Core.Config.Get( 'TOP_URL' )
 		if num_disallow > 0 or num_allow > 0 or num_sitemap > 0: # robots.txt contains some entries, show browsable list! :)
 			self.Core.DB.URL.AddURLsStart()
