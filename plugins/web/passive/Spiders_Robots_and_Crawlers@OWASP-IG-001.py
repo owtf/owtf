@@ -43,7 +43,7 @@ def run(Core, PluginInfo):
 		TestResult += Core.Reporter.Render.DrawButtonLink(Name, URL)
 		Transaction = Core.Requester.GetTransaction(True, URL) # Use the cache if possible for speed
 		if Transaction.Found:
-			TestResult += "<br /><br />Raw regexp processing:<br />"
+			TestResult += "<br /><strong>Raw regexp processing:</strong><br />"
 			TestResult += Core.PluginHelper.ProcessRobots(PluginInfo, Transaction.GetRawResponseBody(), LinkStart, LinkFinish, 'robots'+str(Count)+'.txt')
 			Count += 1
 		else: # Not found or unknown request error

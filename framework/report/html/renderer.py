@@ -72,8 +72,6 @@ class HTMLRenderer:
 		return template.render( Link = self.GetPartialPathForLink( Link, ToFile, FromPlugin ), Name = Name, Attribs = Attribs )
 
 	def DrawButtonLink( self, Name, Link, Attribs = {}, ToFile = False, FromPlugin = False ):
-		if 'class' not in Attribs:
-			Attribs['class'] = 'button' # By default set Links to button class
 		if not 'target' in Attribs:
 			Attribs['target'] = '_blank' # By default open everything in a new tab
 		template = Template( """
