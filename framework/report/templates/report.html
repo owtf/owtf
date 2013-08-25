@@ -13,10 +13,11 @@
                        <div class="accordion-inner">
                 	  {% if TestGroup.Matches %}
 							<ul class="nav nav-pills ">
-								<li class="">Type: </li>
+								<li class="brand disabled"><a>Type: </a> </li>
 							{% for Match in TestGroup.Matches %}
 								<li class=""><a class="" href="#tab_{{ ReportID }}_{{ TestGroupIndex }}_{{ Match.TabName }}x" data-toggle="tab">{{ Match.TabName }}</a></li>
 							{% endfor %}
+								<li class="pull-right"><a href="{{ TestGroup.TestGroupInfo.URL }}" class="text-success"><i class="icon-lightbulb"></i></a> </li>
 							</ul>
 							<div class="tab-content ">
 							
