@@ -237,7 +237,8 @@ class ProxyHandler(tornado.web.RequestHandler):
 
 class PlugnHackHandler(tornado.web.RequestHandler):
     """
-    This handles the requests which are used for firefox configuration
+    This handles the requests which are used for firefox configuration 
+    https://blog.mozilla.org/security/2013/08/22/plug-n-hack/
     """
     @tornado.web.asynchronous
     def get(self, ext):
@@ -252,8 +253,9 @@ class PlugnHackHandler(tornado.web.RequestHandler):
 <body>
 <h1> OWASP OWTF Simple browser configuration </h1>
 <p>
-The purpose of OWASP OWTF is to automate the manual, uncreative part of pen testing: For example, spending time trying to remember how to call "tool X", parsing results of "tool X" manually to feed "tool Y", etc.
-</p>
+OWASP OWTF is a project that aims to make security assessments as efficient as possible. This is achieved by launching a number of tools automatically, running tests not found in other tools and providing an interactive interface to help the human rank the importance of the information being reviewed (in a similar fashion to the thought process of a chess player).
+More information on OWASP OWTF can be found at:
+<a href="https://www.owasp.org/index.php/OWASP_OWTF" target="__blank__">https://www.owasp.org/index.php/OWASP_OWTF</a></p>
 <button id="btn">Click to Setup! :P</button>
 <script>
   var manifest = {"detail":{"url":"http://127.0.0.1:8008/proxy.json"}};
@@ -325,7 +327,10 @@ The purpose of OWASP OWTF is to automate the manual, uncreative part of pen test
             self.write(commands)
             self.set_header("Content-Type", "application/json")
         elif ext == ".pac":
-            self.write("function FindProxyForURL(url,host) {return \"PROXY "+self.application.inbound_ip+":"+str(self.application.inbound_port)+"\"; }")
+            pac_string = "function FindProxyForURL(url,host) {"
+            pac_string += "if ((host == \"localhost\") || (host == \"127.0.0.1\")) {return \"DIRECT\";}"
+            pac_string += "return \"PROXY "+self.application.inbound_ip+":"+str(self.application.inbound_port)+"\"; }"
+            self.write(pac_string)
             self.set_header('Content-Type','text/plain')
         elif ext == ".crt":
             self.write(open(self.application.ca_cert, 'r').read())
@@ -337,7 +342,7 @@ class ProxyProcess(Process):
     def __init__(self, instances, inbound_options, cache_dir, ssl_options, cookie_filter, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
         self.application = tornado.web.Application(handlers=[
-                                                            (r'/proxy(.*)', PnHandler),
+                                                            (r'/proxy(.*)', PlugnHackHandler),
                                                             (r".*", ProxyHandler)
                                                             ], debug=False, gzip=True)
         self.application.inbound_ip = inbound_options[0]
@@ -369,7 +374,7 @@ class ProxyProcess(Process):
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
-            #tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/fix.log","--logging=info"])
+            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/fix.log","--logging=error"])
             # To run any number of instances
             self.server.start(int(self.instances))
             tornado.ioloop.IOLoop.instance().start()
