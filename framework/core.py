@@ -269,7 +269,7 @@ class Core:
     def run_plugins(self):
         Status = self.PluginHandler.ProcessPlugins()
         if Status['AllSkipped']:
-            self.Finish('Complete: Nothing to do')
+            self.Finish('Skipped')
         elif not Status['SomeSuccessful'] and Status['SomeAborted']:
             self.Finish('Aborted')
             return False
