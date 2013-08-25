@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>OWASP OWTF Summary Report</title>
+	    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	    <meta charset="utf-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <meta name="description" content="OWASP OWTF Summary Report">
+	    <meta name="author" content="OWASP OWTF Team">
+	
+	
+	    <!-- styles -->
+	    <link href="includes/css/bootstrap.css" rel="stylesheet">
+	    <link href="includes/css/font-awesome/css/font-awesome.min.css" rel="stylesheet"> 
+	    <link href="includes/css/bootstrap-responsive.css" rel="stylesheet" >
+	    <link href="includes/js/aloha/css/aloha.css" rel="stylesheet" >
+	    <style>
+	    .nav-tabs-container {
+	                            padding: 3px;
+	                            border: 1px solid @grayLight;
+	                            .border-radius(4px);
+	                        }
+	    </style>
+	</head>
+
+  <body >
+    <div class="container">
+
+		<!-- start page header -->
+	    <div class="page-header">
+	    	<h2>
+	    		<a href="http://www.owtf.org" >
+	    			<img src="includes/img/OWASP%20OWTF%20LOGO.png" class="img-rounded" alt="OWASP OWTF">
+	    		</a> 
+	    		Summary Report 
+	    		<small>v{{ Version }}<sup class="icon-info-sign" id="info"  rel="tooltip" data-original-title="{{ Release }}"  data-trigger="hover" data-html="true" data-placement="right"></sup></small> 
+	    			 <a class="btn btn-info pull-right filter" href="#" rel="tooltip" data-original-title="Help!" data-placement="bottom"><i class="icon-question-sign icon-light"></i></a>
+	    	</h2>
+	    </div>
+		<!-- end page header -->
+
+		<!--  navbar row-->
+         <div class="row">
+         	 <div class="span12">
+         	   <div class="row-fluid">
+
+	   				 <div class="navbar navbar-inverse" >
+		    <div class="navbar-inner">
+		    <a class="brand" href="#">Summary</a>
+		    <ul class="nav">
+		    <li class="active"><a href="#main" data-toggle="tab">Home</a></li>
+		    <li class=""><a href="#filter" data-toggle="tab">Browse</a></li>
+            <li><a href="#review" data-toggle="tab">Review</a></li>
+            
+           <li class="divider-vertical"></li>
+           		    <li class="dropdown">
+               				 <a class="dropdown-toggle"
+             					   data-toggle="dropdown"
+            				    href="#">
+            				    Targets (4)
+               				 <b class="caret"></b>
+              				  </a>
+              				  <ul class="dropdown-menu">
+              					<li><a> 193.168.77.199</a></li>
+              					</ul>
+              			</li>
+             <li class="dropdown">
+               				 <a class="dropdown-toggle"
+             					   data-toggle="dropdown"
+            				    href="#">
+            				    Plugins (23)
+               				 <b class="caret"></b>
+              				  </a>
+              				  <ul class="dropdown-menu">
+              					<li><a> OWASP-IG-005 <small>Application Discovery</small></a></li>
+              					</ul>
+              			</li>
+              			
+      
+              <li class="divider-vertical"></li>
+             <li class="dropdown">
+                <a class="dropdown-toggle"
+                data-toggle="dropdown"
+                href="#">
+                Logs
+                <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">General</a>
+                         <ul class="dropdown-menu">
+                             <li><a href="db/errors.txt" target="_blank"> Errors: Not found </a></li>
+                             <li><a href="db/unreachable.txt" target="_blank"> Unreachable targets: No </a></li>
+                             <li><a href="./transaction_log.html" target="_blank"> Transaction Log (HTML) </a></li>
+                             <li><a href="#" target="_blank"> All Downloaded Files - To be implemented </a></li>
+                             <li><a href="transactions/" target="_blank"> All Transactions </a></li>
+                               <li><a href="requests/" target="_blank"> All Requests </a></li>
+                             <li><a href="response_header/" target="_blank"> All Response Headers </a></li>
+                             <li><a href="response_bodies/" target="_blank"> All Response Bodies </a></li>
+                        </ul>
+                        </li>
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Verified URLs</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="db/all_urls.txt"> All URLs </a></li>
+                          <li><a href="db/file_urls.txt" target="_blank"> File URLs </a></li>
+                             <li><a href="db/fuzzable_urls.txt" target="_blank"> Fuzzable URLs</a></li>
+                             <li><a href="db/image_urls.txt"> Image URLs </a></li>
+                              <li><a href="db/error_urls.txt" target="_blank"> Error URLs </a></li>
+                             <li><a href="db/external_urls.txt" target="_blank"> External URLs </a></li>
+                             
+              
+                        </ul>
+                    </li>
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Potential URLs</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="db/potential_urls.txt"> All URLs </a></li>
+                          <li><a href="db/potential_file_urls.txt" target="_blank"> File URLs </a></li>
+                             <li><a href="db/potential_fuzzable_urls.txt" target="_blank"> Fuzzable URLs</a></li>
+                             <li><a href="db/potential_image_urls.txt"> Image URLs </a></li>
+                              <li><a href="db/potential_error_urls.txt" target="_blank"> Error URLs </a></li>
+                             <li><a href="db/potential_external_urls.txt" target="_blank"> External URLs </a></li>
+
+                        </ul>
+                    </li>
+                  
+                     
+                    
+                
+                </ul>
+                        
+            </li>
+             <li class="divider-vertical"></li>
+             <li class="dropdown">
+                <a class="dropdown-toggle"
+                data-toggle="dropdown"
+                href="#">
+                Links
+                <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Exploitation</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="http://hackvertor.co.uk/public" target="_blank"> Hackvertor </a></li>
+                             <li><a href="http://hackarmoury.com/" target="_blank"> Hackarmoury </a></li>
+                             <li><a href="http://www.exploit-db.com/" target="_blank"> ExploitDB </a></li>
+                             <li><a href="http://www.exploitsearch.net/" target="_blank"> ExploitSearch </a></li>
+                             <li><a href="http://www.hakipedia.com/index.php/Hakipedia" target="_blank"> Hackipedia </a></li>
+                        </ul>
+                        </li>
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Methodology</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="https://www.owasp.org/index.php/OWASP_Testing_Guide_v3_Table_of_Contents" target="_blank"> OWASP </a></li>
+                             <li><a href="http://www.pentest-standard.org/index.php/Main_Page" target="_blank"> Pentest Standard </a></li>
+                             <li><a href="http://www.isecom.org/osstmm/"> OSSTMM </a></li>
+              
+                        </ul>
+                    </li>
+                    <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Calculators</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="http://nvd.nist.gov/cvss.cfm?adv&calculator&version=2" target="_blank"> CVSS Advanced </a></li>
+                             <li><a href="http://nvd.nist.gov/cvss.cfm?calculator&version=2" target="_blank"> CVSS Normal </a></li>
+              
+                        </ul>
+                    </li>
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Test/Learn</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="http://blog.taddong.com/2011/10/hacking-vulnerable-web-applications.html" target="_blank"> Taddong </a></li>
+                             <li><a href="http://securitythoughts.wordpress.com/2010/03/22/vulnerable-web-applications-for-learning/" target="_blank"> Securitythoughts </a></li>
+                             <li><a href="http://danielmiessler.com/projects/webappsec_testing_resources/" target="_blank"> Danielmiessler </a></li>
+              
+                        </ul>
+                    </li>
+                    
+                
+                </ul>
+                        
+            </li>
+			<li class="divider-vertical"></li>
+			<li class="dropdown ">
+	                <a class="dropdown-toggle"
+	                data-toggle="dropdown"
+	                href="#">
+	               Skins
+	                <b class="caret  text-info"></b>
+	                </a>
+	                <ul class="dropdown-menu">
+		                <li><a href="#">Default</a></li>
+		                <li><a href="#">Cerulean</a></li>
+		                <li><a href="#">Cyborg</a></li>
+		                <li><a href="#">Readable</a></li>
+		                <li><a href="#">Slate</a></li>
+		                <li><a href="#">Spacelab</a></li>
+		                <li><a href="#">SuperHeroes</a></li>
+		                <li><a href="#">United</a></li>
+	                </ul>
+				</li>
+		    </ul>
+		    </div>
+    	</div>
+
+   	 </div>
+   
+         	
+         	        		</div>
+          </div>
+          <!--  end navbar row -->
+           
+         <div class="row">
+         	<div class="span12">
+          <div class="tab-content">
+          	<div class="tab-pane active" id="main">
+          		
+          		<div class="row-fluid">
+          		   <div class="span7">
+		          		<h3>Status <small class="text-info">Running...</small></h3>
+		          		
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-terminal icon-light"></i></span> <strong>Current Command: </strong>owtf.py -f -3 www.esi.dz</div>
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-screenshot icon-light"></i></span> <strong>Current Target: </strong>123.19.29.23</div>
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-stethoscope icon-light"></i></span> <strong>Current plugin: </strong>plugin_name</div>
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-spinner icon-light"></i></span> <strong>Completion rate: </strong>0/1 targets - 11/24 plugins</div>
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-time icon-light"></i></span> <strong>Running time: </strong> 1h 23m 33s</div>
+		          			          		
+		          		<h3> History </h3>
+		          				    <table class="table table-bordered table-striped table-hover">
+					<thead>
+						<tr>
+							<th> N° </th>
+							<th> COMMAND </th>
+							<th> START </th>
+							<th> END </th>
+							<th> RUNTIME </th>
+							<th> STATUS </th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="">
+							<td>4</td>
+							<td>owtf.py www.esi.dz</td>
+							<td> 16/06/2013-18:40 </td>
+							<td> * </td>
+							<td> * </td>
+							<td>Unknown</td>
+						</tr>
+						<tr class="text-warning">
+							<td>3</td>
+							<td>owtf.py www.esi.dz</td>
+							<td> 16/06/2013-18:40 </td>
+							<td> 16/06/2013-18:42 </td>
+							<td>2m, 14s, 478ms</td>
+							<td>Aborted by user</td>
+						</tr>
+						<tr class="text-success">
+							<td>2</td>
+							<td>owtf.py www.esi.dz</td>
+							<td> 16/06/2013-18:40 </td>
+							<td> 16/06/2013-18:42 </td>
+							<td>2m, 14s, 478ms</td>
+							<td>Completed</td>
+						</tr>
+						<tr class="text-error">
+							<td>1</td>
+							<td>owtf.py www.esi.dz</td>
+							<td> 16/06/2013-18:40 </td>
+							<td> 16/06/2013-18:42 </td>
+							<td>2m, 14s, 478ms</td>
+							<td>Crashed</td>
+						</tr>
+					</tbody>
+   				 </table>
+		
+		          		<h3> Stats </h3>
+		          		+analysin stats
+		          		+review stats
+		          		<hr/>
+		          
+		          		
+		          	</div>
+		          	<div class="span5">
+		          		<div class="well well-small"> 
+		          			<h3><i class="icon-screenshot"></i> Targets <small>(4)</small> </h3>
+		          			<ul>
+		          				<li><a href="link_to_target">193.28.32.121</a></li>
+		          				<li><a href="link_to_target">193.28.32.223</a></li>
+		          				<li><a href="link_to_target">193.28.32.232</a></li>
+		          				<li><a href="link_to_target">193.28.32.11</a></li>
+		          			</ul>
+		          		</div>
+		          	    <div class="well well-small"> 
+			          		<h3><i class="icon-stethoscope"></i> Test Plugins <small>(25)</small></h3>
+			          		    <ul>
+				          		    <li><a href="link_to_plugin">OWASP-IG-01</a>  </li>
+			          				<li><a href="link_to_plugin">OWASP-IG-02</a></li>
+			          				<li><a href="link_to_plugin">OWASP-IG-03</a></li>
+			          				<li><a href="link_to_plugin">OWASP-IG-04</a></li>
+		          				</ul>
+			          	</div>
+			          	<div class="well well-small"> 
+			          		<h3><i class="icon-file-text-alt"></i> Logs <small>(22)</small></h3>
+			          		list here with links
+			          	</div>
+		          	</div>
+	            </div>
+          		
+          		
+          	</div>
+            <div class="tab-pane" id="filter">
+               
+                <!--  Filter Proto #4  -->
+                <div class="row-fluid">
+                  <div class="span12">
+                    <div class="btn-toolbar">
+                         <div class="btn-group" data-toggle="buttons-checkbox"> 
+                        	<button class="btn btn-info filter" rel="tooltip" data-original-title="Completed" data-placement="bottom"><i class="icon-ok icon-white"></i> <div id="filterinfo_counter" class="counter"></div></button>
+                        </div>
+                         <div class="btn-group " data-toggle="buttons-checkbox">
+                        	<button class="btn filter" rel="tooltip" data-original-title="Flagged" data-placement="bottom"><i class="icon-flag icon-white"></i> 23</button>
+                        </div>
+                         <div class="btn-group" data-toggle="buttons-checkbox">
+                   		     <button class="btn filter" rel="tooltip" data-original-title="Favorated" data-placement="bottom"><i class="icon-heart icon-white"></i>21</button>
+                       </div>
+                         <div class="btn-group" data-toggle="buttons-checkbox">
+                      		  <button class="btn disabled filter" rel="tooltip" data-original-title="Commented" data-placement="bottom"><i class="icon-comment icon-white"></i> 0</button>
+                      </div>
+                      
+	                      <div class="btn-group" data-toggle="buttons-checkbox">
+	                        <button class="btn filter" rel="tooltip" data-original-title="Not seen" data-placement="bottom"><i class="icon-eye-close icon-white"></i> 2</button>
+	                        <button class="btn filter" rel="tooltip" data-original-title="Seen" data-placement="bottom"><i class="icon-eye-open icon-white"></i>24</button>
+	                      </div>
+
+	                      <div class="btn-group" data-toggle="buttons-checkbox">
+	                        <button class="btn btn-inverse filter" rel="tooltip" data-original-title="Undefined" data-placement="bottom"><i class="icon-asterisk  icon-white"></i>16</button>
+	                        <button class="btn btn-warning filter" rel="tooltip" data-original-title="Warning" data-placement="bottom"><i class="icon-warning-sign icon-white"></i>21</button>
+	                        <button class="btn btn-danger filter" rel="tooltip" data-original-title="Exploitable" data-placement="bottom"><i class="icon-fire icon-white"></i> 21</button>
+	                        <button class="btn btn-info  filter" rel="tooltip" data-original-title="Logic Bug" data-placement="bottom"><i class="icon-bug icon-white"></i>5</button>
+		                    <button class="btn btn-success filter " rel="tooltip" data-original-title="Test passed" data-placement="bottom"><i class="icon-thumbs-up icon-white"></i> 5</button>
+	                      </div>
+
+	                      <div class="btn-group" data-toggle="buttons-checkbox">
+	                      	<button class="btn filter" rel="tooltip" data-original-title="No severity" data-placement="bottom"><i class="icon-remove-circle icon-white"></i> 2</button>
+	                        <button class="btn filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom"><i class="icon-arrow-down icon-white"></i> 23</button>
+	                        <button class="btn filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom"><i class="icon-arrow-right icon-white"></i>  2</button>
+	                        <button class="btn filter" rel="tooltip" data-original-title="High severity" data-placement="bottom"><i class="icon-arrow-up icon-white"></i> 4</button>
+	                        <button class="btn filter" rel="tooltip" data-original-title="Critical severity" data-placement="bottom"><i class="icon-exclamation-sign icon-white"></i>  1</button>
+	                      </div>
+                    
+	                       <div class="btn-group">
+		                        <button class="btn filter" rel="tooltip" data-original-title="Clear filters" data-placement="bottom"><i class="icon-ban-circle icon-white"></i></button>
+		                        <button id="refresh" class="btn" rel="tooltip" data-original-title="Refresh" data-placement="bottom"><i class="icon-refresh icon-white"></i></button> 
+		                        <a href="#more_filters_modal" role="button" class="btn filter" data-toggle="modal" rel="tooltip" data-original-title="More filters" data-placement="bottom"><i class="icon-filter icon-white"></i></a>
+		                   </div>
+		                       <span class="label label-success pull-right"><strong> Matches: <span id="filtermatches_counter">145</span> </strong></span> 	
+                  </div>
+                
+                </div>
+                </div>
+                 <!--  End Filter Proto #4  -->
+                 
+                 
+						<!-- Modal more-filters -->
+						<div id="more_filters_modal" class="modal hide fade" style="width: 700px;" tabindex="-1" role="dialog" aria-labelledby="more_filters_modal_label" aria-hidden="true">
+							<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							<h3 id="more_filters_modal_label">More filters</h3>
+							</div>
+							<div class="modal-body" >
+					                <table >
+					                <tr>
+					                	<th>Net Plugin Groups</th>
+					                	<th>Web Plugin Groups</th>
+					                	<th>Aux Plugin Groups</th>
+					                </tr>
+					                <tr>
+					                	<td>
+						                	<select multiple="multiple">
+												<option selected>All</option>
+												<option>None</option>
+												<option>[todo]</option>
+											</select>
+										</td>
+										<td>
+											<select multiple="multiple">
+												<option selected>All</option>
+												<option>None</option>
+												<option>Active</option>
+												<option>External</option>
+												<option>Grep</option>
+												<option>Passive</option>
+												<option>Semi_passive</option>
+											</select>
+										</td>
+										<td>
+											<select multiple="multiple">
+												<option selected>All</option>
+												<option>None</option>
+												<option>Bruteforce</option>
+												<option>Dos</option>
+												<option>Exploit</option>
+												<option>Rce</option>
+												<option>Se</option>
+												<option>Selenium</option>
+												<option>Smb</option>
+											</select>
+										</td>
+										</tr>
+										<tr>
+					                	 <th colspan="3">Available Targets</th>
+					                	 </tr>
+					                	 <tr>
+					                	 <td colspan="3"> 
+						                	 <select multiple="multiple" id="SelectTargets" style="width:100%;">
+												    <option value="ALL" selected>All</option>
+											       	<option value="">123.23.21.12:80</option>
+											       	<option value="">123.23.21.12:443</option>
+											       	<option value="">23.12.22.22:80</option>
+											       	<option value="">212.88.77.99:80</option>
+											 </select>
+					                	 
+					                	 </td>
+					                	 </tr>
+										<tr>
+					                	 <th colspan="3">Web Test Groups</th>
+					                	 </tr>
+					                	 <tr>
+					                	  	<td colspan="3">
+											 <select multiple="multiple" id="SelectWebTestGroups" size="10" style="width:100%;" >
+											    <option value="ALL" selected>All</option>
+											 	<option value="OWASP-IG-001">OWASP-IG-001 - Spiders, Robots, and Crawlers - robots.txt Analysis</option>
+											 	<option value="OWASP-IG-002">OWASP-IG-002 - Search engine discovery/reconnaissance - Google Hacking, Metadata</option>
+											 	<option value="OWASP-IG-003">OWASP-IG-003 - Identify application entry points - Crawling</option>
+											 	<option value="OWASP-IG-004">OWASP-IG-004 - Web Application Fingerprint - What is that site running?</option>
+											 	<option value="OWASP-IG-005">OWASP-IG-005 - Application Discovery - Port Scanning, Whois</option>
+											 	<option value="OWASP-IG-006">OWASP-IG-006 - Testing for Error Code - Error Messages</option>
+											 	<option value="OWASP-CM-001">OWASP-CM-001 - Testing for SSL-TLS - SSL Testing</option>
+											 	<option value="OWASP-CM-002">OWASP-CM-002 - Testing for DB Listener - DB Service Testing</option>
+											 	<option value="OWASP-CM-003">OWASP-CM-003 - Infrastructure Configuration Management - WAF, Load Balancer, Rev Proxy, User Agent</option>
+											 	<option value="OWASP-CM-004">OWASP-CM-004 - Application Configuration Management - Comments, Source code disclosure</option>
+											 	<option value="OWASP-CM-005">OWASP-CM-005 - File Extensions Handling - File uploads, etc</option>
+											 	<option value="OWASP-CM-006">OWASP-CM-006 - Old, Backup and Unreferenced Files - DirBuster, directory/file bruteforce</option>
+											 	<option value="OWASP-CM-007">OWASP-CM-007 - Testing for Admin Interfaces - Admin interface</option>
+											 	<option value="OWASP-CM-008">OWASP-CM-008 - HTTP Methods and XST - PUT, TRACE, WebDAV, etc</option>
+											 	<option value="OWASP-AT-001">OWASP-AT-001 - Testing for Credentials Transport - Passwords in clear-text</option>
+											 	<option value="OWASP-AT-002">OWASP-AT-002 - Testing for User Enumeration - User Enumeration</option>
+											 	<option value="OWASP-AT-003">OWASP-AT-003 - Default or Guessable User Account - Default accounts</option>
+											 	<option value="OWASP-AT-004">OWASP-AT-004 - Testing for Brute Force - Brute Force</option>
+											 	<option value="OWASP-AT-005">OWASP-AT-005 - Bypassing Authentication Schema - </option>
+											 	<option value="OWASP-AT-006">OWASP-AT-006 - Vulnerable Remember Password and Pwd Reset - </option>
+											 	<option value="OWASP-AT-007">OWASP-AT-007 - Logout and Browser Cache Management - </option>
+											 	<option value="OWASP-AT-008">OWASP-AT-008 - Testing for Captcha - </option>
+											 	<option value="OWASP-AT-009">OWASP-AT-009 - Multiple Factors Authentication - </option>
+											 	<option value="OWASP-AT-010">OWASP-AT-010 - Race Conditions - </option>
+											 	<option value="OWASP-SM-001">OWASP-SM-001 - Session Management Schema - </option>
+											 	<option value="OWASP-SM-002">OWASP-SM-002 - Cookies Attributes - </option>
+											 	<option value="OWASP-SM-003">OWASP-SM-003 - Session Fixation - </option>
+											 	<option value="OWASP-SM-004">OWASP-SM-004 - Exposed Session Variables - </option>
+											 	<option value="OWASP-SM-005">OWASP-SM-005 - Testing for CSRF - </option>
+											 	<option value="OWASP-AZ-001">OWASP-AZ-001 - Path Traversal - </option>
+											 	<option value="OWASP-AZ-002">OWASP-AZ-002 - Bypassing Authorization Schema - </option>
+											 	<option value="OWASP-AZ-003">OWASP-AZ-003 - Privilege Escalation - </option>
+											 	<option value="OWASP-BL-001">OWASP-BL-001 - Business Logic - </option>
+											 	<option value="OWASP-DV-001">OWASP-DV-001 - Reflected Cross Site Scripting - </option>
+											 	<option value="OWASP-DV-002">OWASP-DV-002 - Stored Cross Site Scripting - </option>
+											 	<option value="OWASP-DV-003">OWASP-DV-003 - DOM-based Cross Site Scripting - </option>
+											 	<option value="OWASP-DV-004">OWASP-DV-004 - Cross Site Flashing - </option>
+											 	<option value="OWASP-DV-005">OWASP-DV-005 - SQL Injection - </option>
+											 	<option value="OWASP-DV-006">OWASP-DV-006 - LDAP Injection - </option>
+											 	<option value="OWASP-DV-007">OWASP-DV-007 - ORM Injection - </option>
+											 	<option value="OWASP-DV-008">OWASP-DV-008 - XML Injection - </option>
+											 	<option value="OWASP-DV-009">OWASP-DV-009 - SSI Injection - </option>
+											 	<option value="OWASP-DV-010">OWASP-DV-010 - XPath Injection - </option>
+											 	<option value="OWASP-DV-011">OWASP-DV-011 - SMTP Injection - </option>
+											 	<option value="OWASP-DV-012">OWASP-DV-012 - Code Injection - </option>
+											 	<option value="OWASP-DV-013">OWASP-DV-013 - Command Injection - </option>
+											 	<option value="OWASP-DV-014">OWASP-DV-014 - Buffer Overflow - </option>
+											 	<option value="OWASP-DV-015">OWASP-DV-015 - Incubated Vulnerability - </option>
+											 	<option value="OWASP-DV-016">OWASP-DV-016 - HTTP Splitting/Smuggling - </option>
+											 	<option value="OWASP-DS-001">OWASP-DS-001 - SQL Wildcard Attacks - </option>
+											 	<option value="OWASP-DS-002">OWASP-DS-002 - DoS Locking Customer Accounts - </option>
+											 	<option value="OWASP-DS-003">OWASP-DS-003 - DoS Buffer Overflows - </option>
+											 	<option value="OWASP-DS-004">OWASP-DS-004 - DoS User Specified Object Allocation - </option>
+											 	<option value="OWASP-DS-005">OWASP-DS-005 - User Input as a Loop Counter - </option>
+											 	<option value="OWASP-DS-006">OWASP-DS-006 - Writing User Provided Data to Disk - </option>
+											 	<option value="OWASP-DS-007">OWASP-DS-007 - DoS Failure to Release Resources - </option>
+											 	<option value="OWASP-DS-008">OWASP-DS-008 - Storing too Much Data in Session - </option>
+											 	<option value="OWASP-WS-001">OWASP-WS-001 - WS Information Gathering - </option>
+											 	<option value="OWASP-WS-002">OWASP-WS-002 - Testing WSDL - </option>
+											 	<option value="OWASP-WS-003">OWASP-WS-003 - Testing for XML Structural - </option>
+											 	<option value="OWASP-WS-004">OWASP-WS-004 - Testing for XML Content-Level - </option>
+											 	<option value="OWASP-WS-005">OWASP-WS-005 - WS HTTP GET parameters/REST attacks - </option>
+											 	<option value="OWASP-WS-006">OWASP-WS-006 - Naughty SOAP Attachments - </option>
+											 	<option value="OWASP-WS-007">OWASP-WS-007 - Testing for WS Replay - </option>
+											 	<option value="OWASP-AJ-001">OWASP-AJ-001 - Testing for AJAX Vulnerabilities - </option>
+											 	<option value="OWASP-AJ-002">OWASP-AJ-002 - Testing for AJAX - </option>
+											 	<option value="OWTF-WGP-001">OWTF-WGP-001 - ClickJacking - ClickJacking</option>
+											 	<option value="OWTF-WGP-002">OWTF-WGP-002 - Cross Origin Resource Sharing (CORS) - CORS</option>
+											 	<option value="OWTF-WVS-001">OWTF-WVS-001 - Arachni Unauthenticated - </option>
+											 	<option value="OWTF-WVS-002">OWTF-WVS-002 - Nikto Unauthenticated - </option>
+											 	<option value="OWTF-WVS-003">OWTF-WVS-003 - Wapiti Unauthenticated - </option>
+											 	<option value="OWTF-WVS-004">OWTF-WVS-004 - W3AF Unauthenticated - </option>
+											 	<option value="OWTF-WVS-005">OWTF-WVS-005 - WebSecurify Unauthenticated - </option>
+											 	<option value="OWTF-WVS-006">OWTF-WVS-006 - Skipfish Unauthenticated - </option>
+											 </select>
+											 </td>
+										  </tr>
+										</table>
+							</div>
+							<div class="modal-footer">
+								<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+								<button class="btn btn-primary">Apply</button>
+							</div>
+						</div>      
+						<!--  End Modal more-filters -->                
+
+                <div class="row-fluid">
+               
+                  <div class="span2">
+                   <!--
+                     <ul class="nav nav-list">
+					    <li class="nav-header">List header</li>
+					    <li class="active"><a href="#">Home</a></li>
+					    <li><a href="#">Library</a></li>
+					    ...
+    					</ul>
+    					
+    				<ul class="nav nav-pills">
+					    <li class="nav-header">List header</li>
+					    <li class="active"><a href="#">Home</a></li>
+					    <li><a href="#">Library</a></li>
+					    ...
+    					</ul>
+    					
+    					
+    					  -->
+		
+          <div  id="sidebar" class="bs-docs-sidebar">
+          		<ul class="nav nav-pills nav-stacked bs-docs-sidenav affix ">
+                      <li class="nav-header"><i class="icon-screenshot icon-white"> </i> Targets</li>
+                      <li class="active"><a href="#1"  id="tooltip" data-toggle="tooltip" data-placement="right" title="" data-original-title="http://hackademic1.teilar.gr/"><i class="icon-chevron-right"></i> 195.251.127.254</a></li>
+                      <li><a href="#2" id="tooltip2" data-toggle="tooltip" data-placement="right" title="" data-original-title="http://hackademic1.teilar.gr/"><i class="icon-chevron-right"></i> 209.85.148.141</a></li>
+                      <li><a href="#3" id="tooltip3" data-toggle="tooltip" data-placement="right" title="" data-original-title="http://hackademic1.teilar.gr/"><i class="icon-chevron-right"></i> 209.85.148.84</a></li>
+                      <li><a href="#4" id="tooltip4" data-toggle="tooltip" data-placement="right" title="" data-original-title="http://hackademic1.teilar.gr/"><i class="icon-chevron-right"></i> 65.61.137.117</a></li>
+                    </ul> 
+
+                 <!--   <ul class="nav nav-list bs-docs-sidenav affix ">
+                      <li class="nav-header"><i class="icon-screenshot"> </i> Targets</li>
+                      <li class="active"><a href="#1"  id="tooltip" data-toggle="tooltip" data-placement="top" title="" data-original-title="http://hackademic1.teilar.gr/"><i class="icon-chevron-right"></i> 195.251.127.254:80</a></li>
+                      <li><a href="#2" id="tooltip2" data-toggle="tooltip" data-placement="top" title="" data-original-title="http://hackademic1.teilar.gr/"><i class="icon-chevron-right"></i> 209.85.148.141:443</a></li>
+                      <li><a href="#3" id="tooltip3" data-toggle="tooltip" data-placement="top" title="" data-original-title="http://hackademic1.teilar.gr/"><i class="icon-chevron-right"></i> 209.85.148.84:80</a></li>
+                      <li><a href="#4" id="tooltip4" data-toggle="tooltip" data-placement="top" title="" data-original-title="http://hackademic1.teilar.gr/"><i class="icon-chevron-right"></i> 65.61.137.117:80</a></li>
+                    </ul>  -->
+                    
+          </div>
+          </div>
+                  <div class="span10" id="content" data-spy="scroll" data-target="#sidebar">
+					<section id="1" class="well well-small">
+                      <div class="page-header">
+                        <h3><!-- <img src="img/computer_small.png"/> --><span class="icon-screenshot icon-white"> </span>195.251.127.254:80
+                        <small class="text-info"><a href="http://hackademic1.teilar.gr/" target="_blank">http://hackademic1.teilar.gr/</a> </small> 
+                        <a class="btn btn-success" href="#review_modal" role="button"  data-toggle="modal">Review</a>
+
+                        </h3>
+                          
+
+                      </div>
+                      
+                            <!-- Modal -->
+							<div id="review_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+							<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							<h3 id="myModalLabel">Review</h3>
+							</div>
+							<div class="modal-body">
+								<div class="row-fluid">
+	    					
+				    				<div class="span2 offset1">
+					    				<span class="btn-group btn-group-vertical span12">
+							    			<button class="btn" style="width:100%;">Import</button>
+											<button class="btn" style="width:100%;">Export</button>
+							    			<button class="btn btn-success" style="width:100%;">Share</button>
+					    					<button class="btn btn-danger" style="width:100%;">Delete</button>
+					    				</span>
+				    				</div>
+				    				<div class="span9">
+				    					<textarea class ="span12" id="import_export_box"></textarea>
+				    				</div>
+				    				
+			    				</div>
+							</div>
+							<div class="modal-footer">
+							<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+							<button class="btn btn-primary">Save changes</button>
+							</div>
+							</div>
+						   
+						   <ul class="nav nav-pills ">
+											    <li class="active"><a class="" href="#tab_1_1_externalx" data-toggle="tab">General Info</a></li>
+											    <li><a class="" href="#tab_1_1_passivex" data-toggle="tab">OWASP Test Groups</a></li>
+											    <li><a class="" href="#tab_1_1_semipassivex" data-toggle="tab">Ports</a></li>
+											    </ul>
+										    <div class="tab-content ">
+												<div class="tab-pane active" id="tab_1_1_externalx">
+																	
+												 <table class="table table-bordered table-striped table-hover">
+													<thead>
+														<tr>
+															
+															<th> ... </th>
+											
+														</tr>
+													</thead>
+													<tbody>
+					
+														<tr > <th colspan="6"> Ports</th></tr>
+													
+										   				 <td> content here </td>
+										   				 </tr>
+													</tbody>
+								   				 </table>
+				<br/>
+			
+												</div>
+												<div class="tab-pane" id="tab_1_1_passivex">
+												             
+                            <div class="accordion" id="accordion1">
+                                <div class="accordion-group">
+                                  <div class="accordion-heading">
+                                    <h4> 
+                                    <a class="accordion-toggle text-info" data-toggle="collapse" data-parent="#accordion1" href="#collapse1One">
+                                    OWASP-IG-001 <small>Spiders, Robots, and Crawlers</small>
+                                    </a>
+                                    </h4>
+                                  </div>
+
+                                  <div id="collapse1One" class="accordion-body collapse">
+                                    <div class="accordion-inner">
+													<div class="btn-toolbar pull-right">
+
+													   <div class="btn-group" data-toggle="buttons-checkbox">
+								                            <button class="btn filter" rel="tooltip" data-original-title="Seen" data-placement="bottom"><i class="icon-eye-open icon-white"></i></button>
+								                      </div>
+								                      
+								                        <div class="btn-group" data-toggle="buttons-checkbox">
+								                       		 <button class="btn filter" rel="tooltip" data-original-title="Favorated" data-placement="bottom"><i class="icon-heart icon-white"></i></button>
+								                       </div>
+								                      
+								
+								                      <div class="btn-group" data-toggle="buttons-radio">
+								                         
+								                        <button class="btn btn-inverse filter" rel="tooltip" data-original-title="Undefined" data-placement="bottom"><i class="icon-asterisk  icon-white"></i></button>
+								                        <button class="btn btn-warning filter" rel="tooltip" data-original-title="Warning" data-placement="bottom"><i class="icon-warning-sign icon-white"></i></button>
+								                        <button class="btn btn-danger filter" rel="tooltip" data-original-title="Exploitable" data-placement="bottom"><i class="icon-fire icon-white"></i></button>
+								                        <button class="btn btn-info  filter" rel="tooltip" data-original-title="Logic Bug" data-placement="bottom"><i class="icon-bug icon-white"></i></button>
+									                    <button class="btn btn-success filter " rel="tooltip" data-original-title="Test passed" data-placement="bottom"><i class="icon-thumbs-up icon-white"></i></button>
+								                      </div>
+								
+								                      <div class="btn-group" data-toggle="buttons-radio">
+								                      	<button class="btn filter" rel="tooltip" data-original-title="No severity" data-placement="bottom"><i class="icon-remove-circle icon-white"></i></button>
+								                        <button class="btn filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom"><i class="icon-arrow-down icon-white"></i></button>
+								                        <button class="btn filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom"><i class="icon-arrow-right icon-white"></i></button>
+								                        <button class="btn filter" rel="tooltip" data-original-title="High severity" data-placement="bottom"><i class="icon-arrow-up icon-white"></i></button>
+								                        <button class="btn filter" rel="tooltip" data-original-title="Critical severity" data-placement="bottom"><i class="icon-exclamation-sign icon-white"></i></button>
+								                      </div>
+							                      	</div>
+												<br/>
+												<br/>
+												<br/>
+												
+												 <table class="table table-bordered table-striped table-hover">
+													<thead>
+														<tr>
+															<th> PLUGIN </th>
+															<th> START </th>
+															<th> END </th>
+															<th> RUNTIME </th>
+															<th> STATUS </th>
+															<th> OUTPUT FILES </th>
+														</tr>
+													</thead>
+													<tbody>
+														<tr class="warning text-warning">
+															
+															<td> <strong>external</strong>/Spiders_Robots_and_Crawlers@OWASP-IG-001.py</td>
+															<td> 16/06/2013 18:40 </td>
+															<td> 16/06/2013 18:42 </td>
+															<td> 2m, 14s, 478ms</td>
+															<td>Aborted</td>
+															<td><button class="btn btn-primary"> Browse </button> </td>
+														</tr>
+														<tr class="success text-success">
+															
+															<td> <strong>semi_passive</strong>/Spiders_Robots_and_Crawlers@OWASP-IG-001.py</td>
+															<td> 16/06/2013 18:40 </td>
+															<td> 16/06/2013 18:42 </td>
+															<td> 2m, 14s, 478ms</td>
+															<td>Completed</td>
+															<td><button class="btn btn-primary"> Browse </button> </td>
+														</tr>
+														<tr class="error text-error">
+															<td>  <strong>passive</strong>/Spiders_Robots_and_Crawlers@OWASP-IG-001.py</td>
+															<td> 16/06/2013 18:40 </td>
+															<td> 16/06/2013 18:42 </td>
+															<td> 2m, 14s, 478ms</td>
+															<td>Crashed</td>
+															<td><button class="btn btn-primary"> Browse </button> </td>
+														</tr>
+															 <tr > <th colspan="6"> MORE DETAILS</th></tr>
+																 <tr><td colspan="6">
+										   				more content
+										   				 </td></tr>
+														<tr > <th colspan="6"> USER NOTES</th></tr>
+														 <tr><td colspan="6">
+										   				  <div class="notes" style="height:100px;"><p class="muted">Write your notes here!</p></div>
+										   				 </td></tr>
+										   			
+													</tbody>
+								   				 </table>
+				<br/>
+			
+                                      
+                                     </div>
+                                    
+                                    
+                                  </div>
+                                </div>
+                                <div class="accordion-group">
+                                  <div class="accordion-heading text-info">
+                                    <h4>
+                                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion1" href="#collapse1Two">
+                                      OWASP-IG-002 <small> Search engine discovery/reconnaissance </small>
+                                    </a>
+                                    </h4>
+                                    
+                                  </div>
+                                  <div id="collapse1Two" class="accordion-body collapse">
+                                    <div class="accordion-inner">
+                                      Some content here
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="accordion-group">
+                                  <div class="accordion-heading">
+                                    <h4>
+                                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion1" href="#collapse1Three">
+                                      OWASP-IG-003 <small> Identify application entry points </small>
+                                    </a>
+                                    </h4>
+                                  </div>
+                                  <div id="collapse1Three" class="accordion-body collapse">
+                                    <div class="accordion-inner">
+                                      Some content here
+                                    </div>
+                                  </div>
+                                </div>
+                                 <div class="accordion-group">
+                                  <div class="accordion-heading">
+                                    <h4>
+                                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion1" href="#collapse1Four">
+                                      OWASP-IG-005 <small> Application Discovery </small>
+                                    </a>
+                                    </h4>
+                                  </div>
+                                  <div id="collapse1Four" class="accordion-body collapse">
+                                    <div class="accordion-inner">
+                                      Some content here
+                                    </div>
+                                  </div>
+                                </div>
+                                 <div class="accordion-group">
+                                  <div class="accordion-heading">
+                                     <h4>
+                                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion1" href="#collapse1Five">
+                                      OWASP-IG-004 <small> Web Application Fingerprint </small>
+                                    </a>
+                                    </h4>
+                                  </div>
+                                  <div id="collapse1Five" class="accordion-body collapse">
+                                    <div class="accordion-inner">
+                                      Some content here
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                   
+												</div>
+												<div class="tab-pane" id="tab_1_1_semipassivex">
+												Content here
+												</div>
+												
+										    </div>
+
+                                     
+                                    
+      
+                      </section>
+					<section id="2" class="well well-small">
+                      <div class="page-header">
+                        <h3><!-- <img src="img/computer_small.png"/> --><span class="icon-screenshot icon-white"> </span>195.251.127.254:80
+                        <small class="text-info"><a href="http://hackademic1.teilar.gr/" target="_blank">http://hackademic1.teilar.gr/</a> </small> 
+                        <a class="btn btn-success" href="#review_modal2" role="button"  data-toggle="modal">Review</a>
+
+                        </h3>
+                          
+
+                      </div>
+                      
+                            <!-- Modal -->
+							<div id="review_modal2" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2" aria-hidden="true">
+							<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							<h3 id="myModalLabel2">Review</h3>
+							</div>
+							<div class="modal-body">
+								<div class="row-fluid">
+	    					
+				    				<div class="span2 offset1">
+					    				<span class="btn-group btn-group-vertical span12">
+							    			<button class="btn" style="width:100%;">Import</button>
+											<button class="btn" style="width:100%;">Export</button>
+							    			<button class="btn btn-success" style="width:100%;">Share</button>
+					    					<button class="btn btn-danger" style="width:100%;">Delete</button>
+					    				</span>
+				    				</div>
+				    				<div class="span9">
+				    					<textarea class ="span12" id="import_export_box2"></textarea>
+				    				</div>
+				    				
+			    				</div>
+							</div>
+							<div class="modal-footer">
+							<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+							<button class="btn btn-primary">Save changes</button>
+							</div>
+							</div>
+                      </section>
+					<section id="3" class="well well-small">
+                      <div class="page-header">
+                        <h3><!-- <img src="img/computer_small.png"/> --><span class="icon-screenshot icon-white"> </span>195.251.127.254:80
+                        <small class="text-info"><a href="http://hackademic1.teilar.gr/" target="_blank">http://hackademic1.teilar.gr/</a> </small> 
+                        <a class="btn btn-warning disabled" href="#" role="button"  data-toggle="modal">Review</a>
+
+                        </h3>
+                      </div>
+                      
+                      Some content here (Such as the previous ones)
+                   
+                      </section>
+                      <section id="4" class="well well-small">
+                      <div class="page-header">
+                        <h3><!-- <img src="img/computer_small.png"/> --><span class="icon-screenshot icon-white"> </span>195.251.127.254:80
+                        <small class="text-info"><a href="http://hackademic1.teilar.gr/" target="_blank">http://hackademic1.teilar.gr/</a> </small> 
+                        <a class="btn btn-warning disabled" href="#" role="button"  data-toggle="modal">Review</a>
+
+                        </h3>
+                      </div>
+                      
+                      Some content here (Such as the previous ones)
+                   
+                      </section>
+   		       	 </div>
+              </div>
+              </div>
+            <div class="tab-pane" id="review">
+            			
+			        	<div class="btn-toolbar">
+			        	 <button class="btn">Import</button>
+					     <div class="btn-group">
+		    				
+		    				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Export
+		    					<span class="caret"></span>
+							</a>
+							<ul class="dropdown-menu">
+							  <li><a href="#">PDF</a></li>
+							  <li><a href="#">HTML</a></li>
+							  <li><a href="#">TEXT</a></li>
+							</ul>
+		    			</div>
+		    			<button class="btn btn-success">Share</button>
+    					<div class="btn-group ">
+		    				
+		    				<a class="btn btn-danger dropdown-toggle " data-toggle="dropdown" href="#">Delete
+		    					<span class="caret"></span>
+							</a>
+							<ul class="dropdown-menu">
+							  <li><a href="#">This review!</a></li>
+							  <li><a href="#">All reviews!</a></li>
+							</ul>
+		    			</div>
+		    			
+    				</div>
+    				<textarea class="span12" id="import_export_box_review">test...</textarea>
+			</div>
+          </div>
+        </div>
+    </div>
+</div>
+
+   
+     <!-- /container -->
+	<div id="footer">
+		<div class="container">
+		<br/>
+		<hr/>
+		<p class="muted credit pull-right">
+		Generated by
+		<a href="http://owtf.org">OWASP OWTF</a>
+		- 
+		<a href="http://owtf.org/0.20/what_new">Version 0.20 "Summer Storm I"</a>
+		-
+		<a href="http://github.com/7a/owtf"> @github <i class="icon-github"></i></a>
+		</p>
+		</div>
+	</div>
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+    
+    <!-- disable aloha sidebar -->
+        <script>
+			Aloha = {};
+			Aloha.settings = { sidebar: { disabled: true } };
+		</script>
+     <script src="js/aloha/lib/require.js"></script>
+    <script src="js/aloha/lib/aloha.js" data-aloha-plugins="common/ui,common/format,common/highlighteditables,common/link"></script>
+    <script>
+    $('#tooltip').tooltip();
+    $('#tooltip2').tooltip();
+    $('#tooltip3').tooltip();
+    $('#tooltip4').tooltip();
+    $('#tooltip5').tooltip();
+    $('#tooltip6').tooltip();
+    $('#tooltip7').tooltip();
+    $('#tooltip8').tooltip();
+    $('#tooltip9').tooltip();
+    $('#tooltip10').tooltip();
+    $('#tooltip11').tooltip();
+    $('#tooltip12').tooltip();
+    $('#myTab a:first').tab('show');
+    $('#myTab2 a:first').tab('show');
+    $('#sidebar').affix();
+    $('body').scrollspy({ target: '#sidebar' });
+    $("#info").tooltip();
+    $(".filter").tooltip();
+    $("#refresh").tooltip();
+    $("#more_options").tooltip();
+    
+    function toggle_visibility(id) {
+        var e = document.getElementById(id);
+        if(e.style.display == 'block')
+           e.style.display = 'none';
+        else
+           e.style.display = 'block';
+     }
+    
+    // aloha editor
+    Aloha.ready( function() {
+        Aloha.jQuery('.notes').aloha();
+    });
+    
+ 
+
+    </script>
+    
+    
+
+  
+
+</body></html>
