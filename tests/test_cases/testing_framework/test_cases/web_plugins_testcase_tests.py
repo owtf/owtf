@@ -103,6 +103,14 @@ class WebPluginTestCaseTests(WebPluginTestCase):
 
         assert_that(response, equal_to("hello"))
 
+    def test_that_it_is_possible_to_specify_the_response_code(self):
+        self.set_get_response("/", "", status_code=404)
+        self.start_server()
+
+        response = self.perform_request("/")
+
+        assert_that(response.status, equal_to(404))
+
     def perform_request(self, path, method="GET"):
         connection = httplib.HTTPConnection(self.HOST, PORT)
         connection.request(method, path)
