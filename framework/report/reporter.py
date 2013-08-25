@@ -253,7 +253,9 @@ class Reporter:
 		with open( self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ), 'w' ) as file:
 			template = self.Template_env.get_template( 'report.html' )
 			vars = {
-
+						
+						"ReportID": "i"+ self.Core.Config.Get( 'HOST_IP' ).replace(".","_") \
+									+ "p" + self.Core.Config.Get( 'PORT_NUMBER' ),
 						"ReportType" :  self.Core.Config.Get( 'REPORT_TYPE' ),
 						"Title" :  self.Core.Config.Get( 'REPORT_TYPE' ) + " Report",
 						"Seed": self.Core.GetSeed(),

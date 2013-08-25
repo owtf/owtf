@@ -1,732 +1,129 @@
-<!-- start header -->
-<html>
-				<head>
-					<title> {{ Title }}</title>
-					<link rel="stylesheet" href="includes/stylesheet.css" type="text/css">
-					<link rel="stylesheet" href="includes/jquery-ui-1.9m6/themes/base/jquery.ui.all.css">
-				</head>
-<body>
-				{% if ReportType == "URL" or ReportType == "NET" %}
-						<div class="detailed_report" style="display: inline; float:left">
-							<div style="display: inline; align: left">
-								<table class="report_intro'"> 
-									<tr>
-										<th> 
-									 			<a id="target_url" href="{{ TargetLink }}" class="button" target="_blank">
-													<span> {{ TargetLink }} </span>
-												</a>
-									  	</th>
-									  	<td> 
-									  			 {{ HostIP|e }}
-									  			 {% if AlternativeIPs|count %}
-									  			 	[Alternative IPs: AlternativeIPs|join(",")|e]
-									  			 {% endif %}
-										</td>
-										<td> 
-												{{ PortNumber|e }} 
-										</td>
-										<td class="disguise"> 
-													&nbsp;
-													<a href="javascript:void(0);" class="icon" onclick="ToggleReportMode();">
-														<span> 	
-															<img src="images/wizard.png" title="Generate Report">
-					 									</span>
-													</a>
-													&nbsp;
-													<a href="javascript:void(0);" class="icon" onclick="DetailedReportAnalyse()">
-														<span> 	
-															<img src="images/search_lense24x24.png" title="Analyse">
-					 									</span>
-													</a>
-													&nbsp;
-													<a href="javascript:void(0);" class="icon" onclick="DetailedReportAdjust()">
-														<span> 	
-															<img src="images/plus_gray24x24.png" title="Expand Report">
-					 									</span>
-													</a>
-													&nbsp;
-													<a href="javascript:void(0);" class="icon" onclick="DetailedReportCollapse()">
-														<span> 	
-															<img src="images/minus_gray24x24.png" title="Close Report">
-					 									</span>
-													</a>
-													&nbsp;
-													
-										</td>
-									</tr>
-								</table>
-								<div style="position: absolute; top: 6px; right: 6px; float: right;"> 
-									<!-- start header tabs -->
-									<ul id="tabs">
-										<li>
-												<a href="javascript:void(0);" id="tab_filter" 
-														onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs'), '');
-																 HideDivs(new Array('filter','review','runlog','logs'));
-																 this.className = 'selected'; 
-																 ToggleDiv('filter');" >
-													Filter
-												</a>
-										</li>
-										<li>
-												<a href="javascript:void(0);" id="tab_review" 
-														onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs'), '');
-																 HideDivs(new Array('filter','review','runlog','logs'));
-																 this.className = 'selected'; 
-																 ToggleDiv('review');" >
-													Review
-												</a>
-										</li>
-										<li>
-												<a href="javascript:void(0);" id="tab_runlog" 
-														onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs'), '');
-																 HideDivs(new Array('filter','review','runlog','logs'));
-																 this.className = 'selected'; 
-																 ToggleDiv('runlog');" >
-													History
-												</a>
-										</li>
-										<li>
-												<a href="javascript:void(0);" id="tab_logs"
-														onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs'), '');
-																 HideDivs(new Array('filter','review','runlog','logs'));
-																 this.className = 'selected'; 
-																 ToggleDiv('logs');" >
-													Logs
-												</a>
-										</li>
-										
-										<li class="icon">
-											<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('filter','review','runlog','logs','exploit','methodology','calculators','learn'));SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');" target="">
-												<span><img src="images/plus_gray16x16.png" title="Expand Plugins"></span>
-											</a>&nbsp;
-											<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('filter','review','runlog','logs','exploit','methodology','calculators','learn'));SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');" target="">
-												<span><img src="images/minus_gray16x16.png" title="Close Plugins"></span></a>
-										    <a href="javascript:void(0);" style="display: none;" class="icon_unfilter" onclick="SetClassNameToElems(new Array('tab_filter','tab_review','tab_runlog','tab_logs','tab_exploit','tab_methodology','tab_calculators','tab_learn'), '');UnfilterBrotherTabs(this)" target="">
-										    <span>&nbsp;<img src="images/info24x24.png" title="Show all plugins under this test item"></span>
-										    </a>
-										</li>
-						</ul>
-									<!-- end header tabs -->	
-								</div>
-							
-							 </div>
-								<div style='display:none;'> 
-					{% elif ReportType == 'AUX' %}
-						<div style="display: inline; align: left"> 
-									<h2>Auxiliary Plugins 
-										<a href="{{ HTML_REPORT }}" target=''>
-											<img src="images/home.png" title="Back to Summary Report">
-										</a>
-									</h2>
-					   </div>
-					{% endif %}
-						<div style="position: absolute; top: 6px; right: 6px; float: right">
-							<table class="report_intro"> 
-								<tr>
-									<th> Seed </th> 
-									<th> Review Size </th> 
-									<th> Total Size </th> 
-									<th> Version </th> 
-									<th> Release </th> 
-									<th> Site </th> 
-								</tr>	
-								<tr>
-									<td> <span id="seed"> {{ Seed }} </span></td> 
-									<td><div id="js_db_size" style="float:left; display: inline; padding-top: 7px"></div><div style="float:right; inline"> <a href="includes/help/help.html#ReviewSize" target="_blank">
-												<img src="images/help.png" title="In Firefox localStorage is configurable: 1) Go to: 'about:config' 2) Search for 'dom.storage.default_quota' (value in KB, see: http://arty.name/localstorage.html)">
-									</a>				 </div></td> 
-									<td> <div id="total_js_db_size"></div> </td> 
-									<td> {{ Version }} </td> 
-									<td> {{ Release }} </td> 
-									<td> <a href="http://owtf.org" class="button" target="_blank"><span> owtf.org </span></a>			</td> 
-								</tr>				
-							</table>
-						</div>
-				 </div> 
-					{% if ReportType == "URL" or ReportType == "NET" %} </div> {% endif %}
-
-				<div class="iframe_padding"></div>
-				<div id="filter" class="tabContent" style="display:none">
-						<!-- filters -->
-						<div style="display:inline;">
-							<table class="counter"> 
-									<tr>
-										<td><div id="filtermatches_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" id="filtermatches" onclick="">
-										<span> <img src="images/target.png" title="Number of plugins that matched the search"> </span>
-											</a>
-										</td>
-					
-										<td><div id="filterinfo_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" id="filterinfo" onclick="FilterResults('info', '{{ ReportType }}')">
-										<span> <img src="images/info.png" title="Show only completed plugins"> </span>
-											</a>
-										</td>
-							
-										<td><div id="filterno_flag_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" id="filterno_flag" onclick="FilterResults('no_flag', '{{ ReportType }}')">
-										<span> <img src="images/envelope.png" title="Show only plugins without a flag"> </span>
-											</a>
-										</td>
-							
-										<td><div id="filterunseen_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" onclick="FilterResults('unseen', '{{ ReportType }}')"  id="filterunseen">
-										<span> <img src="images/eraser.png" title="Show only not stricken-through plugins"> </span>
-											</a>
-										</td>
-										
-										<td><div id="filterseen_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" onclick="FilterResults('seen', '{{ ReportType }}')"  id="filterseen">
-										<span> <img src="images/pencil.png" title="Show only stricken-through plugins"> </span>
-											</a>
-										</td>
-						
-										<td><div id="filternotes_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" onclick="FilterResults('notes', '{{ ReportType }}')" id="filternotes" >
-										<span> <img src="images/lamp_active.png" title="Show only plugins with comments"> </span>
-											</a>
-										</td>
-							
-										<td><div id="filterattention_orange_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon"  onclick="FilterResults('attention_orange', '{{ ReportType }}')" id="filterattention_orange">
-										<span> <img src="images/attention_orange.png" title="Warning"> </span>
-											</a>
-										</td>
-						
-										<td><div id="filterbonus_red_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon"  onclick="FilterResults('bonus_red', '{{ ReportType }}')"  id="filterbonus_red">
-										<span> <img src="images/bonus_red.png" title="Exploitable"> </span>
-											</a>
-										</td>
-				
-										<td><div id="filterstar_3_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" onclick="FilterResults('star_3', '{{ ReportType }}')"  id='filterstar_3'>
-										<span> <img src="images/star_3.png" title="Brief look (no analysis)"> </span>
-											</a>
-										</td>
-
-										<td><div id="filterstar_2_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" onclick="FilterResults('star_2', '{{ ReportType }}')" id="filterstar_2">
-										<span> <img src="images/star_2.png" title="Initial look (analysis incomplete)"> </span>
-											</a>
-										</td>
-
-										<td><div id="filtercheck_green_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon"  onclick="FilterResults('check_green', '{{ ReportType }}')" id="filtercheck_green">
-										<span> 
-											<img src="images/check_green.png" title="Test Passed"> </span>
-											</a>
-										</td>
-
-										<td><div id="filterbug_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" onclick="FilterResults('bug', '{{ ReportType }}')" id="filterbug">
-										<span> <img src="images/bug.png" title="Functional/Business Logic bug"> </span>
-											</a>
-										</td>
-
-										<td><div id="filterflag_blue_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" onclick="FilterResults('flag_blue', '{{ ReportType }}')" id="filterflag_blue">
-										<span> <img src="images/flag_blue.png" title="Low Severity"> </span>
-											</a>
-										</td>
-										<td><div id="filterflag_yellow_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" onclick="FilterResults('flag_yellow', '{{ ReportType }}')" id="filterflag_yellow">
-										<span> <img src="images/flag_yellow.png" title="Medium Severity"> </span>
-											</a>
-										</td>
-
-										<td><div id="filterflag_red_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" onclick="FilterResults('flag_red', '{{ ReportType }}')" id="filterflag_red">
-										<span> <img src="images/flag_red.png" title="High Severity"> </span>
-											</a>
-										</td>
-
-										<td><div id="filterflag_violet_counter" class="counter"></div></td>
-										<td>
-											<a href="javascript:void(0);" class="icon" onclick="FilterResults('flag_violet', '{{ ReportType }}')" id="filterflag_violet">
-												<span> <img src="images/flag_violet.png" title="Critical Severity"> </span>
-											</a>
-										</td>
-
-										<td><div id="filterdelete_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" onclick="FilterResults('delete', '{{ ReportType }}')" id="filterdelete">
-										<span> <img src="images/delete.png" title="Remove filter (show summary only)"> </span>
-											</a>
-										</td>
-										<td><div id="filteroptions_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon" onclick="ToggleFilterOptions()" id="filteroptions">
-										<span> <img src="images/options.png" title="Refresh Report"> </span>
-											</a>
-										</td>
-										<td><div id="filterrefresh_counter" class="counter"></div></td>
-										<td>
-										<a href="javascript:void(0);" class="icon"  onclick="FilterResults('refresh', '{{ ReportType }}')" id="filterrefresh">
-										<span> <img src="images/refresh.png" title="More Options"> </span>
-											</a>
-										</td>
-									</tr>
-							</table>
-							<div id='advanced_filter_options' style='display: none;'>
-							<h4>Filter Options</h4><p>Tip: Hold the Ctrl key while selecting or unselecting for multiple choices.<br />NOTE: Clicking on any filter will apply these options from now on. Options will survive a screen refresh</p>
-							<table class="transaction_log"> 
-													<tr>
-														<th>Plugin Groups</th>
-														<th>Web Plugin Types</th>
-														<th>Aux Plugin Types</th>
-													</tr>
-													<tr>
-														<td>
-																<select multiple='multiple'  id='SelectPluginGroup' onchange='SetSelectFilterOptions(this)'> 
-																	{% for Value in PluginTypes %}
-																		<option value="{{ Value }}"> 
-																			{{ Value|e }}
-																		 </option>
-																	{% endfor %}
-																</select>
-																
-														</td>
-														<td>
-																<select multiple='multiple'  id='SelectPluginTypesWeb' size='6' onchange='SetSelectFilterOptions(this)'> 
-																	{% for Value in WebPluginTypes %}
-																		<option value="{{ Value }}"> 
-																			{{ Value|e }}
-																		 </option>
-																	{% endfor %}
-																</select>
-														</td>
-														<td>
-															<select multiple='multiple'  id='SelectPluginTypesAux' size='6' onchange='SetSelectFilterOptions(this)'> 
-																	{% for Value in AuxPluginsTypes %}
-																		<option value="{{ Value }}"> 
-																			{{ Value|e }}
-																		 </option>
-																	{% endfor %}
-																</select>
-														</td>
-													</tr>
-												</table>
-												<table class="transaction_log"> 
-													<tr>
-														<th>Web Test Groups</th>
-													</tr>
-													<tr>
-														<td>
-															<select multiple='multiple'  id='SelectWebTestGroups' size='10' onchange='SetSelectFilterOptions(this)'> 
-																	{% for Item in WebTestGroups %}
-																		<option value="{{ Item["Code"] }}"> 
-																			{{ Item["Code"]|e }} - {{ Item["Descript"]|e }} - {{ Item["Hint"]|e }} 
-																		 </option>
-																	{% endfor %}
-																</select>
-														</td>
-													</tr>
-												</table>
-							</div>
-						</div>
-
-				</div>
-				<div id="review" class="tabContent" style="display:none">
-					<ul id="tabs">
-						<li>
-								<a href="javascript:void(0);" id="tab_review_import_export" target=""
-										onclick="SetClassNameToElems(new Array('tab_review_import_export','tab_review_delete','tab_review_miscelaneous'), '');
-												 HideDivs(new Array('review_import_export','review_delete', 'review_miscelaneous'));
-												 this.className = 'selected'; 
-												 ToggleDiv('review_import_export');" >
-									Import/Export
-								</a>
-							</li>
-							<li>
-								<a href="javascript:void(0);" id="tab_review_delete" target=""
-										onclick="SetClassNameToElems(new Array('tab_review_import_export','tab_review_delete','tab_review_miscelaneous'), '');
-												 HideDivs(new Array('review_import_export','review_delete', 'review_miscelaneous'));
-												 this.className = 'selected'; 
-												 ToggleDiv('review_delete');" >
-									Delete
-								</a>
-							</li>
-							<li>
-								<a href="javascript:void(0);" id="tab_review_miscelaneous" target=""
-										onclick="SetClassNameToElems(new Array('tab_review_import_export','tab_review_delete','tab_review_miscelaneous'), '');
-												 HideDivs(new Array('review_import_export','review_delete', 'review_miscelaneous'));
-												 this.className = 'selected'; 
-												 ToggleDiv('review_miscelaneous');" >
-									Miscelaneous
-								</a>
-							</li>
-							
-							<li class="icon">
-								<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('review_import_export','review_delete', 'review_miscelaneous'));SetClassNameToElems(new Array('tab_review_import_export','tab_review_delete','tab_review_miscelaneous'), '');">
-									<span>
-										<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
-									</span>
-								</a>	
-								&nbsp;
-								<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('review_import_export','review_delete', 'review_miscelaneous'));SetClassNameToElems(new Array('tab_review_import_export','tab_review_delete','tab_review_miscelaneous'), '');">
-									<span>
-										<img src="images/minus_gray16x16.png" title="Close Plugins">&nbsp; 
-									</span>
-								</a>
-								&nbsp;	
-								<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('tab_review_import_export','tab_review_delete','tab_review_miscelaneous'), '');UnfilterBrotherTabs(this);">
-									<span>
-										<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
-									</span>
-								</a>
-							</li>
-				</ul>
-				&nbsp;
-					<div id="review_import_export" class="tabContent" style="display:none">
-								<ul class="default_list">
-										<li><a href="javascript:void(0);" class="button" onclick="ImportReview();">
-											<span> Import Review </span>
-										</a></li>
-										<li><a href="javascript:void(0);" class="button" onclick="ExportReviewAsText();">
-											<span> Export Review as text </span>
-										</a></li>
-									</ul>
-									<li><textarea rows="20" cols="100" id="import_export_box"></textarea></li>
-								
-					</div>
-					&nbsp;
-					<div id="review_delete" class="tabContent" style="display:none">
-								<ul class="default_list">
-									
-									<li><a href="javascript:void(0);" class="button" onclick="ClearReview();">
-										<span> Delete THIS Review </span>
-									</a></li>
-									<li><a href="javascript:void(0);" class="button" onclick="DeleteStorage();">
-										<span> Delete ALL Reviews </span>
-									</a></li>
-								</ul>
-					</div>
-					&nbsp;
-					<div id="review_miscelaneous" class="tabContent" style="display:none">
-								<ul class="default_list">
-									<li><a href="javascript:void(0);" class="button" onclick="ShowUsedMem();">
-										<span> Show Used Memory (KB) </span>
-									</a></li>
-									<li><a href="javascript:void(0);" class="button" onclick="ShowUsedMemPercentage();">
-										<span> Show Used Memory (%) </span>
-									</a></li>
-									<li><a href="javascript:void(0);" class="button" onclick="ShowDebugWindow();">
-										<span> Show Debug Window </span>
-									</a></li>
-									<li><a href="javascript:void(0);" class="button" onclick="HideDebugWindow();">
-										<span> Hide Debug Window </span>
-									</a>
-								</ul>
-					</div>
-				</div>
-				<div id="runlog" class="tabContent" style="display:none">
-					<table class="run_log">
-							 <tr>
-			                	<th colspan="5"> Run Log </th>
-			                </tr>
-			                <tr> 
-								<th> Start </th> 
-								<th> End </th> 
-								<th> Runtime </th> 
-								<th> Command </th> 
-								<th> Status </th> 
-							</tr>
-						{% for Start, End, Runtime, Command, Status in RUN_DB  %}
-							<tr> 
-								<td> {{ Start }} </td> 
-								<td	class="alt"> {{ End }} </td> 
-								<td> {{ Runtime }} </td> 
-								<td	class="alt"> {{ Command }} </td> 
-								<td> {{ Status }} </td> 
-							</tr>
-						{% endfor %}
-					</table>
-				</div>
-				<div id="logs" class="tabContent" style="display:none">
-					<table class="run_log"> 
-						<tr> 
-							<th> General </th> 
-							<th> Verified URLs </th> 
-							<th> Potential URLs </th> 
-						</tr>
-						<tr>
-							<td> 
-								<ul class="default_list">
-									
-								<li><a href="{{ Logs.Errors.link }}" class="button" target="_blank">
-									<span> 
-										
-										{% if Logs.Errors.nb %} 
-											<font color='red'>Errors:Found, please report!</font>
-										{% else  %}
-											Errors: Not found
-										{% endif %}
-											
-								    </span>
-								    
-								</a></li>
-								<li>
-								<a href="{{ Logs.Unreachables.link }}" class="button" target="_blank">
-									<span> 
-										
-										{% if Logs.Unreachables.nb %} 
-											<font color='red'>Unreachable targets: 'Yes!</font>
-										{% else  %}
-											Unreachable targets: No
-										{% endif %}
-											
-								    </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.Transaction_Log_HTML.link }}" class="button" target="_blank">
-									<span> 	Transaction Log (HTML) </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Downloaded_Files.link }}" class="button" target="_blank">
-									<span> 	All Downloaded Files - To be implemented </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Transactions.link }}" class="button" target="_blank">
-									<span> All Transactions </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Requests.link }}" class="button" target="_blank">
-									<span> 	All Requests </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Response_Headers.link }}" class="button" target="_blank">
-									<span> 	All Response Headers </span>
-								</a></li>
-								<li>
-								<a href="{{ Logs.All_Response_Bodies.link }}" class="button" target="_blank">
-									<span> 	All Response Bodies </span>
-								</a></li>
-								</ul>
-
-							 </td> 
-							<td> 
-								<ul class="default_list">
-									<li>
-									<a href="{{ Urls.All_URLs_link }}" class="button" target="_blank">
-										<span> 	All URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.File_URLs_link }}" class="button" target="_blank">
-										<span> File URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.Fuzzable_URLs_link }}" class="button" target="_blank">
-										<span> Fuzzable URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.Image_URLs_link }}" class="button" target="_blank">
-										<span> 	Image URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.Error_URLs_link }}" class="button" target="_blank">
-										<span> 	Error URLs </span>
-									</a></li>
-									<li>
-									<a href="{{ Urls.External_URLs_link }}" class="button" target="_blank">
-										<span> 	External URLs </span>
-									</a></li>
-									</ul>
-
-							 </td> 
-									<td> 
-										<ul class="default_list">
-											<li>
-											<a href="{{ Urls_Potential.All_URLs_link }}" class="button" target="_blank">
-												<span> 	All URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.File_URLs_link }}" class="button" target="_blank">
-												<span> File URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.Fuzzable_URLs_link }}" class="button" target="_blank">
-												<span> Fuzzable URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.Image_URLs_link }}" class="button" target="_blank">
-												<span> 	Image URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.Error_URLs_link }}" class="button" target="_blank">
-												<span> 	Error URLs </span>
-											</a></li>
-											<li>
-											<a href="{{ Urls_Potential.External_URLs_link }}" class="button" target="_blank">
-												<span> 	External URLs </span>
-											</a>
-											</li>
-										</ul>
-									 </td> 
-						</tr>
-					</table>
-				</div>
-				
-
-<!-- end header -->
-
-<div id="GlobalReportButtonsTop" style="display:none;"></div>
-			<div id="generated_report" class="generated_report" style="display:none;">
-			<div id='{{ REPORT_PREFIX }}intro'></div>
-				<ul id="tabs">
-					<li>
-						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}stats" target=""
-								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
-										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
-										 this.className = 'selected'; 
-										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
-							Statistics
-						</a>
-				 </li>
-				 <li>
-						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}passed" target=""
-								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
-										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
-										 this.className = 'selected'; 
-										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
-							Passed Tests
-						</a>
-				 </li>
-				 <li>
-						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}findings" target=""
-								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
-										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
-										 this.className = 'selected'; 
-										 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
-							Findings
-						</a>
-				 </li>
-				 <li>
-						<a href="javascript:void(0);" id="tab_{{ REPORT_PREFIX }}unrated" target=""
-								onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');
-										 HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));
-										 this.className = 'selected'; 
-									 	 ToggleDiv('{{ REPORT_PREFIX }}stats');" >
-							Not Rated
-						</a>
-				 </li>
-				<li class="icon">
-						<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');">
-							<span>
-								<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
-							</span>
-						</a>	
-						&nbsp;
-						<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ REPORT_PREFIX }}stats','{{ REPORT_PREFIX }}passed', '{{ REPORT_PREFIX }}findings', '{{ REPORT_PREFIX }}unrated'));SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');">
-							<span>
-								<img src="images/minus_gray16x16.png" title="Close Plugins">&nbsp; 
-							</span>
-						</a>
-						&nbsp;	
-						<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('tab_{{ REPORT_PREFIX }}stats','tab_{{ REPORT_PREFIX }}passed', 'tab_{{ REPORT_PREFIX }}findings', 'tab_{{ REPORT_PREFIX }}unrated'), '');UnfilterBrotherTabs(this);">
-							<span>
-								<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
-							</span>
-						</a>
-				</li>
-				</ul>
-				<!-- Div Content -->
-			</div>
-		<div id="review_content" class="review_content">
+<div class="accordion" id="accordion_{{ ReportID }}">
 			{% for TestGroup in TestGroups %}
-				{{ TestGroup.TestGroupHeaderStr }}
-						&nbsp;
-						<a href="javascript:void(0);" class="icon" onclick="ClickLinkById('expand_report')">
-							<span> 	<img src="images/plus_gray24x24.png" title="Expand Report"> </span>
-						</a>&nbsp;
-						<a href="javascript:void(0);" class="icon" onclick="ClickLinkById('collapse_report')">
-							<span> 	<img src="images/minus_gray24x24.png" title="Close Report"> </span>
-						</a>&nbsp;
-					{% if TestGroup.Matches %}								
-						<ul id="tabs">
-							 <li>  Results: </li>
+				{% set TestGroupIndex = loop.index %}
+				<div class="accordion-group">
+              	  <div class="accordion-heading">
+              	  <h4> 
+                    <a class="accordion-toggle text-info" data-toggle="collapse" data-parent="#accordion_{{ ReportID }}" href="#collapse_{{ ReportID }}_{{ TestGroupIndex }}">
+                                  {{ TestGroup.TestGroupInfo.Code }}  <small>{{ TestGroup.TestGroupInfo.Descrip }}</small>
+                      </a>
+                  </h4>
+                  </div>
+                   <div class="accordion-body collapse" id="collapse_{{ ReportID }}_{{ TestGroupIndex }}" >
+                       <div class="accordion-inner">
+                	  {% if TestGroup.Matches %}
+							<ul class="nav nav-pills ">
+								<li class="">Type: </li>
 							{% for Match in TestGroup.Matches %}
-								<li>
-										<a href="javascript:void(0);" id="{{ Match.TabId }}" 
-												onclick="SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');
-														 HideDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));
-														 this.className = 'selected'; 
-														 ToggleDiv('{{ Match.DivId }}');" >
-											{{ Match.TabName }}
-										</a>		
-								</li>
-								
-							{% endfor %}	
-							<li class="icon">
-									<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');">
-										<span>
-											<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
-										</span>
-									</a>	
-									&nbsp;
-									<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ TestGroup.DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');">
-										<span>
-											<img src="images/minus_gray16x16.png" title="Close Plugins">&nbsp; 
-										</span>
-									</a>
-									&nbsp;	
-									<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('{{ TestGroup.TabIdList|join("','") }}'), '');UnfilterBrotherTabs(this);">
-										<span>
-											<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
-										</span>
-									</a>
-							</li>	
-						</ul>
-							{% for Match in TestGroup.Matches %}
-							<div id="{{ Match.DivId }}" class="tabContent" style="display:none">
-								{{ Match.DivContent }}
-							</div>
+								<li class=""><a class="" href="#tab_{{ ReportID }}_{{ TestGroupIndex }}_{{ Match.TabName }}x" data-toggle="tab">{{ Match.TabName }}</a></li>
 							{% endfor %}
+							</ul>
+							<div class="tab-content ">
+							
+							{% for Match in TestGroup.Matches %}
+							<div class="tab-pane" id="tab_{{ ReportID }}_{{ TestGroupIndex }}_{{ Match.TabName }}x">
+                	  		<div class="btn-toolbar pull-right">
+													   <div class="btn-group" data-toggle="buttons-checkbox">
+								                            <button class="btn filter" rel="tooltip" data-original-title="Seen" data-placement="bottom"><i class="icon-eye-open icon-white"></i></button>
+								                      </div>
+								                      
+								                        <div class="btn-group" data-toggle="buttons-checkbox">
+								                       		 <button class="btn filter" rel="tooltip" data-original-title="Favorated" data-placement="bottom"><i class="icon-heart icon-white"></i></button>
+								                       </div>
+								                      
+								
+								                      <div class="btn-group" data-toggle="buttons-radio">
+								                         
+								                        <button class="btn btn-inverse filter" rel="tooltip" data-original-title="Undefined" data-placement="bottom"><i class="icon-asterisk  icon-white"></i></button>
+								                        <button class="btn btn-warning filter" rel="tooltip" data-original-title="Warning" data-placement="bottom"><i class="icon-warning-sign icon-white"></i></button>
+								                        <button class="btn btn-danger filter" rel="tooltip" data-original-title="Exploitable" data-placement="bottom"><i class="icon-fire icon-white"></i></button>
+								                        <button class="btn btn-info  filter" rel="tooltip" data-original-title="Logic Bug" data-placement="bottom"><i class="icon-bug icon-white"></i></button>
+									                    <button class="btn btn-success filter " rel="tooltip" data-original-title="Test passed" data-placement="bottom"><i class="icon-thumbs-up icon-white"></i></button>
+								                      </div>
+								
+								                      <div class="btn-group" data-toggle="buttons-radio">
+								                      	<button class="btn filter" rel="tooltip" data-original-title="No severity" data-placement="bottom"><i class="icon-remove-circle icon-white"></i></button>
+								                        <button class="btn filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom"><i class="icon-arrow-down icon-white"></i></button>
+								                        <button class="btn filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom"><i class="icon-arrow-right icon-white"></i></button>
+								                        <button class="btn filter" rel="tooltip" data-original-title="High severity" data-placement="bottom"><i class="icon-arrow-up icon-white"></i></button>
+								                        <button class="btn filter" rel="tooltip" data-original-title="Critical severity" data-placement="bottom"><i class="icon-exclamation-sign icon-white"></i></button>
+								                      </div>
+							 </div>
+							 <br />
+							 <br />
+													 
+                	  			<table class="table table-bordered table-striped table-hover">
+													<thead>
+														<tr>
+															<th> PLUGIN </th>
+															<th> START </th>
+															<th> END </th>
+															<th> RUNTIME </th>
+															<th> STATUS </th>
+															<th> OUTPUT FILES </th>
+														</tr>
+													</thead>
+													<tbody>
+							
+							
+														<tr 
+														{% if Match.status == "Aborted" %}
+															class="warning text-warning"
+														{% elif  Match.status == "Completed"%}
+															class="success text-success"
+														{% elif  Match.status == "Crashed" %}
+															class="error text-error"
+														{% else %}
+														    class=""
+														{% endif %}
+														>
+															
+															<td> <strong>{{ Match.TabName }}</strong>/{{ Match.Filename }}</td>
+															<td> {{ Match.StartTime }} </td>
+															<td> {{ Match.EndTime }} </td>
+															<td> {{ Match.Duree }}</td>
+															<td> {{ Match.Status }}</td>
+															<td><button class="btn btn-primary"> Browse </button> </td>
+														</tr>
+														
+											
+
+							
+							<tr> <th colspan="6"> MORE DETAILS</th></tr>
+																 <tr><td colspan="6">
+										   				More info 
+										   				 </td></tr>
+														<tr> <th colspan="6"> USER NOTES</th></tr>
+														 <tr><td colspan="6">
+										   				  <div id="fbeebaf1-eb6d-33ea-5cc4-5deee0209291" class="notes aloha-editable" style="height: 100px;" contenteditable="true"><p class="muted">Write your notes here!</p></div>
+										   				 </td></tr>
+										   			
+							</tbody>
+						 </table>
+						 </div>
+						 {% endfor %}
+						 </div>
+						{% else %}
+							<div class="alert"> Empty element!</div>
 						{%  endif %}
 					</div>
+					</div>
+				</div>
 			{% endfor %}
-					<br />
-							<div id='GlobalReportButtonsBottom' style='display:none;'>
-								<a id="expand_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ Globals.AllPluginsTabIdList|join("','") }}'), ''); ShowDivs(new Array('{{ Globals.AllPluginsDivIdList|join("','") }}'))">
-									<span> + </span>
-								</a>
-								<a id="collapse_report" href="javascript:void(0);" class="button" onclick="SetClassNameToElems(new Array('{{ Globals.AllPluginsTabIdList|join("','") }}'), ''); HideDivs(new Array('{{ Globals.AllPluginsDivIdList|join("','") }}'))">
-									<span> - </span>
-								</a>
-							</div>
-							<script>
-								var AllPlugins = new Array('{{ Globals.AllPluginsDivIdList|join("','") }}')
-								var AllCodes = new Array('{{ Globals.AllCodes|join("','") }}')
-								var Offset = '{{ REVIEW_OFFSET }}'
-								var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
-								var DetailedReport = true
-								var PluginDelim = '{{ PLUGIN_DELIM }}'
-								var ReportMode = false
-								var REPORT_PREFIX = '{{ REPORT_PREFIX }}'
-							</script>
-								<script type="text/javascript" src="includes/jquery-1.6.4.js"></script>
-					<script type="text/javascript" src="includes/owtf_general.js"></script>
-					<script type="text/javascript" src="includes/owtf_review.js"></script>
-					<script type="text/javascript" src="includes/owtf_filter.js"></script>
-					<script type="text/javascript" src="includes/owtf_reporting.js"></script>
-					<script type="text/javascript" src="includes/jsonStringify.js"></script>
-					<script type="text/javascript" src="includes/ckeditor/ckeditor.js"></script>
-					<script type="text/javascript" src="includes/ckeditor/adapters/jquery.js"></script>
-					<script type="text/javascript" src="includes/owtf_localStorage.js"></script>
-	</body>
-</html>
+		</div>
+	
+
+
+	
+<script>
+			/*
+			var AllPlugins = new Array('{{ Globals.AllPluginsDivIdList|join("','") }}')
+			var AllCodes = new Array('{{ Globals.AllCodes|join("','") }}')
+			var Offset = '{{ REVIEW_OFFSET }}'
+			var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
+			var DetailedReport = true
+			var PluginDelim = '{{ PLUGIN_DELIM }}'
+			var ReportMode = false
+			var REPORT_PREFIX = '{{ REPORT_PREFIX }}'
+			*/
+</script>
