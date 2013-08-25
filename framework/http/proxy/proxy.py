@@ -229,12 +229,13 @@ class ProxyHandler(tornado.web.RequestHandler):
         try:
             s = ssl.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0))
             upstream = tornado.iostream.SSLIOStream(s)
+            #start_tunnel()
             #upstream.set_close_callback(ssl_fail)
             upstream.connect((host, int(port)), start_tunnel)
         except Exception:
             self.finish()
 
-class PnHandler(tornado.web.RequestHandler):
+class PlugnHackHandler(tornado.web.RequestHandler):
     """
     This handles the requests which are used for firefox configuration
     """
@@ -243,16 +244,92 @@ class PnHandler(tornado.web.RequestHandler):
         base_url = self.request.protocol + "://" + self.request.host + "/proxy"
         if ext == "":
             manifest_url = base_url + ".json"
-            self.write("Hey")
-            
+            html = """
+<html>
+<head>
+<title>OWASP OWTF PnH</title>
+</head>
+<body>
+<h1> OWASP OWTF Simple browser configuration </h1>
+<p>
+The purpose of OWASP OWTF is to automate the manual, uncreative part of pen testing: For example, spending time trying to remember how to call "tool X", parsing results of "tool X" manually to feed "tool Y", etc.
+</p>
+<button id="btn">Click to Setup! :P</button>
+<script>
+  var manifest = {"detail":{"url":"http://127.0.0.1:8008/proxy.json"}};
+
+  var click = function(event) {
+    var evt = new CustomEvent('ConfigureSecTool', manifest);
+    document.dispatchEvent(evt);
+    setTimeout(function() {
+      if (!detected) {
+        console.log('No response');
+     }
+    },1000);
+  };
+
+  var started = function(event) {
+    console.log('configuration has started');
+  };
+  // event listener for configuration failed event
+  // use this to let the user know something has gone wrong
+  var failed = function(event) {
+    console.log('configuration has failed');
+  };
+  // event listener for configuration succeeded
+  // use this to show a success message to a user in your welcome doc
+  var succeeded = function(event) {
+    console.log('configuration has succeeded');
+  };
+  // event listener for browser support activated
+  var activated = function(event) {
+    console.log('activation has occurred');
+  };
+  // Hook configuration event listeners into the document
+  var btn = document.getElementById('btn');
+  btn.addEventListener('click',click,false);
+  document.addEventListener('ConfigureSecProxyStarted',started,false);
+  document.addEventListener('ConfigureSecProxyFailed',failed,false);
+  document.addEventListener('ConfigureSecProxyActivated',activated,false);
+  document.addEventListener('ConfigureSecProxySucceeded',succeeded,false);
+
+</script>
+</body>
+</html>
+"""
+            self.write(html)
         elif ext == ".json":
-            self.write("Manifest")
+            manifest =  {
+                          "toolName":"OWASP OWTF",
+                          "protocolVersion":"0.2",
+                          "features":{
+                            "proxy":{
+                              "PAC":base_url + ".pac",
+                              "CACert":base_url + ".crt"
+                            },
+                            "commands":{
+                              "prefix":"owtf",
+                              "manifest":base_url + "-service.json"
+                            }
+                          }
+                        }
+            self.write(manifest)
+            self.set_header("Content-Type", "application/json")
+        elif ext == "-service.json":
+            commands =  {
+                          "commands":[{
+                            "description":"OWASP OWTF Commands"
+                          }
+                          ]
+                        }
+            self.write(commands)
+            self.set_header("Content-Type", "application/json")
         elif ext == ".pac":
             self.write("function FindProxyForURL(url,host) {return \"PROXY "+self.application.inbound_ip+":"+str(self.application.inbound_port)+"\"; }")
             self.set_header('Content-Type','text/plain')
         elif ext == ".crt":
             self.write(open(self.application.ca_cert, 'r').read())
-            self.set_header('Content-Type','text/plain; charset=UTF-8')
+            self.set_header('Content-Type','application/pkix-cert')
         self.finish()
 
 class ProxyProcess(Process):
