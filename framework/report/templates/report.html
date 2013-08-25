@@ -15,7 +15,7 @@
 							<ul class="nav nav-pills ">
 								<li class="brand disabled"><a>Type: </a> </li>
 							{% for Match in TestGroup.Matches %}
-								<li class=""><a class="" href="#tab_{{ ReportID }}_{{ TestGroupIndex }}_{{ Match.TabName }}x" data-toggle="tab">{{ Match.TabName }}</a></li>
+								<li class=""><a class="" href="#tab_{{ ReportID }}_{{ TestGroupIndex }}_{{ Match.TabName }}x" data-toggle="tab">{{ Match.TabName|replace( '_', ' ' )|upper }}</a></li>
 							{% endfor %}
 								<li class="pull-right"><a href="{{ TestGroup.TestGroupInfo.URL }}" class="text-success"><i class="icon-lightbulb"></i></a> </li>
 							</ul>
@@ -23,85 +23,9 @@
 							
 							{% for Match in TestGroup.Matches %}
 							<div class="tab-pane" id="tab_{{ ReportID }}_{{ TestGroupIndex }}_{{ Match.TabName }}x">
-                	  		<div class="btn-toolbar pull-right">
-													   <div class="btn-group" data-toggle="buttons-checkbox">
-								                            <button class="btn filter" rel="tooltip" data-original-title="Seen" data-placement="bottom"><i class="icon-eye-open icon-white"></i></button>
-								                      </div>
-								                      
-								                        <div class="btn-group" data-toggle="buttons-checkbox">
-								                       		 <button class="btn filter" rel="tooltip" data-original-title="Favorated" data-placement="bottom"><i class="icon-heart icon-white"></i></button>
-								                       </div>
-								                      
-								
-								                      <div class="btn-group" data-toggle="buttons-radio">
-								                         
-								                        <button class="btn btn-inverse filter" rel="tooltip" data-original-title="Undefined" data-placement="bottom"><i class="icon-asterisk  icon-white"></i></button>
-								                        <button class="btn btn-warning filter" rel="tooltip" data-original-title="Warning" data-placement="bottom"><i class="icon-warning-sign icon-white"></i></button>
-								                        <button class="btn btn-danger filter" rel="tooltip" data-original-title="Exploitable" data-placement="bottom"><i class="icon-fire icon-white"></i></button>
-								                        <button class="btn btn-info  filter" rel="tooltip" data-original-title="Logic Bug" data-placement="bottom"><i class="icon-bug icon-white"></i></button>
-									                    <button class="btn btn-success filter " rel="tooltip" data-original-title="Test passed" data-placement="bottom"><i class="icon-thumbs-up icon-white"></i></button>
-								                      </div>
-								
-								                      <div class="btn-group" data-toggle="buttons-radio">
-								                      	<button class="btn filter" rel="tooltip" data-original-title="No severity" data-placement="bottom"><i class="icon-remove-circle icon-white"></i></button>
-								                        <button class="btn filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom"><i class="icon-arrow-down icon-white"></i></button>
-								                        <button class="btn filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom"><i class="icon-arrow-right icon-white"></i></button>
-								                        <button class="btn filter" rel="tooltip" data-original-title="High severity" data-placement="bottom"><i class="icon-arrow-up icon-white"></i></button>
-								                        <button class="btn filter" rel="tooltip" data-original-title="Critical severity" data-placement="bottom"><i class="icon-exclamation-sign icon-white"></i></button>
-								                      </div>
-							 </div>
-							 <br />
-							 <br />
-													 
-                	  			<table class="table table-bordered table-striped table-hover">
-													<thead>
-														<tr>
-															<th> PLUGIN </th>
-															<th> START </th>
-															<th> END </th>
-															<th> RUNTIME </th>
-															<th> STATUS </th>
-															<th> OUTPUT FILES </th>
-														</tr>
-													</thead>
-													<tbody>
-							
-							
-														<tr 
-														{% if Match.status == "Aborted" %}
-															class="warning text-warning"
-														{% elif  Match.status == "Completed"%}
-															class="success text-success"
-														{% elif  Match.status == "Crashed" %}
-															class="error text-error"
-														{% else %}
-														    class=""
-														{% endif %}
-														>
-															
-															<td> <strong>{{ Match.TabName }}</strong>/{{ Match.Filename }}</td>
-															<td> {{ Match.StartTime }} </td>
-															<td> {{ Match.EndTime }} </td>
-															<td> {{ Match.Duree }}</td>
-															<td> {{ Match.Status }}</td>
-															<td><button class="btn btn-primary"> Browse </button> </td>
-														</tr>
-														
-											
-
-							
-							<tr> <th colspan="6"> MORE DETAILS</th></tr>
-																 <tr><td colspan="6">
-										   				More info 
-										   				 </td></tr>
-														<tr> <th colspan="6"> USER NOTES</th></tr>
-														 <tr><td colspan="6">
-										   				  <div id="fbeebaf1-eb6d-33ea-5cc4-5deee0209291" class="notes aloha-editable" style="height: 100px;" contenteditable="true"><p class="muted">Write your notes here!</p></div>
-										   				 </td></tr>
-										   			
-							</tbody>
-						 </table>
+					 			{{ Match.DivContent }}
 						 </div>
+						
 						 {% endfor %}
 						 </div>
 						{% else %}
