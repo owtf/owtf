@@ -67,54 +67,54 @@ class PluginHelper:
 
 	def DrawLinkList( self, LinkListName, Links ): # Wrapper to allow rendering a bunch of links -without name- as resource links with name = link
 		template = Template( """
-		<hr />{{ LinkListName }}: 
-		{% if LinkList|count > 1 %}
-			<button onclick="javascript: OpenAllInTabs(new Array('','{{ Links|join }}'))">  Open All In Tabs  </button>
-		{% endif %}
-		 
-		<ul class="default_list">
-    		{% for Link in Links %}
-    			<li> 
-    				<a href="{{ Link|urlencode }}" class="button" target="_blank">
-    					<span> {{ Link }} </span> 
-					</a> 
-				</li>
-    		{% endfor %}
-		</ul>}
+		<div class="well well-small">
+			{{ LinkListName }}: 
+
+			<ul class="icons-ul">
+	    		{% for Link in Links %}
+	    			<li> 
+	    				<i class="icon-li icon-chevron-sign-right"></i>
+	    				<a href="{{ Link|urlencode }}" class="button" target="_blank">
+	    				
+	    					<span> {{ Link }} </span> 
+						</a> 
+					</li>
+	    		{% endfor %}
+			</ul>
+		</div>
 		""" )
 		return template.render( LinkListName = LinkListName, Links = Links )
 
 	def DrawResourceLinkList( self, ResourceListName, ResourceList ): # Draws an HTML Search box for defined Vuln Search resources
 		template = Template( """
-		<hr />{{ ResourceListName }}: 
-		{% if LinkList|count > 1 %}
-			<button onclick="javascript:  OpenAllInTabs(new Array('','{{ ResourceList.values()|join }}'))">  Open All In Tabs  </button>
-		{% endif %}
-		 
-		<ul class="default_list">
-    		{% for Name, Resource in ResourceList %}
-    			<li> 
-    				<a href="{{ Resource|urlencode }}" class="button" target="_blank">
-    					<span> {{ Name }} </span> 
-					</a> 
-				</li>
-    		{% endfor %}
-		</ul>}
+		<div class="well well-small">
+			{{ ResourceListName }}: 
+
+			<ul class="icons-ul">
+	    		{% for Name, Resource in ResourceList %}
+	    			<li> 
+	    				<i class="icon-li icon-chevron-sign-right"></i>
+	    				<a href="{{ Resource }}" target="_blank">
+	    				 {{ Name }} 
+						</a> 
+					</li>
+	    		{% endfor %}
+			</ul>
+		</div>
 		""" )
 		return template.render( ResourceListName = ResourceListName, ResourceList = ResourceList )
 
 	def DrawListPostProcessing( self, ResourceListName, LinkList, HTMLLinkList ):
 		template = Template( """
-		<hr />{{ ResourceListName }}: 
-		{% if LinkList|count > 1 %}
-			<button onclick="javascript:  OpenAllInTabs(new Array('','{{ LinkList|join }}'))">  Open All In Tabs  </button>
-		{% endif %}
+		<div class="well well-small">
+			{{ ResourceListName }}: 
 		 
-		<ul class="default_list">
+		<ul class="icons-ul">
     		{% for HTMLLink in HTMLLinkList %}
-    			<li> {{ HTMLLink }} </li>
+    			<li><i class="icon-li icon-chevron-sign-right"></i>  {{ HTMLLink }} </li>
     		{% endfor %}
-		</ul>}
+		</ul>
+		</div>
 		""" )
 		return template.render( ResourceListName = ResourceListName, LinkList = LinkList, HTMLLinkList = HTMLLinkList )
 
