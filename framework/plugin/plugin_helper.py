@@ -49,15 +49,19 @@ class PluginHelper:
 
 	def DrawCommandTable( self, Command ):
 		template = Template ( """
-				<table class="run_log"> 
-					<tr>
-						<th> Analysis Command </th>
-					</tr>
-					<tr> 
-						<td>
-							{{ Command|e }}
-						</td>
-					</tr>
+				<table class="table table-bordered"> 
+					<thead>
+    					<tr>
+    						<th> Analysis Command </th>
+    					</tr>
+    				</thead>
+    				<tbody>
+    					<tr> 
+    						<td>
+    							{{ Command|e }}
+    						</td>
+    					</tr>
+    				</tbody>
 				</table>
 				""" )
 		vars = {
@@ -163,7 +167,7 @@ class PluginHelper:
 
 	def DrawVulnerabilitySearchBox( self, SearchStr ): # Draws an HTML Search box for defined Vuln Search resources
 		template = Template( """
-		<table>
+		<table class="table table-bordered ">
 			<tr>
 				<th colspan="{{ VulnSearchResources|count }}">
 					Search for Vulnerabilities: <input name="product" id='prod{{ ProductId }}' type="text" size="35" value='{{ SearchStr }}'>
@@ -321,7 +325,7 @@ class PluginHelper:
 		NewLine = "\n"
 		if len( OutputLines ) > self.mNumLinesToShow: #Show first few lines of command, rest in file
 			Snippet = NewLine.join( OutputLines[0:self.mNumLinesToShow] )
-			BottomNote = NewLine + "<b>NOTE: Output longer than " + str( self.mNumLinesToShow ) + " lines, " + TruncationWarningLinkToFile + "</b>"
+			BottomNote = "\n <br /><span class='alert alert-warning'><strong>NOTE!</strong> Output longer than " + str( self.mNumLinesToShow ) + " lines, " + TruncationWarningLinkToFile + "</div>"
 		else: # Output fits in NumLinesToShow
 			Snippet = RawOutput
 		return [ BottomNote, Snippet ]
@@ -333,18 +337,58 @@ class PluginHelper:
 
 	def FormatCommandAndOutput( self, CommandIntro, OutputIntro, Name, Command, PluginInfo, PluginOutputDir = '' ):
 		ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir = self.RunCommand( Command, PluginInfo, PluginOutputDir )
-		Table = self.Core.Reporter.Render.CreateTable( {'class' : 'commanddump'} )
-		Table.CreateRow( [ CommandIntro ], True )
-		#Table.CreateRow( [ cgi.escape(str(ModifiedCommand)).replace(';', '<br />') ] )
-		Table.CreateRow( [ self.Core.Reporter.DrawCommand( ModifiedCommand ) ] )
-		OutputLines = RawOutput.split( "\n" )
-		Name, Extension = self.GetCommandOutputFileNameAndExtension( Name )
-		FilePath = self.Core.PluginHandler.DumpPluginFile( Name + "." + Extension, RawOutput, PluginInfo )
-		LinkToFile = self.Core.Reporter.Render.DrawButtonLink( Name, FilePath, {}, True )
-		BottomNote, Snippet = self.TruncateOutput( FilePath, RawOutput, OutputLines )
-		Table.CreateRow( [ LinkToFile + " " + OutputIntro + " (Execution Time: " + TimeStr + ")" ], True )
-		Table.CreateRow( [ "<pre>" + self.EscapeSnippet( Snippet, Extension ) + "<br />" + BottomNote + "</pre>" ] )
-		return [ PluginAbort, FrameworkAbort, Table.Render(), RawOutput ]
+		table_template =Template("""
+		<table class="table table-bordered table-striped"> 
+				<thead>
+					<tr>
+						<th>
+						 	{{ CommandIntro }}
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+								<pre> {{ ModifiedCommand|e }} </pre>
+						</rd>
+					</tr>
+					<tr>
+						<th>
+						<a href="../../../{{ FilePath }}" target="_blank">{{ Name }}</a>
+						{{ OutputIntro }} (Execution Time: {{ TimeStr }})
+						</th>
+					</tr>
+					<tr>
+						<td>
+						 <pre> {{  OutputLines|batch(mNumLinesToShow)|join("\n") }} </pre>
+						 <br />
+						 {% if OutputLines|count > mNumLinesToShow %}
+						 <span class='alert alert-warning'>
+						 	<strong>NOTE!</strong>
+						 	Output longer than {{ mNumLinesToShow }} lines,
+						 	<a href="../../../{{ FilePath }}" target="_blank">
+                				Click here to see all output!
+                			</a>
+						 </span>
+						 {% endif %}
+						</td>
+					</tr>
+				</tbody>
+            </table>
+		""")
+		
+		table_vars = {
+				"Name": self.GetCommandOutputFileNameAndExtension( Name )[0],
+				"CommandIntro" : CommandIntro ,
+				"ModifiedCommand": ModifiedCommand,
+				"FilePath" : self.Core.PluginHandler.DumpPluginFile( Name, RawOutput, PluginInfo ),
+				"OutputIntro":  OutputIntro,
+				"OutputLines": RawOutput.split( "\n" ),
+				"TimeStr": TimeStr,
+				"mNumLinesToShow": self.mNumLinesToShow,
+			}
+
+		return [PluginAbort, FrameworkAbort, table_template.render(table_vars), RawOutput]
 
 	def LogURLsFromStr( self, RawOutput ):
 		self.Core.Timer.StartTimer( 'LogURLsFromStr' )
@@ -389,8 +433,8 @@ class PluginHelper:
 			LinkName = save_path
         	Log("File: "+Filename+" saved to: "+save_path)		
         	template = Template( """
-			<a href="{{ Link }}" class="button" target="_blank">
-				<span> {{ LinkName }} </span>
+			<a href="{{ Link }}" target="_blank">
+				{{ LinkName }}
 			</a>
 		""" )
 		return [ save_path, template.render( LinkName = LinkName, Link = "../../../" + save_path ) ]
