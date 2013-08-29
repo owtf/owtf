@@ -32,6 +32,7 @@ The reporter module is in charge of producing the HTML Report as well as
 '''
 
 import cgi
+import codecs
 from jinja2 import Template
 from jinja2 import Environment, PackageLoader
 from framework.lib.general import *
@@ -133,13 +134,14 @@ class Reporter:
         DivId = self.GetPluginDivId(Plugin)
         PluginReportPath = save_dir + "report.html"
         self.Core.CreateMissingDirs(save_dir)
-        with open(PluginReportPath, 'w') as file: # 'w' is important to overwrite the partial report, necesary for scanners
+        with codecs.open(PluginReportPath, 'w',"utf-8") as file: # 'w' is important to overwrite the partial report, necesary for scanners
             Plugin['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr('Plugin')
             Plugin['End'] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
             plugin_report_template = self.Template_env.get_template('plugin_report.html')
             plugin_report_vars = {
                     "DivId": DivId,
                     "SAVE_DIR": self.Core.GetPartialPath(save_dir),
+                    "REVIEW_OFFSET" : self.CCG('REVIEW_OFFSET'),
                     "NextHTMLID": self.Core.DB.GetNextHTMLID(),
                     "Plugin": Plugin,
                     "HTMLtext": unicode(HTMLtext, "utf-8") if HTMLtext.__class__ is not unicode else HTMLtext,
@@ -158,6 +160,8 @@ class Reporter:
 
     def DrawHTTPTransactionTable(self, TransactionList, NumLinesReq=15, NumLinesRes=15):
         """ Draws a table of HTTP Transactions """
+        # functions to get the first lines of a long string
+        GetFirstLines = lambda s,n: "\n".join(s.split("\n")[:n]) + " ... " if n <= len(s) else s
         http_transaction_table_template = self.Template_env.get_template('http_transaction_table.html')
         http_transaction_table_vars = { 
             "NumLinesReq":  NumLinesReq,
@@ -167,8 +171,8 @@ class Reporter:
                     "HTMLLink": Transaction.HTMLLinkToID.replace('@@@PLACE_HOLDER@@@', "See Transaction " + Transaction.ID),
                     "TimeHuman": Transaction.TimeHuman,
                     "LinksForID": self.DrawTransacLinksForID(Transaction.ID),
-                    "RawRequest": Transaction.GetRawRequest(),
-                    "RawResponse": Transaction.GetRawResponse(),
+                    "RawRequest": unicode(GetFirstLines(Transaction.GetRawRequest(),25)),
+                    "RawResponse": unicode(GetFirstLines(Transaction.GetRawResponse(),25)),
                 } for Transaction in TransactionList
                     ]
             }
@@ -265,7 +269,7 @@ class Reporter:
             # style sheets, etc are only copied once at the start
             self.CopyAccessoryFiles()
             self.Init = True
-        with open(self.CCG('HTML_DETAILED_REPORT_PATH'), 'w') as file:
+        with codecs.open(self.CCG('HTML_DETAILED_REPORT_PATH'), 'w',"utf-8") as file:
             report_template = self.Template_env.get_template('report.html')
             report_vars = {
                 "ReportID": "i"+ self.CCG('HOST_IP').replace(".","_") \

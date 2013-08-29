@@ -9,9 +9,9 @@
 							 <br /> <br /> 
 							 
 
-									<pre> {{ Transaction.RawRequest }} ... </pre>
+									<pre> {{ Transaction.RawRequest|e }} ... </pre>
 						 </td>
-						<td><pre> {{ Transaction.RawResponse }} ... </pre> </td> 
+						<td><pre> {{ Transaction.RawResponse|e }} ... </pre> </td> 
 					</tr>
 				{% endfor %}
 </table>
