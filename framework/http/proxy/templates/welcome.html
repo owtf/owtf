@@ -1,0 +1,118 @@
+<html>
+<head>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+<title>OWTF PnH Configuration</title>
+</head>
+<body>
+    <div class="container">
+        <div class="row-fluid">
+            <div class="col-lg-4"></div>
+            <a href="http://owtf.org" target="__blank__">
+                <img src="https://www.owasp.org/images/0/02/OWTFLogoSmall.png" class="img-responsive"/> 
+            </a>
+        </div>
+        <div class="row-fluid">
+
+            <h1 class="text-center">Plug-n-Hack Browser configuration</h1>
+        </div>
+        <div class="row-fluid">
+            <div class="col-lg-1"></div>
+            <div class="col-lg-10">
+                <p class="text-center">
+                    OWASP OWTF is a project that aims to make security assessments as efficient as possible.
+                    Some of the ways in which this is achieved are: 
+                    <ul>
+                        <li>Separating the tests that require no permission from the ones that require permission (i.e. active/ bruteforce).</li>
+                        <li>Launching a number of tools automatically.</li>
+                        <li>Running tests not found in other tools.</li>
+                        <li>Providing an interactive interface/report.</li>
+                        <li>More info: <a href="https://www.owasp.org/index.php/OWASP_OWTF" target="__blank__">https://www.owasp.org/index.php/OWASP_OWTF</a></li>
+                    </ul>
+                </p>
+            </div>
+            <div class="col-lg-1"></div>
+        </div>
+        <div class="row-fluid">
+            <div class="col-lg-5"></div>
+            <button id="btn" type="button" class="btn btn-primary btn-lg">Click to Setup!</button>
+            
+        </div>
+        <div class="row-fluid">
+            <p class="text-center info">For more info regarding PnH configuration, click <a href="http://blog.tunnelshade.in/2013/08/plug-n-hack-support-in-owtf-d.html" target="__blank">here</a>.</p>
+        </div>
+        </br>
+        <div class="row-fluid">
+            <div class="col-lg-2">
+            </div>
+            <div class="col-lg-3">
+                <strong>Useful Links:-</strong>
+                <ul>
+                    <li><a href="https://github.com/7a/owtf/wiki" target="__blank">Github wiki</a></li>
+                    <li><a href="https://github.com/7a/owtf_demos" target="__blank">OWTF Demos</a></li>
+                    <li><a href="http://blog.7-a.org/search/label/OWTF%20Talks" target="__blank">OWTF Talks</a></li>
+                    <li><a href="http://www.youtube.com/user/owtfproject" target="__blank">Youtube Channel</a></li>
+                    <li><a href="http://blog.7-a.org/search/label/OWTF%20Release" target="__blank">Release notes</a></li>
+                </ul>            
+            </div>
+            <div class="col-lg-3">
+                <strong>Contributor's Links:-</strong>
+                <ul>
+                    <li><a href="https://github.com/7a/owtf" target="__blank">Github Repo</a></li>
+                    <li><a href="https://github.com/7a/owtf/issues" target="__blank">Report an Issue</a></li>
+                    <li><a href="https://github.com/7a/owtf/wiki/Contributor%27s-README" target="__blank">Contributor's README</a></li>
+                    <li><a href="https://github.com/7a/owtf/wiki/Create-New-Plugins" target="__blank">Plugin creation help</a></li>
+                    <li><a href="https://github.com/7a/owtf/blob/master/AUTHORS" target="__blank">Contributors</a></li>
+                </ul>            
+            </div>
+            <div class="col-lg-3">
+                <strong>Stay in touch:-</strong>
+                <ul>
+                    <li><a href="http://irc.netsplit.de/channels/details.php?room=%23owtf&net=freenode" target="__blank">IRC Channel</a></li>
+                    <li><a href="https://lists.owasp.org/mailman/listinfo/owasp_owtf" target="__blank">Mailing List</a></li>
+                    <li><a href="https://twitter.com/owtfp" target="__blank">Twitter</a></li>
+                    <li><a href="http://blog.7-a.org">Author's Blog</a></li>
+                </ul>            
+            </div>
+        </div>
+    </div>
+<script>
+  var manifest = {"detail":{"url":"{{ manifest_url }}" }};
+
+  var click = function(event) {
+    var evt = new CustomEvent('ConfigureSecTool', manifest);
+    document.dispatchEvent(evt);
+    setTimeout(function() {
+      if (!detected) {
+        console.log('No response');
+     }
+    },1000);
+  };
+
+  var started = function(event) {
+    alert('Configuration has started');
+  };
+  // event listener for configuration failed event
+  // use this to let the user know something has gone wrong
+  var failed = function(event) {
+    alert('Configuration has failed');
+  };
+  // event listener for configuration succeeded
+  // use this to show a success message to a user in your welcome doc
+  var succeeded = function(event) {
+    alert('Configuration has succeeded');
+  };
+  // event listener for browser support activated
+  var activated = function(event) {
+    alert('Activation has occurred');
+  };
+  // Hook configuration event listeners into the document
+  var btn = document.getElementById('btn');
+  btn.addEventListener('click',click,false);
+  document.addEventListener('ConfigureSecProxyStarted',started,false);
+  document.addEventListener('ConfigureSecProxyFailed',failed,false);
+  document.addEventListener('ConfigureSecProxyActivated',activated,false);
+  document.addEventListener('ConfigureSecProxySucceeded',succeeded,false);
+
+</script>
+</body>
+</html>
