@@ -147,14 +147,14 @@ class Core:
             regex_string = '|'.join(regex_cookies_list)
             cookie_regex = re.compile(regex_string)
             cookie_filter = {'BLACKLIST':blacklist, 'REGEX':cookie_regex}
-            self.ProxyProcess = proxy.ProxyProcess(
+            self.ProxyProcess = proxy.ProxyProcess( self,
                                                     self.Config.Get('INBOUND_PROXY_PROCESSES'),
                                                     InboundProxyOptions,
                                                     transaction_db_path,
                                                     self.Config.Get('INBOUND_PROXY_SSL'),
                                                     cookie_filter,
                                                     Options['OutboundProxy'],
-                                                    Options['OutboundProxyAuth'],
+                                                    Options['OutboundProxyAuth']
                                                   )
             """
             self.TransactionLogger = transaction_logger.TransactionLogger(
@@ -250,6 +250,7 @@ class Core:
         self.StartProxy(Options)
         if self.ProxyMode:
             cprint("Proxy Mode is activated. Press Enter to continue to owtf")
+            cprint("Visit http://" + self.Config.Get('INBOUND_PROXY') + "/proxy to use Plug-n-Hack standard")
             raw_input()
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
