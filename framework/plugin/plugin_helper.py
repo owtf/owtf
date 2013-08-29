@@ -605,34 +605,48 @@ class PluginHelper:
 		Command, HeaderDict, AllValues, Header2TransacDict, NuTransactions = self.FindHeaders( HeaderList )
 		NuTransactions, TotalTransac, Percentage, StatsStr = self.GetTransactionStats( NuTransactions )
 		template = Template( """
-		<h3>Header Analysis Summary</h3>
-		<table>
-			<tr>
-				<th>Log</th>
-				<td><a href="{{ HTMLTransacLogLink }}" class="button" target="_blank">
-					<span> See log </span>
-					</a>
-				</td>
-			</tr>
-			<tr>
-				<th>HTTP Transaction Stats</th>
-				<td class='alt'> {{ StatsStr }} matched </td>
-			</tr>
-			<tr>
-				<th>Analysis Command</th>
-				<td>{{ Command|e }}</td>
-			</tr>
+		<table class="table table-bordered table-striped ">
+		    <thead>
+		        <tr>
+		            <th class="text-center" colspan="2">
+		                Header Analysis Summary
+		            </th>
+		        </tr>
+		    </thead>
+		    <tbody>
+    			<tr>
+    				<th>Log</th>
+    				<td><a href="{{ HTMLTransacLogLink }}" class="button" target="_blank">
+    					<span> See log </span>
+    					</a>
+    				</td>
+    			</tr>
+    			<tr>
+    				<th>HTTP Transaction Stats</th>
+    				<td class='alt'> {{ StatsStr }} matched </td>
+    			</tr>
+    			<tr>
+    				<th>Analysis Command</th>
+    				<td><pre>{{ Command|e }}</pre></td>
+    			</tr>
+    		</tbody>
 		</table>
 		
-		<h3>Header Value Analysis</h3>
-		<p>NOTE: Only <u>unique values per header</u> are shown with a link to an example transaction</p>
-		<table class="report_intro"> 
+		<div class="alert alert-info"><strong>NOTE!</strong> Only <u>unique values per header</u> are shown with a link to an example transaction</div>
+		<table class="table table-bordered table-striped"> 
+		    <thead>
+		        <tr>
+                    <th class="text-center" colspan="2">
+                        Header Value Analysis
+                    </th>
+                </tr>
+		    </thead>
+			<tbody>
 			<tr>
 				<th> Header </th> 
  				<th> Values </th>
 			</tr>
 			{% for Header in HeaderList %}
-				
 					<tr>
 						<td> {{ Header }} </td>
 						<td>
@@ -640,9 +654,8 @@ class PluginHelper:
 								Not Found
 							{% else %}
 								{% for HeaderValue in HeaderDict[Header|lower] %}
-								
-									<a href="{{ Header2TransacDict[Header|lower + HeaderValue] }}" class="button" target="_blank">
-										<span> {{ HeaderValue }} </span>
+									<a href="{{ Header2TransacDict[Header|lower + HeaderValue] }}" class="label" target="_blank">
+										{{ HeaderValue }}
 									</a>
 									<br />
 								{% endfor %}
@@ -650,9 +663,9 @@ class PluginHelper:
 						</td>
 						
 					</tr>
-				
-				
+
 			{% endfor %}
+		    </tbody>
 		</table>
 		""" )
 
