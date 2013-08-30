@@ -49,6 +49,7 @@ class ConfigEnvironmentBuilder():
         self.core_mock.should_receive("GetPartialPath")
         self.core_mock.IsIPInternal = lambda ip: True
         self.core_mock.Error = self._create_error_handler_mock()
+        self.core_mock.ProxyMode = None
 
     def _create_error_handler_mock(self):
         error_handler = flexmock()
