@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /public
+Disallow: /private
+Disallow: /	malformed
+Diallow: /misspelled
+Disallow: /repeated
+Disallow: /repeated
