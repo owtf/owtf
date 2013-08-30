@@ -37,6 +37,7 @@ import tornado.curl_httpclient
 import tornado.escape
 import tornado.httputil
 import tornado.options
+import tornado.template
 import socket
 import ssl
 import os
@@ -229,40 +230,83 @@ class ProxyHandler(tornado.web.RequestHandler):
         try:
             s = ssl.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0))
             upstream = tornado.iostream.SSLIOStream(s)
+            #start_tunnel()
             #upstream.set_close_callback(ssl_fail)
             upstream.connect((host, int(port)), start_tunnel)
         except Exception:
             self.finish()
 
-class PnHandler(tornado.web.RequestHandler):
+class PlugnHackHandler(tornado.web.RequestHandler):
     """
-    This handles the requests which are used for firefox configuration
+    This handles the requests which are used for firefox configuration 
+    https://blog.mozilla.org/security/2013/08/22/plug-n-hack/
     """
     @tornado.web.asynchronous
     def get(self, ext):
-        base_url = self.request.protocol + "://" + self.request.host + "/proxy"
+        """
+        Root URL (in default case) = http://127.0.0.1:8008/proxy
+        Templates folder is framework/http/proxy/templates
+        For PnH, following files (all stored as templates) are used :-
+        
+        File Name       ( Relative path )
+        =========       =================
+        * Provider file ( /proxy )
+        * Tool Manifest ( /proxy.json )
+        * Commands      ( /proxy-service.json )
+        * PAC file      ( /proxy.pac )
+        * CA Cert       ( /proxy.crt )
+        """
+        # Rebuilding the root url
+        root_url = self.request.protocol + "://" + self.request.host
+        proxy_url = root_url + "/proxy"
+        # Absolute path of templates folder using location of this script (proxy.py)
+        templates_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates")
+        loader = tornado.template.Loader(templates_folder) # This loads all the templates in the folder
         if ext == "":
-            manifest_url = base_url + ".json"
-            self.write("Hey")
-            
+            manifest_url = proxy_url + ".json"
+            self.write(loader.load("welcome.html").generate(manifest_url=manifest_url))
         elif ext == ".json":
-            self.write("Manifest")
+            self.write(loader.load("manifest.json").generate(proxy_url=proxy_url))
+            self.set_header("Content-Type", "application/json")
+        elif ext == "-service.json":
+            self.write(loader.load("service.json").generate(root_url=root_url))
+            self.set_header("Content-Type", "application/json")
         elif ext == ".pac":
-            self.write("function FindProxyForURL(url,host) {return \"PROXY "+self.application.inbound_ip+":"+str(self.application.inbound_port)+"\"; }")
+            self.write(loader.load("proxy.pac").generate(proxy_details=self.request.host))
             self.set_header('Content-Type','text/plain')
         elif ext == ".crt":
             self.write(open(self.application.ca_cert, 'r').read())
-            self.set_header('Content-Type','text/plain; charset=UTF-8')
+            self.set_header('Content-Type','application/pkix-cert')
         self.finish()
 
+class CommandHandler(tornado.web.RequestHandler):
+    """
+    This handles the python function calls issued with relative url "/JSON/?cmd="
+    Responses are in JSON
+    """
+    @tornado.web.asynchronous
+    def get(self, relative_url):
+        # Currently only get requests are sufficient for providing PnH service commands
+        command_list = self.get_arguments("cmd")
+        info = {}
+        for command in command_list:
+            command = "self.application." + command
+            info[command] = eval(command)
+        self.write(info)
+        self.finish()
+                        
 class ProxyProcess(Process):
 
-    def __init__(self, instances, inbound_options, cache_dir, ssl_options, cookie_filter, outbound_options=[], outbound_auth=""):
+    def __init__(self, core, instances, inbound_options, cache_dir, ssl_options, cookie_filter, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
         self.application = tornado.web.Application(handlers=[
-                                                            (r'/proxy(.*)', PnHandler),
-                                                            (r".*", ProxyHandler)
-                                                            ], debug=False, gzip=True)
+                                                            (r'/proxy(.*)', PlugnHackHandler),
+                                                            (r'/JSON/(.*)', CommandHandler),
+                                                            (r'.*', ProxyHandler)
+                                                            ], 
+                                                    debug=False,
+                                                    gzip=True,
+                                                   )
         self.application.inbound_ip = inbound_options[0]
         self.application.inbound_port = int(inbound_options[1])
         self.application.cache_dir = cache_dir
@@ -285,6 +329,7 @@ class ProxyProcess(Process):
         server = tornado.httpserver.HTTPServer(self.application)
         self.server = server
         self.instances = instances
+        self.application.Core = core
         
     # "0" equals the number of cores present in a machine
     def run(self):
@@ -292,7 +337,7 @@ class ProxyProcess(Process):
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
-            #tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/fix.log","--logging=info"])
+            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/fix.log","--logging=info"])
             # To run any number of instances
             self.server.start(int(self.instances))
             tornado.ioloop.IOLoop.instance().start()
