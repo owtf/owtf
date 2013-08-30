@@ -88,8 +88,7 @@ class HandlerBuilder():
                 self.set_header(name, value)
             if isinstance(content, list):
                 for line in content:
-                    self.write(line)
-                    self.write('\r\n')
+                    self.write(line + "\r\n")
             else:
                 self.write(content)
             self.set_status(code)

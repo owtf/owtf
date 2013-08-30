@@ -15,9 +15,13 @@ from hamcrest.library.text.stringcontains import contains_string
 from hamcrest.core.assert_that import assert_that
 import string
 import random
+from hamcrest.core.core.isequal import equal_to
+import cgi
 
 
 class BaseTestCase(unittest.TestCase):
+
+    RESOURCES_DIR = "test_cases/resources/"
 
     def setUp(self):
         try:
@@ -55,9 +59,11 @@ class BaseTestCase(unittest.TestCase):
         self.stop_stdout_recording()
         return output
 
+    def get_resource_path(self, relative_path):
+        return self.get_abs_path(self.RESOURCES_DIR + relative_path)
+
     def get_abs_path(self, relative_path):
         return path.abspath(relative_path)
-
 
 class CoreInitialiser():
     """Callable class that instantiates the core object."""
@@ -86,6 +92,7 @@ class WebPluginTestCase(BaseTestCase):
 
     TARGET = "localhost:8888"
     DYNAMIC_METHOD_REGEX = "^set_(head|get|post|put|delete|options|connect)_response"
+    ANCHOR_PATTERN = "href=\"%s\""
     OWTF_REVIEW_FOLDER = "owtf_review"
     LOG_FILE = "logfile"
     NOT_INTERACTIVE = " -i no "
@@ -251,8 +258,10 @@ class WebPluginTestCase(BaseTestCase):
             result.append(str(stdout_output))
         return result
 
-    def assert_that_output_contains(self, substring):
+    def assert_that_output_contains(self, substring, times=None):
         assert_that(self.owtf_output, contains_string(substring))
+        if times is not None:
+            assert_that(self.owtf_output.count(substring), equal_to(times))
 
     def generate_random_token(self, length=15):
         """Useful to identify the specified content in the plugin output."""
