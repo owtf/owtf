@@ -225,7 +225,7 @@ class Config:
 
     def GetResources(self, ResourceType): # Transparently replaces the Resources placeholders with the relevant config information 
         ReplacedResources = []
-        if self.Core.DevMode:
+        if self.Core.ProxyMode:
             ResourceType += ""#"Proxified"
         ResourceType = ResourceType.upper() # Force upper case to make Resource search not case sensitive
         if self.IsResourceType(ResourceType):

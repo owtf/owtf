@@ -124,7 +124,7 @@ class Core:
         
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
-        if Options["DevMode"]:
+        if Options["ProxyMode"]:
             if not os.path.exists(self.Config.Get('CACHE_DIR')):
                 os.makedirs(self.Config.Get('CACHE_DIR'))
             else:
@@ -140,23 +140,21 @@ class Core:
                     os.mkdir(folder_path)
             if self.Config.Get('COOKIES_BLACKLIST_NATURE'):
                 regex_cookies_list = [ cookie + "=([^;]+;?)" for cookie in self.Config.Get('COOKIES_LIST') ]
-                regex_string = '|'.join(regex_cookies_list)
-                cookie_regex = re.compile(regex_string)
                 blacklist = True
             else:
                 regex_cookies_list = [ "(" + cookie + "=[^;]+;?)" for cookie in self.Config.Get('COOKIES_LIST') ]
-                regex_string = '|'.join(regex_cookies_list)
-                cookie_regex = re.compile(regex_string)
                 blacklist = False
+            regex_string = '|'.join(regex_cookies_list)
+            cookie_regex = re.compile(regex_string)
             cookie_filter = {'BLACKLIST':blacklist, 'REGEX':cookie_regex}
-            self.ProxyProcess = proxy.ProxyProcess(
+            self.ProxyProcess = proxy.ProxyProcess( self,
                                                     self.Config.Get('INBOUND_PROXY_PROCESSES'),
                                                     InboundProxyOptions,
                                                     transaction_db_path,
                                                     self.Config.Get('INBOUND_PROXY_SSL'),
                                                     cookie_filter,
                                                     Options['OutboundProxy'],
-                                                    Options['OutboundProxyAuth'],
+                                                    Options['OutboundProxyAuth']
                                                   )
             """
             self.TransactionLogger = transaction_logger.TransactionLogger(
@@ -231,7 +229,7 @@ class Core:
             return self.run_plugins()
 
     def initialise_framework(self, Options):
-        self.DevMode = Options["DevMode"]
+        self.ProxyMode = Options["ProxyMode"]
         self.initlogger()
         cprint("Loading framework please wait..")
         self.Config.ProcessOptions(Options)
@@ -250,8 +248,9 @@ class Core:
         if self.Config.Get('SIMULATION'):
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
         self.StartProxy(Options)
-        if self.DevMode:
+        if self.ProxyMode:
             cprint("Proxy Mode is activated. Press Enter to continue to owtf")
+            cprint("Visit http://" + self.Config.Get('INBOUND_PROXY') + "/proxy to use Plug-n-Hack standard")
             raw_input()
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
@@ -303,7 +302,7 @@ class Core:
             except AttributeError: # DB not instantiated yet!
                 cprint("owtf finished: No time to report anything! :P")
             finally:
-                if self.DevMode:
+                if self.ProxyMode:
                     try:
                         cprint("Stopping inbound proxy processes and cleaning up, Please wait!")
                         self.KillChildProcesses(self.ProxyProcess.pid)

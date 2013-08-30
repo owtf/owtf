@@ -26,7 +26,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-GetValue(){
+get_config_value(){
     
     parameter=$1
     file=$2
@@ -73,9 +73,9 @@ echo "\n[*] Create local CA for OWTF Inbound Proxy? [y/n]"
 read a
 if [ "$a" = "y" ]; then
     config_file="$(pwd)/profiles/general/default.cfg"
-    certs_folder=$(GetValue CERTS_FOLDER $config_file)
-    ca_cert=$(GetValue CA_CERT $config_file)
-    ca_key=$(GetValue CA_KEY $config_file)
+    certs_folder=$(get_config_value CERTS_FOLDER $config_file)
+    ca_cert=$(get_config_value CA_CERT $config_file)
+    ca_key=$(get_config_value CA_KEY $config_file)
     if [ ! -d $certs_folder ]; then
         mkdir -p $certs_folder
     fi
