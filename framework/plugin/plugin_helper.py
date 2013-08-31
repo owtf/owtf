@@ -134,7 +134,7 @@ class PluginHelper:
 				RawHTML = Transaction.GetRawResponseBody()
 				FilteredHTML = self.Core.Reporter.Sanitiser.CleanThirdPartyHTML( RawHTML )
 				NotSandboxedPath = self.Core.PluginHandler.DumpPluginFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo )
-				Log( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
+				log( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
 				iframe_template = Template( """
 				<iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder = '0' style = "overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
 				Your browser does not support iframes
@@ -142,7 +142,7 @@ class PluginHelper:
 				""" )
 				iframe = iframe_template.render( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
 				SandboxedPath = self.Core.PluginHandler.DumpPluginFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
-				Log( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
+				log( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
 				LinkList.append( ( Name, SandboxedPath ) )
 
 		template = Template( """
@@ -270,7 +270,7 @@ class PluginHelper:
 			FrameworkAbort = True
 
 		TimeStr = self.Core.Timer.GetElapsedTimeAsStr('FormatCommandAndOutput')
-		Log("Time="+TimeStr)
+		log("Time="+TimeStr)
 		return [ ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir ]
 
 	def GetCommandOutputFileNameAndExtension( self, InputName ):
@@ -324,7 +324,7 @@ class PluginHelper:
 				if Transaction.Found:
 					NumFound += 1
 		TimeStr = self.Core.Timer.GetElapsedTimeAsStr('LogURLsFromStr')
-		Log("Spider/URL scaper time="+TimeStr)
+		log("Spider/URL scaper time="+TimeStr)
 		Table = self.Core.Reporter.Render.CreateTable({'class' : 'commanddump'})
 		Table.CreateCustomRow('<tr><th colspan="2">Spider/URL scraper</th></tr>')
 		Table.CreateRow(['Time', 'URL stats'], True)
@@ -353,7 +353,7 @@ class PluginHelper:
 		save_path = self.Core.PluginHandler.DumpPluginFile( Filename, Contents, PluginInfo )
 		if not LinkName:
 			LinkName = save_path
-        	Log("File: "+Filename+" saved to: "+save_path)		
+        	log("File: "+Filename+" saved to: "+save_path)		
         	template = Template( """
 			<a href="{{ Link }}" class="button" target="_blank">
 				<span> {{ LinkName }} </span>
@@ -398,7 +398,7 @@ class PluginHelper:
 						Links.append( [ Entry, LinkStart + Entry + LinkEnd ] ) # Show link in defined format (passive/semi_passive)
 				TestResult += self.Core.PluginHelper.DrawResourceLinkList( Display, Links )
 		TestResult += self.Core.DB.URL.AddURLsEnd()
-		Log("robots.txt was "+NotStr+"found")
+		log("robots.txt was "+NotStr+"found")
 		return TestResult
 
 	def LogURLs( self, PluginInfo, ResourceList ):
@@ -412,7 +412,7 @@ class PluginHelper:
 		self.Core.DB.SaveAllDBs() # Save URL DBs to disk
 		NumURLsAfter = self.Core.DB.URL.GetNumURLs()
 		Message =(str(NumURLsAfter-NumURLsBefore)+" URLs have been added and classified")
-                Log(Message)
+                log(Message)
         	return HTMLOutput+"<br />"+Message
 
 	def DrawTransactionTableForURLList( self, UseCache, URLList, Method = '', Data = '' ):
@@ -484,7 +484,7 @@ class PluginHelper:
 		<th>Command</th><td>""" + self.Core.Reporter.DrawCommand( Command ) + """</td>
 	</tr>
 	<tr>
-		<th>Log</th><td class="alt">""" + self.Core.Reporter.Render.DrawButtonLink( 'See log', self.Core.Config.GetHTMLTransacLog( True ) ) + """</td>
+		<th>Log</th><td class="alt">""" + self.Core.Reporter.Render.DrawButtonLink( 'See log', self.Core.Config.GetHTMLTransaclog( True ) ) + """</td>
 	</tr>
 </table>
 """
@@ -532,12 +532,12 @@ class PluginHelper:
 		NuTransactions, TotalTransac, Percentage, StatsStr = self.GetTransactionStats( NuTransactions )
 		Table = '<h3>Header Analysis Summary</h3>'
 		Table += "<table>" # NOTE: Table structure not supported by table creator
-		Table += "<tr><th>Log</th><td>" + self.Core.Reporter.Render.DrawButtonLink( 'See log', self.Core.Config.GetHTMLTransacLog( True ) ) + "</td></tr>"
+		Table += "<tr><th>Log</th><td>" + self.Core.Reporter.Render.DrawButtonLink( 'See log', self.Core.Config.GetHTMLTransaclog( True ) ) + "</td></tr>"
 		Table += "<tr><th>HTTP Transaction Stats</th><td class='alt'>" + StatsStr + " matched" + "</td></tr>"
 		Table += "<tr><th>Analysis Command</th><td>" + self.Core.Reporter.DrawCommand( Command ) + "</td></tr>"
 		#Table += self.Core.Reporter.DrawTableRow(['Log', 'HTTP Transaction Stats', 'Command'], True)
-		#Table += self.Core.Reporter.DrawTableRow([self.Core.Reporter.Render.DrawButtonLink('See log', self.Core.Config.GetHTMLTransacLog(True)), str(NuTransactions)+" out of "+str(TotalTransac)+" ("+str(Percentage)+"%) matches", cgi.escape(Command)])
-#		Table = "Header Value Analysis: "+str(NuTransactions)+" out of "+str(TotalTransac)+" ("+str(Percentage)+"%) HTTP transaction(s) matched "+self.Core.Reporter.Render.DrawButtonLink('See log', self.Core.Config.GetHTMLTransacLog(True))+":<br />"
+		#Table += self.Core.Reporter.DrawTableRow([self.Core.Reporter.Render.DrawButtonLink('See log', self.Core.Config.GetHTMLTransaclog(True)), str(NuTransactions)+" out of "+str(TotalTransac)+" ("+str(Percentage)+"%) matches", cgi.escape(Command)])
+#		Table = "Header Value Analysis: "+str(NuTransactions)+" out of "+str(TotalTransac)+" ("+str(Percentage)+"%) HTTP transaction(s) matched "+self.Core.Reporter.Render.DrawButtonLink('See log', self.Core.Config.GetHTMLTransaclog(True))+":<br />"
 #		Table += "Command used to investigate headers: "+cgi.escape(Command)+"<br />"
 		Table += "</table>"
 		Table += '<h3>Header Value Analysis</h3>'
@@ -595,8 +595,8 @@ class PluginHelper:
 		#Table = "<h3>Cookie Attribute Analysis</h3><table class='report_intro'>"+Table+"</table>"
 		#return Table
 					
-	def ResearchFingerprintInLog(self):
-		Log("Researching Fingerprint in Log ..")
+	def ResearchFingerprintInlog(self):
+		log("Researching Fingerprint in Log ..")
 		AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = self.ResearchHeaders(self.Core.Config.GetHeaderList('HEADERS_FOR_FINGERPRINT'))
 		for Value in AllValues:
 			HeaderTable += self.DrawVulnerabilitySearchBox(Value) # Add Vulnerability search boxes after table

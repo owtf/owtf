@@ -204,5 +204,5 @@ class Summary:
 		HTML = template.render( vars )
 		with open( self.Core.Config.Get( 'HTML_REPORT_PATH' ), 'w' ) as file:
 			file.write( HTML ) # Closing HTML Report
-        	Log("Summary report written to: "+self.Core.Config.Get('HTML_REPORT_PATH'))
+        	log("Summary report written to: "+self.Core.Config.Get('HTML_REPORT_PATH'))
 

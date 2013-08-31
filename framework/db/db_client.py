@@ -50,10 +50,10 @@ class db_client:
     def db_send(self,argumentlist,request_type):
         if request_type=='push':
             #if it is a push simply push the arguments
-            self.push.file_push(json.dumps(argumentlist))
+            self.push.push_msg(json.dumps(argumentlist))
         else:
             #if it is pull request we have to return the result
-            result = self.pull.file_pull(json.dumps(argumentlist))
+            result = self.pull.pull_msg(json.dumps(argumentlist))
             if result:
                 return json.loads(result)
             return result

@@ -30,6 +30,7 @@ This File is for server who will entertain pull requests
 '''
 from collections import defaultdict
 from framework.lib import *
+from framework.lib.general import log
 import os
 import random
 import time
@@ -67,7 +68,7 @@ class pull_server:
                         #skip_if_locked is True then file is skipped if it is locked    
                         self.Core.Timer.StartTimer('read')
                         data = general.atomic_read_from_file(request_dir, filename, skip_if_locked=True)
-                        self.Core.log("pull server "+filename[0:3]+"    "+self.Core.Timer.GetElapsedTimeAsStr('read'),0)
+                        log("pull server "+filename[0:3]+"    "+self.Core.Timer.GetElapsedTimeAsStr('read'),0)
                         if data:
                             
                             result = callback_function(data,"pull")
@@ -79,10 +80,10 @@ class pull_server:
                 #give away cpu
                 self.Core.Timer.StartTimer('sleep')
                 time.sleep(delay)
-                self.Core.log("pull server after sleeping "+self.Core.Timer.GetElapsedTimeAsStr('sleep'),0)
+                log("pull server after sleeping "+self.Core.Timer.GetElapsedTimeAsStr('sleep'),0)
             except KeyboardInterrupt:
                 break
             except Exception,e:
-                self.Core.log("Unexpected Pull server error: "+str(e))
+                log("Unexpected Pull server error: "+str(e))
                 break
                    

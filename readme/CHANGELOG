@@ -3,7 +3,7 @@
 + Added some features to the Testing Framework. Added tests that cover approximately the 45% of the code of the OWTF Framework. <==> Alessandro Fanio Gonzalez (@alessandrofg)
 + Added support for test coverage reports and test logs in HTML. <==> Alessandro Fanio Gonzalez (@alessandrofg)
 + Spawing multiple processes on the basis of targets and then handling the input, stopping of the targets <==> Ankush Jindal(@ankushjindal278)
-+ Centerlized log function <==> Ankush Jindal(@ankushjindal278)
++ Centralised log function <==> Ankush Jindal(@ankushjindal278)
 + Generic messaging system with pull and push facility differently and database handler to use messaging for DB transaction in multiprocessing<==> (@ankushjindal278)
 + Draft inbound proxy is replaced by a new inbound proxy <=> Bharadwaj Machiraju (@tunnelshade)
 + Inbound proxy is capable of caching and saving the transactions <=> Bharadwaj Machiraju (@tunnelshade)

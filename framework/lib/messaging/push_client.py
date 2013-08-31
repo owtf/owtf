@@ -39,7 +39,7 @@ class push_client:
     def __init__(self,Core):
         self.core=Core
     
-    def file_push(self,data,queue_name="push"):
+    def push_msg(self,data,queue_name="push"):
         #Creates a random file inside the /Requests subdirectory within a Queue, 
         #the PushServer will process these files
         file_id = self.core.Random.GetStr(100) + '.msg'

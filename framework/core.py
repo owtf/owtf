@@ -30,7 +30,7 @@ Description:
 The core is the glue that holds the components together and allows some of them to communicate with each other
 '''
 from framework import timer, error_handler
-from framework.logQueue import logQueue
+from framework.lib.log_queue import logQueue
 from framework.config import config
 from framework.db import db
 from framework.http import requester
@@ -76,7 +76,7 @@ class Core:
 
     #wrapper to log function
     def log(self,*args):
-        Log(*args)
+        log(*args)
         
     def IsInScopeURL(self, URL): # To avoid following links to other domains
         ParsedURL = urlparse(URL)
@@ -174,6 +174,10 @@ class Core:
     def outputfunc(self,q):
         """
             This is the function/thread which writes on terminal
+            It takes the content from queue and if showOutput is true it writes to console.
+            Otherwise it appends to a variable. 
+            If the next token is 'end' It simply writes to the console.
+            
         """
         t=""
         #flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL)
@@ -188,7 +192,6 @@ class Core:
                 try:
                     sys.stdout.write(t)
                 except:
-                    print "some error in wrirtin"
                     pass
                 return
             t = t+k
@@ -197,7 +200,6 @@ class Core:
                     sys.stdout.write(t)
                     t=""
                 except:
-                    print "some error in writing"
                     pass    
                                                     
                                 
@@ -228,10 +230,12 @@ class Core:
     
     def Start(self, Options):
         self.DevMode = Options["DevMode"]
-        self.initlogger()
+        
         cprint("Loading framework please wait..")
         self.PluginHandler = plugin_handler.PluginHandler(self, Options)
         self.Config.ProcessOptions(Options)
+        self.initlogger()
+
         self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT')) # Requires user config
         self.Timer.StartTimer('core')
         self.PluginParams = plugin_params.PluginParams(self, Options)
@@ -240,6 +244,7 @@ class Core:
             self.exitOutput()
             return False # No processing required, just list available modules
         self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
+
         self.DB.Init()
         self.messaging_admin.Init()
         Command = self.GetCommand(Options['argv'])
@@ -312,8 +317,9 @@ class Core:
                 exit()
 
     def exitOutput(self):
-        self.outputqueue.put('end')    
-        self.outputthread.join()
+        if hasattr(self,'outputthread'):
+            self.outputqueue.put('end')    
+            self.outputthread.join()
         
     def GetSeed(self):
         try:

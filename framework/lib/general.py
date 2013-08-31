@@ -149,7 +149,7 @@ def PathsExist(PathList):
 	ValidPaths = True
 	for Path in PathList:
 		if Path and not os.path.exists(Path):
-			cprint("WARNING: The path '" + Path + "' does not exist!")
+			log("WARNING: The path '" + Path + "' does not exist!")
 			ValidPaths = False
 	return ValidPaths
 
@@ -158,7 +158,7 @@ def GetFileAsList(Filename):
 		Output = open(Filename, 'r').read().split("\n")
 		cprint("Loaded file: '"+Filename+"'")
 	except IOError, error:
-		cprint("Cannot open file: '"+Filename+"' ("+str(sys.exc_info())+")")
+		log("Cannot open file: '"+Filename+"' ("+str(sys.exc_info())+")")
 		Output = []
 	return Output
 
@@ -167,7 +167,7 @@ def AppendToFile(Filename, Data):
 		#cprint("Writing to file: '"+Filename+"'")
 		open(Filename, 'a').write(Data)
 	except IOError, error:
-		cprint("Cannot write to file: '"+Filename+"' ("+str(sys.exc_info())+")")
+		log("Cannot write to file: '"+Filename+"' ("+str(sys.exc_info())+")")
 
 def get_files(request_dir):
     files = os.listdir(request_dir)
@@ -181,7 +181,7 @@ def wait_until_dir_exists(request_dir,delay):
     while True:
         if(os.path.exists(request_dir)):
             return
-    time.sleep(delay)
+        time.sleep(delay)
    
     
 #this function writes to a file atomically
@@ -283,27 +283,27 @@ def get_source_info():
             , 'Source' : source # Class Name / Func Name logging the message
             }
 
-def getDefaultLog(source_info):
+def get_default_logger(source_info):
     """
         Give default log element for given source_info.. 
         For now it is simply returning general log
     """
     return logging.getLogger("general")
     
-def getDefaultlogFile(source_info):
+def get_default_logfile(source_info):
     """
         Give default log file for given source_info.. 
         For now it is simply returning log file given in config file
     """
     return logging.getLogger("logfile")
 
-def Log(message, type = INFO, Overrides = {}.copy()):
+def log(message, type = INFO, overrides = {}.copy()):
     """
     Logs a message to call
     """
     source_info = get_source_info() # Retrieve Source class, function, process and thread
-    defaultlog = getDefaultLog(source_info)
-    defaultfile = getDefaultlogFile(source_info)
+    defaultlog = overrides.get('Logger',get_default_logger(source_info))
+    defaultfile = overrides.get('LogFile',get_default_logfile(source_info))
     if type!=BENCHMARK:
         defaultlog.info(message)
     log_enteries = {'processname':source_info['Process'],'functionname':source_info['Source'],'type':LOG_LEVELS[type]}
