@@ -30,7 +30,7 @@ The scan_network scans the network for different ports and call network plugins 
 '''
 import sys, os, re, socket
 
-SCANS_FOLDER="owtf_review/scans" # Folder under which all scans will be saved
+SCANS_FOLDER="scans" # Folder under which all scans will be saved
 PING_SWEEP_FILE=SCANS_FOLDER+"/00_ping_sweep"
 DNS_INFO_FILE= SCANS_FOLDER+"/01_dns_info"
 FAST_SCAN_FILE=SCANS_FOLDER+"/02_fast_scan"
@@ -150,6 +150,7 @@ class Scanner:
                 if port in ports_for_service:
                      response = response + host+":"+port+":"+prot+"##"
         f.close()
+        
         return response
         
     

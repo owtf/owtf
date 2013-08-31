@@ -30,6 +30,7 @@ This File is for client which has to send a pull message
 '''
 from collections import defaultdict
 from framework.lib import *
+from framework.lib.general import log
 from framework.random import Random
 import json
 import os
@@ -40,20 +41,14 @@ class pull_client:
     def __init__(self,Core):
         self.core=Core
     
-    def file_pull(self,data,queue_name="pull"):
+    def pull_msg(self,data,queue_name="pull"):
         #Creates a random file inside the /Requests subdirectory within a Queue, 
         #the PullServer will process these files and then this file will wait for the response as
         #skip_if_locked is false
         file_id = self.core.Random.GetStr(100) + '.msg'
         try:
-            self.core.Timer.StartTimer('pull')
-
             general.atomic_write_to_file(general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name], file_id, data)
-            self.core.log("pull client1 "+ file_id[0:3]+"  "+self.core.Timer.GetElapsedTimeAsStr('pull'),0)
-
             result = general.atomic_read_from_file(general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name], file_id,False)
-            self.core.log("pull client "+ file_id[0:3]+"  "+self.core.Timer.GetElapsedTimeAsStr('pull'),0)
-
             os.remove(general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name]+"/"+file_id)
             return result
         except KeyboardInterrupt:

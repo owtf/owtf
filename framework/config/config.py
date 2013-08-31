@@ -91,10 +91,8 @@ class Config:
         self.Set('FORCE_OVERWRITE', Options['Force_Overwrite']) # True/False
         self.Set('INTERACTIVE', Options['Interactive']) # True/False
         self.Set('SIMULATION', Options['Simulation']) # True/False
-        if(Options['PortWaves']==None):
-            self.Set('PORTWAVES' ,'10,100,1000')
-        else:
-            self.Set('PORTWAVES' ,Options['PortWaves'])
+       
+        self.Set('PORTWAVES' ,Options['PortWaves'])
         self.LoadPluginTestGroups(Options['PluginGroup'])
         self.LoadProfilesAndSettings(Options)
         # After all initialisations, run health-check:
@@ -380,19 +378,10 @@ class Config:
             return Path.split("/")[-1]
         return Path
 
-    def GetHTMLTransacLog(self, Partial = False):
+    def GetHTMLTransaclog(self, Partial = False):
         return self.GetFileName('TRANSACTION_LOG_HTML', Partial)
     
-    def GetPortWaves(self):
-        return self.Get('PORTWAVES')
-    
-    def GetProcessPerCore(self):
-        return self.Get('PROCESS_PER_CORE')
-        
-    def GetMinRam(self):
-        return self.Get('MIN_RAM_NEEDED')    
-
-    def GetTXTTransacLog(self, Partial = False):
+    def GetTXTTransaclog(self, Partial = False):
         return self.GetFileName('TRANSACTION_LOG_TXT', Partial)
 
     def IsHostNameNOTIP(self):

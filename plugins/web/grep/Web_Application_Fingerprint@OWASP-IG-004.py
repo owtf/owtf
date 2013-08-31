@@ -36,6 +36,6 @@ DESCRIPTION = "Searches transaction DB for fingerprint traces"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.ResearchFingerprintInCore.log()
+	Content = Core.PluginHelper.ResearchFingerprintInlog()
 	return Content
 

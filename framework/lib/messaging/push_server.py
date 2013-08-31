@@ -70,6 +70,6 @@ class push_server:
             except KeyboardInterrupt:
                 break
             except Exception,e:
-                general.Log("Unexpected Push server error: "+str(e))
+                general.log("Unexpected Push server error: "+str(e))
                 break
                    

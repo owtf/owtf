@@ -98,10 +98,10 @@ class Shell:
 		if not CanRun:
 			Message = "The command was already run for target: "+Target	
 			return Message
-        	Log("\nExecuting (s to abort THIS COMMAND ONLY):\n"+Command)
-		Log("")
-		Log("------> Execution Start Date/Time: "+self.Core.Timer.GetStartDateTimeAsStr('Command'))
-		Log("")
+        	log("\nExecuting (s to abort THIS COMMAND ONLY):\n"+Command)
+		log("")
+		log("------> Execution Start Date/Time: "+self.Core.Timer.GetStartDateTimeAsStr('Command'))
+		log("")
 		Output = ''
 		Cancelled = False
 		try: # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-in-a-separate-process-in-a-wxpyt
@@ -110,7 +110,7 @@ class Shell:
 				line = proc.stdout.readline()
 				if not line: break
 				# NOTE: Below MUST BE print instead of "cprint" to clearly distinguish between owtf output and tool output
-				Log(MultipleReplace(line, { "\n":"", "\r":"" })) # Show progress on the screen too!
+				log(MultipleReplace(line, { "\n":"", "\r":"" })) # Show progress on the screen too!
 				Output += line # Save as much output as possible before a tool crashes! :)
 		except KeyboardInterrupt:
 			Cancelled = True
