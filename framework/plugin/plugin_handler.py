@@ -343,8 +343,7 @@ class PluginHandler:
                         self.ProcessManager.spawnWorkers(Status)
                         self.ProcessManager.manageProcess()
                         self.ProcessManager.poisonPillToWorkers()
-                        self.ProcessManager.joinWorker()
-
+                        Status = self.ProcessManager.joinWorker()
 			#if 'breadth' == self.Algorithm: # Loop plugins, then targets
 			#	for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
 			#		#print "Processing Plugin="+str(Plugin)

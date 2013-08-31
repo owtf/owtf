@@ -54,6 +54,7 @@ class ProcessManager:
         self.output_queues = []
         self.busy_processes = []         #list whether a process is busy or not
         self.accept_input=True
+        self.status={}
     
     def startinput(self):
         """
@@ -84,6 +85,7 @@ class ProcessManager:
     #this function spawns the worker process and give them intitial work
     def spawnWorkers(self,Status):
         #check if maximum limit of processes has reached
+        self.status = Status
         while (self.numprocess<(int(self.Core.Config.Get('PROCESS_PER_CORE'))*multiprocessing.cpu_count())):
             work = self.get_task()
             
@@ -104,6 +106,11 @@ class ProcessManager:
             self.running_plugin[p.pid] = work
             self.busy_processes.append(True)
             self.numprocess=self.numprocess+1
+     
+    def update_status(self,status):
+        self.status['SomeAborted'] = self.status['SomeAborted'] or status['SomeAborted']
+        self.status['SomeSuccessful'] = self.status['SomeSuccessful'] or status['SomeSuccessful']
+        self.status['AllSkipped'] = self.status['AllSkipped'] and status['AllSkipped']
             
     #this function manages workers, it polls on each queue of worker and check if it has done his work and then 
     # give it new process if there is one
@@ -113,7 +120,8 @@ class ProcessManager:
         while k<self.numprocess and len(self.worklist)>0:
             #if worker k has completed its work
             if self.output_queues[k].empty()==False:
-                self.output_queues[k].get()
+                status = self.output_queues[k].get()
+                self.update_status(status)
                 target,plugin =  self.running_plugin[self.workers[k].pid]
                 self.running_plugin[self.workers[k].pid] = ()
                 #worker is idle
@@ -134,7 +142,8 @@ class ProcessManager:
         for i in range(self.numprocess):
             #check if process is doing some work
             if self.busy_processes[i]==True:
-                #self.output_queues[i].get()
+                status = self.output_queues[i].get()
+                self.update_status(status)
                 self.busy_processes[i] = False
                 self.running_plugin[self.workers[i].pid] = ()
             self.input_queues[i].put(())
@@ -144,10 +153,11 @@ class ProcessManager:
             self.workers[i].join()            
         self.inputqueue.put("end")
         self.inputthread.join()
+        return self.status
     #this function is used by workers to get new task
-    def get_new_task(self,queue,output_queue,start):
+    def get_new_task(self,queue,output_queue,start,status):
         if start==0:
-            output_queue.put("done")
+            output_queue.put(status)
         work1 = queue.get()
         return work1
     
@@ -157,7 +167,7 @@ class ProcessManager:
         while True:
             # work has been completed. Put that into queue and wait for new work to be assigned
             try:
-                work = self.get_new_task(input_queue,output_queue,start)
+                work = self.get_new_task(input_queue,output_queue,start,status)
             except Exception,e:
                 log("exception while get" + str(e))
                 continue
