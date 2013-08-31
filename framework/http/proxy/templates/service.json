@@ -1,0 +1,54 @@
+{
+  "commands":[{
+    "description":"OWASP OWTF Commands"
+  },
+  {
+    "name":"version",
+    "description":"returns the OWTF version",
+    "returnType":"string",
+    "params":[
+    {
+      "name":"type",
+      "type": {"name":"selection", "data":["VERSION","RELEASE"]},
+      "description": "VERSION: Version Name, RELEASE: Version Number",
+      "defaultValue": "RELEASE"
+    }],
+    "execAction":{
+      "url":"{{ root_url }}/JSON/?cmd=Core.Config.Get('${$.args.type}')",
+      "expression":"$.*"
+    }
+  },
+  {
+    "name":"add-url",
+    "description":"Add URL to owtf DB",
+    "returnType":"string",
+    "params":[
+    {
+      "name":"url",
+      "type": "string",
+      "description": "URL to be added to DB",
+      "defaultValue": {"type":"expression","expression":"$.tab.URL","extract":true}
+    }],
+    "execAction":{
+      "url":"{{ root_url }}/JSON/?cmd=Core.DB.URL.AddURLToDB('${$.args.url}')",
+      "expression":"$.*"
+    }
+  },
+  {
+    "name":"cookie-policy",
+    "description":"Displays blacklisted (or) whitelisted cookies",
+    "returnType":"string",
+    "params":[
+    {
+      "name":"type",
+      "type": {"name":"selection", "data":["BLACKLIST_COOKIES","WHITELIST_COOKIES"]},
+      "description": "Type of cookies",
+      "defaultValue": "BLACKLIST_COOKIES"
+    }],
+    "execAction":{
+      "url":"{{ root_url }}/JSON/?cmd=Core.Config.Get('${$.args.type}')",
+      "expression":"$.*"
+    }
+  }
+  ]
+}

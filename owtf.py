@@ -53,7 +53,7 @@ def Banner():
 """
 
 
-def GetArgs(Core):
+def GetArgs(Core, args):
     ValidPluginGroups = ['web', 'net', 'aux']
     ValidPluginTypes = Core.Config.Plugin.GetAllTypes() + ['all', 'quiet']
 
@@ -121,13 +121,13 @@ def GetArgs(Core):
                         dest="PortWaves",
                         default="10,100,1000",
                         help="<wave1,wave2,wave3> - Waves to run network scanning")
-    Parser.add_argument("-d", "--dev",
-                        dest="DevMode",
+    Parser.add_argument("-proxy", "--proxy",
+                        dest="ProxyMode",
                         action="store_true",
                         help="Use this flag to run modules which are under development")
     Parser.add_argument('Targets', nargs='*', help='List of Targets')
 
-    return Parser.parse_args()
+    return Parser.parse_args(args)
 
 
 def Usage(ErrorMessage):
@@ -135,20 +135,20 @@ def Usage(ErrorMessage):
     Main = FullPath.split('/')[-1]
     print "Current Path: " + FullPath
     print "Syntax: " + Main + " [ options ] <target1 target2 target3 ..> where target can be: <target URL / hostname / IP>"
-    print "					NOTE: targets can also be provided via a text file\n"
+    print "                    NOTE: targets can also be provided via a text file\n"
     print "\nExamples:\n"
-    print "Run all web plugins: 						" +Main+" http://my.website.com"
-    print "Run only passive + semi_passive plugins:		 	"+Main+" -t quiet http://my.website.com"
-    print "Run only active plugins: 					"+Main+" -t active http://my.website.com"
+    print "Run all web plugins:                         " +Main+" http://my.website.com"
+    print "Run only passive + semi_passive plugins:             "+Main+" -t quiet http://my.website.com"
+    print "Run only active plugins:                     "+Main+" -t active http://my.website.com"
     print ""
-    print "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS':	"+Main+" -e 'OWASP-CM-001' http://my.website.com"
-    print "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS':	"+Main+" -e 'Testing_for_SSL-TLS' http://my.website.com"
+    print "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS':    "+Main+" -e 'OWASP-CM-001' http://my.website.com"
+    print "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS':    "+Main+" -e 'Testing_for_SSL-TLS' http://my.website.com"
     print ""
-    print "Run only 'OWASP-CM-001: Testing_for_SSL-TLS': 			"+Main+" -o 'OWASP-CM-001' http://my.website.com"
-    print "Run only 'OWASP-CM-001: Testing_for_SSL-TLS': 			"+Main+" -o 'Testing_for_SSL-TLS' http://my.website.com"
+    print "Run only 'OWASP-CM-001: Testing_for_SSL-TLS':             "+Main+" -o 'OWASP-CM-001' http://my.website.com"
+    print "Run only 'OWASP-CM-001: Testing_for_SSL-TLS':             "+Main+" -o 'Testing_for_SSL-TLS' http://my.website.com"
     print ""
-    print "Run only OWASP-IG-005 and OWASP-WU-VULN:	 		"+Main+" -o 'OWASP-IG-005,OWASP-WU-VULN' http://my.website.com"
-    print "Run using my resources file and proxy:	 		"+Main+" -m r:/home/me/owtf_resources.cfg -x 127.0.0.1:8080 http://my.website.com"
+    print "Run only OWASP-IG-005 and OWASP-WU-VULN:             "+Main+" -o 'OWASP-IG-005,OWASP-WU-VULN' http://my.website.com"
+    print "Run using my resources file and proxy:             "+Main+" -m r:/home/me/owtf_resources.cfg -x 127.0.0.1:8080 http://my.website.com"
     print "\nERROR: "+ErrorMessage
     exit(-1)
 
@@ -159,16 +159,16 @@ def ValidateOnePluginGroup(PluginGroups):
               str(PluginGroups) + "'")
 
 
-def GetPluginsFromArg(Arg):
+def GetPluginsFromArg(Core, Arg):
     Plugins = Arg.split(',')
     PluginGroups = Core.Config.Plugin.GetGroupsForPlugins(Plugins)
     ValidateOnePluginGroup(PluginGroups)
     return [Plugins, PluginGroups]
 
 
-def ProcessOptions(Core):
+def ProcessOptions(Core, user_args):
     try:
-        Arg = GetArgs(Core)
+        Arg = GetArgs(Core, user_args)
     except Exception, e:
         Usage("Invalid OWTF option(s) " + e)
 
@@ -185,7 +185,7 @@ def ProcessOptions(Core):
                 Profiles.append(Chunks)
 
     if Arg.OnlyPlugins:
-        Arg.OnlyPlugins, PluginGroups = GetPluginsFromArg(Arg.OnlyPlugins)
+        Arg.OnlyPlugins, PluginGroups = GetPluginsFromArg(Core, Arg.OnlyPlugins)
         try:
             # Set Plugin Group according to plugin list specified
             PluginGroup = PluginGroups[0]
@@ -250,28 +250,30 @@ def ProcessOptions(Core):
         Args = Scope
         # Aux plugins do not have targets, they have metasploit-like parameters
         Scope = ['aux']
+    return {'ListPlugins': Arg.ListPlugins,
+            'Force_Overwrite': Arg.ForceOverwrite,
+            'Interactive': Arg.Interactive == 'yes',
+            'Simulation': Arg.Simulation,
+            'Scope': Scope,
+            'argv': sys.argv,
+            'PluginType': Arg.PluginType,
+            'OnlyPlugins': Arg.OnlyPlugins,
+            'ExceptPlugins': Arg.ExceptPlugins,
+            'InboundProxy': Arg.InboundProxy,
+            'OutboundProxy': Arg.OutboundProxy,
+            'OutboundProxyAuth': Arg.OutboundProxyAuth,
+            'Profiles': Profiles,
+            'Algorithm': Arg.Algorithm,
+            'PluginGroup': PluginGroup,
+            'RPort': Arg.RPort,
+            'PortWaves' : Arg.PortWaves,
+            'ProxyMode': Arg.ProxyMode,
+            'Args': Args}
+
+
+def run_owtf(Core, args):
     try:
-        if Core.Start({
-                        'ListPlugins': Arg.ListPlugins,
-                        'Force_Overwrite': Arg.ForceOverwrite,
-                        'Interactive': Arg.Interactive == 'yes',
-                        'Simulation': Arg.Simulation,
-                        'Scope': Scope,
-                        'argv': sys.argv,
-                        'PluginType': Arg.PluginType,
-                        'OnlyPlugins': Arg.OnlyPlugins,
-                        'ExceptPlugins': Arg.ExceptPlugins,
-                        'InboundProxy': Arg.InboundProxy,
-                        'OutboundProxy': Arg.OutboundProxy,
-                        'OutboundProxyAuth': Arg.OutboundProxyAuth,
-                        'Profiles': Profiles,
-                        'Algorithm': Arg.Algorithm,
-                        'PluginGroup': PluginGroup,
-                        'RPort': Arg.RPort,
-                        'PortWaves' : Arg.PortWaves,
-                        'DevMode': Arg.DevMode,
-                        'Args': Args,
-                        }):
+        if Core.Start(args):
             # Only if Start is for real (i.e. not just listing plugins, etc)
             Core.Finish("Complete")  # Not Interrupted or Crashed
     except KeyboardInterrupt:
@@ -287,7 +289,9 @@ def ProcessOptions(Core):
         # Interrupted. Must save the DB to disk, finish report, etc
         Core.Finish("Crashed")
 
-Banner()
-Core = core.Init(RootDir)  # Initialise Framework
-print "OWTF Version: %s, Release: %s \n" % ( Core.Config.Get( 'VERSION' ), Core.Config.Get( 'RELEASE' ) )
-ProcessOptions(Core)
+if __name__ == "__main__":
+    Banner()
+    Core = core.Init(RootDir)  # Initialise Framework
+    print "OWTF Version: %s, Release: %s \n" % ( Core.Config.Get( 'VERSION' ), Core.Config.Get( 'RELEASE' ) )
+    args = ProcessOptions(Core, sys.argv[1:])
+    run_owtf(Core, args)

@@ -46,9 +46,11 @@ class CacheHandler(object):
     """
     
     def __init__(self, cache_dir, request, cookie_regex, blacklist):
-        # Initialized with the root cache directory and HTTP request object
+        # Initialized with the root cache directory, HTTP request object, cookie_regex, blacklist boolean
         self.request = request
         self.cache_dir = cache_dir
+        # Based on blacklist boolean the cookie regex is used for filtering of cookies in request_hash
+        # generation. However the original request is untampered.
         cookie_string = ''
         try:
             if blacklist:
@@ -72,21 +74,24 @@ class CacheHandler(object):
         self.file_path = os.path.join(self.cache_dir, 'url', self.request_hash)
 
     def create_response_object(self):
-        # A fake response object is created with necessary attributes so 
-        # that only one handle_response function can handle both cached 
-        # and normal responses
+        # A fake response object is created with necessary attributes
         #cache_dict = pickle.load(open(self.file_path, 'rb'))
         
+        # The request-response saved across 6 unique folders is retrieved in following snippet
+        # transactions/resp-code/
         response_code = int(open(os.path.join(self.cache_dir, 'resp-code', self.request_hash), 'r').read())
-            
+        
+        # transactions/resp-headers/
         response_headers = {}
         resHeaders = open(os.path.join(self.cache_dir, 'resp-headers', self.request_hash), 'r').readlines()
         for line in resHeaders:
             name, value = line.split(":", 1)
             response_headers[name] = value.rstrip()
         
+        # transactions/resp-body
         response_body = open(os.path.join(self.cache_dir, 'resp-body', self.request_hash), 'r').read()
 
+        # Temp object is created as an alternative to use lists (or) dictionaries for passing values
         return DummyResponse(response_code, response_headers, response_body)
                 
     def dump(self, response):
@@ -109,13 +114,18 @@ class CacheHandler(object):
         #pickle.dump(cache_dict, cache_file)
         #cache_file.close()
         
+        # The whole request and response is saved across 6 folder -
+        # url, req-headers, req-body, resp-code, resp-headers, resp-body
         url_file = open(self.file_path, 'w')
         url_file.write("%s %s %s\r\n"%(self.request.method, self.request.url, self.request.version))
         url_file.close()
         
         reqHeaders_file = open(os.path.join(self.cache_dir, 'req-headers', self.request_hash), 'w')
+        #reqHeaders_string = ''
         for name, value in self.request.headers.iteritems():
             reqHeaders_file.write("%s: %s\r\n"%(name, value))
+            #reqHeaders_string += ("%s: %s\r\n"%(name, value))
+        #reqHeaders_file.write(reqHeaders_string)
         reqHeaders_file.close()
 
         reqBody_file = open(os.path.join(self.cache_dir, 'req-body', self.request_hash), 'w')
@@ -127,8 +137,11 @@ class CacheHandler(object):
         resCode_file.close()
                 
         resHeaders_file = open(os.path.join(self.cache_dir, 'resp-headers', self.request_hash), 'w')
+        #resHeaders_string = ''
         for name, value in response.headers.iteritems():
             resHeaders_file.write("%s: %s\r\n"%(name, value))
+            #resHeaders_string += "%s: %s\r\n"%(name, value)
+        #resHeaders_file.write(resHeaders_string)
         resHeaders_file.close()
         
         resBody_file = open(os.path.join(self.cache_dir, 'resp-body', self.request_hash), 'w')
@@ -140,6 +153,7 @@ class CacheHandler(object):
         finally:
             resBody_file.close()
         
+        # This approach can be used as an alternative for object sharing
         open(self.file_path + '.rd', 'w').close()
         self.file_lock.release()
     
