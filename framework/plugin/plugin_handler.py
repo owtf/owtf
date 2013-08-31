@@ -241,13 +241,15 @@ class PluginHandler:
 	def GetPluginFullPath(self, PluginDir, Plugin):
 		return PluginDir+"/"+Plugin['Type']+"/"+Plugin['File'] # Path to run the plugin 
 
-	def RunPlugin(self, PluginDir, Plugin):
+	def RunPlugin(self, PluginDir, Plugin, save_output=True):
 		PluginPath = self.GetPluginFullPath(PluginDir, Plugin)
 		(Path, Name) = os.path.split(PluginPath)
 		#(Name, Ext) = os.path.splitext(Name)
 		self.Core.DB.Debug.Add("Running Plugin -> Plugin="+str(Plugin)+", PluginDir="+str(PluginDir))
 		PluginOutput = self.GetModule("", Name, Path+"/").run(self.Core, Plugin)
-		self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
+		if save_output:
+			self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
+		return PluginOutput
 
 	def ProcessPlugin(self, PluginDir, Plugin, Status):
 		self.Core.Timer.StartTimer('Plugin') # Time how long it takes the plugin to execute
@@ -266,8 +268,9 @@ class PluginHandler:
                     	log("Skipped - Cannot run grep plugins: The Transaction DB is empty")
 			return None
 		try:
-			self.RunPlugin(PluginDir, Plugin)
+			output = self.RunPlugin(PluginDir, Plugin)
 			Status['SomeSuccessful'] = True
+            		return output
 		except KeyboardInterrupt:
 			self.SavePluginInfo("Aborted by user", Plugin) # cannot save anything here, but at least explain why
 			self.Core.Error.UserAbort("Plugin")
@@ -305,6 +308,10 @@ class PluginHandler:
 	def get_plugins_in_order_for_PluginGroup(self, PluginGroup):
 	    return self.Core.Config.Plugin.GetOrder(PluginGroup)
 
+
+	def get_plugins_in_order(self, PluginGroup):
+	    return self.Core.Config.Plugin.GetOrder(PluginGroup)
+
 	def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList): # TargetList param will be useful for netsec stuff to call this
 		PluginDir = self.GetPluginGroupDir(PluginGroup)
             	if PluginGroup == 'net':
@@ -337,6 +344,7 @@ class PluginHandler:
                         self.ProcessManager.manageProcess()
                         self.ProcessManager.poisonPillToWorkers()
                         self.ProcessManager.joinWorker()
+
 			#if 'breadth' == self.Algorithm: # Loop plugins, then targets
 			#	for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
 			#		#print "Processing Plugin="+str(Plugin)
