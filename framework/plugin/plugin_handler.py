@@ -257,6 +257,7 @@ class PluginHandler:
 		if not self.CanPluginRun(Plugin, True):		
 			return None # Skip 
 		Status['AllSkipped'] = False # A plugin is going to be run
+		Plugin["Status"] = "Running"
 		self.PluginCount += 1
 		#cprint("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
                 Log("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
@@ -269,25 +270,31 @@ class PluginHandler:
 			return None
 		try:
 			output = self.RunPlugin(PluginDir, Plugin)
+			Plugin["Status"] = "Successful"
 			Status['SomeSuccessful'] = True
-            		return output
+			return output
 		except KeyboardInterrupt:
 			self.SavePluginInfo("Aborted by user", Plugin) # cannot save anything here, but at least explain why
+			Plugin["Status"] = "Aborted"
 			self.Core.Error.UserAbort("Plugin")
-			Status['SomeAborted'] = True
+			Status['SomeAborted (Keyboard Interrupt)'] = True
 		except SystemExit:
 			raise SystemExit # Abort plugin processing and get out to external exception handling, information saved elsewhere
 		except PluginAbortException, PartialOutput:
 			self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Plugin Only)", Plugin) # Save the partial output, but continue to process other plugins
+			Plugin["Status"] = "Aborted (by user)"
 			Status['SomeAborted'] = True
 		except UnreachableTargetException, PartialOutput:
                         print "I am stucking here??"
 			self.DB.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
+			Plugin["Status"] = "Unreachable Target"
 			Status['SomeAborted'] = True
 		except FrameworkAbortException, PartialOutput:
 			self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Framework Exit)", Plugin) # Save the partial output and exit
-			self.Core.Finish("Aborted by User")
+			Plugin["Status"] = "Aborted (Framework Exit)"
+			self.Core.Finish("Aborted")
 		except: # BUG
+			Plugin["Status"] = "Crashed"
 			self.SavePluginInfo(self.Core.Error.Add("Plugin "+Plugin['Type']+"/"+Plugin['File']+" failed for target "+self.Core.Config.Get('TARGET')), Plugin) # Try to save something
 			#TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
 
