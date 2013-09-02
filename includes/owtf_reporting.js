@@ -35,11 +35,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 $(document).ready(function() {
 	GetSkinCookieAndApply(); //change the skin based on the cookie value
-	if (DetailedReport) { //Take weights from parent window:
+	 //Take weights from parent window:
 		window.SeverityWeightOrder = window.parent.SeverityWeightOrder
 		window.PassedTestIcons = window.parent.PassedTestIcons
 	}
-}
 );
 
 function IsReportPluginId(PluginId) {
@@ -50,28 +49,28 @@ function GetRealPluginId(PluginId) { //Clean fake Plugin Id for reporting (to av
 	return PluginId.replace(REPORT_PREFIX, '') 
 }
 
-function AppendPluginToReport(PluginId) {
-	//DestroyEditors(PluginId) //Destroy all other instances to avoid CKEditor errors
+function AppendPluginToReport(Offset, PluginId) {
+	//DestroyEditors(Offset, PluginId) //Destroy all other instances to avoid CKEditor errors
 	//Plugin has notes + displayed now
-	//NotesTextArea = GetById('note_text_' + PluginId)
+	//NotesTextArea = GetById('note_text_'+ Offset + "_"+ PluginId)
 	//NotesTextArea.value = NotesPreview.innerHTML
 	//Content +=  '<div id="rep__' + PluginId + '">' + NotesPreview.parentNode.innerHTML + '</div>'
 	//Super-dirty but easiest way to avoid code-duplication for now :P
 	//NotesPreview.parentNode.innerHTML = '<div id="del__' + PluginId + '"></div>' 
-	NotesPreview = GetById('note_preview_' + PluginId)
+	NotesPreview = GetById('note_preview_'+ Offset + "_" + PluginId)
 	IdReplace = new RegExp(PluginId, "g");
 	return '<div>' + NotesPreview.parentNode.innerHTML.replace(IdReplace, REPORT_PREFIX + PluginId) + '</div>' //Make all element ids different via replace
 }
 
-function CanReport(PluginId) {
+function CanReport(Offset, PluginId) {
 	Plugin = GetPluginInfo(PluginId)
 	Tab = GetById('tab_' + PluginId).parentNode
 	CodeDiv = GetById(Plugin['Code'])
 	//console.log('CanReport => Tab.style.display=', Tab.style.display, 'Plugin=', Plugin, 'CodeDiv.style.display=', CodeDiv.style.display)
-	return (PluginCommentsPresent(PluginId) && Tab.style.display != 'none' && CodeDiv.style.display != 'none')
+	return (PluginCommentsPresent(Offset, PluginId) && Tab.style.display != 'none' && CodeDiv.style.display != 'none')
 }
 
-function GetHTMLReportIntro() {
+function GetHTMLReportIntro(Offset) {
 	TargetStr = escape(Offset).replace('%3A', ':')
 	TargetURL = document.getElementById('target_url')
 	if (TargetURL != null) {
@@ -80,26 +79,26 @@ function GetHTMLReportIntro() {
 	return '<h1>Report for target: ' + TargetStr + '</h1>'
 }
 
-function IsPassedTest(PluginId) {
-	//console.log('IsPassedTest(' + PluginId + ')=', InArray(GetPluginField(PluginId, 'flag'), window.PassedTestIcons))
-	return InArray(GetPluginField(PluginId, 'flag'), window.PassedTestIcons)
+function IsPassedTest(Offset, PluginId) {
+	//console.log('IsPassedTest(' + PluginId + ')=', InArray(GetPluginField(Offset, PluginId, 'flag'), window.PassedTestIcons))
+	return InArray(GetPluginField(Offset, PluginId, 'flag'), window.PassedTestIcons)
 }
 
-function PassedTestProcessPlugin(PluginId) {
-	//console.log('PassedTestProcessPlugin(PluginId)=', PluginId, 'notes=', GetPluginField(PluginId, 'notes'))
-	return GetPluginField(PluginId, 'notes')
+function PassedTestProcessPlugin(Offset, PluginId) {
+	//console.log('PassedTestProcessPlugin(PluginId)=', PluginId, 'notes=', GetPluginField(Offset, PluginId, 'notes'))
+	return GetPluginField(Offset, PluginId, 'notes')
 }
 
-function PassedTestProcessCode(LastPluginIdForCode, PluginContent) {
-	return '<li>' + GetPluginField(LastPluginIdForCode, 'Title') + '</li>' + PluginContent 
+function PassedTestProcessCode(Offset, LastPluginIdForCode, PluginContent) {
+	return '<li>' + GetPluginField(Offset, LastPluginIdForCode, 'Title') + '</li>' + PluginContent 
 }
 
-function GetHTMLPassedTestsByCode(Stats) {
+function GetHTMLPassedTestsByCode(Offset, Stats) {
 	var Content = '<h2>Passed Tests</h2>'
-	var Data = ReportPluginsByCode( { 
-			  'ProcessPluginIF' : 'IsPassedTest(PluginId)' 
-			, 'ProcessPluginFunction' : 'PassedTestProcessPlugin(PluginId)' 
-			, 'ProcessCodeFunction' : 'PassedTestProcessCode(LastPluginIdForCode, PluginContent)' 
+	var Data = ReportPluginsByCode(Offset,  { 
+			  'ProcessPluginIF' : 'IsPassedTest(Offset, PluginId)' 
+			, 'ProcessPluginFunction' : 'PassedTestProcessPlugin(Offset, PluginId)' 
+			, 'ProcessCodeFunction' : 'PassedTestProcessCode(Offset, LastPluginIdForCode, PluginContent)' 
 		} )
 	if (Data['Count'] == 0) {
 		Content += 'no tests passed'
@@ -114,29 +113,29 @@ function GetHTMLPassedTestsByCode(Stats) {
 	return Content
 }
 
-function IsFinding(PluginId, Severity) {
-	//console.log('IsPassedTest(' + PluginId + ')=', InArray(GetPluginField(PluginId, 'flag'), window.PassedTestIcons))
-	var Flag = GetPluginField(PluginId, 'flag')
+function IsFinding(Offset, PluginId, Severity) {
+	//console.log('IsPassedTest(' + PluginId + ')=', InArray(GetPluginField(Offset, PluginId, 'flag'), window.PassedTestIcons))
+	var Flag = GetPluginField(Offset, PluginId, 'flag')
 	return Flag == Severity && InArray(Flag, window.SeverityWeightOrder)
 }
 
-function FindingProcessPlugin(PluginId, Severity) {
-	//console.log('PassedTestProcessPlugin(PluginId)=', PluginId, 'notes=', GetPluginField(PluginId, 'notes'))
-	return GetPluginField(PluginId, 'notes')
+function FindingProcessPlugin(Offset, PluginId, Severity) {
+	//console.log('PassedTestProcessPlugin(PluginId)=', PluginId, 'notes=', GetPluginField(Offset, PluginId, 'notes'))
+	return GetPluginField(Offset, PluginId, 'notes')
 }
 
-function FindingProcessCode(LastPluginIdForCode, PluginContent, Severity) {
+function FindingProcessCode(Offset, LastPluginIdForCode, PluginContent, Severity) {
 	if (PluginContent.length == 0) {
 		PluginContent = '<p>No notes found for any plugin under this category</p>'
 	}
-	return '<li>' + GetPluginField(LastPluginIdForCode, 'Title') + ' - ' + GetSeverityName(Severity) + '</li>' + PluginContent
+	return '<li>' + GetPluginField(Offset, LastPluginIdForCode, 'Title') + ' - ' + GetSeverityName(Severity) + '</li>' + PluginContent
 }
 
 function GetSeverityName(Severity) {
 	return GetById('filter' + Severity).firstChild.firstChild.title
 }
 
-function GetHTMLFindingsBySeverityAndCode(Stats) {
+function GetHTMLFindingsBySeverityAndCode(Offset, Stats) {
 	//console.log('(FindingsBySev) Index=', Index)
 	var Content = '<h2>Findings</h2>'
 	Content += '<ol class="finding_severity">'
@@ -144,10 +143,10 @@ function GetHTMLFindingsBySeverityAndCode(Stats) {
 	for (i in window.SeverityWeightOrder) {
 		var Severity = window.SeverityWeightOrder[i]
 		var SeverityContent = '<li>' + GetSeverityName(Severity) + '</li>'
-	var Data = ReportPluginsByCode( { 
-		'ProcessPluginIF' : 'IsFinding(PluginId, "' + Severity + '")' //Limit processing by severity each time
-		, 'ProcessPluginFunction' : 'FindingProcessPlugin(PluginId, "' + Severity + '")'
-		, 'ProcessCodeFunction' : 'FindingProcessCode(LastPluginIdForCode, PluginContent, "' + Severity + '")' 
+	var Data = ReportPluginsByCode(Offset, { 
+		'ProcessPluginIF' : 'IsFinding(Offset, PluginId, "' + Severity + '")' //Limit processing by severity each time
+		, 'ProcessPluginFunction' : 'FindingProcessPlugin(Offset, PluginId, "' + Severity + '")'
+		, 'ProcessCodeFunction' : 'FindingProcessCode(Offset, LastPluginIdForCode, PluginContent, "' + Severity + '")' 
 		} )
 	Stats[Severity] = Data['Count']
 	TotalCount += Data['Count']
@@ -165,9 +164,9 @@ function GetHTMLFindingsBySeverityAndCode(Stats) {
 	return Content
 }
 
-function GetHTMLRenderStats(Stats) {
+function GetHTMLRenderStats(Offset, Stats) {
 	var Content = '<h2>Statistics</h2>'
-	Stats['Unrated'] = GetPluginIdsWhereFieldMatches('flag', 'N').length
+	Stats['Unrated'] = GetPluginIdsWhereFieldMatches(Offset, 'flag', 'N').length
 	Content += '<ul class="report_list">'
 	for (Item in Stats) {
 		Count = Stats[Item]
@@ -186,18 +185,18 @@ function GetHTMLRenderStats(Stats) {
 	return Content
 }
 
-function BuildReportBySeverityAndCode(Report) {
-	GetById('__rep__intro').innerHTML = GetHTMLReportIntro()
+function BuildReportBySeverityAndCode(Offset, Report) {
+	GetById('__rep__intro').innerHTML = GetHTMLReportIntro(Offset)
 	var Stats = {}
-	GetById('__rep__passed').innerHTML = GetHTMLPassedTestsByCode(Stats)
-	GetById('__rep__findings').innerHTML = GetHTMLFindingsBySeverityAndCode(Stats)
+	GetById('__rep__passed').innerHTML = GetHTMLPassedTestsByCode(Offset, Stats)
+	GetById('__rep__findings').innerHTML = GetHTMLFindingsBySeverityAndCode(Offset, Stats)
 	GetById('__rep__unrated').innerHTML = 'not implemented yet'
 	//Stats are set in the same loop by previous function calls: Must be done at the end
-	GetById('__rep__stats').innerHTML = GetHTMLRenderStats(Stats) 
-//&& CanReport(PluginId) 
+	GetById('__rep__stats').innerHTML = GetHTMLRenderStats(Offset, Stats) 
+//&& CanReport(Offset, PluginId) 
 }
 
-function ReportPluginsByCode(Options) {
+function ReportPluginsByCode(Offset, Options) {
 	var Count = 0
 	var Content = ''
 	for (i in window.AllCodes) {
@@ -206,7 +205,7 @@ function ReportPluginsByCode(Options) {
 		var PluginCount = 0
 		for (i in window.AllPlugins) {
 			var PluginId = window.AllPlugins[i]
-			if (GetPluginField(PluginId, 'Code') == Code && eval(Options['ProcessPluginIF'])) {
+			if (GetPluginField(Offset, PluginId, 'Code') == Code && eval(Options['ProcessPluginIF'])) {
 				LastPluginIdForCode = PluginId
 				PluginContent += eval(Options['ProcessPluginFunction'])
 				PluginCount += 1
@@ -220,13 +219,13 @@ function ReportPluginsByCode(Options) {
 	return { 'Content' : Content, 'Count' : Count }
 }
 
-function ToggleReportMode() {
-	DetailedReportAnalyse()
+function ToggleReportMode(Offset) {
+	DetailedReportAnalyse(Offset)
 	ToggleDivs( [ 'review_content', 'generated_report' ] )
 	Report = GetById('generated_report')
 	if (Report.style.display != 'none' && confirm('This can take a few seconds or minutes depending on the report size. Generate report?')) { //Display report
 		window.ReportMode = true
-		BuildReportBySeverityAndCode(Report)
+		BuildReportBySeverityAndCode(Offset, Report)
 		//AffectedPlugins = BuildReportByCode(Report)
 		//Report.innerHTML += GetNoMatchesFoundMessage(AffectedPlugins)
 	}
@@ -250,9 +249,8 @@ function ToggleReportMode() {
 	//SetDisplayToDivs(window.AllPlugins, 'none')//Hide all plugin divs
 	//SetDisplayToAllTestGroups('none') //Hide all index divs
 	//SetDisplayToAllPluginTabs('none') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
-	//AffectedPlugins = UnfilterPluginsWhereCommentsPresent()
+	//AffectedPlugins = UnfilterPluginsWhereCommentsPresent(Offset)
 	//SetDisplayUnfilterPlugins('')
-	//HighlightFilters('')
 }
 /*var NumPassed = 0
 for (i in window.PassedTestIcons) {

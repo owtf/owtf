@@ -15,7 +15,7 @@
 							<ul class="nav nav-pills ">
 								<li class="brand disabled"><a>Type: </a> </li>
 							{% for Match in TestGroup.Matches %}
-								<li class=""><a class="" href="#tab_{{ ReportID }}_{{ TestGroupIndex }}_{{ Match.TabName }}x" data-toggle="tab">{{ Match.TabName|replace( '_', ' ' )|upper }}</a></li>
+								<li class=""><a id="{{ Match.TabId }}"  class="" href="#tab_{{ ReportID }}_{{ TestGroupIndex }}_{{ Match.TabName }}x" data-toggle="tab">{{ Match.TabName|replace( '_', ' ' )|upper }}</a></li>
 							{% endfor %}
 								<li class="pull-right"><a href="{{ TestGroup.TestGroupInfo.URL }}" class="text-success"><i class="icon-lightbulb"></i></a> </li>
 							</ul>
@@ -41,14 +41,15 @@
 
 	
 <script>
-			/*
-			var AllPlugins = new Array('{{ Globals.AllPluginsDivIdList|join("','") }}')
-			var AllCodes = new Array('{{ Globals.AllCodes|join("','") }}')
-			var Offset = '{{ REVIEW_OFFSET }}'
-			var AllCounters = new Array('filtermatches_counter','filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filterstar_2_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter','filterdelete_counter','filteroptions_counter','filterrefresh_counter')
-			var DetailedReport = true
-			var PluginDelim = '{{ PLUGIN_DELIM }}'
-			var ReportMode = false
-			var REPORT_PREFIX = '{{ REPORT_PREFIX }}'
-			*/
+			window.ReportsInfo["{{ ReportID }}"] = {
+				"AllPlugins" : new Array('{{ Globals.AllPluginsDivIdList|join("','") }}'),
+				"AllCodes" : new Array('{{ Globals.AllCodes|join("','") }}'),
+				"ReportMode" : false,
+			}
+			
+			InitDetailedReport("{{ ReportID }}")
+			ApplyReview("{{ ReportID }}") //Apply reviewed plugins
+			HighlightNewPlugins("{{ ReportID }}") //Right after loading, only once, highlight the new plugins
+			//ClickLinkById('filterinfo') //Click on Filter by information only
+			DisplayCounters(Review["{{ ReportID }}"], "__{{ ReportID }}Counters", '')
 </script>

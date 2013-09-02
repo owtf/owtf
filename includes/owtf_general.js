@@ -58,7 +58,7 @@ function GetById(Id) { //jQuery wrapper to make it easier to find bugs
         //Elem = $("#"+Id);
         Elem = document.getElementById(Id)
         if (Elem == null) {
-                alert('BUG: Id='+Id+' is null')
+                // alert('BUG: Id='+Id+' is null')
         }
         return Elem
 }
@@ -106,10 +106,6 @@ function SetClassNameToElems(ElemArray, ClassNameValue) {
         return false
 }
 
-function ClickLinkById(LinkId) {
-    ClickLink(GetById(LinkId))
-}
-
 //Below is largely courtesy of: http://stackoverflow.com/questions/902713/how-do-i-automatically-click-a-link-with-javascript
 function ClickLink(Link) {
         var Cancelled = false;
@@ -131,6 +127,7 @@ function ClickLink(Link) {
         }
 }
 
-function Refresh() { //Normal page reload
-        window.location.reload()
+function Refresh() { //Normal page reload // should be rewritten to reload only what we want to be reloaded
+        //window.location.reload()
+		
 }

@@ -201,7 +201,7 @@ class Summary:
 								},
 						"AuxInfo":  self.AuxInfo(),
 						"JsonNetMap": json.dumps( self.NetMap ),
-						"PLUGIN_DELIM":  self.Core.Reporter.GetPluginDelim(),
+
 				}
 
 		HTML = template.render( vars )

@@ -113,27 +113,27 @@ function InitFilterOptions() {
         }
 }
 
-function DisplayUpdatedCounter(CounterName) {
-        DisplayCounters(Review[Offset], '__DetailedCounters', CounterName)
+function DisplayUpdatedCounter(Offset, CounterName) {
+        DisplayCounters(Review[Offset], "__" + Offset + "Counters" , CounterName)
         window.parent.DisplayCounters(Review, '__SummaryCounters', CounterName)
 }
 
-function UpdateCounter(CounterName, Amount) { //Increments/Decrements the parent and child counters at the same time
+function UpdateCounter(Offset, CounterName, Amount) { //Increments/Decrements the parent and child counters at the same time
         //console.log('Counters BEFORE update')
         //console.log('Review = ', Review, 'Offset=', Offset, 'CounterName=', CounterName)
         //console.log('Review[' + Offset + '][__DetailedCounters][' + CounterName + '].Count=', Review[Offset]['__DetailedCounters'][CounterName].Count)
         //console.log('Review[__SummaryCounters][' + CounterName + '].Count=', Review['__SummaryCounters'][CounterName].Count)
-        Review[Offset]['__DetailedCounters'][CounterName].Count += Amount
+        Review[Offset]["__" + Offset + "Counters"][CounterName].Count += Amount
         Review['__SummaryCounters'][CounterName].Count += Amount
         //console.log('Counters AFTER update')
         //console.log('Review[' + Offset + '][__DetailedCounters][' + CounterName + '].Count=', Review[Offset]['__DetailedCounters'][CounterName].Count)
         //console.log('Review[__SummaryCounters][' + CounterName + '].Count=', Review['__SummaryCounters'][CounterName].Count)
-        DisplayUpdatedCounter(CounterName)
+        DisplayUpdatedCounter(Offset, CounterName)
 }
 
-function UpdateCounters(CounterArray, Amount) {//Convenience function to increment several counters at once
+function UpdateCounters(Offset, CounterArray, Amount) {//Convenience function to increment several counters at once
         for (i = 0, Length = CounterArray.length; i < Length; i++) {
-                UpdateCounter(CounterArray[i], Amount)
+                UpdateCounter(Offset, CounterArray[i], Amount)
         }
 }
 
@@ -165,16 +165,16 @@ function UnFilterPlugins(PluginIds) {
         return MatchCount
 }
 
-function UnFilterPluginsWhereFieldMatches(Field, Value) {
-        return UnFilterPlugins(GetPluginIdsWhereFieldMatches(Field, Value))
+function UnFilterPluginsWhereFieldMatches(Offset, Field, Value) {
+        return UnFilterPlugins(GetPluginIdsWhereFieldMatches(Offset, Field, Value))
 }
 
-function UnfilterPluginsWhereCommentsPresent() {
+function UnfilterPluginsWhereCommentsPresent(Offset) {
         AffectedPlugins = 0
         for (i = 0; i < window.AllPlugins.length; i++) {
                 PluginId = window.AllPlugins[i]
-                if (PluginCommentsPresent(PluginId)) {
-                        AffectedPlugins += UnFilterPlugin(PluginId)
+                if (PluginCommentsPresent(Offset, PluginId)) {
+                        AffectedPlugins += UnFilterPlugin(Offset, PluginId)
                 }
         }
         return AffectedPlugins
@@ -189,12 +189,10 @@ function SetDisplayUnfilterPlugins(Display) {
 }
 
 function FilterResultsSummary(Parameter, FromReportType) { //Filter from Summary
-        HideDivs
         if ('refresh' == Parameter) {//Only refresh the page
                 Refresh() //Normal page reload
                 return false
         }
-        HighlightFilters('') //Unhighlight parent filters
         TotalAffected = 0
         IPs = {}
         IPPorts = {} //To Store matches, Match count map built inside the loop below
@@ -209,12 +207,12 @@ function FilterResultsSummary(Parameter, FromReportType) { //Filter from Summary
                         Port = GetOffsetPort(Offset)
                         InitCountDict(IPPorts[IP], Port, 0)
                 }
-                //console.log('IP=' + IP + ', Port =' + Port)
-                //console.log('IPs=', IPs)
-                //console.log('IPPorts=', IPPorts)
+                console.log('IP=' + IP + ', Port =' + Port)
+                console.log('IPs=', IPs)
+                console.log('IPPorts=', IPPorts)
                 IFrameId = 'iframe_' + Offset
                 IFrame = GetById(IFrameId)
-                AffectedPlugins = IFrame.contentWindow.FilterResults(Parameter, FromReportType) //Trigger action on all children iframes
+                AffectedPlugins = FilterResults(Offset, Parameter, FromReportType) //Trigger action on all children iframes
                 if (AffectedPlugins == 0 && 'delete' != Parameter) {
                         IFrame.className = 'iframe_hidden' //Hide iframes without results
                 }
@@ -233,45 +231,24 @@ function FilterResultsSummary(Parameter, FromReportType) { //Filter from Summary
                 //auto-resize iframe depending on contents:
                 for (i in AllIFrames) {
                         //IFramesWithResults[i].contentWindow.HideDetailedReportData()
-                        AllIFrames[i].contentWindow.DetailedReportCollapse()
+                        AllIFrames[i].contentWindow.DetailedReportCollapse(Offset)
                 }
         }
         else { //Hide what was not selected
                 DisplayMatches(TotalAffected) //Display number of plugins that matched
                 SetNetMapDisplay(IPs, IPPorts, 0, '')
                 //auto-resize iframe depending on contents:
-                for (i in IFramesWithResults) { IFramesWithResults[i].contentWindow.SelfAutoResize() }
+                for (i in IFramesWithResults) { IFramesWithResults[i].contentWindow.SelfAutoResize(Offset) }
         }
-        HighlightFilter('filter'+Parameter, 'active') //Highlight parent filter
 }
 
 function DisplayMatches(NumMatches) {
         GetById('filtermatches_counter').innerHTML = NumMatches
 }
 
-function HideDetailedReportData() {
-        //SetDisplayToAllPluginTabs('none') //Hide all plugin tabs
-        SetDisplayToDivs(window.AllPlugins, 'none')//Hide all plugin divs
-        SetDisplayToAllTestGroups('none') //Hide all index divs
-        SetDisplayToAllPluginTabs('none') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
-        SetDisplayUnfilterPlugins('')
-        HighlightFilters('')
-}
 
-function ShowDetailedReportData() {
-        SetDisplayToDivs(window.AllPlugins, 'none')//Hide all plugin divs
-        SetDisplayToAllTestGroups('block') //Show all index divs
-        SetDisplayToAllPluginTabs('') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
-        SetDisplayUnfilterPlugins('')
-        HighlightFilters('')
-}
-
-function FilterResults(Parameter, FromReportType) {
-	if (window.ReportMode) { ToggleReportMode() } //Display Review when filter is altered, Report needs re-generation anyway
-        HideFilterOptions()
-        if (!DetailedReport) {
-                return FilterResultsSummary(Parameter, FromReportType)
-        }
+function FilterResults(Offset, Parameter, FromReportType) {
+	if (window.ReportMode) { ToggleReportMode(Offset) } //Display Review when filter is altered, Report needs re-generation anyway
         if ('refresh' == Parameter) {//Only refresh the page
                 Refresh() //Normal page reload
                 return false
@@ -281,13 +258,13 @@ function FilterResults(Parameter, FromReportType) {
         AffectedPlugins = 0
         //Step 2 - Apply filter: Show whatever is relevant
         if ('seen' == Parameter) {
-                AffectedPlugins = UnFilterPluginsWhereFieldMatches('seen', 'Y')
+                AffectedPlugins = UnFilterPluginsWhereFieldMatches(Offset, 'seen', 'Y')
         }
         else if ('unseen' == Parameter) {
-                AffectedPlugins = UnFilterPluginsWhereFieldMatches('seen', 'N')
+                AffectedPlugins = UnFilterPluginsWhereFieldMatches(Offset, 'seen', 'N')
         }
         else if ('notes' == Parameter) {
-                AffectedPlugins = UnfilterPluginsWhereCommentsPresent()
+                AffectedPlugins = UnfilterPluginsWhereCommentsPresent(Offset)
         }
         else if ('delete' == Parameter) {//Remove filter
                 ShowDetailedReportData()
@@ -297,45 +274,30 @@ function FilterResults(Parameter, FromReportType) {
                 SetDisplayUnfilterPlugins('none') //Undo filter for brother plugins button hidden*/
         }
         else if ('info' == Parameter) {//Show with info
-                AffectedPlugins = UnFilterPluginsWhereFieldMatches('seen', 'Y')
-                AffectedPlugins += UnFilterPluginsWhereFieldMatches('seen', 'N')
+                AffectedPlugins = UnFilterPluginsWhereFieldMatches(Offset, 'seen', 'Y')
+                AffectedPlugins += UnFilterPluginsWhereFieldMatches(Offset, 'seen', 'N')
                 SetDisplayUnfilterPlugins('none') //Undo filter for brother plugins button hidden
         }
         else if ('no_flag' == Parameter) {//Show without flags
-                AffectedPlugins = UnFilterPluginsWhereFieldMatches('flag', 'N')
+                AffectedPlugins = UnFilterPluginsWhereFieldMatches(Offset, 'flag', 'N')
         }
         else {
-                AffectedPlugins = UnFilterPluginsWhereFieldMatches('flag', Parameter)
+                AffectedPlugins = UnFilterPluginsWhereFieldMatches(Offset, 'flag', Parameter)
         }
-        HighlightFilter('filter'+Parameter, 'active')
+
         if ('delete' == Parameter) {
                 DisplayMatches('') //Display number of plugins that matched
-                //DetailedReportCollapse() //Collapse more intuitive if performed only from Summary report
+                //DetailedReportCollapse(Offset) //Collapse more intuitive if performed only from Summary report
         }
         else if (FromReportType == 'NetMap') { //Called from summary report = adjust to current reduced size
-                SelfAutoResize() //auto-resize iframe depending on contents
+                SelfAutoResize(Offset) //auto-resize iframe depending on contents
                 DisplayMatches(AffectedPlugins) //Display number of plugins that matched
         }
         else { //Called from detailed report = Focus on this report (expand to 100%, set anchor, etc)
-                DetailedReportAnalyse()
+                DetailedReportAnalyse(Offset)
                 DisplayMatches(AffectedPlugins) //Display number of plugins that matched
         }
         return AffectedPlugins
-}
-
-
-
-
-function HighlightFilter(FilterId, Highlight) {
-        GetById(FilterId).parentNode.className = Highlight
-}
-
-function HighlightFilters(Highlight) {
-        for (i=0, length = window.AllCounters.length; i<length; i++) {
-                CounterId = window.AllCounters[i]
-                FilterId = CounterId.replace('_counter', '')
-                HighlightFilter(FilterId, Highlight)
-        }
 }
 
 function GetFlagCount(Flag) {
@@ -357,13 +319,13 @@ function GetCounterFromField(FieldName, Value) {
         return 'filter' + CounterName + '_counter'
 }
 
-function UpdatePluginCounter(PluginId, Field, PreviousValue, NewValue) {
+function UpdatePluginCounter(Offset, PluginId, Field, PreviousValue, NewValue) {
         if (PreviousValue != NewValue) { //Get old counter id + Decrement
                 PreviousCounter = GetCounterFromField(Field, PreviousValue)
-                UpdateCounter(PreviousCounter, -1)
+                UpdateCounter(Offset, PreviousCounter, -1)
         }
         NewCounter = GetCounterFromField(Field, NewValue)
-        UpdateCounter(NewCounter, +1)
+        UpdateCounter(Offset, NewCounter, +1)
 }
 
 function UnfilterBrotherTabs(Link) {

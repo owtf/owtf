@@ -42,14 +42,3 @@ function GetStorage() {//To make it easy to change to other stuff in the future 
 function GetStorageSize() {
 	return 5000
 }
-
-function ShowDebugWindow() {
-	alert('Not implemented yet')
-        //sessvars.$.debug()
-        //GetById('sessvarsDebugDiv').style.display = "block";
-}
-
-function HideDebugWindow() {
-	alert('Not implemented yet')
-        //GetById('sessvarsDebugDiv').style.display = "none";
-}

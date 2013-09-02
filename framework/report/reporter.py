@@ -41,7 +41,6 @@ from framework.report.html.filter import sanitiser
 from framework.report import summary
 
 PLUGIN_DELIM = '__'  # Characters like ; | . or / trip CKEditor as separators
-REPORT_PREFIX = '__rep__'
 
 
 class Reporter:
@@ -131,7 +130,7 @@ class Reporter:
                               + "/" + Plugin["File"].strip() \
                               + " no content returned"
                               )
-        DivId = self.GetPluginDivId(Plugin)
+
         PluginReportPath = save_dir + "report.html"
         self.Core.CreateMissingDirs(save_dir)
         with codecs.open(PluginReportPath, 'w',"utf-8") as file: # 'w' is important to overwrite the partial report, necesary for scanners
@@ -139,9 +138,11 @@ class Reporter:
             Plugin['End'] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
             plugin_report_template = self.Template_env.get_template('plugin_report.html')
             plugin_report_vars = {
-                    "DivId": DivId,
+                    "DivId": self.GetPluginDivId(Plugin),
                     "SAVE_DIR": self.Core.GetPartialPath(save_dir),
                     "REVIEW_OFFSET" : self.CCG('REVIEW_OFFSET'),
+                    "ReportID": "i"+ self.CCG('HOST_IP').replace(".","_") \
+                            + "p" + self.CCG('PORT_NUMBER'),
                     "NextHTMLID": self.Core.DB.GetNextHTMLID(),
                     "Plugin": Plugin,
                     "HTMLtext": unicode(HTMLtext, "utf-8") if HTMLtext.__class__ is not unicode else HTMLtext,
@@ -372,7 +373,7 @@ class Reporter:
                             ],
                 "REVIEW_OFFSET" : self.CCG('REVIEW_OFFSET'),
                 "PLUGIN_DELIM" : PLUGIN_DELIM,
-                "REPORT_PREFIX"  : REPORT_PREFIX ,
+
                     }
             # Closing HTML Report
             file.write(report_template.render(report_vars))

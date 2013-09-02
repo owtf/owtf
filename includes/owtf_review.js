@@ -30,21 +30,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 $(document).ready(function() { 
-	if (!DetailedReport) {//Summary Report:
+
 		InitDB() //Working DB only initialised on summary
-		
 		DisplayCounters(GetWorkReview(), '__SummaryCounters', '')
 		DisplaySelectFilterOptions()
-	}
-	else { //Detailed Report
-		InitDetailedReport()
-		ApplyReview() //Apply reviewed plugins
-		HighlightNewPlugins() //Right after loading, only once, highlight the new plugins
-		ClickLinkById('tab_filter') //Enable Filter tab by default
-		//ClickLinkById('filterinfo') //Click on Filter by information only
-		DisplayCounters(Review[Offset], '__DetailedCounters', '')
-		DisplaySelectFilterOptions()
-	}
+		
+
+	//Initialize all Detailed Reports
+	 for (var i = 0; i < AllTargets.length; i++)
+		 {
+		 
+		 		// empty
+		 }
+	
 }
 );
 
@@ -52,26 +50,27 @@ function GetSeed() {
 	return GetById('seed').innerHTML
 }
 
-function GetPluginToken(PluginId) {
-	return GetById('token_'+PluginId).innerHTML
+function GetPluginToken(Offset,PluginId) {
+	var element = GetById('token_'+Offset+"_"+PluginId)
+	if (element == null) 
+		{ 
+			innerHTML = ""
+			alert('token_'+Offset+"_"+PluginId+" is null")
+		}
+	else innerHTML=GetById('token_'+Offset+"_"+PluginId).innerHTML
+	return innerHTML
 }
 
 function GetWorkReview() {
-	if (!DetailedReport) {
 		if (!window.Review) {
-			window.Review = null
+			window.Review = {}
 		}
 		return window.Review
-	}
-	return window.parent.GetWorkReview()
 }
 
 function SetWorkReview(Value) {
-	if (!DetailedReport) { //Review only set on summary
 		window.Review = Value
 		return window.Review 
-	}
-	return window.parent.SetWorkReview(Value)
 }
 
 function InitDB() {//Ensure all completed plugins have a review offset
@@ -91,7 +90,7 @@ function GetPluginInfo(PluginId) {
 	return Plugin
 }
 
-function GetPluginField(PluginId, Field) {
+function GetPluginField(Offset, PluginId, Field) {
 	if (Review[Offset] != null && Review[Offset][PluginId] != null && Review[Offset][PluginId][Field] != null) {
 		//console.log('GetPluginField => Review[' + Offset + '][' + PluginId + '][' + Field + '] = ', Review[Offset][PluginId][Field])
 		return Review[Offset][PluginId][Field] //Get from review
@@ -102,23 +101,22 @@ function GetPluginField(PluginId, Field) {
 	}
 }
 
-function InitDetailedReport() {
+function InitDetailedReport(Offset) {
 	window.Review = GetWorkReview() //Point window.Review to parent window = Counters out of whack without this
-	//alert("Offet="+Offset)
-	if (Review[Offset] == null) {
+	if ( Review[Offset] == null) {
 		Review[Offset] = {}
-		InitReviewCounters(Review[Offset], '__DetailedCounters')
+		InitReviewCounters(Review[Offset], "__"+ Offset + "Counters")
 	}
 
-	//console.log('InitDetailedReport -> window.AllPlugins =', window.AllPlugins)
+	//console.log('InitDetailedReport -> window.ReportsInfo[Offset].AllPlugins =', window.ReportsInfo[Offset].AllPlugins)
 	//console.group('InitDetailedReport -> InitPlugins')
-	for (i in window.AllPlugins) {
-		PluginId = window.AllPlugins[i]
-		PluginToken = GetPluginToken(PluginId)
-		//console.log('window.AllPlugins[' + i + ']=' + PluginId)
+	for (i in window.ReportsInfo[Offset].AllPlugins) {
+		PluginId = window.ReportsInfo[Offset].AllPlugins[i]
+		PluginToken = GetPluginToken(Offset, PluginId)
+		//console.log('window.ReportsInfo[Offset].AllPlugins[' + i + ']=' + PluginId)
 		if (Review[Offset][PluginId] == null) { //Review not initialised for plugin
-			Review[Offset][PluginId] = { 'seen' : 'N', 'flag' : 'N', 'new' : 'Y', 'notes' : '', 'tk' : GetPluginToken(PluginId) }
-			UpdateCounters( [ 'filterinfo_counter', 'filterno_flag_counter', 'filterunseen_counter' ], +1 )
+			Review[Offset][PluginId] = { 'seen' : 'N', 'flag' : 'N', 'new' : 'Y', 'notes' : '', 'tk' : GetPluginToken(Offset, PluginId) }
+			UpdateCounters( Offset, [ 'filterinfo_counter', 'filterno_flag_counter', 'filterunseen_counter' ], +1 )
 		}
 		else if (PluginToken != Review[Offset][PluginId].tk) {//Plugin changed (i.e. forced overwrite or grep plugin, highlight change)
 			Review[Offset][PluginId].new = 'Y'
@@ -127,7 +125,7 @@ function InitDetailedReport() {
 		else { //Plugin has not changed, flag as not new:
 			Review[Offset][PluginId].new = 'N'
 		}
-		PopulateComments(PluginId) //Populate comments in case of page refresh :)
+		PopulateComments(Offset, PluginId) //Populate comments in case of page refresh :)
 		//console.log('Review[' + Offset + '][' + PluginId + ']=', Review[Offset][PluginId])
 	}
 	//console.groupEnd('InitDetailedReport -> InitPlugins')
@@ -196,7 +194,7 @@ function MarkIcon(Elem, Init) {
 	Elem.parentNode.className = 'active' //Now mark as selected
 }
 
-function Rate(PluginId, Rating, Elem) {
+function Rate(Offset, PluginId, Rating, Elem) {
 	MarkIcon(Elem, false)
 	if ('delete' == Rating) {
 		Rating = 'N' //Keep the flag == 'N' for filter counter to work right
@@ -209,7 +207,7 @@ function Rate(PluginId, Rating, Elem) {
 	NewValue = Review[Offset][PluginId]['flag'] = Rating 
 	UpdatePluginCounter(PluginId, 'flag', PreviousValue, NewValue)
 	SaveDB()
-	ApplyReview() // Now update colours, etc
+	ApplyReview(Offset) // Now update colours, etc
 	HidePlugin(PluginId)
 }
 
@@ -220,12 +218,12 @@ function NotBooleanStr(BooleanStr) {
 	return 'Y'
 }
 
-function MarkAsSeen(PluginId) {
+function MarkAsSeen(Offset, PluginId) {
 	PreviousValue = Review[Offset][PluginId].seen
 	NewValue = Review[Offset][PluginId].seen = NotBooleanStr(PreviousValue)
 	UpdatePluginCounter(PluginId, 'seen', PreviousValue, NewValue)
 	SaveDB()
-	ApplyReview()
+	ApplyReview(Offset)
 	HidePlugin(PluginId)
 }
 
@@ -243,7 +241,7 @@ function GetPluginIdsForOffset(Offset) {
 	return PluginIds
 }
 
-function GetPluginIdsWhereFieldMatches(Field, Value) {
+function GetPluginIdsWhereFieldMatches(Offset, Field, Value) {
 	PluginIds = new Array()
 	for (PluginId in Review[Offset]) {
 		if (Review[Offset][PluginId][Field] == Value) {
@@ -253,35 +251,29 @@ function GetPluginIdsWhereFieldMatches(Field, Value) {
 	return PluginIds
 }
 
-function GetSeenPlugins() {
-	return GetPluginIdsWhereFieldMatches('seen', 'Y')
+function GetSeenPlugins(Offset) {
+	return GetPluginIdsWhereFieldMatches(Offset, 'seen', 'Y')
 }
 
-function ApplyReview() {
-	if (DetailedReport) {
-		SetStyleToPlugins(window.AllPlugins, '')
-		SetStyleToPlugins(GetSeenPlugins(), 'line-through')
-		//ApplyCounters(window.AllPlugins, 'filter', true)
-	}
-	else { //Summary
-		//InitCounters(Prefix, '0')
-		Refresh() //Normal page reload = to refresh summary + iframes
-	}
+function ApplyReview(Offset) {
+		SetStyleToPlugins(Offset, window.ReportsInfo[Offset].AllPlugins, '')
+		SetStyleToPlugins(Offset, GetSeenPlugins(Offset), 'line-through')
+		//ApplyCounters(window.ReportsInfo[Offset].AllPlugins, 'filter', true)
 }
 
-function HighlightNewPlugins() {//Looks for differences from the previous page load to current one, highlighting new plugins shown
+function HighlightNewPlugins(Offset) {//Looks for differences from the previous page load to current one, highlighting new plugins shown
 	//This makes it easy to see what has happened since the last refresh
 	//console.log('HighlightNewPlugins -> start', 'Review[' + Offset + ']', Review[Offset])
 	//console.group('Plugin loop')
-	for (i=0, length = window.AllPlugins.length; i<length; i++) {
-		PluginId = window.AllPlugins[i]
+	for (i=0, length = window.ReportsInfo[Offset].AllPlugins.length; i<length; i++) {
+		PluginId = window.ReportsInfo[Offset].AllPlugins[i]
 		//console.log('Review[' + Offset + '][' + PluginId + ']')
 		//console.log(Review[Offset][PluginId])
 		if (Review[Offset][PluginId].new == 'Y') {
 			Tab = GetById('tab_'+PluginId)
-			//Link = GetById('l'+window.AllPlugins[i])
+			//Link = GetById('l'+window.ReportsInfo[Offset].AllPlugins[i])
 			if (Tab != null) {
-				Tab.style.backgroundColor = '#FFFFFF'//Highlighting with colours looks horrible, white background seems ok to me
+				Tab.style.backgroundColor = '#2A5'//Highlighting with colours looks horrible, white background seems ok to me
 				//Link.innerHTML = "->"+Link.innerHTML+"<-"
 				//Tab.firstChild.innerHTML = Tab.firstChild.innerHTML+"*"
 			}
@@ -289,15 +281,14 @@ function HighlightNewPlugins() {//Looks for differences from the previous page l
 	}
 }
 
-function SetStyleToPlugins(PluginArray, StyleText) {
+function SetStyleToPlugins(Offset, PluginArray, StyleText) {
 	//console.log('SetStyleToPlugins -> Review[' + Offset + ']=', Review[Offset])
 	for (i=0, length = PluginArray.length; i<length; i++) {
 		PluginId = PluginArray[i]
-		Heading = GetById('h'+PluginId)
 		StrikeIcon = GetById('l'+PluginId)
 		Tab = GetById('tab_'+PluginId)
 		if (Tab != null) {
-			Tab.style.textDecoration = Heading.style.textDecoration = StyleText
+			Tab.style.textDecoration = StyleText
 			//alert(Tab.name)
 			//Tab.style.textDecoration = StyleText
 			//console.log('SetStyleToPlugins -> Review[' + Offset + '][' + PluginId + ']=')
@@ -311,11 +302,11 @@ function SetStyleToPlugins(PluginArray, StyleText) {
 			}
 			if ('' == StyleText) { //Not Seen
 				//Link.firstChild.innerHTML = '<img src="images/pencil.png" title="Strike-through" />'
-				StrikeIcon.innerHTML = '<img src="images/pencil.png" title="Strike-through" />'
+				StrikeIcon.innerHTML = '<i class="icon-eye-open"></i>'
 			}
 			else {
 				//Link.firstChild.innerHTML = '<img src="images/eraser.png" title="Unstrike-through" />'
-				StrikeIcon.innerHTML = '<img src="images/eraser.png" title="Unstrike-through" />'
+				StrikeIcon.innerHTML = '<i class="icon-eye-close"></i>'
 			}
 		}
 	}
@@ -325,7 +316,8 @@ function ClearReview() {
 	if (confirm("You are going to delete all the information for this review. Are you sure?")) {
 		BlankReview()
 		InitDB()
-		ApplyReview()
+		//InitCounters(Prefix, '0')
+		Refresh() //Normal page reload = to refresh summary + iframes
 		
 	}
 }
@@ -335,7 +327,9 @@ function DeleteStorage() {
 		BlankReview()
 		DestroyStorage()
 		InitDB()
-		ApplyReview()
+		//InitCounters(Prefix, '0')
+		Refresh() //Normal page reload = to refresh summary + iframes
+
 	}
 }
 
@@ -367,41 +361,42 @@ function ImportReview() {
 		SetWorkReview(FromStr(GetById('import_export_box').value))
 		SaveDB()
 		InitDB()
-		ApplyReview()
+		//InitCounters(Prefix, '0')
+		Refresh() //Normal page reload = to refresh summary + iframes
 	}
 }
 
-function GetNotesDivId(PluginId) { return 'notes_'+PluginId }
+function GetNotesDivId(Offset, PluginId) { return 'notes_'+Offset+'_'+PluginId }
 
-function ToggleNotesBox(PluginId) {
-	var DivId = GetNotesDivId(PluginId)
-	DestroyEditors(PluginId) //Destroy all other instances to keep the report lightweight
+function ToggleNotesBox(Offset, PluginId) {
+	var DivId = GetNotesDivId(Offset,PluginId)
+	DestroyEditors(Offset, PluginId) //Destroy all other instances to keep the report lightweight
 	if (GetById(DivId).style.display == 'none') {
-		var Editor = CreateEditor(PluginId)
+		var Editor = CreateEditor(Offset, PluginId)
 	}
-	SetEditorCommentsFromStorage(PluginId)
+	SetEditorCommentsFromStorage(Offset, PluginId)
 	ToggleDiv(DivId)
 }
 
-function GetStorageComments(PluginId) {
+function GetStorageComments(Offset, PluginId) {
 	return Review[Offset][GetRealPluginId(PluginId)].notes
 }
 
-function SetEditorCommentsFromStorage(PluginId) {
-	var EditorId = GetEditorId(PluginId)
-	Data = GetStorageComments(PluginId)
+function SetEditorCommentsFromStorage(Offset, PluginId) {
+	var EditorId = GetEditorId(Offset, PluginId)
+	Data = GetStorageComments(Offset, PluginId)
 	GetById(EditorId).value = Data
 }
 
-function PopulateComments(PluginId) {
-	SetEditorCommentsFromStorage(PluginId)
+function PopulateComments(Offset, PluginId) {
+	SetEditorCommentsFromStorage(Offset, PluginId)
 	//$( '#' + EditorId ).val( Review[Offset][GetRealPluginId(PluginId)].notes );
-	SetEditorPreview(PluginId, Data)
+	SetEditorPreview(Offset, PluginId, Data)
 }
 
-function GetEditorId(PluginId) { return 'note_text_' + PluginId }
-function GetEditor(PluginId) { 
-	var EditorId = GetEditorId(PluginId)
+function GetEditorId(Offset, PluginId) { return 'note_text_'+ Offset+ '_' + PluginId }
+function GetEditor(Offset, PluginId) { 
+	var EditorId = GetEditorId(Offset, PluginId)
 	try { //Try to get existing editor first
 		var Editor = $('#' + EditorId).ckeditorGet() 
 	}
@@ -411,10 +406,10 @@ function GetEditor(PluginId) {
 	return Editor
 }
 
-function SetEditorPreview(PluginId, Data) { 
-	var Ids = [ PluginId ]
+function SetEditorPreview(Offset, PluginId, Data) { 
+	var Ids = [ Offset+ "_" +PluginId ]
 	if (IsReportPluginId(PluginId)) {
-		Ids.push ( GetRealPluginId(PluginId) )
+		Ids.push ( Offset + "_" + GetRealPluginId(PluginId) )
 	}
 	for (var i in Ids) {
 		Id = Ids[i]
@@ -422,22 +417,22 @@ function SetEditorPreview(PluginId, Data) {
 	}
 }
 
-function DestroyEditors(ToggledPluginId) { //Destroy all Editors to save resources
+function DestroyEditors(ToggledOffset, ToggledPluginId) { //Destroy all Editors to save resources
 	for (var Id in CKEDITOR.instances) {
 		CKEDITOR.instances[Id].destroy()
 		AffectedPluginId = Id.replace('note_text_', '')
-		if (AffectedPluginId != ToggledPluginId) { //Only hide other editors' divs, not the current one
-			ToggleDiv(GetNotesDivId(AffectedPluginId)) //Hide affected plugin div so that things look normal
+		if (AffectedPluginId != ToggledOffset+'_'+ ToggledPluginId) { //Only hide other editors' divs, not the current one
+			ToggleDiv(GetNotesDivId(Offset, AffectedPluginId)) //Hide affected plugin div so that things look normal
 		}
 	}
 	//delete CKEDITOR.instances.cause
 }
 
-function CreateEditor(PluginId) { //Listen on the right events to save pen tester input as it is typed
+function CreateEditor(Offset, PluginId) { //Listen on the right events to save pen tester input as it is typed
 	//Somewhat helpful links:
 	//http://alfonsoml.blogspot.com/2011/03/onchange-event-for-ckeditor.html
 	//http://stackoverflow.com/questions/5879832/how-to-listen-for-ckeditor-event-setdata-with-jquery
-	var Editor = GetEditor(PluginId)
+	var Editor = GetEditor(Offset, PluginId)
 	//Must listen to a number of events due to lack of proper "onchange" event (somewhat surprising given the awesomeness of this editor)
 	Editor.on( 'key', function() { this.fire('change') });
 	Editor.on( 'paste', function() { this.fire('change') });
@@ -445,34 +440,34 @@ function CreateEditor(PluginId) { //Listen on the right events to save pen teste
 	Editor.on( 'selectionChange', function() { this.fire('change') });
 	Editor.on( 'contentDom', function() { this.fire('change') });
 	Editor.on( 'blur', function() { this.fire('change') });
-	Editor.on( 'change', function() { SaveComments(PluginId) });
+	Editor.on( 'change', function() { SaveComments(Offset, PluginId) });
 	Editor.on( 'instanceReady', function() { this.fire('load') });
-	Editor.on( 'load', function() { SetEditorCommentsFromStorage(PluginId) });
+	Editor.on( 'load', function() { SetEditorCommentsFromStorage(Offset, PluginId) });
 	return Editor
 }
 
-function SaveComments(PluginId) {
+function SaveComments(Offset, PluginId) {
 	//Review[Offset][GetRealPluginId(PluginId)].notes = GetById('note_text_'+PluginId).value
 	//Review[Offset][GetRealPluginId(PluginId)].notes = CKEDITOR.instances['note_text_'+PluginId].getData();
 	//Review[Offset][GetRealPluginId(PluginId)].notes = $( '#' + EditorId ).val();
 	//Review[Offset][GetRealPluginId(PluginId)].notes = $( '#' + EditorId ).ckeditorGet().getData()
-	var Data = GetEditor(PluginId).getData()
+	var Data = GetEditor(Offset, PluginId).getData()
 	if (Data == Review[Offset][GetRealPluginId(PluginId)].notes) { //No changes = nothing to do!
 		return false
 	}
-        var CommentsBefore = PluginCommentsPresent(PluginId) //Comments here before = increment happened before too
+        var CommentsBefore = PluginCommentsPresent(Offset, PluginId) //Comments here before = increment happened before too
 	Review[Offset][GetRealPluginId(PluginId)].notes = Data
-	SetEditorPreview(PluginId, Data)
-        var CommentsNow = PluginCommentsPresent(PluginId)
+	SetEditorPreview(Offset, PluginId, Data)
+        var CommentsNow = PluginCommentsPresent(Offset, PluginId)
 	var CommentsCounter = GetCounterFromField('notes')
-	if (!CommentsBefore && CommentsNow) { UpdateCounter( CommentsCounter, +1 ) }
-	if (CommentsBefore && !CommentsNow) { UpdateCounter( CommentsCounter, -1 ) } //Decrement = one plugin less with notes
+	if (!CommentsBefore && CommentsNow) { UpdateCounter(Offset,  CommentsCounter, +1 ) }
+	if (CommentsBefore && !CommentsNow) { UpdateCounter(Offset, CommentsCounter, -1 ) } //Decrement = one plugin less with notes
 	SaveDB()
 }
 
-function SetDisplayToAllPluginTabs(Display) {
-        for (var i=0, length = window.AllPlugins.length; i<length; i++) {
-                var PluginId = window.AllPlugins[i]
+function SetDisplayToAllPluginTabs(Offset, Display) {
+        for (var i=0, length = window.ReportsInfo[Offset].AllPlugins.length; i<length; i++) {
+                var PluginId = window.ReportsInfo[Offset].AllPlugins[i]
 		GetById('tab_'+PluginId).parentNode.style.display = Display
 		GetById('tab_'+PluginId).className = ''
 	}
@@ -485,43 +480,42 @@ function SetDisplayToAllTestGroups(Display) {
 	}
 }
 
-function PluginCommentsPresent(PluginId) {
+function PluginCommentsPresent(Offset, PluginId) {
 	return (Review[Offset][GetRealPluginId(PluginId)].notes.length > 0)
 }
 
 
-function SelfGetDetailedReport() { //Gets the iframe from parent window
+function SelfGetDetailedReport(Offset) { //Gets the iframe from parent window
 	return window.parent.document.getElementById('iframe_' + Offset) //Retrieve self from parent
 }
 
-function DetailedReportCollapse() {
-	IFrame = SelfGetDetailedReport()
+function DetailedReportCollapse(Offset) {
+	IFrame = SelfGetDetailedReport(Offset)
 	IFrame.className = 'iframe_collapsed' //Without horizontal scrollbar
 	window.location.hash = ''
 	window.parent.location.hash = ''
-	ClickLinkById('tab_filter')
 }
 
-function DetailedReportAdjust() {
-	IFrame = SelfGetDetailedReport()
+function DetailedReportAdjust(Offset) {
+	IFrame = SelfGetDetailedReport(Offset)
 	IFrame.style.height = IFrame.contentWindow.document.body.scrollHeight - 24 + "px"
 	IFrame.className = 'iframe_collapsed' //With horizontal scrollbar (if necessary)
 }
 
-function DetailedReportExpand() {
-	IFrame = SelfGetDetailedReport()
+function DetailedReportExpand(Offset) {
+	IFrame = SelfGetDetailedReport(Offset)
 	IFrame.style.height = "100%"
 	IFrame.className = 'iframe_expanded' //With horizontal scrollbar (if necessary)
 }
 
-function DetailedReportAnalyse() {
-	DetailedReportExpand()
+function DetailedReportAnalyse(Offset) {
+	DetailedReportExpand(Offset)
 	window.parent.location.hash = 'anchor_' + Offset
 }
 
-function SelfAutoResize() {
-	DetailedReportCollapse()
-	DetailedReportAdjust()
+function SelfAutoResize(Offset) {
+	DetailedReportCollapse(Offset)
+	DetailedReportAdjust(Offset)
 }
 
 function IsReservedOffset(Offset) { return (Offset[0] == '_' && Offset[1] == '_') }
