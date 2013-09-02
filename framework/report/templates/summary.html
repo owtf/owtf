@@ -308,7 +308,7 @@
 								{% else %}
 										class=""
 								{% endif %}		
-		          					>{{  CurrentCommand_Status  }}...</small></h3>
+		          > {{  CurrentCommand_Status  }} ... </small></h3>
 		          		
 		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-terminal icon-light"></i></span> <strong>Current Command: </strong>{{ CurrentCommand_Command }}</div>
 		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-time icon-light"></i></span> <strong>Running time: </strong> {{ CurrentCommand_Runtime }} </div>
@@ -422,45 +422,46 @@
                   <div class="span12">
                     <div class="btn-toolbar">
                          <div class="btn-group" data-toggle="buttons-checkbox"> 
-                        	<button class="btn btn-info filter"  onclick="FilterResults('info', 'NetMap')" rel="tooltip" data-original-title="Completed" data-placement="bottom"><i class="icon-ok icon-white"></i> <span id="filterinfo_counter" class="counter"></span></button>
+                        	<button id="filterinfo" class="btn btn-info filter"  onclick="FilterResultsSummary('info', 'NetMap')" rel="tooltip" data-original-title="Completed" data-placement="bottom"><i class="icon-ok icon-white"></i> <span id="filterinfo_counter" class="counter"></span></button>
                         </div>
                          <div class="btn-group " data-toggle="buttons-checkbox">
-                        	<button class="btn filter" rel="tooltip" data-original-title="Flagged" data-placement="bottom"><i class="icon-flag icon-white"></i>  <span id="filterno_flag_counter" class="counter"></span></button>
+                        	<button class="btn filter" rel="tooltip" data-original-title="Flagged" data-placement="bottom"><i class="icon-flag"></i>  <span id="filterflag_counter" class="counter"></span></button>
+                        	<button class="btn filter" rel="tooltip" data-original-title="Not Flagged" data-placement="bottom"><i class="icon-flag-alt"></i>  <span id="filterno_flag_counter" class="counter"></span></button>
                         </div>
                          <div class="btn-group" data-toggle="buttons-checkbox">
-                   		     <button onclick="FilterResults('fav', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Favorated" data-placement="bottom"><i class="icon-heart icon-white"></i> $$</button>
+                   		     <button onclick="FilterResultsSummary('fav', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Favorated" data-placement="bottom"><i class="icon-heart icon-white"></i> 0</button>
                        </div>
                          <div class="btn-group" data-toggle="buttons-checkbox">
-                      		  <button  onclick="FilterResults('notes', 'NetMap')" class="btn  filter" rel="tooltip" data-original-title="Commented" data-placement="bottom"><i class="icon-comment icon-white"></i> <span id="filternotes_counter"></span></button>
+                      		  <button  id="filternotes"  onclick="FilterResultsSummary('notes', 'NetMap')" class="btn  filter" rel="tooltip" data-original-title="Commented" data-placement="bottom"><i class="icon-comment icon-white"></i> <span id="filternotes_counter"></span></button>
                       </div>
                       
 	                      <div class="btn-group" data-toggle="buttons-checkbox">
-	                        <button onclick="FilterResults('unseen', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Not seen" data-placement="bottom"><i class="icon-eye-close icon-white"></i> <span id="filterunseen_counter" class="counter"></span></button>
-	                        <button onclick="FilterResults('seen', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Seen" data-placement="bottom"><i class="icon-eye-open icon-white"></i><span id="filterseen_counter" class="counter"></span></button>
+	                        <button  id="filterunseen" onclick="FilterResultsSummary('unseen', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Not seen" data-placement="bottom"><i class="icon-eye-close icon-white"></i> <span id="filterunseen_counter" class="counter"></span></button>
+	                        <button id="filterseen" onclick="FilterResultsSummary('seen', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Seen" data-placement="bottom"><i class="icon-eye-open icon-white"></i> <span id="filterseen_counter" class="counter"></span></button>
 	                      </div>
 
 	                      <div class="btn-group" data-toggle="buttons-checkbox">
-	                        <button onclick="FilterResults('star_3', 'NetMap')" class="btn btn-inverse filter" rel="tooltip" data-original-title="Undefined" data-placement="bottom"><i class="icon-asterisk  icon-white"></i><span  id="filterstar_3_counter"></span></button>
-	                        <button onclick="FilterResults('attention_orange', 'NetMap')" class="btn btn-warning filter" rel="tooltip" data-original-title="Warning" data-placement="bottom"><i class="icon-warning-sign icon-white"></i><span id="filterattention_orange_counter"></span></button>
-	                        <button onclick="FilterResults('bonus_red', 'NetMap')" class="btn btn-danger filter" rel="tooltip" data-original-title="Exploitable" data-placement="bottom"><i class="icon-fire icon-white"></i> <span id="filterbonus_red_counter"></span></button>
-	                        <button onclick="FilterResults('bug', 'NetMap')" class="btn btn-info  filter" rel="tooltip" data-original-title="Logic Bug" data-placement="bottom"><i class="icon-bug icon-white"></i><span id="filterbug_counter"></span></button>
-		                    <button onclick="FilterResults('check_green', 'NetMap')" class="btn btn-success filter " rel="tooltip" data-original-title="Test passed" data-placement="bottom"><i class="icon-thumbs-up icon-white"></i><span  id="filtercheck_green_counter"></span></button>
+	                        <button id="filterstar_3" onclick="FilterResultsSummary('star_3', 'NetMap')" class="btn btn-inverse filter" rel="tooltip" data-original-title="Undefined" data-placement="bottom"><i class="icon-asterisk  icon-white"></i> <span  id="filterstar_3_counter"></span></button>
+	                        <button id="filterattention_orange" onclick="FilterResultsSummary('attention_orange', 'NetMap')" class="btn btn-warning filter" rel="tooltip" data-original-title="Warning" data-placement="bottom"><i class="icon-warning-sign icon-white"></i> <span id="filterattention_orange_counter"></span></button>
+	                        <button id="filterbonus_red" onclick="FilterResultsSummary('bonus_red', 'NetMap')" class="btn btn-danger filter" rel="tooltip" data-original-title="Exploitable" data-placement="bottom"><i class="icon-fire icon-white"></i> <span id="filterbonus_red_counter"></span></button>
+	                        <button id="filterbug" onclick="FilterResultsSummary('bug', 'NetMap')" class="btn btn-info  filter" rel="tooltip" data-original-title="Logic Bug" data-placement="bottom"><i class="icon-bug icon-white"></i> <span id="filterbug_counter"></span></button>
+		                    <button id="filtercheck_green" onclick="FilterResultsSummary('check_green', 'NetMap')" class="btn btn-success filter " rel="tooltip" data-original-title="Test passed" data-placement="bottom"><i class="icon-thumbs-up icon-white"></i> <span  id="filtercheck_green_counter"></span></button>
 	                      </div>
 
 	                      <div class="btn-group" data-toggle="buttons-checkbox">
-	                      	<button onclick="FilterResults('flag_white', 'NetMap')" class="btn filter disabled" rel="tooltip" data-original-title="No severity" data-placement="bottom"><i class="icon-remove-circle icon-white"></i><span id="filterflag_white_counter"></span></button>
-	                        <button onclick="FilterResults('flag_blue', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom"><i class="icon-arrow-down icon-white"></i><span id="filterflag_blue_counter"></span></button>
-	                        <button onclick="FilterResults('flag_yellow', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom"><i class="icon-arrow-right icon-white"></i><span id="filterflag_yellow_counter"></span></button>
-	                        <button onclick="FilterResults('flag_red', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="High severity" data-placement="bottom"><i class="icon-arrow-up icon-white"></i><span id="filterflag_red_counter"></span></button>
-	                        <button onclick="FilterResults('flag_violet', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Critical severity" data-placement="bottom"><i class="icon-exclamation-sign icon-white"></i><span id="filterflag_violet_counter"></span></button>
+	                      	<button id="filterflag_white" onclick="FilterResultsSummary('flag_white', 'NetMap')" class="btn filter disabled" rel="tooltip" data-original-title="No severity" data-placement="bottom"><i class="icon-remove-circle icon-white"></i> <span id="filterflag_white_counter"></span></button>
+	                        <button id="filterflag_blue"  onclick="FilterResultsSummary('flag_blue', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom"><i class="icon-arrow-down icon-white"></i> <span id="filterflag_blue_counter"></span></button>
+	                        <button id="filterflag_yellow" onclick="FilterResultsSummary('flag_yellow', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom"><i class="icon-arrow-right icon-white"></i> <span id="filterflag_yellow_counter"></span></button>
+	                        <button id="filterflag_red" onclick="FilterResultsSummary('flag_red', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="High severity" data-placement="bottom"><i class="icon-arrow-up icon-white"></i> <span id="filterflag_red_counter"></span></button>
+	                        <button id="filterflag_violet" onclick="FilterResultsSummary('flag_violet', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Critical severity" data-placement="bottom"><i class="icon-exclamation-sign icon-white"></i> <span id="filterflag_violet_counter"></span></button>
 	                      </div>
                     
 	                       <div class="btn-group">
-		                        <button onclick="FilterResults('delete', 'NetMap')"  class="btn filter" rel="tooltip" data-original-title="Clear filters" data-placement="bottom"><i class="icon-ban-circle icon-white"></i></button>
-		                        <button onclick="FilterResults('refresh', 'NetMap')" id="refresh" class="btn" rel="tooltip" data-original-title="Refresh" data-placement="bottom"><i class="icon-refresh icon-white"></i></button> 
+		                        <button onclick="FilterResultsSummary('delete', 'NetMap')"  class="btn filter" rel="tooltip" data-original-title="Clear filters" data-placement="bottom"><i class="icon-ban-circle icon-white"></i></button>
+		                        <button onclick="FilterResultsSummary('refresh', 'NetMap')" id="refresh" class="btn" rel="tooltip" data-original-title="Refresh" data-placement="bottom"><i class="icon-refresh icon-white"></i></button> 
 		                        <a href="#more_filters_modal" role="button" class="btn filter" data-toggle="modal" rel="tooltip" data-original-title="More filters" data-placement="bottom"><i class="icon-filter icon-white"></i></a>
 		                   </div>
-		                       <span class="label label-success pull-right counter" rel="tooltip" data-original-title="Number of plugins that matched the search" data-placement="bottom"><strong> Matches:<span id="filterinfo_counter" ></span></strong></span> 	
+		                       <span class="label label-success pull-right counter" rel="tooltip" data-original-title="Number of plugins that matched the search" data-placement="bottom"><strong> Matches:<span id="filtermatches_counter" >--</span></strong></span> 	
                   </div>
                 
                 </div>
@@ -478,9 +479,9 @@
 													<tr>
 														<th colspan="3">Plugin Groups</th>
 													</tr>
-														<tr>
-														<td colspan="3" >
-																<select multiple='multiple'  id='SelectPluginGroup' style="width:100%;" onchange='SetSelectFilterOptions(this)'> 
+													<tr >
+														<td colspan="3">
+																<select multiple='multiple'  id='SelectPluginGroup'  size='6' onchange='SetSelectFilterOptions(this)' style="width:100%;"> 
 																 	{% for Value in PluginTypes %}
 																		<option value="{{ Value }}"> 
 																			{{ Value|e }}
@@ -525,23 +526,33 @@
 														</td>
 													</tr>
 													<tr>
-								                	 <th >Available Targets</th>
-								                	 <th colspan="2" >Web Test Groups</th>
+								                	 <th colspan="3" >Available Targets</th>
 								                	 </tr>
 								                	 <tr>
-								                	 <td> 
-									                	 <select multiple="multiple" id="SelectTargets" size='10' style="width:100%;">
-														       	{% for Value in Targets %}
-																		<option value="{{ Value }}"> 
-																			{{ Value|e }}
-																		 </option>
+								                	 	<td colspan="3"> 
+									                	 <select multiple="multiple" id="SelectTargets" size='5' style="width:100%;">
+														       {% for IPInfo in IPs %}
+																	 {% for PortInfo in IPInfo.Ports %}
+																		{% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
+																		{% for Offset in PortInfo.Offsets %}
+																			<option value="{{ TargetID }}"> 
+																				{{ IPInfo.IP }}:{{ PortInfo.Port }} - {{ Offset.ReviewOffset }}
+																			 </option>
+																		{% endfor %}
 																	{% endfor %}
+																{% endfor %}
 														 </select>
 								                	 
 								                	 </td>
+								                	 </tr>
+													<tr>
+								                	 <th colspan="3" >Web Test Groups</th>
+								                	 </tr>
+								                	 <tr>
+								                	 
 								               
-														<td colspan="2" >
-															<select multiple='multiple' style="width:100%;"  id='SelectWebTestGroups' size='10' onchange='SetSelectFilterOptions(this)'> 
+														<td colspan="3" >
+															<select multiple='multiple' style="width:100%;"  id='SelectWebTestGroups' size='5' onchange='SetSelectFilterOptions(this)'> 
 																	{% for Item in WebTestGroups %}
 																		<option value="{{ Item['Code'] }}"> 
 																			{{ Item["Code"] }} - {{ Item["Descrip"] }} 
@@ -557,7 +568,7 @@
 					
 						<!-- NetMap -->
 				<div class="row-fluid">
-                  <div class="span2">
+                  <div class="span2 hidden-phone">
 						 <div  id="sidebar" class="bs-docs-sidebar">
 			          		<ul class="nav nav-pills nav-stacked bs-docs-sidenav affix ">
 			          		<li class="nav-header"><i class="icon-screenshot icon-white"> </i> Targets</li>
@@ -588,9 +599,9 @@
 									 			{% set first = loop.first and first %}
 											 	{% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
 									 			
-							<section id="{{ TargetID }}" class="well well-small">
+							<section id="iframe_{{ TargetID }}" class="well well-small">
 		                      <div class="page-header">
-		                        <h3><span class="icon-screenshot icon-white"> </span>{{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}
+		                        <h3><span class="icon-screenshot icon-white"> </span><span id="ip_{{ TargetID }}">{{ IPInfo.IP|e }}</span>:<span id="port_{{ TargetID }}">{{ PortInfo.Port|e }}</span>
 		                        <small class="text-info">
 		                        <a href="{{ Offset.ReviewOffset }}" target="_blank">{{ Offset.ReviewOffset }}</a> </small> 
 		                        <a class="btn btn-info disabled" href="#review_modal" role="button" data-toggle="modal">Review</a>
@@ -634,9 +645,7 @@
 			<!-- end AUX -->
 				</div>
 				<div class="tab-pane" id="review">
-					
-				&nbsp;
-
+							&nbsp;
 								<div class="btn-toolbar">
 										<button class="btn" onclick="ImportReview();">
 											<span> Import </span>
@@ -647,13 +656,13 @@
 											</a>
 											<ul class="dropdown-menu">
 											  <li><a href="#" onclick="ExportReviewAsText();">TEXT</a></li>
-											  <li><a class="disabled" href="#">PDF</a></li>
-											  <li><a class="disabled" href="#">HTML</a></li>
+											  <li class="disabled"><a class="disabled" href="#">HTML</a></li>
+											  <li class="disabled"><a class="disabled" href="#">PDF</a></li>
+											 
 											</ul>
 						    			</div>
 						    			<button class="btn btn-success disabled">Share</button>
 						    			<div class="btn-group">
-		    				
 						    				<a class="btn btn-danger dropdown-toggle " data-toggle="dropdown" href="#">Delete
 						    					<span class="caret"></span>
 											</a>
@@ -676,7 +685,7 @@
 						    			
 						    			
 								</div>
-									<textarea rows="30" cols="100" id="import_export_box" class="span12"></textarea> 
+									<textarea rows="15" cols="100" id="import_export_box" class="span12"></textarea> 
 								
 					</div>
 			
@@ -720,11 +729,18 @@
 			   $("#refresh").tooltip();
 			   $("#more_options").tooltip();
 
-			</script>
-	    
-	    <!--  old javascript files -->
-		<script>
-				var DetailedReport = false
+			   
+			   	window.ReportsInfo = {} // init the variable that will contain subreports info
+				
+			   	var AllTargets = new Array(
+			         {% for IPInfo in IPs -%}
+			         	{% for PortInfo in IPInfo.Ports -%}
+			         		{% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
+							 	'{{ TargetID }}',
+						{%- endfor %}
+					{%- endfor %}
+								'')
+			   	var REPORT_PREFIX = '__rep__'
 				var AllCounters = new Array('filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter')
 				var NetMap = {{ JsonNetMap }}
 				var PluginDelim = '{{ PLUGIN_DELIM }}'
@@ -732,7 +748,6 @@
 				var PassedTestIcons = new Array('check_green')
 
 		</script>
-					<!-- overriden <script type="text/javascript" src="includes/jquery-1.6.4.js"></script> -->
 					<script type="text/javascript" src="includes/owtf_general.js"></script>
 					<script type="text/javascript" src="includes/owtf_review.js"></script>
 					<script type="text/javascript" src="includes/owtf_filter.js"></script>
@@ -744,17 +759,17 @@
 		
 		<script>
 		// load subreports 
-					$(".subreport").each(function(){
-						/*$.ajax({ 
-								url:$(this).data('value'),
-								async:true, 
-								success: function(result){
-									$(this).html(result);
-									}
-						});*/
-						$(this).load($(this).data('value')); 
-					});
-					
+				$(".subreport").each(function(){
+							/*$.ajax({ 
+									url:$(this).data('value'),
+									async:true, 
+									success: function(result){
+										$(this).html(result);
+										}
+							});*/
+							$(this).load($(this).data('value')); 
+						});	
+
 		
 					$(".subreport_refresh").click(function(){
 						target_subreport = $(this).data('value'); 
@@ -773,8 +788,6 @@
 						  
 						})
 
-		
-					
 		</script>
 </body>
 </html>
