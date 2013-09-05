@@ -133,3 +133,6 @@ mkdir -p $INSTALL_DIR
 
 echo "Installing LBD, arachni and gnutls-bin from Kali Repos"
 apt-get install lbd gnutls-bin arachni
+
+echo "Installing missing libraries which are not part of the default Kali installation"
+apt-get install python-jinja2 python-tornado
