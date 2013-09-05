@@ -98,6 +98,7 @@ class WebPluginTestCase(BaseTestCase):
     NOT_INTERACTIVE = " -i no "
     FROM_FILE_SUFFIX = "_from_file"
     CORE_PROXY_NAME = "core_instance_proxy"
+    PLUGIN_START_TEXT = "------> Execution Start Date/Time:"
 
     core_instance_proxy = None
 
@@ -257,6 +258,13 @@ class WebPluginTestCase(BaseTestCase):
             stdout_output = self.get_recorded_stdout_and_close()
             result.append(str(stdout_output))
         return result
+
+    def assert_external_tool_started(self, times=1):
+        self.assert_that_output_contains(self.PLUGIN_START_TEXT, times)
+
+    def assert_that_output_contains_lines(self, lines):
+        for line in lines:
+            self.assert_that_output_contains(line)
 
     def assert_that_output_contains(self, substring, times=None):
         assert_that(self.owtf_output, contains_string(substring))
