@@ -45,6 +45,7 @@ from multiprocessing import Process
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
 
+
 class ProxyHandler(tornado.web.RequestHandler):
     """
     This RequestHandler processes all the requests that the application received
@@ -132,12 +133,12 @@ class ProxyHandler(tornado.web.RequestHandler):
             self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
 
         # This block here checks for already cached response and if present returns one
-        self.cache_handler = CacheHandler(
+        self.cache_handler = CacheHandler(            
                                             self.application.cache_dir,
                                             self.request,
                                             self.application.cookie_regex,
                                             self.application.cookie_blacklist
-                                         )
+                                          )
         cached_response = self.cache_handler.load()
         
         if cached_response:
@@ -337,7 +338,7 @@ class ProxyProcess(Process):
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
-            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/fix.log","--logging=info"])
+            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/owtf-proxy.log","--logging=info"])
             # To run any number of instances
             self.server.start(int(self.instances))
             tornado.ioloop.IOLoop.instance().start()
