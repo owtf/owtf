@@ -177,7 +177,7 @@ function GetStorageMemoryPercent() {
 }
 
 function HidePlugin(Offset, PluginId) {
-	//$('#tab_'+ Offset + "_"+PluginId).tab("hide")
+	//$('#div_'+ Offset + "_"+PluginId).tab("hide")
 	return SetClassNameToElems(new Array('tab_'+ Offset + "_" +PluginId), '')
 	//return false
 }
@@ -196,7 +196,7 @@ function MarkIcon(Elem, Init) {
 
 function Rate(Offset, PluginId, Rating, Elem) {
 	TabId = "tab_" + Offset + "_" +  PluginId
-	MarkIcon(GetById(TabId), false)
+	//MarkIcon(GetById(TabId), false)
 	if ('delete' == Rating) {
 		Rating = 'N' //Keep the flag == 'N' for filter counter to work right
 	}
@@ -299,7 +299,7 @@ function SetStyleToPlugins(Offset, PluginArray, StyleText) {
 			Tab.parentNode.className = Flag
 			RatingId = PluginId + Flag
 			if (Flag != 'N' && document.getElementById(RatingId) != null) {//Check valid flag exists
-				MarkIcon(GetById(RatingId), true)
+				//MarkIcon(GetById(RatingId), true)
 			}
 			if ('' == StyleText) { //Not Seen
 				//Link.firstChild.innerHTML = '<img src="images/pencil.png" title="Strike-through" />'
@@ -424,7 +424,7 @@ function DestroyEditors(ToggledOffset, ToggledPluginId) { //Destroy all Editors 
 		CKEDITOR.instances[Id].destroy()
 		AffectedPluginId = Id.replace('note_text_', '')
 		if (AffectedPluginId != ToggledOffset+'_'+ ToggledPluginId) { //Only hide other editors' divs, not the current one
-			ToggleDiv(GetNotesDivId(Offset, AffectedPluginId)) //Hide affected plugin div so that things look normal
+			ToggleDiv(GetNotesDivId(ToggledOffset, AffectedPluginId)) //Hide affected plugin div so that things look normal
 		}
 	}
 	//delete CKEDITOR.instances.cause

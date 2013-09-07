@@ -246,6 +246,29 @@ function DisplayMatches(NumMatches) {
         GetById('filtermatches_counter').innerHTML = NumMatches
 }
 
+function HideDetailedReportData() {
+    //SetDisplayToAllPluginTabs('none') //Hide all plugin tabs
+	
+	for (var target in window.ReportsInfo) {
+		SetDisplayToDivs(window.ReportsInfo[target].AllPlugins, 'none')//Hide all plugin divs
+	}
+		
+    SetDisplayToAllTestGroups('none') //Hide all index divs
+    SetDisplayToAllPluginTabs('none') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
+    SetDisplayUnfilterPlugins('')
+    HighlightFilters('')
+}
+
+function ShowDetailedReportData() {
+	for (var target in window.ReportsInfo) {
+		SetDisplayToDivs(window.ReportsInfo[target].AllPlugins, 'none')//Hide all plugin divs
+	}
+    SetDisplayToAllTestGroups('block') //Show all index divs
+    SetDisplayToAllPluginTabs('') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
+    SetDisplayUnfilterPlugins('')
+    HighlightFilters('')
+}
+
 
 function FilterResults(Offset, Parameter, FromReportType) {
 	if (window.ReportMode) { ToggleReportMode(Offset) } //Display Review when filter is altered, Report needs re-generation anyway
