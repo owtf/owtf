@@ -167,10 +167,10 @@ class PluginHandler:
 	def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
 		#print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.Core.Config.Get('TARGET')
 		if Plugin['Group'] == 'web':
-			if Plugin['Type'] == 'external': # Same path for all targets = do this only once
-				return self.Core.Config.Get('OUTPUT_PATH')+"/external/"+WipeBadCharsForFilename(Plugin['Title'])+"/"
-			else:
-				return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/"
+			#if Plugin['Type'] == 'external': # Same path for all targets = do this only once
+			#	return self.Core.Config.Get('OUTPUT_PATH')+"/external/"+WipeBadCharsForFilename(Plugin['Title'])+"/"
+			#else:
+			return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/"
 		elif Plugin['Group'] == 'net':
 			return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/" +Plugin['Type']+"/"
 		elif Plugin['Group'] == 'aux':
