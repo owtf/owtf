@@ -219,25 +219,6 @@ class PluginHelper:
 							</a>
 					</li>
 				{% endfor %}
-				<li class="icon">
-					<a href="javascript:void(0);" class="icon" onclick="ShowDivs(new Array('{{ DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');">
-						<span>
-							<img src="images/plus_gray16x16.png" title="Expand Plugins">&nbsp; 
-						</span>
-					</a>	
-					&nbsp;
-					<a href="javascript:void(0);" class="icon" onclick="HideDivs(new Array('{{ DivIdList|join("','") }}'));SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');">
-						<span>
-							<img src="images/minus_gray16x16.png" title="Close Plugins">&nbsp; 
-						</span>
-					</a>
-					&nbsp;	
-					<a href="javascript:void(0);" class="icon_unfilter"  style='display: none;' onclick="SetClassNameToElems(new Array('{{ TabIdList|join("','") }}'), '');UnfilterBrotherTabs(this);">
-						<span>
-							<img src="images/info24x24.png" title="Show all plugins under this test item">&nbsp; 
-						</span>
-					</a>
-				</li>
 			</ul>
 			{% for CommandCategory in CommandCategoryList %}
 				<div id="{{ CommandCategory.Tab|replace( ' ', '_' )|lower }}" class="tabContent" style="display:none">
