@@ -37,7 +37,7 @@ import random
 import string
 import sys
 import threading
-import time
+import time,base64
 
 class FrameworkException(Exception):
 	def __init__(self, value):
@@ -182,6 +182,9 @@ def wait_until_dir_exists(request_dir,delay):
         if(os.path.exists(request_dir)):
             return
         time.sleep(delay)
+
+#sleep delay for different sleeps
+sleep_delay = 0.025
    
     
 #this function writes to a file atomically
@@ -216,7 +219,7 @@ def atomic_read_from_file(requests_dir, partial_filename, skip_if_locked = True)
         data=""
         while not os.path.exists(filename):
             #AppendToFile("file1", "file is not there "+filename+"\n")
-            time.sleep(0.025)
+            time.sleep(sleep_delay)
             
         with FileLock(filename, timeout=delay):
             fd = open(filename,'r')
@@ -229,6 +232,11 @@ def atomic_read_from_file(requests_dir, partial_filename, skip_if_locked = True)
     except:
         return ""    
 
+def get_random_str(len):
+    """function returns random strings of length len"""
+    return base64.urlsafe_b64encode(os.urandom(len))[0:len]
+
+    
 #cleanly remove directories
 def removeDirs(dir):
     for f in os.listdir(dir):
@@ -237,6 +245,9 @@ def removeDirs(dir):
 
 # Files for messaging system
 OWTF_FILE_QUEUE_DIR = "/tmp/owtf/"
+db_pushQ="push"
+db_pullQ="pull"
+QUEUES = {db_pushQ,db_pullQ}
 
 #logging function
 #log levels

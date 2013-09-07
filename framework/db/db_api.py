@@ -32,27 +32,23 @@ from framework.lib import *
 import os
 import time
 
-class db_api:
-    
-    def __init__(self, Core):
-        self.Core = Core # Need access to reporter for pretty html trasaction log
-        self.function_list = defaultdict(list)
-        #lists of functions for push and pull with expected number of arguments
-        self.function_list['push']= {'Add':{3},'ModifyRecord':{4},'IncreaseSync':{2},'CalcSync':{2},'LoadDB':{2},'SaveDB':{2}
-                      ,'SaveDBs':{0},'SaveDBLine':{3},'AdError':{1}}
-        self.function_list['pull'] = {'GetPath':{1},'Get':{2},'GetData':{2},'GetRecord':{3},'GetRecordAsMatch':{2},
+function_list = defaultdict(list)
+#lists of functions for push and pull with expected number of arguments
+function_list['push']= {'Add':{3},'ModifyRecord':{4},'IncreaseSync':{2},'CalcSync':{2},'LoadDB':{2},'SaveDB':{2}
+            ,'SaveDBs':{0},'SaveDBLine':{3},'AdError':{1}}
+function_list['pull'] = {'GetPath':{1},'Get':{2},'GetData':{2},'GetRecord':{3},'GetRecordAsMatch':{2},
                  'Search':{3},'GetSyncCount':{2},'GetLength':{2},'IsEmpty':{2},'GetDBNames':{0},'GetNextHTMLID':{0}
                  ,'ErrorCount':{0},'GetSeed':{0}}
 
     #check if function is valid or not
-    def is_valid(self,function_name,arguments,response_type):
-        #check if function name is there in list corresponding to response type
-        #if yes then check if number of arguments are expected in numbers
-        if(function_name in self.function_list[response_type]):
-            num_args = len(arguments)
-            if(num_args in self.function_list[response_type].get(function_name)):
-                return True
-        return False
+def is_valid(function_name,arguments,response_type):
+#check if function name is there in list corresponding to response type
+#if yes then check if number of arguments are expected in numbers
+    if(function_name in function_list[response_type]):
+        num_args = len(arguments)
+        if(num_args in function_list[response_type].get(function_name)):
+            return True
+    return False
     
     
     #initializes all the queues directories for messagin system     
