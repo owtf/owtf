@@ -343,31 +343,22 @@ class Reporter:
                             self.GetPluginDivId(Match)
                             for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE'))  for Match in  TestGroup['RegisteredPlugins']
                             ],
-                        "AllCodes": [
+                        "AllCodes": list(set([
                             Match['Code'] #eliminate repetitions,
                             for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE'))  for Match in  TestGroup['RegisteredPlugins']
-                            ],
+                            ])),
                         },
                         "TestGroups": [
                             {
                             "TestGroupInfo": TestGroup['TestGroupInfo'],
                             "Matches" : [
                                 {
-                                "DivId": self.GetPluginDivId(Match),
-                                'TabId': "tab_" + self.GetPluginDivId(Match),
-                                "TabName": Match["Label"],
-                                "DivContent": open(Match['Path']).read(),
+                                "PluginId": self.GetPluginDivId(Match),
+                                "PluginName": Match["Label"],
+                                "PluginContent": open(Match['Path']).read(),
                                 }
                                 for Match in TestGroup['RegisteredPlugins']
                                 ],
-                            "TabIdList": [
-                                "tab_" + self.GetPluginDivId(Match)
-                                for Match in TestGroup['RegisteredPlugins']
-                                ],
-                            "DivIdList": [
-                                self.GetPluginDivId(Match)
-                                for Match in TestGroup['RegisteredPlugins']
-                                ]
                             }
                             for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE'))
                             ],
