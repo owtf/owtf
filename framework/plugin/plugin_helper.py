@@ -78,7 +78,7 @@ class PluginHelper:
 	    		{% for Link in Links %}
 	    			<li> 
 	    				<i class="icon-li icon-chevron-sign-right"></i>
-	    				<a href="{{ Link|urlencode }}" class="button" target="_blank">
+	    				<a href="{{ Link|e }}" class="button" target="_blank">
 	    				
 	    					<span> {{ Link }} </span> 
 						</a> 
@@ -98,7 +98,7 @@ class PluginHelper:
 	    		{% for Name, Resource in ResourceList %}
 	    			<li> 
 	    				<i class="icon-li icon-chevron-sign-right"></i>
-	    				<a href="{{ Resource }}" target="_blank">
+	    				<a href="{{ Resource|e }}" target="_blank">
 	    				 {{ Name }} 
 						</a> 
 					</li>
@@ -156,7 +156,7 @@ class PluginHelper:
 			<ul class="icons-ul">
 	    		{% for LinkName, Link in LinkList %}
 	    			<li><i class="icon-li icon-chevron-sign-right"></i>
-	    			 <a href="../../../{{ Link }}" class="button" target="_blank">
+	    			 <a href="../../../{{ Link|e }}" class="button" target="_blank">
 							<span> {{ LinkName }} </span>
 						</a> </li>
 	    		{% endfor %}
@@ -175,7 +175,7 @@ class PluginHelper:
 									{% for Name, Resource in VulnSearchResources %}
 										{% set js_selector = "'+ GetById('prod"+ ProductId + "').value +'" %}
 			 							{% set js_link = Resource|replace("@@@PLACE_HOLDER@@@",js_selector) %}
-											window.open('{{ js_link }}');
+											window.open('{{ js_link|e }}');
 									{% endfor %}
 									">Search All</button>
 				</th>
@@ -185,7 +185,7 @@ class PluginHelper:
 			 	<td>  
 			 		{% set js_selector = "'+GetById('prod"+ ProductId + "').value+'" %}
 			 		{% set js_link = Resource|replace("@@@PLACE_HOLDER@@@",js_selector) %}
-			 		<button onclick="javascript:window.open('{{ js_link }}') "> 
+			 		<button onclick="javascript:window.open('{{ js_link|e }}') "> 
 			 			{{ Name }} 
 			 		</button>   
 			 	</td>
@@ -350,7 +350,7 @@ class PluginHelper:
 					<tr>
 						<td>
 								<pre> {{ ModifiedCommand|e }} </pre>
-						</rd>
+						</td>
 					</tr>
 					<tr>
 						<th>
@@ -583,7 +583,7 @@ class PluginHelper:
 				</td>
 			</tr>
 			<tr>
-				<th>Command</th><td> {{ Command }} </td>
+				<th>Command</th><td> {{ Command|e }} </td>
 			</tr>
 			<tr>
 				<th>Log</th>
