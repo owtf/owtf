@@ -428,7 +428,7 @@
                         	<button class="btn filter" rel="tooltip" data-original-title="Not Flagged" data-placement="bottom"><i class="icon-flag-alt"></i>  <span id="filterno_flag_counter" class="counter"></span></button>
                         </div>
                          <div class="btn-group" data-toggle="buttons-checkbox">
-                   		     <button onclick="FilterResultsSummary('fav', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Favorated" data-placement="bottom"><i class="icon-heart icon-white"></i> 0</button>
+                   		     <button onclick="FilterResultsSummary('fav', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Favorated" data-placement="bottom"><i class="icon-heart icon-white"></i> <span id="filterfav_counter"></span></button>
                        </div>
                          <div class="btn-group" data-toggle="buttons-checkbox">
                       		  <button  id="filternotes"  onclick="FilterResultsSummary('notes', 'NetMap')" class="btn  filter" rel="tooltip" data-original-title="Commented" data-placement="bottom"><i class="icon-comment icon-white"></i> <span id="filternotes_counter"></span></button>
@@ -448,7 +448,7 @@
 	                      </div>
 
 	                      <div class="btn-group" data-toggle="buttons-checkbox">
-	                      	<button id="filterflag_white" onclick="FilterResultsSummary('flag_white', 'NetMap')" class="btn filter disabled" rel="tooltip" data-original-title="No severity" data-placement="bottom"><i class="icon-remove-circle icon-white"></i> <span id="filterflag_white_counter"></span></button>
+	                      	<button id="filterflag_white" onclick="FilterResultsSummary('flag_white', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="No severity" data-placement="bottom"><i class="icon-remove-circle icon-white"></i> <span id="filterflag_white_counter"></span></button>
 	                        <button id="filterflag_blue"  onclick="FilterResultsSummary('flag_blue', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom"><i class="icon-arrow-down icon-white"></i> <span id="filterflag_blue_counter"></span></button>
 	                        <button id="filterflag_yellow" onclick="FilterResultsSummary('flag_yellow', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom"><i class="icon-arrow-right icon-white"></i> <span id="filterflag_yellow_counter"></span></button>
 	                        <button id="filterflag_red" onclick="FilterResultsSummary('flag_red', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="High severity" data-placement="bottom"><i class="icon-arrow-up icon-white"></i> <span id="filterflag_red_counter"></span></button>
@@ -740,10 +740,10 @@
 					{%- endfor %}
 								'')
 			   	var REPORT_PREFIX = '__rep__'
-				var AllCounters = new Array('filterinfo_counter','filterno_flag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filtercheck_green_counter','filterbug_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter')
+				var AllCounters = new Array('filterinfo_counter','filterfav_counter','filterno_flag_counter','filterflag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filtercheck_green_counter','filterbug_counter','filterflag_white_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter')
 				var NetMap = {{ JsonNetMap }}
 				var PluginDelim = '{{ PLUGIN_DELIM }}'
-				var SeverityWeightOrder = new Array('bonus_red','flag_violet','flag_red','flag_yellow','flag_blue','bug')
+				var SeverityWeightOrder = new Array('flag_white', 'bonus_red','flag_violet','flag_red','flag_yellow','flag_blue','bug')
 				var PassedTestIcons = new Array('check_green')
 
 		</script>
