@@ -30,7 +30,7 @@ Description:
 The core is the glue that holds the components together and allows some of them to communicate with each other
 '''
 from framework import timer, error_handler
-from framework.logQueue import logQueue
+from framework.lib.log_queue import logQueue
 from framework.config import config
 from framework.db import db
 from framework.http import requester
@@ -76,7 +76,7 @@ class Core:
 
     #wrapper to log function
     def log(self,*args):
-        Log(*args)
+        log(*args)
         
     def IsInScopeURL(self, URL): # To avoid following links to other domains
         ParsedURL = urlparse(URL)
@@ -131,11 +131,8 @@ class Core:
                 shutil.rmtree(self.Config.Get('CACHE_DIR'))
                 os.makedirs(self.Config.Get('CACHE_DIR'))
             InboundProxyOptions = [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')]    
-            transaction_db_path = os.path.join(self.Config.Get('OUTPUT_PATH'), self.Config.Get('HOST_IP'), 'transactions')
-            if not os.path.exists(transaction_db_path):
-                os.makedirs(transaction_db_path)
-            for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body']:
-                folder_path = os.path.join(transaction_db_path, folder_name)
+            for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body', 'resp-time']:
+                folder_path = os.path.join(self.Config.Get('CACHE_DIR'), folder_name)
                 if not os.path.exists(folder_path):
                     os.mkdir(folder_path)
             if self.Config.Get('COOKIES_BLACKLIST_NATURE'):
@@ -147,24 +144,19 @@ class Core:
             regex_string = '|'.join(regex_cookies_list)
             cookie_regex = re.compile(regex_string)
             cookie_filter = {'BLACKLIST':blacklist, 'REGEX':cookie_regex}
-            self.ProxyProcess = proxy.ProxyProcess(
+            self.ProxyProcess = proxy.ProxyProcess( self,
                                                     self.Config.Get('INBOUND_PROXY_PROCESSES'),
                                                     InboundProxyOptions,
-                                                    transaction_db_path,
+                                                    self.Config.Get('CACHE_DIR'),
                                                     self.Config.Get('INBOUND_PROXY_SSL'),
                                                     cookie_filter,
                                                     Options['OutboundProxy'],
-                                                    Options['OutboundProxyAuth'],
+                                                    Options['OutboundProxyAuth']
                                                   )
-            """
-            self.TransactionLogger = transaction_logger.TransactionLogger(
-                                                                            self.Config.Get('CACHE_DIR'),
-                                                                            transaction_db_path
-                                                                         )
-            """
+            self.TransactionLogger = transaction_logger.TransactionLogger(self)
             cprint("Started Inbound proxy at " + self.Config.Get('INBOUND_PROXY'))
             self.ProxyProcess.start()
-            #self.TransactionLogger.start()
+            # self.TransactionLogger.start() # <= OMG!!! Have to fix this :P
             self.Requester = requester.Requester(self, InboundProxyOptions)
         else:
             self.Requester = requester.Requester(self, Options['OutboundProxy'])        
@@ -172,6 +164,10 @@ class Core:
     def outputfunc(self,q):
         """
             This is the function/thread which writes on terminal
+            It takes the content from queue and if showOutput is true it writes to console.
+            Otherwise it appends to a variable. 
+            If the next token is 'end' It simply writes to the console.
+            
         """
         t=""
         #flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL)
@@ -186,7 +182,6 @@ class Core:
                 try:
                     sys.stdout.write(t)
                 except:
-                    print "some error in wrirtin"
                     pass
                 return
             t = t+k
@@ -195,7 +190,6 @@ class Core:
                     sys.stdout.write(t)
                     t=""
                 except:
-                    print "some error in writing"
                     pass    
                                                     
                                 
@@ -230,9 +224,10 @@ class Core:
 
     def initialise_framework(self, Options):
         self.ProxyMode = Options["ProxyMode"]
-        self.initlogger()
         cprint("Loading framework please wait..")
         self.Config.ProcessOptions(Options)
+        self.initlogger()
+
         self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT')) # Requires user config
         self.Timer.StartTimer('core')
         self.initialise_plugin_handler_and_params(Options)
@@ -241,6 +236,7 @@ class Core:
             self.exitOutput()
             return False # No processing required, just list available modules
         self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
+
         self.DB.Init()
         self.messaging_admin.Init()
         Command = self.GetCommand(Options['argv'])
@@ -250,7 +246,9 @@ class Core:
         self.StartProxy(Options)
         if self.ProxyMode:
             cprint("Proxy Mode is activated. Press Enter to continue to owtf")
+            cprint("Visit http://" + self.Config.Get('INBOUND_PROXY') + "/proxy to use Plug-n-Hack standard")
             raw_input()
+            self.TransactionLogger.start()
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
@@ -306,7 +304,8 @@ class Core:
                         cprint("Stopping inbound proxy processes and cleaning up, Please wait!")
                         self.KillChildProcesses(self.ProxyProcess.pid)
                         self.ProxyProcess.terminate()
-                        #os.kill(int(self.TransactionLogger.pid), signal.SIGINT)
+                        # No signal is generated during closing process by terminate()
+                        os.kill(int(self.TransactionLogger.pid), signal.SIGINT)
                     except: # It means the proxy was not started
                         pass
                 if hasattr(self,'messaging_admin'):
@@ -315,8 +314,9 @@ class Core:
                 exit()
 
     def exitOutput(self):
-        self.outputqueue.put('end')    
-        self.outputthread.join()
+        if hasattr(self,'outputthread'):
+            self.outputqueue.put('end')    
+            self.outputthread.join()
         
     def GetSeed(self):
         try:

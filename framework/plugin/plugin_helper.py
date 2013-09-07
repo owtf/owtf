@@ -138,7 +138,7 @@ class PluginHelper:
 				RawHTML = Transaction.GetRawResponseBody()
 				FilteredHTML = self.Core.Reporter.Sanitiser.CleanThirdPartyHTML( RawHTML )
 				NotSandboxedPath = self.Core.PluginHandler.DumpPluginFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo )
-				Log( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
+				log( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
 				iframe_template = Template( """
 				<iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder = '0' style = "overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
 				Your browser does not support iframes
@@ -146,7 +146,7 @@ class PluginHelper:
 				""" )
 				iframe = iframe_template.render( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
 				SandboxedPath = self.Core.PluginHandler.DumpPluginFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
-				Log( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
+				log( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
 				LinkList.append( ( Name, SandboxedPath ) )
 
 		template = Template( """
@@ -308,7 +308,7 @@ class PluginHelper:
 			FrameworkAbort = True
 
 		TimeStr = self.Core.Timer.GetElapsedTimeAsStr('FormatCommandAndOutput')
-		Log("Time="+TimeStr)
+		log("Time="+TimeStr)
 		return [ ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir ]
 
 	def GetCommandOutputFileNameAndExtension( self, InputName ):
@@ -402,7 +402,7 @@ class PluginHelper:
 				if Transaction.Found:
 					NumFound += 1
 		TimeStr = self.Core.Timer.GetElapsedTimeAsStr('LogURLsFromStr')
-		Log("Spider/URL scaper time="+TimeStr)
+		log("Spider/URL scaper time="+TimeStr)
 		Table = self.Core.Reporter.Render.CreateTable({'class' : 'commanddump'})
 		Table.CreateCustomRow('<tr><th colspan="2">Spider/URL scraper</th></tr>')
 		Table.CreateRow(['Time', 'URL stats'], True)
@@ -431,7 +431,7 @@ class PluginHelper:
 		save_path = self.Core.PluginHandler.DumpPluginFile( Filename, Contents, PluginInfo )
 		if not LinkName:
 			LinkName = save_path
-        	Log("File: "+Filename+" saved to: "+save_path)		
+        	log("File: "+Filename+" saved to: "+save_path)		
         	template = Template( """
 			<a href="{{ Link }}" target="_blank">
 				{{ LinkName }}
@@ -494,7 +494,7 @@ class PluginHelper:
 						Links.append( [ Entry, LinkStart + Entry + LinkEnd ] ) # Show link in defined format (passive/semi_passive)
 				TestResult += self.Core.PluginHelper.DrawResourceLinkList( Display, Links )
 		TestResult += self.Core.DB.URL.AddURLsEnd()
-		Log("robots.txt was "+NotStr+"found")
+		log("robots.txt was "+NotStr+"found")
 		return TestResult
 
 	def LogURLs( self, PluginInfo, ResourceList ):
@@ -508,7 +508,7 @@ class PluginHelper:
 		self.Core.DB.SaveAllDBs() # Save URL DBs to disk
 		NumURLsAfter = self.Core.DB.URL.GetNumURLs()
 		Message =(str(NumURLsAfter-NumURLsBefore)+" URLs have been added and classified")
-                Log(Message)
+                log(Message)
         	return HTMLOutput+"<br />"+Message
 
 	def DrawTransactionTableForURLList( self, UseCache, URLList, Method = '', Data = '' ):
@@ -601,12 +601,13 @@ class PluginHelper:
 					"Matches": Matches,
 					"StatsStr":StatsStr,
 					"Command": Command,
-					"HTMLTransacLogLink": self.Core.Config.GetHTMLTransacLog( True ),
+					"HTMLTransacLogLink": self.Core.Config.GetHTMLTransaclog( True ),
 					"Unique_as_TEXTPath": "../../../" + self.DumpFile( 'unique' + WipeBadCharsForFilename( SearchName ) + '.txt', "\n".join( Matches ), PluginInfo, 'Unique as TEXT' )[0],
 					"Unique_as_HTMLPath": "../../../" + self.DumpFile( 'unique' + WipeBadCharsForFilename( SearchName ) + '.html', "<h3>Unique Matches</h3>" + UniqueTable.Render(), PluginInfo, 'Unique as HTML' )[0],
 					"All_as_HTMLPath": "../../../" + self.DumpFile( 'all' + WipeBadCharsForFilename( SearchName ) + '.html', "<h3>All Matches</h3>" + AllTable.Render(), PluginInfo, 'All as HTML' )[0] ,
 				}
 		return SummaryTable.render(vars)
+
 
 	def FindMultilineResponseMatchesForRegexp( self, ResponseRegexp, PluginInfo ):
 		return self.DrawResponseMatchesTables( self.Core.DB.Transaction.GrepMultiLineResponseRegexp( ResponseRegexp ), PluginInfo )
@@ -714,7 +715,7 @@ class PluginHelper:
 		""" )
 
 		vars = {
-					"HTMLTransacLogLink":self.Core.Config.GetHTMLTransacLog( True ),
+					"HTMLTransacLogLink":self.Core.Config.GetHTMLTransaclog( True ),
 					"StatsStr": StatsStr,
 					"Command": Command,
 					"HeaderList":HeaderList,
@@ -724,6 +725,7 @@ class PluginHelper:
 
 
 		return [ AllValues, template.render( vars ), HeaderDict, Header2TransacDict , NuTransactions ]
+
 
 	def CookieAttributeAnalysis( self, CookieValueList, Header2TransacDict ):
 		template = Template( """
@@ -797,8 +799,8 @@ class PluginHelper:
 		#Table = "<h3>Cookie Attribute Analysis</h3><table class='report_intro'>"+Table+"</table>"
 		#return Table
 					
-	def ResearchFingerprintInLog(self):
-		Log("Researching Fingerprint in Log ..")
+	def ResearchFingerprintInlog(self):
+		log("Researching Fingerprint in Log ..")
 		AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = self.ResearchHeaders(self.Core.Config.GetHeaderList('HEADERS_FOR_FINGERPRINT'))
 		for Value in AllValues:
 			HeaderTable += self.DrawVulnerabilitySearchBox(Value) # Add Vulnerability search boxes after table

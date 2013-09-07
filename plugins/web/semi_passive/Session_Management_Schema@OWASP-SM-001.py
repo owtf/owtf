@@ -64,7 +64,7 @@ def run(Core, PluginInfo):
 		for URL in GetUnique(Core.Config.GetAsList(['TARGET_URL', 'TOP_URL']):
 			
 		TransactionTable = Core.PluginHelper.DrawTransactionTableForURLList(True, Core.Config.GetAsList(['TARGET_URL', 'TOP_URL'])) 
-	Content = Core.PluginHelper.ResearchFingerprintInLog() + TransactionTable
+	Content = Core.PluginHelper.ResearchFingerprintInlog() + TransactionTable
 	Content += Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('SemiPassiveFingerPrint'), PluginInfo, Content)
 	return Content
 """

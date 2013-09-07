@@ -117,7 +117,7 @@ class TransactionManager:
 
 	def IsTransactionAlreadyAdded(self, Criteria): # To avoid requests already made
 		Result = len(self.Search( Criteria )) > 0
-		Log(str(Criteria)+" in DB: "+str(Result))
+		log(str(Criteria)+" in DB: "+str(Result))
 		return Result
 
 	def SaveTransactionTXTIndex(self, Transaction): # Saves a transaction in the Text Index DB
