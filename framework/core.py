@@ -220,7 +220,7 @@ class Core:
         
         #logger for output in log file
         log = logging.getLogger('logfile')
-        infohandler = logging.FileHandler('logfile',mode="w+")
+        infohandler = logging.FileHandler('/tmp/logfile',mode="w+")
         log.setLevel(logging.INFO)
         infoformatter = logging.Formatter("%(type)s - %(asctime)s - %(processname)s - %(functionname)s - %(message)s")
         infohandler.setFormatter(infoformatter)
@@ -323,6 +323,8 @@ class Core:
         if hasattr(self,'outputthread'):
             self.outputqueue.put('end')    
             self.outputthread.join()
+            if os.path.exists("owtf_review"):
+                shutil.move("/tmp/logfile", "owtf_review")
         
     def GetSeed(self):
         try:

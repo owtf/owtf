@@ -112,8 +112,7 @@ class HTTP_Transaction:
 		self.ID = ID
 		self.HTMLLinkToID = HTMLLinkToID
 		if self.New: # Only for new transactions, not when retrieved from DB, etc
-                        log = logging.getLogger('general')
-			log.info("New owtf HTTP Transaction: "+" - ".join([self.ID, self.TimeHuman, self.Status, self.Method, self.URL]))
+			log("New owtf HTTP Transaction: "+" - ".join([self.ID, self.TimeHuman, self.Status, self.Method, self.URL]))
 
 	def GetHTMLLink(self, LinkName = ''):
 		if '' == LinkName:

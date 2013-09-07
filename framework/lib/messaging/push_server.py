@@ -34,42 +34,38 @@ import os
 import random
 import time
 
-class push_server:
-    def __init__(self,Core):
-        self.Core = Core
-    
-    def handle_request(self,callback_function,queue,queue_name="push"):
+
+def handle_request(callback_function,queue,queue_name="push"):
         #push server to handle the push requests
-        request_dir = general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name]
+    request_dir = general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name]
         
-        delay = 0.025
         
-        general.wait_until_dir_exists(request_dir,delay)
-        while True:
-            if queue.empty()==False:
-                break
-            try:
-                files = general.get_files(request_dir)
-                #while we have files for procesing
-                while len(files)>0:
-                    for full_filename in files:
-                        filen = full_filename.split("/")
-                        filename = filen[len(filen)-1]
-                        #skip lock files
-                        if ".lock" in filename:
-                            continue
-                        #skip_if_locked is True then file is skipped if it is locked
-                        data = general.atomic_read_from_file(request_dir, filename, skip_if_locked=True)
-                        if data:
-                            callback_function(data,"push")
+    general.wait_until_dir_exists(request_dir,general.sleep_delay)
+    while True:
+        if queue.empty()==False:
+            break
+        try:
+            files = general.get_files(request_dir)
+            #while we have files for procesing
+            while len(files)>0:
+                for full_filename in files:
+                    filen = full_filename.split("/")
+                    filename = filen[len(filen)-1]
+                    #skip lock files
+                    if ".lock" in filename:
+                        continue
+                    #skip_if_locked is True then file is skipped if it is locked
+                    data = general.atomic_read_from_file(request_dir, filename, skip_if_locked=True)
+                    if data:
+                        callback_function(data,"push")
                             #remove the processed file
-                            os.remove(os.path.join(request_dir,filename))
-                    files = general.get_files(request_dir)
+                        os.remove(os.path.join(request_dir,filename))
+                files = general.get_files(request_dir)
                 #give away cpu
-                time.sleep(delay)
-            except KeyboardInterrupt:
-                break
-            except Exception,e:
-                general.log("Unexpected Push server error: "+str(e))
-                break
+            time.sleep(general.sleep_delay)
+        except KeyboardInterrupt:
+            break
+        except Exception,e:
+            general.log("Unexpected Push server error: "+str(e))
+            break
                    
