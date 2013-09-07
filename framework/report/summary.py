@@ -204,9 +204,9 @@ class Summary:
 
 				}
 
-		HTML = template.render( vars )
+		HTML = template.render(vars)
 		with codecs.open(self.Core.Config.Get('HTML_REPORT_PATH' ), 'w',"utf-8") as file:
-			file.write( HTML ) # Closing HTML Report
-		Log("Summary report written to: "+self.Core.Config.Get('HTML_REPORT_PATH'))
+			file.write(HTML) # Closing HTML Report
+		log("Summary report written to: "+self.Core.Config.Get('HTML_REPORT_PATH'))
 
 

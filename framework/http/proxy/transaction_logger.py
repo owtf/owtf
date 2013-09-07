@@ -30,95 +30,48 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #                     as a part of Google Summer of Code 2013
 '''
 from multiprocessing import Process
-import codecs
+from framework.http import transaction
+from framework.http.proxy.cache_handler import response_from_cache, request_from_cache
+from framework import timer
 import os
 import glob
-import httplib
-import urlparse
-import json as pickle
 import time
 
 class TransactionLogger(Process):
     """
     This transaction logging process is started seperately from tornado proxy
-    This logger checks for *.rd files in cache_dir and then dumps the data
-    into db_dir, *.rd files serve as a message that the file corresponding 
+    This logger checks for *.rd files in cache_dir and saves it as owtf db
+    transaction, *.rd files serve as a message that the file corresponding 
     to the hash is ready to be converted.
     """
-    def __init__(self, cache_dir, db_dir):
+    def __init__(self, coreobj):
         Process.__init__(self)
-        self.cache_dir = cache_dir
-        self.db_dir = db_dir
-        
-    # This function is necessary for writing response codes as W3C strings
-    def status_code_to_name(self, response_code):
-        try:
-            return(httplib.responses[int(response_code)])
-        except:
-            return("Code Not Known")
+        self.Core = coreobj
+        self.cache_dir = self.Core.Config.Get('CACHE_DIR')
 
-    # This function helps in retrieving port number when they are not present in request url
-    def port_from_scheme(self, scheme):
-        scheme_defaults = { 'http':80, 'https':443, 'ftp':21}
-        return scheme_defaults[scheme]
-
-    # This function will generate path based on request url
-    def path_from_url(self, url):
-        parsed_url = urlparse.urlparse(url)
-        port = str(parsed_url.port or self.port_from_scheme(parsed_url.scheme))
-        folder_path = os.path.join(port, parsed_url.scheme + "__" + parsed_url.hostname, 'transactions')
-        folder_path = os.path.join(self.db_dir, folder_path, "/".join(parsed_url.path.split("/")[1:-1]))
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-        return folder_path
+    def add_owtf_transaction(self, request_hash):
+        owtf_transaction = transaction.HTTP_Transaction(timer.Timer())
+        request = request_from_cache(request_hash, self.cache_dir)
+        response = response_from_cache(request_hash, self.cache_dir)
+        request.in_scope = self.Core.IsInScopeURL(request.url)
+        owtf_transaction.ImportProxyRequestResponse(request, response)
+        self.Core.DB.Transaction.LogTransaction(owtf_transaction)
         
-    # This is the main function which dumps the transactions into
-    # human readable form
-    def save_to_file(self, dumped_dict, request_hash):
-        file_path = os.path.join(self.path_from_url(dumped_dict['request_url']), request_hash)
-        transaction_file = codecs.open(file_path, 'w', 'UTF-8')
-        
-        transaction_file.write("="*50 + " HTTP URL " + "="*50 + "\r\n")
-        transaction_file.write(dumped_dict['request_url']+'\r\n')
-        
-        transaction_file.write("="*50 + " HTTP REQUEST " + "="*50 + "\r\n")
-        transaction_file.write(dumped_dict['request_method'] + ' ' + dumped_dict['request_url'] +  ' ' + dumped_dict['request_version'] + '\r\n')
-        for header, value in dumped_dict['request_headers'].items():
-            transaction_file.write("%s: %s\r\n"%(header, value))
-            
-        transaction_file.write("\r\n")
-        if dumped_dict['request_body']:
-            transaction_file.write(dumped_dict['request_body'])
-            transaction_file.write("\r\n\r\n")
-        
-        transaction_file.write("="*50 + " HTTP RESPONSE HEADERS" + "="*50 + "\r\n")
-        transaction_file.write("%s %s\r\n"%(dumped_dict['response_code'], self.status_code_to_name(dumped_dict['response_code'])))
-        for header, value in dumped_dict['response_headers'].items():
-            transaction_file.write("%s: %s\r\n"%(header, value))
-            
-        transaction_file.write("="*50 + " HTTP RESPONSE BODY" + "="*50 + "\r\n")
-        try:
-            transaction_file.write(dumped_dict['response_body'])
-        except:
-            transaction_file.write("Seems Binary")
-        
-        transaction_file.close()
-            
-            
     def run(self):
         try:
             while True:
-                if glob.glob(os.path.join(self.cache_dir, "*.rd")):
-                    for file_path in glob.glob(os.path.join(self.cache_dir, "*.rd")):
-                        dumped_dict = pickle.load(open(file_path[:-3], 'rb'))
-                        self.save_to_file(dumped_dict, file_path.split('/')[-1][:-3])
+                if glob.glob(os.path.join(self.cache_dir, "url", "*.rd")):
+                    for file_path in glob.glob(os.path.join(self.cache_dir, "url", "*.rd")):
+                        request_hash = os.path.basename(file_path)[:-3]
+                        self.add_owtf_transaction(request_hash)
                         os.remove(file_path)
                 else:
-                    time.sleep(1)
+                    time.sleep(2)
 
-        except:
-            for file_path in glob.glob(os.path.join(self.cache_dir, "*.rd")):
-                dumped_dict = pickle.load(open(file_path[:-3], 'rb'))
-                self.save_to_file(dumped_dict, file_path.split('/')[-1][:-3])
+        except KeyboardInterrupt:
+            for file_path in glob.glob(os.path.join(self.cache_dir, "url", "*.rd")):
+                request_hash = os.path.basename(file_path)[:-3]
+                self.add_owtf__transaction(request_hash)
                 os.remove(file_path)
+        finally:
             exit()

@@ -73,6 +73,7 @@ class message_admin:
             general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name] = requests_dir
             general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name] = responses_dir
     
+    
     #this function initializes the two threads for push and pull server
     def Initthreads(self):
         self.pullqueue = multiprocessing.Queue()

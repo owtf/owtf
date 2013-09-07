@@ -37,12 +37,14 @@ import tornado.curl_httpclient
 import tornado.escape
 import tornado.httputil
 import tornado.options
+import tornado.template
 import socket
 import ssl
 import os
 from multiprocessing import Process
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
+
 
 class ProxyHandler(tornado.web.RequestHandler):
     """
@@ -131,12 +133,12 @@ class ProxyHandler(tornado.web.RequestHandler):
             self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
 
         # This block here checks for already cached response and if present returns one
-        self.cache_handler = CacheHandler(
+        self.cache_handler = CacheHandler(            
                                             self.application.cache_dir,
                                             self.request,
                                             self.application.cookie_regex,
                                             self.application.cookie_blacklist
-                                         )
+                                          )
         cached_response = self.cache_handler.load()
         
         if cached_response:
@@ -242,109 +244,70 @@ class PlugnHackHandler(tornado.web.RequestHandler):
     """
     @tornado.web.asynchronous
     def get(self, ext):
-        base_url = self.request.protocol + "://" + self.request.host + "/proxy"
+        """
+        Root URL (in default case) = http://127.0.0.1:8008/proxy
+        Templates folder is framework/http/proxy/templates
+        For PnH, following files (all stored as templates) are used :-
+        
+        File Name       ( Relative path )
+        =========       =================
+        * Provider file ( /proxy )
+        * Tool Manifest ( /proxy.json )
+        * Commands      ( /proxy-service.json )
+        * PAC file      ( /proxy.pac )
+        * CA Cert       ( /proxy.crt )
+        """
+        # Rebuilding the root url
+        root_url = self.request.protocol + "://" + self.request.host
+        proxy_url = root_url + "/proxy"
+        # Absolute path of templates folder using location of this script (proxy.py)
+        templates_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates")
+        loader = tornado.template.Loader(templates_folder) # This loads all the templates in the folder
         if ext == "":
-            manifest_url = base_url + ".json"
-            html = """
-<html>
-<head>
-<title>OWASP OWTF PnH</title>
-</head>
-<body>
-<h1> OWASP OWTF Simple browser configuration </h1>
-<p>
-OWASP OWTF is a project that aims to make security assessments as efficient as possible. This is achieved by launching a number of tools automatically, running tests not found in other tools and providing an interactive interface to help the human rank the importance of the information being reviewed (in a similar fashion to the thought process of a chess player).
-More information on OWASP OWTF can be found at:
-<a href="https://www.owasp.org/index.php/OWASP_OWTF" target="__blank__">https://www.owasp.org/index.php/OWASP_OWTF</a></p>
-<button id="btn">Click to Setup! :P</button>
-<script>
-  var manifest = {"detail":{"url":"http://127.0.0.1:8008/proxy.json"}};
-
-  var click = function(event) {
-    var evt = new CustomEvent('ConfigureSecTool', manifest);
-    document.dispatchEvent(evt);
-    setTimeout(function() {
-      if (!detected) {
-        console.log('No response');
-     }
-    },1000);
-  };
-
-  var started = function(event) {
-    console.log('configuration has started');
-  };
-  // event listener for configuration failed event
-  // use this to let the user know something has gone wrong
-  var failed = function(event) {
-    console.log('configuration has failed');
-  };
-  // event listener for configuration succeeded
-  // use this to show a success message to a user in your welcome doc
-  var succeeded = function(event) {
-    console.log('configuration has succeeded');
-  };
-  // event listener for browser support activated
-  var activated = function(event) {
-    console.log('activation has occurred');
-  };
-  // Hook configuration event listeners into the document
-  var btn = document.getElementById('btn');
-  btn.addEventListener('click',click,false);
-  document.addEventListener('ConfigureSecProxyStarted',started,false);
-  document.addEventListener('ConfigureSecProxyFailed',failed,false);
-  document.addEventListener('ConfigureSecProxyActivated',activated,false);
-  document.addEventListener('ConfigureSecProxySucceeded',succeeded,false);
-
-</script>
-</body>
-</html>
-"""
-            self.write(html)
+            manifest_url = proxy_url + ".json"
+            self.write(loader.load("welcome.html").generate(manifest_url=manifest_url))
         elif ext == ".json":
-            manifest =  {
-                          "toolName":"OWASP OWTF",
-                          "protocolVersion":"0.2",
-                          "features":{
-                            "proxy":{
-                              "PAC":base_url + ".pac",
-                              "CACert":base_url + ".crt"
-                            },
-                            "commands":{
-                              "prefix":"owtf",
-                              "manifest":base_url + "-service.json"
-                            }
-                          }
-                        }
-            self.write(manifest)
+            self.write(loader.load("manifest.json").generate(proxy_url=proxy_url))
             self.set_header("Content-Type", "application/json")
         elif ext == "-service.json":
-            commands =  {
-                          "commands":[{
-                            "description":"OWASP OWTF Commands"
-                          }
-                          ]
-                        }
-            self.write(commands)
+            self.write(loader.load("service.json").generate(root_url=root_url))
             self.set_header("Content-Type", "application/json")
         elif ext == ".pac":
-            pac_string = "function FindProxyForURL(url,host) {"
-            pac_string += "if ((host == \"localhost\") || (host == \"127.0.0.1\")) {return \"DIRECT\";}"
-            pac_string += "return \"PROXY "+self.application.inbound_ip+":"+str(self.application.inbound_port)+"\"; }"
-            self.write(pac_string)
+            self.write(loader.load("proxy.pac").generate(proxy_details=self.request.host))
             self.set_header('Content-Type','text/plain')
         elif ext == ".crt":
             self.write(open(self.application.ca_cert, 'r').read())
             self.set_header('Content-Type','application/pkix-cert')
         self.finish()
 
+class CommandHandler(tornado.web.RequestHandler):
+    """
+    This handles the python function calls issued with relative url "/JSON/?cmd="
+    Responses are in JSON
+    """
+    @tornado.web.asynchronous
+    def get(self, relative_url):
+        # Currently only get requests are sufficient for providing PnH service commands
+        command_list = self.get_arguments("cmd")
+        info = {}
+        for command in command_list:
+            command = "self.application." + command
+            info[command] = eval(command)
+        self.write(info)
+        self.finish()
+                        
 class ProxyProcess(Process):
 
-    def __init__(self, instances, inbound_options, cache_dir, ssl_options, cookie_filter, outbound_options=[], outbound_auth=""):
+    def __init__(self, core, instances, inbound_options, cache_dir, ssl_options, cookie_filter, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
         self.application = tornado.web.Application(handlers=[
                                                             (r'/proxy(.*)', PlugnHackHandler),
-                                                            (r".*", ProxyHandler)
-                                                            ], debug=False, gzip=True)
+                                                            (r'/JSON/(.*)', CommandHandler),
+                                                            (r'.*', ProxyHandler)
+                                                            ], 
+                                                    debug=False,
+                                                    gzip=True,
+                                                   )
         self.application.inbound_ip = inbound_options[0]
         self.application.inbound_port = int(inbound_options[1])
         self.application.cache_dir = cache_dir
@@ -367,6 +330,7 @@ class ProxyProcess(Process):
         server = tornado.httpserver.HTTPServer(self.application)
         self.server = server
         self.instances = instances
+        self.application.Core = core
         
     # "0" equals the number of cores present in a machine
     def run(self):
@@ -374,7 +338,7 @@ class ProxyProcess(Process):
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
-            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/fix.log","--logging=error"])
+            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/owtf-proxy.log","--logging=info"])
             # To run any number of instances
             self.server.start(int(self.instances))
             tornado.ioloop.IOLoop.instance().start()

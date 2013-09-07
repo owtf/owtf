@@ -37,7 +37,7 @@ def run(Core, PluginInfo):
 	#Core.Config.Show()
 	# True = Use Transaction Cache if possible: Visit the start URLs if not already visited
 	TransactionTable = Core.PluginHelper.DrawTransactionTableForURLList(True, Core.Config.GetAsList(['TARGET_URL', 'TOP_URL'])) 
-	Content = Core.PluginHelper.ResearchFingerprintInLog() + TransactionTable
+	Content = Core.PluginHelper.ResearchFingerprintInlog() + TransactionTable
 	Content += Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('SemiPassiveFingerPrint'), PluginInfo, Content)
 	return Content
 

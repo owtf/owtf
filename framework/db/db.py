@@ -31,7 +31,6 @@ This file handles all the database transactions.
 from framework.db import db_handler, transaction_manager, url_manager, \
     run_manager, plugin_register, report_register, command_register, debug, \
     db_client
-from framework.logQueue import logQueue
 import json
 import logging
 import multiprocessing

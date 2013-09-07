@@ -42,7 +42,6 @@ from framework.report import summary
 
 PLUGIN_DELIM = '__'  # Characters like ; | . or / trip CKEditor as separators
 
-
 class Reporter:
     def __init__(self, CoreObj):
         self.Core = CoreObj  # Keep Reference to Core Object
@@ -65,9 +64,9 @@ class Reporter:
     def CopyAccessoryFiles(self):
         TargetOutputDir = self.CCG('OUTPUT_PATH')
         FrameworkDir = self.CCG('FRAMEWORK_DIR')
-        Log("Copying report images ..")
+        log("Copying report images ..")
         self.Core.Shell.shell_exec("cp -r " + FrameworkDir + "/images/ " + TargetOutputDir)
-        Log("Copying report includes (stylesheet + javascript files)..")
+        log("Copying report includes (stylesheet + javascript files)..")
         self.Core.Shell.shell_exec("cp -r " + FrameworkDir + "/includes/ " + TargetOutputDir)
 
     def GetPluginDivId(self, Plugin):
@@ -261,7 +260,7 @@ class Reporter:
         Target = self.Core.Config.GetTarget()
         NumPluginsForTarget = self.Core.DB.PluginRegister.NumPluginsForTarget(Target)
         if not NumPluginsForTarget > 0:
-            Log("No plugins completed for target, cannot generate report")
+            log("No plugins completed for target, cannot generate report")
             return None  # Must abort here, before report is generated
         #ReportStart -- Wipe report
         self.CounterList = []
@@ -368,7 +367,7 @@ class Reporter:
                     }
             # Closing HTML Report
             file.write(report_template.render(report_vars))
-            Log("Report written to: " + self.CCG('HTML_DETAILED_REPORT_PATH'))
+            log("Report written to: " + self.CCG('HTML_DETAILED_REPORT_PATH'))
             # Register report
             params_list = [ 
                             'REVIEW_OFFSET', 

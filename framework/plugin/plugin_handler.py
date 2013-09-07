@@ -31,7 +31,7 @@ The PluginHandler is in charge of running all plugins taking into account the ch
 from collections import defaultdict
 from framework.lib.general import *
 from framework.plugin.ProcessManager import ProcessManager
-from framework.logQueue import logQueue
+from framework.lib.log_queue import logQueue
 from framework.plugin.scanner import Scanner
 from threading import Thread
 import curses
@@ -230,7 +230,7 @@ class PluginHandler:
 		#if self.PluginAlreadyRun(Plugin) and not self.Core.Config.Get('FORCE_OVERWRITE'): #not Code == 'OWASP-WU-SPID': # For external plugin forced re-run (development)
 		if self.PluginAlreadyRun(Plugin) and ((not self.force_overwrite() and not ('grep' == Plugin['Type'])) or Plugin['Type'] == 'external'): #not Code == 'OWASP-WU-SPID':
 			if ShowMessages:
-				Log("Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") has already been run, skipping ..")
+				log("Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") has already been run, skipping ..")
 			if Plugin['Type'] == 'external': # Register external plugin so that it shows on the reports!! (DB checks integrity)
 				self.register_plugin(Plugin)
 			return False 
@@ -260,13 +260,13 @@ class PluginHandler:
 		Plugin["Status"] = "Running"
 		self.PluginCount += 1
 		#cprint("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
-                Log("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
+                log("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
 		self.LogPluginExecution(Plugin)
 		if self.Simulation:
 			return None # Skip processing in simulation mode, but show until line above to illustrate what will run
 		if 'grep' == Plugin['Type'] and self.Core.DB.Transaction.NumTransactions() == 0: # DB empty = grep plugins will fail, skip!!
 			#cprint("Skipped - Cannot run grep plugins: The Transaction DB is empty")
-                    	Log("Skipped - Cannot run grep plugins: The Transaction DB is empty")
+                    	log("Skipped - Cannot run grep plugins: The Transaction DB is empty")
 			return None
 		try:
 			output = self.RunPlugin(PluginDir, Plugin)
@@ -285,7 +285,6 @@ class PluginHandler:
 			Plugin["Status"] = "Aborted (by user)"
 			Status['SomeAborted'] = True
 		except UnreachableTargetException, PartialOutput:
-                        print "I am stucking here??"
 			self.DB.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
 			Plugin["Status"] = "Unreachable Target"
 			Status['SomeAborted'] = True
@@ -323,15 +322,16 @@ class PluginHandler:
 	def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList): # TargetList param will be useful for netsec stuff to call this
 		PluginDir = self.GetPluginGroupDir(PluginGroup)
             	if PluginGroup == 'net':
-			portwaves =  self.Core.Config.GetPortWaves()
+			portwaves =  self.Core.Config.Get('PORTWAVES')
 			waves = portwaves.split(',')
 			waves.append('-1')
 			lastwave=0
 			for Target in TargetList: # For each Target 
 				self.scanner.scan_network(Target)
            			#Scanning and processing the first part of the ports
-                		for i in range(len(waves)):
-					ports = self.Core.Config.GetTcpPorts(lastwave,waves[i])      
+                		for i in range(1):
+					ports = self.Core.Config.GetTcpPorts(lastwave,waves[i])
+                                        print "probing for ports" + ports      
 					http = self.scanner.probe_network(Target,"tcp",ports)
 					self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
 					for Plugin in self.get_plugins_in_order_for_PluginGroup(PluginGroup):# For each Plugin
@@ -350,8 +350,7 @@ class PluginHandler:
                         self.ProcessManager.spawnWorkers(Status)
                         self.ProcessManager.manageProcess()
                         self.ProcessManager.poisonPillToWorkers()
-                        self.ProcessManager.joinWorker()
-
+                        Status = self.ProcessManager.joinWorker()
 			#if 'breadth' == self.Algorithm: # Loop plugins, then targets
 			#	for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
 			#		#print "Processing Plugin="+str(Plugin)
@@ -384,11 +383,11 @@ class PluginHandler:
 
 	def ShowPluginGroupPlugins(self, PluginGroup):
 		for PluginType in self.Core.Config.Plugin.GetTypesForGroup(PluginGroup): 
-			self.ShowPluginTypePlugins(PluginType)
+			self.ShowPluginTypePlugins(PluginType,PluginGroup)
 
-	def ShowPluginTypePlugins(self, PluginType):
+	def ShowPluginTypePlugins(self, PluginType,PluginGroup):
 		cprint("\n"+'*' * 40+" "+PluginType.title().replace('_', '-')+" Plugins "+'*' * 40)
-		for Plugin in self.Core.Config.Plugin.GetAll(self.PluginGroup, PluginType):
+		for Plugin in self.Core.Config.Plugin.GetAll(PluginGroup, PluginType):
 			#'Name' : PluginName, 'Code': PluginCode, 'File' : PluginFile, 'Descrip' : PluginDescrip } )
 			LineStart = " "+Plugin['Type']+": "+Plugin['Name']
 			Pad1 = "_" * (60 - len(LineStart))
