@@ -15,15 +15,15 @@
 							<ul class="nav nav-pills ">
 								<li class="brand disabled"><a>Type: </a> </li>
 							{% for Match in TestGroup.Matches %}
-								<li class=""><a id="{{ Match.TabId }}"  class="" href="#tab_{{ ReportID }}_{{ TestGroupIndex }}_{{ Match.TabName }}x" data-toggle="tab">{{ Match.TabName|replace( '_', ' ' )|upper }}</a></li>
+								<li id="tab_{{ ReportID }}_{{ Match.PluginId }}" class=""><a  class="" href="#div_{{ ReportID }}_{{ Match.PluginId }}" data-toggle="tab">{{ Match.PluginName|replace( '_', ' ' )|upper }}</a></li>
 							{% endfor %}
 								<li class="pull-right"><a href="{{ TestGroup.TestGroupInfo.URL }}" class="text-success"><i class="icon-lightbulb"></i></a> </li>
 							</ul>
 							<div class="tab-content ">
 							
 							{% for Match in TestGroup.Matches %}
-							<div class="tab-pane" id="tab_{{ ReportID }}_{{ TestGroupIndex }}_{{ Match.TabName }}x">
-					 			{{ Match.DivContent }}
+							<div class="tab-pane" id="div_{{ ReportID }}_{{ Match.PluginId }}">
+					 			{{ Match.PluginContent }}
 						 </div>
 						
 						 {% endfor %}
