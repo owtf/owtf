@@ -51,7 +51,7 @@ function GetSkinCookieAndApply()
 	var skin_id = st[0];
 	var type = st[1];
 	
-	if (skin_id != null &&   skin_id != "null" && skin_id != "default") change_skin(skin_id,type);
+	if (skin_id != null &&   skin_id != "null" && skin_id != "cyborg") change_skin(skin_id,type);
 	
 	
 }
