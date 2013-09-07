@@ -314,8 +314,7 @@
 		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-time icon-light"></i></span> <strong>Running time: </strong> {{ CurrentCommand_Runtime }} </div>
 		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-screenshot icon-light"></i></span> <strong>Current Target: </strong>{{ HostIP }}:{{ PortNumber }} <a href="{{ TargetLink }}" target="_blank"><i class="icon-link"></i></a></div>
 		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-stethoscope icon-light"></i></span> <strong>Current plugin: </strong>{ current_plugin }</div>
-		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-spinner icon-light"></i></span> <strong>Completion rate: </strong>{ completed_targets_nb }/{ total_targets_nb } targets - {completed_plugins_nb}/{total_plugins_nb} plugins</div>
-
+		          		<!--   <div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-spinner icon-light"></i></span> <strong>Completion rate: </strong>{ completed_targets_nb }/{ total_targets_nb } targets - {completed_plugins_nb}/{total_plugins_nb} plugins</div> -->
 		          			          		
 		          		<h3> History </h3>
 		          				    <table class="table table-bordered table-striped table-hover">
@@ -397,7 +396,7 @@
 		          			{% for IPInfo in IPs %}
 							 	{% for PortInfo in IPInfo.Ports %}
 							 		{% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
-		          					<li><a href="#" class="target_jumper" data-value="#{{ TargetID }}">{{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}</a></li>
+		          					<li><a href="#" class="target_jumper" data-value="#iframe_{{ TargetID }}">{{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}</a></li>
 		          				{% endfor %}
 		          			{% endfor %}
 		          			</ul>
@@ -581,7 +580,7 @@
 											 			{% for Offset in PortInfo.Offsets %}
 											 			  {% set first = loop.first and first %}
 											 			  {% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
-			                      						 <li><a href="#{{ TargetID }}"  class="tooltip_sidebar" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{ Offset.ReviewOffset }}"><i class="icon-chevron-right"></i> {{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}</a></li>
+			                      						 <li><a href="#iframe_{{ TargetID }}"  class="tooltip_sidebar" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{ Offset.ReviewOffset }}"><i class="icon-chevron-right"></i> {{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}</a></li>
 			                						 {% endfor %}
 												{% endif %}
 										    {% endfor %}

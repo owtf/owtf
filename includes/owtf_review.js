@@ -176,9 +176,9 @@ function GetStorageMemoryPercent() {
         return Math.round(UsedBy100 / GetStorageSize())
 }
 
-function HidePlugin(PluginId) {
-	HideDivs(new Array(PluginId))
-	return SetClassNameToElems(new Array('tab_'+PluginId), '')
+function HidePlugin(Offset, PluginId) {
+	//$('#tab_'+ Offset + "_"+PluginId).tab("hide")
+	return SetClassNameToElems(new Array('tab_'+ Offset + "_" +PluginId), '')
 	//return false
 }
 
@@ -195,7 +195,8 @@ function MarkIcon(Elem, Init) {
 }
 
 function Rate(Offset, PluginId, Rating, Elem) {
-	MarkIcon(Elem, false)
+	TabId = "tab_" + Offset + "_" +  PluginId
+	MarkIcon(GetById(TabId), false)
 	if ('delete' == Rating) {
 		Rating = 'N' //Keep the flag == 'N' for filter counter to work right
 	}
@@ -205,10 +206,10 @@ function Rate(Offset, PluginId, Rating, Elem) {
 	PreviousValue = Review[Offset][PluginId]['flag'] 
 	//console.log('Rate -> Logging Review[' + Offset + '][' + PluginId + '][flag] ..', PreviousValue)
 	NewValue = Review[Offset][PluginId]['flag'] = Rating 
-	UpdatePluginCounter(PluginId, 'flag', PreviousValue, NewValue)
+	UpdatePluginCounter(Offset, PluginId, 'flag', PreviousValue, NewValue)
 	SaveDB()
 	ApplyReview(Offset) // Now update colours, etc
-	HidePlugin(PluginId)
+	HidePlugin(Offset, PluginId)
 }
 
 function NotBooleanStr(BooleanStr) {
@@ -221,10 +222,10 @@ function NotBooleanStr(BooleanStr) {
 function MarkAsSeen(Offset, PluginId) {
 	PreviousValue = Review[Offset][PluginId].seen
 	NewValue = Review[Offset][PluginId].seen = NotBooleanStr(PreviousValue)
-	UpdatePluginCounter(PluginId, 'seen', PreviousValue, NewValue)
+	UpdatePluginCounter(Offset, PluginId, 'seen', PreviousValue, NewValue)
 	SaveDB()
 	ApplyReview(Offset)
-	HidePlugin(PluginId)
+	HidePlugin(Offset, PluginId)
 }
 
 function BlankReview() {
@@ -385,6 +386,7 @@ function GetStorageComments(Offset, PluginId) {
 function SetEditorCommentsFromStorage(Offset, PluginId) {
 	var EditorId = GetEditorId(Offset, PluginId)
 	Data = GetStorageComments(Offset, PluginId)
+	//alert("EditorId = "+ EditorId +"\n" + Data )
 	GetById(EditorId).value = Data
 }
 
