@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Messaging Admin will regulates messagin system
 '''
 from collections import defaultdict
+from framework.db.db_client import *
 from framework.lib import *
 from framework.lib.messaging import pull_server, push_server
 import multiprocessing
@@ -36,13 +37,10 @@ import os
 import threading
 import time
 
-QUEUES = {"push","pull"}
 class message_admin:
     
     def __init__(self, Core):
         self.Core = Core # Need access to reporter for pretty html trasaction log
-        self.pullserver = pull_server.pull_server(Core)
-        self.pushserver = push_server.push_server(Core)
     
     #initializing 
     def Init(self):
@@ -57,7 +55,7 @@ class message_admin:
         if not os.path.exists(general.OWTF_FILE_QUEUE_DIR):
             os.mkdir(general.OWTF_FILE_QUEUE_DIR)
             
-        for queue_name in QUEUES:
+        for queue_name in general.QUEUES:
             start_path = general.OWTF_FILE_QUEUE_DIR + queue_name+"/"
             if not os.path.exists(start_path):
                 os.mkdir(start_path)
@@ -73,12 +71,13 @@ class message_admin:
             general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name] = requests_dir
             general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name] = responses_dir
     
+    
     #this function initializes the two threads for push and pull server
     def Initthreads(self):
         self.pullqueue = multiprocessing.Queue()
         self.pushqueue = multiprocessing.Queue()
-        self.dbpull = threading.Thread(target=self.pullserver.handle_request,args=(self.Core.DB.DBClient.db_callback_function,self.pullqueue,"pull",))
-        self.dbpush = threading.Thread(target=self.pushserver.handle_request,args=(self.Core.DB.DBClient.db_callback_function,self.pushqueue,"push",))
+        self.dbpull = threading.Thread(target=pull_server.handle_request,args=(self.Core.DB.db_callback_function,self.pullqueue,"pull",))
+        self.dbpush = threading.Thread(target=push_server.handle_request,args=(self.Core.DB.db_callback_function,self.pushqueue,"push",))
         self.dbpull.start()
         self.dbpush.start()
     #delete existing messaging queue files, we have to check only dbpull. If it is there then all other attribues will be there
@@ -90,7 +89,7 @@ class message_admin:
             self.dbpull.join()
             self.dbpush.join()
             #remove directories
-            for queue_name in QUEUES:
+            for queue_name in general.QUEUES:
                 #removes all files from the directories(should not be any files ideally
                 general.removeDirs(general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name])
                 general.removeDirs(general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name])

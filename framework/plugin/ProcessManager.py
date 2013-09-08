@@ -32,6 +32,7 @@ from framework.lib.general import *
 import fcntl
 import logging
 import multiprocessing
+import Queue
 import os
 import re
 import select
@@ -49,23 +50,29 @@ class ProcessManager:
         self.target_used={}         #list whether a plugin is running on a target r not at this time
         self.numprocess=0           #number of processes
         self.workers = []                #list of workers
-        self.queues = []                 #list of queues
+        self.input_queues = []                 #list of queues
+        self.output_queues = []
         self.busy_processes = []         #list whether a process is busy or not
         self.accept_input=True
+        self.status={}
     
     def startinput(self):
+        """
+        this function initializes input thread for taking input from user to stop some plugin etc
+        """
         self.inputqueue = multiprocessing.Queue()
-        newstdin = os.fdopen(os.dup(sys.stdin.fileno()))
-        self.inputthread = Thread(target=self.keyinput, args=(newstdin,self.inputqueue))
+        self.inputthread = Thread(target=self.keyinput, args=(self.inputqueue,))
         self.inputthread.start()    
+    
     #this function gets all the targets from Plugin order and fill it to the worklist
     def fillWorkList(self,pluginGroup,targetList):
         for plugin in self.Core.Config.Plugin.GetOrder(pluginGroup):
             for target in targetList:
                 self.target_used[target]=False
                 self.worklist.append((target,plugin))
+    
     #returns next work that can be done depending on RAM state and availability of targets
-    def getWork(self):
+    def get_task(self):
         free_mem = self.Core.Shell.shell_exec("free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
         for target,plugin in self.worklist:
             #check if target is being used or not because we dont want to run more than one plugin on one target at one time
@@ -74,11 +81,13 @@ class ProcessManager:
                 self.worklist.remove((target,plugin))
                 return (target,plugin)
         return ()
+    
     #this function spawns the worker process and give them intitial work
     def spawnWorkers(self,Status):
         #check if maximum limit of processes has reached
+        self.status = Status
         while (self.numprocess<(int(self.Core.Config.Get('PROCESS_PER_CORE'))*multiprocessing.cpu_count())):
-            work = self.getWork()
+            work = self.get_task()
             
             #if there is no work left return
             if work==():
@@ -86,34 +95,43 @@ class ProcessManager:
             #mark the target as used as one target is probes once simultaneously
             self.target_used[work[0]]=True
             #queues to communicate to workes
-            self.queues.append(multiprocessing.Queue())
+            self.input_queues.append(multiprocessing.Queue())
+            self.output_queues.append(multiprocessing.Queue())
+
             #spawn workers     
-            p = multiprocessing.Process(target=self.worker, args=(work,self.queues[self.numprocess],1,Status))                               
+            p = multiprocessing.Process(target=self.worker, args=(self.input_queues[self.numprocess],self.output_queues[self.numprocess],1,Status))
+            self.input_queues[self.numprocess].put(work)                               
             p.start()
             self.workers.append(p)              
             self.running_plugin[p.pid] = work
             self.busy_processes.append(True)
             self.numprocess=self.numprocess+1
+     
+    def update_status(self,status):
+        self.status['SomeAborted'] = self.status['SomeAborted'] or status['SomeAborted']
+        self.status['SomeSuccessful'] = self.status['SomeSuccessful'] or status['SomeSuccessful']
+        self.status['AllSkipped'] = self.status['AllSkipped'] and status['AllSkipped']
             
     #this function manages workers, it polls on each queue of worker and check if it has done his work and then 
     # give it new process if there is one
     def manageProcess(self):
         k=0
-        #loop untill there is some work in worklist
+        #loop while there is some work in worklist
         while k<self.numprocess and len(self.worklist)>0:
             #if worker k has completed its work
-            if self.queues[k].empty()==False:
-                target,plugin = self.queues[k].get()
-                #self.queues[k].task_done()
+            if self.output_queues[k].empty()==False:
+                status = self.output_queues[k].get()
+                self.update_status(status)
+                target,plugin =  self.running_plugin[self.workers[k].pid]
                 self.running_plugin[self.workers[k].pid] = ()
                 #worker is idle
                 self.busy_processes[k]=False
                 #target is not being probed
                 self.target_used[target]=False
-                work_to_assign = self.getWork()
+                work_to_assign = self.get_task()
                 if work_to_assign!=():
                     #assign work to worker,set target to used,and process to busy
-                    self.queues[k].put(work_to_assign)
+                    self.input_queues[k].put(work_to_assign)
                     self.target_used[work_to_assign[0]]=True
                     self.running_plugin[self.workers[k].pid] = work_to_assign
                     self.busy_processes[k]=True
@@ -124,43 +142,38 @@ class ProcessManager:
         for i in range(self.numprocess):
             #check if process is doing some work
             if self.busy_processes[i]==True:
-                target,plugin = self.queues[i].get()
+                status = self.output_queues[i].get()
+                self.update_status(status)
                 self.busy_processes[i] = False
                 self.running_plugin[self.workers[i].pid] = ()
-            self.queues[i].put(())
+            self.input_queues[i].put(())
     #joins all the workers
     def joinWorker(self):
         for i in range(self.numprocess):
             self.workers[i].join()            
         self.inputqueue.put("end")
         self.inputthread.join()
+        return self.status
     #this function is used by workers to get new task
-    def getNewWork(self,work,queue):
-        queue.put(work)
-        #time.sleep(0.1)
-
+    def get_new_task(self,queue,output_queue,start,status):
+        if start==0:
+            output_queue.put(status)
         work1 = queue.get()
-        while work1==work:
-            queue.put(work)
-           # time.sleep(0.1)       #signal.signal(signal.SIGINT,signal.SIG_DFL)    
-
-            work1 = queue.get()      
         return work1
     
     #worker code
-    def worker(self,work,queue,start,status):
+    def worker(self,input_queue,output_queue,start,status):
         
         while True:
-            if start!=1:
-                # work has been completed. Put that into queue and wait for new work to be assigned
-                try:
-                    work = self.getNewWork(work,queue)    
-                except:
-                    Log("exception while get")
-                    continue
+            # work has been completed. Put that into queue and wait for new work to be assigned
+            try:
+                work = self.get_new_task(input_queue,output_queue,start,status)
+            except Exception,e:
+                log("exception while get" + str(e))
+                continue
                 #if work is empty this means no work is there
-                if work == ():
-                    sys.exit()
+            if work == ():
+                sys.exit()
             target,plugin = work
             pluginGroup = plugin['Group']
             pluginDir = self.Core.PluginHandler.GetPluginGroupDir(pluginGroup)
@@ -169,7 +182,7 @@ class ProcessManager:
             start=0
             
     #this function takes input from user to stop a process etc
-    def keyinput(self,newstdin,q):
+    def keyinput(self,q):
         fd = sys.stdin.fileno()
         oldterm = termios.tcgetattr(fd)
         newattr = oldterm[:]

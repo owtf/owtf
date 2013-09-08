@@ -30,59 +30,50 @@ This File is for server who will entertain pull requests
 '''
 from collections import defaultdict
 from framework.lib import *
+from framework.lib.general import log
 import os
 import random
 import time
 
-class pull_server:
+
+def handle_request(callback_function,queue,queue_name="pull"):
+    #pull server to handle the pull requests, It returns the response by making file of same name in 
+    #request and response folder
+    request_dir = general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name]
+    response_dir = general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name]
     
-    def __init__(self,Core):
-        self.Core = Core
-        
+                #wait for request directory to exist in starting
+    general.wait_until_dir_exists(request_dir,general.sleep_delay)
     
-    def handle_request(self,callback_function,queue,queue_name="pull"):
-        #pull server to handle the pull requests, It returns the response by making file of same name in 
-        #request and response folder
-        request_dir = general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name]
-        response_dir = general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name]
-        
-        delay = 0.025
-                    #wait for request directory to exist in starting
-        general.wait_until_dir_exists(request_dir,delay)
-        
-        while True:
-            if queue.empty()==False:
-                break
-            try:
-                files = general.get_files(request_dir)
-                #while we have files for procesing
-                while len(files)>0:
-                    #open('file1','w+').write(str(files))
-                    for full_filename in files:
-                        filen = full_filename.split("/")
-                        filename = filen[len(filen)-1]
-                        #skip lock files
-                        if ".lock" in filename:
-                            continue
+    while True:
+        if queue.empty()==False:
+            break
+        try:
+            files = general.get_files(request_dir)
+            #while we have files for procesing
+            while len(files)>0:
+                #open('file1','w+').write(str(files))
+                for full_filename in files:
+                    filen = full_filename.split("/")
+                    filename = filen[len(filen)-1]
+                    #skip lock files
+                    if ".lock" in filename:
+                        continue
                         #skip_if_locked is True then file is skipped if it is locked    
-                        self.Core.Timer.StartTimer('read')
-                        data = general.atomic_read_from_file(request_dir, filename, skip_if_locked=True)
-                        self.Core.log("pull server "+filename[0:3]+"    "+self.Core.Timer.GetElapsedTimeAsStr('read'),0)
-                        if data:
-                            
-                            result = callback_function(data,"pull")
-                            #write result to response directory
-                            general.atomic_write_to_file(response_dir, filename, result)
-                            #remove the processed file
-                            os.remove(os.path.join(request_dir,filename))
-                    files = general.get_files(request_dir)
+                    data = general.atomic_read_from_file(request_dir, filename, skip_if_locked=True)
+                    if data:
+                        
+                        result = callback_function(data,"pull")
+                        #write result to response directory
+                        general.atomic_write_to_file(response_dir, filename, result)
+                        #remove the processed file
+                        os.remove(os.path.join(request_dir,filename))
+                files = general.get_files(request_dir)
                 #give away cpu
-                self.Core.Timer.StartTimer('sleep')
-                time.sleep(delay)
-                self.Core.log("pull server after sleeping "+self.Core.Timer.GetElapsedTimeAsStr('sleep'),0)
-            except KeyboardInterrupt:
-                break
-            except Exception,e:
-                self.Core.log("Unexpected Pull server error: "+str(e))
-                break
+            time.sleep(general.sleep_delay)
+        except KeyboardInterrupt:
+            break
+        except Exception,e:
+            log("Unexpected Pull server error: "+str(e))
+            break
                    

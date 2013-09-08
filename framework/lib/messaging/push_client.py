@@ -32,17 +32,13 @@ from collections import defaultdict
 from framework.random import Random
 from framework.lib import *
 import os
-import random
+from framework.lib.general import get_random_str
 
-class push_client:
     
-    def __init__(self,Core):
-        self.core=Core
-    
-    def file_push(self,data,queue_name="push"):
-        #Creates a random file inside the /Requests subdirectory within a Queue, 
-        #the PushServer will process these files
-        file_id = self.core.Random.GetStr(100) + '.msg'
-        return general.atomic_write_to_file(general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name], file_id, data)
+def push_msg(data,queue_name="push"):
+    #Creates a random file inside the /Requests subdirectory within a Queue, 
+    #the PushServer will process these files
+    file_id = get_random_str(100) + '.msg'
+    return general.atomic_write_to_file(general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name], file_id, data)
     
                    

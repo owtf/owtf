@@ -60,9 +60,9 @@ class Reporter:
 	def CopyAccessoryFiles( self ):
 		TargetOutputDir = self.Core.Config.Get( 'OUTPUT_PATH' )
 		FrameworkDir = self.Core.Config.Get( 'FRAMEWORK_DIR' )
-        	Log( "Copying report images .." )
+        	log( "Copying report images .." )
 		self.Core.Shell.shell_exec( "cp -r " + FrameworkDir + "/images/ " + TargetOutputDir )
-		Log( "Copying report includes (stylesheet + javascript files).." )
+		log( "Copying report includes (stylesheet + javascript files).." )
 		self.Core.Shell.shell_exec( "cp -r " + FrameworkDir + "/includes/ " + TargetOutputDir )
 
         def GetPluginDivId( self, Plugin ):
@@ -245,7 +245,7 @@ class Reporter:
 		Target = self.Core.Config.GetTarget()
 		NumPluginsForTarget = self.Core.DB.PluginRegister.NumPluginsForTarget( Target )
 		if not NumPluginsForTarget > 0:
-			Log( "No plugins completed for target, cannot generate report" )
+			log( "No plugins completed for target, cannot generate report" )
 			return None # Must abort here, before report is generated
 		#ReportStart -- Wipe report
 		self.CounterList = []
@@ -361,6 +361,6 @@ class Reporter:
 
 
 			file.write( template.render( vars ) ) # Closing HTML Report
-			Log( "Report written to: " + self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ) )
+			log( "Report written to: " + self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ) )
 			self.Core.DB.ReportRegister.Add( self.Core.Config.GetAsList( [ 'REVIEW_OFFSET', 'SUMMARY_HOST_IP', 'SUMMARY_PORT_NUMBER', 'HTML_DETAILED_REPORT_PATH', 'REPORT_TYPE' ] ) ) # Register report
 			self.Summary.ReportFinish() # Build summary report
