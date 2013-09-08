@@ -30,41 +30,26 @@ Client to connect with messaging and DB
 '''
 from collections import defaultdict
 from framework.db import db_api
+from framework.db.db_api import is_valid
 from framework.lib import *
-from framework.lib.messaging import pull_client
-from framework.lib.messaging import push_client
+from framework.lib.general import CallMethod, db_pushQ, db_pullQ
+from framework.lib.messaging.pull_client import *
+from framework.lib.messaging.push_client import *
 import json
 import os
 import time
-from framework.lib.general import CallMethod
 
-class db_client:
-    
-    def __init__(self, Core):
-        self.Core = Core 
-        self.dbapi = db_api.db_api(Core)
-        self.push = push_client.push_client(Core)
-        self.pull = pull_client.pull_client(Core)
+
 
     #this functions sends request to messaging system depending on what is response type(push or pull)
-    def db_send(self,argumentlist,request_type):
-        if request_type=='push':
-            #if it is a push simply push the arguments
-            self.push.file_push(json.dumps(argumentlist))
-        else:
-            #if it is pull request we have to return the result
-            result = self.pull.file_pull(json.dumps(argumentlist))
-            if result:
-                return json.loads(result)
-            return result
+def db_push(argumentlist):
     
-    #callback function which calls DB functions and is invoked by messaging server
-    def db_callback_function(self,data,response_type):
-        message = json.loads(data)
-        function = message['function']
-        args = message['arguments']
-        #checks if function is valid or not
-        if(self.dbapi.is_valid(function, args, response_type)):
-            
-            result = CallMethod(self.Core.DB.DBHandler, function, args)
-            return json.dumps(result)
+    push_msg(json.dumps(argumentlist),db_pushQ)
+    
+
+def db_pull(argumentlist):
+    
+    result = pull_msg(json.dumps(argumentlist),db_pullQ)
+    if result:
+        return json.loads(result)
+    return result

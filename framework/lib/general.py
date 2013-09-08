@@ -37,7 +37,7 @@ import random
 import string
 import sys
 import threading
-import time
+import time,base64
 
 class FrameworkException(Exception):
 	def __init__(self, value):
@@ -149,7 +149,7 @@ def PathsExist(PathList):
 	ValidPaths = True
 	for Path in PathList:
 		if Path and not os.path.exists(Path):
-			cprint("WARNING: The path '" + Path + "' does not exist!")
+			log("WARNING: The path '" + Path + "' does not exist!")
 			ValidPaths = False
 	return ValidPaths
 
@@ -158,7 +158,7 @@ def GetFileAsList(Filename):
 		Output = open(Filename, 'r').read().split("\n")
 		cprint("Loaded file: '"+Filename+"'")
 	except IOError, error:
-		cprint("Cannot open file: '"+Filename+"' ("+str(sys.exc_info())+")")
+		log("Cannot open file: '"+Filename+"' ("+str(sys.exc_info())+")")
 		Output = []
 	return Output
 
@@ -167,7 +167,7 @@ def AppendToFile(Filename, Data):
 		#cprint("Writing to file: '"+Filename+"'")
 		open(Filename, 'a').write(Data)
 	except IOError, error:
-		cprint("Cannot write to file: '"+Filename+"' ("+str(sys.exc_info())+")")
+		log("Cannot write to file: '"+Filename+"' ("+str(sys.exc_info())+")")
 
 def get_files(request_dir):
     files = os.listdir(request_dir)
@@ -181,7 +181,10 @@ def wait_until_dir_exists(request_dir,delay):
     while True:
         if(os.path.exists(request_dir)):
             return
-    time.sleep(delay)
+        time.sleep(delay)
+
+#sleep delay for different sleeps
+sleep_delay = 0.025
    
     
 #this function writes to a file atomically
@@ -216,7 +219,7 @@ def atomic_read_from_file(requests_dir, partial_filename, skip_if_locked = True)
         data=""
         while not os.path.exists(filename):
             #AppendToFile("file1", "file is not there "+filename+"\n")
-            time.sleep(0.025)
+            time.sleep(sleep_delay)
             
         with FileLock(filename, timeout=delay):
             fd = open(filename,'r')
@@ -229,6 +232,11 @@ def atomic_read_from_file(requests_dir, partial_filename, skip_if_locked = True)
     except:
         return ""    
 
+def get_random_str(len):
+    """function returns random strings of length len"""
+    return base64.urlsafe_b64encode(os.urandom(len))[0:len]
+
+    
 #cleanly remove directories
 def removeDirs(dir):
     for f in os.listdir(dir):
@@ -237,6 +245,9 @@ def removeDirs(dir):
 
 # Files for messaging system
 OWTF_FILE_QUEUE_DIR = "/tmp/owtf/"
+db_pushQ="push"
+db_pullQ="pull"
+QUEUES = {db_pushQ,db_pullQ}
 
 #logging function
 #log levels
@@ -283,27 +294,27 @@ def get_source_info():
             , 'Source' : source # Class Name / Func Name logging the message
             }
 
-def getDefaultLog(source_info):
+def get_default_logger(source_info):
     """
         Give default log element for given source_info.. 
         For now it is simply returning general log
     """
     return logging.getLogger("general")
     
-def getDefaultlogFile(source_info):
+def get_default_logfile(source_info):
     """
         Give default log file for given source_info.. 
         For now it is simply returning log file given in config file
     """
     return logging.getLogger("logfile")
 
-def Log(message, type = INFO, Overrides = {}.copy()):
+def log(message, type = INFO, overrides = {}.copy()):
     """
     Logs a message to call
     """
     source_info = get_source_info() # Retrieve Source class, function, process and thread
-    defaultlog = getDefaultLog(source_info)
-    defaultfile = getDefaultlogFile(source_info)
+    defaultlog = overrides.get('Logger',get_default_logger(source_info))
+    defaultfile = overrides.get('LogFile',get_default_logfile(source_info))
     if type!=BENCHMARK:
         defaultlog.info(message)
     log_enteries = {'processname':source_info['Process'],'functionname':source_info['Source'],'type':LOG_LEVELS[type]}

@@ -90,9 +90,11 @@ class PluginConfig:
                                 PluginGroup, PluginType, PluginFile = PluginChunks
                         if PluginGroup not in self.AllPlugins:
                                 self.AllPlugins[PluginGroup] = defaultdict(list)
+                        
 			PluginName, PluginCode = PluginFile.split('@')
 			PluginCode = PluginCode.split('.')[0] # Get rid of the ".py"
                         self.AllPlugins[PluginGroup][PluginType].append( { 'Group' : PluginGroup, 'Type' : PluginType, 'Title' : PluginName.title().replace('_', ' '), 'Name' : PluginName, 'Code': PluginCode, 'File' : PluginFile, 'Descrip' : PluginDescrip, 'Args' : '' } ) # Args to be set on-the-fly by auxiliary plugins
+        
 
 	def GetPlugins(self, Criteria): # Builds a Plugin list containing all plugins that match the passed criteria
 		PluginList = []

@@ -119,7 +119,7 @@ def GetArgs(Core, args):
                         help="<port> - Port to run probes")
     Parser.add_argument("-portwaves", "--portwaves",
                         dest="PortWaves",
-                        default=None,
+                        default="10,100,1000",
                         help="<wave1,wave2,wave3> - Waves to run network scanning")
     Parser.add_argument("-proxy", "--proxy",
                         dest="ProxyMode",
