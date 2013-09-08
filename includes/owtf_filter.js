@@ -246,11 +246,11 @@ function DisplayMatches(NumMatches) {
         GetById('filtermatches_counter').innerHTML = NumMatches
 }
 
-function HideDetailedReportData() {
+function HideDetailedReportData(Offset) {
     //SetDisplayToAllPluginTabs('none') //Hide all plugin tabs
 	
 	for (var target in window.ReportsInfo) {
-		SetDisplayToDivs(window.ReportsInfo[target].AllPlugins, 'none')//Hide all plugin divs
+		SetDisplayToDivsByOffset(Offset, window.ReportsInfo[target].AllPlugins, 'none')//Hide all plugin divs
 	}
 		
     SetDisplayToAllTestGroups('none') //Hide all index divs
@@ -259,9 +259,9 @@ function HideDetailedReportData() {
     HighlightFilters('')
 }
 
-function ShowDetailedReportData() {
+function ShowDetailedReportData(Offset) {
 	for (var target in window.ReportsInfo) {
-		SetDisplayToDivs(window.ReportsInfo[target].AllPlugins, 'none')//Hide all plugin divs
+		SetDisplayToDivsByOffset(Offset, window.ReportsInfo[target].AllPlugins, 'none')//Hide all plugin divs
 	}
     SetDisplayToAllTestGroups('block') //Show all index divs
     SetDisplayToAllPluginTabs('') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
@@ -277,7 +277,7 @@ function FilterResults(Offset, Parameter, FromReportType) {
                 return false
         }
         //Step 1 - Hide everything
-        HideDetailedReportData()
+        HideDetailedReportData(Offset)
         AffectedPlugins = 0
         //Step 2 - Apply filter: Show whatever is relevant
         if ('seen' == Parameter) {
@@ -290,7 +290,7 @@ function FilterResults(Offset, Parameter, FromReportType) {
                 AffectedPlugins = UnfilterPluginsWhereCommentsPresent(Offset)
         }
         else if ('delete' == Parameter) {//Remove filter
-                ShowDetailedReportData()
+                ShowDetailedReportData(Offset)
                 //SetDisplayToAllPluginTabs('block')//Show all plugin tabs
                 /*SetDisplayToAllTestGroups('block')//Show all index divs
                 SetDisplayToAllPluginTabs('') //Show all plugin tabs again (display = block looks horrible :))
