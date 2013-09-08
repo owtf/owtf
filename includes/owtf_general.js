@@ -83,6 +83,14 @@ function SetDisplayToDivs(DivArray, Display) {//Modifies the display of all pass
                 d.style.display = Display;
         }
 }
+
+function SetDisplayToDivsByOffset(Offset, DivArray, Display) {//Modifies the display of all passed divs to whatever was passed on "Display"
+    for (var i=0, len=DivArray.length; i<len; ++i) {
+            d = GetById(Offset+"_"+DivArray[i]);
+            d.style.display = Display;
+    }
+}
+
 function ShowDivs(DivArray) {//Set a bunch of divs to be shown
         return SetDisplayToDivs(DivArray, 'block');
 }

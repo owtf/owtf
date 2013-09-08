@@ -178,7 +178,7 @@ function GetStorageMemoryPercent() {
 
 function HidePlugin(Offset, PluginId) {
 	//$('#div_'+ Offset + "_"+PluginId).tab("hide")
-	return SetClassNameToElems(new Array('tab_'+ Offset + "_" +PluginId), '')
+	return null//SetClassNameToElems(new Array('tab_'+ Offset + "_" +PluginId), '')
 	//return false
 }
 
@@ -286,8 +286,8 @@ function SetStyleToPlugins(Offset, PluginArray, StyleText) {
 	//console.log('SetStyleToPlugins -> Review[' + Offset + ']=', Review[Offset])
 	for (i=0, length = PluginArray.length; i<length; i++) {
 		PluginId = PluginArray[i]
-		StrikeIcon = GetById('l'+PluginId)
-		Tab = GetById('tab_'+PluginId)
+		StrikeIcon = GetById('l'+Offset+"_"+PluginId)
+		Tab = GetById('tab_'+Offset+"_"+PluginId)
 		if (Tab != null) {
 			Tab.style.textDecoration = StyleText
 			//alert(Tab.name)
@@ -296,8 +296,8 @@ function SetStyleToPlugins(Offset, PluginArray, StyleText) {
 			//console.log(Review[Offset][PluginId])
 			//console.log(Review[Offset][PluginId]['flag'])
 			Flag = Review[Offset][PluginId]['flag']
-			Tab.parentNode.className = Flag
-			RatingId = PluginId + Flag
+			Tab.firstChild.innerHTML = Flag
+			RatingId = Offset+"_"+PluginId + Flag
 			if (Flag != 'N' && document.getElementById(RatingId) != null) {//Check valid flag exists
 				//MarkIcon(GetById(RatingId), true)
 			}
@@ -467,12 +467,15 @@ function SaveComments(Offset, PluginId) {
 	SaveDB()
 }
 
-function SetDisplayToAllPluginTabs(Offset, Display) {
-        for (var i=0, length = window.ReportsInfo[Offset].AllPlugins.length; i<length; i++) {
+function SetDisplayToAllPluginTabs(Display) {
+		for (var Offset in window.ReportsInfo ) {
+	        for (var i=0, length = window.ReportsInfo[Offset].AllPlugins.length; i<length; i++) {
                 var PluginId = window.ReportsInfo[Offset].AllPlugins[i]
-		GetById('tab_'+PluginId).parentNode.style.display = Display
-		GetById('tab_'+PluginId).className = ''
-	}
+
+		GetById('tab_'+Offset+"_"+PluginId).parentNode.style.display = Display
+		GetById('tab_'+Offset+"_"+PluginId).className = ''
+	        }
+		}
 }
 
 function SetDisplayToAllTestGroups(Display) {

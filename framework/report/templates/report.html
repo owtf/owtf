@@ -15,14 +15,19 @@
 							<ul class="nav nav-pills ">
 								<li class="brand disabled"><a>Type: </a> </li>
 							{% for Match in TestGroup.Matches %}
-								<li id="tab_{{ ReportID }}_{{ Match.PluginId }}" class=""><a  class="" href="#div_{{ ReportID }}_{{ Match.PluginId }}" data-toggle="tab">{{ Match.PluginName|replace( '_', ' ' )|upper }}</a></li>
+								<li id="tab_{{ ReportID }}_{{ Match.PluginId }}" class="">
+									<span> </span>
+									<a class="" href="#{{ ReportID }}_{{ Match.PluginId }}" data-toggle="tab">
+										{{ Match.PluginName|replace( '_', ' ' )|upper }}
+									</a>
+								</li>
 							{% endfor %}
 								<li class="pull-right"><a href="{{ TestGroup.TestGroupInfo.URL }}" class="text-success"><i class="icon-lightbulb"></i></a> </li>
 							</ul>
 							<div class="tab-content ">
 							
 							{% for Match in TestGroup.Matches %}
-							<div class="tab-pane" id="div_{{ ReportID }}_{{ Match.PluginId }}">
+							<div class="tab-pane" id="{{ ReportID }}_{{ Match.PluginId }}">
 					 			{{ Match.PluginContent }}
 						 </div>
 						
@@ -51,5 +56,5 @@
 			ApplyReview("{{ ReportID }}") //Apply reviewed plugins
 			HighlightNewPlugins("{{ ReportID }}") //Right after loading, only once, highlight the new plugins
 			//ClickLinkById('filterinfo') //Click on Filter by information only
-			DisplayCounters(Review["{{ ReportID }}"], "__{{ ReportID }}Counters", '')
+			DisplayCounters(GetWorkReview(), "__SummaryCounters", '')
 </script>
