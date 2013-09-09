@@ -93,7 +93,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         # This function is a callback after the async client gets the full response
         # This method will be improvised with more headers from original responses
         def handle_response(response):
-            if response.code in [599]:
+            if response.code in [408]:
                 try:
                     old_count = self.request.retries
                     self.request.retries = old_count + 1
@@ -217,7 +217,7 @@ class ProxyHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def options(self):
         return self.get()
-        
+
     @tornado.web.asynchronous
     def connect(self):
         """
