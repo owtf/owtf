@@ -16,8 +16,6 @@ class DBEnvironmentBuilder():
         db.DBHandler.Storage['SEED_DB'] = {"seed/path": {'Data': [], 'SyncCount': 0}}
         db.DBHandler.GetDBNames_old = db.DBHandler.GetDBNames
         db.DBHandler.should_receive("GetDBNames").and_return(["db1", "db2", "HTMLID_DB"])
-        flexmock(db.DBClient)
-        db.DBClient.should_receive("db_send")
 
         general.INCOMING_QUEUE_TO_DIR_MAPPING = defaultdict(list)
         general.OUTGOING_QUEUE_TO_DIR_MAPPING = defaultdict(list)
