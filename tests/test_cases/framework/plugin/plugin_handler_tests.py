@@ -200,18 +200,17 @@ class PluginHandlerTests(BaseTestCase):
         self.core_mock.Config.should_receive("GetProcessPerCore").and_return(1)
 
     def test_ProcessPluginsForTargetList_with_net_plugins(self):
-        self.core_mock.Config.should_receive("GetPortWaves").and_return("10")
+        self.core_mock.Config.should_receive("Get").with_args("PORTWAVES").and_return("10")
         self.core_mock.Config.should_receive("Get").with_args("PLUGINS_DIR").and_return(PLUGINS_DIR)
         self.core_mock.Config.should_receive("GetTcpPorts").and_return(range(11)[1:])
         scanner = self.plugin_handler.scanner
         scanner.should_receive("scan_network").once()
-        scanner.should_receive("probe_network").and_return([]).times(2)
+        scanner.should_receive("probe_network").and_return([]).times(1)
         flexmock(self.plugin_handler)
-        self.plugin_handler.should_receive("SwitchToTarget").times(2)
+        self.plugin_handler.should_receive("SwitchToTarget").times(1)
         self.plugin_handler.should_receive("get_plugins_in_order_for_PluginGroup").and_return(["plugin1"])
-        self.plugin_handler.should_receive("ProcessPlugin").times(2)
+        self.plugin_handler.should_receive("ProcessPlugin").times(1)
 
-        #TODO improve the code, with this arguments, methods should only be called once
         self.plugin_handler.ProcessPluginsForTargetList("net", {}, ["target1"])
 
     def test_all_Show_methods_should_print_output_to_stdout(self):
