@@ -68,7 +68,7 @@ class Updater(object):
             
             self.process_environ['http_proxy'] = 'http://' + proxy_support
             self.process_environ['https_proxy'] = 'https://' + proxy_support
-
+        # GITHUB API is used to fetch all the tags
         response = urllib2.urlopen(self.remote_tags_url)
         self.remote_tags = json.loads(response.read())
 
@@ -82,6 +82,7 @@ class Updater(object):
             return True
 
     def last_commit_hash(self):
+        # This function returns the last commit hash in local repo
         command = ("git --git-dir=%s log -n 1 "%(self.git_dir))
         command += "--pretty=format:%H"
         process = execute(command, shell=True, env=self.process_environ, stdout=PIPE, stderr=PIPE)
@@ -92,9 +93,10 @@ class Updater(object):
     def update(self):
         # The main update method
         if self.check():
+            # Insted of checking tag names, commit hashes is checked for foolproof method
             if self.last_commit_hash() != self.remote_tags[0]["commit"]["sha"]:
                 cprint("Trying to update OWTF to %s"%(self.remote_tags[0]["name"]))
-                command = ("git pull; git reset --hard %s"%(self.remote_tags[0]["name"]))
+                command = ("git pull; git reset --soft %s"%(self.remote_tags[0]["name"]))
                 process = execute(command, shell=True, env=self.process_environ, stdout=PIPE, stderr=PIPE)
                 stdout, stderr = process.communicate()
                 success = not process.returncode
