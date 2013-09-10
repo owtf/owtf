@@ -234,7 +234,7 @@ class WebPluginsTests(WebPluginTestCase):
 
     def test_Credentials_transport_over_an_encrypted_channel_grep(self):
         # Looks for forms with password inputs loaded through http
-        self._prepare_test_with_login_form_in("/credentials")
+        self._prepare_test_with_login_form_in("/credentials-encrypted_channel")
 
         self.owtf("-g web -t grep -o Credentials_transport_over_an_encrypted_channel")
 
@@ -316,7 +316,7 @@ class WebPluginsTests(WebPluginTestCase):
         # Looks for forms and password inputs
 
         # Repeat the transaction path to avoid more results in the plugin output
-        self._prepare_test_with_login_form_in("/credentials")
+        self._prepare_test_with_login_form_in("/credentials-password")
 
         self.owtf("-g web -t grep -o Vulnerable_Remember_Password_and_Pwd_Reset")
 
