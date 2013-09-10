@@ -128,7 +128,7 @@ def GetArgs(Core, args):
     Parser.add_argument("--update", "--update",
                         dest="Update",
                         action="store_true",
-                        help="Use this flag to update OWTF")
+                        help="Use this flag to update OWTF to stable version (not bleeding edge)")
     Parser.add_argument('Targets', nargs='*', help='List of Targets')
 
     return Parser.parse_args(args)

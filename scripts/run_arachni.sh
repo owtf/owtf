@@ -33,17 +33,19 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-if [ $# -ne 2 -a $# -ne 3 ]; then
-	echo "Usage $0 <tool_dir> <target url> (<user agent -spaces replaced by # symbol->)"
+if [ $# -ne 3 -a $# -ne 4 ]; then
+	echo "Usage $0 <tool_dir> <target url> <proxy> (<user agent -spaces replaced by # symbol->)"
         exit
 fi
 
 TOOL_DIR=$1
 URL=$2
+PROXY=$3
 USER_AGENT="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/6.0" # Default to something less obvious
-if [ $3 ]; then
-	USER_AGENT=$(echo $3 | sed 's/#/ /g') # Expand to real User Agent
+if [ $4 ]; then
+	USER_AGENT=$(echo $4 | sed 's/#/ /g') # Expand to real User Agent
 fi
+
 
 DATE=$(date +%F_%R_%S | sed 's/:/_/g')
 echo "DATE=$DATE"
@@ -52,11 +54,11 @@ DIR=$(pwd) # Remember current dir
 echo "[*] Moving to Tool directory: $TOOL_DIR"
 cd "$TOOL_DIR" # arachni works better when run from its folder, sounds familiar? :)
 #COMMAND="./arachni --only-positives --user-agent=\"$USER_AGENT\" --http-req-limit=30 --report=\"html:outfile=$OUTFILE.html\" --report=\"txt:outfile=$OUTFILE.txt\" --report=\"metareport:outfile=$OUTFILE.msf\" --report=\"ap:outfile=$OUTFILE.ap\" --report=\"xml:outfile=$OUTFILE.xml\" --report=\"afr:outfile=$OUTFILE.afr\" $URL"
-COMMAND="./arachni --user-agent=\"$USER_AGENT\" --http-req-limit=20 --report=\"html:outfile=$OUTFILE.html\" --report=\"txt:outfile=$OUTFILE.txt\" --report=\"metareport:outfile=$OUTFILE.msf\" --report=\"ap:outfile=$OUTFILE.ap\" --report=\"xml:outfile=$OUTFILE.xml\" --report=\"afr:outfile=$OUTFILE.afr\" $URL"
+COMMAND="./arachni --user-agent=\"$USER_AGENT\" --http-req-limit=20 --report=\"html:outfile=$OUTFILE.html\" --report=\"txt:outfile=$OUTFILE.txt\" --report=\"metareport:outfile=$OUTFILE.msf\" --report=\"ap:outfile=$OUTFILE.ap\" --report=\"xml:outfile=$OUTFILE.xml\" --report=\"afr:outfile=$OUTFILE.afr\" --proxy=$PROXY $URL"
 echo
 echo "[*] Running: $COMMAND"
 # IMPORTANT: Running as "$COMMAND" fails totally, avoid!!!
-./arachni --user-agent="$USER_AGENT" --http-req-limit=20 --report="html:outfile=$OUTFILE.html" --report="txt:outfile=$OUTFILE.txt" --report="metareport:outfile=$OUTFILE.msf" --report="ap:outfile=$OUTFILE.ap" --report="xml:outfile=$OUTFILE.xml" --report="afr:outfile=$OUTFILE.afr" $URL
+./arachni --user-agent="$USER_AGENT" --http-req-limit=20 --report="html:outfile=$OUTFILE.html" --report="txt:outfile=$OUTFILE.txt" --report="metareport:outfile=$OUTFILE.msf" --report="ap:outfile=$OUTFILE.ap" --report="xml:outfile=$OUTFILE.xml" --report="afr:outfile=$OUTFILE.afr" --proxy=$PROXY $URL
 #./arachni --only-positives --user-agent="$USER_AGENT" --http-req-limit=30 --report="html:outfile=$OUTFILE.html" --report="txt:outfile=$OUTFILE.txt" --report="metareport:outfile=$OUTFILE.msf" --report="ap:outfile=$OUTFILE.ap" --report="xml:outfile=$OUTFILE.xml" --report="afr:outfile=$OUTFILE.afr" $URL
 
 #REPORT_LOCATION="$TOOL_DIR/cde-package/cde-root"
