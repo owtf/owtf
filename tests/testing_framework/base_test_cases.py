@@ -251,7 +251,8 @@ class WebPluginTestCase(BaseTestCase):
         result = []
         self.init_stdout_recording()
         try:
-            result.append(str(self.core_instance.PluginHandler.ProcessPlugin(plugin_dir, plugin, {})))
+            plugin_output = self.core_instance.PluginHandler.ProcessPlugin(plugin_dir, plugin, {})
+            result.append(str(plugin_output))
         except:
             result.append(str(sys.exc_info()[0]))
         finally:
