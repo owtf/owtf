@@ -50,7 +50,7 @@ class ProxyHandler(tornado.web.RequestHandler):
     """
     This RequestHandler processes all the requests that the application received
     """
-    SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS']
+    SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE']
 
     def set_status(self, status_code, reason=None):
         """Sets the status code for our response.
@@ -182,11 +182,11 @@ class ProxyHandler(tornado.web.RequestHandler):
         # The requests that come through ssl streams are relative requests, so transparent
         # proxying is required. The following snippet decides the url that should be passed
         # to the async client
-        if self.request.host in self.request.uri.split('/'):  # Normal Proxy Request
+        #if self.request.host in self.request.uri.split('/'):
+        if self.request.uri.startswith(self.request.protocol,0): # Normal Proxy Request
             self.request.url = self.request.uri
         else:  # Transparent Proxy Request
             self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
-
         # This block here checks for already cached response and if present returns one
         self.cache_handler = CacheHandler(            
                                             self.application.cache_dir,
@@ -216,6 +216,10 @@ class ProxyHandler(tornado.web.RequestHandler):
 
     @tornado.web.asynchronous
     def options(self):
+        return self.get()
+
+    @tornado.web.asynchronous
+    def trace(self):
         return self.get()
 
     @tornado.web.asynchronous
