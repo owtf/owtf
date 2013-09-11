@@ -130,4 +130,5 @@ mkdir -p $INSTALL_DIR
 		)
 	fi
 )
+yes | cp -rf "$TOOLS_DIRECTORY/signatures.txt" "/pentest/enumeration/web/httprint/linux/signatures.txt"
 "$TOOLS_DIRECTORY/bt5_patch_nikto.sh"
