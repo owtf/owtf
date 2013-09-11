@@ -92,7 +92,7 @@ WgetInstall() {
 # This script needs to be run to download tools with potentially restrictive licensing (cannot be redistributed)
 TOOLS_DIRECTORY="$(dirname $0)"
 INSTALL_DIR="$TOOLS_DIRECTORY/restricted"
-CP_DIR="$TOOLS_DIRECTORY/restricted/tools/httprint/httprint_301"
+CP_DIR="$TOOLS_DIRECTORY/restricted/httprint/httprint_301/linux"
 mkdir -p $INSTALL_DIR
 (
 	cd $INSTALL_DIR
