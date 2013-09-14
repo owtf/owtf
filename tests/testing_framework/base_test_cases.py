@@ -17,6 +17,8 @@ import string
 import random
 from hamcrest.core.core.isequal import equal_to
 import cgi
+from hamcrest.library.text.stringmatches import matches_regexp
+from hamcrest.library.number.ordering_comparison import greater_than_or_equal_to
 
 
 class BaseTestCase(unittest.TestCase):
@@ -90,9 +92,13 @@ class CoreInitialiser():
 
 class WebPluginTestCase(BaseTestCase):
 
-    TARGET = "localhost:8888"
-    DYNAMIC_METHOD_REGEX = "^set_(head|get|post|put|delete|options|connect)_response"
+    HOST = "localhost"
+    IP = "127.0.0.1"
+    PORT = "8888"
+    TARGET = "%s:%s" % (HOST, PORT)
     ANCHOR_PATTERN = "href=\"%s\""
+    PASSIVE_LINK_PATTERN = (ANCHOR_PATTERN % (".*" + HOST + "|" + IP + "|\?.+=" + HOST + ".*"))
+    DYNAMIC_METHOD_REGEX = "^set_(head|get|post|put|delete|options|connect)_response"
     OWTF_REVIEW_FOLDER = "owtf_review"
     LOG_FILE = "logfile"
     NOT_INTERACTIVE = " -i no "
@@ -223,6 +229,7 @@ class WebPluginTestCase(BaseTestCase):
         plugin_dir, plugin = self.get_dir_and_plugin_from_options(processed_options)
         result = self.run_plugin(plugin_dir, plugin)
         self.owtf_output = "\n".join(result[:])
+        self.check_for_bugs()
 
     def process_options(self, options):
         """Parses the command line options passed to the owtf method."""
@@ -260,7 +267,13 @@ class WebPluginTestCase(BaseTestCase):
             result.append(str(stdout_output))
         return result
 
-    def assert_external_tool_started(self, times=1):
+    def check_for_bugs(self):
+        bug_found_banner = "OWTF BUG: Please report the sanitised information below to help make this better. Thank you."
+        if self.owtf_output.count(bug_found_banner) > 0:
+            print self.owtf_output
+            self.fail("The test failed because a bug was found during the execution.")
+
+    def assert_external_tool_started(self, times):
         self.assert_that_output_contains(self.PLUGIN_START_TEXT, times)
 
     def assert_that_output_contains_lines(self, lines):
@@ -271,6 +284,26 @@ class WebPluginTestCase(BaseTestCase):
         assert_that(self.owtf_output, contains_string(substring))
         if times is not None:
             assert_that(self.owtf_output.count(substring), equal_to(times))
+
+    def check_link_generation_for_resources(self, resources_name):
+        if not isinstance(resources_name, list):
+            resources_name = [resources_name]
+        for resource in resources_name:
+            times = len(self.get_resources(resource))
+            # The pattern should match at least as many times as resources for that name
+            self.assert_that_output_matches_more_than(self.PASSIVE_LINK_PATTERN, times)
+
+    def assert_that_output_matches_more_than(self, regex, times):
+        assert_that(self.owtf_output, matches_regexp(regex))
+        if times is not None:
+            times_replaced = self._get_number_of_occurences_for(regex)
+            assert_that(times_replaced, greater_than_or_equal_to(times))
+
+    def _get_number_of_occurences_for(self, regex):
+        token = self.generate_random_token()
+        output_copy = self.owtf_output
+        sub_result, times_replaced = re.subn(regex, token, output_copy)
+        return times_replaced
 
     def generate_random_token(self, length=15):
         """Useful to identify the specified content in the plugin output."""
@@ -297,3 +330,6 @@ class WebPluginTestCase(BaseTestCase):
         for name in header_names:
             headers[name] = self.generate_random_token()
         return headers
+
+    def get_resources(self, resource_name):
+        return self.core_instance.Config.GetResources(resource_name)
