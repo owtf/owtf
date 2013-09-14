@@ -40,6 +40,8 @@ import os
 import re
 import cgi
 
+PLUGIN_DELIM = '__'  # Characters like ; | . or / trip CKEditor as separators
+
 class Summary:
 	def __init__( self, Core ):
 		self.Core = Core # Keep Reference to Core Object
@@ -201,6 +203,7 @@ class Summary:
 								},
 						"AuxInfo":  self.AuxInfo(),
 						"JsonNetMap": json.dumps( self.NetMap ),
+                        "PLUGIN_DELIM" : PLUGIN_DELIM,
 
 				}
 
