@@ -32,7 +32,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-NIKTO_CONF_FILE="/etc/nikto/config.txt"
+NIKTO_CONF_FILE="/etc/nikto.conf"
 NIKTO_CONF_BACKUP="$NIKTO_CONF_FILE.backup"
 if [ $(grep 'USERAGENT=Mozilla/.* (Nikto' $NIKTO_CONF_FILE|wc -l) -gt 0 ]; then
 	echo "Nikto is currently set to display a NIKTO USER AGENT, do you want to replace this with a normal looking one? [y/n]"

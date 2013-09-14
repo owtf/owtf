@@ -190,7 +190,7 @@ class ConfigTests(BaseTestCase):
                 "Interactive": False,
                 "Simulation": True,
                 "PluginGroup": "web",
-                "PortWaves": None,
+                "PortWaves": [10,100],
                 'Scope': [],
                 "Profiles": {}}
 

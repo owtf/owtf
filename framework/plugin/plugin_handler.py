@@ -331,7 +331,7 @@ class PluginHandler:
            			#Scanning and processing the first part of the ports
                 		for i in range(1):
 					ports = self.Core.Config.GetTcpPorts(lastwave,waves[i])
-                                        print "probing for ports" + ports      
+                                        print "probing for ports" + str(ports)      
 					http = self.scanner.probe_network(Target,"tcp",ports)
 					self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
 					for Plugin in self.get_plugins_in_order_for_PluginGroup(PluginGroup):# For each Plugin

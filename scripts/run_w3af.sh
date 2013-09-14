@@ -33,16 +33,19 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-if [ $# -ne 2 -a $# -ne 3 ]; then
-        echo "Usage $0 <tool_dir> <target url> (<user agent -spaces replaced by # symbol->)"
+if [ $# -ne 3 -a $# -ne 4 ]; then
+        echo "Usage $0 <tool_dir> <target url> <proxy> (<user agent -spaces replaced by # symbol->)"
         exit
 fi
 
 TOOL_DIR=$1
 URL=$2
+PROXY=$3
+PROXY_IP=$(echo $PROXY | cut -d ":" -f 1)
+PROXY_PORT=$(echo $PROXY | cut -d ":" -f 2)
 USER_AGENT="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/6.0" # Default to something less obvious
-if [ $3 ]; then
-	USER_AGENT=$(echo $3 | sed 's/#/ /g') # Expand to real User Agent
+if [ $4 ]; then
+	USER_AGENT=$(echo $4 | sed 's/#/ /g') # Expand to real User Agent
 fi
 
 DATE=$(date +%F_%R:%S | sed 's/:/_/g')
@@ -64,26 +67,29 @@ profiles
 use full_audit
 back
 plugins
-bruteforce !basicAuthBrute,!formAuthBrute
-discovery webSpider,sharedHosting,allowedMethods,digitSum,content_negotiation,robotsReader,serverStatus,urlFuzzer
-output htmlFile,textFile
-output config htmlFile
-set fileName $REPORT_HTML
+bruteforce !basic_auth,!form_auth
+crawl web_spider, robots_txt, content_negotiation, digit_sum, url_fuzzer
+infrastructure shared_hosting, allowed_methods, server_status
+output html_file,text_file
+output config html_file
+set output_file $REPORT_HTML
 back
-output config textFile
-set httpFileName $REPORT_HTTP
-set fileName $REPORT_TXT
+output config text_file
+set http_output_file $REPORT_HTTP
+set output_file $REPORT_TXT
 back
 back
 misc-settings
-set fuzzFileName True
-set fuzzCookie True
-set maxDiscoveryTime 240
+set fuzz_url_filenames True
+set fuzz_cookies True
+set max_discovery_time 240
 back
 http-settings
 set timeout 60
-set userAgent $USER_AGENT
-set maxRetrys 3
+set user_agent $USER_AGENT
+set max_http_retries 3
+set proxy_port $PROXY_PORT
+set proxy_address $PROXY_IP
 back
 target
 set target $URL

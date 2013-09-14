@@ -38,7 +38,7 @@ RootDir = os.path.dirname(os.path.abspath(sys.argv[0])) or '.'
 
 from framework import core
 from framework.lib.general import *
-
+from framework import update
 
 def Banner():
     print """
@@ -124,11 +124,30 @@ def GetArgs(Core, args):
     Parser.add_argument("-proxy", "--proxy",
                         dest="ProxyMode",
                         action="store_true",
-                        help="Use this flag to run modules which are under development")
+                        help="Use this flag to run OWTF Inbound Proxy")
+    Parser.add_argument("--update", "--update",
+                        dest="Update",
+                        action="store_true",
+                        help="Use this flag to update OWTF to stable version (not bleeding edge)")
     Parser.add_argument('Targets', nargs='*', help='List of Targets')
 
     return Parser.parse_args(args)
 
+def GetArgsForUpdate(args):
+    Parser = argparse.ArgumentParser(description="OWASP OWTF, the Offensive (Web) Testing Framework, is an OWASP+PTES-focused try to unite great tools and make pentesting more efficient @owtfp http://owtf.org\nAuthor: Abraham Aranguren <name.surname@owasp.org> - http://7-a.org - Twitter: @7a_")
+    Parser.add_argument("-x", "--outbound_proxy",
+                        dest="OutboundProxy",
+                        default=None,
+                        help="ip:port - Send all OWTF requests using the proxy for the given ip and port")
+    Parser.add_argument("-xa", "--outbound_proxy_auth",
+                        dest="OutboundProxyAuth",
+                        default=None,
+                        help="username:password - Credentials if any for outbound proxy")
+    Parser.add_argument("--update", "--update",
+                        dest="Update",
+                        action="store_true",
+                        help="Use this flag to update OWTF")
+    return Parser.parse_args(args)
 
 def Usage(ErrorMessage):
     FullPath = sys.argv[0].strip()
@@ -291,7 +310,25 @@ def run_owtf(Core, args):
 
 if __name__ == "__main__":
     Banner()
-    Core = core.Init(RootDir)  # Initialise Framework
-    print "OWTF Version: %s, Release: %s \n" % ( Core.Config.Get( 'VERSION' ), Core.Config.Get( 'RELEASE' ) )
-    args = ProcessOptions(Core, sys.argv[1:])
-    run_owtf(Core, args)
+    if not "--update" in sys.argv[1:]:
+        Core = core.Init(RootDir)  # Initialise Framework
+        print "OWTF Version: %s, Release: %s \n" % ( Core.Config.Get( 'VERSION' ), Core.Config.Get( 'RELEASE' ) )
+        args = ProcessOptions(Core, sys.argv[1:])
+        run_owtf(Core, args)
+    else:
+        # First confirming that --update flag is present in args and then
+        # creating a different parser for parsing the args.
+        try:
+            Arg = GetArgsForUpdate(sys.argv[1:])
+        except Exception, e:
+            Usage("Invalid OWTF option(s) " + e)
+        # Updater class is imported
+        UpdaterObj = update.Updater(RootDir)
+        # If outbound proxy is set, those values are added to Updater Object
+        if Arg.OutboundProxy:
+            if Arg.OutboundProxyAuth:
+                UpdaterObj.set_proxy(Arg.OutboundProxy, proxy_auth=Arg.OutboundProxyAuth)
+            else:
+                UpdaterObj.set_proxy(Arg.OutboundProxy)
+        # Update method called to perform update
+        UpdaterObj.update()

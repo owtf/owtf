@@ -104,7 +104,11 @@ class HTTP_Transaction:
         #self.ResponseHeaders = ResponseHeaders.split("\n")
         self.ResponseHeaders = ResponseHeaders
         self.ResponseContents = ResponseBody
-        self.CookieString = self.GetResponseHeaders().getheader('Set-Cookie')
+        cookies_list = []
+        for header in self.ResponseHeaders.split('\n'):
+            if header.split(':',1)[0].strip() == "Set-Cookie":
+                cookies_list.append(header.split(':',1)[-1].strip())
+        self.CookieString = ','.join(cookies_list)
 
     def SetError(self, ErrorMessage): # Only called for unknown errors, 404 and other HTTP stuff handled on self.SetResponse
         self.ResponseContents = ErrorMessage
