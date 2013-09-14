@@ -28,7 +28,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The scan_network scans the network for different ports and call network plugins for different services running on target
 '''
-import sys, os, re, socket
+from framework.lib.general import log
+import sys
+import os
+import re
+import socket
 
 SCANS_FOLDER="scans" # Folder under which all scans will be saved
 PING_SWEEP_FILE=SCANS_FOLDER+"/00_ping_sweep"
@@ -46,17 +50,17 @@ class Scanner:
         
     def ping_sweep(self,target,scantype):
         if scantype == "full":
-            print "Performing Intense Host discovery"
+            log("Performing Intense Host discovery")
             self.core.Shell.shell_exec("nmap -n -v -sP -PE -PP -PS21,22,23,25,80,443,113,21339 -PA80,113,443,10042 --source_port 53 "+ target +" -oA "+ PING_SWEEP_FILE)
         
         if scantype=="arp":
-            print "Performing ARP host discovery"
+            log("Performing ARP host discovery")
             self.core.Shell.shell_exec("nmap -n -v -sP -PR "+ target +" -oA "+ PING_SWEEP_FILE)  
         
         self.core.Shell.shell_exec("grep Up "+PING_SWEEP_FILE+".gnmap | cut -f2 -d\" \" > "+ PING_SWEEP_FILE+".ips")
     
     def dns_sweep(self,file_with_ips,file_prefix):
-        print "Finding misconfigured DNS servers that might allow zone transfers among live ips .."
+        log("Finding misconfigured DNS servers that might allow zone transfers among live ips ..")
         self.core.Shell.shell_exec("nmap -PN -n -sS -p 53 -iL "+file_with_ips+" -oA "+file_prefix)
 
 # Step 2 - Extract IPs
@@ -69,7 +73,6 @@ class Scanner:
         for line in file:
             if line.strip('\n'):
                 dns_server = line.strip('\n')
-                print dns_server
                 self.core.Shell.shell_exec("host "+dns_server+" "+dns_server+" | grep 'domain name' | cut -f 5 -d' ' | cut -f 2,3,4,5,6,7 -d. | sed 's/\.$//' >> "+domain_names)
                 num_dns_servers = num_dns_servers+1
         try:
@@ -83,25 +86,25 @@ class Scanner:
             self.core.Shell.shell_exec("host -l "+domain+" "+dns_server+" | grep "+domain+" > "+raw_axfr)
             success=self.core.Shell.shell_exec("wc -l "+raw_axfr+" | cut -f 1  -d ' '")
             if success > 3:   
-                print "Attempting zone transfer on $dns_server using domain $domain .. Success!"
+                log("Attempting zone transfer on $dns_server using domain "+domain+".. Success!")
 
                 axfr=file_prefix+"."+dns_server+"."+domain+".axfr"
                 self.core.Shell.shell_exec("rm -f "+axfr)
-                print self.core.Shell.shell_exec("grep 'has address' "+raw_axfr+" | cut -f 1,4 -d ' ' | sort -k 2 -t ' ' | sed 's/ /#/g'")
+                log(self.core.Shell.shell_exec("grep 'has address' "+raw_axfr+" | cut -f 1,4 -d ' ' | sort -k 2 -t ' ' | sed 's/ /#/g'"))
             else:
-                print "Attempting zone transfer on $dns_server using domain $domain .. Success!"
+                log("Attempting zone transfer on $dns_server using domain "+domain+"  .. Success!")
                 self.core.Shell.shell_exec("rm -f "+raw_axfr)
         if num_dns_servers==0:
             return    
     
     def scan_and_grab_banners(self,file_with_ips,file_prefix,scan_type,nmap_options):
         if scan_type == "tcp":
-            print "Performing TCP portscan, OS detection, Service detection, banner grabbing, etc"
+            log("Performing TCP portscan, OS detection, Service detection, banner grabbing, etc")
             self.core.Shell.shell_exec("nmap -PN -n -v --min-parallelism=10 -iL "+file_with_ips+" -sS -sV -O  -oA "+file_prefix+".tcp "+nmap_options)
             self.core.Shell.shell_exec("amap -1 -i "+file_prefix+".tcp.gnmap -Abq -m -o "+file_prefix+".tcp.amap -t 90 -T 90 -c 64")
         
         if scan_type=="udp":
-               print "Performing UDP portscan, Service detection, banner grabbing, etc"
+               log("Performing UDP portscan, Service detection, banner grabbing, etc")
                self.core.Shell.shell_exec("nmap -PN -n -v --min-parallelism=10 -iL "+file_with_ips+" -sU -sV -O -oA "+file_prefix+".udp "+nmap_options)
                self.core.Shell.shell_exec("amap -1 -i "+file_prefix+".udp.gnmap -Abq -m -o "+file_prefix+".udp.amap")
     
@@ -155,12 +158,19 @@ class Scanner:
         
     
     def probe_service_for_hosts(self,nmap_file,target):
-        services={"snmp","smb","smtp","ms-sql","ftp","X11","ppp","vnc","http-rpc-epmap","msrpc","http"}
+        services = []
+        #get all available plugins from net plugin order file
+        net_plugins= self.core.Config.Plugin.GetOrder("net")
+        for plugin in net_plugins:
+            services.append(plugin['Name'])
+        services.append("http")    
         total_tasks=0
         tasklist=""
         plugin_list = []
         http = []
-        for service in services: 
+        for service in services:
+            if plugin_list.count(service)>0:
+                continue 
             tasks_for_service = len(self.target_service(nmap_file,service).split("##"))-1
             total_tasks = total_tasks+tasks_for_service
             tasklist=tasklist+" [ "+service+" - "+str(tasks_for_service)+" tasks ]"
@@ -169,24 +179,14 @@ class Scanner:
                     ip = line.split(":")[0]
                     port = line.split(":")[1]
                     plugin_to_invoke = service
-                    if(service == 'ppp'):
-                        plugin_to_invoke='emc'
-                    if(service == 'ms-sql'):
-                        plugin_to_invoke='mssql'
-                    if(service == 'http-rpc-epmap'):
-                        plugin_to_invoke='httprpc'
-                    if(service == 'X11'):
-                        plugin_to_invoke='x11'     
                     service1 = plugin_to_invoke
-                    if service1 =='httprpc':
-                        service1 = 'http_rpc'
                     self.core.Config.Set(service1.upper()+"_PORT_NUMBER",port)
                     if(service != 'http'):
                         plugin_list.append(plugin_to_invoke)
                     else:
                         self.core.PluginHandler.OnlyPluginsSet = 0;
                         http.append(port)
-                    print "we have to probe "+str(ip)+":"+str(port)+" for service "+plugin_to_invoke
+                    log("we have to probe "+str(ip)+":"+str(port)+" for service "+plugin_to_invoke)
         self.core.PluginHandler.OnlyPluginsList = self.core.PluginHandler.ValidateAndFormatPluginList(plugin_list)        
         self.core.PluginHandler.OnlyPluginsSet = max(1,len(plugin_list))
         return http
