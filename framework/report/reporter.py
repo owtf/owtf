@@ -142,7 +142,7 @@ class Reporter:
 		#print "Plugin="+str(Plugin)
 		self.Core.DB.PluginRegister.Add( Plugin, PluginReportPath, self.Core.Config.GetTarget() )
                 #self.RegisterPartialReport(PluginReportPath) # Partial report saved ok, register partial report in register file for grouping later
-                self.ReportFinish() # Provide a full partial report at the end of each plugin
+                #self.ReportFinish() # Provide a full partial report at the end of each plugin
 
 	def DrawHTTPTransactionTable( self, TransactionList, NumLinesReq = 15, NumLinesRes = 15 ): # Draws a table of HTTP Transactions
 		template = self.Template_env.get_template( 'http_transaction_table.html' )
@@ -241,18 +241,18 @@ class Reporter:
 			return self.GetRegisteredNetPlugins( ReportType )
 
 
-	def ReportFinish( self ): # Group all partial reports (whether done before or now) into the final report
-		Target = self.Core.Config.GetTarget()
-		NumPluginsForTarget = self.Core.DB.PluginRegister.NumPluginsForTarget( Target )
-		if not NumPluginsForTarget > 0:
-			log( "No plugins completed for target, cannot generate report" )
-			return None # Must abort here, before report is generated
+	def ReportFinish( self, Target,registered_plugins ): # Group all partial reports (whether done before or now) into the final report
+		#Target = self.Core.Config.GetTarget()
+                self.Core.PluginHandler.SwitchToTarget(Target)
+		#NumPluginsForTarget = self.Core.DB.PluginRegister.NumPluginsForTarget( Target )
+		#if not NumPluginsForTarget > 0:
+		#	log( "No plugins completed for target, cannot generate report" )
+		#	return None # Must abort here, before report is generated
 		#ReportStart -- Wipe report
 		self.CounterList = []
 		if not self.Init:
 			self.CopyAccessoryFiles()
 			self.Init = True # The report is re-generated several times, this ensures images, stylesheets, etc are only copied once at the start
-
 		with open( self.Core.Config.Get( 'HTML_DETAILED_REPORT_PATH' ), 'w' ) as file:
 			template = self.Template_env.get_template( 'report.html' )
 			vars = {
@@ -319,15 +319,15 @@ class Reporter:
 						"Globals": {
 									"AllPluginsTabIdList": [
 											"tab_" + self.GetPluginDivId( Match )
-											 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins']
+											 for Match in registered_plugins
 											 ],
 									"AllPluginsDivIdList":[
 											 self.GetPluginDivId( Match )
-											 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins']
+											 for Match in registered_plugins
 											 ],
 									"AllCodes": [
 											 Match['Code'] #eliminate repetitions,
-											 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )  for Match in  TestGroup['RegisteredPlugins']
+											 for Match in  registered_plugins
 											 ],
 									},
 						"TestGroups": [
@@ -340,15 +340,15 @@ class Reporter:
 														 "TabName": Match["Label"],
 														 "DivContent": open( Match['Path'] ).read(),
 														}
-														for Match in TestGroup['RegisteredPlugins']
+														for Match in registered_plugins
 														],
 										 "TabIdList": [
 														"tab_" + self.GetPluginDivId( Match )
-														for Match in TestGroup['RegisteredPlugins']
+														for Match in registered_plugins
 														],
 										"DivIdList": [
 														self.GetPluginDivId( Match )
-														for Match in TestGroup['RegisteredPlugins']
+														for Match in registered_plugins
 														]
 									}
 									 for TestGroup in self.GetTestGroups( self.Core.Config.Get( 'REPORT_TYPE' ) )

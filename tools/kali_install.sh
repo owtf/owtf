@@ -92,6 +92,7 @@ WgetInstall() {
 # This script needs to be run to download tools with potentially restrictive licensing (cannot be redistributed)
 TOOLS_DIRECTORY="$(dirname $0)"
 INSTALL_DIR="$TOOLS_DIRECTORY/restricted"
+CP_DIR="$TOOLS_DIRECTORY/restricted/httprint/httprint_301/linux"
 mkdir -p $INSTALL_DIR
 (
 	cd $INSTALL_DIR
@@ -130,6 +131,7 @@ mkdir -p $INSTALL_DIR
 #echo "Fixing missing links for theHarvester and nikto"
 #cp /usr/bin/theharvester /usr/share/theharvester/theHarvester.py
 #cp /usr/bin/nikto /usr/share/nikto/nikto.pl
+yes | cp -rf "$TOOLS_DIRECTORY/signatures.txt" "$CP_DIR/signatures.txt"
 
 echo "Installing LBD, arachni and gnutls-bin from Kali Repos"
 apt-get install lbd gnutls-bin arachni

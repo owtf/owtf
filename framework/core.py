@@ -54,6 +54,7 @@ import signal
 import subprocess
 from framework import random
 from framework.lib.messaging import messaging_admin
+from framework.report.reporting_process import reporting_process
  
 class Core:
     def __init__(self, RootDir):
@@ -121,6 +122,15 @@ class Core:
             if Host: # Value is not blank
                 Command.replace(Host, 'some.target.com')
         return Command
+    
+    def start_reporter(self):
+        """
+        This function starts the reporting process
+        """
+        self.reporting = reporting_process()
+        self.reporting_queue = multiprocessing.Queue()
+        self.reporting_process = multiprocessing.Process(target=self.reporting.start, args=(self,60,self.reporting_queue))
+        self.reporting_process.start()        
         
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
@@ -236,10 +246,11 @@ class Core:
             self.exitOutput()
             return False # No processing required, just list available modules
         self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
-
+        
         self.DB.Init()
         self.messaging_admin.Init()
         Command = self.GetCommand(Options['argv'])
+        self.start_reporter()
         self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
         if self.Config.Get('SIMULATION'):
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
@@ -287,11 +298,11 @@ class Core:
                 self.DB.SaveDBs() # Save DBs prior to producing the report :)
                 if Report:
                     cprint("Finishing iteration and assembling report again (with updated run information)")
-                    PreviousTarget = self.Config.GetTarget()
-                    for Target in self.Config.GetTargets(): # We have to finish all the reports in this run to update run information
-                        self.Config.SetTarget(Target) # Much save the report for each target
-                        self.Reporter.ReportFinish() # Must save the report again at the end regarless of Status => Update Run info
-                    self.Config.SetTarget(PreviousTarget) # Restore previous target
+                    #PreviousTarget = self.Config.GetTarget()
+                    #for Target in self.Config.GetTargets(): # We have to finish all the reports in this run to update run information
+                    #    self.Config.SetTarget(Target) # Much save the report for each target
+                        #self.Reporter.ReportFinish() # Must save the report again at the end regarless of Status => Update Run info
+                    #self.Config.SetTarget(PreviousTarget) # Restore previous target
                 cprint("owtf iteration finished")
                 if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
                     cprint("Please report the sanitised errors saved to "+self.Config.Get('ERROR_DB'))
@@ -308,9 +319,14 @@ class Core:
                         os.kill(int(self.TransactionLogger.pid), signal.SIGINT)
                     except: # It means the proxy was not started
                         pass
+                if hasattr(self,'reporting_process'):
+                    self.reporting_queue.put("done")
+                    self.reporting_process.join()
                 if hasattr(self,'messaging_admin'):
                     self.messaging_admin.finishMessaging()
+                
                 self.exitOutput()
+                #print self.Timer.GetElapsedTime('core')
                 exit()
 
     def exitOutput(self):
@@ -318,7 +334,11 @@ class Core:
             self.outputqueue.put('end')    
             self.outputthread.join()
             if os.path.exists("owtf_review"):
-                shutil.move("/tmp/logfile", "owtf_review")
+                if os.path.exists("owtf_review/logfile"):
+                    data = open("/tmp/logfile").read()
+                    AppendToFile("owtf_review/logfile", data)
+                else:
+                    shutil.move("/tmp/logfile", "owtf_review")
         
     def GetSeed(self):
         try:
