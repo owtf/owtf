@@ -41,6 +41,7 @@ import tornado.template
 import socket
 import ssl
 import os
+import datetime
 from multiprocessing import Process
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
@@ -50,10 +51,27 @@ class ProxyHandler(tornado.web.RequestHandler):
     """
     This RequestHandler processes all the requests that the application received
     """
-    SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS']
+    SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE']
+
+    # Data for handling headers through a streaming callback
+    # Need to work around for something
+    global restricted_response_headers
+    restricted_response_headers = [
+                                    'Content-Length',
+                                    'Content-Encoding',
+                                    'Etag',
+                                    'Transfer-Encoding',
+                                    'Connection',
+                                    'Vary',
+                                    'Accept-Ranges',
+                                    'Pragma'
+                                   ]
+    global restricted_request_headers
+    restricted_request_headers = ['Connection', 'Pragma', 'Cache-Control', 'If-Modified-Since']
 
     def set_status(self, status_code, reason=None):
-        """Sets the status code for our response.
+        """
+        Sets the status code for our response.
         Overriding is done so as to handle unknown
         response codes gracefully.
         """
@@ -66,87 +84,80 @@ class ProxyHandler(tornado.web.RequestHandler):
             except KeyError:
                 self._reason = tornado.escape.native_str("Server Not Found")
 
-    @tornado.web.asynchronous
-    def get(self):
-        """
-        * This function handles all requests except the connect request.
-        * Once ssl stream is formed between browser and proxy, the requests are
-          then processed by this function
-        """
-        self.request.response_buffer = ''
-        # Data for handling headers through a streaming callback
-        # Need to work around for something
-        restricted_response_headers = ['Content-Length',
-                            'Content-Encoding',
-                            'Etag',
-                            'Transfer-Encoding',
-                            'Connection',
-                            'Vary',
-                            'Accept-Ranges',
-                            'Pragma']
+    def calculate_delay(self, response):
+        self.application.throttle_variables["hosts"][self.request.host]["request_times"].append(response.request_time)
 
-        # This function is a callback after the async client gets the full response
-        # This method will be improvised with more headers from original responses
-        def handle_response(response):
-            self.set_status(response.code)
-            del self._headers['Server']
-            for header, value in list(response.headers.items()):
-                if header == "Set-Cookie":
-                    self.add_header(header, value)
-                else:
-                    if header not in restricted_response_headers:
-                        self.set_header(header, value)
-            if self.request.response_buffer:
-                self.cache_handler.dump(response)
-            self.finish()
-            
-        def handle_cached_response(response):
-            self.set_status(response.code)
-            for header, value in list(response.headers.items()):
-                if header == "Set-Cookie":
-                    self.add_header(header, value)
-                else:
-                    if header not in restricted_response_headers:
-                        self.set_header(header, value)
-            self.write(response.body)
-            self.finish()            
+        if len(self.application.throttle_variables["hosts"][self.request.host]) > 20:
+            self.application.throttle_variables["hosts"][self.request.host]["request_times"].pop(0)
+            response_times = self.application.throttle_variables["hosts"][self.request.host]["request_times"]
+            last_ten = sum(response_times[:int(len(response_times)/2)])/int(len(response_times)/2)
+            second_last_ten = sum(response_times[int(len(response_times)/2):])/(len(response_times)-int(len(response_times)/2))
+            if round(last_ten - second_last_ten, 3) > self.application.throttle_variables["threshold"]:
+                self.application.throttle_variables["hosts"][self.request.host]["delay"] = round(last_ten - second_last_ten, 3)
+            else:
+                self.application.throttle_variables["hosts"][self.request.host]["delay"] = 0
 
-        # This function is a callback when a small chunk is received
-        def handle_data_chunk(data):
-            if data:
-                self.write(data)
-                self.request.response_buffer += data
-
-        # More headers are to be removed
-        for header in ('Connection', 'Pragma', 'Cache-Control', 'If-Modified-Since'):
+    # This function is a callback after the async client gets the full response
+    # This method will be improvised with more headers from original responses
+    def handle_response(self, response):
+        if self.application.throttle_variables:
+            self.calculate_delay(response)
+        if response.code in [408, 599, 404]:
             try:
-                del self.request.headers[header]
-            except:
-                continue
-
-        # The requests that come through ssl streams are relative requests, so transparent
-        # proxying is required. The following snippet decides the url that should be passed
-        # to the async client
-        if self.request.host in self.request.uri.split('/'):  # Normal Proxy Request
-            self.request.url = self.request.uri
-        else:  # Transparent Proxy Request
-            self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
-
-        # This block here checks for already cached response and if present returns one
-        self.cache_handler = CacheHandler(            
-                                            self.application.cache_dir,
-                                            self.request,
-                                            self.application.cookie_regex,
-                                            self.application.cookie_blacklist
-                                          )
-        cached_response = self.cache_handler.load()
-        
-        if cached_response:
-            handle_cached_response(cached_response)
+                old_count = self.request.retries
+                self.request.retries = old_count + 1
+            except AttributeError:
+                self.request.retries = 1
+            finally:
+                if self.request.retries < 3:
+                    self.request.response_buffer = ''
+                    self.clear()
+                    self.process_request()
+                else:
+                    self.write_response(response)
         else:
-            # httprequest object is created and then passed to async client with a callback
+            self.write_response(response)
+
+    # This function writes a new response & caches it
+    def write_response(self, response):
+        self.set_status(response.code)
+        del self._headers['Server']
+        for header, value in list(response.headers.items()):
+            if header == "Set-Cookie":
+                self.add_header(header, value)
+            else:
+                if header not in restricted_response_headers:
+                    self.set_header(header, value)
+        if self.request.response_buffer:
+            self.cache_handler.dump(response)
+        self.finish()
+
+    # This function handles a dummy response object which is created from cache
+    def write_cached_response(self, response):
+        self.set_status(response.code)
+        for header, value in list(response.headers.items()):
+            if header == "Set-Cookie":
+                self.add_header(header, value)
+            else:
+                if header not in restricted_response_headers:
+                    self.set_header(header, value)
+        self.write(response.body)
+        self.finish()
+
+    # This function is a callback when a small chunk is received
+    def handle_data_chunk(self, data):
+        if data:
+            self.write(data)
+            self.request.response_buffer += data
+
+    # This function creates and makes the request to upstream server
+    def process_request(self):
+        if self.cached_response:
+            self.write_cached_response(self.cached_response)
+        else:
             # pycurl is needed for curl client
             async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
+            # httprequest object is created and then passed to async client with a callback
             request = tornado.httpclient.HTTPRequest(
                     url=self.request.url,
                     method=self.request.method,
@@ -154,7 +165,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                     headers=self.request.headers,
                     follow_redirects=False,
                     use_gzip=True,
-                    streaming_callback=handle_data_chunk,
+                    streaming_callback=self.handle_data_chunk,
                     header_callback=None,
                     proxy_host=self.application.outbound_ip,
                     proxy_port=self.application.outbound_port,
@@ -164,9 +175,58 @@ class ProxyHandler(tornado.web.RequestHandler):
                     validate_cert=False)
 
             try:
-                async_client.fetch(request, callback=handle_response)
+                async_client.fetch(request, callback=self.handle_response)
             except Exception:
                 pass
+
+    def cache_check(self):
+        # This block here checks for already cached response and if present returns one
+        self.cache_handler = CacheHandler(
+                                            self.application.cache_dir,
+                                            self.request,
+                                            self.application.cookie_regex,
+                                            self.application.cookie_blacklist
+                                          )
+        self.cached_response = self.cache_handler.load()
+        self.process_request()
+
+    @tornado.web.asynchronous
+    def get(self):
+        """
+        * This function handles all requests except the connect request.
+        * Once ssl stream is formed between browser and proxy, the requests are
+          then processed by this function
+        """
+        # The flow starts here 
+        self.request.response_buffer = ''
+        # Request header cleaning
+        for header in restricted_request_headers:
+            try:
+                del self.request.headers[header]
+            except:
+                continue
+
+        # The requests that come through ssl streams are relative requests, so transparent
+        # proxying is required. The following snippet decides the url that should be passed
+        # to the async client
+        if self.request.uri.startswith(self.request.protocol,0): # Normal Proxy Request
+            self.request.url = self.request.uri
+        else:  # Transparent Proxy Request
+            self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
+
+        if self.application.throttle_variables:
+            try:
+                throttle_delay = self.application.throttle_variables["hosts"][self.request.host]["delay"]
+            except KeyError:
+                self.application.throttle_variables["hosts"][self.request.host] = {"request_times":[], "delay":0}
+                throttle_delay = 0
+            finally:
+                if throttle_delay == 0:
+                    self.cache_check()
+                else:
+                    tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=throttle_delay), self.cache_check)
+        else:
+            self.cache_check()
 
     # The following 5 methods can be handled through the above implementation
     @tornado.web.asynchronous
@@ -188,7 +248,11 @@ class ProxyHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def options(self):
         return self.get()
-        
+
+    @tornado.web.asynchronous
+    def trace(self):
+        return self.get()
+
     @tornado.web.asynchronous
     def connect(self):
         """
@@ -331,7 +395,14 @@ class ProxyProcess(Process):
         self.server = server
         self.instances = instances
         self.application.Core = core
-        
+        if self.application.Core.Config.Get("PROXY_THROTTLING") == 'false':
+            self.application.throttle_variables = None
+        else:
+            self.application.throttle_variables = {
+                                                    "hosts": {},
+                                                    "threshold": self.application.Core.Config.Get("THROTTLING_THRESHOLD"),
+                                                  }
+
     # "0" equals the number of cores present in a machine
     def run(self):
         try:

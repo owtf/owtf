@@ -5,7 +5,7 @@ from framework.shell.blocking_shell import Shell
 from tests.testing_framework.shell.environments import InteractiveShellEnvironmentBuilder
 from hamcrest.library.text.stringmatches import matches_regexp
 import logging
-from framework.lib.general import getDefaultLog
+from framework.lib.general import get_default_logger
 import sys
 from tests.testing_framework.doubles.mock import StreamMock
 
@@ -45,5 +45,5 @@ class BlockingShellTests(BaseTestCase):
 
     def redirect_logging_to_stream(self, stream):
         logging_handler = logging.StreamHandler(stream)
-        logger = getDefaultLog("info")
+        logger = get_default_logger("info")
         logger.addHandler(logging_handler)

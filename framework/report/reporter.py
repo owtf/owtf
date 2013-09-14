@@ -40,8 +40,6 @@ from framework.report.html import renderer
 from framework.report.html.filter import sanitiser
 from framework.report import summary
 
-PLUGIN_DELIM = '__'  # Characters like ; | . or / trip CKEditor as separators
-
 class Reporter:
     def __init__(self, CoreObj):
         self.Core = CoreObj  # Keep Reference to Core Object
@@ -59,7 +57,7 @@ class Reporter:
         self.CCGAPP = self.Core.Config.GetAsPartialPath
 
     def GetPluginDelim(self):
-        return PLUGIN_DELIM
+        return summary.PLUGIN_DELIM
 
     def CopyAccessoryFiles(self):
         TargetOutputDir = self.CCG('OUTPUT_PATH')
@@ -156,7 +154,7 @@ class Reporter:
         #self.RegisterPartialReport(PluginReportPath) # Partial report saved ok, register partial report in register file for grouping later
         
         # Provide a full partial report at the end of each plugin
-        self.ReportFinish()
+        #self.ReportFinish()
 
     def DrawHTTPTransactionTable(self, TransactionList, NumLinesReq=15, NumLinesRes=15):
         """ Draws a table of HTTP Transactions """
@@ -254,14 +252,15 @@ class Reporter:
         elif ReportType == 'NET':
             return self.GetRegisteredNetPlugins(ReportType)
 
-    def ReportFinish(self):
+    def ReportFinish(self, Target,registered_plugins):
         """ Group all partial reports (whether done before or now)
         into the final report """
-        Target = self.Core.Config.GetTarget()
-        NumPluginsForTarget = self.Core.DB.PluginRegister.NumPluginsForTarget(Target)
-        if not NumPluginsForTarget > 0:
-            log("No plugins completed for target, cannot generate report")
-            return None  # Must abort here, before report is generated
+        #Target = self.Core.Config.GetTarget()
+        self.Core.PluginHandler.SwitchToTarget(Target) 
+        #NumPluginsForTarget = self.Core.DB.PluginRegister.NumPluginsForTarget(Target)
+        #if not NumPluginsForTarget > 0:
+        #    log("No plugins completed for target, cannot generate report")
+        #    return None  # Must abort here, before report is generated
         #ReportStart -- Wipe report
         self.CounterList = []
         if not self.Init:
@@ -334,17 +333,15 @@ class Reporter:
                     "External_URLs_link":  self.CCGAPP('POTENTIAL_EXTERNAL_URLS_DB'),
                     },
                 "Globals": {
-                        "AllPluginsTabIdList": [
-                            "tab_" + self.GetPluginDivId(Match)
-                            for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE'))  for Match in  TestGroup['RegisteredPlugins']
-                            ],
-                        "AllPluginsDivIdList":[
+                        "AllPlugins":[
                             self.GetPluginDivId(Match)
-                            for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE'))  for Match in  TestGroup['RegisteredPlugins']
+                            for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE')) 
+                            for Match in TestGroup['RegisteredPlugins']
                             ],
                         "AllCodes": list(set([
                             Match['Code'] #eliminate repetitions,
-                            for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE'))  for Match in  TestGroup['RegisteredPlugins']
+                             for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE')) 
+                             for Match in TestGroup['RegisteredPlugins']
                             ])),
                         },
                         "TestGroups": [
@@ -362,7 +359,6 @@ class Reporter:
                             for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE'))
                             ],
                 "REVIEW_OFFSET" : self.CCG('REVIEW_OFFSET'),
-                "PLUGIN_DELIM" : PLUGIN_DELIM,
 
                     }
             # Closing HTML Report

@@ -16,16 +16,115 @@ class WebPluginsTests(WebPluginTestCase):
     def tearDownClass(cls):
         super(WebPluginsTests, cls).tearDownClass()
 
+    #  Active plugins  #
+    # For general tools as Arachni, Nikto, Skipfish... we don't check
+    # the results, only that the tool has been executed.
+
+    def test_Arachni_Unauthenticated_active(self):
+        self._prepare_test_for_general_tool()
+
+        self.owtf("-g web -t active -o Arachni_Unauthenticated")
+
+        arachni_banner = ["Arachni - Web Application Security Scanner Framework",
+                         "Author: Tasos \"Zapotek\" Laskos"]
+
+        # Checking for plugin banner
+        self.assert_that_output_contains("Plugin: Arachni Unauthenticated (active)")
+        # Checking for plugin start. Arachni plugin runs 2 tools.
+        self.assert_external_tool_started(times=2)
+        # Checking for Arachni banner
+        self.assert_that_output_contains_lines(arachni_banner)
+
+    def test_HTTP_Methods_and_XST_active(self):
+        self._prepare_test_for_HTTP_Methods_and_XST()
+
+        self.owtf("-g web -t active -o HTTP_Methods_and_XST")
+
+        self.assert_that_output_contains("Plugin: Http Methods And Xst (active)")
+        # This plugin runs 4 tools.
+        self.assert_external_tool_started(times=4)
+        tools = ["curl", "hoppy", "extract_urls.sh"]
+        self.assert_that_output_contains_lines(tools)
+
+    def test_Old_Backup_and_Unreferenced_Files_active(self):
+        self._prepare_test_for_general_tool()
+
+        self.owtf("-g web -t active -o Old_Backup_and_Unreferenced_Files")
+
+        self.assert_that_output_contains("Plugin: Old Backup And Unreferenced Files (active)")
+        # This plugin runs 2 tools
+        self.assert_external_tool_started(times=2)
+        tools = ["dirbuster", "extract_urls.sh"]
+        self.assert_that_output_contains_lines(tools)
+
+    def test_Skipfish_Unauthenticated_active(self):
+        self._prepare_test_for_general_tool()
+
+        self.owtf("-g web -t active -o Skipfish_Unauthenticated")
+
+        self.assert_that_output_contains("Plugin: Skipfish Unauthenticated (active)")
+        # This plugin runs only 1 tool
+        self.assert_external_tool_started(times=1)
+        skipfish_banner = ["skipfish version", "by <lcamtuf@google.com>"]
+        self.assert_that_output_contains_lines(skipfish_banner)
+
+    def test_for_SSL_TLS_active(self):
+        self._prepare_test_for_general_tool()
+
+        self.owtf("-g web -t active -o Testing_for_SSL-TLS")
+
+        self.assert_that_output_contains("Plugin: Testing For Ssl-Tls (active)")
+        self.assert_external_tool_started(times=2)
+        tool_banners = ["TLSSLed",
+                        "based on sslscan and openssl",
+                        "by Raul Siles (www.taddong.com)",
+                        "verify_ssl_cipher_check.sh",
+                        "Author: Abraham Aranguren @7a_ http://7-a.org"]
+        self.assert_that_output_contains_lines(tool_banners)
+
+    def test_W3AF_Unauthenticated_active(self):
+        self._prepare_test_for_general_tool()
+
+        self.owtf("-g web -t active -o W3AF_Unauthenticated")
+
+        self.assert_that_output_contains("Plugin: W3Af Unauthenticated (active)")
+        self.assert_external_tool_started(times=2)
+        tools = ["run_w3af.sh", "extract_urls.sh"]
+        self.assert_that_output_contains_lines(tools)
+
+    def test_Wapiti_Unauthenticated_active(self):
+        self._prepare_test_for_general_tool()
+
+        self.owtf("-g web -t active -o Wapiti_Unauthenticated")
+
+        self.assert_that_output_contains("Plugin: Wapiti Unauthenticated (active)")
+        self.assert_external_tool_started(times=1)
+        wapiti_lines = ["wapiti.py", "Wapiti", "(wapiti.sourceforge.net)"]
+        self.assert_that_output_contains_lines(wapiti_lines)
+
+    def test_Web_Application_Fingerprint_active(self):
+        self._prepare_test_for_general_tool()
+
+        self.owtf("-g web -t active -o Web_Application_Fingerprint")
+
+        self.assert_that_output_contains("Plugin: Web Application Fingerprint (active)")
+        self.assert_external_tool_started(times=2)
+        tools = ["whatweb", "httprint"]
+
+    def test_Websecurify_Unauthenticated_active(self):
+        self._prepare_test_for_general_tool()
+
+        self.owtf("-g web -t active -o Websecurify_Unauthenticated")
+
+        self.assert_that_output_contains("Plugin: Websecurify Unauthenticated (active)")
+        self.assert_external_tool_started(times=1)
+        websecurify = ["websecurify", "runner"] 
+        self.assert_that_output_contains_lines(websecurify)
+
     #  Semi-passive plugins  #
 
     def test_HTTP_Methods_and_XST_semi_passive(self):
-        self.set_get_response("/",
-                              "",
-                              headers={"Location": "/login"},
-                              status_code=302)
-        self.set_head_response("/", "")
-        self.set_options_response("/", "", headers={"Allow": "GET, HEAD, OPTIONS"})
-        self.start_server()
+        self._prepare_test_for_HTTP_Methods_and_XST()
 
         self.owtf("-g web -t semi_passive -o HTTP_Methods_and_XST")
 
@@ -60,6 +159,7 @@ class WebPluginsTests(WebPluginTestCase):
         clientaccesspolicy = open(files_path + "/clientaccesspolicy.xml", "r")
 
         # The plugin has to retrieve and show the content of the files
+        # It shows HTML, so the content is escaped
         for line in crossdomain:
             self.assert_that_output_contains(cgi.escape(line))
         for line in clientaccesspolicy:
@@ -69,9 +169,10 @@ class WebPluginsTests(WebPluginTestCase):
         clientaccesspolicy.close()
 
     def test_Web_Application_Fingerprint_semi_passive(self):
-        self.set_get_response("/",
-                              "<html><body><h1>Hello</h1></body></html>",
-                              headers={"Server": "CustomServer/1.0"})
+        file_path = self.get_resource_path("www/hello_world.html")
+        self.set_get_response_from_file("/",
+                                        file_path,
+                                        headers={"Server": "CustomServer/1.0"})
         self.start_server()
 
         self.owtf("-g web -t semi_passive -o Web_Application_Fingerprint")
@@ -103,12 +204,12 @@ class WebPluginsTests(WebPluginTestCase):
 
         self.owtf("-g web -t grep -o Clickjacking")
 
-        self.assert_that_output_contains(headers[clickjacking_headers[0]])
-        self.assert_that_output_contains(headers[clickjacking_headers[0]])
+        self.assert_that_output_contains_lines(headers.values())
 
     def test_Cookies_attributes_grep(self):
         # Looks for transactions with cookies and finds their attributes
-        cookie = "ID=" + self.generate_random_token() + ";secure;HttpOnly"
+        token = self.generate_random_token()
+        cookie = "ID=" + token + ";secure;HttpOnly"
         headers = {"Set-Cookie": cookie}
         self.set_get_response("/cookies", "", headers=headers)
         self.start_server()
@@ -116,10 +217,7 @@ class WebPluginsTests(WebPluginTestCase):
 
         self.owtf("-g web -t grep -o Cookies_attributes")
 
-        cookie_chunks = cookie.split(";")
-        self.assert_that_output_contains(cookie_chunks[0].split("=")[1])  # ID value
-        self.assert_that_output_contains(cookie_chunks[1])  # secure
-        self.assert_that_output_contains(cookie_chunks[2])  # HttpOnly
+        self.assert_that_output_contains_lines([token, "secure", "HttpOnly"])
 
     def test_CORS_grep(self):
         # Looks for some headers used for Cross-Origin resource sharing
@@ -132,12 +230,11 @@ class WebPluginsTests(WebPluginTestCase):
 
         self.owtf("-g web -t grep -o CORS")
 
-        self.assert_that_output_contains(headers[cors_headers[0]])
-        self.assert_that_output_contains(headers[cors_headers[1]])
+        self.assert_that_output_contains_lines(headers.values())
 
     def test_Credentials_transport_over_an_encrypted_channel_grep(self):
         # Looks for forms with password inputs loaded through http
-        self._prepare_test_with_login_form_in("/credentials")
+        self._prepare_test_with_login_form_in("/credentials-encrypted_channel")
 
         self.owtf("-g web -t grep -o Credentials_transport_over_an_encrypted_channel")
 
@@ -155,8 +252,7 @@ class WebPluginsTests(WebPluginTestCase):
 
         self.owtf("-g web -t grep -o Logout_and_Browser_Cache_Management")
 
-        for value in headers.values():
-            self.assert_that_output_contains(value)
+        self.assert_that_output_contains_lines(headers.values())
         self.assert_that_output_contains("1 Unique Cache Control Meta Tags found")
 
     def test_Old_Backup_and_Unreferenced_Files_grep(self):
@@ -181,8 +277,7 @@ class WebPluginsTests(WebPluginTestCase):
 
         self.owtf("-g web -t grep -o Reflected_Cross_Site_Scripting")
 
-        for value in headers.values():
-            self.assert_that_output_contains(value)
+        self.assert_that_output_contains_lines(headers.values())
 
     def test_for_CSRF_grep(self):
         # Looks for hidden input fields
@@ -221,7 +316,7 @@ class WebPluginsTests(WebPluginTestCase):
         # Looks for forms and password inputs
 
         # Repeat the transaction path to avoid more results in the plugin output
-        self._prepare_test_with_login_form_in("/credentials")
+        self._prepare_test_with_login_form_in("/credentials-password")
 
         self.owtf("-g web -t grep -o Vulnerable_Remember_Password_and_Pwd_Reset")
 
@@ -242,11 +337,24 @@ class WebPluginsTests(WebPluginTestCase):
 
         self.owtf("-g web -t grep -o Web_Application_Fingerprint")
 
-        for value in headers.values():
-            self.assert_that_output_contains(value)
+        self.assert_that_output_contains_lines(headers.values())
 
     def _prepare_test_with_login_form_in(self, relative_url):
         html_file = self.get_resource_path("www/login_form.html")
         self.set_get_response_from_file(relative_url, html_file)
         self.start_server()
         self.visit_url(self.get_url(relative_url))
+
+    def _prepare_test_for_general_tool(self):
+        html = self.get_resource_path("www/hello_world.html")
+        self.set_get_response_from_file("/", html)
+        self.start_server()
+
+    def _prepare_test_for_HTTP_Methods_and_XST(self):
+        self.set_get_response("/",
+                              "",
+                              headers={"Location": "/login"},
+                              status_code=302)
+        self.set_head_response("/", "")
+        self.set_options_response("/", "", headers={"Allow": "GET, HEAD, OPTIONS"})
+        self.start_server()
