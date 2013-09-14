@@ -15,7 +15,7 @@
 							<ul class="nav nav-pills ">
 								<li class="brand disabled"><a>Type: </a> </li>
 							{% for Match in TestGroup.Matches %}
-								<li id="tab_{{ ReportID }}_{{ Match.PluginId }}" class="">
+								<li id="tab_{{ ReportID }}_{{ Match.PluginId }}" class=" tab_plugin">
 									<span> </span>
 									<a class="" href="#{{ ReportID }}_{{ Match.PluginId }}" data-toggle="tab">
 										{{ Match.PluginName|replace( '_', ' ' )|upper }}
@@ -47,14 +47,18 @@
 	
 <script>
 			window.ReportsInfo["{{ ReportID }}"] = {
-				"AllPlugins" : new Array('{{ Globals.AllPluginsDivIdList|join("','") }}'),
+				"AllPlugins" : new Array('{{ Globals.AllPlugins|join("','") }}'),
 				"AllCodes" : new Array('{{ Globals.AllCodes|join("','") }}'),
 				"ReportMode" : false,
 			}
+			window.AllTargets.push("{{ ReportID }}")
 			
-			InitDetailedReport("{{ ReportID }}")
-			ApplyReview("{{ ReportID }}") //Apply reviewed plugins
-			HighlightNewPlugins("{{ ReportID }}") //Right after loading, only once, highlight the new plugins
+			//InitAllTheWorld();
+		 	ReportID = "{{ ReportID }}"
+			InitDetailedReport(ReportID)
+			ApplyReview( ReportID ) //Apply reviewed plugins
+			HighlightNewPlugins( ReportID ) //Right after loading, only once, highlight the new plugins
 			//ClickLinkById('filterinfo') //Click on Filter by information only
 			DisplayCounters(GetWorkReview(), "__SummaryCounters", '')
+		 	
 </script>
