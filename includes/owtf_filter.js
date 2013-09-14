@@ -165,7 +165,7 @@ function CanUnFilterPlugin(PluginId) {
 function UnFilterPlugin(Offset, PluginId) {
         if (CanUnFilterPlugin( PluginId)) {
         	    GetById(Offset +"_" +PluginId).parentNode.parentNode.parentNode.parentNode.style.display = 'block' //Show the testgroup
-                GetById(Offset +"_" +PluginId).style.display = 'block' //Show the tab content 
+                GetById(Offset +"_" +PluginId).className = 'tab-pane' //Show the tab content 
                 GetById('tab_'+Offset +"_"+PluginId).style.display = ''//Show the tab
                 return 1 //Count unfiltered
         }
