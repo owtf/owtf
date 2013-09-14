@@ -136,6 +136,6 @@ function ClickLink(Link) {
 }
 
 function Refresh() { //Normal page reload // should be rewritten to reload only what we want to be reloaded
-        //window.location.reload()
+        window.location.reload()
 		
 }

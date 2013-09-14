@@ -31,20 +31,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 $(document).ready(function() { 
 
-		InitDB() //Working DB only initialised on summary
-		DisplayCounters(GetWorkReview(), '__SummaryCounters', '')
-		DisplaySelectFilterOptions()
-		
+	InitAllTheWorld()
+	//InitDB() //Working DB only initialised on summary
+	//DisplayCounters(GetWorkReview(), "__SummaryCounters", '')
+	//DisplaySelectFilterOptions()
 
-	//Initialize all Detailed Reports
-	 for (var i = 0; i < AllTargets.length; i++)
-		 {
-		 
-		 		// empty
-		 }
-	
 }
 );
+
+function InitAllTheWorld()
+{
+	InitDB() //Working DB only initialised on summary
+	DisplaySelectFilterOptions()
+	
+	//Initialize all Detailed Reports
+	 for (var i = 0; i < window.AllTargets.length; i++)
+		 {
+		 	//ReportID = AllTargets[i]
+			//InitDetailedReport(ReportID)
+			//ApplyReview( ReportID ) //Apply reviewed plugins
+			//HighlightNewPlugins( ReportID ) //Right after loading, only once, highlight the new plugins
+			//ClickLinkById('filterinfo') //Click on Filter by information only
+			
+		 }
+	
+	DisplayCounters(GetWorkReview(), "__SummaryCounters", '')
+
+	
+}
 
 function GetSeed() {
 	return GetById('seed').innerHTML
@@ -75,7 +89,7 @@ function SetWorkReview(Value) {
 
 function InitDB() {//Ensure all completed plugins have a review offset
 	SetWorkReview(GetDB()) //Sets window.Review  -InitDB only called from summary-
-	if (Review == null || !Review['__SummaryCounters']) {
+	if (Review == null) {
 		Review = {} //The review is a JSON object, which is converted into a string for storage after updating
 		InitReviewCounters(Review, '__SummaryCounters')
 		InitFilterOptions()
@@ -115,7 +129,7 @@ function InitDetailedReport(Offset) {
 		PluginToken = GetPluginToken(Offset, PluginId)
 		//console.log('window.ReportsInfo[Offset].AllPlugins[' + i + ']=' + PluginId)
 		if (Review[Offset][PluginId] == null) { //Review not initialised for plugin
-			Review[Offset][PluginId] = { 'seen' : 'N', 'flag' : 'N', 'new' : 'Y', 'notes' : '', 'tk' : GetPluginToken(Offset, PluginId) }
+			Review[Offset][PluginId] = { 'seen' : 'N', 'flag' : 'N','fav' : 'N', 'new' : 'Y', 'notes' : '', 'tk' : GetPluginToken(Offset, PluginId) }
 			UpdateCounters( Offset, [ 'filterinfo_counter', 'filterno_flag_counter', 'filterunseen_counter' ], +1 )
 		}
 		else if (PluginToken != Review[Offset][PluginId].tk) {//Plugin changed (i.e. forced overwrite or grep plugin, highlight change)
@@ -177,26 +191,27 @@ function GetStorageMemoryPercent() {
 }
 
 function HidePlugin(Offset, PluginId) {
-	//$('#div_'+ Offset + "_"+PluginId).tab("hide")
+	$('#tab_'+ Offset + "_"+PluginId + " a").tab("hide")
 	return null//SetClassNameToElems(new Array('tab_'+ Offset + "_" +PluginId), '')
 	//return false
 }
 
-function MarkIcon(Elem, Init) {
+function MarkIcon(ID, Init) {
 	if (!Init) {
-		IconRow = Elem.parentNode.parentNode //Go up until the <tr> element so that we can unmark brothers and mark this one
-		for (i = 0, length = IconRow.childNodes.length; i < length; i++) {
-			if (IconRow.childNodes[i].className) {
-				IconRow.childNodes[i].className = ''
-			}
+		Elem = $('#' + ID)
+		IconRow = Elem.parent() //Go up until the <tr> element so that we can unmark brothers and mark this one
+		for (i = 0, length = IconRow.children(".tab_plugin").length; i < length; i++) {
+			
+				//IconRow.children(".tab_plugin").first().html('<i class="icon-eye-open"></i>')
+			
 		}
 	}
-	Elem.parentNode.className = 'active' //Now mark as selected
+	Elem.first().html('<i class="icon-flag"></i>') //Now mark as selected
 }
 
 function Rate(Offset, PluginId, Rating, Elem) {
 	TabId = "tab_" + Offset + "_" +  PluginId
-	//MarkIcon(GetById(TabId), false)
+	
 	if ('delete' == Rating) {
 		Rating = 'N' //Keep the flag == 'N' for filter counter to work right
 	}
@@ -287,7 +302,8 @@ function SetStyleToPlugins(Offset, PluginArray, StyleText) {
 	for (i=0, length = PluginArray.length; i<length; i++) {
 		PluginId = PluginArray[i]
 		StrikeIcon = GetById('l'+Offset+"_"+PluginId)
-		Tab = GetById('tab_'+Offset+"_"+PluginId)
+		TabId = 'tab_'+Offset+"_"+PluginId
+		Tab = GetById(TabId)
 		if (Tab != null) {
 			Tab.style.textDecoration = StyleText
 			//alert(Tab.name)
@@ -298,8 +314,8 @@ function SetStyleToPlugins(Offset, PluginArray, StyleText) {
 			Flag = Review[Offset][PluginId]['flag']
 			Tab.firstChild.innerHTML = Flag
 			RatingId = Offset+"_"+PluginId + Flag
-			if (Flag != 'N' && document.getElementById(RatingId) != null) {//Check valid flag exists
-				//MarkIcon(GetById(RatingId), true)
+			if (Flag != 'N' && document.getElementById(Tab) != null) {//Check valid flag exists
+				MarkIcon(TabId, true)
 			}
 			if ('' == StyleText) { //Not Seen
 				//Link.firstChild.innerHTML = '<img src="images/pencil.png" title="Strike-through" />'
@@ -472,16 +488,16 @@ function SetDisplayToAllPluginTabs(Display) {
 	        for (var i=0, length = window.ReportsInfo[Offset].AllPlugins.length; i<length; i++) {
                 var PluginId = window.ReportsInfo[Offset].AllPlugins[i]
 
-		GetById('tab_'+Offset+"_"+PluginId).parentNode.style.display = Display
+		GetById('tab_'+Offset+"_"+PluginId).style.display = Display
 		GetById('tab_'+Offset+"_"+PluginId).className = ''
 	        }
 		}
 }
 
 function SetDisplayToAllTestGroups(Display) {
-	Links = document.getElementsByClassName('report_index')
-	for (i = 0; i < Links.length; i++) {
-		Links[i].parentNode.style.display = Display
+	AccordionGroups = document.getElementsByClassName('accordion-group')
+	for (i = 0; i < AccordionGroups.length; i++) {
+		AccordionGroups[i].style.display = Display
 	}
 }
 
@@ -491,31 +507,27 @@ function PluginCommentsPresent(Offset, PluginId) {
 
 
 function SelfGetDetailedReport(Offset) { //Gets the iframe from parent window
-	return window.parent.document.getElementById('iframe_' + Offset) //Retrieve self from parent
+	return document.getElementById('section_' + Offset) //Retrieve self from parent
 }
 
 function DetailedReportCollapse(Offset) {
-	IFrame = SelfGetDetailedReport(Offset)
-	IFrame.className = 'iframe_collapsed' //Without horizontal scrollbar
-	window.location.hash = ''
-	window.parent.location.hash = ''
+	Section = SelfGetDetailedReport(Offset)
+	// Collapse all testgroups here
 }
 
 function DetailedReportAdjust(Offset) {
-	IFrame = SelfGetDetailedReport(Offset)
-	IFrame.style.height = IFrame.contentWindow.document.body.scrollHeight - 24 + "px"
-	IFrame.className = 'iframe_collapsed' //With horizontal scrollbar (if necessary)
+	Section = SelfGetDetailedReport(Offset)
+	// no need
 }
 
 function DetailedReportExpand(Offset) {
-	IFrame = SelfGetDetailedReport(Offset)
-	IFrame.style.height = "100%"
-	IFrame.className = 'iframe_expanded' //With horizontal scrollbar (if necessary)
+	Section = SelfGetDetailedReport(Offset)
+	// Expand all test-groups here
 }
 
 function DetailedReportAnalyse(Offset) {
 	DetailedReportExpand(Offset)
-	window.parent.location.hash = 'anchor_' + Offset
+	//window.parent.location.hash = 'anchor_' + Offset
 }
 
 function SelfAutoResize(Offset) {

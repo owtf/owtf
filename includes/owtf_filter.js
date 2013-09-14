@@ -52,13 +52,23 @@ function DisplayCounters(ReviewObj, Offset, OnlyCounter) {
         for (I in window.AllCounters) {
                 CounterName = window.AllCounters[I]
                 if (IsCounter(CounterName) && (!OnlyCounter || CounterName == OnlyCounter)) {
-                        GetById(CounterName).style.color = ReviewObj[Offset][CounterName].Colour
-                        GetById(CounterName).innerHTML = ReviewObj[Offset][CounterName].Count
+                        //GetById(CounterName).style.color = ReviewObj[Offset][CounterName].Colour
+                        if (ReviewObj[Offset][CounterName])
+                        	{
+                        	 Count = ReviewObj[Offset][CounterName].Count
+                        	}
+                        else {
+                        	ReviewObj[Offset][CounterName] = {"Count":0}
+                        	Count = "--"
+                        }
+                		
+                        GetById(CounterName).innerHTML = Count
                 }
         }
 }
 
 function GetFilterOption(Option) {
+		if (!Review['__FilterOptions']) InitFilterOptions()
         return Review['__FilterOptions'][Option]
 }
 
@@ -98,7 +108,7 @@ function SetSelectFilterOptions(Elem) {
 function SetFilterOption(Option, Selected) {
         //console.log('BEFORE SetFilterOption', "Review['__FilterOptions'][" + Option + "]=", Review['__FilterOptions'][Option])
         //console.log("GetAllSelectValues(" + Option + ", " + Selected + ")=", GetAllSelectValues(Option, Selected))
-        window.Review['__FilterOptions'][Option] = GetAllSelectValues(Option, Selected)
+        Review['__FilterOptions'][Option] = GetAllSelectValues(Option, Selected)
         SaveDB()
         //console.log('AFTER SetFilterOption', "Review['__FilterOptions'][" + Option + "]=", Review['__FilterOptions'][Option])
         //console.log("GetAllSelectValues(" + Option + ", " + Selected + ")=", GetAllSelectValues(Option, Selected))
@@ -114,7 +124,7 @@ function InitFilterOptions() {
 }
 
 function DisplayUpdatedCounter(Offset, CounterName) {
-        DisplayCounters(Review[Offset], "__" + Offset + "Counters" , CounterName)
+        //DisplayCounters(Review[Offset], "__" + Offset + "Counters" , CounterName)
         window.parent.DisplayCounters(Review, '__SummaryCounters', CounterName)
 }
 
@@ -123,8 +133,14 @@ function UpdateCounter(Offset, CounterName, Amount) { //Increments/Decrements th
         //console.log('Review = ', Review, 'Offset=', Offset, 'CounterName=', CounterName)
         //console.log('Review[' + Offset + '][__DetailedCounters][' + CounterName + '].Count=', Review[Offset]['__DetailedCounters'][CounterName].Count)
         //console.log('Review[__SummaryCounters][' + CounterName + '].Count=', Review['__SummaryCounters'][CounterName].Count)
-        Review[Offset]["__" + Offset + "Counters"][CounterName].Count += Amount
-        Review['__SummaryCounters'][CounterName].Count += Amount
+        //Review[Offset]["__" + Offset + "Counters"][CounterName].Count += Amount
+        if (!Review['__SummaryCounters'] ||!Review['__SummaryCounters'][CounterName] ){
+        	Review['__SummaryCounters']= { CounterName: { "Count": Amount}}						
+        }
+        else {
+        	Review['__SummaryCounters'][CounterName].Count += Amount
+        }
+		
         //console.log('Counters AFTER update')
         //console.log('Review[' + Offset + '][__DetailedCounters][' + CounterName + '].Count=', Review[Offset]['__DetailedCounters'][CounterName].Count)
         //console.log('Review[__SummaryCounters][' + CounterName + '].Count=', Review['__SummaryCounters'][CounterName].Count)
@@ -146,27 +162,27 @@ function CanUnFilterPlugin(PluginId) {
         return true //All filters passed
 }
 
-function UnFilterPlugin(PluginId) {
-        if (CanUnFilterPlugin(PluginId)) {
-                //GetById('tab_'+PluginId).style.display = 'block' //Show the tab
-                GetById(PluginId).parentNode.style.display = 'block' //Show the test group 
-                GetById('tab_'+PluginId).parentNode.style.display = ''//Show the tab
+function UnFilterPlugin(Offset, PluginId) {
+        if (CanUnFilterPlugin( PluginId)) {
+        	    GetById(Offset +"_" +PluginId).parentNode.parentNode.parentNode.parentNode.style.display = 'block' //Show the testgroup
+                GetById(Offset +"_" +PluginId).style.display = 'block' //Show the tab content 
+                GetById('tab_'+Offset +"_"+PluginId).style.display = ''//Show the tab
                 return 1 //Count unfiltered
         }
         return 0 //Remains filtered
 }
 
-function UnFilterPlugins(PluginIds) {
+function UnFilterPlugins(Offset, PluginIds) {
         MatchCount = 0
         for (i = 0; i < PluginIds.length; i++) {
                 PluginId = PluginIds[i]
-                MatchCount += UnFilterPlugin(PluginId)
+                MatchCount += UnFilterPlugin(Offset, PluginId)
         }
         return MatchCount
 }
 
 function UnFilterPluginsWhereFieldMatches(Offset, Field, Value) {
-        return UnFilterPlugins(GetPluginIdsWhereFieldMatches(Offset, Field, Value))
+        return UnFilterPlugins(Offset, GetPluginIdsWhereFieldMatches(Offset, Field, Value))
 }
 
 function UnfilterPluginsWhereCommentsPresent(Offset) {
@@ -191,6 +207,7 @@ function SetDisplayUnfilterPlugins(Display) {
 function FilterResultsSummary(Parameter, FromReportType) { //Filter from Summary
         if ('refresh' == Parameter) {//Only refresh the page
                 Refresh() //Normal page reload
+                $("#mainmenu a[href='#filter']").tab('show');
                 return false
         }
         TotalAffected = 0
@@ -210,11 +227,14 @@ function FilterResultsSummary(Parameter, FromReportType) { //Filter from Summary
                 console.log('IP=' + IP + ', Port =' + Port)
                 console.log('IPs=', IPs)
                 console.log('IPPorts=', IPPorts)
-                IFrameId = 'iframe_' + Offset
+                IFrameId = 'section_' + Offset
                 IFrame = GetById(IFrameId)
                 AffectedPlugins = FilterResults(Offset, Parameter, FromReportType) //Trigger action on all children iframes
                 if (AffectedPlugins == 0 && 'delete' != Parameter) {
-                        IFrame.className = 'iframe_hidden' //Hide iframes without results
+                        IFrame.className = 'well well-small hide' //Hide iframes without results
+                }
+                else {
+                	  IFrame.className = 'well well-small' //show iframes without results
                 }
                 if (AffectedPlugins > 0) { //Update Match count
                         if (IP) { IPs[IP] += AffectedPlugins }
@@ -225,20 +245,20 @@ function FilterResultsSummary(Parameter, FromReportType) { //Filter from Summary
                 TotalAffected += AffectedPlugins
         }
         if ('delete' == Parameter) { //Display everything but minimised
-                DisplayMatches('') //Display number of plugins that matched
+                DisplayMatches('--') //Display number of plugins that matched
                 //SetNetMapDisplay(IPs, IPPorts, null, 'none')
                 SetNetMapDisplay(IPs, IPPorts, null, '')
                 //auto-resize iframe depending on contents:
                 for (i in AllIFrames) {
                         //IFramesWithResults[i].contentWindow.HideDetailedReportData()
-                        AllIFrames[i].contentWindow.DetailedReportCollapse(Offset)
+                        //AllIFrames[i].contentWindow.DetailedReportCollapse(Offset)
                 }
         }
         else { //Hide what was not selected
                 DisplayMatches(TotalAffected) //Display number of plugins that matched
                 SetNetMapDisplay(IPs, IPPorts, 0, '')
                 //auto-resize iframe depending on contents:
-                for (i in IFramesWithResults) { IFramesWithResults[i].contentWindow.SelfAutoResize(Offset) }
+                //for (i in IFramesWithResults) { IFramesWithResults[i].contentWindow.SelfAutoResize(Offset) }
         }
 }
 
@@ -256,7 +276,7 @@ function HideDetailedReportData(Offset) {
     SetDisplayToAllTestGroups('none') //Hide all index divs
     SetDisplayToAllPluginTabs('none') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
     SetDisplayUnfilterPlugins('')
-    HighlightFilters('')
+
 }
 
 function ShowDetailedReportData(Offset) {
@@ -266,12 +286,11 @@ function ShowDetailedReportData(Offset) {
     SetDisplayToAllTestGroups('block') //Show all index divs
     SetDisplayToAllPluginTabs('') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
     SetDisplayUnfilterPlugins('')
-    HighlightFilters('')
 }
 
 
 function FilterResults(Offset, Parameter, FromReportType) {
-	if (window.ReportMode) { ToggleReportMode(Offset) } //Display Review when filter is altered, Report needs re-generation anyway
+	if (window.ReportMode) { ToggleReportMode() } //Display Review when filter is altered, Report needs re-generation anyway
         if ('refresh' == Parameter) {//Only refresh the page
                 Refresh() //Normal page reload
                 return false
@@ -301,8 +320,14 @@ function FilterResults(Offset, Parameter, FromReportType) {
                 AffectedPlugins += UnFilterPluginsWhereFieldMatches(Offset, 'seen', 'N')
                 SetDisplayUnfilterPlugins('none') //Undo filter for brother plugins button hidden
         }
+        else if ('fav' == Parameter) {//Show favored
+            AffectedPlugins = UnFilterPluginsWhereFieldMatches(Offset, 'fav', 'Y')
+        }
         else if ('no_flag' == Parameter) {//Show without flags
                 AffectedPlugins = UnFilterPluginsWhereFieldMatches(Offset, 'flag', 'N')
+        }
+        else if ('flag' == Parameter) {//Show with flags
+            AffectedPlugins = UnFilterPluginsWhereFieldMatches(Offset, 'flag', 'Y')
         }
         else {
                 AffectedPlugins = UnFilterPluginsWhereFieldMatches(Offset, 'flag', Parameter)
@@ -367,14 +392,15 @@ function InitCountDict(Dict, Counter, Amount) {
         }
 }
 
-function SetCounterDisplay(CounterName, Display) {
-        GetById(CounterName).parentNode.style.display = Display
+function SetCounterDisplay(CounterName, ClassName) {
+        GetById(CounterName).className =  ClassName
 }
 
-function ToggleOnCount(Dict, CounterName, NumMatches, Display) {
-        if (NumMatches === null) { return SetCounterDisplay(CounterName, Display) }
-        if (Dict[CounterName] == NumMatches) { //No matches for Counter = hide the whole thing
-                SetCounterDisplay(CounterName, 'none')
+function ToggleOnCount(IP, Port, Dict, NumMatches, ClassName) {
+		CounterName = "sb_target_i"+ IP.replace(/\./g,"_") + "p" + Port
+        if (NumMatches === null) { return SetCounterDisplay(CounterName, ClassName) }
+        if (Dict[IP] == NumMatches || Dict[Port] == NumMatches) { //No matches for Counter = hide the whole thing
+                SetCounterDisplay(CounterName, 'disabled')
                 return false
         }
         //Matches for Counter
@@ -382,13 +408,11 @@ function ToggleOnCount(Dict, CounterName, NumMatches, Display) {
         return true
 }
 
-function SetNetMapDisplay(IPs, IPPorts, NumMatches, Display) {
+function SetNetMapDisplay(IPs, IPPorts, NumMatches, ClassName) {
         for (IP in IPs) {
-                if (ToggleOnCount(IPs, IP, NumMatches, Display)) { //IP matches found, look at ports
                         for (Port in IPPorts[IP]) {
-                                ToggleOnCount(IPPorts[IP], Port, NumMatches, Display)
+                                ToggleOnCount(IP, Port, IPPorts[IP], NumMatches, ClassName)
                         }
-                }
         }
 }
 
