@@ -191,8 +191,9 @@ function GetStorageMemoryPercent() {
 }
 
 function HidePlugin(Offset, PluginId) {
-	$('#tab_'+ Offset + "_"+PluginId + " a").tab("hide")
-	return null//SetClassNameToElems(new Array('tab_'+ Offset + "_" +PluginId), '')
+	SetClassNameToElems(new Array('tab_'+ Offset + "_" +PluginId), 'tab_plugin')
+	SetClassNameToElems(new Array( Offset + "_" +PluginId), 'tab-pane')
+	return null
 	//return false
 }
 
@@ -224,7 +225,7 @@ function Rate(Offset, PluginId, Rating, Elem) {
 	UpdatePluginCounter(Offset, PluginId, 'flag', PreviousValue, NewValue)
 	SaveDB()
 	ApplyReview(Offset) // Now update colours, etc
-	HidePlugin(Offset, PluginId)
+	//HidePlugin(Offset, PluginId)
 }
 
 function NotBooleanStr(BooleanStr) {

@@ -87,7 +87,7 @@ function SetDisplayToDivs(DivArray, Display) {//Modifies the display of all pass
 function SetDisplayToDivsByOffset(Offset, DivArray, Display) {//Modifies the display of all passed divs to whatever was passed on "Display"
     for (var i=0, len=DivArray.length; i<len; ++i) {
             d = GetById(Offset+"_"+DivArray[i]);
-            d.style.display = Display;
+            if (Display == "none") d.className = "tab-pane";
     }
 }
 
