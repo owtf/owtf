@@ -73,6 +73,11 @@ class ScannerTests(BaseTestCase):
         self.core_mock.Config.should_receive("Set")
         self.core_mock.PluginHandler = flexmock()
         self.core_mock.PluginHandler.should_receive("ValidateAndFormatPluginList").once()
+        self.core_mock.Config.Plugin = flexmock()
+        net_order = [{"Name": "ftp"},
+                     {"Name": "smtp"},
+                     {"Name": "vnc"}]
+        self.core_mock.Config.Plugin.should_receive("GetOrder").with_args("net").and_return(net_order)
 
         http_ports = self.scanner.probe_service_for_hosts("nmap_file", "target")
 
