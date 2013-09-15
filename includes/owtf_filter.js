@@ -53,7 +53,13 @@ function DisplayCounters(ReviewObj, Offset, OnlyCounter) {
                 CounterName = window.AllCounters[I];
                 if (IsCounter(CounterName) && (!OnlyCounter || CounterName == OnlyCounter)) {
                         //GetById(CounterName).style.color = ReviewObj[Offset][CounterName].Colour
-                        if (ReviewObj[Offset][CounterName])
+                        if (!ReviewObj[Offset])
+                        	{
+                        	ReviewObj[Offset] = { CounterName: {"Count":0}     	}
+                        	Count = 0
+                        	
+                        	}
+                		else if (ReviewObj[Offset][CounterName])
                         	{
                         	 Count = ReviewObj[Offset][CounterName].Count;
                         	}
@@ -206,6 +212,12 @@ function SetDisplayUnfilterPlugins(Display) {
         }
 }
 
+function SetDisplayUnfilterPluginsByOffset(Offset, Display) {
+    UnfilterPluginIcons = $('#section_' +  Offset + ' .icon_unfilter')
+    if (Display == "none") UnfilterPluginIcons.hide();
+    else UnfilterPluginIcons.show();
+}
+
 function FilterResultsSummary(Parameter, FromReportType) { //Filter from Summary
         if ('refresh' == Parameter) {//Only refresh the page
                 Refresh() //Normal page reload
@@ -271,28 +283,28 @@ function DisplayMatches(NumMatches) {
 function HideDetailedReportData(Offset) {
     //SetDisplayToAllPluginTabs('none') //Hide all plugin tabs
 	
-	for (var target in window.ReportsInfo) {
-		SetDisplayToDivsByOffset(Offset, window.ReportsInfo[target].AllPlugins, 'none')//Hide all plugin divs
-	}
+	//for (var target in window.ReportsInfo) {
+	SetDisplayToDivsByOffset(Offset, window.ReportsInfo[Offset].AllPlugins, 'none')//Hide all plugin divs
+	//}
 		
-    SetDisplayToAllTestGroups('none') //Hide all index divs
-    SetDisplayToAllPluginTabs('none') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
-    SetDisplayUnfilterPlugins('')
+    SetDisplayToAllTestGroupsByOffset(Offset, 'none') //Hide all index divs
+    SetDisplayToAllPluginTabsByOffset(Offset,'none') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
+    SetDisplayUnfilterPluginsByOffset(Offset, '')
 
 }
 
 function ShowDetailedReportData(Offset) {
-	for (var target in window.ReportsInfo) {
+	//for (var target in window.ReportsInfo) {
 		SetDisplayToDivsByOffset(Offset, window.ReportsInfo[target].AllPlugins, 'none')//Hide all plugin divs
-	}
-    SetDisplayToAllTestGroups('block') //Show all index divs
-    SetDisplayToAllPluginTabs('') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
-    SetDisplayUnfilterPlugins('')
+	//}
+    SetDisplayToAllTestGroupsByOffset(Offset, 'block') //Show all index divs
+    SetDisplayToAllPluginTabsByOffset(Offset,'') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
+    SetDisplayUnfilterPluginsByOffset(Offset,'')
 }
 
 
 function FilterResults(Offset, Parameter, FromReportType) {
-	if (window.ReportMode) { ToggleReportMode() } //Display Review when filter is altered, Report needs re-generation anyway
+	if (window.ReportsInfo[Offset].ReportMode) { ToggleReportMode() } //Display Review when filter is altered, Report needs re-generation anyway
         if ('refresh' == Parameter) {//Only refresh the page
                 Refresh() //Normal page reload
                 return false
@@ -369,13 +381,16 @@ function GetCounterFromField(FieldName, Value) {
         return 'filter' + CounterName + '_counter'
 }
 
-function UpdatePluginCounter(Offset, PluginId, Field, PreviousValue, NewValue) {
+function UpdatePluginCounter(Offset, PluginId, Field, PreviousValue, NewValue, Active) {
         if (PreviousValue != NewValue) { //Get old counter id + Decrement
                 PreviousCounter = GetCounterFromField(Field, PreviousValue)
+                
+                
                 UpdateCounter(Offset, PreviousCounter, -1)
+                NewCounter = GetCounterFromField(Field, NewValue)
+               UpdateCounter(Offset, NewCounter, +1)
         }
-        NewCounter = GetCounterFromField(Field, NewValue)
-        UpdateCounter(Offset, NewCounter, +1)
+        
 }
 
 function UnfilterBrotherTabs(Link) {
