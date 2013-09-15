@@ -50,19 +50,21 @@ function InitReviewCounters(ReviewObj, Offset) {
 
 function DisplayCounters(ReviewObj, Offset, OnlyCounter) {
         for (I in window.AllCounters) {
-                CounterName = window.AllCounters[I]
+                CounterName = window.AllCounters[I];
                 if (IsCounter(CounterName) && (!OnlyCounter || CounterName == OnlyCounter)) {
                         //GetById(CounterName).style.color = ReviewObj[Offset][CounterName].Colour
                         if (ReviewObj[Offset][CounterName])
                         	{
-                        	 Count = ReviewObj[Offset][CounterName].Count
+                        	 Count = ReviewObj[Offset][CounterName].Count;
                         	}
                         else {
-                        	ReviewObj[Offset][CounterName] = {"Count":0}
-                        	Count = "--"
+                        	ReviewObj[Offset][CounterName] = {"Count":0};
+                        	Count = 0;
+                        	
                         }
-                		
-                        GetById(CounterName).innerHTML = Count
+                        if (Count == 0) $('#' + CounterName).parent().addClass("disabled");
+                        else $('#' + CounterName).parent().removeClass("disabled");
+                        GetById(CounterName).innerHTML = Count;
                 }
         }
 }
@@ -125,7 +127,7 @@ function InitFilterOptions() {
 
 function DisplayUpdatedCounter(Offset, CounterName) {
         //DisplayCounters(Review[Offset], "__" + Offset + "Counters" , CounterName)
-        window.parent.DisplayCounters(Review, '__SummaryCounters', CounterName)
+        DisplayCounters(Review, '__SummaryCounters', CounterName)
 }
 
 function UpdateCounter(Offset, CounterName, Amount) { //Increments/Decrements the parent and child counters at the same time
