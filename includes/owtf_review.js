@@ -222,7 +222,7 @@ function Rate(Offset, PluginId, Rating, Elem) {
 	PreviousValue = Review[Offset][PluginId]['flag'] 
 	//console.log('Rate -> Logging Review[' + Offset + '][' + PluginId + '][flag] ..', PreviousValue)
 	NewValue = Review[Offset][PluginId]['flag'] = Rating 
-	UpdatePluginCounter(Offset, PluginId, 'flag', PreviousValue, NewValue)
+	UpdatePluginCounter(Offset, PluginId, 'flag', PreviousValue, NewValue, $("#" + Elem.Id).hasClass("active"))
 	SaveDB()
 	ApplyReview(Offset) // Now update colours, etc
 	//HidePlugin(Offset, PluginId)
@@ -238,11 +238,21 @@ function NotBooleanStr(BooleanStr) {
 function MarkAsSeen(Offset, PluginId) {
 	PreviousValue = Review[Offset][PluginId].seen
 	NewValue = Review[Offset][PluginId].seen = NotBooleanStr(PreviousValue)
-	UpdatePluginCounter(Offset, PluginId, 'seen', PreviousValue, NewValue)
+	UpdatePluginCounter(Offset, PluginId, 'seen', PreviousValue, NewValue,false)
 	SaveDB()
 	ApplyReview(Offset)
 	HidePlugin(Offset, PluginId)
 }
+
+function MarkAsFav(Offset, PluginId) {
+	PreviousValue = Review[Offset][PluginId].fav
+	NewValue = Review[Offset][PluginId].fav = NotBooleanStr(PreviousValue)
+	UpdatePluginCounter(Offset, PluginId, 'fav', PreviousValue, NewValue,false)
+	SaveDB()
+	ApplyReview(Offset)
+	//HidePlugin(Offset, PluginId)
+}
+
 
 function BlankReview() {
 	//? Review[Offset] = {}
@@ -255,7 +265,7 @@ function GetPluginIdsForOffset(Offset) {
 	for (PluginId in Review[Offset]) {
 		PluginIds.push(PluginId)
 	}
-	return PluginIds
+	return PluginIds;
 }
 
 function GetPluginIdsWhereFieldMatches(Offset, Field, Value) {
@@ -287,10 +297,10 @@ function HighlightNewPlugins(Offset) {//Looks for differences from the previous 
 		//console.log('Review[' + Offset + '][' + PluginId + ']')
 		//console.log(Review[Offset][PluginId])
 		if (Review[Offset][PluginId].new == 'Y') {
-			Tab = GetById('tab_'+PluginId)
+			Tab = GetById('tab_'+Offset+"_"+PluginId)
 			//Link = GetById('l'+window.ReportsInfo[Offset].AllPlugins[i])
 			if (Tab != null) {
-				Tab.style.backgroundColor = '#2A5'//Highlighting with colours looks horrible, white background seems ok to me
+				Tab.style.backgroundColor = '#000'//Highlighting with colours looks horrible, white background seems ok to me
 				//Link.innerHTML = "->"+Link.innerHTML+"<-"
 				//Tab.firstChild.innerHTML = Tab.firstChild.innerHTML+"*"
 			}
@@ -495,11 +505,26 @@ function SetDisplayToAllPluginTabs(Display) {
 		}
 }
 
+function SetDisplayToAllPluginTabsByOffset(Offset, Display) {
+        for (var i=0, length = window.ReportsInfo[Offset].AllPlugins.length; i<length; i++) {
+            var PluginId = window.ReportsInfo[Offset].AllPlugins[i]
+	GetById('tab_'+Offset+"_"+PluginId).style.display = Display
+	GetById('tab_'+Offset+"_"+PluginId).className = ''
+        }
+	}
+
+
 function SetDisplayToAllTestGroups(Display) {
 	AccordionGroups = document.getElementsByClassName('accordion-group')
 	for (i = 0; i < AccordionGroups.length; i++) {
 		AccordionGroups[i].style.display = Display
 	}
+}
+
+function SetDisplayToAllTestGroupsByOffset(Offset, Display) {
+	AccordionGroups = $('#section_' + Offset + ' .accordion-group')
+	if (Display=="none") AccordionGroups.hide()
+	else AccordionGroups.show()
 }
 
 function PluginCommentsPresent(Offset, PluginId) {
