@@ -4,7 +4,6 @@ import re
 
 TEST_CASES_FOLDER = "test_cases"
 PREDEFINED_OPTIONS = ["--verbose",
-                      "--detailed-errors",
                       "--no-byte-compile",
                       "--with-html",
                       "--html-file=tests.log.html"]

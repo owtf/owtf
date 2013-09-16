@@ -67,6 +67,7 @@ class BaseTestCase(unittest.TestCase):
     def get_abs_path(self, relative_path):
         return path.abspath(relative_path)
 
+
 class CoreInitialiser():
     """Callable class that instantiates the core object."""
 
@@ -90,21 +91,14 @@ class CoreInitialiser():
         return ProcessOptions(self.core_instance, args)
 
 
-class WebPluginTestCase(BaseTestCase):
+class PluginTestCase(BaseTestCase):
 
-    HOST = "localhost"
-    IP = "127.0.0.1"
-    PORT = "8888"
-    TARGET = "%s:%s" % (HOST, PORT)
-    ANCHOR_PATTERN = "href=\"%s\""
-    PASSIVE_LINK_PATTERN = (ANCHOR_PATTERN % (".*" + HOST + "|" + IP + "|\?.+=" + HOST + ".*"))
-    DYNAMIC_METHOD_REGEX = "^set_(head|get|post|put|delete|options|connect)_response"
+    TARGET = "localhost"
+    PLUGIN_START_TEXT = "------> Execution Start Date/Time:"
+    CORE_PROXY_NAME = "core_instance_proxy"
     OWTF_REVIEW_FOLDER = "owtf_review"
     LOG_FILE = "logfile"
     NOT_INTERACTIVE = " -i no "
-    FROM_FILE_SUFFIX = "_from_file"
-    CORE_PROXY_NAME = "core_instance_proxy"
-    PLUGIN_START_TEXT = "------> Execution Start Date/Time:"
 
     core_instance_proxy = None
 
@@ -112,7 +106,7 @@ class WebPluginTestCase(BaseTestCase):
     def setUpClass(cls):
         cls.clean_temp_files()  # Cleans logfile and owtf_review/ before starting
         cls.core_instance_proxy = ExpensiveResourceProxy(CoreInitialiser("http://" + cls.TARGET))
-        super(WebPluginTestCase, cls).setUpClass()
+        super(PluginTestCase, cls).setUpClass()
 
     @classmethod
     def tearDownClass(cls):
@@ -124,7 +118,7 @@ class WebPluginTestCase(BaseTestCase):
             pass  # Exit is invoked from the core.Finish method
         finally:
             cls.clean_temp_files()  # Cleans logfile and owtf_review/ before finishing
-            super(WebPluginTestCase, cls).tearDownClass()
+            super(PluginTestCase, cls).tearDownClass()
 
     @classmethod
     def clean_temp_files(cls):
@@ -140,13 +134,121 @@ class WebPluginTestCase(BaseTestCase):
         return core_instance_proxy_is_defined and is_not_none
 
     def setUp(self):
+        super(BaseTestCase, self).setUp()
+        self.core_instance = self.core_instance_proxy.get_instance()
+        self.owtf_output = ""
+
+    def owtf(self, args_string=""):
+        """Runs OWTF against the test server and stores the result."""
+        processed_options = self.process_options(args_string + self.NOT_INTERACTIVE + self.TARGET)
+        plugin_dir, plugin = self.get_dir_and_plugin_from_options(processed_options)
+        result = self.run_plugin(plugin_dir, plugin)
+        self.owtf_output = "\n".join(result[:])
+        self.check_for_bugs()
+
+    def process_options(self, options):
+        """Parses the command line options passed to the owtf method."""
+        args = shlex.split(options)
+        return ProcessOptions(self.core_instance, args)
+
+    def get_dir_and_plugin_from_options(self, options):
+        """
+            Performs a plugins search through the plugin handler with the given
+            criteria.
+        """
+        criteria = self.get_criteria_from_options(options)
+        directory = os.path.abspath("../plugins/" + criteria["Group"])
+        return directory, self.core_instance.Config.Plugin.GetPlugins(criteria)[0]
+
+    def get_criteria_from_options(self, options):
+        return {"Group": options["PluginGroup"],
+                "Type": options["PluginType"],
+                "Name": options["OnlyPlugins"][0]}
+
+    def run_plugin(self, plugin_dir, plugin):
+        """
+            Runs a plugin with the current core instance and returns a list
+            with the output of the plugin and the stdout content.
+        """
+        result = []
+        self.init_stdout_recording()
+        try:
+            plugin_output = self.core_instance.PluginHandler.ProcessPlugin(plugin_dir, plugin, {})
+            result.append(str(plugin_output))
+        except:
+            result.append(str(sys.exc_info()[0]))
+        finally:
+            stdout_output = self.get_recorded_stdout_and_close()
+            result.append(stdout_output)
+        return result
+
+    def check_for_bugs(self):
+        bug_found_banner = "OWTF BUG: Please report the sanitised information below to help make this better. Thank you."
+        if self.owtf_output.count(bug_found_banner) > 0:
+            print self.owtf_output
+            self.fail("The test failed because a bug was found during the execution.")
+
+    def assert_external_tool_started(self, times):
+        self.assert_that_output_contains(self.PLUGIN_START_TEXT, times)
+
+    def assert_that_output_contains_lines(self, lines):
+        for line in lines:
+            self.assert_that_output_contains(line)
+
+    def assert_that_output_contains(self, substring, times=None):
+        assert_that(self.owtf_output, contains_string(substring))
+        if times is not None:
+            assert_that(self.owtf_output.count(substring), equal_to(times))
+
+    def assert_that_output_matches_more_than(self, regex, times):
+        assert_that(self.owtf_output, matches_regexp(regex))
+        if times is not None:
+            times_replaced = self._get_number_of_occurences_for(regex)
+            assert_that(times_replaced, greater_than_or_equal_to(times))
+
+    def _get_number_of_occurences_for(self, regex):
+        token = self.generate_random_token()
+        output_copy = self.owtf_output
+        sub_result, times_replaced = re.subn(regex, token, output_copy)
+        return times_replaced
+
+    def generate_random_token(self, length=15):
+        """Useful to identify the specified content in the plugin output."""
+        charset = string.ascii_uppercase + string.ascii_lowercase + string.digits
+        choices = []
+        for i in range(length):
+            choices.append(random.choice(charset))
+        return ''.join(choices)
+
+    def get_resources(self, resource_name):
+        return self.core_instance.Config.GetResources(resource_name)
+
+
+class WebPluginTestCase(PluginTestCase):
+
+    HOST = "localhost"
+    IP = "127.0.0.1"
+    PORT = "8888"
+    TARGET = "%s:%s" % (HOST, PORT)
+    ANCHOR_PATTERN = "href=\"%s\""
+    PASSIVE_LINK_PATTERN = (ANCHOR_PATTERN % (".*" + HOST + "|" + IP + "|\?.+=" + HOST + ".*"))
+    DYNAMIC_METHOD_REGEX = "^set_(head|get|post|put|delete|options|connect)_response"
+    FROM_FILE_SUFFIX = "_from_file"
+
+    @classmethod
+    def setUpClass(cls):
+        super(WebPluginTestCase, cls).setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super(WebPluginTestCase, cls).tearDownClass()
+
+    def setUp(self):
         """Initialise the WebPluginTestCase instance variables."""
+        super(WebPluginTestCase, self).setUp()
         self.responses = {}
         self.server = None
         self.custom_handlers = []
-        self.core_instance = self.core_instance_proxy.get_instance()
-        self.owtf_output = ""
-        super(WebPluginTestCase, self).setUp()
 
     def tearDown(self):
         if self.server is not None:
@@ -223,68 +325,6 @@ class WebPluginTestCase(BaseTestCase):
     def stop_server(self):
         self.server.stop()
 
-    def owtf(self, args_string=""):
-        """Runs OWTF against the test server and stores the result."""
-        processed_options = self.process_options(args_string + self.NOT_INTERACTIVE + self.TARGET)
-        plugin_dir, plugin = self.get_dir_and_plugin_from_options(processed_options)
-        result = self.run_plugin(plugin_dir, plugin)
-        self.owtf_output = "\n".join(result[:])
-        self.check_for_bugs()
-
-    def process_options(self, options):
-        """Parses the command line options passed to the owtf method."""
-        args = shlex.split(options)
-        return ProcessOptions(self.core_instance, args)
-
-    def get_dir_and_plugin_from_options(self, options):
-        """
-            Performs a plugins search through the plugin handler with the given
-            criteria.
-        """
-        criteria = self.get_criteria_from_options(options)
-        directory = os.path.abspath("../plugins/" + criteria["Group"])
-        return directory, self.core_instance.Config.Plugin.GetPlugins(criteria)[0]
-
-    def get_criteria_from_options(self, options):
-        return {"Group": options["PluginGroup"],
-                "Type": options["PluginType"],
-                "Name": options["OnlyPlugins"][0]}
-
-    def run_plugin(self, plugin_dir, plugin):
-        """
-            Runs a plugin with the current core instance and returns a list 
-            with the output of the plugin and the stdout content.
-        """
-        result = []
-        self.init_stdout_recording()
-        try:
-            plugin_output = self.core_instance.PluginHandler.ProcessPlugin(plugin_dir, plugin, {})
-            result.append(str(plugin_output))
-        except:
-            result.append(str(sys.exc_info()[0]))
-        finally:
-            stdout_output = self.get_recorded_stdout_and_close()
-            result.append(str(stdout_output))
-        return result
-
-    def check_for_bugs(self):
-        bug_found_banner = "OWTF BUG: Please report the sanitised information below to help make this better. Thank you."
-        if self.owtf_output.count(bug_found_banner) > 0:
-            print self.owtf_output
-            self.fail("The test failed because a bug was found during the execution.")
-
-    def assert_external_tool_started(self, times):
-        self.assert_that_output_contains(self.PLUGIN_START_TEXT, times)
-
-    def assert_that_output_contains_lines(self, lines):
-        for line in lines:
-            self.assert_that_output_contains(line)
-
-    def assert_that_output_contains(self, substring, times=None):
-        assert_that(self.owtf_output, contains_string(substring))
-        if times is not None:
-            assert_that(self.owtf_output.count(substring), equal_to(times))
-
     def check_link_generation_for_resources(self, resources_name):
         if not isinstance(resources_name, list):
             resources_name = [resources_name]
@@ -292,26 +332,6 @@ class WebPluginTestCase(BaseTestCase):
             times = len(self.get_resources(resource))
             # The pattern should match at least as many times as resources for that name
             self.assert_that_output_matches_more_than(self.PASSIVE_LINK_PATTERN, times)
-
-    def assert_that_output_matches_more_than(self, regex, times):
-        assert_that(self.owtf_output, matches_regexp(regex))
-        if times is not None:
-            times_replaced = self._get_number_of_occurences_for(regex)
-            assert_that(times_replaced, greater_than_or_equal_to(times))
-
-    def _get_number_of_occurences_for(self, regex):
-        token = self.generate_random_token()
-        output_copy = self.owtf_output
-        sub_result, times_replaced = re.subn(regex, token, output_copy)
-        return times_replaced
-
-    def generate_random_token(self, length=15):
-        """Useful to identify the specified content in the plugin output."""
-        charset = string.ascii_uppercase + string.ascii_lowercase + string.digits
-        choices = []
-        for i in range(length):
-            choices.append(random.choice(charset))
-        return ''.join(choices)
 
     def get_url(self, web_path, https=False):
         protocol = "https" if https else "http"
@@ -331,5 +351,3 @@ class WebPluginTestCase(BaseTestCase):
             headers[name] = self.generate_random_token()
         return headers
 
-    def get_resources(self, resource_name):
-        return self.core_instance.Config.GetResources(resource_name)
