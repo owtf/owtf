@@ -12,4 +12,6 @@ echo -e "[+] Installing coverage..."
 pip install coverage
 echo -e "[+] Installing nose-html..."
 pip install nose-html
+echo -e "[+] Installing nose-parameterized..."
+pip install nose-parameterized
 echo -e "[+] Installation finished."

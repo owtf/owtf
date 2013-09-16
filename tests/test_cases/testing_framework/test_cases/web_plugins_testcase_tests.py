@@ -21,7 +21,7 @@ class CustomHandler(tornado.web.RequestHandler):
 
 class WebPluginTestCaseTests(WebPluginTestCase):
 
-    HOST = "localhost"
+    HOST = "localhost"  
 
     def test_that_defined_responses_are_set_correctly(self):
         path_response = {"/first": "first",
