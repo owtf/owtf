@@ -43,6 +43,8 @@ import ssl
 import os
 import datetime
 import uuid
+import shutil
+import re
 from multiprocessing import Process
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
@@ -53,22 +55,6 @@ class ProxyHandler(tornado.web.RequestHandler):
     This RequestHandler processes all the requests that the application received
     """
     SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE']
-
-    # Data for handling headers through a streaming callback
-    # Need to work around for something
-    global restricted_response_headers
-    restricted_response_headers = [
-                                    'Content-Length',
-                                    'Content-Encoding',
-                                    'Etag',
-                                    'Transfer-Encoding',
-                                    'Connection',
-                                    'Vary',
-                                    'Accept-Ranges',
-                                    'Pragma'
-                                   ]
-    global restricted_request_headers
-    restricted_request_headers = ['Connection', 'Pragma', 'Cache-Control', 'If-Modified-Since']
 
     def set_status(self, status_code, reason=None):
         """
@@ -367,9 +353,11 @@ class CommandHandler(tornado.web.RequestHandler):
                         
 class ProxyProcess(Process):
 
-    def __init__(self, core, instances, inbound_options, cache_dir, ssl_options, cookie_filter, outbound_options=[], outbound_auth=""):
+    def __init__(self, core, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
+        # This is anti-csrf token used in Plug-n-Hack commands
         pnh_token = uuid.uuid4().hex
+        # The tornado application, which is used to pass variables to request handler
         self.application = tornado.web.Application(handlers=[
                                                             (r'/proxy(.*)', PlugnHackHandler),
                                                             ('/'+pnh_token+'/JSON/(.*)', CommandHandler),
@@ -378,16 +366,52 @@ class ProxyProcess(Process):
                                                     debug=False,
                                                     gzip=True,
                                                    )
+        
+        # All required variables in request handler
+        # Required variables are added as attributes to application, so that request handler can access these
+        self.application.Core = core
         self.application.pnh_token = pnh_token
-        self.application.inbound_ip = inbound_options[0]
-        self.application.inbound_port = int(inbound_options[1])
-        self.application.cache_dir = cache_dir
-        self.application.ca_cert = ssl_options['CA_CERT']
-        self.application.ca_key = ssl_options['CA_KEY']
-        self.application.proxy_folder = os.path.dirname(ssl_options['CA_CERT'])
-        self.application.certs_folder = ssl_options['CERTS_FOLDER']
-        self.application.cookie_blacklist = cookie_filter['BLACKLIST']
-        self.application.cookie_regex = cookie_filter['REGEX']
+        self.application.inbound_ip = self.application.Core.Config.Get('INBOUND_PROXY_IP')
+        self.application.inbound_port = int(self.application.Core.Config.Get('INBOUND_PROXY_PORT'))
+        self.instances = self.application.Core.Config.Get("INBOUND_PROXY_PROCESSES")
+        
+        # Proxy CACHE
+        # Cache related settings, including creating required folders according to cache folder structure
+        self.application.cache_dir = self.application.Core.Config.Get("CACHE_DIR")
+        if not os.path.exists(self.application.Core.Config.Get('CACHE_DIR')):
+            os.makedirs(self.application.Core.Config.Get('CACHE_DIR'))
+        else:
+            shutil.rmtree(self.application.Core.Config.Get('CACHE_DIR'))
+            os.makedirs(self.application.Core.Config.Get('CACHE_DIR'))
+        for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body', 'resp-time']:
+            folder_path = os.path.join(self.application.Core.Config.Get('CACHE_DIR'), folder_name)
+            if not os.path.exists(folder_path):
+                os.mkdir(folder_path)
+        
+        # SSL MiTM
+        # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory ~/.owtf/proxy )
+        self.application.ca_cert = os.path.expanduser(self.application.Core.Config.Get('CA_CERT'))
+        self.application.ca_key = os.path.expanduser(self.application.Core.Config.Get('CA_KEY'))
+        self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
+        self.application.certs_folder = os.path.expanduser(self.application.Core.Config.Get('CERTS_FOLDER'))
+        
+        # Blacklist (or) Whitelist Cookies
+        # Building cookie regex to be used for cookie filtering for caching
+        if self.application.Core.Config.Get('WHITELIST_COOKIES') == 'none':
+            cookies_list = self.application.Core.Config.Get('BLACKLIST_COOKIES').split(',')
+            self.application.cookie_blacklist = True
+        else:
+            cookies_list = self.application.Core.Config.Get('WHITELIST_COOKIES').split(',')
+            self.application.cookie_blacklist = False
+        if self.application.cookie_blacklist:
+            regex_cookies_list = [ cookie + "=([^;]+;?)" for cookie in cookies_list ]
+        else:
+            regex_cookies_list = [ "(" + cookie + "=[^;]+;?)" for cookie in self.application.Core.Config.Get('COOKIES_LIST') ]
+        regex_string = '|'.join(regex_cookies_list)
+        self.application.cookie_regex = re.compile(regex_string)
+        
+        # Outbound Proxy
+        # Outbound proxy settings to be used inside request handler
         if outbound_options:
             self.application.outbound_ip = outbound_options[0]
             self.application.outbound_port = int(outbound_options[1])
@@ -397,11 +421,23 @@ class ProxyProcess(Process):
             self.application.outbound_username, self.application.outbound_password = outbound_auth.split(":")
         else:
             self.application.outbound_username, self.application.outbound_password = None, None
+        
+        # Server has to be global, because it is used inside request handler to attach sockets for monitoring
         global server
         server = tornado.httpserver.HTTPServer(self.application)
         self.server = server
-        self.instances = instances
-        self.application.Core = core
+        
+        # Header filters
+        # Restricted headers are picked from framework/config/framework_config.cfg
+        # These headers are removed from the response obtained from webserver, before sending it to browser
+        global restricted_response_headers
+        restricted_response_headers = self.application.Core.Config.Get("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
+        # These headers are removed from request obtained from browser, before sending it to webserver
+        global restricted_request_headers
+        restricted_request_headers = self.application.Core.Config.Get("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
+        
+        # Request throttling
+        # Throttling settings picked up from profiles/general/default.cfg
         if self.application.Core.Config.Get("PROXY_THROTTLING") == 'false':
             self.application.throttle_variables = None
         else:
@@ -422,4 +458,4 @@ class ProxyProcess(Process):
             tornado.ioloop.IOLoop.instance().start()
         except:
             # Cleanup code
-            pass
+            exit()
