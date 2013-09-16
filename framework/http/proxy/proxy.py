@@ -42,6 +42,7 @@ import socket
 import ssl
 import os
 import datetime
+import uuid
 from multiprocessing import Process
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
@@ -102,7 +103,7 @@ class ProxyHandler(tornado.web.RequestHandler):
     def handle_response(self, response):
         if self.application.throttle_variables:
             self.calculate_delay(response)
-        if response.code in [408, 599, 404]:
+        if response.code in [408, 599]:
             try:
                 old_count = self.request.retries
                 self.request.retries = old_count + 1
@@ -323,6 +324,7 @@ class PlugnHackHandler(tornado.web.RequestHandler):
         """
         # Rebuilding the root url
         root_url = self.request.protocol + "://" + self.request.host
+        command_url = root_url + "/" + self.application.pnh_token
         proxy_url = root_url + "/proxy"
         # Absolute path of templates folder using location of this script (proxy.py)
         templates_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates")
@@ -334,7 +336,7 @@ class PlugnHackHandler(tornado.web.RequestHandler):
             self.write(loader.load("manifest.json").generate(proxy_url=proxy_url))
             self.set_header("Content-Type", "application/json")
         elif ext == "-service.json":
-            self.write(loader.load("service.json").generate(root_url=root_url))
+            self.write(loader.load("service.json").generate(root_url=command_url))
             self.set_header("Content-Type", "application/json")
         elif ext == ".pac":
             self.write(loader.load("proxy.pac").generate(proxy_details=self.request.host))
@@ -355,8 +357,11 @@ class CommandHandler(tornado.web.RequestHandler):
         command_list = self.get_arguments("cmd")
         info = {}
         for command in command_list:
-            command = "self.application." + command
-            info[command] = eval(command)
+            if command.startswith("Core"):
+                command = "self.application." + command
+                info[command] = eval(command)
+            if command.startswith("setattr"):
+                info[command] = eval(command)
         self.write(info)
         self.finish()
                         
@@ -364,14 +369,16 @@ class ProxyProcess(Process):
 
     def __init__(self, core, instances, inbound_options, cache_dir, ssl_options, cookie_filter, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
+        pnh_token = uuid.uuid4().hex
         self.application = tornado.web.Application(handlers=[
                                                             (r'/proxy(.*)', PlugnHackHandler),
-                                                            (r'/JSON/(.*)', CommandHandler),
+                                                            ('/'+pnh_token+'/JSON/(.*)', CommandHandler),
                                                             (r'.*', ProxyHandler)
                                                             ], 
                                                     debug=False,
                                                     gzip=True,
                                                    )
+        self.application.pnh_token = pnh_token
         self.application.inbound_ip = inbound_options[0]
         self.application.inbound_port = int(inbound_options[1])
         self.application.cache_dir = cache_dir
@@ -400,7 +407,7 @@ class ProxyProcess(Process):
         else:
             self.application.throttle_variables = {
                                                     "hosts": {},
-                                                    "threshold": self.application.Core.Config.Get("THROTTLING_THRESHOLD"),
+                                                    "threshold": self.application.Core.Config.Get("PROXY_THROTTLING_THRESHOLD"),
                                                   }
 
     # "0" equals the number of cores present in a machine
@@ -409,7 +416,7 @@ class ProxyProcess(Process):
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
-            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/owtf-proxy.log","--logging=info"])
+            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix="+self.application.Core.Config.Get("PROXY_LOG"),"--logging=info"])
             # To run any number of instances
             self.server.start(int(self.instances))
             tornado.ioloop.IOLoop.instance().start()
