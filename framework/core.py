@@ -135,39 +135,17 @@ class Core:
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
         if Options["ProxyMode"]:
-            if not os.path.exists(self.Config.Get('CACHE_DIR')):
-                os.makedirs(self.Config.Get('CACHE_DIR'))
-            else:
-                shutil.rmtree(self.Config.Get('CACHE_DIR'))
-                os.makedirs(self.Config.Get('CACHE_DIR'))
-            InboundProxyOptions = [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')]    
-            for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body', 'resp-time']:
-                folder_path = os.path.join(self.Config.Get('CACHE_DIR'), folder_name)
-                if not os.path.exists(folder_path):
-                    os.mkdir(folder_path)
-            if self.Config.Get('COOKIES_BLACKLIST_NATURE'):
-                regex_cookies_list = [ cookie + "=([^;]+;?)" for cookie in self.Config.Get('COOKIES_LIST') ]
-                blacklist = True
-            else:
-                regex_cookies_list = [ "(" + cookie + "=[^;]+;?)" for cookie in self.Config.Get('COOKIES_LIST') ]
-                blacklist = False
-            regex_string = '|'.join(regex_cookies_list)
-            cookie_regex = re.compile(regex_string)
-            cookie_filter = {'BLACKLIST':blacklist, 'REGEX':cookie_regex}
-            self.ProxyProcess = proxy.ProxyProcess( self,
-                                                    self.Config.Get('INBOUND_PROXY_PROCESSES'),
-                                                    InboundProxyOptions,
-                                                    self.Config.Get('CACHE_DIR'),
-                                                    self.Config.Get('INBOUND_PROXY_SSL'),
-                                                    cookie_filter,
+            self.ProxyProcess = proxy.ProxyProcess( 
+                                                    self,
                                                     Options['OutboundProxy'],
                                                     Options['OutboundProxyAuth']
                                                   )
             self.TransactionLogger = transaction_logger.TransactionLogger(self)
             cprint("Started Inbound proxy at " + self.Config.Get('INBOUND_PROXY'))
             self.ProxyProcess.start()
+            # XD , started after exiting proxy mode XD
             # self.TransactionLogger.start() # <= OMG!!! Have to fix this :P
-            self.Requester = requester.Requester(self, InboundProxyOptions)
+            self.Requester = requester.Requester(self, [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')])
         else:
             self.Requester = requester.Requester(self, Options['OutboundProxy'])        
     
