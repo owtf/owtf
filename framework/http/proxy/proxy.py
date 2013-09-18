@@ -38,6 +38,7 @@ import tornado.escape
 import tornado.httputil
 import tornado.options
 import tornado.template
+import tornado.websocket
 import socket
 import ssl
 import os
@@ -55,6 +56,16 @@ class ProxyHandler(tornado.web.RequestHandler):
     This RequestHandler processes all the requests that the application received
     """
     SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE']
+    
+    def __new__(cls, application, request, **kwargs):
+        # http://stackoverflow.com/questions/3209233/how-to-replace-an-instance-in-init-with-a-different-object
+        # Based on upgrade header, websocket request handler must be used
+        try:
+            if request.headers['Upgrade'].lower() == 'websocket':
+                return CustomWebSocketHandler(application, request, **kwargs)
+        except KeyError:
+            pass
+        return tornado.web.RequestHandler.__new__(cls, application, request, **kwargs)
 
     def set_status(self, status_code, reason=None):
         """
@@ -288,6 +299,73 @@ class ProxyHandler(tornado.web.RequestHandler):
         except Exception:
             self.finish()
 
+class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
+    """
+    * See docs XD
+    * This class is used for handling websocket traffic.
+    * Object of this class replaces the main request handler for a request with 
+      header => "Upgrade: websocket"
+    * wss:// - CONNECT request is handled by main handler
+    """
+
+    def upstream_connect(self, io_loop=None, callback=None):
+        """
+        Implemented as a custom alternative to tornado.websocket.websocket_connect
+        """
+        # io_loop is needed, how else will it work with tornado :P
+        if io_loop is None:
+            io_loop = tornado.ioloop.IOLoop.current()
+
+        # During secure communication, we get relative URI, so make them absolute
+        if self.request.uri.startswith(self.request.protocol,0): # Normal Proxy Request
+            self.request.url = self.request.uri
+        else:  # Transparent Proxy Request
+            self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
+        # WebSocketClientConnection expects ws:// & wss://
+        self.request.url = self.request.url.replace("http", "ws", 1)
+        # Build a custom request
+        request = tornado.httpclient.HTTPRequest(
+                                                    url=self.request.url,
+                                                    proxy_host=self.application.outbound_ip,
+                                                    proxy_port=self.application.outbound_port,
+                                                    proxy_username=self.application.outbound_username,
+                                                    proxy_password=self.application.outbound_password
+                                                )
+        conn = tornado.websocket.WebSocketClientConnection(io_loop, request)
+        if callback is not None:
+            io_loop.add_future(conn.connect_future, callback)
+        return conn.connect_future # This returns a future
+
+    def _execute(self, transforms, *args, **kwargs):
+        """
+        Overriding of a method of WebSocketHandler
+        """
+        def start_tunnel(future):
+            """
+            A callback which is called when connection to url is successful
+            """
+            self.upstream = future.result() # We need upstream to write further messages
+            tornado.websocket.WebSocketHandler._execute(self, transforms, *args, **kwargs) # The regular procedures are to be done
+        
+        # We try to connect to provided URL & then we proceed with connection on client side.
+        self.upstream = self.upstream_connect(callback=start_tunnel)
+
+    def on_message(self, message):
+        """
+        Everytime a message is received from client side, this instance method is called
+        """
+        self.upstream.write_message(message) # The obtained message is written to upstream
+        self.upstream.read_message(callback=self.on_response) # A callback is added to read the data when upstream responds
+        
+    def on_response(self, message):
+        """
+        A callback when a message is recieved from upstream
+        *** Here message is a future
+        """
+        if self.ws_connection: # Check if connection still exists
+            if message.result(): # Check if it is not NULL ( Indirect checking of upstream connection )
+                self.write_message(message.result()) # Write obtained message to client
+
 class PlugnHackHandler(tornado.web.RequestHandler):
     """
     This handles the requests which are used for firefox configuration 
@@ -458,4 +536,4 @@ class ProxyProcess(Process):
             tornado.ioloop.IOLoop.instance().start()
         except:
             # Cleanup code
-            exit()
+            pass
