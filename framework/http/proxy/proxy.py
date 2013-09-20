@@ -323,9 +323,17 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
         # WebSocketClientConnection expects ws:// & wss://
         self.request.url = self.request.url.replace("http", "ws", 1)
+        
+        # Have to add cookies and stuff
+        request_headers = tornado.httputil.HTTPHeaders()
+        for name, value in self.request.headers.iteritems():
+            if name not in restricted_request_headers:
+                request_headers.add(name, value)
+        
         # Build a custom request
         request = tornado.httpclient.HTTPRequest(
                                                     url=self.request.url,
+                                                    headers=request_headers,
                                                     proxy_host=self.application.outbound_ip,
                                                     proxy_port=self.application.outbound_port,
                                                     proxy_username=self.application.outbound_username,
@@ -355,16 +363,23 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         Everytime a message is received from client side, this instance method is called
         """
         self.upstream.write_message(message) # The obtained message is written to upstream
-        self.upstream.read_message(callback=self.on_response) # A callback is added to read the data when upstream responds
-        
+        # The following check ensures that if a callback is added for reading message from upstream, another one is not added
+        if not self.upstream.read_future:
+            self.upstream.read_message(callback=self.on_response) # A callback is added to read the data when upstream responds
+
     def on_response(self, message):
         """
         A callback when a message is recieved from upstream
         *** Here message is a future
         """
+        # The following check ensures that if a callback is added for reading message from upstream, another one is not added
+        if not self.upstream.read_future:
+            self.upstream.read_message(callback=self.on_response)
         if self.ws_connection: # Check if connection still exists
             if message.result(): # Check if it is not NULL ( Indirect checking of upstream connection )
                 self.write_message(message.result()) # Write obtained message to client
+            else:
+                self.close()
 
 class PlugnHackHandler(tornado.web.RequestHandler):
     """
