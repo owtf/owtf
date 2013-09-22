@@ -36,9 +36,9 @@
 #	$cmd
 #fi
 
-echo "[*] Upgrade Kali-Linux/Ubuntu? [y/n]"
+echo "[*] Upgrade Kali-Linux/Ubuntu? [Y/n]"
 read a
-if [ "$a" = "y" ]; then
+if [ "$a" != "n" ]; then
 	for cmd in $(echo apt-get#update apt-get#upgrade apt-get#dist-upgrade); do
 		cmd=$(echo "$cmd"|tr '#' ' ')
 		echo "[*] Running: $cmd"
@@ -49,33 +49,33 @@ fi
 echo "\n[*] Installing pip"
 sudo apt-get install python-pip
 
-echo "\n[*] Install lxml? [y/n]"
+echo "\n[*] Install lxml? [Y/n]"
 #echo "Tip for Ubuntu courtesy of Mario Heiderich: Python2.7-dev is needed to compile this lib properly"
 #echo "See also: http://lxml.de/installation.html"
 read a
-if [ "$a" = "y" ]; then
+if [ "$a" != "n" ]; then
 	echo "[*] Running: sudo pip install lxml"
     sudo pip install lxml
 fi
 
-echo "\n[*] Install argparse? [y/n]"
+echo "\n[*] Install argparse? [Y/n]"
 read a
-if [ "$a" = "y" ]; then
+if [ "$a" != "n" ]; then
 	echo "[*] Running: sudo pip install argparse"
     sudo pip install argparse    
 fi
 
-echo "\n[*] Install Jinja2 templating engine? [y/n]"
+echo "\n[*] Install Jinja2 templating engine? [Y/n]"
 read a
-if [ "$a" = "y" ]; then
+if [ "$a" != "n" ]; then
 	echo "[*] Running: sudo pip install jinja2"
     sudo pip install jinja2    
 fi
 
-echo "\n[*] Install Selenium? [y/n]"
+echo "\n[*] Install Selenium? [Y/n]"
 echo "[*] NOTE: This is only necessary if you would like to run SELENIUM plugins"
 read a
-if [ "$a" = "y" ]; then
+if [ "$a" != "n" ]; then
 	for cmd in $(echo sudo#pip#install#selenium sudo#pip#install#rdflib sudo#apt-get#install#xvfb#xserver-xephyr sudo#pip#install#pyvirtualdisplay); do
 		cmd=$(echo "$cmd"|tr '#' ' ')
 		echo "\n[*] Running: $cmd"
@@ -83,9 +83,9 @@ if [ "$a" = "y" ]; then
 	done
 fi
 
-echo "\n[*] Install dependencies needed for W3AF? [y/n]"
+echo "\n[*] Install dependencies needed for W3AF? [Y/n]"
 read a
-if [ "$a" = "y" ]; then
+if [ "$a" != "n" ]; then
     # The below commands were given by w3af when latest version was run on Kali
     sudo apt-get install python2.7-dev libsqlite3-dev
     sudo pip install clamd PyGithub GitPython pybloomfiltermmap esmre nltk pdfminer futures guess-language cluster msgpack-python python-ntlm
@@ -93,9 +93,9 @@ if [ "$a" = "y" ]; then
     sudo pip install xdot
 fi
 
-echo "\n[*] Install dependencies needed for Inbound Proxy? [y/n]"
+echo "\n[*] Install dependencies needed for Inbound Proxy? [Y/n]"
 read a
-if [ "$a" = "y" ]; then
+if [ "$a" != "n" ]; then
     sudo pip install tornado pycurl
 fi
 

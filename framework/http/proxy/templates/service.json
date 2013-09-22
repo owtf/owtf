@@ -19,22 +19,6 @@
     }
   },
   {
-    "name":"add-url",
-    "description":"Add URL to owtf DB",
-    "returnType":"string",
-    "params":[
-    {
-      "name":"url",
-      "type": "string",
-      "description": "URL to be added to DB",
-      "defaultValue": {"type":"expression","expression":"$.tab.URL","extract":true}
-    }],
-    "execAction":{
-      "url":"{{ root_url }}/JSON/?cmd=Core.DB.URL.AddURLToDB('${$.args.url}')",
-      "expression":"$.*"
-    }
-  },
-  {
     "name":"cookie-policy",
     "description":"Displays blacklisted (or) whitelisted cookies",
     "returnType":"string",
