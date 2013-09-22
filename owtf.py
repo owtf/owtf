@@ -123,6 +123,7 @@ def GetArgs(Core, args):
                         help="<wave1,wave2,wave3> - Waves to run network scanning")
     Parser.add_argument("-proxy", "--proxy",
                         dest="ProxyMode",
+                        default=True,
                         action="store_true",
                         help="Use this flag to run OWTF Inbound Proxy")
     Parser.add_argument("--update", "--update",

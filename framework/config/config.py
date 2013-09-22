@@ -120,16 +120,6 @@ class Config:
         self.Set('INBOUND_PROXY_PORT', Options['InboundProxy'][1])
         self.Set('INBOUND_PROXY', ':'.join(Options['InboundProxy']))
         self.Set('PROXY', ':'.join(Options['InboundProxy']))
-        if self.Get('WHITELIST_COOKIES') == 'none':
-            self.Set('COOKIES_LIST', self.Get('BLACKLIST_COOKIES').split(','))
-            self.Set('COOKIES_BLACKLIST_NATURE', True)
-        else:
-            self.Set('COOKIES_LIST', self.Get('WHITELIST_COOKIES').split(','))
-            self.Set('COOKIES_BLACKLIST_NATURE', False)
-        self.Set('INBOUND_PROXY_SSL', { 'CA_CERT': os.path.expanduser(self.Get('CA_CERT')),
-                                        'CA_KEY': os.path.expanduser(self.Get('CA_KEY')),
-                                        'CERTS_FOLDER': os.path.expanduser(self.Get('CERTS_FOLDER'))
-                                      })
 
     def DeepCopy(self, Config): # function to perform a "deep" copy of the config Obj passed
         Copy = defaultdict(list)

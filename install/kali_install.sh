@@ -39,18 +39,18 @@ echo "\n[*] Running the master install script for OWASP Offensive Web Testing Fr
 # It is easier to work from the root folder of OWTF
 cd ../
 
-echo "\n[*] Install restricted tools? [y/n]"
+echo "\n[*] Install restricted tools? [Y/n]"
 read a
-if [ "$a" = "y" ]; then
+if [ "$a" != "n" ]; then
     cd tools
     echo "$(pwd)"
     "$(pwd)/kali_install.sh"
     cd ../
 fi
 
-echo "\n[*] Install restricted dictionaries? [y/n]"
+echo "\n[*] Install restricted dictionaries? [Y/n]"
 read a
-if [ "$a" = "y" ]; then
+if [ "$a" != "n" ]; then
     cd dictionaries
     echo "$(pwd)"
     "$(pwd)/install_dicts.sh"
@@ -60,18 +60,18 @@ if [ "$a" = "y" ]; then
     rm -r dictionaries/cms-explorer
 fi
 
-echo "\n[*] Install dependencies? [y/n]"
+echo "\n[*] Install dependencies? [Y/n]"
 read a
-if [ "$a" = "y" ]; then
+if [ "$a" != "n" ]; then
     cd install
     echo "$(pwd)"
     "$(pwd)/install_dependencies.sh"
     cd ../
 fi
 
-echo "\n[*] Create local CA for OWTF Inbound Proxy? [y/n]"
+echo "\n[*] Create local CA for OWTF Inbound Proxy? [Y/n]"
 read a
-if [ "$a" = "y" ]; then
+if [ "$a" != "n" ]; then
     config_file="$(pwd)/profiles/general/default.cfg"
     certs_folder=$(get_config_value CERTS_FOLDER $config_file)
     ca_cert=$(get_config_value CA_CERT $config_file)

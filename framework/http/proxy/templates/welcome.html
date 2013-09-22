@@ -77,7 +77,7 @@
     </div>
 <script>
   var manifest = {"detail":{"url":"{{ manifest_url }}" }};
-
+  var detected = false;
   var click = function(event) {
     var evt = new CustomEvent('ConfigureSecTool', manifest);
     document.dispatchEvent(evt);

@@ -38,10 +38,14 @@ import tornado.escape
 import tornado.httputil
 import tornado.options
 import tornado.template
+import tornado.websocket
 import socket
 import ssl
 import os
 import datetime
+import uuid
+import shutil
+import re
 from multiprocessing import Process
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
@@ -52,22 +56,16 @@ class ProxyHandler(tornado.web.RequestHandler):
     This RequestHandler processes all the requests that the application received
     """
     SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE']
-
-    # Data for handling headers through a streaming callback
-    # Need to work around for something
-    global restricted_response_headers
-    restricted_response_headers = [
-                                    'Content-Length',
-                                    'Content-Encoding',
-                                    'Etag',
-                                    'Transfer-Encoding',
-                                    'Connection',
-                                    'Vary',
-                                    'Accept-Ranges',
-                                    'Pragma'
-                                   ]
-    global restricted_request_headers
-    restricted_request_headers = ['Connection', 'Pragma', 'Cache-Control', 'If-Modified-Since']
+    
+    def __new__(cls, application, request, **kwargs):
+        # http://stackoverflow.com/questions/3209233/how-to-replace-an-instance-in-init-with-a-different-object
+        # Based on upgrade header, websocket request handler must be used
+        try:
+            if request.headers['Upgrade'].lower() == 'websocket':
+                return CustomWebSocketHandler(application, request, **kwargs)
+        except KeyError:
+            pass
+        return tornado.web.RequestHandler.__new__(cls, application, request, **kwargs)
 
     def set_status(self, status_code, reason=None):
         """
@@ -102,7 +100,7 @@ class ProxyHandler(tornado.web.RequestHandler):
     def handle_response(self, response):
         if self.application.throttle_variables:
             self.calculate_delay(response)
-        if response.code in [408, 599, 404]:
+        if response.code in [408, 599]:
             try:
                 old_count = self.request.retries
                 self.request.retries = old_count + 1
@@ -301,6 +299,88 @@ class ProxyHandler(tornado.web.RequestHandler):
         except Exception:
             self.finish()
 
+class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
+    """
+    * See docs XD
+    * This class is used for handling websocket traffic.
+    * Object of this class replaces the main request handler for a request with 
+      header => "Upgrade: websocket"
+    * wss:// - CONNECT request is handled by main handler
+    """
+
+    def upstream_connect(self, io_loop=None, callback=None):
+        """
+        Implemented as a custom alternative to tornado.websocket.websocket_connect
+        """
+        # io_loop is needed, how else will it work with tornado :P
+        if io_loop is None:
+            io_loop = tornado.ioloop.IOLoop.current()
+
+        # During secure communication, we get relative URI, so make them absolute
+        if self.request.uri.startswith(self.request.protocol,0): # Normal Proxy Request
+            self.request.url = self.request.uri
+        else:  # Transparent Proxy Request
+            self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
+        # WebSocketClientConnection expects ws:// & wss://
+        self.request.url = self.request.url.replace("http", "ws", 1)
+        
+        # Have to add cookies and stuff
+        request_headers = tornado.httputil.HTTPHeaders()
+        for name, value in self.request.headers.iteritems():
+            if name not in restricted_request_headers:
+                request_headers.add(name, value)
+        
+        # Build a custom request
+        request = tornado.httpclient.HTTPRequest(
+                                                    url=self.request.url,
+                                                    headers=request_headers,
+                                                    proxy_host=self.application.outbound_ip,
+                                                    proxy_port=self.application.outbound_port,
+                                                    proxy_username=self.application.outbound_username,
+                                                    proxy_password=self.application.outbound_password
+                                                )
+        conn = tornado.websocket.WebSocketClientConnection(io_loop, request)
+        if callback is not None:
+            io_loop.add_future(conn.connect_future, callback)
+        return conn.connect_future # This returns a future
+
+    def _execute(self, transforms, *args, **kwargs):
+        """
+        Overriding of a method of WebSocketHandler
+        """
+        def start_tunnel(future):
+            """
+            A callback which is called when connection to url is successful
+            """
+            self.upstream = future.result() # We need upstream to write further messages
+            tornado.websocket.WebSocketHandler._execute(self, transforms, *args, **kwargs) # The regular procedures are to be done
+        
+        # We try to connect to provided URL & then we proceed with connection on client side.
+        self.upstream = self.upstream_connect(callback=start_tunnel)
+
+    def on_message(self, message):
+        """
+        Everytime a message is received from client side, this instance method is called
+        """
+        self.upstream.write_message(message) # The obtained message is written to upstream
+        # The following check ensures that if a callback is added for reading message from upstream, another one is not added
+        if not self.upstream.read_future:
+            self.upstream.read_message(callback=self.on_response) # A callback is added to read the data when upstream responds
+
+    def on_response(self, message):
+        """
+        A callback when a message is recieved from upstream
+        *** Here message is a future
+        """
+        # The following check ensures that if a callback is added for reading message from upstream, another one is not added
+        if not self.upstream.read_future:
+            self.upstream.read_message(callback=self.on_response)
+        if self.ws_connection: # Check if connection still exists
+            if message.result(): # Check if it is not NULL ( Indirect checking of upstream connection )
+                self.write_message(message.result()) # Write obtained message to client
+            else:
+                self.close()
+
 class PlugnHackHandler(tornado.web.RequestHandler):
     """
     This handles the requests which are used for firefox configuration 
@@ -323,6 +403,7 @@ class PlugnHackHandler(tornado.web.RequestHandler):
         """
         # Rebuilding the root url
         root_url = self.request.protocol + "://" + self.request.host
+        command_url = root_url + "/" + self.application.pnh_token
         proxy_url = root_url + "/proxy"
         # Absolute path of templates folder using location of this script (proxy.py)
         templates_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates")
@@ -334,7 +415,7 @@ class PlugnHackHandler(tornado.web.RequestHandler):
             self.write(loader.load("manifest.json").generate(proxy_url=proxy_url))
             self.set_header("Content-Type", "application/json")
         elif ext == "-service.json":
-            self.write(loader.load("service.json").generate(root_url=root_url))
+            self.write(loader.load("service.json").generate(root_url=command_url))
             self.set_header("Content-Type", "application/json")
         elif ext == ".pac":
             self.write(loader.load("proxy.pac").generate(proxy_details=self.request.host))
@@ -355,32 +436,75 @@ class CommandHandler(tornado.web.RequestHandler):
         command_list = self.get_arguments("cmd")
         info = {}
         for command in command_list:
-            command = "self.application." + command
-            info[command] = eval(command)
+            if command.startswith("Core"):
+                command = "self.application." + command
+                info[command] = eval(command)
+            if command.startswith("setattr"):
+                info[command] = eval(command)
         self.write(info)
         self.finish()
                         
 class ProxyProcess(Process):
 
-    def __init__(self, core, instances, inbound_options, cache_dir, ssl_options, cookie_filter, outbound_options=[], outbound_auth=""):
+    def __init__(self, core, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
+        # This is anti-csrf token used in Plug-n-Hack commands
+        pnh_token = uuid.uuid4().hex
+        # The tornado application, which is used to pass variables to request handler
         self.application = tornado.web.Application(handlers=[
                                                             (r'/proxy(.*)', PlugnHackHandler),
-                                                            (r'/JSON/(.*)', CommandHandler),
+                                                            ('/'+pnh_token+'/JSON/(.*)', CommandHandler),
                                                             (r'.*', ProxyHandler)
                                                             ], 
                                                     debug=False,
                                                     gzip=True,
                                                    )
-        self.application.inbound_ip = inbound_options[0]
-        self.application.inbound_port = int(inbound_options[1])
-        self.application.cache_dir = cache_dir
-        self.application.ca_cert = ssl_options['CA_CERT']
-        self.application.ca_key = ssl_options['CA_KEY']
-        self.application.proxy_folder = os.path.dirname(ssl_options['CA_CERT'])
-        self.application.certs_folder = ssl_options['CERTS_FOLDER']
-        self.application.cookie_blacklist = cookie_filter['BLACKLIST']
-        self.application.cookie_regex = cookie_filter['REGEX']
+        
+        # All required variables in request handler
+        # Required variables are added as attributes to application, so that request handler can access these
+        self.application.Core = core
+        self.application.pnh_token = pnh_token
+        self.application.inbound_ip = self.application.Core.Config.Get('INBOUND_PROXY_IP')
+        self.application.inbound_port = int(self.application.Core.Config.Get('INBOUND_PROXY_PORT'))
+        self.instances = self.application.Core.Config.Get("INBOUND_PROXY_PROCESSES")
+        
+        # Proxy CACHE
+        # Cache related settings, including creating required folders according to cache folder structure
+        self.application.cache_dir = self.application.Core.Config.Get("CACHE_DIR")
+        if not os.path.exists(self.application.Core.Config.Get('CACHE_DIR')):
+            os.makedirs(self.application.Core.Config.Get('CACHE_DIR'))
+        else:
+            shutil.rmtree(self.application.Core.Config.Get('CACHE_DIR'))
+            os.makedirs(self.application.Core.Config.Get('CACHE_DIR'))
+        for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body', 'resp-time']:
+            folder_path = os.path.join(self.application.Core.Config.Get('CACHE_DIR'), folder_name)
+            if not os.path.exists(folder_path):
+                os.mkdir(folder_path)
+        
+        # SSL MiTM
+        # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory ~/.owtf/proxy )
+        self.application.ca_cert = os.path.expanduser(self.application.Core.Config.Get('CA_CERT'))
+        self.application.ca_key = os.path.expanduser(self.application.Core.Config.Get('CA_KEY'))
+        self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
+        self.application.certs_folder = os.path.expanduser(self.application.Core.Config.Get('CERTS_FOLDER'))
+        
+        # Blacklist (or) Whitelist Cookies
+        # Building cookie regex to be used for cookie filtering for caching
+        if self.application.Core.Config.Get('WHITELIST_COOKIES') == 'none':
+            cookies_list = self.application.Core.Config.Get('BLACKLIST_COOKIES').split(',')
+            self.application.cookie_blacklist = True
+        else:
+            cookies_list = self.application.Core.Config.Get('WHITELIST_COOKIES').split(',')
+            self.application.cookie_blacklist = False
+        if self.application.cookie_blacklist:
+            regex_cookies_list = [ cookie + "=([^;]+;?)" for cookie in cookies_list ]
+        else:
+            regex_cookies_list = [ "(" + cookie + "=[^;]+;?)" for cookie in self.application.Core.Config.Get('COOKIES_LIST') ]
+        regex_string = '|'.join(regex_cookies_list)
+        self.application.cookie_regex = re.compile(regex_string)
+        
+        # Outbound Proxy
+        # Outbound proxy settings to be used inside request handler
         if outbound_options:
             self.application.outbound_ip = outbound_options[0]
             self.application.outbound_port = int(outbound_options[1])
@@ -390,17 +514,29 @@ class ProxyProcess(Process):
             self.application.outbound_username, self.application.outbound_password = outbound_auth.split(":")
         else:
             self.application.outbound_username, self.application.outbound_password = None, None
+        
+        # Server has to be global, because it is used inside request handler to attach sockets for monitoring
         global server
         server = tornado.httpserver.HTTPServer(self.application)
         self.server = server
-        self.instances = instances
-        self.application.Core = core
+        
+        # Header filters
+        # Restricted headers are picked from framework/config/framework_config.cfg
+        # These headers are removed from the response obtained from webserver, before sending it to browser
+        global restricted_response_headers
+        restricted_response_headers = self.application.Core.Config.Get("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
+        # These headers are removed from request obtained from browser, before sending it to webserver
+        global restricted_request_headers
+        restricted_request_headers = self.application.Core.Config.Get("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
+        
+        # Request throttling
+        # Throttling settings picked up from profiles/general/default.cfg
         if self.application.Core.Config.Get("PROXY_THROTTLING") == 'false':
             self.application.throttle_variables = None
         else:
             self.application.throttle_variables = {
                                                     "hosts": {},
-                                                    "threshold": self.application.Core.Config.Get("THROTTLING_THRESHOLD"),
+                                                    "threshold": self.application.Core.Config.Get("PROXY_THROTTLING_THRESHOLD"),
                                                   }
 
     # "0" equals the number of cores present in a machine
@@ -409,7 +545,7 @@ class ProxyProcess(Process):
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
-            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/owtf-proxy.log","--logging=info"])
+            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix="+self.application.Core.Config.Get("PROXY_LOG"),"--logging=info"])
             # To run any number of instances
             self.server.start(int(self.instances))
             tornado.ioloop.IOLoop.instance().start()

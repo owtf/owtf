@@ -1,9 +1,17 @@
 from tests.testing_framework.base_test_cases import WebPluginTestCase
 from hamcrest import *
-import os
 import tornado.web
-import unittest
 import cgi
+import time
+from nose_parameterized import parameterized
+import unittest
+
+
+class SlowApp(tornado.web.RequestHandler):
+
+    def get(self):
+        time.sleep(3)
+        self.write("slow transaction")
 
 
 class WebPluginsTests(WebPluginTestCase):
@@ -19,6 +27,16 @@ class WebPluginsTests(WebPluginTestCase):
     #  Active plugins  #
     # For general tools as Arachni, Nikto, Skipfish... we don't check
     # the results, only that the tool has been executed.
+
+    def test_Application_Discovery_active(self):
+        self._prepare_test_for_general_tool()
+
+        self.owtf("-g web -t active -o Application_Discovery")
+
+        self.assert_that_output_contains("Plugin: Application Discovery (active)")
+        self.assert_external_tool_started(times=1)
+        tools = ["dnsrecon"]
+        self.assert_that_output_contains_lines(tools)
 
     def test_Arachni_Unauthenticated_active(self):
         self._prepare_test_for_general_tool()
@@ -44,6 +62,18 @@ class WebPluginsTests(WebPluginTestCase):
         # This plugin runs 4 tools.
         self.assert_external_tool_started(times=4)
         tools = ["curl", "hoppy", "extract_urls.sh"]
+        self.assert_that_output_contains_lines(tools)
+
+    @unittest.skip("There is a problem with this test. If it fails, the runner process hangs. Affected by the issue #48")
+    def test_Infrastructure_Configuration_Management_active(self):
+        self._prepare_test_for_general_tool()
+
+        self.owtf("-g web -t active -o Infrastructure_Configuration_Management")
+
+        self.assert_that_output_contains("Plugin: Infrastructure Configuration Management (active)")
+        # This plugin runs 5 tools
+        self.assert_external_tool_started(times=5)
+        tools = ["wafw00f", "lbd", "HTTP-Traceroute.py", "ua-tester"]
         self.assert_that_output_contains_lines(tools)
 
     def test_Old_Backup_and_Unreferenced_Files_active(self):
@@ -130,6 +160,15 @@ class WebPluginsTests(WebPluginTestCase):
 
         self.assert_that_output_contains("Allow: GET, HEAD, OPTIONS")  # curl output
 
+    def test_Search_engine_discovery_reconaissance_semi_passive(self):
+        self._prepare_test_for_general_tool()
+
+        self.owtf("-g web -t semi_passive -o Search_engine_discovery_reconnaissance")
+
+        self.assert_external_tool_started(times=1)
+        metagoofil_banner = ["Metagoofil Ver", "Christian Martorella", "Edge-Security.com"]
+        self.assert_that_output_contains_lines(metagoofil_banner)
+
     def test_Spiders_Robots_and_Crawlers_semi_passive(self):
         robots_path = self.get_resource_path("www/robots") # Only 1 file in this folder
         self.set_custom_handler("/(.*)", tornado.web.StaticFileHandler, {"path": robots_path})
@@ -170,15 +209,44 @@ class WebPluginsTests(WebPluginTestCase):
 
     def test_Web_Application_Fingerprint_semi_passive(self):
         file_path = self.get_resource_path("www/hello_world.html")
-        self.set_get_response_from_file("/",
+        self.set_get_response_from_file("/app-fingerprint-semi-passive",
                                         file_path,
                                         headers={"Server": "CustomServer/1.0"})
         self.start_server()
+        self.visit_url(self.get_url("/app-fingerprint-semi-passive"))
 
         self.owtf("-g web -t semi_passive -o Web_Application_Fingerprint")
 
         self.assert_that_output_contains("CustomServer/1.0")
-        self.assert_that_output_contains("HTTPServer[CustomServer/1.0]")  # Whatweb output
+
+    # Passive plugins #
+    # Here we have parametrized tests for the passive plugins, because
+    # the testing for this kind of plugin is always the same.
+
+    @parameterized.expand([
+    ("Application_Discovery", "PassiveAppDiscovery"),
+    ("HTTP_Methods_and_XST", "PassiveMethods"),
+    ("Old_Backup_and_Unreferenced_Files", "PassiveOldBackupUnreferencedFilesLnk"),
+    ("Spiders_Robots_and_Crawlers", ["PassiveRobotsAnalysisHTTPRequests", "PassiveRobotsAnalysisLinks"]),
+    ("Testing_for_Admin_Interfaces", "PassiveAdminInterfaceLnk"),
+    ("Testing_for_Captcha", "PassiveCAPTCHALnk"),
+    ("Testing_for_Cross_site_flashing", "PassiveCrossSiteFlashingLnk"),
+    ("Testing_for_Error_Code", "PassiveErrorMessagesLnk"),
+    ("Testing_for_SQL_Injection", "PassiveSQLInjectionLnk"),
+    ("Testing_for_SSL-TLS", "PassiveSSL"),
+    ("Web_Application_Fingerprint", "PassiveFingerPrint"),
+    ("WS_Information_Gathering", "WSPassiveSearchEngineDiscoveryLnk")
+    ])
+    def test_passive(self, plugin_name, resource_name):
+        self.owtf("-g web -t passive -o " + plugin_name)
+        self.check_link_generation_for_resources(resource_name)
+
+    def test_Search_engine_discovery_reconnaissance_passive(self):
+        self.owtf("-g web -t passive -o Search_engine_discovery_reconnaissance")
+        self.assert_external_tool_started(times=2)
+        tools = ["theharvester", "search_email_collector"]
+        self.assert_that_output_contains_lines(tools)
+        self.check_link_generation_for_resources("PassiveSearchEngineDiscoveryLnk")
 
     #  Grep plugins  #
 
@@ -239,6 +307,16 @@ class WebPluginsTests(WebPluginTestCase):
         self.owtf("-g web -t grep -o Credentials_transport_over_an_encrypted_channel")
 
         self.assert_that_output_contains("Total insecure matches: 1")
+
+    def test_DoS_Failure_to_Release_Resources_grep(self):
+        self.set_custom_handler("/slow-transaction", SlowApp)
+        self.start_server()
+        self.visit_url(self.get_url("/slow-transaction"))
+
+        self.owtf("-g web -t grep -o DoS_Failure_to_Release_Resources")
+
+        self.fail("The transaction log in txt format is not written, so the plugin does not find transactions")
+        # TODO: To determine which assertions are necessary, the bug has to be fixed
 
     def test_Logout_and_Browser_Cache_Management_grep(self):
         # Looks for some cache headers and meta tags in the response and HTML content
