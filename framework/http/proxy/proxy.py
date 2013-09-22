@@ -33,6 +33,7 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.iostream
 import tornado.web
+import tornado.httpclient
 import tornado.curl_httpclient
 import tornado.escape
 import tornado.httputil
@@ -307,7 +308,6 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
       header => "Upgrade: websocket"
     * wss:// - CONNECT request is handled by main handler
     """
-
     def upstream_connect(self, io_loop=None, callback=None):
         """
         Implemented as a custom alternative to tornado.websocket.websocket_connect
@@ -329,7 +329,6 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         for name, value in self.request.headers.iteritems():
             if name not in restricted_request_headers:
                 request_headers.add(name, value)
-        
         # Build a custom request
         request = tornado.httpclient.HTTPRequest(
                                                     url=self.request.url,
@@ -339,10 +338,10 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
                                                     proxy_username=self.application.outbound_username,
                                                     proxy_password=self.application.outbound_password
                                                 )
-        conn = tornado.websocket.WebSocketClientConnection(io_loop, request)
+        self.upstream_connection = CustomWebSocketClientConnection(io_loop, request)
         if callback is not None:
-            io_loop.add_future(conn.connect_future, callback)
-        return conn.connect_future # This returns a future
+            io_loop.add_future(self.upstream_connection.connect_future, callback)
+        return self.upstream_connection.connect_future # This returns a future
 
     def _execute(self, transforms, *args, **kwargs):
         """
@@ -353,16 +352,40 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             A callback which is called when connection to url is successful
             """
             self.upstream = future.result() # We need upstream to write further messages
+            self.handshake_request = self.upstream_connection.request # HTTPRequest needed for caching :P
+            self.handshake_request.response_buffer = "" # Needed for websocket data & compliance with cache_handler stuff
+            self.handshake_request.version = "HTTP/1.1" # Tiny hack to protect caching (But according to websocket standards)
+            self.handshake_request.body = self.handshake_request.body or "" # I dont know why a None is coming :P
             tornado.websocket.WebSocketHandler._execute(self, transforms, *args, **kwargs) # The regular procedures are to be done
         
         # We try to connect to provided URL & then we proceed with connection on client side.
         self.upstream = self.upstream_connect(callback=start_tunnel)
+
+    def store_upstream_data(self, message):
+        """
+        Save websocket data sent from client to server, i.e add it to HTTPRequest.response_buffer with direction (>>)
+        """
+        try: # Cannot write binary content as a string, so catch it
+            self.handshake_request.response_buffer += (">>> %s\r\n"%(message))
+        except TypeError:
+            self.handshake_request.response_buffer += (">>> May be binary\r\n")
+
+    def store_downstream_data(self, message):
+        """
+        Save websocket data sent from client to server, i.e add it to HTTPRequest.response_buffer with direction (<<)
+        """
+        try: # Cannot write binary content as a string, so catch it
+            self.handshake_request.response_buffer += ("<<< %s\r\n"%(message))
+        except TypeError:
+            self.handshake_request.response_buffer += ("<<< May be binary\r\n")
 
     def on_message(self, message):
         """
         Everytime a message is received from client side, this instance method is called
         """
         self.upstream.write_message(message) # The obtained message is written to upstream
+        self.store_upstream_data(message)
+
         # The following check ensures that if a callback is added for reading message from upstream, another one is not added
         if not self.upstream.read_future:
             self.upstream.read_message(callback=self.on_response) # A callback is added to read the data when upstream responds
@@ -378,8 +401,36 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         if self.ws_connection: # Check if connection still exists
             if message.result(): # Check if it is not NULL ( Indirect checking of upstream connection )
                 self.write_message(message.result()) # Write obtained message to client
+                self.store_downstream_data(message.result())
             else:
                 self.close()
+
+    def on_close(self):
+        """
+        Called when websocket is closed. So handshake request-response pair along with websocket data as response body is saved
+        """
+        # Required for cache_handler
+        self.handshake_response = tornado.httpclient.HTTPResponse(
+                                                                    self.handshake_request,
+                                                                    self.upstream_connection.code,
+                                                                    headers=self.upstream_connection.headers,
+                                                                    request_time=0
+                                                                 )
+        # Procedure for dumping a tornado request-response
+        self.cache_handler = CacheHandler(
+                                            self.application.cache_dir,
+                                            self.handshake_request,
+                                            self.application.cookie_regex,
+                                            self.application.cookie_blacklist
+                                          )
+        self.cached_response = self.cache_handler.load()
+        self.cache_handler.dump(self.handshake_response)
+
+class CustomWebSocketClientConnection(tornado.websocket.WebSocketClientConnection):
+    # Had to extract response code, so it is necessary to override
+    def _handle_1xx(self, code):
+        self.code = code
+        super(CustomWebSocketClientConnection, self)._handle_1xx(code)
 
 class PlugnHackHandler(tornado.web.RequestHandler):
     """
