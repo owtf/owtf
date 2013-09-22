@@ -9,6 +9,7 @@ class ArgumentParser():
         self.parser = self.create_parser()
 
     def create_parser(self):
+        """Uses argparse to create the parser for the run_tests.py script."""
         parser = argparse.ArgumentParser(description="OWTF Testing framework Command Line Tool")
         parser.add_argument("category", nargs="?", help="Category of the tests to run. The possible values are: plugin, framework and testing_framework")
         parser.add_argument("-a", "--all", action="store_true", default=False, dest="all", help="This flag tells the framework to run all the tests.")
@@ -32,6 +33,7 @@ class ArgumentParser():
         return validArguments, message
 
     def validate_combinations(self):
+        """Validates if some arguments provided are incompatible"""
         validArguments, message = True, ""
         if (self.has_category()):
             if (self.all_modules() and self.has_module_restriction()):

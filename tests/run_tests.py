@@ -29,12 +29,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This is the command-line tool for running tests.
 '''
 
-from sys import argv
-from os import path as os_path
-from sys import path as sys_path
 from testing_framework.runner.parser import ArgumentParser
 from testing_framework.runner.arg_builder import NoseArgumentBuilder
 from testing_framework.runner.runner import Runner
+from sys import argv
+from os import path as os_path
+from sys import path as sys_path
 
 
 def include_owtf_path_in_pythonpath():
