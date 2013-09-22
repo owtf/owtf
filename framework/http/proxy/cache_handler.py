@@ -63,9 +63,15 @@ class CacheHandler(object):
                             cookie_string += item.strip()
         except KeyError:
             pass
-        request_mod = request.method + request.full_url() + request.version
+        request_mod = request.method + request.url + request.version
         request_mod = request_mod + request.body + cookie_string
-        
+
+        # Websocket caching technique
+        try:
+            request_mod = request_mod + request.headers["Sec-Websocket-Key"]
+        except KeyError:
+            pass
+
         md5_hash = hashlib.md5()
         md5_hash.update(request_mod)
         self.request_hash = md5_hash.hexdigest()
