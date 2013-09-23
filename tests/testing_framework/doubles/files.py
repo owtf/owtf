@@ -13,9 +13,11 @@ class FileMock():
         self.iterator_counter = 0
 
     def __iter__(self):
+        # A file object has to be iterable
         return self
 
     def next(self):
+        # Iterable implementation
         if self.iterator_counter > self.max:
             self.iterator_counter = 0
             raise StopIteration

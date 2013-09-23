@@ -1,16 +1,17 @@
 language: python
 python:
-    - "2.6"
     - "2.7"
-# Command to install dependencies
+# Commands to install dependencies
+before_install:
+    - sudo apt-get install -qq libssl-dev
 install: 
     # OWTF dependencies
-    - pip install lxml argparse jinja2 tornado pycurl
+    - pip install lxml argparse jinja2 tornado pycurl pyopenssl pexpect
     # Test dependencies (nose is already installed in the Travis environment)
     - pip install flexmock pyhamcrest coverage nose-html nose-parameterized
 # Command to run tests
 script:
     - cd tests
-    - ./run_tests.py --all --with-coverage
+    - ./run_tests.py --all
 notifications:
     irc: "irc.freenode.net#owtf"

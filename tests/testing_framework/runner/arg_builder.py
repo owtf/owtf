@@ -37,6 +37,7 @@ class NoseArgumentBuilder():
             modules = self.args.modules.split(",")
             files = []
             for module in modules:
+                # Look for files containing the name of the test class, and add it to the list
                 files_for_module = self.find_files_matching(module)
                 files.extend(files_for_module)
             self.nose_arguments = " ".join(files)
@@ -58,5 +59,6 @@ class NoseArgumentBuilder():
         return subprocess.check_output(shlex.split(command), shell=False).split("\n")
 
     def check_input(self, input):
+        """Filters the content to avoid unexpected command injection."""
         if re.match("^[a-zA-Z_]+$", input) is None:
             raise IllegalArgument("Text contain invalid characters.")

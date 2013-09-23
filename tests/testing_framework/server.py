@@ -20,6 +20,10 @@ class WebServerProcess():
         self.process = None
 
     def start(self):
+        """
+            Creates a web server in another process and wait until it is ready to
+            handle requests.
+        """
         application = self.create_application()
         self.process = Process(target=start_application, args=(application,))
         self.process.start()
@@ -35,6 +39,7 @@ class WebServerProcess():
         conn.request("GET", "/")
 
     def stop(self):
+        """Stops the web server and wait until it has sucesfully cleaned up."""
         if self.is_alive():
             os.kill(self.process.pid, signal.SIGINT)
             self.wait_for_server_shutdown()
@@ -52,16 +57,19 @@ class WebServerProcess():
             return False
 
     def is_alive(self):
+        """Test if the server process is alive and running."""
         if (self.process is None):
             return False
         else:
             return self.process.is_alive()
 
     def create_application(self):
+        """Creates a Tornado application with the given handlers."""
         return tornado.web.Application(handlers=self.handlers)
 
 
 def start_application(application):
+    """Callable to be executed in the subprocess."""
     application.listen(PORT)
     try:
         tornado.ioloop.IOLoop.instance().start()

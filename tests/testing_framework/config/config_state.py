@@ -1,9 +1,11 @@
 from collections import defaultdict
 import copy
-from hamcrest.library.collection.isin import IsIn
 
 class ConfigState():
-
+    """
+    Makes a deep copy of the configuration object in order to preserve
+    its state for later restoring.
+    """
     def __init__(self, config_obj):
         self.Config = deepcopy(config_obj.Config)
         self.TargetConfig = deepcopy(config_obj.TargetConfig)

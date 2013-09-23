@@ -134,7 +134,7 @@ class ProxyHandler(tornado.web.RequestHandler):
     # This function handles a dummy response object which is created from cache
     def write_cached_response(self, response):
         self.set_status(response.code)
-        for header, value in list(response.headers.items()):
+        for header, value in response.headers.items():
             if header == "Set-Cookie":
                 self.add_header(header, value)
             else:
