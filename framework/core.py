@@ -141,10 +141,10 @@ class Core:
                                                     Options['OutboundProxyAuth']
                                                   )
             self.TransactionLogger = transaction_logger.TransactionLogger(self)
-            cprint("Started Inbound proxy at " + self.Config.Get('INBOUND_PROXY'))
+            cprint("Starting Inbound proxy at " + self.Config.Get('INBOUND_PROXY'))
             self.ProxyProcess.start()
-            # XD , started after exiting proxy mode XD
-            # self.TransactionLogger.start() # <= OMG!!! Have to fix this :P
+            cprint("Starting Transaction logger process")
+            self.TransactionLogger.start()
             self.Requester = requester.Requester(self, [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')])
         else:
             self.Requester = requester.Requester(self, Options['OutboundProxy'])        
@@ -235,9 +235,10 @@ class Core:
         self.StartProxy(Options)
         if self.ProxyMode:
             cprint("Proxy Mode is activated. Press Enter to continue to owtf")
+            cprint("Proxy transaction's log file at %s"%(self.Config.Get("PROXY_LOG")))
             cprint("Visit http://" + self.Config.Get('INBOUND_PROXY') + "/proxy to use Plug-n-Hack standard")
-            raw_input()
-            self.TransactionLogger.start()
+            if Options["Interactive"]:
+                raw_input()
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)

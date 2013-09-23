@@ -11,6 +11,7 @@ class Runner():
 
     def run_nose_with_coverage(self):
         framework_path = path.abspath('..')
+        # Tell the coverage module where it should measure the test coverage
         cov = coverage(source=[path.join(framework_path, "framework"),
                                path.join(framework_path, "tests/testing_framework")])
         cov.start()
