@@ -226,7 +226,7 @@ class Requester:
             self.Core.Error.FrameworkAbort("ERROR: cannot resolve hostname!: " + str(Error))
         else:
             Message = "ERROR: The connection was not refused, unknown error!"
-            log = logging.getLogger('general')
+        log = logging.getLogger('general')
         log.info(Message)
         ErrorMessage = Message+" (Requester Object): "+URL+"\n"+str(sys.exc_info())
         return ErrorMessage
