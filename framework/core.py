@@ -237,7 +237,8 @@ class Core:
             cprint("Proxy Mode is activated. Press Enter to continue to owtf")
             cprint("Proxy transaction's log file at %s"%(self.Config.Get("PROXY_LOG")))
             cprint("Visit http://" + self.Config.Get('INBOUND_PROXY') + "/proxy to use Plug-n-Hack standard")
-            raw_input()
+            if Options["Interactive"]:
+                raw_input()
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
