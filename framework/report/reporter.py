@@ -138,7 +138,7 @@ class Reporter:
 								"AuxPluginsTypes": self.Core.Config.Plugin.GetTypesForGroup( 'aux' ),
 								"WebTestGroups":self.Core.Config.Plugin.GetWebTestGroups(),
 								}
-                        file.write( template.render( vars ) )
+                        file.write( template.render( vars ).encode('ascii', 'ignore') )
 		#print "Plugin="+str(Plugin)
 		self.Core.DB.PluginRegister.Add( Plugin, PluginReportPath, self.Core.Config.GetTarget() )
                 #self.RegisterPartialReport(PluginReportPath) # Partial report saved ok, register partial report in register file for grouping later
