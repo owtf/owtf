@@ -159,6 +159,6 @@ class DB:
         args = message['arguments']
     #checks if function is valid or not
         if(is_valid(function, args, response_type)):
-        
+
             result = CallMethod(self.DBHandler, function, args)
             return json.dumps(result)
