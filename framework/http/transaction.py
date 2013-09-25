@@ -176,4 +176,7 @@ class HTTP_Transaction:
         for name, value in response.headers.iteritems():
             if name == "Set-Cookie":
                 cookies_list.append(value.strip())
-        self.CookieString = ','.join(cookies_list)        
+        self.CookieString = ','.join(cookies_list)
+        self.New = True
+        self.ID = ''
+        self.HTMLLinkToID = ''
