@@ -295,7 +295,7 @@ function HideDetailedReportData(Offset) {
 
 function ShowDetailedReportData(Offset) {
 	//for (var target in window.ReportsInfo) {
-		SetDisplayToDivsByOffset(Offset, window.ReportsInfo[target].AllPlugins, 'none')//Hide all plugin divs
+		SetDisplayToDivsByOffset(Offset, window.ReportsInfo[Offset].AllPlugins, 'none')//Hide all plugin divs
 	//}
     SetDisplayToAllTestGroupsByOffset(Offset, 'block') //Show all index divs
     SetDisplayToAllPluginTabsByOffset(Offset,'') //Hide all plugin tabs (it's confusing when you filter and see flags you did not filter by)
