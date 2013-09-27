@@ -3,7 +3,7 @@ python:
     - "2.7"
 # Commands to install dependencies
 before_install:
-    - sudo apt-get install -qq libssl-dev
+    - sudo apt-get install -qq libssl-dev python-twisted python2.7-dev
 install: 
     # OWTF dependencies
     - pip install lxml argparse jinja2 tornado pycurl pyopenssl pexpect
