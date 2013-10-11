@@ -57,8 +57,8 @@ class PluginConfig:
         def GetAllTypes(self):
                 AllPluginTypes = []
                 for PluginGroup, GroupInfo in self.AllPlugins.items():
-                        AllPluginTypes = sorted(AllPluginTypes + self.GetTypesForGroup(PluginGroup))
-                return AllPluginTypes
+                        AllPluginTypes = AllPluginTypes + self.GetTypesForGroup(PluginGroup)
+                return sorted(list(set(AllPluginTypes)))
 
 	def GetGroupsForPlugins(self, PluginList):
                 PluginGroups = []
