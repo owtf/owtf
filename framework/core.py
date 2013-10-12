@@ -134,7 +134,7 @@ class Core:
         
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
-        if Options["ProxyMode"]:
+        if not self.Config.Get('SIMULATION'):
             self.ProxyProcess = proxy.ProxyProcess( 
                                                     self,
                                                     Options['OutboundProxy'],
@@ -146,6 +146,11 @@ class Core:
             cprint("Starting Transaction logger process")
             self.TransactionLogger.start()
             self.Requester = requester.Requester(self, [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')])
+            cprint("Proxy transaction's log file at %s"%(self.Config.Get("PROXY_LOG")))
+            cprint("Visit http://" + self.Config.Get('INBOUND_PROXY') + "/proxy to use Plug-n-Hack standard")
+            cprint("Execution of OWTF is halted.You can browse through OWTF proxy) Press Enter to continue with OWTF")
+            if Options["Interactive"]:
+                raw_input()
         else:
             self.Requester = requester.Requester(self, Options['OutboundProxy'])        
     
@@ -232,13 +237,7 @@ class Core:
         self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
         if self.Config.Get('SIMULATION'):
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
-        self.StartProxy(Options)
-        if self.ProxyMode:
-            cprint("Proxy Mode is activated. Press Enter to continue to owtf")
-            cprint("Proxy transaction's log file at %s"%(self.Config.Get("PROXY_LOG")))
-            cprint("Visit http://" + self.Config.Get('INBOUND_PROXY') + "/proxy to use Plug-n-Hack standard")
-            if Options["Interactive"]:
-                raw_input()
+        self.StartProxy(Options) # Proxy mode is started in that function
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
