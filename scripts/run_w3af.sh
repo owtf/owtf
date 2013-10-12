@@ -88,8 +88,6 @@ http-settings
 set timeout 60
 set user_agent $USER_AGENT
 set max_http_retries 3
-set proxy_port $PROXY_PORT
-set proxy_address $PROXY_IP
 back
 target
 set target $URL

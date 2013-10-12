@@ -151,7 +151,10 @@ class HTTP_Transaction:
         return self.ResponseHeaders
 
     def GetRawResponse(self, WithStatus = True):
-        return self.GetStatus(WithStatus)+str(self.ResponseHeaders)+"\n\n"+self.ResponseContents
+        try:
+            return self.GetStatus(WithStatus)+str(self.ResponseHeaders)+"\n\n"+self.ResponseContents
+        except UnicodeDecodeError:
+            return self.GetStatus(WithStatus)+str(self.ResponseHeaders)+"\n\n"+"[Binary Content]"
 
     def GetRawResponseHeaders(self, WithStatus = True):
         return self.GetStatus(WithStatus)+str(self.ResponseHeaders)
