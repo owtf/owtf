@@ -382,10 +382,12 @@
 					</tbody>
    				 </table>
 		
+		          		<!--
+		          		#Not implemented yet
 		          		<h3> Stats </h3>
 		          		+analysin stats
 		          		+review stats
-		          		<hr/>
+		          		<hr/> -->
 		          
 		          		
 		          	</div>
@@ -396,7 +398,9 @@
 		          			{% for IPInfo in IPs %}
 							 	{% for PortInfo in IPInfo.Ports %}
 							 		{% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
-		          					<li><a href="#" class="target_jumper" data-value="#iframe_{{ TargetID }}">{{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}</a></li>
+							 		{% for Offset in PortInfo.Offsets %}
+		          						<li><a href="#" class="target_jumper" data-value="#iframe_{{ TargetID }}">{{ Offset.ReviewOffset }} ({{ IPInfo.IP|e }}:{{ PortInfo.Port|e }})</a></li>
+		          					{% endfor %}
 		          				{% endfor %}
 		          			{% endfor %}
 		          			</ul>
