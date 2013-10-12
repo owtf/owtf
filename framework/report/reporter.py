@@ -84,16 +84,16 @@ class Reporter:
             <a href="{{ Transaction_URL }}" class="label" target="_blank">
                 Site
             </a>
-            <a href="{{ Transaction_Path }}" class="label" target="_blank">
+            <a href="../{{ Transaction_Path }}" class="label" target="_blank">
                 F
             </a>
-            <a href="{{ Request_Path }}" class="label" target="_blank">
+            <a href="../{{ Request_Path }}" class="label" target="_blank">
                 R
             </a>
-            <a href="{{ Resource_Headers_Path }}" class="label" target="_blank">
+            <a href="../{{ Resource_Headers_Path }}" class="label" target="_blank">
                 H
             </a>
-            <a href="{{ Resource_Body_Path }}" class="label" target="_blank">
+            <a href="../{{ Resource_Body_Path }}" class="label" target="_blank">
                 B
             </a>
             <!-- End Transactions Links -->
