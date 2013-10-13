@@ -1,0 +1,17 @@
+
+/* severity buttons style */
+.sev-no {
+	color: #000;
+}
+.sev-low {
+	color: #400;
+}
+.sev-med {
+	color: #800;
+}
+.sev-hi {
+	color: #C00;
+}
+.sev-critic {
+	color: #F00;
+}
