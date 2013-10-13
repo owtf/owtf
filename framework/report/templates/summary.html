@@ -10,7 +10,8 @@
 	
 	
 	    <!-- styles -->
-	    <link id="skin_css" href="includes/css/skins/cyborg.css" rel="stylesheet">
+	    <link id="skin_css" href="includes/css/skins/default.css" rel="stylesheet">
+	    <link id="skin_css" href="includes/css/stylesheet.css" rel="stylesheet">
 	    <link href="includes/css/font-awesome/css/font-awesome.min.css" rel="stylesheet"> 
 	    <link href="includes/css/bootstrap-responsive.css" rel="stylesheet" >
 	    <link href="includes/js/aloha/css/aloha.css" rel="stylesheet" >
@@ -452,11 +453,11 @@
 	                      </div>
 
 	                      <div class="btn-group" data-toggle="buttons-checkbox">
-	                      	<button id="filterflag_white" onclick="FilterResultsSummary('flag_white', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="No severity" data-placement="bottom"><i class="icon-remove-circle icon-white"></i> <span id="filterflag_white_counter"></span></button>
-	                        <button id="filterflag_blue"  onclick="FilterResultsSummary('flag_blue', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom"><i class="icon-arrow-down icon-white"></i> <span id="filterflag_blue_counter"></span></button>
-	                        <button id="filterflag_yellow" onclick="FilterResultsSummary('flag_yellow', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom"><i class="icon-arrow-right icon-white"></i> <span id="filterflag_yellow_counter"></span></button>
-	                        <button id="filterflag_red" onclick="FilterResultsSummary('flag_red', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="High severity" data-placement="bottom"><i class="icon-arrow-up icon-white"></i> <span id="filterflag_red_counter"></span></button>
-	                        <button id="filterflag_violet" onclick="FilterResultsSummary('flag_violet', 'NetMap')" class="btn filter" rel="tooltip" data-original-title="Critical severity" data-placement="bottom"><i class="icon-exclamation-sign icon-white"></i> <span id="filterflag_violet_counter"></span></button>
+	                      	<button id="filterflag_white" onclick="FilterResultsSummary('flag_white', 'NetMap')" class="btn sev-no filter" rel="tooltip" data-original-title="No severity" data-placement="bottom"><i class="icon-remove-circle icon-white"></i> <span id="filterflag_white_counter"></span></button>
+	                        <button id="filterflag_blue"  onclick="FilterResultsSummary('flag_blue', 'NetMap')" class="btn sev-low filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom"><i class="icon-arrow-down icon-white"></i> <span id="filterflag_blue_counter"></span></button>
+	                        <button id="filterflag_yellow" onclick="FilterResultsSummary('flag_yellow', 'NetMap')" class="btn sev-med filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom"><i class="icon-arrow-right icon-white"></i> <span id="filterflag_yellow_counter"></span></button>
+	                        <button id="filterflag_red" onclick="FilterResultsSummary('flag_red', 'NetMap')" class="btn sev-hi filter" rel="tooltip" data-original-title="High severity" data-placement="bottom"><i class="icon-arrow-up icon-white"></i> <span id="filterflag_red_counter"></span></button>
+	                        <button id="filterflag_violet" onclick="FilterResultsSummary('flag_violet', 'NetMap')" class="btn sev-critic filter" rel="tooltip" data-original-title="Critical severity" data-placement="bottom"><i class="icon-exclamation-sign icon-white"></i> <span id="filterflag_violet_counter"></span></button>
 	                      </div>
                     
 	                       <div class="btn-group">
@@ -754,6 +755,7 @@
 											}
 								});*/
 								$(this).load($(this).data('value')); 
+								
 							});	
 		
 					$(".subreport_refresh").click(function(){
