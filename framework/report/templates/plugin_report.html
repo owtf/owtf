@@ -1,4 +1,9 @@
-						
+								<div class="pull-left">
+									<blockquote>
+									  	<h4>{{ Plugin.Type|replace( '_', ' ' )|capitalize }}<small>{{ Plugin.Code }}</small></h4>
+									</blockquote>
+									
+								</div>
 								<div class="btn-toolbar pull-right">
 													   <div class="btn-group" data-toggle="buttons-checkbox">
 								                            <button onclick="MarkAsSeen('{{ ReportID }}', '{{ DivId }}')" id="l{{ ReportID }}_{{ DivId }}" class="btn filter" rel="tooltip" data-original-title="Seen" data-placement="bottom"><i class="icon-eye-open icon-white"></i></button>
