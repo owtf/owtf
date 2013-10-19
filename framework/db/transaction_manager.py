@@ -129,14 +129,18 @@ class TransactionManager:
 		return str(self.Core.DB.GetLength('TRANSACTION_LOG_TXT')+1)
 
 	def GetTransactionPathsForID(self, ID): # Returns the URL and Transaction Paths for a given Transaction ID
-		IndexRec = self.Search( { 'ID' : ID } )[0]
-		#IndexLine = self.GetTransactionTXTIndexFromID(ID)
-		FileName = self.GetFileNameForID(ID, self.TransactionInScopeStr(IndexRec))
-		PathList = []
-		for Dir in self.Core.Config.GetAsList(['TRANSACTION_LOG_TRANSACTIONS', 'TRANSACTION_LOG_REQUESTS', 'TRANSACTION_LOG_RESPONSE_HEADERS', 'TRANSACTION_LOG_RESPONSE_BODIES' ]):
-			PathList.append(Dir+FileName) # Add Filename to path
-		return [IndexRec['URL']] + PathList # returns [ url, full, req, resph, respb ]
-		#return [IndexLine[TLOG_URL]] + PathList # returns [ url, full, req, resph, respb ]
+		SearchRes = self.Search( { 'ID' : ID } )
+		if len(SearchRes):
+			IndexRec = SearchRes[0] 
+			#IndexLine = self.GetTransactionTXTIndexFromID(ID)
+			FileName = self.GetFileNameForID(ID, self.TransactionInScopeStr(IndexRec))
+			PathList = []
+			for Dir in self.Core.Config.GetAsList(['TRANSACTION_LOG_TRANSACTIONS', 'TRANSACTION_LOG_REQUESTS', 'TRANSACTION_LOG_RESPONSE_HEADERS', 'TRANSACTION_LOG_RESPONSE_BODIES' ]):
+				PathList.append(Dir+FileName) # Add Filename to path
+			return [IndexRec['URL']] + PathList # returns [ url, full, req, resph, respb ]
+			#return [IndexLine[TLOG_URL]] + PathList # returns [ url, full, req, resph, respb ]
+		else:
+			return ['#','#','#','#','#']
 
 	def GetFileNameForID(self, ID, InScope = True):
 		Prefix = "external_" # Distinguish whether Transactions are in scope or not via the filename
