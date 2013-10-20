@@ -195,8 +195,8 @@ function UnFilterPluginsWhereFieldMatches(Offset, Field, Value) {
 
 function UnfilterPluginsWhereCommentsPresent(Offset) {
         AffectedPlugins = 0
-        for (i = 0; i < window.AllPlugins.length; i++) {
-                PluginId = window.AllPlugins[i]
+        for (i = 0; i < window.ReportsInfo[Offset].AllPlugins.length; i++) {
+                PluginId = window.ReportsInfo[Offset].AllPlugins[i]
                 if (PluginCommentsPresent(Offset, PluginId)) {
                         AffectedPlugins += UnFilterPlugin(Offset, PluginId)
                 }
@@ -372,7 +372,8 @@ function GetCounterFromField(FieldName, Value) {
                 if (Value == 'Y') { CounterName = 'seen'; } else { CounterName = 'unseen'; }
         }
         else if (FieldName == 'flag') {
-                if (Value == 'N') { CounterName = 'no_flag'; } else { CounterName = Value; }
+                if (Value == 'N') { CounterName = 'no_flag'; } else { 
+                														CounterName = Value; }
         }
         else if (FieldName == 'notes') CounterName = 'notes';
         if (!CounterName) {
