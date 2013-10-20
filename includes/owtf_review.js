@@ -201,13 +201,17 @@ function MarkIcon(ID, Init) {
 	if (!Init) {
 		Elem = $('#' + ID)
 		IconRow = Elem.parent() //Go up until the <tr> element so that we can unmark brothers and mark this one
+		alert("ID==" + ID)
+		alert("IconRow==" + IconRow)
 		for (i = 0, length = IconRow.children(".tab_plugin").length; i < length; i++) {
 			
-				//IconRow.children(".tab_plugin").first().html('<i class="icon-eye-open"></i>')
+				IconRow.children(".tab_plugin").first().html('<i class="icon-eye-open"></i>')
+				alert("elem"+i+"==" + IconRow.children(".tab_plugin").first())
 			
 		}
 	}
 	Elem.first().html('<i class="icon-flag"></i>') //Now mark as selected
+		alert("elemX" + Elem.first())
 }
 
 function Rate(Offset, PluginId, Rating, Elem) {
@@ -315,6 +319,7 @@ function SetStyleToPlugins(Offset, PluginArray, StyleText) {
 		StrikeIcon = GetById('l'+Offset+"_"+PluginId)
 		TabId = 'tab_'+Offset+"_"+PluginId
 		Tab = GetById(TabId)
+
 		if (Tab != null) {
 			Tab.style.textDecoration = StyleText
 			//alert(Tab.name)
@@ -323,10 +328,19 @@ function SetStyleToPlugins(Offset, PluginArray, StyleText) {
 			//console.log(Review[Offset][PluginId])
 			//console.log(Review[Offset][PluginId]['flag'])
 			Flag = Review[Offset][PluginId]['flag']
-			Tab.firstChild.innerHTML = Flag
+			
+			if (Flag == "fav") TabSpan = $("#" + TabId + " i:eq(0)")
+			else if ($.inArray(Flag, SeverityFlags) != -1) TabSpan = $("#" + TabId + " i:eq(2)")
+			else TabSpan = $("#" + TabId + " i:eq(1)")
+			
+			TabSpan.removeClass();
+			TabSpan.toggleClass(FlagIcons[Flag])
+			
+			
 			RatingId = Offset+"_"+PluginId + Flag
 			if (Flag != 'N' && document.getElementById(Tab) != null) {//Check valid flag exists
-				MarkIcon(TabId, true)
+				MarkIcon(
+						TabId, true)
 			}
 			if ('' == StyleText) { //Not Seen
 				//Link.firstChild.innerHTML = '<img src="images/pencil.png" title="Strike-through" />'

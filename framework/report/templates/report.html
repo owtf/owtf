@@ -16,8 +16,11 @@
 								<li class="brand disabled"><a>Type: </a> </li>
 							{% for Match in TestGroup.Matches %}
 								<li id="tab_{{ ReportID }}_{{ Match.PluginId }}" class=" tab_plugin">
-									<span> </span>
+									
 									<a class="{% if loop.first %} first_tab {% endif %}" href="#{{ ReportID }}_{{ Match.PluginId }}" data-toggle="tab">
+										<i class=""> </i>
+										<i class="">  </i>
+										<i class=""> </i>
 										{{ Match.PluginName|replace( '_', ' ' )|upper }}
 									</a>
 								</li>
