@@ -198,23 +198,22 @@ function HidePlugin(Offset, PluginId) {
 }
 
 function MarkIcon(ID, Init) {
+	Elem = $("#" + ID)
 	if (!Init) {
-		Elem = $('#' + ID)
-		IconRow = Elem.parent() //Go up until the <tr> element so that we can unmark brothers and mark this one
-		alert("ID==" + ID)
-		alert("IconRow==" + IconRow)
-		for (i = 0, length = IconRow.children(".tab_plugin").length; i < length; i++) {
+		IconRow = Elem.parent().parent() //Go up until the <tr> element so that we can unmark brothers and mark this one
+		for (i = 0, length = IconRow.children().children().length; i < length; i++) {
 			
-				IconRow.children(".tab_plugin").first().html('<i class="icon-eye-open"></i>')
-				alert("elem"+i+"==" + IconRow.children(".tab_plugin").first())
+			$(IconRow.children().children()[i]).removeClass("btn-inverse")
+			$(IconRow.children().children()[i]).removeClass("active")
 			
 		}
 	}
-	Elem.first().html('<i class="icon-flag"></i>') //Now mark as selected
-		alert("elemX" + Elem.first())
+	Elem.addClass("active")  //Now mark as selected
+	Elem.addClass("btn-inverse")
 }
 
 function Rate(Offset, PluginId, Rating, Elem) {
+	MarkIcon(Elem.id, false)
 	TabId = "tab_" + Offset + "_" +  PluginId
 	
 	if ('delete' == Rating) {
@@ -328,19 +327,19 @@ function SetStyleToPlugins(Offset, PluginArray, StyleText) {
 			//console.log(Review[Offset][PluginId])
 			//console.log(Review[Offset][PluginId]['flag'])
 			Flag = Review[Offset][PluginId]['flag']
-			
-			if (Flag == "fav") TabSpan = $("#" + TabId + " i:eq(0)")
+			/*if (Flag == "fav") TabSpan = $("#" + TabId + " i:eq(0)")
 			else if ($.inArray(Flag, SeverityFlags) != -1) TabSpan = $("#" + TabId + " i:eq(2)")
-			else TabSpan = $("#" + TabId + " i:eq(1)")
+			else TabSpan = $("#" + TabId + " i:eq(1)")*/
+			TabSpan = $("#" + TabId + " i:eq(0)")
+
 			
 			TabSpan.removeClass();
 			TabSpan.toggleClass(FlagIcons[Flag])
 			
-			
+
 			RatingId = Offset+"_"+PluginId + Flag
-			if (Flag != 'N' && document.getElementById(Tab) != null) {//Check valid flag exists
-				MarkIcon(
-						TabId, true)
+			if (Flag != 'N' && document.getElementById(RatingId) != null) {//Check valid flag exists
+				MarkIcon(RatingId, true)
 			}
 			if ('' == StyleText) { //Not Seen
 				//Link.firstChild.innerHTML = '<img src="images/pencil.png" title="Strike-through" />'
