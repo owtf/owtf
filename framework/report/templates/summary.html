@@ -29,7 +29,7 @@
 	    <div class="page-header">
 	    	<h2>
 	    		<a href="http://www.owtf.org" >
-	    			<img src="includes/img/logo_light.png" class="img-rounded" alt="OWASP_OWTF_LOGO">
+	    			<img src="includes/img/logo_dark.png" class="img-rounded" alt="OWASP_OWTF_LOGO">
 	    		</a> 
 	    		Summary Report 
 	    		<small>
@@ -748,7 +748,22 @@
 				var PluginDelim = '{{ PLUGIN_DELIM }}'
 				var SeverityWeightOrder = new Array('flag_white', 'bonus_red','flag_violet','flag_red','flag_yellow','flag_blue','bug')
 				var PassedTestIcons = new Array('check_green')
-
+				var SeverityFlags = new Array('flag_white', 'flag_violet','flag_red','flag_yellow','flag_blue')
+				var TypeFlags = new Array("star_3","attention_orange","bonus_red","bug","check_green")
+				var FlagIcons = {
+					"N":"",
+					"fav":"icon-heart",
+					"star_3":"icon-asterisk",
+					"attention_orange":"icon-warning-sign",
+					"bonus_red": "icon-fire",
+					"bug":"icon-bug",
+					"check_green":"icon-thumbs-up",
+					"flag_white":"icon-remove-circle",
+					"flag_blue":"icon-arrow-down",
+					"flag_yellow":"icon-arrow-right",
+					"flag_red":"icon-arrow-up",
+					"flag_violet":"icon-exclamation-sign"
+				}
 		</script>
 		<script>
 		// load subreports 
@@ -788,7 +803,7 @@
 					$(".subreport_expand").click(function(){
 						target_subreport = $(this).data('value'); 
 						$(target_subreport + " .collapse").collapse('show')
-						$(target_subreport + " .first_tab").tab('show')
+						//$(target_subreport + " .first_tab").tab('show')
 					});
 					
 					$('.target_jumper').click(function (e) {
