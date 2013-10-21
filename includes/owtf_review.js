@@ -117,10 +117,18 @@ function GetPluginField(Offset, PluginId, Field) {
 
 function InitDetailedReport(Offset) {
 	window.Review = GetWorkReview() //Point window.Review to parent window = Counters out of whack without this
+	
+	if (!Review["__SummaryCounters"]) {
+		InitReviewCounters(Review, "__SummaryCounters")
+	}
+	
 	if ( Review[Offset] == null) {
 		Review[Offset] = {}
 		InitReviewCounters(Review[Offset], "__"+ Offset + "Counters")
 	}
+	
+	
+	
 
 	//console.log('InitDetailedReport -> window.ReportsInfo[Offset].AllPlugins =', window.ReportsInfo[Offset].AllPlugins)
 	//console.group('InitDetailedReport -> InitPlugins')
