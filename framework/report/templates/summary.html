@@ -614,13 +614,13 @@
 		                        <a href="{{ Offset.ReviewOffset }}" target="_blank">{{ Offset.ReviewOffset }}</a> </small> 
 		                        <span class="btn-group">
 		                        	<a class="btn btn-info disabled" href="#review_modal" role="button" data-toggle="modal">Review</a>
-		                        	<a class="btn btn-success disabled" href="#export_subreport" role="button" data-toggle="modal">Export</a>
+		                        	<a class="btn btn-success disabled" href="#export_subreport" role="button" data-toggle="modal" >Export</a>
 		                       	</span>
 		                       	<span class="btn-group">
-		                       		<a class="btn btn-primary subreport_expand" href="#" role="button"  data-value="#subreport_{{ TargetID }}"><i class="icon-expand-alt icon-large"></i></a>
-									<a class="btn btn-primary subreport_collapse" href="#" role="button"  data-value="#subreport_{{ TargetID }}"><i class="icon-check-minus "></i></a>
+		                       		<a class="btn btn-primary subreport_expand target_button" href="#" role="button"  data-value="#subreport_{{ TargetID }}" data-toggle="tooltip" title="Expand all test groups of target"><i class="icon-expand-alt icon-large"></i></a>
+									<a class="btn btn-primary subreport_collapse target_button" href="#" role="button"  data-value="#subreport_{{ TargetID }}" data-toggle="tooltip" title="Collapse all test groups of target"><i class="icon-check-minus "></i></a>
 		                       	</span>
-		                       	<a class="btn btn-warning subreport_refresh" href="#" role="button"  data-value="#subreport_{{ TargetID }}"><i class="icon-refresh"></i></a>
+		                       	<a class="btn btn-warning subreport_refresh target_button" href="#" role="button"  data-value="#subreport_{{ TargetID }}" data-toggle="tooltip" title="Refresh target subreport"><i class="icon-refresh"></i></a>
 		                        </h3>
 		                        	
 				         		 </div>
@@ -748,6 +748,7 @@
 			   $(".filter").tooltip();
 			   $(".counter").tooltip();
 			   $("#refresh").tooltip();
+			   $(".target_button").tooltip();
 			   $("#more_options").tooltip();
 
 			   
