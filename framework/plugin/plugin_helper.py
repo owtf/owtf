@@ -680,7 +680,7 @@ class PluginHelper:
 								Not Found
 							{% else %}
 								{% for HeaderValue in HeaderDict[Header|lower] %}
-									<a href="{{ Header2TransacDict[Header|lower + HeaderValue] }}" class="label" target="_blank">
+									<a href="./{{ Header2TransacDict[Header|lower + HeaderValue] }}" class="label" target="_blank">
 										{{ HeaderValue }}
 									</a>
 									<br />
@@ -696,7 +696,7 @@ class PluginHelper:
 		""" )
 
 		vars = {
-					"HTMLTransacLogLink":self.Core.Config.GetHTMLTransaclog( True ),
+					"HTMLTransacLogLink":self.Core.Config.GetHTMLTransaclog( False ),
 					"StatsStr": StatsStr,
 					"Command": Command,
 					"HeaderList":HeaderList,
