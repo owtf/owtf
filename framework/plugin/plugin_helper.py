@@ -642,7 +642,7 @@ class PluginHelper:
 		    <tbody>
     			<tr>
     				<th>Log</th>
-    				<td><a href="{{ HTMLTransacLogLink }}" class="button" target="_blank">
+    				<td><a href="../{{ HTMLTransacLogLink }}" class="button" target="_blank">
     					<span> See log </span>
     					</a>
     				</td>
