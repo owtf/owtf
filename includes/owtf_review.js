@@ -203,13 +203,16 @@ function MarkIcon(ID, Init) {
 		IconRow = Elem.parent().parent() //Go up until the <tr> element so that we can unmark brothers and mark this one
 		for (i = 0, length = IconRow.children().children().length; i < length; i++) {
 			
-			$(IconRow.children().children()[i]).removeClass("btn-inverse")
-			$(IconRow.children().children()[i]).removeClass("active")
+			child = $(IconRow.children().children()[i])
+			child.removeClass(child.data("hltype"))
+			child.removeClass("active")
 			
 		}
 	}
+	
+    
 	Elem.addClass("active")  //Now mark as selected
-	Elem.addClass("btn-inverse")
+	Elem.addClass(Elem.data("hltype"))
 }
 
 function Rate(Offset, PluginId, Rating, Elem) {
