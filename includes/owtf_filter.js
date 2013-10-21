@@ -142,12 +142,13 @@ function UpdateCounter(Offset, CounterName, Amount) { //Increments/Decrements th
         //console.log('Review[' + Offset + '][__DetailedCounters][' + CounterName + '].Count=', Review[Offset]['__DetailedCounters'][CounterName].Count)
         //console.log('Review[__SummaryCounters][' + CounterName + '].Count=', Review['__SummaryCounters'][CounterName].Count)
         //Review[Offset]["__" + Offset + "Counters"][CounterName].Count += Amount
-        if (!Review['__SummaryCounters'] ||!Review['__SummaryCounters'][CounterName] ){
-        	Review['__SummaryCounters']= { CounterName: { "Count": Amount}}						
-        }
-        else {
-        	Review['__SummaryCounters'][CounterName].Count += Amount
-        }
+
+		if (Review['__SummaryCounters'][CounterName]){
+			Review['__SummaryCounters'][CounterName].Count += Amount
+		}
+		else {
+			Review['__SummaryCounters'][CounterName]= { "Count" : Amount }
+		}
 		
         //console.log('Counters AFTER update')
         //console.log('Review[' + Offset + '][__DetailedCounters][' + CounterName + '].Count=', Review[Offset]['__DetailedCounters'][CounterName].Count)
