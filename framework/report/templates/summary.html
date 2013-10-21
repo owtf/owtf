@@ -42,8 +42,12 @@
 	    	</h2>
 	    </div>
 		<!-- end page header -->
-		
-		
+
+			<div id="alert_browser" style="display:none;" class="alert alert-warning" >
+				<button type="button" class="close" data-dismiss="alert">&times;</button>
+				<strong>Warning!</strong> Seems that you are using <strong>Chrome</strong> or <strong>Chromium</strong> browser; You need to run the browser using the argument <strong><em>--allow-file-access-from-files</em></strong>
+			</div>
+
 			<!--  navbar row-->
          <div class="row">
          	 <div class="span12">
@@ -728,6 +732,13 @@
 	    <script src="includes/js/style_switcher.js"></script>
 	    
 	        <script>
+	           // detect chrom(e|ium) browsers
+	          IsChrom = /chrom(e|ium)/.test(navigator.userAgent.toLowerCase()); 
+
+				if(IsChrom){
+					$("#alert_browser").show()
+				}
+	        
 			   $('.tooltip_sidebar').tooltip();
 			   // $('#myTab a:first').tab('show');
 			   // $('#myTab2 a:first').tab('show');
