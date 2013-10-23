@@ -589,7 +589,7 @@
 											 			{% for Offset in PortInfo.Offsets %}
 											 			  {% set first = loop.first and first %}
 											 			  {% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
-			                      						 <li id="sb_target_{{ TargetID }}"><a href="#section_{{ TargetID }}"  class="tooltip_sidebar" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{ Offset.ReviewOffset }}"><i class="icon-chevron-right"></i> {{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}</a></li>
+			                      						 <li id="sb_target_{{ TargetID }}"><a href="#section_{{ TargetID }}"  class="tooltip_sidebar" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}"><i class="icon-chevron-right"></i> {{ Offset.ReviewOffset }}</a></li>
 			                						 {% endfor %}
 												{% endif %}
 										    {% endfor %}
@@ -609,9 +609,10 @@
 									 			
 							<section id="section_{{ TargetID }}" class="well well-small">
 		                      <div class="page-header">
-		                        <h3><span class="icon-screenshot icon-white"> </span><span id="ip_{{ TargetID }}">{{ IPInfo.IP|e }}</span>:<span id="port_{{ TargetID }}">{{ PortInfo.Port|e }}</span>
-		                        <small class="text-info">
-		                        <a href="{{ Offset.ReviewOffset }}" target="_blank">{{ Offset.ReviewOffset }}</a> </small> 
+		                        <h3><span class="icon-screenshot icon-white"> </span><a href="{{ Offset.ReviewOffset }}" target="_blank">{{ Offset.ReviewOffset }}</a>
+		                        <small class="">
+		                    		<span id="ip_{{ TargetID }}">{{ IPInfo.IP|e }}</span>:<span id="port_{{ TargetID }}">{{ PortInfo.Port|e }}</span>
+		                         </small> 
 		                        <span class="btn-group">
 		                        	<a class="btn btn-info disabled" href="#review_modal" role="button" data-toggle="modal">Review</a>
 		                        	<a class="btn btn-success disabled" href="#export_subreport" role="button" data-toggle="modal" >Export</a>
