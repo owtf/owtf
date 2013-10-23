@@ -154,6 +154,30 @@ class ProxyHandler(tornado.web.RequestHandler):
         if self.cached_response:
             self.write_cached_response(self.cached_response)
         else:
+            # HTTP AUTH settings
+            http_auth_username = None
+            http_auth_password = None
+            http_auth_mode = None
+            host = self.request.host
+            if self.application.http_auth: #If http auth exists
+                # If default ports are not provided, they are added
+                try:
+                    test = self.request.host.index(':')
+                except ValueError:
+                    default_ports = {'http':'80', 'https':'443'}
+                    try:
+                        host = self.request.host + ':' + default_ports[self.request.protocol]
+                    except KeyError:
+                        pass
+                # Check if auth is provided for that host
+                try:
+                    index = self.application.http_auth_hosts.index(host)
+                    http_auth_username = self.application.http_auth_usernames[index]
+                    http_auth_password = self.application.http_auth_passwords[index]
+                    http_auth_mode = self.application.http_auth_modes[index]
+                except ValueError:
+                    pass
+
             # pycurl is needed for curl client
             async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
             # httprequest object is created and then passed to async client with a callback
@@ -162,6 +186,9 @@ class ProxyHandler(tornado.web.RequestHandler):
                     method=self.request.method,
                     body=self.request.body,
                     headers=self.request.headers,
+                    auth_username=http_auth_username,
+                    auth_password=http_auth_password,
+                    auth_mode=http_auth_mode,
                     follow_redirects=False,
                     use_gzip=True,
                     streaming_callback=self.handle_data_chunk,
@@ -541,7 +568,7 @@ class ProxyProcess(Process):
         
         # Blacklist (or) Whitelist Cookies
         # Building cookie regex to be used for cookie filtering for caching
-        if self.application.Core.Config.Get('WHITELIST_COOKIES') == 'none':
+        if self.application.Core.Config.Get('WHITELIST_COOKIES') == 'None':
             cookies_list = self.application.Core.Config.Get('BLACKLIST_COOKIES').split(',')
             self.application.cookie_blacklist = True
         else:
@@ -582,13 +609,24 @@ class ProxyProcess(Process):
         
         # Request throttling
         # Throttling settings picked up from profiles/general/default.cfg
-        if self.application.Core.Config.Get("PROXY_THROTTLING") == 'false':
+        if self.application.Core.Config.Get("PROXY_THROTTLING") == 'False':
             self.application.throttle_variables = None
         else:
             self.application.throttle_variables = {
                                                     "hosts": {},
                                                     "threshold": self.application.Core.Config.Get("PROXY_THROTTLING_THRESHOLD"),
                                                   }
+
+        # HTTP Auth options
+        if self.application.Core.Config.Get("HTTP_AUTH_HOST") != "None":
+            self.application.http_auth = True
+            # All the variables are lists
+            self.application.http_auth_hosts = self.application.Core.Config.Get("HTTP_AUTH_HOST").strip().split(',')
+            self.application.http_auth_usernames = self.application.Core.Config.Get("HTTP_AUTH_USERNAME").strip().split(',')
+            self.application.http_auth_passwords = self.application.Core.Config.Get("HTTP_AUTH_PASSWORD").strip().split(',')
+            self.application.http_auth_modes = self.application.Core.Config.Get("HTTP_AUTH_MODE").strip().split(',')
+        else:
+            self.application.http_auth = False
 
     # "0" equals the number of cores present in a machine
     def run(self):
