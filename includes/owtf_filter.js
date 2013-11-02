@@ -219,62 +219,66 @@ function SetDisplayUnfilterPluginsByOffset(Offset, Display) {
     else UnfilterPluginIcons.show();
 }
 
-function FilterResultsSummary(Parameter, FromReportType) { //Filter from Summary
-        if ('refresh' == Parameter) {//Only refresh the page
-                Refresh() //Normal page reload
-                $("#mainmenu a[href='#filter']").tab('show');
-                return false
-        }
-        TotalAffected = 0
-        IPs = {}
-        IPPorts = {} //To Store matches, Match count map built inside the loop below
-        IFramesWithResults = []
-        AllIFrames = []
-        for (Offset in GetDB()) {
-                if (IsReservedOffset(Offset)) continue //Skip counters
-                IP = GetOffsetIP(Offset)
-                InitCountDict(IPs, IP, 0)
-                if (IP) {
-                        InitCountDict(IPPorts, IP, {})
-                        Port = GetOffsetPort(Offset)
-                        InitCountDict(IPPorts[IP], Port, 0)
-                }
-                console.log('IP=' + IP + ', Port =' + Port)
-                console.log('IPs=', IPs)
-                console.log('IPPorts=', IPPorts)
-                IFrameId = 'section_' + Offset
-                IFrame = GetById(IFrameId)
-                AffectedPlugins = FilterResults(Offset, Parameter, FromReportType) //Trigger action on all children iframes
-                if (AffectedPlugins == 0 && 'delete' != Parameter) {
-                        IFrame.className = 'well well-small hide' //Hide iframes without results
-                }
-                else {
-                	  IFrame.className = 'well well-small' //show iframes without results
-                }
-                if (AffectedPlugins > 0) { //Update Match count
-                        if (IP) { IPs[IP] += AffectedPlugins }
-                        if (Port) { IPPorts[IP][Port] += AffectedPlugins }
-                        IFramesWithResults.push(IFrame)
-                }
-                AllIFrames.push(IFrame)
-                TotalAffected += AffectedPlugins
-        }
-        if ('delete' == Parameter) { //Display everything but minimised
-                DisplayMatches('--') //Display number of plugins that matched
-                //SetNetMapDisplay(IPs, IPPorts, null, 'none')
-                SetNetMapDisplay(IPs, IPPorts, null, '')
-                //auto-resize iframe depending on contents:
-                for (i in AllIFrames) {
-                        //IFramesWithResults[i].contentWindow.HideDetailedReportData()
-                        //AllIFrames[i].contentWindow.DetailedReportCollapse(Offset)
-                }
-        }
-        else { //Hide what was not selected
-                DisplayMatches(TotalAffected) //Display number of plugins that matched
-                SetNetMapDisplay(IPs, IPPorts, 0, '')
-                //auto-resize iframe depending on contents:
-                //for (i in IFramesWithResults) { IFramesWithResults[i].contentWindow.SelfAutoResize(Offset) }
-        }
+function FilterResultsSummary(Parameter, FromReportType, Elem) { //Filter from Summary
+		if (!$(Elem).hasClass("disabled"))
+			{
+			
+				if ('refresh' == Parameter) {//Only refresh the page
+		                Refresh() //Normal page reload
+		                $("#mainmenu a[href='#filter']").tab('show');
+		                return false
+		        }
+		        TotalAffected = 0
+		        IPs = {}
+		        IPPorts = {} //To Store matches, Match count map built inside the loop below
+		        IFramesWithResults = []
+		        AllIFrames = []
+		        for (Offset in GetDB()) {
+		                if (IsReservedOffset(Offset)) continue //Skip counters
+		                IP = GetOffsetIP(Offset)
+		                InitCountDict(IPs, IP, 0)
+		                if (IP) {
+		                        InitCountDict(IPPorts, IP, {})
+		                        Port = GetOffsetPort(Offset)
+		                        InitCountDict(IPPorts[IP], Port, 0)
+		                }
+		                console.log('IP=' + IP + ', Port =' + Port)
+		                console.log('IPs=', IPs)
+		                console.log('IPPorts=', IPPorts)
+		                IFrameId = 'section_' + Offset
+		                IFrame = GetById(IFrameId)
+		                AffectedPlugins = FilterResults(Offset, Parameter, FromReportType) //Trigger action on all children iframes
+		                if (AffectedPlugins == 0 && 'delete' != Parameter) {
+		                        IFrame.className = 'well well-small hide' //Hide iframes without results
+		                }
+		                else {
+		                	  IFrame.className = 'well well-small' //show iframes without results
+		                }
+		                if (AffectedPlugins > 0) { //Update Match count
+		                        if (IP) { IPs[IP] += AffectedPlugins }
+		                        if (Port) { IPPorts[IP][Port] += AffectedPlugins }
+		                        IFramesWithResults.push(IFrame)
+		                }
+		                AllIFrames.push(IFrame)
+		                TotalAffected += AffectedPlugins
+		        }
+		        if ('delete' == Parameter) { //Display everything but minimised
+		                DisplayMatches('--') //Display number of plugins that matched
+		                //SetNetMapDisplay(IPs, IPPorts, null, 'none')
+		                SetNetMapDisplay(IPs, IPPorts, null, '')
+		                //auto-resize iframe depending on contents:
+		                for (i in AllIFrames) {
+		                        //IFramesWithResults[i].contentWindow.HideDetailedReportData()
+		                        //AllIFrames[i].contentWindow.DetailedReportCollapse(Offset)
+		                }
+		        }
+		        else { //Hide what was not selected
+		                DisplayMatches(TotalAffected) //Display number of plugins that matched
+		                SetNetMapDisplay(IPs, IPPorts, 0, '')
+		                //auto-resize iframe depending on contents:
+		                //for (i in IFramesWithResults) { IFramesWithResults[i].contentWindow.SelfAutoResize(Offset) }
+		        }
+			}
 }
 
 function DisplayMatches(NumMatches) {
