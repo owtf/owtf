@@ -15,7 +15,7 @@
 
 								                      <div class="btn-group" data-toggle="buttons-radio">
 								                         
-								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','star_3', this)" id="{{ ReportID }}_{{ DivId }}star_3" class="btn  filter" rel="tooltip" data-original-title="Undefined" data-placement="bottom" data-hltype="btn-inverse"><i class="icon-asterisk  icon-white"></i></button>
+								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','star_3', this)" id="{{ ReportID }}_{{ DivId }}star_3" class="btn  filter" rel="tooltip" data-original-title="Unknown" data-placement="bottom" data-hltype="btn-inverse"><i class="icon-asterisk  icon-white"></i></button>
 								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','attention_orange', this)" id="{{ ReportID }}_{{ DivId }}attention_orange" class="btn filter" rel="tooltip" data-original-title="Warning" data-placement="bottom" data-hltype="btn-warning"><i class="icon-warning-sign icon-white"></i></button>
 								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','bonus_red', this)"  id="{{ ReportID }}_{{ DivId }}bonus_red" class="btn  filter" rel="tooltip" data-original-title="Exploitable" data-placement="bottom" data-hltype="btn-danger"><i class="icon-fire icon-white"></i></button>
 								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','bug', this)" id="{{ ReportID }}_{{ DivId }}bug" class="btn  filter" rel="tooltip" data-original-title="Logic Bug" data-placement="bottom" data-hltype="btn-info"><i class="icon-bug icon-white"></i></button>
@@ -23,11 +23,12 @@
 								                      </div>
 								
 								                      <div class="btn-group" data-toggle="buttons-radio">
-								                      	<button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_white', this)" id="{{ ReportID }}_{{ DivId }}flag_white" class="btn sev-no filter" rel="tooltip" data-original-title="No severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-remove-circle icon-white"></i></button>
-								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_blue', this)" id="{{ ReportID }}_{{ DivId }}flag_blue" class="btn sev-low filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-arrow-down icon-white"></i></button>
-								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_yellow', this)" id="{{ ReportID }}_{{ DivId }}flag_yellow" class="btn sev-med filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-arrow-right icon-white"></i></button>
-								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_red', this)" id="{{ ReportID }}_{{ DivId }}flag_red" class="btn sev-hi filter" rel="tooltip" data-original-title="High severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-arrow-up icon-white"></i></button>
 								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_violet', this)" id="{{ ReportID }}_{{ DivId }}flag_violet" class="btn sev-critic filter" rel="tooltip" data-original-title="Critical severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-exclamation-sign icon-white"></i></button>
+								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_red', this)" id="{{ ReportID }}_{{ DivId }}flag_red" class="btn sev-hi filter" rel="tooltip" data-original-title="High severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-arrow-up icon-white"></i></button>
+								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_yellow', this)" id="{{ ReportID }}_{{ DivId }}flag_yellow" class="btn sev-med filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-arrow-right icon-white"></i></button>
+								                       <button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_blue', this)" id="{{ ReportID }}_{{ DivId }}flag_blue" class="btn sev-low filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-arrow-down icon-white"></i></button>
+								                       	<button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_white', this)" id="{{ ReportID }}_{{ DivId }}flag_white" class="btn sev-no filter" rel="tooltip" data-original-title="No severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-remove-circle icon-white"></i></button>
+							
 								                      </div>
 							 </div>
 							 <br />
@@ -69,7 +70,7 @@
 															<td> {{ Plugin.End }} </td>
 															<td> {{ Plugin.RunTime }} </td>
 															<td> {{ Plugin.Status }} </td>
-															<td><a href="{{ SAVE_DIR }}" class="btn btn-primary"> Browse </a> </td>
+															<td><a href="{{ SAVE_DIR }}" target="_blank" class="btn btn-primary"> Browse </a> </td>
 														</tr>
 												<tr> <th colspan="6"> USER NOTES</th></tr>
 														 <tr><td colspan="6">
