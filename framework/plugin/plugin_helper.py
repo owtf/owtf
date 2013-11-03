@@ -582,7 +582,7 @@ class PluginHelper:
 					"Matches": Matches,
 					"StatsStr":StatsStr,
 					"Command": Command,
-					"HTMLTransacLogLink": self.Core.Config.GetHTMLTransaclog( True ),
+					"HTMLTransacLogLink": "../" + self.Core.Config.GetHTMLTransaclog( False ),
 					"Unique_as_TEXTPath": "../" + self.DumpFile( 'unique' + WipeBadCharsForFilename( SearchName ) + '.txt', "\n".join( Matches ), PluginInfo, 'Unique as TEXT' )[0],
 					"Unique_as_HTMLPath": "../" + self.DumpFile( 'unique' + WipeBadCharsForFilename( SearchName ) + '.html', "<h3>Unique Matches</h3>" + UniqueTable.Render(), PluginInfo, 'Unique as HTML' )[0],
 					"All_as_HTMLPath": "../" + self.DumpFile( 'all' + WipeBadCharsForFilename( SearchName ) + '.html', "<h3>All Matches</h3>" + AllTable.Render(), PluginInfo, 'All as HTML' )[0] ,

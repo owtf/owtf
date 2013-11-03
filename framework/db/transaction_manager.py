@@ -165,7 +165,7 @@ class TransactionManager:
 
 	def SaveTransactionHTMLIndex(self, ID, Transaction, TransacPath, ReqPath, ResHeadersPath, ResBodyPath) :
 		#print "TransacPath="+TransacPath
-		LinksStr = self.Core.Reporter.DrawTransacLinksStr([Transaction.URL, TransacPath, ReqPath, ResHeadersPath, ResBodyPath], 'URL_OUTPUT')
+		LinksStr = self.Core.Reporter.DrawTransacLinksStr([Transaction.URL, TransacPath, ReqPath, ResHeadersPath, ResBodyPath], ForPlugin = True)
 		TransactionHTML = self.Core.Reporter.Render.CreateTable().DrawTableRow([ Transaction.ScopeToStr(), LinksStr, ID, Transaction.Time, Transaction.TimeHuman, Transaction.Status, Transaction.Method, Transaction.URL, Transaction.Data], False, {}, ID)+"\n" # Pass Transaction ID as Row Number
 		self.Core.DB.Add('TRANSACTION_LOG_HTML', TransactionHTML)
 
