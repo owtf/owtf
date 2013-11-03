@@ -489,7 +489,7 @@
 													</tr>
 													<tr >
 														<td colspan="3">
-																<select multiple='multiple'  id='SelectPluginGroup'  size='6' onchange='SetSelectFilterOptions(this)' style="width:100%;"> 
+																<select multiple='multiple'  id='SelectPluginGroup'  size='3' onchange='SetSelectFilterOptions(this)' style="width:100%;"> 
 																 	{% for Value in PluginTypes %}
 																		<option value="{{ Value }}"> 
 																			{{ Value|e }}
@@ -506,7 +506,7 @@
 													</tr>
 													<tr>
 														<td>
-																<select multiple='multiple'  id='SelectPluginTypesWeb' size='6' onchange='SetSelectFilterOptions(this)'> 
+																<select multiple='multiple'  id='SelectPluginTypesWeb' size='5' onchange='SetSelectFilterOptions(this)'> 
 																	{% for Value in WebPluginTypes %}
 																		<option value="{{ Value }}"> 
 																			{{ Value|e }}
@@ -515,8 +515,8 @@
 																</select>
 														</td>
 														<td>
-															<select multiple='multiple'  id='SelectPluginTypesAux' size='6' onchange='SetSelectFilterOptions(this)'> 
-																	{% for Value in AuxPluginsTypes %}
+															<select multiple='multiple'  id='SelectPluginTypesAux' size='5' onchange='SetSelectFilterOptions(this)'> 
+																	{% for Value in AuxPluginTypes %}
 																		<option value="{{ Value }}"> 
 																			{{ Value|e }}
 																		 </option>
@@ -524,8 +524,8 @@
 																</select>
 														</td>
 														<td>
-															<select multiple='multiple'  id='SelectPluginTypesNet' size='6' onchange='SetSelectFilterOptions(this)'> 
-																	{% for Value in NetPluginsTypes %}
+															<select multiple='multiple'  id='SelectPluginTypesNet' size='5' onchange='SetSelectFilterOptions(this)'> 
+																	{% for Value in NetPluginTypes %}
 																		<option value="{{ Value }}"> 
 																			{{ Value|e }}
 																		 </option>
@@ -575,7 +575,7 @@
 							</div>
 						<div class="modal-footer">
 							<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-							<button class="btn btn-primary">Apply filter</button>
+							<button class="btn btn-primary">Apply</button>
 						</div>
 							
 					</div>

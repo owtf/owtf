@@ -148,7 +148,8 @@ class Summary:
 						"RUN_DB": self.Core.DB.GetData( 'RUN_DB' ),
 						"PluginTypes": self.Core.Config.Plugin.GetAllGroups(),
 						"WebPluginTypes": self.Core.Config.Plugin.GetTypesForGroup( 'web' ),
-						"AuxPluginsTypes": self.Core.Config.Plugin.GetTypesForGroup( 'aux' ),
+						"AuxPluginTypes": self.Core.Config.Plugin.GetTypesForGroup( 'aux' ),
+						"NetPluginTypes": self.Core.Config.Plugin.GetTypesForGroup( 'net' ),
 						"WebTestGroups":self.Core.Config.Plugin.GetWebTestGroups(),
 						"Logs": {
 								 "Errors": {
