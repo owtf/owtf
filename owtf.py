@@ -216,7 +216,7 @@ def ProcessOptions(Core, user_args):
                    "' based on list of plugins supplied")
 
     if Arg.ExceptPlugins:
-        Arg.ExceptPlugins, PluginGroups = GetPluginsFromArg(Arg.ExceptPlugins)
+        Arg.ExceptPlugins, PluginGroups = GetPluginsFromArg(Core, Arg.ExceptPlugins)
         print "ExceptPlugins=" + str(Arg.ExceptPlugins)
 
     if Arg.OutboundProxy:
