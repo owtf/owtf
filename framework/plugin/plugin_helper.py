@@ -92,13 +92,13 @@ class PluginHelper:
 	def DrawResourceLinkList( self, ResourceListName, ResourceList ): # Draws an HTML Search box for defined Vuln Search resources
 		template = Template( """
 		<div class="well well-small">
-			{{ ResourceListName }}: 
+			{{ ResourceListName }} ( <a href="#" onclick="$(this).parent().find('a[target]').trigger('click');"> Open all </a> ): 
 
 			<ul class="icons-ul">
 	    		{% for Name, Resource in ResourceList %}
 	    			<li> 
 	    				<i class="icon-li icon-chevron-sign-right"></i>
-	    				<a href="{{ Resource|e }}" target="_blank">
+	    				<a href="{{ Resource|e }}" onclick="window.open(this.href)" target="_blank">
 	    				 {{ Name }} 
 						</a> 
 					</li>
