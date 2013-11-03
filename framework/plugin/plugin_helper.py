@@ -171,11 +171,11 @@ class PluginHelper:
 			<tr>
 				<th colspan="{{ VulnSearchResources|count }}">
 					Search for Vulnerabilities: <input name="product" id='prod{{ ProductId }}' type="text" size="35" value='{{ SearchStr }}'>
-					<button onclick="javascript:
+					<button class="btn btn-primary" onclick="javascript:
 									{% for Name, Resource in VulnSearchResources %}
-										{% set js_selector = "'+ GetById('prod"+ ProductId + "').value +'" %}
+										{% set js_selector = "'+GetById('prod"+ ProductId +"').value +'" %}
 			 							{% set js_link = Resource|replace("@@@PLACE_HOLDER@@@",js_selector) %}
-											window.open('{{ js_link|e }}');
+											window.open('{{ js_link|replace("\n", "") -}}');
 									{% endfor %}
 									">Search All</button>
 				</th>
@@ -185,7 +185,7 @@ class PluginHelper:
 			 	<td>  
 			 		{% set js_selector = "'+GetById('prod"+ ProductId + "').value+'" %}
 			 		{% set js_link = Resource|replace("@@@PLACE_HOLDER@@@",js_selector) %}
-			 		<button onclick="javascript:window.open('{{ js_link|e }}') "> 
+			 		<button onclick="javascript:window.open('{{ js_link|replace("\n", "") -}}') "> 
 			 			{{ Name }} 
 			 		</button>   
 			 	</td>
