@@ -154,46 +154,46 @@ class Summary:
 						"Logs": {
 								 "Errors": {
 											  "nb": self.Core.DB.GetLength( 'ERROR_DB' ),
-											  "link":  str( self.Core.Config.GetAsPartialPath( 'ERROR_DB' ) )
+											  "link":  str( self.Core.Config.Get( 'ERROR_DB' ) )
 											},
 							    "Unreachables": {
 											  "nb": self.Core.DB.GetLength( 'UNREACHABLE_DB' ),
-											  "link":  str( self.Core.Config.GetAsPartialPath( 'UNREACHABLE_DB' ) ) ,
+											  "link":  str( self.Core.Config.Get( 'UNREACHABLE_DB' ) ) ,
 												 },
 							    "Transaction_Log_HTML": {
-													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_HTML' ),
+													"link": self.Core.Config.Get( 'TRANSACTION_LOG_HTML' ),
 													},
 						    	"All_Downloaded_Files": {
 													"link": '#',
 													},
 							    "All_Transactions": {
-													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_TRANSACTIONS' ),
+													"link": self.Core.Config.Get( 'TRANSACTION_LOG_TRANSACTIONS' ),
 													},
 								"All_Requests": {
-													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_REQUESTS' ),
+													"link": self.Core.Config.Get( 'TRANSACTION_LOG_REQUESTS' ),
 													},
 								"All_Response_Headers": {
-													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_RESPONSE_HEADERS' ),
+													"link": self.Core.Config.Get( 'TRANSACTION_LOG_RESPONSE_HEADERS' ),
 													},
 								"All_Response_Bodies": {
-													"link": self.Core.Config.GetAsPartialPath( 'TRANSACTION_LOG_RESPONSE_BODIES' ),
+													"link": self.Core.Config.Get( 'TRANSACTION_LOG_RESPONSE_BODIES' ),
 													},
 							      },
 						"Urls":  {
-								    "All_URLs_link": self.Core.Config.GetAsPartialPath( 'ALL_URLS_DB' ),
-							    	"File_URLs_link": self.Core.Config.GetAsPartialPath( 'FILE_URLS_DB' ),
-								    "Fuzzable_URLs_link": self.Core.Config.GetAsPartialPath( 'FUZZABLE_URLS_DB' ),
-									"Image_URLs_link":  self.Core.Config.GetAsPartialPath( 'IMAGE_URLS_DB' ),
-									"Error_URLs_link": self.Core.Config.GetAsPartialPath( 'ERROR_URLS_DB' ),
-									"External_URLs_link":  self.Core.Config.GetAsPartialPath( 'EXTERNAL_URLS_DB' ),
+								    "All_URLs_link": self.Core.Config.Get( 'ALL_URLS_DB' ),
+							    	"File_URLs_link": self.Core.Config.Get( 'FILE_URLS_DB' ),
+								    "Fuzzable_URLs_link": self.Core.Config.Get( 'FUZZABLE_URLS_DB' ),
+									"Image_URLs_link":  self.Core.Config.Get( 'IMAGE_URLS_DB' ),
+									"Error_URLs_link": self.Core.Config.Get( 'ERROR_URLS_DB' ),
+									"External_URLs_link":  self.Core.Config.Get( 'EXTERNAL_URLS_DB' ),
 									},
 						"Urls_Potential":  {
-								    "All_URLs_link": self.Core.Config.GetAsPartialPath( 'POTENTIAL_ALL_URLS_DB' ),
-							    	"File_URLs_link": self.Core.Config.GetAsPartialPath( 'POTENTIAL_FILE_URLS_DB' ),
-								    "Fuzzable_URLs_link": self.Core.Config.GetAsPartialPath( 'POTENTIAL_FUZZABLE_URLS_DB' ),
-									"Image_URLs_link":  self.Core.Config.GetAsPartialPath( 'POTENTIAL_IMAGE_URLS_DB' ),
-									"Error_URLs_link": self.Core.Config.GetAsPartialPath( 'POTENTIAL_ERROR_URLS_DB' ),
-									"External_URLs_link":  self.Core.Config.GetAsPartialPath( 'POTENTIAL_EXTERNAL_URLS_DB' ),
+								    "All_URLs_link": self.Core.Config.Get( 'POTENTIAL_ALL_URLS_DB' ),
+							    	"File_URLs_link": self.Core.Config.Get( 'POTENTIAL_FILE_URLS_DB' ),
+								    "Fuzzable_URLs_link": self.Core.Config.Get( 'POTENTIAL_FUZZABLE_URLS_DB' ),
+									"Image_URLs_link":  self.Core.Config.Get( 'POTENTIAL_IMAGE_URLS_DB' ),
+									"Error_URLs_link": self.Core.Config.Get( 'POTENTIAL_ERROR_URLS_DB' ),
+									"External_URLs_link":  self.Core.Config.Get( 'POTENTIAL_EXTERNAL_URLS_DB' ),
 									},
 						"IPs": [{
 								"IP": IP,

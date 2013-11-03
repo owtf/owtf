@@ -77,23 +77,23 @@ class Reporter:
         #cgi.escape(MultipleReplace(ModifiedCommand, self.Core.Config.GetReplacementDict()))
         return cgi.escape(Command)#.replace(';', '<br />') -> Sometimes ";" encountered in UA, cannot do this and it is not as helpful anyway
 
-    def DrawTransacLinksStr(self, PathList, ToFile = True):
+    def DrawTransacLinksStr(self, PathList, ForPlugin = False):
         URL, TransacPath, ReqPath, ResHeadersPath, ResBodyPath = PathList
         template = Template("""
             <!-- Start Transactions Links -->
-            <a href="{{ Transaction_URL }}" class="label" target="_blank">
+            <a href="{{ Transaction_URL }}" class="label label-info" target="_blank">
                 Site
             </a>
-            <a href="../{{ Transaction_Path }}" class="label" target="_blank">
+            <a href="{{ Base_Path }}{{ Transaction_Path }}" class="label" target="_blank">
                 F
             </a>
-            <a href="../{{ Request_Path }}" class="label" target="_blank">
+            <a href="{{ Base_Path }}{{ Request_Path }}" class="label" target="_blank">
                 R
             </a>
-            <a href="../{{ Resource_Headers_Path }}" class="label" target="_blank">
+            <a href="{{ Base_Path }}{{ Resource_Headers_Path }}" class="label" target="_blank">
                 H
             </a>
-            <a href="../{{ Resource_Body_Path }}" class="label" target="_blank">
+            <a href="{{ Base_Path }}{{ Resource_Body_Path }}" class="label" target="_blank">
                 B
             </a>
             <!-- End Transactions Links -->
@@ -104,6 +104,7 @@ class Reporter:
                 "Request_Path": ReqPath,
                 "Resource_Headers_Path": ResHeadersPath ,
                 "Resource_Body_Path": ResBodyPath,
+                "Base_Path": "../" if not ForPlugin else "../../../../"
             }
         return template.render(vars)
 
@@ -117,7 +118,7 @@ class Reporter:
                 CleanPathList.append('../../../' + Path)
         else:
             CleanPathList = PathList
-        return self.DrawTransacLinksStr(CleanPathList)
+        return self.DrawTransacLinksStr(CleanPathList, ForPlugin)
 
     def SavePluginReport(self, HTMLtext, Plugin):
         save_dir = self.Core.PluginHandler.GetPluginOutputDir(Plugin)
@@ -288,50 +289,6 @@ class Reporter:
                 "WebPluginTypes": self.Core.Config.Plugin.GetTypesForGroup('web'),
                 "AuxPluginsTypes": self.Core.Config.Plugin.GetTypesForGroup('aux'),
                 "WebTestGroups":self.Core.Config.Plugin.GetWebTestGroups(),
-                "Logs": {
-                    "Errors": {
-                        "nb": self.Core.DB.GetLength('ERROR_DB'),
-                        "link":  str(self.CCGAPP('ERROR_DB'))
-                        },
-                    "Unreachables": {
-                        "nb": self.Core.DB.GetLength('UNREACHABLE_DB'),
-                        "link":  str(self.CCGAPP('UNREACHABLE_DB')) ,
-                        },
-                    "Transaction_Log_HTML": {
-                        "link": self.CCGAPP('TRANSACTION_LOG_HTML'),
-                        },
-                    "All_Downloaded_Files": {
-                        "link": '#',
-                        },
-                    "All_Transactions": {
-                        "link": self.CCGAPP('TRANSACTION_LOG_TRANSACTIONS'),
-                        },
-                    "All_Requests": {
-                        "link": self.CCGAPP('TRANSACTION_LOG_REQUESTS'),
-                        },
-                    "All_Response_Headers": {
-                        "link": self.CCGAPP('TRANSACTION_LOG_RESPONSE_HEADERS'),
-                        },
-                    "All_Response_Bodies": {
-                        "link": self.CCGAPP('TRANSACTION_LOG_RESPONSE_BODIES'),
-                        },
-                    },
-                "Urls": {
-                    "All_URLs_link": self.CCGAPP('ALL_URLS_DB'),
-                    "File_URLs_link": self.CCGAPP('FILE_URLS_DB'),
-                    "Fuzzable_URLs_link": self.CCGAPP('FUZZABLE_URLS_DB'),
-                    "Image_URLs_link":  self.CCGAPP('IMAGE_URLS_DB'),
-                    "Error_URLs_link": self.CCGAPP('ERROR_URLS_DB'),
-                    "External_URLs_link":  self.CCGAPP('EXTERNAL_URLS_DB'),
-                    },
-                "Urls_Potential":  {
-                    "All_URLs_link": self.CCGAPP('POTENTIAL_ALL_URLS_DB'),
-                    "File_URLs_link": self.CCGAPP('POTENTIAL_FILE_URLS_DB'),
-                    "Fuzzable_URLs_link": self.CCGAPP('POTENTIAL_FUZZABLE_URLS_DB'),
-                    "Image_URLs_link":  self.CCGAPP('POTENTIAL_IMAGE_URLS_DB'),
-                    "Error_URLs_link": self.CCGAPP('POTENTIAL_ERROR_URLS_DB'),
-                    "External_URLs_link":  self.CCGAPP('POTENTIAL_EXTERNAL_URLS_DB'),
-                    },
                 "Globals": {
                         "AllPlugins":[
                             self.GetPluginDivId(Match)
