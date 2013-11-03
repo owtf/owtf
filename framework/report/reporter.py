@@ -136,7 +136,7 @@ class Reporter:
             plugin_report_template = self.Template_env.get_template('plugin_report.html')
             plugin_report_vars = {
                     "DivId": self.GetPluginDivId(Plugin),
-                    "SAVE_DIR": self.Core.GetPartialPath(save_dir),
+                    "SAVE_DIR": save_dir, 
                     "REVIEW_OFFSET" : self.CCG('REVIEW_OFFSET'),
                     "ReportID": "i"+ self.CCG('HOST_IP').replace(".","_") \
                             + "p" + self.CCG('PORT_NUMBER'),
