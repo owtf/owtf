@@ -335,7 +335,7 @@ class PluginHelper:
 					</tr>
 					<tr>
 						<th>
-						<a href="../../../{{ FilePath }}" target="_blank">{{ Name }}</a>
+						<a href="../{{ FilePath }}" target="_blank">{{ Name }}</a>
 						{{ OutputIntro }} (Execution Time: {{ TimeStr }})
 						</th>
 					</tr>
