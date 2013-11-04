@@ -595,8 +595,7 @@
 											 			{% for Offset in PortInfo.Offsets %}
 											 			  {% set first = loop.first and first %}
 											 			  {% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
-			                      						 <li id="sb_target_{{ TargetID }}"><a href="#section_{{ TargetID }}"  class="tooltip_sidebar" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}"><i class="icon-chevron-right"></i> {{ Offset.ReviewOffset }}</a></li>
-			                						 {% endfor %}
+			                      						 <li id="sb_target_{{ TargetID }}"><a href="#section_{{ TargetID }}"  class="tooltip_sidebar" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}"><i class="icon-chevron-right"></i> {{ Offset.ReviewOffset|truncate(20, True
 												{% endif %}
 										    {% endfor %}
 										{% endfor %}	
@@ -751,7 +750,7 @@
 			   // $('#myTab a:first').tab('show');
 			   // $('#myTab2 a:first').tab('show');
 			   $('#sidebar').affix();
-			   $('body').scrollspy({ target: '#sidebar' });
+			   //$('body').scrollspy({ target: '#sidebar' });
 			   // $("#info").tooltip();
 			   $(".filter").tooltip();
 			   $(".counter").tooltip();
