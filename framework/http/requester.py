@@ -199,7 +199,7 @@ class Requester:
         if None != Method:
             request.get_method = lambda : Method # kludge: necessary to do anything other that GET or POST with urllib2
         # MUST create a new Transaction object each time so that lists of transactions can be created and process at plugin-level
-        self.Transaction = transaction.HTTP_Transaction(self.Core.Timer) # Pass the timer object to avoid instantiating each time   
+        self.Transaction = transaction.HTTP_Transaction(self.Core.Timer) # Pass the timer object to avoid instantiating each time
         self.Transaction.Start(URL, POST, Method, self.Core.IsInScopeURL(URL))
         self.RequestCountTotal += 1 
         try:
