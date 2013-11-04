@@ -465,9 +465,9 @@
 	                      </div>
                     
 	                       <div class="btn-group">
+	                       		<a href="#more_filters_modal" role="button" class="btn filter" data-toggle="modal" rel="tooltip" data-original-title="More filters" data-placement="bottom"><i class="icon-filter icon-white"></i></a>
 		                        <button onclick="FilterResultsSummary('delete', 'NetMap',this)"  class="btn filter" rel="tooltip" data-original-title="Clear filters" data-placement="bottom"><i class="icon-ban-circle icon-white"></i></button>
 		                        <button onclick="FilterResultsSummary('refresh', 'NetMap',this)" id="refresh" class="btn" rel="tooltip" data-original-title="Refresh" data-placement="bottom"><i class="icon-refresh icon-white"></i></button> 
-		                        <a href="#more_filters_modal" role="button" class="btn filter" data-toggle="modal" rel="tooltip" data-original-title="More filters" data-placement="bottom"><i class="icon-filter icon-white"></i></a>
 		                   </div>
 		                       <span class="label label-success pull-right counter" rel="tooltip" data-original-title="Number of plugins that matched the search" data-placement="bottom"><strong> Matches:<span id="filtermatches_counter" >--</span></strong></span> 	
                   </div>
@@ -533,12 +533,29 @@
 																</select>
 														</td>
 													</tr>
+													
+													<tr>
+								                	 <th colspan="3" >Web Test Groups</th>
+								                	 </tr>
+								                	 <tr>
+								                	 
+								               
+														<td colspan="3" >
+															<select multiple='multiple' style="width:100%;"  id='SelectWebTestGroups' size='5' onchange='SetSelectFilterOptions(this)'> 
+																	{% for Item in WebTestGroups %}
+																		<option value="{{ Item['Code'] }}"> 
+																			{{ Item["Code"] }} - {{ Item["Descrip"] }} ({{ Item["Hint"] }}) 
+																		 </option>
+																	{% endfor %}
+																</select>
+														</td>
+													</tr>
 													<tr>
 								                	 <th colspan="3" >Available Targets</th>
 								                	 </tr>
 								                	 <tr>
 								                	 	<td colspan="3"> 
-									                	 <select multiple="multiple" id="SelectTargets" size='5' style="width:100%;">
+									                	 <select multiple="multiple" id="SelectTargets" size='5' style="width:100%;"  onchange='SetSelectFilterOptions(this)'>
 														       {% for IPInfo in IPs %}
 																	 {% for PortInfo in IPInfo.Ports %}
 																		{% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
@@ -550,32 +567,15 @@
 																	{% endfor %}
 																{% endfor %}
 														 </select>
-								                	 
 								                	 </td>
 								                	 </tr>
-													<tr>
-								                	 <th colspan="3" >Web Test Groups</th>
-								                	 </tr>
-								                	 <tr>
-								                	 
-								               
-														<td colspan="3" >
-															<select multiple='multiple' style="width:100%;"  id='SelectWebTestGroups' size='5' onchange='SetSelectFilterOptions(this)'> 
-																	{% for Item in WebTestGroups %}
-																		<option value="{{ Item['Code'] }}"> 
-																			{{ Item["Code"] }} - {{ Item["Descrip"] }} 
-																		 </option>
-																	{% endfor %}
-																</select>
-														</td>
-													</tr>
 													
 												</table>
 						
 							</div>
 						<div class="modal-footer">
-							<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-							<button class="btn btn-primary">Apply</button>
+							<button class="btn btn-success" data-dismiss="modal" aria-hidden="true">Save</button>
+							<button class="btn btn-primary" data-dismiss="modal" onclick="FilterResultsSummary('info', 'NetMap',this)">Apply</button>
 						</div>
 							
 					</div>
@@ -595,7 +595,8 @@
 											 			{% for Offset in PortInfo.Offsets %}
 											 			  {% set first = loop.first and first %}
 											 			  {% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
-			                      						 <li id="sb_target_{{ TargetID }}"><a href="#section_{{ TargetID }}"  class="tooltip_sidebar" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}"><i class="icon-chevron-right"></i> {{ Offset.ReviewOffset|truncate(20, True
+			                      						 <li id="sb_target_{{ TargetID }}"><a href="#section_{{ TargetID }}"  class="tooltip_sidebar" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}"><i class="icon-chevron-right"></i> {{ Offset.ReviewOffset|truncate(25,True) }}</a></li>
+			                						 {% endfor %}
 												{% endif %}
 										    {% endfor %}
 										{% endfor %}	

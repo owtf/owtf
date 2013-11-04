@@ -42,6 +42,7 @@ $(document).ready(function() {
 function InitAllTheWorld()
 {
 	InitDB() //Working DB only initialised on summary
+	InitFilterOptions()
 	DisplaySelectFilterOptions()
 	
 	//Initialize all Detailed Reports
