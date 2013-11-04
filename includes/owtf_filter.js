@@ -123,12 +123,14 @@ function SetFilterOption(Option, Selected) {
 }
 
 function InitFilterOptions() {
-        Review['__FilterOptions'] = {}
-        Options = [ 'SelectPluginGroup', 'SelectPluginTypesWeb', 'SelectPluginTypesAux', 'SelectWebTestGroups' ]
-        for (i in Options) {
-                Option = Options[i]
-                SetFilterOption(Option, false)
-        }
+       // if (!Review['__FilterOptions']) {
+        		Review['__FilterOptions'] = {};
+		        Options = [ 'SelectPluginGroup', 'SelectPluginTypesWeb', 'SelectPluginTypesAux', 'SelectPluginTypesNet',  'SelectWebTestGroups', 'SelectTargets' ]
+		        for (i in Options) {
+		                Option = Options[i];
+		                SetFilterOption(Option, false);
+		        }
+        //}
 }
 
 function DisplayUpdatedCounter(Offset, CounterName) {
@@ -162,17 +164,19 @@ function UpdateCounters(Offset, CounterArray, Amount) {//Convenience function to
         }
 }
 
-function CanUnFilterPlugin(PluginId) {
+function CanUnFilterPlugin(Offset, PluginId) {
+		if (!InArray(Offset, GetFilterOption('SelectTargets'))) return false
         Plugin = GetPluginInfo(PluginId)
         if (!InArray(Plugin['Group'], GetFilterOption('SelectPluginGroup'))) return false
         if (Plugin['Group'] == 'web' &&
                 (!InArray(Plugin['Type'], GetFilterOption('SelectPluginTypesWeb')) || !InArray(Plugin['Code'], GetFilterOption('SelectWebTestGroups')))) return false
         if (Plugin['Group'] == 'aux' && !InArray(Plugin['Type'], GetFilterOption('SelectPluginTypesAux'))) return false
+        if (Plugin['Group'] == 'net' && !InArray(Plugin['Type'], GetFilterOption('SelectPluginTypesNet'))) return false
         return true //All filters passed
 }
 
 function UnFilterPlugin(Offset, PluginId) {
-        if (CanUnFilterPlugin( PluginId)) {
+        if (CanUnFilterPlugin(Offset,  PluginId)) {
         	    GetById(Offset +"_" +PluginId).parentNode.parentNode.parentNode.parentNode.style.display = 'block' //Show the testgroup
                 GetById(Offset +"_" +PluginId).className = 'tab-pane' //Show the tab content 
                 GetById('tab_'+Offset +"_"+PluginId).style.display = ''//Show the tab
@@ -264,6 +268,9 @@ function FilterResultsSummary(Parameter, FromReportType, Elem) { //Filter from S
 		        }
 		        if ('delete' == Parameter) { //Display everything but minimised
 		                DisplayMatches('--') //Display number of plugins that matched
+		                // reset also the extra filter options
+		                InitFilterOptions()
+		                DisplaySelectFilterOptions()
 		                //SetNetMapDisplay(IPs, IPPorts, null, 'none')
 		                SetNetMapDisplay(IPs, IPPorts, null, '')
 		                //auto-resize iframe depending on contents:
