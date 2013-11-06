@@ -342,15 +342,17 @@ class PluginHelper:
                                         <tr>
                                                 <td>
                                                  <pre> {{  OutputLines|batch(mNumLinesToShow)|join("\n")|e }} </pre>
-                                                 <br />
+                                                 
                                                  {% if OutputLines|count > mNumLinesToShow %}
-                                                 <span class='alert alert-warning'>
+                                          
+                                                 <div class='alert alert-warning'>
                                                         <strong>NOTE!</strong>
                                                         Output longer than {{ mNumLinesToShow }} lines,
-                                                        <a href="../../../{{ FilePath }}" target="_blank">
+                                                        <a href="../{{ FilePath }}" target="_blank">
                                                 Click here to see all output!
-                                        </a>
-                                                 </span>
+                                                </a>
+                                                 </div>
+                                          
                                                  {% endif %}
                                                 </td>
                                         </tr>
@@ -390,7 +392,7 @@ class PluginHelper:
                 Table.CreateRow([TimeStr, self.Core.Reporter.Render.DrawHTMLList(['Visited URLs?: '+str(VisitURLs), str(len(URLList))+' URLs scraped', str(NumFound)+' URLs found'])])
                 return Table.Render()
 
-        def DrawCommandDump( self, CommandIntro, OutputIntro, ResourceList, PluginInfo, PreviousOutput, NumLinesToShow = 25 ):
+        def DrawCommandDump( self, CommandIntro, OutputIntro, ResourceList, PluginInfo, PreviousOutput, NumLinesToShow = 5 ):
                 self.mNumLinesToShow = NumLinesToShow
                 PluginOutputDir = self.InitPluginOutputDir( PluginInfo )
                 #Content = LinkToPluginOutputDir = '<br />'+self.Core.Reporter.Render.DrawButtonLink('Browse Plugin Output Files', self.Core.GetPartialPath(PluginOutputDir))+'<br />' <- This is now in the Plugin report box
