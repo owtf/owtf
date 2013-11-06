@@ -40,7 +40,7 @@ import signal
 import sys
 import termios
 from threading import Thread
-
+import time
 
 class ProcessManager:
     def __init__(self,CoreObj):
@@ -136,6 +136,7 @@ class ProcessManager:
                     self.running_plugin[self.workers[k].pid] = work_to_assign
                     self.busy_processes[k]=True
             k=(k+1)%self.numprocess
+            time.sleep(0.05)
             
     #This function waits for each worker to complete his work and send it Poision Pill(emtpy work)
     def poisonPillToWorkers(self):
