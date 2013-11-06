@@ -51,14 +51,15 @@ class reporting_process:
             with open(filename) as f:
                 lines = f.read().splitlines()
             self.num_plugins=len(lines)
-            
-        start_time = time.time()
+
+        start_time = time.time() # A variable to keep track of when last report update occured
+        # Check if Queue is empty. If not, poison pill is sent
         while queue.empty():
-            if (time.time()-start_time) >reporting_time:
+            if (time.time() - start_time) > reporting_time:
                 self.generate_reports(filename)
-                start_time = time.time()
+                start_time = time.time() # Updating the variable for next check
             time.sleep(1)
-        
+
         self.generate_reports(filename)
 
     def generate_reports(self,filename):
