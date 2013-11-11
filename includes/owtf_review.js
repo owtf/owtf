@@ -97,11 +97,11 @@ function InitDB() {//Ensure all completed plugins have a review offset
 	}
 }
 
-function GetPluginInfo(PluginId) {
+function GetPluginInfo(Offset, PluginId) {
 	var Chunks = PluginId.split(PluginDelim)
 	var Plugin = { 'Group' : Chunks[0], 'Type' : Chunks[1], 'Code' : Chunks[2], 'Title' : '' }
-	var CodeDiv = document.getElementById(Plugin['Code'])
-	if (CodeDiv != null) Plugin['Title'] = CodeDiv.firstChild.innerHTML
+	var CodeDiv = document.getElementById(Offset +"_"+Plugin['Code']+"_title")
+	if (CodeDiv != null) Plugin['Title'] = CodeDiv.innerHTML
 	return Plugin
 }
 
@@ -110,7 +110,7 @@ function GetPluginField(Offset, PluginId, Field) {
 		//console.log('GetPluginField => Review[' + Offset + '][' + PluginId + '][' + Field + '] = ', Review[Offset][PluginId][Field])
 		return Review[Offset][PluginId][Field] //Get from review
 	}
-	var Plugin = GetPluginInfo(PluginId)
+	var Plugin = GetPluginInfo(Offset, PluginId)
 	if (Plugin[Field] != null) {
 		return Plugin[Field] //Get from Id
 	}

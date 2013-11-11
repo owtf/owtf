@@ -71,12 +71,12 @@ function CanReport(Offset, PluginId) {
 }
 
 function GetHTMLReportIntro(Offset) {
-	TargetStr = escape(Offset).replace('%3A', ':')
-	TargetURL = document.getElementById('target_url')
+	TargetStr = escape(Offset).replace('p', ':').replace('i','').replace("_",".")
+	TargetURL = document.getElementById("offset_"+Offset)
 	if (TargetURL != null) {
-		TargetStr = TargetURL.parentNode.innerHTML.replace('button', '') //Copy link from top table if present ;)
+		TargetStr = TargetURL.innerHTML //Copy link from top table if present ;)
 	}
-	return '<h1>Report for target: ' + TargetStr + '</h1>'
+	return 'Review Report for:' + TargetStr + ''
 }
 
 function IsPassedTest(Offset, PluginId) {
@@ -94,7 +94,7 @@ function PassedTestProcessCode(Offset, LastPluginIdForCode, PluginContent) {
 }
 
 function GetHTMLPassedTestsByCode(Offset, Stats) {
-	var Content = '<h2>Passed Tests</h2>'
+	var Content = ''
 	var Data = ReportPluginsByCode(Offset,  { 
 			  'ProcessPluginIF' : 'IsPassedTest(Offset, PluginId)' 
 			, 'ProcessPluginFunction' : 'PassedTestProcessPlugin(Offset, PluginId)' 
@@ -126,23 +126,27 @@ function FindingProcessPlugin(Offset, PluginId, Severity) {
 
 function FindingProcessCode(Offset, LastPluginIdForCode, PluginContent, Severity) {
 	if (PluginContent.length == 0) {
-		PluginContent = '<p>No notes found for any plugin under this category</p>'
+		PluginContent = '<span class="text-warning"> No notes found for any plugin under this category</span>'
 	}
-	return '<li>' + GetPluginField(Offset, LastPluginIdForCode, 'Title') + ' - ' + GetSeverityName(Severity) + '</li>' + PluginContent
+	return '<li>' + GetPluginField(Offset, LastPluginIdForCode, 'Title') + ' - ' + GetSeverityName(Severity) + " "+ GetSeverityIcon(Severity) + '</li>' + PluginContent
 }
 
 function GetSeverityName(Severity) {
-	return GetById('filter' + Severity).firstChild.firstChild.title
+	return $('#filter' + Severity).data("originalTitle")
+}
+
+function GetSeverityIcon(Severity) {
+	return "<i class='"+ $('#filter' + Severity).children().first().attr("class") +"'></i>"
 }
 
 function GetHTMLFindingsBySeverityAndCode(Offset, Stats) {
 	//console.log('(FindingsBySev) Index=', Index)
-	var Content = '<h2>Findings</h2>'
+	var Content = ''
 	Content += '<ol class="finding_severity">'
 	var TotalCount = 0
 	for (i in window.SeverityWeightOrder) {
 		var Severity = window.SeverityWeightOrder[i]
-		var SeverityContent = '<li>' + GetSeverityName(Severity) + '</li>'
+		var SeverityContent = '<li>' + GetSeverityIcon(Severity) + " " +GetSeverityName(Severity) + '</li>'
 	var Data = ReportPluginsByCode(Offset, { 
 		'ProcessPluginIF' : 'IsFinding(Offset, PluginId, "' + Severity + '")' //Limit processing by severity each time
 		, 'ProcessPluginFunction' : 'FindingProcessPlugin(Offset, PluginId, "' + Severity + '")'
@@ -165,7 +169,7 @@ function GetHTMLFindingsBySeverityAndCode(Offset, Stats) {
 }
 
 function GetHTMLRenderStats(Offset, Stats) {
-	var Content = '<h2>Statistics</h2>'
+	var Content = ''
 	Stats['Unrated'] = GetPluginIdsWhereFieldMatches(Offset, 'flag', 'N').length
 	Content += '<ul class="report_list">'
 	for (Item in Stats) {
@@ -177,7 +181,7 @@ function GetHTMLRenderStats(Offset, Stats) {
 			DisplayName = "Unrated Tests"
 		}
 		else { //Severity: Get Name
-			DisplayName = GetSeverityName(Item)
+			DisplayName = GetSeverityIcon(Item) +" "+GetSeverityName(Item)
 		}
 		Content += '<li>' + DisplayName + ': ' + Count + '</li>'
 	}
@@ -186,25 +190,25 @@ function GetHTMLRenderStats(Offset, Stats) {
 }
 
 function BuildReportBySeverityAndCode(Offset, Report) {
-	GetById('__rep__intro').innerHTML = GetHTMLReportIntro(Offset)
+	GetById(Offset+'__rep__intro').innerHTML = GetHTMLReportIntro(Offset)
 	var Stats = {}
-	GetById('__rep__passed').innerHTML = GetHTMLPassedTestsByCode(Offset, Stats)
-	GetById('__rep__findings').innerHTML = GetHTMLFindingsBySeverityAndCode(Offset, Stats)
-	GetById('__rep__unrated').innerHTML = 'not implemented yet'
+	GetById(Offset+'__rep__passed').innerHTML = GetHTMLPassedTestsByCode(Offset, Stats)
+	GetById(Offset+'__rep__findings').innerHTML = GetHTMLFindingsBySeverityAndCode(Offset, Stats)
+	GetById(Offset+'__rep__unrated').innerHTML = 'not implemented yet'
 	//Stats are set in the same loop by previous function calls: Must be done at the end
-	GetById('__rep__stats').innerHTML = GetHTMLRenderStats(Offset, Stats) 
+	GetById(Offset+'__rep__stats').innerHTML = GetHTMLRenderStats(Offset, Stats) 
 //&& CanReport(Offset, PluginId) 
 }
 
 function ReportPluginsByCode(Offset, Options) {
 	var Count = 0
 	var Content = ''
-	for (i in window.AllCodes) {
-		Code = window.AllCodes[i]
+	for (i in window.ReportsInfo[Offset].AllCodes) {
+		Code = window.ReportsInfo[Offset].AllCodes[i]
 		var PluginContent = ''
 		var PluginCount = 0
-		for (i in window.AllPlugins) {
-			var PluginId = window.AllPlugins[i]
+		for (i in window.ReportsInfo[Offset].AllPlugins) {
+			var PluginId = window.ReportsInfo[Offset].AllPlugins[i]
 			if (GetPluginField(Offset, PluginId, 'Code') == Code && eval(Options['ProcessPluginIF'])) {
 				LastPluginIdForCode = PluginId
 				PluginContent += eval(Options['ProcessPluginFunction'])
@@ -221,8 +225,8 @@ function ReportPluginsByCode(Offset, Options) {
 
 function ToggleReportMode(Offset) {
 	DetailedReportAnalyse(Offset)
-	ToggleDivs( [ 'review_content', 'generated_report' ] )
-	Report = GetById('generated_report')
+	ToggleDivs( [ 'subreport_'+Offset, 'generated_report_'+Offset ] )
+	Report = GetById('generated_report_'+Offset)
 	if (Report.style.display != 'none' && confirm('This can take a few seconds or minutes depending on the report size. Generate report?')) { //Display report
 		window.ReportMode = true
 		BuildReportBySeverityAndCode(Offset, Report)
