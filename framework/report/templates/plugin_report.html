@@ -39,9 +39,8 @@
 													<thead>
 														<tr>
 															<th> PLUGIN </th>
-															<th> START </th>
-															<th> END </th>
 															<th> RUNTIME </th>
+															<th> TIME INTERVAL </th>
 															<th> STATUS </th>
 															<th> OUTPUT FILES </th>
 														</tr>
@@ -66,9 +65,8 @@
 														>
 															
 															<td> <strong>{{ Plugin.Type }}</strong>/{{ Plugin.File }}</td>
-															<td> {{ Plugin.Start }} </td>
-															<td> {{ Plugin.End }} </td>
 															<td> {{ Plugin.RunTime }} </td>
+															<td> {{ Plugin.Start }} <br />{{ Plugin.End }} </td>
 															<td> {{ Plugin.Status }} </td>
 															<td><a href="../{{ SAVE_DIR }}" target="_blank" class="btn btn-primary"> Browse </a> </td>
 														</tr>
