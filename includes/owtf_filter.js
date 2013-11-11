@@ -166,7 +166,7 @@ function UpdateCounters(Offset, CounterArray, Amount) {//Convenience function to
 
 function CanUnFilterPlugin(Offset, PluginId) {
 		if (!InArray(Offset, GetFilterOption('SelectTargets'))) return false
-        Plugin = GetPluginInfo(PluginId)
+        Plugin = GetPluginInfo(Offset, PluginId)
         if (!InArray(Plugin['Group'], GetFilterOption('SelectPluginGroup'))) return false
         if (Plugin['Group'] == 'web' &&
                 (!InArray(Plugin['Type'], GetFilterOption('SelectPluginTypesWeb')) || !InArray(Plugin['Code'], GetFilterOption('SelectWebTestGroups')))) return false
@@ -316,7 +316,7 @@ function ShowDetailedReportData(Offset) {
 
 
 function FilterResults(Offset, Parameter, FromReportType) {
-	if (window.ReportsInfo[Offset].ReportMode) { ToggleReportMode() } //Display Review when filter is altered, Report needs re-generation anyway
+	if (window.ReportsInfo[Offset].ReportMode) { ToggleReportMode(Offset) } //Display Review when filter is altered, Report needs re-generation anyway
         if ('refresh' == Parameter) {//Only refresh the page
                 Refresh() //Normal page reload
                 return false

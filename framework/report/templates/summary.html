@@ -612,28 +612,41 @@
 									 		{% for Offset in PortInfo.Offsets %}
 									 			{% set first = loop.first and first %}
 											 	{% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
-									 			
+									 			{% set ReportID = TargetID %}
 							<section id="section_{{ TargetID }}" class="well well-small">
 		                      <div class="page-header">
-		                        <h3><span class="icon-screenshot icon-white"> </span><a href="{{ Offset.ReviewOffset }}" target="_blank">{{ Offset.ReviewOffset }}</a>
+		                        <h3><span class="icon-screenshot icon-white"> </span><a id="offset_{{ TargetID }}" href="{{ Offset.ReviewOffset }}" target="_blank">{{ Offset.ReviewOffset }}</a>
 		                        <small class="">
 		                    		<span id="ip_{{ TargetID }}">{{ IPInfo.IP|e }}</span>:<span id="port_{{ TargetID }}">{{ PortInfo.Port|e }}</span>
 		                         </small> 
-		                        <span class="btn-group">
+		                        <span class="btn-group hidden">
 		                        	<a class="btn btn-info disabled" href="#review_modal" role="button" data-toggle="modal">Review</a>
-		                        	<a class="btn btn-success disabled" href="#export_subreport" role="button" data-toggle="modal" >Export</a>
+		                        	<a class="btn btn-info disabled" href="#export_subreport" role="button" data-toggle="modal" >Export</a>
 		                       	</span>
 		                       	<span class="btn-group">
 		                       		<a class="btn btn-primary subreport_expand target_button" href="#" role="button"  data-value="#subreport_{{ TargetID }}" data-toggle="tooltip" title="Expand all test groups of target"><i class="icon-expand-alt icon-large"></i></a>
 									<a class="btn btn-primary subreport_collapse target_button" href="#" role="button"  data-value="#subreport_{{ TargetID }}" data-toggle="tooltip" title="Collapse all test groups of target"><i class="icon-check-minus "></i></a>
 		                       	</span>
-		                       	<a class="btn btn-warning subreport_refresh target_button" href="#" role="button"  data-value="#subreport_{{ TargetID }}" data-toggle="tooltip" title="Refresh target subreport"><i class="icon-refresh"></i></a>
-		                  
+		                       	 <a class="btn btn-warning subreport_refresh target_button" href="#" role="button"  data-value="#subreport_{{ TargetID }}" data-toggle="tooltip" title="Refresh target subreport"><i class="icon-refresh"></i></a>
+		                  		 <a class="btn btn-success subreport_generate target_button" href="#" role="button" onclick="ToggleReportMode('{{ TargetID }}')" data-value="#subreport_{{ TargetID }}" data-toggle="tooltip" title="Generate target review report"><i class="icon-magic"></i></a>
 		                        </h3>
 		                        
 				         		 </div>
 				         		 
-				         		 
+				         	<div id="generated_report_{{ TargetID }}" class="well" style="display:none">
+				      			<div id="{{ TargetID }}__rep__intro" class="muted"></div>
+				      			<h3> Statistics </h3>
+                  				<div id="{{ ReportID }}__rep__stats"></div>   	
+					         	<h3> Passed Tests </h3>
+                  				<div id="{{ ReportID }}__rep__passed"></div>   	
+					         	<h3> Findings </h3>
+                  				<div id="{{ ReportID }}__rep__findings"></div>   	
+					         	<h3> Unrated </h3>
+                  				<div id="{{ ReportID }}__rep__unrated">
+					      			<div class="alert"><strong>Alert!</strong> Unimplemented</div>
+					      		</div>
+				         </div>
+				         
 								 
 								 <div id="subreport_{{ TargetID }}" class="subreport" data-value="{{ Offset.ReviewPath }}">
 								 	<span class="alert alert-warning">
