@@ -341,9 +341,9 @@ class PluginHelper:
                                         </tr>
                                         <tr>
                                                 <td>
-                                                 <pre> {{  OutputLines|batch(mNumLinesToShow)|join("\n")|e }} </pre>
+                                                 <pre> {{  OutputLines|join("\n")|e }} </pre>
                                                  
-                                                 {% if OutputLines|count > mNumLinesToShow %}
+                                                 {% if OutputLines|count >= mNumLinesToShow %}
                                           
                                                  <div class='alert alert-warning'>
                                                         <strong>NOTE!</strong>
@@ -366,7 +366,7 @@ class PluginHelper:
                                 "ModifiedCommand": ModifiedCommand,
                                 "FilePath" : self.Core.PluginHandler.DumpPluginFile( Name, RawOutput, PluginInfo ),
                                 "OutputIntro":  OutputIntro,
-                                "OutputLines": RawOutput.split( "\n" ),
+                                "OutputLines": unicode(RawOutput, 'utf-8').split( "\n" )[:self.mNumLinesToShow],
                                 "TimeStr": TimeStr,
                                 "mNumLinesToShow": self.mNumLinesToShow,
                         }
