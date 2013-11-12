@@ -233,10 +233,12 @@ class Core:
         self.DB.Init()
         self.messaging_admin.Init()
         Command = self.GetCommand(Options['argv'])
-        self.start_reporter()
+
         self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
         if self.Config.Get('SIMULATION'):
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
+        else: # Reporter process is not needed unless a real run
+            self.start_reporter()
         self.StartProxy(Options) # Proxy mode is started in that function
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()

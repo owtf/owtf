@@ -68,6 +68,10 @@ class ProxyHandler(tornado.web.RequestHandler):
             pass
         return tornado.web.RequestHandler.__new__(cls, application, request, **kwargs)
 
+    def set_default_headers(self):
+        # XD Using this to remove "Server" header set by tornado
+        del self._headers["Server"]
+
     def set_status(self, status_code, reason=None):
         """
         Sets the status code for our response.
@@ -120,7 +124,6 @@ class ProxyHandler(tornado.web.RequestHandler):
     # This function writes a new response & caches it
     def write_response(self, response):
         self.set_status(response.code)
-        del self._headers['Server']
         for header, value in list(response.headers.items()):
             if header == "Set-Cookie":
                 self.add_header(header, value)
