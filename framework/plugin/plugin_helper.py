@@ -427,11 +427,11 @@ class PluginHelper:
 
         def AnalyseRobotsEntries( self, Contents ): # Find the entries of each kind and count them
                 num_lines = len( Contents.split( "\n" ) ) # Total number of robots.txt entries
-                AllowedEntries = self.RobotsAllowRegexp.findall( Contents )
+                AllowedEntries = list(set(self.RobotsAllowRegexp.findall( Contents ))) # list(set()) is to avoid repeated entries
                 num_allow = len( AllowedEntries ) # Number of lines that start with "Allow:"
-                DisallowedEntries = self.RobotsDisallowRegexp.findall( Contents )
+                DisallowedEntries = list(set(self.RobotsDisallowRegexp.findall( Contents )))
                 num_disallow = len( DisallowedEntries ) # Number of lines that start with "Disallow:"
-                SitemapEntries = self.RobotsSiteMap.findall( Contents )
+                SitemapEntries = list(set(self.RobotsSiteMap.findall( Contents )))
                 num_sitemap = len( SitemapEntries ) # Number of lines that start with "Sitemap:"
                 NotStr = ''
                 if 0 == num_allow and 0 == num_disallow and 0 == num_sitemap:
