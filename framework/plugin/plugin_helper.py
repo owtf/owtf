@@ -98,7 +98,7 @@ class PluginHelper:
                         {% for Name, Resource in ResourceList %}
                                 <li> 
                                         <i class="icon-li icon-chevron-sign-right"></i>
-                                        <a href="{{ Resource|e }}" onclick="window.open(this.href)" target="_blank">
+                                        <a href="{{ Resource|e }}" onclick="window.open(this.href); return false;" target="_blank">
                                          {{ Name }} 
                                                 </a> 
                                         </li>
