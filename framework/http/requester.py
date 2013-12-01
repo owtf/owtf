@@ -86,7 +86,7 @@ class Requester:
         self.Headers = { 'User-Agent' : self.Core.Config.Get('USER_AGENT') }
         self.RequestCountRefused = 0
         self.RequestCountTotal = 0
-        self.LogTransactions = True
+        self.LogTransactions = False
         self.Proxy = Proxy
         if None == Proxy:
             cprint("WARNING: No outbound proxy selected. It is recommended to use an outbound proxy for tactical fuzzing later")

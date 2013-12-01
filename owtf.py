@@ -222,14 +222,20 @@ def ProcessOptions(Core, user_args):
     if Arg.OutboundProxy:
         Arg.OutboundProxy = Arg.OutboundProxy.split(':')
         if len(Arg.OutboundProxy) != 2:  # OutboundProxy should be ip:port
-            Usage()
+            Usage("Invalid argument for Outbound Proxy")
 
     if Arg.InboundProxy:
         Arg.InboundProxy = Arg.InboundProxy.split(':')
 
         # InboundProxy should be (ip:)port:
         if len(Arg.InboundProxy) not in [1, 2]:
-            Usage()
+            Usage("Invalid argument for Inbound Proxy")
+        else:
+            try:
+                int(Arg.InboundProxy[0].split(':')[-1])
+            except ValueError:
+                Usage("Invalid argument for Inbound Proxy")
+
 
     PluginTypesForGroup = Core.Config.Plugin.GetTypesForGroup(PluginGroup)
     if Arg.PluginType == 'all':
