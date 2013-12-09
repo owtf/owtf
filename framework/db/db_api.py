@@ -35,9 +35,9 @@ import time
 function_list = defaultdict(list)
 #lists of functions for push and pull with expected number of arguments
 function_list['push']= {'Add':{3},'ModifyRecord':{4},'IncreaseSync':{2},'CalcSync':{2},'LoadDB':{2},'SaveDB':{2}
-            ,'SaveDBs':{0},'SaveDBLine':{3},'AddError':{1}}
+        ,'SaveDBs':{0},'SaveDBLine':{3},'AddError':{1}}
 function_list['pull'] = {'GetPath':{1},'Get':{2},'GetData':{2},'GetRecord':{3},'GetRecordAsMatch':{2},
-                 'Search':{3},'GetSyncCount':{2},'GetLength':{2},'IsEmpty':{2},'GetDBNames':{0},'GetNextHTMLID':{0}
+                 'Search':{4},'GetSyncCount':{2},'GetLength':{2},'IsEmpty':{2},'GetDBNames':{0},'GetNextHTMLID':{0}
                  ,'ErrorCount':{0},'GetSeed':{0}}
 
     #check if function is valid or not
