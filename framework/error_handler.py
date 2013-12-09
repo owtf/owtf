@@ -84,10 +84,10 @@ class ErrorHandler:
 		#print repr(traceback.format_stack())
 		#print repr(traceback.extract_stack())
 		Output = self.Padding+"OWTF BUG: Please report the sanitised information below to help make this better. Thank you."+self.SubPadding
-		Output += "\nMessage: "+Message+"\n"
+		Output += "\nMessage: "+self.Core.AnonymiseCommand(Message)+"\n"
 		Output += "\nCommand: "+self.Command+"\n"
 		Output += "\nError Trace:"
-		Output += "\n"+ErrorTrace
+		Output += "\n"+self.Core.AnonymiseCommand(ErrorTrace)
 		Output += "\n"+self.Padding
 		cprint(Output)
 		self.LogError(Output)

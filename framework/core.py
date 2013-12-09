@@ -120,7 +120,7 @@ class Core:
     def AnonymiseCommand(self, Command):
         for Host in self.Config.GetAll('HOST_NAME'): # Host name setting value for all targets in scope
             if Host: # Value is not blank
-                Command.replace(Host, 'some.target.com')
+                Command = Command.replace(Host, 'some.target.com')
         return Command
     
     def start_reporter(self):
