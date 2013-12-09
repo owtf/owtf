@@ -359,14 +359,14 @@ class PluginHelper:
                                 </tbody>
             </table>
                 """)
-                
+                UnicodeRawOutput = RawOutput if isinstance(RawOutput, unicode) else unicode(RawOutput, "utf-8")
                 table_vars = {
                                 "Name": self.GetCommandOutputFileNameAndExtension( Name )[0],
                                 "CommandIntro" : CommandIntro ,
                                 "ModifiedCommand": ModifiedCommand,
                                 "FilePath" : self.Core.PluginHandler.DumpPluginFile( Name, RawOutput, PluginInfo ),
                                 "OutputIntro":  OutputIntro,
-                                "OutputLines": unicode(RawOutput, 'utf-8').split( "\n" )[:self.mNumLinesToShow],
+                                "OutputLines": UnicodeRawOutput.split( "\n" )[:self.mNumLinesToShow],
                                 "TimeStr": TimeStr,
                                 "mNumLinesToShow": self.mNumLinesToShow,
                         }
