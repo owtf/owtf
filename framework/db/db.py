@@ -47,7 +47,7 @@ file_name_length=50
 class DB:
         
     def __init__(self,CoreObj):
-        self.core = CoreObj
+        self.Core = CoreObj
         self.DBHandler = db_handler.DBHandler(CoreObj)
         self.Transaction = transaction_manager.TransactionManager(CoreObj)
         self.URL = url_manager.URLManager(CoreObj)
@@ -65,22 +65,34 @@ class DB:
         return self.DBHandler.GetFieldSeparator()
 
     def GetPath(self, DBName):
+        """
         arguments={'function':'GetPath','arguments':[DBName]}
         return db_pull(arguments)
+        """
+        # Config realted stuff should be fetched from current process only
+        return self.Core.Config.Get(DBName)
 
     def Get(self, DBName, Path = None):
+        if not Path:
+            Path = self.GetPath(DBName)
         arguments={'function':'Get','arguments':[DBName,Path]}
         return db_pull(arguments)
 
     def GetData(self, DBName, Path = None):
+        if not Path:
+            Path = self.GetPath(DBName)
         arguments={'function':'GetData','arguments':[DBName,Path]}
         return db_pull(arguments)
 
     def GetRecord(self, DBName, Index, Path = None):
+        if not Path:
+            Path = self.GetPath(DBName)
         arguments={'function':'GetRecord','arguments':[DBName,Index,Path]}
         return db_pull(arguments)
 
     def ModifyRecord(self, DBName, Index, Value, Path = None):
+        if not Path:
+            Path = self.GetPath(DBName)
         arguments={'function':'ModifyRecord','arguments':[DBName,Index, Value,Path]}
         return db_push(arguments)
 
@@ -88,31 +100,45 @@ class DB:
         arguments={'function':'GetRecordAsMatch','arguments':[Record, NAME_TO_OFFSET]}
         return db_pull(arguments)
 
-    def Search(self, DBName, Criteria, NAME_TO_OFFSET): # Returns DB Records in an easy-to-use dictionary format { 'field1' : 'value1', ... }
-        arguments={'function':'Search', 'arguments':[DBName, Criteria, NAME_TO_OFFSET]}
+    def Search(self, DBName, Criteria, NAME_TO_OFFSET, Path = None): # Returns DB Records in an easy-to-use dictionary format { 'field1' : 'value1', ... }
+        if not Path:
+            Path = self.GetPath(DBName)
+        arguments={'function':'Search', 'arguments':[DBName, Criteria, NAME_TO_OFFSET, Path]}
         return db_pull(arguments)
 
     def GetSyncCount(self, DBName, Path = None):
+        if not Path:
+            Path = self.GetPath(DBName)
         arguments={'function':'GetSyncCount', 'arguments':[DBName, Path]}
         return db_pull(arguments)
 
     def IncreaseSync(self, DBName, Path = None):
+        if not Path:
+            Path = self.GetPath(DBName)
         arguments={'function':'IncreaseSync', 'arguments':[DBName, Path]}
         return db_push(arguments)
 
     def CalcSync(self, DBName, Path = None):
+        if not Path:
+            Path = self.GetPath(DBName)
         arguments={'function':'CalcSync', 'arguments':[DBName, Path]}
         return db_push(arguments)
 
     def Add(self, DBName, Data, Path = None):
+        if not Path:
+            Path = self.GetPath(DBName)
         arguments={'function':'Add','arguments':[DBName, Data,Path]}
         return db_push(arguments)
 
     def GetLength(self, DBName, Path = None):
+        if not Path:
+            Path = self.GetPath(DBName)
         arguments={'function':'GetLength', 'arguments':[DBName, Path]}
         return int(db_pull(arguments))
     
     def IsEmpty(self, DBName, Path = None):
+        if not Path:
+            Path = self.GetPath(DBName)
         arguments={'function':'IsEmpty','arguments':[DBName, Path]}
         return db_pull(arguments)
     

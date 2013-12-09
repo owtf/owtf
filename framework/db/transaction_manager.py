@@ -168,8 +168,9 @@ class TransactionManager:
                 LinksStr = self.Core.Reporter.DrawTransacLinksStr([Transaction.URL, TransacPath, ReqPath, ResHeadersPath, ResBodyPath], ForPlugin = True)
                 TransactionHTML = self.Core.Reporter.Render.CreateTable().DrawTableRow([ Transaction.ScopeToStr(), LinksStr, ID, Transaction.Time, Transaction.TimeHuman, Transaction.Status, Transaction.Method, Transaction.URL, Transaction.Data], False, {}, ID)+"\n" # Pass Transaction ID as Row Number
                 self.Core.DB.Add('TRANSACTION_LOG_HTML', TransactionHTML)
-
+        
         def LogTransaction(self, Transaction):# The Transaction Obj will be modified here with a new Transaction ID and HTML Link to it
+                self.Core.Config.SetTarget(Transaction.Target) # Attr set in transaction_logger
                 self.Core.DB.URL.AddURL(Transaction.URL, Transaction.Found) # Log Transaction URL in URL DB (this also classifies the URL: scope, external, file, etc)
                 #Need to log all transactions, even from out of scope resources, this is the simplest and most flexible approach (no log duplication, etc)
                 ID = self.SaveTransactionTXTIndex(Transaction) # Update TXT Index and get ID for Transaction

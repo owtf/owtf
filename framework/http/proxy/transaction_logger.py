@@ -49,12 +49,25 @@ class TransactionLogger(Process):
         self.Core = coreobj
         self.cache_dir = self.Core.Config.Get('CACHE_DIR')
 
+    def get_target_for_transaction(self, request, response):
+        for Target in self.Core.Config.GetTargets():
+            if request.url.startswith(Target):
+                return Target
+            else:
+                try:
+                    if response.headers["Referer"].startswith(Target):
+                        return Target
+                except KeyError:
+                    pass
+        return self.Core.Config.GetTarget()
+
     def add_owtf_transaction(self, request_hash):
         owtf_transaction = transaction.HTTP_Transaction(timer.Timer())
         request = request_from_cache(request_hash, self.cache_dir)
         response = response_from_cache(request_hash, self.cache_dir)
         request.in_scope = self.Core.IsInScopeURL(request.url)
         owtf_transaction.ImportProxyRequestResponse(request, response)
+        owtf_transaction.Target = self.get_target_for_transaction(request, response)
         self.Core.DB.Transaction.LogTransaction(owtf_transaction)
         
     def run(self):

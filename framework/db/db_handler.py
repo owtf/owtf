@@ -106,9 +106,9 @@ Record="""+str(Record)+"""
 """)
         return Match
 
-    def Search(self, DBName, Criteria, NAME_TO_OFFSET): # Returns DB Records in an easy-to-use dictionary format { 'field1' : 'value1', ... }
+    def Search(self, DBName, Criteria, NAME_TO_OFFSET, Path = None): # Returns DB Records in an easy-to-use dictionary format { 'field1' : 'value1', ... }
         Matches = []
-        for Record in self.GetData(DBName):
+        for Record in self.GetData(DBName, Path):
             Matched = True
             for Name, Value in Criteria.items():
                 try:
