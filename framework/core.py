@@ -121,6 +121,9 @@ class Core:
         for Host in self.Config.GetAll('HOST_NAME'): # Host name setting value for all targets in scope
             if Host: # Value is not blank
                 Command = Command.replace(Host, 'some.target.com')
+        for ip in self.Config.GetAll('HOST_IP'):
+            if ip:
+                Command = Command.replace(ip, 'xxx.xxx.xxx.xxx')
         return Command
     
     def start_reporter(self):
