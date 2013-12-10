@@ -35,6 +35,7 @@ import os
 
 # Get tool path from script path:
 RootDir = os.path.dirname(os.path.abspath(sys.argv[0])) or '.'
+OwtfPid = os.getpid()
 
 from framework import core
 from framework.lib.general import *
@@ -318,7 +319,7 @@ def run_owtf(Core, args):
 if __name__ == "__main__":
     Banner()
     if not "--update" in sys.argv[1:]:
-        Core = core.Init(RootDir)  # Initialise Framework
+        Core = core.Init(RootDir, OwtfPid)  # Initialise Framework
         print "OWTF Version: %s, Release: %s \n" % ( Core.Config.Get( 'VERSION' ), Core.Config.Get( 'RELEASE' ) )
         args = ProcessOptions(Core, sys.argv[1:])
         run_owtf(Core, args)

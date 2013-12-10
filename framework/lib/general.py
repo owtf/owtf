@@ -243,8 +243,9 @@ def removeDirs(dir):
         os.remove(dir+"/"+f)
     os.rmdir(dir)
 
+# Done through framework_config.cfg
 # Files for messaging system
-OWTF_FILE_QUEUE_DIR = "/tmp/owtf/"
+#OWTF_FILE_QUEUE_DIR = "/tmp/owtf/"
 db_pushQ="push"
 db_pullQ="pull"
 QUEUES = {db_pushQ,db_pullQ}

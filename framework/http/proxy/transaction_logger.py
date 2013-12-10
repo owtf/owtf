@@ -47,7 +47,7 @@ class TransactionLogger(Process):
     def __init__(self, coreobj):
         Process.__init__(self)
         self.Core = coreobj
-        self.cache_dir = self.Core.Config.Get('CACHE_DIR')
+        self.cache_dir = self.Core.Config.Get('INBOUND_PROXY_CACHE_DIR')
 
     def get_target_for_transaction(self, request, response):
         for Target in self.Core.Config.GetTargets():

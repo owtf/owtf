@@ -51,12 +51,13 @@ class message_admin:
     def InitQueueFiles(self):
         general.INCOMING_QUEUE_TO_DIR_MAPPING = defaultdict(list)
         general.OUTGOING_QUEUE_TO_DIR_MAPPING = defaultdict(list)
+        # general.QUEUES = {self.Core.Config.Get("MESSAGING_DB_PUSH_Q"), self.Core.Config.Get("MESSAGING_DB_PULL_Q")}
         #if /tmp/owtf is not there
-        if not os.path.exists(general.OWTF_FILE_QUEUE_DIR):
-            os.mkdir(general.OWTF_FILE_QUEUE_DIR)
+        if not os.path.exists(self.Core.Config.Get("MESSAGING_FILE_QUEUE_DIR")):
+            os.mkdir(self.Core.Config.Get("MESSAGING_FILE_QUEUE_DIR"))
             
         for queue_name in general.QUEUES:
-            start_path = general.OWTF_FILE_QUEUE_DIR + queue_name+"/"
+            start_path = self.Core.Config.Get("MESSAGING_FILE_QUEUE_DIR") + queue_name+"/"
             if not os.path.exists(start_path):
                 os.mkdir(start_path)
                 
@@ -93,4 +94,3 @@ class message_admin:
                 #removes all files from the directories(should not be any files ideally
                 general.removeDirs(general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name])
                 general.removeDirs(general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name])
-                   

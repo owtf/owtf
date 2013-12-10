@@ -47,8 +47,9 @@ CONFIG_TYPES = [ 'string', 'other' ]
 
 class Config:
     Target = None
-    def __init__(self, RootDir, CoreObj):
+    def __init__(self, RootDir, OwtfPid, CoreObj):
         self.RootDir = RootDir
+        self.OwtfPid = OwtfPid
         self.Core = CoreObj
         self.initialize_attributes()
         # Available profiles = g -> General configuration, n -> Network plugin order, w -> Web plugin order, r -> Resources file
@@ -83,7 +84,7 @@ class Config:
                     continue
                 #Value = ''.join(line.split(':')[1:]).strip() <- Removes ":"!!!
                 Value = line.replace(Key+": ", "").strip()
-                self.Set(Key, MultipleReplace(Value, { '@@@FRAMEWORK_DIR@@@' : self.RootDir } ))
+                self.Set(Key, MultipleReplace(Value, { '@@@FRAMEWORK_DIR@@@' : self.RootDir, '@@@OWTF_PID@@@' : str(self.OwtfPid) } ))
             except ValueError:
                 self.Core.Error.FrameworkAbort("Problem in config file: '"+ConfigPath+"' -> Cannot parse line: "+line)
 
