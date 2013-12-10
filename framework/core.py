@@ -57,11 +57,12 @@ from framework.lib.messaging import messaging_admin
 from framework.report.reporting_process import reporting_process
  
 class Core:
-    def __init__(self, RootDir):
+    def __init__(self, RootDir, OwtfPid):
+        self.CreateTempStorageDirs(OwtfPid)
         # Tightly coupled, cohesive framework components:
         self.Error = error_handler.ErrorHandler(self)
         self.Shell = blocking_shell.Shell(self) # Config needs to find plugins via shell = instantiate shell first
-        self.Config = config.Config(RootDir, self)
+        self.Config = config.Config(RootDir, OwtfPid, self)
         self.Config.Init() # Now the the config is hooked to the core, init config sub-components
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
         self.Random = random.Random()
@@ -74,6 +75,17 @@ class Core:
         self.SMB = smb.SMB(self)
         self.messaging_admin = messaging_admin.message_admin(self)
         self.showOutput=True
+
+    def CreateTempStorageDirs(self, OwtfPid):
+        temp_storage = os.path.join("/tmp", "owtf", str(OwtfPid))
+        if not os.path.exists(temp_storage):
+            os.makedirs(temp_storage)
+
+    def CleanTempStorageDirs(self, OwtfPid):
+        temp_storage = os.path.join("/tmp", "owtf", str(OwtfPid))
+        renamed_temp_storage = os.path.join("/tmp", "owtf", "old-"+str(OwtfPid))
+        if os.path.exists(temp_storage):
+            os.rename(temp_storage, renamed_temp_storage)
 
     #wrapper to log function
     def log(self,*args):
@@ -208,7 +220,7 @@ class Core:
         
         #logger for output in log file
         log = logging.getLogger('logfile')
-        infohandler = logging.FileHandler('/tmp/logfile',mode="w+")
+        infohandler = logging.FileHandler(self.Config.Get("OWTF_LOG_FILE"),mode="w+")
         log.setLevel(logging.INFO)
         infoformatter = logging.Formatter("%(type)s - %(asctime)s - %(processname)s - %(functionname)s - %(message)s")
         infohandler.setFormatter(infoformatter)
@@ -309,6 +321,7 @@ class Core:
                     self.messaging_admin.finishMessaging()
                 
                 self.exitOutput()
+                self.CleanTempStorageDirs(self.Config.OwtfPid)
                 #print self.Timer.GetElapsedTime('core')
                 exit()
 
@@ -318,10 +331,10 @@ class Core:
             self.outputthread.join()
             if os.path.exists("owtf_review"):
                 if os.path.exists("owtf_review/logfile"):
-                    data = open("/tmp/logfile").read()
+                    data = open(self.Config.Get("OWTF_LOG_FILE")).read()
                     AppendToFile("owtf_review/logfile", data)
                 else:
-                    shutil.move("/tmp/logfile", "owtf_review")
+                    shutil.move(self.Config.Get("OWTF_LOG_FILE"), "owtf_review")
         
     def GetSeed(self):
         try:
@@ -354,5 +367,5 @@ class Core:
                 except:
                     print("unable to kill it")    
                     
-def Init(RootDir):
-    return Core(RootDir)
+def Init(RootDir, OwtfPid):
+    return Core(RootDir, OwtfPid)

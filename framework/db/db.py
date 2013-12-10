@@ -39,10 +39,10 @@ import os
 import random
 import string
 
-DB_Handler = '/tmp/owtf/db_handler'
-Request_Folder = DB_Handler+"/request"
-Response_Folder = DB_Handler+"/response"
-file_name_length=50
+#DB_Handler = '/tmp/owtf/db_handler'
+#Request_Folder = DB_Handler+"/request"
+#Response_Folder = DB_Handler+"/response"
+#file_name_length=50
 
 class DB:
         

@@ -551,14 +551,14 @@ class ProxyProcess(Process):
         
         # Proxy CACHE
         # Cache related settings, including creating required folders according to cache folder structure
-        self.application.cache_dir = self.application.Core.Config.Get("CACHE_DIR")
-        if not os.path.exists(self.application.Core.Config.Get('CACHE_DIR')):
-            os.makedirs(self.application.Core.Config.Get('CACHE_DIR'))
+        self.application.cache_dir = self.application.Core.Config.Get("INBOUND_PROXY_CACHE_DIR")
+        if not os.path.exists(self.application.cache_dir):
+            os.makedirs(self.application.cache_dir)
         else:
-            shutil.rmtree(self.application.Core.Config.Get('CACHE_DIR'))
-            os.makedirs(self.application.Core.Config.Get('CACHE_DIR'))
+            shutil.rmtree(self.application.cache_dir)
+            os.makedirs(self.application.cache_dir)
         for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body', 'resp-time']:
-            folder_path = os.path.join(self.application.Core.Config.Get('CACHE_DIR'), folder_name)
+            folder_path = os.path.join(self.application.cache_dir, folder_name)
             if not os.path.exists(folder_path):
                 os.mkdir(folder_path)
         
