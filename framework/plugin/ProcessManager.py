@@ -67,9 +67,13 @@ class ProcessManager:
     #this function gets all the targets from Plugin order and fill it to the worklist
     def fillWorkList(self,pluginGroup,targetList):
         for plugin in self.Core.Config.Plugin.GetOrder(pluginGroup):
-            for target in targetList:
-                self.target_used[target]=False
-                self.worklist.append((target,plugin))
+            if plugin["Type"] == "external": # External plugins are run only once, i.e for first target
+                self.target_used[targetList[0]] = False
+                self.worklist.append((targetList[0], plugin))
+            else:
+                for target in targetList:
+                    self.target_used[target] = False
+                    self.worklist.append((target,plugin))
     
     #returns next work that can be done depending on RAM state and availability of targets
     def get_task(self):
