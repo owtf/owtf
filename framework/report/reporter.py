@@ -170,8 +170,8 @@ class Reporter:
                     "HTMLLink": Transaction.HTMLLinkToID.replace('@@@PLACE_HOLDER@@@', "See Transaction " + Transaction.ID),
                     "TimeHuman": Transaction.TimeHuman,
                     "LinksForID": self.DrawTransacLinksForID(Transaction.ID),
-                    "RawRequest": unicode(GetFirstLines(Transaction.GetRawRequest(),25)),
-                    "RawResponse": unicode(GetFirstLines(Transaction.GetRawResponse(),25)),
+                    "RawRequest": self.unicode(GetFirstLines(Transaction.GetRawRequest(),25), "utf-8"),
+                    "RawResponse": self.unicode(GetFirstLines(Transaction.GetRawResponse(),25), "utf-8"),
                 } for Transaction in TransactionList
                     ]
             }
