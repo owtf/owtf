@@ -364,7 +364,7 @@ class PluginHelper:
                                 "Name": self.GetCommandOutputFileNameAndExtension( Name )[0],
                                 "CommandIntro" : CommandIntro ,
                                 "ModifiedCommand": ModifiedCommand,
-                                "FilePath" : self.Core.PluginHandler.DumpPluginFile( Name, RawOutput, PluginInfo ),
+                                "FilePath" : self.Core.PluginHandler.DumpPluginFile( Name + ".txt", RawOutput, PluginInfo ),
                                 "OutputIntro":  OutputIntro,
                                 "OutputLines": UnicodeRawOutput.split( "\n" )[:self.mNumLinesToShow],
                                 "TimeStr": TimeStr,

@@ -168,7 +168,6 @@ class ProcessManager:
     
     #worker code
     def worker(self,input_queue,output_queue,start,status):
-        
         while True:
             # work has been completed. Put that into queue and wait for new work to be assigned
             try:
@@ -300,7 +299,8 @@ class ProcessManager:
         return i
     #This function empties the pending work list and aborts all processes                 
     def exitOwtf(self):
-        self.worklist={}
+        # As worklist is emptied, aborting of plugins will result in killing of workers
+        self.worklist=[] # It is a list
         for pid in self.running_plugin:
             work = self.running_plugin[pid]
             if work==():
@@ -309,11 +309,14 @@ class ProcessManager:
             
     #this function kills all children of a process and abort that process        
     def abortWorker(self,pid):
-        self.Core.KillChildProcesses(pid,signal.SIGINT)
-        try:  
+        # Child processes are handled at shell level :P
+        # self.Core.KillChildProcesses(pid,signal.SIGINT)
+        try: 
+        # This will kick the exception handler if plugin is running, so plugin is killed
+        # Else, the worker dies :'(
             os.kill(pid,signal.SIGINT)
-        except:
-            pass
+        except Exception,e:
+            log("Error while trying to abort Worker process " + str(e))
     
     #This function aborts selected plugin
     def abortPlugin(self,selected):
@@ -325,7 +328,10 @@ class ProcessManager:
             if k==selected:
                 break
             k = k+1
-        self.abortWorker(pid)
+        try:
+            os.kill(pid, signal.SIGINT)
+        except Exception,e:
+            log("Error while trying to abort Plugin " + str(e))
     
     #this function itrates over pending list and removes the tuple having target as selected one
     def stopTarget(self,selected):
