@@ -112,7 +112,7 @@ class Shell:
                                 line = proc.stdout.readline()
                                 if not line: break
                                 # NOTE: Below MUST BE print instead of "cprint" to clearly distinguish between owtf output and tool output
-                                # log(MultipleReplace(line, { "\n":"", "\r":"" })) # Show progress on the screen too!
+                                log(MultipleReplace(line, { "\n":"", "\r":"" })) # Show progress on the screen too!
                                 Output += line # Save as much output as possible before a tool crashes! :)
                 except KeyboardInterrupt:
                         os.killpg(proc.pid, signal.SIGINT)
