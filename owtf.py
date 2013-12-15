@@ -315,6 +315,8 @@ def run_owtf(Core, args):
         Core.Error.Add("Unknown owtf error")
         # Interrupted. Must save the DB to disk, finish report, etc
         Core.Finish("Crashed")
+    finally: # Needed to rename the temp storage dirs to avoid confusion
+        Core.CleanTempStorageDirs(Core.Config.OwtfPid)
 
 if __name__ == "__main__":
     Banner()

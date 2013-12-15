@@ -321,7 +321,6 @@ class Core:
                     self.messaging_admin.finishMessaging()
                 
                 self.exitOutput()
-                self.CleanTempStorageDirs(self.Config.OwtfPid)
                 #print self.Timer.GetElapsedTime('core')
                 exit()
 
