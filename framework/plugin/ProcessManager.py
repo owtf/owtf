@@ -90,7 +90,8 @@ class ProcessManager:
     def spawnWorkers(self,Status):
         #check if maximum limit of processes has reached
         self.status = Status
-        while (self.numprocess<(int(self.Core.Config.Get('PROCESS_PER_CORE'))*multiprocessing.cpu_count())):
+        processes_limit = min(int(self.Core.Config.Get('PROCESS_PER_CORE'))*multiprocessing.cpu_count(), len(self.target_used))
+        while (self.numprocess < processes_limit):
             work = self.get_task()
             
             #if there is no work left return

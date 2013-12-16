@@ -188,45 +188,26 @@ class ProxyHandler(tornado.web.RequestHandler):
             # pycurl is needed for curl client
             async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
             # httprequest object is created and then passed to async client with a callback
-            if self.application.outbound_proxy_type == "socks" :
-                request = tornado.httpclient.HTTPRequest(
-                        url=self.request.url,
-                        method=self.request.method,
-                        body=self.request.body,
-                        headers=self.request.headers,
-                        auth_username=http_auth_username,
-                        auth_password=http_auth_password,
-                        auth_mode=http_auth_mode,
-                        follow_redirects=False,
-                        use_gzip=True,
-                        streaming_callback=self.handle_data_chunk,
-                        header_callback=None,
-                        proxy_host=self.application.outbound_ip,
-                        proxy_port=self.application.outbound_port,
-                        proxy_username=self.application.outbound_username,
-                        proxy_password=self.application.outbound_password,
-                        allow_nonstandard_methods=True,
-                        prepare_curl_callback=prepare_curl_callback,    # socks callback function
-                        validate_cert=False)
-            else:   #http or https socks
-                request = tornado.httpclient.HTTPRequest(
-                        url=self.request.url,
-                        method=self.request.method,
-                        body=self.request.body,
-                        headers=self.request.headers,
-                        auth_username=http_auth_username,
-                        auth_password=http_auth_password,
-                        auth_mode=http_auth_mode,
-                        follow_redirects=False,
-                        use_gzip=True,
-                        streaming_callback=self.handle_data_chunk,
-                        header_callback=None,
-                        proxy_host=self.application.outbound_ip,
-                        proxy_port=self.application.outbound_port,
-                        proxy_username=self.application.outbound_username,
-                        proxy_password=self.application.outbound_password,
-                        allow_nonstandard_methods=True,
-                        validate_cert=False)
+            request = tornado.httpclient.HTTPRequest(
+                    url=self.request.url,
+                    method=self.request.method,
+                    body=self.request.body,
+                    headers=self.request.headers,
+                    auth_username=http_auth_username,
+                    auth_password=http_auth_password,
+                    auth_mode=http_auth_mode,
+                    follow_redirects=False,
+                    use_gzip=True,
+                    streaming_callback=self.handle_data_chunk,
+                    header_callback=None,
+                    proxy_host=self.application.outbound_ip,
+                    proxy_port=self.application.outbound_port,
+                    proxy_username=self.application.outbound_username,
+                    proxy_password=self.application.outbound_password,
+                    allow_nonstandard_methods=True,
+                    prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
+                                                                else None, # socks callback function
+                    validate_cert=False)
             try:
                 async_client.fetch(request, callback=self.handle_response)
             except Exception:
