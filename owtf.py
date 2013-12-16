@@ -87,7 +87,7 @@ def GetArgs(Core, args):
     Parser.add_argument("-x", "--outbound_proxy",
                         dest="OutboundProxy",
                         default=None,
-                        help="ip:port - Send all OWTF requests using the proxy for the given ip and port")
+                        help="type://ip:port - Send all OWTF requests using the proxy for the given ip and port. The 'type' can be 'http'(default) or 'socks'")
     Parser.add_argument("-xa", "--outbound_proxy_auth",
                         dest="OutboundProxyAuth",
                         default=None,
@@ -140,7 +140,7 @@ def GetArgsForUpdate(args):
     Parser.add_argument("-x", "--outbound_proxy",
                         dest="OutboundProxy",
                         default=None,
-                        help="ip:port - Send all OWTF requests using the proxy for the given ip and port")
+                        help="type://ip:port - Send all OWTF requests using the proxy for the given ip and port. The 'type' can be 'http'(default) or 'socks'")
     Parser.add_argument("-xa", "--outbound_proxy_auth",
                         dest="OutboundProxyAuth",
                         default=None,
@@ -221,8 +221,14 @@ def ProcessOptions(Core, user_args):
         print "ExceptPlugins=" + str(Arg.ExceptPlugins)
 
     if Arg.OutboundProxy:
-        Arg.OutboundProxy = Arg.OutboundProxy.split(':')
-        if len(Arg.OutboundProxy) != 2:  # OutboundProxy should be ip:port
+        Arg.OutboundProxy = Arg.OutboundProxy.split('://')
+        if len(Arg.OutboundProxy) == 2:
+            Arg.OutboundProxy = Arg.OutboundProxy + Arg.OutboundProxy.pop().split(':')
+            if Arg.OutboundProxy[0] not in ["socks", "http"]:
+                Usage("Invalid argument for Outbound Proxy")
+        else:
+            Arg.OutboundProxy = Arg.OutboundProxy.pop().split(':')        
+        if (len(Arg.OutboundProxy) not in [2, 3]):  # OutboundProxy should be type://ip:port
             Usage("Invalid argument for Outbound Proxy")
 
     if Arg.InboundProxy:
