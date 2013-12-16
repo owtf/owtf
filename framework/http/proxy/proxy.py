@@ -50,7 +50,11 @@ import re
 from multiprocessing import Process
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
+import pycurl
 
+
+def prepare_curl_callback(curl):
+    curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
 
 class ProxyHandler(tornado.web.RequestHandler):
     """
@@ -184,25 +188,45 @@ class ProxyHandler(tornado.web.RequestHandler):
             # pycurl is needed for curl client
             async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
             # httprequest object is created and then passed to async client with a callback
-            request = tornado.httpclient.HTTPRequest(
-                    url=self.request.url,
-                    method=self.request.method,
-                    body=self.request.body,
-                    headers=self.request.headers,
-                    auth_username=http_auth_username,
-                    auth_password=http_auth_password,
-                    auth_mode=http_auth_mode,
-                    follow_redirects=False,
-                    use_gzip=True,
-                    streaming_callback=self.handle_data_chunk,
-                    header_callback=None,
-                    proxy_host=self.application.outbound_ip,
-                    proxy_port=self.application.outbound_port,
-                    proxy_username=self.application.outbound_username,
-                    proxy_password=self.application.outbound_password,
-                    allow_nonstandard_methods=True,
-                    validate_cert=False)
-
+            if self.application.outbound_proxy_type == "socks" :
+                request = tornado.httpclient.HTTPRequest(
+                        url=self.request.url,
+                        method=self.request.method,
+                        body=self.request.body,
+                        headers=self.request.headers,
+                        auth_username=http_auth_username,
+                        auth_password=http_auth_password,
+                        auth_mode=http_auth_mode,
+                        follow_redirects=False,
+                        use_gzip=True,
+                        streaming_callback=self.handle_data_chunk,
+                        header_callback=None,
+                        proxy_host=self.application.outbound_ip,
+                        proxy_port=self.application.outbound_port,
+                        proxy_username=self.application.outbound_username,
+                        proxy_password=self.application.outbound_password,
+                        allow_nonstandard_methods=True,
+                        prepare_curl_callback=prepare_curl_callback,    # socks callback function
+                        validate_cert=False)
+            else:   #http or https socks
+                request = tornado.httpclient.HTTPRequest(
+                        url=self.request.url,
+                        method=self.request.method,
+                        body=self.request.body,
+                        headers=self.request.headers,
+                        auth_username=http_auth_username,
+                        auth_password=http_auth_password,
+                        auth_mode=http_auth_mode,
+                        follow_redirects=False,
+                        use_gzip=True,
+                        streaming_callback=self.handle_data_chunk,
+                        header_callback=None,
+                        proxy_host=self.application.outbound_ip,
+                        proxy_port=self.application.outbound_port,
+                        proxy_username=self.application.outbound_username,
+                        proxy_password=self.application.outbound_password,
+                        allow_nonstandard_methods=True,
+                        validate_cert=False)
             try:
                 async_client.fetch(request, callback=self.handle_response)
             except Exception:
@@ -587,8 +611,14 @@ class ProxyProcess(Process):
         # Outbound Proxy
         # Outbound proxy settings to be used inside request handler
         if outbound_options:
-            self.application.outbound_ip = outbound_options[0]
-            self.application.outbound_port = int(outbound_options[1])
+            if len(outbound_options) == 3:
+                self.application.outbound_proxy_type = outbound_options[0]
+                self.application.outbound_ip = outbound_options[1]
+                self.application.outbound_port = int(outbound_options[2])
+            else:
+                self.application.outbound_proxy_type = "http"
+                self.application.outbound_ip = outbound_options[0]
+                self.application.outbound_port = int(outbound_options[1])
         else:
             self.application.outbound_ip, self.application.outbound_port = None, None
         if outbound_auth:
