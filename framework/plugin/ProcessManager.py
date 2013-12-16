@@ -42,17 +42,46 @@ import termios
 from threading import Thread
 import time
 
+class Worker(multiprocessing.Process):
+    def __init__(self, CoreObj, input_q, output_q, status):
+        multiprocessing.Process.__init__(self)
+        self.Core = CoreObj
+        self.input_q = input_q
+        self.output_q = output_q
+        self.status = status
+        self.output_status = False
+        self.work = None # (target, plugin)
+
+    def get_new_task(self):
+        if self.output_status:
+            self.output_q.put(self.status)
+        work = self.input_q.get()
+        return work
+
+    def run(self):
+        while True:
+            # work has been completed. Put that into queue and wait for new work to be assigned
+            try:
+                work = self.get_new_task()
+            except Exception,e:
+                log("exception while get" + str(e))
+                continue
+                #if work is empty this means no work is there
+            if work == ():
+                sys.exit()
+            target, plugin = work
+            pluginGroup = plugin['Group']
+            pluginDir = self.Core.PluginHandler.GetPluginGroupDir(pluginGroup)
+            self.Core.PluginHandler.SwitchToTarget(target)
+            self.Core.PluginHandler.ProcessPlugin(pluginDir, plugin, self.status)
+            self.output_status = True
+
 class ProcessManager:
     def __init__(self,CoreObj):
         self.Core = CoreObj
         self.worklist = []          #List of unprocessed (plugin*target)
-        self.running_plugin={}      #list of all running plugins indexed by pids of processes handling it
-        self.target_used={}         #list whether a plugin is running on a target r not at this time
-        self.numprocess=0           #number of processes
-        self.workers = []                #list of workers
-        self.input_queues = []                 #list of queues
-        self.output_queues = []
-        self.busy_processes = []         #list whether a process is busy or not
+        self.targets = []           #number of processes
+        self.workers = []                #list of worker and work (worker, work)
         self.accept_input=True
         self.status={}
     
@@ -66,13 +95,12 @@ class ProcessManager:
     
     #this function gets all the targets from Plugin order and fill it to the worklist
     def fillWorkList(self,pluginGroup,targetList):
+        self.targets = targetList
         for plugin in self.Core.Config.Plugin.GetOrder(pluginGroup):
             if plugin["Type"] == "external": # External plugins are run only once, i.e for first target
-                self.target_used[targetList[0]] = False
                 self.worklist.append((targetList[0], plugin))
             else:
                 for target in targetList:
-                    self.target_used[target] = False
                     self.worklist.append((target,plugin))
     
     #returns next work that can be done depending on RAM state and availability of targets
@@ -81,7 +109,7 @@ class ProcessManager:
         for target,plugin in self.worklist:
             #check if target is being used or not because we dont want to run more than one plugin on one target at one time
             #check if RAM can withstand this plugin(training data from history of that plugin)
-            if (self.target_used[target]==False) and (int(free_mem)>int(self.Core.Config.Get('MIN_RAM_NEEDED'))):
+            if (not self.is_target_in_use(target)) and (int(free_mem)>int(self.Core.Config.Get('MIN_RAM_NEEDED'))):
                 self.worklist.remove((target,plugin))
                 return (target,plugin)
         return ()
@@ -90,28 +118,36 @@ class ProcessManager:
     def spawnWorkers(self,Status):
         #check if maximum limit of processes has reached
         self.status = Status
-        processes_limit = min(int(self.Core.Config.Get('PROCESS_PER_CORE'))*multiprocessing.cpu_count(), len(self.target_used))
-        while (self.numprocess < processes_limit):
-            work = self.get_task()
-            
-            #if there is no work left return
-            if work==():
+        self.processes_limit = min(int(self.Core.Config.Get('PROCESS_PER_CORE'))*multiprocessing.cpu_count(), len(self.targets))
+        while (len(self.workers) < self.processes_limit):
+            if self.spawn_worker():
+                continue
+            else:
                 break
-            #mark the target as used as one target is probes once simultaneously
-            self.target_used[work[0]]=True
-            #queues to communicate to workes
-            self.input_queues.append(multiprocessing.Queue())
-            self.output_queues.append(multiprocessing.Queue())
 
-            #spawn workers     
-            p = multiprocessing.Process(target=self.worker, args=(self.input_queues[self.numprocess],self.output_queues[self.numprocess],1,Status))
-            self.input_queues[self.numprocess].put(work)                               
-            p.start()
-            self.workers.append(p)              
-            self.running_plugin[p.pid] = work
-            self.busy_processes.append(True)
-            self.numprocess=self.numprocess+1
-     
+    def spawn_worker(self):
+        work = self.get_task()
+        if work==():
+            return False
+        w = Worker(self.Core, multiprocessing.Queue(), multiprocessing.Queue(), self.status)
+        w.input_q.put(work)
+        w.start()
+        self.workers.append({
+                                "worker":w,
+                                "work":work,
+                                "busy":True
+                            })
+        return True
+
+    def is_target_in_use(self, target):
+        for item in self.workers:
+            try:
+                if target == item["work"][0]:
+                    return True
+            except IndexError: # This happens at the spawning of processes
+                pass
+        return False
+
     def update_status(self,status):
         self.status['SomeAborted'] = self.status['SomeAborted'] or status['SomeAborted']
         self.status['SomeSuccessful'] = self.status['SomeSuccessful'] or status['SomeSuccessful']
@@ -121,71 +157,46 @@ class ProcessManager:
     # give it new process if there is one
     def manageProcess(self):
         k=0
-        #loop while there is some work in worklist
-        while k<self.numprocess and len(self.worklist)>0:
-            #if worker k has completed its work
-            if self.output_queues[k].empty()==False:
-                status = self.output_queues[k].get()
+        # Loop while there is some work in worklist
+        while (k < self.processes_limit and len(self.worklist) > 0):
+            # If worker k has completed its work
+            if not self.workers[k]["worker"].output_q.empty():
+                status = self.workers[k]["worker"].output_q.get()
                 self.update_status(status)
-                target,plugin =  self.running_plugin[self.workers[k].pid]
-                self.running_plugin[self.workers[k].pid] = ()
-                #worker is idle
-                self.busy_processes[k]=False
-                #target is not being probed
-                self.target_used[target]=False
+                # Assign target and plugin from tuple work and empty the tuple
+                (target,plugin), self.workers[k]["work"] = self.workers[k]["work"], ()
+                # Worker is idle
+                self.workers[k]["busy"] = False
                 work_to_assign = self.get_task()
-                if work_to_assign!=():
+                if work_to_assign != ():
                     #assign work to worker,set target to used,and process to busy
-                    self.input_queues[k].put(work_to_assign)
-                    self.target_used[work_to_assign[0]]=True
-                    self.running_plugin[self.workers[k].pid] = work_to_assign
-                    self.busy_processes[k]=True
-            k=(k+1)%self.numprocess
+                    self.workers[k]["worker"].input_q.put(work_to_assign)
+                    self.workers[k]["work"] = work_to_assign
+                    self.workers[k]["busy"] = True
+
+            if not self.workers[k]["worker"].is_alive():
+                self.spawnworker()
+            k = (k+1) % self.processes_limit
             time.sleep(0.05)
             
-    #This function waits for each worker to complete his work and send it Poision Pill(emtpy work)
+    # This function waits for each worker to complete his work and send it Poision Pill(emtpy work)
     def poisonPillToWorkers(self):
-        for i in range(self.numprocess):
+        for item in self.workers:
             #check if process is doing some work
-            if self.busy_processes[i]==True:
-                status = self.output_queues[i].get()
+            if item["busy"]:
+                status = item["worker"].output_q.get()
                 self.update_status(status)
-                self.busy_processes[i] = False
-                self.running_plugin[self.workers[i].pid] = ()
-            self.input_queues[i].put(())
-    #joins all the workers
+                item["busy"] = False
+                item["work"] = ()
+            item["worker"].input_q.put(())
+    # Joins all the workers
     def joinWorker(self):
-        for i in range(self.numprocess):
-            self.workers[i].join()            
+        for item in self.workers:
+            item["worker"].join()
         self.inputqueue.put("end")
         self.inputthread.join()
         return self.status
-    #this function is used by workers to get new task
-    def get_new_task(self,queue,output_queue,start,status):
-        if start==0:
-            output_queue.put(status)
-        work1 = queue.get()
-        return work1
-    
-    #worker code
-    def worker(self,input_queue,output_queue,start,status):
-        while True:
-            # work has been completed. Put that into queue and wait for new work to be assigned
-            try:
-                work = self.get_new_task(input_queue,output_queue,start,status)
-            except Exception,e:
-                log("exception while get" + str(e))
-                continue
-                #if work is empty this means no work is there
-            if work == ():
-                sys.exit()
-            target,plugin = work
-            pluginGroup = plugin['Group']
-            pluginDir = self.Core.PluginHandler.GetPluginGroupDir(pluginGroup)
-            self.Core.PluginHandler.SwitchToTarget(target)
-            self.Core.PluginHandler.ProcessPlugin( pluginDir, plugin, status )      
-            start=0
-            
+
     #this function takes input from user to stop a process etc
     def keyinput(self,q):
         fd = sys.stdin.fileno()
@@ -285,11 +296,12 @@ class ProcessManager:
         i=0
         stdscr.refresh()
         stdscr.addstr(0,0,"PID\t\t\tTarget\t\t\tPlugin")
-        for pid in self.running_plugin:
-            work = self.running_plugin[pid]
-            if work==():
+        for item in self.workers:
+            work = item["work"]
+            if work == ():
                 continue
             plugin = work[1]
+            pid = item["worker"].pid
             if selected == i:
                 stdscr.addstr(0+(i+1), 0,str(pid) +"\t\t" +work[0]+"\t\t"+plugin['Title']+" ("+plugin['Type']+")",curses.A_STANDOUT)
             else:
@@ -302,11 +314,11 @@ class ProcessManager:
     def exitOwtf(self):
         # As worklist is emptied, aborting of plugins will result in killing of workers
         self.worklist=[] # It is a list
-        for pid in self.running_plugin:
-            work = self.running_plugin[pid]
+        for item in self.workers:
+            work = item["work"]
             if work==():
                 continue
-            self.abortWorker(pid)
+            self.abortWorker(item["worker"].pid)
             
     #this function kills all children of a process and abort that process        
     def abortWorker(self,pid):
@@ -322,23 +334,23 @@ class ProcessManager:
     #This function aborts selected plugin
     def abortPlugin(self,selected):
         k=0
-        for pid in self.running_plugin:
-            work = self.running_plugin[pid]
+        for item in self.workers:
+            work = item["work"]
             if work==():
                 continue
             if k==selected:
                 break
             k = k+1
         try:
-            os.kill(pid, signal.SIGINT)
+            os.kill(item["worker"].pid, signal.SIGINT)
         except Exception,e:
             log("Error while trying to abort Plugin " + str(e))
     
     #this function itrates over pending list and removes the tuple having target as selected one
     def stopTarget(self,selected):
         k=0
-        for pid in self.running_plugin:
-            work = self.running_plugin[pid]
+        for item in self.workers:
+            work = item["work"]
             if work==():
                 continue
             if k==selected:
@@ -348,7 +360,7 @@ class ProcessManager:
         for target,plugin in self.worklist:
             if target==target1:
                 self.worklist.remove((target,plugin))
-        self.abortWorker(pid)
+        self.abortWorker(item["worker"].pid)
         
     def exitCurses(self,stdscr):
         curses.nocbreak()
