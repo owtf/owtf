@@ -359,7 +359,10 @@ class PluginHelper:
                                 </tbody>
             </table>
                 """)
-                UnicodeRawOutput = RawOutput if isinstance(RawOutput, unicode) else unicode(RawOutput, "utf-8")
+                try:
+                    UnicodeRawOutput = unicode(RawOutput, "utf-8")
+                except UnicodeDecodeError: # Already unicode
+                    UnicodeRawOutput = RawOutput
                 table_vars = {
                                 "Name": self.GetCommandOutputFileNameAndExtension( Name )[0],
                                 "CommandIntro" : CommandIntro ,
