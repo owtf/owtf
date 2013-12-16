@@ -601,7 +601,7 @@ class ProxyProcess(Process):
                 self.application.outbound_ip = outbound_options[0]
                 self.application.outbound_port = int(outbound_options[1])
         else:
-            self.application.outbound_ip, self.application.outbound_port = None, None
+            self.application.outbound_ip, self.application.outbound_port, self.application.outbound_proxy_type = None, None, None
         if outbound_auth:
             self.application.outbound_username, self.application.outbound_password = outbound_auth.split(":")
         else:
