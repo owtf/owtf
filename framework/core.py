@@ -112,6 +112,11 @@ class Core:
             file.write(Contents)
         return SavePath
 
+    def get_child_pids(self, parent_pid):
+        PsCommand = subprocess.Popen("ps -o pid --ppid %d --noheaders" % parent_pid, shell=True, stdout=subprocess.PIPE)
+        output, error = PsCommand.communicate()
+        return [int(child_pid) for child_pid in output.readlines("\n")[:-1]]
+
     def GetPartialPath(self, Path):
         #return MultipleReplace(Path, List2DictKeys(RemoveListBlanks(self.Config.GetAsList( [ 'HOST_OUTPUT', 'OUTPUT_PATH' ]))))
         #print str(self.Config.GetAsList( [ 'HOST_OUTPUT', 'OUTPUT_PATH' ] ))
