@@ -84,7 +84,7 @@ class ProcessManager:
         self.workers = []                #list of worker and work (worker, work)
         self.accept_input=True
         self.status={}
-    
+
     def startinput(self):
         """
         this function initializes input thread for taking input from user to stop some plugin etc
@@ -345,7 +345,7 @@ class ProcessManager:
             os.kill(item["worker"].pid, signal.SIGINT)
         except Exception,e:
             log("Error while trying to abort Plugin " + str(e))
-    
+
     #this function itrates over pending list and removes the tuple having target as selected one
     def stopTarget(self,selected):
         k=0
