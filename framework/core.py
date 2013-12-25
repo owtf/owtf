@@ -34,7 +34,7 @@ from framework.lib.log_queue import logQueue
 from framework.config import config
 from framework.db import db
 from framework.http import requester
-from framework.http.proxy import proxy, transaction_logger
+from framework.http.proxy import proxy, transaction_logger, tor_manager
 from framework.lib.general import *
 from framework.plugin import plugin_handler, plugin_helper, plugin_params
 from framework.protocols import smtp, smb
@@ -55,7 +55,8 @@ import subprocess
 from framework import random
 from framework.lib.messaging import messaging_admin
 from framework.report.reporting_process import reporting_process
- 
+from framework.http.proxy import tor_manager
+
 class Core:
     def __init__(self, RootDir, OwtfPid):
         self.CreateTempStorageDirs(OwtfPid)
@@ -75,6 +76,7 @@ class Core:
         self.SMB = smb.SMB(self)
         self.messaging_admin = messaging_admin.message_admin(self)
         self.showOutput=True
+        self.TOR_process = None
 
     def CreateTempStorageDirs(self, OwtfPid):
         temp_storage = os.path.join("/tmp", "owtf", str(OwtfPid))
@@ -151,6 +153,22 @@ class Core:
         self.reporting_queue = multiprocessing.Queue()
         self.reporting_process = multiprocessing.Process(target=self.reporting.start, args=(self,60,self.reporting_queue))
         self.reporting_process.start()        
+        
+    def Start_TOR_Mode(self, Options):
+        if Options['TOR_mode'] != None:
+            if Options['TOR_mode'][0] != "help":
+                if tor_manager.TOR_manager.is_tor_running():
+                    self.TOR_process = tor_manager.TOR_manager(self, Options['TOR_mode'])
+                    self.TOR_process = self.TOR_process.Run()
+                else:                    
+                    tor_manager.TOR_manager.msg_start_tor(self)
+                    tor_manager.TOR_manager.msg_configure_tor(self)
+                    self.Error.FrameworkAbort("TOR Daemon is not running")
+            else:
+                tor_manager.TOR_manager.msg_configure_tor()
+                self.Error.FrameworkAbort("Configuration help is running")
+                
+    
         
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
@@ -260,6 +278,7 @@ class Core:
         else: # Reporter process is not needed unless a real run
             self.start_reporter()
         self.StartProxy(Options) # Proxy mode is started in that function
+        self.Start_TOR_Mode(Options)# TOR mode will start only if the Options are set
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
@@ -286,10 +305,12 @@ class Core:
         return True # Scan was successful
 
     def Finish(self, Status = 'Complete', Report = True):
+        if self.TOR_process != None:
+            self.TOR_process.terminate()
         if self.Config.Get('SIMULATION'):
             if hasattr(self,'messaging_admin'):
                 self.messaging_admin.finishMessaging()
-            self.exitOutput()    
+            self.exitOutput()
             exit()
         else:
             try:
