@@ -41,41 +41,41 @@ class TOR_manager(object):
 
 
     def __init__(self, core, args):
-        if args[0] != help: # initilization starts
-            self.core = core
-            if args[0] == '':
-                self.ip = "127.0.0.1"
-            else:
-                self.ip = args[0]
-            if args[1] == '':
-                self.port = 9050
-            else:
-                try:
-                    self.port = int(args[1])
-                except ValueError:
-                    self.core.Error.FrameworkAbort("Invalid TOR port")
-            if args[2] == '':
-                self.TOR_control_port = 9051
-            else:
-                try:
-                    self.TOR_control_port = int(args[2])
-                except ValueError:
-                    self.core.Error.FrameworkAbort("Invalid TOR Controlport")
-            if args[3] == '':
-                self.password = "owtf"
-            else:
-                self.password = args[3]
-            if args[4] == '':
-                self.time = 5
-            else:
-                try:
-                    self.time = int(args[4])
-                except ValueError:
-                    self.core.Error.FrameworkAbort("Invalid TOR Time")
-                self.TOR_Connection = self.Open_connection()
-                self.Authenticate()
+        self.core = core
+        if args[0] == '':
+            self.ip = "127.0.0.1"
         else:
-            self.msg_configure_tor()
+            self.ip = args[0]
+        if args[1] == '':
+            self.port = 9050
+        else:
+            try:
+                self.port = int(args[1])
+            except ValueError:
+                self.core.Error.FrameworkAbort("Invalid TOR port")
+        if args[2] == '':
+            self.TOR_control_port = 9051
+        else:
+            try:
+                self.TOR_control_port = int(args[2])
+            except ValueError:
+                self.core.Error.FrameworkAbort("Invalid TOR Controlport")
+        if args[3] == '':
+            self.password = "owtf"
+        else:
+            self.password = args[3]
+        if args[4] == '':
+            self.time = 5
+        else:
+            try:
+                self.time = int(args[4])
+            except ValueError:
+                self.core.Error.FrameworkAbort("Invalid TOR Time")
+            if self.time < 1:
+                self.core.Error.FrameworkAbort("Invalid TOR Time")
+            
+        self.TOR_Connection = self.Open_connection()
+        self.Authenticate()
 
 
     def Authenticate(self):
@@ -155,5 +155,5 @@ def TOR_control_process(self):
         while self.renew_ip() == True:
             time.sleep(self.time * 60)  # time converted in minutes
         else:
-            time.sleep(10)# will try again to renew IP in 10 seconds
+            time.sleep(10)  # will try again to renew IP in 10 seconds
 
