@@ -97,11 +97,10 @@ class ProcessManager:
     def fillWorkList(self,pluginGroup,targetList):
         self.targets = targetList
         for plugin in self.Core.Config.Plugin.GetOrder(pluginGroup):
-            if plugin["Type"] == "external": # External plugins are run only once, i.e for first target
-                self.worklist.append((targetList[0], plugin))
-            else:
-                for target in targetList:
-                    self.worklist.append((target,plugin))
+            for target in targetList:
+                self.worklist.append((target,plugin))
+                if plugin["Type"] == "external": # External plugins are run only once, i.e for first target
+                    break
     
     #returns next work that can be done depending on RAM state and availability of targets
     def get_task(self):
@@ -223,6 +222,8 @@ class ProcessManager:
                         self.stop_process()
                         self.Core.showOutput=True
                         self.accept_input = True
+        except ValueError,e:
+            log("Exception while trying to read from terminal " + str(e))
         finally:
             termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
             fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
@@ -307,7 +308,7 @@ class ProcessManager:
             else:
                 stdscr.addstr(0+(i+1)*1, 0,str(pid )+"\t\t" +work[0]+"\t\t"+plugin['Title']+" ("+plugin['Type']+")")    
             i=i+1    
-        stdscr.addstr(height-1,0,"e Exit Owtf\tp Stop Plugin\tt Stop Tests for Target")
+        stdscr.addstr(height-1,0,"e Exit Owtf\tp Stop Plugin\tt Stop Tests for Target\ts Exit this interface")
         stdscr.refresh()
         return i
     #This function empties the pending work list and aborts all processes                 
