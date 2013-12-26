@@ -37,7 +37,8 @@ get_config_value(){
 echo "\n[*] Running the master install script for OWASP Offensive Web Testing Framework"
 
 # It is easier to work from the root folder of OWTF
-cd ../
+WD=`dirname $0`
+cd $WD/../
 
 echo "\n[*] Install restricted tools? [Y/n]"
 read a
