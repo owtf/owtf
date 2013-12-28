@@ -36,7 +36,7 @@ class Installer(object):
     def __init__(self, RootDir):
         self.RootDir = RootDir
         self.owtf_pip = os.path.join(RootDir, "install", "owtf.pip") # OWTF python libraries
-        self.restricted_cfg = os.path.join(RootDir, "install", "restricted.cfg") # Restricted tools and dictionaries which are distro independent
+        self.restricted_cfg = os.path.join(RootDir, "install", "distro-independent.cfg") # Restricted tools and dictionaries which are distro independent
         self.distros_cfg = os.path.join(RootDir, "install", "linux-distributions.cfg") # Various distros and install scripts
 
     def create_directory(self, directory):

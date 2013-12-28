@@ -36,7 +36,7 @@ TLSSLED_FILE="/usr/bin/tlssled"
 TLSSLED_BACKUP="$TLSSLED_FILE.backup"
 if [ $(grep 'SSL_HANDSHAKE_LINES -lt 5' $TLSSLED_FILE|wc -l) -gt 0 ]; then
 
-	echo "The current tlssled in Kali Linux needs patching to work.Do you wish to patch? [Y/n]"
+	echo -e "\n[*] The current tlssled in Kali Linux needs patching to work.Do you wish to patch? [Y/n]"
 	read a
 	if [ "$a" != "n" ]; then
         echo "Backing up previous $TLSSLED_FILE to $TLSSLED_BACKUP.."

@@ -35,7 +35,7 @@
 NIKTO_CONF_FILE="/etc/nikto.conf"
 NIKTO_CONF_BACKUP="$NIKTO_CONF_FILE.backup"
 if [ $(grep 'USERAGENT=Mozilla/.* (Nikto' $NIKTO_CONF_FILE|wc -l) -gt 0 ]; then
-	echo "Nikto is currently set to display a NIKTO USER AGENT, do you want to replace this with a normal looking one? [Y/n]"
+	echo -e "\n[*] Nikto is currently set to display a NIKTO USER AGENT, do you want to replace this with a normal looking one? [Y/n]"
 	read a
 	if [ "$a" != "n" ]; then
 		echo "Backing up previous $NIKTO_CONF_FILE to $NIKTO_CONF_BACKUP.."
