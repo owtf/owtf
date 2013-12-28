@@ -1,0 +1,8 @@
+tornado
+pycurl
+jinja2
+lxml
+argparse
+selenium
+rdflib
+pyvirtualdisplay
