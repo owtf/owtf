@@ -1,10 +1,4 @@
-#!/usr/bin/env bash
-#
-# Description:
-#       Script to fix the nikto config to use a normal-looking User Agent so that we can hopefully bypass simple WAF blacklists
-#
-# Date:    2012-09-24
-#
+#!/usr/bin/env sh
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 # Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 # All rights reserved.
@@ -31,18 +25,44 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-NIKTO_CONF_FILE="/pentest/web/nikto/nikto.conf"
-NIKTO_CONF_BACKUP="$NIKTO_CONF_FILE.backup"
-if [ $(grep 'USERAGENT=Mozilla/5.00 (Nikto' $NIKTO_CONF_FILE|wc -l) -gt 0 ]; then
-	echo "Nikto is currently set to display a NIKTO USER AGENT, do you want to replace this with a normal looking one? [y/n]"
-	read a
-	if [ "$a" == "y" ]; then
-		echo "Backing up previous $NIKTO_CONF_FILE to $NIKTO_CONF_BACKUP.."
-		cp $NIKTO_CONF_FILE $NIKTO_CONF_BACKUP
-		echo "Updating nikto configuration to use a normal-looking user agent.."
-		cat $NIKTO_CONF_BACKUP | sed 's|^USERAGENT=Mozilla/5\.00 (Nikto.*$|USERAGENT=Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0|' > $NIKTO_CONF_FILE
+IsInstalled() {
+	directory=$1
+	if [ -d $directory ]; then
+		return 1
+	else
+		return 0
 	fi
+}
+
+RootDir=$1
+
+########### Pip is the foremost thing that must be installed
+sudo -E apt-get install python-pip xvfb xserver-xephyr
+
+############ Tools missing in Kali
+mkdir -p $RootDir/tools/restricted
+cd $RootDir/tools/restricted
+IsInstalled "w3af"
+if [ $? -eq 0 ]; then # Not installed
+    git clone https://github.com/andresriancho/w3af.git
+fi
+"$RootDir/install/kali/kali_patch_w3af.sh"
+
+"$RootDir/install/kali/kali_patch_nikto.sh"
+"$RootDir/install/kali/kali_patch_tlssled.sh"
+
+echo "[*] Installing LBD, arachni and gnutls-bin from Kali Repos"
+sudo -E apt-get install lbd gnutls-bin arachni
+
+###### Dictionaries missing in Kali
+cd $RootDir/dictionaries/restricted
+IsInstalled "dirbuster"
+if [ $? -eq 0 ]; then # Not installed    
+    # Copying dirbuster dicts
+    echo "\n[*] Copying Dirbuster dictionaries"
+    mkdir -p dirbuster
+    cp -r /usr/share/dirbuster/wordlists/. dirbuster/.
+    echo "[*] Done"
 else
-	echo "Nikto configuration is already set to use a normal-looking user agent"
+    echo "WARNING: Dirbuster dictionaries are already installed, skipping"
 fi
