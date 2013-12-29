@@ -361,7 +361,7 @@ class PluginHelper:
                 """)
                 try:
                     UnicodeRawOutput = unicode(RawOutput, "utf-8")
-                except UnicodeDecodeError: # Already unicode
+                except TypeError: # Already unicode
                     UnicodeRawOutput = RawOutput
                 table_vars = {
                                 "Name": self.GetCommandOutputFileNameAndExtension( Name )[0],
