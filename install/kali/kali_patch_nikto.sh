@@ -1,15 +1,17 @@
-#!/bin/sh
+#!/usr/bin/env sh
 #
-# Description: Installation script for tools not in Backtrack or unreliable in Backtrack
-# (i.e. Backtrack chose the development version instead of the stable one)
+# Description:
+#       Script to fix the nikto config to use a normal-looking User Agent so that we can hopefully bypass simple WAF blacklists
+#
+# Date:    2012-09-24
 #
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 # Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# * Redistributions of source code must retain the above copyright
+# * Redistributions of source code must retain the above copyright 
 # notice, this list of conditions and the following disclaimer.
 # * Redistributions in binary form must reproduce the above copyright
 # notice, this list of conditions and the following disclaimer in the
@@ -17,7 +19,7 @@
 # * Neither the name of the copyright owner nor the
 # names of its contributors may be used to endorse or promote products
 # derived from this software without specific prior written permission.
-#
+# 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -30,29 +32,17 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-# This script contains installation for tools that can be re-distributed, no need to run this for the most part
-INSTALL_DIR="$(dirname $0)"
-mkdir -p $INSTALL_DIR
-(
-    cd $INSTALL_DIR
-    TOOL_DIR="discovery/web/traceroute"
-    mkdir -p $TOOL_DIR
-    (
-    cd $TOOL_DIR
-    if [ ! -f HTTP-Traceroute.py ]; then # Redistribution with OWTF allowed by author (Nicolas Gregoire), this file should exist, if not retrieve it
-        echo "Getting HTTP-Traceroute .."
-        wget http://www.agarri.fr/docs/HTTP-Traceroute.py
-    fi
-    )
-    TOOL_DIR="dos/http"
-    mkdir -p $TOOL_DIR
-    (
-    cd $TOOL_DIR
-    TOOL_NAME="slowloris.pl"
-    if [ ! -f $TOOL_NAME ]; then
-        echo "Getting slowloris .."
-        wget http://ha.ckers.org/slowloris/$TOOL_NAME
-        chmod 700 $TOOL_NAME
-    fi
-    )
-)
+NIKTO_CONF_FILE="/etc/nikto.conf"
+NIKTO_CONF_BACKUP="$NIKTO_CONF_FILE.backup"
+if [ $(grep 'USERAGENT=Mozilla/.* (Nikto' $NIKTO_CONF_FILE|wc -l) -gt 0 ]; then
+	echo -e "\n[*] Nikto is currently set to display a NIKTO USER AGENT, do you want to replace this with a normal looking one? [Y/n]"
+	read a
+	if [ "$a" != "n" ]; then
+		echo "Backing up previous $NIKTO_CONF_FILE to $NIKTO_CONF_BACKUP.."
+		cp $NIKTO_CONF_FILE $NIKTO_CONF_BACKUP
+		echo "Updating nikto configuration to use a normal-looking user agent.."
+		cat $NIKTO_CONF_BACKUP | sed 's|^USERAGENT=Mozilla/.* (Nikto.*$|USERAGENT=Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/20.0|' > $NIKTO_CONF_FILE
+	fi
+else
+	echo "Nikto configuration is already set to use a normal-looking user agent"
+fi

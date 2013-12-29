@@ -1,12 +1,7 @@
 #!/usr/bin/env sh
 #
-# Description:
-#       Script to fix a bug in tlssled
-#
-# Date:    2013-05-23
-#
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
-# Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
+# Copyright (c) 2014, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -16,14 +11,14 @@
 # * Redistributions in binary form must reproduce the above copyright
 # notice, this list of conditions and the following disclaimer in the
 # documentation and/or other materials provided with the distribution.
-# * Neither the name of the copyright owner nor the
+# * Neither the name of the <organization> nor the
 # names of its contributors may be used to endorse or promote products
 # derived from this software without specific prior written permission.
 # 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
+# DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
 # DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 # (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
@@ -31,19 +26,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+RootDir=$1
 
-TLSSLED_FILE="/usr/bin/tlssled"
-TLSSLED_BACKUP="$TLSSLED_FILE.backup"
-if [ $(grep 'SSL_HANDSHAKE_LINES -lt 5' $TLSSLED_FILE|wc -l) -gt 0 ]; then
+get_config_value(){
+    
+    parameter=$1
+    file=$2
+    
+    echo "$(grep -i $parameter $file | sed  "s|$parameter: ||g;s|~|$HOME|g")"
+}
 
-	echo "The current tlssled in Kali Linux needs patching to work.Do you wish to patch? [Y/n]"
-	read a
-	if [ "$a" != "n" ]; then
-        echo "Backing up previous $TLSSLED_FILE to $TLSSLED_BACKUP.."
-        cp $TLSSLED_FILE $TLSSLED_BACKUP
-        echo "Patching TLSSLED :)"
-        cat $TLSSLED_BACKUP | sed "s|if \[ \$SSL_HANDSHAKE_LINES -lt 5 \] ; then|if \[ \$SSL_HANDSHAKE_LINES -lt 15 \] ; then|" > $TLSSLED_FILE
-    fi
-else
-	echo "Tlssed is already patched"
+config_file="$RootDir/profiles/general/default.cfg"
+certs_folder=$(get_config_value CERTS_FOLDER $config_file)
+ca_cert=$(get_config_value CA_CERT $config_file)
+ca_key=$(get_config_value CA_KEY $config_file)
+
+if [ ! -d $certs_folder ]; then
+    mkdir -p $certs_folder
+fi
+if [ ! -f $ca_cert ]; then
+    echo "-----------------------------------------------"
+    echo "[*] Please use \"owtf\" as password for the key"
+    echo "-----------------------------------------------"
+    openssl genrsa -des3 -out "$ca_key" 1024
+    openssl req -new -x509 -days 3650 -key "$ca_key" -out "$ca_cert"
+    echo "\n[*] Donot forget to add the $ca_cert as a trusted CA in your browser"
 fi
