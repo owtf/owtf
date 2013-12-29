@@ -36,9 +36,9 @@ Requirements
 
 Installation
 ------------
-- Kali: if you uncompress owtf on /root/owtf/ (i.e. so that you can run it like this /root/owtf/owtf.py you're done :))
-- Other Linux systems: uncompress wherever and then modify config.cfg and perhaps resources.cfg to suit, you can install missing tools for further testing coverage
-- You may also want to run /root/owtf/install/kali_install.sh to install a couple of dependencies needed by 2 plugins
+- Clone owtf repo using git => git clone https://github.com/7a/owtf
+- You may also want to run install/install.py
+- Check out Wiki for more help
 
 FAQ
 ---
