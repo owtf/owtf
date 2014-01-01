@@ -1,5 +1,6 @@
 tornado
 pycurl
+pyopenssl
 jinja2
 lxml
 argparse
