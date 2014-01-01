@@ -26,6 +26,8 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.'''
 
+#TOR manager module developed by Marios Kourtesis <name.surname@gmail.com>
+
 import commands
 import socket
 import time
@@ -39,8 +41,9 @@ class TOR_manager(object):
     This class is responsible for TOR management.
     '''
 
-
-    def __init__(self, core, args):
+    #here is done the initialization of arguments and connections
+    def __init__(self, core, args): 
+        #If the args are empty it will filled with the default values
         self.core = core
         if args[0] == '':
             self.ip = "127.0.0.1"
@@ -71,21 +74,22 @@ class TOR_manager(object):
                 self.time = int(args[4])
             except ValueError:
                 self.core.Error.FrameworkAbort("Invalid TOR Time")
-            if self.time < 1:
+            if self.time < 1:   
                 self.core.Error.FrameworkAbort("Invalid TOR Time")
-            
+
         self.TOR_Connection = self.Open_connection()
         self.Authenticate()
 
-
+    #This function is handling the authentication process to TOR control connection.
     def Authenticate(self):
         self.TOR_Connection.send('AUTHENTICATE "{0}"\r\n'.format(self.password))
         responce = self.TOR_Connection.recv(1024)
-        if responce.startswith('250'):
+        if responce.startswith('250'):  #250 is the success responce
             cprint("Successfully Authenticated to TOR control")
         else:
             self.core.Error.FrameworkAbort("Authentication Error : " + responce)
-            
+    
+    #Opens a new connection to TOR control
     def Open_connection(self):
         try:
             s = socket.socket()
@@ -95,11 +99,13 @@ class TOR_manager(object):
         except Exception as error:
             self.core.Error.FrameworkAbort("Can't connect to the TOR daemon : " + error.strerror)
 
+    #Starts a new TOR_control_process which will renew the IP address.
     def Run(self):
         tor_ctrl_proc = Process(target=TOR_control_process, args=(self,))
         tor_ctrl_proc.start()
         return tor_ctrl_proc
 
+    #checks if TOR is running
     @staticmethod
     def is_tor_running():
         output = commands.getoutput("ps -A|grep -a \" tor$\"|wc -l")
@@ -107,12 +113,13 @@ class TOR_manager(object):
             return True
         elif output == "0":
             return False
+    
     @staticmethod
     def msg_start_tor(self):
         cprint ("""Error : TOR daemon is not running
                 (Tips: service tor start)""")
         
-            
+    #TOR configuration Info
     @staticmethod
     def msg_configure_tor():
         cprint("""
@@ -138,7 +145,7 @@ class TOR_manager(object):
         """)
         
         
-        
+    #Sends an NEWNYM message to TOR control in order to renew the IP address
     def renew_ip(self):
         self.TOR_Connection.send("signal NEWNYM\r\n")
         responce = self.TOR_Connection.recv(1024)
@@ -149,7 +156,7 @@ class TOR_manager(object):
             cprint("[TOR]Warning: IP can't renewed")
             return False
 
-
+#This will run in a new process in order to renew the IP address after certain time.
 def TOR_control_process(self):
     while 1:
         while self.renew_ip() == True:
