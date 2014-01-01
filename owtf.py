@@ -95,7 +95,7 @@ def GetArgs(Core, args):
     Parser.add_argument("-T", "--tor",
                         dest="TOR_mode",
                         default=None,
-                        help="ip:port:tor_control_port:password:IP_renew_time - Sends all OWTF requests throw the TOR network. For configuration help run -T help.")
+                        help="ip:port:tor_control_port:password:IP_renew_time - Sends all OWTF requests through the TOR network. For configuration help run -T help.")
     Parser.add_argument("-s", "--simulation",
                         dest="Simulation",
                         action='store_true',

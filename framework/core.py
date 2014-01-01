@@ -55,7 +55,6 @@ import subprocess
 from framework import random
 from framework.lib.messaging import messaging_admin
 from framework.report.reporting_process import reporting_process
-from framework.http.proxy import tor_manager
 
 class Core:
     def __init__(self, RootDir, OwtfPid):
