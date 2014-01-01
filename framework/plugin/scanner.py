@@ -99,6 +99,7 @@ class Scanner:
     
     def scan_and_grab_banners(self,file_with_ips,file_prefix,scan_type,nmap_options):
         if scan_type == "tcp":
+            #print nmap_options
             log("Performing TCP portscan, OS detection, Service detection, banner grabbing, etc")
             self.core.Shell.shell_exec("nmap -PN -n -v --min-parallelism=10 -iL "+file_with_ips+" -sS -sV -O  -oA "+file_prefix+".tcp "+nmap_options)
             self.core.Shell.shell_exec("amap -1 -i "+file_prefix+".tcp.gnmap -Abq -m -o "+file_prefix+".tcp.amap -t 90 -T 90 -c 64")
@@ -164,6 +165,7 @@ class Scanner:
         for plugin in net_plugins:
             services.append(plugin['Name'])
         services.append("http")    
+        #print services
         total_tasks=0
         tasklist=""
         plugin_list = []
@@ -171,6 +173,12 @@ class Scanner:
         for service in services:
             if plugin_list.count(service)>0:
                 continue 
+            if service == "openvas":
+
+                plugin_list.append("openvas")
+                #self.core.PluginHandler.OnlyPluginsList = self.core.PluginHandler.ValidateAndFormatPluginList(plugin_list)        
+                #self.core.PluginHandler.OnlyPluginsSet = max(1,len(plugin_list))
+                continue
             tasks_for_service = len(self.target_service(nmap_file,service).split("##"))-1
             total_tasks = total_tasks+tasks_for_service
             tasklist=tasklist+" [ "+service+" - "+str(tasks_for_service)+" tasks ]"
@@ -189,6 +197,7 @@ class Scanner:
                     log("we have to probe "+str(ip)+":"+str(port)+" for service "+plugin_to_invoke)
         self.core.PluginHandler.OnlyPluginsList = self.core.PluginHandler.ValidateAndFormatPluginList(plugin_list)        
         self.core.PluginHandler.OnlyPluginsSet = max(1,len(plugin_list))
+        #print "hi"+str(http)
         return http
         
     def scan_network(self,target):
