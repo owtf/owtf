@@ -92,6 +92,10 @@ def GetArgs(Core, args):
                         dest="OutboundProxyAuth",
                         default=None,
                         help="username:password - Credentials if any for outbound proxy")
+    Parser.add_argument("-T", "--tor",
+                        dest="TOR_mode",
+                        default=None,
+                        help="ip:port:tor_control_port:password:IP_renew_time - Sends all OWTF requests throw the TOR network. For configuration help run -T help.")
     Parser.add_argument("-s", "--simulation",
                         dest="Simulation",
                         action='store_true',
@@ -170,6 +174,8 @@ def Usage(ErrorMessage):
     print ""
     print "Run only OWASP-IG-005 and OWASP-WU-VULN:             "+Main+" -o 'OWASP-IG-005,OWASP-WU-VULN' http://my.website.com"
     print "Run using my resources file and proxy:             "+Main+" -m r:/home/me/owtf_resources.cfg -x 127.0.0.1:8080 http://my.website.com"
+    print ""
+    print "Run using TOR network:                    "+ Main + " -o OWTF-WVS-001 http:my.website.com --tor 127.0.0.1:9050:9051:password:1" 
     print "\nERROR: "+ErrorMessage
     exit(-1)
 
@@ -219,6 +225,27 @@ def ProcessOptions(Core, user_args):
     if Arg.ExceptPlugins:
         Arg.ExceptPlugins, PluginGroups = GetPluginsFromArg(Core, Arg.ExceptPlugins)
         print "ExceptPlugins=" + str(Arg.ExceptPlugins)
+        
+    if Arg.TOR_mode:
+        Arg.TOR_mode = Arg.TOR_mode.split(":")
+        print Arg.TOR_mode[0]
+        if len(Arg.TOR_mode) == 1:
+            if Arg.TOR_mode[0] != "help":
+                Usage("Invalid argument for TOR-mode")
+        elif len(Arg.TOR_mode) != 5:
+            Usage("Invalid argument for TOR-mode")
+        else:
+            #Enables OutboundProxy
+            if Arg.TOR_mode[0] == '':
+                outbound_proxy_ip = "127.0.0.1"
+            else:
+                outbound_proxy_ip = Arg.TOR_mode[0]
+            if Arg.TOR_mode[1] == '':
+                outbound_proxy_port = "9050" #default TOR port
+            else:
+                outbound_proxy_port = Arg.TOR_mode[1]
+            Arg.OutboundProxy = "socks://" + outbound_proxy_ip + ":" + outbound_proxy_port
+    
 
     if Arg.OutboundProxy:
         Arg.OutboundProxy = Arg.OutboundProxy.split('://')
@@ -301,6 +328,7 @@ def ProcessOptions(Core, user_args):
             'RPort': Arg.RPort,
             'PortWaves' : Arg.PortWaves,
             'ProxyMode': Arg.ProxyMode,
+            'TOR_mode' : Arg.TOR_mode,
             'Args': Args}
 
 
