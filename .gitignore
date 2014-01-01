@@ -19,6 +19,7 @@ tests/restricted/*
 # Directory with the output of OWTF
 ###################################
 owtf_review/*
+scans/*
 
 # Unit Testing Framework files #
 ################################
