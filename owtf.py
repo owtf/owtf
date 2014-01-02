@@ -254,9 +254,14 @@ def ProcessOptions(Core, user_args):
             if Arg.OutboundProxy[0] not in ["socks", "http"]:
                 Usage("Invalid argument for Outbound Proxy")
         else:
-            Arg.OutboundProxy = Arg.OutboundProxy.pop().split(':')        
+            Arg.OutboundProxy = Arg.OutboundProxy.pop().split(':') 
         if (len(Arg.OutboundProxy) not in [2, 3]):  # OutboundProxy should be type://ip:port
             Usage("Invalid argument for Outbound Proxy")
+        else: # Check if the port is an int
+            try:
+                int(Arg.InboundProxy[0].split(':')[-1])
+            except ValueError:
+                Usage("Invalid port provided for Outbound Proxy")
 
     if Arg.InboundProxy:
         Arg.InboundProxy = Arg.InboundProxy.split(':')
@@ -268,7 +273,7 @@ def ProcessOptions(Core, user_args):
             try:
                 int(Arg.InboundProxy[0].split(':')[-1])
             except ValueError:
-                Usage("Invalid argument for Inbound Proxy")
+                Usage("Invalid port for Inbound Proxy")
 
 
     PluginTypesForGroup = Core.Config.Plugin.GetTypesForGroup(PluginGroup)
