@@ -5,7 +5,7 @@ openvas-nvt-sync
 test -e /var/lib/openvas/users/om || openvas-mkcert-client -n om -i
 /etc/init.d/openvas-manager stop
 /etc/init.d/openvas-scanner stop
-pkill -9 openvas
+
 openvassd
 openvasmd --migrate
 openvasmd --rebuild
