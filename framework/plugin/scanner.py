@@ -171,6 +171,13 @@ class Scanner:
         for service in services:
             if plugin_list.count(service)>0:
                 continue 
+            if service == "openvas":
+                # Here we can think of adding an exception list, where all the plugin like openvas can be run.
+                #Which are not service-specific.
+                plugin_list.append("openvas")
+                #self.core.PluginHandler.OnlyPluginsList = self.core.PluginHandler.ValidateAndFormatPluginList(plugin_list)
+                #self.core.PluginHandler.OnlyPluginsSet = max(1,len(plugin_list))
+                continue
             tasks_for_service = len(self.target_service(nmap_file,service).split("##"))-1
             total_tasks = total_tasks+tasks_for_service
             tasklist=tasklist+" [ "+service+" - "+str(tasks_for_service)+" tasks ]"
