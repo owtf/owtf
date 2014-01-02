@@ -70,6 +70,14 @@ if [ "$a" != "n" ]; then
     cd ../
 fi
 
+echo "\n[*] Install openvas? [Y/n]"
+read a
+if [ "$a" != "n" ]; then
+cd install
+    echo "$(pwd)"
+    "$(pwd)/install_openvas.sh"
+    cd ../
+fi
 echo "\n[*] Create local CA for OWTF Inbound Proxy? [Y/n]"
 read a
 if [ "$a" != "n" ]; then
