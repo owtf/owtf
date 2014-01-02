@@ -293,7 +293,7 @@ def ProcessOptions(Core, user_args):
     if PluginGroup != 'aux' and NumTargets == 0 and not Arg.ListPlugins:
         Usage("The scope must specify at least one target")
     elif NumTargets == 1:  # Check if this is a file
-        if os.path.exists(Scope[0]):
+        if os.path.isfile(Scope[0]):
             cprint("Scope file: trying to load targets from it ..")
             NewScope = []
             for Target in open(Scope[0]).read().split("\n"):
