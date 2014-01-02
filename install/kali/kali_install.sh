@@ -73,8 +73,9 @@ fi
 echo "\n[*] Install openvas? [Y/n]"
 read a
 if [ "$a" != "n" ]; then
-cd install
-    echo "$(pwd)"
+     echo "$(pwd)" 
+     cd kali
+    
     "$(pwd)/install_openvas.sh"
     cd ../
 fi
