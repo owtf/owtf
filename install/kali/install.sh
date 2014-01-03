@@ -53,7 +53,7 @@ fi
 
 echo "[*] Installing LBD, arachni and gnutls-bin from Kali Repos"
 sudo -E apt-get install lbd gnutls-bin arachni
-sh $RootDir/install/kali/install_openvas.sh
+sh $RootDir/install/kali/kali_path_openvas.sh
 ###### Dictionaries missing in Kali
 cd $RootDir/dictionaries/restricted
 IsInstalled "dirbuster"
