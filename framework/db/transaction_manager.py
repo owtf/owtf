@@ -239,7 +239,7 @@ class TransactionManager:
         def GrepForPartialLinks(self, Regexp, Location): # Returns file: line_match pairs with the file portion ready for partial links
                 # Format output to link to link to full transactions:
                 #Command = 'grep -HiE "'+Regexp+'" '+Location+" | sed -e 's|"+self.Core.Config.Get('HOST_OUTPUT')+"||g' -e 's|/response_headers/|/|g'"
-                Command = 'grep -IHiE "'+Regexp+'" '+Location+" | sed -e 's|"+self.Core.Config.Get('HOST_OUTPUT')+"||g' -e 's|/"+Location.split('/')[-2]+"/|/|g'"
+                Command = 'grep -IHiE "'+Regexp+'" '+Location+" | sed -e 's|"+self.Core.Config.Get('OUTPUT_PATH')+"||g' -e 's|/"+Location.split('/')[-2]+"/|/|g'"
                 return [ Command, self.Core.Shell.shell_exec_monitor(Command) ]
 
         def GrepForFiles(self, Regexp, Location): # Returns unique filenames that match a search

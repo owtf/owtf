@@ -259,7 +259,7 @@ def ProcessOptions(Core, user_args):
             Usage("Invalid argument for Outbound Proxy")
         else: # Check if the port is an int
             try:
-                int(Arg.InboundProxy[0].split(':')[-1])
+                int(Arg.OutboundProxy[-1])
             except ValueError:
                 Usage("Invalid port provided for Outbound Proxy")
 
@@ -271,7 +271,7 @@ def ProcessOptions(Core, user_args):
             Usage("Invalid argument for Inbound Proxy")
         else:
             try:
-                int(Arg.InboundProxy[0].split(':')[-1])
+                int(Arg.InboundProxy[-1])
             except ValueError:
                 Usage("Invalid port for Inbound Proxy")
 
