@@ -73,6 +73,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         return tornado.web.RequestHandler.__new__(cls, application, request, **kwargs)
 
     def set_default_headers(self):
+        # This is automatically called by Tornado :P
         # XD Using this to remove "Server" header set by tornado
         del self._headers["Server"]
 
@@ -91,24 +92,9 @@ class ProxyHandler(tornado.web.RequestHandler):
             except KeyError:
                 self._reason = tornado.escape.native_str("Server Not Found")
 
-    def calculate_delay(self, response):
-        self.application.throttle_variables["hosts"][self.request.host]["request_times"].append(response.request_time)
-
-        if len(self.application.throttle_variables["hosts"][self.request.host]) > 20:
-            self.application.throttle_variables["hosts"][self.request.host]["request_times"].pop(0)
-            response_times = self.application.throttle_variables["hosts"][self.request.host]["request_times"]
-            last_ten = sum(response_times[:int(len(response_times)/2)])/int(len(response_times)/2)
-            second_last_ten = sum(response_times[int(len(response_times)/2):])/(len(response_times)-int(len(response_times)/2))
-            if round(last_ten - second_last_ten, 3) > self.application.throttle_variables["threshold"]:
-                self.application.throttle_variables["hosts"][self.request.host]["delay"] = round(last_ten - second_last_ten, 3)
-            else:
-                self.application.throttle_variables["hosts"][self.request.host]["delay"] = 0
-
     # This function is a callback after the async client gets the full response
     # This method will be improvised with more headers from original responses
     def handle_response(self, response):
-        if self.application.throttle_variables:
-            self.calculate_delay(response)
         if response.code in [408, 599]:
             try:
                 old_count = self.request.retries
@@ -158,71 +144,57 @@ class ProxyHandler(tornado.web.RequestHandler):
 
     # This function creates and makes the request to upstream server
     def process_request(self):
-        if self.cached_response:
-            self.write_cached_response(self.cached_response)
-        else:
-            # HTTP AUTH settings
-            http_auth_username = None
-            http_auth_password = None
-            http_auth_mode = None
-            host = self.request.host
-            if self.application.http_auth: #If http auth exists
-                # If default ports are not provided, they are added
-                try:
-                    test = self.request.host.index(':')
-                except ValueError:
-                    default_ports = {'http':'80', 'https':'443'}
-                    try:
-                        host = self.request.host + ':' + default_ports[self.request.protocol]
-                    except KeyError:
-                        pass
-                # Check if auth is provided for that host
-                try:
-                    index = self.application.http_auth_hosts.index(host)
-                    http_auth_username = self.application.http_auth_usernames[index]
-                    http_auth_password = self.application.http_auth_passwords[index]
-                    http_auth_mode = self.application.http_auth_modes[index]
-                except ValueError:
-                    pass
-
-            # pycurl is needed for curl client
-            async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
-            # httprequest object is created and then passed to async client with a callback
-            request = tornado.httpclient.HTTPRequest(
-                    url=self.request.url,
-                    method=self.request.method,
-                    body=self.request.body,
-                    headers=self.request.headers,
-                    auth_username=http_auth_username,
-                    auth_password=http_auth_password,
-                    auth_mode=http_auth_mode,
-                    follow_redirects=False,
-                    use_gzip=True,
-                    streaming_callback=self.handle_data_chunk,
-                    header_callback=None,
-                    proxy_host=self.application.outbound_ip,
-                    proxy_port=self.application.outbound_port,
-                    proxy_username=self.application.outbound_username,
-                    proxy_password=self.application.outbound_password,
-                    allow_nonstandard_methods=True,
-                    prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
-                                                                else None, # socks callback function
-                    validate_cert=False)
+        # HTTP AUTH settings
+        http_auth_username = None
+        http_auth_password = None
+        http_auth_mode = None
+        host = self.request.host
+        if self.application.http_auth: #If http auth exists
+            # If default ports are not provided, they are added
             try:
-                async_client.fetch(request, callback=self.handle_response)
-            except Exception:
+                test = self.request.host.index(':')
+            except ValueError:
+                default_ports = {'http':'80', 'https':'443'}
+                try:
+                    host = self.request.host + ':' + default_ports[self.request.protocol]
+                except KeyError:
+                    pass
+            # Check if auth is provided for that host
+            try:
+                index = self.application.http_auth_hosts.index(host)
+                http_auth_username = self.application.http_auth_usernames[index]
+                http_auth_password = self.application.http_auth_passwords[index]
+                http_auth_mode = self.application.http_auth_modes[index]
+            except ValueError:
                 pass
 
-    def cache_check(self):
-        # This block here checks for already cached response and if present returns one
-        self.cache_handler = CacheHandler(
-                                            self.application.cache_dir,
-                                            self.request,
-                                            self.application.cookie_regex,
-                                            self.application.cookie_blacklist
-                                          )
-        self.cached_response = self.cache_handler.load()
-        self.process_request()
+        # pycurl is needed for curl client
+        async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
+        # httprequest object is created and then passed to async client with a callback
+        request = tornado.httpclient.HTTPRequest(
+                url=self.request.url,
+                method=self.request.method,
+                body=self.request.body,
+                headers=self.request.headers,
+                auth_username=http_auth_username,
+                auth_password=http_auth_password,
+                auth_mode=http_auth_mode,
+                follow_redirects=False,
+                use_gzip=True,
+                streaming_callback=self.handle_data_chunk,
+                header_callback=None,
+                proxy_host=self.application.outbound_ip,
+                proxy_port=self.application.outbound_port,
+                proxy_username=self.application.outbound_username,
+                proxy_password=self.application.outbound_password,
+                allow_nonstandard_methods=True,
+                prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
+                                                            else None, # socks callback function
+                validate_cert=False)
+        try:
+            async_client.fetch(request, callback=self.handle_response)
+        except Exception:
+            pass
 
     @tornado.web.asynchronous
     def get(self):
@@ -248,19 +220,18 @@ class ProxyHandler(tornado.web.RequestHandler):
         else:  # Transparent Proxy Request
             self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
 
-        if self.application.throttle_variables:
-            try:
-                throttle_delay = self.application.throttle_variables["hosts"][self.request.host]["delay"]
-            except KeyError:
-                self.application.throttle_variables["hosts"][self.request.host] = {"request_times":[], "delay":0}
-                throttle_delay = 0
-            finally:
-                if throttle_delay == 0:
-                    self.cache_check()
-                else:
-                    tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=throttle_delay), self.cache_check)
+        # This block here checks for already cached response and if present returns one
+        self.cache_handler = CacheHandler(
+                                            self.application.cache_dir,
+                                            self.request,
+                                            self.application.cookie_regex,
+                                            self.application.cookie_blacklist
+                                          )
+        self.cached_response = self.cache_handler.load()
+        if self.cached_response:
+            self.write_cached_response(self.cached_response)
         else:
-            self.cache_check()
+            self.process_request()
 
     # The following 5 methods can be handled through the above implementation
     @tornado.web.asynchronous
@@ -620,16 +591,6 @@ class ProxyProcess(Process):
         # These headers are removed from request obtained from browser, before sending it to webserver
         global restricted_request_headers
         restricted_request_headers = self.application.Core.Config.Get("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
-        
-        # Request throttling
-        # Throttling settings picked up from profiles/general/default.cfg
-        if self.application.Core.Config.Get("PROXY_THROTTLING") == 'False':
-            self.application.throttle_variables = None
-        else:
-            self.application.throttle_variables = {
-                                                    "hosts": {},
-                                                    "threshold": self.application.Core.Config.Get("PROXY_THROTTLING_THRESHOLD"),
-                                                  }
 
         # HTTP Auth options
         if self.application.Core.Config.Get("HTTP_AUTH_HOST") != "None":
