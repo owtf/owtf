@@ -60,8 +60,6 @@ class DBHandler:
         self.InitDBs()
         # Each owtf test will have a long random seed, this is used to distinguish the transaction sections in the DB
         # By having a random seed we make it considerably hard for a website to try to fool owtf to parse transactions incorrectly
-        #print "self.Storage="
-        #p(self.Storage)
         if self.IsEmpty('SEED_DB'): # Seed is global for everything in scope: URLs, Aux modules and Net plugins
             cprint("SEED DB is empty, initialising..")
             self.Add('SEED_DB', self.Core.Random.GetStr(10)) # Generate a long random seed for this test

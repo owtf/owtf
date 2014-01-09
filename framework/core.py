@@ -133,7 +133,7 @@ class Core:
 
     def GetCommand(self, argv):
         # Format command to remove directory and space-separate arguments
-        return " ".join(argv).replace(os.path.dirname(argv[0])+"/", '')
+        return " ".join(argv).replace(argv[0], os.path.basename(argv[0]))
 
     def AnonymiseCommand(self, Command):
         for Host in self.Config.GetAll('HOST_NAME'): # Host name setting value for all targets in scope
@@ -313,8 +313,8 @@ class Core:
             exit()
         else:
             try:
-                cprint("Saving DBs")
                 self.DB.Run.EndRun(Status)
+                cprint("Saving DBs")
                 self.DB.SaveDBs() # Save DBs prior to producing the report :)
                 if Report:
                     cprint("Finishing iteration and assembling report again (with updated run information)")
