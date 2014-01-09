@@ -323,12 +323,12 @@ class Core:
                     #    self.Config.SetTarget(Target) # Much save the report for each target
                         #self.Reporter.ReportFinish() # Must save the report again at the end regarless of Status => Update Run info
                     #self.Config.SetTarget(PreviousTarget) # Restore previous target
-                cprint("owtf iteration finished")
+                cprint("OWTF iteration finished")
                 if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
                     cprint("Please report the sanitised errors saved to "+self.Config.Get('ERROR_DB'))
                 #self.dbHandlerProcess.join()    
             except AttributeError: # DB not instantiated yet!
-                cprint("owtf finished: No time to report anything! :P")
+                cprint("OWTF finished: No time to report anything! :P")
             finally:
                 if self.ProxyMode:
                     try:

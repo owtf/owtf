@@ -58,7 +58,7 @@ def handle_request(callback_function,queue,queue_name="push"):
                     data = general.atomic_read_from_file(request_dir, filename, skip_if_locked=True)
                     if data:
                         callback_function(data,"push")
-                            #remove the processed file
+                        # Remove the processed file
                         os.remove(os.path.join(request_dir,filename))
                 files = general.get_files(request_dir)
                 #give away cpu
