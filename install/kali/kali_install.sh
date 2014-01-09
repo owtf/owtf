@@ -69,7 +69,6 @@ if [ "$a" != "n" ]; then
     "$(pwd)/install_dependencies.sh"
     cd ../
 fi
-
 echo "\n[*] Create local CA for OWTF Inbound Proxy? [Y/n]"
 read a
 if [ "$a" != "n" ]; then
