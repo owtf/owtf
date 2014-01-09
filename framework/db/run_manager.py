@@ -37,23 +37,23 @@ RCOMMAND = 3
 RSTATUS = 4
 
 class RunManager:
-	def __init__(self, Core):
-		self.Core = Core
+    def __init__(self, Core):
+        self.Core = Core
 
-	def StartRun(self, Command):
-		Start, Time = self.Core.Timer.StartTimer('owtf')
-		Runtime = End = "?"
-		Status = "Running"
-		#self.Core.DB.DBCache['RUN_DB'].append([ Start, End, Runtime, Command, Status ])
-		self.Core.DB.Add('RUN_DB', [ Start, End, Runtime, Command, Status ] )
+    def StartRun(self, Command):
+        Start, Time = self.Core.Timer.StartTimer('owtf')
+        Runtime = End = "?"
+        Status = "Running"
+        #self.Core.DB.DBCache['RUN_DB'].append([ Start, End, Runtime, Command, Status ])
+        self.Core.DB.Add('RUN_DB', [ Start, End, Runtime, Command, Status ] )
 
-	def EndRun(self, Status = 'Complete'): # Modify last run info
-		LastRecord = self.Core.DB.GetRecord('RUN_DB', -1)
-		LastRecord[REND] = self.Core.Timer.GetCurrentDateTime()
-		LastRecord[RRUNTIME] = self.Core.Timer.GetElapsedTimeAsStr('owtf')
-		LastRecord[RSTATUS] = Status
-		self.Core.DB.ModifyRecord('RUN_DB', -1, LastRecord)
-		#self.Core.DB.DBCache['RUN_DB'][-1][REND] = self.Core.Timer.GetCurrentDateTime()
-		#self.Core.DB.DBCache['RUN_DB'][-1][RRUNTIME] = self.Core.Timer.GetElapsedTimeAsStr('owtf')
-		#self.Core.DB.DBCache['RUN_DB'][-1][RSTATUS] = Status
+    def EndRun(self, Status = 'Complete'): # Modify last run info
+        LastRecord = self.Core.DB.GetRecord('RUN_DB', -1)
+        LastRecord[REND] = self.Core.Timer.GetCurrentDateTime()
+        LastRecord[RRUNTIME] = self.Core.Timer.GetElapsedTimeAsStr('owtf')
+        LastRecord[RSTATUS] = Status
+        self.Core.DB.ModifyRecord('RUN_DB', -1, LastRecord)
+        #self.Core.DB.DBCache['RUN_DB'][-1][REND] = self.Core.Timer.GetCurrentDateTime()
+        #self.Core.DB.DBCache['RUN_DB'][-1][RRUNTIME] = self.Core.Timer.GetElapsedTimeAsStr('owtf')
+        #self.Core.DB.DBCache['RUN_DB'][-1][RSTATUS] = Status
 
