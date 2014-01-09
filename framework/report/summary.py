@@ -103,7 +103,47 @@ class Summary:
 			#self.Core.IsTargetUnreachable()
 			ReportPath = self.Core.DB.ReportRegister.Search( { 'ReviewOffset' : ReviewOffset } )[0]['ReportPath']
 			#print "IP="+str(IP)+", Port="+str(Port)+" -> ReviewOffset="+str(ReviewOffset)+", ReportPath="+str(ReportPath)
-			Offsets.append( {"ReviewOffset": ReviewOffset, "ReviewPath": self.Core.GetPartialPath( ReportPath )} )
+			self.Core.Config.SetTarget(ReviewOffset)
+			Offsets.append( {
+								"ReviewOffset": ReviewOffset,
+								"ReviewPath": self.Core.GetPartialPath( ReportPath ),
+								"Logs":	 {
+											"Transaction_Log_HTML": {
+																		"link": self.Core.Config.Get( 'TRANSACTION_LOG_HTML' ),
+																	},
+									    	"All_Downloaded_Files": {
+																		"link": '#',
+																	},
+										    "All_Transactions": {
+																	"link": self.Core.Config.Get( 'TRANSACTION_LOG_TRANSACTIONS' ),
+																},
+											"All_Requests": {
+																"link": self.Core.Config.Get( 'TRANSACTION_LOG_REQUESTS' ),
+															},
+											"All_Response_Headers": {
+																		"link": self.Core.Config.Get( 'TRANSACTION_LOG_RESPONSE_HEADERS' ),
+																	},
+											"All_Response_Bodies": {
+																		"link": self.Core.Config.Get( 'TRANSACTION_LOG_RESPONSE_BODIES' ),
+																	},
+										},
+								"Urls":  {
+										    "All_URLs_link": self.Core.Config.Get( 'ALL_URLS_DB' ),
+									    	"File_URLs_link": self.Core.Config.Get( 'FILE_URLS_DB' ),
+										    "Fuzzable_URLs_link": self.Core.Config.Get( 'FUZZABLE_URLS_DB' ),
+											"Image_URLs_link":  self.Core.Config.Get( 'IMAGE_URLS_DB' ),
+											"Error_URLs_link": self.Core.Config.Get( 'ERROR_URLS_DB' ),
+											"External_URLs_link":  self.Core.Config.Get( 'EXTERNAL_URLS_DB' ),
+										},
+								"Urls_Potential":  {
+										    "All_URLs_link": self.Core.Config.Get( 'POTENTIAL_ALL_URLS_DB' ),
+									    	"File_URLs_link": self.Core.Config.Get( 'POTENTIAL_FILE_URLS_DB' ),
+										    "Fuzzable_URLs_link": self.Core.Config.Get( 'POTENTIAL_FUZZABLE_URLS_DB' ),
+											"Image_URLs_link":  self.Core.Config.Get( 'POTENTIAL_IMAGE_URLS_DB' ),
+											"Error_URLs_link": self.Core.Config.Get( 'POTENTIAL_ERROR_URLS_DB' ),
+											"External_URLs_link":  self.Core.Config.Get( 'POTENTIAL_EXTERNAL_URLS_DB' ),
+										}
+							})
 			self.CountPluginsFinished( ReviewOffset )
 			UnReachable = False
 
@@ -159,42 +199,8 @@ class Summary:
 							    "Unreachables": {
 											  "nb": self.Core.DB.GetLength( 'UNREACHABLE_DB' ),
 											  "link":  str( self.Core.Config.Get( 'UNREACHABLE_DB' ) ) ,
-												 },
-							    "Transaction_Log_HTML": {
-													"link": self.Core.Config.Get( 'TRANSACTION_LOG_HTML' ),
-													},
-						    	"All_Downloaded_Files": {
-													"link": '#',
-													},
-							    "All_Transactions": {
-													"link": self.Core.Config.Get( 'TRANSACTION_LOG_TRANSACTIONS' ),
-													},
-								"All_Requests": {
-													"link": self.Core.Config.Get( 'TRANSACTION_LOG_REQUESTS' ),
-													},
-								"All_Response_Headers": {
-													"link": self.Core.Config.Get( 'TRANSACTION_LOG_RESPONSE_HEADERS' ),
-													},
-								"All_Response_Bodies": {
-													"link": self.Core.Config.Get( 'TRANSACTION_LOG_RESPONSE_BODIES' ),
-													},
+												 }
 							      },
-						"Urls":  {
-								    "All_URLs_link": self.Core.Config.Get( 'ALL_URLS_DB' ),
-							    	"File_URLs_link": self.Core.Config.Get( 'FILE_URLS_DB' ),
-								    "Fuzzable_URLs_link": self.Core.Config.Get( 'FUZZABLE_URLS_DB' ),
-									"Image_URLs_link":  self.Core.Config.Get( 'IMAGE_URLS_DB' ),
-									"Error_URLs_link": self.Core.Config.Get( 'ERROR_URLS_DB' ),
-									"External_URLs_link":  self.Core.Config.Get( 'EXTERNAL_URLS_DB' ),
-									},
-						"Urls_Potential":  {
-								    "All_URLs_link": self.Core.Config.Get( 'POTENTIAL_ALL_URLS_DB' ),
-							    	"File_URLs_link": self.Core.Config.Get( 'POTENTIAL_FILE_URLS_DB' ),
-								    "Fuzzable_URLs_link": self.Core.Config.Get( 'POTENTIAL_FUZZABLE_URLS_DB' ),
-									"Image_URLs_link":  self.Core.Config.Get( 'POTENTIAL_IMAGE_URLS_DB' ),
-									"Error_URLs_link": self.Core.Config.Get( 'POTENTIAL_ERROR_URLS_DB' ),
-									"External_URLs_link":  self.Core.Config.Get( 'POTENTIAL_EXTERNAL_URLS_DB' ),
-									},
 						"IPs": [{
 								"IP": IP,
 								"Ports": [ self.PortInfo( IP, Port ) for Port in self.GetSortedPorts( IP )]
