@@ -32,6 +32,7 @@ from collections import defaultdict
 from framework.random import Random
 from framework.lib import *
 import os
+import time
 from framework.lib.general import get_random_str
 
     
@@ -39,6 +40,15 @@ def push_msg(data,queue_name="push"):
     #Creates a random file inside the /Requests subdirectory within a Queue, 
     #the PushServer will process these files
     file_id = get_random_str(100) + '.msg'
-    return general.atomic_write_to_file(general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name], file_id, data)
-    
-                   
+    file_path = os.path.join(general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name], file_id)
+    try:
+      result = general.atomic_write_to_file(general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name], file_id, data)
+      # The following block is important, because of the fact that completion of the operation
+      # can be known when the push_server.py removes a processed file :P
+      # Without this loop, the normal execution will continue even when db operation is pending.
+      # This may lead to some unwanted and cryptic bugs
+      while os.path.exists(file_path):
+        time.sleep(0.02)
+      return result
+    except KeyboardInterrupt:
+      raise KeyboardInterrupt
