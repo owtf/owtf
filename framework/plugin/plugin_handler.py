@@ -167,10 +167,7 @@ class PluginHandler:
         def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
                 #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.Core.Config.Get('TARGET')
                 if Plugin['Group'] == 'web':
-                        if Plugin['Type'] == 'external': # Same path for all targets = do this only once
-                                return self.Core.Config.Get('OUTPUT_PATH')+"/external/"+WipeBadCharsForFilename(Plugin['Title'])+"/"
-                        else:
-                                return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/"
+                        return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/"
                 elif Plugin['Group'] == 'net':
                         return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/" +Plugin['Type']+"/"
                 elif Plugin['Group'] == 'aux':
@@ -217,6 +214,9 @@ class PluginHandler:
         def register_plugin(self, Plugin):
             return self.Core.DB.PluginRegister.Add(Plugin, self.GetPluginOutputDir(Plugin) + "report.html", self.Core.Config.Get('TARGET'))
 
+        def register_plugin_for_all_targets(self, Plugin):
+            for target in self.Core.Config.GetTargets():
+                self.Core.DB.PluginRegister.Add(Plugin, self.GetPluginOutputDir(Plugin) + "report.html", target)
 
         def force_overwrite(self):
             return self.Core.Config.Get('FORCE_OVERWRITE')
@@ -231,8 +231,10 @@ class PluginHandler:
                 if self.PluginAlreadyRun(Plugin) and ((not self.force_overwrite() and not ('grep' == Plugin['Type'])) or Plugin['Type'] == 'external'): #not Code == 'OWASP-WU-SPID':
                         if ShowMessages:
                                 log("Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") has already been run, skipping ..")
-                        if Plugin['Type'] == 'external': # Register external plugin so that it shows on the reports!! (DB checks integrity)
-                                self.register_plugin(Plugin)
+                        if Plugin['Type'] == 'external':
+                        # External plugins are run only once per each run, so they are registered for all targets
+                        # that are targets in that run. This is an alternative to chaning the js filters etc..
+                                self.register_plugin_for_all_targets(Plugin)
                         return False 
                 if 'grep' == Plugin['Type'] and self.HasPluginExecuted(Plugin) and not self.HasPluginCategoryRunSinceLastTime(Plugin, [ 'active', 'semi_passive' ]):
                         return False # Grep plugins can only run if some active or semi_passive plugin was run since the last time
