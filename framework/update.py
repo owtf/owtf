@@ -103,7 +103,7 @@ class Updater(object):
                 if success:
                     cprint("OWTF Successfully Updated to Latest Stable Version!!")
                     cprint("Version Tag: %s"%(self.remote_tags[0]["name"]))
-                    cprint("Please run install scripts (install/kali_install.sh) if you face any errors after updating")
+                    cprint("Please run install script if you face any errors after updating")
                     
                 else:
                     cprint("Unable to update :(")
