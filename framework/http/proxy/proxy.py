@@ -40,6 +40,7 @@ import tornado.httputil
 import tornado.options
 import tornado.template
 import tornado.websocket
+import tornado.gen
 import socket
 import ssl
 import os
@@ -92,27 +93,8 @@ class ProxyHandler(tornado.web.RequestHandler):
             except KeyError:
                 self._reason = tornado.escape.native_str("Server Not Found")
 
-    # This function is a callback after the async client gets the full response
-    # This method will be improvised with more headers from original responses
-    def handle_response(self, response):
-        if response.code in [408, 599]:
-            try:
-                old_count = self.request.retries
-                self.request.retries = old_count + 1
-            except AttributeError:
-                self.request.retries = 1
-            finally:
-                if self.request.retries < 3:
-                    self.request.response_buffer = ''
-                    self.clear()
-                    self.process_request()
-                else:
-                    self.write_response(response)
-        else:
-            self.write_response(response)
-
     # This function writes a new response & caches it
-    def write_response(self, response):
+    def finish_response(self, response):
         self.set_status(response.code)
         for header, value in list(response.headers.items()):
             if header == "Set-Cookie":
@@ -120,20 +102,6 @@ class ProxyHandler(tornado.web.RequestHandler):
             else:
                 if header not in restricted_response_headers:
                     self.set_header(header, value)
-        if self.request.response_buffer:
-            self.cache_handler.dump(response)
-        self.finish()
-
-    # This function handles a dummy response object which is created from cache
-    def write_cached_response(self, response):
-        self.set_status(response.code)
-        for header, value in response.headers.items():
-            if header == "Set-Cookie":
-                self.add_header(header, value)
-            else:
-                if header not in restricted_response_headers:
-                    self.set_header(header, value)
-        self.write(response.body)
         self.finish()
 
     # This function is a callback when a small chunk is received
@@ -142,61 +110,8 @@ class ProxyHandler(tornado.web.RequestHandler):
             self.write(data)
             self.request.response_buffer += data
 
-    # This function creates and makes the request to upstream server
-    def process_request(self):
-        # HTTP AUTH settings
-        http_auth_username = None
-        http_auth_password = None
-        http_auth_mode = None
-        host = self.request.host
-        if self.application.http_auth: #If http auth exists
-            # If default ports are not provided, they are added
-            try:
-                test = self.request.host.index(':')
-            except ValueError:
-                default_ports = {'http':'80', 'https':'443'}
-                try:
-                    host = self.request.host + ':' + default_ports[self.request.protocol]
-                except KeyError:
-                    pass
-            # Check if auth is provided for that host
-            try:
-                index = self.application.http_auth_hosts.index(host)
-                http_auth_username = self.application.http_auth_usernames[index]
-                http_auth_password = self.application.http_auth_passwords[index]
-                http_auth_mode = self.application.http_auth_modes[index]
-            except ValueError:
-                pass
-
-        # pycurl is needed for curl client
-        async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
-        # httprequest object is created and then passed to async client with a callback
-        request = tornado.httpclient.HTTPRequest(
-                url=self.request.url,
-                method=self.request.method,
-                body=self.request.body,
-                headers=self.request.headers,
-                auth_username=http_auth_username,
-                auth_password=http_auth_password,
-                auth_mode=http_auth_mode,
-                follow_redirects=False,
-                use_gzip=True,
-                streaming_callback=self.handle_data_chunk,
-                header_callback=None,
-                proxy_host=self.application.outbound_ip,
-                proxy_port=self.application.outbound_port,
-                proxy_username=self.application.outbound_username,
-                proxy_password=self.application.outbound_password,
-                allow_nonstandard_methods=True,
-                prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
-                                                            else None, # socks callback function
-                validate_cert=False)
-        try:
-            async_client.fetch(request, callback=self.handle_response)
-        except Exception:
-            pass
-
     @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def get(self):
         """
         * This function handles all requests except the connect request.
@@ -205,12 +120,6 @@ class ProxyHandler(tornado.web.RequestHandler):
         """
         # The flow starts here 
         self.request.response_buffer = ''
-        # Request header cleaning
-        for header in restricted_request_headers:
-            try:
-                del self.request.headers[header]
-            except:
-                continue
 
         # The requests that come through ssl streams are relative requests, so transparent
         # proxying is required. The following snippet decides the url that should be passed
@@ -227,11 +136,87 @@ class ProxyHandler(tornado.web.RequestHandler):
                                             self.application.cookie_regex,
                                             self.application.cookie_blacklist
                                           )
+        request_hash = yield tornado.gen.Task(self.cache_handler.calculate_hash)
         self.cached_response = self.cache_handler.load()
+
         if self.cached_response:
-            self.write_cached_response(self.cached_response)
+
+            self.write(self.cached_response.body)
+            self.finish_response(self.cached_response)
+
         else:
-            self.process_request()
+
+            # Request header cleaning
+            for header in restricted_request_headers:
+                try:
+                    del self.request.headers[header]
+                except:
+                    continue
+
+            # HTTP auth if exists
+            http_auth_username = None
+            http_auth_password = None
+            http_auth_mode = None
+            if self.application.http_auth:
+                # HTTP AUTH settings
+                host = self.request.host
+                # If default ports are not provided, they are added
+                try:
+                    test = self.request.host.index(':')
+                except ValueError:
+                    default_ports = {'http':'80', 'https':'443'}
+                    try:
+                        host = self.request.host + ':' + default_ports[self.request.protocol]
+                    except KeyError:
+                        pass
+                # Check if auth is provided for that host
+                try:
+                    index = self.application.http_auth_hosts.index(host)
+                    http_auth_username = self.application.http_auth_usernames[index]
+                    http_auth_password = self.application.http_auth_passwords[index]
+                    http_auth_mode = self.application.http_auth_modes[index]
+                except ValueError:
+                    pass
+
+            # pycurl is needed for curl client
+            async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
+            # httprequest object is created and then passed to async client with a callback
+            request = tornado.httpclient.HTTPRequest(
+                    url=self.request.url,
+                    method=self.request.method,
+                    body=self.request.body,
+                    headers=self.request.headers,
+                    auth_username=http_auth_username,
+                    auth_password=http_auth_password,
+                    auth_mode=http_auth_mode,
+                    follow_redirects=False,
+                    use_gzip=True,
+                    streaming_callback=self.handle_data_chunk,
+                    header_callback=None,
+                    proxy_host=self.application.outbound_ip,
+                    proxy_port=self.application.outbound_port,
+                    proxy_username=self.application.outbound_username,
+                    proxy_password=self.application.outbound_password,
+                    allow_nonstandard_methods=True,
+                    prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
+                                                                else None, # socks callback function
+                    validate_cert=False)
+            try:
+                response = yield tornado.gen.Task(async_client.fetch, request)
+            except Exception:
+                pass
+
+            # Request retries
+            for i in range(0,3):
+                if response.code in [408, 599]:
+                    self.request.response_buffer = ''
+                    response = yield tornado.gen.Task(async_client.fetch, request)
+                else:
+                    break
+
+            self.finish_response(response)
+            # Cache the response after finishing the response, so caching time is not included in response time
+            self.cache_handler.dump(response)
 
     # The following 5 methods can be handled through the above implementation
     @tornado.web.asynchronous
@@ -516,7 +501,6 @@ class ProxyProcess(Process):
                                                     debug=False,
                                                     gzip=True,
                                                    )
-        
         # All required variables in request handler
         # Required variables are added as attributes to application, so that request handler can access these
         self.application.Core = core
