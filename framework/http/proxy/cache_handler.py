@@ -48,27 +48,31 @@ class CacheHandler(object):
         # Initialized with the root cache directory, HTTP request object, cookie_regex, blacklist boolean
         self.request = request
         self.cache_dir = cache_dir
+        self.cookie_regex = cookie_regex
+        self.blacklist = blacklist
+
+    def calculate_hash(self, callback=None):
         # Based on blacklist boolean the cookie regex is used for filtering of cookies in request_hash
         # generation. However the original request is untampered.
         cookie_string = ''
         try:
-            if blacklist:
-                string_with_spaces = re.sub(cookie_regex, '', self.request.headers['Cookie']).strip()
+            if self.blacklist:
+                string_with_spaces = re.sub(self.cookie_regex, '', self.request.headers['Cookie']).strip()
                 cookie_string = ''.join(string_with_spaces.split(' '))
             else:
-                cookies_matrix = re.findall(cookie_regex, self.request.headers['Cookie'])
+                cookies_matrix = re.findall(self.cookie_regex, self.request.headers['Cookie'])
                 for cookie_tuple in cookies_matrix:
                     for item in cookie_tuple:
                         if item:
                             cookie_string += item.strip()
         except KeyError:
             pass
-        request_mod = request.method + request.url + request.version
-        request_mod = request_mod + request.body + cookie_string
+        request_mod = self.request.method + self.request.url + self.request.version
+        request_mod = request_mod + self.request.body + cookie_string
 
         # Websocket caching technique
         try:
-            request_mod = request_mod + request.headers["Sec-Websocket-Key"]
+            request_mod = request_mod + self.request.headers["Sec-Websocket-Key"]
         except KeyError:
             pass
 
@@ -77,6 +81,8 @@ class CacheHandler(object):
         self.request_hash = md5_hash.hexdigest()
         # This is the path to file inside url folder. This can be used for updating a html file
         self.file_path = os.path.join(self.cache_dir, 'url', self.request_hash)
+        if callback:
+            callback(self.request_hash)
 
     def create_response_object(self):
         return response_from_cache(self.request_hash, self.cache_dir)
@@ -156,18 +162,23 @@ class CacheHandler(object):
         self.file_lock = FileLock(self.file_path)
         self.file_lock.acquire()
         """
-        if os.path.isfile(self.file_path):
-            return(self.create_response_object())
-        else:
-            self.file_lock = FileLock(self.file_path)
-            self.file_lock.acquire()
-            
-            # For handling race conditions
+        try:
+            dummy = self.file_path
+        except Exception:
+            self.calculate_hash()
+        finally:
             if os.path.isfile(self.file_path):
-                self.file_lock.release()
                 return(self.create_response_object())
             else:
-                return None
+                self.file_lock = FileLock(self.file_path)
+                self.file_lock.acquire()
+                
+                # For handling race conditions
+                if os.path.isfile(self.file_path):
+                    self.file_lock.release()
+                    return(self.create_response_object())
+                else:
+                    return None
 
 class DummyObject(object):
     """
