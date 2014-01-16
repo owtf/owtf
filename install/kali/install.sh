@@ -36,8 +36,9 @@ IsInstalled() {
 
 RootDir=$1
 
-########### Pip is the foremost thing that must be installed
-sudo -E apt-get install python-pip xvfb xserver-xephyr
+########### Pip is the foremost thing that must be installed along with some needed dependencies for python libraries
+sudo -E apt-get install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev
+export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip in kali
 
 ############ Tools missing in Kali
 mkdir -p $RootDir/tools/restricted
@@ -48,11 +49,12 @@ if [ $? -eq 0 ]; then # Not installed
 fi
 "$RootDir/install/kali/kali_patch_w3af.sh"
 
-"$RootDir/install/kali/kali_patch_nikto.sh"
-"$RootDir/install/kali/kali_patch_tlssled.sh"
-
 echo "[*] Installing LBD, arachni and gnutls-bin from Kali Repos"
 sudo -E apt-get install lbd gnutls-bin arachni
+
+########## Patch scripts
+"$RootDir/install/kali/kali_patch_nikto.sh"
+"$RootDir/install/kali/kali_patch_tlssled.sh"
 
 ###### Dictionaries missing in Kali
 cd $RootDir/dictionaries/restricted
