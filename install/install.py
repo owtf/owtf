@@ -78,10 +78,26 @@ class Installer(object):
         # User asked to select distro and distro related stuff is installed
         cp = ConfigParser.ConfigParser({"RootDir":self.RootDir})
         cp.read(self.distros_cfg)
-        for i in range(0, len(cp.sections())):
-            print("(%d) %s"%(i+1, cp.sections()[i]))
-        distro_num = raw_input("Select a number based on your distribution : ")
-        self.run_command(cp.get(cp.sections()[int(distro_num)-1], "install"))
+
+        # Loop until proper input is received
+        while True:
+            print("")
+            for i in range(0, len(cp.sections())):
+                print("(%d) %s"%(i+1, cp.sections()[i]))
+            print("(0) %s"%("My distro is not listed :("))
+            distro_num = raw_input("Select a number based on your distribution : ")
+            try: # Cheking if valid input is received
+                distro_num = int(distro_num)
+                if distro_num != 0:
+                    self.run_command(cp.get(cp.sections()[int(distro_num)-1], "install"))
+                else:
+                    print("Skipping distro related installation :(")
+                break
+            except ValueError:
+                print('')
+                print("Please enter a valid number")
+                continue
+
         # Finally owtf python libraries installed using pip
         self.install_using_pip(self.owtf_pip)
 
