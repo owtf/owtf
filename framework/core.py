@@ -342,8 +342,9 @@ class Core:
                 if hasattr(self,'reporting_process'):
                     self.reporting_queue.put("done")
                     self.reporting_process.join()
-                cprint("Saving DBs before stopping messaging")
-                self.DB.SaveDBs() # So that detailed_report_register populated by reporting is saved :P
+                if hasattr(self, 'DB'):
+                    cprint("Saving DBs before stopping messaging")
+                    self.DB.SaveDBs() # So that detailed_report_register populated by reporting is saved :P
                 if hasattr(self,'messaging_admin'):
                     self.messaging_admin.finishMessaging()
                 
