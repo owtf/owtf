@@ -105,12 +105,15 @@ class ProcessManager:
     #returns next work that can be done depending on RAM state and availability of targets
     def get_task(self):
         free_mem = self.Core.Shell.shell_exec("free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
-        for target,plugin in self.worklist:
-            #check if target is being used or not because we dont want to run more than one plugin on one target at one time
-            #check if RAM can withstand this plugin(training data from history of that plugin)
-            if (not self.is_target_in_use(target)) and (int(free_mem)>int(self.Core.Config.Get('MIN_RAM_NEEDED'))):
-                self.worklist.remove((target,plugin))
-                return (target,plugin)
+        if int(free_mem) > int(self.Core.Config.Get('MIN_RAM_NEEDED')):
+            for target,plugin in self.worklist:
+                #check if target is being used or not because we dont want to run more than one plugin on one target at one time
+                #check if RAM can withstand this plugin(training data from history of that plugin)
+                if not self.is_target_in_use(target):
+                    self.worklist.remove((target,plugin))
+                    return (target,plugin)
+        else:
+            log("Not enough memory to execute a plugin")
         return ()
     
     #this function spawns the worker process and give them intitial work
@@ -123,6 +126,8 @@ class ProcessManager:
                 continue
             else:
                 break
+        if not len(self.workers):
+            self.Core.Error.FrameworkAbort("Zero worker processes created because of lack of memory")
 
     def spawn_worker(self):
         work = self.get_task()
