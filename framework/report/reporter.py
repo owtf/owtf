@@ -269,67 +269,67 @@ class Reporter:
             # style sheets, etc are only copied once at the start
             self.CopyAccessoryFiles()
             self.Init = True
-        with codecs.open(self.CCG('HTML_DETAILED_REPORT_PATH'), 'w',"utf-8") as file:
-            report_template = self.Template_env.get_template('report.html')
-            report_vars = {
-                "ReportID": "i"+ self.CCG('HOST_IP').replace(".","_") \
-                            + "p" + self.CCG('PORT_NUMBER'),
-                "ReportType" :  self.CCG('REPORT_TYPE'),
-                "Title" :  self.CCG('REPORT_TYPE') + " Report",
-                "Seed": self.Core.GetSeed(),
-                "Version": self.CCG('VERSION'),
-                "Release": self.CCG('RELEASE'),
-                "HTML_REPORT": self.CCG('HTML_REPORT'),
-                "TargetLink": self.CCG('TARGET_URL'),
-                "HostIP":  self.CCG('HOST_IP'),
-                "AlternativeIPs": self.CCG('ALTERNATIVE_IPS'),
-                "PortNumber":  self.CCG('PORT_NUMBER'),
-                "RUN_DB": self.Core.DB.GetData('RUN_DB'),
-                "PluginTypes": self.Core.Config.Plugin.GetAllGroups(),
-                "WebPluginTypes": self.Core.Config.Plugin.GetTypesForGroup('web'),
-                "AuxPluginsTypes": self.Core.Config.Plugin.GetTypesForGroup('aux'),
-                "WebTestGroups":self.Core.Config.Plugin.GetWebTestGroups(),
-                "Globals": {
-                        "AllPlugins":[
-                            self.GetPluginDivId(Match)
-                            for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE')) 
+        report_template = self.Template_env.get_template('report.html')
+        report_vars = {
+            "ReportID": "i"+ self.CCG('HOST_IP').replace(".","_") \
+                        + "p" + self.CCG('PORT_NUMBER'),
+            "ReportType" :  self.CCG('REPORT_TYPE'),
+            "Title" :  self.CCG('REPORT_TYPE') + " Report",
+            "Seed": self.Core.GetSeed(),
+            "Version": self.CCG('VERSION'),
+            "Release": self.CCG('RELEASE'),
+            "HTML_REPORT": self.CCG('HTML_REPORT'),
+            "TargetLink": self.CCG('TARGET_URL'),
+            "HostIP":  self.CCG('HOST_IP'),
+            "AlternativeIPs": self.CCG('ALTERNATIVE_IPS'),
+            "PortNumber":  self.CCG('PORT_NUMBER'),
+            "RUN_DB": self.Core.DB.GetData('RUN_DB'),
+            "PluginTypes": self.Core.Config.Plugin.GetAllGroups(),
+            "WebPluginTypes": self.Core.Config.Plugin.GetTypesForGroup('web'),
+            "AuxPluginsTypes": self.Core.Config.Plugin.GetTypesForGroup('aux'),
+            "WebTestGroups":self.Core.Config.Plugin.GetWebTestGroups(),
+            "Globals": {
+                    "AllPlugins":[
+                        self.GetPluginDivId(Match)
+                        for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE'))
+                        for Match in TestGroup['RegisteredPlugins']
+                        ],
+                    "AllCodes": list(set([
+                        Match['Code'] #eliminate repetitions,
+                         for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE'))
+                         for Match in TestGroup['RegisteredPlugins']
+                        ])),
+                    },
+                    "TestGroups": [
+                        {
+                        "TestGroupInfo": TestGroup['TestGroupInfo'],
+                        "Matches" : [
+                            {
+                            "PluginId": self.GetPluginDivId(Match),
+                            "PluginName": Match["Label"],
+                            "PluginContent": open(Match['Path']).read(),
+                            }
                             for Match in TestGroup['RegisteredPlugins']
                             ],
-                        "AllCodes": list(set([
-                            Match['Code'] #eliminate repetitions,
-                             for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE')) 
-                             for Match in TestGroup['RegisteredPlugins']
-                            ])),
-                        },
-                        "TestGroups": [
-                            {
-                            "TestGroupInfo": TestGroup['TestGroupInfo'],
-                            "Matches" : [
-                                {
-                                "PluginId": self.GetPluginDivId(Match),
-                                "PluginName": Match["Label"],
-                                "PluginContent": open(Match['Path']).read(),
-                                }
-                                for Match in TestGroup['RegisteredPlugins']
-                                ],
-                            }
-                            for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE'))
-                            ],
-                "REVIEW_OFFSET" : self.CCG('REVIEW_OFFSET'),
+                        }
+                        for TestGroup in self.GetTestGroups(self.CCG('REPORT_TYPE'))
+                        ],
+            "REVIEW_OFFSET" : self.CCG('REVIEW_OFFSET'),
 
-                    }
+                }
+        with codecs.open(self.CCG('HTML_DETAILED_REPORT_PATH'), 'w',"utf-8") as file:
             # Closing HTML Report
             file.write(report_template.render(report_vars))
-            log("Report written to: " + self.CCG('HTML_DETAILED_REPORT_PATH'))
-            # Register report
-            params_list = [ 
-                            'REVIEW_OFFSET', 
-                            'SUMMARY_HOST_IP', 
-                            'SUMMARY_PORT_NUMBER', 
-                            'HTML_DETAILED_REPORT_PATH', 
-                            'REPORT_TYPE' 
-                        ]
-            requested_params_list = self.Core.Config.GetAsList(params_list)
-            self.Core.DB.ReportRegister.Add(requested_params_list)
-            # Build summary report
-            self.Summary.ReportFinish()
+        log("Report written to: " + self.CCG('HTML_DETAILED_REPORT_PATH'))
+        # Register report
+        params_list = [
+                        'REVIEW_OFFSET',
+                        'SUMMARY_HOST_IP',
+                        'SUMMARY_PORT_NUMBER',
+                        'HTML_DETAILED_REPORT_PATH',
+                        'REPORT_TYPE'
+                    ]
+        requested_params_list = self.Core.Config.GetAsList(params_list)
+        self.Core.DB.ReportRegister.Add(requested_params_list)
+        # Build summary report
+        self.Summary.ReportFinish()
