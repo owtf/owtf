@@ -175,8 +175,9 @@ def Usage(ErrorMessage):
     print "Run only OWASP-IG-005 and OWASP-WU-VULN:             "+Main+" -o 'OWASP-IG-005,OWASP-WU-VULN' http://my.website.com"
     print "Run using my resources file and proxy:             "+Main+" -m r:/home/me/owtf_resources.cfg -x 127.0.0.1:8080 http://my.website.com"
     print ""
-    print "Run using TOR network:                    "+ Main + " -o OWTF-WVS-001 http:my.website.com --tor 127.0.0.1:9050:9051:password:1" 
-    print "\nERROR: "+ErrorMessage
+    print "Run using TOR network:                    "+ Main + " -o OWTF-WVS-001 http://my.website.com --tor 127.0.0.1:9050:9051:password:1"
+    if ErrorMessage:
+        print "\nERROR: "+ErrorMessage
     exit(-1)
 
 
@@ -291,7 +292,7 @@ def ProcessOptions(Core, user_args):
     Scope = Arg.Targets or []  # Arguments at the end are the URL target(s)
     NumTargets = len(Scope)
     if PluginGroup != 'aux' and NumTargets == 0 and not Arg.ListPlugins:
-        Usage("The scope must specify at least one target")
+        Usage("")
     elif NumTargets == 1:  # Check if this is a file
         if os.path.isfile(Scope[0]):
             cprint("Scope file: trying to load targets from it ..")
