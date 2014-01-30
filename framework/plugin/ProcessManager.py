@@ -179,7 +179,7 @@ class ProcessManager:
                     self.workers[k]["busy"] = True
 
             if not self.workers[k]["worker"].is_alive():
-                self.spawnworker()
+                self.spawn_worker()
             k = (k+1) % self.processes_limit
             time.sleep(0.05)
             

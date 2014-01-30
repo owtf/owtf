@@ -184,7 +184,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             request = tornado.httpclient.HTTPRequest(
                     url=self.request.url,
                     method=self.request.method,
-                    body=self.request.body,
+                    body=self.request.body if self.request.body else None,
                     headers=self.request.headers,
                     auth_username=http_auth_username,
                     auth_password=http_auth_password,
