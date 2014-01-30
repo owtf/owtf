@@ -31,8 +31,15 @@ PASSIVE Plugin for Testing for Application Discovery (OWASP-IG-005)
 DESCRIPTION = "Third party discovery resources"
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-#	Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('PassiveApplicationDiscoveryCmd'), PluginInfo)
-	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveAppDiscovery'))
-	return Content
-
+        # Core.Config.Show()
+        # Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('PassiveApplicationDiscoveryCmd'), PluginInfo)
+        # Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveAppDiscovery'))
+        Content = Core.PluginHelper.DrawTabbedResourceLinkList([
+                                                                ['DNS',Core.Config.GetResources('PassiveAppDiscoveryDNS')],
+                                                                ['WHOIS',Core.Config.GetResources('PassiveAppDiscoveryWHOIS')],
+                                                                ['DB Lookups',Core.Config.GetResources('PassiveAppDiscoveryDbLookup')],
+                                                                ['Ping',Core.Config.GetResources('PassiveAppDiscoveryPing')],
+                                                                ['Traceroute',Core.Config.GetResources('PassiveAppDiscoveryTraceroute')],
+                                                                ['Misc',Core.Config.GetResources('PassiveAppDiscoveryMisc')]
+                                                               ])
+        return Content
