@@ -108,6 +108,47 @@ class PluginHelper:
                 """ )
                 return template.render( ResourceListName = ResourceListName, ResourceList = ResourceList )
 
+        def DrawTabbedResourceLinkList(self, ResourcesList):
+            # ResourceList = ["ResourceListName":[["Name1","Resource1"],["Name2","Resource2"]]]
+            template = Template("""
+                <div class="well well-small">
+                    <ul class="nav nav-tabs">
+                    {% for TabName, TabID in TabData %}
+                        <li><a href="#{{ TabID }}" data-toggle="tab">{{ TabName }}</a></li>
+                    {% endfor %}
+                    </ul>
+                     
+                    <div class="tab-content">
+                    {% for TabID, ResourceList in Resources %}
+                     <div class="tab-pane" id="{{ TabID }}">
+                         <div class="well well-small">
+                         ( <a href="#" onclick="$(this).parent().find('a[target]').trigger('click');"> Open all </a> ):
+
+                             <ul class="icons-ul">
+                             {% for Name, Resource in ResourceList %}
+                                 <li>
+                                     <i class="icon-li icon-chevron-sign-right"></i>
+                                     <a href="{{ Resource|e }}" onclick="window.open(this.href); return false;" target="_blank">
+                                        {{ Name }}
+                                     </a>
+                                 </li>
+                             {% endfor %}
+                             </ul>
+                         </div>
+                     </div>
+                    {% endfor %}
+                    </div>
+                </div>""")
+            vars = {
+                    "TabData": [],
+                    "Resources": []
+                   }
+            for ResourceListName, Resources in ResourcesList:
+                TabID = ResourceListName.replace(' ','_')
+                vars["TabData"].append([ResourceListName, TabID])
+                vars["Resources"].append([TabID, Resources])
+            return template.render(vars)
+
         def DrawListPostProcessing( self, ResourceListName, LinkList, HTMLLinkList ):
                 template = Template( """
                 <div class="well well-small">
@@ -259,7 +300,7 @@ class PluginHelper:
 
                 }
 
-                return template.render()
+                return template.render(vars)
 
         def SetConfigPluginOutputDir( self, PluginInfo ):
                 PluginOutputDir = self.Core.PluginHandler.GetPluginOutputDir( PluginInfo )
