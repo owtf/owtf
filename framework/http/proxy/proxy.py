@@ -141,7 +141,8 @@ class ProxyHandler(tornado.web.RequestHandler):
 
         if self.cached_response:
 
-            self.write(self.cached_response.body)
+            if self.cached_response.body:
+                self.write(self.cached_response.body)
             self.finish_response(self.cached_response)
 
         else:
@@ -594,6 +595,7 @@ class ProxyProcess(Process):
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
             tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix="+self.application.Core.Config.Get("PROXY_LOG"),"--logging=info"])
+            # tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/proxy.log","--logging=info"])
             # To run any number of instances
             self.server.start(int(self.instances))
             tornado.ioloop.IOLoop.instance().start()
