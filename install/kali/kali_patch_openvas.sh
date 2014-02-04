@@ -21,6 +21,8 @@ $dir/../../install/kali/set_config_openvas.sh
 
 dir1="$dir/../../profiles/general/default.cfg"
 port=$(grep OPENVAS_GSAD_PORT $dir1 | cut -f2 -d' ')
+pkill -9 gsad
+sleep 1
 gsad --http-only --listen=127.0.0.1 -p $port
 sleep 2
 
