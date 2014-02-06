@@ -1,4 +1,10 @@
 #!/bin/bash
+. $(pwd)/../../install/kali/openvas_init.sh
+
+echo
+echo "Installing OpenVAS, this may take a while, please be patient.."
+echo
+
 sudo apt-get install openvas
 test -e /var/lib/openvas/CA/cacert.pem || openvas-mkcert -f
 openvas-nvt-sync
@@ -13,30 +19,27 @@ sleep 15
 openvassd
 openvasmd
 openvasad
+echo
 
-dir=$(pwd)
+. $CUR_DIR/../../install/kali/set_config_openvas.sh
 
-$dir/../../install/kali/set_config_openvas.sh
-
-
-dir1="$dir/../../profiles/general/default.cfg"
-port=$(grep OPENVAS_GSAD_PORT $dir1 | cut -f2 -d' ')
 pkill -9 gsad
 sleep 1
 gsad --http-only --listen=127.0.0.1 -p $port
 sleep 2
 
-passwd=$(grep OPENVAS_PASS $dir1 | cut -f2 -d' ')
-
-if [ -d "/var/lib/openvas/users/admin" ]; then 
-  openvasad -c remove_user -n admin
+if ([[ "$choice_passwd_change" = "y" ]] || [[ -z $choice_passwd_change ]])
+then
+  if [ -d "/var/lib/openvas/users/admin" ]; then 
+     openvasad -c remove_user -n admin
+  fi
+  passwd=$passwd expect -c 'log_user 0 
+  spawn openvasad -c add_user -n admin -r Admin
+  sleep 1
+  expect "Enter password:" 
+  send "$env(passwd)\n"
+  sleep 1 '
 fi
-
-passwd=$passwd expect -c 'log_user 0 
-spawn openvasad -c add_user -n admin -r Admin
-sleep 1
-expect "Enter password:" 
-send "$env(passwd)\n"
-sleep 1 '
-
+echo
+echo "OpenVAS installed and configured !"
 echo
