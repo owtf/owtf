@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-. $(pwd)/../../../../../../../scripts/openvas/openvas_init.sh
+OWTF_RootDir=$1
+. $OWTF_RootDir/scripts/openvas/openvas_init.sh $OWTF_RootDir
 
-PORT=$(get_service_port "openvas")
+OWTF_OPENVAS_PORT=$(get_service_port "openvas")
 
 #Port-check doesn't always work as openvassd is sometimes the single process running (without openvasmd and openvasad)
 #same thing happens for gsad, so it is better to check for each one
 
-if [ "$PORT" = "" ]; then
+if [ "$OWTF_OPENVAS_PORT" = "" ]; then
         pkill -9 gsad
         sleep 1
         echo "Starting OpenVas Services (Loading plugins may take time,please be patient !)"
@@ -23,7 +24,7 @@ if [ "$PORT" = "" ]; then
         sleep 1
         openvasad
         sleep 2
-        gsad --http-only --listen=127.0.0.1 -p $PGSAD
+        gsad --http-only --listen=$OWTF_GSAD_IP -p $OWTF_PGSAD
         sleep 10
 else 
      if [ "$(get_service_port "openvassd")" = ""  ]; then 
@@ -40,7 +41,7 @@ else
      fi
      if [ "$(get_service_port "gsad")" = "" ];then
         
-        gsad --http-only --listen=127.0.0.1 -p $PGSAD
+        gsad --http-only --listen=$OWTF_GSAD_IP -p $OWTF_PGSAD
         sleep 5
      fi
      

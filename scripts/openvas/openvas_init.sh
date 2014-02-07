@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 
-CUR_DIR=$(pwd) # Remember current dir
-OWTF_DIR="$CUR_DIR/../../../../../../../"
-CONFIG_FILE="$OWTF_DIR/profiles/general/default.cfg"
+
+
+OWTF_RootDir=$1
+OWTF_CONFIG_FILE="$OWTF_RootDir/profiles/general/default.cfg"
 HTML_FORMAT_ID="6c248850-1f62-11e1-b082-406186ea4fc5"
 
 
 
 get_config_setting(){
-  grep $1 $CONFIG_FILE | cut -f2 -d' '
+  grep $1 $OWTF_CONFIG_FILE | cut -f2 -d' '
 }
 
 get_progress_status(){
@@ -20,22 +21,28 @@ get_service_port(){
 }
 
 update_config_setting(){
-  echo "$1: "$2>> $CONFIG_FILE 
+  echo "$1: "$2>> $OWTF_CONFIG_FILE 
   
 }
 
-CONFIG_ID=$(get_config_setting "OPENVAS_CONFIG_ID")
-PGSAD=$(get_config_setting "OPENVAS_GSAD_PORT")
+OWTF_CONFIG_ID=$(get_config_setting "OPENVAS_CONFIG_ID")
+OWTF_PGSAD=$(get_config_setting "OPENVAS_GSAD_PORT")
+OWTF_GSAD_IP=$(get_config_setting "OPENVAS_GSAD_IP")
 
-
-if [[ "$CONFIG_ID" = "" ]]
+if [[ "$OWTF_CONFIG_ID" = "" ]]
 then
- CONFIG_ID="daba56c8-73ec-11df-a475-002264764cea"
- update_config_setting "OPENVAS_CONFIG_ID" "$CONFIG_ID"
+ OWTF_CONFIG_ID="daba56c8-73ec-11df-a475-002264764cea"
+ update_config_setting "OPENVAS_CONFIG_ID" "$OWTF_CONFIG_ID"
 fi
 
-if [[ "$PGSAD" = "" ]]
+if [[ "$OWTF_PGSAD" = "" ]]
 then
- PGSAD="9392"
- update_config_setting "OPENVAS_GSAD_PORT" "$PGSAD"
+ OWTF_PGSAD="9392"
+ update_config_setting "OPENVAS_GSAD_PORT" "$OWTF_PGSAD"
+fi
+
+if [[ "$OWTF_GSAD_IP" = "" ]]
+then
+  OWTF_GSAD_IP="127.0.0.1"
+  update_config_setting "OPENVAS_GSAD_IP" "127.0.0.1"
 fi
