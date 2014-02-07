@@ -28,9 +28,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-. $(pwd)/../../../../../../../scripts/openvas/openvas_init.sh
-
 URL=$1
+
+OWTF_RootDir=$2
+
+. $OWTF_RootDir/scripts/openvas/openvas_init.sh "$OWTF_RootDir"
+
+
 
 CLEAN_URL=$(echo $URL |sed -e 's/^http:\/\///g' -e 's/^https:\/\///g')
 
@@ -40,14 +44,14 @@ OUTFILE="OpenVAS_Main_Report_$DATE"
 
 echo
 
-$OWTF_DIR/scripts/openvas/openvas_quick_check.sh 
+$OWTF_RootDir/scripts/openvas/openvas_quick_check.sh $OWTF_RootDir
 
-passwd=$(get_config_setting "OPENVAS_PASS")
+OWTF_OPENVAS_PASSWD=$(get_config_setting "OPENVAS_PASS")
 
-if [[ "$passwd" = "" ]]
+if [[ "$OWTF_OPENVAS_PASSWD" = "" ]]
 then 
-  $OWTF_DIR/scripts/openvas/generate_pass_openvas.sh 
-  passwd=$(get_config_setting "OPENVAS_PASS")
+  $OWTF_RootDir/scripts/openvas/generate_pass_openvas.sh $OWTF_RootDir
+  OWTF_OPENVAS_PASSWD=$(get_config_setting "OPENVAS_PASS")
 fi
 
 
@@ -56,7 +60,7 @@ echo "Runnig OpenVAS Plugin.."
 echo  ""
 
 #Creating target
-TARGET_ID=$(omp -u admin -w $passwd -iX '<create_target><name>'OWTF_Target_$CLEAN_URL'</name><hosts>'$CLEAN_URL'</hosts></create_target>'  | sed 's/  *//g'|cut -f2 -d'"')
+TARGET_ID=$(omp -u admin -w $OWTF_OPENVAS_PASSWD -iX '<create_target><name>'OWTF_Target_$CLEAN_URL'</name><hosts>'$CLEAN_URL'</hosts></create_target>'  | sed 's/  *//g'|cut -f2 -d'"')
   
 if [[ $TARGET_ID = *Targetexistsalready* ]]; then
   echo -e "Target already exists\nExiting from OpenVAS.."
@@ -83,8 +87,8 @@ echo "###--------------Target Created : OWTF_Target_$CLEAN_URL..."
 
 #Task creation
 
-TASK_ID=$(omp -u admin -w $passwd --xml="<create_task><name>OWTF_Task_$CLEAN_URL</name>
-                                       <config id=\"$CONFIG_ID\"/>
+TASK_ID=$(omp -u admin -w $OWTF_OPENVAS_PASSWD --xml="<create_task><name>OWTF_Task_$CLEAN_URL</name>
+                                       <config id=\"$OWTF_CONFIG_ID\"/>
                                        <target id=\"$TARGET_ID\"/>
                     </create_task>" |  sed 's/  *//g'|cut -f2 -d'"')
 
@@ -93,7 +97,7 @@ echo "###--------------Task Created : OWTF_Task_$CLEAN_URL..."
 
 #getting report id
 
-REPORT_ID=$(omp -u admin -w $passwd --xml="<start_task task_id=\"$TASK_ID\"/>" | sed 's/  *//g'|cut -f3 -d'>' |cut -f1 -d'<')
+REPORT_ID=$(omp -u admin -w $OWTF_OPENVAS_PASSWD --xml="<start_task task_id=\"$TASK_ID\"/>" | sed 's/  *//g'|cut -f3 -d'>' |cut -f1 -d'<')
 
 echo "###-------------------------------------------------------------------###"
 echo "###--------------Task Started-----------------------------------------###"
@@ -107,15 +111,15 @@ echo -e "\n"
 
 
 
-STATUS=$(get_progress_status $passwd $TASK_ID)
+STATUS=$(get_progress_status $OWTF_OPENVAS_PASSWD $TASK_ID)
 
 echo "In Progress...Hang tight !!"
-echo "(You can check your status of progress by going to http://127.0.0.1:$PGSAD and logging in
+echo "(You can check your status of progress by going to http://$OWTF_GSAD_IP:$OWTF_PGSAD and logging in
 with the username 'admin' and the password and then going to tasks tab in scan management)".
 while [[ $STATUS != *Done* ]]
 do
    sleep 1 
-   STATUS=$(get_progress_status $passwd $TASK_ID)
+   STATUS=$(get_progress_status $OWTF_OPENVAS_PASSWD $TASK_ID)
    if [[ $STATUS = *Stopped* ]];then
      break
    fi
@@ -123,7 +127,7 @@ done
 
 #deleting the task
 
-omp -u admin -w $passwd --delete-task $TASK_ID
+omp -u admin -w $OWTF_OPENVAS_PASSWD --delete-task $TASK_ID
 
 echo -e "\n"
 echo -n "###------------------Done !-------------------------------------------###"
@@ -133,11 +137,11 @@ echo "###--------------Status Check Complete--------------------------------###"
 echo "###-------------------------------------------------------------------###"
 
 
-echo "###--------------Creating report in $DIR"...
+echo "###--------------Creating report in $(pwd)"...
 
 #get report
 
-omp -u admin -w $passwd --get-report $REPORT_ID  --format $HTML_FORMAT_ID  > $OUTFILE.html
+omp -u admin -w $OWTF_OPENVAS_PASSWD --get-report $REPORT_ID  --format $HTML_FORMAT_ID  > $OUTFILE.html
 
 echo "###-------------------------------------------------------------------###"
 echo "###--------------Report Generated-------------------------------------###"
