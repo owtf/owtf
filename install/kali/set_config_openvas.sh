@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
+OWTF_RootDir=$1
+. $OWTF_RootDir/install/kali/openvas_init.sh "$OWTF_RootDir"
 
-. $(pwd)/../../install/kali/openvas_init.sh
-
-if [[ "$port" = "" ]]
+if [[ "$OWTF_PGSAD" = "" ]]
 then
-  port=9392
+  OWTF_PGSAD=9392
   update_config_setting "OPENVAS_GSAD_PORT" "9392"
 fi
 
+if [[ "$OWTF_GSAD_IP" = "" ]]
+then
+  OWTF_GSAD_IP="127.0.0.1"
+  update_config_setting "OPENVAS_GSAD_IP" "9392"
+fi
+
 choice_passwd_change="n"
-if [[ "$passwd" = "" ]]
+if [[ "$OWTF_OPENVAS_PASSWD" = "" ]]
 then
   choice="y"
 else
@@ -20,15 +26,15 @@ fi
 
 if  ([[ $choice = "y" ]]  || [[ $choice = "Y" ]] || [[ -z $choice ]])
 then
-  read -s -p "Enter password for admin ( cannot be blank ) : `echo  $'\n '`Password :" passwd
-  update_config_setting "OPENVAS_PASS" "$passwd"
+  read -s -p "Enter password for admin ( cannot be blank ) : `echo  $'\n '`Password :" OWTF_OPENVAS_PASSWD
+  update_config_setting "OPENVAS_PASS" "$OWTF_OPENVAS_PASSWD"
   choice_passwd_change="y"
 fi
 
 echo
 echo
 
-if [[ "$config_id" = "" ]]
+if [[ "$OWTF_CONFIG_ID" = "" ]]
 then 
  choice="y"
 else
@@ -47,21 +53,21 @@ then
     flag=0
     if  ([[ $config_choice = "1" ]]  || [[ -z $config_choice ]])
     then 
-       configid="daba56c8-73ec-11df-a475-002264764cea"
+       OWTF_CONFIG_ID="daba56c8-73ec-11df-a475-002264764cea"
     elif [[ $config_choice = "2" ]]
     then
-       configid="698f691e-7489-11df-9d8c-002264764cea"
+       OWTF_CONFIG_ID="698f691e-7489-11df-9d8c-002264764cea"
     elif [[ $config_choice = "3" ]]
     then
-       configid="708f25c4-7489-11df-8094-002264764cea"
+       OWTF_CONFIG_ID="708f25c4-7489-11df-8094-002264764cea"
     elif [[ $config_choice = "4" ]]
     then
-       configid="74db13d6-7489-11df-91b9-002264764cea"
+       OWTF_CONFIG_ID="74db13d6-7489-11df-91b9-002264764cea"
     else 
        flag=1
     fi
   done
-  update_config_setting "OPENVAS_CONFIG_ID" "$configid"
+  update_config_setting "OPENVAS_CONFIG_ID" "$OWTF_CONFIG_ID"
 fi
 
 
