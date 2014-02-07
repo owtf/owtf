@@ -236,6 +236,10 @@ class TransactionManager:
                 Regexp = "("+"|".join(HeaderList)+"): "
                 return self.GrepForPartialLinks(Regexp, self.Core.Config.Get('TRANSACTION_LOG_RESPONSE_HEADERS')+self.GetScopePrefix()+"*")
 
+        def GrepResponseHeadersRegexp(self, HeadersRegexp):
+                GrepLocation = self.Core.Config.Get('TRANSACTION_LOG_RESPONSE_HEADERS')+self.GetScopePrefix()+"*"
+                return self.GrepUsingRegexp(HeadersRegexp, GrepLocation)
+
         def GrepForPartialLinks(self, Regexp, Location): # Returns file: line_match pairs with the file portion ready for partial links
                 # Format output to link to link to full transactions:
                 #Command = 'grep -HiE "'+Regexp+'" '+Location+" | sed -e 's|"+self.Core.Config.Get('HOST_OUTPUT')+"||g' -e 's|/response_headers/|/|g'"
@@ -255,8 +259,11 @@ class TransactionManager:
                 return self.GrepForPartialLinks(ResponseRegexp, GrepLocation)
 
         def GrepMultiLineResponseRegexp(self, ResponseRegexp):
-                Regexps = ResponseRegexp.split('_____')
                 GrepLocation = self.Core.Config.Get('TRANSACTION_LOG_RESPONSE_BODIES')+self.GetScopePrefix()+"*"
+                return self.GrepUsingRegexp(ResponseRegexp, GrepLocation)
+
+        def GrepUsingRegexp(self, Regexp, GrepLocation):
+                Regexps = Regexp.split('_____')
                 if len(Regexps) == 3: # Multi-line, 2-pass retrieval 
                         RegexpName, GrepRegexp, PythonRegexp = Regexps
                         #print "PythonRegexp="+PythonRegexp
@@ -270,4 +277,4 @@ class TransactionManager:
                                                 Matches.append( [ ID, FileMatch ] ) # We only need the IDs, All paths retrieved from it
                         return [ Command, RegexpName, Matches ] # Return All matches and the file they were retrieved from
                 else: # wtf?
-                        raise PluginAbortException("ERROR: Inforrect Configuration setting for Response Regexp: '"+str(ResponseRegexp)+"'")
+                        raise PluginAbortException("ERROR: Inforrect Configuration setting for Response Regexp: '"+str(Regexp)+"'")
