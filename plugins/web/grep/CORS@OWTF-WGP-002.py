@@ -38,4 +38,6 @@ def run(Core, PluginInfo):
 	#Core.Config.Show()
 	Content = "This plugin looks for HTML 5 Cross Origin Resource Sharing (CORS) headers<br />"
 	AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = Core.PluginHelper.ResearchHeaders(Core.Config.GetHeaderList('HEADERS_FOR_CORS'))
-	return Content + HeaderTable 
+	Content += HeaderTable
+        Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexp(Core.Config.Get('HEADERS_REGEXP_FOR_CORS_METHODS'), PluginInfo)
+        return Content

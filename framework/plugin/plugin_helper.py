@@ -635,6 +635,14 @@ class PluginHelper:
                                 }
                 return SummaryTable.render(vars)
 
+        def FindResponseHeaderMatchesForRegexp(self, HeaderRegexp, PluginInfo):
+                return self.DrawResponseMatchesTables(self.Core.DB.Transaction.GrepResponseHeadersRegexp(HeaderRegexp), PluginInfo)
+
+        def FindResponseHeaderMatchesForRegexps(self, HeaderRegexpList, PluginInfo):
+                Result = ""
+                for HeaderRegexp in HeaderRegexpList:
+                        Result += self.FindResponseHeaderMatchesForRegexp(HeaderRegexp, PluginInfo)
+                return Result
 
         def FindMultilineResponseMatchesForRegexp( self, ResponseRegexp, PluginInfo ):
                 return self.DrawResponseMatchesTables( self.Core.DB.Transaction.GrepMultiLineResponseRegexp( ResponseRegexp ), PluginInfo )
