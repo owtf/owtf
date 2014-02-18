@@ -34,6 +34,5 @@ def run(Core, PluginInfo):
 	#Core.Config.Show()
 	Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('PassiveSearchEngineDiscoveryCmd'), PluginInfo, "") # No previous output
 	Content += Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveSearchEngineDiscoveryLnk'))
-        Content += Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveSSIDiscoveryLnk'))
 	return Content
 
