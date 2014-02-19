@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Plugin for openvas service
 """
 
-DESCRIPTION = " Openvas Scan "
+DESCRIPTION = " Vunerability Scanning with OpenVAS tool "
 
 def run(Core, PluginInfo):
         Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('Openvas_Unauth'), PluginInfo, "") # No previous output
