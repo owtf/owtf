@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 OWTF_RootDir=$1
 . $OWTF_RootDir/install/kali/openvas_init.sh "$OWTF_RootDir"
 
