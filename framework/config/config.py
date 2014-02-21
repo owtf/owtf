@@ -350,6 +350,7 @@ class Config:
         self.Set('IMAGE_URLS_DB', DBPath+'image_urls.txt') # URLs for images
         self.Set('FUZZABLE_URLS_DB', DBPath+'fuzzable_urls.txt') # Potentially fuzzable URLs
         self.Set('EXTERNAL_URLS_DB', DBPath+'external_urls.txt') # Out of scope URLs
+        self.Set('SSI_URLS_DB', DBPath+'ssi_urls.txt') # SSI  URLs
 
         self.Set('POTENTIAL_ALL_URLS_DB', DBPath+'potential_urls.txt') # All seen URLs
         # POTENTIAL_ERROR_URLS is never used in the DB but helps simplify the code (vetted urls more similar to potential urls)
@@ -358,6 +359,7 @@ class Config:
         self.Set('POTENTIAL_IMAGE_URLS_DB', DBPath+'potential_image_urls.txt') # URLs for images 
         self.Set('POTENTIAL_FUZZABLE_URLS_DB', DBPath+'potential_fuzzable_urls.txt') # Potentially fuzzable URLs
         self.Set('POTENTIAL_EXTERNAL_URLS_DB', DBPath+'potential_external_urls.txt') # Out of scope URLs
+        self.Set('POTENTIAL_SSI_URLS_DB', DBPath+'potential_ssi_urls.txt') # SSI URLs
 
     def DeriveConfigFromURL(self, TargetURL,Options): # Basic configuration tweaks to make things simpler for the plugins
         self.DeriveURLSettings(TargetURL,Options)
