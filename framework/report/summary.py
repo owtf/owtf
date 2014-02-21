@@ -134,6 +134,7 @@ class Summary:
 											"Image_URLs_link":  self.Core.Config.Get( 'IMAGE_URLS_DB' ),
 											"Error_URLs_link": self.Core.Config.Get( 'ERROR_URLS_DB' ),
 											"External_URLs_link":  self.Core.Config.Get( 'EXTERNAL_URLS_DB' ),
+											"SSI_URLs_link":  self.Core.Config.Get( 'SSI_URLS_DB' ),
 										},
 								"Urls_Potential":  {
 										    "All_URLs_link": self.Core.Config.Get( 'POTENTIAL_ALL_URLS_DB' ),
@@ -142,6 +143,7 @@ class Summary:
 											"Image_URLs_link":  self.Core.Config.Get( 'POTENTIAL_IMAGE_URLS_DB' ),
 											"Error_URLs_link": self.Core.Config.Get( 'POTENTIAL_ERROR_URLS_DB' ),
 											"External_URLs_link":  self.Core.Config.Get( 'POTENTIAL_EXTERNAL_URLS_DB' ),
+											"SSI_URLs_link":  self.Core.Config.Get( 'POTENTIAL_SSI_URLS_DB' ),
 										}
 							})
 			self.CountPluginsFinished( ReviewOffset )
