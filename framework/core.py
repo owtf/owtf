@@ -303,6 +303,13 @@ class Core:
             return False
         return True # Scan was successful
 
+    def ReportErrorsToGithub(self):
+        info = raw_input("Do you want to add any extra info to the bug report ? [Just press Enter to skip]\n> ")
+        if self.Error.AddGithubIssue(Info=info):
+            cprint("Github issue added, Thanks for reporting!!")
+        else:
+            cprint("Unable to add github issue, but thanks for trying :D")
+
     def Finish(self, Status = 'Complete', Report = True):
         if self.TOR_process != None:
             self.TOR_process.terminate()
@@ -325,7 +332,7 @@ class Core:
                     #self.Config.SetTarget(PreviousTarget) # Restore previous target
                 cprint("OWTF iteration finished")
                 if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
-                    cprint("Please report the sanitised errors saved to "+self.Config.Get('ERROR_DB'))
+                    cprint('Errors saved to ' + self.Config.Get('ERROR_DB') + '.  Please report as github issues')
                 #self.dbHandlerProcess.join()    
             except AttributeError: # DB not instantiated yet!
                 cprint("OWTF finished: No time to report anything! :P")
