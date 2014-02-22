@@ -176,7 +176,11 @@ class DB:
     
     def ErrorCount(self):
         arguments={'function':'ErrorCount','arguments':[]}
-        return db_pull(arguments,"pull")
+        return db_pull(arguments)
+
+    def ErrorData(self):
+        arguments={'function':'ErrorData','arguments':[]}
+        return db_pull(arguments)
     
     #callback function which calls DB functions and is invoked by messaging server
     def db_callback_function(self,data,response_type):

@@ -38,7 +38,7 @@ function_list['push']= {'Add':{3},'ModifyRecord':{4},'IncreaseSync':{2},'CalcSyn
         ,'SaveDBs':{0},'SaveDBLine':{3},'AddError':{1}}
 function_list['pull'] = {'GetPath':{1},'Get':{2},'GetData':{2},'GetRecord':{3},'GetRecordAsMatch':{2},
                  'Search':{4},'GetSyncCount':{2},'GetLength':{2},'IsEmpty':{2},'GetDBNames':{0},'GetNextHTMLID':{0}
-                 ,'ErrorCount':{0},'GetSeed':{0}}
+                 ,'ErrorCount':{0},'ErrorData':{0},'GetSeed':{0}}
 
     #check if function is valid or not
 def is_valid(function_name,arguments,response_type):

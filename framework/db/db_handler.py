@@ -241,3 +241,6 @@ Record="""+str(Record)+"""
 
     def ErrorCount(self):
         return self.GetLength('ERROR_DB') # Counts error lines but we only want to know if there has been a framework error or not
+
+    def ErrorData(self):
+        return self.GetData('ERROR_DB')
