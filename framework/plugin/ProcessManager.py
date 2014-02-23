@@ -73,7 +73,10 @@ class Worker(multiprocessing.Process):
             pluginGroup = plugin['Group']
             pluginDir = self.Core.PluginHandler.GetPluginGroupDir(pluginGroup)
             self.Core.PluginHandler.SwitchToTarget(target)
-            self.Core.PluginHandler.ProcessPlugin(pluginDir, plugin, self.status)
+	    if pluginDir and plugin and self.status :
+	            self.Core.PluginHandler.ProcessPlugin(pluginDir, plugin, self.status)
+	    else :
+	    	    print("You failed to pass one or more parameter. Try ./owtf.py -h")
             self.output_status = True
 
 class ProcessManager:
