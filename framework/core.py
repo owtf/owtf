@@ -35,6 +35,8 @@ from framework.config import config
 from framework.db import db
 from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
+from framework.http.proxy import proxy_manager
+from framework.http.proxy.outbound_proxyminer import Proxy_Miner
 from framework.lib.general import *
 from framework.plugin import plugin_handler, plugin_helper, plugin_params
 from framework.protocols import smtp, smb
@@ -55,6 +57,8 @@ import subprocess
 from framework import random
 from framework.lib.messaging import messaging_admin
 from framework.report.reporting_process import reporting_process
+from framework.http.proxy.proxy_manager import Proxy_manager, Proxy_Checker
+from multiprocessing import Process, Queue
 
 class Core:
     def __init__(self, RootDir, OwtfPid):
@@ -91,7 +95,7 @@ class Core:
     #wrapper to log function
     def log(self,*args):
         log(*args)
-        
+
     def IsInScopeURL(self, URL): # To avoid following links to other domains
         ParsedURL = urlparse(URL)
         #URLHostName = URL.split("/")[2]
@@ -143,7 +147,7 @@ class Core:
             if ip:
                 Command = Command.replace(ip, 'xxx.xxx.xxx.xxx')
         return Command
-    
+
     def start_reporter(self):
         """
         This function starts the reporting process
@@ -151,24 +155,77 @@ class Core:
         self.reporting = reporting_process()
         self.reporting_queue = multiprocessing.Queue()
         self.reporting_process = multiprocessing.Process(target=self.reporting.start, args=(self,60,self.reporting_queue))
-        self.reporting_process.start()        
-        
+        self.reporting_process.start()
+
     def Start_TOR_Mode(self, Options):
         if Options['TOR_mode'] != None:
             if Options['TOR_mode'][0] != "help":
                 if tor_manager.TOR_manager.is_tor_running():
                     self.TOR_process = tor_manager.TOR_manager(self, Options['TOR_mode'])
                     self.TOR_process = self.TOR_process.Run()
-                else:                    
+                else:
                     tor_manager.TOR_manager.msg_start_tor(self)
                     tor_manager.TOR_manager.msg_configure_tor(self)
                     self.Error.FrameworkAbort("TOR Daemon is not running")
             else:
                 tor_manager.TOR_manager.msg_configure_tor()
                 self.Error.FrameworkAbort("Configuration help is running")
+
+    def StartBotnetMode(self, Options):
+        self.Proxy_manager = None
+        if Options['Botnet_mode'] != None:
+            self.Proxy_manager = proxy_manager.Proxy_manager()
+            answer = "Yes"
+            proxies = []
+            if Options['Botnet_mode'][0] == "miner":
+                miner = Proxy_Miner()
+                proxies = miner.start_miner()
+
+            if Options['Botnet_mode'][0] == "list":  # load proxies from list
+                proxies = self.Proxy_manager.load_proxy_list(Options['Botnet_mode'][1])
+                answer = raw_input("[#] Do you want to check the proxy list? [Yes/no] : ")
+
+            if answer.upper() in ["", "YES", "Y"]:
+                proxy_q = Queue()
+                proxy_checker = Process(
+                                        target=Proxy_Checker.check_proxies,
+                                        args=(proxy_q, proxies,)
+                                        )
+                cprint("Checking Proxies...")
+                #cprint("Start Time: " + time.strftime('%H:%M:%S', time.localtime(time.time())))
+                start_time = time.time()
+                proxy_checker.start()
+                proxies = proxy_q.get()
+                proxy_checker.join()
+
+            self.Proxy_manager.proxies = proxies
+            self.Proxy_manager.number_of_proxies = len(proxies)
+
+            if Options['Botnet_mode'][0] == "miner":
+                print "Writing Proxies to disk(~/.owtf/proxy_miner/proxies.txt)"
+                miner.export_proxies_to_file("proxies.txt", proxies)
+                cprint("Check Time: " +\
+                        time.strftime('%H:%M:%S',
+                            time.localtime(time.time() - start_time - 3600)
+                                      )
+                       )
+                cprint("Done")
+
+            proxy = self.Proxy_manager.get_next_available_proxy()
+
+            #check proxy var... http:// sock://
+            Options['OutboundProxy'] = []
+            Options['OutboundProxy'].append(proxy[0])
+            Options['OutboundProxy'].append(proxy[1])
                 
-    
-        
+                #start running and recheck proxies
+        #OutboundProxy': ['http', '10.10.10.10', '8080']
+        #Options["OutboundProxy"]=['http', '10.10.10.10', '8080']
+        #print Options
+        #time.sleep(21)
+        #self.Error.FrameworkAbort("Testing Run")
+
+
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
         if not self.Config.Get('SIMULATION'):
@@ -189,7 +246,7 @@ class Core:
             if Options["Interactive"]:
                 raw_input()
         else:
-            self.Requester = requester.Requester(self, Options['OutboundProxy'])        
+            self.Requester = requester.Requester(self, Options['OutboundProxy'])
     
     def outputfunc(self,q):
         """
@@ -220,10 +277,9 @@ class Core:
                     sys.stdout.write(t)
                     t=""
                 except:
-                    pass    
-                                                    
-                                
-        
+                    pass
+
+
     def initlogger(self):
         """
             This function init two logger one for output in log file and stdout
@@ -276,6 +332,7 @@ class Core:
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
         else: # Reporter process is not needed unless a real run
             self.start_reporter()
+        self.StartBotnetMode(Options)#starting only if the Options are setted
         self.StartProxy(Options) # Proxy mode is started in that function
         self.Start_TOR_Mode(Options)# TOR mode will start only if the Options are set
         # Proxy Check

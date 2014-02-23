@@ -96,6 +96,10 @@ def GetArgs(Core, args):
                         dest="TOR_mode",
                         default=None,
                         help="ip:port:tor_control_port:password:IP_renew_time - Sends all OWTF requests through the TOR network. For configuration help run -T help.")
+    Parser.add_argument("-b", "--botnet-mode",
+                        dest="Botnet_mode",
+                        default=None,
+                        help="miner or list:path_of_list - Sends all OWTF requests throw different proxies which can be mined or loaded by a list file.")   
     Parser.add_argument("-s", "--simulation",
                         dest="Simulation",
                         action='store_true',
@@ -176,8 +180,12 @@ def Usage(ErrorMessage):
     print "Run using my resources file and proxy:             "+Main+" -m r:/home/me/owtf_resources.cfg -x 127.0.0.1:8080 http://my.website.com"
     print ""
     print "Run using TOR network:                    "+ Main + " -o OWTF-WVS-001 http://my.website.com --tor 127.0.0.1:9050:9051:password:1"
+    print ""
+    print "Run Botnet-mode using miner:                    " + Main + " -o OWTF-WVS-001 http://my.website.com -b miner"
+    print ""
+    print "Run Botnet-mode using custom proxy list:                    " + Main + " -o OWTF-WVS-001 http://my.website.com -b list:proxy_list_path.txt"
     if ErrorMessage:
-        print "\nERROR: "+ErrorMessage
+        print "\nERROR: " + ErrorMessage
     exit(-1)
 
 
@@ -226,7 +234,7 @@ def ProcessOptions(Core, user_args):
     if Arg.ExceptPlugins:
         Arg.ExceptPlugins, PluginGroups = GetPluginsFromArg(Core, Arg.ExceptPlugins)
         print "ExceptPlugins=" + str(Arg.ExceptPlugins)
-        
+
     if Arg.TOR_mode:
         Arg.TOR_mode = Arg.TOR_mode.split(":")
         print Arg.TOR_mode[0]
@@ -246,7 +254,16 @@ def ProcessOptions(Core, user_args):
             else:
                 outbound_proxy_port = Arg.TOR_mode[1]
             Arg.OutboundProxy = "socks://" + outbound_proxy_ip + ":" + outbound_proxy_port
-    
+
+    if Arg.Botnet_mode:  # Checking Arguments
+        Arg.Botnet_mode = Arg.Botnet_mode.split(":")
+        if Arg.Botnet_mode[0] == "miner" and len(Arg.Botnet_mode) != 1:
+            Usage("Invalid argument for Botnet mode\n Mode must be miner or list")
+        if Arg.Botnet_mode[0] == "list":
+            if len(Arg.Botnet_mode) != 2:
+                Usage("Invalid argument for Botnet mode\n Mode must be miner or list")
+            if not os.path.isfile(os.path.expanduser(Arg.Botnet_mode[1])):
+                Usage("Error Proxy List not found! Please check the path.")
 
     if Arg.OutboundProxy:
         Arg.OutboundProxy = Arg.OutboundProxy.split('://')
@@ -335,6 +352,7 @@ def ProcessOptions(Core, user_args):
             'PortWaves' : Arg.PortWaves,
             'ProxyMode': Arg.ProxyMode,
             'TOR_mode' : Arg.TOR_mode,
+            'Botnet_mode' : Arg.Botnet_mode,
             'Args': Args}
 
 
