@@ -52,6 +52,7 @@ import re
 import shutil
 import signal
 import subprocess
+import socket
 from framework import random
 from framework.lib.messaging import messaging_admin
 from framework.report.reporting_process import reporting_process
@@ -172,6 +173,15 @@ class Core:
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
         if not self.Config.Get('SIMULATION'):
+            # Check if port is in use
+            try:
+                temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                temp_socket.bind((self.Config.Get('INBOUND_PROXY_IP'), int(self.Config.Get('INBOUND_PROXY_PORT'))))
+                temp_socket.close()
+            except Exception:
+                self.Error.FrameworkAbort("Inbound proxy address " + self.Config.Get('INBOUND_PROXY') + " already in use")
+
+            # If everything is fine
             self.ProxyProcess = proxy.ProxyProcess( 
                                                     self,
                                                     Options['OutboundProxy'],
