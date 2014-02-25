@@ -47,6 +47,7 @@ sudo echo deb-src http://ppa.launchpad.net/wagungs/kali-linux2/ubuntu precise ma
 sudo echo deb http://ppa.launchpad.net/wagungs/kali-linux/ubuntu precise main >> /etc/apt/sources.list
 sudo echo deb-src http://ppa.launchpad.net/wagungs/kali-linux/ubuntu precise main >> /etc/apt/sources.list
 
+sudo apt-key add custom-ppa.pgp
 sudo apt-get update
 sudo apt-get upgrade
 
