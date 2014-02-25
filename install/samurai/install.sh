@@ -37,11 +37,12 @@ IsInstalled() {
 RootDir=$1
 
 ########### Pip is the foremost thing that must be installed along with some needed dependencies for python libraries
-sudo -E apt-get install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev
+sudo -E apt-get install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev libcurl4-gnutls-dev libcurl4-nss-dev libcurl4-openssl-dev
 export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip
 
 ############ Add custom ppa for some of the tools missing from Samurai-WTF
 ############ Kali-Proposed clean solution instead of cloning from Git
+echo "[*] Adding custom PPA and signed key to install the missing tools"
 sudo echo deb http://ppa.launchpad.net/wagungs/kali-linux2/ubuntu precise main >> /etc/apt/sources.list
 sudo echo deb-src http://ppa.launchpad.net/wagungs/kali-linux2/ubuntu precise main >> /etc/apt/sources.list
 sudo echo deb http://ppa.launchpad.net/wagungs/kali-linux/ubuntu precise main >> /etc/apt/sources.list
@@ -50,6 +51,7 @@ sudo echo deb-src http://ppa.launchpad.net/wagungs/kali-linux/ubuntu precise mai
 sudo apt-key add custom-ppa.pgp
 sudo apt-get update
 sudo apt-get upgrade
+echo "[*] Done"
 
 ############ Tools missing in Samurai-WTF
 echo "[*] Installing LBD and arachni from custom Ubuntu PPAs"
