@@ -188,8 +188,8 @@ class ProxyHandler(tornado.web.RequestHandler):
                 if self.application.Core.Proxy_manager:
                     proxy = self.application.Core.Proxy_manager.get_next_available_proxy()
                     #print proxy
-                    self.application.outbound_ip = proxy[0]
-                    self.application.outbound_port = int(proxy[1])
+                    self.application.outbound_ip = proxy["proxy"][0]
+                    self.application.outbound_port = int(proxy["proxy"][1])
 
                 #  httprequest object is created and then passed to async client with a callback
                 request = tornado.httpclient.HTTPRequest(
@@ -244,7 +244,8 @@ class ProxyHandler(tornado.web.RequestHandler):
                         pass
 
                     if proxy_check_resp.code != 200:
-                        self.application.Core.Proxy_manager.remove_current_proxy()
+                        #self.application.Core.Proxy_manager.remove_proxy(proxy)
+                        self.application.Core.Proxy_manager.remove_proxy(proxy["index"])
                     else:
                         success_response = True
                 else:
@@ -521,7 +522,8 @@ class CommandHandler(tornado.web.RequestHandler):
                 info[command] = eval(command)
         self.write(info)
         self.finish()
-                        
+
+
 class ProxyProcess(Process):
 
     def __init__(self, core, outbound_options=[], outbound_auth=""):
@@ -543,8 +545,11 @@ class ProxyProcess(Process):
         self.application.pnh_token = pnh_token
         self.application.inbound_ip = self.application.Core.Config.Get('INBOUND_PROXY_IP')
         self.application.inbound_port = int(self.application.Core.Config.Get('INBOUND_PROXY_PORT'))
-        self.instances = self.application.Core.Config.Get("INBOUND_PROXY_PROCESSES")
-        
+        if self.application.Core.Proxy_manager: #Botnet mode needs only one proxy process
+            self.instances = "1"
+        else:
+            self.instances = self.application.Core.Config.Get("INBOUND_PROXY_PROCESSES")
+
         # Proxy CACHE
         # Cache related settings, including creating required folders according to cache folder structure
         self.application.cache_dir = self.application.Core.Config.Get("INBOUND_PROXY_CACHE_DIR")

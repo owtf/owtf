@@ -30,31 +30,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Proxy Manager developed by Marios Kourtesis <name.surname@gmail.com>
 
 Description:
-This module provides function for proxy managment.
+This module provides functions for proxy managment.
 '''
 import tornado.curl_httpclient
 from tornado.httpclient import HTTPRequest
-import pycurl
 import os
-import threading
 from tornado.ioloop import IOLoop
 from tornado import gen
 
 
-def prepare_curl_callback(curl):
-    curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
 
+class Proxy_manager():
 
-def synchronized(func):
-    func.__lock__ = threading.Lock()
-
-    def synced_func(*args, **kws):
-        with func.__lock__:
-            return func(*args, **kws)
-    return synced_func
-
-
-class Proxy_manager(object):
     testing_url = "http://google.com"  # with this url is tested the proxy
     testing_url_patern = "<title>Google</title>"
 
@@ -78,18 +65,18 @@ class Proxy_manager(object):
         print "ProxyList loaded"
         return proxies
 
-    @synchronized
     def get_next_available_proxy(self):  #  returns the next proxy 
         if self.proxy_pointer == (self.number_of_proxies - 1):
             self.proxy_pointer = 0
         else:
             self.proxy_pointer = self.proxy_pointer + 1
         proxy = self.proxies[self.proxy_pointer]
-        return proxy
+        return {"proxy": proxy, "index": self.proxy_pointer}
 
-    @synchronized
-    def remove_current_proxy(self):
-        del self.proxies[self.proxy_pointer]
+    def remove_current_proxy(self, index):
+        del self.proxies[index]
+        self.number_of_proxies -= 1
+
 
 
 class Proxy_Checker():  # This class is responsible for proxy checking
@@ -133,5 +120,5 @@ class Proxy_Checker():  # This class is responsible for proxy checking
         #if all proxies has been checked stop IOLoop
         if Proxy_Checker.number_of_responses == Proxy_Checker.number_of_unchecked_proxies:
             IOLoop.instance().stop()
-            print "Done"
+            print "Proxy Check: Done"
 

@@ -35,7 +35,6 @@ from framework.config import config
 from framework.db import db
 from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
-from framework.http.proxy import proxy_manager
 from framework.http.proxy.outbound_proxyminer import Proxy_Miner
 from framework.lib.general import *
 from framework.plugin import plugin_handler, plugin_helper, plugin_params
@@ -174,7 +173,7 @@ class Core:
     def StartBotnetMode(self, Options):
         self.Proxy_manager = None
         if Options['Botnet_mode'] != None:
-            self.Proxy_manager = proxy_manager.Proxy_manager()
+            self.Proxy_manager = Proxy_manager()
             answer = "Yes"
             proxies = []
             if Options['Botnet_mode'][0] == "miner":
@@ -215,9 +214,9 @@ class Core:
 
             #check proxy var... http:// sock://
             Options['OutboundProxy'] = []
-            Options['OutboundProxy'].append(proxy[0])
-            Options['OutboundProxy'].append(proxy[1])
-                
+            Options['OutboundProxy'].append(proxy["proxy"][0])
+            Options['OutboundProxy'].append(proxy["proxy"][1])
+
                 #start running and recheck proxies
         #OutboundProxy': ['http', '10.10.10.10', '8080']
         #Options["OutboundProxy"]=['http', '10.10.10.10', '8080']
