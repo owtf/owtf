@@ -203,9 +203,10 @@ class Core:
             if Options['Botnet_mode'][0] == "miner":
                 print "Writing Proxies to disk(~/.owtf/proxy_miner/proxies.txt)"
                 miner.export_proxies_to_file("proxies.txt", proxies)
-                cprint("Check Time: " +\
+            if answer.upper() in ["", "YES", "Y"]:
+                cprint("Proxy Check Time: " +\
                         time.strftime('%H:%M:%S',
-                            time.localtime(time.time() - start_time - 3600)
+                        time.localtime(time.time() - start_time - 3600)
                                       )
                        )
                 cprint("Done")
