@@ -203,6 +203,8 @@ class ProcessManager:
 
     #this function takes input from user to stop a process etc
     def keyinput(self,q):
+        if not os.isatty(sys.stdin.fileno()):
+            return
         fd = sys.stdin.fileno()
         oldterm = termios.tcgetattr(fd)
         newattr = oldterm[:]
