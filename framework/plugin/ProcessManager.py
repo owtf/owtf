@@ -209,7 +209,11 @@ class ProcessManager:
 
     #this function takes input from user to stop a process etc
     def keyinput(self,q):
+<<<<<<< HEAD
         if not self.checkifTTY():
+=======
+        if not os.isatty(sys.stdin.fileno()):
+>>>>>>> 0e92304ff7f78fcbc542742f1141d88354e842b8
             return
         fd = sys.stdin.fileno()
         oldterm = termios.tcgetattr(fd)
