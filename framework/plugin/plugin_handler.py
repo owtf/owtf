@@ -85,7 +85,8 @@ class PluginHandler:
                 self.scanner = Scanner(self.Core)
                 self.ProcessManager = ProcessManager(self.Core)
                 self.InitExecutionRegistry()
-                self.showOutput = True
+                self.URLspeaksHTTP=Options['httpSpeak']
+		self.showOutput = True
                 
         def ValidateAndFormatPluginList(self, PluginList):
                 List = [] # Ensure there is always a list to iterate from! :)
@@ -238,7 +239,11 @@ class PluginHandler:
                         return False 
                 if 'grep' == Plugin['Type'] and self.HasPluginExecuted(Plugin) and not self.HasPluginCategoryRunSinceLastTime(Plugin, [ 'active', 'semi_passive' ]):
                         return False # Grep plugins can only run if some active or semi_passive plugin was run since the last time
-                return True
+                if 'web' == Plugin['Group'] and not self.URLspeaksHTTP :
+                        if ShowMessages:
+                            log("\nPlugin: "+Plugin['Title']+" ("+Plugin['Type']+") is a Web Plugin and Target URL does not speak HTTP, skipping ..")
+                        return False
+		return True
 
         def GetPluginFullPath(self, PluginDir, Plugin):
                 return PluginDir+"/"+Plugin['Type']+"/"+Plugin['File'] # Path to run the plugin 
