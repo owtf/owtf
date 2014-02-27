@@ -40,22 +40,32 @@ RootDir=$1
 sudo -E apt-get install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev libcurl4-gnutls-dev libcurl4-nss-dev libcurl4-openssl-dev
 export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip
 
-############ Add custom ppa for some of the tools missing from Samurai-WTF
-############ Kali-Proposed clean solution instead of cloning from Git
-echo "[*] Adding custom PPA and signed key to install the missing tools"
-sudo echo deb http://ppa.launchpad.net/wagungs/kali-linux2/ubuntu precise main >> /etc/apt/sources.list
-sudo echo deb-src http://ppa.launchpad.net/wagungs/kali-linux2/ubuntu precise main >> /etc/apt/sources.list
-sudo echo deb http://ppa.launchpad.net/wagungs/kali-linux/ubuntu precise main >> /etc/apt/sources.list
-sudo echo deb-src http://ppa.launchpad.net/wagungs/kali-linux/ubuntu precise main >> /etc/apt/sources.list
+############ Proposed clean solution instead of cloning by git
+# Added Kali bleeding-edge repo as some tools which are frequently updated are in this repo
+echo "[*] Adding Kali repos to install the missing tools"
+sudo sh -c "echo 'deb http://http.kali.org/kali  kali main contrib non-free' >> /etc/apt/sources.list"
+sudo sh -c "echo 'deb-src http://http.kali.org/kali kali main contrib non-free' >> /etc/apt/sources.list"
+sudo sh -c "echo 'deb http://repo.kali.org/kali kali-bleeding-edge main contrib non-free' >> /etc/apt/sources.list" 
 
-sudo apt-key add custom-ppa.pgp
 sudo apt-get update
-sudo apt-get upgrade
 echo "[*] Done"
-
 ############ Tools missing in Samurai-WTF
-echo "[*] Installing LBD and arachni from custom Ubuntu PPAs"
-sudo -E apt-get install lbd arachni tlssled openvas
+
+############ Install updated w3af from GitHub
+mkdir -p $RootDir/tools/restricted
+cd $RootDir/tools/restricted
+IsInstalled "w3af"
+if [ $? -eq 0 ]; then # Not installed
+    git clone https://github.com/andresriancho/w3af.git
+fi
+"$RootDir/install/kali/samurai_wtf_patch_w3af.sh"
+
+########## Remove default ruby-bundler to avoid with Metasploit later on
+"$RootDir/install/samurai/samurai_wtf_patch_metasploit.sh" $RootDir
+
+########## Installing missing tools
+echo "[*] Installing missing tools"
+sudo -E apt-get install lbd arachni tlssled set ua-tester wpscan theharvester whatweb dnsrecon metagoofil metasploit waffit
 
 ########## Patch scripts
 "$RootDir/install/samurai/samurai_wtf_patch_nikto.sh"
