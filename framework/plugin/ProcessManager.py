@@ -167,7 +167,6 @@ class ProcessManager:
     def manageProcess(self):
         k=0
         # Loop while there is some work in worklist
-        print self.processes_limit
         while (k < self.processes_limit and len(self.worklist) > 0):
             # If worker k has completed its work
             if not self.workers[k]["worker"].output_q.empty():
@@ -209,11 +208,7 @@ class ProcessManager:
 
     #this function takes input from user to stop a process etc
     def keyinput(self,q):
-<<<<<<< HEAD
         if not self.checkifTTY():
-=======
-        if not os.isatty(sys.stdin.fileno()):
->>>>>>> 0e92304ff7f78fcbc542742f1141d88354e842b8
             return
         fd = sys.stdin.fileno()
         oldterm = termios.tcgetattr(fd)
@@ -385,6 +380,7 @@ class ProcessManager:
         stdscr.keypad(0)
         curses.echo()
         curses.endwin()
+        
     def checkifTTY(self):
         if os.isatty(sys.stdin.fileno()):
             return True
