@@ -40,19 +40,20 @@ RootDir=$1
 sudo -E apt-get install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev
 export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip in kali
 
+
 ############ Tools missing in Kali
-mkdir -p $RootDir/tools/restricted
-cd $RootDir/tools/restricted
-IsInstalled "w3af"
-if [ $? -eq 0 ]; then # Not installed
-    git clone https://github.com/andresriancho/w3af.git
-fi
-"$RootDir/install/kali/kali_patch_w3af.sh"
+#mkdir -p $RootDir/tools/restricted
+#cd $RootDir/tools/restricted
+#IsInstalled "w3af"
+#if [ $? -eq 0 ]; then # Not installed
+#    git clone https://github.com/andresriancho/w3af.git
+#fi
 
 echo "[*] Installing LBD, arachni and gnutls-bin from Kali Repos"
 sudo -E apt-get install lbd gnutls-bin arachni
 
 ########## Patch scripts
+"$RootDir/install/kali/kali_patch_w3af.sh"
 "$RootDir/install/kali/kali_patch_nikto.sh"
 "$RootDir/install/kali/kali_patch_tlssled.sh"
 "$RootDir/install/kali/kali_patch_openvas.sh" $RootDir
