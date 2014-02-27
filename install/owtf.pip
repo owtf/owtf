@@ -7,3 +7,4 @@ argparse
 selenium
 rdflib
 pyvirtualdisplay
+beautifulsoup4
