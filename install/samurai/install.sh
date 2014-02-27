@@ -52,13 +52,12 @@ echo "[*] Done"
 ############ Tools missing in Samurai-WTF
 
 ############ Install updated w3af from GitHub
-mkdir -p $RootDir/tools/restricted
-cd $RootDir/tools/restricted
-IsInstalled "w3af"
-if [ $? -eq 0 ]; then # Not installed
-    git clone https://github.com/andresriancho/w3af.git
-fi
-"$RootDir/install/kali/samurai_wtf_patch_w3af.sh"
+#mkdir -p $RootDir/tools/restricted
+#cd $RootDir/tools/restricted
+#IsInstalled "w3af"
+#if [ $? -eq 0 ]; then # Not installed
+#    git clone https://github.com/andresriancho/w3af.git
+#fi
 
 ########## Remove default ruby-bundler to avoid with Metasploit later on
 "$RootDir/install/samurai/samurai_wtf_patch_metasploit.sh" $RootDir
@@ -68,6 +67,7 @@ echo "[*] Installing missing tools"
 sudo -E apt-get install lbd arachni tlssled set ua-tester wpscan theharvester whatweb dnsrecon metagoofil metasploit waffit
 
 ########## Patch scripts
+"$RootDir/install/kali/samurai_wtf_patch_w3af.sh"
 "$RootDir/install/samurai/samurai_wtf_patch_nikto.sh"
 "$RootDir/install/samurai/samurai_wtf_patch_tlssled.sh"
 "$RootDir/install/samurai/samurai_wtf_patch_openvas.sh" $RootDir
