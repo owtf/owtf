@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The Configuration object parses all configuration files, loads them into memory, derives some settings and provides framework modules with a central repository to get info
 '''
-import sys, os, re, socket
+import sys, os, re, socket,requests
 from urlparse import urlparse
 from collections import defaultdict
 from framework.config import plugin, health_check
@@ -293,7 +293,8 @@ class Config:
         #\print "Port=" + Port
         Host = ParsedURL.hostname
         HostPath = ParsedURL.hostname + ParsedURL.path
-        #protocol, crap, host = TargetURL.split('/')[0:3]
+        Options['httpSpeak']=self.httpSpeakCheck(URLScheme+"://"+Host+":"+Port)
+	#protocol, crap, host = TargetURL.split('/')[0:3]
         #DotChunks = TargetURL.split(':')
         #URLScheme = DotChunks[0]
         #Port = '80'
@@ -492,3 +493,13 @@ class Config:
         cprint("Configuration settings")
         for k, v in self.GetConfig().items():
             cprint(str(k)+" => "+str(v))
+
+    def httpSpeakCheck(self,TestURL):
+        proxies={"http":"http://127.0.0.1:8008","https":"http://127.0.0.1:8008"}
+        try:
+            r=requests.get(TestURL,proxies=proxies,verify=False,timeout=10)
+            if(r.status_code == 599 ) :  #proxy returns 599 for every unavailable resource
+                return False
+        except :
+            print "Exception Occurred while checking the HTTP service avaibility."
+        return True
