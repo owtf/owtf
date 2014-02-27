@@ -48,6 +48,10 @@ if [ $? -eq 0 ]; then # Not installed
     git clone https://github.com/andresriancho/w3af.git
 fi
 "$RootDir/install/kali/kali_patch_w3af.sh"
+IsInstalled "Panoptic"
+if [ $? -eq 0 ]; then # Not installed
+    git clone https://github.com/lightos/Panoptic.git
+fi
 
 echo "[*] Installing LBD, arachni and gnutls-bin from Kali Repos"
 sudo -E apt-get install lbd gnutls-bin arachni
