@@ -91,8 +91,10 @@ class ProcessManager:
         """
         if not self.checkifTTY() :
             sys.stdout.flush()
-            cprint ("WARNING: No TTY was found, some options such as dynamically stopping plugins will NOT work.PRESS ENTER IF YOU WOULD LIKE TO CONTINUE ANYWAY :")
-            raw_input()
+            cprint("Execution of OWTF is halted.WARNING: No TTY was found, some options such as dynamically stopping plugins will NOT work.Do you want to continue ANYWAY ? (y/n) :")
+            self.TTYRunChoice =raw_input()
+            if self.TTYRunChoice !="" and self.TTYRunChoice !="y" :
+                self.Core.Error.FrameworkAbort("User aborted framework")
         self.inputqueue = multiprocessing.Queue()
         self.inputthread = Thread(target=self.keyinput, args=(self.inputqueue,))
 
