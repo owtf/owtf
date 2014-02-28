@@ -91,7 +91,7 @@ class ProcessManager:
         """
         if not self.checkifTTY() :
             sys.stdout.flush()
-            print "\nWARNING: No TTY was found, some options such as dynamically stopping plugins will NOT work.PRESS ENTER IF YOU WOULD LIKE TO CONTINUE ANYWAY :"
+            cprint ("WARNING: No TTY was found, some options such as dynamically stopping plugins will NOT work.PRESS ENTER IF YOU WOULD LIKE TO CONTINUE ANYWAY :")
             raw_input()
         self.inputqueue = multiprocessing.Queue()
         self.inputthread = Thread(target=self.keyinput, args=(self.inputqueue,))
