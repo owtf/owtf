@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The Configuration object parses all configuration files, loads them into memory, derives some settings and provides framework modules with a central repository to get info
 '''
-import sys, os, re, socket,requests
+import sys, os, re, socket,urllib2
 from urlparse import urlparse
 from collections import defaultdict
 from framework.config import plugin, health_check
@@ -293,8 +293,11 @@ class Config:
         #\print "Port=" + Port
         Host = ParsedURL.hostname
         HostPath = ParsedURL.hostname + ParsedURL.path
-        Options['httpSpeak']=self.httpSpeakCheck(URLScheme+"://"+Host+":"+Port)
-	#protocol, crap, host = TargetURL.split('/')[0:3]
+        if (URLScheme=="http" or URLScheme=="https"):
+            Options['httpSpeak']=self.httpSpeakCheck(URLScheme+"://"+Host+":"+Port)
+        else:
+            Options['httpSpeak']=False
+            	#protocol, crap, host = TargetURL.split('/')[0:3]
         #DotChunks = TargetURL.split(':')
         #URLScheme = DotChunks[0]
         #Port = '80'
@@ -495,11 +498,13 @@ class Config:
             cprint(str(k)+" => "+str(v))
 
     def httpSpeakCheck(self,TestURL):
-        proxies={"http":"http://127.0.0.1:8008","https":"http://127.0.0.1:8008"}
         try:
-            r=requests.get(TestURL,proxies=proxies,verify=False,timeout=10)
-            if(r.status_code == 599 ) :  #proxy returns 599 for every unavailable resource
+            req=urllib2.Request(url=TestURL)
+            f=urllib2.urlopen(req,timeout=10)
+            if (f.info().headers==[]):
                 return False
-        except :
-            print "Exception Occurred while checking the HTTP service avaibility."
-        return True
+            else :
+                return True
+        except:
+            print "Exception Occurred while checking HTTP Service"
+            return True
