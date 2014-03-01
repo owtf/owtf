@@ -36,7 +36,7 @@ Requirements
 
 Installation
 ------------
-- Clone owtf repo using git => git clone https://github.com/7a/owtf
+- Clone owtf repo using git => git clone https://github.com/owtf/owtf
 - You may also want to run install/install.py
 - Check out Wiki for more help
 
