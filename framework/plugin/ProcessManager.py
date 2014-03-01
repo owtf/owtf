@@ -89,8 +89,15 @@ class ProcessManager:
         """
         this function initializes input thread for taking input from user to stop some plugin etc
         """
+        if not self.checkifTTY() :
+            sys.stdout.flush()
+            cprint("Execution of OWTF is halted.WARNING: No TTY was found, some options such as dynamically stopping plugins will NOT work.Do you want to continue ANYWAY ? (y/n) :")
+            self.TTYRunChoice =raw_input()
+            if self.TTYRunChoice !="" and self.TTYRunChoice !="y" :
+                self.Core.Error.FrameworkAbort("User aborted framework")
         self.inputqueue = multiprocessing.Queue()
         self.inputthread = Thread(target=self.keyinput, args=(self.inputqueue,))
+
         self.inputthread.start()    
     
     #this function gets all the targets from Plugin order and fill it to the worklist
@@ -182,7 +189,7 @@ class ProcessManager:
                 self.spawn_worker()
             k = (k+1) % self.processes_limit
             time.sleep(0.05)
-            
+
     # This function waits for each worker to complete his work and send it Poision Pill(emtpy work)
     def poisonPillToWorkers(self):
         for item in self.workers:
@@ -203,6 +210,8 @@ class ProcessManager:
 
     #this function takes input from user to stop a process etc
     def keyinput(self,q):
+        if not self.checkifTTY():
+            return
         fd = sys.stdin.fileno()
         oldterm = termios.tcgetattr(fd)
         newattr = oldterm[:]
@@ -373,3 +382,8 @@ class ProcessManager:
         stdscr.keypad(0)
         curses.echo()
         curses.endwin()
+        
+    def checkifTTY(self):
+        if os.isatty(sys.stdin.fileno()):
+            return True
+
