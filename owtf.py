@@ -29,6 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This is the command-line front-end:
 In charge of processing arguments and call the framework
 '''
+from __future__ import print_function
+
 import argparse
 import sys
 import os
@@ -42,7 +44,7 @@ from framework.lib.general import *
 from framework import update
 
 def Banner():
-    print """
+    print("""
                   __       ___  
                  /\ \__  /'___\ 
   ___   __  __  _\ \ ,_\/\ \__/ 
@@ -51,7 +53,7 @@ def Banner():
 \ \____/\ \___x___/'\ \__\\\ \_\ 
  \/___/  \/__//__/   \/__/ \/_/ 
 
-"""
+""")
 
 
 def GetArgs(Core, args):
@@ -155,29 +157,70 @@ def GetArgsForUpdate(args):
                         help="Use this flag to update OWTF")
     return Parser.parse_args(args)
 
-def Usage(ErrorMessage):
-    FullPath = sys.argv[0].strip()
-    Main = FullPath.split('/')[-1]
-    print "Current Path: " + FullPath
-    print "Syntax: " + Main + " [ options ] <target1 target2 target3 ..> where target can be: <target URL / hostname / IP>"
-    print "                    NOTE: targets can also be provided via a text file\n"
-    print "\nExamples:\n"
-    print "Run all web plugins:                         " +Main+" http://my.website.com"
-    print "Run only passive + semi_passive plugins:             "+Main+" -t quiet http://my.website.com"
-    print "Run only active plugins:                     "+Main+" -t active http://my.website.com"
-    print ""
-    print "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS':    "+Main+" -e 'OWASP-CM-001' http://my.website.com"
-    print "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS':    "+Main+" -e 'Testing_for_SSL-TLS' http://my.website.com"
-    print ""
-    print "Run only 'OWASP-CM-001: Testing_for_SSL-TLS':             "+Main+" -o 'OWASP-CM-001' http://my.website.com"
-    print "Run only 'OWASP-CM-001: Testing_for_SSL-TLS':             "+Main+" -o 'Testing_for_SSL-TLS' http://my.website.com"
-    print ""
-    print "Run only OWASP-IG-005 and OWASP-WU-VULN:             "+Main+" -o 'OWASP-IG-005,OWASP-WU-VULN' http://my.website.com"
-    print "Run using my resources file and proxy:             "+Main+" -m r:/home/me/owtf_resources.cfg -x 127.0.0.1:8080 http://my.website.com"
-    print ""
-    print "Run using TOR network:                    "+ Main + " -o OWTF-WVS-001 http://my.website.com --tor 127.0.0.1:9050:9051:password:1"
-    if ErrorMessage:
-        print "\nERROR: "+ErrorMessage
+def Usage(error_message):
+    """Display the usage message describing how to use owtf."""
+    full_path = sys.argv[0].strip()
+    main = full_path.split('/')[-1]
+
+    print("Current Path: " + full_path)
+    print("Syntax: " + main +
+        " [ options ] <target1 target2 target3 ..> where target can be:"
+        " <target URL / hostname / IP>"
+        )
+    print(
+        "                    NOTE:"
+        " targets can also be provided via a text file",
+        end='\n'*3
+        )
+    print("Examples:", end='\n'*2)
+    print(
+        "Run all web plugins:                         " + main +
+        " http://my.website.com"
+        )
+    print(
+        "Run only passive + semi_passive plugins:             " + main +
+        " -t quiet http://my.website.com"
+        )
+    print(
+        "Run only active plugins:                     " + main +
+        " -t active http://my.website.com"
+        )
+    print()
+    print(
+        "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS': " + main +
+        " -e 'OWASP-CM-001' http://my.website.com"
+        )
+    print(
+        "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS': " + main +
+        " -e 'Testing_for_SSL-TLS' http://my.website.com"
+        )
+    print()
+    print(
+        "Run only 'OWASP-CM-001: Testing_for_SSL-TLS':             " + main +
+        " -o 'OWASP-CM-001' http://my.website.com"
+        )
+    print(
+        "Run only 'OWASP-CM-001: Testing_for_SSL-TLS':             " + main +
+        " -o 'Testing_for_SSL-TLS' http://my.website.com"
+        )
+    print()
+    print(
+        "Run only OWASP-IG-005 and OWASP-WU-VULN:             " + main +
+        " -o 'OWASP-IG-005,OWASP-WU-VULN' http://my.website.com"
+        )
+    print(
+        "Run using my resources file and proxy:             " + main +
+        " -m r:/home/me/owtf_resources.cfg"
+        " -x 127.0.0.1:8080 http://my.website.com"
+        )
+    print()
+    print(
+        "Run using TOR network:                    " + main +
+        " -o OWTF-WVS-001 http://my.website.com"
+        " --tor 127.0.0.1:9050:9051:password:1"
+        )
+    if error_message:
+        print("\nERROR: " + error_message)
     exit(-1)
 
 
@@ -197,7 +240,7 @@ def GetPluginsFromArg(Core, Arg):
 def ProcessOptions(Core, user_args):
     try:
         Arg = GetArgs(Core, user_args)
-    except Exception, e:
+    except Exception as e:
         Usage("Invalid OWTF option(s) " + e)
 
     # Default settings:
@@ -225,11 +268,11 @@ def ProcessOptions(Core, user_args):
 
     if Arg.ExceptPlugins:
         Arg.ExceptPlugins, PluginGroups = GetPluginsFromArg(Core, Arg.ExceptPlugins)
-        print "ExceptPlugins=" + str(Arg.ExceptPlugins)
-        
+        print("ExceptPlugins=" + str(Arg.ExceptPlugins))
+
     if Arg.TOR_mode:
         Arg.TOR_mode = Arg.TOR_mode.split(":")
-        print Arg.TOR_mode[0]
+        print(Arg.TOR_mode[0])
         if len(Arg.TOR_mode) == 1:
             if Arg.TOR_mode[0] != "help":
                 Usage("Invalid argument for TOR-mode")
@@ -362,7 +405,11 @@ if __name__ == "__main__":
     Banner()
     if not "--update" in sys.argv[1:]:
         Core = core.Init(RootDir, OwtfPid)  # Initialise Framework
-        print "OWTF Version: %s, Release: %s \n" % ( Core.Config.Get( 'VERSION' ), Core.Config.Get( 'RELEASE' ) )
+        print(
+            "OWTF Version: %s, Release: %s " %
+            (Core.Config.Get('VERSION'), Core.Config.Get('RELEASE')),
+            end='\n'*2
+            )
         args = ProcessOptions(Core, sys.argv[1:])
         run_owtf(Core, args)
     else:
@@ -370,7 +417,7 @@ if __name__ == "__main__":
         # creating a different parser for parsing the args.
         try:
             Arg = GetArgsForUpdate(sys.argv[1:])
-        except Exception, e:
+        except Exception as e:
             Usage("Invalid OWTF option(s) " + e)
         # Updater class is imported
         UpdaterObj = update.Updater(RootDir)
