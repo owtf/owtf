@@ -43,7 +43,7 @@ class Updater(object):
         # Initialize important variables
         self.root_dir = root_dir
         self.git_dir = os.path.join(self.root_dir, ".git")
-        self.remote_tags_url = 'https://api.github.com/repos/7a/owtf/tags'
+        self.remote_tags_url = 'https://api.github.com/repos/owtf/owtf/tags'
         self.proxy = None
         self.proxy_auth_username = None
         self.proxy_auth_password = None
@@ -75,7 +75,7 @@ class Updater(object):
     def check(self):
         # Check whether the repository is a git repo, because update process is using git
         if not os.path.exists(os.path.join(self.root_dir, '.git')):
-            cprint("Not a git repository. Please checkout OWTF repo from GitHub (eg:- git clone https://github.com/7a/owtf owtf)")
+            cprint("Not a git repository. Please checkout OWTF repo from GitHub (eg:- git clone https://github.com/owtf/owtf owtf)")
             return False
         else:
             self.prepare()

@@ -2,7 +2,7 @@ Frequently asked questions
 --------------------------
 Q: I have issues upgrading. Could you help?
 A: Sure, but please do have a look at the upgrading guide first :)
-   https://github.com/7a/owtf/tree/master/readme/UPGRADING
+   https://github.com/owtf/owtf/tree/master/readme/UPGRADING
 
 Q: OWTF cannot find my tools / I get errors in the report saving that "the path was not found" / Is this only for Backtrack?:
 A: OWTF is highly configurable and should run on most Linux flavours (maybe some UNIX cousins too). 
