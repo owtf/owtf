@@ -16,7 +16,7 @@ class HealthCheckTests(BaseTestCase):
         health_check.should_receive("is_installed").and_return(True)
         health_check.should_receive("print_success").once()
 
-        health_check.Run()
+        health_check.run()
 
     def test_Run_with_missing_tools_should_warn_the_user(self):
         self._prepare_core_mock_for_health_check_Run()
@@ -25,7 +25,7 @@ class HealthCheckTests(BaseTestCase):
         health_check.should_receive("is_installed").and_return(False)
         health_check.should_receive("print_warning").once()
 
-        health_check.Run()
+        health_check.run()
 
     def _prepare_core_mock_for_health_check_Run(self):
         config_dict = {'string': self._get_config_dictionary()}
