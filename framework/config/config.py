@@ -501,7 +501,7 @@ class Config:
         try:
             req=urllib2.Request(url=TestURL)
             f=urllib2.urlopen(req,timeout=10)
-            if (f.info().headers==[]):
+            if (f.info().headers==[]): #another services than HTTP reply with empty headers
                 return False
             else :
                 return True
