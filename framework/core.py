@@ -314,7 +314,8 @@ class Core:
         return True # Scan was successful
 
     def ReportErrorsToGithub(self):
-        info = raw_input("Do you want to add any extra info to the bug report ? [Just press Enter to skip]\n> ")
+        cprint("Do you want to add any extra info to the bug report ? [Just press Enter to skip]")
+        info = raw_input("> ")
         if self.Error.AddGithubIssue(Info=info):
             cprint("Github issue added, Thanks for reporting!!")
         else:
@@ -341,12 +342,19 @@ class Core:
                         #self.Reporter.ReportFinish() # Must save the report again at the end regarless of Status => Update Run info
                     #self.Config.SetTarget(PreviousTarget) # Restore previous target
                 cprint("OWTF iteration finished")
-                if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
-                    cprint('Errors saved to ' + self.Config.Get('ERROR_DB') + '.  Please report as github issues')
+
                 #self.dbHandlerProcess.join()    
             except AttributeError: # DB not instantiated yet!
                 cprint("OWTF finished: No time to report anything! :P")
             finally:
+                if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
+                    cprint('Errors saved to ' + self.Config.Get('ERROR_DB') + '. Would you like us to auto-report bugs ?')
+                    choice = raw_input("[Y/n] ")
+                    if choice != 'n' or choice != 'N':
+                        self.ReportErrorsToGithub()
+                    else:
+                        cprint("We know that you are planning on submitting it manually ;)")
+
                 if self.ProxyMode:
                     try:
                         cprint("Stopping inbound proxy processes and cleaning up, Please wait!")
