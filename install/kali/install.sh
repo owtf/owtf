@@ -42,13 +42,16 @@ export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip i
 
 
 ############ Tools missing in Kali
-#mkdir -p $RootDir/tools/restricted
-#cd $RootDir/tools/restricted
+mkdir -p $RootDir/tools/restricted
+cd $RootDir/tools/restricted
 #IsInstalled "w3af"
 #if [ $? -eq 0 ]; then # Not installed
 #    git clone https://github.com/andresriancho/w3af.git
 #fi
-
++IsInstalled "Panoptic"
+ +if [ $? -eq 0 ]; then # Not installed
+ +    git clone https://github.com/lightos/Panoptic.git
+ +fi
 echo "[*] Installing LBD, arachni and gnutls-bin from Kali Repos"
 sudo -E apt-get install lbd gnutls-bin arachni
 
