@@ -113,14 +113,17 @@ class ErrorHandler:
                         Title = item[len('Message:'):]
                         break
                 data = {'title':'[Auto-Generated] ' + Title, 'body':''}
-                data['body'] = '```' + '\n'.join(error_data) + '```\n' # For github markdown
+                data['body'] = '#### OWTF Bug Report\n\n```' + '\n'.join(error_data) + '```\n' # For github markdown
                 if Info:
+                    data['body'] += "\n#### User Report\n\n"
                     data['body'] += Info
                 data = json.dumps(data) # Converted to string
-                request = urllib2.Request(self.Core.Config.Get("GITHUB_API_ISSUES_URL"), headers={"Content-Type": "application/json"},data=data)
+                headers = {"Content-Type": "application/json","Authorization": "token " + self.Core.Config.Get("GITHUB_BUG_REPORTER_TOKEN")}
+                request = urllib2.Request(self.Core.Config.Get("GITHUB_API_ISSUES_URL"), headers=headers, data=data)
                 response = urllib2.urlopen(request)
-                print(response.read())
+                decoded_resp = json.loads(response.read())
                 if response.code == 201:
+                    cprint("Issue URL: " + decoded_resp["url"])
                     return True
                 else:
                     return False
