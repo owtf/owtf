@@ -52,6 +52,7 @@ class DBHandler:
         self.DBNames = sorted(self.FieldDBNames + self.LineDBNames)
         self.Core = Core # Need access to reporter for pretty html trasaction log
         self.Storage = defaultdict(list)
+        self.OldErrorCount = 0
     
     def GetFieldSeparator(self):
         return FIELD_SEPARATOR
@@ -65,6 +66,7 @@ class DBHandler:
             self.Add('SEED_DB', self.Core.Random.GetStr(10)) # Generate a long random seed for this test
         self.RandomSeed = self.GetRecord('SEED_DB', 0)
         self.Core.DB.Transaction.SetRandomSeed(self.RandomSeed)
+        self.OldErrorCount = self.GetLength('ERROR_DB')
 
     def GetPath(self, DBName):
         return self.Core.Config.Get(DBName)
@@ -240,7 +242,7 @@ Record="""+str(Record)+"""
             self.Add('ERROR_DB', Line)
 
     def ErrorCount(self):
-        return self.GetLength('ERROR_DB') # Counts error lines but we only want to know if there has been a framework error or not
+        return (self.GetLength('ERROR_DB') - self.OldErrorCount)# Counts error lines but we only want to know if there has been a framework error or not
 
     def ErrorData(self):
-        return self.GetData('ERROR_DB')
+        return self.GetData('ERROR_DB')[self.OldErrorCount:]
