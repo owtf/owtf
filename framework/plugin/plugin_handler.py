@@ -46,6 +46,7 @@ import sys
 import termios
 import time
 
+
 INTRO_BANNER_GENERAL = """
 Short Intro:
 Current Plugin Groups:
@@ -85,9 +86,9 @@ class PluginHandler:
                 self.scanner = Scanner(self.Core)
                 self.ProcessManager = ProcessManager(self.Core)
                 self.InitExecutionRegistry()
-                self.URLspeaksHTTP=Options['httpSpeak']
-		self.showOutput = True
-                
+                self.showOutput = True
+                self.URLspeaksHTTP=Options['HTTP_SPEAK']
+                self.URLspeaksHTTPS=Options['HTTPS_SPEAK']
         def ValidateAndFormatPluginList(self, PluginList):
                 List = [] # Ensure there is always a list to iterate from! :)
                 if PluginList != None:
@@ -239,11 +240,12 @@ class PluginHandler:
                         return False 
                 if 'grep' == Plugin['Type'] and self.HasPluginExecuted(Plugin) and not self.HasPluginCategoryRunSinceLastTime(Plugin, [ 'active', 'semi_passive' ]):
                         return False # Grep plugins can only run if some active or semi_passive plugin was run since the last time
-                if 'web' == Plugin['Group'] and not self.URLspeaksHTTP :
+                if 'web' == Plugin['Group'] and (((not self.URLspeaksHTTP and (str(self.Core.Config.Get('URL_SCHEME'))=="http")) or (not self.URLspeaksHTTPS and (str(self.Core.Config.Get('URL_SCHEME'))=="https")))):
                         if ShowMessages:
-                            log("\nPlugin: "+Plugin['Title']+" ("+Plugin['Type']+") is a Web Plugin and Target URL does not speak HTTP, skipping ..")
+                            log("\nPlugin: "+Plugin['Title']+" ("+Plugin['Type']+") is a Web Plugin and Target URL does not speak "+str(self.Core.Config.Get('URL_SCHEME'))+", skipping ..")
                         return False
-		return True
+
+                return True
 
         def GetPluginFullPath(self, PluginDir, Plugin):
                 return PluginDir+"/"+Plugin['Type']+"/"+Plugin['File'] # Path to run the plugin 
