@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The Configuration object parses all configuration files, loads them into memory, derives some settings and provides framework modules with a central repository to get info
 '''
-import sys, os, re, socket,urllib2,httplib
+import sys, os, re, socket,urllib2
 from urlparse import urlparse
 from collections import defaultdict
 from framework.config import plugin, health_check
