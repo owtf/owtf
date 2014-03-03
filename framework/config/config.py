@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The Configuration object parses all configuration files, loads them into memory, derives some settings and provides framework modules with a central repository to get info
 '''
-import sys, os, re, socket,urllib2
+import sys, os, re, socket,urllib2,httplib
 from urlparse import urlparse
 from collections import defaultdict
 from framework.config import plugin, health_check
@@ -288,15 +288,20 @@ class Config:
             Port = '80'
             if 'https' == URLScheme:
                 Port = '443'
+
         else: # Port found by urlparse:
             Port = str(ParsedURL.port)
         #\print "Port=" + Port
         Host = ParsedURL.hostname
         HostPath = ParsedURL.hostname + ParsedURL.path
-        if (URLScheme=="http" or URLScheme=="https"):
-            Options['httpSpeak']=self.httpSpeakCheck(URLScheme+"://"+Host+":"+Port)
-        else:
-            Options['httpSpeak']=False
+        if 'http' == URLScheme :
+            Options['HTTP_SPEAK']=self.httpSpeakCheck(URLScheme,ParsedURL.hostname,Port)
+            Options['HTTPS_SPEAK']=False
+            
+        if 'https' == URLScheme :
+            Options['HTTPS_SPEAK']=self.httpSpeakCheck(URLScheme,ParsedURL.hostname,Port)
+            if Options['HTTP_SPEAK'] != True: 
+                Options['HTTP_SPEAK']=False
             	#protocol, crap, host = TargetURL.split('/')[0:3]
         #DotChunks = TargetURL.split(':')
         #URLScheme = DotChunks[0]
@@ -496,15 +501,18 @@ class Config:
         cprint("Configuration settings")
         for k, v in self.GetConfig().items():
             cprint(str(k)+" => "+str(v))
-
-    def httpSpeakCheck(self,TestURL):
+            
+    def httpSpeakCheck(self,Scheme,TestHost,Port):
         try:
+            TestURL=Scheme+"://"+TestHost+":"+Port
             req=urllib2.Request(url=TestURL)
             f=urllib2.urlopen(req,timeout=10)
             if (f.info().headers==[]): #another services than HTTP reply with empty headers
                 return False
             else :
                 return True
-        except:
-            print "Exception Occurred while checking HTTP Service"
-            return True
+        except urllib2.URLError, e:
+            #cprint( "URLError Occurred while checking HTTP service due to "+str(e.reason))
+            return False 
+        except Exception :
+            return False 
