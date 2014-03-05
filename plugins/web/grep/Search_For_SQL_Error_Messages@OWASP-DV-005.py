@@ -37,5 +37,5 @@ DESCRIPTION = "Searches for SQL Error messages"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.FindMultilineResponseMatchesForRegexps(Core.Config.GetAsList([ 'RESPONSE_REGEXP_FOR_HIDDEN' ]), PluginInfo)
+	Content = Core.PluginHelper.FindMultilineResponseMatchesForRegexps(Core.Config.GetAsList([ 'RESPONSE_REGEXP_FOR_SQL_ERRORS' ])), PluginInfo)
 	return Content
