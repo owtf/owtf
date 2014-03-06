@@ -64,16 +64,21 @@ class DB:
 
     def Init(self):
         self.DBHandler.Init()
-        self.CreateErrorDBSession(self.Core.Config.Get("ERROR_DB_PATH"))
-        self.CreateTargetDBSession(self.Core.Config.Get("TARGET_DB_PATH"))
+        self.CheckDBFolderLocation(os.path.expanduser(self.Core.Config.Get("DB_FOLDER_PATH")))
+        self.CreateErrorDBSession(os.path.expanduser(self.Core.Config.Get("ERROR_DB_PATH")))
+        self.CreateTargetDBSession(os.path.expanduser(self.Core.Config.Get("TARGET_DB_PATH")))
+
+    def CheckDBFolderLocation(self, dir_path):
+        if not os.path.exists(dir_path):
+            os.makedir(dir_path)
 
     def CreateErrorDBSession(self, ERROR_DB_PATH):
         if not os.path.exists(ERROR_DB_PATH):
             cprint("Creating Error DB at " + ERROR_DB_PATH)
-            engine = create_engine("sqlite:///" + os.path.expanduser(ERROR_DB_PATH))
+            engine = create_engine("sqlite:///" + ERROR_DB_PATH)
             ErrorBase.metadata.create_all(engine)
         else:
-            engine = create_engine("sqlite:///" + os.path.expanduser(ERROR_DB_PATH))
+            engine = create_engine("sqlite:///" + ERROR_DB_PATH)
         session_factory = sessionmaker(bind = engine)
         cprint("Creating Scoped session factory for Error DB")
         self.ErrorDBSession = scoped_session(session_factory)
@@ -81,10 +86,10 @@ class DB:
     def CreateTargetDBSession(self, TARGET_DB_PATH):
         if not os.path.exists(TARGET_DB_PATH):
             cprint("Creating Target DB at " + TARGET_DB_PATH)
-            engine = create_engine("sqlite:///" + os.path.expanduser(TARGET_DB_PATH))
+            engine = create_engine("sqlite:///" + TARGET_DB_PATH)
             TargetBase.metadata.create_all(engine)
         else:
-            engine = create_engine("sqlite:///" + os.path.expanduser(TARGET_DB_PATH))
+            engine = create_engine("sqlite:///" + TARGET_DB_PATH)
         session_factory = sessionmaker(bind = engine)
         cprint("Creating Scoped session factory for Target DB")
         self.TargetDBSession = scoped_session(session_factory)
