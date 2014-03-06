@@ -32,6 +32,11 @@ from framework.db import db_handler, transaction_manager, url_manager, \
     run_manager, plugin_register, report_register, command_register, debug
 
 from framework.db.db_client import *
+from framework.lib.general import cprint
+from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy import exc
+from models import ErrorBase, TransactionBase, TargetBase
 import json
 import logging
 import multiprocessing
@@ -59,6 +64,30 @@ class DB:
 
     def Init(self):
         self.DBHandler.Init()
+        self.CreateErrorDBSession(self.Core.Config.Get("ERROR_DB_PATH"))
+        self.CreateTargetDBSession(self.Core.Config.Get("TARGET_DB_PATH"))
+
+    def CreateErrorDBSession(self, ERROR_DB_PATH):
+        if not os.path.exists(ERROR_DB_PATH):
+            cprint("Creating Error DB at " + ERROR_DB_PATH)
+            engine = create_engine("sqlite:///" + os.path.expanduser(ERROR_DB_PATH))
+            ErrorBase.metadata.create_all(engine)
+        else:
+            engine = create_engine("sqlite:///" + os.path.expanduser(ERROR_DB_PATH))
+        session_factory = sessionmaker(bind = engine)
+        cprint("Creating Scoped session factory for Error DB")
+        self.ErrorDBSession = scoped_session(session_factory)
+
+    def CreateTargetDBSession(self, TARGET_DB_PATH):
+        if not os.path.exists(TARGET_DB_PATH):
+            cprint("Creating Target DB at " + TARGET_DB_PATH)
+            engine = create_engine("sqlite:///" + os.path.expanduser(TARGET_DB_PATH))
+            TargetBase.metadata.create_all(engine)
+        else:
+            engine = create_engine("sqlite:///" + os.path.expanduser(TARGET_DB_PATH))
+        session_factory = sessionmaker(bind = engine)
+        cprint("Creating Scoped session factory for Target DB")
+        self.TargetDBSession = scoped_session(session_factory)
       
     #these all functions call db_pull or db_push to do request
     def GetFieldSeparator(self):
@@ -170,9 +199,16 @@ class DB:
         arguments={'function':'GetSeed','arguments':[]}
         return db_pull(arguments)
 
-    def AddError(self, ErrorTrace):
-        arguments={'function':'AddError', 'arguments':[ErrorTrace]}
-        return db_push(arguments)
+    def AddError(self, errorObj):
+        while True:
+            try:
+                session = self.ErrorDBSession()
+                session.add(errorObj)
+                session.commit()
+                break
+            except exc.OperationalError:
+                cprint("Lock occured (might be)")
+                continue
     
     def ErrorCount(self):
         arguments={'function':'ErrorCount','arguments':[]}

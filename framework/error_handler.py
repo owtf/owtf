@@ -30,6 +30,7 @@ The error handler provides a centralised control for aborting the application an
 '''
 
 from framework.lib.general import *
+from framework.db.models import Error
 import logging
 import traceback
 import sys
@@ -73,15 +74,22 @@ class ErrorHandler:
                                 raise PluginAbortException(PartialOutput) # Jump to next handler and pass partial output to avoid losing results
                 return Message
 
-        def LogError(self, Message):
+        def LogError(self, errorObj):
                 try:
-                        self.Core.DB.AddError(Message) # Log error in the DB
+                        self.Core.DB.AddError(errorObj) # Log error in the DB
                 except AttributeError:
                         cprint("ERROR: DB is not setup yet: cannot log errors to file!")
 
         def AddOWTFBug(self, Message):
                 exc_type, exc_value, exc_traceback = sys.exc_info()
-                ErrorTrace = "\n".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+                ErrorTraceList = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                ErrorTrace = "\n".join(ErrorTraceList)
+                errorObj = Error(
+                                    owtf_message = Message,
+                                    exc_type = ErrorTraceList[-1],
+                                    exc_traceback = ''.join(ErrorTraceList[:-1])
+                                )
+                self.LogError(errorObj)
                 #traceback.print_exc()
                 #print repr(traceback.format_stack())
                 #print repr(traceback.extract_stack())
@@ -92,7 +100,6 @@ class ErrorHandler:
                 Output += "\n"+self.Core.AnonymiseCommand(ErrorTrace)
                 Output += "\n"+self.Padding
                 cprint(Output)
-                self.LogError(Output)
                 return "<pre>"+cgi.escape(Output)+"</pre>"
 #TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
 
