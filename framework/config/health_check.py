@@ -89,11 +89,6 @@ class HealthCheck(object):
             " - Define where your tools are here: " +
             str(self.core.Config.Profiles['g'])
             )
-        cprint(
-            " - Use the " +
-            self.core.Config.RootDir +
-            "/install/kali_install.sh script to install missing tools"
-            )
         if (self.core.Config.Get('INTERACTIVE') and
                 'n' == raw_input("Continue anyway? [Y/n]")):
             self.core.Error.FrameworkAbort("Aborted by user")
