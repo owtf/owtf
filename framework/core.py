@@ -343,10 +343,6 @@ class Core:
                     #self.Config.SetTarget(PreviousTarget) # Restore previous target
                 cprint("OWTF iteration finished")
 
-                #self.dbHandlerProcess.join()    
-            except AttributeError: # DB not instantiated yet!
-                cprint("OWTF finished: No time to report anything! :P")
-            finally:
                 if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
                     cprint('Errors saved to ' + self.Config.Get('ERROR_DB') + '. Would you like us to auto-report bugs ?')
                     choice = raw_input("[Y/n] ")
@@ -354,7 +350,10 @@ class Core:
                         self.ReportErrorsToGithub()
                     else:
                         cprint("We know that you are planning on submitting it manually ;)")
-
+                #self.dbHandlerProcess.join()
+            except AttributeError: # DB not instantiated yet!
+                cprint("OWTF finished: No time to report anything! :P")
+            finally:
                 if self.ProxyMode:
                     try:
                         cprint("Stopping inbound proxy processes and cleaning up, Please wait!")
