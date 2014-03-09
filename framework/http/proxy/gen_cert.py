@@ -36,7 +36,7 @@ import re
 from framework.lib.filelock import FileLock
 
 
-def gen_signed_cert(domain, ca_crt, ca_key, certs_folder):
+def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
     """
     This function takes a domain name as a parameter and then creates a certificate and key with the
     domain name(replacing dots by underscores), finally signing the certificate using specified CA and
@@ -65,7 +65,7 @@ def gen_signed_cert(domain, ca_crt, ca_key, certs_folder):
                 # The CA stuff is loaded from the same folder as this script
                 ca_cert = crypto.load_certificate(crypto.FILETYPE_PEM, open(ca_crt).read())
                 # The last parameter is the password for your CA key file
-                ca_key = crypto.load_privatekey(crypto.FILETYPE_PEM, open(ca_key).read(), "owtf")
+                ca_key = crypto.load_privatekey(crypto.FILETYPE_PEM, open(ca_key).read(), ca_pass)
 
                 key = crypto.PKey()
                 key.generate_key(crypto.TYPE_RSA, 2048)
