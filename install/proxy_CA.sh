@@ -40,15 +40,18 @@ config_file="$RootDir/profiles/general/default.cfg"
 certs_folder=$(get_config_value CERTS_FOLDER $config_file)
 ca_cert=$(get_config_value CA_CERT $config_file)
 ca_key=$(get_config_value CA_KEY $config_file)
+ca_pass_file=$(get_config_value CA_PASS_FILE $config_file)
+ca_key_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 
 if [ ! -d $certs_folder ]; then
     mkdir -p $certs_folder
 fi
 if [ ! -f $ca_cert ]; then
-    echo "-----------------------------------------------"
-    echo "[*] Please use \"owtf\" as password for the key"
-    echo "-----------------------------------------------"
-    openssl genrsa -des3 -out "$ca_key" 1024
-    openssl req -new -x509 -days 3650 -key "$ca_key" -out "$ca_cert"
+    # A file is created which consists of CA password
+    rm $ca_pass_file
+    echo $ca_key_pass >> $ca_pass_file
+
+    openssl genrsa -des3 -passout pass:$ca_key_pass -out "$ca_key" 1024
+    openssl req -new -x509 -days 3650 -passin pass:$ca_key_pass -key "$ca_key" -out "$ca_cert"
     echo "\n[*] Donot forget to add the $ca_cert as a trusted CA in your browser"
 fi
