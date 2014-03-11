@@ -528,7 +528,10 @@ class ProxyProcess(Process):
         # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory ~/.owtf/proxy )
         self.application.ca_cert = os.path.expanduser(self.application.Core.Config.Get('CA_CERT'))
         self.application.ca_key = os.path.expanduser(self.application.Core.Config.Get('CA_KEY'))
-        self.application.ca_key_pass = open(os.path.expanduser(self.application.Core.Config.Get('CA_PASS_FILE')),'r').read().strip()
+        try: # To stop owtf from breaking for our beloved users :P
+            self.application.ca_key_pass = open(os.path.expanduser(self.application.Core.Config.Get('CA_PASS_FILE')),'r').read().strip()
+        except IOError:
+            self.application.ca_key_pass = "owtf"
         self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
         self.application.certs_folder = os.path.expanduser(self.application.Core.Config.Get('CERTS_FOLDER'))
 
