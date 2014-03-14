@@ -35,6 +35,7 @@ class Installer(object):
     """
     def __init__(self, RootDir):
         self.RootDir = RootDir
+        self.pid = os.getpid()
         self.owtf_pip = os.path.join(RootDir, "install", "owtf.pip") # OWTF python libraries
         self.restricted_cfg = os.path.join(RootDir, "install", "distro-independent.cfg") # Restricted tools and dictionaries which are distro independent
         self.distros_cfg = os.path.join(RootDir, "install", "linux-distributions.cfg") # Various distros and install scripts
@@ -66,7 +67,7 @@ class Installer(object):
             self.run_command("sudo -E pip install --upgrade %s"%(line))
 
     def install_restricted_from_cfg(self, config_file):
-        cp = ConfigParser.ConfigParser({"RootDir":self.RootDir})
+        cp = ConfigParser.ConfigParser({"RootDir":self.RootDir, "Pid":self.pid})
         cp.read(config_file)
         for section in cp.sections():
             print("[*] Installing %s"%(section))
@@ -76,7 +77,7 @@ class Installer(object):
         # First all distro independent stuff is installed
         self.install_restricted_from_cfg(self.restricted_cfg)
         # User asked to select distro and distro related stuff is installed
-        cp = ConfigParser.ConfigParser({"RootDir":self.RootDir})
+        cp = ConfigParser.ConfigParser({"RootDir":self.RootDir, "Pid":self.pid})
         cp.read(self.distros_cfg)
 
         # Loop until proper input is received
