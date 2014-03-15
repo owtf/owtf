@@ -33,19 +33,13 @@ from urlparse import urlparse
 from collections import defaultdict
 from framework.config import plugin, health_check
 from framework.lib.general import *
+from framework.db import models
 
-# Plugin config offsets for info:
-PTYPE = 0
-PFILE = 1
-PTITLE = 2
-PCODE = 3
-PURL = 4
-DEFAULT_PROFILES = { 'g' : 'DEFAULT_GENERAL_PROFILE', 'net' : 'DEFAULT_NET_PLUGIN_ORDER_PROFILE', 'web' : 'DEFAULT_WEB_PLUGIN_ORDER_PROFILE', 'r' : 'DEFAULT_RESOURCES_PROFILE' } 
 REPLACEMENT_DELIMITER = "@@@"
 REPLACEMENT_DELIMITER_LENGTH = len(REPLACEMENT_DELIMITER)
 CONFIG_TYPES = [ 'string', 'other' ]
 
-class Config:
+class Config(object):
     Target = None
     def __init__(self, RootDir, OwtfPid, CoreObj):
         self.RootDir = RootDir
@@ -58,20 +52,12 @@ class Config:
     def initialize_attributes(self):
         self.Config = defaultdict(list) # General configuration information
         for Type in CONFIG_TYPES:
-            self.Config[Type] = {} # Distinguish strings from everything else in the config = easier + more efficient to replace resources later
-        #print str(self.Config)
-        self.TargetConfig = {} # General + Target-specific configuration
-        self.Targets = [] # List of targets
+            self.Config[Type] = {}
+        self.Targets = [] # List of targets, filled by db.py
 
     def Init(self):
         self.Plugin = plugin.PluginConfig(self.Core)
         self.HealthCheck = health_check.HealthCheck(self.Core)
-
-    def GetTarget(self):
-        return self.Target
-
-    def GetTargets(self):
-        return self.Targets
 
     def LoadConfigFromFile(self, ConfigPath): # Load the configuration frominto a global dictionary
         if 'framework_config' not in ConfigPath:
@@ -89,27 +75,10 @@ class Config:
                 self.Core.Error.FrameworkAbort("Problem in config file: '"+ConfigPath+"' -> Cannot parse line: "+line)
 
     def ProcessOptions(self, Options):
-        self.Set('FORCE_OVERWRITE', Options['Force_Overwrite']) # True/False
-        self.Set('INTERACTIVE', Options['Interactive']) # True/False
-        self.Set('SIMULATION', Options['Simulation']) # True/False
-
-        self.Set('PORTWAVES' ,Options['PortWaves'])
-        self.LoadPluginTestGroups(Options['PluginGroup'])
-        self.LoadProfilesAndSettings(Options)
+        #self.LoadPluginTestGroups(Options['PluginGroup'])
+        #self.LoadProfilesAndSettings(Options)
         # After all initialisations, run health-check:
         self.HealthCheck.run()
-
-    def LoadPluginTestGroups(self, PluginGroup):
-        if(PluginGroup == 'web'):
-            self.Plugin.LoadWebTestGroupsFromFile()
-        elif(PluginGroup == 'net'):
-            self.Plugin.LoadNetTestGroupsFromFile()
-
-    def LoadProfilesAndSettings(self, Options):
-        self.LoadProfiles(Options['Profiles'])
-        self.LoadProxyConfigurations(Options)
-        self.DeriveGlobalSettings()
-        self.DeriveFromTarget(Options)
 
     def LoadProxyConfigurations(self, Options):
         if Options['InboundProxy']:
@@ -128,92 +97,10 @@ class Config:
             Copy[Key] = Value.copy()
         return Copy
 
-    def SetTarget(self, Target): # Sets the Target Offset in the configuration, until changed Config.Get will retrieve Target-specific info
-        self.Target = Target
-        if self.Target not in self.TargetConfig: # Target config not initialised yet
-            self.TargetConfig[self.Target] = self.DeepCopy(self.Config) # Clone general info into target-specific config
-            self.Targets.append(self.Target)
-            #self.TargetConfig[self.Target] = self.Config.deepcopy() # Clone general info into target-specific config
-        self.Set('TARGET', Target)
-        #print str(self.TargetConfig)
-
-    def DeriveFromTarget(self, Options):
-        self.TargetConfig = defaultdict(list) # General + Target-specific configuration
-        if Options['PluginGroup'] not in [ 'web', 'aux' ,'net']:
-            self.Core.Error.FrameworkAbort("Sorry, not implemented yet!")
-        if Options['PluginGroup'] == 'web' or Options['PluginGroup']== 'net': # Target to be interpreted as a URL
-            for TargetURL in self.PrepareURLScope(Options['Scope'],Options['PluginGroup']):
-                self.SetTarget(TargetURL) # Set the Target URL as the configuration offset, changes will be performed here
-                self.DeriveConfigFromURL(TargetURL,Options) # Derive some settings from Target URL and initialise everything
-                self.Set('REVIEW_OFFSET', TargetURL)
-                # All virtual host URLs to be displayed under ip/port in summary:
-                self.Set('SUMMARY_HOST_IP', self.Get('HOST_IP')) 
-                self.Set('SUMMARY_PORT_NUMBER', self.Get('PORT_NUMBER')) 
-                if Options['PluginGroup'] == 'web':
-                    self.Set('REPORT_TYPE', 'URL')
-                else:
-                    self.Set('REPORT_TYPE', 'NET')
-        elif Options['PluginGroup'] == 'aux': # Target to NOT be interpreted as anything
-            self.Set('AUX_OUTPUT_PATH', self.Get('OUTPUT_PATH')+"/aux")
-            self.Set('HTML_DETAILED_REPORT_PATH', self.Get('OUTPUT_PATH')+"/aux.html") # IMPORTANT: For localStorage to work Url reports must be on the same directory
-            self.InitHTTPDBs(self.Get('AUX_OUTPUT_PATH')+"/db/") # Aux modules can make HTTP requests, but these are saved on aux DB
-            self.Set('REVIEW_OFFSET', 'AUX')
-            self.Set('SUMMARY_HOST_IP', '')
-            self.Set('SUMMARY_PORT_NUMBER', '')
-            self.Set('REPORT_TYPE', 'AUX')
-            self.SetTarget('aux') # No Target for Aux plugins -> They work in a different way. But need target here for conf. to work properly
-
-    def LoadProfiles(self, Profiles):
-        self.Profiles = defaultdict(list) # This prevents python from blowing up when the Key does not exist :)
-        for Type, Setting in DEFAULT_PROFILES.items():
-            self.Profiles[Type] = self.Get(Setting) # First set default files for each profile type
-        for Type, File in Profiles: # Now override with User-provided profiles, if present
-            self.Profiles[Type] = File
-        # Now the self.Profiles contains the right mix of default + user-supplied profiles, parse the profiles
-        self.LoadConfigFromFile(self.Profiles['g']) # General config loaded on top of normal config
-        self.LoadResourcesFromFile(self.Profiles['r'])
-        for PluginGroup in self.Plugin.GetAllGroups():
-            if PluginGroup in self.Profiles:
-                self.Plugin.LoadPluginOrderFromFile(PluginGroup, self.Profiles[PluginGroup])
-            else:
-                self.Plugin.LoadPluginOrderFromFileSystem(PluginGroup)
-
-    def LoadResourcesFromFile(self, File): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
-        cprint("Loading Resources from: "+File+" ..")
-        self.ResourcePath = File
-        ConfigFile = open(File, 'r')
-        self.Resources = defaultdict(list) # This prevents python from blowing up when the Key does not exist :)
-        for line in ConfigFile:
-            if '#' == line[0]:
-                continue # Skip comment lines
-            try:
-                Type, Name, Resource = line.split('_____')
-            except:
-                cprint(self.ResourcePath+" ERROR: The delimiter is incorrect in this line: "+str(line.split('_____')))
-                sys.exit(-1)
-            self.Resources[Type.upper()].append([ Name, Resource ])
-
-    def IsResourceType(self, ResourceType):
-        return ResourceType in self.Resources
-
-    def GetTcpPorts(self,startport,endport):
-        PortFile = open(self.Get('TCP_PORT_FILE'), 'r')
-        for line in PortFile:
-            PortList = line.split(',')
-            response = ','.join(PortList[int(startport):int(endport)])
-        return response
-
-    def GetUdpPorts(self,startport,endport):
-        PortFile = open(self.Get('UDP_PORT_FILE'), 'r')
-        for line in PortFile:
-            PortList = line.split(',')
-            response = ','.join(PortList[int(startport):int(endport)])
-        return response
-
-    def GetResources(self, ResourceType): # Transparently replaces the Resources placeholders with the relevant config information
+    def GetResources(self, ResourceType, Target=None): # Transparently replaces the Resources placeholders with the relevant config information
+        if Target:
+            self.SetTarget(Target)
         ReplacedResources = []
-        if self.Core.ProxyMode:
-            ResourceType += ""#"Proxified"
         ResourceType = ResourceType.upper() # Force upper case to make Resource search not case sensitive
         if self.IsResourceType(ResourceType):
             for Name, Resource in self.Resources[ResourceType]:
@@ -232,42 +119,7 @@ class Config:
     def GetRawResources(self, ResourceType):
         return self.Resources[ResourceType]
 
-    def DeriveGlobalSettings(self):
-        self.Set('FRAMEWORK_DIR', self.RootDir)
-        DBPath = self.Get('OUTPUT_PATH')+"/db/" # Global DB
-        self.Set('UNREACHABLE_DB', DBPath+'unreachable.txt') # Stores when and how owtf was run
-        self.Set('RUN_DB', DBPath+'runs.txt') # Stores when and how owtf was run
-        self.Set('ERROR_DB', DBPath+'errors.txt') # Stores error traces for debugging
-        self.Set('SEED_DB', DBPath+'seed.txt') # Stores random seed for testing
-        self.Set('SUMMARY_HTMLID_DB', DBPath+'htmlid.txt') # Stores the max html element id to ensure unique ids in forms, etc
-        self.Set('DEBUG_DB', DBPath+'debug.txt')
-        self.Set('PLUGIN_REPORT_REGISTER', DBPath+"plugin_report_register.txt")
-        self.Set('DETAILED_REPORT_REGISTER', DBPath+"detailed_report_register.txt")
-        self.Set('COMMAND_REGISTER', DBPath+"command_register.txt")
-
-        self.Set('USER_AGENT_#', self.Get('USER_AGENT').replace(' ', '#')) # User-Agent as shell script-friendly argument! :)
-        self.Set('SHORT_USER_AGENT', self.Get('USER_AGENT').split(' ')[0]) # For tools that choke with blank spaces in UA!?
-        self.Set('HTML_REPORT_PATH', self.Get('OUTPUT_PATH')+"/"+self.Get('HTML_REPORT'))
-
-    def PrepareURLScope(self, Scope,Group): # Convert all targets to URLs
-        NewScope = []
-        for TargetURL in Scope:
-            if TargetURL[-1] == "/":
-                TargetURL = TargetURL[0:-1]
-            if TargetURL[0:4] != 'http':
-                # Add both "http" and "https" if not present:
-                # the connection check will then remove from the report if one does not exist
-                if Group == "net":
-                                    NewScope.append('http://' + TargetURL)
-                else:
-                    for Prefix in [ 'http', 'https' ]:
-                        NewScope.append( Prefix+'://'+TargetURL )
-            else:
-                NewScope.append(TargetURL) # Append "as-is"
-        return NewScope
-
     def DeriveURLSettings(self, TargetURL,Options):
-        #print "self.Target="+self.Target
         self.Set('TARGET_URL', TargetURL) # Set the target in the config
         # TODO: Use urlparse here
         ParsedURL = urlparse(TargetURL)
@@ -304,13 +156,16 @@ class Config:
         self.Set('URL_SCHEME', URLScheme) # Some tools need this!
         self.Set('PORT_NUMBER', Port) # Some tools need this!
         self.Set('HOST_NAME', Host) # Set the top URL
-        self.Set('HOST_IP', self.GetIPFromHostname(self.Get('HOST_NAME')))
+        HostIP = self.GetIPFromHostname(self.Get('HOST_NAME'))
+        HostIPs = self.GetIPsFromHostname(self.Get('HOST_NAME'))
+        self.Set('HOST_IP', HostIP)
         self.Set('IP_URL', self.Get('TARGET_URL').replace(self.Get('HOST_NAME'), self.Get('HOST_IP')))
         self.Set('TOP_DOMAIN', self.Get('HOST_NAME'))
         HostnameChunks = self.Get('HOST_NAME').split('.')
         if self.IsHostNameNOTIP() and len(HostnameChunks) > 2:
             self.Set('TOP_DOMAIN', '.'.join(HostnameChunks[1:])) #Get "example.com" from "www.example.com"
         self.Set('TOP_URL', Protocol+"://" + Host + ":" + Port) # Set the top URL
+        return [TargetURL, HostIP, Port, URLScheme, HostIPs, Host]
 
     def DeriveOutputSettingsFromURL(self, TargetURL):
         self.Set('HOST_OUTPUT', self.Get('OUTPUT_PATH')+"/"+self.Get('HOST_IP')) # Set the output directory
@@ -331,33 +186,13 @@ class Config:
         # URL DBs: Distintion between vetted, confirmed-to-exist, in transaction DB URLs and potential URLs
         self.InitHTTPDBs(self.Get('URL_OUTPUT'))
 
-    def InitHTTPDBs(self, DBPath):
-        self.Set('TRANSACTION_LOG_TXT', DBPath+'transaction_log.txt') # Set the Transaction database
-        self.Set('TRANSACTION_LOG_HTML', DBPath+'transaction_log.html') 
-        self.Set('TRANSACTION_LOG_TRANSACTIONS', DBPath+'transactions/') # directory to store full requests
-        self.Set('TRANSACTION_LOG_REQUESTS', DBPath+'transactions/requests/') # directory to store full requests
-        self.Set('TRANSACTION_LOG_RESPONSE_HEADERS', DBPath+'transactions/response_headers/') # directory to store full requests
-        self.Set('TRANSACTION_LOG_RESPONSE_BODIES', DBPath+'transactions/response_bodies/') # directory to store full requests
-        self.Set('TRANSACTION_LOG_FILES', DBPath+'files/') # directory to store downloaded files
-
-        DBPath = DBPath+"db/"
-        self.Set('HTMLID_DB', DBPath+'htmlid.txt') # Stores the max html element id to ensure unique ids in forms, etc
-        self.Set('ALL_URLS_DB', DBPath+'all_urls.txt') # All URLs in scope without errors
-        self.Set('ERROR_URLS_DB', DBPath+'error_urls.txt') # URLs that produce errors (404, etc)
-        self.Set('FILE_URLS_DB', DBPath+'file_urls.txt') # URL for files
-        self.Set('IMAGE_URLS_DB', DBPath+'image_urls.txt') # URLs for images
-        self.Set('FUZZABLE_URLS_DB', DBPath+'fuzzable_urls.txt') # Potentially fuzzable URLs
-        self.Set('EXTERNAL_URLS_DB', DBPath+'external_urls.txt') # Out of scope URLs
-        self.Set('SSI_URLS_DB', DBPath+'ssi_urls.txt') # SSI  URLs
-
-        self.Set('POTENTIAL_ALL_URLS_DB', DBPath+'potential_urls.txt') # All seen URLs
-        # POTENTIAL_ERROR_URLS is never used in the DB but helps simplify the code (vetted urls more similar to potential urls)
-        self.Set('POTENTIAL_ERROR_URLS_DB', DBPath+'potential_error_urls.txt') # URLs that produce errors (404, etc) - NOT USED
-        self.Set('POTENTIAL_FILE_URLS_DB', DBPath+'potential_file_urls.txt') # URL for files
-        self.Set('POTENTIAL_IMAGE_URLS_DB', DBPath+'potential_image_urls.txt') # URLs for images 
-        self.Set('POTENTIAL_FUZZABLE_URLS_DB', DBPath+'potential_fuzzable_urls.txt') # Potentially fuzzable URLs
-        self.Set('POTENTIAL_EXTERNAL_URLS_DB', DBPath+'potential_external_urls.txt') # Out of scope URLs
-        self.Set('POTENTIAL_SSI_URLS_DB', DBPath+'potential_ssi_urls.txt') # SSI URLs
+    def DeriveDBPathsFromURL(self, TargetURL):
+        targets_folder = os.path.expanduser(self.Get('TARGETS_DB_FOLDER'))
+        url_info_id = TargetURL.replace('/','_').replace(':','')
+        transaction_db_path = os.path.join(targets_folder, url_info_id, "transactions.db")
+        url_db_path = os.path.join(targets_folder, url_info_id, "urls.db")
+        plugins_db_path = os.path.join(targets_folder, url_info_id, "plugins.db")
+        return [transaction_db_path, url_db_path, plugins_db_path]
 
     def DeriveConfigFromURL(self, TargetURL,Options): # Basic configuration tweaks to make things simpler for the plugins
         self.DeriveURLSettings(TargetURL,Options)
@@ -402,16 +237,66 @@ class Config:
         cprint("The IP address for "+Hostname+" is: '"+IP+"'")
         return IP
 
+    def GetIPsFromHostname(self, Hostname):
+        IP = ''
+        for Socket in [ socket.AF_INET, socket.AF_INET6 ]: # IP validation based on @marcwickenden's pull request, thanks!
+            try:
+                socket.inet_pton(Socket, Hostname)
+                IP = Hostname
+                break
+            except socket.error: continue
+        if not IP:
+            try: IP = socket.gethostbyname(Hostname)
+            except socket.gaierror: self.Core.Error.FrameworkAbort("Cannot resolve Hostname: "+Hostname)
+
+        ipchunks = IP.strip().split("\n")
+        #AlternativeIPs = []
+        #if len(ipchunks) > 1:
+        #    IP = ipchunks[0]
+        #    cprint(Hostname+" has several IP addresses: ("+", ".join(ipchunks)[0:-3]+"). Choosing first: "+IP+"")
+        #    AlternativeIPs = ipchunks[1:]
+        #self.Set('ALTERNATIVE_IPS', AlternativeIPs)
+        #IP = IP.strip()
+        #self.Set('INTERNAL_IP', self.Core.IsIPInternal(IP))
+        #cprint("The IP address for "+Hostname+" is: '"+IP+"'")
+        return ipchunks
+
+    def SetTarget(self, target):
+        if target in self.Targets:
+            self.Target = target
+            target_config = self.Core.DB.GetTargetConfigFromDB(target)
+            self.Set('HOST_PATH',HostPath) # Needed for google resource search
+            self.Set('URL_SCHEME', target_config.url_scheme) # Some tools need this!
+            self.Set('PORT_NUMBER', target_config.port_number) # Some tools need this!
+            self.Set('HOST_NAME', target_config.host_name) # Set the top URL
+            self.Set('HOST_IP', target_config.host_ip)
+            self.Set('ALTERNATIVE_IPS', target_config.host_ips.split(','))
+            self.Set('IP_URL', target_config.ip_url)
+            self.Set('TOP_DOMAIN', self.Get('HOST_NAME'))
+            HostnameChunks = self.Get('HOST_NAME').split('.')
+            if self.IsHostNameNOTIP() and len(HostnameChunks) > 2:
+                self.Set('TOP_DOMAIN', '.'.join(HostnameChunks[1:])) #Get "example.com" from "www.example.com"
+            self.Set('TOP_URL', target_config.url_scheme+"://" + target_config.host_name + ":" + target_config.port_number)
+
+    def GetTarget(self):
+        return self.Target
+
+    def GetTargets(self):
+        return self.Targets
+
     def GetAll(self, Key): # Retrieves a config setting value on all target configurations
-        Matches = []
+        #Matches = []
         PreviousTarget = self.Target
-        for Target, Config in self.TargetConfig.items():
-            self.SetTarget(Target)
-            Value = self.Get(Key)
-            if Value not in Matches: # Avoid duplicates
-                Matches.append(Value)
+        #for Target, Config in self.TargetConfig.items():
+        #    self.SetTarget(Target)
+        #    Value = self.Get(Key)
+        #    if Value not in Matches: # Avoid duplicates
+        #        Matches.append(Value)
+        session = self.Core.DB.TargetConfigDBSession()
+        results = session.query(getattr(models.Target), Key.lower()).all()
+        results = [result[0] for result in results]
         self.Target = PreviousTarget
-        return Matches
+        return results
 
     def IsSet(self, Key):
         Key = self.PadKey(Key)
@@ -433,7 +318,10 @@ class Config:
     def StripKey(self, Key):
         return Key.replace(REPLACEMENT_DELIMITER, '')
 
-    def Get(self, Key): # Transparently gets config info from Target or General
+    def Get(self, Key):
+        return self.Core.DB.GetValueFromConfigDB(Key)
+
+    def FrameworkConfigGet(self, Key): # Transparently gets config info from Target or General
         try:
             Key = self.PadKey(Key)
             return self.GetKeyValue(Key)
@@ -490,3 +378,18 @@ class Config:
         cprint("Configuration settings")
         for k, v in self.GetConfig().items():
             cprint(str(k)+" => "+str(v))
+
+    def GetDBDirForTarget(self, TargetURL):
+        return os.path.join(os.path.expanduser(TARGETS_DB_DIR), TargetURL.replace("//","_").replace(":",""))
+
+    def CreateDBDirForTarget(self, TargetURL):
+        self.Core.EnsureDirPath(self.GetDBPathForTarget(TargetURL))
+
+    def GetTransactionDBPathForTarget(self, TargetURL):
+        return os.path.join(self.GetDBDirForTarget(TargetURL), self.Get("TRANSACTION_DB_NAME"))
+
+    def GetUrlDBPathForTarget(self, TargetURL):
+        return os.path.join(self.GetDBDirForTarget(TargetURL), self.Get("URL_DB_NAME"))
+
+    def GetReviewDBPathForTarget(self, TargetURL):
+        return os.path.join(self.GetDBDirForTarget(TargetURL), self.Get("REVIEW_DB_NAME"))

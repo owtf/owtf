@@ -106,10 +106,12 @@ def GetArgs(Core, args):
                         dest="CustomProfile",
                         default=None,
                         help="<g:f,w:f,n:f,r:f> - Use my profile: 'f' = valid config file. g: general config, w: web plugin order, n: net plugin order, r: resources file")
+    """
     Parser.add_argument("-a", "--algorithm",
                         dest="Algorithm",
                         default="breadth", choices=Core.Config.Get('ALGORITHMS'),
                         help="<depth/breadth> - Multi-target algorithm: breadth (default)=each plugin runs for all targets first | depth=all plugins run for each target first")
+    """
     Parser.add_argument("-g", "--plugin_group",
                         dest="PluginGroup",
                         default="web",
@@ -372,7 +374,7 @@ def ProcessOptions(Core, user_args):
             'OutboundProxy': Arg.OutboundProxy,
             'OutboundProxyAuth': Arg.OutboundProxyAuth,
             'Profiles': Profiles,
-            'Algorithm': Arg.Algorithm,
+            #'Algorithm': Arg.Algorithm,
             'PluginGroup': PluginGroup,
             'RPort': Arg.RPort,
             'PortWaves' : Arg.PortWaves,
@@ -394,10 +396,10 @@ def run_owtf(Core, args):
         Core.Finish("Aborted by user")
     except SystemExit:
         pass  # Report already saved, framework tries to exit
-    except:
-        Core.Error.Add("Unknown owtf error")
+    #except:
+    #    Core.Error.Add("Unknown owtf error")
         # Interrupted. Must save the DB to disk, finish report, etc
-        Core.Finish("Crashed")
+    #    Core.Finish("Crashed")
     finally: # Needed to rename the temp storage dirs to avoid confusion
         Core.CleanTempStorageDirs(Core.Config.OwtfPid)
 
@@ -407,7 +409,7 @@ if __name__ == "__main__":
         Core = core.Init(RootDir, OwtfPid)  # Initialise Framework
         print(
             "OWTF Version: %s, Release: %s " %
-            (Core.Config.Get('VERSION'), Core.Config.Get('RELEASE')),
+            (Core.Config.FrameworkConfigGet('VERSION'), Core.Config.FrameworkConfigGet('RELEASE')),
             end='\n'*2
             )
         args = ProcessOptions(Core, sys.argv[1:])

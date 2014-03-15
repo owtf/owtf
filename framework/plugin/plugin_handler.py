@@ -71,7 +71,8 @@ class PluginHandler:
                 #self.PluginGroups = [ 'web', 'net', 'aux' ]
                 #self.PluginTypes = [ 'passive', 'semi_passive', 'active', 'grep' ]
                 #self.AllowedPluginTypes = self.GetAllowedPluginTypes(Options['PluginType'].split(','))
-                self.Simulation, self.Scope, self.PluginGroup, self.Algorithm, self.ListPlugins = [ Options['Simulation'], Options['Scope'], Options['PluginGroup'], Options['Algorithm'], Options['ListPlugins'] ]
+                #self.Simulation, self.Scope, self.PluginGroup, self.Algorithm, self.ListPlugins = [ Options['Simulation'], Options['Scope'], Options['PluginGroup'], Options['Algorithm'], Options['ListPlugins'] ]
+                self.Simulation, self.Scope, self.PluginGroup, self.ListPlugins = [ Options['Simulation'], Options['Scope'], Options['PluginGroup'], Options['ListPlugins'] ]
                 self.OnlyPluginsList = self.ValidateAndFormatPluginList(Options['OnlyPlugins'])
                 self.ExceptPluginsList = self.ValidateAndFormatPluginList(Options['ExceptPlugins'])
                 #print "OnlyPlugins="+str(self.OnlyPluginsList)

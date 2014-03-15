@@ -583,10 +583,10 @@ class ProxyProcess(Process):
         # Restricted headers are picked from framework/config/framework_config.cfg
         # These headers are removed from the response obtained from webserver, before sending it to browser
         global restricted_response_headers
-        restricted_response_headers = self.application.Core.Config.Get("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
+        restricted_response_headers = self.application.Core.Config.FrameworkConfigGet("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
         # These headers are removed from request obtained from browser, before sending it to webserver
         global restricted_request_headers
-        restricted_request_headers = self.application.Core.Config.Get("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
+        restricted_request_headers = self.application.Core.Config.FrameworkConfigGet("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
 
         # HTTP Auth options
         if self.application.Core.Config.Get("HTTP_AUTH_HOST") != "None":
