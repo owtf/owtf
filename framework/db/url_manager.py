@@ -38,11 +38,11 @@ class URLManager:
         def __init__(self, Core):
                 self.Core = Core
                 # Compile regular expressions once at the beginning for speed purposes:
-                self.IsFileRegexp = re.compile(Core.Config.Get('REGEXP_FILE_URL'), re.IGNORECASE)
-                self.IsSmallFileRegexp = re.compile(Core.Config.Get('REGEXP_SMALL_FILE_URL'), re.IGNORECASE)
-                self.IsImageRegexp = re.compile(Core.Config.Get('REGEXP_IMAGE_URL'), re.IGNORECASE)
-                self.IsURLRegexp = re.compile(Core.Config.Get('REGEXP_VALID_URL'), re.IGNORECASE)
-                self.IsSSIRegexp = re.compile(Core.Config.Get('REGEXP_SSI_URL'), re.IGNORECASE)
+                self.IsFileRegexp = re.compile(Core.Config.FrameworkConfigGet('REGEXP_FILE_URL'), re.IGNORECASE)
+                self.IsSmallFileRegexp = re.compile(Core.Config.FrameworkConfigGet('REGEXP_SMALL_FILE_URL'), re.IGNORECASE)
+                self.IsImageRegexp = re.compile(Core.Config.FrameworkConfigGet('REGEXP_IMAGE_URL'), re.IGNORECASE)
+                self.IsURLRegexp = re.compile(Core.Config.FrameworkConfigGet('REGEXP_VALID_URL'), re.IGNORECASE)
+                self.IsSSIRegexp = re.compile(Core.Config.FrameworkConfigGet('REGEXP_SSI_URL'), re.IGNORECASE)
 
         def IsRegexpURL(self, URL, Regexp):
                 if len(Regexp.findall(URL)) > 0:

@@ -36,7 +36,7 @@ from framework.lib.general import cprint
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy import exc
-from models import ErrorBase, TransactionBase, TargetBase
+from framework.db import models
 import json
 import logging
 import multiprocessing
@@ -44,192 +44,142 @@ import os
 import random
 import string
 
-#DB_Handler = '/tmp/owtf/db_handler'
-#Request_Folder = DB_Handler+"/request"
-#Response_Folder = DB_Handler+"/response"
-#file_name_length=50
-
-class DB:
+class DB(object):
         
     def __init__(self,CoreObj):
         self.Core = CoreObj
-        self.DBHandler = db_handler.DBHandler(CoreObj)
         self.Transaction = transaction_manager.TransactionManager(CoreObj)
         self.URL = url_manager.URLManager(CoreObj)
-        self.Run = run_manager.RunManager(CoreObj)
-        self.PluginRegister = plugin_register.PluginRegister(CoreObj)
-        self.ReportRegister = report_register.ReportRegister(CoreObj)
-        self.CommandRegister = command_register.CommandRegister(CoreObj)
-        self.Debug = debug.DebugDB(CoreObj)
+        #self.Run = run_manager.RunManager(CoreObj)
+        #self.PluginRegister = plugin_register.PluginRegister(CoreObj)
+        #self.ReportRegister = report_register.ReportRegister(CoreObj)
+        #self.CommandRegister = command_register.CommandRegister(CoreObj)
+        #self.Debug = debug.DebugDB(CoreObj)
 
     def Init(self):
-        self.DBHandler.Init()
-        self.CheckDBFolderLocation(os.path.expanduser(self.Core.Config.Get("DB_FOLDER_PATH")))
-        self.CreateErrorDBSession(os.path.expanduser(self.Core.Config.Get("ERROR_DB_PATH")))
-        self.CreateTargetDBSession(os.path.expanduser(self.Core.Config.Get("TARGET_DB_PATH")))
+        self.Core.EnsureDirPath(self.Core.Config.FrameworkConfigGet("DB_DIR"))
+        self.ErrorDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("ERROR_DB_PATH")), models.ErrorBase)
+        self.TargetConfigDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("TARGET_CONFIG_DB_PATH")), models.TargetBase)
+        self.ResourceDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("RESOURCE_DB_PATH")), models.ResourceBase)
+        self.ConfigDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("CONFIG_DB_PATH")), models.GeneralBase)
+        self.DBHealthCheck()
+        self.LoadDBs()
 
-    def CheckDBFolderLocation(self, dir_path):
-        if not os.path.exists(dir_path):
-            os.makedir(dir_path)
+    def LoadDBs(self):
+        self.LoadResourceDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE"))
+        self.LoadConfigDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_GENERAL_PROFILE"))
 
-    def CreateErrorDBSession(self, ERROR_DB_PATH):
-        if not os.path.exists(ERROR_DB_PATH):
-            cprint("Creating Error DB at " + ERROR_DB_PATH)
-            engine = create_engine("sqlite:///" + ERROR_DB_PATH)
-            ErrorBase.metadata.create_all(engine)
+    def DBHealthCheck(self):
+        session = self.TargetConfigDBSession()
+        target_list = session.query(models.Target).all()
+        for target in target_list:
+            self.Core.Config.Targets.append(target.url)
+            self.EnsureDBsForTarget(target.url)
+
+    def EnsureDBsForTarget(self, TargetURL):
+        self.Core.Config.CreateDBDirForTarget(TargetURL)
+        self.EnsureDBWithBase(self.Core.Config.GetTransactionDBPathForTarget(TargetURL), models.TransactionBase)
+        self.EnsureDBWithBase(self.Core.Config.GetUrlDBPathForTarget(TargetURL), models.URLBase)
+        self.EnsureDBWithBase(self.Core.Config.GetReviewDBPathForTarget(TargetURL), models.ReviewWebBase)
+
+    def EnsureDBWithBase(self, DB_PATH, BaseClass):
+        cprint("Ensuring if DB exists at " + DB_PATH)
+        if not os.path.exists(DB_PATH):
+            self.CreateDBUsingBase(DB_PATH, BaseClass)
+
+    def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
+        cprint("Loading Resources from: " + file_path + " ..")
+        ConfigFile = open(file_path, 'r').read().splitlines() # To remove stupid '\n' at the end
+        session = self.ResourceDBSession()
+        for line in ConfigFile:
+            if '#' == line[0]:
+                continue # Skip comment lines
+            try:
+                Type, Name, Resource = line.split('_____')
+                # Resource = Resource.strip()
+                session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
+            except ValueError:
+                cprint("ERROR: The delimiter is incorrect in this line at Resource File: "+str(line.split('_____')))
+        session.commit()
+        session.close()
+
+    def LoadConfigDBFromFile(self, file_path):
+        cprint("Loading Configuration from: " + file_path + " ..")
+        ConfigFile = open(file_path, 'r').read().splitlines() # To remove stupid '\n' at the end
+        session = self.ConfigDBSession()
+        for line in ConfigFile:
+            if not line or '#' == line[0]: continue
+            try:
+                key, value = line.split(":", 1)
+                key, value = key.strip(), value.strip()
+                session.add(models.ConfigSetting(key = key, value = value))
+            except ValueError:
+                cprint(line)
+                cprint("Invalid configuration line")
+        session.commit()
+        session.close()
+
+    def CreateDBUsingBase(self, DB_PATH, BaseClass):
+        cprint("Creating DB at " + DB_PATH)
+        engine = create_engine("sqlite:///" + DB_PATH)
+        BaseClass.metadata.create_all(engine)
+        return engine
+
+    def CreateScopedSession(self, DB_PATH, BaseClass):
+        # Not to be used apart from main process, use CreateSession instead
+        if not os.path.exists(DB_PATH):
+            engine = self.CreateDBUsingBase(DB_PATH, BaseClass)
         else:
-            engine = create_engine("sqlite:///" + ERROR_DB_PATH)
+            engine = create_engine("sqlite:///" + DB_PATH)
         session_factory = sessionmaker(bind = engine)
-        cprint("Creating Scoped session factory for Error DB")
-        self.ErrorDBSession = scoped_session(session_factory)
+        cprint("Creating Scoped session factory for " + DB_PATH)
+        return scoped_session(session_factory)
 
-    def CreateTargetDBSession(self, TARGET_DB_PATH):
-        if not os.path.exists(TARGET_DB_PATH):
-            cprint("Creating Target DB at " + TARGET_DB_PATH)
-            engine = create_engine("sqlite:///" + TARGET_DB_PATH)
-            TargetBase.metadata.create_all(engine)
-        else:
-            engine = create_engine("sqlite:///" + TARGET_DB_PATH)
-        session_factory = sessionmaker(bind = engine)
-        cprint("Creating Scoped session factory for Target DB")
-        self.TargetDBSession = scoped_session(session_factory)
-      
-    #these all functions call db_pull or db_push to do request
-    def GetFieldSeparator(self):
-        return self.DBHandler.GetFieldSeparator()
+    def CreateSession(self, DB_PATH):
+        engine = create_engine("sqlite:///" + DB_PATH)
+        return sessionmaker(bind = engine)
 
-    def GetPath(self, DBName):
-        """
-        arguments={'function':'GetPath','arguments':[DBName]}
-        return db_pull(arguments)
-        """
-        # Config realted stuff should be fetched from current process only
-        return self.Core.Config.Get(DBName)
+    def GetTargetConfigFromDB(self, target_url):
+        session = self.TargetConfigDBSession()
+        return session.query(models.Target).get(target_url)
 
-    def Get(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'Get','arguments':[DBName,Path]}
-        return db_pull(arguments)
+    def TransactionDBSessionForTarget(self, target_url):
+        db_path = self.Core.Config.GetTransactionDBPathForTarget(target_url)
+        return self.CreateSession(db_path)
 
-    def GetData(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'GetData','arguments':[DBName,Path]}
-        return db_pull(arguments)
+    def UrlDBSessionForTarget(self, target_url):
+        db_path = self.Core.Config.GetUrlDBPathForTarget(target_url)
+        return self.CreateSession(db_path)
 
-    def GetRecord(self, DBName, Index, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'GetRecord','arguments':[DBName,Index,Path]}
-        return db_pull(arguments)
-
-    def ModifyRecord(self, DBName, Index, Value, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'ModifyRecord','arguments':[DBName,Index, Value,Path]}
-        return db_push(arguments)
-
-    def GetRecordAsMatch(self, Record, NAME_TO_OFFSET):
-        arguments={'function':'GetRecordAsMatch','arguments':[Record, NAME_TO_OFFSET]}
-        return db_pull(arguments)
-
-    def Search(self, DBName, Criteria, NAME_TO_OFFSET, Path = None): # Returns DB Records in an easy-to-use dictionary format { 'field1' : 'value1', ... }
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'Search', 'arguments':[DBName, Criteria, NAME_TO_OFFSET, Path]}
-        return db_pull(arguments)
-
-    def GetSyncCount(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'GetSyncCount', 'arguments':[DBName, Path]}
-        return db_pull(arguments)
-
-    def IncreaseSync(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'IncreaseSync', 'arguments':[DBName, Path]}
-        return db_push(arguments)
-
-    def CalcSync(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'CalcSync', 'arguments':[DBName, Path]}
-        return db_push(arguments)
-
-    def Add(self, DBName, Data, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'Add','arguments':[DBName, Data,Path]}
-        return db_push(arguments)
-
-    def GetLength(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'GetLength', 'arguments':[DBName, Path]}
-        return int(db_pull(arguments))
-    
-    def IsEmpty(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'IsEmpty','arguments':[DBName, Path]}
-        return db_pull(arguments)
-    
-    def GetDBNames(self):
-        arguments={'function':'GetDBNames','arguments':[]}
-        return db_pull(arguments)
-    
-    def GetNextHTMLID(self):
-        arguments={'function':'GetNextHTMLID','arguments':[]}
-        return db_pull(arguments)
-    
-    def LoadDB(self, Path, DBName): # Load DB to memory
-        arguments={'function':'LoadDB','arguments':[Path,DBName]}
-        return db_push(arguments)
-    
-    def SaveDBs(self):
-        arguments={'function':'SaveDBs','arguments':[]}
-        return db_push(arguments)
-
-    def SaveDBLine(self, file, DBName, Line): # Contains the logic on how each line must be saved depending on the type of DB
-        arguments={'function':'SaveDBLine', 'arguments':[file, DBName, Line]}
-        return db_push(arguments)
-    
-    def SaveDB(self, Path, DBName):
-        arguments={'function':'SaveDB','arguments':[Path, DBName]}
-        return db_push(arguments)
-    
-    def GetSeed(self):
-        arguments={'function':'GetSeed','arguments':[]}
-        return db_pull(arguments)
-
-    def AddError(self, errorObj):
+    def AddUsingSession(self, Obj, session):
         while True:
             try:
-                session = self.ErrorDBSession()
-                session.add(errorObj)
+                session = session()
+                session.add(Obj)
                 session.commit()
-                break
+                success = True
             except exc.OperationalError:
                 cprint("Lock occured (might be)")
-                continue
-    
+            finally:
+                session.close()
+                if success: return success
+
+    def AddError(self, errorObj):
+        self.AddUsingSession(errorObj, self.ErrorDBSession)
+
     def ErrorCount(self):
-        arguments={'function':'ErrorCount','arguments':[]}
-        return db_pull(arguments)
+        session = self.ErrorDBSession()
+        count = session.query(models.Error).count()
+        return count
 
     def ErrorData(self):
         arguments={'function':'ErrorData','arguments':[]}
         return db_pull(arguments)
-    
-    #callback function which calls DB functions and is invoked by messaging server
-    def db_callback_function(self,data,response_type):
-        message = json.loads(data)
-        function = message['function']
-        args = message['arguments']
-    #checks if function is valid or not
-        if(is_valid(function, args, response_type)):
 
-            result = CallMethod(self.DBHandler, function, args)
-            return json.dumps(result)
+    def GetValueFromConfigDB(self, Key):
+        session = self.ConfigDBSession()
+        obj = session.query(models.ConfigSetting).get(Key)
+        session.close()
+        if obj:
+            return(obj.value)
+        return(None)

@@ -78,11 +78,11 @@ class PluginConfig:
         def LoadFromFileSystem(self):
                 self.AllPlugins = defaultdict(list)
                 # This commands finds all the plugins and gets their descriptions in one go
-                PluginFinderCommand = "for i in $(find "+self.Core.Config.Get('PLUGINS_DIR')+" -name '*.py'); do echo \"$i#$(grep ^DESCRIPTION $i|sed 's/ = /=/'|cut -f2 -d=)\"; done | sort"
+                PluginFinderCommand = "for i in $(find "+self.Core.Config.FrameworkConfigGet('PLUGINS_DIR')+" -name '*.py'); do echo \"$i#$(grep ^DESCRIPTION $i|sed 's/ = /=/'|cut -f2 -d=)\"; done | sort"
                 for line in self.Core.Shell.shell_exec(PluginFinderCommand).split("\n"):
                         if not line:
                                 continue # Skip blank lines
-                        Plugin = line.strip().replace(self.Core.Config.Get('PLUGINS_DIR'), '') # Remove plugin directory part of the path
+                        Plugin = line.strip().replace(self.Core.Config.FrameworkConfigGet('PLUGINS_DIR'), '') # Remove plugin directory part of the path
                         PluginFile, PluginDescrip = Plugin.split('#')
                         PluginDescrip = PluginDescrip[1:-1] # Get rid of surrounding quotes
                         PluginChunks = PluginFile.split('/')
@@ -128,7 +128,7 @@ class PluginConfig:
 
         def LoadNetTestGroupsFromFile(self): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
                 self.NetTestGroups = []
-                ConfigFile = open(self.Core.Config.Get('NET_TEST_GROUPS'), 'r')
+                ConfigFile = open(self.Core.Config.FrameworkConfigGet('NET_TEST_GROUPS'), 'r')
                 for line in ConfigFile:
                         if '#' == line[0]:
                                 continue # Skip comments
@@ -149,7 +149,7 @@ class PluginConfig:
 
         def LoadWebTestGroupsFromFile(self): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
                 self.WebTestGroups = []
-                ConfigFile = open(self.Core.Config.Get('WEB_TEST_GROUPS'), 'r')
+                ConfigFile = open(self.Core.Config.FrameworkConfigGet('WEB_TEST_GROUPS'), 'r')
                 for line in ConfigFile:
                         if '#' == line[0]:
                                 continue # Skip comments
