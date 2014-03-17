@@ -104,7 +104,7 @@ class ErrorHandler:
                         cprint(Output)
                         self.LogError(Output)
 
-        def AddGithubIssue(self, Title='Bug report from OWTF', Info=None):
+        def AddGithubIssue(self, Title='Bug report from OWTF', Info=None, User=None):
                 # TODO: Better verbosity while adding issues
                 # Once db is implemented, better verbosity will be easy
                 error_data = self.Core.DB.ErrorData()
@@ -117,6 +117,8 @@ class ErrorHandler:
                 if Info:
                     data['body'] += "\n#### User Report\n\n"
                     data['body'] += Info
+                if User:
+                    data['body'] += "\n\n#### %s" %(User)
                 data = json.dumps(data) # Converted to string
                 headers = {"Content-Type": "application/json","Authorization": "token " + self.Core.Config.Get("GITHUB_BUG_REPORTER_TOKEN")}
                 request = urllib2.Request(self.Core.Config.Get("GITHUB_API_ISSUES_URL"), headers=headers, data=data)
