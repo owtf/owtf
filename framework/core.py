@@ -317,7 +317,7 @@ class Core:
         cprint("Do you want to add any extra info to the bug report ? [Just press Enter to skip]")
         info = raw_input("> ")
         cprint("Do you want to add your GitHub username to the report? [Press Enter to skip]")
-        user = raw_input("Reported by %(user)s" % {'user': os.system("git config user.name")})
+        user = raw_input("Reported by @")
         if self.Error.AddGithubIssue(Info=info, User=user):
             cprint("Github issue added, Thanks for reporting!!")
         else:
