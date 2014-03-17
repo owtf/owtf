@@ -32,6 +32,7 @@ The error handler provides a centralised control for aborting the application an
 from framework.lib.general import *
 import logging
 import traceback
+import os
 import sys
 import cgi
 import json
@@ -115,7 +116,7 @@ class ErrorHandler:
                 data = {'title':'[Auto-Generated] ' + Title, 'body':''}
                 data['body'] = '#### OWTF Bug Report\n\n```' + '\n'.join(error_data) + '```\n' # For github markdown
                 if Info:
-                    data['body'] += "\n#### User Report\n\n"
+                    data['body'] += "\n#### User:%(user)s Report\n\n" % {'user': os.system("git config user.name")}
                     data['body'] += Info
                 data = json.dumps(data) # Converted to string
                 headers = {"Content-Type": "application/json","Authorization": "token " + self.Core.Config.Get("GITHUB_BUG_REPORTER_TOKEN")}
