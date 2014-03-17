@@ -316,7 +316,9 @@ class Core:
     def ReportErrorsToGithub(self):
         cprint("Do you want to add any extra info to the bug report ? [Just press Enter to skip]")
         info = raw_input("> ")
-        if self.Error.AddGithubIssue(Info=info):
+        cprint("Do you want to add your GitHub username to the report? [Press Enter to skip]")
+        user = raw_input("Reported by @")
+        if self.Error.AddGithubIssue(Info=info, User=user):
             cprint("Github issue added, Thanks for reporting!!")
         else:
             cprint("Unable to add github issue, but thanks for trying :D")
