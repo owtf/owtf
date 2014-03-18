@@ -89,17 +89,10 @@ class Config(object):
                 self.Core.Error.FrameworkAbort("Problem in config file: '"+ConfigPath+"' -> Cannot parse line: "+line)
 
     def ProcessOptions(self, Options):
-        self.LoadPluginTestGroups(Options['PluginGroup'])
         self.LoadProfiles(Options['Profiles'])
         self.LoadTargets(Options)
         # After all initialisations, run health-check:
         # self.HealthCheck.run() Please fix it. Health check should check db health etc..
-
-    def LoadPluginTestGroups(self, PluginGroup):
-        if(PluginGroup == 'web'):
-            self.Plugin.LoadWebTestGroupsFromFile()
-        elif(PluginGroup == 'net'):
-            self.Plugin.LoadNetTestGroupsFromFile()
 
     def LoadProfiles(self, Profiles):
         self.Profiles = defaultdict(list) # This prevents python from blowing up when the Key does not exist :)

@@ -40,8 +40,8 @@ class PluginConfig:
 		self.AllowedPluginTypes = defaultdict(list)
                 self.PluginOrder = defaultdict(list)
 		self.LoadFromFileSystem()
-		self.LoadWebTestGroupsFromFile() # here???
-		self.LoadNetTestGroupsFromFile() # here???
+		# self.LoadWebTestGroupsFromFile() # here???
+		# self.LoadNetTestGroupsFromFile() # here???
         
 
         def GetTypesForGroup(self, PluginGroup):
@@ -126,9 +126,9 @@ class PluginConfig:
         def GetNetTestGroups(self):
                 return self.NetTestGroups + self.WebTestGroups
 
-        def LoadNetTestGroupsFromFile(self): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
-                self.NetTestGroups = []
-                ConfigFile = open(self.Core.Config.FrameworkConfigGet('NET_TEST_GROUPS'), 'r')
+        def GetNetTestGroupsFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
+                NetTestGroups = []
+                ConfigFile = open(file_path, 'r').read().splitlines()
                 for line in ConfigFile:
                         if '#' == line[0]:
                                 continue # Skip comments
@@ -140,16 +140,15 @@ class PluginConfig:
                                 Descrip = Hint
                         if len(Hint) < 2:
                                 Hint = ""
-                        self.NetTestGroups.append( { 'Code' : Code, 'Descrip' : Descrip, 'Hint' : Hint, 'URL' : URL } )
-
-
+                        NetTestGroups.append( { 'Code' : Code, 'Descrip' : Descrip, 'Hint' : Hint, 'URL' : URL } )
+                return NetTestGroups
 
         def GetWebTestGroups(self):
-                return self.WebTestGroups
+                return self.Core.DB.GetWebTestGroups()
 
-        def LoadWebTestGroupsFromFile(self): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
-                self.WebTestGroups = []
-                ConfigFile = open(self.Core.Config.FrameworkConfigGet('WEB_TEST_GROUPS'), 'r').read().splitlines()
+        def GetWebTestGroupsFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
+                WebTestGroups = []
+                ConfigFile = open(file_path, 'r').read().splitlines()
                 for line in ConfigFile:
                         if '#' == line[0]:
                                 continue # Skip comments
@@ -161,13 +160,11 @@ class PluginConfig:
                                 Descrip = Hint
                         if len(Hint) < 2:
                                 Hint = ""
-                        self.WebTestGroups.append( { 'Code' : Code, 'Descrip' : Descrip, 'Hint' : Hint, 'URL' : URL } )
+                        WebTestGroups.append({ 'Code' : Code, 'Descrip' : Descrip, 'Hint' : Hint, 'URL' : URL })
+                return WebTestGroups
 
         def GetWebTestGroupInfoForCode(self, CodeToMatch):
-                for Code, Descrip, Hint, URL in self.WebTestGroups:
-                        if Code == CodeToMatch:
-                                return [ Descrip, Hint, URL ]
-                return None # Not found (should not happen)
+                return self.Core.Config.DB.GetWebTestGroupForCode(CodeToMatch)
         #TODO: Netsec equivalent -> self.NetTestGroups = []
 # MUST LOAD PLUGINS FROM FILE SYSTEM
 
