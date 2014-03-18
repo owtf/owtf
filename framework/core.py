@@ -42,6 +42,7 @@ from framework.report import reporter, summary
 from framework.selenium import selenium_handler
 from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
+from framework.ui.server import UIServer
 from threading import Thread
 from urlparse import urlparse
 import fcntl
@@ -75,6 +76,9 @@ class Core:
         self.SMTP = smtp.SMTP(self)
         self.SMB = smb.SMB(self)
         #self.messaging_admin = messaging_admin.message_admin(self)
+        self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
+        self.DB.Init()
+
         self.showOutput=True
         self.TOR_process = None
 
@@ -168,7 +172,7 @@ class Core:
                 temp_socket.bind((self.Config.Get('INBOUND_PROXY_IP'), int(self.Config.Get('INBOUND_PROXY_PORT'))))
                 temp_socket.close()
             except Exception:
-                self.Error.FrameworkAbort("Inbound proxy address " + self.Config.Get('INBOUND_PROXY') + " already in use")
+                self.Error.FrameworkAbort("Inbound proxy address " + self.Config.Get('INBOUND_PROXY_IP') + ":" + self.Config.Get("INBOUND_PROXY_PORT") + " already in use")
 
             # If everything is fine
             self.ProxyProcess = proxy.ProxyProcess( 
@@ -254,7 +258,6 @@ class Core:
     def initialise_framework(self, Options):
         self.ProxyMode = Options["ProxyMode"]
         cprint("Loading framework please wait..")
-        #self.Config.ProcessOptions(Options)
         self.initlogger()
 
         self.initialise_plugin_handler_and_params(Options)
@@ -262,10 +265,8 @@ class Core:
             self.PluginHandler.ShowPluginList()
             self.exitOutput()
             return False # No processing required, just list available modules
-        self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
-        
-        self.DB.Init()
         #self.messaging_admin.Init()
+        self.Config.ProcessOptions(Options)
         self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT')) # Requires user config
         self.Timer.StartTimer('core')
         Command = self.GetCommand(Options['argv'])
@@ -366,10 +367,10 @@ class Core:
             self.outputthread.join()
             if os.path.exists("owtf_review"):
                 if os.path.exists("owtf_review/logfile"):
-                    data = open(self.Config.Get("OWTF_LOG_FILE")).read()
+                    data = open(self.Config.FrameworkConfigGet("OWTF_LOG_FILE")).read()
                     AppendToFile("owtf_review/logfile", data)
                 else:
-                    shutil.move(self.Config.Get("OWTF_LOG_FILE"), "owtf_review")
+                    shutil.move(self.Config.FrameworkConfigGet("OWTF_LOG_FILE"), "owtf_review")
         
     def GetSeed(self):
         try:

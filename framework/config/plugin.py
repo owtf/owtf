@@ -149,7 +149,7 @@ class PluginConfig:
 
         def LoadWebTestGroupsFromFile(self): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
                 self.WebTestGroups = []
-                ConfigFile = open(self.Core.Config.FrameworkConfigGet('WEB_TEST_GROUPS'), 'r')
+                ConfigFile = open(self.Core.Config.FrameworkConfigGet('WEB_TEST_GROUPS'), 'r').read().splitlines()
                 for line in ConfigFile:
                         if '#' == line[0]:
                                 continue # Skip comments

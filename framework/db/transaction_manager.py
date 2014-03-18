@@ -31,6 +31,7 @@ The DB stores HTTP transactions, unique URLs and more.
 from jinja2 import Environment, PackageLoader, Template
 from collections import defaultdict
 from framework.http import transaction
+from framework.db import models
 from framework.lib.general import *
 import os
 import re,logging
@@ -58,7 +59,7 @@ class TransactionManager:
         def Search(self, Criteria):
                 if 'Method' in Criteria: # Ensure a valid HTTP Method is used instead of "" when the Method is specified in the Criteria
                         Criteria['Method'] = DeriveHTTPMethod(Criteria['Method'], GetDictValueOrBlank(Criteria, 'Data'))
-                return self.Core.DB.Search('TRANSACTION_LOG_TXT', Criteria, NAME_TO_OFFSET)
+                return self.Core.DB.SearchTransactionDB(Criteria)
 
         def NumTransactions(self, Scope = 'T'): # Return num transactions in scope by default
                 return len(self.Search( { 'Scope' : Scope } ))
