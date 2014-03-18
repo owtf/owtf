@@ -63,12 +63,14 @@ class DB(object):
         self.TargetConfigDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("TARGET_CONFIG_DB_PATH")), models.TargetBase)
         self.ResourceDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("RESOURCE_DB_PATH")), models.ResourceBase)
         self.ConfigDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("CONFIG_DB_PATH")), models.GeneralBase)
+        self.PluginDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("PLUGIN_DB_PATH")), models.PluginBase)
         self.DBHealthCheck()
         self.LoadDBs()
 
     def LoadDBs(self):
         self.LoadResourceDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE"))
         self.LoadConfigDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_GENERAL_PROFILE"))
+        self.LoadWebPluginsUsingFile(self.Core.Config.FrameworkConfigGet("WEB_TEST_GROUPS"))
 
     def SaveDBs(self):
         pass
@@ -90,6 +92,33 @@ class DB(object):
         cprint("Ensuring if DB exists at " + DB_PATH)
         if not os.path.exists(DB_PATH):
             self.CreateDBUsingBase(DB_PATH, BaseClass)
+
+    def LoadWebPluginsUsingFile(self, web_test_groups_file):
+        self.LoadWebTestGroups(web_test_groups_file)
+        #self.LoadWebPlugins()
+
+    def LoadWebTestGroups(self, test_groups_file):
+        WebTestGroups = self.Core.Config.Plugin.GetWebTestGroupsFromFile(test_groups_file)
+        session = self.PluginDBSession()
+        for group in WebTestGroups:
+            session.add(models.WebTestGroup(code = group['Code'], descrip = group['Descrip'], hint = group['Hint'], url = group['URL']))
+        session.commit()
+        session.close()
+
+    def GetWebTestGroups(self):
+        results = []
+        session = self.PluginDBSession()
+        groups = session.query(models.WebTestGroup).all()
+        for group in groups:
+            results.append({'Code': group.code, 'Descrip': group.descrip, 'Hint':group.hint, 'URL':group.url})
+        return results
+
+    def GetWebTestGroupForCode(self, code):
+        session = self.PluginDBSession()
+        group = session.query(models.WebTestGroup).get(code)
+        if group:
+            return({'Code': group.code, 'Descrip': group.descrip, 'Hint': group.hint, 'URL': group.url})
+        return group
 
     def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         cprint("Loading Resources from: " + file_path + " ..")

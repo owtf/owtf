@@ -118,33 +118,33 @@ class ConfigSetting(GeneralBase):
     value = Column(String)
     dirty = Column(Boolean, default = False)
 
-WebPluginBase = declarative_base()
+PluginBase = declarative_base()
 
-class WebTestGroup(WebPluginBase):
+class WebTestGroup(PluginBase):
     __tablename__ = "web_test_groups"
 
     code = Column(String, primary_key = True)
-    description = Column(String)
+    descrip = Column(String)
     hint = Column(String, nullable = True)
     url = Column(String)
 
-class ActivePlugin(WebPluginBase):
+class ActivePlugin(PluginBase):
     __tablename__ = "active_plugins"
 
     code = Column(String, primary_key = True)
-    description = Column(String, nullable = True)
+    descrip = Column(String, nullable = True)
     relative_path = Column(String)
 
-class PassivePlugin(WebPluginBase):
+class PassivePlugin(PluginBase):
     __tablename__ = "passive_plugins"
 
     code = Column(String, primary_key = True)
-    description = Column(String, nullable = True)
+    descrip = Column(String, nullable = True)
     relative_path = Column(String)
 
-class SemiPassivePlugin(WebPluginBase):
+class SemiPassivePlugin(PluginBase):
     __tablename__ = "semipassive_plugins"
 
     code = Column(String, primary_key = True)
-    description = Column(String, nullable = True)
+    descrip = Column(String, nullable = True)
     relative_path = Column(String)
