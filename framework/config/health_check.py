@@ -57,7 +57,7 @@ class HealthCheck(object):
     def count_not_installed_tools(self):
         """Count the number of missing tools by checking their paths."""
         count = 0
-        for key, value in self.core.Config.GetConfig()['string'].items():
+        for key, value in self.core.Config.GetConfig():
             setting = self.core.Config.StripKey(key)
             if self.is_tool(setting) and not self.is_installed(value):
                 cprint("WARNING: Tool path not found for: " + str(value))

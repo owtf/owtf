@@ -39,6 +39,19 @@ REPLACEMENT_DELIMITER = "@@@"
 REPLACEMENT_DELIMITER_LENGTH = len(REPLACEMENT_DELIMITER)
 CONFIG_TYPES = [ 'string', 'other' ]
 
+TARGET_CONFIG = {
+                    'TARGET_URL' : '', 
+                    'HOST_NAME' : '',
+                    'HOST_PATH' : '',
+                    'URL_SCHEME' : '',
+                    'PORT_NUMBER' : '', # In str form
+                    'HOST_IP' : '',
+                    'ALTERNATIVE_IPS' : '', # str(list), so it can easily reversed using list(str)
+                    'IP_URL' : '',
+                    'TOP_DOMAIN' : '',
+                    'TOP_URL' : ''
+                }
+
 class Config(object):
     Target = None
     def __init__(self, RootDir, OwtfPid, CoreObj):
@@ -47,19 +60,20 @@ class Config(object):
         self.Core = CoreObj
         self.initialize_attributes()
         # Available profiles = g -> General configuration, n -> Network plugin order, w -> Web plugin order, r -> Resources file
-        self.LoadConfigFromFile( self.RootDir+'/framework/config/framework_config.cfg' )
+        self.LoadFrameworkConfigFromFile( self.RootDir+'/framework/config/framework_config.cfg' )
 
     def initialize_attributes(self):
         self.Config = defaultdict(list) # General configuration information
         for Type in CONFIG_TYPES:
             self.Config[Type] = {}
         self.Targets = [] # List of targets, filled by db.py
+        self.TargetConfig = {} # Holds configuration of single target
 
     def Init(self):
         self.Plugin = plugin.PluginConfig(self.Core)
         self.HealthCheck = health_check.HealthCheck(self.Core)
 
-    def LoadConfigFromFile(self, ConfigPath): # Load the configuration frominto a global dictionary
+    def LoadFrameworkConfigFromFile(self, ConfigPath): # Load the configuration frominto a global dictionary
         if 'framework_config' not in ConfigPath:
             cprint("Loading Config from: "+ConfigPath+" ..")
         ConfigFile = open(ConfigPath, 'r')
@@ -75,10 +89,52 @@ class Config(object):
                 self.Core.Error.FrameworkAbort("Problem in config file: '"+ConfigPath+"' -> Cannot parse line: "+line)
 
     def ProcessOptions(self, Options):
-        #self.LoadPluginTestGroups(Options['PluginGroup'])
-        #self.LoadProfilesAndSettings(Options)
+        self.LoadPluginTestGroups(Options['PluginGroup'])
+        self.LoadProfiles(Options['Profiles'])
+        self.LoadTargets(Options)
         # After all initialisations, run health-check:
-        self.HealthCheck.run()
+        # self.HealthCheck.run() Please fix it. Health check should check db health etc..
+
+    def LoadPluginTestGroups(self, PluginGroup):
+        if(PluginGroup == 'web'):
+            self.Plugin.LoadWebTestGroupsFromFile()
+        elif(PluginGroup == 'net'):
+            self.Plugin.LoadNetTestGroupsFromFile()
+
+    def LoadProfiles(self, Profiles):
+        self.Profiles = defaultdict(list) # This prevents python from blowing up when the Key does not exist :)
+        for Type, File in Profiles: # Now override with User-provided profiles, if present
+            self.Profiles[Type] = File
+        for PluginGroup in self.Plugin.GetAllGroups():
+            if PluginGroup in self.Profiles:
+                self.Plugin.LoadPluginOrderFromFile(PluginGroup, self.Profiles[PluginGroup])
+            else:
+                self.Plugin.LoadPluginOrderFromFileSystem(PluginGroup)
+
+    def LoadTargets(self, Options):
+        # print(Options)
+        Scope = self.PrepareURLScope(Options['Scope'], Options['PluginGroup'])
+        for Target in Scope:
+            self.AddTarget(Target)
+        self.Target = Target
+
+    def PrepareURLScope(self, Scope,Group): # Convert all targets to URLs
+        NewScope = []
+        for TargetURL in Scope:
+            if TargetURL[-1] == "/":
+                TargetURL = TargetURL[0:-1]
+            if TargetURL[0:4] != 'http':
+                # Add both "http" and "https" if not present:
+                # the connection check will then remove from the report if one does not exist
+                if Group == "net":
+                                    NewScope.append('http://' + TargetURL)
+                else:
+                    for Prefix in [ 'http', 'https' ]:
+                        NewScope.append( Prefix+'://'+TargetURL )
+            else:
+                NewScope.append(TargetURL) # Append "as-is"
+        return NewScope
+    
 
     def LoadProxyConfigurations(self, Options):
         if Options['InboundProxy']:
@@ -96,6 +152,33 @@ class Config(object):
         for Key, Value in Config.items():
             Copy[Key] = Value.copy()
         return Copy
+
+    def GetResourcesFromFile(self, resource_file):
+        resources = []
+        ConfigFile = open(resource_file, 'r').read().splitlines() # To remove stupid '\n' at the end
+        for line in ConfigFile:
+            if '#' == line[0]:
+                continue # Skip comment lines
+            try:
+                Type, Name, Resource = line.split('_____')
+                # Resource = Resource.strip()
+                resources.append((Type, Name, Resource))
+            except ValueError:
+                cprint("ERROR: The delimiter is incorrect in this line at Resource File: "+str(line.split('_____')))
+        return resources
+
+    def GetConfigurationFromFile(self, config_file):
+        configuration = []
+        ConfigFile = open(config_file, 'r').read().splitlines() # To remove stupid '\n' at the end
+        for line in ConfigFile:
+            if not line or '#' == line[0]: continue
+            try:
+                key, value = line.split(":", 1)
+                key, value = key.strip(), value.strip()
+                configuration.append((key, value))
+            except ValueError:
+                cprint("Invalid configuration line")
+        return configuration
 
     def GetResources(self, ResourceType, Target=None): # Transparently replaces the Resources placeholders with the relevant config information
         if Target:
@@ -119,12 +202,22 @@ class Config(object):
     def GetRawResources(self, ResourceType):
         return self.Resources[ResourceType]
 
-    def DeriveURLSettings(self, TargetURL,Options):
-        self.Set('TARGET_URL', TargetURL) # Set the target in the config
+    def AddTarget(self, TargetURL):
+        if TargetURL not in self.Targets:
+            self.Core.DB.AddTarget(TargetURL)
+            self.Targets.append(TargetURL)
+            return True
+        else:
+            return False
+
+    def DeriveConfigFromURL(self, TargetURL): #,Options):
+        target_config = dict(TARGET_CONFIG)
+        target_config['TARGET_URL'] = TargetURL # Set the target in the config
         # TODO: Use urlparse here
         ParsedURL = urlparse(TargetURL)
         URLScheme = Protocol = ParsedURL.scheme
         if ParsedURL.port == None: # Port is blank: Derive from scheme
+            """
             if Options['PluginGroup'] == 'net':
                 if Options['RPort'] != None:
                     Port = Options['RPort']
@@ -134,7 +227,7 @@ class Config(object):
                             if service =='httprpc':
                                                 service = 'http_rpc'
                             self.Set(service.upper()+"_PORT_NUMBER",Port)
-
+            """
             Port = '80'
             if 'https' == URLScheme:
                 Port = '443'
@@ -152,20 +245,25 @@ class Config(object):
         #       Port = '443'
         #else: # Derive port from ":xyz" URL part
         #   Port = DotChunks[2].split('/')[0]
-        self.Set('HOST_PATH',HostPath) # Needed for google resource search
-        self.Set('URL_SCHEME', URLScheme) # Some tools need this!
-        self.Set('PORT_NUMBER', Port) # Some tools need this!
-        self.Set('HOST_NAME', Host) # Set the top URL
-        HostIP = self.GetIPFromHostname(self.Get('HOST_NAME'))
-        HostIPs = self.GetIPsFromHostname(self.Get('HOST_NAME'))
-        self.Set('HOST_IP', HostIP)
-        self.Set('IP_URL', self.Get('TARGET_URL').replace(self.Get('HOST_NAME'), self.Get('HOST_IP')))
-        self.Set('TOP_DOMAIN', self.Get('HOST_NAME'))
-        HostnameChunks = self.Get('HOST_NAME').split('.')
-        if self.IsHostNameNOTIP() and len(HostnameChunks) > 2:
-            self.Set('TOP_DOMAIN', '.'.join(HostnameChunks[1:])) #Get "example.com" from "www.example.com"
-        self.Set('TOP_URL', Protocol+"://" + Host + ":" + Port) # Set the top URL
-        return [TargetURL, HostIP, Port, URLScheme, HostIPs, Host]
+        target_config['HOST_PATH'] = HostPath # Needed for google resource search
+        target_config['URL_SCHEME'] = URLScheme # Some tools need this!
+        target_config['PORT_NUMBER'] = Port # Some tools need this!
+        target_config['HOST_NAME'] = Host # Set the top URL
+
+        HostIP = self.GetIPFromHostname(Host)
+        HostIPs = self.GetIPsFromHostname(Host)
+        target_config['HOST_IP'] = HostIP
+        target_config['ALTERNATIVE_IPS'] = HostIPs
+
+        IPURL = target_config['TARGET_URL'].replace(Host, HostIP) 
+        target_config['IP_URL'] = IPURL
+        target_config['TOP_DOMAIN'] = target_config['HOST_NAME']
+
+        HostnameChunks = target_config['HOST_NAME'].split('.')
+        if self.IsHostNameNOTIP(Host, HostIP) and len(HostnameChunks) > 2:
+            target_config['TOP_DOMAIN'] = '.'.join(HostnameChunks[1:]) #Get "example.com" from "www.example.com"
+        target_config['TOP_URL'] = Protocol+"://" + Host + ":" + Port # Set the top URL
+        return target_config
 
     def DeriveOutputSettingsFromURL(self, TargetURL):
         self.Set('HOST_OUTPUT', self.Get('OUTPUT_PATH')+"/"+self.Get('HOST_IP')) # Set the output directory
@@ -194,9 +292,9 @@ class Config(object):
         plugins_db_path = os.path.join(targets_folder, url_info_id, "plugins.db")
         return [transaction_db_path, url_db_path, plugins_db_path]
 
-    def DeriveConfigFromURL(self, TargetURL,Options): # Basic configuration tweaks to make things simpler for the plugins
-        self.DeriveURLSettings(TargetURL,Options)
-        self.DeriveOutputSettingsFromURL(TargetURL)
+    #def DeriveConfigFromURL(self, TargetURL,Options): # Basic configuration tweaks to make things simpler for the plugins
+    #    self.DeriveURLSettings(TargetURL,Options)
+    #    self.DeriveOutputSettingsFromURL(TargetURL)
 
     def GetFileName(self, Setting, Partial = False):
         Path = self.Get(Setting)
@@ -210,8 +308,8 @@ class Config(object):
     def GetTXTTransaclog(self, Partial = False):
         return self.GetFileName('TRANSACTION_LOG_TXT', Partial)
 
-    def IsHostNameNOTIP(self):
-        return self.Get('HOST_NAME') != self.Get('HOST_IP') # Host
+    def IsHostNameNOTIP(self, host_name, host_ip):
+        return host_name != host_ip # Host
 
     def GetIPFromHostname(self, Hostname):
         IP = ''
@@ -265,18 +363,11 @@ class Config(object):
         if target in self.Targets:
             self.Target = target
             target_config = self.Core.DB.GetTargetConfigFromDB(target)
-            self.Set('HOST_PATH',HostPath) # Needed for google resource search
-            self.Set('URL_SCHEME', target_config.url_scheme) # Some tools need this!
-            self.Set('PORT_NUMBER', target_config.port_number) # Some tools need this!
-            self.Set('HOST_NAME', target_config.host_name) # Set the top URL
-            self.Set('HOST_IP', target_config.host_ip)
-            self.Set('ALTERNATIVE_IPS', target_config.host_ips.split(','))
-            self.Set('IP_URL', target_config.ip_url)
-            self.Set('TOP_DOMAIN', self.Get('HOST_NAME'))
-            HostnameChunks = self.Get('HOST_NAME').split('.')
-            if self.IsHostNameNOTIP() and len(HostnameChunks) > 2:
-                self.Set('TOP_DOMAIN', '.'.join(HostnameChunks[1:])) #Get "example.com" from "www.example.com"
-            self.Set('TOP_URL', target_config.url_scheme+"://" + target_config.host_name + ":" + target_config.port_number)
+            if target_config:
+                self.TargetConfig = dict(target_config)
+                return True
+            else:
+                return False
 
     def GetTarget(self):
         return self.Target
@@ -286,17 +377,13 @@ class Config(object):
 
     def GetAll(self, Key): # Retrieves a config setting value on all target configurations
         #Matches = []
-        PreviousTarget = self.Target
+        #PreviousTarget = self.Target
         #for Target, Config in self.TargetConfig.items():
         #    self.SetTarget(Target)
         #    Value = self.Get(Key)
         #    if Value not in Matches: # Avoid duplicates
         #        Matches.append(Value)
-        session = self.Core.DB.TargetConfigDBSession()
-        results = session.query(getattr(models.Target), Key.lower()).all()
-        results = [result[0] for result in results]
-        self.Target = PreviousTarget
-        return results
+        return self.Core.DB.GetAllWithKey(Key)
 
     def IsSet(self, Key):
         Key = self.PadKey(Key)
@@ -370,9 +457,7 @@ class Config(object):
         return self.Set(Key, Value)
 
     def GetConfig(self):
-        if self.Target == None:
-            return self.Config
-        return self.TargetConfig[self.Target]
+        return self.Config
 
     def Show(self):
         cprint("Configuration settings")
@@ -380,16 +465,16 @@ class Config(object):
             cprint(str(k)+" => "+str(v))
 
     def GetDBDirForTarget(self, TargetURL):
-        return os.path.join(os.path.expanduser(TARGETS_DB_DIR), TargetURL.replace("//","_").replace(":",""))
+        return os.path.join(os.path.expanduser(self.FrameworkConfigGet("TARGETS_DB_DIR")), TargetURL.replace("//","_").replace(":",""))
 
     def CreateDBDirForTarget(self, TargetURL):
-        self.Core.EnsureDirPath(self.GetDBPathForTarget(TargetURL))
+        self.Core.EnsureDirPath(self.GetDBDirForTarget(TargetURL))
 
     def GetTransactionDBPathForTarget(self, TargetURL):
-        return os.path.join(self.GetDBDirForTarget(TargetURL), self.Get("TRANSACTION_DB_NAME"))
+        return os.path.join(self.GetDBDirForTarget(TargetURL), self.FrameworkConfigGet("TRANSACTION_DB_NAME"))
 
     def GetUrlDBPathForTarget(self, TargetURL):
-        return os.path.join(self.GetDBDirForTarget(TargetURL), self.Get("URL_DB_NAME"))
+        return os.path.join(self.GetDBDirForTarget(TargetURL), self.FrameworkConfigGet("URL_DB_NAME"))
 
     def GetReviewDBPathForTarget(self, TargetURL):
-        return os.path.join(self.GetDBDirForTarget(TargetURL), self.Get("REVIEW_DB_NAME"))
+        return os.path.join(self.GetDBDirForTarget(TargetURL), self.FrameworkConfigGet("REVIEW_DB_NAME"))

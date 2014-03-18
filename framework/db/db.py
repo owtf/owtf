@@ -37,6 +37,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy import exc
 from framework.db import models
+from framework.config.config import TARGET_CONFIG
 import json
 import logging
 import multiprocessing
@@ -69,6 +70,9 @@ class DB(object):
         self.LoadResourceDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE"))
         self.LoadConfigDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_GENERAL_PROFILE"))
 
+    def SaveDBs(self):
+        pass
+
     def DBHealthCheck(self):
         session = self.TargetConfigDBSession()
         target_list = session.query(models.Target).all()
@@ -89,33 +93,22 @@ class DB(object):
 
     def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         cprint("Loading Resources from: " + file_path + " ..")
-        ConfigFile = open(file_path, 'r').read().splitlines() # To remove stupid '\n' at the end
+        resources = self.Core.Config.GetResourcesFromFile(file_path)
+        # resources = [(Type, Name, Resource), (Type, Name, Resource),]
         session = self.ResourceDBSession()
-        for line in ConfigFile:
-            if '#' == line[0]:
-                continue # Skip comment lines
-            try:
-                Type, Name, Resource = line.split('_____')
-                # Resource = Resource.strip()
-                session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
-            except ValueError:
-                cprint("ERROR: The delimiter is incorrect in this line at Resource File: "+str(line.split('_____')))
+        for Type, Name, Resource in resources:
+            # Need more filtering to avoid duplicates
+            session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
         session.commit()
         session.close()
 
     def LoadConfigDBFromFile(self, file_path):
         cprint("Loading Configuration from: " + file_path + " ..")
-        ConfigFile = open(file_path, 'r').read().splitlines() # To remove stupid '\n' at the end
+        configuration = self.Core.Config.GetConfigurationFromFile(file_path)
+        # configuration = [(key, value), (key, value),]
         session = self.ConfigDBSession()
-        for line in ConfigFile:
-            if not line or '#' == line[0]: continue
-            try:
-                key, value = line.split(":", 1)
-                key, value = key.strip(), value.strip()
-                session.add(models.ConfigSetting(key = key, value = value))
-            except ValueError:
-                cprint(line)
-                cprint("Invalid configuration line")
+        for key, value in configuration:
+            session.add(models.ConfigSetting(key = key, value = value))
         session.commit()
         session.close()
 
@@ -139,17 +132,27 @@ class DB(object):
         engine = create_engine("sqlite:///" + DB_PATH)
         return sessionmaker(bind = engine)
 
-    def GetTargetConfigFromDB(self, target_url):
-        session = self.TargetConfigDBSession()
-        return session.query(models.Target).get(target_url)
-
     def TransactionDBSessionForTarget(self, target_url):
         db_path = self.Core.Config.GetTransactionDBPathForTarget(target_url)
         return self.CreateSession(db_path)
 
+    def TransactionDBSession(self):
+        return self.TransactionDBSessionForTarget(self.Core.Config.Target)
+
+    def SearchTransactionDB(self, Criteria):
+        # Criteria = { 'URL' : URL.strip(), 'Method' : Method, 'Data' : self.DerivePOSTToStr(Data) }
+        Session = self.TransactionDBSession()
+        db_session = Session()
+        results = db_session.query(models.Transaction).filter_by(url=Criteria.get('URL')).all()
+        db_session.close()
+        return results
+
     def UrlDBSessionForTarget(self, target_url):
         db_path = self.Core.Config.GetUrlDBPathForTarget(target_url)
         return self.CreateSession(db_path)
+
+    def UrlDBSession(self):
+        return self.UrlDBSessionForTarget(self.Core.Config.Target)
 
     def AddUsingSession(self, Obj, session):
         while True:
@@ -183,3 +186,30 @@ class DB(object):
         if obj:
             return(obj.value)
         return(None)
+
+    def AddTarget(self, TargetURL):
+        target_config = self.Core.Config.DeriveConfigFromURL(TargetURL)
+        config_obj = models.Target(target_url = TargetURL)
+        for key, value in target_config.items():
+            key = key.lower()
+            setattr(config_obj, key, str(value))
+        session = self.TargetConfigDBSession()
+        session.add(config_obj)
+        session.commit()
+        session.close()
+        self.EnsureDBsForTarget(TargetURL)
+
+    def GetTargetConfigFromDB(self, target_url):
+        session = self.TargetConfigDBSession()
+        target_obj = session.query(models.Target).get(target_url)
+        target_config = {}
+        if target_obj:
+            for key in TARGET_CONFIG.keys():
+                target_config[key] = getattr(target_obj, key.lower())
+        return target_config
+
+    def GetAllWithKey(self, Key):
+        session = self.Core.DB.TargetConfigDBSession()
+        results = session.query(getattr(models.Target, Key.lower())).all()
+        results = [result[0] for result in results]
+        return results

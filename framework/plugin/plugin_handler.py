@@ -213,7 +213,7 @@ class PluginHandler:
 
 
         def register_plugin(self, Plugin):
-            return self.Core.DB.PluginRegister.Add(Plugin, self.GetPluginOutputDir(Plugin) + "report.html", self.Core.Config.Get('TARGET'))
+            return self.Core.DB.PluginRegister.Add(Plugin, self.GetPluginOutputDir(Plugin) + "report.html", self.Core.Config.GetTarget())
 
         def register_plugin_for_all_targets(self, Plugin):
             for target in self.Core.Config.GetTargets():
@@ -223,8 +223,8 @@ class PluginHandler:
             return self.Core.Config.Get('FORCE_OVERWRITE')
 
         def CanPluginRun(self, Plugin, ShowMessages = False):
-                if self.Core.IsTargetUnreachable():
-                        return False # Cannot run plugin if target is unreachable
+                #if self.Core.IsTargetUnreachable():
+                #        return False # Cannot run plugin if target is unreachable
                 if not self.IsChosenPlugin(Plugin):
                         return False # Skip not chosen plugins
                 # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active): 
@@ -304,11 +304,11 @@ class PluginHandler:
                 Status = { 'SomeAborted' : False, 'SomeSuccessful' : False, 'AllSkipped' : True }
                 if self.PluginGroup in [ 'web', 'aux','net' ]:
                         #self.ProcessPluginsForTargetList(self.PluginGroup, Status, self.Scope) <--- config can change the scope, must retrieve from config instead
-                        self.ProcessPluginsForTargetList(self.PluginGroup, Status, self.Core.Config.GetAll('TARGET'))
+                        self.ProcessPluginsForTargetList(self.PluginGroup, Status, self.Core.Config.GetTargets())
                 return Status
 
         def GetPluginGroupDir(self, PluginGroup):
-                PluginDir = self.Core.Config.Get('PLUGINS_DIR')+PluginGroup
+                PluginDir = self.Core.Config.FrameworkConfigGet('PLUGINS_DIR')+PluginGroup
                 return PluginDir
 
         def SwitchToTarget(self, Target):
