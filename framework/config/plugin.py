@@ -40,8 +40,8 @@ class PluginConfig:
 		self.AllowedPluginTypes = defaultdict(list)
                 self.PluginOrder = defaultdict(list)
 		self.LoadFromFileSystem()
-		self.LoadWebTestGroupsFromFile() # here???
-		self.LoadNetTestGroupsFromFile() # here???
+		# self.LoadWebTestGroupsFromFile() # here???
+		# self.LoadNetTestGroupsFromFile() # here???
         
 
         def GetTypesForGroup(self, PluginGroup):
@@ -78,11 +78,11 @@ class PluginConfig:
         def LoadFromFileSystem(self):
                 self.AllPlugins = defaultdict(list)
                 # This commands finds all the plugins and gets their descriptions in one go
-                PluginFinderCommand = "for i in $(find "+self.Core.Config.Get('PLUGINS_DIR')+" -name '*.py'); do echo \"$i#$(grep ^DESCRIPTION $i|sed 's/ = /=/'|cut -f2 -d=)\"; done | sort"
+                PluginFinderCommand = "for i in $(find "+self.Core.Config.FrameworkConfigGet('PLUGINS_DIR')+" -name '*.py'); do echo \"$i#$(grep ^DESCRIPTION $i|sed 's/ = /=/'|cut -f2 -d=)\"; done | sort"
                 for line in self.Core.Shell.shell_exec(PluginFinderCommand).split("\n"):
                         if not line:
                                 continue # Skip blank lines
-                        Plugin = line.strip().replace(self.Core.Config.Get('PLUGINS_DIR'), '') # Remove plugin directory part of the path
+                        Plugin = line.strip().replace(self.Core.Config.FrameworkConfigGet('PLUGINS_DIR'), '') # Remove plugin directory part of the path
                         PluginFile, PluginDescrip = Plugin.split('#')
                         PluginDescrip = PluginDescrip[1:-1] # Get rid of surrounding quotes
                         PluginChunks = PluginFile.split('/')
@@ -126,48 +126,11 @@ class PluginConfig:
         def GetNetTestGroups(self):
                 return self.NetTestGroups + self.WebTestGroups
 
-        def LoadNetTestGroupsFromFile(self): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
-                self.NetTestGroups = []
-                ConfigFile = open(self.Core.Config.Get('NET_TEST_GROUPS'), 'r')
-                for line in ConfigFile:
-                        if '#' == line[0]:
-                                continue # Skip comments
-                        try:
-                                Code, Descrip, Hint, URL = line.strip().split(' | ')
-                        except ValueError:
-                                self.Core.Error.FrameworkAbort("Problem in Net Test Groups file: '"+self.Get('NET_TEST_GROUPS')+"' -> Cannot parse line: "+line)
-                        if len(Descrip) < 2:
-                                Descrip = Hint
-                        if len(Hint) < 2:
-                                Hint = ""
-                        self.NetTestGroups.append( { 'Code' : Code, 'Descrip' : Descrip, 'Hint' : Hint, 'URL' : URL } )
-
-
-
         def GetWebTestGroups(self):
-                return self.WebTestGroups
-
-        def LoadWebTestGroupsFromFile(self): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
-                self.WebTestGroups = []
-                ConfigFile = open(self.Core.Config.Get('WEB_TEST_GROUPS'), 'r')
-                for line in ConfigFile:
-                        if '#' == line[0]:
-                                continue # Skip comments
-                        try:
-                                Code, Descrip, Hint, URL = line.strip().split(' | ')
-                        except ValueError:
-                                self.Core.Error.FrameworkAbort("Problem in Web Test Groups file: '"+self.Get('WEB_TEST_GROUPS')+"' -> Cannot parse line: "+line)
-                        if len(Descrip) < 2:
-                                Descrip = Hint
-                        if len(Hint) < 2:
-                                Hint = ""
-                        self.WebTestGroups.append( { 'Code' : Code, 'Descrip' : Descrip, 'Hint' : Hint, 'URL' : URL } )
+                return self.Core.DB.GetWebTestGroups()
 
         def GetWebTestGroupInfoForCode(self, CodeToMatch):
-                for Code, Descrip, Hint, URL in self.WebTestGroups:
-                        if Code == CodeToMatch:
-                                return [ Descrip, Hint, URL ]
-                return None # Not found (should not happen)
+                return self.Core.Config.DB.GetWebTestGroupForCode(CodeToMatch)
         #TODO: Netsec equivalent -> self.NetTestGroups = []
 # MUST LOAD PLUGINS FROM FILE SYSTEM
 
