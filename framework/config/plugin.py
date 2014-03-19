@@ -126,42 +126,8 @@ class PluginConfig:
         def GetNetTestGroups(self):
                 return self.NetTestGroups + self.WebTestGroups
 
-        def GetNetTestGroupsFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
-                NetTestGroups = []
-                ConfigFile = open(file_path, 'r').read().splitlines()
-                for line in ConfigFile:
-                        if '#' == line[0]:
-                                continue # Skip comments
-                        try:
-                                Code, Descrip, Hint, URL = line.strip().split(' | ')
-                        except ValueError:
-                                self.Core.Error.FrameworkAbort("Problem in Net Test Groups file: '"+self.Get('NET_TEST_GROUPS')+"' -> Cannot parse line: "+line)
-                        if len(Descrip) < 2:
-                                Descrip = Hint
-                        if len(Hint) < 2:
-                                Hint = ""
-                        NetTestGroups.append( { 'Code' : Code, 'Descrip' : Descrip, 'Hint' : Hint, 'URL' : URL } )
-                return NetTestGroups
-
         def GetWebTestGroups(self):
                 return self.Core.DB.GetWebTestGroups()
-
-        def GetWebTestGroupsFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
-                WebTestGroups = []
-                ConfigFile = open(file_path, 'r').read().splitlines()
-                for line in ConfigFile:
-                        if '#' == line[0]:
-                                continue # Skip comments
-                        try:
-                                Code, Descrip, Hint, URL = line.strip().split(' | ')
-                        except ValueError:
-                                self.Core.Error.FrameworkAbort("Problem in Web Test Groups file: '"+self.Get('WEB_TEST_GROUPS')+"' -> Cannot parse line: "+line)
-                        if len(Descrip) < 2:
-                                Descrip = Hint
-                        if len(Hint) < 2:
-                                Hint = ""
-                        WebTestGroups.append({ 'Code' : Code, 'Descrip' : Descrip, 'Hint' : Hint, 'URL' : URL })
-                return WebTestGroups
 
         def GetWebTestGroupInfoForCode(self, CodeToMatch):
                 return self.Core.Config.DB.GetWebTestGroupForCode(CodeToMatch)
