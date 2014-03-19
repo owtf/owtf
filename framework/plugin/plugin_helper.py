@@ -304,7 +304,7 @@ class PluginHelper:
 
         def SetConfigPluginOutputDir( self, PluginInfo ):
                 PluginOutputDir = self.Core.PluginHandler.GetPluginOutputDir( PluginInfo )
-                self.Core.Config.Set( 'PLUGIN_OUTPUT_DIR', os.getcwd() + '/' + PluginOutputDir ) # FULL output path for plugins to use
+                self.Core.DB.Target.SetPath( 'PLUGIN_OUTPUT_DIR', os.getcwd() + '/' + PluginOutputDir ) # FULL output path for plugins to use
                 self.Core.Shell.RefreshReplacements() # Get dynamic replacement, i.e. plugin-specific output directory
                 return PluginOutputDir
 

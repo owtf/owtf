@@ -165,7 +165,7 @@ class Core:
      
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
-        if not self.Config.Get('SIMULATION'):
+        if False: #not self.Config.Get('SIMULATION'):
             # Check if port is in use
             try:
                 temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
