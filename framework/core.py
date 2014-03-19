@@ -42,6 +42,7 @@ from framework.report import reporter, summary
 from framework.selenium import selenium_handler
 from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
+from framework.ui.server import UIServer
 from threading import Thread
 from urlparse import urlparse
 import fcntl
@@ -68,13 +69,16 @@ class Core:
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
         self.Random = random.Random()
         self.IsIPInternalRegexp = re.compile("^127.\d{123}.\d{123}.\d{123}$|^10.\d{123}.\d{123}.\d{123}$|^192.168.\d{123}$|^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{123}.[0-9]{123}$")
-        self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
+        #self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
         self.Selenium = selenium_handler.Selenium(self)
         self.InteractiveShell = interactive_shell.InteractiveShell(self)
         self.SET = set_handler.SETHandler(self)
         self.SMTP = smtp.SMTP(self)
         self.SMB = smb.SMB(self)
-        self.messaging_admin = messaging_admin.message_admin(self)
+        #self.messaging_admin = messaging_admin.message_admin(self)
+        self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
+        self.DB.Init()
+
         self.showOutput=True
         self.TOR_process = None
 
@@ -143,16 +147,7 @@ class Core:
         for ip in self.Config.GetAll('HOST_IP'):
             if ip:
                 Command = Command.replace(ip, 'xxx.xxx.xxx.xxx')
-        return Command
-    
-    def start_reporter(self):
-        """
-        This function starts the reporting process
-        """
-        self.reporting = reporting_process()
-        self.reporting_queue = multiprocessing.Queue()
-        self.reporting_process = multiprocessing.Process(target=self.reporting.start, args=(self,60,self.reporting_queue))
-        self.reporting_process.start()        
+        return Command        
         
     def Start_TOR_Mode(self, Options):
         if Options['TOR_mode'] != None:
@@ -167,9 +162,7 @@ class Core:
             else:
                 tor_manager.TOR_manager.msg_configure_tor()
                 self.Error.FrameworkAbort("Configuration help is running")
-                
-    
-        
+     
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
         if not self.Config.Get('SIMULATION'):
@@ -179,7 +172,7 @@ class Core:
                 temp_socket.bind((self.Config.Get('INBOUND_PROXY_IP'), int(self.Config.Get('INBOUND_PROXY_PORT'))))
                 temp_socket.close()
             except Exception:
-                self.Error.FrameworkAbort("Inbound proxy address " + self.Config.Get('INBOUND_PROXY') + " already in use")
+                self.Error.FrameworkAbort("Inbound proxy address " + self.Config.Get('INBOUND_PROXY_IP') + ":" + self.Config.Get("INBOUND_PROXY_PORT") + " already in use")
 
             # If everything is fine
             self.ProxyProcess = proxy.ProxyProcess( 
@@ -188,13 +181,13 @@ class Core:
                                                     Options['OutboundProxyAuth']
                                                   )
             self.TransactionLogger = transaction_logger.TransactionLogger(self)
-            cprint("Starting Inbound proxy at " + self.Config.Get('INBOUND_PROXY'))
+            cprint("Starting Inbound proxy at " + self.Config.Get('INBOUND_PROXY_IP') + ":" + self.Config.Get("INBOUND_PROXY_PORT"))
             self.ProxyProcess.start()
             cprint("Starting Transaction logger process")
             self.TransactionLogger.start()
             self.Requester = requester.Requester(self, [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')])
             cprint("Proxy transaction's log file at %s"%(self.Config.Get("PROXY_LOG")))
-            cprint("Visit http://" + self.Config.Get('INBOUND_PROXY') + "/proxy to use Plug-n-Hack standard")
+            cprint("Visit http://" + self.Config.Get('INBOUND_PROXY_IP') + ":" + self.Config.Get("INBOUND_PROXY_PORT") + "/proxy to use Plug-n-Hack standard")
             cprint("Execution of OWTF is halted.You can browse through OWTF proxy) Press Enter to continue with OWTF")
             if Options["Interactive"]:
                 raw_input()
@@ -252,7 +245,7 @@ class Core:
         
         #logger for output in log file
         log = logging.getLogger('logfile')
-        infohandler = logging.FileHandler(self.Config.Get("OWTF_LOG_FILE"),mode="w+")
+        infohandler = logging.FileHandler(self.Config.FrameworkConfigGet("OWTF_LOG_FILE"),mode="w+")
         log.setLevel(logging.INFO)
         infoformatter = logging.Formatter("%(type)s - %(asctime)s - %(processname)s - %(functionname)s - %(message)s")
         infohandler.setFormatter(infoformatter)
@@ -265,29 +258,26 @@ class Core:
     def initialise_framework(self, Options):
         self.ProxyMode = Options["ProxyMode"]
         cprint("Loading framework please wait..")
-        self.Config.ProcessOptions(Options)
         self.initlogger()
 
-        self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT')) # Requires user config
-        self.Timer.StartTimer('core')
         self.initialise_plugin_handler_and_params(Options)
         if Options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
             self.exitOutput()
             return False # No processing required, just list available modules
-        self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
-        
-        self.DB.Init()
-        self.messaging_admin.Init()
+        #self.messaging_admin.Init()
+        self.Config.ProcessOptions(Options)
+        self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT')) # Requires user config
+        self.Timer.StartTimer('core')
         Command = self.GetCommand(Options['argv'])
 
-        self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
+        #self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
         if self.Config.Get('SIMULATION'):
             cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
-        else: # Reporter process is not needed unless a real run
-            self.start_reporter()
+        #else: # Reporter process is not needed unless a real run
+        #    self.start_reporter()
         self.StartProxy(Options) # Proxy mode is started in that function
-        self.Start_TOR_Mode(Options)# TOR mode will start only if the Options are set
+        #self.Start_TOR_Mode(Options)# TOR mode will start only if the Options are set
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)
@@ -333,7 +323,7 @@ class Core:
             exit()
         else:
             try:
-                self.DB.Run.EndRun(Status)
+                #self.DB.Run.EndRun(Status)
                 cprint("Saving DBs")
                 self.DB.SaveDBs() # Save DBs prior to producing the report :)
                 if Report:
@@ -365,15 +355,9 @@ class Core:
                         os.kill(int(self.TransactionLogger.pid), signal.SIGINT)
                     except: # It means the proxy was not started
                         pass
-                if hasattr(self,'reporting_process'):
-                    self.reporting_queue.put("done")
-                    self.reporting_process.join()
                 if hasattr(self, 'DB'):
                     cprint("Saving DBs before stopping messaging")
                     self.DB.SaveDBs() # So that detailed_report_register populated by reporting is saved :P
-                if hasattr(self,'messaging_admin'):
-                    self.messaging_admin.finishMessaging()
-                
                 self.exitOutput()
                 #print self.Timer.GetElapsedTime('core')
                 exit()
@@ -384,16 +368,21 @@ class Core:
             self.outputthread.join()
             if os.path.exists("owtf_review"):
                 if os.path.exists("owtf_review/logfile"):
-                    data = open(self.Config.Get("OWTF_LOG_FILE")).read()
+                    data = open(self.Config.FrameworkConfigGet("OWTF_LOG_FILE")).read()
                     AppendToFile("owtf_review/logfile", data)
                 else:
-                    shutil.move(self.Config.Get("OWTF_LOG_FILE"), "owtf_review")
+                    shutil.move(self.Config.FrameworkConfigGet("OWTF_LOG_FILE"), "owtf_review")
         
     def GetSeed(self):
         try:
             return self.DB.GetSeed()
         except AttributeError: # DB not instantiated yet
             return ""
+
+    def EnsureDirPath(self, dir_path):
+        dir_path = os.path.expanduser(dir_path)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
 
     def IsIPInternal(self, IP):
         return len(self.IsIPInternalRegexp.findall(IP)) == 1

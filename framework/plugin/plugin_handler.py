@@ -71,7 +71,8 @@ class PluginHandler:
                 #self.PluginGroups = [ 'web', 'net', 'aux' ]
                 #self.PluginTypes = [ 'passive', 'semi_passive', 'active', 'grep' ]
                 #self.AllowedPluginTypes = self.GetAllowedPluginTypes(Options['PluginType'].split(','))
-                self.Simulation, self.Scope, self.PluginGroup, self.Algorithm, self.ListPlugins = [ Options['Simulation'], Options['Scope'], Options['PluginGroup'], Options['Algorithm'], Options['ListPlugins'] ]
+                #self.Simulation, self.Scope, self.PluginGroup, self.Algorithm, self.ListPlugins = [ Options['Simulation'], Options['Scope'], Options['PluginGroup'], Options['Algorithm'], Options['ListPlugins'] ]
+                self.Simulation, self.Scope, self.PluginGroup, self.ListPlugins = [ Options['Simulation'], Options['Scope'], Options['PluginGroup'], Options['ListPlugins'] ]
                 self.OnlyPluginsList = self.ValidateAndFormatPluginList(Options['OnlyPlugins'])
                 self.ExceptPluginsList = self.ValidateAndFormatPluginList(Options['ExceptPlugins'])
                 #print "OnlyPlugins="+str(self.OnlyPluginsList)
@@ -79,7 +80,7 @@ class PluginHandler:
                 #print "Options['PluginType']="+str(Options['PluginType'])
                 if isinstance(Options['PluginType'], str): # For special plugin types like "quiet" -> "semi_passive" + "passive"
                         Options['PluginType'] = Options['PluginType'].split(',')        
-                self.Core.Config.Plugin.DeriveAllowedTypes(self.PluginGroup, Options['PluginType'])
+                #self.Core.DB.Plugin.DeriveAllowedTypes(self.PluginGroup, Options['PluginType'])
                 self.OnlyPluginsSet = len(self.OnlyPluginsList) > 0
                 self.ExceptPluginsSet = len(self.ExceptPluginsList) > 0
                 self.scanner = Scanner(self.Core)
@@ -212,7 +213,7 @@ class PluginHandler:
 
 
         def register_plugin(self, Plugin):
-            return self.Core.DB.PluginRegister.Add(Plugin, self.GetPluginOutputDir(Plugin) + "report.html", self.Core.Config.Get('TARGET'))
+            return self.Core.DB.PluginRegister.Add(Plugin, self.GetPluginOutputDir(Plugin) + "report.html", self.Core.Config.GetTarget())
 
         def register_plugin_for_all_targets(self, Plugin):
             for target in self.Core.Config.GetTargets():
@@ -222,8 +223,8 @@ class PluginHandler:
             return self.Core.Config.Get('FORCE_OVERWRITE')
 
         def CanPluginRun(self, Plugin, ShowMessages = False):
-                if self.Core.IsTargetUnreachable():
-                        return False # Cannot run plugin if target is unreachable
+                #if self.Core.IsTargetUnreachable():
+                #        return False # Cannot run plugin if target is unreachable
                 if not self.IsChosenPlugin(Plugin):
                         return False # Skip not chosen plugins
                 # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active): 
@@ -303,11 +304,11 @@ class PluginHandler:
                 Status = { 'SomeAborted' : False, 'SomeSuccessful' : False, 'AllSkipped' : True }
                 if self.PluginGroup in [ 'web', 'aux','net' ]:
                         #self.ProcessPluginsForTargetList(self.PluginGroup, Status, self.Scope) <--- config can change the scope, must retrieve from config instead
-                        self.ProcessPluginsForTargetList(self.PluginGroup, Status, self.Core.Config.GetAll('TARGET'))
+                        self.ProcessPluginsForTargetList(self.PluginGroup, Status, self.Core.Config.GetTargets())
                 return Status
 
         def GetPluginGroupDir(self, PluginGroup):
-                PluginDir = self.Core.Config.Get('PLUGINS_DIR')+PluginGroup
+                PluginDir = self.Core.Config.FrameworkConfigGet('PLUGINS_DIR')+PluginGroup
                 return PluginDir
 
         def SwitchToTarget(self, Target):
