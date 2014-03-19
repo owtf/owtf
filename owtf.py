@@ -58,7 +58,7 @@ def Banner():
 
 def GetArgs(Core, args):
     ValidPluginGroups = ['web', 'net', 'aux']
-    ValidPluginTypes = Core.Config.Plugin.GetAllTypes() + ['all', 'quiet']
+    ValidPluginTypes = Core.DB.Plugin.GetAllTypes() + ['all', 'quiet']
 
     Parser = argparse.ArgumentParser(description="OWASP OWTF, the Offensive (Web) Testing Framework, is an OWASP+PTES-focused try to unite great tools and make pentesting more efficient @owtfp http://owtf.org\nAuthor: Abraham Aranguren <name.surname@owasp.org> - http://7-a.org - Twitter: @7a_")
     Parser.add_argument("-l", "--list_plugins",
@@ -242,7 +242,7 @@ def GetPluginsFromArg(Core, Arg):
 def ProcessOptions(Core, user_args):
     try:
         Arg = GetArgs(Core, user_args)
-    except Exception as e:
+    except KeyboardInterrupt: #Exception as e:
         Usage("Invalid OWTF option(s) " + e)
 
     # Default settings:
@@ -322,7 +322,7 @@ def ProcessOptions(Core, user_args):
                 Usage("Invalid port for Inbound Proxy")
 
 
-    PluginTypesForGroup = Core.Config.Plugin.GetTypesForGroup(PluginGroup)
+    PluginTypesForGroup = Core.DB.Plugin.GetTypesForGroup(PluginGroup)
     if Arg.PluginType == 'all':
         Arg.PluginType = PluginTypesForGroup
     elif Arg.PluginType == 'quiet':

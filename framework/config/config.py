@@ -33,24 +33,11 @@ from urlparse import urlparse
 from collections import defaultdict
 from framework.config import plugin, health_check
 from framework.lib.general import *
-from framework.db import models
+from framework.db import models, target
 
 REPLACEMENT_DELIMITER = "@@@"
 REPLACEMENT_DELIMITER_LENGTH = len(REPLACEMENT_DELIMITER)
 CONFIG_TYPES = [ 'string', 'other' ]
-
-TARGET_CONFIG = {
-                    'TARGET_URL' : '', 
-                    'HOST_NAME' : '',
-                    'HOST_PATH' : '',
-                    'URL_SCHEME' : '',
-                    'PORT_NUMBER' : '', # In str form
-                    'HOST_IP' : '',
-                    'ALTERNATIVE_IPS' : '', # str(list), so it can easily reversed using list(str)
-                    'IP_URL' : '',
-                    'TOP_DOMAIN' : '',
-                    'TOP_URL' : ''
-                }
 
 class Config(object):
     Target = None
@@ -66,17 +53,16 @@ class Config(object):
         self.Config = defaultdict(list) # General configuration information
         for Type in CONFIG_TYPES:
             self.Config[Type] = {}
-        self.Targets = [] # List of targets, filled by db.py
         self.TargetConfig = {} # Holds configuration of single target
 
     def Init(self):
-        self.Plugin = plugin.PluginConfig(self.Core)
         self.HealthCheck = health_check.HealthCheck(self.Core)
 
     def LoadFrameworkConfigFromFile(self, ConfigPath): # Load the configuration frominto a global dictionary
         if 'framework_config' not in ConfigPath:
             cprint("Loading Config from: "+ConfigPath+" ..")
         ConfigFile = open(ConfigPath, 'r')
+        self.Set('FRAMEWORK_DIR', self.RootDir) # Needed Later
         for line in ConfigFile:
             try:
                 Key = line.split(':')[0]
@@ -98,17 +84,12 @@ class Config(object):
         self.Profiles = defaultdict(list) # This prevents python from blowing up when the Key does not exist :)
         for Type, File in Profiles: # Now override with User-provided profiles, if present
             self.Profiles[Type] = File
-        for PluginGroup in self.Plugin.GetAllGroups():
-            if PluginGroup in self.Profiles:
-                self.Plugin.LoadPluginOrderFromFile(PluginGroup, self.Profiles[PluginGroup])
-            else:
-                self.Plugin.LoadPluginOrderFromFileSystem(PluginGroup)
 
     def LoadTargets(self, Options):
         # print(Options)
         Scope = self.PrepareURLScope(Options['Scope'], Options['PluginGroup'])
         for Target in Scope:
-            self.AddTarget(Target)
+            self.Core.DB.Target.AddTarget(Target)
         self.Target = Target
 
     def PrepareURLScope(self, Scope,Group): # Convert all targets to URLs
@@ -146,33 +127,6 @@ class Config(object):
             Copy[Key] = Value.copy()
         return Copy
 
-    def GetResourcesFromFile(self, resource_file):
-        resources = []
-        ConfigFile = open(resource_file, 'r').read().splitlines() # To remove stupid '\n' at the end
-        for line in ConfigFile:
-            if '#' == line[0]:
-                continue # Skip comment lines
-            try:
-                Type, Name, Resource = line.split('_____')
-                # Resource = Resource.strip()
-                resources.append((Type, Name, Resource))
-            except ValueError:
-                cprint("ERROR: The delimiter is incorrect in this line at Resource File: "+str(line.split('_____')))
-        return resources
-
-    def GetConfigurationFromFile(self, config_file):
-        configuration = []
-        ConfigFile = open(config_file, 'r').read().splitlines() # To remove stupid '\n' at the end
-        for line in ConfigFile:
-            if not line or '#' == line[0]: continue
-            try:
-                key, value = line.split(":", 1)
-                key, value = key.strip(), value.strip()
-                configuration.append((key, value))
-            except ValueError:
-                cprint("Invalid configuration line")
-        return configuration
-
     def GetResources(self, ResourceType, Target=None): # Transparently replaces the Resources placeholders with the relevant config information
         if Target:
             self.SetTarget(Target)
@@ -195,16 +149,8 @@ class Config(object):
     def GetRawResources(self, ResourceType):
         return self.Resources[ResourceType]
 
-    def AddTarget(self, TargetURL):
-        if TargetURL not in self.Targets:
-            self.Core.DB.AddTarget(TargetURL)
-            self.Targets.append(TargetURL)
-            return True
-        else:
-            return False
-
     def DeriveConfigFromURL(self, TargetURL): #,Options):
-        target_config = dict(TARGET_CONFIG)
+        target_config = dict(target.TARGET_CONFIG)
         target_config['TARGET_URL'] = TargetURL # Set the target in the config
         # TODO: Use urlparse here
         ParsedURL = urlparse(TargetURL)
@@ -376,7 +322,7 @@ class Config(object):
         #    Value = self.Get(Key)
         #    if Value not in Matches: # Avoid duplicates
         #        Matches.append(Value)
-        return self.Core.DB.GetAllWithKey(Key)
+        return self.Core.DB.Target.GetAll(Key)
 
     def IsSet(self, Key):
         Key = self.PadKey(Key)
@@ -399,7 +345,7 @@ class Config(object):
         return Key.replace(REPLACEMENT_DELIMITER, '')
 
     def Get(self, Key):
-        return self.Core.DB.GetValueFromConfigDB(Key)
+        return self.Core.DB.Config.Get(Key)
 
     def FrameworkConfigGet(self, Key): # Transparently gets config info from Target or General
         try:

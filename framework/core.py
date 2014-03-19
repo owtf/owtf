@@ -277,7 +277,7 @@ class Core:
         #else: # Reporter process is not needed unless a real run
         #    self.start_reporter()
         self.StartProxy(Options) # Proxy mode is started in that function
-        self.Start_TOR_Mode(Options)# TOR mode will start only if the Options are set
+        #self.Start_TOR_Mode(Options)# TOR mode will start only if the Options are set
         # Proxy Check
         ProxySuccess, Message = self.Requester.ProxyCheck()
         cprint(Message)

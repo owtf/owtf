@@ -1,5 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 
 TransactionBase = declarative_base()
 
@@ -75,6 +76,7 @@ class PluginOutput(ReviewWebBase):
     __tablename__ = "plugin_outputs"
 
     code = Column(String, primary_key = True) # OWTF Code
+    plugin_type = Column(String)
     output = Column(String)
     user_notes = Column(String, nullable = True)
     user_ranking = Column(Integer, nullable = True)
@@ -120,31 +122,24 @@ class ConfigSetting(GeneralBase):
 
 PluginBase = declarative_base()
 
-class WebTestGroup(PluginBase):
-    __tablename__ = "web_test_groups"
+class TestCode(PluginBase):
+    __tablename__ = "test_codes"
 
     code = Column(String, primary_key = True)
+    group = Column(String) # web, net
     descrip = Column(String)
     hint = Column(String, nullable = True)
     url = Column(String)
+    plugins = relationship("Plugin")
 
-class ActivePlugin(PluginBase):
-    __tablename__ = "active_plugins"
+class Plugin(PluginBase):
+    __tablename__ = "plugins"
 
-    code = Column(String, primary_key = True)
-    descrip = Column(String, nullable = True)
-    relative_path = Column(String)
-
-class PassivePlugin(PluginBase):
-    __tablename__ = "passive_plugins"
-
-    code = Column(String, primary_key = True)
-    descrip = Column(String, nullable = True)
-    relative_path = Column(String)
-
-class SemiPassivePlugin(PluginBase):
-    __tablename__ = "semipassive_plugins"
-
-    code = Column(String, primary_key = True)
-    descrip = Column(String, nullable = True)
-    relative_path = Column(String)
+    key = Column(String, primary_key = True) # Key = plugin_type@code
+    plugin_title = Column(String)
+    plugin_name = Column(String)
+    plugin_code = Column(String, ForeignKey('test_codes.code'))
+    plugin_group = Column(String)
+    plugin_type = Column(String)
+    plugin_descrip = Column(String, nullable = True)
+    plugin_file = Column(String)

@@ -36,8 +36,7 @@ from framework.lib.general import cprint
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy import exc
-from framework.db import models
-from framework.config.config import TARGET_CONFIG
+from framework.db import models, plugin, target, resource, config
 import json
 import logging
 import multiprocessing
@@ -49,8 +48,7 @@ class DB(object):
         
     def __init__(self,CoreObj):
         self.Core = CoreObj
-        self.Transaction = transaction_manager.TransactionManager(CoreObj)
-        self.URL = url_manager.URLManager(CoreObj)
+        self.Core.EnsureDirPath(self.Core.Config.FrameworkConfigGet("DB_DIR"))
         #self.Run = run_manager.RunManager(CoreObj)
         #self.PluginRegister = plugin_register.PluginRegister(CoreObj)
         #self.ReportRegister = report_register.ReportRegister(CoreObj)
@@ -58,88 +56,22 @@ class DB(object):
         #self.Debug = debug.DebugDB(CoreObj)
 
     def Init(self):
-        self.Core.EnsureDirPath(self.Core.Config.FrameworkConfigGet("DB_DIR"))
         self.ErrorDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("ERROR_DB_PATH")), models.ErrorBase)
-        self.TargetConfigDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("TARGET_CONFIG_DB_PATH")), models.TargetBase)
-        self.ResourceDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("RESOURCE_DB_PATH")), models.ResourceBase)
-        self.ConfigDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("CONFIG_DB_PATH")), models.GeneralBase)
-        self.PluginDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("PLUGIN_DB_PATH")), models.PluginBase)
-        self.DBHealthCheck()
-        self.LoadDBs()
-
-    def LoadDBs(self):
-        self.LoadResourceDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE"))
-        self.LoadConfigDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_GENERAL_PROFILE"))
-        self.LoadWebPluginsUsingFile(self.Core.Config.FrameworkConfigGet("WEB_TEST_GROUPS"))
+        self.Transaction = transaction_manager.TransactionManager(self.Core)
+        self.URL = url_manager.URLManager(self.Core)
+        self.Plugin = plugin.PluginDB(self.Core)
+        self.Target = target.TargetDB(self.Core)
+        self.Resource = resource.ResourceDB(self.Core)
+        self.Config = config.ConfigDB(self.Core)
+        # self.DBHealthCheck()
 
     def SaveDBs(self):
         pass
-
-    def DBHealthCheck(self):
-        session = self.TargetConfigDBSession()
-        target_list = session.query(models.Target).all()
-        for target in target_list:
-            self.Core.Config.Targets.append(target.url)
-            self.EnsureDBsForTarget(target.url)
-
-    def EnsureDBsForTarget(self, TargetURL):
-        self.Core.Config.CreateDBDirForTarget(TargetURL)
-        self.EnsureDBWithBase(self.Core.Config.GetTransactionDBPathForTarget(TargetURL), models.TransactionBase)
-        self.EnsureDBWithBase(self.Core.Config.GetUrlDBPathForTarget(TargetURL), models.URLBase)
-        self.EnsureDBWithBase(self.Core.Config.GetReviewDBPathForTarget(TargetURL), models.ReviewWebBase)
 
     def EnsureDBWithBase(self, DB_PATH, BaseClass):
         cprint("Ensuring if DB exists at " + DB_PATH)
         if not os.path.exists(DB_PATH):
             self.CreateDBUsingBase(DB_PATH, BaseClass)
-
-    def LoadWebPluginsUsingFile(self, web_test_groups_file):
-        self.LoadWebTestGroups(web_test_groups_file)
-        #self.LoadWebPlugins()
-
-    def LoadWebTestGroups(self, test_groups_file):
-        WebTestGroups = self.Core.Config.Plugin.GetWebTestGroupsFromFile(test_groups_file)
-        session = self.PluginDBSession()
-        for group in WebTestGroups:
-            session.add(models.WebTestGroup(code = group['Code'], descrip = group['Descrip'], hint = group['Hint'], url = group['URL']))
-        session.commit()
-        session.close()
-
-    def GetWebTestGroups(self):
-        results = []
-        session = self.PluginDBSession()
-        groups = session.query(models.WebTestGroup).all()
-        for group in groups:
-            results.append({'Code': group.code, 'Descrip': group.descrip, 'Hint':group.hint, 'URL':group.url})
-        return results
-
-    def GetWebTestGroupForCode(self, code):
-        session = self.PluginDBSession()
-        group = session.query(models.WebTestGroup).get(code)
-        if group:
-            return({'Code': group.code, 'Descrip': group.descrip, 'Hint': group.hint, 'URL': group.url})
-        return group
-
-    def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
-        cprint("Loading Resources from: " + file_path + " ..")
-        resources = self.Core.Config.GetResourcesFromFile(file_path)
-        # resources = [(Type, Name, Resource), (Type, Name, Resource),]
-        session = self.ResourceDBSession()
-        for Type, Name, Resource in resources:
-            # Need more filtering to avoid duplicates
-            session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
-        session.commit()
-        session.close()
-
-    def LoadConfigDBFromFile(self, file_path):
-        cprint("Loading Configuration from: " + file_path + " ..")
-        configuration = self.Core.Config.GetConfigurationFromFile(file_path)
-        # configuration = [(key, value), (key, value),]
-        session = self.ConfigDBSession()
-        for key, value in configuration:
-            session.add(models.ConfigSetting(key = key, value = value))
-        session.commit()
-        session.close()
 
     def CreateDBUsingBase(self, DB_PATH, BaseClass):
         cprint("Creating DB at " + DB_PATH)
@@ -207,38 +139,3 @@ class DB(object):
     def ErrorData(self):
         arguments={'function':'ErrorData','arguments':[]}
         return db_pull(arguments)
-
-    def GetValueFromConfigDB(self, Key):
-        session = self.ConfigDBSession()
-        obj = session.query(models.ConfigSetting).get(Key)
-        session.close()
-        if obj:
-            return(obj.value)
-        return(None)
-
-    def AddTarget(self, TargetURL):
-        target_config = self.Core.Config.DeriveConfigFromURL(TargetURL)
-        config_obj = models.Target(target_url = TargetURL)
-        for key, value in target_config.items():
-            key = key.lower()
-            setattr(config_obj, key, str(value))
-        session = self.TargetConfigDBSession()
-        session.add(config_obj)
-        session.commit()
-        session.close()
-        self.EnsureDBsForTarget(TargetURL)
-
-    def GetTargetConfigFromDB(self, target_url):
-        session = self.TargetConfigDBSession()
-        target_obj = session.query(models.Target).get(target_url)
-        target_config = {}
-        if target_obj:
-            for key in TARGET_CONFIG.keys():
-                target_config[key] = getattr(target_obj, key.lower())
-        return target_config
-
-    def GetAllWithKey(self, Key):
-        session = self.Core.DB.TargetConfigDBSession()
-        results = session.query(getattr(models.Target, Key.lower())).all()
-        results = [result[0] for result in results]
-        return results

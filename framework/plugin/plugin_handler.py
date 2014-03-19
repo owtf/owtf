@@ -80,7 +80,7 @@ class PluginHandler:
                 #print "Options['PluginType']="+str(Options['PluginType'])
                 if isinstance(Options['PluginType'], str): # For special plugin types like "quiet" -> "semi_passive" + "passive"
                         Options['PluginType'] = Options['PluginType'].split(',')        
-                self.Core.Config.Plugin.DeriveAllowedTypes(self.PluginGroup, Options['PluginType'])
+                #self.Core.DB.Plugin.DeriveAllowedTypes(self.PluginGroup, Options['PluginType'])
                 self.OnlyPluginsSet = len(self.OnlyPluginsList) > 0
                 self.ExceptPluginsSet = len(self.ExceptPluginsList) > 0
                 self.scanner = Scanner(self.Core)
