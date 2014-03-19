@@ -36,7 +36,7 @@ from framework.lib.general import cprint
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy import exc
-from framework.db import models, plugin, target, resource, config
+from framework.db import models, plugin_manager, target_manager, resource_manager, config_manager
 import json
 import logging
 import multiprocessing
@@ -59,10 +59,10 @@ class DB(object):
         self.ErrorDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("ERROR_DB_PATH")), models.ErrorBase)
         self.Transaction = transaction_manager.TransactionManager(self.Core)
         self.URL = url_manager.URLManager(self.Core)
-        self.Plugin = plugin.PluginDB(self.Core)
-        self.Target = target.TargetDB(self.Core)
-        self.Resource = resource.ResourceDB(self.Core)
-        self.Config = config.ConfigDB(self.Core)
+        self.Plugin = plugin_manager.PluginDB(self.Core)
+        self.Target = target_manager.TargetDB(self.Core)
+        self.Resource = resource_manager.ResourceDB(self.Core)
+        self.Config = config_manager.ConfigDB(self.Core)
         # self.DBHealthCheck()
 
     def SaveDBs(self):

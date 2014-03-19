@@ -128,23 +128,10 @@ class Config(object):
         return Copy
 
     def GetResources(self, ResourceType, Target=None): # Transparently replaces the Resources placeholders with the relevant config information
-        if Target:
-            self.SetTarget(Target)
-        ReplacedResources = []
-        ResourceType = ResourceType.upper() # Force upper case to make Resource search not case sensitive
-        if self.IsResourceType(ResourceType):
-            for Name, Resource in self.Resources[ResourceType]:
-                ReplacedResources.append( [ Name, MultipleReplace( Resource, self.GetReplacementDict() ) ] )
-        else:
-            cprint("The resource type: '"+str(ResourceType)+"' is not defined on '"+self.ResourcePath+"'")
-        return ReplacedResources
+        return self.Core.DB.Resource.GetResources(ResourceType)
 
     def GetResourceList(self, ResourceTypeList):
-        ResourceList = []
-        for ResourceType in ResourceTypeList:
-            #print "ResourceTye="+str(self.GetResources(ResourceType))
-            ResourceList = ResourceList + self.GetResources(ResourceType)
-        return ResourceList
+        return self.Core.DB.Resource.GetResourceList(ResourceTypeList)
 
     def GetRawResources(self, ResourceType):
         return self.Resources[ResourceType]
@@ -310,9 +297,6 @@ class Config(object):
 
     def GetTarget(self):
         return self.Target
-
-    def GetTargets(self):
-        return self.Targets
 
     def GetAll(self, Key): # Retrieves a config setting value on all target configurations
         #Matches = []

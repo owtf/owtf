@@ -97,7 +97,7 @@ class PluginHandler:
                 #print "List to validate="+str(List)
                 for Item in List:
                         Found = False
-                        for Plugin in self.Core.Config.Plugin.GetPlugins( { 'Group' : self.PluginGroup } ): # Processing Loop
+                        for Plugin in self.Core.DB.Plugin.GetPluginsByGroup(self.PluginGroup): # Processing Loop
                                 if Item in [ Plugin['Code'], Plugin['Name'] ]:
                                         ValidatedList.append(Plugin['Code'])
                                         Found = True
@@ -168,9 +168,9 @@ class PluginHandler:
         def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
                 #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.Core.Config.Get('TARGET')
                 if Plugin['Group'] == 'web':
-                        return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/"
+                        return self.Core.DB.Target.GetPath('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/"
                 elif Plugin['Group'] == 'net':
-                        return self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/" +Plugin['Type']+"/"
+                        return self.Core.DB.Target.GetPath('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/" +Plugin['Type']+"/"
                 elif Plugin['Group'] == 'aux':
                         return self.Core.Config.Get('AUX_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/" 
 
@@ -197,7 +197,7 @@ class PluginHandler:
                                 Chosen = False # Skip plugins not present in the white-list defined by the user
                         if self.ExceptPluginsSet and Plugin['Code'] in self.ExceptPluginsList:
                                 Chosen = False # Skip plugins present in the black-list defined by the user
-                if Plugin['Type'] not in self.Core.Config.Plugin.GetAllowedTypes(Plugin['Group']):
+                if Plugin['Type'] not in self.Core.DB.Plugin.GetTypesForGroup(Plugin['Group']):
                         Chosen = False # Skip plugin: Not matching selected type    
                 return Chosen
 
@@ -248,10 +248,11 @@ class PluginHandler:
                 PluginPath = self.GetPluginFullPath(PluginDir, Plugin)
                 (Path, Name) = os.path.split(PluginPath)
                 #(Name, Ext) = os.path.splitext(Name)
-                self.Core.DB.Debug.Add("Running Plugin -> Plugin="+str(Plugin)+", PluginDir="+str(PluginDir))
+                #self.Core.DB.Debug.Add("Running Plugin -> Plugin="+str(Plugin)+", PluginDir="+str(PluginDir))
                 PluginOutput = self.GetModule("", Name, Path+"/").run(self.Core, Plugin)
                 if save_output:
-                        self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
+                        print(PluginOutput)
+                        #self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
                 return PluginOutput
 
         def ProcessPlugin(self, PluginDir, Plugin, Status):
@@ -295,16 +296,16 @@ class PluginHandler:
                         self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Framework Exit)", Plugin) # Save the partial output and exit
                         Plugin["Status"] = "Aborted (Framework Exit)"
                         self.Core.Finish("Aborted")
-                except: # BUG
-                        Plugin["Status"] = "Crashed"
-                        self.SavePluginInfo(self.Core.Error.Add("Plugin "+Plugin['Type']+"/"+Plugin['File']+" failed for target "+self.Core.Config.Get('TARGET')), Plugin) # Try to save something
+                #except: # BUG
+                #        Plugin["Status"] = "Crashed"
+                #        self.SavePluginInfo(self.Core.Error.Add("Plugin "+Plugin['Type']+"/"+Plugin['File']+" failed for target "+self.Core.Config.Get('TARGET')), Plugin) # Try to save something
                         #TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
 
         def ProcessPlugins(self):
                 Status = { 'SomeAborted' : False, 'SomeSuccessful' : False, 'AllSkipped' : True }
                 if self.PluginGroup in [ 'web', 'aux','net' ]:
                         #self.ProcessPluginsForTargetList(self.PluginGroup, Status, self.Scope) <--- config can change the scope, must retrieve from config instead
-                        self.ProcessPluginsForTargetList(self.PluginGroup, Status, self.Core.Config.GetTargets())
+                        self.ProcessPluginsForTargetList(self.PluginGroup, Status, self.Core.DB.Target.GetTargets())
                 return Status
 
         def GetPluginGroupDir(self, PluginGroup):
@@ -312,8 +313,7 @@ class PluginHandler:
                 return PluginDir
 
         def SwitchToTarget(self, Target):
-                self.Core.Config.SetTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-
+                self.Core.DB.Target.SetTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
 
         def get_plugins_in_order_for_PluginGroup(self, PluginGroup):
             return self.Core.Config.Plugin.GetOrder(PluginGroup)
@@ -348,7 +348,7 @@ class PluginHandler:
                                    
                     
                 else:
-                        self.ProcessManager.startinput()
+                        #self.ProcessManager.startinput()
                         self.ProcessManager.fillWorkList(PluginGroup,TargetList)
                         self.ProcessManager.spawnWorkers(Status)
                         self.ProcessManager.manageProcess()

@@ -99,3 +99,31 @@ class PluginDB(object):
         session.close()
         plugin_types = [i[0] for i in plugin_types]
         return(plugin_types)
+
+    def GetPluginDictFromModel(self, obj):
+        return({"Group" : obj.plugin_group,
+                "Type" : obj.plugin_type,
+                "File" : obj.plugin_file,
+                "Code" : obj.plugin_code,
+                "Name" : obj.plugin_name,
+                "Title": obj.plugin_title,
+                "Descrip": obj.plugin_descrip
+                })
+
+    def GetPluginDictsFromModels(self, obj_list):
+        plugin_dicts = []
+        for obj in obj_list:
+            plugin_dicts.append(self.GetPluginDictFromModel(obj))
+        return(plugin_dicts)
+
+    def GetPluginsByType(self, PluginType):
+        session = self.PluginDBSession()
+        plugins = session.query(models.Plugin).filter_by(plugin_type = PluginType).all()
+        session.close()
+        return(self.GetPluginDictsFromModels(plugins))
+
+    def GetPluginsByGroup(self, PluginGroup):
+        session = self.PluginDBSession()
+        plugins = session.query(models.Plugin).filter_by(plugin_group = PluginGroup).all()
+        session.close()
+        return(self.GetPluginDictsFromModels(plugins))

@@ -1,5 +1,5 @@
 from framework.db import models
-from framework.lib.general import cprint
+from framework.lib.general import cprint, MultipleReplace
 import os
 
 class ResourceDB(object):
@@ -32,3 +32,35 @@ class ResourceDB(object):
             except ValueError:
                 cprint("ERROR: The delimiter is incorrect in this line at Resource File: "+str(line.split('_____')))
         return resources
+
+    def GetReplacementDict(self):
+        configuration = self.Core.DB.Config.GetAll()
+        configuration.update(self.Core.DB.Target.GetTargetConfig())
+        return configuration
+
+    def GetRawResources(self, ResourceType):
+        ResourceType = ResourceType.upper() # Only upper case
+        session = self.ResourceDBSession()
+        raw_resources = session.query(models.Resource.resource_name, models.Resource.resource).filter_by(resource_type = ResourceType).all()
+        session.close()
+        return raw_resources
+
+    def GetResources(self, ResourceType):
+        replacement_dict = self.GetReplacementDict()
+        resources = self.GetRawResources(ResourceType)
+        for resource in resources:
+            resource[-1] = MultipleReplace(resource[-1], replacement_dict)
+        return resources
+
+    def GetRawResourceList(self, ResourceList):
+        session = self.ResourceDBSession()
+        raw_resources = session.query(models.Resource.resource_name, models.Resource.resource).filter(models.Resource.resource_type.in_(ResourceList)).all()
+        session.close()
+        return raw_resources
+
+    def GetResourceList(self, ResourceTypeList):
+        replacement_dict = self.GetReplacementDict()
+        resources = self.GetRawResourceList(ResourceTypeList)
+        for resource in resources:
+            resource[-1] = MultipleReplace(resource[-1], replacement_dict)
+        return ResourceList

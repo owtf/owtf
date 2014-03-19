@@ -39,3 +39,12 @@ class ConfigDB(object):
         if obj:
             return(obj.value)
         return(None)
+
+    def GetAll(self):
+        config_dict = {}
+        session = self.ConfigDBSession()
+        config_list = session.query(models.ConfigSetting.key, models.ConfigSetting.value).all()
+        session.close()
+        for key, value in config_list:
+            config_dict[key] = value
+        return config_dict
