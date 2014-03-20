@@ -33,7 +33,7 @@ from urlparse import urlparse
 from collections import defaultdict
 from framework.config import plugin, health_check
 from framework.lib.general import *
-from framework.db import models, target
+from framework.db import models, target_manager
 
 REPLACEMENT_DELIMITER = "@@@"
 REPLACEMENT_DELIMITER_LENGTH = len(REPLACEMENT_DELIMITER)
@@ -137,7 +137,7 @@ class Config(object):
         return self.Resources[ResourceType]
 
     def DeriveConfigFromURL(self, TargetURL): #,Options):
-        target_config = dict(target.TARGET_CONFIG)
+        target_config = dict(target_manager.TARGET_CONFIG)
         target_config['TARGET_URL'] = TargetURL # Set the target in the config
         # TODO: Use urlparse here
         ParsedURL = urlparse(TargetURL)
@@ -340,6 +340,11 @@ class Config(object):
             self.Core.Error.Add(Message)
             raise PluginAbortException(Message) # Raise plugin-level exception to move on to next plugin
 
+    def FrameworkConfigGetDBPath(self, Key):
+        # Only for main/common dbs, for target specific dbs, there are other methods
+        relative_path = self.FrameworkConfigGet(Key)
+        return os.path.join(self.FrameworkConfigGet("OUTPUT_PATH"), self.FrameworkConfigGet("DB_DIR"), relative_path)
+
     def GetAsPartialPath(self, Key): # Convenience wrapper
         return self.Core.GetPartialPath(self.Get(Key))
 
@@ -388,7 +393,7 @@ class Config(object):
             cprint(str(k)+" => "+str(v))
 
     def GetDBDirForTarget(self, TargetURL):
-        return os.path.join(os.path.expanduser(self.FrameworkConfigGet("TARGETS_DB_DIR")), TargetURL.replace("//","_").replace(":",""))
+        return os.path.join(self.FrameworkConfigGet("OUTPUT_PATH"), self.FrameworkConfigGet("TARGETS_DIR"), TargetURL.replace("/","_").replace(":",""))
 
     def CreateDBDirForTarget(self, TargetURL):
         self.Core.EnsureDirPath(self.GetDBDirForTarget(TargetURL))

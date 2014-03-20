@@ -5,7 +5,7 @@ import os
 class ResourceDB(object):
     def __init__(self, Core):
         self.Core = Core
-        self.ResourceDBSession = self.Core.DB.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("RESOURCE_DB_PATH")), models.ResourceBase)
+        self.ResourceDBSession = self.Core.DB.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGetDBPath("RESOURCE_DB_PATH")), models.ResourceBase)
         self.LoadResourceDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE"))
 
     def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7

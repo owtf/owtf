@@ -33,7 +33,7 @@ DESCRIPTION = "Normal request for robots.txt analysis"
 
 def run(Core, PluginInfo):
 
-    TopURL = Core.Config.Get('TOP_URL')
+    TopURL = Core.DB.Target.Get('TOP_URL')
     URL = TopURL+"/robots.txt"
     TestResult = Core.Reporter.Render.DrawButtonLink(URL, URL)
     HTTP_Transaction = Core.Requester.GetTransaction(True, URL) # Use transaction cache if possible for speed
