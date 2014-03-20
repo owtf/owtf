@@ -28,7 +28,7 @@ class TargetDB(object):
     PathConfig = dict(PATH_CONFIG)
     def __init__(self, Core):
         self.Core = Core
-        self.TargetConfigDBSession = self.Core.DB.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("TARGET_CONFIG_DB_PATH")), models.TargetBase)
+        self.TargetConfigDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("TCONFIG_DB_PATH"), models.TargetBase)
         self.TargetDBHealthCheck()
 
     def SetTarget(self, target_url):
@@ -39,10 +39,10 @@ class TargetDB(object):
 
     def GetPathConfigForTargetConfig(self, target_config):
         path_config = {}
-        path_config['HOST_OUTPUT'] = os.path.join(self.Core.Config.Get('OUTPUT_PATH'), target_config['HOST_IP']) # Set the output directory
+        path_config['HOST_OUTPUT'] = os.path.join(self.Core.Config.FrameworkConfigGet('OUTPUT_PATH'), target_config['HOST_IP']) # Set the output directory
         path_config['PORT_OUTPUT'] = os.path.join(path_config['HOST_OUTPUT'], target_config['PORT_NUMBER']) # Set the output directory
         URLInfoID = target_config['TARGET_URL'].replace('/','_').replace(':','')
-        path_config['URL_OUTPUT'] = os.path.join(path_config['PORT_OUTPUT'], URLInfoID) # Set the URL output directory (plugins will save their data here)
+        path_config['URL_OUTPUT'] = os.path.join(self.Core.Config.FrameworkConfigGet('OUTPUT_PATH'), self.Core.Config.FrameworkConfigGet('TARGETS_DIR'), URLInfoID) # Set the URL output directory (plugins will save their data here)
         path_config['PARTIAL_URL_OUTPUT_PATH'] = os.path.join(path_config['URL_OUTPUT'], 'partial') # Set the partial results path
         return path_config
 
@@ -95,6 +95,9 @@ class TargetDB(object):
             for key in TARGET_CONFIG.keys():
                 target_config[key] = getattr(target_obj, key.lower())
         return target_config
+
+    def Get(self, Key):
+        return(self.TargetConfig[Key])
 
     def GetAll(self, Key):
         session = self.TargetConfigDBSession()

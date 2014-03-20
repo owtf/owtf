@@ -234,7 +234,7 @@ def ValidateOnePluginGroup(PluginGroups):
 
 def GetPluginsFromArg(Core, Arg):
     Plugins = Arg.split(',')
-    PluginGroups = Core.Config.Plugin.GetGroupsForPlugins(Plugins)
+    PluginGroups = Core.DB.Plugin.GetGroupsForPlugins(Plugins)
     ValidateOnePluginGroup(PluginGroups)
     return [Plugins, PluginGroups]
 

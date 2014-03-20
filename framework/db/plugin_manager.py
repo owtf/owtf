@@ -1,4 +1,5 @@
 from framework.db import models
+from sqlalchemy import or_
 import os
 
 TEST_GROUPS = ['web', 'net']
@@ -6,7 +7,7 @@ TEST_GROUPS = ['web', 'net']
 class PluginDB(object):
     def __init__(self, Core):
         self.Core = Core
-        self.PluginDBSession = self.Core.DB.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGet("PLUGIN_DB_PATH")), models.PluginBase)
+        self.PluginDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("PLUGIN_DB_PATH"), models.PluginBase)
         self.LoadWebTestGroups(self.Core.Config.FrameworkConfigGet("WEB_TEST_GROUPS"))
         self.LoadNetTestGroups(self.Core.Config.FrameworkConfigGet("NET_TEST_GROUPS"))
         # After loading the test groups then load the plugins, because of many-to-one relationship
@@ -127,3 +128,16 @@ class PluginDB(object):
         plugins = session.query(models.Plugin).filter_by(plugin_group = PluginGroup).all()
         session.close()
         return(self.GetPluginDictsFromModels(plugins))
+
+    def GetPluginsByGroupType(self, PluginGroup, PluginTypeList):
+        session = self.PluginDBSession()
+        plugins = session.query(models.Plugin).filter(models.Plugin.plugin_group == PluginGroup, models.Plugin.plugin_type.in_(PluginTypeList)).all()
+        session.close()
+        return(self.GetPluginDictsFromModels(plugins))
+
+    def GetGroupsForPlugins(self, Plugins):
+        session = self.PluginDBSession()
+        groups = session.query(models.Plugin.plugin_group).filter(or_(models.Plugin.plugin_code.in_(Plugins), models.Plugin.plugin_name.in_(Plugins))).distinct().all()
+        session.close()
+        groups = [i[0] for i in groups]
+        return(groups)
