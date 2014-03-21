@@ -48,7 +48,7 @@ class DB(object):
         
     def __init__(self,CoreObj):
         self.Core = CoreObj
-        self.Core.EnsureDirPath(os.path.join(self.Core.Config.FrameworkConfigGet("OUTPUT_PATH"), self.Core.Config.FrameworkConfigGet("DB_DIR")))
+        self.Core.CreateMissingDirs(os.path.join(self.Core.Config.FrameworkConfigGet("OUTPUT_PATH"), self.Core.Config.FrameworkConfigGet("DB_DIR")))
         #self.Run = run_manager.RunManager(CoreObj)
         #self.PluginRegister = plugin_register.PluginRegister(CoreObj)
         #self.ReportRegister = report_register.ReportRegister(CoreObj)
@@ -56,7 +56,7 @@ class DB(object):
         #self.Debug = debug.DebugDB(CoreObj)
 
     def Init(self):
-        self.ErrorDBSession = self.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGetDBPath("ERROR_DB_PATH")), models.ErrorBase)
+        self.ErrorDBSession = self.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.ErrorBase)
         self.Transaction = transaction_manager.TransactionManager(self.Core)
         self.URL = url_manager.URLManager(self.Core)
         self.Plugin = plugin_manager.PluginDB(self.Core)

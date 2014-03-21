@@ -28,11 +28,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This module contains helper functions to make plugins simpler to read and write, centralising common functionality easy to reuse
 '''
-import os, re, cgi
+import os
+import re
+import cgi
+import json
 from jinja2 import Template
 from framework.lib.general import *
 from collections import defaultdict
 import logging
+
+PLUGIN_OUTPUT = {"Type":None, "Output":None} # This will be json encoded and stored in db as string
 
 class PluginHelper:
         mNumLinesToShow = 25
@@ -46,6 +51,12 @@ class PluginHelper:
 
         def MultipleReplace( self, Text, ReplaceDict ): # This redundant method is here so that plugins can use it
                 return MultipleReplace( Text, ReplaceDict )
+
+        def CreateCommandTable(self, Command):
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "CommandTable"
+            plugin_output["output"] = {"Command" : Command}
+            return(json.dumps(plugin_output))
 
         def DrawCommandTable( self, Command ):
                 template = Template ( """
@@ -69,6 +80,12 @@ class PluginHelper:
                                                 }
                 return template.render( vars )
 
+        def CreateLinkList(self, LinkListName, Links):
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "LinkList"
+            plugin_output["output"] = {"LinkListName" : LinkListName, "Links" : Links}
+            return(json.dumps(plugin_output))
+
         def DrawLinkList( self, LinkListName, Links ): # Wrapper to allow rendering a bunch of links -without name- as resource links with name = link
                 template = Template( """
                 <div class="well well-small">
@@ -89,6 +106,12 @@ class PluginHelper:
                 """ )
                 return template.render( LinkListName = LinkListName, Links = Links )
 
+        def CreateResourceLinkList(self, ResourceListName, ResourceList):
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "ResourceLinkList"
+            plugin_output["output"] = {"ResourceListName": ResourceListName, "ResourceList":ResourceList}
+            return(json.dumps(plugin_output))
+
         def DrawResourceLinkList( self, ResourceListName, ResourceList ): # Draws an HTML Search box for defined Vuln Search resources
                 template = Template( """
                 <div class="well well-small">
@@ -107,6 +130,12 @@ class PluginHelper:
                 </div>
                 """ )
                 return template.render( ResourceListName = ResourceListName, ResourceList = ResourceList )
+
+        def CreateTabbedResourceLinkList(self, ResourceList):
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "TabbedResourceLinkList"
+            plugin_output["output"] = {"ResourceList" : ResourceList}
+            return(json.dumps(plugin_output))
 
         def DrawTabbedResourceLinkList(self, ResourcesList):
             # ResourceList = ["ResourceListName":[["Name1","Resource1"],["Name2","Resource2"]]]
@@ -149,6 +178,12 @@ class PluginHelper:
                 vars["Resources"].append([TabID, Resources])
             return template.render(vars)
 
+        def CreateListPostProcessing(self, ResourceListName, LinkList, HTMLLinkList):
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "ListPostProcessing"
+            plugin_output["output"] = {"ResourceListName" : ResourceListName, "LinkList" : LinkList, "HTMLLinkList":HTMLLinkList}
+            return(json.dumps(plugin_output))
+
         def DrawListPostProcessing( self, ResourceListName, LinkList, HTMLLinkList ):
                 template = Template( """
                 <div class="well well-small">
@@ -163,33 +198,38 @@ class PluginHelper:
                 """ )
                 return template.render( ResourceListName = ResourceListName, LinkList = LinkList, HTMLLinkList = HTMLLinkList )
 
-        def RequestAndDrawLinkList( self, ResourceListName, ResourceList, PluginInfo ):
-                #for Name, Resource in Core.Config.GetResources('PassiveRobotsAnalysisHTTPRequests'):
-                LinkList = []
-                for Name, Resource in ResourceList:
-                        Chunks = Resource.split( '###POST###' )
-                        URL = Chunks[0]
-                        POST = None
-                        Method = 'GET'
-                        if len( Chunks ) > 1: # POST
-                                Method = 'POST'
-                                POST = Chunks[1]
-                                Transaction = self.Core.Requester.GetTransaction( True, URL, Method, POST )
-                        if Transaction.Found:
-                                RawHTML = Transaction.GetRawResponseBody()
-                                FilteredHTML = self.Core.Reporter.Sanitiser.CleanThirdPartyHTML( RawHTML )
-                                NotSandboxedPath = self.Core.PluginHandler.DumpPluginFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo )
-                                log( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
-                                iframe_template = Template( """
-                                <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder = '0' style = "overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
-                                Your browser does not support iframes
-                                </iframe>
-                                """ )
-                                iframe = iframe_template.render( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
-                                SandboxedPath = self.Core.PluginHandler.DumpPluginFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
-                                log( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
-                                LinkList.append( ( Name, SandboxedPath ) )
+        def RequestAndCreateLinkList(self, ResourceListName, ResourceList, PluginInfo):
+            #for Name, Resource in Core.Config.GetResources('PassiveRobotsAnalysisHTTPRequests'):
+            LinkList = []
+            for Name, Resource in ResourceList:
+                Chunks = Resource.split( '###POST###' )
+                URL = Chunks[0]
+                POST = None
+                Method = 'GET'
+                if len( Chunks ) > 1: # POST
+                        Method = 'POST'
+                        POST = Chunks[1]
+                        Transaction = self.Core.Requester.GetTransaction( True, URL, Method, POST )
+                if Transaction.Found:
+                        RawHTML = Transaction.GetRawResponseBody()
+                        FilteredHTML = self.Core.Reporter.Sanitiser.CleanThirdPartyHTML( RawHTML )
+                        NotSandboxedPath = self.Core.PluginHandler.DumpPluginFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo )
+                        log( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
+                        iframe_template = Template( """
+                        <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder = '0' style = "overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
+                        Your browser does not support iframes
+                        </iframe>
+                        """ )
+                        iframe = iframe_template.render( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
+                        SandboxedPath = self.Core.PluginHandler.DumpPluginFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
+                        log( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
+                        LinkList.append( ( Name, SandboxedPath ) )
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "RequestLinkList"
+            plugin_output["output"] = {"ResourceListName": ResourceListName, "LinkList" : LinkList}
+            return(json.dumps(plugin_output))
 
+        def RequestAndDrawLinkList( self, ResourceListName, LinkList ):
                 template = Template( """
                 <div class="well  well-small">
                         {{ ResourceListName }}: 
@@ -205,6 +245,12 @@ class PluginHelper:
                 </div>
                 """ )
                 return template.render( ResourceListName = ResourceListName, LinkList = LinkList )
+
+        def CreateVulnerabilitySearchBox(self, SearchStr):
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "VulnerabilitySearchBox"
+            plugin_output["output"] = {"SearchStr" : SearchStr}
+            return(json.dumps(plugin_output))
 
         def DrawVulnerabilitySearchBox( self, SearchStr ): # Draws an HTML Search box for defined Vuln Search resources
                 template = Template( """
@@ -235,7 +281,13 @@ class PluginHelper:
                 </table>
                 <hr />
                 """ )
-                return template.render( ProductId = self.Core.DB.GetNextHTMLID() , SearchStr = SearchStr, VulnSearchResources = self.Core.Config.GetResources( 'VulnSearch' ) )
+                return template.render( ProductId = self.Core.DB.GetNextHTMLID() , SearchStr = SearchStr, VulnSearchResources = self.Core.DB.Resource.GetResources( 'VulnSearch' ) )
+
+        def CreateSuggestedCommandBox(self, PluginInfo, CommandCategoryList, Header = ''):
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "SuggestedCommandBox"
+            plugin_output["output"] = { "PluginInfo":PluginInfo, "CommandCategoryList":CommandCategoryList, "Header":Header}
+            return(json.dumps(plugin_output))
 
         def DrawSuggestedCommandBox( self, PluginInfo, CommandCategoryList, Header = '' ): # Draws HTML tabs for a list of TabName => Resource Group (i.e. how to run hydra, etc)
                 PluginOutputDir = self.InitPluginOutputDir( PluginInfo )
@@ -291,7 +343,7 @@ class PluginHelper:
                                                                                                                          "Name": Name,
                                                                                                                          "ModifiedCommand": self.MultipleReplace( self.Core.Shell.GetModifiedShellCommand( Resource.strip(), PluginOutputDir ), self.Core.Config.GetReplacementDict() )
 
-                                                                                                                        } for Name, Resource in self.Core.Config.GetResources( ResourceGroup )
+                                                                                                                        } for Name, Resource in self.Core.DB.Resource.GetResources( ResourceGroup )
                                                                                                                 ]
 
                                                                                 } for Tab, ResourceGroup in CommandCategoryList
@@ -357,9 +409,20 @@ class PluginHelper:
                         return str( Snippet )
                 return cgi.escape( str( Snippet ) ) # Escape snippet to avoid breaking HTML
 
-        def FormatCommandAndOutput( self, CommandIntro, OutputIntro, Name, Command, PluginInfo, PluginOutputDir = '' ):
-                ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir = self.RunCommand( Command, PluginInfo, PluginOutputDir )
-                table_template =Template("""
+        def DrawCommandDump( self, Name, CommandIntro, ModifiedCommand, FilePath, OutputIntro, OutputLines, TimeStr):
+        #def FormatCommandAndOutput( self, Name, CommandIntro, ModifiedCommand, FilePath, OutputIntro, OutputLines, TimeStr):
+                #ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir = self.RunCommand( Command, PluginInfo, PluginOutputDir )
+            table_vars = {
+                            "Name": Name,
+                            "CommandIntro" : CommandIntro ,
+                            "ModifiedCommand": ModifiedCommand,
+                            "FilePath" : FilePath,
+                            "OutputIntro":  OutputIntro,
+                            "OutputLines": OutputLines,
+                            "TimeStr": TimeStr,
+                            "mNumLinesToShow": self.mNumLinesToShow,
+                    }
+            table_template =Template("""
                 <table class="table table-bordered table-striped"> 
                                 <thead>
                                         <tr>
@@ -400,22 +463,46 @@ class PluginHelper:
                                 </tbody>
             </table>
                 """)
-                try:
-                    UnicodeRawOutput = unicode(RawOutput, "utf-8")
-                except TypeError: # Already unicode
-                    UnicodeRawOutput = RawOutput
-                table_vars = {
+            return table_template.render(table_vars)
+
+        def CreateCommandDump(self, CommandIntro, OutputIntro, ResourceList, PluginInfo, PreviousOutput):
+            output_list = []
+            PluginOutputDir = self.InitPluginOutputDir( PluginInfo )
+            for Name, Command in ResourceList:
+                plugin_output = dict(PLUGIN_OUTPUT)
+                ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir = self.RunCommand( Command, PluginInfo, PluginOutputDir )
+                plugin_output["type"] = "CommandDump"
+                plugin_output["output"] = {
                                 "Name": self.GetCommandOutputFileNameAndExtension( Name )[0],
                                 "CommandIntro" : CommandIntro ,
                                 "ModifiedCommand": ModifiedCommand,
                                 "FilePath" : self.Core.PluginHandler.DumpPluginFile( Name, RawOutput, PluginInfo ),
                                 "OutputIntro":  OutputIntro,
                                 "OutputLines": UnicodeRawOutput.split( "\n" )[:self.mNumLinesToShow],
-                                "TimeStr": TimeStr,
-                                "mNumLinesToShow": self.mNumLinesToShow,
+                                "TimeStr": TimeStr
                         }
+                if Name == self.Core.Config.Get( 'EXTRACT_URLS_RESERVED_RESOURCE_NAME' ): # This command returns URLs for processing
+                # The plugin_output output dict will be remade if the resource is of this type
+                        plugin_output = self.LogURLsFromStr( RawOutput )
+                if self.Core.Config.Get( 'UPDATE_REPORT_AFTER_EACH_COMMAND' ) == 'Yes':
+                        self.Core.Reporter.SavePluginReport( Content, PluginInfo ) # Keep updating the report after each command/scanner runs
+                if PluginAbort: # Pass partial output to external handler:
+                        raise PluginAbortException( PreviousOutput + Content )
+                if FrameworkAbort:
+                        raise FrameworkAbortException( PreviousOutput + Content )
+                try:
+                    UnicodeRawOutput = unicode(RawOutput, "utf-8")
+                except TypeError: # Already unicode
+                    UnicodeRawOutput = RawOutput
+                output_list.append(plugin_output)
+            return(output_list)
 
-                return [PluginAbort, FrameworkAbort, table_template.render(table_vars), RawOutput]
+        #def DrawCommandDump( self, DumpDict, NumLinesToShow = 5 ):
+                # Content = LinkToPluginOutputDir = '<br />'+self.Core.Reporter.Render.DrawButtonLink('Browse Plugin Output Files', self.Core.GetPartialPath(PluginOutputDir))+'<br />' <- This is now in the Plugin report box
+                #content = ''
+                #for CommandOutput in DumpDict: #Command = Resource.strip()
+                #        Content += self.FormatCommandAndOutput( CommandIntro, OutputIntro, Name, Command, PluginInfo, PluginOutputDir )
+                #return Content
 
         def LogURLsFromStr( self, RawOutput ):
                 self.Core.Timer.StartTimer( 'LogURLsFromStr' )
@@ -430,29 +517,16 @@ class PluginHelper:
                                         NumFound += 1
                 TimeStr = self.Core.Timer.GetElapsedTimeAsStr('LogURLsFromStr')
                 log("Spider/URL scaper time="+TimeStr)
+                plugin_output["type"] = "URLsFromStr"
+                plugin_output["output"] = {"TimeStr":TimeStr, "VisitURLs":VisitURLs, "URLList":URLList, "NumFound":NumFound}
+                return(plugin_output)
+
+        def DrawURLsFromStr(self, TimeStr, VisitURLs, URLList, NumFound):
                 Table = self.Core.Reporter.Render.CreateTable({'class' : 'commanddump'})
                 Table.CreateCustomRow('<tr><th colspan="2">Spider/URL scraper</th></tr>')
                 Table.CreateRow(['Time', 'URL stats'], True)
                 Table.CreateRow([TimeStr, self.Core.Reporter.Render.DrawHTMLList(['Visited URLs?: '+str(VisitURLs), str(len(URLList))+' URLs scraped', str(NumFound)+' URLs found'])])
                 return Table.Render()
-
-        def DrawCommandDump( self, CommandIntro, OutputIntro, ResourceList, PluginInfo, PreviousOutput, NumLinesToShow = 5 ):
-                self.mNumLinesToShow = NumLinesToShow
-                PluginOutputDir = self.InitPluginOutputDir( PluginInfo )
-                #Content = LinkToPluginOutputDir = '<br />'+self.Core.Reporter.Render.DrawButtonLink('Browse Plugin Output Files', self.Core.GetPartialPath(PluginOutputDir))+'<br />' <- This is now in the Plugin report box
-                Content = ""
-                for Name, Command in ResourceList: #Command = Resource.strip()
-                        PluginAbort, FrameworkAbort, HTMLContent, RawOutput = self.FormatCommandAndOutput( CommandIntro, OutputIntro, Name, Command, PluginInfo, PluginOutputDir )
-                        Content += HTMLContent
-                        if Name == self.Core.Config.Get( 'EXTRACT_URLS_RESERVED_RESOURCE_NAME' ): # This command returns URLs for processing
-                                Content += self.LogURLsFromStr( RawOutput )
-                        if self.Core.Config.Get( 'UPDATE_REPORT_AFTER_EACH_COMMAND' ) == 'Yes':
-                                self.Core.Reporter.SavePluginReport( Content, PluginInfo ) # Keep updating the report after each command/scanner runs
-                        if PluginAbort: # Pass partial output to external handler:
-                                raise PluginAbortException( PreviousOutput + Content )
-                        if FrameworkAbort:
-                                raise FrameworkAbortException( PreviousOutput + Content )
-                return Content
 
         def DumpFile( self, Filename, Contents, PluginInfo, LinkName = '' ):
                 save_path = self.Core.PluginHandler.DumpPluginFile( Filename, Contents, PluginInfo )
@@ -483,31 +557,14 @@ class PluginHelper:
                 return [ num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap , NotStr ]
 
         def ProcessRobots( self, PluginInfo, Contents, LinkStart, LinkEnd, Filename = 'robots.txt' ):
+                plugin_output = dict(PLUGIN_OUTPUT)
+                plugin_output["Type"] = "Robots"
                 num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = self.AnalyseRobotsEntries( Contents )
-                save_path = self.Core.PluginHandler.DumpPluginFile( Filename, Contents, PluginInfo )
-                template = Template(
-                                                """
-                                                <div class="alert {% if NotStr == "not" %}alert-warning{% else %}alert-success{% endif %}">
-                                                  robots.txt was <strong>{{ NotStr }}</strong> found.
-                                                  <br />
-                                                  <strong>{{ num_lines }} lines:</strong> {{ num_allow }} Allowed,  {{ num_disallow }} Disallowed, {{ num_sitemap }} Sitemap.
-                                                  <br />
-                                                  Saved to: {{ SaveLink }}
-                                                </div>
-                                                """
-                                                )
-                vars = {
-                                 "NotStr":  NotStr,
-                                 "num_lines": num_lines, 
-                                 "num_allow": num_allow,
-                                 "num_disallow": num_disallow,
-                                 "num_sitemap": num_sitemap,
-                                 "SaveLink": self.Core.Reporter.Render.DrawButtonLink( save_path, save_path, {}, True ),
-                        }
-                TestResult =  template.render(vars)
-                TopURL = self.Core.Config.Get( 'TOP_URL' )
+                SavePath = self.Core.PluginHandler.DumpPluginFile( Filename, Contents, PluginInfo )
+                TopURL = self.Core.DB.Target.Get( 'TOP_URL' )
                 if num_disallow > 0 or num_allow > 0 or num_sitemap > 0: # robots.txt contains some entries, show browsable list! :)
                         self.Core.DB.URL.AddURLsStart()
+                        EntriesList = []
                         for Display, Entries in [ [ 'Disallowed Entries', DisallowedEntries ], [ 'Allowed Entries', AllowedEntries ], [ 'Sitemap Entries', SitemapEntries ] ]:
                                 Links = [] # Initialise category-specific link list
                                 for Entry in Entries:
@@ -519,24 +576,45 @@ class PluginHelper:
                                                 URL = TopURL + Entry
                                                 self.Core.DB.URL.AddURL( URL ) # Store real links in the DB
                                                 Links.append( [ Entry, LinkStart + Entry + LinkEnd ] ) # Show link in defined format (passive/semi_passive)
-                                TestResult += self.Core.PluginHelper.DrawResourceLinkList( Display, Links )
-                TestResult += self.Core.DB.URL.AddURLsEnd()
-                log("robots.txt was "+NotStr+"found")
-                return TestResult
+                                EntriesList.append(( Display, Links ))
+                NumAddedURLs = self.Core.DB.URL.AddURLsEnd()
+                plugin_output["output"] = { "NotStr":NotStr,
+                                            "NumLines":num_lines,
+                                            "NumAllow":num_allow,
+                                            "NumDisallow":num_disallow,
+                                            "NumSitemap":num_sitemap,
+                                            "SavePath":SavePath,
+                                            "NumAddedURLs":NumAddedURLs,
+                                            "EntriesList":EntriesList
+                                            }
+                return(json.dumps(plugin_output))
 
-        def LogURLs( self, PluginInfo, ResourceList ):
-                return "Is this called?"
-                NumURLsBefore = self.Core.DB.URL.GetNumURLs()
-                for Name, Command in ResourceList: #Command = Resource.strip()
-                        HTMLOutput, RawOutput = self.FormatCommandAndOutput( 'Extract Links Command', 'Extract Links Output', Name, Command, PluginInfo )
-                        self.LogURLsFromStr( RawOutput )
-                        #for line in RawOutput.split("\n"):
-                        #       self.Core.DB.URL.AddURL(line.strip())
-                self.Core.DB.SaveAllDBs() # Save URL DBs to disk
-                NumURLsAfter = self.Core.DB.URL.GetNumURLs()
-                Message =(str(NumURLsAfter-NumURLsBefore)+" URLs have been added and classified")
-                log(Message)
-                return HTMLOutput+"<br />"+Message
+        def DrawRobots(self, NotStr, NumLines, NumAllow, NumDisallow, NumSitemap, SavePath, NumAddedURLs, EntriesList)
+                template = Template(
+                                                """
+                                                <div class="alert {% if NotStr == "not" %}alert-warning{% else %}alert-success{% endif %}">
+                                                  robots.txt was <strong>{{ NotStr }}</strong> found.
+                                                  <br />
+                                                  <strong>{{ num_lines }} lines:</strong> {{ num_allow }} Allowed,  {{ num_disallow }} Disallowed, {{ num_sitemap }} Sitemap.
+                                                  <br />
+                                                  Saved to: {{ save_link }}
+                                                </div>
+                                                """
+                                                )
+                vars = {
+                                 "NotStr":  NotStr,
+                                 "num_lines": NumLines, 
+                                 "num_allow": NumAllow,
+                                 "num_disallow": NumDisallow,
+                                 "num_sitemap": NumSitemap,
+                                 "save_link": self.Core.Reporter.Render.DrawButtonLink( SavePath, SavePath, {}, True ),
+                        }
+                TestResult =  template.render(vars)
+                if num_disallow > 0 or num_allow > 0 or num_sitemap > 0: # robots.txt contains some entries, show browsable list! :)
+                        for Display, Links in EntriesList:
+                                TestResult += self.Core.PluginHelper.DrawResourceLinkList( Display, Links )
+                TestResult += str(NumAddedURLs) + " URLs have been added and classified"
+                return TestResult
 
         def DrawTransactionTableForURLList( self, UseCache, URLList, Method = '', Data = '' ):
                 return self.Core.Reporter.DrawHTTPTransactionTable( self.Core.Requester.GetTransactions( UseCache, URLList, Method, Data ) )
@@ -744,7 +822,7 @@ class PluginHelper:
                                                 
                                         </tr>
 
-                        {% endfor %}
+                        {tao% endfor %}
                     </tbody>
                 </table>
                 """ )

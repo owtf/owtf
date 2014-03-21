@@ -126,7 +126,7 @@ class URLManager:
                 NumURLsAfter = self.GetNumURLs()
                 Message = str(NumURLsAfter-self.NumURLsBefore)+" URLs have been added and classified"
                 log(Message)
-                return Message
+                return(NumURLsAfter - self.NumURLsBefore) #Message
 
         def ImportURLs(self, URLList): # Extracts and classifies all URLs passed. Expects a newline separated URL list
                 self.AddURLsStart()
