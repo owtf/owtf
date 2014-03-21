@@ -69,7 +69,7 @@ class Core:
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
         self.Random = random.Random()
         self.IsIPInternalRegexp = re.compile("^127.\d{123}.\d{123}.\d{123}$|^10.\d{123}.\d{123}.\d{123}$|^192.168.\d{123}$|^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{123}.[0-9]{123}$")
-        #self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
+        self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
         self.Selenium = selenium_handler.Selenium(self)
         self.InteractiveShell = interactive_shell.InteractiveShell(self)
         self.SET = set_handler.SETHandler(self)
@@ -378,11 +378,6 @@ class Core:
             return self.DB.GetSeed()
         except AttributeError: # DB not instantiated yet
             return ""
-
-    def EnsureDirPath(self, dir_path):
-        dir_path = os.path.expanduser(dir_path)
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
 
     def IsIPInternal(self, IP):
         return len(self.IsIPInternalRegexp.findall(IP)) == 1

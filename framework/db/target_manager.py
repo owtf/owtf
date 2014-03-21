@@ -66,7 +66,7 @@ class TargetDB(object):
         target_list = session.query(models.Target).all()
         for target in target_list:
             self.Core.Config.Targets.append(target.url)
-            self.Core.DB.EnsureDBsForTarget(target.url)
+            self.Core.DB.CreateMissingDBsForTarget(target.url)
 
     def AddTarget(self, TargetURL):
         target_config = self.Core.Config.DeriveConfigFromURL(TargetURL)
@@ -78,13 +78,13 @@ class TargetDB(object):
         session.merge(config_obj)
         session.commit()
         session.close()
-        self.EnsureDBsForTarget(TargetURL)
+        self.CreateMissingDBsForTarget(TargetURL)
 
-    def EnsureDBsForTarget(self, TargetURL):
+    def CreateMissingDBsForTarget(self, TargetURL):
         self.Core.Config.CreateDBDirForTarget(TargetURL)
-        self.Core.DB.EnsureDBWithBase(self.Core.Config.GetTransactionDBPathForTarget(TargetURL), models.TransactionBase)
-        self.Core.DB.EnsureDBWithBase(self.Core.Config.GetUrlDBPathForTarget(TargetURL), models.URLBase)
-        self.Core.DB.EnsureDBWithBase(self.Core.Config.GetReviewDBPathForTarget(TargetURL), models.ReviewWebBase)
+        self.Core.DB.CreateMissingDirs(self.Core.Config.GetTransactionDBPathForTarget(TargetURL), models.TransactionBase)
+        self.Core.DB.CreateMissingDirs(self.Core.Config.GetUrlDBPathForTarget(TargetURL), models.URLBase)
+        self.Core.DB.CreateMissingDirs(self.Core.Config.GetReviewDBPathForTarget(TargetURL), models.ReviewWebBase)
 
     def GetTargetConfigForURL(self, target_url):
         session = self.TargetConfigDBSession()
