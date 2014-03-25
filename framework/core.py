@@ -348,7 +348,7 @@ class Core:
                 if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
                     cprint('Errors saved to ' + self.Config.Get('ERROR_DB') + '. Would you like us to auto-report bugs ?')
                     choice = raw_input("[Y/n] ")
-                    if choice != 'n' or choice != 'N':
+                    if choice != 'n' and choice != 'N':
                         self.ReportErrorsToGithub()
                     else:
                         cprint("We know that you are planning on submitting it manually ;)")
