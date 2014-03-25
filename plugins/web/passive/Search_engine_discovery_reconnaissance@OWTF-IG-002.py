@@ -32,7 +32,7 @@ DESCRIPTION = "General Google Hacking/Email harvesting, etc"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('PassiveSearchEngineDiscoveryCmd'), PluginInfo, "") # No previous output
-	Content += Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveSearchEngineDiscoveryLnk'))
+	Content = Core.PluginHelper.CreateCommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('PassiveSearchEngineDiscoveryCmd'), PluginInfo, "")
+	Content += Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveSearchEngineDiscoveryLnk'))
 	return Content
 

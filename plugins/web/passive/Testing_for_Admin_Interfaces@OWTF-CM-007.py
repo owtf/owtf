@@ -33,6 +33,6 @@ DESCRIPTION = "Google Hacking for Admin interfaces"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveAdminInterfaceLnk'))
+	Content = Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveAdminInterfaceLnk'))
 	return Content
 

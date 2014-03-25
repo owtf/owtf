@@ -33,6 +33,6 @@ DESCRIPTION = "Google Hacking for Error codes"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveErrorMessagesLnk'))
+	Content = Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveErrorMessagesLnk'))
 	return Content
 

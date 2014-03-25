@@ -34,7 +34,7 @@ def run(Core, PluginInfo):
 	#Core.Config.Show()
 	#Vuln search box to be built in core and reused in different plugins:
 	Content = Core.PluginHelper.DrawVulnerabilitySearchBox('')
-	Content += Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveFingerPrint'))
-	Content += Core.PluginHelper.DrawSuggestedCommandBox( PluginInfo, [ [ 'All', 'CMS_FingerPrint_All' ], [ 'WordPress', 'CMS_FingerPrint_WordPress' ] , [ 'Joomla', 'CMS_FingerPrint_Joomla' ], [ 'Drupal', 'CMS_FingerPrint_Drupal' ], [ 'Mambo', 'CMS_FingerPrint_Mambo' ]  ], 'CMS Fingerprint - Potentially useful commands' )
+	Content += Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveFingerPrint'))
+	Content += Core.PluginHelper.CreateSuggestedCommandBox( PluginInfo, [ [ 'All', 'CMS_FingerPrint_All' ], [ 'WordPress', 'CMS_FingerPrint_WordPress' ] , [ 'Joomla', 'CMS_FingerPrint_Joomla' ], [ 'Drupal', 'CMS_FingerPrint_Drupal' ], [ 'Mambo', 'CMS_FingerPrint_Mambo' ]  ], 'CMS Fingerprint - Potentially useful commands' )
 	return Content
 

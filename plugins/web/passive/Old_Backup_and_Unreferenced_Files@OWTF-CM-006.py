@@ -33,6 +33,6 @@ DESCRIPTION = "Google Hacking for juicy files"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveOldBackupUnreferencedFilesLnk'))
+	Content = Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveOldBackupUnreferencedFilesLnk'))
 	return Content
 

@@ -105,7 +105,7 @@ class ProcessManager:
         self.targets = targetList
         #for plugin in self.Core.Config.Plugin.GetOrder(pluginGroup):
         # TODO: Put the order back in place
-        for plugin in self.Core.DB.Plugin.GetPluginsByGroup(pluginGroup):
+        for plugin in self.Core.DB.Plugin.GetPluginsByType('grep'):
             for target in targetList:
                 self.worklist.append((target,plugin))
                 if plugin["Type"] == "external": # External plugins are run only once, i.e for first target

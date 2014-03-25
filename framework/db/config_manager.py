@@ -15,7 +15,7 @@ class ConfigDB(object):
         # configuration = [(key, value), (key, value),]
         session = self.ConfigDBSession()
         for key, value in configuration:
-            session.add(models.ConfigSetting(key = key, value = value))
+            session.merge(models.ConfigSetting(key = key, value = value))
         session.commit()
         session.close()
 

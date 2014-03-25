@@ -31,13 +31,12 @@ This module contains helper functions to make plugins simpler to read and write,
 import os
 import re
 import cgi
-import json
 from jinja2 import Template
 from framework.lib.general import *
 from collections import defaultdict
 import logging
 
-PLUGIN_OUTPUT = {"Type":None, "Output":None} # This will be json encoded and stored in db as string
+PLUGIN_OUTPUT = {"type":None, "output":None} # This will be json encoded and stored in db as string
 
 class PluginHelper:
         mNumLinesToShow = 25
@@ -56,7 +55,7 @@ class PluginHelper:
             plugin_output = dict(PLUGIN_OUTPUT)
             plugin_output["type"] = "CommandTable"
             plugin_output["output"] = {"Command" : Command}
-            return(json.dumps(plugin_output))
+            return([plugin_output])
 
         def DrawCommandTable( self, Command ):
                 template = Template ( """
@@ -84,7 +83,7 @@ class PluginHelper:
             plugin_output = dict(PLUGIN_OUTPUT)
             plugin_output["type"] = "LinkList"
             plugin_output["output"] = {"LinkListName" : LinkListName, "Links" : Links}
-            return(json.dumps(plugin_output))
+            return([plugin_output])
 
         def DrawLinkList( self, LinkListName, Links ): # Wrapper to allow rendering a bunch of links -without name- as resource links with name = link
                 template = Template( """
@@ -110,7 +109,7 @@ class PluginHelper:
             plugin_output = dict(PLUGIN_OUTPUT)
             plugin_output["type"] = "ResourceLinkList"
             plugin_output["output"] = {"ResourceListName": ResourceListName, "ResourceList":ResourceList}
-            return(json.dumps(plugin_output))
+            return([plugin_output])
 
         def DrawResourceLinkList( self, ResourceListName, ResourceList ): # Draws an HTML Search box for defined Vuln Search resources
                 template = Template( """
@@ -135,7 +134,7 @@ class PluginHelper:
             plugin_output = dict(PLUGIN_OUTPUT)
             plugin_output["type"] = "TabbedResourceLinkList"
             plugin_output["output"] = {"ResourceList" : ResourceList}
-            return(json.dumps(plugin_output))
+            return([plugin_output])
 
         def DrawTabbedResourceLinkList(self, ResourcesList):
             # ResourceList = ["ResourceListName":[["Name1","Resource1"],["Name2","Resource2"]]]
@@ -182,7 +181,7 @@ class PluginHelper:
             plugin_output = dict(PLUGIN_OUTPUT)
             plugin_output["type"] = "ListPostProcessing"
             plugin_output["output"] = {"ResourceListName" : ResourceListName, "LinkList" : LinkList, "HTMLLinkList":HTMLLinkList}
-            return(json.dumps(plugin_output))
+            return([plugin_output])
 
         def DrawListPostProcessing( self, ResourceListName, LinkList, HTMLLinkList ):
                 template = Template( """
@@ -227,7 +226,7 @@ class PluginHelper:
             plugin_output = dict(PLUGIN_OUTPUT)
             plugin_output["type"] = "RequestLinkList"
             plugin_output["output"] = {"ResourceListName": ResourceListName, "LinkList" : LinkList}
-            return(json.dumps(plugin_output))
+            return([plugin_output])
 
         def RequestAndDrawLinkList( self, ResourceListName, LinkList ):
                 template = Template( """
@@ -250,7 +249,7 @@ class PluginHelper:
             plugin_output = dict(PLUGIN_OUTPUT)
             plugin_output["type"] = "VulnerabilitySearchBox"
             plugin_output["output"] = {"SearchStr" : SearchStr}
-            return(json.dumps(plugin_output))
+            return([plugin_output])
 
         def DrawVulnerabilitySearchBox( self, SearchStr ): # Draws an HTML Search box for defined Vuln Search resources
                 template = Template( """
@@ -287,7 +286,7 @@ class PluginHelper:
             plugin_output = dict(PLUGIN_OUTPUT)
             plugin_output["type"] = "SuggestedCommandBox"
             plugin_output["output"] = { "PluginInfo":PluginInfo, "CommandCategoryList":CommandCategoryList, "Header":Header}
-            return(json.dumps(plugin_output))
+            return([plugin_output])
 
         def DrawSuggestedCommandBox( self, PluginInfo, CommandCategoryList, Header = '' ): # Draws HTML tabs for a list of TabName => Resource Group (i.e. how to run hydra, etc)
                 PluginOutputDir = self.InitPluginOutputDir( PluginInfo )
@@ -478,9 +477,10 @@ class PluginHelper:
                                 "ModifiedCommand": ModifiedCommand,
                                 "FilePath" : self.Core.PluginHandler.DumpPluginFile( Name, RawOutput, PluginInfo ),
                                 "OutputIntro":  OutputIntro,
-                                "OutputLines": UnicodeRawOutput.split( "\n" )[:self.mNumLinesToShow],
+                                "OutputLines": RawOutput.split( "\n" )[:self.mNumLinesToShow],#UnicodeRawOutput.split( "\n" )[:self.mNumLinesToShow],
                                 "TimeStr": TimeStr
                         }
+                plugin_output = [plugin_output]
                 if Name == self.Core.Config.Get( 'EXTRACT_URLS_RESERVED_RESOURCE_NAME' ): # This command returns URLs for processing
                 # The plugin_output output dict will be remade if the resource is of this type
                         plugin_output = self.LogURLsFromStr( RawOutput )
@@ -490,11 +490,7 @@ class PluginHelper:
                         raise PluginAbortException( PreviousOutput + Content )
                 if FrameworkAbort:
                         raise FrameworkAbortException( PreviousOutput + Content )
-                try:
-                    UnicodeRawOutput = unicode(RawOutput, "utf-8")
-                except TypeError: # Already unicode
-                    UnicodeRawOutput = RawOutput
-                output_list.append(plugin_output)
+                output_list += plugin_output
             return(output_list)
 
         #def DrawCommandDump( self, DumpDict, NumLinesToShow = 5 ):
@@ -519,7 +515,7 @@ class PluginHelper:
                 log("Spider/URL scaper time="+TimeStr)
                 plugin_output["type"] = "URLsFromStr"
                 plugin_output["output"] = {"TimeStr":TimeStr, "VisitURLs":VisitURLs, "URLList":URLList, "NumFound":NumFound}
-                return(plugin_output)
+                return([plugin_output])
 
         def DrawURLsFromStr(self, TimeStr, VisitURLs, URLList, NumFound):
                 Table = self.Core.Reporter.Render.CreateTable({'class' : 'commanddump'})
@@ -587,9 +583,9 @@ class PluginHelper:
                                             "NumAddedURLs":NumAddedURLs,
                                             "EntriesList":EntriesList
                                             }
-                return(json.dumps(plugin_output))
+                return(plugin_output)
 
-        def DrawRobots(self, NotStr, NumLines, NumAllow, NumDisallow, NumSitemap, SavePath, NumAddedURLs, EntriesList)
+        def DrawRobots(self, NotStr, NumLines, NumAllow, NumDisallow, NumSitemap, SavePath, NumAddedURLs, EntriesList):
                 template = Template(
                                                 """
                                                 <div class="alert {% if NotStr == "not" %}alert-warning{% else %}alert-success{% endif %}">

@@ -32,6 +32,6 @@ DESCRIPTION = "Google Hacking for Cross Site Flashing"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveCrossSiteFlashingLnk'))
+	Content = Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveCrossSiteFlashingLnk'))
 	return Content
 

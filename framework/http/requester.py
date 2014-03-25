@@ -169,7 +169,7 @@ class Requester:
         if '' == POST:
             POST = None
         if None != POST:
-            if isinstance(POST, str):
+            if isinstance(POST, str) or isinstance(POST, unicode):
                 POST = self.StringToDict(POST) # Must be a dictionary prior to urlencode
             POST = urllib.urlencode(POST)
         return POST
@@ -190,6 +190,7 @@ class Requester:
 
     def Request(self, URL, Method = None, POST = None):
         global RawRequest # kludge: necessary to get around urllib2 limitations: Need this to get the exact request that was sent
+        URL = str(URL)
 
         RawRequest = [] # Init Raw Request to blank list
         POST = self.DerivePOST(POST)
@@ -200,7 +201,7 @@ class Requester:
             request.get_method = lambda : Method # kludge: necessary to do anything other that GET or POST with urllib2
         # MUST create a new Transaction object each time so that lists of transactions can be created and process at plugin-level
         self.Transaction = transaction.HTTP_Transaction(self.Core.Timer) # Pass the timer object to avoid instantiating each time
-        self.Transaction.Start(URL, POST, Method, self.Core.IsInScopeURL(URL))
+        self.Transaction.Start(URL, POST, Method, self.Core.DB.Target.IsInScopeURL(URL))
         self.RequestCountTotal += 1 
         try:
             Response = self.perform_request(request)

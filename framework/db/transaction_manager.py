@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The DB stores HTTP transactions, unique URLs and more. 
 '''
 from jinja2 import Environment, PackageLoader, Template
+from sqlalchemy import desc, asc
 from collections import defaultdict
 from framework.http import transaction
 from framework.db import models
@@ -49,29 +50,22 @@ TLOG_DATA = 7
 
 NAME_TO_OFFSET = { 'ID' : TLOG_ID, 'Scope' : TLOG_SCOPE, 'Time' : TLOG_TIME, 'TimeHuman' : TLOG_TIMEHUMAN, 'Status' : TLOG_STATUS, 'Method' : TLOG_METHOD, 'URL' : TLOG_URL, 'Data' : TLOG_DATA }
 
-class TransactionManager:
+class TransactionManager(object):
         def __init__(self, Core):
                 self.Core = Core # Need access to reporter for pretty html trasaction log
-                self.TransactionFilePrefixes = { 'T': 'scope_', 'F' : 'external_' }
-                self.Template_env = env = Environment( loader = PackageLoader( 'framework.report', 'templates' ) )
-
 
         def Search(self, Criteria):
                 if 'Method' in Criteria: # Ensure a valid HTTP Method is used instead of "" when the Method is specified in the Criteria
                         Criteria['Method'] = DeriveHTTPMethod(Criteria['Method'], GetDictValueOrBlank(Criteria, 'Data'))
+                Session = self.Core.DB.Target.GetTransactionDBSession()
                 return self.Core.DB.SearchTransactionDB(Criteria)
 
-        def NumTransactions(self, Scope = 'T'): # Return num transactions in scope by default
-                return len(self.Search( { 'Scope' : Scope } ))
-
-        def GetPrefix(self, Scope):
-                return self.TransactionFilePrefixes[Scope]
-        
-        def GetScopePrefix(self):
-                return self.GetPrefix('T')
-
-        def GetExternalPrefix(self):
-                return self.GetPrefix('F')
+        def NumTransactions(self, Scope = True): # Return num transactions in scope by default
+                Session = self.Core.DB.Target.GetTransactionDBSession()
+                session = Session()
+                count = session.query(models.Transaction).filter(Scope).count()
+                session.close()
+                return(count)
 
         def SetRandomSeed(self, RandomSeed):
                 self.RandomSeed = RandomSeed
@@ -84,24 +78,6 @@ class TransactionManager:
                         Boundaries.append(self.Padding+" "+BoundaryName+" "+self.Padding+self.RandomSeed+"\n")
                 self.TBoundaryURL, self.TBoundaryReq, self.TBoundaryResHeaders, self.TBoundaryResBody = Boundaries
 
-        def InitTransacLogHTMLIndex(self, file):
-                template = self.Template_env.get_template( 'transaction_log.html' )
-
-                vars = { 
-                                "ReviewPath": "../../../",
-                                }
-
-                file.write( template.render( vars ) )
-
-
-        def GetPath(self, Path = None):
-                if Path == None:
-                        Path = self.Core.DB.GetPath('TRANSACTION_LOG_TXT')
-                return Path
-
-        def TransactionInScopeStr(self, IndexRec):
-                return 'T' == IndexRec['Scope'] #TXTIndexLine[TLOG_SCOPE] 
-        
         def GetFirst(self, Criteria): # Assemble only the first transaction that matches the criteria from DB
                 MatchList = self.Search( Criteria )
                 if len(MatchList) > 0:
@@ -121,55 +97,6 @@ class TransactionManager:
                 log(str(Criteria)+" in DB: "+str(Result))
                 return Result
 
-        def SaveTransactionTXTIndex(self, Transaction): # Saves a transaction in the Text Index DB
-                ID = self.GetNewID()
-                self.Core.DB.Add('TRANSACTION_LOG_TXT', [ ID, Transaction.ScopeToStr(), Transaction.Time, Transaction.TimeHuman, Transaction.Status, Transaction.Method, Transaction.URL, Transaction.Data ] ) # Text entry to transaction log
-                return ID
-
-        def GetNewID(self):
-                return str(self.Core.DB.GetLength('TRANSACTION_LOG_TXT')+1)
-
-        def GetTransactionPathsForID(self, ID): # Returns the URL and Transaction Paths for a given Transaction ID
-                SearchRes = self.Search( { 'ID' : ID } )
-                if len(SearchRes):
-                        IndexRec = SearchRes[0] 
-                        #IndexLine = self.GetTransactionTXTIndexFromID(ID)
-                        FileName = self.GetFileNameForID(ID, self.TransactionInScopeStr(IndexRec))
-                        PathList = []
-                        for Dir in self.Core.Config.GetAsList(['TRANSACTION_LOG_TRANSACTIONS', 'TRANSACTION_LOG_REQUESTS', 'TRANSACTION_LOG_RESPONSE_HEADERS', 'TRANSACTION_LOG_RESPONSE_BODIES' ]):
-                                PathList.append(Dir+FileName) # Add Filename to path
-                        return [IndexRec['URL']] + PathList # returns [ url, full, req, resph, respb ]
-                        #return [IndexLine[TLOG_URL]] + PathList # returns [ url, full, req, resph, respb ]
-                else:
-                        return ['#','#','#','#','#']
-
-        def GetFileNameForID(self, ID, InScope = True):
-                Prefix = "external_" # Distinguish whether Transactions are in scope or not via the filename
-                if InScope: 
-                        Prefix = "scope_"
-                return Prefix+ID+".txt" 
-
-        def SaveFullTransactionFile(self, ID, Transaction):
-                #FileName = self.GetFileNameForID(ID, self.Core.IsInScopeURL(Transaction.URL))
-                FileName = self.GetFileNameForID(ID, Transaction.IsInScope)
-                return [ FileName, self.Core.DumpFile(FileName, self.AssembleTransactionForDB(Transaction), self.Core.Config.Get('TRANSACTION_LOG_TRANSACTIONS')) ] # Saving actual transaction
-
-        def SaveTransactionFiles(self, ID, Transaction):
-                FileName, TransacPath = self.SaveFullTransactionFile(ID, Transaction)
-                # The approach below uses a bit more disk space but makes searches very fast and less error-prone:
-                # i.e. search only in headers or only in bodies, distinguishing scope from external by filename, etc
-                ReqPath = self.Core.DumpFile(FileName, Transaction.GetRawRequest(), self.Core.Config.Get('TRANSACTION_LOG_REQUESTS'))
-                ResHeadersPath = self.Core.DumpFile(FileName, Transaction.GetRawResponseHeaders(), self.Core.Config.Get('TRANSACTION_LOG_RESPONSE_HEADERS'))
-                ResBodyPath = self.Core.DumpFile(FileName, Transaction.GetRawResponseBody(), self.Core.Config.Get('TRANSACTION_LOG_RESPONSE_BODIES'))
-                self.SetIDForTransaction(Transaction, ID, TransacPath)
-                return [ TransacPath, ReqPath, ResHeadersPath, ResBodyPath ]
-
-        def SaveTransactionHTMLIndex(self, ID, Transaction, TransacPath, ReqPath, ResHeadersPath, ResBodyPath) :
-                #print "TransacPath="+TransacPath
-                LinksStr = self.Core.Reporter.DrawTransacLinksStr([Transaction.URL, TransacPath, ReqPath, ResHeadersPath, ResBodyPath], ForPlugin = True)
-                TransactionHTML = self.Core.Reporter.Render.CreateTable().DrawTableRow([ Transaction.ScopeToStr(), LinksStr, ID, Transaction.Time, Transaction.TimeHuman, Transaction.Status, Transaction.Method, Transaction.URL, Transaction.Data], False, {}, ID)+"\n" # Pass Transaction ID as Row Number
-                self.Core.DB.Add('TRANSACTION_LOG_HTML', TransactionHTML)
-        
         def LogTransaction(self, Transaction):# The Transaction Obj will be modified here with a new Transaction ID and HTML Link to it
                 self.Core.Config.SetTarget(Transaction.Target) # Attr set in transaction_logger
                 self.Core.DB.URL.AddURL(Transaction.URL, Transaction.Found) # Log Transaction URL in URL DB (this also classifies the URL: scope, external, file, etc)
@@ -178,23 +105,35 @@ class TransactionManager:
                 TransacPath, ReqPath, ResHeadersPath, ResBodyPath = self.SaveTransactionFiles(ID, Transaction)# Store files in disk
                 self.SaveTransactionHTMLIndex(ID, Transaction, TransacPath, ReqPath, ResHeadersPath, ResBodyPath)# Build links 2 files,etc 
 
+        def LogTransactions(self, transaction_list, target = None):
+            Session = self.Core.DB.Target.GetTransactionDBSession(target)
+            session = Session()
+            for transaction in transaction_list:
+                session.add(models.Transaction( url = transaction.URL,
+                                                scope = transaction.InScope(),
+                                                method = transaction.Method,
+                                                data = transaction.Data,
+                                                time = int(transaction.Time),
+                                                time_human = transaction.TimeHuman,
+                                                raw_request = transaction.GetRawRequest(),
+                                                request_body = transaction.GetRawResponseBody(),
+                                                response_status = transaction.GetStatus(False),
+                                                response_headers = transaction.GetResponseHeaders(),
+                                                response_body = transaction.GetRawResponseBody()
+                                              ))
+            session.commit()
+            session.close()
+                                                
+        def LogTransactionsFromLogger(self, transactions_dict):
+            for target, transaction_list in transactions_dict:
+                if transaction_list:
+                    self.LogTransactions(transaction_list, target)
+
         def GetNumTransactionsInScope(self):
                 return self.NumTransactions()
 
         def AssembleTransactionForDB(self, Transaction): # Turns an HTTP Transaction into a Parseable text file:
                 return self.TBoundaryURL + Transaction.URL+"\n" + self.TBoundaryReq + Transaction.GetRawRequest() + self.TBoundaryResHeaders + Transaction.GetRawResponseHeaders() + self.TBoundaryResBody + Transaction.GetRawResponseBody()
-
-        def ParseDBTransaction(self, TStr, Status): # Turns the text file back into Transaction chunks
-                Request, Response = TStr.split(self.TBoundaryResHeaders)
-                #Request = Request.replace(self.TBoundaryReq, "") 
-                URL, Request = Request.split(self.TBoundaryReq)
-                #URL = URL.replace(self.TBoundaryURL, "") # Get rid of request boundary <- Not needed, URL retrieved from Index
-                ResponseHeaders, ResponseBody = Response.split(self.TBoundaryResBody)
-                #ResponseHeaders.replace(self.TBoundaryResHeaders, "") # Get rid of response headers boundary
-                return [ Request, ResponseHeaders.replace(Status+"\n", ""), ResponseBody ]
-
-        def SetIDForTransaction(self, Transaction, ID, Path):
-                Transaction.SetID(ID, self.Core.Reporter.Render.DrawButtonLink("@@@PLACE_HOLDER@@@", Path, {}, True)) # To simplify plugins
 
         def GetByID(self, ID):
                 MatchList = self.Search( { 'ID' : ID } )
@@ -215,23 +154,25 @@ class TransactionManager:
                         return Transaction
                 return False # Transaction not found
 
-        def GetHeadersLocation(self):
-                return self.Core.Config.Get('TRANSACTION_LOG_RESPONSE_HEADERS')+self.GetScopePrefix()+"*"
-
         def GrepTopTransactionIDsBySpeed(self, Num = 10, Order = "Asc"):
-                Sort = ""
-                if Order == "Desc":
-                        Sort = "-r"
-                TXTTransactionLog = self.Core.Config.Get('TRANSACTION_LOG_TXT')
-                #Command = "sed 's/ | / /g' "+TXTTransactionLog+"  | sort -k 3 -n "+Sort+" | cut -f1 -d' ' | head -"+str(Num)
-                Command = "grep '"+self.Core.DB.GetFieldSeparator()+"T"+self.Core.DB.GetFieldSeparator()+"' "+TXTTransactionLog+" | sed 's/ "+self.Core.DB.GetFieldSeparator()+" / /g'| sort -k 3 -n "+Sort+" | cut -f1 -d' ' | head -"+str(Num)
-                return [ Command, self.Core.Shell.shell_exec_monitor(Command).strip().split("\n") ] # Return list of matched IDs
+            Session = self.Core.DB.Target.GetTransactionDBSession()
+            session = Session()
+            if Order == "Desc":
+                results = session.query(models.Transaction.id).order_by(desc(models.Transaction.time)).limit(Num)
+            else:
+                results = session.query(models.Transaction.id).order_by(asc(models.Transaction.time)).limit(Num)
+            session.close()
+            results = [i[0] for i in results]
+            return(results) # Return list of matched IDs
 
         def GrepTransactionIDsForHeaders(self, HeaderList):
-                Regexp = "("+"|".join(HeaderList)+"): "
-                Location = self.GetHeadersLocation()
-                Command = 'grep -IHiE "'+Regexp+'" '+Location+" | sed -e 's|"+Location[0:-1]+"||' | cut -f1 -d. | sort -u"
-                return self.Core.Shell.shell_exec_monitor(Command).strip().split("\n") # Return list of matched IDs
+            Regexp = "("+"|".join(HeaderList)+"): "
+            Session = self.Core.DB.Target.GetTransactionDBSession()
+            session = Session()
+            results = session.query(models.Transaction.id).filter(models.Transaction.response_headers.op(Regexp)(REGEX))
+            session.close()
+            results = [i[0] for i in results]
+            return(results) # Return list of matched IDs
 
         def GrepHeaders(self, HeaderList):
                 Regexp = "("+"|".join(HeaderList)+"): "

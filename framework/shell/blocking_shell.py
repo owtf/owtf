@@ -67,22 +67,25 @@ class Shell:
 
         def FinishCommand(self, CommandInfo, WasCancelled):
                 CommandInfo['End'] = self.Core.Timer.GetEndDateTimeAsStr(self.CommandTimeOffset)
-                Status = "Finished"
+                Success = True
                 if WasCancelled:
-                        Status = "Cancelled"
-                CommandInfo['Status'] = Status
+                        Success = False
+                CommandInfo['Success'] = Success
                 CommandInfo['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr(self.CommandTimeOffset)
-                CommandInfo['Target'] = self.Core.Config.Get('TARGET')
-                self.Core.DB.CommandRegister.Add(CommandInfo)
+                CommandInfo['Target'] = self.Core.DB.Target.GetTarget()
+                self.Core.DB.POutput.AddCommandToRegistry(CommandInfo)
                 #self.CommandInfo = defaultdict(list)
 
         def CanRunCommand(self, Command):
-                Target = self.Core.DB.CommandRegister.AlreadyRegistered(Command['OriginalCommand'])
-                if Target: # Command was run before
-                        if Target == self.Core.Config.Get('TARGET'): # Run several times against same target for grep plugins.  #and self.Core.Config.Get('FORCE_OVERWRITE'):
-                                return [ None, True ] # Can only run again if against the same target and when -f was specified
-                        return [Target, False ]
-                return [ None, True ] # Command was not run before
+                #Target = self.Core.DB.POutput.CommandAlreadyRegistered(Command['OriginalCommand'])
+                #if Target: # Command was run before
+                #        if Target == self.Core.Config.Get('TARGET'): # Run several times against same target for grep plugins.  #and self.Core.Config.Get('FORCE_OVERWRITE'):
+                #                return [ None, True ] # Can only run again if against the same target and when -f was specified
+                #        return [Target, False ]
+                #return [ None, True ] # Command was not run before
+                if self.Core.DB.POutput.CommandAlreadyRegistered(Command['OriginalCommand']):
+                    return [self.Core.DB.Target.GetTarget(), False]
+                return [None, True]
 
         def create_subprocess(self, Command):
 #http://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612)

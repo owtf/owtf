@@ -32,9 +32,11 @@ DESCRIPTION = "robots.txt analysis through third party sites"
 def run(Core, PluginInfo):
 	TestResult = ''
 	Count = 1
-	Content = Core.PluginHelper.RequestAndDrawLinkList('Passive Analysis Results', Core.Config.GetResources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
-	Content += Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveRobotsAnalysisLinks'))
-	for Name, Resource in Core.Config.GetResources('PassiveRobots'): # Try to retrieve the robots.txt file from all defined resources
+        #TODO: Fix this plugin properly
+	Content = Core.PluginHelper.RequestAndCreateLinkList('Passive Analysis Results', Core.DB.Resource.GetResources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
+	Content += Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveRobotsAnalysisLinks'))
+
+	for Name, Resource in Core.DB.Resource.GetResources('PassiveRobots'): # Try to retrieve the robots.txt file from all defined resources
 		URL = Resource # Just for clarity
 		LinkStart, LinkFinish = URL.split('/robots.txt') # Preparing link chunks for disallowed entries
 		#print "URL="+URL+", PatternStart="+PatternStart+", PatternEnd="+PatternEnd+" LinkStart="+LinkStart+", LinkFinish="+LinkFinish

@@ -36,7 +36,7 @@ from framework.lib.general import cprint
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy import exc
-from framework.db import models, plugin_manager, target_manager, resource_manager, config_manager
+from framework.db import models, plugin_manager, target_manager, resource_manager, config_manager, poutput_manager
 import json
 import logging
 import multiprocessing
@@ -60,10 +60,14 @@ class DB(object):
         self.Transaction = transaction_manager.TransactionManager(self.Core)
         self.URL = url_manager.URLManager(self.Core)
         self.Plugin = plugin_manager.PluginDB(self.Core)
+        self.POutput = poutput_manager.POutputDB(self.Core)
         self.Target = target_manager.TargetDB(self.Core)
         self.Resource = resource_manager.ResourceDB(self.Core)
         self.Config = config_manager.ConfigDB(self.Core)
-        # self.DBHealthCheck()
+        self.DBHealthCheck()
+
+    def DBHealthCheck(self):
+        self.Target.DBHealthCheck()
 
     def SaveDBs(self):
         pass
@@ -92,28 +96,6 @@ class DB(object):
     def CreateSession(self, DB_PATH):
         engine = create_engine("sqlite:///" + DB_PATH)
         return sessionmaker(bind = engine)
-
-    def TransactionDBSessionForTarget(self, target_url):
-        db_path = self.Core.Config.GetTransactionDBPathForTarget(target_url)
-        return self.CreateSession(db_path)
-
-    def TransactionDBSession(self):
-        return self.TransactionDBSessionForTarget(self.Core.Config.Target)
-
-    def SearchTransactionDB(self, Criteria):
-        # Criteria = { 'URL' : URL.strip(), 'Method' : Method, 'Data' : self.DerivePOSTToStr(Data) }
-        Session = self.TransactionDBSession()
-        db_session = Session()
-        results = db_session.query(models.Transaction).filter_by(url=Criteria.get('URL')).all()
-        db_session.close()
-        return results
-
-    def UrlDBSessionForTarget(self, target_url):
-        db_path = self.Core.Config.GetUrlDBPathForTarget(target_url)
-        return self.CreateSession(db_path)
-
-    def UrlDBSession(self):
-        return self.UrlDBSessionForTarget(self.Core.Config.Target)
 
     def AddUsingSession(self, Obj, session):
         while True:
