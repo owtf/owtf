@@ -112,11 +112,6 @@ class PluginHandler:
                 for Target in self.Scope:
                         self.ExecutionRegistry[Target] = []
 
-        def LogPluginExecution(self, Plugin):
-                Target = self.Core.Config.GetTarget()
-                #print "Saving Execution: "+str(Plugin)+", for Target: "+str(Target)
-                self.ExecutionRegistry[Target].append(Plugin)
-
         def GetLastPluginExecution(self, Plugin):
                 ExecLog = self.ExecutionRegistry[self.Core.Config.GetTarget()] # Get shorcut to relevant execution log for this target for readability below :)
                 NumItems = len(ExecLog)
@@ -138,17 +133,19 @@ class PluginHandler:
                                 return Index
                 return -1
 
-        def HasPluginExecuted(self, Plugin):
-                return (self.GetLastPluginExecution(Plugin) > -1)
+        def PluginAlreadyRun(self, PluginInfo):
+            #if self.Simulation:
+            #        return self.HasPluginExecuted(PluginInfo)
+            #SaveDir = self.GetPluginOutputDir(PluginInfo)
+            #if not self.exists(SaveDir): # At least one directory is missing
+            #        return False # This is the first time the plugin is going to run (i.e. some directory was missing)
+            #return True # The path already exists, therefore the plugin has been run before
+            if self.Core.DB.POutput.PluginAlreadyRun(PluginInfo):
+                return(True)
+            return(False)
 
         def GetExecLogSinceLastExecution(self, Plugin): # Get all execution entries from log since last time the passed plugin executed
                 return self.ExecutionRegistry[self.Core.Config.GetTarget()][self.GetLastPluginExecution(Plugin):]
-
-        def HasPluginCategoryRunSinceLastTime(self, Plugin, CategoryList):
-                for PluginRec in self.GetExecLogSinceLastExecution(Plugin):
-                        if PluginRec['Type'] in CategoryList:
-                                return True
-                return False
 
         def NormalRequestsAllowed(self):
                 #AllowedPluginTypes = self.Core.Config.GetAllowedPluginTypes('web')
@@ -178,14 +175,6 @@ class PluginHandler:
         def exists(self, dir):
             return os.path.exists(dir)
 
-        def PluginAlreadyRun(self, PluginInfo):
-                if self.Simulation:
-                        return self.HasPluginExecuted(PluginInfo)
-                SaveDir = self.GetPluginOutputDir(PluginInfo)
-                if not self.exists(SaveDir): # At least one directory is missing
-                        return False # This is the first time the plugin is going to run (i.e. some directory was missing)
-                return True # The path already exists, therefore the plugin has been run before
-
         def GetModule(self, ModuleName, ModuleFile, ModulePath):# Python fiddling to load a module from a file, there is probably a better way...
                 f, Filename, desc = imp.find_module(ModuleFile.split('.')[0], [ModulePath]) #ModulePath = os.path.abspath(ModuleFile)
                 return imp.load_module(ModuleName, f, Filename, desc)
@@ -211,16 +200,9 @@ class PluginHandler:
                                 break
                 return Possible
 
-
-        def register_plugin(self, Plugin):
-            return self.Core.DB.PluginRegister.Add(Plugin, self.GetPluginOutputDir(Plugin) + "report.html", self.Core.Config.GetTarget())
-
-        def register_plugin_for_all_targets(self, Plugin):
-            for target in self.Core.Config.GetTargets():
-                self.Core.DB.PluginRegister.Add(Plugin, self.GetPluginOutputDir(Plugin) + "report.html", target)
-
         def force_overwrite(self):
-            return self.Core.Config.Get('FORCE_OVERWRITE')
+            #return self.Core.Config.Get('FORCE_OVERWRITE')
+            return False
 
         def CanPluginRun(self, Plugin, ShowMessages = False):
                 #if self.Core.IsTargetUnreachable():
@@ -232,12 +214,12 @@ class PluginHandler:
                 if self.PluginAlreadyRun(Plugin) and ((not self.force_overwrite() and not ('grep' == Plugin['Type'])) or Plugin['Type'] == 'external'): #not Code == 'OWASP-WU-SPID':
                         if ShowMessages:
                                 log("Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") has already been run, skipping ..")
-                        if Plugin['Type'] == 'external':
+                        #if Plugin['Type'] == 'external':
                         # External plugins are run only once per each run, so they are registered for all targets
                         # that are targets in that run. This is an alternative to chaning the js filters etc..
-                                self.register_plugin_for_all_targets(Plugin)
+                        #        self.register_plugin_for_all_targets(Plugin)
                         return False 
-                if 'grep' == Plugin['Type'] and self.HasPluginExecuted(Plugin) and not self.HasPluginCategoryRunSinceLastTime(Plugin, [ 'active', 'semi_passive' ]):
+                if 'grep' == Plugin['Type'] and self.PluginAlreadyRun(Plugin):
                         return False # Grep plugins can only run if some active or semi_passive plugin was run since the last time
                 return True
 
@@ -250,9 +232,9 @@ class PluginHandler:
                 #(Name, Ext) = os.path.splitext(Name)
                 #self.Core.DB.Debug.Add("Running Plugin -> Plugin="+str(Plugin)+", PluginDir="+str(PluginDir))
                 PluginOutput = self.GetModule("", Name, Path+"/").run(self.Core, Plugin)
-                if save_output:
-                        print(PluginOutput)
-                        #self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
+                #if save_output:
+                    #print(PluginOutput)
+                    #self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
                 return PluginOutput
 
         def ProcessPlugin(self, PluginDir, Plugin, Status):
@@ -265,7 +247,7 @@ class PluginHandler:
                 self.PluginCount += 1
                 #cprint("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
                 log("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
-                self.LogPluginExecution(Plugin)
+                #self.LogPluginExecution(Plugin)
                 if self.Simulation:
                         return None # Skip processing in simulation mode, but show until line above to illustrate what will run
                 if 'grep' == Plugin['Type'] and self.Core.DB.Transaction.NumTransactions() == 0: # DB empty = grep plugins will fail, skip!!
@@ -276,24 +258,29 @@ class PluginHandler:
                         output = self.RunPlugin(PluginDir, Plugin)
                         Plugin["Status"] = "Successful"
                         Status['SomeSuccessful'] = True
+                        self.Core.DB.POutput.SavePluginOutput(Plugin, output, Plugin['Start'], self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         return output
                 except KeyboardInterrupt:
-                        self.SavePluginInfo("Aborted by user", Plugin) # cannot save anything here, but at least explain why
+                        # Just explan why crashed
+                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, "Aborted by User", Plugin['Start'], self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         Plugin["Status"] = "Aborted"
                         self.Core.Error.UserAbort("Plugin")
                         Status['SomeAborted (Keyboard Interrupt)'] = True
                 except SystemExit:
                         raise SystemExit # Abort plugin processing and get out to external exception handling, information saved elsewhere
                 except PluginAbortException, PartialOutput:
-                        self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Plugin Only)", Plugin) # Save the partial output, but continue to process other plugins
+                        #self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Plugin Only)", Plugin) # Save the partial output, but continue to process other plugins
+                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, str(PartialOutput.parameter)+"\nAborted by User", Plugin['Start'], self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         Plugin["Status"] = "Aborted (by user)"
                         Status['SomeAborted'] = True
                 except UnreachableTargetException, PartialOutput:
-                        self.DB.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
+                        #self.DB.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
+                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, str(PartialOutput.parameter)+"\nUnreachable Target", Plugin['Start'], self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         Plugin["Status"] = "Unreachable Target"
                         Status['SomeAborted'] = True
                 except FrameworkAbortException, PartialOutput:
-                        self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Framework Exit)", Plugin) # Save the partial output and exit
+                        #self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Framework Exit)", Plugin) # Save the partial output and exit
+                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, str(PartialOutput.parameter)+"\nFramework Aborted", Plugin['Start'], self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         Plugin["Status"] = "Aborted (Framework Exit)"
                         self.Core.Finish("Aborted")
                 #except: # BUG
@@ -313,7 +300,7 @@ class PluginHandler:
                 return PluginDir
 
         def SwitchToTarget(self, Target):
-                self.Core.DB.Target.SetTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
+                self.Core.DB.Target.SetTarget(Target) # Tell Target DB that all Gets/Sets are now Target-specific
 
         def get_plugins_in_order_for_PluginGroup(self, PluginGroup):
             return self.Core.Config.Plugin.GetOrder(PluginGroup)

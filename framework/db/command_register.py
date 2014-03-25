@@ -42,7 +42,7 @@ ORIGINAL_COMMAND = 6
 
 NAME_TO_OFFSET = { 'Start' : START, 'End' : END, 'RunTime' : RUNTIME, 'Status' : STATUS, 'Target' : TARGET, 'ModifiedCommand' : MODIFIED_COMMAND, 'OriginalCommand' : ORIGINAL_COMMAND }
 
-class CommandRegister:
+class CommandRegister(object):
 	def __init__(self, Core):
 		self.Core = Core
 

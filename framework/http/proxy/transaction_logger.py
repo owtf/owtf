@@ -33,58 +33,72 @@ from multiprocessing import Process
 from framework.http import transaction
 from framework.http.proxy.cache_handler import response_from_cache, request_from_cache
 from framework import timer
+from urlparse import urlparse
 import os
 import glob
 import time
+
 
 class TransactionLogger(Process):
     """
     This transaction logging process is started seperately from tornado proxy
     This logger checks for *.rd files in cache_dir and saves it as owtf db
-    transaction, *.rd files serve as a message that the file corresponding 
+    transaction, *.rd files serve as a message that the file corresponding
     to the hash is ready to be converted.
     """
-    def __init__(self, coreobj):
+    def __init__(self, coreobj, poison_q):
         Process.__init__(self)
         self.Core = coreobj
-        self.cache_dir = self.Core.Config.Get('INBOUND_PROXY_CACHE_DIR')
+        self.poison_q = poison_q
+        self.cache_dir = self.Core.DB.Config.Get('INBOUND_PROXY_CACHE_DIR')
 
-    def get_target_for_transaction(self, request, response):
-        for Target in self.Core.Config.GetTargets():
+    def derive_target_for_transaction(self, request, response, target_list, host_list):
+        for Target in target_list:
             if request.url.startswith(Target):
-                return Target
+                return [Target, True]
             else:
                 try:
                     if response.headers["Referer"].startswith(Target):
-                        return Target
+                        return [Target, self.get_scope_for_url(request.url, host_list)]
                 except KeyError:
                     pass
-        return self.Core.Config.GetTarget()
+        return [self.Core.DB.Config.GetTarget(), self.get_scope_for_url(request.url, host_list)]
 
-    def add_owtf_transaction(self, request_hash):
-        owtf_transaction = transaction.HTTP_Transaction(timer.Timer())
-        request = request_from_cache(request_hash, self.cache_dir)
-        response = response_from_cache(request_hash, self.cache_dir)
-        request.in_scope = self.Core.IsInScopeURL(request.url)
-        owtf_transaction.ImportProxyRequestResponse(request, response)
-        owtf_transaction.Target = self.get_target_for_transaction(request, response)
-        self.Core.DB.Transaction.LogTransaction(owtf_transaction)
-        
+    def get_scope_for_url(self, url, host_list):
+        return(urlparse(url).hostname in host_list)
+
+    def get_owtf_transactions(self, hash_list):
+        transactions_dict = {}
+        target_list = self.Core.DB.Target.GetTargets()
+        for target in target_list:
+            transactions_dict[target] = []
+        host_list = self.Core.DB.Target.GetAll('HOST_NAME')
+
+        for request_hash in hash_list:
+            request = request_from_cache(request_hash, self.cache_dir)
+            response = response_from_cache(request_hash, self.cache_dir)
+            target, request.in_scope = self.derive_target_for_transaction(request, response, target_list, host_list)
+            owtf_transaction = transaction.HTTP_Transaction(timer.Timer())
+            owtf_transaction.ImportProxyRequestResponse(request, response)
+            transactions_dict[target].append(owtf_transaction)
+        return(transactions_dict)
+
+    def get_hash_list(self, cache_dir):
+        hash_list = []
+        for file_path in glob.glob(os.path.join(cache_dir, "url", "*.rd")):
+            request_hash = os.path.basename(file_path)[:-3]
+            hash_list.append(request_hash)
+            os.remove(file_path)
+        return(hash_list)
+
     def run(self):
         try:
-            while True:
+            while self.poison_q.empty():
                 if glob.glob(os.path.join(self.cache_dir, "url", "*.rd")):
-                    for file_path in glob.glob(os.path.join(self.cache_dir, "url", "*.rd")):
-                        request_hash = os.path.basename(file_path)[:-3]
-                        self.add_owtf_transaction(request_hash)
-                        os.remove(file_path)
+                    hash_list = self.get_hash_list(self.cache_dir)
+                    transactions_dict = self.get_owtf_transactions(hash_list)
+                    self.Core.DB.Transaction.LogTransactions(transactions_dict)
                 else:
                     time.sleep(2)
-
         except KeyboardInterrupt:
-            for file_path in glob.glob(os.path.join(self.cache_dir, "url", "*.rd")):
-                request_hash = os.path.basename(file_path)[:-3]
-                self.add_owtf__transaction(request_hash)
-                os.remove(file_path)
-        finally:
             exit()

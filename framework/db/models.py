@@ -14,10 +14,9 @@ class Transaction(TransactionBase):
     data = Column(String, nullable = True) # Post DATA
     time = Column(Float(precision = 20))
     time_human = Column(String)
-    request_headers = Column(String)
     raw_request = Column(String)
     request_body = Column(String, nullable = True)
-    response_code = Column(Integer)
+    response_status = Column(String)
     response_headers = Column(String)
     response_body = Column(String, nullable = True)
     vulnerability = Column(Boolean, default = False)
@@ -32,6 +31,7 @@ class Url(URLBase):
 
     url = Column(String, primary_key = True)
     visited = Column(Boolean, default = False)
+    scope = Column(Boolean, default = True)
 
     def __repr__(self):
         return "<URL (url='%s')>"%(self.url)
@@ -70,35 +70,33 @@ class Error(ErrorBase):
     def __repr__(self):
         return "<Error (traceback='%s')>"%(self.traceback)
 
-ReviewWebBase = declarative_base()
+OutputBase = declarative_base()
 
-class PluginOutput(ReviewWebBase):
+class PluginOutput(OutputBase):
     __tablename__ = "plugin_outputs"
-
-    code = Column(String, primary_key = True) # OWTF Code
+ 
+    key = Column(String, primary_key = True) # Key = plugin_type@code
+    code = Column(String) # OWTF Code
     plugin_type = Column(String)
-    output = Column(String)
+    start_time = Column(String)
+    execution_time = Column(String)
+    output = Column(String, nullable = True)
+    error = Column(String, nullable = True)
+    success = Column(Boolean, default = False)
     user_notes = Column(String, nullable = True)
-    user_ranking = Column(Integer, nullable = True)
-    owtf_ranking = Column(Integer, nullable = True)
+    user_rank = Column(Integer, nullable = True)
+    owtf_rank = Column(Integer, nullable = True)
 
-class ActivePluginOutput(ReviewWebBase):
-    __tablename__ = "active"
+class Command(OutputBase):
+    __tablename__ = "command_register"
 
-    code = Column(String, primary_key = True) # OWTF Code
-    output = Column(String)
-    user_notes = Column(String, nullable = True)
-    user_ranking = Column(Integer, nullable = True)
-    owtf_ranking = Column(Integer, nullable = True)
-
-class PassivePluginOutput(ReviewWebBase):
-    __tablename__ = "passive"
-
-    code = Column(String, primary_key = True)
-    output = Column(String)
-    user_notes = Column(String, nullable = True)
-    user_ranking = Column(Integer, nullable = True)
-    owtf_ranking = Column(Integer, nullable = True)
+    start = Column(String)
+    end = Column(String)
+    run_time = Column(String)
+    success = Column(Boolean, default = False)
+    target = Column(String)
+    modified_command = Column(String)
+    original_command = Column(String, primary_key = True)
 
 ResourceBase = declarative_base()
 
@@ -135,7 +133,7 @@ class TestCode(PluginBase):
 class Plugin(PluginBase):
     __tablename__ = "plugins"
 
-    key = Column(String, primary_key = True) # Key = plugin_type@code
+    plugin_key = Column(String, primary_key = True) # Key = plugin_type@code
     plugin_title = Column(String)
     plugin_name = Column(String)
     plugin_code = Column(String, ForeignKey('test_codes.code'))

@@ -1,5 +1,6 @@
 from framework.db import models
-from framework.lib.general import cprint, MultipleReplace
+from framework.config import config
+from framework.lib.general import cprint
 import os
 
 class ResourceDB(object):
@@ -38,8 +39,13 @@ class ResourceDB(object):
         configuration.update(self.Core.DB.Target.GetTargetConfig())
         return configuration
 
+    def MultipleReplace(self, Text, ReplaceDict):
+            NewText = Text
+            for Search,Replace in ReplaceDict.items():
+                    NewText = NewText.replace(config.REPLACEMENT_DELIMITER + Search + config.REPLACEMENT_DELIMITER, str(Replace))
+            return NewText
+
     def GetRawResources(self, ResourceType):
-        ResourceType = ResourceType.upper() # Only upper case
         session = self.ResourceDBSession()
         raw_resources = session.query(models.Resource.resource_name, models.Resource.resource).filter_by(resource_type = ResourceType).all()
         session.close()
@@ -47,9 +53,10 @@ class ResourceDB(object):
 
     def GetResources(self, ResourceType):
         replacement_dict = self.GetReplacementDict()
-        resources = self.GetRawResources(ResourceType)
-        for resource in resources:
-            resource[-1] = MultipleReplace(resource[-1], replacement_dict)
+        raw_resources = self.GetRawResources(ResourceType)
+        resources = []
+        for name, resource in raw_resources:
+            resources.append([name, self.MultipleReplace(resource, replacement_dict)])
         return resources
 
     def GetRawResourceList(self, ResourceList):
@@ -60,7 +67,9 @@ class ResourceDB(object):
 
     def GetResourceList(self, ResourceTypeList):
         replacement_dict = self.GetReplacementDict()
-        resources = self.GetRawResourceList(ResourceTypeList)
-        for resource in resources:
-            resource[-1] = MultipleReplace(resource[-1], replacement_dict)
-        return ResourceList
+        raw_resources = self.GetRawResourceList(ResourceTypeList)
+        resources = []
+        for name, resource in raw_resources:
+            resources.append([name, self.MultipleReplace(resource, replacement_dict)])
+        return resources
+

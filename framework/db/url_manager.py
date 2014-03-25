@@ -71,53 +71,36 @@ class URLManager:
         def IsURL(self, URL):
                 return self.IsRegexpURL(URL, self.IsURLRegexp)
 
-        def GetNumURLs(self, DBPrefix = "POTENTIAL_"):
-                return self.Core.DB.GetLength(DBPrefix+'ALL_URLS_DB')
-                #return len(self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'])
+        def GetNumURLs(self):
+            #return self.Core.DB.GetLength(DBPrefix+'ALL_URLS_DB')
+            Session = self.Core.DB.Taget.GetUrlDBSession()
+            session = Session()
+            count = session.query(models.Url).count()
+            session.close()
+            return(count)
 
         def IsURLAlreadyAdded(self, URL, DBPrefix = ''):
+            # This wont be needed since we merge :P
                 return URL in self.Core.DB.GetData(DBPrefix+'ALL_URLS_DB') or URL in self.Core.DB.GetData(DBPrefix+'EXTERNAL_URLS_DB') or URL in self.Core.DB.GetData(DBPrefix+'ERROR_URLS_DB')
                 #return URL in self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'] or URL in self.Core.DB.DBCache[DBPrefix+'EXTERNAL_URLS_DB'] or URL in self.Core.DB.DBCache[DBPrefix+'ERROR_URLS_DB']
 
-        def AddURLToDB(self, URL, DBPrefix = '', Found = None):
-                Message = ''
-                DBName = "vetted DB"
-                if DBPrefix != "":
-                        DBName = "potential DB"
-                if not self.IsURLAlreadyAdded(URL, DBPrefix) and self.IsURL(URL): # New URL
-                        URL = URL.strip() # Make sure URL is clean prior to saving in DB, nasty bugs can happen without this
-                        if self.Core.IsInScopeURL(URL):
-                                Message = "Adding new URL to "+DBName+": "+URL
-                                log(Message)
-                                if Found in [ None, True ]:
-                                        #self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'].append(URL)
-                                        self.Core.DB.Add(DBPrefix+'ALL_URLS_DB', URL)
-                                        if self.IsFileURL(URL): # Classify URL for testing later:
-                                                #self.Core.DB.DBCache[DBPrefix+'FILE_URLS_DB'].append(URL)
-                                                self.Core.DB.Add(DBPrefix+'FILE_URLS_DB', URL)
-                                        elif self.IsImageURL(URL):
-                                                #self.Core.DB.DBCache[DBPrefix+'IMAGE_URLS_DB'].append(URL)
-                                                self.Core.DB.Add(DBPrefix+'IMAGE_URLS_DB', URL)
-                                        elif self.IsSSIURL(URL):
-                                                self.Core.DB.Add(DBPrefix+'SSI_URLS_DB', URL)
-                                        else:
-                                                #self.Core.DB.DBCache[DBPrefix+'FUZZABLE_URLS_DB'].append(URL)
-                                                self.Core.DB.Add(DBPrefix+'FUZZABLE_URLS_DB', URL)
-                                else: # Some error code (404, etc)
-                                        #self.Core.DB.DBCache[DBPrefix+'ERROR_URLS_DB'].append(URL)
-                                        self.Core.DB.Add(DBPrefix+'ERROR_URLS_DB', URL)
-                        else:
-                                Message = "Adding new EXTERNAL URL to EXTERNAL "+DBName+": "+URL
-                                log(Message)
-                                #self.Core.DB.DBCache[DBPrefix+'EXTERNAL_URLS_DB'].append(URL)
-                                self.Core.DB.Add(DBPrefix+'EXTERNAL_URLS_DB', URL)
-                return Message
+        def AddURLToDB(self, url, visited, found = None, target = None):
+            Message = ''
+            if self.IsURL(url): # New URL
+                url = url.strip() # Make sure URL is clean prior to saving in DB, nasty bugs can happen without this
+                scope =  self.Core.DB.Target.IsInScopeURL(url)
+                Session = self.Core.DB.Target.GetUrlDBSession()
+                session = Session()
+                session.merge(models.Url(url = url, visited = visited, scope = scope))
+                session.commit()
+                session.close()
+            return Message
 
-        def AddURL(self, URL, Found = None): # Adds a URL to the relevant DBs if not already added
-                DBPrefix = "POTENTIAL_"
-                if Found != None: # Visited URL -> Found in [ True, False ]
-                        DBPrefix = ""
-                return self.AddURLToDB(URL, DBPrefix, Found)
+        def AddURL(self, url, found = None, target = None): # Adds a URL to the relevant DBs if not already added
+                visited = False
+                if found != None: # Visited URL -> Found in [ True, False ]
+                    visited = True
+                return self.AddURLToDB(url, visited, found = found, target = target)
 
         def AddURLsStart(self):
                 self.NumURLsBefore = self.GetNumURLs()
@@ -128,10 +111,12 @@ class URLManager:
                 log(Message)
                 return(NumURLsAfter - self.NumURLsBefore) #Message
 
-        def ImportURLs(self, URLList): # Extracts and classifies all URLs passed. Expects a newline separated URL list
-                self.AddURLsStart()
-                for URL in URLList:
-                        self.AddURL(URL)
-                Message = self.AddURLsEnd()
-                log(Message)
-                return Message
+        def ImportURLs(self, url_list, target = None): # Extracts and classifies all URLs passed. Expects a newline separated URL list
+            self.AddURLsStart()
+            Session = self.Core.DB.Target.GetUrlDBSession(target)
+            session = Session()
+            for url in url_list:
+                session.merge(models.Url(url = url))
+            session.commit()
+            session.close()
+            count = self.AddURLsEnd()

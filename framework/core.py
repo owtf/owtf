@@ -44,7 +44,6 @@ from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
 from framework.ui.server import UIServer
 from threading import Thread
-from urlparse import urlparse
 import fcntl
 import logging
 import multiprocessing
@@ -96,18 +95,12 @@ class Core:
     #wrapper to log function
     def log(self,*args):
         log(*args)
-        
-    def IsInScopeURL(self, URL): # To avoid following links to other domains
-        ParsedURL = urlparse(URL)
-        #URLHostName = URL.split("/")[2]
-        for HostName in self.Config.GetAll('HOST_NAME'): # Get all known Host Names in Scope
-            #if URLHostName == HostName:
-            if ParsedURL.hostname == HostName:
-                return True
-        return False
 
     def CreateMissingDirs(self, Path):
-        Dir = os.path.dirname(Path)
+        if os.path.isfile(Path):
+            Dir = os.path.dirname(Path)
+        else:
+            Dir = Path
         if not os.path.exists(Dir):
             os.makedirs(Dir) # Create any missing directories
 
@@ -165,7 +158,7 @@ class Core:
      
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
-        if False: #not self.Config.Get('SIMULATION'):
+        if True:
             # Check if port is in use
             try:
                 temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -180,7 +173,8 @@ class Core:
                                                     Options['OutboundProxy'],
                                                     Options['OutboundProxyAuth']
                                                   )
-            self.TransactionLogger = transaction_logger.TransactionLogger(self)
+            poison_q = multiprocessing.Queue()
+            self.TransactionLogger = transaction_logger.TransactionLogger(self, poison_q)
             cprint("Starting Inbound proxy at " + self.Config.Get('INBOUND_PROXY_IP') + ":" + self.Config.Get("INBOUND_PROXY_PORT"))
             self.ProxyProcess.start()
             cprint("Starting Transaction logger process")
@@ -352,7 +346,8 @@ class Core:
                         self.KillChildProcesses(self.ProxyProcess.pid)
                         self.ProxyProcess.terminate()
                         # No signal is generated during closing process by terminate()
-                        os.kill(int(self.TransactionLogger.pid), signal.SIGINT)
+                        self.TransactionLogger.poison_q.put('done')
+                        self.TransactionLogger.join()
                     except: # It means the proxy was not started
                         pass
                 if hasattr(self, 'DB'):

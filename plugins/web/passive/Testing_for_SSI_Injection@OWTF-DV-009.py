@@ -31,6 +31,6 @@ DESCRIPTION = "Searching for pages that are susceptible to SSI-Injection"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveSSIDiscoveryLnk'))
+	Content = Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveSSIDiscoveryLnk'))
 	return Content
 

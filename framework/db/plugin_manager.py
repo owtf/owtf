@@ -62,7 +62,7 @@ class PluginDB(object):
             PluginName, PluginCode = PluginFile.split('@')
             PluginCode = PluginCode.split('.')[0] # Get rid of the ".py"
             session.merge(models.Plugin(
-                                            key = PluginType + '@' + PluginCode,
+                                            plugin_key = PluginType + '@' + PluginCode,
                                             plugin_group = PluginGroup,
                                             plugin_type = PluginType,
                                             plugin_title = PluginName.title().replace('_', ' '),
@@ -101,8 +101,9 @@ class PluginDB(object):
         plugin_types = [i[0] for i in plugin_types]
         return(plugin_types)
 
-    def GetPluginDictFromModel(self, obj):
-        return({"Group" : obj.plugin_group,
+    def GetDictFromObj(self, obj):
+        return({"Key" : obj.plugin_key,
+                "Group" : obj.plugin_group,
                 "Type" : obj.plugin_type,
                 "File" : obj.plugin_file,
                 "Code" : obj.plugin_code,
@@ -111,29 +112,29 @@ class PluginDB(object):
                 "Descrip": obj.plugin_descrip
                 })
 
-    def GetPluginDictsFromModels(self, obj_list):
+    def GetDictsFromObjs(self, obj_list):
         plugin_dicts = []
         for obj in obj_list:
-            plugin_dicts.append(self.GetPluginDictFromModel(obj))
+            plugin_dicts.append(self.GetDictFromObj(obj))
         return(plugin_dicts)
 
     def GetPluginsByType(self, PluginType):
         session = self.PluginDBSession()
         plugins = session.query(models.Plugin).filter_by(plugin_type = PluginType).all()
         session.close()
-        return(self.GetPluginDictsFromModels(plugins))
+        return(self.GetDictsFromObjs(plugins))
 
     def GetPluginsByGroup(self, PluginGroup):
         session = self.PluginDBSession()
         plugins = session.query(models.Plugin).filter_by(plugin_group = PluginGroup).all()
         session.close()
-        return(self.GetPluginDictsFromModels(plugins))
+        return(self.GetDictsFromObjs(plugins))
 
     def GetPluginsByGroupType(self, PluginGroup, PluginTypeList):
         session = self.PluginDBSession()
         plugins = session.query(models.Plugin).filter(models.Plugin.plugin_group == PluginGroup, models.Plugin.plugin_type.in_(PluginTypeList)).all()
         session.close()
-        return(self.GetPluginDictsFromModels(plugins))
+        return(self.GetDictsFromObjs(plugins))
 
     def GetGroupsForPlugins(self, Plugins):
         session = self.PluginDBSession()

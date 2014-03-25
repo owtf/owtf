@@ -1,4 +1,5 @@
 from framework.db import models
+from urlparse import urlparse
 import os
 
 TARGET_CONFIG = {
@@ -23,19 +24,27 @@ PATH_CONFIG = {
               }
 
 class TargetDB(object):
+    # All these variables reflect to current target
     Target = None
     TargetConfig = dict(TARGET_CONFIG)
     PathConfig = dict(PATH_CONFIG)
+    OutputDBSession = None
+    TransactionDBSession = None
+    UrlDBSession = None
+
     def __init__(self, Core):
         self.Core = Core
         self.TargetConfigDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("TCONFIG_DB_PATH"), models.TargetBase)
-        self.TargetDBHealthCheck()
+        #self.TargetDBHealthCheck()
 
     def SetTarget(self, target_url):
         if target_url in self.GetTargets():
             self.Target = target_url
             self.TargetConfig = self.GetTargetConfigForURL(target_url)
             self.PathConfig = self.GetPathConfigForTargetConfig(self.TargetConfig)
+            self.OutputDBSession = self.CreateOutputDBSession(self.Target)
+            self.TransactionDBSession = self.CreateTransactionDBSession(self.Target)
+            self.UrlDBSession = self.CreateUrlDBSession(self.Target)
 
     def GetPathConfigForTargetConfig(self, target_config):
         path_config = {}
@@ -61,12 +70,12 @@ class TargetDB(object):
     def SetPath(self, output_type, path):
         self.PathConfig[output_type] = path
 
-    def TargetDBHealthCheck(self):
+    def DBHealthCheck(self):
+        # Target DB Health Check
         session = self.TargetConfigDBSession()
         target_list = session.query(models.Target).all()
         for target in target_list:
-            self.Core.Config.Targets.append(target.url)
-            self.Core.DB.CreateMissingDBsForTarget(target.url)
+            self.Core.DB.Target.CreateMissingDBsForTarget(target.url)
 
     def AddTarget(self, TargetURL):
         target_config = self.Core.Config.DeriveConfigFromURL(TargetURL)
@@ -82,9 +91,9 @@ class TargetDB(object):
 
     def CreateMissingDBsForTarget(self, TargetURL):
         self.Core.Config.CreateDBDirForTarget(TargetURL)
-        self.Core.DB.CreateMissingDirs(self.Core.Config.GetTransactionDBPathForTarget(TargetURL), models.TransactionBase)
-        self.Core.DB.CreateMissingDirs(self.Core.Config.GetUrlDBPathForTarget(TargetURL), models.URLBase)
-        self.Core.DB.CreateMissingDirs(self.Core.Config.GetReviewDBPathForTarget(TargetURL), models.ReviewWebBase)
+        self.Core.DB.EnsureDBWithBase(self.Core.Config.GetTransactionDBPathForTarget(TargetURL), models.TransactionBase)
+        self.Core.DB.EnsureDBWithBase(self.Core.Config.GetUrlDBPathForTarget(TargetURL), models.URLBase)
+        self.Core.DB.EnsureDBWithBase(self.Core.Config.GetOutputDBPathForTarget(TargetURL), models.OutputBase)
 
     def GetTargetConfigForURL(self, target_url):
         session = self.TargetConfigDBSession()
@@ -112,3 +121,39 @@ class TargetDB(object):
         session.close()
         targets = [i[0] for i in targets]
         return(targets)
+
+    def IsInScopeURL(self, URL): # To avoid following links to other domains
+        ParsedURL = urlparse(URL)
+        #URLHostName = URL.split("/")[2]
+        for HostName in self.GetAll('HOST_NAME'): # Get all known Host Names in Scope
+            #if URLHostName == HostName:
+            if ParsedURL.hostname == HostName:
+                return True
+        return False
+
+    def CreateOutputDBSession(self, Target):
+        return(self.Core.DB.CreateSession(self.Core.Config.GetOutputDBPathForTarget(Target)))
+
+    def CreateTransactionDBSession(self, Target):
+        return(self.Core.DB.CreateSession(self.Core.Config.GetTransactionDBPathForTarget(Target)))
+
+    def CreateUrlDBSession(self, Target):
+        return(self.Core.DB.CreateSession(self.Core.Config.GetUrlDBPathForTarget(Target)))
+
+    def GetOutputDBSession(self, Target = None):
+        if ((not Target) or (self.Target == Target)):
+            return(self.OutputDBSession)
+        else:
+            return(self.CreateOutputDBSession(Target))
+
+    def GetTransactionDBSession(self, Target = None):
+        if ((not Target) or (self.Target == Target)):
+            return(self.TransactionDBSession)
+        else:
+            return(self.CreateTransactionDBSession(Target))
+
+    def GetUrlDBSession(self, Target = None):
+        if ((not Target) or (self.Target == Target)):
+            return(self.UrlDBSession)
+        else:
+            return(self.CreateUrlDBSession(Target))

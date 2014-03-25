@@ -396,7 +396,7 @@ class Config(object):
         return os.path.join(self.FrameworkConfigGet("OUTPUT_PATH"), self.FrameworkConfigGet("TARGETS_DIR"), TargetURL.replace("/","_").replace(":",""))
 
     def CreateDBDirForTarget(self, TargetURL):
-        self.Core.EnsureDirPath(self.GetDBDirForTarget(TargetURL))
+        self.Core.CreateMissingDirs(self.GetDBDirForTarget(TargetURL))
 
     def GetTransactionDBPathForTarget(self, TargetURL):
         return os.path.join(self.GetDBDirForTarget(TargetURL), self.FrameworkConfigGet("TRANSACTION_DB_NAME"))
@@ -404,5 +404,5 @@ class Config(object):
     def GetUrlDBPathForTarget(self, TargetURL):
         return os.path.join(self.GetDBDirForTarget(TargetURL), self.FrameworkConfigGet("URL_DB_NAME"))
 
-    def GetReviewDBPathForTarget(self, TargetURL):
-        return os.path.join(self.GetDBDirForTarget(TargetURL), self.FrameworkConfigGet("REVIEW_DB_NAME"))
+    def GetOutputDBPathForTarget(self, TargetURL):
+        return os.path.join(self.GetDBDirForTarget(TargetURL), self.FrameworkConfigGet("OUTPUT_DB_NAME"))

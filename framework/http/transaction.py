@@ -35,7 +35,7 @@ from httplib import responses as response_messages
 import cgi
 import logging
 
-class HTTP_Transaction:
+class HTTP_Transaction(object):
     def __init__(self, Timer):
         self.Timer = Timer
         self.New = False
@@ -44,7 +44,7 @@ class HTTP_Transaction:
         return str(self.IsInScope)[0]
     
     def InScope(self):
-        return self.IsInScope
+        return(self.IsInScope)
 
     def Start(self, URL, Data, Method, IsInScope):
         self.IsInScope = IsInScope
