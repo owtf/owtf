@@ -83,7 +83,7 @@ class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
 class Requester:
     def __init__(self, Core, Proxy):
         self.Core = Core
-        self.Headers = { 'User-Agent' : self.Core.Config.Get('USER_AGENT') }
+        self.Headers = { 'User-Agent' : self.Core.DB.Config.Get('USER_AGENT') }
         self.RequestCountRefused = 0
         self.RequestCountTotal = 0
         self.LogTransactions = False
@@ -107,25 +107,23 @@ class Requester:
         return Backup
 
     def NeedToAskBeforeRequest(self):
-        return not self.Core.PluginHandler.NormalRequestsAllowed() and self.Core.Config.Get('Interactive')
+        return not self.Core.PluginHandler.NormalRequestsAllowed()
 
-
-    def is_transaction_already_added(self, URL):
-        return self.Core.DB.Transaction.IsTransactionAlreadyAdded({'URL':URL.strip()})
-
+    def IsTransactionAlreadyAdded(self, URL):
+        return self.Core.DB.Transaction.IsTransactionAlreadyAdded({'URL': URL.strip()})
 
     def is_request_possible(self):
         return self.Core.PluginHandler.RequestsPossible()
 
     def ProxyCheck(self):
         if self.Proxy != None and self.is_request_possible(): # Verify proxy works! www.google.com might not work in a restricted network, try target URL :)
-            URL = self.Core.Config.Get('PROXY_CHECK_URL')
+            URL = self.Core.DB.Config.Get('PROXY_CHECK_URL')
             #if self.NeedToAskBeforeRequest() and 'y' != raw_input("Proxy Check: Need to send a GET request to "+URL+". Is this ok?: 'y'+Enter= Continue, Enter= Abort Proxy Check\n"):
             #   return [ True, "Proxy Check OK: Proxy Check Aborted by User" ]
             RefusedBefore = self.RequestCountRefused
             cprint("Proxy Check: Avoid logging request again if already in DB..")
             LogSettingBackup = False
-            if self.is_transaction_already_added(URL):
+            if self.IsTransactionAlreadyAdded(URL):
                 LogSettingBackup = self.log_transactions(False)
             Transaction = self.GET(URL)
             if LogSettingBackup:

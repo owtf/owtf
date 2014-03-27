@@ -34,7 +34,7 @@ from framework.db import db_handler, transaction_manager, url_manager, \
 from framework.db.db_client import *
 from framework.lib.general import cprint
 from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy import exc
 from framework.db import models, plugin_manager, target_manager, resource_manager, config_manager, poutput_manager
 import json
@@ -43,6 +43,13 @@ import multiprocessing
 import os
 import random
 import string
+import re
+
+def re_fn(regexp, item):
+    regex = re.compile(regexp, re.IGNORECASE | re.DOTALL) # Compile before the loop for speed
+    results = regex.findall(item)
+    print(results)
+    return results
 
 class DB(object):
         
@@ -89,12 +96,18 @@ class DB(object):
             engine = self.CreateDBUsingBase(DB_PATH, BaseClass)
         else:
             engine = create_engine("sqlite:///" + DB_PATH)
+        @event.listens_for(engine, "begin")
+        def do_begin(conn):
+            conn.connection.create_function('regexp', 2, re_fn)
         session_factory = sessionmaker(bind = engine)
         cprint("Creating Scoped session factory for " + DB_PATH)
         return scoped_session(session_factory)
 
     def CreateSession(self, DB_PATH):
         engine = create_engine("sqlite:///" + DB_PATH)
+        @event.listens_for(engine, "begin")
+        def do_begin(conn):
+            conn.connection.create_function('regexp', 2, re_fn)
         return sessionmaker(bind = engine)
 
     def AddUsingSession(self, Obj, session):

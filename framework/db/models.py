@@ -1,6 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey, LargeBinary
 from sqlalchemy.orm import relationship
+import datetime
 
 TransactionBase = declarative_base()
 
@@ -12,17 +13,17 @@ class Transaction(TransactionBase):
     scope = Column(Boolean, default = False)
     method = Column(String)
     data = Column(String, nullable = True) # Post DATA
-    time = Column(Float(precision = 20))
+    time = Column(Float(precision = 10))
     time_human = Column(String)
     raw_request = Column(String)
-    request_body = Column(String, nullable = True)
     response_status = Column(String)
     response_headers = Column(String)
     response_body = Column(String, nullable = True)
-    vulnerability = Column(Boolean, default = False)
+    response_binary = Column(Boolean, nullable = True)
+    grep_output = Column(String, nullable = True)
 
     def __repr__(self):
-        return "<HTTP Transaction (url='%s' method='%s' response_code='%d')>"%(self.url, self.method, self.response_code)
+        return "<HTTP Transaction (url='%s' method='%s' response_status='%s')>"%(self.url, self.method, self.response_status)
 
 URLBase = declarative_base()
 
@@ -78,6 +79,7 @@ class PluginOutput(OutputBase):
     key = Column(String, primary_key = True) # Key = plugin_type@code
     code = Column(String) # OWTF Code
     plugin_type = Column(String)
+    save_time = Column(DateTime, default = datetime.datetime.now())
     start_time = Column(String)
     execution_time = Column(String)
     output = Column(String, nullable = True)

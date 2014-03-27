@@ -156,7 +156,7 @@ class PluginHandler:
         def RequestsPossible(self):
                 # Even passive plugins will make requests to external resources
                 #return [ 'grep' ] != self.Core.Config.GetAllowedPluginTypes('web')
-                return [ 'grep' ] != self.Core.Config.Plugin.GetAllowedTypes('web')
+                return [ 'grep' ] != self.Core.DB.Plugin.GetTypesForGroup('web')
 
         def DumpPluginFile(self, Filename, Contents, Plugin):
                 SaveDir = self.GetPluginOutputDir(Plugin)

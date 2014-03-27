@@ -53,7 +53,6 @@ class Config(object):
         self.Config = defaultdict(list) # General configuration information
         for Type in CONFIG_TYPES:
             self.Config[Type] = {}
-        self.TargetConfig = {} # Holds configuration of single target
 
     def Init(self):
         self.HealthCheck = health_check.HealthCheck(self.Core)
@@ -285,29 +284,6 @@ class Config(object):
         #cprint("The IP address for "+Hostname+" is: '"+IP+"'")
         return ipchunks
 
-    def SetTarget(self, target):
-        if target in self.Targets:
-            self.Target = target
-            target_config = self.Core.DB.GetTargetConfigFromDB(target)
-            if target_config:
-                self.TargetConfig = dict(target_config)
-                return True
-            else:
-                return False
-
-    def GetTarget(self):
-        return self.Target
-
-    def GetAll(self, Key): # Retrieves a config setting value on all target configurations
-        #Matches = []
-        #PreviousTarget = self.Target
-        #for Target, Config in self.TargetConfig.items():
-        #    self.SetTarget(Target)
-        #    Value = self.Get(Key)
-        #    if Value not in Matches: # Avoid duplicates
-        #        Matches.append(Value)
-        return self.Core.DB.Target.GetAll(Key)
-
     def IsSet(self, Key):
         Key = self.PadKey(Key)
         Config = self.GetConfig()
@@ -327,9 +303,6 @@ class Config(object):
 
     def StripKey(self, Key):
         return Key.replace(REPLACEMENT_DELIMITER, '')
-
-    def Get(self, Key):
-        return self.Core.DB.Config.Get(Key)
 
     def FrameworkConfigGet(self, Key): # Transparently gets config info from Target or General
         try:
@@ -351,16 +324,11 @@ class Config(object):
     def GetAsList(self, KeyList):
         ValueList = []
         for Key in KeyList:
-            ValueList.append(self.Get(Key))
+            ValueList.append(self.FrameworkConfigGet(Key))
         return ValueList
 
     def GetHeaderList(self, Key):
-        return self.Get(Key).split(',')
-
-    def SetForTarget(self, Type, Key, Value, Target):
-        #print str(self.TargetConfig)
-        #print "Trying .. self.TargetConfig["+Target+"]["+Key+"] = "+Value+" .."
-        self.TargetConfig[Target][Type][Key] = Value
+        return self.FrameworkConfigGet(Key).split(',')
 
     def SetGeneral(self, Type, Key, Value):
         #print str(self.Config)
@@ -371,9 +339,7 @@ class Config(object):
         Type = 'other'
         if isinstance(Value, str): # Only when value is a string, store in replacements config
             Type = 'string'
-        if self.Target == None:
-            return self.SetGeneral(Type, Key, Value)
-        return self.SetForTarget(Type, Key, Value, self.Target)
+        return self.SetGeneral(Type, Key, Value)
 
     def GetReplacementDict(self):
         return self.GetConfig()['string']
