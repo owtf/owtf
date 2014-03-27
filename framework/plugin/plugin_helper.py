@@ -719,7 +719,9 @@ class PluginHelper:
                 return Result
 
         def FindMultilineResponseMatchesForRegexp( self, ResponseRegexp, PluginInfo ):
-                return self.DrawResponseMatchesTables( self.Core.DB.Transaction.GrepMultiLineResponseRegexp( ResponseRegexp ), PluginInfo )
+            regexp_list = self.Core.DB.Transaction.GrepMultiLineResponseRegexp( ResponseRegexp )
+            print(regexp_list)
+            return self.DrawResponseMatchesTables( regexp_list, PluginInfo )
 
         def FindMultilineResponseMatchesForRegexps( self, ResponseRegexpList, PluginInfo ):
                 Result = ""

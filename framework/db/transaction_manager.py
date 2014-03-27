@@ -35,7 +35,9 @@ from framework.http import transaction
 from framework.db import models
 from framework.lib.general import *
 import os
-import re,logging
+import json
+import re
+import logging
 
 # Transaction DB field order:
 # LogID, LogTime, LogTimeHuman, LogStatus, LogMethod, LogURL, LogData
@@ -50,15 +52,15 @@ TLOG_DATA = 7
 
 NAME_TO_OFFSET = { 'ID' : TLOG_ID, 'Scope' : TLOG_SCOPE, 'Time' : TLOG_TIME, 'TimeHuman' : TLOG_TIMEHUMAN, 'Status' : TLOG_STATUS, 'Method' : TLOG_METHOD, 'URL' : TLOG_URL, 'Data' : TLOG_DATA }
 
+REGEX_TYPES = ['headers', 'body']
+
 class TransactionManager(object):
         def __init__(self, Core):
                 self.Core = Core # Need access to reporter for pretty html trasaction log
-
-        def Search(self, Criteria):
-                if 'Method' in Criteria: # Ensure a valid HTTP Method is used instead of "" when the Method is specified in the Criteria
-                        Criteria['Method'] = DeriveHTTPMethod(Criteria['Method'], GetDictValueOrBlank(Criteria, 'Data'))
-                Session = self.Core.DB.Target.GetTransactionDBSession()
-                return self.Core.DB.SearchTransactionDB(Criteria)
+                self.regexs = defaultdict(list)
+                for regex_type in REGEX_TYPES:
+                    self.regexs[regex_type] = {}
+                self.CompileRegexs()
 
         def NumTransactions(self, Scope = True): # Return num transactions in scope by default
                 Session = self.Core.DB.Target.GetTransactionDBSession()
@@ -78,83 +80,157 @@ class TransactionManager(object):
                         Boundaries.append(self.Padding+" "+BoundaryName+" "+self.Padding+self.RandomSeed+"\n")
                 self.TBoundaryURL, self.TBoundaryReq, self.TBoundaryResHeaders, self.TBoundaryResBody = Boundaries
 
-        def GetFirst(self, Criteria): # Assemble only the first transaction that matches the criteria from DB
-                MatchList = self.Search( Criteria )
-                if len(MatchList) > 0:
-                        return self.GetByID(MatchList[0]['ID'])
-                return False
+        def IsTransactionAlreadyAdded(self, Criteria, target = None):
+            return(len(self.GetAll(Criteria, target)) > 0)
 
-        def GetAll(self, Criteria): # Assemble ALL transactions that match the criteria from DB
-                Transactions = []
-                MatchList = self.Search( Criteria )
-                if len(MatchList) > 0:
-                        for Item in MatchList:
-                                Transactions.append(self.GetByID(Item['ID']))
-                return Transactions
-
-        def IsTransactionAlreadyAdded(self, Criteria): # To avoid requests already made
-                Result = len(self.Search( Criteria )) > 0
-                log(str(Criteria)+" in DB: "+str(Result))
-                return Result
-
-        def LogTransaction(self, Transaction):# The Transaction Obj will be modified here with a new Transaction ID and HTML Link to it
-                self.Core.Config.SetTarget(Transaction.Target) # Attr set in transaction_logger
-                self.Core.DB.URL.AddURL(Transaction.URL, Transaction.Found) # Log Transaction URL in URL DB (this also classifies the URL: scope, external, file, etc)
-                #Need to log all transactions, even from out of scope resources, this is the simplest and most flexible approach (no log duplication, etc)
-                ID = self.SaveTransactionTXTIndex(Transaction) # Update TXT Index and get ID for Transaction
-                TransacPath, ReqPath, ResHeadersPath, ResBodyPath = self.SaveTransactionFiles(ID, Transaction)# Store files in disk
-                self.SaveTransactionHTMLIndex(ID, Transaction, TransacPath, ReqPath, ResHeadersPath, ResBodyPath)# Build links 2 files,etc 
-
-        def LogTransactions(self, transaction_list, target = None):
+        def GetFirst(self, Criteria, target = None): # Assemble only the first transaction that matches the criteria from DB
             Session = self.Core.DB.Target.GetTransactionDBSession(target)
             session = Session()
-            for transaction in transaction_list:
+            query = session.query(models.Transaction)
+            if 'URL' in Criteria.keys():
+                query = self.FilterByURL(query, Criteria['URL'])
+            if 'Method' in Criteria.keys():
+                query = self.FilterByMethod(query, Criteria['Method'])
+            if 'Data' in Criteria.keys():
+                query = self.FilterByData(query, Criteria['Data'])
+            return(self.DeriveTransaction(query.first()))
+
+        def GetAll(self, Criteria, target = None): # Assemble ALL transactions that match the criteria from DB
+            Session = self.Core.DB.Target.GetTransactionDBSession(target)
+            session = Session()
+            query = session.query(models.Transaction)
+            if 'URL' in Criteria.keys():
+                query = self.FilterByURL(query, Criteria['URL'])
+            if 'Method' in Criteria.keys():
+                query = self.FilterByMethod(query, Criteria['Method'])
+            if 'Data' in Criteria.keys():
+                query = self.FilterByData(query, Criteria['Data'])
+            return(self.DeriveTransactions(query.all()))
+
+        def DeriveTransaction(self, t):
+            if t:
+                owtf_transaction = transaction.HTTP_Transaction(None)
+                response_body = t.response_body
+                if t.response_binary:
+                    response_body = str(response_body)
+                grep_output = None
+                if t.grep_output:
+                    grep_output = json.loads(t.grep_output)
+                owtf_transaction.SetTransactionFromDB(
+                                                        t.url,
+                                                        t.method,
+                                                        t.status,
+                                                        str(t.time),
+                                                        t.time_human,
+                                                        t.request_data,
+                                                        t.raw_request,
+                                                        t.response_headers,
+                                                        response_body,
+                                                        grep_output
+                                                     )
+                return owtf_transaction
+            return(None)
+
+        def DeriveTransactions(self, transactions):
+            owtf_tlist = []
+            for transaction in transactions:
+                owtf_tlist.append(self.SetTransaction(transaction))
+            return(owtf_tlist)
+
+        def FilterByURL(self, query, url):
+            return query.filter_by(url = url)
+
+        def FilterByMethod(self, query, method):
+            return query.filter_by(method = method)
+
+        def FilterByData(self, query, data):
+            return query.filter_by(data = data)
+
+        def LogTransaction(self, transaction, target = None):
+            Session = self.Core.DB.Target.GetTransactionDBSession(target)
+            session = Session()
+            urls_list = []
+            # TODO: This shit will go crazy on non-ascii characters
+            try:
+                unicode(transaction.GetRawResponseBody(), "utf-8")
+                response_body = transaction.GetRawResponseBody()
+                is_binary = False
+                grep_output = json.dumps(self.GrepTransaction(transaction))
+            except UnicodeDecodeError:
+                response_body = buffer(transaction.GetRawResponseBody())
+                is_binary = True
+                grep_output = None
+            finally:
                 session.add(models.Transaction( url = transaction.URL,
                                                 scope = transaction.InScope(),
                                                 method = transaction.Method,
                                                 data = transaction.Data,
-                                                time = int(transaction.Time),
+                                                time = float(transaction.Time),
                                                 time_human = transaction.TimeHuman,
                                                 raw_request = transaction.GetRawRequest(),
-                                                request_body = transaction.GetRawResponseBody(),
                                                 response_status = transaction.GetStatus(False),
                                                 response_headers = transaction.GetResponseHeaders(),
-                                                response_body = transaction.GetRawResponseBody()
+                                                response_body = response_body,
+                                                response_binary = is_binary,
+                                                grep_output = grep_output
                                               ))
+            urls_list.append([transaction.URL, True, transaction.InScope()])
             session.commit()
             session.close()
+
+        def LogTransactions(self, transaction_list, target = None):
+            Session = self.Core.DB.Target.GetTransactionDBSession(target)
+            session = Session()
+            urls_list = []
+            for transaction in transaction_list:
+                # TODO: This shit will go crazy on non-ascii characters
+                #try:
+                unicode(transaction.GetRawResponseBody(), "utf-8")
+                response_body = transaction.GetRawResponseBody()
+                is_binary = False
+                grep_output = json.dumps(self.GrepTransaction(transaction))
+                """
+                except UnicodeDecodeError:
+                    response_body = buffer(transaction.GetRawResponseBody())
+                    is_binary = True
+                    grep_output = None
+                finally:
+                """
+                session.add(models.Transaction( url = transaction.URL,
+                                                scope = transaction.InScope(),
+                                                method = transaction.Method,
+                                                data = transaction.Data,
+                                                time = float(transaction.Time),
+                                                time_human = transaction.TimeHuman,
+                                                raw_request = transaction.GetRawRequest(),
+                                                response_status = transaction.GetStatus(),
+                                                response_headers = transaction.GetResponseHeaders(),
+                                                response_body = response_body,
+                                                response_binary = is_binary,
+                                                grep_output = grep_output
+                                              ))
+                urls_list.append([transaction.URL, True, transaction.InScope()])
+            session.commit()
+            session.close()
+            self.Core.DB.URL.ImportProcessedURLs(urls_list)
                                                 
         def LogTransactionsFromLogger(self, transactions_dict):
-            for target, transaction_list in transactions_dict:
+            for target, transaction_list in transactions_dict.items():
                 if transaction_list:
                     self.LogTransactions(transaction_list, target)
 
         def GetNumTransactionsInScope(self):
-                return self.NumTransactions()
-
-        def AssembleTransactionForDB(self, Transaction): # Turns an HTTP Transaction into a Parseable text file:
-                return self.TBoundaryURL + Transaction.URL+"\n" + self.TBoundaryReq + Transaction.GetRawRequest() + self.TBoundaryResHeaders + Transaction.GetRawResponseHeaders() + self.TBoundaryResBody + Transaction.GetRawResponseBody()
+            return self.NumTransactions()
 
         def GetByID(self, ID):
-                MatchList = self.Search( { 'ID' : ID } )
-                if len(MatchList) > 0: # Transaction found
-                        T = MatchList[0]
-                        Transaction = transaction.HTTP_Transaction(self.Core.Timer)
-                        TStr = ""
-                        Prefix = self.GetPrefix(T['Scope'])
-                        try:
-                                Path = self.Core.Config.Get('TRANSACTION_LOG_TRANSACTIONS')+Prefix+T['ID']+".txt"
-                                TStr = open(Path).read() # Try to retrieve transaction to memory
-                        except IOError:
-                                self.Core.Error.Add("ERROR: Transaction "+T['ID']+" could not be found, has the DB been tampered with?")
-                        if TStr: # Transaction could be read from DB
-                                Request, ResponseHeaders, ResponseBody = self.ParseDBTransaction(TStr, T['Status'])
-                                Transaction.SetTransactionFromDB(T, Request, ResponseHeaders, ResponseBody)
-                                self.SetIDForTransaction(Transaction, T['ID'], Path)
-                        return Transaction
-                return False # Transaction not found
+            Session = self.Core.DB.Target.GetTransactionDBSession()
+            session = Session()
+            model_obj = session.query(models.Transaction).get(id = ID)
+            if model_obj:
+                return(self.DeriveTransaction(model_obj))
+            return(model_obj) # None returned if no such transaction
 
-        def GrepTopTransactionIDsBySpeed(self, Num = 10, Order = "Asc"):
+        def GetTopTransactionIDsBySpeed(self, Num = 10, Order = "Asc"):
             Session = self.Core.DB.Target.GetTransactionDBSession()
             session = Session()
             if Order == "Desc":
@@ -165,58 +241,38 @@ class TransactionManager(object):
             results = [i[0] for i in results]
             return(results) # Return list of matched IDs
 
-        def GrepTransactionIDsForHeaders(self, HeaderList):
-            Regexp = "("+"|".join(HeaderList)+"): "
-            Session = self.Core.DB.Target.GetTransactionDBSession()
-            session = Session()
-            results = session.query(models.Transaction.id).filter(models.Transaction.response_headers.op(Regexp)(REGEX))
-            session.close()
-            results = [i[0] for i in results]
-            return(results) # Return list of matched IDs
+        def CompileHeaderRegex(self, header_list):
+            return(re.compile('('+'|'.join(header_list)+'): ([^\r]*)', re.IGNORECASE))
 
-        def GrepHeaders(self, HeaderList):
-                Regexp = "("+"|".join(HeaderList)+"): "
-                return self.GrepForPartialLinks(Regexp, self.Core.Config.Get('TRANSACTION_LOG_RESPONSE_HEADERS')+self.GetScopePrefix()+"*")
+        def CompileResponseRegex(self, regexp):
+            return(re.compile(regexp, re.IGNORECASE | re.DOTALL))
 
-        def GrepResponseHeadersRegexp(self, HeadersRegexp):
-                GrepLocation = self.Core.Config.Get('TRANSACTION_LOG_RESPONSE_HEADERS')+self.GetScopePrefix()+"*"
-                return self.GrepUsingRegexp(HeadersRegexp, GrepLocation)
+        def CompileRegexs(self):
+            for key in self.Core.Config.GetReplacementDict().keys():
+                key = key[3:-3] # Remove "@@@"
+                if key.startswith('HEADERS'):
+                    header_list = self.Core.Config.GetHeaderList(key)
+                    self.regexs['headers'][key] = self.CompileHeaderRegex(header_list)
+                elif key.startswith('RESPONSE'):
+                    RegexpName, GrepRegexp, PythonRegexp = self.Core.Config.FrameworkConfigGet(key).split('_____')
+                    self.regexs['body'][key] = self.CompileResponseRegex(PythonRegexp)
 
-        def GrepForPartialLinks(self, Regexp, Location): # Returns file: line_match pairs with the file portion ready for partial links
-                # Format output to link to link to full transactions:
-                #Command = 'grep -HiE "'+Regexp+'" '+Location+" | sed -e 's|"+self.Core.Config.Get('HOST_OUTPUT')+"||g' -e 's|/response_headers/|/|g'"
-                Command = 'grep -IHiE "'+Regexp+'" '+Location+" | sed -e 's|"+self.Core.Config.Get('OUTPUT_PATH')+"/||g' -e 's|/"+Location.split('/')[-2]+"/|/|g'"
-                return [ Command, self.Core.Shell.shell_exec_monitor(Command) ]
+        def GrepTransaction(self, owtf_transaction):
+            grep_output = []
+            for regex_name, regex in self.regexs['headers'].items():
+                grep_output += self.GrepResponseHeaders(regex_name, regex, owtf_transaction)
+            for regex_name in self.regexs['body'].items():
+                grep_output += self.GrepResponseBody(regex_name, regex, owtf_transaction)
+            return(grep_output)
 
-        def GrepForFiles(self, Regexp, Location): # Returns unique filenames that match a search
-                # Format output to link to link to full transactions:
-                #Command = 'grep -HiE "'+Regexp+'" '+Location+" | sed -e 's|"+self.Core.Config.Get('HOST_OUTPUT')+"||g' -e 's|/response_headers/|/|g'"
-                #Not possible: Need to retrieve the files:
-                #Command = 'grep -HiE "'+Regexp+'" '+Location+" | cut -f1 -d:|sort -u | sed -e 's|"+self.Core.Config.Get('HOST_OUTPUT')+"||g' -e 's|/"+Location.split('/')[-2]+"/|/|g'"
-                Command = 'grep -IHiE "'+Regexp+'" '+Location+" | cut -f1 -d:|sort -u"
-                return [ Command, self.Core.Shell.shell_exec_monitor(Command) ]
+        def GrepResponseBody(self, regex_name, regex, owtf_transaction):
+            return(self.Grep(regex_name, regex, owtf_transaction.GetRawResponseBody()))
 
-        def GrepSingleLineResponseRegexp(self, ResponseRegexp): # Single line, 1-pass retrieval
-                GrepLocation = self.Core.Config.Get('TRANSACTION_LOG_RESPONSE_BODIES')+self.GetScopePrefix()+"*"
-                return self.GrepForPartialLinks(ResponseRegexp, GrepLocation)
+        def GrepResponseHeaders(self, regex_name, regex, owtf_transaction):
+            return(self.Grep(regex_name, regex, owtf_transaction.GetResponseHeaders()))
 
-        def GrepMultiLineResponseRegexp(self, ResponseRegexp):
-                GrepLocation = self.Core.Config.Get('TRANSACTION_LOG_RESPONSE_BODIES')+self.GetScopePrefix()+"*"
-                return self.GrepUsingRegexp(ResponseRegexp, GrepLocation)
-
-        def GrepUsingRegexp(self, Regexp, GrepLocation):
-                Regexps = Regexp.split('_____')
-                if len(Regexps) == 3: # Multi-line, 2-pass retrieval 
-                        RegexpName, GrepRegexp, PythonRegexp = Regexps
-                        #print "PythonRegexp="+PythonRegexp
-                        Regexp = re.compile(PythonRegexp, re.IGNORECASE | re.DOTALL) # Compile before the loop for speed
-                        Command, Results = self.GrepForFiles(GrepRegexp, GrepLocation) # Returns response body files that match grep regexp
-                        Matches = []
-                        for File in Results.split("\n"):
-                                if File: # Skip garbage lines = not File
-                                        ID = File.split('_')[-1].split('.')[0] # Get Transaction ID from Filename
-                                        for FileMatch in Regexp.findall(open(File).read()):
-                                                Matches.append( [ ID, FileMatch ] ) # We only need the IDs, All paths retrieved from it
-                        return [ Command, RegexpName, Matches ] # Return All matches and the file they were retrieved from
-                else: # wtf?
-                        raise PluginAbortException("ERROR: Inforrect Configuration setting for Response Regexp: '"+str(Regexp)+"'")
+        def Grep(self, regex_name, regex, data):
+            results = regex.findall(data)
+            if results:
+                return([{regex_name: results}])
+            return([])

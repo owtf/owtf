@@ -52,9 +52,6 @@ class Reporter:
         # prepare the environment of html templates
         Loader = PackageLoader('framework.report', 'templates')
         self.Template_env = Environment(loader=Loader)
-        # make shortcuts to config functions
-        self.CCG = self.Core.Config.Get
-        self.CCGAPP = self.Core.Config.GetAsPartialPath
 
     def GetPluginDelim(self):
         return summary.PLUGIN_DELIM

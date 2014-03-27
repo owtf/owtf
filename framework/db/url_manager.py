@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The DB stores HTTP transactions, unique URLs and more. 
 '''
 from framework.lib.general import *
+from framework.db import models
 import logging
 import re
 
@@ -111,6 +112,15 @@ class URLManager:
                 log(Message)
                 return(NumURLsAfter - self.NumURLsBefore) #Message
 
+        def ImportProcessedURLs(self, urls_list, target = None):
+            Session = self.Core.DB.Target.GetUrlDBSession(target)
+            session = Session()
+            for url, visited, scope in urls_list:
+                session.merge(models.Url(url = url, visited = visited, scope = scope))
+                log("Added " + url)
+            session.commit()
+            session.close()
+
         def ImportURLs(self, url_list, target = None): # Extracts and classifies all URLs passed. Expects a newline separated URL list
             self.AddURLsStart()
             Session = self.Core.DB.Target.GetUrlDBSession(target)
@@ -120,3 +130,4 @@ class URLManager:
             session.commit()
             session.close()
             count = self.AddURLsEnd()
+            Message = str(count)+" URLs have been added and classified"

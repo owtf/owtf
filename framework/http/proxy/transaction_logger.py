@@ -62,7 +62,7 @@ class TransactionLogger(Process):
                         return [Target, self.get_scope_for_url(request.url, host_list)]
                 except KeyError:
                     pass
-        return [self.Core.DB.Config.GetTarget(), self.get_scope_for_url(request.url, host_list)]
+        return [self.Core.DB.Target.GetTarget(), self.get_scope_for_url(request.url, host_list)]
 
     def get_scope_for_url(self, url, host_list):
         return(urlparse(url).hostname in host_list)
@@ -97,7 +97,7 @@ class TransactionLogger(Process):
                 if glob.glob(os.path.join(self.cache_dir, "url", "*.rd")):
                     hash_list = self.get_hash_list(self.cache_dir)
                     transactions_dict = self.get_owtf_transactions(hash_list)
-                    self.Core.DB.Transaction.LogTransactions(transactions_dict)
+                    self.Core.DB.Transaction.LogTransactionsFromLogger(transactions_dict)
                 else:
                     time.sleep(2)
         except KeyboardInterrupt:

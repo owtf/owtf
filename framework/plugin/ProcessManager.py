@@ -114,7 +114,7 @@ class ProcessManager:
     #returns next work that can be done depending on RAM state and availability of targets
     def get_task(self):
         free_mem = self.Core.Shell.shell_exec("free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
-        if int(free_mem) > int(self.Core.Config.Get('MIN_RAM_NEEDED')):
+        if int(free_mem) > int(self.Core.DB.Config.Get('MIN_RAM_NEEDED')):
             for target,plugin in self.worklist:
                 #check if target is being used or not because we dont want to run more than one plugin on one target at one time
                 #check if RAM can withstand this plugin(training data from history of that plugin)
@@ -129,7 +129,7 @@ class ProcessManager:
     def spawnWorkers(self,Status):
         #check if maximum limit of processes has reached
         self.status = Status
-        self.processes_limit = min(int(self.Core.Config.Get('PROCESS_PER_CORE'))*multiprocessing.cpu_count(), len(self.targets))
+        self.processes_limit = min(int(self.Core.DB.Config.Get('PROCESS_PER_CORE'))*multiprocessing.cpu_count(), len(self.targets))
         while (len(self.workers) < self.processes_limit):
             if self.spawn_worker():
                 continue

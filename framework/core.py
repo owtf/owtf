@@ -162,10 +162,10 @@ class Core:
             # Check if port is in use
             try:
                 temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                temp_socket.bind((self.Config.Get('INBOUND_PROXY_IP'), int(self.Config.Get('INBOUND_PROXY_PORT'))))
+                temp_socket.bind((self.DB.Config.Get('INBOUND_PROXY_IP'), int(self.DB.Config.Get('INBOUND_PROXY_PORT'))))
                 temp_socket.close()
             except Exception:
-                self.Error.FrameworkAbort("Inbound proxy address " + self.Config.Get('INBOUND_PROXY_IP') + ":" + self.Config.Get("INBOUND_PROXY_PORT") + " already in use")
+                self.Error.FrameworkAbort("Inbound proxy address " + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT") + " already in use")
 
             # If everything is fine
             self.ProxyProcess = proxy.ProxyProcess( 
@@ -175,13 +175,13 @@ class Core:
                                                   )
             poison_q = multiprocessing.Queue()
             self.TransactionLogger = transaction_logger.TransactionLogger(self, poison_q)
-            cprint("Starting Inbound proxy at " + self.Config.Get('INBOUND_PROXY_IP') + ":" + self.Config.Get("INBOUND_PROXY_PORT"))
+            cprint("Starting Inbound proxy at " + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT"))
             self.ProxyProcess.start()
             cprint("Starting Transaction logger process")
             self.TransactionLogger.start()
-            self.Requester = requester.Requester(self, [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')])
-            cprint("Proxy transaction's log file at %s"%(self.Config.Get("PROXY_LOG")))
-            cprint("Visit http://" + self.Config.Get('INBOUND_PROXY_IP') + ":" + self.Config.Get("INBOUND_PROXY_PORT") + "/proxy to use Plug-n-Hack standard")
+            self.Requester = requester.Requester(self, [self.DB.Config.Get('INBOUND_PROXY_IP'), self.DB.Config.Get('INBOUND_PROXY_PORT')])
+            cprint("Proxy transaction's log file at %s"%(self.DB.Config.Get("PROXY_LOG")))
+            cprint("Visit http://" + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT") + "/proxy to use Plug-n-Hack standard")
             cprint("Execution of OWTF is halted.You can browse through OWTF proxy) Press Enter to continue with OWTF")
             if Options["Interactive"]:
                 raw_input()
@@ -261,13 +261,11 @@ class Core:
             return False # No processing required, just list available modules
         #self.messaging_admin.Init()
         self.Config.ProcessOptions(Options)
-        self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT')) # Requires user config
+        self.Timer = timer.Timer(self.DB.Config.Get('DATE_TIME_FORMAT')) # Requires user config
         self.Timer.StartTimer('core')
         Command = self.GetCommand(Options['argv'])
 
         #self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
-        if self.Config.Get('SIMULATION'):
-            cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
         #else: # Reporter process is not needed unless a real run
         #    self.start_reporter()
         self.StartProxy(Options) # Proxy mode is started in that function
@@ -310,7 +308,7 @@ class Core:
     def Finish(self, Status = 'Complete', Report = True):
         if self.TOR_process != None:
             self.TOR_process.terminate()
-        if self.Config.Get('SIMULATION'):
+        if self.DB.Config.Get('SIMULATION'):
             if hasattr(self,'messaging_admin'):
                 self.messaging_admin.finishMessaging()
             self.exitOutput()
@@ -330,7 +328,7 @@ class Core:
                 cprint("OWTF iteration finished")
 
                 if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
-                    cprint('Errors saved to ' + self.Config.Get('ERROR_DB') + '. Would you like us to auto-report bugs ?')
+                    cprint('Errors saved to ' + self.Config.FrameworkConfigGet('ERROR_DB_NAME') + '. Would you like us to auto-report bugs ?')
                     choice = raw_input("[Y/n] ")
                     if choice != 'n' or choice != 'N':
                         self.ReportErrorsToGithub()

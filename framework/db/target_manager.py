@@ -74,8 +74,11 @@ class TargetDB(object):
         # Target DB Health Check
         session = self.TargetConfigDBSession()
         target_list = session.query(models.Target).all()
-        for target in target_list:
-            self.Core.DB.Target.CreateMissingDBsForTarget(target.url)
+        if target_list: 
+        # If needed inorder to prevent an uninitialized value for target in self.SetTarget(target) few lines later
+            for target in target_list:
+                self.Core.DB.Target.CreateMissingDBsForTarget(target.url)
+            self.SetTarget(target) # This is to avoid "None" value for the main settings
 
     def AddTarget(self, TargetURL):
         target_config = self.Core.Config.DeriveConfigFromURL(TargetURL)
@@ -88,6 +91,7 @@ class TargetDB(object):
         session.commit()
         session.close()
         self.CreateMissingDBsForTarget(TargetURL)
+        self.SetTarget(TargetURL)
 
     def CreateMissingDBsForTarget(self, TargetURL):
         self.Core.Config.CreateDBDirForTarget(TargetURL)

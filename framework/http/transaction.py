@@ -91,24 +91,28 @@ class HTTP_Transaction(object):
         self.ResponseContents = Response.read()
         self.EndRequest()
 
-    def SetTransactionFromDB(self, IndexRec, Request, ResponseHeaders, ResponseBody):
+    def SetTransactionFromDB(self, url, method, status, time, time_human, request_data, raw_request, response_headers, response_body, grep_output):
         self.New = False # Flag NOT new transaction
-        self.Time = IndexRec['Time']
-        self.TimeHuman = IndexRec['TimeHuman']
-        self.Status = IndexRec['Status']
+        self.URL = url
+        self.Method = method
+        self.Status = status
         self.Found = (self.Status == "200 OK")
-        self.Method = IndexRec['Method']
-        self.URL = IndexRec['URL']
-        self.Data = IndexRec['Data']
-        self.RawRequest = Request
+        self.Time = time
+        self.TimeHuman = time_human
+        self.Data = request_data
+        self.RawRequest = raw_request
         #self.ResponseHeaders = ResponseHeaders.split("\n")
-        self.ResponseHeaders = ResponseHeaders
-        self.ResponseContents = ResponseBody
+        self.ResponseHeaders = response_headers
+        self.ResponseContents = response_body
+        self.GrepOutput = grep_output
         cookies_list = []
         for header in self.ResponseHeaders.split('\n'):
             if header.split(':',1)[0].strip() == "Set-Cookie":
                 cookies_list.append(header.split(':',1)[-1].strip())
         self.CookieString = ','.join(cookies_list)
+
+    def GetGrepOutput(self):
+        return(self.GrepOutput)
 
     def SetError(self, ErrorMessage): # Only called for unknown errors, 404 and other HTTP stuff handled on self.SetResponse
         self.ResponseContents = ErrorMessage
@@ -138,11 +142,8 @@ class HTTP_Transaction(object):
     def GetRawRequest(self):
         return self.RawRequest
 
-    def GetStatus(self, WithStatus = True):
-        Status = ''
-        if WithStatus:
-            Status = self.Status+"\n"
-        return Status
+    def GetStatus(self):
+        return self.Status
 
     def GetCookies(self): # Returns a list of easy to use Cookie objects to avoid parsing string each time, etc
         return cookie_factory.CookieFactory().CreateCookiesFromStr(self.CookieString)
@@ -167,7 +168,10 @@ class HTTP_Transaction(object):
         self.URL = request.url
         self.InitData(request.body)
         self.Method = request.method
-        self.Status = str(response.code) + " " + response_messages[int(response.code)]
+        try:
+            self.Status = str(response.code) + " " + response_messages[int(response.code)]
+        except KeyError:
+            self.Status = str(response.code) + " " + "Unknown Error"
         self.RawRequest = request.raw_request
         self.ResponseHeaders = response.header_string
         self.ResponseContents = response.body
