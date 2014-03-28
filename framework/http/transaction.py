@@ -39,6 +39,7 @@ class HTTP_Transaction(object):
     def __init__(self, Timer):
         self.Timer = Timer
         self.New = False
+        self.GrepOutput = {} # If None, then get method will result in an error ;)
 
     def ScopeToStr(self):
         return str(self.IsInScope)[0]
@@ -113,6 +114,9 @@ class HTTP_Transaction(object):
 
     def GetGrepOutput(self):
         return(self.GrepOutput)
+
+    def GrepByRegexName(self, regex_name): # Highly misleading name as grepping is already done when adding the transaction
+        return(self.GrepOutput.get(regex_name, default=None)) # To prevent python from going crazy when a key is missing
 
     def SetError(self, ErrorMessage): # Only called for unknown errors, 404 and other HTTP stuff handled on self.SetResponse
         self.ResponseContents = ErrorMessage

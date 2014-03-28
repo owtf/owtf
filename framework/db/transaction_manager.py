@@ -39,20 +39,7 @@ import json
 import re
 import logging
 
-# Transaction DB field order:
-# LogID, LogTime, LogTimeHuman, LogStatus, LogMethod, LogURL, LogData
-TLOG_ID = 0
-TLOG_SCOPE = 1 
-TLOG_TIME = 2 
-TLOG_TIMEHUMAN = 3
-TLOG_STATUS = 4 
-TLOG_METHOD = 5 
-TLOG_URL = 6 
-TLOG_DATA = 7 
-
-NAME_TO_OFFSET = { 'ID' : TLOG_ID, 'Scope' : TLOG_SCOPE, 'Time' : TLOG_TIME, 'TimeHuman' : TLOG_TIMEHUMAN, 'Status' : TLOG_STATUS, 'Method' : TLOG_METHOD, 'URL' : TLOG_URL, 'Data' : TLOG_DATA }
-
-REGEX_TYPES = ['headers', 'body']
+REGEX_TYPES = ['headers', 'body'] # The regex find differs for these types :P
 
 class TransactionManager(object):
         def __init__(self, Core):
@@ -65,7 +52,7 @@ class TransactionManager(object):
         def NumTransactions(self, Scope = True): # Return num transactions in scope by default
                 Session = self.Core.DB.Target.GetTransactionDBSession()
                 session = Session()
-                count = session.query(models.Transaction).filter(Scope).count()
+                count = session.query(models.Transaction).filter_by(scope = Scope).count()
                 session.close()
                 return(count)
 
@@ -119,10 +106,10 @@ class TransactionManager(object):
                 owtf_transaction.SetTransactionFromDB(
                                                         t.url,
                                                         t.method,
-                                                        t.status,
+                                                        t.response_status,
                                                         str(t.time),
                                                         t.time_human,
-                                                        t.request_data,
+                                                        t.data,
                                                         t.raw_request,
                                                         t.response_headers,
                                                         response_body,
@@ -134,7 +121,7 @@ class TransactionManager(object):
         def DeriveTransactions(self, transactions):
             owtf_tlist = []
             for transaction in transactions:
-                owtf_tlist.append(self.SetTransaction(transaction))
+                owtf_tlist.append(self.DeriveTransaction(transaction))
             return(owtf_tlist)
 
         def FilterByURL(self, query, url):
@@ -184,35 +171,34 @@ class TransactionManager(object):
             urls_list = []
             for transaction in transaction_list:
                 # TODO: This shit will go crazy on non-ascii characters
-                #try:
-                unicode(transaction.GetRawResponseBody(), "utf-8")
-                response_body = transaction.GetRawResponseBody()
-                is_binary = False
-                grep_output = json.dumps(self.GrepTransaction(transaction))
-                """
+                try:
+                    unicode(transaction.GetRawResponseBody(), "utf-8")
+                    response_body = transaction.GetRawResponseBody()
+                    is_binary = False
+                    grep_output = json.dumps(self.GrepTransaction(transaction)) if transaction.InScope() else None
                 except UnicodeDecodeError:
                     response_body = buffer(transaction.GetRawResponseBody())
                     is_binary = True
                     grep_output = None
                 finally:
-                """
-                session.add(models.Transaction( url = transaction.URL,
-                                                scope = transaction.InScope(),
-                                                method = transaction.Method,
-                                                data = transaction.Data,
-                                                time = float(transaction.Time),
-                                                time_human = transaction.TimeHuman,
-                                                raw_request = transaction.GetRawRequest(),
-                                                response_status = transaction.GetStatus(),
-                                                response_headers = transaction.GetResponseHeaders(),
-                                                response_body = response_body,
-                                                response_binary = is_binary,
-                                                grep_output = grep_output
-                                              ))
+                    session.add(models.Transaction( url = transaction.URL,
+                                                    scope = transaction.InScope(),
+                                                    method = transaction.Method,
+                                                    data = transaction.Data,
+                                                    time = float(transaction.Time),
+                                                    time_human = transaction.TimeHuman,
+                                                    raw_request = transaction.GetRawRequest(),
+                                                    response_status = transaction.GetStatus(),
+                                                    response_headers = transaction.GetResponseHeaders(),
+                                                    response_body = response_body,
+                                                    response_binary = is_binary,
+                                                    grep_output = grep_output
+                                                  ))
                 urls_list.append([transaction.URL, True, transaction.InScope()])
             session.commit()
             session.close()
             self.Core.DB.URL.ImportProcessedURLs(urls_list)
+            print(self.SearchByRegexName("HEADERS_FOR_FINGERPRINT"))
                                                 
         def LogTransactionsFromLogger(self, transactions_dict):
             for target, transaction_list in transactions_dict.items():
@@ -258,11 +244,11 @@ class TransactionManager(object):
                     self.regexs['body'][key] = self.CompileResponseRegex(PythonRegexp)
 
         def GrepTransaction(self, owtf_transaction):
-            grep_output = []
+            grep_output = {}
             for regex_name, regex in self.regexs['headers'].items():
-                grep_output += self.GrepResponseHeaders(regex_name, regex, owtf_transaction)
+                grep_output.update(self.GrepResponseHeaders(regex_name, regex, owtf_transaction))
             for regex_name in self.regexs['body'].items():
-                grep_output += self.GrepResponseBody(regex_name, regex, owtf_transaction)
+                grep_output.update(self.GrepResponseBody(regex_name, regex, owtf_transaction))
             return(grep_output)
 
         def GrepResponseBody(self, regex_name, regex, owtf_transaction):
@@ -274,5 +260,24 @@ class TransactionManager(object):
         def Grep(self, regex_name, regex, data):
             results = regex.findall(data)
             if results:
-                return([{regex_name: results}])
-            return([])
+                return({regex_name: results})
+            return({})
+
+        def SearchByRegexName(self, regex_name, target = None):
+            Session = self.Core.DB.Target.GetTransactionDBSession(target)
+            session = Session()
+            transaction_models = session.query(models.Transaction).filter(models.Transaction.grep_output.like("%"+regex_name+"%")).all()
+            num_transactions_in_scope = session.query(models.Transaction).filter_by(scope = True).count()
+            session.close()
+            return([regex_name, self.DeriveTransactions(transaction_models), num_transactions_in_scope])
+
+        def SearchByRegexNames(self, name_list, target = None):
+            Session = self.Core.DB.Target.GetTransactionDBSession(target)
+            session = Session()
+            results = []
+            for regex_name in name_list:
+                transaction_models = session.query(models.Transaction).filter(models.Transaction.grep_output.like("%"+regex_name+"%")).all()
+                num_transactions_in_scope = session.query(models.Transaction).filter_by(scope = True).count()
+                results.append([regex_name, self.DeriveTransactions(transaction_models, num_transactions_in_scope])
+            session.close()
+            return(results)

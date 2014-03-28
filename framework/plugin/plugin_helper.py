@@ -615,11 +615,10 @@ class PluginHelper:
         def DrawTransactionTableForURLList( self, UseCache, URLList, Method = '', Data = '' ):
                 return self.Core.Reporter.DrawHTTPTransactionTable( self.Core.Requester.GetTransactions( UseCache, URLList, Method, Data ) )
 
-        def GetTransactionStats( self, NumMatchedTransactions ):
-                TotalTransac = self.Core.DB.Transaction.GetNumTransactionsInScope()
-                Percentage = round( NumMatchedTransactions * 100 / max( TotalTransac, 1 ), 2 )
-                StatsStr = str( NumMatchedTransactions ) + " out of " + str( TotalTransac ) + " (" + str( Percentage ) + "%)"
-                return [ NumMatchedTransactions, TotalTransac, Percentage, StatsStr ]
+        def GetTransactionStats( self, NumMatchedTransactions , NumTotalTransactions):
+                Percentage = round( NumMatchedTransactions * 100 / max( NumTotalTransactions, 1 ), 2 )
+                StatsStr = str( NumMatchedTransactions ) + " out of " + str( NumTotalTransactions ) + " (" + str( Percentage ) + "%)"
+                return [ Percentage, StatsStr ]
 
         def CreateMatchTable( self ):
                 Table = self.Core.Reporter.Render.CreateTable( {'class' : 'transaction_log'} )
@@ -730,36 +729,10 @@ class PluginHelper:
                         Result += self.FindMultilineResponseMatchesForRegexp( ResponseRegexp, PluginInfo )
                 return Result
 
-        def FindHeaders( self, HeaderList ):
-                HeaderDict = defaultdict( list )
-                HeaderLines = []
-                AllValues = []
-                Header2TransacDict = {}
-                TransactionFiles = []
-                Command, Headers = self.Core.DB.Transaction.GrepHeaders( HeaderList )
-                for Header in Headers.split( "\n" ):
-                        TransacFile = Header.split( ":" )[0]
-                        HeaderLine = Header.replace( TransacFile + ":", "" ).strip()
-                        if not HeaderLine:
-                                continue #Skip blank lines
-                        HeaderName = HeaderLine.split( ':' )[0]
-                        HeaderValue = HeaderLine.replace( HeaderName + ": ", "" ).strip() # Replace respecting case!
-                        if 'No such file or directory' == HeaderValue:
-                                continue # Skip garbage errors
-                        if TransacFile not in TransactionFiles: # Count unique transactions
-                                TransactionFiles.append( TransacFile )
-                        if HeaderLine in HeaderLines:
-                                continue # Skip already processed headers
-                        HeaderLines.append( HeaderLine )
-                        HeaderName = HeaderName.lower() # Now force lowercase to ensure match later!
-                        HeaderDict[HeaderName].append( HeaderValue )
-                        AllValues.append( HeaderValue )
-                        Header2TransacDict[HeaderName + HeaderValue] = TransacFile
-                return [ Command, HeaderDict, AllValues, Header2TransacDict , len( TransactionFiles ) ]
-
-        def ResearchHeaders( self, HeaderList ):
-                Command, HeaderDict, AllValues, Header2TransacDict, NuTransactions = self.FindHeaders( HeaderList )
-                NuTransactions, TotalTransac, Percentage, StatsStr = self.GetTransactionStats( NuTransactions )
+        def ResearchHeaders( self, RegexName ):
+                RegexName, Transactions, TotalTransac = self.Core.DB.Transaction.SearchByRegexName(RegexName)
+                NuTransactions = len(Transactions)
+                Percentage, StatsStr = self.GetTransactionStats( len(Transactions), TotalTransac )
                 template = Template( """
                 <table class="table table-bordered table-striped ">
                     <thead>
@@ -780,10 +753,6 @@ class PluginHelper:
                         <tr>
                                 <th>HTTP Transaction Stats</th>
                                 <td class='alt'> {{ StatsStr }} matched </td>
-                        </tr>
-                        <tr>
-                                <th>Analysis Command</th>
-                                <td><pre>{{ Command|e }}</pre></td>
                         </tr>
                 </tbody>
                 </table>
@@ -828,14 +797,11 @@ class PluginHelper:
                 vars = {
                                         "HTMLTransacLogLink":self.Core.Config.GetHTMLTransaclog( False ),
                                         "StatsStr": StatsStr,
-                                        "Command": Command,
-                                        "HeaderList":HeaderList,
-                                        "HeaderDict": HeaderDict,
-                                        "Header2TransacDict": Header2TransacDict,
+                                        "HeaderList":self.Core.GetHeaderList(RegexName),
                                         }
 
 
-                return [ AllValues, template.render( vars ), HeaderDict, Header2TransacDict , NuTransactions ]
+                return(template.render( vars ))
 
 
         def CookieAttributeAnalysis( self, CookieValueList, Header2TransacDict ):

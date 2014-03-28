@@ -134,10 +134,10 @@ class Core:
         return " ".join(argv).replace(argv[0], os.path.basename(argv[0]))
 
     def AnonymiseCommand(self, Command):
-        for Host in self.Config.GetAll('HOST_NAME'): # Host name setting value for all targets in scope
+        for Host in self.DB.Target.GetAll('HOST_NAME'): # Host name setting value for all targets in scope
             if Host: # Value is not blank
                 Command = Command.replace(Host, 'some.target.com')
-        for ip in self.Config.GetAll('HOST_IP'):
+        for ip in self.DB.Target.GetAll('HOST_IP'):
             if ip:
                 Command = Command.replace(ip, 'xxx.xxx.xxx.xxx')
         return Command        
