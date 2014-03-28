@@ -24,7 +24,7 @@ Features
 - Easy to configure: config files are easy to read and modify
 - Easy to run: No strange parameters, DB setup requirements, libraries, complex dependencies, etc
 - Full control of what tests to run, interactivity and hopefully easy to follow examples and help :)
-- Easy to review trasaction log and plain text files with URLs, simple for scripting
+- Easy to review transaction logs and plain text files with URLs, simple for scripting
 - Basic Google Hacking without (annoying) API Key requirements via "blanket searches", trying a bunch of operators at once, you can then narrow the search down if you find something interesting.
 - Easy to extract data from the database to parse or pass to other tools: They are all text files
 
