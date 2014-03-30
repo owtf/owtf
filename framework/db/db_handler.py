@@ -39,9 +39,9 @@ class DBHandler:
     FieldDBNames = [ 'TRANSACTION_LOG_TXT', 'RUN_DB', 'COMMAND_REGISTER', 'PLUGIN_REPORT_REGISTER', 'DETAILED_REPORT_REGISTER' ] # Field-based DBs
     LineDBNames = [ 
 # Vetted URL DBs:
-'ALL_URLS_DB', 'ERROR_URLS_DB', 'FILE_URLS_DB', 'IMAGE_URLS_DB', 'FUZZABLE_URLS_DB', 'EXTERNAL_URLS_DB'
+'ALL_URLS_DB', 'ERROR_URLS_DB', 'FILE_URLS_DB', 'IMAGE_URLS_DB', 'FUZZABLE_URLS_DB', 'EXTERNAL_URLS_DB', 'SSI_URLS_DB'
 # Potential URL DBs (scraped from other tools):
-, 'POTENTIAL_ALL_URLS_DB', 'POTENTIAL_ERROR_URLS_DB', 'POTENTIAL_FILE_URLS_DB', 'POTENTIAL_IMAGE_URLS_DB', 'POTENTIAL_FUZZABLE_URLS_DB', 'POTENTIAL_EXTERNAL_URLS_DB' 
+, 'POTENTIAL_ALL_URLS_DB', 'POTENTIAL_ERROR_URLS_DB', 'POTENTIAL_FILE_URLS_DB', 'POTENTIAL_IMAGE_URLS_DB', 'POTENTIAL_FUZZABLE_URLS_DB', 'POTENTIAL_EXTERNAL_URLS_DB', 'POTENTIAL_SSI_URLS_DB' 
 # Other DBs:
 , 'TRANSACTION_LOG_HTML', 'ERROR_DB', 'SEED_DB', 'HTMLID_DB', 'DEBUG_DB', 'UNREACHABLE_DB' ] # Line-based DBs
     # DBs which have rows that could change (most are append-only):
@@ -52,6 +52,7 @@ class DBHandler:
         self.DBNames = sorted(self.FieldDBNames + self.LineDBNames)
         self.Core = Core # Need access to reporter for pretty html trasaction log
         self.Storage = defaultdict(list)
+        self.OldErrorCount = 0
     
     def GetFieldSeparator(self):
         return FIELD_SEPARATOR
@@ -65,6 +66,7 @@ class DBHandler:
             self.Add('SEED_DB', self.Core.Random.GetStr(10)) # Generate a long random seed for this test
         self.RandomSeed = self.GetRecord('SEED_DB', 0)
         self.Core.DB.Transaction.SetRandomSeed(self.RandomSeed)
+        self.OldErrorCount = self.GetLength('ERROR_DB')
 
     def GetPath(self, DBName):
         return self.Core.Config.Get(DBName)
@@ -240,4 +242,7 @@ Record="""+str(Record)+"""
             self.Add('ERROR_DB', Line)
 
     def ErrorCount(self):
-        return self.GetLength('ERROR_DB') # Counts error lines but we only want to know if there has been a framework error or not
+        return (self.GetLength('ERROR_DB') - self.OldErrorCount)# Counts error lines but we only want to know if there has been a framework error or not
+
+    def ErrorData(self):
+        return self.GetData('ERROR_DB')[self.OldErrorCount:]

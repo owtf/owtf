@@ -1,4 +1,10 @@
 #!/usr/bin/env sh
+#
+# Description:
+#       Script to fix the nikto config to use a normal-looking User Agent so that we can hopefully bypass simple WAF blacklists
+#
+# Date:    2012-09-24
+#
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 # Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 # All rights reserved.
@@ -25,47 +31,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-IsInstalled() {
-	directory=$1
-	if [ -d $directory ]; then
-		return 1
-	else
-		return 0
+
+NIKTO_CONF_FILE="/etc/nikto.conf"
+NIKTO_CONF_BACKUP="$NIKTO_CONF_FILE.backup"
+if [ $(grep 'USERAGENT=Mozilla/.* (Nikto' $NIKTO_CONF_FILE|wc -l) -gt 0 ]; then
+	echo -e "\n[*] Nikto is currently set to display a NIKTO USER AGENT, do you want to replace this with a normal looking one? [Y/n]"
+	read a
+	if [ "$a" != "n" ]; then
+		echo "Backing up previous $NIKTO_CONF_FILE to $NIKTO_CONF_BACKUP.."
+		cp $NIKTO_CONF_FILE $NIKTO_CONF_BACKUP
+		echo "Updating nikto configuration to use a normal-looking user agent.."
+		cat $NIKTO_CONF_BACKUP | sed 's|^USERAGENT=Mozilla/.* (Nikto.*$|USERAGENT=Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/20.0|' > $NIKTO_CONF_FILE
 	fi
-}
-
-RootDir=$1
-
-########### Pip is the foremost thing that must be installed along with some needed dependencies for python libraries
-sudo -E apt-get install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev
-export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip in kali
-
-
-############ Tools missing in Kali
-#mkdir -p $RootDir/tools/restricted
-#cd $RootDir/tools/restricted
-#IsInstalled "w3af"
-#if [ $? -eq 0 ]; then # Not installed
-#    git clone https://github.com/andresriancho/w3af.git
-#fi
-
-echo "[*] Installing LBD, arachni and gnutls-bin from Kali Repos"
-sudo -E apt-get install lbd gnutls-bin arachni
-
-########## Patch scripts
-"$RootDir/install/kali/kali_patch_w3af.sh"
-"$RootDir/install/kali/kali_patch_nikto.sh"
-"$RootDir/install/kali/kali_patch_tlssled.sh"
-"$RootDir/install/kali/kali_patch_openvas.sh" $RootDir
-###### Dictionaries missing in Kali
-cd $RootDir/dictionaries/restricted
-IsInstalled "dirbuster"
-if [ $? -eq 0 ]; then # Not installed    
-    # Copying dirbuster dicts
-    echo "\n[*] Copying Dirbuster dictionaries"
-    mkdir -p dirbuster
-    cp -r /usr/share/dirbuster/wordlists/. dirbuster/.
-    echo "[*] Done"
 else
-    echo "WARNING: Dirbuster dictionaries are already installed, skipping"
+	echo "Nikto configuration is already set to use a normal-looking user agent"
 fi

@@ -92,12 +92,12 @@ class Config:
         self.Set('FORCE_OVERWRITE', Options['Force_Overwrite']) # True/False
         self.Set('INTERACTIVE', Options['Interactive']) # True/False
         self.Set('SIMULATION', Options['Simulation']) # True/False
-       
+
         self.Set('PORTWAVES' ,Options['PortWaves'])
         self.LoadPluginTestGroups(Options['PluginGroup'])
         self.LoadProfilesAndSettings(Options)
         # After all initialisations, run health-check:
-        self.HealthCheck.Run()
+        self.HealthCheck.run()
 
     def LoadPluginTestGroups(self, PluginGroup):
         if(PluginGroup == 'web'):
@@ -110,7 +110,7 @@ class Config:
         self.LoadProxyConfigurations(Options)
         self.DeriveGlobalSettings()
         self.DeriveFromTarget(Options)
-        
+
     def LoadProxyConfigurations(self, Options):
         if Options['InboundProxy']:
             if len(Options['InboundProxy']) == 1:
@@ -158,8 +158,8 @@ class Config:
             self.Set('HTML_DETAILED_REPORT_PATH', self.Get('OUTPUT_PATH')+"/aux.html") # IMPORTANT: For localStorage to work Url reports must be on the same directory
             self.InitHTTPDBs(self.Get('AUX_OUTPUT_PATH')+"/db/") # Aux modules can make HTTP requests, but these are saved on aux DB
             self.Set('REVIEW_OFFSET', 'AUX')
-            self.Set('SUMMARY_HOST_IP', '') 
-            self.Set('SUMMARY_PORT_NUMBER', '') 
+            self.Set('SUMMARY_HOST_IP', '')
+            self.Set('SUMMARY_PORT_NUMBER', '')
             self.Set('REPORT_TYPE', 'AUX')
             self.SetTarget('aux') # No Target for Aux plugins -> They work in a different way. But need target here for conf. to work properly
 
@@ -195,24 +195,22 @@ class Config:
 
     def IsResourceType(self, ResourceType):
         return ResourceType in self.Resources
-        
+
     def GetTcpPorts(self,startport,endport):
         PortFile = open(self.Get('TCP_PORT_FILE'), 'r')
         for line in PortFile:
             PortList = line.split(',')
             response = ','.join(PortList[int(startport):int(endport)])
-            
         return response
-    
+
     def GetUdpPorts(self,startport,endport):
         PortFile = open(self.Get('UDP_PORT_FILE'), 'r')
         for line in PortFile:
             PortList = line.split(',')
             response = ','.join(PortList[int(startport):int(endport)])
-        return response     
-            
+        return response
 
-    def GetResources(self, ResourceType): # Transparently replaces the Resources placeholders with the relevant config information 
+    def GetResources(self, ResourceType): # Transparently replaces the Resources placeholders with the relevant config information
         ReplacedResources = []
         if self.Core.ProxyMode:
             ResourceType += ""#"Proxified"
@@ -233,7 +231,7 @@ class Config:
 
     def GetRawResources(self, ResourceType):
         return self.Resources[ResourceType]
-        
+
     def DeriveGlobalSettings(self):
         self.Set('FRAMEWORK_DIR', self.RootDir)
         DBPath = self.Get('OUTPUT_PATH')+"/db/" # Global DB
@@ -284,7 +282,7 @@ class Config:
                             if service =='httprpc':
                                                 service = 'http_rpc'
                             self.Set(service.upper()+"_PORT_NUMBER",Port)
-                                
+
             Port = '80'
             if 'https' == URLScheme:
                 Port = '443'
@@ -299,7 +297,7 @@ class Config:
         #Port = '80'
         #if len(DotChunks) == 2: # Case: http://myhost.com -> Derive port from http / https
         #   if 'https' == URLScheme:
-        #       Port = '443'    
+        #       Port = '443'
         #else: # Derive port from ":xyz" URL part
         #   Port = DotChunks[2].split('/')[0]
         self.Set('HOST_PATH',HostPath) # Needed for google resource search
@@ -350,6 +348,7 @@ class Config:
         self.Set('IMAGE_URLS_DB', DBPath+'image_urls.txt') # URLs for images
         self.Set('FUZZABLE_URLS_DB', DBPath+'fuzzable_urls.txt') # Potentially fuzzable URLs
         self.Set('EXTERNAL_URLS_DB', DBPath+'external_urls.txt') # Out of scope URLs
+        self.Set('SSI_URLS_DB', DBPath+'ssi_urls.txt') # SSI  URLs
 
         self.Set('POTENTIAL_ALL_URLS_DB', DBPath+'potential_urls.txt') # All seen URLs
         # POTENTIAL_ERROR_URLS is never used in the DB but helps simplify the code (vetted urls more similar to potential urls)
@@ -358,6 +357,7 @@ class Config:
         self.Set('POTENTIAL_IMAGE_URLS_DB', DBPath+'potential_image_urls.txt') # URLs for images 
         self.Set('POTENTIAL_FUZZABLE_URLS_DB', DBPath+'potential_fuzzable_urls.txt') # Potentially fuzzable URLs
         self.Set('POTENTIAL_EXTERNAL_URLS_DB', DBPath+'potential_external_urls.txt') # Out of scope URLs
+        self.Set('POTENTIAL_SSI_URLS_DB', DBPath+'potential_ssi_urls.txt') # SSI URLs
 
     def DeriveConfigFromURL(self, TargetURL,Options): # Basic configuration tweaks to make things simpler for the plugins
         self.DeriveURLSettings(TargetURL,Options)
@@ -371,7 +371,7 @@ class Config:
 
     def GetHTMLTransaclog(self, Partial = False):
         return self.GetFileName('TRANSACTION_LOG_HTML', Partial)
-    
+
     def GetTXTTransaclog(self, Partial = False):
         return self.GetFileName('TRANSACTION_LOG_TXT', Partial)
 
@@ -466,7 +466,7 @@ class Config:
     def Set(self, Key, Value): # Transparently set config items in Target-specific or General config
         Key = REPLACEMENT_DELIMITER+Key+REPLACEMENT_DELIMITER # Store config in "replacement mode", that way we can multiple-replace the config on resources, etc
         Type = 'other'
-        if isinstance(Value, str): # Only when value is a string, store in replacements config 
+        if isinstance(Value, str): # Only when value is a string, store in replacements config
             Type = 'string'
         if self.Target == None:
             return self.SetGeneral(Type, Key, Value)

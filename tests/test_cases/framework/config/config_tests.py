@@ -21,7 +21,7 @@ class ConfigTests(BaseTestCase):
 
     def test_ProcessOptions_has_to_run_a_health_check_and_set_some_values(self):
         health_check = flexmock()
-        health_check.should_receive("Run").once()
+        health_check.should_receive("run").once()
         self.config.HealthCheck = health_check
         flexmock(self.config)
         self.config.should_receive("LoadProfilesAndSettings").once()

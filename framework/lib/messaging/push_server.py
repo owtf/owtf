@@ -68,4 +68,3 @@ def handle_request(callback_function,queue,queue_name="push"):
         except Exception,e:
             general.log("Unexpected Push server error: "+str(e))
             break
-                   

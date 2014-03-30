@@ -302,6 +302,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                             host,
                             self.application.ca_cert,
                             self.application.ca_key,
+                            self.application.ca_key_pass,
                             self.application.certs_folder,
                             success=ssl_success
                            )
@@ -567,8 +568,23 @@ class ProxyProcess(Process):
         # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory ~/.owtf/proxy )
         self.application.ca_cert = os.path.expanduser(self.application.Core.Config.Get('CA_CERT'))
         self.application.ca_key = os.path.expanduser(self.application.Core.Config.Get('CA_KEY'))
+        try: # To stop owtf from breaking for our beloved users :P
+            self.application.ca_key_pass = open(os.path.expanduser(self.application.Core.Config.Get('CA_PASS_FILE')),'r').read().strip()
+        except IOError:
+            self.application.ca_key_pass = "owtf"
         self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
         self.application.certs_folder = os.path.expanduser(self.application.Core.Config.Get('CERTS_FOLDER'))
+
+        try: # Ensure CA.crt and Key exist
+            assert os.path.exists(self.application.ca_cert)
+            assert os.path.exists(self.application.ca_key)
+        except AssertionError:
+            core.Error.FrameworkAbort("Files required for SSL MiTM are missing. Please run the install script")
+
+        try: # If certs folder missing, create that
+            assert os.path.exists(self.application.certs_folder)
+        except AssertionError:
+            os.makedirs(self.application.certs_folder)
         
         # Blacklist (or) Whitelist Cookies
         # Building cookie regex to be used for cookie filtering for caching

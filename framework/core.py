@@ -53,6 +53,7 @@ import re
 import shutil
 import signal
 import subprocess
+import socket
 from framework import random
 from framework.lib.messaging import messaging_admin
 from framework.report.reporting_process import reporting_process
@@ -229,6 +230,15 @@ class Core:
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
         if not self.Config.Get('SIMULATION'):
+            # Check if port is in use
+            try:
+                temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                temp_socket.bind((self.Config.Get('INBOUND_PROXY_IP'), int(self.Config.Get('INBOUND_PROXY_PORT'))))
+                temp_socket.close()
+            except Exception:
+                self.Error.FrameworkAbort("Inbound proxy address " + self.Config.Get('INBOUND_PROXY') + " already in use")
+
+            # If everything is fine
             self.ProxyProcess = proxy.ProxyProcess( 
                                                     self,
                                                     Options['OutboundProxy'],
@@ -360,6 +370,16 @@ class Core:
             return False
         return True # Scan was successful
 
+    def ReportErrorsToGithub(self):
+        cprint("Do you want to add any extra info to the bug report ? [Just press Enter to skip]")
+        info = raw_input("> ")
+        cprint("Do you want to add your GitHub username to the report? [Press Enter to skip]")
+        user = raw_input("Reported by @")
+        if self.Error.AddGithubIssue(Info=info, User=user):
+            cprint("Github issue added, Thanks for reporting!!")
+        else:
+            cprint("Unable to add github issue, but thanks for trying :D")
+
     def Finish(self, Status = 'Complete', Report = True):
         if self.TOR_process != None:
             self.TOR_process.terminate()
@@ -381,9 +401,15 @@ class Core:
                         #self.Reporter.ReportFinish() # Must save the report again at the end regarless of Status => Update Run info
                     #self.Config.SetTarget(PreviousTarget) # Restore previous target
                 cprint("OWTF iteration finished")
+
                 if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
-                    cprint("Please report the sanitised errors saved to "+self.Config.Get('ERROR_DB'))
-                #self.dbHandlerProcess.join()    
+                    cprint('Errors saved to ' + self.Config.Get('ERROR_DB') + '. Would you like us to auto-report bugs ?')
+                    choice = raw_input("[Y/n] ")
+                    if choice != 'n' and choice != 'N':
+                        self.ReportErrorsToGithub()
+                    else:
+                        cprint("We know that you are planning on submitting it manually ;)")
+                #self.dbHandlerProcess.join()
             except AttributeError: # DB not instantiated yet!
                 cprint("OWTF finished: No time to report anything! :P")
             finally:

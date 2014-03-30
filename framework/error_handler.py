@@ -34,71 +34,98 @@ import logging
 import traceback
 import sys
 import cgi
+import json
+import urllib2
 
 class ErrorHandler:
-	Command = ''
-	PaddingLength = 100
+        Command = ''
+        PaddingLength = 100
 
-	def __init__(self, Core):
-		self.Core = Core
-		self.Padding = "\n" + "_" * self.PaddingLength + "\n\n"
-		self.SubPadding = "\n" + "*" * self.PaddingLength + "\n"
+        def __init__(self, Core):
+                self.Core = Core
+                self.Padding = "\n" + "_" * self.PaddingLength + "\n\n"
+                self.SubPadding = "\n" + "*" * self.PaddingLength + "\n"
 
-	def SetCommand(self, Command):
-		self.Command = Command
+        def SetCommand(self, Command):
+                self.Command = Command
 
-	def FrameworkAbort(self, Message, Report = True):
-		Message = "Aborted by Framework: "+Message
-		cprint(Message)
-		self.Core.Finish(Message, Report)
-		return Message
+        def FrameworkAbort(self, Message, Report = True):
+                Message = "Aborted by Framework: "+Message
+                cprint(Message)
+                self.Core.Finish(Message, Report)
+                return Message
 
-	def get_option_from_user(self, Options):
-	    return raw_input("Options: 'e'+Enter= Exit" + Options + ", Enter= Next test\n")
+        def get_option_from_user(self, Options):
+            return raw_input("Options: 'e'+Enter= Exit" + Options + ", Enter= Next test\n")
 
-	def UserAbort(self, Level, PartialOutput = ''): # Levels so far can be Command or Plugin
-            	Message = log("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
-            	Message = ("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
+        def UserAbort(self, Level, PartialOutput = ''): # Levels so far can be Command or Plugin
+                Message = log("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
+                Message = ("\nThe "+Level+" was aborted by the user: Please check the report and plugin output files")
                 Options = ""
-    	    	if 'Command' == Level:
- 			Options = ", 'p'+Enter= Move on to next plugin"
-    			Option = 'p'#raw_input("Options: 'e'+Enter= Exit"+Options+", Enter= Next test\n")
-    			if 'e' == Option:
-    				if 'Command' == Level: # Try to save partial plugin results
-    					raise FrameworkAbortException(PartialOutput)
-    					self.Core.Finish("Aborted by user") # Interrupted
-    			elif 'p' == Option: # Move on to next plugin
-    				raise PluginAbortException(PartialOutput) # Jump to next handler and pass partial output to avoid losing results
-		return Message
+                if 'Command' == Level:
+                        Options = ", 'p'+Enter= Move on to next plugin"
+                        Option = 'p'#raw_input("Options: 'e'+Enter= Exit"+Options+", Enter= Next test\n")
+                        if 'e' == Option:
+                                if 'Command' == Level: # Try to save partial plugin results
+                                        raise FrameworkAbortException(PartialOutput)
+                                        self.Core.Finish("Aborted by user") # Interrupted
+                        elif 'p' == Option: # Move on to next plugin
+                                raise PluginAbortException(PartialOutput) # Jump to next handler and pass partial output to avoid losing results
+                return Message
 
-	def LogError(self, Message):
-		try:
-			self.Core.DB.AddError(Message) # Log error in the DB
-		except AttributeError:
-			cprint("ERROR: DB is not setup yet: cannot log errors to file!")
+        def LogError(self, Message):
+                try:
+                        self.Core.DB.AddError(Message) # Log error in the DB
+                except AttributeError:
+                        cprint("ERROR: DB is not setup yet: cannot log errors to file!")
 
-	def AddOWTFBug(self, Message):
-		exc_type, exc_value, exc_traceback = sys.exc_info()
-		ErrorTrace = "\n".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-		#traceback.print_exc()
-		#print repr(traceback.format_stack())
-		#print repr(traceback.extract_stack())
-		Output = self.Padding+"OWTF BUG: Please report the sanitised information below to help make this better. Thank you."+self.SubPadding
-		Output += "\nMessage: "+self.Core.AnonymiseCommand(Message)+"\n"
-		Output += "\nCommand: "+self.Command+"\n"
-		Output += "\nError Trace:"
-		Output += "\n"+self.Core.AnonymiseCommand(ErrorTrace)
-		Output += "\n"+self.Padding
-		cprint(Output)
-		self.LogError(Output)
-		return "<pre>"+cgi.escape(Output)+"</pre>"
+        def AddOWTFBug(self, Message):
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                ErrorTrace = "\n".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+                #traceback.print_exc()
+                #print repr(traceback.format_stack())
+                #print repr(traceback.extract_stack())
+                Output = self.Padding+"OWTF BUG: Please report the sanitised information below to help make this better. Thank you."+self.SubPadding
+                Output += "\nMessage: "+self.Core.AnonymiseCommand(Message)+"\n"
+                Output += "\nCommand: "+self.Command+"\n"
+                Output += "\nError Trace:"
+                Output += "\n"+self.Core.AnonymiseCommand(ErrorTrace)
+                Output += "\n"+self.Padding
+                cprint(Output)
+                self.LogError(Output)
+                return "<pre>"+cgi.escape(Output)+"</pre>"
 #TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
 
-	def Add(self, Message, BugType = 'owtf'):
-		if 'owtf' == BugType:
-			return self.AddOWTFBug(Message)
-		else:
-			Output = self.Padding+Message+self.SubPadding
-			cprint(Output)
-			self.LogError(Output)
+        def Add(self, Message, BugType = 'owtf'):
+                if 'owtf' == BugType:
+                        return self.AddOWTFBug(Message)
+                else:
+                        Output = self.Padding+Message+self.SubPadding
+                        cprint(Output)
+                        self.LogError(Output)
 
+        def AddGithubIssue(self, Title='Bug report from OWTF', Info=None, User=None):
+                # TODO: Better verbosity while adding issues
+                # Once db is implemented, better verbosity will be easy
+                error_data = self.Core.DB.ErrorData()
+                for item in error_data:
+                    if item.startswith('Message'):
+                        Title = item[len('Message:'):]
+                        break
+                data = {'title':'[Auto-Generated] ' + Title, 'body':''}
+                data['body'] = '#### OWTF Bug Report\n\n```' + '\n'.join(error_data) + '```\n' # For github markdown
+                if Info:
+                    data['body'] += "\n#### User Report\n\n"
+                    data['body'] += Info
+                if User:
+                    data['body'] += "\n\n#### %s" %(User)
+                data = json.dumps(data) # Converted to string
+                headers = {"Content-Type": "application/json","Authorization": "token " + self.Core.Config.Get("GITHUB_BUG_REPORTER_TOKEN")}
+                request = urllib2.Request(self.Core.Config.Get("GITHUB_API_ISSUES_URL"), headers=headers, data=data)
+                response = urllib2.urlopen(request)
+                decoded_resp = json.loads(response.read())
+                if response.code == 201:
+                    cprint("Issue URL: " + decoded_resp["url"])
+                    return True
+                else:
+                    return False
