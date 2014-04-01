@@ -35,13 +35,14 @@ def run(Core, PluginInfo):
 
     TopURL = Core.DB.Target.Get('TOP_URL')
     URL = TopURL+"/robots.txt"
-    TestResult = Core.Reporter.Render.DrawButtonLink(URL, URL)
+    # TODO: Check the below line's necessity
+    #TestResult = Core.Reporter.Render.DrawButtonLink(URL, URL)
+    TestResult = []
     HTTP_Transaction = Core.Requester.GetTransaction(True, URL) # Use transaction cache if possible for speed
     if HTTP_Transaction.Found:
         TestResult += Core.PluginHelper.ProcessRobots(PluginInfo, HTTP_Transaction.GetRawResponseBody(), TopURL, '')
     else: # robots.txt NOT found
-		TestResult += " was NOT found<br />"#<pre>"+cgi.escape(RawResponse)+"</pre>"
-		Core.log("robots.txt was NOT found")
-    TestResult += Core.Reporter.DrawHTTPTransactionTable([ HTTP_Transaction ])
+	Core.log("robots.txt was NOT found")
+    TestResult += Core.PluginHelper.HTTPTransactionTable([ HTTP_Transaction ])
     return TestResult
 

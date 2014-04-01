@@ -42,7 +42,7 @@ from framework.report import reporter, summary
 from framework.selenium import selenium_handler
 from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
-from framework.ui.server import UIServer
+from framework.api.server import ApiServer
 from threading import Thread
 import fcntl
 import logging
@@ -271,10 +271,11 @@ class Core:
         self.StartProxy(Options) # Proxy mode is started in that function
         #self.Start_TOR_Mode(Options)# TOR mode will start only if the Options are set
         # Proxy Check
-        ProxySuccess, Message = self.Requester.ProxyCheck()
-        cprint(Message)
-        if not ProxySuccess: # Regardless of interactivity settings if the proxy check fails = no point to move on
-            self.Error.FrameworkAbort(Message) # Abort if proxy check failed
+        # TODO: Fix up proxy check, nothing but uncomment
+        #ProxySuccess, Message = self.Requester.ProxyCheck()
+        #cprint(Message)
+        #if not ProxySuccess: # Regardless of interactivity settings if the proxy check fails = no point to move on
+        #    self.Error.FrameworkAbort(Message) # Abort if proxy check failed
         # Each Plugin adds its own results to the report, the report is updated on the fly after each plugin completes (or before!)
         self.Error.SetCommand(self.AnonymiseCommand(Command)) # Set anonymised invoking command for error dump info
         return True
@@ -285,6 +286,9 @@ class Core:
 
     def run_plugins(self):
         Status = self.PluginHandler.ProcessPlugins()
+        self.ApiServer = ApiServer(self)
+        cprint("Api Server is about to start")
+        self.ApiServer.start()
         if Status['AllSkipped']:
             self.Finish('Skipped')
         elif not Status['SomeSuccessful'] and Status['SomeAborted']:
@@ -316,6 +320,7 @@ class Core:
         else:
             try:
                 #self.DB.Run.EndRun(Status)
+                self.PluginHandler.CleanUp()
                 cprint("Saving DBs")
                 self.DB.SaveDBs() # Save DBs prior to producing the report :)
                 if Report:

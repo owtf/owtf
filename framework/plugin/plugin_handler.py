@@ -158,9 +158,12 @@ class PluginHandler:
                 #return [ 'grep' ] != self.Core.Config.GetAllowedPluginTypes('web')
                 return [ 'grep' ] != self.Core.DB.Plugin.GetTypesForGroup('web')
 
-        def DumpPluginFile(self, Filename, Contents, Plugin):
+        def DumpPluginFile(self, Filename, Contents, Plugin, RelativePath=False):
                 SaveDir = self.GetPluginOutputDir(Plugin)
-                return self.Core.DumpFile(Filename, Contents, SaveDir)
+                abs_path = self.Core.DumpFile(Filename, Contents, SaveDir)
+                if RelativePath:
+                    return(os.path.relpath(abs_path, self.Core.DB.Target.GetPath('PARTIAL_URL_OUTPUT_PATH')))
+                return(abs_path)
 
         def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
                 #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.Core.Config.Get('TARGET')
@@ -172,8 +175,8 @@ class PluginHandler:
                         return self.Core.Config.Get('AUX_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['Title'])+"/"+Plugin['Type']+"/" 
 
 
-        def exists(self, dir):
-            return os.path.exists(dir)
+        def exists(self, directory):
+            return os.path.exists(directory)
 
         def GetModule(self, ModuleName, ModuleFile, ModulePath):# Python fiddling to load a module from a file, there is probably a better way...
                 f, Filename, desc = imp.find_module(ModuleFile.split('.')[0], [ModulePath]) #ModulePath = os.path.abspath(ModuleFile)
@@ -246,7 +249,7 @@ class PluginHandler:
                 Plugin["Status"] = "Running"
                 self.PluginCount += 1
                 #cprint("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
-                log("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
+                log("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.DB.Target.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
                 #self.LogPluginExecution(Plugin)
                 if self.Simulation:
                         return None # Skip processing in simulation mode, but show until line above to illustrate what will run
@@ -338,9 +341,9 @@ class PluginHandler:
                         #self.ProcessManager.startinput()
                         self.ProcessManager.fillWorkList(PluginGroup,TargetList)
                         self.ProcessManager.spawnWorkers(Status)
-                        self.ProcessManager.manageProcess()
-                        self.ProcessManager.poisonPillToWorkers()
-                        Status = self.ProcessManager.joinWorker()
+                        #self.ProcessManager.manageProcess()
+                        #self.ProcessManager.poisonPillToWorkers()
+                        #Status = self.ProcessManager.joinWorker()
                         #if 'breadth' == self.Algorithm: # Loop plugins, then targets
                         #       for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
                         #               #print "Processing Plugin="+str(Plugin)
@@ -353,6 +356,9 @@ class PluginHandler:
                         #               self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
                         #               for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
                         #                       self.ProcessPlugin( PluginDir, Plugin, Status )
+
+        def CleanUp(self):
+            self.ProcessManager.cleanUp()
 
         def SavePluginInfo(self, PluginOutput, Plugin):
                 self.Core.DB.SaveDBs() # Save new URLs to DB after each request

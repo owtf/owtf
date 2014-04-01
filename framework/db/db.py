@@ -28,21 +28,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This file handles all the database transactions.
 '''
-from framework.db import db_handler, transaction_manager, url_manager, \
-    run_manager, plugin_register, report_register, command_register, debug
-
-from framework.db.db_client import *
 from framework.lib.general import cprint
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine, event
 from sqlalchemy import exc
-from framework.db import models, plugin_manager, target_manager, resource_manager, config_manager, poutput_manager
-import json
+from framework.db import models, plugin_manager, target_manager, resource_manager, \
+        config_manager, poutput_manager, transaction_manager, url_manager, command_register
 import logging
-import multiprocessing
 import os
-import random
-import string
 import re
 
 def re_fn(regexp, item):
@@ -71,6 +64,7 @@ class DB(object):
         self.Target = target_manager.TargetDB(self.Core)
         self.Resource = resource_manager.ResourceDB(self.Core)
         self.Config = config_manager.ConfigDB(self.Core)
+        self.CommandRegister = command_register.CommandRegister(self.Core)
         self.DBHealthCheck()
 
     def DBHealthCheck(self):
@@ -130,7 +124,3 @@ class DB(object):
         session = self.ErrorDBSession()
         count = session.query(models.Error).count()
         return count
-
-    def ErrorData(self):
-        arguments={'function':'ErrorData','arguments':[]}
-        return db_pull(arguments)

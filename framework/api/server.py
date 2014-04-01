@@ -3,16 +3,16 @@ import tornado.ioloop
 import tornado.web
 import tornado.options
 
-class WebPluginHandler(tornado.web.RequestHandler):
+class TargetJSONApiHandler(tornado.web.RequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
     @tornado.web.asynchronous
-    def get(self, group, plugin_code, target):
-        self.write("test")
+    def get(self, target_url = None):
+        self.write(target_url or 'None')
         self.finish()
 
     @tornado.web.asynchronous
-    def post(self):
+    def post(self, target_url):
         return self.get()
 
     @tornado.web.asynchronous
@@ -27,19 +27,22 @@ class WebPluginHandler(tornado.web.RequestHandler):
     def delete(self):
         return self.get()
 
-class UIServer(object):
+class ApiServer(object):
     def __init__(self, Core):
         self.application = tornado.web.Application(
                                                     handlers=[
-                                                                (r'.*', WebPluginHandler)
+                                                                (r'/json/targets/([^/]*)', TargetJSONApiHandler)
                                                             ],
                                                     debug=True,
                                                     gzip=True
                                                   )
-        self.server = torndao.httpserver.HTTPServer(self.application)
+        self.server = tornado.httpserver.HTTPServer(self.application)
 
     def start(self):
-        self.server.bind("127.0.0.1",8009)
-        #tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix="+self.application.Core.Config.Get("PROXY_LOG"),"--logging=info"])
-        self.server.start(0)
-        tornado.ioloop.IOLoop.instance().start()
+        try:
+            self.server.bind(8009)
+            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/ui.log","--logging=info"])
+            self.server.start(1)
+            tornado.ioloop.IOLoop.instance().start()
+        except KeyboardInterrupt:
+            pass

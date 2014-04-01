@@ -33,18 +33,10 @@ import logging
 DESCRIPTION = "Visit URLs found by other tools, some could be sensitive: need permission"
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-	crap = { 'test' : '1', 'test2' : '2' }
-	Core.log("Crap="+str(crap))
-	return 'test'
-	Count = 0
-	Core.DB.URL.AddURLsStart() # Keep cocunt of URLs
-	for URL in Core.DB.URL.GetURLsToVisit(Core.DB.GetData('POTENTIAL_ALL_URLS_DB')):
-		if not Core.DB.Transaction.IsTransactionAlreadyAdded(URL): # Count only new URLs, not in the cache
-			Count += 1 # TODO: Check
-		Core.Requester.GetTransaction(True, URL) # Use cache if possible
-	Core.DB.URL.AddURLsEnd()
-	Content = str(Count)+" URLs were visited"
-	Core.log(Content)
-	return Content
-
+    #Core.Config.Show()
+    urls = Core.DB.URL.GetURLsToVisit()
+    for url in urls: # This will return only unvisited urls
+        Core.Requester.GetTransaction(True, url) # Use cache if possible
+    Content = str(len(urls))+" URLs were visited"
+    Core.log(Content)
+    return([{"type":"string", "output":Content}])

@@ -39,245 +39,257 @@ import json
 import re
 import logging
 
-REGEX_TYPES = ['headers', 'body'] # The regex find differs for these types :P
+REGEX_TYPES = ['HEADERS', 'BODY'] # The regex find differs for these types :P
 
 class TransactionManager(object):
-        def __init__(self, Core):
-                self.Core = Core # Need access to reporter for pretty html trasaction log
-                self.regexs = defaultdict(list)
-                for regex_type in REGEX_TYPES:
-                    self.regexs[regex_type] = {}
-                self.CompileRegexs()
+    def __init__(self, Core):
+        self.Core = Core # Need access to reporter for pretty html trasaction log
+        self.regexs = defaultdict(list)
+        for regex_type in REGEX_TYPES:
+            self.regexs[regex_type] = {}
+        self.CompileRegexs()
 
-        def NumTransactions(self, Scope = True): # Return num transactions in scope by default
-                Session = self.Core.DB.Target.GetTransactionDBSession()
-                session = Session()
-                count = session.query(models.Transaction).filter_by(scope = Scope).count()
-                session.close()
-                return(count)
+    def NumTransactions(self, Scope = True): # Return num transactions in scope by default
+        Session = self.Core.DB.Target.GetTransactionDBSession()
+        session = Session()
+        count = session.query(models.Transaction).filter_by(scope = Scope).count()
+        session.close()
+        return(count)
 
-        def SetRandomSeed(self, RandomSeed):
-                self.RandomSeed = RandomSeed
-                self.DefineTransactionBoundaries( ['HTTP URL', 'HTTP Request', 'HTTP Response Headers', 'HTTP Response Body'] )
+    def SetRandomSeed(self, RandomSeed):
+        self.RandomSeed = RandomSeed
+        self.DefineTransactionBoundaries( ['HTTP URL', 'HTTP Request', 'HTTP Response Headers', 'HTTP Response Body'] )
 
-        def DefineTransactionBoundaries(self, BoundaryList):# Defines the full HTTP transaction formatting (important 4 parsing)
-                self.Padding = "="*50
-                Boundaries = []
-                for BoundaryName in BoundaryList:
-                        Boundaries.append(self.Padding+" "+BoundaryName+" "+self.Padding+self.RandomSeed+"\n")
-                self.TBoundaryURL, self.TBoundaryReq, self.TBoundaryResHeaders, self.TBoundaryResBody = Boundaries
+    def DefineTransactionBoundaries(self, BoundaryList):# Defines the full HTTP transaction formatting (important 4 parsing)
+        self.Padding = "="*50
+        Boundaries = []
+        for BoundaryName in BoundaryList:
+                Boundaries.append(self.Padding+" "+BoundaryName+" "+self.Padding+self.RandomSeed+"\n")
+        self.TBoundaryURL, self.TBoundaryReq, self.TBoundaryResHeaders, self.TBoundaryResBody = Boundaries
 
-        def IsTransactionAlreadyAdded(self, Criteria, target = None):
-            return(len(self.GetAll(Criteria, target)) > 0)
+    def IsTransactionAlreadyAdded(self, Criteria, target = None):
+        return(len(self.GetAll(Criteria, target)) > 0)
 
-        def GetFirst(self, Criteria, target = None): # Assemble only the first transaction that matches the criteria from DB
-            Session = self.Core.DB.Target.GetTransactionDBSession(target)
-            session = Session()
-            query = session.query(models.Transaction)
-            if 'URL' in Criteria.keys():
-                query = self.FilterByURL(query, Criteria['URL'])
-            if 'Method' in Criteria.keys():
-                query = self.FilterByMethod(query, Criteria['Method'])
-            if 'Data' in Criteria.keys():
-                query = self.FilterByData(query, Criteria['Data'])
-            return(self.DeriveTransaction(query.first()))
+    def GetFirst(self, Criteria, target = None): # Assemble only the first transaction that matches the criteria from DB
+        Session = self.Core.DB.Target.GetTransactionDBSession(target)
+        session = Session()
+        query = session.query(models.Transaction)
+        if 'URL' in Criteria.keys():
+            query = self.FilterByURL(query, Criteria['URL'])
+        if 'Method' in Criteria.keys():
+            query = self.FilterByMethod(query, Criteria['Method'])
+        if 'Data' in Criteria.keys():
+            query = self.FilterByData(query, Criteria['Data'])
+        return(self.DeriveTransaction(query.first()))
 
-        def GetAll(self, Criteria, target = None): # Assemble ALL transactions that match the criteria from DB
-            Session = self.Core.DB.Target.GetTransactionDBSession(target)
-            session = Session()
-            query = session.query(models.Transaction)
-            if 'URL' in Criteria.keys():
-                query = self.FilterByURL(query, Criteria['URL'])
-            if 'Method' in Criteria.keys():
-                query = self.FilterByMethod(query, Criteria['Method'])
-            if 'Data' in Criteria.keys():
-                query = self.FilterByData(query, Criteria['Data'])
-            return(self.DeriveTransactions(query.all()))
+    def GetAll(self, Criteria, target = None): # Assemble ALL transactions that match the criteria from DB
+        Session = self.Core.DB.Target.GetTransactionDBSession(target)
+        session = Session()
+        query = session.query(models.Transaction)
+        if 'URL' in Criteria.keys():
+            query = self.FilterByURL(query, Criteria['URL'])
+        if 'Method' in Criteria.keys():
+            query = self.FilterByMethod(query, Criteria['Method'])
+        if 'Data' in Criteria.keys():
+            query = self.FilterByData(query, Criteria['Data'])
+        return(self.DeriveTransactions(query.all()))
 
-        def DeriveTransaction(self, t):
-            if t:
-                owtf_transaction = transaction.HTTP_Transaction(None)
-                response_body = t.response_body
-                if t.response_binary:
-                    response_body = str(response_body)
-                grep_output = None
-                if t.grep_output:
-                    grep_output = json.loads(t.grep_output)
-                owtf_transaction.SetTransactionFromDB(
-                                                        t.url,
-                                                        t.method,
-                                                        t.response_status,
-                                                        str(t.time),
-                                                        t.time_human,
-                                                        t.data,
-                                                        t.raw_request,
-                                                        t.response_headers,
-                                                        response_body,
-                                                        grep_output
-                                                     )
-                return owtf_transaction
-            return(None)
+    def DeriveTransaction(self, t):
+        if t:
+            owtf_transaction = transaction.HTTP_Transaction(None)
+            response_body = t.response_body
+            if t.response_binary:
+                response_body = str(response_body)
+            grep_output = None
+            if t.grep_output:
+                grep_output = json.loads(t.grep_output)
+            owtf_transaction.SetTransactionFromDB(
+                                                    t.id,
+                                                    t.url,
+                                                    t.method,
+                                                    t.response_status,
+                                                    str(t.time),
+                                                    t.time_human,
+                                                    t.data,
+                                                    t.raw_request,
+                                                    t.response_headers,
+                                                    response_body,
+                                                    grep_output
+                                                 )
+            return owtf_transaction
+        return(None)
 
-        def DeriveTransactions(self, transactions):
-            owtf_tlist = []
-            for transaction in transactions:
-                owtf_tlist.append(self.DeriveTransaction(transaction))
-            return(owtf_tlist)
+    def DeriveTransactions(self, transactions):
+        owtf_tlist = []
+        for transaction in transactions:
+            owtf_tlist.append(self.DeriveTransaction(transaction))
+        return(owtf_tlist)
 
-        def FilterByURL(self, query, url):
-            return query.filter_by(url = url)
+    def FilterByURL(self, query, url):
+        return query.filter_by(url = url)
 
-        def FilterByMethod(self, query, method):
-            return query.filter_by(method = method)
+    def FilterByMethod(self, query, method):
+        return query.filter_by(method = method)
 
-        def FilterByData(self, query, data):
-            return query.filter_by(data = data)
+    def FilterByData(self, query, data):
+        return query.filter_by(data = data)
 
-        def LogTransaction(self, transaction, target = None):
-            Session = self.Core.DB.Target.GetTransactionDBSession(target)
-            session = Session()
-            urls_list = []
+    def LogTransaction(self, transaction, target = None):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target)
+        session = Session()
+        urls_list = []
+        # TODO: This shit will go crazy on non-ascii characters
+        try:
+            unicode(transaction.GetRawResponseBody(), "utf-8")
+            response_body = transaction.GetRawResponseBody()
+            is_binary = False
+            grep_output = json.dumps(self.GrepTransaction(transaction))
+        except UnicodeDecodeError:
+            response_body = buffer(transaction.GetRawResponseBody())
+            is_binary = True
+            grep_output = None
+        finally:
+            session.merge(models.Transaction( url = transaction.URL,
+                                            scope = transaction.InScope(),
+                                            method = transaction.Method,
+                                            data = transaction.Data,
+                                            time = float(transaction.Time),
+                                            time_human = transaction.TimeHuman,
+                                            raw_request = transaction.GetRawRequest(),
+                                            response_status = transaction.GetStatus(False),
+                                            response_headers = transaction.GetResponseHeaders(),
+                                            response_body = response_body,
+                                            response_binary = is_binary,
+                                            grep_output = grep_output
+                                          ))
+        urls_list.append([transaction.URL, True, transaction.InScope()])
+        session.commit()
+        session.close()
+
+    def LogTransactions(self, transaction_list, target = None):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target)
+        session = Session()
+        urls_list = []
+        for transaction in transaction_list:
             # TODO: This shit will go crazy on non-ascii characters
             try:
                 unicode(transaction.GetRawResponseBody(), "utf-8")
                 response_body = transaction.GetRawResponseBody()
                 is_binary = False
-                grep_output = json.dumps(self.GrepTransaction(transaction))
+                grep_output = json.dumps(self.GrepTransaction(transaction)) if transaction.InScope() else None
             except UnicodeDecodeError:
                 response_body = buffer(transaction.GetRawResponseBody())
                 is_binary = True
                 grep_output = None
             finally:
-                session.add(models.Transaction( url = transaction.URL,
+                session.merge(models.Transaction( url = transaction.URL,
                                                 scope = transaction.InScope(),
                                                 method = transaction.Method,
                                                 data = transaction.Data,
                                                 time = float(transaction.Time),
                                                 time_human = transaction.TimeHuman,
                                                 raw_request = transaction.GetRawRequest(),
-                                                response_status = transaction.GetStatus(False),
+                                                response_status = transaction.GetStatus(),
                                                 response_headers = transaction.GetResponseHeaders(),
                                                 response_body = response_body,
                                                 response_binary = is_binary,
                                                 grep_output = grep_output
                                               ))
             urls_list.append([transaction.URL, True, transaction.InScope()])
-            session.commit()
-            session.close()
+        session.commit()
+        session.close()
+        self.Core.DB.URL.ImportProcessedURLs(urls_list)
 
-        def LogTransactions(self, transaction_list, target = None):
-            Session = self.Core.DB.Target.GetTransactionDBSession(target)
-            session = Session()
-            urls_list = []
-            for transaction in transaction_list:
-                # TODO: This shit will go crazy on non-ascii characters
-                try:
-                    unicode(transaction.GetRawResponseBody(), "utf-8")
-                    response_body = transaction.GetRawResponseBody()
-                    is_binary = False
-                    grep_output = json.dumps(self.GrepTransaction(transaction)) if transaction.InScope() else None
-                except UnicodeDecodeError:
-                    response_body = buffer(transaction.GetRawResponseBody())
-                    is_binary = True
-                    grep_output = None
-                finally:
-                    session.add(models.Transaction( url = transaction.URL,
-                                                    scope = transaction.InScope(),
-                                                    method = transaction.Method,
-                                                    data = transaction.Data,
-                                                    time = float(transaction.Time),
-                                                    time_human = transaction.TimeHuman,
-                                                    raw_request = transaction.GetRawRequest(),
-                                                    response_status = transaction.GetStatus(),
-                                                    response_headers = transaction.GetResponseHeaders(),
-                                                    response_body = response_body,
-                                                    response_binary = is_binary,
-                                                    grep_output = grep_output
-                                                  ))
-                urls_list.append([transaction.URL, True, transaction.InScope()])
-            session.commit()
-            session.close()
-            self.Core.DB.URL.ImportProcessedURLs(urls_list)
-            print(self.SearchByRegexName("HEADERS_FOR_FINGERPRINT"))
-                                                
-        def LogTransactionsFromLogger(self, transactions_dict):
-            for target, transaction_list in transactions_dict.items():
-                if transaction_list:
-                    self.LogTransactions(transaction_list, target)
+    def LogTransactionsFromLogger(self, transactions_dict):
+        for target, transaction_list in transactions_dict.items():
+            if transaction_list:
+                self.LogTransactions(transaction_list, target)
 
-        def GetNumTransactionsInScope(self):
-            return self.NumTransactions()
+    def GetNumTransactionsInScope(self):
+        return self.NumTransactions()
 
-        def GetByID(self, ID):
-            Session = self.Core.DB.Target.GetTransactionDBSession()
-            session = Session()
+    def GetByID(self, ID):
+        Session = self.Core.DB.Target.GetTransactionDBSession()
+        session = Session()
+        model_obj = session.query(models.Transaction).get(id = ID)
+        session.close()
+        if model_obj:
+            return(self.DeriveTransaction(model_obj))
+        return(model_obj) # None returned if no such transaction
+
+    def GetByIDs(self, id_list):
+        Session = self.Core.DB.Target.GetTransactionDBSession()
+        session = Session()
+        model_objs = []
+        for ID in id_list:
             model_obj = session.query(models.Transaction).get(id = ID)
             if model_obj:
-                return(self.DeriveTransaction(model_obj))
-            return(model_obj) # None returned if no such transaction
+                model_objs.append(model_obj)
+        session.close()
+        return(self.DeriveTransactions(model_objs))
 
-        def GetTopTransactionIDsBySpeed(self, Num = 10, Order = "Asc"):
-            Session = self.Core.DB.Target.GetTransactionDBSession()
-            session = Session()
-            if Order == "Desc":
-                results = session.query(models.Transaction.id).order_by(desc(models.Transaction.time)).limit(Num)
-            else:
-                results = session.query(models.Transaction.id).order_by(asc(models.Transaction.time)).limit(Num)
-            session.close()
-            results = [i[0] for i in results]
-            return(results) # Return list of matched IDs
+    def GetTopTransactionIDsBySpeed(self, Num = 10, Order = "Asc"):
+        Session = self.Core.DB.Target.GetTransactionDBSession()
+        session = Session()
+        if Order == "Desc":
+            results = session.query(models.Transaction.id).order_by(desc(models.Transaction.time)).limit(Num)
+        else:
+            results = session.query(models.Transaction.id).order_by(asc(models.Transaction.time)).limit(Num)
+        session.close()
+        results = [i[0] for i in results]
+        return(results) # Return list of matched IDs
 
-        def CompileHeaderRegex(self, header_list):
-            return(re.compile('('+'|'.join(header_list)+'): ([^\r]*)', re.IGNORECASE))
+    def CompileHeaderRegex(self, header_list):
+        return(re.compile('('+'|'.join(header_list)+'): ([^\r]*)', re.IGNORECASE))
 
-        def CompileResponseRegex(self, regexp):
-            return(re.compile(regexp, re.IGNORECASE | re.DOTALL))
+    def CompileResponseRegex(self, regexp):
+        return(re.compile(regexp, re.IGNORECASE | re.DOTALL))
 
-        def CompileRegexs(self):
-            for key in self.Core.Config.GetReplacementDict().keys():
-                key = key[3:-3] # Remove "@@@"
-                if key.startswith('HEADERS'):
-                    header_list = self.Core.Config.GetHeaderList(key)
-                    self.regexs['headers'][key] = self.CompileHeaderRegex(header_list)
-                elif key.startswith('RESPONSE'):
-                    RegexpName, GrepRegexp, PythonRegexp = self.Core.Config.FrameworkConfigGet(key).split('_____')
-                    self.regexs['body'][key] = self.CompileResponseRegex(PythonRegexp)
+    def CompileRegexs(self):
+        for key in self.Core.Config.GetReplacementDict().keys():
+            key = key[3:-3] # Remove "@@@"
+            if key.startswith('HEADERS'):
+                header_list = self.Core.Config.GetHeaderList(key)
+                self.regexs['HEADERS'][key] = self.CompileHeaderRegex(header_list)
+            elif key.startswith('RESPONSE'):
+                RegexpName, GrepRegexp, PythonRegexp = self.Core.Config.FrameworkConfigGet(key).split('_____')
+                self.regexs['BODY'][key] = self.CompileResponseRegex(PythonRegexp)
 
-        def GrepTransaction(self, owtf_transaction):
-            grep_output = {}
-            for regex_name, regex in self.regexs['headers'].items():
-                grep_output.update(self.GrepResponseHeaders(regex_name, regex, owtf_transaction))
-            for regex_name in self.regexs['body'].items():
-                grep_output.update(self.GrepResponseBody(regex_name, regex, owtf_transaction))
-            return(grep_output)
+    def GrepTransaction(self, owtf_transaction):
+        grep_output = {}
+        for regex_name, regex in self.regexs['HEADERS'].items():
+            grep_output.update(self.GrepResponseHeaders(regex_name, regex, owtf_transaction))
+        for regex_name in self.regexs['BODY'].items():
+            grep_output.update(self.GrepResponseBody(regex_name, regex, owtf_transaction))
+        return(grep_output)
 
-        def GrepResponseBody(self, regex_name, regex, owtf_transaction):
-            return(self.Grep(regex_name, regex, owtf_transaction.GetRawResponseBody()))
+    def GrepResponseBody(self, regex_name, regex, owtf_transaction):
+        return(self.Grep(regex_name, regex, owtf_transaction.GetRawResponseBody()))
 
-        def GrepResponseHeaders(self, regex_name, regex, owtf_transaction):
-            return(self.Grep(regex_name, regex, owtf_transaction.GetResponseHeaders()))
+    def GrepResponseHeaders(self, regex_name, regex, owtf_transaction):
+        return(self.Grep(regex_name, regex, owtf_transaction.GetResponseHeaders()))
 
-        def Grep(self, regex_name, regex, data):
-            results = regex.findall(data)
-            if results:
-                return({regex_name: results})
-            return({})
+    def Grep(self, regex_name, regex, data):
+        results = regex.findall(data)
+        if results:
+            return({regex_name: results})
+        return({})
 
-        def SearchByRegexName(self, regex_name, target = None):
-            Session = self.Core.DB.Target.GetTransactionDBSession(target)
-            session = Session()
+    def SearchByRegexName(self, regex_name, target = None):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target)
+        session = Session()
+        transaction_models = session.query(models.Transaction).filter(models.Transaction.grep_output.like("%"+regex_name+"%")).all()
+        num_transactions_in_scope = session.query(models.Transaction).filter_by(scope = True).count()
+        session.close()
+        return([regex_name, self.DeriveTransactions(transaction_models), num_transactions_in_scope])
+
+    def SearchByRegexNames(self, name_list, target = None):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target)
+        session = Session()
+        results = []
+        for regex_name in name_list:
             transaction_models = session.query(models.Transaction).filter(models.Transaction.grep_output.like("%"+regex_name+"%")).all()
             num_transactions_in_scope = session.query(models.Transaction).filter_by(scope = True).count()
-            session.close()
-            return([regex_name, self.DeriveTransactions(transaction_models), num_transactions_in_scope])
-
-        def SearchByRegexNames(self, name_list, target = None):
-            Session = self.Core.DB.Target.GetTransactionDBSession(target)
-            session = Session()
-            results = []
-            for regex_name in name_list:
-                transaction_models = session.query(models.Transaction).filter(models.Transaction.grep_output.like("%"+regex_name+"%")).all()
-                num_transactions_in_scope = session.query(models.Transaction).filter_by(scope = True).count()
-                results.append([regex_name, self.DeriveTransactions(transaction_models, num_transactions_in_scope])
-            session.close()
-            return(results)
+            results.append([regex_name, self.DeriveTransactions(transaction_models), num_transactions_in_scope])
+        session.close()
+        return(results)

@@ -34,6 +34,6 @@ DESCRIPTION = "Active probing for fingerprint analysis"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('ActiveFingerPrint'), PluginInfo, "") # No previous output
+	Content = Core.PluginHelper.CreateCommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('ActiveFingerPrint'), PluginInfo, "") # No previous output
 	return Content
 

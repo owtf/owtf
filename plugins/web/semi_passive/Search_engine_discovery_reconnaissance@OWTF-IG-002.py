@@ -32,6 +32,6 @@ DESCRIPTION = "Metadata analysis"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('SemiPassiveSearchEngineDiscoveryCmd'), PluginInfo, "") # No previous output
+	Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('SemiPassiveSearchEngineDiscoveryCmd'), PluginInfo, []) # No previous output
 	return Content
 

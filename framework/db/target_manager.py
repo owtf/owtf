@@ -112,6 +112,12 @@ class TargetDB(object):
     def Get(self, Key):
         return(self.TargetConfig[Key])
 
+    def GetAsList(self, key_list):
+        values = []
+        for key in key_list:
+            values.append(self.Get(key))
+        return(values)
+
     def GetAll(self, Key):
         session = self.TargetConfigDBSession()
         results = session.query(getattr(models.Target, Key.lower())).all()
