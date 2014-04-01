@@ -33,8 +33,8 @@ DESCRIPTION = "Third party resources and fingerprinting suggestions"
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 	#Vuln search box to be built in core and reused in different plugins:
-	Content = Core.PluginHelper.DrawVulnerabilitySearchBox('')
-	Content += Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveFingerPrint'))
-	Content += Core.PluginHelper.CreateSuggestedCommandBox( PluginInfo, [ [ 'All', 'CMS_FingerPrint_All' ], [ 'WordPress', 'CMS_FingerPrint_WordPress' ] , [ 'Joomla', 'CMS_FingerPrint_Joomla' ], [ 'Drupal', 'CMS_FingerPrint_Drupal' ], [ 'Mambo', 'CMS_FingerPrint_Mambo' ]  ], 'CMS Fingerprint - Potentially useful commands' )
+	Content = Core.PluginHelper.VulnerabilitySearchBox('')
+	Content += Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveFingerPrint'))
+	Content += Core.PluginHelper.SuggestedCommandBox( PluginInfo, [ [ 'All', 'CMS_FingerPrint_All' ], [ 'WordPress', 'CMS_FingerPrint_WordPress' ] , [ 'Joomla', 'CMS_FingerPrint_Joomla' ], [ 'Drupal', 'CMS_FingerPrint_Drupal' ], [ 'Mambo', 'CMS_FingerPrint_Mambo' ]  ], 'CMS Fingerprint - Potentially useful commands' )
 	return Content
 

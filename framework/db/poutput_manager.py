@@ -58,26 +58,3 @@ class POutputDB(object):
                                         ))
         session.commit()
         session.close()
-
-    def AddCommandToRegistry(self, Command, Target = None):
-        Session = self.Core.DB.Target.GetOutputDBSession(Target)
-        session = Session()
-        session.merge(models.Command(
-                                        start = Command['Start'],
-                                        end = Command['End'],
-                                        run_time = Command['RunTime'],
-                                        success = Command['Success'],
-                                        target = Command['Target'],
-                                        modified_command = Command['ModifiedCommand'].strip(),
-                                        original_command = Command['OriginalCommand'].strip()
-                                    ))
-        session.commit()
-        session.close()
-
-    def CommandAlreadyRegistered(self, original_command, Target = None):
-        Session = self.Core.DB.Target.GetOutputDBSession(Target)
-        session = Session()
-        register_entry = session.query(models.Command).get(original_command)
-        if register_entry and register_entry.success:
-            return True
-        return False

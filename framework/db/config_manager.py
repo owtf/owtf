@@ -6,10 +6,11 @@ import os
 class ConfigDB(object):
     def __init__(self, Core):
         self.Core = Core
-        self.ConfigDBSession = self.Core.DB.CreateScopedSession(os.path.expanduser(self.Core.Config.FrameworkConfigGetDBPath("CONFIG_DB_PATH")), models.GeneralBase)
+        self.ConfigDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("CONFIG_DB_PATH"), models.GeneralBase)
         self.LoadConfigDBFromFile(self.Core.Config.FrameworkConfigGet('DEFAULT_GENERAL_PROFILE'))
 
     def LoadConfigDBFromFile(self, file_path):
+        # TODO: Implementy user override mechanism
         cprint("Loading Configuration from: " + file_path + " ..")
         configuration = self.GetConfigurationFromFile(file_path)
         # configuration = [(key, value), (key, value),]

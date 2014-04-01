@@ -33,8 +33,8 @@ def run(Core, PluginInfo):
 	TestResult = ''
 	Count = 1
         #TODO: Fix this plugin properly
-	Content = Core.PluginHelper.RequestAndCreateLinkList('Passive Analysis Results', Core.DB.Resource.GetResources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
-	Content += Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveRobotsAnalysisLinks'))
+	Content = Core.PluginHelper.RequestLinkList('Passive Analysis Results', Core.DB.Resource.GetResources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
+	Content += Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveRobotsAnalysisLinks'))
 
 	for Name, Resource in Core.DB.Resource.GetResources('PassiveRobots'): # Try to retrieve the robots.txt file from all defined resources
 		URL = Resource # Just for clarity
@@ -42,15 +42,14 @@ def run(Core, PluginInfo):
 		#print "URL="+URL+", PatternStart="+PatternStart+", PatternEnd="+PatternEnd+" LinkStart="+LinkStart+", LinkFinish="+LinkFinish
 		LinkStart = LinkStart.strip()
 		LinkFinish = LinkFinish.strip()
-		TestResult += Core.Reporter.Render.DrawButtonLink(Name, URL)
 		Transaction = Core.Requester.GetTransaction(True, URL) # Use the cache if possible for speed
 		if Transaction.Found:
-			TestResult += "<br /><strong>Raw regexp processing:</strong><br />"
+			#TestResult += "<br /><strong>Raw regexp processing:</strong><br />"
 			TestResult += Core.PluginHelper.ProcessRobots(PluginInfo, Transaction.GetRawResponseBody(), LinkStart, LinkFinish, 'robots'+str(Count)+'.txt')
 			Count += 1
 		else: # Not found or unknown request error
-			Message = "could not be retrieved using resource: "+Resource
+			Message = "Could not be retrieved using resource: "+Resource
 			Core.log(Message)
 			#TestResult += Message+".: \n"+cgi.escape(Transaction.GetRawResponse())
-		TestResult += Core.Reporter.DrawHTTPTransactionTable([ Transaction ])
+		TestResult += Core.PluginHelper.HTTPTransactionTable([ Transaction ])
 	return Content+TestResult

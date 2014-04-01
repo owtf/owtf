@@ -33,7 +33,6 @@ DESCRIPTION = "Third party resources"
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 	#Vuln search box to be built in core and resued in different plugins:
-	Content = Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveSSL'))
-	Core.log("Passive links generated for target")
+	Content = Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveSSL'))
 	return Content
 

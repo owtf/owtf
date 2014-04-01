@@ -36,36 +36,38 @@ from framework.lib import general
 DESCRIPTION = "Normal requests to gather session managament info"
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-	# True = Use Transaction Cache if possible: Visit the start URLs if not already visited
-	# Step 1 - Find transactions that set cookies
+        #Core.Config.Show()
+        # True = Use Transaction Cache if possible: Visit the start URLs if not already visited
+        # Step 1 - Find transactions that set cookies
         # Step 2 - Request 10 times per URL that sets cookies
         # Step 3 - Compare values and calculate randomness
-	URLList = []
-	TransactionList = []
-	Result = ""
-	return "Some refactoring required, maybe for BSides Vienna 2012 but no promises :)"
-	for ID in Core.DB.Transaction.GrepTransactionIDsForHeaders([Core.Config.Get('HEADERS_FOR_COOKIES')]):# Transactions with cookies
-		URL = Core.DB.Transaction.GetByID(ID).URL # Limitation: Not Checking POST, normally not a problem ..
-		if URL not in URLList: # Only if URL not already processed!
-			URLList.append(URL) # Keep track of processed URLs
-			AllCookieValues = {}
-			for i in range(0,2): # Get more cookies to perform analysis
-				Transaction = Core.Requester.GetTransaction(False, URL)
-				#Cookies = Transaction.GetResponseHeaders().getheader('Set-Cookie').split(',')
-				for Cookie in Transaction.GetCookies():
-					CookieValues[Cookie.Name].append(Transaction.ID, Cookie.Value)
-					Core.log("Cookie="+str(Cookie))
-					Result += str(Cookie)
-					Core.log(dir(Cookie))
-	return Result
+        URLList = []
+        TransactionList = []
+        Result = ""
+        return([])
+        # TODO: Try to keep up Abe's promise ;)
+        #return "Some refactoring required, maybe for BSides Vienna 2012 but no promises :)"
+        for ID in Core.DB.Transaction.GrepTransactionIDsForHeaders([Core.Config.Get('HEADERS_FOR_COOKIES')]):# Transactions with cookies
+                URL = Core.DB.Transaction.GetByID(ID).URL # Limitation: Not Checking POST, normally not a problem ..
+                if URL not in URLList: # Only if URL not already processed!
+                        URLList.append(URL) # Keep track of processed URLs
+                        AllCookieValues = {}
+                        for i in range(0,2): # Get more cookies to perform analysis
+                                Transaction = Core.Requester.GetTransaction(False, URL)
+                                #Cookies = Transaction.GetResponseHeaders().getheader('Set-Cookie').split(',')
+                                for Cookie in Transaction.GetCookies():
+                                        CookieValues[Cookie.Name].append(Transaction.ID, Cookie.Value)
+                                        Core.log("Cookie="+str(Cookie))
+                                        Result += str(Cookie)
+                                        Core.log(dir(Cookie))
+        return Result
 """
-	for i in range(0,10):
-		for URL in GetUnique(Core.Config.GetAsList(['TARGET_URL', 'TOP_URL']):
-			
-		TransactionTable = Core.PluginHelper.DrawTransactionTableForURLList(True, Core.Config.GetAsList(['TARGET_URL', 'TOP_URL'])) 
-	Content = Core.PluginHelper.ResearchFingerprintInlog() + TransactionTable
-	Content += Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('SemiPassiveFingerPrint'), PluginInfo, Content)
-	return Content
+        for i in range(0,10):
+                for URL in GetUnique(Core.Config.GetAsList(['TARGET_URL', 'TOP_URL']):
+                        
+                TransactionTable = Core.PluginHelper.DrawTransactionTableForURLList(True, Core.Config.GetAsList(['TARGET_URL', 'TOP_URL'])) 
+        Content = Core.PluginHelper.ResearchFingerprintInlog() + TransactionTable
+        Content += Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('SemiPassiveFingerPrint'), PluginInfo, Content)
+        return Content
 """
 

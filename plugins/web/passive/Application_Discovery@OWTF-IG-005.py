@@ -34,7 +34,7 @@ def run(Core, PluginInfo):
         # Core.Config.Show()
         # Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('PassiveApplicationDiscoveryCmd'), PluginInfo)
         # Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveAppDiscovery'))
-        Content = Core.PluginHelper.CreateTabbedResourceLinkList([
+        Content = Core.PluginHelper.TabbedResourceLinkList([
                                                                 ['DNS',Core.DB.Resource.GetResources('PassiveAppDiscoveryDNS')],
                                                                 ['WHOIS',Core.DB.Resource.GetResources('PassiveAppDiscoveryWHOIS')],
                                                                 ['DB Lookups',Core.DB.Resource.GetResources('PassiveAppDiscoveryDbLookup')],

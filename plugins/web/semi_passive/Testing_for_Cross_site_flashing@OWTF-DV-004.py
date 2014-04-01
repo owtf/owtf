@@ -32,18 +32,20 @@ import re, cgi,logging
 DESCRIPTION = "Normal requests for XSF analysis"
 
 def run(Core, PluginInfo):
-	NotFoundMsg = "Not Found"
-	Table = Core.Reporter.Render.CreateTable()
+	#NotFoundMsg = "Not Found"
+	#Table = Core.Reporter.Render.CreateTable()
 	URLList = []
 	for File in [ "crossdomain.xml", "clientaccesspolicy.xml" ]:
-		for URL in [ Core.Config.Get('TOP_URL'), Core.Config.Get('TARGET_URL') ]:
+		for URL in Core.DB.Target.GetAsList(['TARGET_URL', 'TOP_URL']):
 			URLList.append(URL+"/"+File) # Compute all URL + File combinations
 	TransactionList = Core.Requester.GetTransactions(True, URLList) # The requester framework component will unique the URLs
-	for Transaction in TransactionList:
-		Table.CreateRow([Core.Reporter.Render.DrawButtonLink(Transaction.URL, Transaction.URL)], True)
-		if Transaction.Found:
-			Table.CreateRow(["<br/><pre>"+cgi.escape(Transaction.GetRawResponseBody())+"</pre>"])
-		else:
-			Table.CreateRow([NotFoundMsg])
-			Core.log(NotFoundMsg)
-	return Table.Render() + Core.Reporter.DrawHTTPTransactionTable(TransactionList)
+        # TODO: Check the following piece of code
+	#for Transaction in TransactionList:
+	#	Table.CreateRow([Core.Reporter.Render.DrawButtonLink(Transaction.URL, Transaction.URL)], True)
+	#	if Transaction.Found:
+	#		Table.CreateRow(["<br/><pre>"+cgi.escape(Transaction.GetRawResponseBody())+"</pre>"])
+	#	else:
+	#		Table.CreateRow([NotFoundMsg])
+	#		Core.log(NotFoundMsg)
+	#return Table.Render() + Core.Reporter.DrawHTTPTransactionTable(TransactionList)
+        return(Core.PluginHelper.HTTPTransactionTable(TransactionList))

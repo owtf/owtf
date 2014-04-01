@@ -33,14 +33,14 @@ DESCRIPTION = "Active probing for HTTP methods"
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 	#Transaction = Core.Requester.TRACE(Core.Config.Get('HOST_NAME'), '/')
-	URL = Core.Config.Get('TOP_URL')
+	URL = Core.DB.Target.Get('TOP_URL')
 	# TODO: PUT not working right yet
 	#PUT_URL = URL+"/_"+Core.Random.GetStr(20)+".txt"
 	#print PUT_URL
 	#PUT_URL = URL+"/a.txt"
 	PUT_URL = URL
-	Content = Core.Reporter.DrawHTTPTransactionTable( [ Core.Requester.GetTransaction(True, URL, 'TRACE'), Core.Requester.GetTransaction(True, URL, 'DEBUG'), Core.Requester.GetTransaction(True, PUT_URL, 'PUT', Core.Random.GetStr(15)) ] ) 
-	Content += Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('ActiveHTTPMethods'), PluginInfo, Content)
+	Content = Core.PluginHelper.CreateHTTPTransactionTable( [ Core.Requester.GetTransaction(True, URL, 'TRACE'), Core.Requester.GetTransaction(True, URL, 'DEBUG'), Core.Requester.GetTransaction(True, PUT_URL, 'PUT', Core.Random.GetStr(15)) ] ) 
+	Content += Core.PluginHelper.CreateCommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('ActiveHTTPMethods'), PluginInfo, Content)
 	# Deprecated: Content += Core.PluginHelper.LogURLs(PluginInfo, Core.Config.GetResources('ActiveHTTPMethodsExtractLinks'))
 	return Content
 

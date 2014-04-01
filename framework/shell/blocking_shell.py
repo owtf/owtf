@@ -73,7 +73,7 @@ class Shell:
                 CommandInfo['Success'] = Success
                 CommandInfo['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr(self.CommandTimeOffset)
                 CommandInfo['Target'] = self.Core.DB.Target.GetTarget()
-                self.Core.DB.POutput.AddCommandToRegistry(CommandInfo)
+                self.Core.DB.CommandRegister.AddCommand(CommandInfo)
                 #self.CommandInfo = defaultdict(list)
 
         def CanRunCommand(self, Command):
@@ -83,7 +83,7 @@ class Shell:
                 #                return [ None, True ] # Can only run again if against the same target and when -f was specified
                 #        return [Target, False ]
                 #return [ None, True ] # Command was not run before
-                if self.Core.DB.POutput.CommandAlreadyRegistered(Command['OriginalCommand']):
+                if self.Core.DB.CommandRegister.CommandAlreadyRegistered(Command['OriginalCommand']):
                     return [self.Core.DB.Target.GetTarget(), False]
                 return [None, True]
 

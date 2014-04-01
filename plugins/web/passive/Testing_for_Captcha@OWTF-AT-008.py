@@ -32,6 +32,6 @@ DESCRIPTION = "Google Hacking for CAPTCHA"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveCAPTCHALnk'))
+	Content = Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveCAPTCHALnk'))
 	return Content
 

@@ -76,7 +76,7 @@ class Worker(multiprocessing.Process):
             self.Core.PluginHandler.ProcessPlugin(pluginDir, plugin, self.status)
             self.output_status = True
 
-class ProcessManager:
+class ProcessManager(object):
     def __init__(self,CoreObj):
         self.Core = CoreObj
         self.worklist = []          #List of unprocessed (plugin*target)
@@ -105,7 +105,7 @@ class ProcessManager:
         self.targets = targetList
         #for plugin in self.Core.Config.Plugin.GetOrder(pluginGroup):
         # TODO: Put the order back in place
-        for plugin in self.Core.DB.Plugin.GetPluginsByType('grep'):
+        for plugin in self.Core.DB.Plugin.GetPluginsByType('semi_passive'):
             for target in targetList:
                 self.worklist.append((target,plugin))
                 if plugin["Type"] == "external": # External plugins are run only once, i.e for first target
@@ -206,9 +206,12 @@ class ProcessManager:
     def joinWorker(self):
         for item in self.workers:
             item["worker"].join()
-        self.inputqueue.put("end")
-        self.inputthread.join()
         return self.status
+
+    def cleanUp(self):
+        #self.ProcessManager.manageProcess()
+        self.ProcessManager.poisonPillToWorkers()
+        Status = self.ProcessManager.joinWorker()
 
     #this function takes input from user to stop a process etc
     def keyinput(self,q):

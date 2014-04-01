@@ -89,7 +89,9 @@ class PluginOutput(OutputBase):
     user_rank = Column(Integer, nullable = True)
     owtf_rank = Column(Integer, nullable = True)
 
-class Command(OutputBase):
+RegisterBase = declarative_base()
+
+class Command(RegisterBase):
     __tablename__ = "command_register"
 
     start = Column(String)

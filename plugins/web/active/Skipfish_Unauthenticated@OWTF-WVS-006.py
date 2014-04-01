@@ -34,4 +34,4 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via Skipfish"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	return Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('Skipfish_Unauth'), PluginInfo, "")
+	return Core.PluginHelper.CreateCommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('Skipfish_Unauth'), PluginInfo, "")

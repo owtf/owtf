@@ -62,12 +62,13 @@ class URLManager:
         def IsSSIURL(self, URL):
                 return self.IsRegexpURL(URL, self.IsSSIRegexp)
 
-        def GetURLsToVisit(self, URLList):
-                NewList = []
-                for URL in URLList:
-                        if not self.IsImageURL(URL):
-                                NewList.append(URL)
-                return NewList
+        def GetURLsToVisit(self, target = None):
+            Session = self.Core.Target.GetUrlDBSession(target)
+            session = Session()
+            urls = session.query(models.Url.url).filter_by(visited = False).all()
+            session.close()
+            urls = [i[0] for i in urls]
+            return(urls)
 
         def IsURL(self, URL):
                 return self.IsRegexpURL(URL, self.IsURLRegexp)
@@ -79,11 +80,6 @@ class URLManager:
             count = session.query(models.Url).count()
             session.close()
             return(count)
-
-        def IsURLAlreadyAdded(self, URL, DBPrefix = ''):
-            # This wont be needed since we merge :P
-                return URL in self.Core.DB.GetData(DBPrefix+'ALL_URLS_DB') or URL in self.Core.DB.GetData(DBPrefix+'EXTERNAL_URLS_DB') or URL in self.Core.DB.GetData(DBPrefix+'ERROR_URLS_DB')
-                #return URL in self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'] or URL in self.Core.DB.DBCache[DBPrefix+'EXTERNAL_URLS_DB'] or URL in self.Core.DB.DBCache[DBPrefix+'ERROR_URLS_DB']
 
         def AddURLToDB(self, url, visited, found = None, target = None):
             Message = ''

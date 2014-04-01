@@ -33,5 +33,5 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via Wapiti"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	return Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('Wapiti_Unauth'), PluginInfo, "")
+	return Core.PluginHelper.CreateCommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('Wapiti_Unauth'), PluginInfo, "")
 

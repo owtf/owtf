@@ -33,6 +33,6 @@ DESCRIPTION = "Google Hacking for SQLi"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.CreateResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveSQLInjectionLnk'))
+	Content = Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveSQLInjectionLnk'))
 	return Content
 

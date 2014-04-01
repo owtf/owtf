@@ -92,7 +92,8 @@ class HTTP_Transaction(object):
         self.ResponseContents = Response.read()
         self.EndRequest()
 
-    def SetTransactionFromDB(self, url, method, status, time, time_human, request_data, raw_request, response_headers, response_body, grep_output):
+    def SetTransactionFromDB(self, id, url, method, status, time, time_human, request_data, raw_request, response_headers, response_body, grep_output):
+        self.ID = id
         self.New = False # Flag NOT new transaction
         self.URL = url
         self.Method = method
@@ -121,6 +122,9 @@ class HTTP_Transaction(object):
     def SetError(self, ErrorMessage): # Only called for unknown errors, 404 and other HTTP stuff handled on self.SetResponse
         self.ResponseContents = ErrorMessage
         self.EndRequest()
+
+    def GetID(self):
+        return(self.ID)
 
     def SetID(self, ID, HTMLLinkToID):
         self.ID = ID

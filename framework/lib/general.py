@@ -40,134 +40,137 @@ import threading
 import time,base64
 
 class FrameworkException(Exception):
-	def __init__(self, value):
-		self.parameter = value
+    def __init__(self, value):
+        self.parameter = value
 
-	def __str__(self):
-		return repr(self.parameter)
+    def __str__(self):
+        return repr(self.parameter)
 
 class FrameworkAbortException(FrameworkException):
-	pass
+    pass
 
 class PluginAbortException(FrameworkException):
-	pass
+    pass
 
 class UnreachableTargetException(FrameworkException):
-	pass
+    pass
+
+class DuplicateEntryInDBException(FrameworkException):
+    pass
 
 def ConfigGet(Key): # Kludge wrapper function
-	global Config # kludge global to avoid having to pass the config around to other components that need it (temporary until I figure out a better way!)
-	return Config.Get(Key)
+        global Config # kludge global to avoid having to pass the config around to other components that need it (temporary until I figure out a better way!)
+        return Config.Get(Key)
 
 def cprint(Message):
-	Pad = "[*] "
-	print Pad+str(Message).replace("\n", "\n"+Pad)
-	return Message
+        Pad = "[*] "
+        print Pad+str(Message).replace("\n", "\n"+Pad)
+        return Message
 
 def p(Variable, CallFunctions = True):
-	for i in dir(Variable):
-		print i
-		try:
-			Attrib = getattr(Variable, i)
-			print str(Attrib)
-			if CallFunctions and callable(Attrib):
-				Attrib()
-		except:
-			pass
-	cprint("depth = 1")
-	pprint.PrettyPrinter(indent=4,depth=1).pprint(Variable)
-	cprint("depth = 2")
-	pprint.PrettyPrinter(indent=4,depth=2).pprint(Variable)
-	cprint("pprint")
-	pprint.pprint(Variable)
-	cprint("print dir")
-	cprint(dir(Variable))
+        for i in dir(Variable):
+                print i
+                try:
+                        Attrib = getattr(Variable, i)
+                        print str(Attrib)
+                        if CallFunctions and callable(Attrib):
+                                Attrib()
+                except:
+                        pass
+        cprint("depth = 1")
+        pprint.PrettyPrinter(indent=4,depth=1).pprint(Variable)
+        cprint("depth = 2")
+        pprint.PrettyPrinter(indent=4,depth=2).pprint(Variable)
+        cprint("pprint")
+        pprint.pprint(Variable)
+        cprint("print dir")
+        cprint(dir(Variable))
 
 # Perform multiple replacements in one go using the replace dictionary in format: { 'search' : 'replace' }
 def MultipleReplace(Text, ReplaceDict):
-	NewText = Text
-	for Search,Replace in ReplaceDict.items():
-		NewText = NewText.replace(Search, str(Replace))
-	return NewText
+        NewText = Text
+        for Search,Replace in ReplaceDict.items():
+                NewText = NewText.replace(Search, str(Replace))
+        return NewText
 
 def WipeBadCharsForFilename(Filename):
-	return MultipleReplace(Filename, { '(':'', ' ':'_', ')':'', '/':'_' })
+        return MultipleReplace(Filename, { '(':'', ' ':'_', ')':'', '/':'_' })
 
 def RemoveListBlanks(List):
-	NewList = []
-	for Item in List:
-		if Item:
-			NewList.append(Item)
-	return NewList
+        NewList = []
+        for Item in List:
+                if Item:
+                        NewList.append(Item)
+        return NewList
 
 def List2DictKeys(List):
-	Dictionary = defaultdict(list)
-	for Item in List:
-		Dictionary[Item] = ''
-	return Dictionary
+        Dictionary = defaultdict(list)
+        for Item in List:
+                Dictionary[Item] = ''
+        return Dictionary
 
 def AddToDict(FromDict, ToDict):
-	for Key, Value in FromDict.items():
-		if hasattr(Value, 'copy') and callable(getattr(Value, 'copy')):
-			ToDict[Key] = Value.copy()
-		else:
-			ToDict[Key] = Value
+        for Key, Value in FromDict.items():
+                if hasattr(Value, 'copy') and callable(getattr(Value, 'copy')):
+                        ToDict[Key] = Value.copy()
+                else:
+                        ToDict[Key] = Value
 
 def MergeDicts(Dict1, Dict2): # Returns a by-value copy contained the merged content of the 2 passed dictionaries
-	NewDict = defaultdict(list)
-	AddToDict(Dict1, NewDict)
-	AddToDict(Dict2, NewDict)
-	return NewDict
-		 
+        NewDict = defaultdict(list)
+        AddToDict(Dict1, NewDict)
+        AddToDict(Dict2, NewDict)
+        return NewDict
+                 
 def TruncLines(Str, NumLines, EOL = "\n"):
-	return EOL.join(Str.split(EOL)[0:NumLines])
+        return EOL.join(Str.split(EOL)[0:NumLines])
 
 def DeriveHTTPMethod(Method, Data): # Derives the HTTP method from Data, etc
-	DMethod = Method
-	if DMethod == None or DMethod == '': # Method not provided: Determine method from params
-		DMethod = 'GET'
-		if Data != '' and Data != None:
-			DMethod = 'POST'
-	return DMethod
+        DMethod = Method
+        if DMethod == None or DMethod == '': # Method not provided: Determine method from params
+                DMethod = 'GET'
+                if Data != '' and Data != None:
+                        DMethod = 'POST'
+        return DMethod
 
 def GetDictValueOrBlank(Dict, Key): # Return the value if the key is present or blank otherwise
-	if Key in Dict:
-		return Dict[Key]
-	return ''
+        if Key in Dict:
+                return Dict[Key]
+        return ''
 
 def CallMethod(Object, Method, ArgList): # Calls Object.Method(ArgList) dynamically, this helps avoiding code repetition via wrapper convenience functions
-	return getattr(Object, Method)(*ArgList)
+        return getattr(Object, Method)(*ArgList)
 
 def GetUnique(List):
-	NewList = []
-	for Item in List:
-		if Item not in NewList:
-			NewList.append(Item)
-	return NewList
+        NewList = []
+        for Item in List:
+                if Item not in NewList:
+                        NewList.append(Item)
+        return NewList
 
 def PathsExist(PathList):
-	ValidPaths = True
-	for Path in PathList:
-		if Path and not os.path.exists(Path):
-			log("WARNING: The path '" + Path + "' does not exist!")
-			ValidPaths = False
-	return ValidPaths
+        ValidPaths = True
+        for Path in PathList:
+                if Path and not os.path.exists(Path):
+                        log("WARNING: The path '" + Path + "' does not exist!")
+                        ValidPaths = False
+        return ValidPaths
 
 def GetFileAsList(Filename):
-	try:
-		Output = open(Filename, 'r').read().split("\n")
-		cprint("Loaded file: '"+Filename+"'")
-	except IOError, error:
-		log("Cannot open file: '"+Filename+"' ("+str(sys.exc_info())+")")
-		Output = []
-	return Output
+        try:
+                Output = open(Filename, 'r').read().split("\n")
+                cprint("Loaded file: '"+Filename+"'")
+        except IOError, error:
+                log("Cannot open file: '"+Filename+"' ("+str(sys.exc_info())+")")
+                Output = []
+        return Output
 
 def AppendToFile(Filename, Data):
-	try:
-		#cprint("Writing to file: '"+Filename+"'")
-		open(Filename, 'a').write(Data)
-	except IOError, error:
-		log("Cannot write to file: '"+Filename+"' ("+str(sys.exc_info())+")")
+        try:
+                #cprint("Writing to file: '"+Filename+"'")
+                open(Filename, 'a').write(Data)
+        except IOError, error:
+                log("Cannot write to file: '"+Filename+"' ("+str(sys.exc_info())+")")
 
 def get_files(request_dir):
     files = os.listdir(request_dir)
