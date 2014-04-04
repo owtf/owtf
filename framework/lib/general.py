@@ -55,7 +55,10 @@ class PluginAbortException(FrameworkException):
 class UnreachableTargetException(FrameworkException):
     pass
 
-class DuplicateEntryInDBException(FrameworkException):
+class DBIntegrityException(FrameworkException):
+    pass
+
+class InvalidTargetException(FrameworkException):
     pass
 
 def ConfigGet(Key): # Kludge wrapper function

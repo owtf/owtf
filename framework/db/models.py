@@ -42,7 +42,8 @@ TargetBase = declarative_base()
 class Target(TargetBase):
     __tablename__ = "targets"
 
-    target_url = Column(String, primary_key = True)
+    id = Column(Integer, primary_key = True,  autoincrement = True)
+    target_url = Column(String, unique = True)
     host_ip = Column(String)
     port_number = Column(String)
     url_scheme = Column(String)
@@ -52,9 +53,10 @@ class Target(TargetBase):
     ip_url = Column(String)
     top_domain = Column(String)
     top_url = Column(String)
+    in_context = Column(Boolean, default = True)
 
     def __repr__(self):
-        return "<Target (url='%s')>"%(self.url)
+        return "<Target (url='%s')>"%(self.target_url)
 
 ErrorBase = declarative_base()
 
