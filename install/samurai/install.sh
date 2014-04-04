@@ -64,7 +64,7 @@ fi
 
 ########## Installing missing tools
 echo "[*] Installing missing tools"
-sudo -E apt-get install lbd arachni tlssled set ua-tester wpscan theharvester whatweb dnsrecon metagoofil metasploit waffit
+sudo -E apt-get install lbd arachni tlssled set ua-tester wpscan theharvester whatweb dnsrecon metagoofil metasploit waffit tor
 
 ########## Patch scripts
 "$RootDir/install/kali/samurai_wtf_patch_w3af.sh"

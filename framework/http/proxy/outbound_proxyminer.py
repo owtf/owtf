@@ -34,7 +34,7 @@ Proxy Miner developed by Marios Kourtesis <name.surname@gmail.com>
 The code is Structured in 3 parts
 A)Miner Engine
 B)Helper Functions
-C)Mining Functions
+C)Proxy Mining Functions
 
 '''
 
@@ -148,7 +148,7 @@ class Proxy_Miner:
                      )
         return list(proxies for proxies, _ in itertools.groupby(proxies))
 
-#----------------------------WEB-SITE-MINING-FUNCTION-------------------------
+#----------------------------PROXY-MINING-FUNCTIONS-------------------------
 #Mining Function returns list of proxies.
 
     # http://samair.ru/proxy/proxy-84.htm
