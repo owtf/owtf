@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The Configuration object parses all configuration files, loads them into memory, derives some settings and provides framework modules with a central repository to get info
 '''
-import sys, os, re, socket
+import sys, os, re, socket, shutil
 from urlparse import urlparse
 from collections import defaultdict
 from framework.config import plugin, health_check
@@ -357,6 +357,9 @@ class Config(object):
         cprint("Configuration settings")
         for k, v in self.GetConfig().items():
             cprint(str(k)+" => "+str(v))
+
+    def CleanUpForTarget(self, TargetURL):
+        return shutil.rmtree(self.GetDBDirForTarget(TargetURL))
 
     def GetDBDirForTarget(self, TargetURL):
         return os.path.join(self.FrameworkConfigGet("OUTPUT_PATH"), self.FrameworkConfigGet("TARGETS_DIR"), TargetURL.replace("/","_").replace(":",""))

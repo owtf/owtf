@@ -57,3 +57,9 @@ class CommandRegister(object):
         if register_entry and register_entry.success:
             return True
         return False
+
+    def RemoveForTarget(self, Target):
+        session = self.CommandRegisterSession()
+        session.query(models.Command).filter_by(target = Target).delete()
+        session.commit()
+        session.close()

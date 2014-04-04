@@ -1,8 +1,11 @@
 from framework.db import models
+from framework.lib import general
 from urlparse import urlparse
+import sqlalchemy.exc
 import os
 
 TARGET_CONFIG = {
+                    'ID' : '',
                     'TARGET_URL' : '', 
                     'HOST_NAME' : '',
                     'HOST_PATH' : '',
@@ -12,7 +15,8 @@ TARGET_CONFIG = {
                     'ALTERNATIVE_IPS' : '', # str(list), so it can easily reversed using list(str)
                     'IP_URL' : '',
                     'TOP_DOMAIN' : '',
-                    'TOP_URL' : ''
+                    'TOP_URL' : '',
+                    'IN_CONTEXT' : True
                 }
 
 PATH_CONFIG = {
@@ -77,37 +81,110 @@ class TargetDB(object):
         if target_list: 
         # If needed inorder to prevent an uninitialized value for target in self.SetTarget(target) few lines later
             for target in target_list:
-                self.Core.DB.Target.CreateMissingDBsForTarget(target.url)
+                self.Core.DB.Target.CreateMissingDBsForURL(target.target_url)
             self.SetTarget(target) # This is to avoid "None" value for the main settings
 
     def AddTarget(self, TargetURL):
-        target_config = self.Core.Config.DeriveConfigFromURL(TargetURL)
-        config_obj = models.Target(target_url = TargetURL)
-        for key, value in target_config.items():
-            key = key.lower()
-            setattr(config_obj, key, str(value))
+        if TargetURL not in self.GetTargets():
+            target_config = self.Core.Config.DeriveConfigFromURL(TargetURL)
+            #----------- Target model object creation -----------
+            config_obj = models.Target(target_url = TargetURL)
+            config_obj.host_name = target_config["HOST_NAME"]
+            config_obj.host_path = target_config["HOST_PATH"]
+            config_obj.url_scheme = target_config["URL_SCHEME"]
+            config_obj.port_number = target_config["PORT_NUMBER"]
+            config_obj.host_ip = target_config["HOST_IP"]
+            config_obj.alternative_ips = str(target_config["ALTERNATIVE_IPS"])
+            config_obj.ip_url = target_config["IP_URL"]
+            config_obj.top_domain = target_config["TOP_DOMAIN"]
+            config_obj.top_url = target_config["TOP_URL"]
+            #----------------------------------------------------
+            session = self.TargetConfigDBSession()
+            session.add(config_obj)
+            session.commit()
+            session.close()
+            self.CreateMissingDBsForURL(TargetURL)
+            self.SetTarget(TargetURL)
+        else:
+            raise general.InvalidTargetException(TargetURL + " already present in Target DB")
+
+    def UpdateTarget(self, data_dict, TargetURL=None, ID=None):
         session = self.TargetConfigDBSession()
-        session.merge(config_obj)
+        if ID:
+            target_obj = session.query(models.Target).get(ID)
+        if TargetURL:
+            target_obj = session.query(models.Target).filter_by(target_url = TargetURL).one()
+        # TODO: Updating all related attributes when one attribute is changed
+        for key, value in data.items():
+            if key == "IN_CONTEXT":
+                setattr(target_obj, key.lower(), bool(value))
+        session.merge(target_obj)
         session.commit()
         session.close()
-        self.CreateMissingDBsForTarget(TargetURL)
-        self.SetTarget(TargetURL)
 
-    def CreateMissingDBsForTarget(self, TargetURL):
+    def DeleteTarget(self, TargetURL=None, ID=None):
+        session = self.TargetConfigDBSession()
+        if ID:
+            target_obj = session.query(models.Target).get(ID)
+        if TargetURL:
+            target_obj = session.query(models.Target).filter_by(target_url = TargetURL).one()
+        if not target_obj:
+            raise general.InvalidTargetException("Target doesn't exist: " + str(ID) if ID else str(TargetURL))
+        target_url = target_obj.target_url
+        session.delete(target_obj)
+        session.commit()
+        self.Core.DB.CommandRegister.RemoveForTarget(target_url)
+        self.Core.Config.CleanUpForTarget(target_url)
+        session.close()
+
+    def CreateMissingDBsForURL(self, TargetURL):
         self.Core.Config.CreateDBDirForTarget(TargetURL)
         self.Core.DB.EnsureDBWithBase(self.Core.Config.GetTransactionDBPathForTarget(TargetURL), models.TransactionBase)
         self.Core.DB.EnsureDBWithBase(self.Core.Config.GetUrlDBPathForTarget(TargetURL), models.URLBase)
         self.Core.DB.EnsureDBWithBase(self.Core.Config.GetOutputDBPathForTarget(TargetURL), models.OutputBase)
 
-    def GetTargetConfigForURL(self, target_url):
+    def GetTargetConfigForURL(self, TargetUrl):
         session = self.TargetConfigDBSession()
-        target_obj = session.query(models.Target).get(target_url)
+        target_obj = session.query(models.Target).filter_by(target_url = TargetUrl).one()
         session.close()
-        target_config = {}
+        return(self.DeriveTargetConfig(target_obj))
+
+    def GetTargetConfigForID(self, ID):
+        session = self.TargetConfigDBSession()
+        target_obj = session.query(models.Target).get(id = ID)
+        session.close()
+        if not target_obj:
+            raise InvalidTargetException("Target doesn't exist: " + str(ID))
+        return(self.DeriveTargetConfig(target_obj))
+
+    def GetTargetConfigs(self, filter_data={}):
+        session = self.TargetConfigDBSession()
+        query = session.query(models.Target)
+        if filter_data.get("TARGET_URL", None):
+            query = query.filter_by(target_url = filter_data.get("TARGET_URL"))
+        if filter_data.get("HOST_IP", None):
+            query = query.filter_by(host_ip = filter_data.get("HOST_IP"))
+        if filter_data.get("IN_CONTEXT", None):
+            query = query.filter_by(in_context = bool(filter_data.get("IN_CONTEXT")))
+        if filter_data.get("HOST_NAME", None):
+            query = query.filter_by(host_name = filter_data.get("HOST_NAME"))
+        target_obj_list = query.all()
+        session.close()
+        return(self.DeriveTargetConfigs(target_obj_list))
+
+    def DeriveTargetConfig(self, target_obj):
+        target_config = dict(TARGET_CONFIG)
         if target_obj:
             for key in TARGET_CONFIG.keys():
                 target_config[key] = getattr(target_obj, key.lower())
-        return target_config
+            return target_config
+        return(None)
+
+    def DeriveTargetConfigs(self, target_obj_list):
+        target_configs = []
+        for target_obj in target_obj_list:
+            target_configs.append(self.DeriveTargetConfig(target_obj))
+        return(target_configs)
 
     def Get(self, Key):
         return(self.TargetConfig[Key])
