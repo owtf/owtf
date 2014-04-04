@@ -52,12 +52,12 @@ echo "[*] Done"
 ############ Tools missing in Samurai-WTF
 
 ############ Install updated w3af from GitHub
-#mkdir -p $RootDir/tools/restricted
-#cd $RootDir/tools/restricted
-#IsInstalled "w3af"
-#if [ $? -eq 0 ]; then # Not installed
-#    git clone https://github.com/andresriancho/w3af.git
-#fi
+mkdir -p $RootDir/tools/restricted
+cd $RootDir/tools/restricted
+IsInstalled "w3af"
+if [ $? -eq 0 ]; then # Not installed
+    git clone https://github.com/andresriancho/w3af.git
+fi
 
 ########## Remove default ruby-bundler to avoid with Metasploit later on
 "$RootDir/install/samurai/samurai_wtf_patch_metasploit.sh" $RootDir
