@@ -159,17 +159,17 @@ class Core:
 
     def Start_TOR_Mode(self, Options):
         if Options['TOR_mode'] != None:
-            if Options['TOR_mode'][0] != "help":
-                if tor_manager.TOR_manager.is_tor_running():
-                    self.TOR_process = tor_manager.TOR_manager(self, Options['TOR_mode'])
-                    self.TOR_process = self.TOR_process.Run()
-                else:
-                    tor_manager.TOR_manager.msg_start_tor(self)
-                    tor_manager.TOR_manager.msg_configure_tor(self)
-                    self.Error.FrameworkAbort("TOR Daemon is not running")
+            #if Options['TOR_mode'][0] != "help":
+            if tor_manager.TOR_manager.is_tor_running():
+                self.TOR_process = tor_manager.TOR_manager(self, Options['TOR_mode'])
+                self.TOR_process = self.TOR_process.Run()
             else:
+                tor_manager.TOR_manager.msg_start_tor(self)
                 tor_manager.TOR_manager.msg_configure_tor()
-                self.Error.FrameworkAbort("Configuration help is running")
+                self.Error.FrameworkAbort("TOR Daemon is not running")
+            #else:
+                #tor_manager.TOR_manager.msg_configure_tor()
+                #self.Error.FrameworkAbort("Configuration help is running")
 
     def StartBotnetMode(self, Options):
         self.Proxy_manager = None

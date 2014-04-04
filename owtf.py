@@ -42,7 +42,7 @@ OwtfPid = os.getpid()
 from framework import core
 from framework.lib.general import *
 from framework import update
-
+from framework.http.proxy import tor_manager # Is needed for printing configuration help
 def Banner():
     print("""
                   __       ___  
@@ -286,7 +286,9 @@ def ProcessOptions(Core, user_args):
 
     if Arg.TOR_mode:
         Arg.TOR_mode = Arg.TOR_mode.split(":")
-        print(Arg.TOR_mode[0])
+        if(Arg.TOR_mode[0] == "help"):
+            tor_manager.TOR_manager.msg_configure_tor()
+            exit(0);
         if len(Arg.TOR_mode) == 1:
             if Arg.TOR_mode[0] != "help":
                 Usage("Invalid argument for TOR-mode")

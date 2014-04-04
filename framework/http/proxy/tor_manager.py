@@ -97,7 +97,7 @@ class TOR_manager(object):
             cprint("Connected to TOR control")
             return s
         except Exception as error:
-            self.core.Error.FrameworkAbort("Can't connect to the TOR daemon : " + error.strerror)
+            self.core.Error.FrameworkAbort("Can't connect to the TOR Control port daemon : " + error.strerror)
 
     #Starts a new TOR_control_process which will renew the IP address.
     def Run(self):
@@ -117,7 +117,10 @@ class TOR_manager(object):
     @staticmethod
     def msg_start_tor(self):
         cprint ("""Error : TOR daemon is not running
-                (Tips: service tor start)""")
+                (Tips: 
+                Start TOR --> service tor start)
+                See if tor is running --> service tor status
+                """)
         
     #TOR configuration Info
     @staticmethod
