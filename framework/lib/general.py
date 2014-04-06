@@ -58,7 +58,10 @@ class UnreachableTargetException(FrameworkException):
 class DBIntegrityException(FrameworkException):
     pass
 
-class InvalidTargetException(FrameworkException):
+class InvalidTargetReference(FrameworkException):
+    pass
+
+class InvalidTransactionReference(FrameworkException):
     pass
 
 def ConfigGet(Key): # Kludge wrapper function

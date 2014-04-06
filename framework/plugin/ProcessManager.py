@@ -70,8 +70,7 @@ class Worker(multiprocessing.Process):
             if work == ():
                 sys.exit()
             target, plugin = work
-            pluginGroup = plugin['Group']
-            pluginDir = self.Core.PluginHandler.GetPluginGroupDir(pluginGroup)
+            pluginDir = self.Core.PluginHandler.GetPluginGroupDir(plugin['group'])
             self.Core.PluginHandler.SwitchToTarget(target)
             self.Core.PluginHandler.ProcessPlugin(pluginDir, plugin, self.status)
             self.output_status = True
@@ -105,10 +104,10 @@ class ProcessManager(object):
         self.targets = targetList
         #for plugin in self.Core.Config.Plugin.GetOrder(pluginGroup):
         # TODO: Put the order back in place
-        for plugin in self.Core.DB.Plugin.GetPluginsByType('semi_passive'):
+        for plugin in self.Core.DB.Plugin.GetAll({'type':'semi_passive', 'group':'web'}):
             for target in targetList:
                 self.worklist.append((target,plugin))
-                if plugin["Type"] == "external": # External plugins are run only once, i.e for first target
+                if plugin["type"] == "external": # External plugins are run only once, i.e for first target
                     break
     
     #returns next work that can be done depending on RAM state and availability of targets

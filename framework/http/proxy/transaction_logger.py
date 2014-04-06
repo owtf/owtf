@@ -53,34 +53,34 @@ class TransactionLogger(Process):
         self.cache_dir = self.Core.DB.Config.Get('INBOUND_PROXY_CACHE_DIR')
 
     def derive_target_for_transaction(self, request, response, target_list, host_list):
-        for Target in target_list:
+        for target_id,Target in target_list:
             if request.url.startswith(Target):
-                return [Target, True]
+                return [target_id, True]
             else:
                 try:
                     if response.headers["Referer"].startswith(Target):
-                        return [Target, self.get_scope_for_url(request.url, host_list)]
+                        return [target_id, self.get_scope_for_url(request.url, host_list)]
                 except KeyError:
                     pass
-        return [self.Core.DB.Target.GetTarget(), self.get_scope_for_url(request.url, host_list)]
+        return [self.Core.DB.Target.GetTargetID(), self.get_scope_for_url(request.url, host_list)]
 
     def get_scope_for_url(self, url, host_list):
         return(urlparse(url).hostname in host_list)
 
     def get_owtf_transactions(self, hash_list):
         transactions_dict = {}
-        target_list = self.Core.DB.Target.GetTargets()
-        for target in target_list:
-            transactions_dict[target] = []
-        host_list = self.Core.DB.Target.GetAll('HOST_NAME')
+        target_list = self.Core.DB.Target.GetIndexedTargets()
+        for target_id, target in target_list:
+            transactions_dict[target_id] = []
+        host_list = self.Core.DB.Target.GetAllInScope('HOST_NAME')
 
         for request_hash in hash_list:
             request = request_from_cache(request_hash, self.cache_dir)
             response = response_from_cache(request_hash, self.cache_dir)
-            target, request.in_scope = self.derive_target_for_transaction(request, response, target_list, host_list)
+            target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list, host_list)
             owtf_transaction = transaction.HTTP_Transaction(timer.Timer())
             owtf_transaction.ImportProxyRequestResponse(request, response)
-            transactions_dict[target].append(owtf_transaction)
+            transactions_dict[target_id].append(owtf_transaction)
         return(transactions_dict)
 
     def get_hash_list(self, cache_dir):
