@@ -72,7 +72,7 @@ class Shell:
                         Success = False
                 CommandInfo['Success'] = Success
                 CommandInfo['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr(self.CommandTimeOffset)
-                CommandInfo['Target'] = self.Core.DB.Target.GetTarget()
+                CommandInfo['Target'] = self.Core.DB.Target.GetTargetID()
                 self.Core.DB.CommandRegister.AddCommand(CommandInfo)
                 #self.CommandInfo = defaultdict(list)
 
@@ -84,7 +84,7 @@ class Shell:
                 #        return [Target, False ]
                 #return [ None, True ] # Command was not run before
                 if self.Core.DB.CommandRegister.CommandAlreadyRegistered(Command['OriginalCommand']):
-                    return [self.Core.DB.Target.GetTarget(), False]
+                    return [self.Core.DB.Target.GetTargetID(), False]
                 return [None, True]
 
         def create_subprocess(self, Command):

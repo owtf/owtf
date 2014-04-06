@@ -73,6 +73,9 @@ class Config(object):
             except ValueError:
                 self.Core.Error.FrameworkAbort("Problem in config file: '"+ConfigPath+"' -> Cannot parse line: "+line)
 
+    def ConvertStrToBool(self, string):
+        return(not(string in ['False', 'false', 0, '0']))
+
     def ProcessOptions(self, Options):
         self.LoadProfiles(Options['Profiles'])
         self.LoadTargets(Options)

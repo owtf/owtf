@@ -49,8 +49,8 @@ class TransactionManager(object):
             self.regexs[regex_type] = {}
         self.CompileRegexs()
 
-    def NumTransactions(self, Scope = True): # Return num transactions in scope by default
-        Session = self.Core.DB.Target.GetTransactionDBSession()
+    def NumTransactions(self, Scope = True, target_id = None): # Return num transactions in scope by default
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
         count = session.query(models.Transaction).filter_by(scope = Scope).count()
         session.close()
@@ -67,38 +67,38 @@ class TransactionManager(object):
                 Boundaries.append(self.Padding+" "+BoundaryName+" "+self.Padding+self.RandomSeed+"\n")
         self.TBoundaryURL, self.TBoundaryReq, self.TBoundaryResHeaders, self.TBoundaryResBody = Boundaries
 
-    def IsTransactionAlreadyAdded(self, Criteria, target = None):
-        return(len(self.GetAll(Criteria, target)) > 0)
+    def IsTransactionAlreadyAdded(self, Criteria, target_id = None):
+        return(len(self.GetAll(Criteria, target_id)) > 0)
 
-    def GetFirst(self, Criteria, target = None): # Assemble only the first transaction that matches the criteria from DB
-        Session = self.Core.DB.Target.GetTransactionDBSession(target)
-        session = Session()
+    def GenerateQueryUsingSession(self, session, Criteria):
         query = session.query(models.Transaction)
-        if 'URL' in Criteria.keys():
-            query = self.FilterByURL(query, Criteria['URL'])
-        if 'Method' in Criteria.keys():
-            query = self.FilterByMethod(query, Criteria['Method'])
-        if 'Data' in Criteria.keys():
-            query = self.FilterByData(query, Criteria['Data'])
+        if Criteria.get('url', None):
+            query = query.filter_by(url = Criteria['url'])
+        if Criteria.get('method', None):
+            query = query.filter_by(method = Criteria['method'])
+        if Criteria.get('data', None):
+            query = query.filter_by(data = Criteria['data'])
+        if Criteria.get('scope', None):
+            query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(Criteria['Scope']))
+        return(query)
+
+    def GetFirst(self, Criteria, target_id = None): # Assemble only the first transaction that matches the criteria from DB
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
+        session = Session()
+        query = self.GenerateQueryUsingSession(session, Criteria)
         return(self.DeriveTransaction(query.first()))
 
-    def GetAll(self, Criteria, target = None): # Assemble ALL transactions that match the criteria from DB
-        Session = self.Core.DB.Target.GetTransactionDBSession(target)
+    def GetAll(self, Criteria, target_id = None): # Assemble ALL transactions that match the criteria from DB
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
-        query = session.query(models.Transaction)
-        if 'URL' in Criteria.keys():
-            query = self.FilterByURL(query, Criteria['URL'])
-        if 'Method' in Criteria.keys():
-            query = self.FilterByMethod(query, Criteria['Method'])
-        if 'Data' in Criteria.keys():
-            query = self.FilterByData(query, Criteria['Data'])
+        query = self.GenerateQueryUsingSession(session, Criteria)
         return(self.DeriveTransactions(query.all()))
 
     def DeriveTransaction(self, t):
         if t:
             owtf_transaction = transaction.HTTP_Transaction(None)
             response_body = t.response_body
-            if t.response_binary:
+            if t.binary_response:
                 response_body = str(response_body)
             grep_output = None
             if t.grep_output:
@@ -125,28 +125,19 @@ class TransactionManager(object):
             owtf_tlist.append(self.DeriveTransaction(transaction))
         return(owtf_tlist)
 
-    def FilterByURL(self, query, url):
-        return query.filter_by(url = url)
-
-    def FilterByMethod(self, query, method):
-        return query.filter_by(method = method)
-
-    def FilterByData(self, query, data):
-        return query.filter_by(data = data)
-
-    def LogTransaction(self, transaction, target = None):
-        Session = self.Core.DB.Target.GetTransactionDBSession(target)
+    def LogTransaction(self, transaction, target_id = None):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
         urls_list = []
         # TODO: This shit will go crazy on non-ascii characters
         try:
             unicode(transaction.GetRawResponseBody(), "utf-8")
             response_body = transaction.GetRawResponseBody()
-            is_binary = False
+            binary_response = False
             grep_output = json.dumps(self.GrepTransaction(transaction))
         except UnicodeDecodeError:
             response_body = buffer(transaction.GetRawResponseBody())
-            is_binary = True
+            binary_response = True
             grep_output = None
         finally:
             session.merge(models.Transaction( url = transaction.URL,
@@ -159,15 +150,16 @@ class TransactionManager(object):
                                             response_status = transaction.GetStatus(False),
                                             response_headers = transaction.GetResponseHeaders(),
                                             response_body = response_body,
-                                            response_binary = is_binary,
+                                            binary_response = binary_response,
                                             grep_output = grep_output
                                           ))
         urls_list.append([transaction.URL, True, transaction.InScope()])
         session.commit()
         session.close()
+        self.Core.DB.URL.ImportProcessedURLs(urls_list)
 
-    def LogTransactions(self, transaction_list, target = None):
-        Session = self.Core.DB.Target.GetTransactionDBSession(target)
+    def LogTransactions(self, transaction_list, target_id = None):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
         urls_list = []
         for transaction in transaction_list:
@@ -175,11 +167,11 @@ class TransactionManager(object):
             try:
                 unicode(transaction.GetRawResponseBody(), "utf-8")
                 response_body = transaction.GetRawResponseBody()
-                is_binary = False
+                binary_response = False
                 grep_output = json.dumps(self.GrepTransaction(transaction)) if transaction.InScope() else None
             except UnicodeDecodeError:
                 response_body = buffer(transaction.GetRawResponseBody())
-                is_binary = True
+                binary_response = True
                 grep_output = None
             finally:
                 session.merge(models.Transaction( url = transaction.URL,
@@ -192,24 +184,32 @@ class TransactionManager(object):
                                                 response_status = transaction.GetStatus(),
                                                 response_headers = transaction.GetResponseHeaders(),
                                                 response_body = response_body,
-                                                response_binary = is_binary,
+                                                binary_response = binary_response,
                                                 grep_output = grep_output
                                               ))
             urls_list.append([transaction.URL, True, transaction.InScope()])
         session.commit()
         session.close()
-        self.Core.DB.URL.ImportProcessedURLs(urls_list)
+        self.Core.DB.URL.ImportProcessedURLs(urls_list, target_id)
 
     def LogTransactionsFromLogger(self, transactions_dict):
-        for target, transaction_list in transactions_dict.items():
+        # transaction_dict is a dictionary with target_id as key and list of owtf transactions
+        for target_id, transaction_list in transactions_dict.items():
             if transaction_list:
-                self.LogTransactions(transaction_list, target)
+                self.LogTransactions(transaction_list, target_id)
 
-    def GetNumTransactionsInScope(self):
-        return self.NumTransactions()
+    def DeleteTransaction(self, transaction_id, target_id = None):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
+        session = Session()
+        session.delete(session.query(models.Transaction).get(transaction_id))
+        session.commit()
+        session.close()
 
-    def GetByID(self, ID):
-        Session = self.Core.DB.Target.GetTransactionDBSession()
+    def GetNumTransactionsInScope(self, target_id = None):
+        return self.NumTransactions(target_id = target_id)
+
+    def GetByID(self, ID, target_id = None):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
         model_obj = session.query(models.Transaction).get(id = ID)
         session.close()
@@ -217,8 +217,8 @@ class TransactionManager(object):
             return(self.DeriveTransaction(model_obj))
         return(model_obj) # None returned if no such transaction
 
-    def GetByIDs(self, id_list):
-        Session = self.Core.DB.Target.GetTransactionDBSession()
+    def GetByIDs(self, id_list, target_id = None):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
         model_objs = []
         for ID in id_list:
@@ -293,3 +293,37 @@ class TransactionManager(object):
             results.append([regex_name, self.DeriveTransactions(transaction_models), num_transactions_in_scope])
         session.close()
         return(results)
+
+#-------------------------------------------------- API Methods --------------------------------------------------
+    def DeriveTransactionDict(self, tdb_obj, include_raw_data = False):
+        tdict = dict(tdb_obj.__dict__) # Create a new copy so no accidental changes
+        tdict.pop("_sa_instance_state")
+        tdict.pop("grep_output")
+        if not include_raw_data:
+            tdict.pop("raw_request", None)
+            tdict.pop("response_headers", None)
+            tdict.pop("response_body", None)
+        return tdict
+
+    def DeriveTransactionDicts(self, tdb_obj_list, include_raw_data = False):
+        dict_list = []
+        for tdb_obj in tdb_obj_list:
+            dict_list.append(self.DeriveTransactionDict(tdb_obj, include_raw_data))
+        return dict_list
+
+    def GetAllAsDicts(self, Criteria, target_id = None, include_raw_data = False): # Assemble ALL transactions that match the criteria from DB
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
+        session = Session()
+        query = self.GenerateQueryUsingSession(session, Criteria)
+        transaction_objs = query.all()
+        session.close()
+        return(self.DeriveTransactionDicts(transaction_objs, include_raw_data))
+
+    def GetByIDAsDict(self, trans_id, target_id = None):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
+        session = Session()
+        transaction_obj = session.query(models.Transaction).get(trans_id)
+        session.close()
+        if not transaction_obj:
+            raise general.InvalidTransactionReference("No transaction with " + str(trans_id) + " exists for target with id " + str(target_id) if target_id else self.Core.DB.Target.GetTargetID())
+        return self.DeriveTransactionDict(transaction_obj, include_raw_data = True)

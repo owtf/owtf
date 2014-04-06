@@ -2,7 +2,7 @@ from framework.db import models
 from sqlalchemy import or_
 import os
 
-TEST_GROUPS = ['web', 'net']
+TEST_GROUPS = ['web', 'net', 'aux']
 
 class PluginDB(object):
     def __init__(self, Core):
@@ -34,7 +34,7 @@ class PluginDB(object):
         WebTestGroups = self.GetTestGroupsFromFile(test_groups_file)
         session = self.PluginDBSession()
         for group in WebTestGroups:
-            session.merge(models.TestCode(code = group['Code'], descrip = group['Descrip'], hint = group['Hint'], url = group['URL'], group = "web"))
+            session.merge(models.TestGroup(code = group['Code'], descrip = group['Descrip'], hint = group['Hint'], url = group['URL'], group = "web"))
         session.commit()
         session.close()
 
@@ -42,7 +42,7 @@ class PluginDB(object):
         NetTestGroups = self.GetTestGroupsFromFile(test_groups_file)
         session = self.PluginDBSession()
         for group in NetTestGroups:
-            session.merge(models.TestCode(code = group['Code'], descrip = group['Descrip'], hint = group['Hint'], url = group['URL'], group = "net"))
+            session.merge(models.TestGroup(code = group['Code'], descrip = group['Descrip'], hint = group['Hint'], url = group['URL'], group = "net"))
         session.commit()
         session.close()
 
@@ -62,18 +62,18 @@ class PluginDB(object):
             PluginName, PluginCode = PluginFile.split('@')
             PluginCode = PluginCode.split('.')[0] # Get rid of the ".py"
             session.merge(models.Plugin(
-                                            plugin_key = PluginType + '@' + PluginCode,
-                                            plugin_group = PluginGroup,
-                                            plugin_type = PluginType,
-                                            plugin_title = PluginName.title().replace('_', ' '),
-                                            plugin_name = PluginName,
-                                            plugin_code = PluginCode,
-                                            plugin_file = PluginFile,
-                                            plugin_descrip = PluginDescrip
+                                            key = PluginType + '@' + PluginCode,
+                                            group = PluginGroup,
+                                            type = PluginType,
+                                            title = PluginName.title().replace('_', ' '),
+                                            name = PluginName,
+                                            code = PluginCode,
+                                            file = PluginFile,
+                                            descrip = PluginDescrip
                                         ))
         session.commit()
 
-    def GetTestCode(self, code):
+    def GetTestGroup(self, code):
         session = self.PluginDBSession()
         group = session.query(models.TestGroup).get(code)
         if group:
@@ -82,63 +82,72 @@ class PluginDB(object):
 
     def GetAllGroups(self):
         session = self.PluginDBSession()
-        groups = session.query(models.Plugin.plugin_group).distinct().all()
+        groups = session.query(models.Plugin.group).distinct().all()
         session.close()
         groups = [i[0] for i in groups]
         return(groups)
 
     def GetAllTypes(self):
         session = self.PluginDBSession()
-        plugin_types = session.query(models.Plugin.plugin_type).distinct().all()
+        plugin_types = session.query(models.Plugin.type).distinct().all()
         session.close()
         plugin_types = [i[0] for i in plugin_types] # Necessary because of sqlalchemy
         return(plugin_types)
 
     def GetTypesForGroup(self, PluginGroup):
         session = self.PluginDBSession()
-        plugin_types = session.query(models.Plugin.plugin_type).filter_by(plugin_group = PluginGroup).distinct().all()
+        plugin_types = session.query(models.Plugin.type).filter_by(group = PluginGroup).distinct().all()
         session.close()
         plugin_types = [i[0] for i in plugin_types]
         return(plugin_types)
 
-    def GetDictFromObj(self, obj):
-        return({"Key" : obj.plugin_key,
-                "Group" : obj.plugin_group,
-                "Type" : obj.plugin_type,
-                "File" : obj.plugin_file,
-                "Code" : obj.plugin_code,
-                "Name" : obj.plugin_name,
-                "Title": obj.plugin_title,
-                "Descrip": obj.plugin_descrip
-                })
+    def DerivePluginDict(self, obj):
+        if obj:
+            pdict = dict(obj.__dict__)
+            pdict.pop("_sa_instance_state")
+            return pdict
 
-    def GetDictsFromObjs(self, obj_list):
+    def DerivePluginDicts(self, obj_list):
         plugin_dicts = []
         for obj in obj_list:
-            plugin_dicts.append(self.GetDictFromObj(obj))
+            plugin_dicts.append(self.DerivePluginDict(obj))
         return(plugin_dicts)
 
-    def GetPluginsByType(self, PluginType):
+    def GenerateQueryUsingSession(self, session, criteria):
+        query = session.query(models.Plugin)
+        if criteria.get("type", None):
+            query = query.filter_by(type = criteria["type"])
+        if criteria.get("group", None):
+            query = query.filter_by(group = criteria["group"])
+        if criteria.get("code", None):
+            query = query.filter_by(code = criteria["code"])
+        if criteria.get("name", None):
+            query = query.filter_by(name = criteria["name"])
+        return query
+
+    def GetAll(self, Criteria = {}):
         session = self.PluginDBSession()
-        plugins = session.query(models.Plugin).filter_by(plugin_type = PluginType).all()
-        session.close()
-        return(self.GetDictsFromObjs(plugins))
+        query = self.GenerateQueryUsingSession(session, Criteria)
+        plugin_obj_list = query.all()
+        return(self.DerivePluginDicts(plugin_obj_list))
+
+    def GetPluginsByType(self, PluginType):
+        return(self.GetAll({"plugin_type":PluginType}))
 
     def GetPluginsByGroup(self, PluginGroup):
-        session = self.PluginDBSession()
-        plugins = session.query(models.Plugin).filter_by(plugin_group = PluginGroup).all()
-        session.close()
-        return(self.GetDictsFromObjs(plugins))
+        return(self.GetAll({"plugin_group":PluginGroup}))
 
     def GetPluginsByGroupType(self, PluginGroup, PluginTypeList):
         session = self.PluginDBSession()
-        plugins = session.query(models.Plugin).filter(models.Plugin.plugin_group == PluginGroup, models.Plugin.plugin_type.in_(PluginTypeList)).all()
+        plugins = session.query(models.Plugin).filter(models.Plugin.group == PluginGroup, models.Plugin.type.in_(PluginTypeList)).all()
         session.close()
-        return(self.GetDictsFromObjs(plugins))
+        return(self.DerivePluginDicts(plugins))
 
     def GetGroupsForPlugins(self, Plugins):
         session = self.PluginDBSession()
-        groups = session.query(models.Plugin.plugin_group).filter(or_(models.Plugin.plugin_code.in_(Plugins), models.Plugin.plugin_name.in_(Plugins))).distinct().all()
+        groups = session.query(models.Plugin.plugin_group).filter(or_(models.Plugin.code.in_(Plugins), models.Plugin.name.in_(Plugins))).distinct().all()
         session.close()
         groups = [i[0] for i in groups]
         return(groups)
+
+# --------------------------------------------------- API Methods ---------------------------------------------------

@@ -57,7 +57,7 @@ def Banner():
 
 
 def GetArgs(Core, args):
-    ValidPluginGroups = ['web', 'net', 'aux']
+    ValidPluginGroups = Core.DB.Plugin.GetAllGroups()
     ValidPluginTypes = Core.DB.Plugin.GetAllTypes() + ['all', 'quiet']
 
     Parser = argparse.ArgumentParser(description="OWASP OWTF, the Offensive (Web) Testing Framework, is an OWASP+PTES-focused try to unite great tools and make pentesting more efficient @owtfp http://owtf.org\nAuthor: Abraham Aranguren <name.surname@owasp.org> - http://7-a.org - Twitter: @7a_")

@@ -108,8 +108,8 @@ class URLManager:
                 log(Message)
                 return(NumURLsAfter - self.NumURLsBefore) #Message
 
-        def ImportProcessedURLs(self, urls_list, target = None):
-            Session = self.Core.DB.Target.GetUrlDBSession(target)
+        def ImportProcessedURLs(self, urls_list, target_id = None):
+            Session = self.Core.DB.Target.GetUrlDBSession(target_id)
             session = Session()
             for url, visited, scope in urls_list:
                 session.merge(models.Url(url = url, visited = visited, scope = scope))
@@ -127,3 +127,32 @@ class URLManager:
             session.close()
             count = self.AddURLsEnd()
             Message = str(count)+" URLs have been added and classified"
+
+#-------------------------------------------------- API Methods --------------------------------------------------
+        def DeriveUrlDict(self, url_obj):
+            udict = dict(url_obj.__dict__)
+            udict.pop("_sa_instance_state")
+            return udict
+
+        def DeriveUrlDicts(self, url_obj_list):
+            dict_list = []
+            for url_obj in url_obj_list:
+                dict_list.append(self.DeriveUrlDict(url_obj))
+            return dict_list
+
+        def GenerateQueryUsingSession(self, session, Criteria):
+            query = session.query(models.Url)
+            if Criteria.get('url', None):
+                query = query.filter_by(url = Criteria['url'])
+            if Criteria.get('visited', None):
+                query = query.filter_by(visited = self.Core.Config.ConvertStrToBool(Criteria['visited']))
+            if Criteria.get('scope', None):
+                query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(Criteria['scope']))
+            return query
+
+        def GetAll(self, Criteria, target_id = None):
+            Session = self.Core.DB.Target.GetUrlDBSession(target_id)
+            session = Session()
+            query = self.GenerateQueryUsingSession(session, Criteria)
+            results = query.all()
+            return(self.DeriveUrlDicts(results))

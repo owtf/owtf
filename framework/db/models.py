@@ -19,7 +19,7 @@ class Transaction(TransactionBase):
     response_status = Column(String)
     response_headers = Column(String)
     response_body = Column(String, nullable = True)
-    response_binary = Column(Boolean, nullable = True)
+    binary_response = Column(Boolean, nullable = True)
     grep_output = Column(String, nullable = True)
 
     def __repr__(self):
@@ -53,7 +53,7 @@ class Target(TargetBase):
     ip_url = Column(String)
     top_domain = Column(String)
     top_url = Column(String)
-    in_context = Column(Boolean, default = True)
+    scope = Column(Boolean, default = True)
 
     def __repr__(self):
         return "<Target (url='%s')>"%(self.target_url)
@@ -81,7 +81,7 @@ class PluginOutput(OutputBase):
     key = Column(String, primary_key = True) # Key = plugin_type@code
     code = Column(String) # OWTF Code
     plugin_type = Column(String)
-    save_time = Column(DateTime, default = datetime.datetime.now())
+    date_time = Column(DateTime, default = datetime.datetime.now())
     start_time = Column(String)
     execution_time = Column(String)
     output = Column(String, nullable = True)
@@ -126,8 +126,8 @@ class ConfigSetting(GeneralBase):
 
 PluginBase = declarative_base()
 
-class TestCode(PluginBase):
-    __tablename__ = "test_codes"
+class TestGroup(PluginBase):
+    __tablename__ = "test_groups"
 
     code = Column(String, primary_key = True)
     group = Column(String) # web, net
@@ -139,11 +139,11 @@ class TestCode(PluginBase):
 class Plugin(PluginBase):
     __tablename__ = "plugins"
 
-    plugin_key = Column(String, primary_key = True) # Key = plugin_type@code
-    plugin_title = Column(String)
-    plugin_name = Column(String)
-    plugin_code = Column(String, ForeignKey('test_codes.code'))
-    plugin_group = Column(String)
-    plugin_type = Column(String)
-    plugin_descrip = Column(String, nullable = True)
-    plugin_file = Column(String)
+    key = Column(String, primary_key = True) # Key = plugin_type@code
+    title = Column(String)
+    name = Column(String)
+    code = Column(String, ForeignKey('test_groups.code'))
+    group = Column(String)
+    type = Column(String)
+    descrip = Column(String, nullable = True)
+    file = Column(String)

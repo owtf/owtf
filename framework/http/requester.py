@@ -110,7 +110,7 @@ class Requester:
         return not self.Core.PluginHandler.NormalRequestsAllowed()
 
     def IsTransactionAlreadyAdded(self, URL):
-        return self.Core.DB.Transaction.IsTransactionAlreadyAdded({'URL': URL.strip()})
+        return self.Core.DB.Transaction.IsTransactionAlreadyAdded({'url': URL.strip()})
 
     def is_request_possible(self):
         return self.Core.PluginHandler.RequestsPossible()
@@ -273,7 +273,7 @@ class Requester:
         self.Headers = dict.copy(self.HeadersBackup)
 
     def GetTransaction(self, UseCache, URL, Method = '', Data = ''):
-        Criteria = { 'URL' : URL.strip(), 'Method' : Method, 'Data' : self.DerivePOSTToStr(Data) } # Must clean-up data to ensure match is found
+        Criteria = { 'url' : URL.strip(), 'method' : Method, 'data' : self.DerivePOSTToStr(Data) } # Must clean-up data to ensure match is found
         if not UseCache or not self.Core.DB.Transaction.IsTransactionAlreadyAdded(Criteria): # Visit URL if not already visited
             if Method in [ '', 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS' ]:
                 return self.Request(URL, Method, Data)

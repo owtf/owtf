@@ -7,14 +7,14 @@ class POutputDB(object):
 
     def GetDictFromObj(self, obj):
         return({
-                "Key" : obj.key,
-                "Code" : obj.code,
-                "Type" : obj.plugin_type,
-                "Output" : json.loads(obj.ouput),
-                "Success" : obj.status,
-                "UserNotes" : obj.user_notes,
-                "UserRank" : obj.user_rank,
-                "OwtfRank" : obj.owtf_rank
+                "key" : obj.key,
+                "code" : obj.code,
+                "type" : obj.plugin_type,
+                "output" : json.loads(obj.ouput),
+                "success" : obj.status,
+                "user_notes" : obj.user_notes,
+                "user_rank" : obj.user_rank,
+                "owtf_rank" : obj.owtf_rank
                 })
 
     def GetDictsFromObjs(self, obj_list):
@@ -26,7 +26,7 @@ class POutputDB(object):
     def PluginAlreadyRun(self, PluginInfo, Target = None):
         Session = self.Core.DB.Target.GetOutputDBSession(Target)
         session = Session()
-        plugin_output = session.query(models.PluginOutput).get(PluginInfo["Key"])
+        plugin_output = session.query(models.PluginOutput).get(PluginInfo["key"])
         if plugin_output:
             return(self.GetDictFromObj(plugin_output))
         return(plugin_output)
@@ -34,9 +34,9 @@ class POutputDB(object):
     def SavePluginOutput(self, Plugin, Output, StartTime, Duration, Target = None):
         Session = self.Core.DB.Target.GetOutputDBSession(Target)
         session = Session()
-        session.merge(models.PluginOutput(  key = Plugin["Key"],
-                                            code = Plugin["Code"],
-                                            plugin_type = Plugin["Type"],
+        session.merge(models.PluginOutput(  key = Plugin["key"],
+                                            code = Plugin["code"],
+                                            plugin_type = Plugin["type"],
                                             output = json.dumps(Output),
                                             start_time = StartTime,
                                             execution_time = Duration,
@@ -48,9 +48,9 @@ class POutputDB(object):
     def SavePartialPluginOutput(self, Plugin, Message, StartTime, Duration, Target = None):
         Session = self.Core.DB.Target.GetOutputDBSession(Target)
         session = Session()
-        session.merge(models.PluginOutput(  key = Plugin["Key"],
-                                            code = Plugin["Code"],
-                                            plugin_type = Plugin["Type"],
+        session.merge(models.PluginOutput(  key = Plugin["key"],
+                                            code = Plugin["code"],
+                                            plugin_type = Plugin["type"],
                                             error = Message,
                                             start_time = StartTime,
                                             execution_time = Duration,
