@@ -25,17 +25,17 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-GREP Plugin for Testing for application configuration management (OWASP-CM-004) <- looks for HTML Comments
-https://www.owasp.org/index.php/Testing_for_application_configuration_management_%28OWASP-CM-004%29
+GREP Plugin for Testing for SQL Injection (OWASP-DV-005) <- looks for SQL Injections
+https://www.owasp.org/index.php/Testing_for_SQL_Injection_%28OWASP-DV-005%29
 NOTE: GREP plugins do NOT send traffic to the target and only grep the HTTP Transaction Log
 """
 
 import string, re
 import cgi
 
-DESCRIPTION = "Searches transaction DB for comments"
+DESCRIPTION = "Searches transaction DB for SQL Injection"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.FindMultilineResponseMatchesForRegexps(Core.Config.GetAsList([ 'RESPONSE_REGEXP_FOR_HTML_COMMENTS','RESPONSE_REGEXP_FOR_CSS_JS_COMMENTS','RESPONSE_REGEXP_FOR_JS_COMMENTS', 'RESPONSE_REGEXP_FOR_PHP_SOURCE', 'RESPONSE_REGEXP_FOR_ASP_SOURCE', 'RESPONSE_REGEXP_FOR_SQL_INJECTION' ]), PluginInfo)
+	Content = Core.PluginHelper.FindMultilineResponseMatchesForRegexps(Core.Config.GetAsList([ 'RESPONSE_REGEXP_FOR_SQL_INJECTION' ]), PluginInfo)
 	return Content
