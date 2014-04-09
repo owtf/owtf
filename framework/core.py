@@ -67,7 +67,6 @@ class Core:
         self.Config.Init() # Now the the config is hooked to the core, init config sub-components
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
         self.Random = random.Random()
-        self.IsIPInternalRegexp = re.compile("^127.\d{123}.\d{123}.\d{123}$|^10.\d{123}.\d{123}.\d{123}$|^192.168.\d{123}$|^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{123}.[0-9]{123}$")
         self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
         self.Selenium = selenium_handler.Selenium(self)
         self.InteractiveShell = interactive_shell.InteractiveShell(self)
@@ -77,6 +76,13 @@ class Core:
         self.messaging_admin = messaging_admin.message_admin(self)
         self.showOutput=True
         self.TOR_process = None
+        # Create internal IPv4 regex following rfc1918
+        self.ipv4_internal_re = re.compile(
+            r"(^128\.\d{1,3}\.\d{1,3}\.\d{1,3}$)|"
+            r"(^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$)|"
+            r"(^192\.168\.\d{1,3}\.\d{1,3}$)|"
+            r"(^172\.(1[6-9]|2[0-9]|3[0-1])\.[0-9]{1,3}\.[0-9]{1,3})$"
+            )
 
     def CreateTempStorageDirs(self, OwtfPid):
         temp_storage = os.path.join("/tmp", "owtf", str(OwtfPid))
@@ -92,7 +98,7 @@ class Core:
     #wrapper to log function
     def log(self,*args):
         log(*args)
-        
+
     def IsInScopeURL(self, URL): # To avoid following links to other domains
         ParsedURL = urlparse(URL)
         #URLHostName = URL.split("/")[2]
@@ -144,7 +150,7 @@ class Core:
             if ip:
                 Command = Command.replace(ip, 'xxx.xxx.xxx.xxx')
         return Command
-    
+
     def start_reporter(self):
         """
         This function starts the reporting process
@@ -152,24 +158,22 @@ class Core:
         self.reporting = reporting_process()
         self.reporting_queue = multiprocessing.Queue()
         self.reporting_process = multiprocessing.Process(target=self.reporting.start, args=(self,60,self.reporting_queue))
-        self.reporting_process.start()        
-        
+        self.reporting_process.start()
+
     def Start_TOR_Mode(self, Options):
         if Options['TOR_mode'] != None:
             if Options['TOR_mode'][0] != "help":
                 if tor_manager.TOR_manager.is_tor_running():
                     self.TOR_process = tor_manager.TOR_manager(self, Options['TOR_mode'])
                     self.TOR_process = self.TOR_process.Run()
-                else:                    
+                else:
                     tor_manager.TOR_manager.msg_start_tor(self)
                     tor_manager.TOR_manager.msg_configure_tor(self)
                     self.Error.FrameworkAbort("TOR Daemon is not running")
             else:
                 tor_manager.TOR_manager.msg_configure_tor()
                 self.Error.FrameworkAbort("Configuration help is running")
-                
-    
-        
+
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
         if not self.Config.Get('SIMULATION'):
@@ -199,15 +203,16 @@ class Core:
             if Options["Interactive"]:
                 raw_input()
         else:
-            self.Requester = requester.Requester(self, Options['OutboundProxy'])        
-    
+            self.Requester = requester.Requester(self, Options['OutboundProxy'])
+
     def outputfunc(self,q):
-        """
-            This is the function/thread which writes on terminal
-            It takes the content from queue and if showOutput is true it writes to console.
-            Otherwise it appends to a variable. 
-            If the next token is 'end' It simply writes to the console.
-            
+        """This is the function/thread which writes on terminal.
+
+        It takes the content from queue and if showOutput is true it writes to
+        console.
+        Otherwise it appends to a variable.
+        If the next token is 'end' It simply writes to the console.
+
         """
         t=""
         #flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL)
@@ -225,18 +230,18 @@ class Core:
                     pass
                 return
             t = t+k
-            if(self.showOutput): 
-                try:   
+            if(self.showOutput):
+                try:
                     sys.stdout.write(t)
                     t=""
                 except:
-                    pass    
-                                                    
-                                
-        
+                    pass
+
     def initlogger(self):
-        """
-            This function init two logger one for output in log file and stdout
+        """This function init two loggers.
+
+        One for output in log file and stdout.
+
         """
         #logger for output in console
         self.outputqueue = multiprocessing.Queue()
@@ -249,7 +254,7 @@ class Core:
         log.addHandler(infohandler)
         self.outputthread =Thread(target=self.outputfunc, args=(self.outputqueue,))
         self.outputthread.start()
-        
+
         #logger for output in log file
         log = logging.getLogger('logfile')
         infohandler = logging.FileHandler(self.Config.Get("OWTF_LOG_FILE"),mode="w+")
@@ -276,7 +281,7 @@ class Core:
             self.exitOutput()
             return False # No processing required, just list available modules
         self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
-        
+
         self.DB.Init()
         self.messaging_admin.Init()
         Command = self.GetCommand(Options['argv'])
@@ -373,14 +378,14 @@ class Core:
                     self.DB.SaveDBs() # So that detailed_report_register populated by reporting is saved :P
                 if hasattr(self,'messaging_admin'):
                     self.messaging_admin.finishMessaging()
-                
+
                 self.exitOutput()
                 #print self.Timer.GetElapsedTime('core')
                 exit()
 
     def exitOutput(self):
         if hasattr(self,'outputthread'):
-            self.outputqueue.put('end')    
+            self.outputqueue.put('end')
             self.outputthread.join()
             if os.path.exists("owtf_review"):
                 if os.path.exists("owtf_review/logfile"):
@@ -388,15 +393,15 @@ class Core:
                     AppendToFile("owtf_review/logfile", data)
                 else:
                     shutil.move(self.Config.Get("OWTF_LOG_FILE"), "owtf_review")
-        
+
     def GetSeed(self):
         try:
             return self.DB.GetSeed()
         except AttributeError: # DB not instantiated yet
             return ""
 
-    def IsIPInternal(self, IP):
-        return len(self.IsIPInternalRegexp.findall(IP)) == 1
+    def is_ip_internal(self, ip):
+        return len(self.ipv4_internal_re.findall(ip)) == 1
 
     def IsTargetUnreachable(self, Target = ''):
         if not Target:
@@ -418,7 +423,7 @@ class Core:
                 try:
                     os.kill(int(PidStr), sig)
                 except:
-                    print("unable to kill it")    
-                    
+                    print("unable to kill it")
+
 def Init(RootDir, OwtfPid):
     return Core(RootDir, OwtfPid)
