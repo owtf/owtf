@@ -37,7 +37,7 @@ IsInstalled() {
 RootDir=$1
 
 ########### Pip is the foremost thing that must be installed along with some needed dependencies for python libraries
-sudo -E apt-get install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev libcurl4-gnutls-dev python2.7-dev
+sudo -E apt-get install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev libcurl4-gnutls-dev python2.7-dev tor
 export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip in kali
 
 
