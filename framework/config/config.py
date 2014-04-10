@@ -344,8 +344,11 @@ class Config(object):
             Type = 'string'
         return self.SetGeneral(Type, Key, Value)
 
-    def GetReplacementDict(self):
+    def GetFrameworkConfigDict(self):
         return self.GetConfig()['string']
+
+    def GetReplacementDict(self):
+        return({"FRAMEWORK_DIR":self.RootDir})
 
     def __getitem__(self, Key):
         return self.Get(Key)

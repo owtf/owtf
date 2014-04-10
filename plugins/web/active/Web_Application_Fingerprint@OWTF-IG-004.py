@@ -28,12 +28,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ACTIVE Plugin for Testing for Web Application Fingerprint (OWASP-IG-004)
 https://www.owasp.org/index.php/Testing_for_Web_Application_Fingerprint_%28OWASP-IG-004%29
 """
-import cgi
 
 DESCRIPTION = "Active probing for fingerprint analysis"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.CreateCommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('ActiveFingerPrint'), PluginInfo, "") # No previous output
+	Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('ActiveFingerPrint'), PluginInfo, []) # No previous output
 	return Content
 

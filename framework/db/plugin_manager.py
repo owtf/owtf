@@ -116,13 +116,25 @@ class PluginDB(object):
     def GenerateQueryUsingSession(self, session, criteria):
         query = session.query(models.Plugin)
         if criteria.get("type", None):
-            query = query.filter_by(type = criteria["type"])
+            if isinstance(criteria["type"], str) or isinstance(criteria["type"], unicode):
+                query = query.filter_by(type = criteria["type"])
+            if isinstance(criteria["type"], list):
+                query = query.filter(models.Plugin.type.in_(criteria["type"]))
         if criteria.get("group", None):
-            query = query.filter_by(group = criteria["group"])
+            if isinstance(criteria["group"], str) or isinstance(criteria["group"], unicode):
+                query = query.filter_by(group = criteria["group"])
+            if isinstance(criteria["group"], list):
+                query = query.filter(models.Plugin.group.in_(criteria["group"]))
         if criteria.get("code", None):
-            query = query.filter_by(code = criteria["code"])
+            if isinstance(criteria["code"], str) or isinstance(criteria["code"], unicode):
+                query = query.filter_by(code = criteria["code"])
+            if isinstance(criteria["code"], list):
+                query = query.filter(models.Plugin.code.in_(criteria["code"]))
         if criteria.get("name", None):
-            query = query.filter_by(name = criteria["name"])
+            if isinstance(criteria["name"], str) or isinstance(criteria["name"], unicode):
+                query = query.filter_by(name = criteria["name"])
+            if isinstance(criteria["name"], list):
+                query = query.filter(models.Plugin.name.in_(criteria["name"]))
         return query
 
     def GetAll(self, Criteria = {}):

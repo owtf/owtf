@@ -37,7 +37,7 @@ class CommandRegister(object):
         self.Core = Core
         self.CommandRegisterSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("CREGISTER_DB_PATH"), models.RegisterBase)
 
-    def AddCommand(self, Command, Target = None):
+    def AddCommand(self, Command):
         session = self.CommandRegisterSession()
         session.merge(models.Command(
                                         start = Command['Start'],
@@ -51,12 +51,21 @@ class CommandRegister(object):
         session.commit()
         session.close()
 
+    def DeleteCommand(self, Command):
+        session = self.CommandRegisterSession()
+        command_obj = session.query(models.Command).get(Command)
+        session.delete(command_obj)
+        session.commit()
+        session.close()
+
     def CommandAlreadyRegistered(self, original_command, Target = None):
         session = self.CommandRegisterSession()
         register_entry = session.query(models.Command).get(original_command)
         if register_entry and register_entry.success:
-            return True
-        return False
+            if register_entry.success:
+                self.DeleteCommand(original_command)
+            return self.Core.DB.Target.GetTargetURLForID(register_entry.target)
+        return None
 
     def RemoveForTarget(self, Target):
         session = self.CommandRegisterSession()

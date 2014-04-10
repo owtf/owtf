@@ -1,5 +1,6 @@
 from framework.db import models
 from framework.lib import general
+from framework.lib.general import cprint #TODO: Shift to logging
 from urlparse import urlparse
 import sqlalchemy.exc
 import os
@@ -167,6 +168,7 @@ class TargetDB(object):
         target_obj = session.query(models.Target).get(ID)
         session.close()
         if not target_obj:
+            cprint("Failing with ID:" + str(ID))
             raise general.InvalidTargetReference("Target doesn't exist with ID: " + str(ID))
         return(target_obj.target_url)
 
@@ -182,13 +184,28 @@ class TargetDB(object):
         session = self.TargetConfigDBSession()
         query = session.query(models.Target)
         if filter_data.get("TARGET_URL", None):
-            query = query.filter_by(target_url = filter_data.get("TARGET_URL"))
+            if isinstance(filter_data["TARGET_URL"], str) or isinstance(filter_data["TARGET_URL"], unicode):
+                query = query.filter_by(target_url = filter_data["TARGET_URL"])
+            if isinstance(filter_data["TARGET_URL"], list):
+                query = query.filter(models.Target.target_url.in_(filter_data.get("TARGET_URL")))
         if filter_data.get("HOST_IP", None):
-            query = query.filter_by(host_ip = filter_data.get("HOST_IP"))
-        if filter_data.get("IN_CONTEXT", None):
-            query = query.filter_by(in_context = self.Core.Config.ConvertStrToBool(filter_data.get("IN_CONTEXT")))
+            if isinstance(filter_data["HOST_IP"], str) or isinstance(filter_data["HOST_IP"], unicode):
+                query = query.filter_by(host_ip = filter_data["HOST_IP"])
+            if isinstance(filter_data["HOST_IP"], list):
+                query = query.filter(models.Target.host_ip.in_(filter_data.get("HOST_IP")))
+        if filter_data.get("SCOPE", None):
+            filter_data["SCOPE"] = filter_data["SCOPE"][0]
+            query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(filter_data.get("SCOPE")))
         if filter_data.get("HOST_NAME", None):
-            query = query.filter_by(host_name = filter_data.get("HOST_NAME"))
+            if isinstance(filter_data["HOST_NAME"], str) or isinstance(filter_data["HOST_NAME"], unicode):
+                query = query.filter_by(host_name = filter_data["HOST_NAME"])
+            if isinstance(filter_data["HOST_NAME"], list):
+                query = query.filter(models.Target.host_name.in_(filter_data.get("HOST_NAME")))
+        if filter_data.get("ID", None):
+            if isinstance(filter_data["ID"], str) or isinstance(filter_data["ID"], unicode):
+                query = query.filter_by(id = filter_data["ID"])
+            if isinstance(filter_data["ID"], list):
+                query = query.filter(models.Target.id.in_(filter_data.get("ID")))
         target_obj_list = query.all()
         session.close()
         return(self.DeriveTargetConfigs(target_obj_list))

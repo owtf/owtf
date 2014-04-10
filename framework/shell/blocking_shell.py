@@ -83,8 +83,9 @@ class Shell:
                 #                return [ None, True ] # Can only run again if against the same target and when -f was specified
                 #        return [Target, False ]
                 #return [ None, True ] # Command was not run before
-                if self.Core.DB.CommandRegister.CommandAlreadyRegistered(Command['OriginalCommand']):
-                    return [self.Core.DB.Target.GetTargetID(), False]
+                Target = self.Core.DB.CommandRegister.CommandAlreadyRegistered(Command['OriginalCommand'])
+                if Target: # target_config will be None for a not found match
+                    return [Target, False]
                 return [None, True]
 
         def create_subprocess(self, Command):
@@ -101,7 +102,7 @@ class Shell:
                 #Target, CanRun = self.CanRunCommand(self.CommandInfo)
                 Target, CanRun = self.CanRunCommand(CommandInfo)
                 if not CanRun:
-                        Message = "The command was already run for target: "+Target     
+                        Message = "The command was already run for target: " + str(Target)
                         return Message
                 log("\nExecuting (s to abort THIS COMMAND ONLY):\n"+Command)
                 log("")

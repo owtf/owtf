@@ -191,9 +191,9 @@ class PluginHelper:
                 #if self.Core.Config.Get( 'UPDATE_REPORT_AFTER_EACH_COMMAND' ) == 'Yes':
                 #        self.Core.Reporter.SavePluginReport( Content, PluginInfo ) # Keep updating the report after each command/scanner runs
                 if PluginAbort: # Pass partial output to external handler:
-                        raise PluginAbortException( PreviousOutput + Content )
+                        raise PluginAbortException( PreviousOutput + plugin_output)
                 if FrameworkAbort:
-                        raise FrameworkAbortException( PreviousOutput + Content )
+                        raise FrameworkAbortException( PreviousOutput + plugin_output )
                 output_list += plugin_output
             return(output_list)
 
@@ -210,11 +210,12 @@ class PluginHelper:
                 self.Core.DB.URL.ImportURLs( URLList ) # Extract and classify URLs and store in DB
                 NumFound = 0
                 VisitURLs = False
-                if self.Core.PluginHandler.IsActiveTestingPossible(): # Can visit new URLs found to feed DB straightaway
-                        VisitURLs = True
-                        for Transaction in self.Core.Requester.GetTransactions( True, self.Core.DB.URL.GetURLsToVisit( URLList ) ): # Visit all URLs if not in Cache
-                                if Transaction.Found:
-                                        NumFound += 1
+                #if self.Core.PluginHandler.IsActiveTestingPossible(): # Can visit new URLs found to feed DB straightaway
+                if True: # TODO: Whether or not active testing will depend on the user profile ;). Have cool ideas for profile names
+                    VisitURLs = True
+                    for Transaction in self.Core.Requester.GetTransactions( True, self.Core.DB.URL.GetURLsToVisit( URLList ) ): # Visit all URLs if not in Cache
+                        if Transaction.Found:
+                            NumFound += 1
                 TimeStr = self.Core.Timer.GetElapsedTimeAsStr('LogURLsFromStr')
                 log("Spider/URL scaper time="+TimeStr)
                 plugin_output["type"] = "URLsFromStr"
@@ -255,9 +256,9 @@ class PluginHelper:
                 num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = self.AnalyseRobotsEntries( Contents )
                 SavePath = self.Core.PluginHandler.DumpPluginFile( Filename, Contents, PluginInfo )
                 TopURL = self.Core.DB.Target.Get( 'TOP_URL' )
+                EntriesList = []
                 if num_disallow > 0 or num_allow > 0 or num_sitemap > 0: # robots.txt contains some entries, show browsable list! :)
                         self.Core.DB.URL.AddURLsStart()
-                        EntriesList = []
                         for Display, Entries in [ [ 'Disallowed Entries', DisallowedEntries ], [ 'Allowed Entries', AllowedEntries ], [ 'Sitemap Entries', SitemapEntries ] ]:
                                 Links = [] # Initialise category-specific link list
                                 for Entry in Entries:
@@ -280,7 +281,7 @@ class PluginHelper:
                                             "NumAddedURLs":NumAddedURLs,
                                             "EntriesList":EntriesList
                                             }
-                return(plugin_output)
+                return([plugin_output])
 
         def HTTPTransactionTable(self, transactions_list):
             # Store transaction ids in the output, so that reporter can fetch transactions from db
