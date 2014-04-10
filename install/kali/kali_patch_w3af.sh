@@ -33,7 +33,7 @@
 #
 
 # Install missing stuff needed for w3af in kali
-sudo apt-get install python2.7-dev libsqlite3-dev
+sudo apt-get install python2.7-dev libsqlite3-dev libyaml-dev
 sudo pip install pybloomfiltermmap==0.3.11 # The 0.3.12 pypi package is broken
 sudo pip install clamd PyGithub GitPython esmre nltk pdfminer futures guess-language cluster msgpack-python python-ntlm
 sudo pip install git+git://github.com/ramen/phply.git\#egg=phply
