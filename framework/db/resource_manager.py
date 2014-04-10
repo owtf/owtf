@@ -37,6 +37,7 @@ class ResourceDB(object):
     def GetReplacementDict(self):
         configuration = self.Core.DB.Config.GetAll()
         configuration.update(self.Core.DB.Target.GetTargetConfig())
+        configuration.update(self.Core.Config.GetReplacementDict())
         return configuration
 
     def MultipleReplace(self, Text, ReplaceDict):

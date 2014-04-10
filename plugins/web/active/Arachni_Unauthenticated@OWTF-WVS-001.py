@@ -34,5 +34,4 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via Arachni"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	return Core.PluginHelper.CreateCommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('Arachni_Unauth'), PluginInfo, "")
-
+	return Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('Arachni_Unauth'), PluginInfo, [])

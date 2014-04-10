@@ -79,17 +79,18 @@ class PluginOutput(OutputBase):
     __tablename__ = "plugin_outputs"
  
     key = Column(String, primary_key = True) # Key = plugin_type@code
-    code = Column(String) # OWTF Code
+    plugin_code = Column(String) # OWTF Code
+    plugin_group = Column(String)
     plugin_type = Column(String)
     date_time = Column(DateTime, default = datetime.datetime.now())
     start_time = Column(String)
     execution_time = Column(String)
     output = Column(String, nullable = True)
     error = Column(String, nullable = True)
-    success = Column(Boolean, default = False)
+    status = Column(String, nullable = True)
     user_notes = Column(String, nullable = True)
-    user_rank = Column(Integer, nullable = True)
-    owtf_rank = Column(Integer, nullable = True)
+    user_rank = Column(Integer, default = 0)
+    owtf_rank = Column(Integer, default = 0)
 
 RegisterBase = declarative_base()
 
@@ -100,7 +101,7 @@ class Command(RegisterBase):
     end = Column(String)
     run_time = Column(String)
     success = Column(Boolean, default = False)
-    target = Column(String)
+    target = Column(Integer)
     modified_command = Column(String)
     original_command = Column(String, primary_key = True)
 

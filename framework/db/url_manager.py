@@ -75,7 +75,7 @@ class URLManager:
 
         def GetNumURLs(self):
             #return self.Core.DB.GetLength(DBPrefix+'ALL_URLS_DB')
-            Session = self.Core.DB.Taget.GetUrlDBSession()
+            Session = self.Core.DB.Target.GetUrlDBSession()
             session = Session()
             count = session.query(models.Url).count()
             session.close()
@@ -143,10 +143,17 @@ class URLManager:
         def GenerateQueryUsingSession(self, session, Criteria):
             query = session.query(models.Url)
             if Criteria.get('url', None):
-                query = query.filter_by(url = Criteria['url'])
+                if isinstance(Criteria.get('url'), str) or isinstance(Criteria.get('url'), unicode):
+                    query = query.filter_by(url = Criteria['url'])
+                if isinstance(Criteria.get('url'), list):
+                    query = query.filter(models.Url.url.in_(Criteria['url']))
             if Criteria.get('visited', None):
-                query = query.filter_by(visited = self.Core.Config.ConvertStrToBool(Criteria['visited']))
+                if isinstance(Criteria.get('visited'), list):
+                    Criteria['visited'] = Criteria['visited'][0]
+                query = query.filter_by(visited = self.Core.Config.ConvertStrToBool(Criteria['url']))
             if Criteria.get('scope', None):
+                if isinstance(Criteria.get('scope'), list):
+                    Criteria['scope'] = Criteria['scope'][0]
                 query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(Criteria['scope']))
             return query
 

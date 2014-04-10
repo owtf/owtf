@@ -73,13 +73,24 @@ class TransactionManager(object):
     def GenerateQueryUsingSession(self, session, Criteria):
         query = session.query(models.Transaction)
         if Criteria.get('url', None):
-            query = query.filter_by(url = Criteria['url'])
+            if isinstance(Criteria.get('url'), str) or isinstance(Criteria.get('url'), unicode):
+                query = query.filter_by(url = Criteria['url'])
+            if isinstance(Criteria.get('url'), list):
+                query = query.filter(models.Transaction.url.in_(Criteria.get('url')))
         if Criteria.get('method', None):
-            query = query.filter_by(method = Criteria['method'])
+            if isinstance(Criteria.get('method'), str) or isinstance(Criteria.get('method'), unicode):
+                query = query.filter_by(method = Criteria['method'])
+            if isinstance(Criteria.get('method'), list):
+                query = query.filter(models.Transaction.method.in_(Criteria.get('method')))
         if Criteria.get('data', None):
-            query = query.filter_by(data = Criteria['data'])
+            if isinstance(Criteria.get('data'), str) or isinstance(Criteria.get('data'), unicode):
+                query = query.filter_by(data = Criteria['data'])
+            if isinstance(Criteria.get('data'), list):
+                query = query.filter(models.Transaction.data.in_(Criteria.get('data')))
         if Criteria.get('scope', None):
-            query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(Criteria['Scope']))
+            if isinstance(Criteria.get('scope'), list):
+                Criteria['scope'] = Criteria['scope'][0]
+            query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(Criteria['scope']))
         return(query)
 
     def GetFirst(self, Criteria, target_id = None): # Assemble only the first transaction that matches the criteria from DB
@@ -246,7 +257,7 @@ class TransactionManager(object):
         return(re.compile(regexp, re.IGNORECASE | re.DOTALL))
 
     def CompileRegexs(self):
-        for key in self.Core.Config.GetReplacementDict().keys():
+        for key in self.Core.Config.GetFrameworkConfigDict().keys():
             key = key[3:-3] # Remove "@@@"
             if key.startswith('HEADERS'):
                 header_list = self.Core.Config.GetHeaderList(key)

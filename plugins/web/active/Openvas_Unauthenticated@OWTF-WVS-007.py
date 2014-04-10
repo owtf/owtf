@@ -31,5 +31,5 @@ Plugin for openvas service
 DESCRIPTION = "Active Vulnerability Scanning without credentials via OpenVAS"
 
 def run(Core, PluginInfo):
-        Content = Core.PluginHelper.CreateCommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('Openvas_Unauth'), PluginInfo, "") # No previous output
+        Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('Openvas_Unauth'), PluginInfo, []) # No previous output
         return Content

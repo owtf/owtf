@@ -30,7 +30,6 @@ The PluginHandler is in charge of running all plugins taking into account the ch
 '''
 from collections import defaultdict
 from framework.lib.general import *
-from framework.plugin.ProcessManager import ProcessManager
 from framework.lib.log_queue import logQueue
 from framework.plugin.scanner import Scanner
 from threading import Thread
@@ -84,7 +83,6 @@ class PluginHandler:
                 self.OnlyPluginsSet = len(self.OnlyPluginsList) > 0
                 self.ExceptPluginsSet = len(self.ExceptPluginsList) > 0
                 self.scanner = Scanner(self.Core)
-                self.ProcessManager = ProcessManager(self.Core)
                 self.InitExecutionRegistry()
                 self.showOutput = True
                 
@@ -240,7 +238,7 @@ class PluginHandler:
                     #self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
                 return PluginOutput
 
-        def ProcessPlugin(self, PluginDir, Plugin, Status):
+        def ProcessPlugin(self, PluginDir, Plugin, Status={}):
                 self.Core.Timer.StartTimer('Plugin') # Time how long it takes the plugin to execute
                 Plugin['start'] = self.Core.Timer.GetStartDateTimeAsStr('Plugin')
                 if not self.CanPluginRun(Plugin, True):         
@@ -261,35 +259,36 @@ class PluginHandler:
                         output = self.RunPlugin(PluginDir, Plugin)
                         Plugin["Status"] = "Successful"
                         Status['SomeSuccessful'] = True
-                        self.Core.DB.POutput.SavePluginOutput(Plugin, output, Plugin['start'], self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
+                        self.Core.DB.POutput.SavePluginOutput(Plugin, output, self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         return output
                 except KeyboardInterrupt:
                         # Just explan why crashed
-                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, "Aborted by User", Plugin['start'], self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         Plugin["status"] = "Aborted"
+                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, PartialOutput.parameter, "Aborted by User", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         self.Core.Error.UserAbort("Plugin")
                         Status['SomeAborted (Keyboard Interrupt)'] = True
                 except SystemExit:
                         raise SystemExit # Abort plugin processing and get out to external exception handling, information saved elsewhere
                 except PluginAbortException, PartialOutput:
                         #self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Plugin Only)", Plugin) # Save the partial output, but continue to process other plugins
-                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, str(PartialOutput.parameter)+"\nAborted by User", Plugin['start'], self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         Plugin["status"] = "Aborted (by user)"
+                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, PartialOutput.parameter, "Aborted by User", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         Status['SomeAborted'] = True
                 except UnreachableTargetException, PartialOutput:
                         #self.DB.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
-                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, str(PartialOutput.parameter)+"\nUnreachable Target", Plugin['start'], self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         Plugin["status"] = "Unreachable Target"
+                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, PartialOutput.parameter, "Unreachable Target", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         Status['SomeAborted'] = True
                 except FrameworkAbortException, PartialOutput:
                         #self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Framework Exit)", Plugin) # Save the partial output and exit
-                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, str(PartialOutput.parameter)+"\nFramework Aborted", Plugin['start'], self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         Plugin["status"] = "Aborted (Framework Exit)"
+                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, PartialOutput.parameter, "Framework Aborted", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         self.Core.Finish("Aborted")
                 #TODO: Handle this gracefully
                 #except: # BUG
-                #        Plugin["Status"] = "Crashed"
-                #        self.SavePluginInfo(self.Core.Error.Add("Plugin "+Plugin['Type']+"/"+Plugin['File']+" failed for target "+self.Core.Config.Get('TARGET')), Plugin) # Try to save something
+                #        Plugin["status"] = "Crashed"
+                #        cprint("Crashed")
+                        #self.SavePluginInfo(self.Core.Error.Add("Plugin "+Plugin['Type']+"/"+Plugin['File']+" failed for target "+self.Core.Config.Get('TARGET')), Plugin) # Try to save something
                         #TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
 
         def ProcessPlugins(self):
@@ -304,11 +303,10 @@ class PluginHandler:
                 return PluginDir
 
         def SwitchToTarget(self, Target):
-                self.Core.DB.Target.SetTarget(Target) # Tell Target DB that all Gets/Sets are now Target-specific
+            self.Core.DB.Target.SetTarget(Target) # Tell Target DB that all Gets/Sets are now Target-specific
 
         def get_plugins_in_order_for_PluginGroup(self, PluginGroup):
             return self.Core.Config.Plugin.GetOrder(PluginGroup)
-
 
         def get_plugins_in_order(self, PluginGroup):
             return self.Core.Config.Plugin.GetOrder(PluginGroup)
@@ -339,12 +337,13 @@ class PluginHandler:
                                    
                     
                 else:
-                        #self.ProcessManager.startinput()
-                        self.ProcessManager.fillWorkList(PluginGroup,TargetList)
-                        self.ProcessManager.spawnWorkers(Status)
-                        #self.ProcessManager.manageProcess()
-                        #self.ProcessManager.poisonPillToWorkers()
-                        #Status = self.ProcessManager.joinWorker()
+                        pass
+                        #self.WorkerManager.startinput()
+                        #self.WorkerManager.fillWorkList(PluginGroup,TargetList)
+                        #self.WorkerManager.spawn_workers()
+                        #self.WorkerManager.manage_workers()
+                        #self.WorkerManager.poisonPillToWorkers()
+                        #Status = self.WorkerManager.joinWorker()
                         #if 'breadth' == self.Algorithm: # Loop plugins, then targets
                         #       for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
                         #               #print "Processing Plugin="+str(Plugin)
@@ -359,7 +358,7 @@ class PluginHandler:
                         #                       self.ProcessPlugin( PluginDir, Plugin, Status )
 
         def CleanUp(self):
-            self.ProcessManager.cleanUp()
+            self.WorkerManager.cleanUp()
 
         def SavePluginInfo(self, PluginOutput, Plugin):
                 self.Core.DB.SaveDBs() # Save new URLs to DB after each request

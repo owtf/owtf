@@ -33,6 +33,5 @@ DESCRIPTION = "Active Probing for fingerprint analysis"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.CreateCommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('ActiveInfrastructureConfigurationManagement'), PluginInfo, "") # No previous output
+	Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('ActiveInfrastructureConfigurationManagement'), PluginInfo, []) # No previous output
 	return Content
-

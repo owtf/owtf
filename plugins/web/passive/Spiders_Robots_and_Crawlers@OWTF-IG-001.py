@@ -30,26 +30,26 @@ import logging
 DESCRIPTION = "robots.txt analysis through third party sites"
 
 def run(Core, PluginInfo):
-	TestResult = ''
-	Count = 1
+        TestResult = ''
+        Count = 1
         #TODO: Fix this plugin properly
-	Content = Core.PluginHelper.RequestLinkList('Passive Analysis Results', Core.DB.Resource.GetResources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
-	Content += Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveRobotsAnalysisLinks'))
+        Content = Core.PluginHelper.RequestLinkList('Passive Analysis Results', Core.DB.Resource.GetResources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
+        Content += Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveRobotsAnalysisLinks'))
 
-	for Name, Resource in Core.DB.Resource.GetResources('PassiveRobots'): # Try to retrieve the robots.txt file from all defined resources
-		URL = Resource # Just for clarity
-		LinkStart, LinkFinish = URL.split('/robots.txt') # Preparing link chunks for disallowed entries
-		#print "URL="+URL+", PatternStart="+PatternStart+", PatternEnd="+PatternEnd+" LinkStart="+LinkStart+", LinkFinish="+LinkFinish
-		LinkStart = LinkStart.strip()
-		LinkFinish = LinkFinish.strip()
-		Transaction = Core.Requester.GetTransaction(True, URL) # Use the cache if possible for speed
-		if Transaction.Found:
-			#TestResult += "<br /><strong>Raw regexp processing:</strong><br />"
-			TestResult += Core.PluginHelper.ProcessRobots(PluginInfo, Transaction.GetRawResponseBody(), LinkStart, LinkFinish, 'robots'+str(Count)+'.txt')
-			Count += 1
-		else: # Not found or unknown request error
-			Message = "Could not be retrieved using resource: "+Resource
-			Core.log(Message)
-			#TestResult += Message+".: \n"+cgi.escape(Transaction.GetRawResponse())
-		TestResult += Core.PluginHelper.HTTPTransactionTable([ Transaction ])
-	return Content+TestResult
+        for Name, Resource in Core.DB.Resource.GetResources('PassiveRobots'): # Try to retrieve the robots.txt file from all defined resources
+                URL = Resource # Just for clarity
+                LinkStart, LinkFinish = URL.split('/robots.txt') # Preparing link chunks for disallowed entries
+                #print "URL="+URL+", PatternStart="+PatternStart+", PatternEnd="+PatternEnd+" LinkStart="+LinkStart+", LinkFinish="+LinkFinish
+                LinkStart = LinkStart.strip()
+                LinkFinish = LinkFinish.strip()
+                Transaction = Core.Requester.GetTransaction(True, URL) # Use the cache if possible for speed
+                if Transaction.Found:
+                        #TestResult += "<br /><strong>Raw regexp processing:</strong><br />"
+                        Content += Core.PluginHelper.ProcessRobots(PluginInfo, Transaction.GetRawResponseBody(), LinkStart, LinkFinish, 'robots'+str(Count)+'.txt')
+                        Count += 1
+                else: # Not found or unknown request error
+                        Message = "Could not be retrieved using resource: "+Resource
+                        Core.log(Message)
+                        #TestResult += Message+".: \n"+cgi.escape(Transaction.GetRawResponse())
+                Content += Core.PluginHelper.HTTPTransactionTable([ Transaction ])
+        return Content

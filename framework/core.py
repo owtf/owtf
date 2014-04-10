@@ -36,7 +36,7 @@ from framework.db import db
 from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
 from framework.lib.general import *
-from framework.plugin import plugin_handler, plugin_helper, plugin_params
+from framework.plugin import plugin_handler, plugin_helper, plugin_params, process_manager
 from framework.protocols import smtp, smb
 from framework.report import reporter, summary
 from framework.selenium import selenium_handler
@@ -78,6 +78,7 @@ class Core:
         self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
         self.DB.Init()
 
+        self.Timer = timer.Timer(self.DB.Config.Get('DATE_TIME_FORMAT')) # Requires user config db
         self.showOutput=True
         self.TOR_process = None
 
@@ -254,14 +255,12 @@ class Core:
         cprint("Loading framework please wait..")
         self.initlogger()
 
-        self.initialise_plugin_handler_and_params(Options)
         if Options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
             self.exitOutput()
             return False # No processing required, just list available modules
         #self.messaging_admin.Init()
         self.Config.ProcessOptions(Options)
-        self.Timer = timer.Timer(self.DB.Config.Get('DATE_TIME_FORMAT')) # Requires user config
         self.Timer.StartTimer('core')
         Command = self.GetCommand(Options['argv'])
 
@@ -278,11 +277,14 @@ class Core:
         #    self.Error.FrameworkAbort(Message) # Abort if proxy check failed
         # Each Plugin adds its own results to the report, the report is updated on the fly after each plugin completes (or before!)
         self.Error.SetCommand(self.AnonymiseCommand(Command)) # Set anonymised invoking command for error dump info
+        self.initialise_plugin_handler_and_params(Options)
         return True
 
     def initialise_plugin_handler_and_params(self, Options):
+        # The order is important here ;)
         self.PluginHandler = plugin_handler.PluginHandler(self, Options)
         self.PluginParams = plugin_params.PluginParams(self, Options)
+        self.WorkerManager = process_manager.WorkerManager(self)
 
     def run_plugins(self):
         Status = self.PluginHandler.ProcessPlugins()
