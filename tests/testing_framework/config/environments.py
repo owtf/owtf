@@ -47,7 +47,7 @@ class ConfigEnvironmentBuilder():
         self.core_mock = flexmock()
         self.core_mock.CreateMissingDirs = lambda dirs: dirs  # Some error with flexmock when stubbing CreateMissingDirs
         self.core_mock.should_receive("GetPartialPath")
-        self.core_mock.IsIPInternal = lambda ip: True
+        self.core_mock.is_ip_internal = lambda ip: True
         self.core_mock.Error = self._create_error_handler_mock()
         self.core_mock.ProxyMode = None
 
