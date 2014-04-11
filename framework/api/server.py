@@ -1,6 +1,6 @@
 from framework.lib.general import cprint
 from framework.lib import general
-from framework.api import work_handler, plugin_handler, target_handler
+from framework.api import work_handlers, plugindb_handlers, targetdb_handlers
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
@@ -14,13 +14,13 @@ class ApiServer(object):
         plugin_code_re = '([0-9A-Z\-]+)?'
         self.application = tornado.web.Application(
                                                     handlers=[
-                                                                (r'/api/targets/?([0-9]+)?/?$', target_handler.TargetConfigHandler),
-                                                                (r'/api/targets/([0-9]+)/urls/?$', target_handler.URLDataHandler),
-                                                                (r'/api/targets/([0-9]+)/transactions/?([0-9]+)?/?$', target_handler.TransactionDataHandler),
-                                                                (r'/api/targets/([0-9]+)/plugins/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', target_handler.PluginOutputHandler),
-                                                                (r'/api/plugins/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', plugin_handler.PluginDataHandler),
-                                                                (r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', work_handler.WorkerHandler),
-                                                                (r'/api/worklist/?$', work_handler.WorkListHandler),
+                                                                (r'/api/targets/?([0-9]+)?/?$', targetdb_handlers.TargetConfigHandler),
+                                                                (r'/api/targets/([0-9]+)/urls/?$', targetdb_handlers.URLDataHandler),
+                                                                (r'/api/targets/([0-9]+)/transactions/?([0-9]+)?/?$', targetdb_handlers.TransactionDataHandler),
+                                                                (r'/api/targets/([0-9]+)/plugins/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', targetdb_handlers.PluginOutputHandler),
+                                                                (r'/api/plugins/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', plugindb_handlers.PluginDataHandler),
+                                                                (r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', work_handlers.WorkerHandler),
+                                                                (r'/api/worklist/?$', work_handlers.WorkListHandler),
                                                             ],
                                                     debug=False,
                                                     gzip=True
