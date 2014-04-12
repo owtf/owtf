@@ -1,9 +1,37 @@
 from framework.lib.general import cprint
 from framework.lib import general
+from framework.interface import custom_handlers
 import tornado.web
-import json
 
-class TargetConfigHandler(tornado.web.RequestHandler):
+class PluginDataHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET'] #, 'POST', 'PUT', 'PATCH', 'DELETE']
+    #TODO: Creation of user plugins
+
+    @tornado.web.asynchronous
+    def get(self, plugin_group = None, plugin_type = None, plugin_code = None):
+        try:
+            filter_data = dict(self.request.arguments)
+            if not plugin_group: # First check if plugin_group is present in url
+                self.write(self.application.Core.DB.Plugin.GetAll(filter_data))
+            if plugin_group and (not plugin_type) and (not plugin_code):
+                filter_data.update({"group":plugin_group})
+                self.write(self.application.Core.DB.Plugin.GetAll(filter_data))
+            if plugin_group and plugin_type and (not plugin_code):
+                if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
+                    raise tornado.web.HTTPError(400)
+                filter_data.update({"type":plugin_type, "group":plugin_group})
+                self.write(self.application.Core.DB.Plugin.GetAll(filter_data))
+            if plugin_group and plugin_type and plugin_code:
+                if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
+                    raise tornado.web.HTTPError(400)
+                filter_data.update({"type":plugin_type, "group":plugin_group, "code":plugin_code})
+                self.write(self.application.Core.DB.Plugin.GetAll(filter_data))
+            self.finish()
+        except general.InvalidTargetReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+
+class TargetConfigHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
     @tornado.web.asynchronous
@@ -13,8 +41,7 @@ class TargetConfigHandler(tornado.web.RequestHandler):
             if not target_id:
                 # Get all filter data here, so that it can be passed
                 filter_data = dict(self.request.arguments)
-                self.write(json.dumps(self.application.Core.DB.Target.GetTargetConfigs(filter_data))) # A list has to be encoded
-                self.set_header("Content-Type", "application/json") # Has to be set manually
+                self.write(self.application.Core.DB.Target.GetTargetConfigs(filter_data))
             else:
                 self.write(self.application.Core.DB.Target.GetTargetConfigForID(target_id))
             self.finish()
@@ -62,19 +89,18 @@ class TargetConfigHandler(tornado.web.RequestHandler):
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
-class TransactionDataHandler(tornado.web.RequestHandler):
+class TransactionDataHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'DELETE']
 
     @tornado.web.asynchronous
     def get(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.write(self.application.Core.DB.Transaction.GetByID(transaction_id))
+                self.write(self.application.Core.DB.Transaction.GetByIDAsDict(transaction_id))
             else:
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
-                self.write(json.dumps(self.application.Core.DB.Transaction.GetAllAsDicts(filter_data, target_id=target_id)))
-                self.set_header("Content-Type", "application/json")
+                self.write(self.application.Core.DB.Transaction.GetAllAsDicts(filter_data, target_id=target_id))
             self.finish()
         except general.InvalidTargetReference as e:
             cprint(e.parameter)
@@ -108,7 +134,7 @@ class TransactionDataHandler(tornado.web.RequestHandler):
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
-class URLDataHandler(tornado.web.RequestHandler):
+class URLDataHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
     @tornado.web.asynchronous
@@ -116,8 +142,7 @@ class URLDataHandler(tornado.web.RequestHandler):
         try:
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
-            self.write(json.dumps(self.application.Core.DB.URL.GetAll(filter_data, target_id=target_id)))
-            self.set_header("Content-Type", "application/json")
+            self.write(self.application.Core.DB.URL.GetAll(filter_data, target_id=target_id))
             self.finish()
         except general.InvalidTargetReference as e:
             cprint(e.parameter)
@@ -141,7 +166,7 @@ class URLDataHandler(tornado.web.RequestHandler):
         #TODO: allow deleting of urls from the ui
         raise tornado.web.httperror(405)
 
-class PluginOutputHandler(tornado.web.RequestHandler):
+class PluginOutputHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
     @tornado.web.asynchronous
@@ -149,21 +174,20 @@ class PluginOutputHandler(tornado.web.RequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group: # First check if plugin_group is present in url
-                self.write(json.dumps(self.application.Core.DB.POutput.GetAll(filter_data, target_id)))
+                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id))
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group":plugin_group})
-                self.write(json.dumps(self.application.Core.DB.POutput.GetAll(filter_data, target_id)))
+                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id))
             if plugin_type and plugin_group and (not plugin_code):
                 if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type":plugin_type, "plugin_group":plugin_group})
-                self.write(json.dumps(self.application.Core.DB.POutput.GetAll(filter_data, target_id)))
+                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id))
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type":plugin_type, "plugin_group":plugin_group, "plugin_code":plugin_code})
-                self.write(json.dumps(self.application.Core.DB.POutput.GetAll(filter_data, target_id)))
-            self.set_header("Content-Type", "application/json")
+                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id))
             self.finish()
         except general.InvalidTargetReference as e:
             cprint(e.parameter)
@@ -223,3 +247,59 @@ class PluginOutputHandler(tornado.web.RequestHandler):
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
+class WorkerHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    @tornado.web.asynchronous
+    def get(self, worker_id = None, action = None):
+        if not worker_id:
+            self.write(self.application.Core.WorkerManager.get_worker_details())
+        try:
+            if worker_id and (not action):
+                self.write(self.application.Core.WorkerManager.get_worker_details(int(worker_id)))
+            if worker_id and action:
+                getattr(self.application.Core.WorkerManager, action + '_worker')(int(worker_id))
+        except general.InvalidWorkerReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        self.finish()
+
+class WorkListHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET', 'POST']
+    @tornado.web.asynchronous
+    def get(self):
+        self.write(self.application.Core.WorkerManager.get_work_list())
+        self.finish()
+
+    @tornado.web.asynchronous
+    def post(self):
+        try:
+            filter_data = dict(self.request.arguments)
+            plugin_list = self.application.Core.DB.Plugin.GetAll(filter_data)
+            target_list = self.application.Core.DB.Target.GetTargetConfigs(filter_data)
+            if (not plugin_list) or (not target_list):
+                raise tornado.web.HTTPError(400)
+            self.application.Core.WorkerManager.fill_work_list(target_list, plugin_list)
+            self.set_status(201) # TODO: Set proper response code
+            self.finish()
+        except general.InvalidTargetReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except general.InvalidParameterType as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+
+    @tornado.web.asynchronous
+    def delete(self):
+        try:
+            filter_data = dict(self.request.arguments)
+            plugin_list = self.application.Core.DB.Plugin.GetAll(filter_data)
+            target_list = self.application.Core.DB.Target.GetTargetConfigs(filter_data)
+            self.application.Core.WorkerManager.filter_work_list(target_list, plugin_list)
+            self.finish()
+        except general.InvalidTargetReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except general.InvalidParameterType as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)

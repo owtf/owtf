@@ -33,7 +33,7 @@ from sqlalchemy import desc, asc
 from collections import defaultdict
 from framework.http import transaction
 from framework.db import models
-from framework.lib.general import *
+from framework.lib import general
 import os
 import json
 import re
@@ -222,7 +222,7 @@ class TransactionManager(object):
     def GetByID(self, ID, target_id = None):
         Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
-        model_obj = session.query(models.Transaction).get(id = ID)
+        model_obj = session.query(models.Transaction).get(ID)
         session.close()
         if model_obj:
             return(self.DeriveTransaction(model_obj))
