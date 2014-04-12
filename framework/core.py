@@ -38,11 +38,12 @@ from framework.http.proxy import proxy, transaction_logger, tor_manager
 from framework.lib.general import *
 from framework.plugin import plugin_handler, plugin_helper, plugin_params, process_manager
 from framework.protocols import smtp, smb
-from framework.report import reporter, summary
+#from framework.report import reporter, summary
+#from framework.report.reporting_process import reporting_process
 from framework.selenium import selenium_handler
 from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
-from framework.api.server import ApiServer
+from framework.interface.server import InterfaceServer
 from threading import Thread
 import fcntl
 import logging
@@ -55,7 +56,6 @@ import subprocess
 import socket
 from framework import random
 from framework.lib.messaging import messaging_admin
-from framework.report.reporting_process import reporting_process
 
 class Core:
     def __init__(self, RootDir, OwtfPid):
@@ -68,7 +68,7 @@ class Core:
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
         self.Random = random.Random()
         self.IsIPInternalRegexp = re.compile("^127.\d{123}.\d{123}.\d{123}$|^10.\d{123}.\d{123}.\d{123}$|^192.168.\d{123}$|^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{123}.[0-9]{123}$")
-        self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
+        #self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
         self.Selenium = selenium_handler.Selenium(self)
         self.InteractiveShell = interactive_shell.InteractiveShell(self)
         self.SET = set_handler.SETHandler(self)
@@ -288,9 +288,9 @@ class Core:
 
     def run_plugins(self):
         Status = self.PluginHandler.ProcessPlugins()
-        self.ApiServer = ApiServer(self)
-        cprint("Api Server is about to start")
-        self.ApiServer.start()
+        self.InterfaceServer = InterfaceServer(self)
+        cprint("Interface Server is about to start")
+        self.InterfaceServer.start()
         if Status['AllSkipped']:
             self.Finish('Skipped')
         elif not Status['SomeSuccessful'] and Status['SomeAborted']:
