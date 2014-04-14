@@ -30,8 +30,8 @@ This library contains helper functions and exceptions for the framework
 from jinja2 import Template, Environment
 
 from framework.lib.general import *
-from framework.report.html import tabcreator
-from framework.report.html import tablecreator
+from framework.interface.html import tabcreator
+from framework.interface.html import tablecreator
 import cgi
 
 class HTMLRenderer:

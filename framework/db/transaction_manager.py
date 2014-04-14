@@ -28,7 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The DB stores HTTP transactions, unique URLs and more. 
 '''
-from jinja2 import Environment, PackageLoader, Template
 from sqlalchemy import desc, asc
 from collections import defaultdict
 from framework.http import transaction
@@ -38,6 +37,7 @@ import os
 import json
 import re
 import logging
+import base64
 
 REGEX_TYPES = ['HEADERS', 'BODY'] # The regex find differs for these types :P
 
@@ -55,17 +55,6 @@ class TransactionManager(object):
         count = session.query(models.Transaction).filter_by(scope = Scope).count()
         session.close()
         return(count)
-
-    def SetRandomSeed(self, RandomSeed):
-        self.RandomSeed = RandomSeed
-        self.DefineTransactionBoundaries( ['HTTP URL', 'HTTP Request', 'HTTP Response Headers', 'HTTP Response Body'] )
-
-    def DefineTransactionBoundaries(self, BoundaryList):# Defines the full HTTP transaction formatting (important 4 parsing)
-        self.Padding = "="*50
-        Boundaries = []
-        for BoundaryName in BoundaryList:
-                Boundaries.append(self.Padding+" "+BoundaryName+" "+self.Padding+self.RandomSeed+"\n")
-        self.TBoundaryURL, self.TBoundaryReq, self.TBoundaryResHeaders, self.TBoundaryResBody = Boundaries
 
     def IsTransactionAlreadyAdded(self, Criteria, target_id = None):
         return(len(self.GetAll(Criteria, target_id)) > 0)
@@ -91,6 +80,17 @@ class TransactionManager(object):
             if isinstance(Criteria.get('scope'), list):
                 Criteria['scope'] = Criteria['scope'][0]
             query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(Criteria['scope']))
+        try:
+            if Criteria.get('id[lt]', None):
+                if isinstance(Criteria.get('id[lt]'), list):
+                    Criteria['id[lt]'] = Criteria['id[lt]'][0]
+                query = query.filter(models.Transaction.id < int(Criteria['id[lt]']))
+            if Criteria.get('id[gt]', None):
+                if isinstance(Criteria.get('id[gt]'), list):
+                    Criteria['id[gt]'] = Criteria['id[gt]'][0]
+                query = query.filter(models.Transaction.id > int(Criteria['id[gt]']))
+        except ValueError:
+            raise general.InvalidParameterType("Invalid parameter type for transaction db for id[lt] or id[gt]")
         return(query)
 
     def GetFirst(self, Criteria, target_id = None): # Assemble only the first transaction that matches the criteria from DB
@@ -110,7 +110,7 @@ class TransactionManager(object):
             owtf_transaction = transaction.HTTP_Transaction(None)
             response_body = t.response_body
             if t.binary_response:
-                response_body = str(response_body)
+                response_body = base64.b64decode(response_body)
             grep_output = None
             if t.grep_output:
                 grep_output = json.loads(t.grep_output)
@@ -147,7 +147,7 @@ class TransactionManager(object):
             binary_response = False
             grep_output = json.dumps(self.GrepTransaction(transaction))
         except UnicodeDecodeError:
-            response_body = buffer(transaction.GetRawResponseBody())
+            response_body = base64.b64encode(transaction.GetRawResponseBody())
             binary_response = True
             grep_output = None
         finally:
@@ -181,7 +181,7 @@ class TransactionManager(object):
                 binary_response = False
                 grep_output = json.dumps(self.GrepTransaction(transaction)) if transaction.InScope() else None
             except UnicodeDecodeError:
-                response_body = buffer(transaction.GetRawResponseBody())
+                response_body = base64.b64encode(transaction.GetRawResponseBody())
                 binary_response = True
                 grep_output = None
             finally:
@@ -233,7 +233,7 @@ class TransactionManager(object):
         session = Session()
         model_objs = []
         for ID in id_list:
-            model_obj = session.query(models.Transaction).get(id = ID)
+            model_obj = session.query(models.Transaction).get(ID)
             if model_obj:
                 model_objs.append(model_obj)
         session.close()
@@ -314,6 +314,9 @@ class TransactionManager(object):
             tdict.pop("raw_request", None)
             tdict.pop("response_headers", None)
             tdict.pop("response_body", None)
+        else:
+            if tdict["binary_response"]:
+                tdict["response_body"] = base64.b64encode(str(tdict["response_body"]))
         return tdict
 
     def DeriveTransactionDicts(self, tdb_obj_list, include_raw_data = False):

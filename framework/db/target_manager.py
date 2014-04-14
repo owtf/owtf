@@ -57,8 +57,7 @@ class TargetDB(object):
         path_config = {}
         path_config['HOST_OUTPUT'] = os.path.join(self.Core.Config.FrameworkConfigGet('OUTPUT_PATH'), target_config['HOST_IP']) # Set the output directory
         path_config['PORT_OUTPUT'] = os.path.join(path_config['HOST_OUTPUT'], target_config['PORT_NUMBER']) # Set the output directory
-        URLInfoID = target_config['TARGET_URL'].replace('/','_').replace(':','')
-        path_config['URL_OUTPUT'] = os.path.join(self.Core.Config.FrameworkConfigGet('OUTPUT_PATH'), self.Core.Config.FrameworkConfigGet('TARGETS_DIR'), URLInfoID) # Set the URL output directory (plugins will save their data here)
+        path_config['URL_OUTPUT'] = os.path.join(self.Core.Config.GetOutputDirForTarget(target_config['TARGET_URL'])) # Set the URL output directory (plugins will save their data here)
         path_config['PARTIAL_URL_OUTPUT_PATH'] = os.path.join(path_config['URL_OUTPUT'], 'partial') # Set the partial results path
         return path_config
 
@@ -158,7 +157,7 @@ class TargetDB(object):
         session.close()
 
     def CreateMissingDBsForURL(self, TargetURL):
-        self.Core.Config.CreateDBDirForTarget(TargetURL)
+        self.Core.Config.CreateOutputDirForTarget(TargetURL)
         self.Core.DB.EnsureDBWithBase(self.Core.Config.GetTransactionDBPathForTarget(TargetURL), models.TransactionBase)
         self.Core.DB.EnsureDBWithBase(self.Core.Config.GetUrlDBPathForTarget(TargetURL), models.URLBase)
         self.Core.DB.EnsureDBWithBase(self.Core.Config.GetOutputDBPathForTarget(TargetURL), models.OutputBase)
@@ -201,11 +200,22 @@ class TargetDB(object):
                 query = query.filter_by(host_name = filter_data["HOST_NAME"])
             if isinstance(filter_data["HOST_NAME"], list):
                 query = query.filter(models.Target.host_name.in_(filter_data.get("HOST_NAME")))
-        if filter_data.get("ID", None):
-            if isinstance(filter_data["ID"], str) or isinstance(filter_data["ID"], unicode):
-                query = query.filter_by(id = filter_data["ID"])
-            if isinstance(filter_data["ID"], list):
-                query = query.filter(models.Target.id.in_(filter_data.get("ID")))
+        try:
+            if filter_data.get("ID", None):
+                if isinstance(filter_data["ID"], str) or isinstance(filter_data["ID"], unicode):
+                    query = query.filter_by(id = filter_data["ID"])
+                if isinstance(filter_data["ID"], list):
+                    query = query.filter(models.Target.id.in_(filter_data.get("ID")))
+            if filter_data.get('ID[lt]', None):
+                if isinstance(filter_data.get('ID[lt]'), list):
+                    filter_data['id[lt]'] = filter_data['ID[lt]'][0]
+                query = query.filter(models.Target.id < int(filter_data['ID[lt]']))
+            if filter_data.get('ID[gt]', None):
+                if isinstance(filter_data.get('ID[gt]'), list):
+                    filter_data['ID[gt]'] = filter_data['ID[gt]'][0]
+                query = query.filter(models.Target.id > int(filter_data['ID[gt]']))
+        except ValueError:
+            raise general.InvalidParameterType("Invalid parameter type for target db for ID[lt] or ID[gt]")
         target_obj_list = query.all()
         session.close()
         return(self.DeriveTargetConfigs(target_obj_list))

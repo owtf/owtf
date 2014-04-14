@@ -1,0 +1,20 @@
+<table class='table table-bordered table-striped table-hover'>
+    <thead>
+        <tr><th colspan="2" align="center">HTTP Transactions</th></tr>
+        <tr><th> Request </th><th> Response </th></tr>
+    </thead>
+    <tbody>
+        {% for Transaction in TransactionList %}
+                <tr> 
+                        <td> 
+                                {{ Transaction.ID }}
+                                 <br /> <br /> 
+                                 
+
+                                                <pre> {{ Transaction.RawRequest }} ... </pre>
+                         </td>
+                        <td><pre> {{ Transaction.RawResponse }} ... </pre> </td> 
+                </tr>
+        {% end %}
+    </tbody>
+</table>

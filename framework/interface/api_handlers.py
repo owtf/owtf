@@ -54,8 +54,7 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
         if (target_id) or (not self.get_argument("TARGET_URL", default=None)): # How can one post using an id xD
             raise tornado.web.HTTPError(400)
         try:
-            self.application.Core.DB.Target.AddTarget(self.get_argument("TARGET_URL"))
-            self.write(self.application.Core.DB.Target.GetTargetConfigForURL(self.get_argument("TARGET_URL")))
+            self.application.Core.DB.Target.AddTarget(str(self.get_argument("TARGET_URL")))
             self.set_status(201) # Stands for "201 Created"
             self.finish()
         except general.InvalidTargetReference as e:
@@ -96,16 +95,19 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
     def get(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.write(self.application.Core.DB.Transaction.GetByIDAsDict(transaction_id))
+                self.write(self.application.Core.DB.Transaction.GetByIDAsDict(int(transaction_id), target_id=int(target_id)))
             else:
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
-                self.write(self.application.Core.DB.Transaction.GetAllAsDicts(filter_data, target_id=target_id))
+                self.write(self.application.Core.DB.Transaction.GetAllAsDicts(filter_data, target_id=int(target_id)))
             self.finish()
         except general.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
         except general.InvalidTransactionReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except general.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -126,7 +128,7 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
     def delete(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.application.Core.DB.Transaction.DeleteTransaction(transaction_id, target_id)
+                self.application.Core.DB.Transaction.DeleteTransaction(int(transaction_id), int(target_id))
             else:
                 raise tornado.web.HTTPError(400)
             self.finish()

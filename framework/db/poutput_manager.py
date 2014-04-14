@@ -5,17 +5,27 @@ class POutputDB(object):
     def __init__(self, Core):
         self.Core = Core
 
-    def DeriveOutputDict(self, obj):
+    def DeriveHTMLOutput(self, plugin_output):
+        Content = ''
+        for item in plugin_output:
+            Content += getattr(self.Core.Reporter, item["type"])(**item["output"])
+        return(Content)
+
+    def DeriveOutputDict(self, obj, target_id=None):
+        if target_id:
+            self.Core.DB.Target.SetTarget(target_id)
         if obj:
             pdict = dict(obj.__dict__)
             pdict.pop("_sa_instance_state", None)
             if pdict.get("output", None): # If output is present, json decode it
-                pdict["output"] = json.loads(pdict["output"])
+                pdict["output"] = self.DeriveHTMLOutput(json.loads(pdict["output"]))
             if pdict.get("date_time", None):
                 pdict["date_time"] = pdict["date_time"].strftime(self.Core.DB.Config.Get("DATE_TIME_FORMAT"))
             return pdict
 
-    def DeriveOutputDicts(self, obj_list):
+    def DeriveOutputDicts(self, obj_list, target_id=None):
+        if target_id:
+            self.Core.DB.Target.SetTarget(target_id)
         dict_list = []
         for obj in obj_list:
             dict_list.append(self.DeriveOutputDict(obj))
@@ -47,19 +57,19 @@ class POutputDB(object):
             if filter_data.get("owtf_rank[lt]", None):
                 if isinstance(filter_data.get("owtf_rank[lt]"), list):
                     filter_data["owtf_rank[lt]"] = filter_data["owtf_rank[lt]"][0]
-                query = query.filter_by(owtf_rank < int(filter_data["owtf_rank[lt]"]))
+                query = query.filter(models.PluginOutput.owtf_rank < int(filter_data["owtf_rank[lt]"]))
             if filter_data.get("owtf_rank[gt]", None):
                 if isinstance(filter_data.get("owtf_rank[gt]"), list):
                     filter_data["owtf_rank[gt]"] = filter_data["owtf_rank[gt]"][0]
-                query = query.filter_by(owtf_rank > int(filter_data["owtf_rank[gt]"]))
+                query = query.filter(models.PluginOutput.owtf_rank > int(filter_data["owtf_rank[gt]"]))
             if filter_data.get("user_rank[lt]", None):
                 if isinstance(filter_data.get("user_rank[lt]"), list):
                     filter_data["user_rank[lt]"] = filter_data["user_rank[lt]"][0]
-                query = query.filter_by(user_rank < int(filter_data["user_rank[lt]"]))
+                query = query.filter(models.PluginOutput.user_rank < int(filter_data["user_rank[lt]"]))
             if filter_data.get("user_rank[gt]", None):
                 if isinstance(filter_data.get("user_rank[gt]"), list):
                     filter_data["user_rank[gt]"] = filter_data["user_rank[gt]"][0]
-                query = query.filter_by(user_rank > int(filter_data["user_rank[gt]"]))
+                query = query.filter(models.PluginOutput.user_rank > int(filter_data["user_rank[gt]"]))
         except ValueError:
             raise general.InvalidParameterType("Integer has to be provided for integer fields")
         return query
@@ -70,7 +80,7 @@ class POutputDB(object):
         query = self.GenerateQueryUsingSession(session, filter_data)
         results = query.all()
         session.close()
-        return(self.DeriveOutputDicts(results))
+        return(self.DeriveOutputDicts(results, target_id))
 
     def DeleteAll(self, filter_data, target_id=None): # Here keeping filter_data optional is very risky
         Session = self.Core.DB.Target.GetOutputDBSession(target_id)
@@ -100,7 +110,7 @@ class POutputDB(object):
         session = Session()
         plugin_output = session.query(models.PluginOutput).get(PluginInfo["key"])
         if plugin_output:
-            return(self.GetDictFromObj(plugin_output))
+            return(self.DeriveOutputDict(plugin_output, target_id))
         return(plugin_output) # This is nothin but a "None" returned
 
     def SavePluginOutput(self, Plugin, Output, Duration, Target = None):

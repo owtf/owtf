@@ -69,10 +69,11 @@ class PluginHelper:
             plugin_output["output"] = {"ResourceListName": ResourceListName, "ResourceList":ResourceList}
             return([plugin_output])
 
-        def TabbedResourceLinkList(self, ResourceList):
+        def TabbedResourceLinkList(self, ResourcesList):
+        # ResourceList = ["ResourceListName":[["Name1","Resource1"],["Name2","Resource2"]]]
             plugin_output = dict(PLUGIN_OUTPUT)
             plugin_output["type"] = "TabbedResourceLinkList"
-            plugin_output["output"] = {"ResourceList" : ResourceList}
+            plugin_output["output"] = {"ResourcesList" : ResourcesList}
             return([plugin_output])
 
         def ListPostProcessing(self, ResourceListName, LinkList, HTMLLinkList):
@@ -120,8 +121,9 @@ class PluginHelper:
 
         def SuggestedCommandBox(self, PluginInfo, CommandCategoryList, Header = ''):
             plugin_output = dict(PLUGIN_OUTPUT)
+            PluginOutputDir = self.InitPluginOutputDir( PluginInfo )
             plugin_output["type"] = "SuggestedCommandBox"
-            plugin_output["output"] = { "PluginInfo":PluginInfo, "CommandCategoryList":CommandCategoryList, "Header":Header}
+            plugin_output["output"] = { "PluginOutputDir":PluginOutputDir, "CommandCategoryList":CommandCategoryList, "Header":Header}
             return([plugin_output])
 
         def SetConfigPluginOutputDir( self, PluginInfo ):

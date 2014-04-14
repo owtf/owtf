@@ -1,0 +1,28 @@
+<div class="well well-small">
+    <ul class="nav nav-tabs">
+        {% for TabName, TabID in TabData %}
+            <li><a href="#{{ TabID }}" data-toggle="tab">{{ TabName }}</a></li>
+        {% end %}
+    </ul>
+
+    <div class="tab-content">
+    {% for TabID, ResourceList in Resources %}
+        <div class="tab-pane" id="{{ TabID }}">
+         <div class="well well-small">
+         ( <a href="#" onclick="$(this).parent().find('a[target]').trigger('click');"> Open all </a> ):
+
+             <ul class="icons-ul">
+             {% for Name, Resource in ResourceList %}
+                 <li>
+                     <i class="icon-li icon-chevron-sign-right"></i>
+                     <a href="{{ Resource }}" onclick="window.open(this.href); return false;" target="_blank">
+                        {{ Name }}
+                     </a>
+                 </li>
+             {% end %}
+             </ul>
+         </div>
+        </div>
+    {% end %}
+    </div>
+</div>
