@@ -38,12 +38,11 @@ from framework.http.proxy import proxy, transaction_logger, tor_manager
 from framework.lib.general import *
 from framework.plugin import plugin_handler, plugin_helper, plugin_params, process_manager
 from framework.protocols import smtp, smb
-#from framework.report import reporter, summary
+from framework.interface import reporter, server
 #from framework.report.reporting_process import reporting_process
 from framework.selenium import selenium_handler
 from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
-from framework.interface.server import InterfaceServer
 from threading import Thread
 import fcntl
 import logging
@@ -68,7 +67,7 @@ class Core:
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
         self.Random = random.Random()
         self.IsIPInternalRegexp = re.compile("^127.\d{123}.\d{123}.\d{123}$|^10.\d{123}.\d{123}.\d{123}$|^192.168.\d{123}$|^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{123}.[0-9]{123}$")
-        #self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
+        self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
         self.Selenium = selenium_handler.Selenium(self)
         self.InteractiveShell = interactive_shell.InteractiveShell(self)
         self.SET = set_handler.SETHandler(self)
@@ -184,8 +183,8 @@ class Core:
             cprint("Proxy transaction's log file at %s"%(self.DB.Config.Get("PROXY_LOG")))
             cprint("Visit http://" + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT") + "/proxy to use Plug-n-Hack standard")
             cprint("Execution of OWTF is halted.You can browse through OWTF proxy) Press Enter to continue with OWTF")
-            if Options["Interactive"]:
-                raw_input()
+            #if Options["Interactive"]:
+            #    raw_input()
         else:
             self.Requester = requester.Requester(self, Options['OutboundProxy'])        
     
@@ -288,7 +287,7 @@ class Core:
 
     def run_plugins(self):
         Status = self.PluginHandler.ProcessPlugins()
-        self.InterfaceServer = InterfaceServer(self)
+        self.InterfaceServer = server.InterfaceServer(self)
         cprint("Interface Server is about to start")
         self.InterfaceServer.start()
         if Status['AllSkipped']:

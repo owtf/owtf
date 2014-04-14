@@ -1,0 +1,33 @@
+{% extends base.html %}
+
+{% block title %}Target Panel{% end %}
+
+{% block includes %}
+<script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
+{% end %}
+
+{% block content %}
+<div id="pluginOutputs" class="row">
+</div>
+<script>
+var mySpace = {
+                    target_api_url:"{{ target_api_url }}",
+                    poutput_api_url:"{{ poutput_api_url }}",
+                    transaction_log_url:"{{ transaction_log_url }}",
+                    url_log_url:"{{ url_log_url }}"
+                  };
+function addPluginOutputs(objList){
+    $.each(objList, function(index, obj){
+            $('#pluginOutputs').append('<div class="row">'+obj.output+'</div>');
+            });
+}
+
+function updatePluginOutputs(){
+    $.getJSON( mySpace.poutput_api_url, addPluginOutputs);
+}
+
+$(document).ready(function() {
+        updatePluginOutputs();
+});
+</script>
+{% end %}

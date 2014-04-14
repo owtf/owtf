@@ -364,20 +364,23 @@ class Config(object):
         for k, v in self.GetConfig().items():
             cprint(str(k)+" => "+str(v))
 
+    def GetOutputDirForTargets(self):
+        return os.path.join(self.FrameworkConfigGet("OUTPUT_PATH"), self.FrameworkConfigGet("TARGETS_DIR"))
+
     def CleanUpForTarget(self, TargetURL):
         return shutil.rmtree(self.GetDBDirForTarget(TargetURL))
 
-    def GetDBDirForTarget(self, TargetURL):
-        return os.path.join(self.FrameworkConfigGet("OUTPUT_PATH"), self.FrameworkConfigGet("TARGETS_DIR"), TargetURL.replace("/","_").replace(":",""))
+    def GetOutputDirForTarget(self, TargetURL):
+        return os.path.join(self.GetOutputDirForTargets(), TargetURL.replace("/","_").replace(":",""))
 
-    def CreateDBDirForTarget(self, TargetURL):
-        self.Core.CreateMissingDirs(self.GetDBDirForTarget(TargetURL))
+    def CreateOutputDirForTarget(self, TargetURL):
+        self.Core.CreateMissingDirs(self.GetOutputDirForTarget(TargetURL))
 
     def GetTransactionDBPathForTarget(self, TargetURL):
-        return os.path.join(self.GetDBDirForTarget(TargetURL), self.FrameworkConfigGet("TRANSACTION_DB_NAME"))
+        return os.path.join(self.GetOutputDirForTarget(TargetURL), self.FrameworkConfigGet("TRANSACTION_DB_NAME"))
 
     def GetUrlDBPathForTarget(self, TargetURL):
-        return os.path.join(self.GetDBDirForTarget(TargetURL), self.FrameworkConfigGet("URL_DB_NAME"))
+        return os.path.join(self.GetOutputDirForTarget(TargetURL), self.FrameworkConfigGet("URL_DB_NAME"))
 
     def GetOutputDBPathForTarget(self, TargetURL):
-        return os.path.join(self.GetDBDirForTarget(TargetURL), self.FrameworkConfigGet("OUTPUT_DB_NAME"))
+        return os.path.join(self.GetOutputDirForTarget(TargetURL), self.FrameworkConfigGet("OUTPUT_DB_NAME"))

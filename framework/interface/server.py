@@ -8,8 +8,10 @@ class InterfaceServer(object):
     def __init__(self, Core):
         self.application = tornado.web.Application(
                                                     handlers=urls.get_handlers(Core),
+                                                    template_path=Core.Config.FrameworkConfigGet('INTERFACE_TEMPLATES_DIR'),
                                                     debug=False,
-                                                    gzip=True
+                                                    gzip=True,
+                                                    compiled_template_cache=False
                                                   )
         self.application.Core = Core
         self.server = tornado.httpserver.HTTPServer(self.application)

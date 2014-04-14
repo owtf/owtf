@@ -113,7 +113,7 @@ class URLManager:
             session = Session()
             for url, visited, scope in urls_list:
                 session.merge(models.Url(url = url, visited = visited, scope = scope))
-                log("Added " + url)
+                log("Added " + url + " to URLs DB")
             session.commit()
             session.close()
 

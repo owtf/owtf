@@ -1,0 +1,7 @@
+<div class="alert {% if NotStr == "not" %}alert-warning{% else %}alert-success{% end %}">
+  robots.txt was <strong>{{ NotStr }}</strong> found.
+  <br />
+  <strong>{{ num_lines }} lines:</strong> {{ num_allow }} Allowed,  {{ num_disallow }} Disallowed, {{ num_sitemap }} Sitemap.
+  <br />
+  Saved to: {{ save_link }}
+</div>

@@ -160,7 +160,7 @@ class PluginHandler:
                 SaveDir = self.GetPluginOutputDir(Plugin)
                 abs_path = self.Core.DumpFile(Filename, Contents, SaveDir)
                 if RelativePath:
-                    return(os.path.relpath(abs_path, self.Core.DB.Target.GetPath('PARTIAL_URL_OUTPUT_PATH')))
+                    return(os.path.relpath(abs_path, self.Core.Config.GetOutputDirForTargets()))
                 return(abs_path)
 
         def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
