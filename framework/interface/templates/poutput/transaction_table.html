@@ -6,14 +6,16 @@
     <tbody>
         {% for Transaction in TransactionList %}
                 <tr> 
-                        <td> 
-                                {{ Transaction.ID }}
-                                 <br /> <br /> 
-                                 
-
-                                                <pre> {{ Transaction.RawRequest }} ... </pre>
-                         </td>
-                        <td><pre> {{ Transaction.RawResponse }} ... </pre> </td> 
+                    <td>
+                        <pre>{{ escape(Transaction.GetRawRequest()) }}</pre>
+                    </td>
+                    <td>
+                        <pre>{{ escape(Transaction.GetRawResponseHeaders()) }} ...
+                        <a class="btn btn-default btn-xs" onclick="navigateToTransaction({{ Transaction.GetID() }})">
+                            <i class="fa fa-chevron-circle-right"></i> Full Transaction
+                        </a>
+                        </pre> 
+                    </td>
                 </tr>
         {% end %}
     </tbody>

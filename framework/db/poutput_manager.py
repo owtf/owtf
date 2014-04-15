@@ -6,6 +6,7 @@ class POutputDB(object):
         self.Core = Core
 
     def DeriveHTMLOutput(self, plugin_output):
+        self.Core.Reporter.Loader.reset()
         Content = ''
         for item in plugin_output:
             Content += getattr(self.Core.Reporter, item["type"])(**item["output"])

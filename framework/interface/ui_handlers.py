@@ -48,6 +48,7 @@ class TargetManager(custom_handlers.UIRequestHandler):
         else:
             self.render("target.html",
                         target_api_url=self.reverse_url('targets_api_url', target_id),
+                        targets_ui_url=self.reverse_url('targets_ui_url', None),
                         poutput_api_url=self.reverse_url('poutput_api_url', target_id, None, None, None),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id)

@@ -3,30 +3,71 @@
 {% block title %}Target Panel{% end %}
 
 {% block includes %}
-<script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
 {% end %}
 
 {% block content %}
-<div id="pluginOutputs" class="row">
+<div class="page-header">
+    <h2 id="TargetInfo"></h2>
+</div>
+<div class="row">
+    <div class="col-md-7"></div>
+    <div class="col-md-5">
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="window.location.href=mySpace.targets_ui_url;"><i class="fa fa-chevron-circle-left"></i> Go Back </button>
+            <button class="btn btn-danger" onclick="alert('Run Plugins');"><i class="fa fa-flash"></i> Run Plugins </button>
+            <button class="btn btn-warning" onclick="alert('Run Plugins');"><i class="fa fa-gears"></i> Settings </button>
+            <div class="btn-group">
+                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
+                    Logs
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a onclick="window.open(mySpace.transaction_log_url);"><i class="fa fa-list-alt"></i> Transaction Log </a></li>
+                    <li><a onclick="window.open(mySpace.url_log_url);"><i class="fa fa-link"></i> URL Log </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<div class="row">
+    <div id="pluginOutputs" class="panel-group">
+    </div>
 </div>
 <script>
 var mySpace = {
                     target_api_url:"{{ target_api_url }}",
+                    targets_ui_url:"{{ targets_ui_url }}",
                     poutput_api_url:"{{ poutput_api_url }}",
                     transaction_log_url:"{{ transaction_log_url }}",
                     url_log_url:"{{ url_log_url }}"
                   };
-function addPluginOutputs(objList){
+function filterPluginOutputs(objList){
+    var groupedPluginOutputs = {} // Indexed using code
     $.each(objList, function(index, obj){
-            $('#pluginOutputs').append('<div class="row">'+obj.output+'</div>');
+            if (!(groupedPluginOutputs.hasOwnProperty(obj.plugin_code))){
+                groupedPluginOutputs[obj.plugin_code] = new Array();
+            }
+            groupedPluginOutputs[obj.plugin_code].push(obj)
             });
 }
 
 function updatePluginOutputs(){
-    $.getJSON( mySpace.poutput_api_url, addPluginOutputs);
+    $.getJSON( mySpace.poutput_api_url, filterPluginOutputs);
+}
+
+function updateTargetInfo(){
+    $.getJSON(mySpace.target_api_url, function(obj){
+            $('#TargetInfo').html(obj.TARGET_URL+'<small> ('+obj.HOST_IP+')</small>');
+            });
+}
+
+function navigateToTransaction(id){
+    window.open(mySpace.transaction_log_url+id);
 }
 
 $(document).ready(function() {
+        updateTargetInfo()
         updatePluginOutputs();
 });
 </script>

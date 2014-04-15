@@ -47,5 +47,5 @@ class ConfigDB(object):
         config_list = session.query(models.ConfigSetting.key, models.ConfigSetting.value).all()
         session.close()
         for key, value in config_list:
-            config_dict[key] = value
+            config_dict[key] = self.Core.Config.MultipleReplace(value, self.Core.Config.GetReplacementDict())
         return config_dict

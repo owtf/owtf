@@ -40,12 +40,6 @@ class ResourceDB(object):
         configuration.update(self.Core.Config.GetReplacementDict())
         return configuration
 
-    def MultipleReplace(self, Text, ReplaceDict):
-            NewText = Text
-            for Search,Replace in ReplaceDict.items():
-                    NewText = NewText.replace(config.REPLACEMENT_DELIMITER + Search + config.REPLACEMENT_DELIMITER, str(Replace))
-            return NewText
-
     def GetRawResources(self, ResourceType):
         session = self.ResourceDBSession()
         raw_resources = session.query(models.Resource.resource_name, models.Resource.resource).filter_by(resource_type = ResourceType).all()
@@ -57,7 +51,7 @@ class ResourceDB(object):
         raw_resources = self.GetRawResources(ResourceType)
         resources = []
         for name, resource in raw_resources:
-            resources.append([name, self.MultipleReplace(resource, replacement_dict)])
+            resources.append([name, self.Core.Config.MultipleReplace(resource, replacement_dict)])
         return resources
 
     def GetRawResourceList(self, ResourceList):
@@ -71,6 +65,6 @@ class ResourceDB(object):
         raw_resources = self.GetRawResourceList(ResourceTypeList)
         resources = []
         for name, resource in raw_resources:
-            resources.append([name, self.MultipleReplace(resource, replacement_dict)])
+            resources.append([name, self.Core.Config.MultipleReplace(resource, replacement_dict)])
         return resources
 

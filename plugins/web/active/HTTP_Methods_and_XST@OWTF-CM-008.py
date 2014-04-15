@@ -39,7 +39,7 @@ def run(Core, PluginInfo):
 	#print PUT_URL
 	#PUT_URL = URL+"/a.txt"
 	PUT_URL = URL
-	Content = Core.PluginHelper.HTTPTransactionTable( [ Core.Requester.GetTransaction(True, URL, 'TRACE'), Core.Requester.GetTransaction(True, URL, 'DEBUG'), Core.Requester.GetTransaction(True, PUT_URL, 'PUT', Core.Random.GetStr(15)) ] ) 
+	Content = Core.PluginHelper.TransactionTable( [ Core.Requester.GetTransaction(True, URL, 'TRACE'), Core.Requester.GetTransaction(True, URL, 'DEBUG'), Core.Requester.GetTransaction(True, PUT_URL, 'PUT', Core.Random.GetStr(15)) ] ) 
 	Content += Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('ActiveHTTPMethods'), PluginInfo, Content)
 	# Deprecated: Content += Core.PluginHelper.LogURLs(PluginInfo, Core.Config.GetResources('ActiveHTTPMethodsExtractLinks'))
 	return Content
