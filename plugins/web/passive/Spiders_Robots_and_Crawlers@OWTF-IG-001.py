@@ -51,5 +51,5 @@ def run(Core, PluginInfo):
                         Message = "Could not be retrieved using resource: "+Resource
                         Core.log(Message)
                         #TestResult += Message+".: \n"+cgi.escape(Transaction.GetRawResponse())
-                Content += Core.PluginHelper.HTTPTransactionTable([ Transaction ])
+                Content += Core.PluginHelper.TransactionTable([ Transaction ])
         return Content

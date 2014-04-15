@@ -156,12 +156,15 @@ class PluginHandler:
                 #return [ 'grep' ] != self.Core.Config.GetAllowedPluginTypes('web')
                 return [ 'grep' ] != self.Core.DB.Plugin.GetTypesForGroup('web')
 
-        def DumpPluginFile(self, Filename, Contents, Plugin, RelativePath=False):
+        def DumpOutputFile(self, Filename, Contents, Plugin, RelativePath=False):
                 SaveDir = self.GetPluginOutputDir(Plugin)
                 abs_path = self.Core.DumpFile(Filename, Contents, SaveDir)
                 if RelativePath:
                     return(os.path.relpath(abs_path, self.Core.Config.GetOutputDirForTargets()))
                 return(abs_path)
+
+        def RetrieveAbsPath(self, RelativePath):
+            return(os.path.join(self.Core.Config.GetOutputDirForTargets(), RelativePath))
 
         def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
                 #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.Core.Config.Get('TARGET')
@@ -264,7 +267,7 @@ class PluginHandler:
                 except KeyboardInterrupt:
                         # Just explan why crashed
                         Plugin["status"] = "Aborted"
-                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, PartialOutput.parameter, "Aborted by User", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
+                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, [], "Aborted by User", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         self.Core.Error.UserAbort("Plugin")
                         Status['SomeAborted (Keyboard Interrupt)'] = True
                 except SystemExit:

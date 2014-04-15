@@ -48,4 +48,4 @@ def run(Core, PluginInfo):
 	#		Table.CreateRow([NotFoundMsg])
 	#		Core.log(NotFoundMsg)
 	#return Table.Render() + Core.Reporter.DrawHTTPTransactionTable(TransactionList)
-        return(Core.PluginHelper.HTTPTransactionTable(TransactionList))
+        return(Core.PluginHelper.TransactionTable(TransactionList))

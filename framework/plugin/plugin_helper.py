@@ -97,7 +97,7 @@ class PluginHelper:
                 if Transaction.Found:
                         RawHTML = Transaction.GetRawResponseBody()
                         FilteredHTML = self.Core.Reporter.Sanitiser.CleanThirdPartyHTML( RawHTML )
-                        NotSandboxedPath = self.Core.PluginHandler.DumpPluginFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo )
+                        NotSandboxedPath = self.Core.PluginHandler.DumpOutputFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo )
                         log( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
                         iframe_template = Template( """
                         <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder = '0' style = "overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
@@ -105,7 +105,7 @@ class PluginHelper:
                         </iframe>
                         """ )
                         iframe = iframe_template.render( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
-                        SandboxedPath = self.Core.PluginHandler.DumpPluginFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
+                        SandboxedPath = self.Core.PluginHandler.DumpOutputFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
                         log( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
                         LinkList.append( ( Name, SandboxedPath ) )
             plugin_output = dict(PLUGIN_OUTPUT)
@@ -181,7 +181,7 @@ class PluginHelper:
                                 "Name": self.GetCommandOutputFileNameAndExtension( Name )[0],
                                 "CommandIntro" : CommandIntro ,
                                 "ModifiedCommand": ModifiedCommand,
-                                "RelativeFilePath" : self.Core.PluginHandler.DumpPluginFile( Name, RawOutput, PluginInfo , RelativePath = True),
+                                "RelativeFilePath" : self.Core.PluginHandler.DumpOutputFile( Name, RawOutput, PluginInfo , RelativePath = True),
                                 "OutputIntro":  OutputIntro,
                                 "TimeStr": TimeStr
                         }
@@ -207,6 +207,7 @@ class PluginHelper:
                 #return Content
 
         def LogURLsFromStr( self, RawOutput ):
+                plugin_output = dict(PLUGIN_OUTPUT)
                 self.Core.Timer.StartTimer( 'LogURLsFromStr' )
                 URLList = RawOutput.strip().split( "\n" )
                 self.Core.DB.URL.ImportURLs( URLList ) # Extract and classify URLs and store in DB
@@ -215,7 +216,7 @@ class PluginHelper:
                 #if self.Core.PluginHandler.IsActiveTestingPossible(): # Can visit new URLs found to feed DB straightaway
                 if True: # TODO: Whether or not active testing will depend on the user profile ;). Have cool ideas for profile names
                     VisitURLs = True
-                    for Transaction in self.Core.Requester.GetTransactions( True, self.Core.DB.URL.GetURLsToVisit( URLList ) ): # Visit all URLs if not in Cache
+                    for Transaction in self.Core.Requester.GetTransactions( True, self.Core.DB.URL.GetURLsToVisit() ): # Visit all URLs if not in Cache
                         if Transaction.Found:
                             NumFound += 1
                 TimeStr = self.Core.Timer.GetElapsedTimeAsStr('LogURLsFromStr')
@@ -225,7 +226,7 @@ class PluginHelper:
                 return([plugin_output])
 
         def DumpFile( self, Filename, Contents, PluginInfo, LinkName = '' ):
-                save_path = self.Core.PluginHandler.DumpPluginFile( Filename, Contents, PluginInfo )
+                save_path = self.Core.PluginHandler.DumpOutputFile( Filename, Contents, PluginInfo )
                 if not LinkName:
                         LinkName = save_path
                 log("File: "+Filename+" saved to: "+save_path)          
@@ -256,7 +257,7 @@ class PluginHelper:
                 plugin_output = dict(PLUGIN_OUTPUT)
                 plugin_output["type"] = "Robots"
                 num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = self.AnalyseRobotsEntries( Contents )
-                SavePath = self.Core.PluginHandler.DumpPluginFile( Filename, Contents, PluginInfo )
+                SavePath = self.Core.PluginHandler.DumpOutputFile( Filename, Contents, PluginInfo, True )
                 TopURL = self.Core.DB.Target.Get( 'TOP_URL' )
                 EntriesList = []
                 if num_disallow > 0 or num_allow > 0 or num_sitemap > 0: # robots.txt contains some entries, show browsable list! :)
@@ -285,21 +286,15 @@ class PluginHelper:
                                             }
                 return([plugin_output])
 
-        def HTTPTransactionTable(self, transactions_list):
+        def TransactionTable(self, transactions_list):
             # Store transaction ids in the output, so that reporter can fetch transactions from db
             trans_ids = []
             for transaction in transactions_list:
                 trans_ids.append(transaction.GetID())
             plugin_output = dict(PLUGIN_OUTPUT)
-            plugin_output["type"] = "HTTPTransactionTableFromIDs"
+            plugin_output["type"] = "TransactionTableFromIDs"
             plugin_output["output"] = {"TransactionIDs":trans_ids}
             return([plugin_output])
-
-        def DrawHTTPTransactionTableFromIDs(self, TransactionIDs):
-            return self.Core.Reporter.DrawHTTPTransactionTable(self.Core.DB.Transaction.GetByIDs(TransactionIDs))
-
-        def DrawTransactionTableForURLList( self, UseCache, URLList, Method = '', Data = '' ):
-            return self.Core.Reporter.DrawHTTPTransactionTable(self.Core.Requester.GetTransactions( UseCache, URLList, Method, Data ) )
 
         def TransactionTableForURLList(self, UseCache, URLList, Method = '', Data = ''):
             # Have to make sure that those urls are visited ;), so we perform get transactions but don't save the transaction ids etc..
@@ -308,11 +303,6 @@ class PluginHelper:
             plugin_output["type"] = "TransactionTableForURLList"
             plugin_output["output"] = {"UseCache": UseCache, "URLList": URLList, "Method":Method, "Data":Data}
             return([plugin_output])
-
-        def CreateMatchTable( self ):
-                Table = self.Core.Reporter.Render.CreateTable( {'class' : 'transaction_log'} )
-                Table.CreateRow( ['ID', 'Links', 'Match'], True )
-                return Table
 
         def CreateMatchTables( self, Num ):
                 TableList = []

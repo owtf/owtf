@@ -69,7 +69,7 @@ class Config(object):
                     continue
                 #Value = ''.join(line.split(':')[1:]).strip() <- Removes ":"!!!
                 Value = line.replace(Key+": ", "").strip()
-                self.Set(Key, MultipleReplace(Value, { '@@@FRAMEWORK_DIR@@@' : self.RootDir, '@@@OWTF_PID@@@' : str(self.OwtfPid) } ))
+                self.Set(Key, self.MultipleReplace(Value, { 'FRAMEWORK_DIR' : self.RootDir, 'OWTF_PID' : str(self.OwtfPid) } ))
             except ValueError:
                 self.Core.Error.FrameworkAbort("Problem in config file: '"+ConfigPath+"' -> Cannot parse line: "+line)
 
@@ -110,7 +110,12 @@ class Config(object):
             else:
                 NewScope.append(TargetURL) # Append "as-is"
         return NewScope
-    
+
+    def MultipleReplace(self, Text, ReplaceDict):
+        NewText = Text
+        for Search,Replace in ReplaceDict.items():
+                NewText = NewText.replace(REPLACEMENT_DELIMITER + Search + REPLACEMENT_DELIMITER, str(Replace))
+        return NewText
 
     def LoadProxyConfigurations(self, Options):
         if Options['InboundProxy']:

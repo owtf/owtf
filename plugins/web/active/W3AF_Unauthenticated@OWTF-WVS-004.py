@@ -33,5 +33,4 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via w3af"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	return Core.PluginHelper.CreateCommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('W3AF_Unauth'), PluginInfo, "")
-
+	return Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('W3AF_Unauth'), PluginInfo, [])

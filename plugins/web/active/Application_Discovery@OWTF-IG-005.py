@@ -32,6 +32,4 @@ DESCRIPTION = "Active probing for app discovery"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('ActiveDiscovery'), PluginInfo, []) # No previous output
-	return Content
-
+	return Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('ActiveDiscovery'), PluginInfo, []) # No previous output

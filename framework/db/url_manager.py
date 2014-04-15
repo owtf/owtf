@@ -63,7 +63,7 @@ class URLManager:
                 return self.IsRegexpURL(URL, self.IsSSIRegexp)
 
         def GetURLsToVisit(self, target = None):
-            Session = self.Core.Target.GetUrlDBSession(target)
+            Session = self.Core.DB.Target.GetUrlDBSession(target)
             session = Session()
             urls = session.query(models.Url.url).filter_by(visited = False).all()
             session.close()

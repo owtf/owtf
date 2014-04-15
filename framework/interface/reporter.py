@@ -50,14 +50,14 @@ class Reporter:
         self.mNumLinesToShow = 15
         self.CounterList = []
 
-    def DrawCommand(self, Command):
-        #cgi.escape(MultipleReplace(ModifiedCommand, self.Core.Config.GetReplacementDict()))
-        return cgi.escape(Command)#.replace(';', '<br />') -> Sometimes ";" encountered in UA, cannot do this and it is not as helpful anyway
-
-    def HTTPTransactionTableFromIDs(self, TransactionIDs, NumLinesReq=15, NumLinesRes=15):
+    def TransactionTableFromIDs(self, TransactionIDs, NumLinesReq=15, NumLinesRes=15):
         """ Draws a table of HTTP Transactions """
         # functions to get the first lines of a long string
         transactions = self.Core.DB.Transaction.GetByIDs(TransactionIDs)
+        return self.Loader.load("transaction_table.html").generate(TransactionList = transactions)
+
+    def TransactionTableForURLList( self, UseCache, URLList, Method = '', Data = '' ):
+        transactions = self.Core.Requester.GetTransactions(UseCache, URLList, Method, Data)
         return self.Loader.load("transaction_table.html").generate(TransactionList = transactions)
 
     def unicode(self, *args):
@@ -94,7 +94,8 @@ class Reporter:
         return self.Loader.load("request_link_list.html").generate( ResourceListName = ResourceListName, LinkList = LinkList )
 
     def VulnerabilitySearchBox( self, SearchStr ): # Draws an HTML Search box for defined Vuln Search resources
-        return self.Loader.load("vulnerability_search_box.html").generate( SearchStr = SearchStr, VulnSearchResources = self.Core.DB.Resource.GetResources( 'VulnSearch' ) )
+        VulnSearchResources = self.Core.DB.Resource.GetResources('VulnSearch')
+        return self.Loader.load("vulnerability_search_box.html").generate(SearchStr=SearchStr, VulnSearchResources=VulnSearchResources, Count=len(VulnSearchResources))
 
     def SuggestedCommandBox( self, PluginOutputDir, CommandCategoryList, Header = '' ): # Draws HTML tabs for a list of TabName => Resource Group (i.e. how to run hydra, etc)
         return self.Loader.load("suggested_command_box.html").generate(Header = Header) #TODO: Fix up the plugin
@@ -102,15 +103,17 @@ class Reporter:
     def CommandDump( self, Name, CommandIntro, ModifiedCommand, RelativeFilePath, OutputIntro, TimeStr):
     #def FormatCommandAndOutput( self, Name, CommandIntro, ModifiedCommand, FilePath, OutputIntro, OutputLines, TimeStr):
             #ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir = self.RunCommand( Command, PluginInfo, PluginOutputDir )
+        AbsPath = self.Core.PluginHandler.RetrieveAbsPath(RelativeFilePath)
+        OutputLines = open(AbsPath,"r").readlines()
         table_vars = {
                         "Name": Name,
                         "CommandIntro" : CommandIntro ,
                         "ModifiedCommand": ModifiedCommand,
                         "FilePath" : RelativeFilePath,
                         "OutputIntro":  OutputIntro,
-                        "OutputLines": '', # TODO: Read using the relative path
+                        "OutputLines": '\n'.join(OutputLines[0:self.mNumLinesToShow]) if (len(OutputLines) > self.mNumLinesToShow) else '\n'.join(OutputLines),
                         "TimeStr": TimeStr,
-                        "mNumLinesToShow": self.mNumLinesToShow,
+                        "mNumLinesToShow": (len(OutputLines) > self.mNumLinesToShow),
                 }
         return self.Loader.load("command_dump.html").generate(**table_vars)
 
@@ -128,7 +131,7 @@ class Reporter:
                          "num_allow": NumAllow,
                          "num_disallow": NumDisallow,
                          "num_sitemap": NumSitemap,
-                         "save_link": self.Core.Reporter.Render.DrawButtonLink( SavePath, SavePath, {}, True ),
+                         "save_path": SavePath,
                 }
         TestResult =  self.Loader.load("robots.html").generate(**vars)
         if NumDisallow > 0 or NumAllow > 0 or NumSitemap > 0: # robots.txt contains some entries, show browsable list! :)
@@ -136,11 +139,6 @@ class Reporter:
                 TestResult += self.ResourceLinkList( Display, Links )
         TestResult += str(NumAddedURLs) + " URLs have been added and classified"
         return TestResult
-
-    def GetTransactionStats( self, NumMatchedTransactions , NumTotalTransactions):
-        Percentage = round( NumMatchedTransactions * 100 / max( NumTotalTransactions, 1 ), 2 )
-        StatsStr = str( NumMatchedTransactions ) + " out of " + str( NumTotalTransactions ) + " (" + str( Percentage ) + "%)"
-        return [ Percentage, StatsStr ]
 
     def DrawResponseMatchesTables( self, RegexpMatchResults, PluginInfo ):
         UniqueTable, AllTable = self.CreateMatchTables( 2 )
@@ -219,111 +217,7 @@ class Reporter:
                         }
         return SummaryTable.render(vars)
 
-    def ResearchHeaders( self, RegexName ):
-        RegexName, Transactions, TotalTransac = self.Core.DB.Transaction.SearchByRegexName(RegexName)
-        NuTransactions = len(Transactions)
-        Percentage, StatsStr = self.GetTransactionStats( len(Transactions), TotalTransac )
-        template = Template( """
-        <table class="table table-bordered table-striped ">
-            <thead>
-                <tr>
-                    <th class="text-center" colspan="2">
-                        Header Analysis Summary
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                        <th>Log</th>
-                        <td><a href="../{{ HTMLTransacLogLink }}" class="button" target="_blank">
-                                <span> See log </span>
-                                </a>
-                        </td>
-                </tr>
-                <tr>
-                        <th>HTTP Transaction Stats</th>
-                        <td class='alt'> {{ StatsStr }} matched </td>
-                </tr>
-        </tbody>
-        </table>
-        
-        <div class="alert alert-info"><strong>NOTE!</strong> Only <u>unique values per header</u> are shown with a link to an example transaction</div>
-        <table class="table table-bordered table-striped"> 
-            <thead>
-                <tr>
-            <th class="text-center" colspan="2">
-                Header Value Analysis
-            </th>
-        </tr>
-            </thead>
-                <tbody>
-                <tr>
-                        <th> Header </th> 
-                        <th> Values </th>
-                </tr>
-                {% for Header in HeaderList %}
-                                <tr>
-                                        <td> {{ Header }} </td>
-                                        <td>
-                                                {% if Header|lower not in  HeaderDict %}
-                                                        Not Found
-                                                {% else %}
-                                                        {% for HeaderValue in HeaderDict[Header|lower] %}
-                                                                <a href="./{{ Header2TransacDict[Header|lower + HeaderValue] }}" class="label" target="_blank">
-                                                                        {{ HeaderValue }}
-                                                                </a>
-                                                                <br />
-                                                        {% endfor %}
-                                                {% endif %}
-                                        </td>
-                                        
-                                </tr>
-
-                {tao% endfor %}
-            </tbody>
-        </table>
-        """ )
-
-        vars = {
-                                "HTMLTransacLogLink":self.Core.Config.GetHTMLTransaclog( False ),
-                                "StatsStr": StatsStr,
-                                "HeaderList":self.Core.GetHeaderList(RegexName),
-                                }
-
-
-        return(template.render( vars ))
-
-
     def CookieAttributeAnalysis( self, CookieValueList, Header2TransacDict ):
-        template = Template( """
-        <h3>Cookie Attribute Analysis</h3>
-        <table class="report_intro"> 
-                {% for Cookie in Cookies %}
-                        <tr>
-                                <th colspan="2">
-                                        Cookie: 
-                                        <a href="{{ Cookie.Link }}" class="button" target="_blank">
-                                                <span> {{ Cookie.Name }} </span>
-                                        </a>
-                                </th>
-                        </tr>
-                        <tr>
-                                <th>Attribute</th>
-                                <th>Value</th>
-                        </tr>
-                        <tr>
-                                <td>Value</td>
-                                <td>{% if CookieAttribs[0] %} 
-                                                {{ CookieAttribs[0] }}
-                                        {% else %}
-                                                <b>Not Found</b>
-                                        {% endif %}
-                                </td>
-                        </tr>
-                {% endfor %}
-        </table>
-        """ )
-
         vars = {
                 "Cookies": [
                                         {
@@ -366,8 +260,22 @@ class Reporter:
         #Table = "<h3>Cookie Attribute Analysis</h3><table class='report_intro'>"+Table+"</table>"
         #return Table
 
+    def ResearchHeaders( self, RegexName ):
+        regex_name, matched_transactions, num_matched_in_scope = self.Core.DB.Transaction.SearchByRegexName(RegexName)
+        # [[regex_name, matched_transactions, num_matched_in_scope]]
+        MatchedPercent = (len(matched_transactions)/int(num_matched_in_scope))*100
+        Matches = []
+        for transaction in matched_transactions:
+            Matches.append(transaction.GrepByRegexName(regex_name))
+        UniqueMatches = map(list, set(map(tuple, Matches)))
+        # [[unique_matches, matched_transactions, matched_percentage]]
+        return [self.Loader.load("header_searches.html").generate(MatchedPercent = MatchedPercent, UniqueMatches = UniqueMatches), UniqueMatches] #TODO: Activate links for values
+
     def FingerprintData(self):
-        AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = self.ResearchHeaders(self.Core.Config.GetHeaderList('HEADERS_FOR_FINGERPRINT'))
-        for Value in AllValues:
-                HeaderTable += self.DrawVulnerabilitySearchBox(Value) # Add Vulnerability search boxes after table
+        HeaderTable, UniqueMatches = self.ResearchHeaders('HEADERS_FOR_FINGERPRINT')
+        for Header,Value in UniqueMatches:
+                HeaderTable += self.VulnerabilitySearchBox(Value) # Add Vulnerability search boxes after table
         return HeaderTable
+
+    def Html(self, HtmlString):
+        return(HtmlString)

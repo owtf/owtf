@@ -117,7 +117,7 @@ class HTTP_Transaction(object):
         return(self.GrepOutput)
 
     def GrepByRegexName(self, regex_name): # Highly misleading name as grepping is already done when adding the transaction
-        return(self.GrepOutput.get(regex_name, default=None)) # To prevent python from going crazy when a key is missing
+        return(self.GrepOutput.get(regex_name, None)) # To prevent python from going crazy when a key is missing
 
     def SetError(self, ErrorMessage): # Only called for unknown errors, 404 and other HTTP stuff handled on self.SetResponse
         self.ResponseContents = ErrorMessage
@@ -161,12 +161,12 @@ class HTTP_Transaction(object):
 
     def GetRawResponse(self, WithStatus = True):
         try:
-            return self.GetStatus(WithStatus)+str(self.ResponseHeaders)+"\n\n"+self.ResponseContents
+            return self.GetStatus()+"\r\n"+str(self.ResponseHeaders)+"\n\n"+self.ResponseContents
         except UnicodeDecodeError:
-            return self.GetStatus(WithStatus)+str(self.ResponseHeaders)+"\n\n"+"[Binary Content]"
+            return self.GetStatus()+"\r\n"+str(self.ResponseHeaders)+"\n\n"+"[Binary Content]"
 
     def GetRawResponseHeaders(self, WithStatus = True):
-        return self.GetStatus(WithStatus)+str(self.ResponseHeaders)
+        return self.GetStatus()+str(self.ResponseHeaders)
 
     def GetRawResponseBody(self):
         return self.ResponseContents
