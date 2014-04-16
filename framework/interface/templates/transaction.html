@@ -45,7 +45,7 @@ var mySpace = {
 function displayTransaction(){
     $.getJSON( mySpace.transaction_api_url, function(obj){
             $("#raw_request").text(obj.raw_request);
-            $("#raw_response_headers").text(obj.response_headers);
+            $("#raw_response_headers").text(obj.response_status+"\r\n"+obj.response_headers);
             $("#raw_response_body").text(obj.response_body);
             if (obj.binary_response){
                 $("#raw_response_body_heading").html("Raw Response Body <span class='label label-default'>BASE64 Encoded</span>");

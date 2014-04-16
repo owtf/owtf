@@ -118,11 +118,14 @@ class Reporter:
         return self.Loader.load("command_dump.html").generate(**table_vars)
 
     def URLsFromStr(self, TimeStr, VisitURLs, URLList, NumFound):
-        Table = self.Core.Reporter.Render.CreateTable({'class' : 'commanddump'})
-        Table.CreateCustomRow('<tr><th colspan="2">Spider/URL scraper</th></tr>')
-        Table.CreateRow(['Time', 'URL stats'], True)
-        Table.CreateRow([TimeStr, self.Core.Reporter.Render.DrawHTMLList(['Visited URLs?: '+str(VisitURLs), str(len(URLList))+' URLs scraped', str(NumFound)+' URLs found'])])
-        return Table.Render()
+        html_content = self.Loader.load("urls_from_str.html").generate(TimeStr=TimeStr,
+                                                                VisitURLs=VisitURLs,
+                                                                NumURLs=len(URLList),
+                                                                NumFound=NumFound
+                                                                )
+        if URLList:
+            html_content += self.LinkList("URLs Scraped", URLList)
+        return html_content
 
     def Robots(self, NotStr, NumLines, NumAllow, NumDisallow, NumSitemap, SavePath, NumAddedURLs, EntriesList):
         vars = {
@@ -136,7 +139,8 @@ class Reporter:
         TestResult =  self.Loader.load("robots.html").generate(**vars)
         if NumDisallow > 0 or NumAllow > 0 or NumSitemap > 0: # robots.txt contains some entries, show browsable list! :)
             for Display, Links in EntriesList:
-                TestResult += self.ResourceLinkList( Display, Links )
+                if Links: # Filters empty lists
+                    TestResult += self.ResourceLinkList( Display, Links )
         TestResult += str(NumAddedURLs) + " URLs have been added and classified"
         return TestResult
 
@@ -263,10 +267,13 @@ class Reporter:
     def ResearchHeaders( self, RegexName ):
         regex_name, matched_transactions, num_matched_in_scope = self.Core.DB.Transaction.SearchByRegexName(RegexName)
         # [[regex_name, matched_transactions, num_matched_in_scope]]
-        MatchedPercent = (len(matched_transactions)/int(num_matched_in_scope))*100
+        if int(num_matched_in_scope):
+            MatchedPercent = (len(matched_transactions)/int(num_matched_in_scope))*100
+        else:
+            MatchedPercent = 0
         Matches = []
         for transaction in matched_transactions:
-            Matches.append(transaction.GrepByRegexName(regex_name))
+            Matches += transaction.GrepByRegexName(regex_name)
         UniqueMatches = map(list, set(map(tuple, Matches)))
         # [[unique_matches, matched_transactions, matched_percentage]]
         return [self.Loader.load("header_searches.html").generate(MatchedPercent = MatchedPercent, UniqueMatches = UniqueMatches), UniqueMatches] #TODO: Activate links for values

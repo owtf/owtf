@@ -111,7 +111,7 @@ class POutputDB(object):
         session = Session()
         plugin_output = session.query(models.PluginOutput).get(PluginInfo["key"])
         if plugin_output:
-            return(self.DeriveOutputDict(plugin_output, target_id))
+            return(self.DeriveOutputDict(plugin_output, Target))
         return(plugin_output) # This is nothin but a "None" returned
 
     def SavePluginOutput(self, Plugin, Output, Duration, Target = None):
@@ -123,6 +123,7 @@ class POutputDB(object):
                                             plugin_type = Plugin["type"],
                                             output = json.dumps(Output),
                                             start_time = Plugin["start"],
+                                            end_time = Plugin["end"],
                                             execution_time = Duration,
                                             status = Plugin["status"]
                                          ))
@@ -139,6 +140,7 @@ class POutputDB(object):
                                             output = json.dumps(Output),
                                             error = Message,
                                             start_time = Plugin["start"],
+                                            end_time = Plugin["end"],
                                             execution_time = Duration,
                                             status = Plugin["status"]
                                         ))

@@ -1,96 +1,107 @@
-								<div class="pull-left">
-									<blockquote>
-									  	<h4>{{ Plugin.Type|replace( '_', ' ' )|capitalize }}<small>{{ Plugin.Code }}</small></h4>
-									</blockquote>
-									
-								</div>
-								<div class="btn-toolbar pull-right">
-													   <div class="btn-group" data-toggle="buttons-checkbox">
-								                            <button onclick="MarkAsSeen('{{ ReportID }}', '{{ DivId }}')" id="l{{ ReportID }}_{{ DivId }}" class="btn filter" rel="tooltip" data-original-title="Seen" data-placement="bottom" data-hltype="btn-primary"><i class="icon-eye-open icon-white"></i></button>
-								                      </div>
-								                      
-								                        <div class="btn-group" data-toggle="buttons-checkbox">
-								                       		 <button  onclick="Rate('{{ ReportID }}','{{ DivId }}','fav', this)" id="{{ ReportID }}_{{ DivId }}fav" class="btn filter" rel="tooltip" data-original-title="Favorated" data-placement="bottom" data-hltype="btn-primary"><i class="icon-heart icon-white"></i></button>
-								                       </div>
+<div class="panel-group" id="pluginOutputs">
+    {% for test_code, poutput_list in grouped_plugin_outputs.items() %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title">
+                  <a data-toggle="collapse" data-parent="#pluginOutputs" href="#{{ test_code }}">
+                      {{ test_code }}
+                </a>
+              </h4>
+            </div>
+            <div id="{{ test_code }}" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <ul class="nav nav-tabs">
+                        <li class="brand disabled"><a class="btn" disabled="disabled">Type:</a></li>
+                        {% for poutput in poutput_list %}
+                        <li>
+                            <a href="#{{ test_code }}_{{ poutput['plugin_group'] }}_{{ poutput['plugin_type'] }}" data-toggle="tab">
+                                {{ poutput['plugin_type'] }}
+                            </a>
+                        </li>
+                        {% end %}
+                    </ul>
+                    <br />
+                    <div class="tab-content">
+                        {% for poutput in poutput_list %}
+                        <div class="tab-pane" id="{{ test_code }}_{{ poutput['plugin_group'] }}_{{ poutput['plugin_type'] }}">
+                            <div class="pull-left">
+                                <blockquote><h4>{{ poutput['plugin_type'].replace('_',' ').capitalize() }}</h4><small>{{ poutput['plugin_code'] }}</small></blockquote>
+                            </div>
+                            <div class="btn-toolbar pull-right">
+                                Test
+                            </div>
+                            <br />
+                            <br />
+                            <table class="table table-bordered table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th> PLUGIN </th>
+                                        <th> RUNTIME </th>
+                                        <th> TIME INTERVAL </th>
+                                        <th> STATUS </th>
+                                        <th> OUTPUT FILES </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        {% if poutput['status'] == "Aborted" %}
+                                        class="alert alert-warning"
+                                        {% elif poutput['status'] == "Successful"%}
+                                        class="alert alert-success"
+                                        {% elif poutput['status'] == "Crashed" %}
+                                        class="alert alert-error"
+                                        {% elif poutput['status'] == "Running" %}
+                                        class="alert alert-info"
+                                        {% elif poutput['status'] == "Skipped" %}
+                                        class="muted"
+                                        {% else %}
+                                        class=""
+                                        {% end %}
+                                    >
+                                        <td> <strong>{{ poutput['plugin_type'] }}</strong>/Plugin File</td>
+                                        <td> {{ poutput['execution_time'] }} </td>
+                                        <td> {{ poutput['start_time'] }} <br />{{ poutput['end_time'] }} </td>
+                                        <td> {{ poutput['status'] }} </td>
+                                        <td><a href="#" target="_blank" class="btn btn-primary"> Browse </a> </td>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="6">
+                                            User Notes
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="6">
+                                            Editor :P
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="6">
+                                            MORE DETAILS
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="6">
+                                            {% raw poutput['output'] %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        {% end %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% end %}
+</div>
+<script>
+var pluginSpace = {
+                    poutput_api_url:"{{ poutput_api_url }}",
+                    transaction_log_url:"{{ transaction_log_url }}",
+                    url_log_url:"{{ url_log_url }}"
+                  };
 
-								                      <div class="btn-group" data-toggle="buttons-radio">
-								                         
-								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','star_3', this)" id="{{ ReportID }}_{{ DivId }}star_3" class="btn  filter" rel="tooltip" data-original-title="Unknown" data-placement="bottom" data-hltype="btn-inverse"><i class="icon-asterisk  icon-white"></i></button>
-								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','attention_orange', this)" id="{{ ReportID }}_{{ DivId }}attention_orange" class="btn filter" rel="tooltip" data-original-title="Warning" data-placement="bottom" data-hltype="btn-warning"><i class="icon-warning-sign icon-white"></i></button>
-								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','bonus_red', this)"  id="{{ ReportID }}_{{ DivId }}bonus_red" class="btn  filter" rel="tooltip" data-original-title="Exploitable" data-placement="bottom" data-hltype="btn-danger"><i class="icon-fire icon-white"></i></button>
-								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','bug', this)" id="{{ ReportID }}_{{ DivId }}bug" class="btn  filter" rel="tooltip" data-original-title="Logic Bug" data-placement="bottom" data-hltype="btn-info"><i class="icon-bug icon-white"></i></button>
-									                    <button onclick="Rate('{{ ReportID }}','{{ DivId }}','check_green', this)" id="{{ ReportID }}_{{ DivId }}check_green" class="btn  filter " rel="tooltip" data-original-title="Test passed" data-placement="bottom" data-hltype="btn-success"><i class="icon-thumbs-up icon-white"></i></button>
-								                      </div>
-								
-								                      <div class="btn-group" data-toggle="buttons-radio">
-								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_violet', this)" id="{{ ReportID }}_{{ DivId }}flag_violet" class="btn sev-critic filter" rel="tooltip" data-original-title="Critical severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-exclamation-sign icon-white"></i></button>
-								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_red', this)" id="{{ ReportID }}_{{ DivId }}flag_red" class="btn sev-hi filter" rel="tooltip" data-original-title="High severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-arrow-up icon-white"></i></button>
-								                        <button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_yellow', this)" id="{{ ReportID }}_{{ DivId }}flag_yellow" class="btn sev-med filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-arrow-right icon-white"></i></button>
-								                       <button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_blue', this)" id="{{ ReportID }}_{{ DivId }}flag_blue" class="btn sev-low filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-arrow-down icon-white"></i></button>
-								                       	<button onclick="Rate('{{ ReportID }}','{{ DivId }}','flag_white', this)" id="{{ ReportID }}_{{ DivId }}flag_white" class="btn sev-no filter" rel="tooltip" data-original-title="No severity" data-placement="bottom" data-hltype="btn-primary"><i class="icon-remove-circle icon-white"></i></button>
-							
-								                      </div>
-							 </div>
-							 <br />
-							 <br />
-			
-			
-						<table class="table table-bordered table-striped table-hover">
-													<thead>
-														<tr>
-															<th> PLUGIN </th>
-															<th> RUNTIME </th>
-															<th> TIME INTERVAL </th>
-															<th> STATUS </th>
-															<th> OUTPUT FILES </th>
-														</tr>
-													</thead>
-													<tbody>
-							
-							
-														<tr 
-															{% if Plugin.Status == "Aborted" %}
-																class="warning text-warning"
-															{% elif  Plugin.Status == "Completed"%}
-																class="success text-success"
-															{% elif  Plugin.Status == "Crashed" %}
-																class="error text-error"
-															{% elif  Plugin.Status == "Running" %}
-																class="info text-info"
-															{% elif  Plugin.Status == "Skipped" %}
-																class="muted"
-															{% else %}
-															    class=""
-															{% endif %}
-														>
-															
-															<td> <strong>{{ Plugin.Type }}</strong>/{{ Plugin.File }}</td>
-															<td> {{ Plugin.RunTime }} </td>
-															<td> {{ Plugin.Start }} <br />{{ Plugin.End }} </td>
-															<td> {{ Plugin.Status }} </td>
-															<td><a href="../{{ SAVE_DIR }}" target="_blank" class="btn btn-primary"> Browse </a> </td>
-														</tr>
-												<tr> <th colspan="6"> USER NOTES</th></tr>
-														 <tr><td colspan="6">
-														 <div class="pull-right">
-															<a href="javascript:ToggleNotesBox('{{ ReportID }}', '{{ DivId }}')"><i class="icon-edit"></i> Edit</a>
-														</div>
-														{# Generate unique id every time to detect if plugin report changed to highlight modified stuff without losing review data (i.e. same plugin id) #}
-														<div id='token_{{ ReportID }}_{{ DivId }}' style='display: none;'> {{ NextHTMLID }} </div>
-														 <div id="note_preview_{{ ReportID }}_{{ DivId }}"></div>
-														
-														<div id="notes_{{ ReportID }}_{{ DivId }}" style="display: none;" class="well well-small" >
-															<textarea id="note_text_{{ ReportID }}_{{ DivId }}" autocomplete="off" rows=15 cols=150></textarea> 
-														</div>
-														<!--
-										   				  <div id="fbeebaf1-eb6d-33ea-5cc4-5deee0209291" class="notes aloha-editable" style="height: 100px;" contenteditable="true"><p class="muted">Write your notes here!</p></div>
-										   				  -->
-										   				 </td></tr>
-							<tr> <th colspan="6"> MORE DETAILS</th></tr>
-																 <tr><td colspan="6">
-										   				 {{ HTMLtext }}
-										   				 </td></tr>
-												
-										   			
-							</tbody>
-						 </table>
+function navigateToTransaction(id){
+    window.open(pluginSpace.transaction_log_url+id);
+}
+</script>

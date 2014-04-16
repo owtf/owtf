@@ -260,13 +260,15 @@ class PluginHandler:
                         return None
                 try:
                         output = self.RunPlugin(PluginDir, Plugin)
-                        Plugin["Status"] = "Successful"
+                        Plugin["status"] = "Successful"
+                        Plugin["end"] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
                         Status['SomeSuccessful'] = True
                         self.Core.DB.POutput.SavePluginOutput(Plugin, output, self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         return output
                 except KeyboardInterrupt:
                         # Just explan why crashed
                         Plugin["status"] = "Aborted"
+                        Plugin["end"] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
                         self.Core.DB.POutput.SavePartialPluginOutput(Plugin, [], "Aborted by User", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         self.Core.Error.UserAbort("Plugin")
                         Status['SomeAborted (Keyboard Interrupt)'] = True
@@ -275,16 +277,19 @@ class PluginHandler:
                 except PluginAbortException, PartialOutput:
                         #self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Plugin Only)", Plugin) # Save the partial output, but continue to process other plugins
                         Plugin["status"] = "Aborted (by user)"
+                        Plugin["end"] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
                         self.Core.DB.POutput.SavePartialPluginOutput(Plugin, PartialOutput.parameter, "Aborted by User", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         Status['SomeAborted'] = True
                 except UnreachableTargetException, PartialOutput:
                         #self.DB.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
                         Plugin["status"] = "Unreachable Target"
+                        Plugin["end"] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
                         self.Core.DB.POutput.SavePartialPluginOutput(Plugin, PartialOutput.parameter, "Unreachable Target", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         Status['SomeAborted'] = True
                 except FrameworkAbortException, PartialOutput:
                         #self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Framework Exit)", Plugin) # Save the partial output and exit
                         Plugin["status"] = "Aborted (Framework Exit)"
+                        Plugin["end"] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
                         self.Core.DB.POutput.SavePartialPluginOutput(Plugin, PartialOutput.parameter, "Framework Aborted", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
                         self.Core.Finish("Aborted")
                 #TODO: Handle this gracefully

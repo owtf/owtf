@@ -158,7 +158,7 @@ class TransactionManager(object):
                                             time = float(transaction.Time),
                                             time_human = transaction.TimeHuman,
                                             raw_request = transaction.GetRawRequest(),
-                                            response_status = transaction.GetStatus(False),
+                                            response_status = transaction.GetStatus(),
                                             response_headers = transaction.GetResponseHeaders(),
                                             response_body = response_body,
                                             binary_response = binary_response,

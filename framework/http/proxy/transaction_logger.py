@@ -56,6 +56,8 @@ class TransactionLogger(Process):
         for target_id,Target in target_list:
             if request.url.startswith(Target):
                 return [target_id, True]
+            elif Target in request.url:
+                return [target_id, self.get_scope_for_url(request.url, host_list)]
             else:
                 try:
                     if response.headers["Referer"].startswith(Target):
@@ -65,7 +67,7 @@ class TransactionLogger(Process):
         return [self.Core.DB.Target.GetTargetID(), self.get_scope_for_url(request.url, host_list)]
 
     def get_scope_for_url(self, url, host_list):
-        return(urlparse(url).hostname in host_list)
+        return((urlparse(url).hostname in host_list))
 
     def get_owtf_transactions(self, hash_list):
         transactions_dict = {}

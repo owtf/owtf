@@ -84,6 +84,7 @@ class PluginOutput(OutputBase):
     plugin_type = Column(String)
     date_time = Column(DateTime, default = datetime.datetime.now())
     start_time = Column(String)
+    end_time = Column(String)
     execution_time = Column(String)
     output = Column(String, nullable = True)
     error = Column(String, nullable = True)
