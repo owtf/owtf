@@ -184,7 +184,7 @@ class Requester:
 
 
     def log_transaction(self):
-        return self.Core.DB.Transaction.LogTransaction(self.Transaction)
+        self.Core.DB.Transaction.LogTransaction(self.Transaction)
 
     def Request(self, URL, Method = None, POST = None):
         global RawRequest # kludge: necessary to get around urllib2 limitations: Need this to get the exact request that was sent
@@ -276,22 +276,17 @@ class Requester:
         Criteria = { 'url' : URL.strip(), 'method' : Method, 'data' : self.DerivePOSTToStr(Data) } # Must clean-up data to ensure match is found
         if not UseCache or not self.Core.DB.Transaction.IsTransactionAlreadyAdded(Criteria): # Visit URL if not already visited
             if Method in [ '', 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS' ]:
-                #return self.Request(URL, Method, Data)
-                self.Request(URL, Method, Data)
+                return self.Request(URL, Method, Data)
+                #self.Request(URL, Method, Data)
             elif Method == 'DEBUG':
-                #return self.DEBUG(URL)
-                self.DEBUG(URL)
+                return self.DEBUG(URL)
+                #self.DEBUG(URL)
             elif Method == 'PUT':
-                #return self.PUT(URL, Data)
-                self.PUT(URL, Data)
-        #else: # Retrieve from DB = faster
-        while True: #TODO: Make something better
-            transaction = self.Core.DB.Transaction.GetFirst(Criteria) # Important since there is no transaction ID with transactions objects created by Requester
-            if transaction:
-                break
-            else:
-                continue
-        return transaction
+                return self.PUT(URL, Data)
+                #self.PUT(URL, Data)
+        else: # Retrieve from DB = faster
+        #while True: #TODO: Make something better
+            return self.Core.DB.Transaction.GetFirst(Criteria) # Important since there is no transaction ID with transactions objects created by Requester
 
     def GetTransactions(self, UseCache, URLList, Method = '', Data = '', Unique = True):
         Transactions = []

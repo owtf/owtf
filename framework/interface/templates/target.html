@@ -10,8 +10,7 @@
     <h2 id="TargetInfo"></h2>
 </div>
 <div class="row">
-    <div class="col-md-7"></div>
-    <div class="col-md-5">
+    <div class="pull-right">
         <div class="btn-group">
             <button class="btn btn-primary" onclick="window.location.href=mySpace.targets_ui_url;"><i class="fa fa-chevron-circle-left"></i> Go Back </button>
             <button class="btn btn-danger" onclick="alert('Run Plugins');"><i class="fa fa-flash"></i> Run Plugins </button>
@@ -30,40 +29,32 @@
     </div>
 </div>
 <br />
-<div class="row">
-    <div id="pluginOutputs" class="panel-group">
-    </div>
+<div class="row-fluid" id="pluginReport">
+    <!-- Plugin outputs grouped by test code -->
 </div>
 <script>
 var mySpace = {
                     target_api_url:"{{ target_api_url }}",
                     targets_ui_url:"{{ targets_ui_url }}",
+                    poutput_ui_url:"{{ poutput_ui_url }}",
                     poutput_api_url:"{{ poutput_api_url }}",
+                    plugins_api_url:"{{ plugins_api_url }}",
                     transaction_log_url:"{{ transaction_log_url }}",
-                    url_log_url:"{{ url_log_url }}"
+                    url_log_url:"{{ url_log_url }}",
+                    target_config:{},
                   };
-function filterPluginOutputs(objList){
-    var groupedPluginOutputs = {} // Indexed using code
-    $.each(objList, function(index, obj){
-            if (!(groupedPluginOutputs.hasOwnProperty(obj.plugin_code))){
-                groupedPluginOutputs[obj.plugin_code] = new Array();
-            }
-            groupedPluginOutputs[obj.plugin_code].push(obj)
-            });
-}
-
 function updatePluginOutputs(){
-    $.getJSON( mySpace.poutput_api_url, filterPluginOutputs);
+    $.get( mySpace.poutput_ui_url, function(data){
+            $('#pluginReport').html(data);
+            });
+    setTimeout(20000, updatePluginOutputs);
 }
 
 function updateTargetInfo(){
     $.getJSON(mySpace.target_api_url, function(obj){
+            mySpace.target_config = obj;
             $('#TargetInfo').html(obj.TARGET_URL+'<small> ('+obj.HOST_IP+')</small>');
             });
-}
-
-function navigateToTransaction(id){
-    window.open(mySpace.transaction_log_url+id);
 }
 
 $(document).ready(function() {

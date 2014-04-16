@@ -166,7 +166,7 @@ class HTTP_Transaction(object):
             return self.GetStatus()+"\r\n"+str(self.ResponseHeaders)+"\n\n"+"[Binary Content]"
 
     def GetRawResponseHeaders(self, WithStatus = True):
-        return self.GetStatus()+str(self.ResponseHeaders)
+        return self.GetStatus()+"\r\n"+str(self.ResponseHeaders)
 
     def GetRawResponseBody(self):
         return self.ResponseContents

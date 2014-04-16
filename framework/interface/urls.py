@@ -8,11 +8,11 @@ def get_handlers(Core):
     plugin_code_re = '([0-9A-Z\-]+)?'
 
     URLS =  [
-                tornado.web.URLSpec(r'/api/plugins/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginDataHandler),
+                tornado.web.URLSpec(r'/api/plugins/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginDataHandler, name='plugins_api_url'),
                 tornado.web.URLSpec(r'/api/targets/?([0-9]+)?/?$', api_handlers.TargetConfigHandler, name='targets_api_url'),
                 tornado.web.URLSpec(r'/api/targets/([0-9]+)/urls/?$', api_handlers.URLDataHandler, name='urls_api_url'),
                 tornado.web.URLSpec(r'/api/targets/([0-9]+)/transactions/?([0-9]+)?/?$', api_handlers.TransactionDataHandler, name='transactions_api_url'),
-                tornado.web.URLSpec(r'/api/targets/([0-9]+)/plugins/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginOutputHandler, name='poutput_api_url'),
+                tornado.web.URLSpec(r'/api/targets/([0-9]+)/poutput/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginOutputHandler, name='poutput_api_url'),
                 tornado.web.URLSpec(r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', api_handlers.WorkerHandler),
                 tornado.web.URLSpec(r'/api/worklist/?$', api_handlers.WorkListHandler),
 
@@ -22,5 +22,6 @@ def get_handlers(Core):
                 tornado.web.URLSpec(r'/ui/targets/?([0-9]+)?/?$', ui_handlers.TargetManager, name='targets_ui_url'),
                 tornado.web.URLSpec(r'/ui/targets/([0-9]+)/transactions/?([0-9]+)?/?$', ui_handlers.TransactionLog, name='transaction_log_url'),
                 tornado.web.URLSpec(r'/ui/targets/([0-9]+)/urls/?$', ui_handlers.UrlLog, name='url_log_url'),
+                tornado.web.URLSpec(r'/ui/targets/([0-9]+)/poutput/?', ui_handlers.PluginOutput, name='poutput_ui_url'),
             ]
     return(URLS)
