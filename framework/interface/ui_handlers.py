@@ -52,6 +52,8 @@ class TargetManager(custom_handlers.UIRequestHandler):
                         targets_ui_url=self.reverse_url('targets_ui_url', None),
                         poutput_ui_url=self.reverse_url('poutput_ui_url', target_id),
                         poutput_api_url=self.reverse_url('poutput_api_url', target_id, None, None, None),
+                        plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
+                        worklist_api_url=self.reverse_url('worklist_api_url'),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id)
                        )
@@ -75,8 +77,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
                         grouped_plugin_outputs=grouped_plugin_outputs,
                         poutput_api_url=self.reverse_url('poutput_api_url', target_id, None, None, None),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
-                        url_log_url=self.reverse_url('url_log_url', target_id),
-                        plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
+                        url_log_url=self.reverse_url('url_log_url', target_id)
                         )
         except general.InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)
