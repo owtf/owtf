@@ -49,3 +49,9 @@ class ConfigDB(object):
         for key, value in config_list:
             config_dict[key] = self.Core.Config.MultipleReplace(value, self.Core.Config.GetReplacementDict())
         return config_dict
+
+    def GetTcpPorts(self, startport, endport):
+        return ','.join(self.Get("TCP_PORTS").split(',')[int(startport):int(endport)])
+
+    def GetUdpPorts(self, startport, endport):
+        return ','.join(self.Get("UDP_PORTS").split(',')[int(startport):int(endport)])
