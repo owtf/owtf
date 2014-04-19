@@ -29,6 +29,7 @@ PASSIVE Plugin for Search engine discovery/reconnaissance (OWASP-IG-002)
 """
 
 DESCRIPTION = "General Google Hacking/Email harvesting, etc"
+USE_INTERNET_RESOURCES = True
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()

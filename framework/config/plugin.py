@@ -32,7 +32,9 @@ The random module allows the rest of the framework to have access to random func
 
 import os
 import base64
+from distutils.util import strtobool
 from collections import defaultdict
+
 from framework.lib.general import *
 
 
@@ -81,23 +83,44 @@ class PluginConfig:
 
     def LoadFromFileSystem(self):
         self.AllPlugins = defaultdict(list)
-        # This commands finds all the plugins and gets their descriptions in one go
-        PluginFinderCommand = "for i in $(find "+self.Core.Config.Get('PLUGINS_DIR')+" -name '*.py'); do echo \"$i#$(grep ^DESCRIPTION $i|sed 's/ = /=/'|cut -f2 -d=)\"; done | sort"
+        # This commands finds all the plugins and gets their descriptions in
+        # one go.
+        PluginFinderCommand = "for i in $(find "+self.Core.Config.Get('PLUGINS_DIR')+" -name '*.py'); do echo \"$i#$(grep ^DESCRIPTION $i|sed 's/ = /=/'|cut -f2 -d=)#$(grep ^USE_INTERNET_RESOURCES $i|sed 's/ = /=/'|cut -f2 -d=)\"; done | sort"
         for line in self.Core.Shell.shell_exec(PluginFinderCommand).split("\n"):
             if not line:
-                continue # Skip blank lines
-            Plugin = line.strip().replace(self.Core.Config.Get('PLUGINS_DIR'), '') # Remove plugin directory part of the path
-            PluginFile, PluginDescrip = Plugin.split('#')
+                continue  # Skip blank lines.
+            # Remove plugin directory part of the path.
+            Plugin = line.strip().replace(self.Core.Config.Get('PLUGINS_DIR'), '')
+            PluginFile, PluginDescrip, plugin_internet_res = Plugin.split('#')
+            # Use strtobool to convert the switch to a boolean
+            try:
+                plugin_internet_res = strtobool(plugin_internet_res)
+            except ValueError:
+                # Whether the string is malformed, whether it is empty.
+                # In both cases, the default value is set to False
+                plugin_internet_res = False
             PluginDescrip = PluginDescrip[1:-1] # Get rid of surrounding quotes
             PluginChunks = PluginFile.split('/')
-            if (len(PluginChunks) == 3): # i.e. all modules have a group. i.e. for web plugins: types are -> passive, semi_passive, active, grep
+            # i.e. all modules have a group. i.e. for web plugins: types are ->
+            # passive, semi_passive, active, grep
+            if (len(PluginChunks) == 3):
                 PluginGroup, PluginType, PluginFile = PluginChunks
             if PluginGroup not in self.AllPlugins:
                 self.AllPlugins[PluginGroup] = defaultdict(list)
 
             PluginName, PluginCode = PluginFile.split('@')
-            PluginCode = PluginCode.split('.')[0] # Get rid of the ".py"
-            self.AllPlugins[PluginGroup][PluginType].append( { 'Group' : PluginGroup, 'Type' : PluginType, 'Title' : PluginName.title().replace('_', ' '), 'Name' : PluginName, 'Code': PluginCode, 'File' : PluginFile, 'Descrip' : PluginDescrip, 'Args' : '' } ) # Args to be set on-the-fly by auxiliary plugins
+            PluginCode = PluginCode.split('.')[0]  # Get rid of the ".py"
+            self.AllPlugins[PluginGroup][PluginType].append({
+                'Group': PluginGroup,
+                'Type': PluginType,
+                'Title': PluginName.title().replace('_', ' '),
+                'Name': PluginName,
+                'Code': PluginCode,
+                'File': PluginFile,
+                'Descrip': PluginDescrip,
+                'InternetRes': plugin_internet_res,
+                # Args to be set on-the-fly by auxiliary plugins.
+                'Args': '' })
 
     def GetPlugins(self, Criteria): # Builds a Plugin list containing all plugins that match the passed criteria
         PluginList = []
