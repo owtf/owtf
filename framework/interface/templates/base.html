@@ -19,6 +19,36 @@
     <!-- JS -->
     <script type="text/javascript" src="/static/js/jquery.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+    <!-- Set of functions that can be used in every page to display status messages -->
+    <script>
+    function alertFail(info){
+        $('#statusBox').html('<div class="alert alert-danger">\
+        <a href="#" class="close" data-dismiss="alert">&times;</a>\
+        <strong>Oops!</strong> '+info+'\
+    </div>');
+    }
+
+    function alertSuccess(info){
+        $('#statusBox').html('<div class="alert alert-success">\
+        <a href="#" class="close" data-dismiss="alert">&times;</a>\
+        <strong>Yup!</strong> '+info+'\
+    </div>');
+    }
+
+    function alertWarning(info){
+        $('#statusBox').html('<div class="alert alert-warning">\
+        <a href="#" class="close" data-dismiss="alert">&times;</a>\
+        <strong>Hey!</strong> '+info+'\
+    </div>');
+    }
+
+    function alertInfo(info){
+        $('#statusBox').html('<div class="alert alert-info">\
+        <a href="#" class="close" data-dismiss="alert">&times;</a>\
+        <strong>BTW!</strong> '+info+'\
+    </div>');
+    }
+    </script>
     <!-- End JS -->
 
     <!-- Template specific includes -->
@@ -41,9 +71,19 @@
             </div>
         </nav>
         <!-- End Navigation Bar -->
-        <div class="container">
-            {% block content %}Content{% end %}
-        </div>
 
+        <!-- Start container -->
+        <div class="container">
+            <!-- Status box, used to display status messages -->
+            <div class="row" id="statusBox">
+            </div>
+            <!-- End Status box -->
+            <!-- Child template content -->
+            <div class="row-fluid">
+                {% block content %}Content{% end %}
+            </div>
+            <!-- End Child template -->
+        </div>
+        <!-- End container -->
     </body>
 </html>

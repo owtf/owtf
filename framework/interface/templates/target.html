@@ -8,13 +8,18 @@
 {% end %}
 
 {% block content %}
+<!-- Target INFO display, populated using JS and OWTF Sweet API -->
 <div class="page-header">
     <h2 id="TargetInfo"></h2>
 </div>
+<!-- End Target INFO -->
+
+<!-- Buttons for few actions and logs -->
 <div class="row">
     <div class="pull-right">
         <div class="btn-group">
             <button class="btn btn-primary" onclick="window.location.href=mySpace.targets_ui_url;"><i class="fa fa-chevron-circle-left"></i> Go Back </button>
+            <button class="btn btn-default" onclick="updatePluginReport();" href="#"><i class="fa fa-refresh"></i> Refresh </button>
             <button class="btn btn-danger" data-toggle="modal" data-target="#pluginLaunchModal"><i class="fa fa-flash"></i> Run Plugins </button>
             <button class="btn btn-warning" onclick="alert('Run Plugins');"><i class="fa fa-gears"></i> Settings </button>
             <div class="btn-group">
@@ -30,10 +35,16 @@
         </div>
     </div>
 </div>
+<!-- End Buttons -->
+
 <br />
+
+<!-- Plugin outputs loaded by JS and refreshed automatically -->
 <div class="row-fluid" id="pluginReport">
     <!-- Plugin outputs grouped by test code -->
 </div>
+<!-- End Plugin Outputs -->
+
 <!-- Plugin launch modal window -->
 <div class="modal fade" id="pluginLaunchModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
@@ -67,6 +78,8 @@
     </div>
   </div>
 </div>
+<!-- End plugin launch modal -->
+
 <script>
 // All api urls needed for calls
 var mySpace = {
@@ -82,11 +95,10 @@ var mySpace = {
                   };
 var pluginLaunchTable;
 // For loading plugin report
-function updatePluginOutputs(){
+function updatePluginReport(){
     $.get( mySpace.poutput_ui_url, function(data){
             $('#pluginReport').html(data);
             });
-    setTimeout(20000, updatePluginOutputs);
 }
 // For loading target info dynamically
 function updateTargetInfo(){
@@ -126,13 +138,14 @@ function postToWorkList(pluginData){
             data:pluginData,
             success:pluginLaunchSuccess,
             error:function(xhr, textStatus, serverResponse){
-                alert("Server replied: "+serverResponse);
+                alertFail("Server replied: "+serverResponse);
                 }
             });
 }
 
 function pluginLaunchSuccess(){
-    $('input', pluginLaunchTable.fnGetNodes()).removeAttr('checked');
+    $('#pluginLaunchModal').modal('hide');
+    alertSuccess("Selected plugins launched, please check worklist to manage :D");
 }
 
 function getSelectedPlugins(){
@@ -193,7 +206,7 @@ function launchPlugins(){
 // Initialize everything
 $(document).ready(function() {
         updateTargetInfo()
-        updatePluginOutputs();
+        updatePluginReport();
         initializePluginLauncher();
 });
 </script>
