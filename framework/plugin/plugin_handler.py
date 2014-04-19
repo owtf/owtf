@@ -270,6 +270,14 @@ class PluginHandler:
                         #cprint("Skipped - Cannot run grep plugins: The Transaction DB is empty")
                         log("Skipped - Cannot run grep plugins: The Transaction DB is empty")
                         return None
+                # Avoid the use of internet resources against local target when
+                # the plugin has the USE_INTERNET_RESOURCES switch set to True.
+                if (Plugin['InternetRes'] and
+                        self.Core.is_ip_internal(self.Core.Config.Get('HOST_IP'))):
+                    cprint(
+                        "Skipped - Avoid use of internet resources against "
+                        "local target")
+                    return None
                 try:
                         output = self.RunPlugin(PluginDir, Plugin)
                         Plugin["Status"] = "Successful"
