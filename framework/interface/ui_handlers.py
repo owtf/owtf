@@ -72,12 +72,41 @@ class PluginOutput(custom_handlers.UIRequestHandler):
                 if not grouped_plugin_outputs.get(poutput['plugin_code'], None):
                     grouped_plugin_outputs[poutput['plugin_code']] = [] # No problem of overwriting
                 grouped_plugin_outputs[poutput['plugin_code']].append(poutput)
-            grouped_plugin_outputs = collections.OrderedDict(sorted(grouped_plugin_outputs.items()))
+            grouped_plugin_outputs = collections.OrderedDict(sorted(grouped_plugin_outputs.items())) # Needed ordered list for ease in templates
+            # Get test groups as well, for names and info links
+            test_groups = {}
+            for test_group in self.application.Core.DB.Plugin.GetAllTestGroups():
+                test_groups[test_group['code']] = test_group
             self.render("plugin_report.html",
                         grouped_plugin_outputs=grouped_plugin_outputs,
+                        test_groups=test_groups,
                         poutput_api_url=self.reverse_url('poutput_api_url', target_id, None, None, None),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id)
                         )
         except general.InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)
+
+class WorkerManager(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+    @tornado.web.asynchronous
+    def get(self, worker_id=None):
+        if not worker_id:
+            self.render("manager_interface.html",
+                        worklist_api_url=self.reverse_url('worklist_api_url'),
+                        workers_api_url=self.reverse_url('workers_api_url', None, None),
+                        targets_api_url=self.reverse_url('targets_api_url', None),
+                        targets_ui_url=self.reverse_url('targets_ui_url', None),
+                        )
+        else:
+            self.render("worker_interface.html",
+                        worker_api_url=self.reverse_url('workers_api_url', worker_id, None),
+                        targets_api_url=self.reverse_url('targets_api_url', None),
+                        targets_ui_url=self.reverse_url('targets_ui_url', None)
+                        )
+
+class Help(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+    @tornado.web.asynchronous
+    def get(self):
+        self.render("help.html")

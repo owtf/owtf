@@ -35,7 +35,7 @@ import signal
 import subprocess
 import logging
 
-class Shell:
+class Shell(object):
         def __init__(self, Core):
                 self.DynamicReplacements = {} # Some settings like the plugin output dir are dynamic, config is no place for those
                 self.Core = Core
@@ -91,8 +91,8 @@ class Shell:
         def create_subprocess(self, Command):
 #http://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612)
             proc = subprocess.Popen(Command, shell=True, preexec_fn=os.setsid,
-                    stdout=subprocess.PIPE, 
-                    stderr=subprocess.STDOUT, 
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
                     bufsize=1)
             return proc
 

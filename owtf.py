@@ -337,7 +337,8 @@ def ProcessOptions(Core, user_args):
     Scope = Arg.Targets or []  # Arguments at the end are the URL target(s)
     NumTargets = len(Scope)
     if PluginGroup != 'aux' and NumTargets == 0 and not Arg.ListPlugins:
-        Usage("")
+        #Usage("") OMG, #TODO: Fix this
+        pass
     elif NumTargets == 1:  # Check if this is a file
         if os.path.isfile(Scope[0]):
             cprint("Scope file: trying to load targets from it ..")

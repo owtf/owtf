@@ -27,8 +27,7 @@
             <thead>
                 <tr>
                     <td>Target</td>
-                    <td></td>
-                    <td></td>
+                    <td>Actions</td>
                 </tr>
             </thead>
             <tbody>
@@ -45,9 +44,8 @@ function addTargets(data, status, xhr){
     jQuery('#targetList').dataTable().fnClearTable();
     $.each(data, function(index, obj){
             jQuery('#targetList').dataTable().fnAddData([
-                                                obj.TARGET_URL+' ('+obj.HOST_IP+') ',
-                                                '<a href="'+mySpace.targets_ui_url+obj.ID+'"><span class="btn btn-xs btn-default"><i class="fa fa-crosshairs"></i></span></a>',
-                                                '<a href="#" onclick="deleteTarget('+obj.ID+');"><span class="btn btn-xs btn-default"><i class="fa fa-times"></i></span></a>'
+                                                '<a href="'+mySpace.targets_ui_url+obj.ID+'">'+obj.TARGET_URL+' ('+obj.HOST_IP+') </a>',
+                                                '<a href="#" onclick="deleteTarget('+obj.ID+');"><span class="btn btn-xs btn-danger"><i class="fa fa-times"></i></span></a>'
                                                 ]);
             });
 }
@@ -74,7 +72,7 @@ function newTarget(targetUrl){
             data:{TARGET_URL:targetUrl},
             success:updateTargets,
             error:function(xhr, textStatus, serverResponse){
-                alert("Server replied: "+serverResponse);
+                alertFail("Server replied: "+serverResponse);
                 }
             });
 }
@@ -82,7 +80,7 @@ function newTarget(targetUrl){
 $(document).ready(function() {
         $('#targetList').dataTable({
                                             "bAutoWidth": false,
-                                            "aoColumns":[null, {"bSortable":false},{"bSortable":false}]
+                                            "aoColumns":[null, {"bSortable":false}]
                                         });
 
         updateTargets();

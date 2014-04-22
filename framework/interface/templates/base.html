@@ -21,6 +21,10 @@
     <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
     <!-- Set of functions that can be used in every page to display status messages -->
     <script>
+    function autoCloseAlert(){
+        setTimeout(function(){$(".alert").alert('close');}, 5000);
+    }
+
     function alertFail(info){
         $('#statusBox').html('<div class="alert alert-danger">\
         <a href="#" class="close" data-dismiss="alert">&times;</a>\
@@ -33,6 +37,7 @@
         <a href="#" class="close" data-dismiss="alert">&times;</a>\
         <strong>Yup!</strong> '+info+'\
     </div>');
+        autoCloseAlert();
     }
 
     function alertWarning(info){
@@ -40,6 +45,7 @@
         <a href="#" class="close" data-dismiss="alert">&times;</a>\
         <strong>Hey!</strong> '+info+'\
     </div>');
+        autoCloseAlert();
     }
 
     function alertInfo(info){
@@ -47,6 +53,7 @@
         <a href="#" class="close" data-dismiss="alert">&times;</a>\
         <strong>BTW!</strong> '+info+'\
     </div>');
+        autoCloseAlert();
     }
     </script>
     <!-- End JS -->
@@ -61,12 +68,14 @@
         <!-- Navigation Bar -->
         <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
             <div class="navbar-header">
-                <a class="navbar-brand" href="http://owtf.org">OWASP OWTF</a>
+                <a class="navbar-brand" href="#">OWASP OWTF</a>
             </div>
             <div>
-                <ul class="nav navbar-nav">
-                    <li><a href="">Home</a></li>
-                    <li><a href="">Sources</a></li>
+                <ul class="nav navbar-nav pull-right">
+                    <li><a href="{{ reverse_url('home_ui_url') }}"><i class="fa fa-home"></i> Home</a></li>
+                    <li><a href="{{ reverse_url('targets_ui_url', None) }}"><i class="fa fa-crosshairs"></i> Targets</a></li>
+                    <li><a href="{{ reverse_url('workers_ui_url', None) }}"><i class="fa fa-th-large"></i> Workers</a></li>
+                    <li><a href="{{ reverse_url('help_ui_url') }}"><i class="fa fa-link"></i> Help</a></li>
                 </ul> <!-- nav navbar-nav -->
             </div>
         </nav>

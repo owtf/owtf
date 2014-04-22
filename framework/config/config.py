@@ -92,7 +92,6 @@ class Config(object):
         Scope = self.PrepareURLScope(Options['Scope'], Options['PluginGroup'])
         for Target in Scope:
             self.Core.DB.Target.AddTarget(Target)
-        self.Target = Target
 
     def PrepareURLScope(self, Scope,Group): # Convert all targets to URLs
         NewScope = []
@@ -373,7 +372,7 @@ class Config(object):
         return os.path.join(self.FrameworkConfigGet("OUTPUT_PATH"), self.FrameworkConfigGet("TARGETS_DIR"))
 
     def CleanUpForTarget(self, TargetURL):
-        return shutil.rmtree(self.GetDBDirForTarget(TargetURL))
+        return shutil.rmtree(self.GetOutputDirForTarget(TargetURL))
 
     def GetOutputDirForTarget(self, TargetURL):
         return os.path.join(self.GetOutputDirForTargets(), TargetURL.replace("/","_").replace(":",""))
