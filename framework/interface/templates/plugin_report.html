@@ -14,7 +14,7 @@
                         <li class="brand disabled"><a class="btn" disabled="disabled">Type:</a></li>
                         {% for poutput in poutput_list %}
                         <li>
-                            <a href="#{{ test_code }}_{{ poutput['plugin_group'] }}_{{ poutput['plugin_type'] }}" data-toggle="tab">
+                            <a href="#{{ poutput['plugin_group'] }}_{{ poutput['plugin_type'] }}_{{ test_code }}" data-toggle="tab">
                                 {{ poutput['plugin_type'].replace('_',' ') }}
                             </a>
                         </li>
@@ -24,11 +24,11 @@
                     <br />
                     <div class="tab-content">
                         {% for poutput in poutput_list %}
-                        <div class="tab-pane" id="{{ test_code }}_{{ poutput['plugin_group'] }}_{{ poutput['plugin_type'] }}">
-                            <div class="pull-left">
+                        <div class="tab-pane" id="{{ poutput['plugin_group'] }}_{{ poutput['plugin_type'] }}_{{ test_code }}">
+                            <div class="pull-left" data-toggle="buttons-checkbox">
                                 <blockquote><h4>{{ poutput['plugin_type'].replace('_',' ').capitalize() }}</h4><small>{{ poutput['plugin_code'] }}</small></blockquote>
                             </div>
-                            <div class="btn-toolbar pull-right">
+                            <div class="btn-group pull-right" data-toggle="buttons">
                                 Rating buttons
                             </div>
                             <br />
@@ -101,6 +101,17 @@ var pluginSpace = {
                     transaction_log_url:"{{ transaction_log_url }}",
                     url_log_url:"{{ url_log_url }}"
                   };
+
+function patchUserRank(group, type, code, user_rank){
+    $.ajax({url:mySpace.poutput_api_url+group+'/'+type+'/'+code,
+            type:'PATCH',
+            data:{"user_rank":user_rank},
+            success:function(){alertSuccess("Plugin ranking updated")},
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+            });
+}
 
 function navigateToTransaction(id){
     window.open(pluginSpace.transaction_log_url+id);

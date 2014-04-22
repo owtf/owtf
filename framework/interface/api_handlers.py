@@ -213,7 +213,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                 raise tornado.web.httperror(400)
             else:
                 patch_data = dict(self.request.arguments)
-                self.application.Core.DB.POutput.Update(plugin_group, plugin_type, plugin_code, patch_data, targte_id)
+                self.application.Core.DB.POutput.Update(plugin_group, plugin_type, plugin_code, patch_data, target_id)
             self.finish()
         except general.InvalidTargetReference as e:
             cprint(e.parameter)

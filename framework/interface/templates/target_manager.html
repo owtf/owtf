@@ -60,7 +60,7 @@ function deleteTarget(target_id){
             type:'DELETE',
             success:updateTargets,
             error:function(xhr, textStatus, serverResponse){
-                alert("Server replied: "+serverResponse);
+                alertFail("Server replied: "+serverResponse);
                 }
             });
 }
