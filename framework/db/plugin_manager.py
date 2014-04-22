@@ -27,14 +27,14 @@ class PluginDB(object):
                     Descrip = Hint
             if len(Hint) < 2:
                     Hint = ""
-            TestGroups.append({ 'Code' : Code, 'Descrip' : Descrip, 'Hint' : Hint, 'URL' : URL })
+            TestGroups.append({ 'code' : Code, 'descrip' : Descrip, 'hint' : Hint, 'url' : URL })
         return TestGroups
 
     def LoadWebTestGroups(self, test_groups_file):
         WebTestGroups = self.GetTestGroupsFromFile(test_groups_file)
         session = self.PluginDBSession()
         for group in WebTestGroups:
-            session.merge(models.TestGroup(code = group['Code'], descrip = group['Descrip'], hint = group['Hint'], url = group['URL'], group = "web"))
+            session.merge(models.TestGroup(code = group['code'], descrip = group['descrip'], hint = group['hint'], url = group['url'], group = "web"))
         session.commit()
         session.close()
 
@@ -42,7 +42,7 @@ class PluginDB(object):
         NetTestGroups = self.GetTestGroupsFromFile(test_groups_file)
         session = self.PluginDBSession()
         for group in NetTestGroups:
-            session.merge(models.TestGroup(code = group['Code'], descrip = group['Descrip'], hint = group['Hint'], url = group['URL'], group = "net"))
+            session.merge(models.TestGroup(code = group['code'], descrip = group['descrip'], hint = group['hint'], url = group['url'], group = "net"))
         session.commit()
         session.close()
 
@@ -73,12 +73,28 @@ class PluginDB(object):
                                         ))
         session.commit()
 
+    def DeriveTestGroupDict(self, obj):
+        if obj:
+            pdict = dict(obj.__dict__)
+            pdict.pop("_sa_instance_state")
+            return pdict
+
+    def DeriveTestGroupDicts(self, obj_list):
+        dict_list = []
+        for obj in obj_list:
+            dict_list.append(self.DeriveTestGroupDict(obj))
+        return dict_list
+
     def GetTestGroup(self, code):
         session = self.PluginDBSession()
         group = session.query(models.TestGroup).get(code)
-        if group:
-            return({'Code': group.code, 'Descrip': group.descrip, 'Hint': group.hint, 'URL': group.url})
-        return group
+        return(self.DeriveTestGroupDict(group))
+
+    def GetAllTestGroups(self):
+        session = self.PluginDBSession()
+        test_groups = session.query(models.TestGroup).all()
+        session.close()
+        return(self.DeriveTestGroupDicts(test_groups))
 
     def GetAllGroups(self):
         session = self.PluginDBSession()

@@ -49,19 +49,23 @@ class Worker(multiprocessing.Process):
         self.output_q.put('Started')
         while True:
             try:
-                work = self.input_q.get()
-            except Exception,e:
-                log("exception while get" + str(e))
-                continue
-                #if work is empty this means no work is there
-            if work == ():
+                try:
+                    work = self.input_q.get()
+                except Exception,e:
+                    log("exception while get" + str(e))
+                    continue
+                    #if work is empty this means no work is there
+                if work == ():
+                    sys.exit()
+                target, plugin = work
+                pluginDir = self.Core.PluginHandler.GetPluginGroupDir(plugin['group'])
+                self.Core.PluginHandler.SwitchToTarget(target)
+                self.Core.PluginHandler.ProcessPlugin(pluginDir, plugin)
+                self.output_q.put('done')
+                #self.output_status = True
+            except KeyboardInterrupt:
+                self.Core.log("I am worker with pid: " + str(self.pid) + " & my master doesnt need me anymore")
                 sys.exit()
-            target, plugin = work
-            pluginDir = self.Core.PluginHandler.GetPluginGroupDir(plugin['group'])
-            self.Core.PluginHandler.SwitchToTarget(target)
-            self.Core.PluginHandler.ProcessPlugin(pluginDir, plugin)
-            self.output_q.put('done')
-            #self.output_status = True
 
 class WorkerManager(object):
     def __init__(self,CoreObj):

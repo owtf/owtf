@@ -92,6 +92,7 @@ class PluginOutput(OutputBase):
     user_notes = Column(String, nullable = True)
     user_rank = Column(Integer, default = 0)
     owtf_rank = Column(Integer, default = 0)
+    output_path = Column(String, nullable = True)
 
 RegisterBase = declarative_base()
 

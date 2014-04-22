@@ -97,7 +97,7 @@ class TargetDB(object):
         # If needed inorder to prevent an uninitialized value for target in self.SetTarget(target) few lines later
             for target in target_list:
                 self.Core.DB.Target.CreateMissingDBsForURL(target.target_url)
-            self.SetTarget(target) # This is to avoid "None" value for the main settings
+            self.SetTarget(target.id) # This is to avoid "None" value for the main settings
 
     def AddTarget(self, TargetURL):
         if TargetURL not in self.GetTargetURLs():
@@ -150,9 +150,10 @@ class TargetDB(object):
         if not target_obj:
             raise general.InvalidTargetReference("Target doesn't exist: " + str(ID) if ID else str(TargetURL))
         target_url = target_obj.target_url
+        target_id = target_obj.id
         session.delete(target_obj)
         session.commit()
-        self.Core.DB.CommandRegister.RemoveForTarget(target_url)
+        self.Core.DB.CommandRegister.RemoveForTarget(target_id)
         self.Core.Config.CleanUpForTarget(target_url)
         session.close()
 

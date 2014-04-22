@@ -4,8 +4,8 @@
             <div class="panel-heading">
               <h4 class="panel-title">
                   <a data-toggle="collapse" data-parent="#pluginOutputs" href="#{{ test_code }}">
-                      {{ test_code }}
-                </a>
+                      <h4>{{ test_code }} {{ test_groups[test_code]['descrip'] }} <small>{{ test_groups[test_code]['hint'] }}</small></h4>
+                  </a>
               </h4>
             </div>
             <div id="{{ test_code }}" class="panel-collapse collapse">
@@ -15,10 +15,11 @@
                         {% for poutput in poutput_list %}
                         <li>
                             <a href="#{{ test_code }}_{{ poutput['plugin_group'] }}_{{ poutput['plugin_type'] }}" data-toggle="tab">
-                                {{ poutput['plugin_type'] }}
+                                {{ poutput['plugin_type'].replace('_',' ') }}
                             </a>
                         </li>
                         {% end %}
+                        <li class="pull-right"><a href="{{ test_groups[test_code]['url'] }}" target="_blank"><i class="fa fa-lightbulb-o"></i></a></li>
                     </ul>
                     <br />
                     <div class="tab-content">
@@ -62,7 +63,7 @@
                                         <td> {{ poutput['execution_time'] }} </td>
                                         <td> {{ poutput['start_time'] }} <br />{{ poutput['end_time'] }} </td>
                                         <td> {{ poutput['status'] }} </td>
-                                        <td><a href="#" target="_blank" class="btn btn-primary"> Browse </a> </td>
+                                        <td><a href="/output_files/{{ poutput['output_path'] }}" target="_blank" class="btn btn-primary"> Browse </a> </td>
                                     </tr>
                                     <tr>
                                         <th colspan="6">

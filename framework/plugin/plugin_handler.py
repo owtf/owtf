@@ -244,6 +244,7 @@ class PluginHandler:
         def ProcessPlugin(self, PluginDir, Plugin, Status={}):
                 self.Core.Timer.StartTimer('Plugin') # Time how long it takes the plugin to execute
                 Plugin['start'] = self.Core.Timer.GetStartDateTimeAsStr('Plugin')
+                Plugin['output_path'] = self.GetPluginOutputDir(Plugin)
                 if not self.CanPluginRun(Plugin, True):         
                         return None # Skip 
                 Status['AllSkipped'] = False # A plugin is going to be run

@@ -18,10 +18,12 @@ def get_handlers(Core):
 
                 (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': Core.Config.FrameworkConfigGet('STATICFILES_DIR')}),
                 (r'/output_files/(.*)', tornado.web.StaticFileHandler, {'path': Core.Config.GetOutputDirForTargets()}),
-                tornado.web.URLSpec(r'/ui/?$', ui_handlers.Home, name='home'),
+                tornado.web.URLSpec(r'/ui/?$', ui_handlers.Home, name='home_ui_url'),
                 tornado.web.URLSpec(r'/ui/targets/?([0-9]+)?/?$', ui_handlers.TargetManager, name='targets_ui_url'),
                 tornado.web.URLSpec(r'/ui/targets/([0-9]+)/transactions/?([0-9]+)?/?$', ui_handlers.TransactionLog, name='transaction_log_url'),
                 tornado.web.URLSpec(r'/ui/targets/([0-9]+)/urls/?$', ui_handlers.UrlLog, name='url_log_url'),
                 tornado.web.URLSpec(r'/ui/targets/([0-9]+)/poutput/?', ui_handlers.PluginOutput, name='poutput_ui_url'),
+                tornado.web.URLSpec(r'/ui/workers/?([0-9])?/?', ui_handlers.WorkerManager, name='workers_ui_url'),
+                tornado.web.URLSpec(r'/ui/help/?', ui_handlers.Help, name='help_ui_url'),
             ]
     return(URLS)

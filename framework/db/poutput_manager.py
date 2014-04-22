@@ -125,7 +125,8 @@ class POutputDB(object):
                                             start_time = Plugin["start"],
                                             end_time = Plugin["end"],
                                             execution_time = Duration,
-                                            status = Plugin["status"]
+                                            status = Plugin["status"],
+                                            output_path = Plugin["output_path"]
                                          ))
         session.commit()
         session.close()
@@ -142,7 +143,8 @@ class POutputDB(object):
                                             start_time = Plugin["start"],
                                             end_time = Plugin["end"],
                                             execution_time = Duration,
-                                            status = Plugin["status"]
+                                            status = Plugin["status"],
+                                            output_path = Plugin["output_path"]
                                         ))
         session.commit()
         session.close()
