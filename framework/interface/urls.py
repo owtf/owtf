@@ -15,6 +15,7 @@ def get_handlers(Core):
                 tornado.web.URLSpec(r'/api/targets/([0-9]+)/poutput/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginOutputHandler, name='poutput_api_url'),
                 tornado.web.URLSpec(r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', api_handlers.WorkerHandler, name='workers_api_url'),
                 tornado.web.URLSpec(r'/api/worklist/?$', api_handlers.WorkListHandler, name='worklist_api_url'),
+                tornado.web.URLSpec(r'/api/configuration/?$', api_handlers.ConfigurationHandler, name='configuration_api_url'),
 
                 (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': Core.Config.FrameworkConfigGet('STATICFILES_DIR')}),
                 (r'/output_files/(.*)', tornado.web.StaticFileHandler, {'path': Core.Config.GetOutputDirForTargets()}),
@@ -24,6 +25,7 @@ def get_handlers(Core):
                 tornado.web.URLSpec(r'/ui/targets/([0-9]+)/urls/?$', ui_handlers.UrlLog, name='url_log_url'),
                 tornado.web.URLSpec(r'/ui/targets/([0-9]+)/poutput/?', ui_handlers.PluginOutput, name='poutput_ui_url'),
                 tornado.web.URLSpec(r'/ui/workers/?([0-9])?/?', ui_handlers.WorkerManager, name='workers_ui_url'),
+                tornado.web.URLSpec(r'/ui/configuration/?$', ui_handlers.ConfigurationManager, name='configuration_ui_url'),
                 tornado.web.URLSpec(r'/ui/help/?', ui_handlers.Help, name='help_ui_url'),
             ]
     return(URLS)
