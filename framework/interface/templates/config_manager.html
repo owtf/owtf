@@ -1,0 +1,45 @@
+{% extends base.html %}
+
+{% block title %}Configuration Manager{% end %}
+
+{% block content %}
+<div class="tabbable tabs-left">
+        <ul class="nav nav-tabs" id="configurationTabsNav">
+        </ul>
+        <div class="tab-content" id="configurationTabsContent">
+        </div>
+</div>
+<script>
+mySpace = {
+            configuration_api_url:"{{ configuration_api_url }}"
+        }
+
+function displayConfiguration(){
+    $.getJSON(mySpace.configuration_api_url, function(data){
+            var groupedConfigurations = {}
+            $.each(data, function(index, obj){
+                if (!groupedConfigurations.hasOwnProperty(obj.section)) { groupedConfigurations[obj.section] = new Array(); }
+                groupedConfigurations[obj.section].push(obj);
+            });
+            for (var section in groupedConfigurations){
+                $('#configurationTabsNav').append('<li><a data-toggle="tab" href="#'+section+'">'+section.replace(/_/g,' ')+'</a></li>');
+                $('#configurationTabsContent').append('<div class="tab-pane" id="'+section+'"/></div>');
+                $('#'+section).append('<form class="form-horizontal" role="form">');
+                $.each(groupedConfigurations[section], function(index, obj){
+                    html = '<div class="form-group">';
+                    html += '<label class="control-label col-md-4" for="'+obj.key+'">'+obj.key.replace(/_/g,' ')+'</label>';
+                    html += '<div class="col-md-8">';
+                    html += '<input id="'+obj.key+'" class="form-control" value="'+obj.value+'">';
+                    html += '</div>';
+                    html += '</div>';
+                    $('#'+section).append(html);
+                });
+                $('#'+section).append('</form>');
+            }
+        });
+}
+$(document).ready(function() {
+        displayConfiguration();
+});
+</script>
+{% end %}

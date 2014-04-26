@@ -110,3 +110,13 @@ class Help(custom_handlers.UIRequestHandler):
     @tornado.web.asynchronous
     def get(self):
         self.render("help.html")
+
+
+class ConfigurationManager(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ('GET')
+    @tornado.web.asynchronous
+    def get(self):
+        self.render(
+            "config_manager.html",
+            configuration_api_url=self.reverse_url('configuration_api_url')
+        )

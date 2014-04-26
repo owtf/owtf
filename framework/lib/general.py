@@ -70,6 +70,9 @@ class InvalidParameterType(FrameworkException):
 class InvalidWorkerReference(FrameworkException):
     pass
 
+class InvalidConfigurationReference(FrameworkException):
+    pass
+
 def ConfigGet(Key): # Kludge wrapper function
         global Config # kludge global to avoid having to pass the config around to other components that need it (temporary until I figure out a better way!)
         return Config.Get(Key)

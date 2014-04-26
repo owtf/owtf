@@ -87,6 +87,7 @@ class POutputDB(object):
         Session = self.Core.DB.Target.GetOutputDBSession(target_id)
         session = Session()
         query = self.GenerateQueryUsingSession(session, filter_data) # Empty dict will match all results
+        # TODO: Delete the partial folders that are created
         results = query.delete()
         session.commit()
         session.close()
