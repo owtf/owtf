@@ -22,12 +22,17 @@ class ConfigDB(object):
         config_parser = ConfigParser.RawConfigParser()
         config_parser.optionxform = str  # Otherwise all the keys are converted to lowercase xD
         config_parser.read(file_path)
-        # configuration = [(key, value), (key, value),]
         session = self.ConfigDBSession()
         for section in config_parser.sections():
             for key, value in config_parser.items(section):
-                config_obj = models.ConfigSetting(key=key, value=value, section=section)
-                session.merge(config_obj)
+                old_config_obj = session.query(models.ConfigSetting).get(key)
+                if not old_config_obj or not old_config_obj.dirty:
+                    if not key.endswith("_DESCRIP"):  # _DESCRIP are help values
+                        config_obj = models.ConfigSetting(key=key, value=value, section=section)
+                        # If _DESCRIP at the end, then use it as help text
+                        if config_parser.has_option(section, key + "_DESCRIP"):
+                            config_obj.descrip = config_parser.get(section, key + "_DESCRIP")
+                        session.merge(config_obj)
         session.commit()
         session.close()
 
@@ -87,9 +92,10 @@ class ConfigDB(object):
         session = self.ConfigDBSession()
         config_obj = session.query(models.ConfigSetting).get(key)
         if config_obj:
-            config_obj.value = str(value)
+            config_obj.value = value
             config_obj.dirty = True
             session.merge(config_obj)
+            session.commit()
             session.close()
         else:
             session.close()

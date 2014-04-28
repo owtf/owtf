@@ -260,7 +260,7 @@ class Core:
             return False # No processing required, just list available modules
         #self.messaging_admin.Init()
         self.Config.ProcessOptions(Options)
-        self.Timer.StartTimer('core')
+        #self.Timer.StartTimer('core')
         Command = self.GetCommand(Options['argv'])
 
         #self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
@@ -355,7 +355,7 @@ class Core:
                     except: # It means the proxy was not started
                         pass
                 if hasattr(self, 'DB'):
-                    cprint("Saving DBs before stopping messaging")
+                    cprint("Saving DBs")
                     self.DB.SaveDBs() # So that detailed_report_register populated by reporting is saved :P
                 self.exitOutput()
                 #print self.Timer.GetElapsedTime('core')
