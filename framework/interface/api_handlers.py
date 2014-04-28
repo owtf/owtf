@@ -280,18 +280,15 @@ class WorkListHandler(custom_handlers.APIRequestHandler):
 
 
 class ConfigurationHandler(custom_handlers.APIRequestHandler):
-    SUPPORTED_METHODS = ('GET')
+    SUPPORTED_METHODS = ('GET', 'PATCH')
 
     def get(self):
         filter_data = dict(self.request.arguments)
         self.write(self.application.Core.DB.Config.GetAll(filter_data))
 
     def patch(self):
-        key = self.get_argument("key", None)
-        value = self.get_argument("value", None)
-        if not key or not value:
-            raise tornado.web.HTTPError(400)
-        try:
-            self.application.Core.DB.Config.Update(key, value)
-        except general.InvalidConfigurationReference:
-            raise tornado.web.HTTPError(400)
+        for key, value_list in self.request.arguments.items():
+            try:
+                self.application.Core.DB.Config.Update(key, value_list[0])
+            except general.InvalidConfigurationReference:
+                raise tornado.web.HTTPError(400)

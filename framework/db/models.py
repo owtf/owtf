@@ -134,7 +134,11 @@ class ConfigSetting(GeneralBase):
     key = Column(String, primary_key=True)
     value = Column(String)
     section = Column(String)
+    descrip = Column(String, nullable=True)
     dirty = Column(Boolean, default=False)
+
+    def __repr__(self):
+        return "<ConfigSetting (key='%s', value='%s', dirty='%r')>" % (self.key, self.value, self.dirty)
 
 PluginBase = declarative_base()
 
