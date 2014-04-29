@@ -1,5 +1,8 @@
+import os
+import imp
 from framework.db import models
 from sqlalchemy import or_
+
 
 TEST_GROUPS = ['web', 'net', 'aux']
 
@@ -34,7 +37,14 @@ class PluginDB(object):
         WebTestGroups = self.GetTestGroupsFromFile(test_groups_file)
         session = self.PluginDBSession()
         for group in WebTestGroups:
-            session.merge(models.TestGroup(code=group['code'], descrip=group['descrip'], hint=group['hint'], url=group['url'], group="web"))
+            session.merge(
+                models.TestGroup(
+                    code=group['code'],
+                    descrip=group['descrip'],
+                    hint=group['hint'],
+                    url=group['url'],
+                    group="web")
+                )
         session.commit()
         session.close()
 
@@ -42,35 +52,86 @@ class PluginDB(object):
         NetTestGroups = self.GetTestGroupsFromFile(test_groups_file)
         session = self.PluginDBSession()
         for group in NetTestGroups:
-            session.merge(models.TestGroup(code=group['code'], descrip=group['descrip'], hint=group['hint'], url=group['url'], group="net"))
+            session.merge(
+                models.TestGroup(
+                    code=group['code'],
+                    descrip=group['descrip'],
+                    hint=group['hint'],
+                    url=group['url'],
+                    group="net")
+                )
         session.commit()
         session.close()
 
     def LoadFromFileSystem(self):
-        # This commands finds all the plugins and gets their descriptions in one go
-        PluginFinderCommand = "for i in $(find " + self.Core.Config.FrameworkConfigGet('PLUGINS_DIR') + " -name '*.py'); do echo \"$i#$(grep ^DESCRIPTION $i|sed 's/ = /=/'|cut -f2 -d=)\"; done | sort"
+        """Loads the plugins from the filesystem and updates their info.
+
+        Walks through each sub-directory of `PLUGINS_DIR`.
+        For each file, loads it thanks to the imp module.
+        Updates the database with the information for each plugin:
+            + 'title': the title of the plugin
+            + 'name': the name of the plugin
+            + 'code': the internal code of the plugin
+            + 'group': the group of the plugin (ex: web)
+            + 'type': the type of the plugin (ex: active, passive, ...)
+            + 'descrip': the description of the plugin
+            + 'file': the filename of the plugin
+            + 'internet_res': does the plugin use internet resources?
+
+        """
+        # TODO: When the -t, -e or -o is given to OWTF command line, only load
+        # the specific plugins (and not all of them like below).
         session = self.PluginDBSession()
-        for line in self.Core.Shell.shell_exec(PluginFinderCommand).split("\n"):
-            if not line:
-                continue  # Skip blank lines
-            Plugin = line.strip().replace(self.Core.Config.FrameworkConfigGet('PLUGINS_DIR'), '')  # Remove plugin directory part of the path
-            PluginFile, PluginDescrip = Plugin.split('#')
-            PluginDescrip = PluginDescrip[1:-1]  # Get rid of surrounding quotes
-            PluginChunks = PluginFile.split('/')
-            if (len(PluginChunks) == 3):  # i.e. all modules have a group. i.e. for web plugins: types are -> passive, semi_passive, active, grep
-                PluginGroup, PluginType, PluginFile = PluginChunks
-            PluginName, PluginCode = PluginFile.split('@')
-            PluginCode = PluginCode.split('.')[0]  # Get rid of the ".py"
+        # Retrieve the list of the plugins (sorted) from the directory given by
+        # 'PLUGIN_DIR'.
+        plugins = []
+        for root, _, files in os.walk(self.Core.Config.FrameworkConfigGet('PLUGINS_DIR')):
+            plugins.extend([
+                os.path.join(root, filename) for filename in files
+                if filename.endswith('py')])
+        plugins = sorted(plugins)
+        # Retrieve the information of the plugin.
+        for plugin_path in plugins:
+            # Only keep the relative path to the plugin
+            plugin = plugin_path.replace(
+                self.Core.Config.FrameworkConfigGet('PLUGINS_DIR'), '')
+            # TODO: Using os.path.sep might not be portable especially on
+            # Windows platform since it allows '/' and '\' in the path.
+            # Retrieve the group, the type and the file of the plugin.
+            chunks = plugin.split(os.path.sep)
+            # TODO: Ensure that the variables group, type and file exist when
+            # the length of chunks is less than 3.
+            if len(chunks) == 3:
+                group, type, file = chunks
+            # Retrieve the internal name and code of the plugin.
+            name, code = os.path.splitext(file)[0].split('@')
+            # Load the plugin as a module.
+            filename, pathname, desc = imp.find_module(
+                os.path.splitext(os.path.basename(plugin_path))[0],
+                [os.path.dirname(plugin_path)])
+            plugin_module = imp.load_module(
+                os.path.splitext(file)[0],
+                filename,
+                pathname,
+                desc)
+            # Try to retrieve the USE_INTERNET_RESOURCES from the module.
+            internet_res = False
+            try:
+                internet_res = plugin_module.USE_INTERNET_RESOURCES
+            except AttributeError:
+                pass
+            # Save the plugin into the database.
             session.merge(
                 models.Plugin(
-                    key=PluginType + '@' + PluginCode,
-                    group=PluginGroup,
-                    type=PluginType,
-                    title=PluginName.title().replace('_', ' '),
-                    name=PluginName,
-                    code=PluginCode,
-                    file=PluginFile,
-                    descrip=PluginDescrip
+                    key=type + '@' + code,
+                    group=group,
+                    type=type,
+                    title=name.title().replace('_', ' '),
+                    name=name,
+                    code=code,
+                    file=file,
+                    descrip=plugin_module.DESCRIPTION,
+                    internet_res=internet_res
                 )
             )
         session.commit()
