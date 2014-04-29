@@ -39,4 +39,4 @@ def run(Core, PluginInfo):
         Core.Requester.GetTransaction(True, url) # Use cache if possible
     Content = str(len(urls))+" URLs were visited"
     Core.log(Content)
-    return([{"type":"Html", "output":{"HtmlString":Content}])
+    return([{"type":"Html", "output":{"HtmlString":Content}}])
