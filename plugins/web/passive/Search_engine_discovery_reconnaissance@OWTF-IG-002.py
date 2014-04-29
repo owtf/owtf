@@ -28,11 +28,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 PASSIVE Plugin for Search engine discovery/reconnaissance (OWASP-IG-002)
 """
 
+
 DESCRIPTION = "General Google Hacking/Email harvesting, etc"
+USE_INTERNET_RESOURCES = True
+
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-	Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('PassiveSearchEngineDiscoveryCmd'), PluginInfo, [])
-	Content += Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveSearchEngineDiscoveryLnk'))
-	return Content
-
+    #Core.Config.Show()
+    Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('PassiveSearchEngineDiscoveryCmd'), PluginInfo, [])
+    Content += Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveSearchEngineDiscoveryLnk'))
+    return Content

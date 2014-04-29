@@ -28,10 +28,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 SEMI-PASSIVE Plugin for Search engine discovery/reconnaissance (OWASP-IG-002)
 """
 
+
 DESCRIPTION = "Metadata analysis"
+USE_INTERNET_RESOURCES = True
+
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-	Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('SemiPassiveSearchEngineDiscoveryCmd'), PluginInfo, []) # No previous output
-	return Content
-
+    #Core.Config.Show()
+    Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('SemiPassiveSearchEngineDiscoveryCmd'), PluginInfo, []) # No previous output
+    return Content
