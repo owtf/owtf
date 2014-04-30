@@ -7,3 +7,5 @@ argparse
 selenium
 rdflib
 pyvirtualdisplay
+sqlalchemy
+pexpect
