@@ -1,39 +1,16 @@
-<table class='table table-bordered table-striped table-hover'>
-                <thead>
-                        <tr>
-                                <th>
-                                        {{ CommandIntro }}
-                                </th>
-                        </tr>
-                </thead>
-                <tbody>
-                        <tr>
-                                <td>
-                                                <pre> {{ ModifiedCommand }} </pre>
-                                </td>
-                        </tr>
-                        <tr>
-                                <th>
-                                <a href="/output_files/{{ FilePath }}" target="_blank">{{ Name }}</a>
-                                {{ OutputIntro }} (Execution Time: {{ TimeStr }})
-                                </th>
-                        </tr>
-                        <tr>
-                                <td>
-                                 <pre> {{  OutputLines }} </pre>
-                                 
-                                 {% if mNumLinesToShow %}
-                          
-                                 <div class='alert alert-warning'>
-                                        <strong>NOTE!</strong>
-                                        Output longer than {{ mNumLinesToShow }} lines,
-                                        <a href="/output_files/{{ FilePath }}" target="_blank">
-                                Click here to see all output!
-                                </a>
-                                 </div>
-                          
-                                 {% end %}
-                                </td>
-                        </tr>
-                </tbody>
-</table>
+<div class="row-fluid">
+    <h4>{{ CommandIntro }}</h4>
+        <pre>{{ ModifiedCommand }}</pre>
+    <h4><a href="/output_files/{{ FilePath }}" target="_blank">{{ Name }} </a>{{ OutputIntro }} (Execution Time: {{ TimeStr }})</h4>
+     <pre> {{  OutputLines }} </pre>
+
+     {% if mNumLinesToShow %}
+
+     <div class='alert alert-warning'>
+            <strong>NOTE!</strong>
+            Output longer than {{ mNumLinesToShow }} lines,
+            <a href="/output_files/{{ FilePath }}" target="_blank"> Click here to see all output! </a>
+     </div>
+
+     {% end %}
+</div>
