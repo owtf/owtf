@@ -19,3 +19,12 @@
 body { 
         padding-top: 70px;
 }
+
+pre {
+        overflow: auto;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        word-wrap: normal;
+        white-space : normal;
+}
