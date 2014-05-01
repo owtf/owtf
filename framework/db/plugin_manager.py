@@ -1,5 +1,6 @@
 import os
 import imp
+import json
 from framework.db import models
 from sqlalchemy import or_
 
@@ -114,11 +115,12 @@ class PluginDB(object):
                 filename,
                 pathname,
                 desc)
-            # Try to retrieve the USE_INTERNET_RESOURCES from the module.
-            internet_res = False
+            # Try te retrieve the `attr` dictionary from the module and convert
+            # it to json in order to save it into the database.
+            attr = None
             try:
-                internet_res = plugin_module.USE_INTERNET_RESOURCES
-            except AttributeError:
+                attr = json.dumps(plugin_module.ATTR)
+            except AttributeError:  # The plugin didn't define an attr dict.
                 pass
             # Save the plugin into the database.
             session.merge(
@@ -131,7 +133,7 @@ class PluginDB(object):
                     code=code,
                     file=file,
                     descrip=plugin_module.DESCRIPTION,
-                    internet_res=internet_res
+                    attr=attr
                 )
             )
         session.commit()
