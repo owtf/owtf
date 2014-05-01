@@ -30,7 +30,9 @@ SEMI-PASSIVE Plugin for Search engine discovery/reconnaissance (OWASP-IG-002)
 
 
 DESCRIPTION = "Metadata analysis"
-USE_INTERNET_RESOURCES = True
+ATTR = {
+    'INTERNET_RESOURCES': True,
+}
 
 
 def run(Core, PluginInfo):

@@ -165,4 +165,4 @@ class Plugin(PluginBase):
     type = Column(String)
     descrip = Column(String, nullable=True)
     file = Column(String)
-    internet_res = Column(Boolean, default=False)
+    attr = Column(String, nullable=True)
