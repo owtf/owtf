@@ -165,3 +165,4 @@ class Plugin(PluginBase):
     type = Column(String)
     descrip = Column(String, nullable=True)
     file = Column(String)
+    attr = Column(String, nullable=True)
