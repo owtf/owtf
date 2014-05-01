@@ -103,6 +103,10 @@ class POutputDB(object):
                     if isinstance(patch_data["user_rank"], list):
                         patch_data["user_rank"] = patch_data["user_rank"][0]
                     obj.user_rank = int(patch_data["user_rank"])
+                if patch_data.get("user_notes", None):
+                    if isinstance(patch_data["user_notes"], list):
+                        patch_data["user_notes"] = patch_data["user_notes"][0]
+                    obj.user_notes = patch_data["user_notes"]
                 session.merge(obj)
                 session.commit()
             except ValueError:

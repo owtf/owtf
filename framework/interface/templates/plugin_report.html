@@ -77,12 +77,12 @@
                                     </tr>
                                     <tr>
                                         <th colspan="6">
-                                            User Notes
+                                            <button class="btn btn-default pull-right" onclick="handleEditor('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', this);"><i class="fa fa-pencil"></i> Notes</button>
                                         </th>
                                     </tr>
                                     <tr>
                                         <td colspan="6">
-                                            Editor :P
+                                            <textarea class="editor" style="display: none;"></textarea>
                                         </td>
                                     </tr>
                                     <tr>
@@ -130,6 +130,32 @@ function deletePluginOutput(group, type, code){
                 alertFail("Server replied: "+serverResponse);
                 }
             });
+}
+
+function patchUserNotes(group, type, code, user_notes){
+    $.ajax({url:mySpace.poutput_api_url+group+'/'+type+'/'+code,
+            type:'PATCH',
+            data:{"user_notes":user_notes},
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+            });
+}
+
+function handleEditor(group, type, code, instance){ // Same function called both to create or close editor
+    var editorArea = $(instance).closest('table').find('.editor')
+    try{
+        var editor = editorArea.ckeditorGet(); // This line generates error if editor not found
+        patchUserNotes(group, type, code, editorArea.val());
+        editor.destroy();
+        editorArea.css("display", "None");
+    }catch(err){
+        $.getJSON(mySpace.poutput_api_url+group+'/'+type+'/'+code, function(data){
+                console.log(data);
+                editorArea.val(data.user_notes);
+                editorArea.ckeditor();
+            });
+    }
 }
 
 function navigateToTransaction(id){

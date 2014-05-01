@@ -25,7 +25,11 @@ class PluginDataHandler(custom_handlers.APIRequestHandler):
                 if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"type": plugin_type, "group": plugin_group, "code": plugin_code})
-                self.write(self.application.Core.DB.Plugin.GetAll(filter_data))
+                results = self.application.Core.DB.Plugin.GetAll(filter_data)  # This combination will be unique, so have to return a dict
+                if results:
+                    self.write(results[0])
+                else:
+                    raise tornado.web.HTTPError(400)
         except general.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -173,7 +177,11 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                 if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code})
-                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id))
+                results = self.application.Core.DB.POutput.GetAll(filter_data, target_id)
+                if results:
+                    self.write(results[0])
+                else:
+                    raise tornado.web.HTTPError(400)
         except general.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
