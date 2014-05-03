@@ -111,7 +111,7 @@ var pluginSpace = {
                   };
 
 function patchUserRank(group, type, code, user_rank){
-    $.ajax({url:mySpace.poutput_api_url+group+'/'+type+'/'+code,
+    $.ajax({url:pluginSpace.poutput_api_url+group+'/'+type+'/'+code,
             type:'PATCH',
             data:{"user_rank":user_rank},
             error:function(xhr, textStatus, serverResponse){
@@ -121,7 +121,7 @@ function patchUserRank(group, type, code, user_rank){
 }
 
 function deletePluginOutput(group, type, code){
-    $.ajax({url:mySpace.poutput_api_url+group+'/'+type+'/'+code,
+    $.ajax({url:pluginSpace.poutput_api_url+group+'/'+type+'/'+code,
             type:'DELETE',
             success:function(){alertSuccess("Deleted plugin output for "+type+"@"+code); updatePluginReport();}, //updatePluginReport() is obtained from target.html
             error:function(xhr, textStatus, serverResponse){
@@ -131,7 +131,7 @@ function deletePluginOutput(group, type, code){
 }
 
 function patchUserNotes(group, type, code, user_notes){
-    $.ajax({url:mySpace.poutput_api_url+group+'/'+type+'/'+code,
+    $.ajax({url:pluginSpace.poutput_api_url+group+'/'+type+'/'+code,
             type:'PATCH',
             data:{"user_notes":user_notes},
             error:function(xhr, textStatus, serverResponse){
@@ -148,7 +148,7 @@ function handleEditor(group, type, code, instance){ // Same function called both
         editor.destroy();
         editorArea.css("display", "None");
     }catch(err){
-        $.getJSON(mySpace.poutput_api_url+group+'/'+type+'/'+code, function(data){
+        $.getJSON(pluginSpace.poutput_api_url+group+'/'+type+'/'+code, function(data){
                 console.log(data);
                 editorArea.val(data.user_notes);
                 editorArea.ckeditor();

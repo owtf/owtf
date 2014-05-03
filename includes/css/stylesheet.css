@@ -20,7 +20,7 @@ body {
         padding-top: 70px;
 }
 
-pre {
+.wrappedPre {
         overflow: auto;
         overflow-x: auto;
         white-space: pre-wrap;
