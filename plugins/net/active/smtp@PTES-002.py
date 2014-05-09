@@ -33,5 +33,4 @@ DESCRIPTION = " SMTP Probing "
 def run(Core, PluginInfo):
     #Core.Config.Show()
     #print "Content="+Content
-    Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('SmtpProbeMethods'), PluginInfo, "") # No previous output
-    return Content
+    return Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('SmtpProbeMethods'), PluginInfo, []) # No previous output

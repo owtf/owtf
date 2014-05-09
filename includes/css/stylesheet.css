@@ -15,3 +15,16 @@
 .sev-critic {
 	color: #F00;
 }
+
+body { 
+        padding-top: 70px;
+}
+
+.wrappedPre {
+        overflow: auto;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        word-wrap: normal;
+        white-space : normal;
+}

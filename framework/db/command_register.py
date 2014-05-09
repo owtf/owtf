@@ -29,35 +29,46 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Component to handle data storage and search of all commands run
 '''
 
-from framework.lib.general import *
-# Run DB field order:
-# Start, End, Runtime, Command, LogStatus = self.Core.DB.DBCache['RUN_DB'][-1]#.split(" | ")
-START = 0
-END = 1
-RUNTIME = 2 
-STATUS = 3 
-TARGET = 4 # The same plugin and type can be run against different targets, they should have different paths, but we need the target to get the right codes in the report
-MODIFIED_COMMAND = 5 
-ORIGINAL_COMMAND = 6 
+from framework.lib.general import cprint
+from framework.db import models
 
-NAME_TO_OFFSET = { 'Start' : START, 'End' : END, 'RunTime' : RUNTIME, 'Status' : STATUS, 'Target' : TARGET, 'ModifiedCommand' : MODIFIED_COMMAND, 'OriginalCommand' : ORIGINAL_COMMAND }
+class CommandRegister(object):
+    def __init__(self, Core):
+        self.Core = Core
+        self.CommandRegisterSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("CREGISTER_DB_PATH"), models.RegisterBase)
 
-class CommandRegister:
-	def __init__(self, Core):
-		self.Core = Core
+    def AddCommand(self, Command):
+        session = self.CommandRegisterSession()
+        session.merge(models.Command(
+                                        start = Command['Start'],
+                                        end = Command['End'],
+                                        run_time = Command['RunTime'],
+                                        success = Command['Success'],
+                                        target = Command['Target'],
+                                        modified_command = Command['ModifiedCommand'].strip(),
+                                        original_command = Command['OriginalCommand'].strip()
+                                    ))
+        session.commit()
+        session.close()
 
-	def AlreadyRegistered(self, OriginalCommand): # Need to ignore plugin output dirs, etc. Hence "OriginalCommand", otherwise the same command would be different!
-		Matches = self.Search( { 'OriginalCommand' : OriginalCommand.strip() } )
-		if len(Matches) > 0:
-			for Match in Matches:
-				if Match['Status'] == 'Finished':
-					return Match['Target'] # The command finished successfully
-		return False # The command never finished
+    def DeleteCommand(self, Command):
+        session = self.CommandRegisterSession()
+        command_obj = session.query(models.Command).get(Command)
+        session.delete(command_obj)
+        session.commit()
+        session.close()
 
-	def Add(self, Command): # Must always register a command when it is run, we do not care if it was run before for this
-		#print "Command=" + str(Command)
-		self.Core.DB.Add('COMMAND_REGISTER', [ Command['Start'], Command['End'], Command['RunTime'], Command['Status'], Command['Target'], Command['ModifiedCommand'].strip(), Command['OriginalCommand'].strip() ] )
-		#if not self.AlreadyRegistered(Command['OriginalCommand']):
+    def CommandAlreadyRegistered(self, original_command, Target = None):
+        session = self.CommandRegisterSession()
+        register_entry = session.query(models.Command).get(original_command)
+        if register_entry and register_entry.success:
+            if register_entry.success:
+                self.DeleteCommand(original_command)
+            return self.Core.DB.Target.GetTargetURLForID(register_entry.target)
+        return None
 
-	def Search(self, Criteria):
-		return self.Core.DB.Search('COMMAND_REGISTER', Criteria, NAME_TO_OFFSET)
+    def RemoveForTarget(self, Target):
+        session = self.CommandRegisterSession()
+        session.query(models.Command).filter_by(target = Target).delete()
+        session.commit()
+        session.close()

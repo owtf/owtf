@@ -35,16 +35,17 @@ from httplib import responses as response_messages
 import cgi
 import logging
 
-class HTTP_Transaction:
+class HTTP_Transaction(object):
     def __init__(self, Timer):
         self.Timer = Timer
         self.New = False
+        self.GrepOutput = {} # If None, then get method will result in an error ;)
 
     def ScopeToStr(self):
         return str(self.IsInScope)[0]
     
     def InScope(self):
-        return self.IsInScope
+        return(self.IsInScope)
 
     def Start(self, URL, Data, Method, IsInScope):
         self.IsInScope = IsInScope
@@ -91,28 +92,39 @@ class HTTP_Transaction:
         self.ResponseContents = Response.read()
         self.EndRequest()
 
-    def SetTransactionFromDB(self, IndexRec, Request, ResponseHeaders, ResponseBody):
+    def SetTransactionFromDB(self, id, url, method, status, time, time_human, request_data, raw_request, response_headers, response_body, grep_output):
+        self.ID = id
         self.New = False # Flag NOT new transaction
-        self.Time = IndexRec['Time']
-        self.TimeHuman = IndexRec['TimeHuman']
-        self.Status = IndexRec['Status']
+        self.URL = url
+        self.Method = method
+        self.Status = status
         self.Found = (self.Status == "200 OK")
-        self.Method = IndexRec['Method']
-        self.URL = IndexRec['URL']
-        self.Data = IndexRec['Data']
-        self.RawRequest = Request
+        self.Time = time
+        self.TimeHuman = time_human
+        self.Data = request_data
+        self.RawRequest = raw_request
         #self.ResponseHeaders = ResponseHeaders.split("\n")
-        self.ResponseHeaders = ResponseHeaders
-        self.ResponseContents = ResponseBody
+        self.ResponseHeaders = response_headers
+        self.ResponseContents = response_body
+        self.GrepOutput = grep_output
         cookies_list = []
         for header in self.ResponseHeaders.split('\n'):
             if header.split(':',1)[0].strip() == "Set-Cookie":
                 cookies_list.append(header.split(':',1)[-1].strip())
         self.CookieString = ','.join(cookies_list)
 
+    def GetGrepOutput(self):
+        return(self.GrepOutput)
+
+    def GrepByRegexName(self, regex_name): # Highly misleading name as grepping is already done when adding the transaction
+        return(self.GrepOutput.get(regex_name, None)) # To prevent python from going crazy when a key is missing
+
     def SetError(self, ErrorMessage): # Only called for unknown errors, 404 and other HTTP stuff handled on self.SetResponse
         self.ResponseContents = ErrorMessage
         self.EndRequest()
+
+    def GetID(self):
+        return(self.ID)
 
     def SetID(self, ID, HTMLLinkToID):
         self.ID = ID
@@ -138,11 +150,8 @@ class HTTP_Transaction:
     def GetRawRequest(self):
         return self.RawRequest
 
-    def GetStatus(self, WithStatus = True):
-        Status = ''
-        if WithStatus:
-            Status = self.Status+"\n"
-        return Status
+    def GetStatus(self):
+        return self.Status
 
     def GetCookies(self): # Returns a list of easy to use Cookie objects to avoid parsing string each time, etc
         return cookie_factory.CookieFactory().CreateCookiesFromStr(self.CookieString)
@@ -152,12 +161,12 @@ class HTTP_Transaction:
 
     def GetRawResponse(self, WithStatus = True):
         try:
-            return self.GetStatus(WithStatus)+str(self.ResponseHeaders)+"\n\n"+self.ResponseContents
+            return self.GetStatus()+"\r\n"+str(self.ResponseHeaders)+"\n\n"+self.ResponseContents
         except UnicodeDecodeError:
-            return self.GetStatus(WithStatus)+str(self.ResponseHeaders)+"\n\n"+"[Binary Content]"
+            return self.GetStatus()+"\r\n"+str(self.ResponseHeaders)+"\n\n"+"[Binary Content]"
 
     def GetRawResponseHeaders(self, WithStatus = True):
-        return self.GetStatus(WithStatus)+str(self.ResponseHeaders)
+        return self.GetStatus()+"\r\n"+str(self.ResponseHeaders)
 
     def GetRawResponseBody(self):
         return self.ResponseContents
@@ -167,7 +176,10 @@ class HTTP_Transaction:
         self.URL = request.url
         self.InitData(request.body)
         self.Method = request.method
-        self.Status = str(response.code) + " " + response_messages[int(response.code)]
+        try:
+            self.Status = str(response.code) + " " + response_messages[int(response.code)]
+        except KeyError:
+            self.Status = str(response.code) + " " + "Unknown Error"
         self.RawRequest = request.raw_request
         self.ResponseHeaders = response.header_string
         self.ResponseContents = response.body

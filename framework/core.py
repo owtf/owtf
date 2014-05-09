@@ -37,14 +37,14 @@ from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
 from framework.http.proxy.outbound_proxyminer import Proxy_Miner
 from framework.lib.general import *
-from framework.plugin import plugin_handler, plugin_helper, plugin_params
+from framework.plugin import plugin_handler, plugin_helper, plugin_params, process_manager
 from framework.protocols import smtp, smb
-from framework.report import reporter, summary
+from framework.interface import reporter, server
+#from framework.report.reporting_process import reporting_process
 from framework.selenium import selenium_handler
 from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
 from threading import Thread
-from urlparse import urlparse
 import fcntl
 import logging
 import multiprocessing
@@ -56,9 +56,6 @@ import subprocess
 import socket
 from framework import random
 from framework.lib.messaging import messaging_admin
-from framework.report.reporting_process import reporting_process
-from framework.http.proxy.proxy_manager import Proxy_manager, Proxy_Checker
-from multiprocessing import Process, Queue
 
 class Core:
     def __init__(self, RootDir, OwtfPid):
@@ -76,7 +73,11 @@ class Core:
         self.SET = set_handler.SETHandler(self)
         self.SMTP = smtp.SMTP(self)
         self.SMB = smb.SMB(self)
-        self.messaging_admin = messaging_admin.message_admin(self)
+        #self.messaging_admin = messaging_admin.message_admin(self)
+        self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
+        self.DB.Init()
+
+        self.Timer = timer.Timer(self.DB.Config.Get('DATE_TIME_FORMAT')) # Requires user config db
         self.showOutput=True
         self.TOR_process = None
         # Create internal IPv4 regex following rfc1918
@@ -101,17 +102,11 @@ class Core:
     def log(self,*args):
         log(*args)
 
-    def IsInScopeURL(self, URL): # To avoid following links to other domains
-        ParsedURL = urlparse(URL)
-        #URLHostName = URL.split("/")[2]
-        for HostName in self.Config.GetAll('HOST_NAME'): # Get all known Host Names in Scope
-            #if URLHostName == HostName:
-            if ParsedURL.hostname == HostName:
-                return True
-        return False
-
     def CreateMissingDirs(self, Path):
-        Dir = os.path.dirname(Path)
+        if os.path.isfile(Path):
+            Dir = os.path.dirname(Path)
+        else:
+            Dir = Path
         if not os.path.exists(Dir):
             os.makedirs(Dir) # Create any missing directories
 
@@ -145,22 +140,13 @@ class Core:
         return " ".join(argv).replace(argv[0], os.path.basename(argv[0]))
 
     def AnonymiseCommand(self, Command):
-        for Host in self.Config.GetAll('HOST_NAME'): # Host name setting value for all targets in scope
+        for Host in self.DB.Target.GetAll('HOST_NAME'): # Host name setting value for all targets in scope
             if Host: # Value is not blank
                 Command = Command.replace(Host, 'some.target.com')
-        for ip in self.Config.GetAll('HOST_IP'):
+        for ip in self.DB.Target.GetAll('HOST_IP'):
             if ip:
                 Command = Command.replace(ip, 'xxx.xxx.xxx.xxx')
         return Command
-
-    def start_reporter(self):
-        """
-        This function starts the reporting process
-        """
-        self.reporting = reporting_process()
-        self.reporting_queue = multiprocessing.Queue()
-        self.reporting_process = multiprocessing.Process(target=self.reporting.start, args=(self,60,self.reporting_queue))
-        self.reporting_process.start()
 
     def Start_TOR_Mode(self, Options):
         if Options['TOR_mode'] != None:
@@ -171,76 +157,18 @@ class Core:
             else:
                 tor_manager.TOR_manager.msg_start_tor(self)
                 tor_manager.TOR_manager.msg_configure_tor()
-                self.Error.FrameworkAbort("TOR Daemon is not running")
-            #else:
-                #tor_manager.TOR_manager.msg_configure_tor()
-                #self.Error.FrameworkAbort("Configuration help is running")
-
-    def StartBotnetMode(self, Options):
-        self.Proxy_manager = None
-        if Options['Botnet_mode'] != None:
-            self.Proxy_manager = Proxy_manager()
-            answer = "Yes"
-            proxies = []
-            if Options['Botnet_mode'][0] == "miner":
-                miner = Proxy_Miner()
-                proxies = miner.start_miner()
-
-            if Options['Botnet_mode'][0] == "list":  # load proxies from list
-                proxies = self.Proxy_manager.load_proxy_list(Options['Botnet_mode'][1])
-                answer = raw_input("[#] Do you want to check the proxy list? [Yes/no] : ")
-
-            if answer.upper() in ["", "YES", "Y"]:
-                proxy_q = Queue()
-                proxy_checker = Process(
-                                        target=Proxy_Checker.check_proxies,
-                                        args=(proxy_q, proxies,)
-                                        )
-                cprint("Checking Proxies...")
-                #cprint("Start Time: " + time.strftime('%H:%M:%S', time.localtime(time.time())))
-                start_time = time.time()
-                proxy_checker.start()
-                proxies = proxy_q.get()
-                proxy_checker.join()
-
-            self.Proxy_manager.proxies = proxies
-            self.Proxy_manager.number_of_proxies = len(proxies)
-
-            if Options['Botnet_mode'][0] == "miner":
-                print "Writing Proxies to disk(~/.owtf/proxy_miner/proxies.txt)"
-                miner.export_proxies_to_file("proxies.txt", proxies)
-            if answer.upper() in ["", "YES", "Y"]:
-                cprint("Proxy Check Time: " +\
-                        time.strftime('%H:%M:%S',
-                        time.localtime(time.time() - start_time - 3600)
-                                      )
-                       )
-                cprint("Done")
-
-            proxy = self.Proxy_manager.get_next_available_proxy()
-
-            #check proxy var... http:// sock://
-            Options['OutboundProxy'] = []
-            Options['OutboundProxy'].append(proxy["proxy"][0])
-            Options['OutboundProxy'].append(proxy["proxy"][1])
-
-                #start running and recheck proxies
-        #OutboundProxy': ['http', '10.10.10.10', '8080']
-        #Options["OutboundProxy"]=['http', '10.10.10.10', '8080']
-        #print Options
-        #time.sleep(21)
-        #self.Error.FrameworkAbort("Testing Run")
-
+                self.Error.FrameworkAbort("Configuration help is running")
+     
     def StartProxy(self, Options):
         # The proxy along with supporting processes are started
-        if not self.Config.Get('SIMULATION'):
+        if True:
             # Check if port is in use
             try:
                 temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                temp_socket.bind((self.Config.Get('INBOUND_PROXY_IP'), int(self.Config.Get('INBOUND_PROXY_PORT'))))
+                temp_socket.bind((self.DB.Config.Get('INBOUND_PROXY_IP'), int(self.DB.Config.Get('INBOUND_PROXY_PORT'))))
                 temp_socket.close()
-            except Exception:
-                self.Error.FrameworkAbort("Inbound proxy address " + self.Config.Get('INBOUND_PROXY') + " already in use")
+            except KeyboardInterrupt: #Exception:
+                self.Error.FrameworkAbort("Inbound proxy address " + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT") + " already in use")
 
             # If everything is fine
             self.ProxyProcess = proxy.ProxyProcess(
@@ -248,17 +176,18 @@ class Core:
                                                     Options['OutboundProxy'],
                                                     Options['OutboundProxyAuth']
                                                   )
-            self.TransactionLogger = transaction_logger.TransactionLogger(self)
-            cprint("Starting Inbound proxy at " + self.Config.Get('INBOUND_PROXY'))
+            poison_q = multiprocessing.Queue()
+            self.TransactionLogger = transaction_logger.TransactionLogger(self, poison_q)
+            cprint("Starting Inbound proxy at " + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT"))
             self.ProxyProcess.start()
             cprint("Starting Transaction logger process")
             self.TransactionLogger.start()
-            self.Requester = requester.Requester(self, [self.Config.Get('INBOUND_PROXY_IP'), self.Config.Get('INBOUND_PROXY_PORT')])
-            cprint("Proxy transaction's log file at %s"%(self.Config.Get("PROXY_LOG")))
-            cprint("Visit http://" + self.Config.Get('INBOUND_PROXY') + "/proxy to use Plug-n-Hack standard")
+            self.Requester = requester.Requester(self, [self.DB.Config.Get('INBOUND_PROXY_IP'), self.DB.Config.Get('INBOUND_PROXY_PORT')])
+            cprint("Proxy transaction's log file at %s"%(self.DB.Config.Get("PROXY_LOG")))
+            cprint("Visit http://" + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT") + "/proxy to use Plug-n-Hack standard")
             cprint("Execution of OWTF is halted.You can browse through OWTF proxy) Press Enter to continue with OWTF")
-            if Options["Interactive"]:
-                raw_input()
+            #if Options["Interactive"]:
+            #    raw_input()
         else:
             self.Requester = requester.Requester(self, Options['OutboundProxy'])
 
@@ -310,7 +239,7 @@ class Core:
 
         #logger for output in log file
         log = logging.getLogger('logfile')
-        infohandler = logging.FileHandler(self.Config.Get("OWTF_LOG_FILE"),mode="w+")
+        infohandler = logging.FileHandler(self.Config.FrameworkConfigGet("OWTF_LOG_FILE"),mode="w+")
         log.setLevel(logging.INFO)
         infoformatter = logging.Formatter("%(type)s - %(asctime)s - %(processname)s - %(functionname)s - %(message)s")
         infohandler.setFormatter(infoformatter)
@@ -323,45 +252,44 @@ class Core:
     def initialise_framework(self, Options):
         self.ProxyMode = Options["ProxyMode"]
         cprint("Loading framework please wait..")
-        self.Config.ProcessOptions(Options)
         self.initlogger()
 
-        self.Timer = timer.Timer(self.Config.Get('DATE_TIME_FORMAT')) # Requires user config
-        self.Timer.StartTimer('core')
-        self.initialise_plugin_handler_and_params(Options)
         if Options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
             self.exitOutput()
             return False # No processing required, just list available modules
-        self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
-
-        self.DB.Init()
-        self.messaging_admin.Init()
+        #self.messaging_admin.Init()
+        self.Config.ProcessOptions(Options)
+        #self.Timer.StartTimer('core')
         Command = self.GetCommand(Options['argv'])
 
-        self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
-        if self.Config.Get('SIMULATION'):
-            cprint("WARNING: In Simulation mode plugins are not executed only plugin sequence is simulated")
-        else: # Reporter process is not needed unless a real run
-            self.start_reporter()
-        self.StartBotnetMode(Options)#starting only if the Options are setted
+        #self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
+        #else: # Reporter process is not needed unless a real run
+        #    self.start_reporter()
         self.StartProxy(Options) # Proxy mode is started in that function
-        self.Start_TOR_Mode(Options)# TOR mode will start only if the Options are set
+        #self.Start_TOR_Mode(Options)# TOR mode will start only if the Options are set
         # Proxy Check
-        ProxySuccess, Message = self.Requester.ProxyCheck()
-        cprint(Message)
-        if not ProxySuccess: # Regardless of interactivity settings if the proxy check fails = no point to move on
-            self.Error.FrameworkAbort(Message) # Abort if proxy check failed
+        # TODO: Fix up proxy check, nothing but uncomment
+        #ProxySuccess, Message = self.Requester.ProxyCheck()
+        #cprint(Message)
+        #if not ProxySuccess: # Regardless of interactivity settings if the proxy check fails = no point to move on
+        #    self.Error.FrameworkAbort(Message) # Abort if proxy check failed
         # Each Plugin adds its own results to the report, the report is updated on the fly after each plugin completes (or before!)
         self.Error.SetCommand(self.AnonymiseCommand(Command)) # Set anonymised invoking command for error dump info
+        self.initialise_plugin_handler_and_params(Options)
         return True
 
     def initialise_plugin_handler_and_params(self, Options):
+        # The order is important here ;)
         self.PluginHandler = plugin_handler.PluginHandler(self, Options)
         self.PluginParams = plugin_params.PluginParams(self, Options)
+        self.WorkerManager = process_manager.WorkerManager(self)
 
     def run_plugins(self):
         Status = self.PluginHandler.ProcessPlugins()
+        self.InterfaceServer = server.InterfaceServer(self)
+        cprint("Interface Server is about to start")
+        self.InterfaceServer.start()
         if Status['AllSkipped']:
             self.Finish('Skipped')
         elif not Status['SomeSuccessful'] and Status['SomeAborted']:
@@ -385,14 +313,15 @@ class Core:
     def Finish(self, Status = 'Complete', Report = True):
         if self.TOR_process != None:
             self.TOR_process.terminate()
-        if self.Config.Get('SIMULATION'):
+        if self.DB.Config.Get('SIMULATION'):
             if hasattr(self,'messaging_admin'):
                 self.messaging_admin.finishMessaging()
             self.exitOutput()
             exit()
         else:
             try:
-                self.DB.Run.EndRun(Status)
+                #self.DB.Run.EndRun(Status)
+                self.PluginHandler.CleanUp()
                 cprint("Saving DBs")
                 self.DB.SaveDBs() # Save DBs prior to producing the report :)
                 if Report:
@@ -405,7 +334,7 @@ class Core:
                 cprint("OWTF iteration finished")
 
                 if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
-                    cprint('Errors saved to ' + self.Config.Get('ERROR_DB') + '. Would you like us to auto-report bugs ?')
+                    cprint('Errors saved to ' + self.Config.FrameworkConfigGet('ERROR_DB_NAME') + '. Would you like us to auto-report bugs ?')
                     choice = raw_input("[Y/n] ")
                     if choice != 'n' and choice != 'N':
                         self.ReportErrorsToGithub()
@@ -421,18 +350,13 @@ class Core:
                         self.KillChildProcesses(self.ProxyProcess.pid)
                         self.ProxyProcess.terminate()
                         # No signal is generated during closing process by terminate()
-                        os.kill(int(self.TransactionLogger.pid), signal.SIGINT)
+                        self.TransactionLogger.poison_q.put('done')
+                        self.TransactionLogger.join()
                     except: # It means the proxy was not started
                         pass
-                if hasattr(self,'reporting_process'):
-                    self.reporting_queue.put("done")
-                    self.reporting_process.join()
                 if hasattr(self, 'DB'):
-                    cprint("Saving DBs before stopping messaging")
+                    cprint("Saving DBs")
                     self.DB.SaveDBs() # So that detailed_report_register populated by reporting is saved :P
-                if hasattr(self,'messaging_admin'):
-                    self.messaging_admin.finishMessaging()
-
                 self.exitOutput()
                 #print self.Timer.GetElapsedTime('core')
                 exit()
@@ -443,11 +367,11 @@ class Core:
             self.outputthread.join()
             if os.path.exists("owtf_review"):
                 if os.path.exists("owtf_review/logfile"):
-                    data = open(self.Config.Get("OWTF_LOG_FILE")).read()
+                    data = open(self.Config.FrameworkConfigGet("OWTF_LOG_FILE")).read()
                     AppendToFile("owtf_review/logfile", data)
                 else:
-                    shutil.move(self.Config.Get("OWTF_LOG_FILE"), "owtf_review")
-
+                    shutil.move(self.Config.FrameworkConfigGet("OWTF_LOG_FILE"), "owtf_review")
+        
     def GetSeed(self):
         try:
             return self.DB.GetSeed()
@@ -478,7 +402,6 @@ class Core:
                     os.kill(int(PidStr), sig)
                 except:
                     print("unable to kill it")
-
 
 def Init(RootDir, OwtfPid):
     return Core(RootDir, OwtfPid)

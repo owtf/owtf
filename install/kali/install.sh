@@ -56,7 +56,6 @@ sudo -E apt-get install lbd gnutls-bin arachni
 "$RootDir/install/kali/kali_patch_w3af.sh"
 "$RootDir/install/kali/kali_patch_nikto.sh"
 "$RootDir/install/kali/kali_patch_tlssled.sh"
-"$RootDir/install/kali/kali_patch_openvas.sh" $RootDir
 ###### Dictionaries missing in Kali
 cd $RootDir/dictionaries/restricted
 IsInstalled "dirbuster"

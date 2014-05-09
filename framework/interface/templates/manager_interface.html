@@ -1,0 +1,97 @@
+{% extends base.html %}
+
+{% block title %}Manager Interface{% end %}
+
+{% block includes %}
+<script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
+<link href="/static/css/jquery.dataTables.css" rel="stylesheet">
+{% end %}
+
+{% block content %}
+<div class="row" id="workersInfo">
+</div>
+<script>
+var mySpace = {
+                    workers_api_url:"{{ workers_api_url }}",
+                    targets_api_url:"{{ targets_api_url }}",
+                    targets_ui_url:"{{ targets_ui_url }}",
+                    target_configs:{},
+                };
+
+function abortWorker(workerId){
+    $.get(mySpace.workers_api_url+workerId+'/abort');
+}
+
+function pauseWorker(workerId){
+    $.get(mySpace.workers_api_url+workerId+'/pause');
+}
+
+function resumeWorker(workerId){
+    $.get(mySpace.workers_api_url+workerId+'/resume');
+}
+
+function getTargetConfigs(){
+    $.getJSON(mySpace.targets_api_url+'?workers_page', function(data){
+            $.each(data, function(index, obj){
+                mySpace.target_configs[obj.ID] = obj;
+            });
+        });
+}
+
+function getControlButtons(obj){
+    html = '<div class="btn-group pull-right">';
+    if (obj.busy){
+        if(obj.paused){
+            html += '<button class="btn btn-success btn-xs" href="#" onclick="resumeWorker('+obj.id+');"><i class="fa fa-play"></i></button>';
+        }else{
+            html += '<button class="btn btn-primary btn-xs" href="#" onclick="pauseWorker('+obj.id+');"><i class="fa fa-pause"></i></button>';
+        }
+        html += '<button class="btn btn-danger btn-xs" href="#" onclick="abortWorker('+obj.id+');"><i class="fa fa-times"></i></button>';
+    }
+    html += '</div>';
+    return(html);
+}
+
+function displayWorkersInfo(){
+    $.ajax({url: mySpace.workers_api_url,
+            ifModified: true,
+            dataType:'json',
+            success:function(data, textStatus, jqXHR){
+                if (304 != jqXHR.status){
+                    $('#workersInfo').html('');
+                    spanLength = 12/data.length;
+                    $.each(data, function(index, obj){
+                        html = '<div class="span'+spanLength+' panel ';
+                        if (obj.busy){
+                            html += 'panel-primary"';
+                        }else if (obj.paused){
+                            html += 'panel-info"';
+                        }else{
+                            html += 'panel-default"';
+                        }
+                        html += ' id="'+obj.id+'">';
+                        html += '<div class="panel-heading"><h3 class="panel-title">Worker '+obj.id+getControlButtons(obj)+'</h3></div>';
+                        html += '<div class="panel-body">';
+                        html += '<p><strong>PID:</strong> '+obj.worker+'</p>';
+                        if (obj.work.length > 0){
+                            html += '<p><strong>Target:</strong> <a href="'+mySpace.targets_ui_url+obj.work[0]+'">'+mySpace.target_configs[obj.work[0]].TARGET_URL+'</a></p>';
+                            html += '<p><strong>Plugin:</strong> '+obj.work[1].title+'</p>';
+                            html += '<p><strong>Type:</strong> '+obj.work[1].type.replace('_',' ')+'</p>';
+                            html += '<p><strong>Group:</strong> '+obj.work[1].group+'</p>';
+                        }
+                        html += '</div>';
+                        html += '</div>';
+                        $('#workersInfo').append(html);
+                    });
+                }
+            }
+    });
+    setTimeout(displayWorkersInfo, 2000);
+}
+
+$(document).ready(function() {
+        getTargetConfigs();
+        displayWorkersInfo();
+});
+</script>
+{% end %}

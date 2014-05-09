@@ -1,0 +1,79 @@
+{% extends base.html %}
+
+{% block title %}Transaction{% end %}
+
+{% block content %}
+<div class="row">
+    <div class="pull-right">
+        <button class="btn btn-primary" href="#" onclick="navigateToTransactionLog();"><i class="fa fa-chevron-circle-left"></i> Go Back To Transaction Log</button>
+        <!-- <button class="btn btn-danger" href="#" onclick="deleteTransaction();"><i class="fa fa-times"></i> Delete Transaction</button> Not of Use-->
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">Raw Request</div>
+            <div class="panel-body">
+                <pre id="raw_request"></pre>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">Raw Response Headers</div>
+            <div class="panel-body">
+                <pre id="raw_response_headers"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div id="raw_response_body_heading" class="panel-heading">Raw Response Body</div>
+            <div class="panel-body">
+                <pre id="raw_response_body"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+var mySpace = {
+                    transaction_api_url:"{{ transaction_api_url }}",
+                    transaction_log_url:"{{ transaction_log_url }}"
+                  };
+
+function navigateToTransactionLog(){
+    window.location.href = mySpace.transaction_log_url;
+}
+
+function deleteTransaction(){
+    $.ajax({
+            url:mySpace.transaction_api_url,
+            type:'DELETE',
+            success:navigateToTransactionLog,
+            error:function(xhr, textStatus, serverResponse){
+                alert("Server replied: "+serverResponse);
+                }
+            });
+}
+
+function displayTransaction(){
+    $.getJSON( mySpace.transaction_api_url, function(obj){
+            $("#raw_request").text(obj.raw_request);
+            $("#raw_response_headers").text(obj.response_status+"\r\n"+obj.response_headers);
+            $("#raw_response_body").text(obj.response_body);
+            if (obj.binary_response){
+                $("#raw_response_body_heading").html("Raw Response Body <span class='label label-default'>BASE64 Encoded</span>");
+            }else{
+                $("#raw_response_body_heading").html("Raw Response Body");
+            }
+        });
+}
+$(document).ready(function() {
+        displayTransaction();
+        $('#backLink').attr("href", mySpace.transaction_log_url);
+});
+</script>
+{% end %}

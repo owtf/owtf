@@ -1,0 +1,12 @@
+<div class="well  well-small">
+        {{ ResourceListName }}: 
+ 
+        <ul class="icons-ul">
+        {% for LinkName, Link in LinkList %}
+                <li><i class="icon-li icon-chevron-sign-right"></i>
+                 <a href="../../../{{ Link }}" class="button" target="_blank">
+                                        <span> {{ LinkName }} </span>
+                                </a> </li>
+        {% end %}
+        </ul>
+</div>

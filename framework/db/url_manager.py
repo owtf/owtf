@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The DB stores HTTP transactions, unique URLs and more. 
 '''
 from framework.lib.general import *
+from framework.db import models
 import logging
 import re
 
@@ -38,11 +39,11 @@ class URLManager:
         def __init__(self, Core):
                 self.Core = Core
                 # Compile regular expressions once at the beginning for speed purposes:
-                self.IsFileRegexp = re.compile(Core.Config.Get('REGEXP_FILE_URL'), re.IGNORECASE)
-                self.IsSmallFileRegexp = re.compile(Core.Config.Get('REGEXP_SMALL_FILE_URL'), re.IGNORECASE)
-                self.IsImageRegexp = re.compile(Core.Config.Get('REGEXP_IMAGE_URL'), re.IGNORECASE)
-                self.IsURLRegexp = re.compile(Core.Config.Get('REGEXP_VALID_URL'), re.IGNORECASE)
-                self.IsSSIRegexp = re.compile(Core.Config.Get('REGEXP_SSI_URL'), re.IGNORECASE)
+                self.IsFileRegexp = re.compile(Core.Config.FrameworkConfigGet('REGEXP_FILE_URL'), re.IGNORECASE)
+                self.IsSmallFileRegexp = re.compile(Core.Config.FrameworkConfigGet('REGEXP_SMALL_FILE_URL'), re.IGNORECASE)
+                self.IsImageRegexp = re.compile(Core.Config.FrameworkConfigGet('REGEXP_IMAGE_URL'), re.IGNORECASE)
+                self.IsURLRegexp = re.compile(Core.Config.FrameworkConfigGet('REGEXP_VALID_URL'), re.IGNORECASE)
+                self.IsSSIRegexp = re.compile(Core.Config.FrameworkConfigGet('REGEXP_SSI_URL'), re.IGNORECASE)
 
         def IsRegexpURL(self, URL, Regexp):
                 if len(Regexp.findall(URL)) > 0:
@@ -61,63 +62,42 @@ class URLManager:
         def IsSSIURL(self, URL):
                 return self.IsRegexpURL(URL, self.IsSSIRegexp)
 
-        def GetURLsToVisit(self, URLList):
-                NewList = []
-                for URL in URLList:
-                        if not self.IsImageURL(URL):
-                                NewList.append(URL)
-                return NewList
+        def GetURLsToVisit(self, target = None):
+            Session = self.Core.DB.Target.GetUrlDBSession(target)
+            session = Session()
+            urls = session.query(models.Url.url).filter_by(visited = False).all()
+            session.close()
+            urls = [i[0] for i in urls]
+            return(urls)
 
         def IsURL(self, URL):
                 return self.IsRegexpURL(URL, self.IsURLRegexp)
 
-        def GetNumURLs(self, DBPrefix = "POTENTIAL_"):
-                return self.Core.DB.GetLength(DBPrefix+'ALL_URLS_DB')
-                #return len(self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'])
+        def GetNumURLs(self):
+            #return self.Core.DB.GetLength(DBPrefix+'ALL_URLS_DB')
+            Session = self.Core.DB.Target.GetUrlDBSession()
+            session = Session()
+            count = session.query(models.Url).count()
+            session.close()
+            return(count)
 
-        def IsURLAlreadyAdded(self, URL, DBPrefix = ''):
-                return URL in self.Core.DB.GetData(DBPrefix+'ALL_URLS_DB') or URL in self.Core.DB.GetData(DBPrefix+'EXTERNAL_URLS_DB') or URL in self.Core.DB.GetData(DBPrefix+'ERROR_URLS_DB')
-                #return URL in self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'] or URL in self.Core.DB.DBCache[DBPrefix+'EXTERNAL_URLS_DB'] or URL in self.Core.DB.DBCache[DBPrefix+'ERROR_URLS_DB']
+        def AddURLToDB(self, url, visited, found = None, target = None):
+            Message = ''
+            if self.IsURL(url): # New URL
+                url = url.strip() # Make sure URL is clean prior to saving in DB, nasty bugs can happen without this
+                scope =  self.Core.DB.Target.IsInScopeURL(url)
+                Session = self.Core.DB.Target.GetUrlDBSession()
+                session = Session()
+                session.merge(models.Url(url = url, visited = visited, scope = scope))
+                session.commit()
+                session.close()
+            return Message
 
-        def AddURLToDB(self, URL, DBPrefix = '', Found = None):
-                Message = ''
-                DBName = "vetted DB"
-                if DBPrefix != "":
-                        DBName = "potential DB"
-                if not self.IsURLAlreadyAdded(URL, DBPrefix) and self.IsURL(URL): # New URL
-                        URL = URL.strip() # Make sure URL is clean prior to saving in DB, nasty bugs can happen without this
-                        if self.Core.IsInScopeURL(URL):
-                                Message = "Adding new URL to "+DBName+": "+URL
-                                log(Message)
-                                if Found in [ None, True ]:
-                                        #self.Core.DB.DBCache[DBPrefix+'ALL_URLS_DB'].append(URL)
-                                        self.Core.DB.Add(DBPrefix+'ALL_URLS_DB', URL)
-                                        if self.IsFileURL(URL): # Classify URL for testing later:
-                                                #self.Core.DB.DBCache[DBPrefix+'FILE_URLS_DB'].append(URL)
-                                                self.Core.DB.Add(DBPrefix+'FILE_URLS_DB', URL)
-                                        elif self.IsImageURL(URL):
-                                                #self.Core.DB.DBCache[DBPrefix+'IMAGE_URLS_DB'].append(URL)
-                                                self.Core.DB.Add(DBPrefix+'IMAGE_URLS_DB', URL)
-                                        elif self.IsSSIURL(URL):
-                                                self.Core.DB.Add(DBPrefix+'SSI_URLS_DB', URL)
-                                        else:
-                                                #self.Core.DB.DBCache[DBPrefix+'FUZZABLE_URLS_DB'].append(URL)
-                                                self.Core.DB.Add(DBPrefix+'FUZZABLE_URLS_DB', URL)
-                                else: # Some error code (404, etc)
-                                        #self.Core.DB.DBCache[DBPrefix+'ERROR_URLS_DB'].append(URL)
-                                        self.Core.DB.Add(DBPrefix+'ERROR_URLS_DB', URL)
-                        else:
-                                Message = "Adding new EXTERNAL URL to EXTERNAL "+DBName+": "+URL
-                                log(Message)
-                                #self.Core.DB.DBCache[DBPrefix+'EXTERNAL_URLS_DB'].append(URL)
-                                self.Core.DB.Add(DBPrefix+'EXTERNAL_URLS_DB', URL)
-                return Message
-
-        def AddURL(self, URL, Found = None): # Adds a URL to the relevant DBs if not already added
-                DBPrefix = "POTENTIAL_"
-                if Found != None: # Visited URL -> Found in [ True, False ]
-                        DBPrefix = ""
-                return self.AddURLToDB(URL, DBPrefix, Found)
+        def AddURL(self, url, found = None, target = None): # Adds a URL to the relevant DBs if not already added
+                visited = False
+                if found != None: # Visited URL -> Found in [ True, False ]
+                    visited = True
+                return self.AddURLToDB(url, visited, found = found, target = target)
 
         def AddURLsStart(self):
                 self.NumURLsBefore = self.GetNumURLs()
@@ -126,12 +106,60 @@ class URLManager:
                 NumURLsAfter = self.GetNumURLs()
                 Message = str(NumURLsAfter-self.NumURLsBefore)+" URLs have been added and classified"
                 log(Message)
-                return Message
+                return(NumURLsAfter - self.NumURLsBefore) #Message
 
-        def ImportURLs(self, URLList): # Extracts and classifies all URLs passed. Expects a newline separated URL list
-                self.AddURLsStart()
-                for URL in URLList:
-                        self.AddURL(URL)
-                Message = self.AddURLsEnd()
-                log(Message)
-                return Message
+        def ImportProcessedURLs(self, urls_list, target_id = None):
+            Session = self.Core.DB.Target.GetUrlDBSession(target_id)
+            session = Session()
+            for url, visited, scope in urls_list:
+                session.merge(models.Url(url = url, visited = visited, scope = scope))
+                log("Added " + url + " to URLs DB")
+            session.commit()
+            session.close()
+
+        def ImportURLs(self, url_list, target = None): # Extracts and classifies all URLs passed. Expects a newline separated URL list
+            self.AddURLsStart()
+            Session = self.Core.DB.Target.GetUrlDBSession(target)
+            session = Session()
+            for url in url_list:
+                session.merge(models.Url(url = url))
+            session.commit()
+            session.close()
+            count = self.AddURLsEnd()
+            Message = str(count)+" URLs have been added and classified"
+
+#-------------------------------------------------- API Methods --------------------------------------------------
+        def DeriveUrlDict(self, url_obj):
+            udict = dict(url_obj.__dict__)
+            udict.pop("_sa_instance_state")
+            return udict
+
+        def DeriveUrlDicts(self, url_obj_list):
+            dict_list = []
+            for url_obj in url_obj_list:
+                dict_list.append(self.DeriveUrlDict(url_obj))
+            return dict_list
+
+        def GenerateQueryUsingSession(self, session, Criteria):
+            query = session.query(models.Url)
+            if Criteria.get('url', None):
+                if isinstance(Criteria.get('url'), str) or isinstance(Criteria.get('url'), unicode):
+                    query = query.filter_by(url = Criteria['url'])
+                if isinstance(Criteria.get('url'), list):
+                    query = query.filter(models.Url.url.in_(Criteria['url']))
+            if Criteria.get('visited', None):
+                if isinstance(Criteria.get('visited'), list):
+                    Criteria['visited'] = Criteria['visited'][0]
+                query = query.filter_by(visited = self.Core.Config.ConvertStrToBool(Criteria['url']))
+            if Criteria.get('scope', None):
+                if isinstance(Criteria.get('scope'), list):
+                    Criteria['scope'] = Criteria['scope'][0]
+                query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(Criteria['scope']))
+            return query
+
+        def GetAll(self, Criteria, target_id = None):
+            Session = self.Core.DB.Target.GetUrlDBSession(target_id)
+            session = Session()
+            query = self.GenerateQueryUsingSession(session, Criteria)
+            results = query.all()
+            return(self.DeriveUrlDicts(results))

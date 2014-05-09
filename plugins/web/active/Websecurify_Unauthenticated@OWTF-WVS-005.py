@@ -33,5 +33,4 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via Websecurify
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	return Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('WebSecurify_Unauth'), PluginInfo, "")
-
+	return Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('WebSecurify_Unauth'), PluginInfo, [])

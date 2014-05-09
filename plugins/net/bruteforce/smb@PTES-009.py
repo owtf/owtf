@@ -33,5 +33,4 @@ DESCRIPTION = " SMB Probing "
 def run(Core, PluginInfo):
     #Core.Config.Show()
     #print "Content="+Content
-    Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('BruteSmbProbeMethods'), PluginInfo, "") # No previous output
-    return Content
+    return Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('BruteSmbProbeMethods'), PluginInfo, []) # No previous output

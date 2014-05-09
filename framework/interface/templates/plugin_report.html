@@ -1,0 +1,162 @@
+<div class="panel-group" id="pluginOutputs">
+    {% for test_code, poutput_list in grouped_plugin_outputs.items() %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title">
+                  <a data-toggle="collapse" data-parent="#pluginOutputs" href="#{{ test_code }}">
+                      <h4>{{ test_code }} {{ test_groups[test_code]['descrip'] }} <small>{{ test_groups[test_code]['hint'] }}</small></h4>
+                  </a>
+              </h4>
+            </div>
+            <div id="{{ test_code }}" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <ul class="nav nav-tabs">
+                        <li class="brand disabled"><a class="btn" disabled="disabled">Type:</a></li>
+                        {% for poutput in poutput_list %}
+                        <li>
+                            <a href="#{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}" data-toggle="tab">
+                                {{ poutput['plugin_type'].replace('_',' ') }}
+                            </a>
+                        </li>
+                        {% end %}
+                        <li class="pull-right"><a href="{{ test_groups[test_code]['url'] }}" target="_blank"><i class="fa fa-lightbulb-o"></i></a></li>
+                    </ul>
+                    <br />
+                    <div class="tab-content">
+                        {% for poutput in poutput_list %}
+                        <div class="tab-pane" id="{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}">
+                            <div class="pull-left" data-toggle="buttons-checkbox">
+                                <blockquote><h4>{{ poutput['plugin_type'].replace('_',' ').capitalize() }}</h4><small>{{ poutput['plugin_code'] }}</small></blockquote>
+                            </div>
+                            <div class="pull-right" data-toggle="buttons">
+                                {% set user_rank = poutput['user_rank'] %}
+                                <label class="btn {% if user_rank == 0 %}active{% end %}"><input type="radio" id="0" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
+                                <label class="btn {% if user_rank == 1 %}active{% end %}"><input type="radio" id="1" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-warning"></i></label>
+                                <label class="btn {% if user_rank == 2 %}active{% end %}"><input type="radio" id="2" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-times-circle-o"></i></label>
+                                <label class="btn {% if user_rank == 3 %}active{% end %}"><input type="radio" id="3" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-bug"></i></label>
+                            </div>
+                            <br />
+                            <br />
+                            <table class="table table-bordered table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th> RUNTIME </th>
+                                        <th> TIME INTERVAL </th>
+                                        <th> STATUS </th>
+                                        <th> OUTPUT FILES </th>
+                                        <th> DELETE </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        {% if poutput['status'] == "Aborted" %}
+                                        class="alert alert-warning"
+                                        {% elif poutput['status'] == "Successful"%}
+                                        class="alert alert-success"
+                                        {% elif poutput['status'] == "Crashed" %}
+                                        class="alert alert-error"
+                                        {% elif poutput['status'] == "Running" %}
+                                        class="alert alert-info"
+                                        {% elif poutput['status'] == "Skipped" %}
+                                        class="muted"
+                                        {% else %}
+                                        class=""
+                                        {% end %}
+                                    >
+                                        <td> {{ poutput['execution_time'] }} </td>
+                                        <td> {{ poutput['start_time'] }} <br />{{ poutput['end_time'] }} </td>
+                                        <td> {{ poutput['status'] }} </td>
+                                        <td><a href="/output_files/{{ poutput['output_path'] }}" target="_blank" class="btn btn-primary"> Browse </a> </td>
+                                        <td>
+                                            <button onclick="deletePluginOutput('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}');" class="btn btn-danger">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="6">
+                                            <button class="btn btn-default pull-right" onclick="handleEditor('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', this);"><i class="fa fa-pencil"></i> Notes</button>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="6">
+                                            <textarea class="editor" style="display: none;"></textarea>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="6">
+                                            MORE DETAILS
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="6">
+                                            {% raw poutput['output'] %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        {% end %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% end %}
+</div>
+<script>
+var pluginSpace = {
+                    poutput_api_url:"{{ poutput_api_url }}",
+                    transaction_log_url:"{{ transaction_log_url }}",
+                    url_log_url:"{{ url_log_url }}"
+                  };
+
+function patchUserRank(group, type, code, user_rank){
+    $.ajax({url:pluginSpace.poutput_api_url+group+'/'+type+'/'+code,
+            type:'PATCH',
+            data:{"user_rank":user_rank},
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+            });
+}
+
+function deletePluginOutput(group, type, code){
+    $.ajax({url:pluginSpace.poutput_api_url+group+'/'+type+'/'+code,
+            type:'DELETE',
+            success:function(){alertSuccess("Deleted plugin output for "+type+"@"+code); updatePluginReport();}, //updatePluginReport() is obtained from target.html
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+            });
+}
+
+function patchUserNotes(group, type, code, user_notes){
+    $.ajax({url:pluginSpace.poutput_api_url+group+'/'+type+'/'+code,
+            type:'PATCH',
+            data:{"user_notes":user_notes},
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+            });
+}
+
+function handleEditor(group, type, code, instance){ // Same function called both to create or close editor
+    var editorArea = $(instance).closest('table').find('.editor')
+    try{
+        var editor = editorArea.ckeditorGet(); // This line generates error if editor not found
+        patchUserNotes(group, type, code, editorArea.val());
+        editor.destroy();
+        editorArea.css("display", "None");
+    }catch(err){
+        $.getJSON(pluginSpace.poutput_api_url+group+'/'+type+'/'+code, function(data){
+                console.log(data);
+                editorArea.val(data.user_notes);
+                editorArea.ckeditor();
+            });
+    }
+}
+
+function navigateToTransaction(id){
+    window.open(pluginSpace.transaction_log_url+id);
+}
+</script>

@@ -35,7 +35,7 @@ import signal
 import subprocess
 import logging
 
-class Shell:
+class Shell(object):
         def __init__(self, Core):
                 self.DynamicReplacements = {} # Some settings like the plugin output dir are dynamic, config is no place for those
                 self.Core = Core
@@ -47,7 +47,7 @@ class Shell:
                 return MultipleReplace(Text, { ' ':'\ ', '(':'\(', ')':'\)' }).strip()
 
         def RefreshReplacements(self):
-                self.DynamicReplacements['###PLUGIN_OUTPUT_DIR###'] = self.Core.Config.Get('PLUGIN_OUTPUT_DIR')
+                self.DynamicReplacements['###PLUGIN_OUTPUT_DIR###'] = self.Core.DB.Target.GetPath('PLUGIN_OUTPUT_DIR')
 
         def GetModifiedShellCommand(self, Command, PluginOutputDir):
                 self.RefreshReplacements()
@@ -67,28 +67,32 @@ class Shell:
 
         def FinishCommand(self, CommandInfo, WasCancelled):
                 CommandInfo['End'] = self.Core.Timer.GetEndDateTimeAsStr(self.CommandTimeOffset)
-                Status = "Finished"
+                Success = True
                 if WasCancelled:
-                        Status = "Cancelled"
-                CommandInfo['Status'] = Status
+                        Success = False
+                CommandInfo['Success'] = Success
                 CommandInfo['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr(self.CommandTimeOffset)
-                CommandInfo['Target'] = self.Core.Config.Get('TARGET')
-                self.Core.DB.CommandRegister.Add(CommandInfo)
+                CommandInfo['Target'] = self.Core.DB.Target.GetTargetID()
+                self.Core.DB.CommandRegister.AddCommand(CommandInfo)
                 #self.CommandInfo = defaultdict(list)
 
         def CanRunCommand(self, Command):
-                Target = self.Core.DB.CommandRegister.AlreadyRegistered(Command['OriginalCommand'])
-                if Target: # Command was run before
-                        if Target == self.Core.Config.Get('TARGET'): # Run several times against same target for grep plugins.  #and self.Core.Config.Get('FORCE_OVERWRITE'):
-                                return [ None, True ] # Can only run again if against the same target and when -f was specified
-                        return [Target, False ]
-                return [ None, True ] # Command was not run before
+                #Target = self.Core.DB.POutput.CommandAlreadyRegistered(Command['OriginalCommand'])
+                #if Target: # Command was run before
+                #        if Target == self.Core.Config.Get('TARGET'): # Run several times against same target for grep plugins.  #and self.Core.Config.Get('FORCE_OVERWRITE'):
+                #                return [ None, True ] # Can only run again if against the same target and when -f was specified
+                #        return [Target, False ]
+                #return [ None, True ] # Command was not run before
+                Target = self.Core.DB.CommandRegister.CommandAlreadyRegistered(Command['OriginalCommand'])
+                if Target: # target_config will be None for a not found match
+                    return [Target, False]
+                return [None, True]
 
         def create_subprocess(self, Command):
 #http://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612)
             proc = subprocess.Popen(Command, shell=True, preexec_fn=os.setsid,
-                    stdout=subprocess.PIPE, 
-                    stderr=subprocess.STDOUT, 
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
                     bufsize=1)
             return proc
 
@@ -98,7 +102,7 @@ class Shell:
                 #Target, CanRun = self.CanRunCommand(self.CommandInfo)
                 Target, CanRun = self.CanRunCommand(CommandInfo)
                 if not CanRun:
-                        Message = "The command was already run for target: "+Target     
+                        Message = "The command was already run for target: " + str(Target)
                         return Message
                 log("\nExecuting (s to abort THIS COMMAND ONLY):\n"+Command)
                 log("")

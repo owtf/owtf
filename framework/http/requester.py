@@ -83,7 +83,7 @@ class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
 class Requester:
     def __init__(self, Core, Proxy):
         self.Core = Core
-        self.Headers = { 'User-Agent' : self.Core.Config.Get('USER_AGENT') }
+        self.Headers = { 'User-Agent' : self.Core.DB.Config.Get('USER_AGENT') }
         self.RequestCountRefused = 0
         self.RequestCountTotal = 0
         self.LogTransactions = False
@@ -107,25 +107,23 @@ class Requester:
         return Backup
 
     def NeedToAskBeforeRequest(self):
-        return not self.Core.PluginHandler.NormalRequestsAllowed() and self.Core.Config.Get('Interactive')
+        return not self.Core.PluginHandler.NormalRequestsAllowed()
 
-
-    def is_transaction_already_added(self, URL):
-        return self.Core.DB.Transaction.IsTransactionAlreadyAdded({'URL':URL.strip()})
-
+    def IsTransactionAlreadyAdded(self, URL):
+        return self.Core.DB.Transaction.IsTransactionAlreadyAdded({'url': URL.strip()})
 
     def is_request_possible(self):
         return self.Core.PluginHandler.RequestsPossible()
 
     def ProxyCheck(self):
         if self.Proxy != None and self.is_request_possible(): # Verify proxy works! www.google.com might not work in a restricted network, try target URL :)
-            URL = self.Core.Config.Get('PROXY_CHECK_URL')
+            URL = self.Core.DB.Config.Get('PROXY_CHECK_URL')
             #if self.NeedToAskBeforeRequest() and 'y' != raw_input("Proxy Check: Need to send a GET request to "+URL+". Is this ok?: 'y'+Enter= Continue, Enter= Abort Proxy Check\n"):
             #   return [ True, "Proxy Check OK: Proxy Check Aborted by User" ]
             RefusedBefore = self.RequestCountRefused
             cprint("Proxy Check: Avoid logging request again if already in DB..")
             LogSettingBackup = False
-            if self.is_transaction_already_added(URL):
+            if self.IsTransactionAlreadyAdded(URL):
                 LogSettingBackup = self.log_transactions(False)
             Transaction = self.GET(URL)
             if LogSettingBackup:
@@ -169,7 +167,7 @@ class Requester:
         if '' == POST:
             POST = None
         if None != POST:
-            if isinstance(POST, str):
+            if isinstance(POST, str) or isinstance(POST, unicode):
                 POST = self.StringToDict(POST) # Must be a dictionary prior to urlencode
             POST = urllib.urlencode(POST)
         return POST
@@ -186,10 +184,11 @@ class Requester:
 
 
     def log_transaction(self):
-        return self.Core.DB.Transaction.LogTransaction(self.Transaction)
+        self.Core.DB.Transaction.LogTransaction(self.Transaction)
 
     def Request(self, URL, Method = None, POST = None):
         global RawRequest # kludge: necessary to get around urllib2 limitations: Need this to get the exact request that was sent
+        URL = str(URL)
 
         RawRequest = [] # Init Raw Request to blank list
         POST = self.DerivePOST(POST)
@@ -200,7 +199,7 @@ class Requester:
             request.get_method = lambda : Method # kludge: necessary to do anything other that GET or POST with urllib2
         # MUST create a new Transaction object each time so that lists of transactions can be created and process at plugin-level
         self.Transaction = transaction.HTTP_Transaction(self.Core.Timer) # Pass the timer object to avoid instantiating each time
-        self.Transaction.Start(URL, POST, Method, self.Core.IsInScopeURL(URL))
+        self.Transaction.Start(URL, POST, Method, self.Core.DB.Target.IsInScopeURL(URL))
         self.RequestCountTotal += 1 
         try:
             Response = self.perform_request(request)
@@ -274,16 +273,20 @@ class Requester:
         self.Headers = dict.copy(self.HeadersBackup)
 
     def GetTransaction(self, UseCache, URL, Method = '', Data = ''):
-        Criteria = { 'URL' : URL.strip(), 'Method' : Method, 'Data' : self.DerivePOSTToStr(Data) } # Must clean-up data to ensure match is found
+        Criteria = { 'url' : URL.strip(), 'method' : Method, 'data' : self.DerivePOSTToStr(Data) } # Must clean-up data to ensure match is found
         if not UseCache or not self.Core.DB.Transaction.IsTransactionAlreadyAdded(Criteria): # Visit URL if not already visited
             if Method in [ '', 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS' ]:
                 return self.Request(URL, Method, Data)
+                #self.Request(URL, Method, Data)
             elif Method == 'DEBUG':
                 return self.DEBUG(URL)
+                #self.DEBUG(URL)
             elif Method == 'PUT':
                 return self.PUT(URL, Data)
+                #self.PUT(URL, Data)
         else: # Retrieve from DB = faster
-            return self.Core.DB.Transaction.GetFirst(Criteria)
+        #while True: #TODO: Make something better
+            return self.Core.DB.Transaction.GetFirst(Criteria) # Important since there is no transaction ID with transactions objects created by Requester
 
     def GetTransactions(self, UseCache, URLList, Method = '', Data = '', Unique = True):
         Transactions = []

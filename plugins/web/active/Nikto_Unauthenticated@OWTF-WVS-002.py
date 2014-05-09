@@ -33,8 +33,8 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via nikto"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	NiktoOutput = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('Nikto_Unauth'), PluginInfo, "")
-	Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('Nikto_Verify_Unauth'), PluginInfo, "")
+	NiktoOutput = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('Nikto_Unauth'), PluginInfo, [])
+	Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('Nikto_Verify_Unauth'), PluginInfo, NiktoOutput)
 	return Content+NiktoOutput # Show Nikto Verify FIRST (more useful, with links to findings, etc)
 	
 

@@ -70,7 +70,6 @@ sudo -E apt-get install lbd arachni tlssled set ua-tester wpscan theharvester wh
 "$RootDir/install/kali/samurai_wtf_patch_w3af.sh"
 "$RootDir/install/samurai/samurai_wtf_patch_nikto.sh"
 "$RootDir/install/samurai/samurai_wtf_patch_tlssled.sh"
-"$RootDir/install/samurai/samurai_wtf_patch_openvas.sh" $RootDir
 
 ###### Dictionaries missing in Samurai-WTF
 cd $RootDir/dictionaries/restricted

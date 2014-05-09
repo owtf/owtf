@@ -1,0 +1,77 @@
+{% extends base.html %}
+
+{% block title %}Configuration Manager{% end %}
+
+{% block content %}
+<div class="row">
+    <div class="btn-group pull-right">
+        <button type="submit" id="updateButton" class="btn btn-primary" disabled="true" onclick="updateConfiguration()">Update Configuration!</button>
+    </div>
+</div>
+</br>
+<div class="row">
+    <div class="tabbable tabs-left">
+        <ul class="nav nav-pills nav-stacked col-md-3" id="configurationTabsNav">
+        </ul>
+        <div class="tab-content col-md-9" id="configurationTabsContent">
+        </div>
+    </div>
+</div>
+<script>
+mySpace = {
+            configuration_api_url:"{{ configuration_api_url }}"
+        }
+
+function updateConfiguration(){
+    var input_fields = $('.changed');
+    var patch_data = {}
+    $.each(input_fields, function(index, obj){
+            patch_data[obj.name]=obj.value;
+            $(obj).removeClass('changed');
+        });
+    $.ajax({url:mySpace.configuration_api_url,
+            type:'PATCH',
+            data:patch_data,
+            success:function(){alertSuccess("Configuration Updated!");$('#updateButton').prop('disabled', true);},
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+            });
+}
+
+function displayConfiguration(){
+    $.getJSON(mySpace.configuration_api_url, function(data){
+            var groupedConfigurations = {}
+            $.each(data, function(index, obj){
+                if (!groupedConfigurations.hasOwnProperty(obj.section)) { groupedConfigurations[obj.section] = new Array(); }
+                groupedConfigurations[obj.section].push(obj);
+            });
+            $.each(Object.keys(groupedConfigurations).sort(), function(index, section){
+                $('#configurationTabsNav').append('<li><a data-toggle="tab" href="#'+section+'">'+section.replace(/_/g,' ')+'</a></li>');
+                $('#configurationTabsContent').append('<div class="tab-pane" id="'+section+'"/></div>');
+                $('#'+section).append('<form role="form" class="form-horizontal" id="form_'+section+'"></form>');
+                $.each(groupedConfigurations[section], function(index, obj){
+                    html = '<div class="form-group">';
+                    html += '<label class="control-label col-md-4" for="'+obj.key+'">'+obj.key.replace(/_/g,' ')+'</label>';
+                    html += '<div class="col-md-8">';
+                    html += '<input name="'+obj.key+'" class="form-control" type="text" data-toggle="tooltip" ';
+                    if (obj.descrip) { html += 'title="'+obj.descrip+'" ';}
+                    html += 'value="'+obj.value+'">';
+                    html += '</div>'; // Closing </div> for col-md-8
+                    html += '</div>';
+                    $('#form_'+section).append(html);
+                });
+            });
+            // Placed here, so that this is run after loading of everything
+            $('input').change(function(){
+                $(this).addClass('changed');
+                $('#updateButton').prop('disabled', false);
+            });
+        });
+}
+
+$(document).ready(function() {
+        displayConfiguration();
+});
+</script>
+{% end %}

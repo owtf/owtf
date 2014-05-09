@@ -28,167 +28,99 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This file handles all the database transactions.
 '''
-from framework.db import db_handler, transaction_manager, url_manager, \
-    run_manager, plugin_register, report_register, command_register, debug
-
-from framework.db.db_client import *
-import json
+from framework.lib.general import cprint
+from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy import create_engine, event
+from sqlalchemy import exc
+from framework.db import models, plugin_manager, target_manager, resource_manager, \
+        config_manager, poutput_manager, transaction_manager, url_manager, command_register
 import logging
-import multiprocessing
 import os
-import random
-import string
+import re
 
-#DB_Handler = '/tmp/owtf/db_handler'
-#Request_Folder = DB_Handler+"/request"
-#Response_Folder = DB_Handler+"/response"
-#file_name_length=50
+def re_fn(regexp, item):
+    regex = re.compile(regexp, re.IGNORECASE | re.DOTALL) # Compile before the loop for speed
+    results = regex.findall(item)
+    print(results)
+    return results
 
-class DB:
+class DB(object):
         
     def __init__(self,CoreObj):
         self.Core = CoreObj
-        self.DBHandler = db_handler.DBHandler(CoreObj)
-        self.Transaction = transaction_manager.TransactionManager(CoreObj)
-        self.URL = url_manager.URLManager(CoreObj)
-        self.Run = run_manager.RunManager(CoreObj)
-        self.PluginRegister = plugin_register.PluginRegister(CoreObj)
-        self.ReportRegister = report_register.ReportRegister(CoreObj)
-        self.CommandRegister = command_register.CommandRegister(CoreObj)
-        self.Debug = debug.DebugDB(CoreObj)
+        self.Core.CreateMissingDirs(os.path.join(self.Core.Config.FrameworkConfigGet("OUTPUT_PATH"), self.Core.Config.FrameworkConfigGet("DB_DIR")))
+        #self.Run = run_manager.RunManager(CoreObj)
+        #self.PluginRegister = plugin_register.PluginRegister(CoreObj)
+        #self.ReportRegister = report_register.ReportRegister(CoreObj)
+        #self.CommandRegister = command_register.CommandRegister(CoreObj)
+        #self.Debug = debug.DebugDB(CoreObj)
 
     def Init(self):
-        self.DBHandler.Init()
-      
-    #these all functions call db_pull or db_push to do request
-    def GetFieldSeparator(self):
-        return self.DBHandler.GetFieldSeparator()
+        self.ErrorDBSession = self.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.ErrorBase)
+        self.Transaction = transaction_manager.TransactionManager(self.Core)
+        self.URL = url_manager.URLManager(self.Core)
+        self.Plugin = plugin_manager.PluginDB(self.Core)
+        self.POutput = poutput_manager.POutputDB(self.Core)
+        self.Target = target_manager.TargetDB(self.Core)
+        self.Resource = resource_manager.ResourceDB(self.Core)
+        self.Config = config_manager.ConfigDB(self.Core)
+        self.CommandRegister = command_register.CommandRegister(self.Core)
+        self.DBHealthCheck()
 
-    def GetPath(self, DBName):
-        """
-        arguments={'function':'GetPath','arguments':[DBName]}
-        return db_pull(arguments)
-        """
-        # Config realted stuff should be fetched from current process only
-        return self.Core.Config.Get(DBName)
+    def DBHealthCheck(self):
+        self.Target.DBHealthCheck()
 
-    def Get(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'Get','arguments':[DBName,Path]}
-        return db_pull(arguments)
-
-    def GetData(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'GetData','arguments':[DBName,Path]}
-        return db_pull(arguments)
-
-    def GetRecord(self, DBName, Index, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'GetRecord','arguments':[DBName,Index,Path]}
-        return db_pull(arguments)
-
-    def ModifyRecord(self, DBName, Index, Value, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'ModifyRecord','arguments':[DBName,Index, Value,Path]}
-        return db_push(arguments)
-
-    def GetRecordAsMatch(self, Record, NAME_TO_OFFSET):
-        arguments={'function':'GetRecordAsMatch','arguments':[Record, NAME_TO_OFFSET]}
-        return db_pull(arguments)
-
-    def Search(self, DBName, Criteria, NAME_TO_OFFSET, Path = None): # Returns DB Records in an easy-to-use dictionary format { 'field1' : 'value1', ... }
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'Search', 'arguments':[DBName, Criteria, NAME_TO_OFFSET, Path]}
-        return db_pull(arguments)
-
-    def GetSyncCount(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'GetSyncCount', 'arguments':[DBName, Path]}
-        return db_pull(arguments)
-
-    def IncreaseSync(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'IncreaseSync', 'arguments':[DBName, Path]}
-        return db_push(arguments)
-
-    def CalcSync(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'CalcSync', 'arguments':[DBName, Path]}
-        return db_push(arguments)
-
-    def Add(self, DBName, Data, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'Add','arguments':[DBName, Data,Path]}
-        return db_push(arguments)
-
-    def GetLength(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'GetLength', 'arguments':[DBName, Path]}
-        return int(db_pull(arguments))
-    
-    def IsEmpty(self, DBName, Path = None):
-        if not Path:
-            Path = self.GetPath(DBName)
-        arguments={'function':'IsEmpty','arguments':[DBName, Path]}
-        return db_pull(arguments)
-    
-    def GetDBNames(self):
-        arguments={'function':'GetDBNames','arguments':[]}
-        return db_pull(arguments)
-    
-    def GetNextHTMLID(self):
-        arguments={'function':'GetNextHTMLID','arguments':[]}
-        return db_pull(arguments)
-    
-    def LoadDB(self, Path, DBName): # Load DB to memory
-        arguments={'function':'LoadDB','arguments':[Path,DBName]}
-        return db_push(arguments)
-    
     def SaveDBs(self):
-        arguments={'function':'SaveDBs','arguments':[]}
-        return db_push(arguments)
+        pass
 
-    def SaveDBLine(self, file, DBName, Line): # Contains the logic on how each line must be saved depending on the type of DB
-        arguments={'function':'SaveDBLine', 'arguments':[file, DBName, Line]}
-        return db_push(arguments)
-    
-    def SaveDB(self, Path, DBName):
-        arguments={'function':'SaveDB','arguments':[Path, DBName]}
-        return db_push(arguments)
-    
-    def GetSeed(self):
-        arguments={'function':'GetSeed','arguments':[]}
-        return db_pull(arguments)
+    def EnsureDBWithBase(self, DB_PATH, BaseClass):
+        cprint("Ensuring if DB exists at " + DB_PATH)
+        if not os.path.exists(DB_PATH):
+            self.CreateDBUsingBase(DB_PATH, BaseClass)
 
-    def AddError(self, ErrorTrace):
-        arguments={'function':'AddError', 'arguments':[ErrorTrace]}
-        return db_push(arguments)
-    
+    def CreateDBUsingBase(self, DB_PATH, BaseClass):
+        cprint("Creating DB at " + DB_PATH)
+        engine = create_engine("sqlite:///" + DB_PATH)
+        BaseClass.metadata.create_all(engine)
+        return engine
+
+    def CreateScopedSession(self, DB_PATH, BaseClass):
+        # Not to be used apart from main process, use CreateSession instead
+        if not os.path.exists(DB_PATH):
+            engine = self.CreateDBUsingBase(DB_PATH, BaseClass)
+        else:
+            engine = create_engine("sqlite:///" + DB_PATH)
+        @event.listens_for(engine, "begin")
+        def do_begin(conn):
+            conn.connection.create_function('regexp', 2, re_fn)
+        session_factory = sessionmaker(bind = engine)
+        cprint("Creating Scoped session factory for " + DB_PATH)
+        return scoped_session(session_factory)
+
+    def CreateSession(self, DB_PATH):
+        engine = create_engine("sqlite:///" + DB_PATH)
+        @event.listens_for(engine, "begin")
+        def do_begin(conn):
+            conn.connection.create_function('regexp', 2, re_fn)
+        return sessionmaker(bind = engine)
+
+    def AddUsingSession(self, Obj, session):
+        while True:
+            try:
+                session = session()
+                session.add(Obj)
+                session.commit()
+                success = True
+            except exc.OperationalError:
+                cprint("Lock occured (might be)")
+            finally:
+                session.close()
+                if success: return success
+
+    def AddError(self, errorObj):
+        self.AddUsingSession(errorObj, self.ErrorDBSession)
+
     def ErrorCount(self):
-        arguments={'function':'ErrorCount','arguments':[]}
-        return db_pull(arguments)
-
-    def ErrorData(self):
-        arguments={'function':'ErrorData','arguments':[]}
-        return db_pull(arguments)
-    
-    #callback function which calls DB functions and is invoked by messaging server
-    def db_callback_function(self,data,response_type):
-        message = json.loads(data)
-        function = message['function']
-        args = message['arguments']
-    #checks if function is valid or not
-        if(is_valid(function, args, response_type)):
-
-            result = CallMethod(self.DBHandler, function, args)
-            return json.dumps(result)
+        session = self.ErrorDBSession()
+        count = session.query(models.Error).count()
+        return count

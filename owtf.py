@@ -57,8 +57,8 @@ def Banner():
 
 
 def GetArgs(Core, args):
-    ValidPluginGroups = ['web', 'net', 'aux']
-    ValidPluginTypes = Core.Config.Plugin.GetAllTypes() + ['all', 'quiet']
+    ValidPluginGroups = Core.DB.Plugin.GetAllGroups()
+    ValidPluginTypes = Core.DB.Plugin.GetAllTypes() + ['all', 'quiet']
 
     Parser = argparse.ArgumentParser(description="OWASP OWTF, the Offensive (Web) Testing Framework, is an OWASP+PTES-focused try to unite great tools and make pentesting more efficient @owtfp http://owtf.org\nAuthor: Abraham Aranguren <name.surname@owasp.org> - http://7-a.org - Twitter: @7a_")
     Parser.add_argument("-l", "--list_plugins",
@@ -110,10 +110,12 @@ def GetArgs(Core, args):
                         dest="CustomProfile",
                         default=None,
                         help="<g:f,w:f,n:f,r:f> - Use my profile: 'f' = valid config file. g: general config, w: web plugin order, n: net plugin order, r: resources file")
+    """
     Parser.add_argument("-a", "--algorithm",
                         dest="Algorithm",
                         default="breadth", choices=Core.Config.Get('ALGORITHMS'),
                         help="<depth/breadth> - Multi-target algorithm: breadth (default)=each plugin runs for all targets first | depth=all plugins run for each target first")
+    """
     Parser.add_argument("-g", "--plugin_group",
                         dest="PluginGroup",
                         default="web",
@@ -245,7 +247,7 @@ def ValidateOnePluginGroup(PluginGroups):
 
 def GetPluginsFromArg(Core, Arg):
     Plugins = Arg.split(',')
-    PluginGroups = Core.Config.Plugin.GetGroupsForPlugins(Plugins)
+    PluginGroups = Core.DB.Plugin.GetGroupsForPlugins(Plugins)
     ValidateOnePluginGroup(PluginGroups)
     return [Plugins, PluginGroups]
 
@@ -253,7 +255,7 @@ def GetPluginsFromArg(Core, Arg):
 def ProcessOptions(Core, user_args):
     try:
         Arg = GetArgs(Core, user_args)
-    except Exception as e:
+    except KeyboardInterrupt: #Exception as e:
         Usage("Invalid OWTF option(s) " + e)
 
     # Default settings:
@@ -345,7 +347,7 @@ def ProcessOptions(Core, user_args):
                 Usage("Invalid port for Inbound Proxy")
 
 
-    PluginTypesForGroup = Core.Config.Plugin.GetTypesForGroup(PluginGroup)
+    PluginTypesForGroup = Core.DB.Plugin.GetTypesForGroup(PluginGroup)
     if Arg.PluginType == 'all':
         Arg.PluginType = PluginTypesForGroup
     elif Arg.PluginType == 'quiet':
@@ -360,7 +362,8 @@ def ProcessOptions(Core, user_args):
     Scope = Arg.Targets or []  # Arguments at the end are the URL target(s)
     NumTargets = len(Scope)
     if PluginGroup != 'aux' and NumTargets == 0 and not Arg.ListPlugins:
-        Usage("")
+        #Usage("") OMG, #TODO: Fix this
+        pass
     elif NumTargets == 1:  # Check if this is a file
         if os.path.isfile(Scope[0]):
             cprint("Scope file: trying to load targets from it ..")
@@ -397,7 +400,7 @@ def ProcessOptions(Core, user_args):
             'OutboundProxy': Arg.OutboundProxy,
             'OutboundProxyAuth': Arg.OutboundProxyAuth,
             'Profiles': Profiles,
-            'Algorithm': Arg.Algorithm,
+            #'Algorithm': Arg.Algorithm,
             'PluginGroup': PluginGroup,
             'RPort': Arg.RPort,
             'PortWaves' : Arg.PortWaves,
@@ -420,10 +423,10 @@ def run_owtf(Core, args):
         Core.Finish("Aborted by user")
     except SystemExit:
         pass  # Report already saved, framework tries to exit
-    except:
-        Core.Error.Add("Unknown owtf error")
+    #except:
+    #    Core.Error.Add("Unknown owtf error")
         # Interrupted. Must save the DB to disk, finish report, etc
-        Core.Finish("Crashed")
+    #    Core.Finish("Crashed")
     finally: # Needed to rename the temp storage dirs to avoid confusion
         Core.CleanTempStorageDirs(Core.Config.OwtfPid)
 
@@ -433,7 +436,7 @@ if __name__ == "__main__":
         Core = core.Init(RootDir, OwtfPid)  # Initialise Framework
         print(
             "OWTF Version: %s, Release: %s " %
-            (Core.Config.Get('VERSION'), Core.Config.Get('RELEASE')),
+            (Core.Config.FrameworkConfigGet('VERSION'), Core.Config.FrameworkConfigGet('RELEASE')),
             end='\n'*2
             )
         args = ProcessOptions(Core, sys.argv[1:])
