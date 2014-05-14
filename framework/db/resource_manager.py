@@ -16,7 +16,8 @@ class ResourceDB(object):
         session = self.ResourceDBSession()
         for Type, Name, Resource in resources:
             # Need more filtering to avoid duplicates
-            session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
+            if not session.query(models.Resource).filter_by(resource_type = Type, resource_name = Name, resource = Resource):
+                session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
         session.commit()
         session.close()
 

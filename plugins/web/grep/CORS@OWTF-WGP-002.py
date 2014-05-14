@@ -36,8 +36,7 @@ DESCRIPTION = "Searches transaction DB for Cross Origin Resource Sharing headers
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = "This plugin looks for HTML 5 Cross Origin Resource Sharing (CORS) headers<br />"
-	AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = Core.PluginHelper.ResearchHeaders(Core.Config.GetHeaderList('HEADERS_FOR_CORS'))
-	Content += HeaderTable
-        Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexp(Core.Config.Get('HEADERS_REGEXP_FOR_CORS_METHODS'), PluginInfo)
+	Content = Core.PluginHelper.HtmlString("This plugin looks for HTML 5 Cross Origin Resource Sharing (CORS) headers<br />")
+	Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_CORS')
+        Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexpName('HEADERS_REGEXP_FOR_CORS_METHODS')
         return Content

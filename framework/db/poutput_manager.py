@@ -78,7 +78,8 @@ class POutputDB(object):
     def GetAll(self, filter_data=None, target_id=None):
         if not filter_data:
             filter_data = {}
-        Session = self.Core.DB.Target.GetOutputDBSession(target_id)
+        self.Core.DB.Target.SetTarget(target_id)
+        Session = self.Core.DB.Target.GetOutputDBSession()
         session = Session()
         query = self.GenerateQueryUsingSession(session, filter_data)
         results = query.all()

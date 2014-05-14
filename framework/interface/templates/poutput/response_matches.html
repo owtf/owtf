@@ -1,0 +1,35 @@
+<table class="table table-bordered">
+    <tr>
+        <td colspan="2">
+            <b>Stats</b>
+            <ul>
+                <li> {{ len(SortedMatches.keys()) }} Unique matches found</li>
+                <li> {{ MatchPercent }} transactions matched</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <table class="table table-hover table-striped">
+                <tr>
+                    <th>Match</th>
+                    <th>Found In</th>
+                </tr>
+                {% for match, transactions in SortedMatches.items() %}
+                    <tr>
+                        <td>
+                            <pre class="wrappedPre">{{ match }}</pre>
+                        </td>
+                        <td>
+                            {% for transaction in transactions %}
+                                <button class="btn btn-xs btn-default" onclick="navigateToTransaction('{{ transaction.ID }}');">
+                                    {{ transaction.ID }}
+                                </button>
+                            {% end %}
+                        </td>
+                    </tr>
+                {% end %}
+            </table>
+        </td>
+    </tr>
+</table>

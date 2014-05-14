@@ -36,7 +36,7 @@ DESCRIPTION = "Searches transaction DB for autocomplete protections"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = "This plugin looks for password and form tags to review the autocomplete attribute<br />"
-	Content += Core.PluginHelper.FindMultilineResponseMatchesForRegexps(Core.Config.GetAsList([ 'RESPONSE_REGEXP_FOR_AUTOCOMPLETE' ]), PluginInfo)
+	Content = Core.PluginHelper.HtmlString("This plugin looks for password and form tags to review the autocomplete attribute<br />")
+	Content += Core.PluginHelper.FindResponseBodyMatchesForRegexpName('RESPONSE_REGEXP_FOR_AUTOCOMPLETE')
 	return Content
 

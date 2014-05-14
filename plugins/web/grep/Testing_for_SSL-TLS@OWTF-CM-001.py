@@ -36,7 +36,6 @@ DESCRIPTION = "Searches transaction DB for SSL protections"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = "This plugin looks for server-side protection headers to enforce SSL<br />"
-	AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = Core.PluginHelper.ResearchHeaders(Core.Config.GetHeaderList('HEADERS_FOR_SSL_PROTECTION'))
-	return Content + HeaderTable 
-
+	Content = Core.PluginHelper.HtmlString("This plugin looks for server-side protection headers to enforce SSL<br />")
+	Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_SSL_PROTECTION')
+	return Content

@@ -32,6 +32,7 @@ import os
 import re
 import cgi
 #from jinja2 import Template # Jinja dependency eliminated
+from tornado.template import Template
 from framework.lib.general import *
 from collections import defaultdict
 import logging
@@ -104,7 +105,7 @@ class PluginHelper:
                         Your browser does not support iframes
                         </iframe>
                         """ )
-                        iframe = iframe_template.render( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
+                        iframe = iframe_template.generate( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
                         SandboxedPath = self.Core.PluginHandler.DumpOutputFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
                         log( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
                         LinkList.append( ( Name, SandboxedPath ) )
@@ -235,7 +236,7 @@ class PluginHelper:
                                 {{ LinkName }}
                         </a>
                 """ )
-                return [ save_path, template.render( LinkName = LinkName, Link = "../../../" + save_path ) ]
+                return [ save_path, template.generate( LinkName = LinkName, Link = "../../../" + save_path ) ]
 
         def DumpFileGetLink( self, Filename, Contents, PluginInfo, LinkName = '' ):
                 return self.DumpFile( Filename, Contents, PluginInfo, LinkName )[1]
@@ -310,25 +311,35 @@ class PluginHelper:
                         TableList.append( self.CreateMatchTable() )
                 return TableList
 
-        def FindResponseHeaderMatchesForRegexp(self, HeaderRegexp, PluginInfo):
-                return self.DrawResponseMatchesTables(self.Core.DB.Transaction.GrepResponseHeadersRegexp(HeaderRegexp), PluginInfo)
+        def HtmlString(self, html_string):
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "HtmlString"
+            plugin_output["output"] = {"String":html_string}
+            return([plugin_output])
 
-        def FindResponseHeaderMatchesForRegexps(self, HeaderRegexpList, PluginInfo):
-                Result = ""
-                for HeaderRegexp in HeaderRegexpList:
-                        Result += self.FindResponseHeaderMatchesForRegexp(HeaderRegexp, PluginInfo)
-                return Result
+        def FindResponseHeaderMatchesForRegexpName(self, HeaderRegexpName):
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "ResponseHeaderMatches"
+            plugin_output["output"] = {"HeaderRegexpName":HeaderRegexpName}
+            return([plugin_output])
 
-        def FindMultilineResponseMatchesForRegexp( self, ResponseRegexp, PluginInfo ):
-            regexp_list = self.Core.DB.Transaction.GrepMultiLineResponseRegexp( ResponseRegexp )
-            return self.DrawResponseMatchesTables( regexp_list, PluginInfo )
+        def FindResponseHeaderMatchesForRegexpNames(self, HeaderRegexpNamesList):
+            Results = []
+            for HeaderRegexpName in HeaderRegexpNamesList:
+                Results += self.FindResponseHeaderMatchesForRegexpName(HeaderRegexpName)
+            return Results
 
-        def FindMultilineResponseMatchesForRegexps( self, ResponseRegexpList, PluginInfo ):
-                Result = ""
-                for ResponseRegexp in ResponseRegexpList:
-                        #print "ResponseRegexp="+str(ResponseRegexp)
-                        Result += self.FindMultilineResponseMatchesForRegexp( ResponseRegexp, PluginInfo )
-                return Result
+        def FindResponseBodyMatchesForRegexpName(self, ResponseRegexpName):
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "ResponseBodyMatches"
+            plugin_output["output"] = {"ResponseRegexpName":ResponseRegexpName}
+            return([plugin_output])
+
+        def FindResponseBodyMatchesForRegexpNames(self, ResponseRegexpNamesList):
+            Results = []
+            for ResponseRegexpName in ResponseRegexpNamesList:
+                Results += self.FindResponseBodyMatchesForRegexpName(ResponseRegexpName)
+            return Results
 
         def ResearchFingerprintInlog(self):
             #log("Researching Fingerprint in Log ..")

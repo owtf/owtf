@@ -37,7 +37,6 @@ DESCRIPTION = "Searches transaction DB for XSS protections"
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 	#Background: http://jeremiahgrossman.blogspot.com/2010/01/to-disable-ie8s-xss-filter-or-not.html
-	Content = "This plugin looks for server-side protection headers against XSS (TODO: Check vuln scanners' output!)<br />"
-	AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = Core.PluginHelper.ResearchHeaders(Core.Config.GetHeaderList('HEADERS_FOR_XSS_PROTECTION'))
-	return Content + HeaderTable 
-
+	Content = Core.PluginHelper.HtmlString("This plugin looks for server-side protection headers against XSS (TODO: Check vuln scanners' output!)<br />")
+	Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_XSS_PROTECTION')
+	return Content

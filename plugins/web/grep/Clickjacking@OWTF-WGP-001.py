@@ -36,7 +36,7 @@ DESCRIPTION = "Searches transaction DB for Clickjacking protections"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = "This plugin looks for server-side protection headers against Clickjacking (TODO: Add rudimentary search for frame busting)<br />"
-	AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = Core.PluginHelper.ResearchHeaders(Core.Config.GetHeaderList('HEADERS_FOR_CLICKJACKING_PROTECTION'))
-	return Content + HeaderTable 
+	Content = Core.PluginHelper.HtmlString("This plugin looks for server-side protection headers against Clickjacking (TODO: Add rudimentary search for frame busting)<br />")
+	Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_CLICKJACKING_PROTECTION')
+	return Content
 

@@ -1,39 +1,39 @@
-    <table class="table table-bordered table-striped ">
-        <thead>
-            <tr>
-                <th class="text-center" colspan="2">
-                    Header Analysis Summary
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                    <th>HTTP Transaction Stats</th>
-                    <td class='alt'> {{ MatchedPercent }}% matched </td>
-            </tr>
+<table class="table table-bordered table-striped ">
+    <thead>
+        <tr>
+            <th class="text-center" colspan="2">
+                Header Analysis Summary
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+                <th>HTTP Transaction Stats</th>
+                <td> {{ MatchedPercent }}% matched </td>
+        </tr>
     </tbody>
-    </table>
+</table>
 
-    <div class="alert alert-info"><strong>NOTE!</strong> Only <u>unique values per header</u> are shown with a link to an example transaction</div>
-    <table class="table table-bordered table-striped"> 
-        <thead>
-            <tr>
-        <th class="text-center" colspan="2">
-            Header Value Analysis
-        </th>
-    </tr>
-        </thead>
-            <tbody>
-            <tr>
-                    <th> Header </th> 
-                    <th> Values </th>
-            </tr>
-            {% for Header, Value in UniqueMatches %}
-                            <tr>
-                                    <td> {{ Header }} </td>
-                                    <td> {{ Value }}  </td>
-                            </tr>
+<div class="alert alert-info"><strong>NOTE!</strong> Only <u>unique values per header</u> are shown with a link to an example transaction</div>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+    <th class="text-center" colspan="2">
+        Header Value Analysis
+    </th>
+</tr>
+    </thead>
+        <tbody>
+        <tr>
+                <th> Header </th>
+                <th> Values </th>
+        </tr>
+        {% for Header, Value in UniqueMatches %}
+                        <tr>
+                                <td> {{ Header }} </td>
+                                <td> {{ Value }}  </td>
+                        </tr>
 
-            {% end %}
-        </tbody>
-    </table>
+        {% end %}
+    </tbody>
+</table>

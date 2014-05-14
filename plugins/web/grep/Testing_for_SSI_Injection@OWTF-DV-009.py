@@ -37,6 +37,4 @@ DESCRIPTION = "Searches transaction DB for SSI directives"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.FindMultilineResponseMatchesForRegexps(Core.Config.GetAsList([ 'RESPONSE_REGEXP_FOR_SSI' ]), PluginInfo)
-	return Content
-
+	return Core.PluginHelper.FindResponseBodyMatchesForRegexpName('RESPONSE_REGEXP_FOR_SSI')
