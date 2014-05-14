@@ -143,7 +143,7 @@ class URLManager:
         def GenerateQueryUsingSession(self, session, Criteria):
             query = session.query(models.Url)
             if Criteria.get('url', None):
-                if isinstance(Criteria.get('url'), str) or isinstance(Criteria.get('url'), unicode):
+                if isinstance(Criteria.get('url'), (str, unicode)):
                     query = query.filter_by(url = Criteria['url'])
                 if isinstance(Criteria.get('url'), list):
                     query = query.filter(models.Url.url.in_(Criteria['url']))

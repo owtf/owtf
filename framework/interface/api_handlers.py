@@ -57,7 +57,7 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
         try:
             self.application.Core.DB.Target.AddTarget(str(self.get_argument("TARGET_URL")))
             self.set_status(201)  # Stands for "201 Created"
-        except general.InvalidTargetReference as e:
+        except general.DBIntegrityException as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(409)
 

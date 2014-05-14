@@ -153,6 +153,7 @@ class PluginDB(object):
     def GetTestGroup(self, code):
         session = self.PluginDBSession()
         group = session.query(models.TestGroup).get(code)
+        session.close()
         return(self.DeriveTestGroupDict(group))
 
     def GetAllTestGroups(self):
@@ -197,22 +198,22 @@ class PluginDB(object):
     def GenerateQueryUsingSession(self, session, criteria):
         query = session.query(models.Plugin)
         if criteria.get("type", None):
-            if isinstance(criteria["type"], str) or isinstance(criteria["type"], unicode):
+            if isinstance(criteria["type"], (str, unicode)):
                 query = query.filter_by(type=criteria["type"])
             if isinstance(criteria["type"], list):
                 query = query.filter(models.Plugin.type.in_(criteria["type"]))
         if criteria.get("group", None):
-            if isinstance(criteria["group"], str) or isinstance(criteria["group"], unicode):
+            if isinstance(criteria["group"], (str, unicode)):
                 query = query.filter_by(group=criteria["group"])
             if isinstance(criteria["group"], list):
                 query = query.filter(models.Plugin.group.in_(criteria["group"]))
         if criteria.get("code", None):
-            if isinstance(criteria["code"], str) or isinstance(criteria["code"], unicode):
+            if isinstance(criteria["code"], (str, unicode)):
                 query = query.filter_by(code=criteria["code"])
             if isinstance(criteria["code"], list):
                 query = query.filter(models.Plugin.code.in_(criteria["code"]))
         if criteria.get("name", None):
-            if isinstance(criteria["name"], str) or isinstance(criteria["name"], unicode):
+            if isinstance(criteria["name"], (str, unicode)):
                 query = query.filter_by(name=criteria["name"])
             if isinstance(criteria["name"], list):
                 query = query.filter(models.Plugin.name.in_(criteria["name"]))
@@ -242,5 +243,3 @@ class PluginDB(object):
         session.close()
         groups = [i[0] for i in groups]
         return(groups)
-
-# --------------------------------------------------- API Methods ---------------------------------------------------

@@ -31,7 +31,7 @@ This module contains helper functions to make plugins simpler to read and write,
 import os
 import re
 import cgi
-from jinja2 import Template
+#from jinja2 import Template # Jinja dependency eliminated
 from framework.lib.general import *
 from collections import defaultdict
 import logging

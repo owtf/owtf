@@ -32,7 +32,8 @@ import sys, os, re, socket, shutil
 from urlparse import urlparse
 from collections import defaultdict
 from framework.config import plugin, health_check
-from framework.lib.general import *
+from framework.lib.general import cprint
+from framework.lib import general
 from framework.db import models, target_manager
 
 REPLACEMENT_DELIMITER = "@@@"
@@ -91,7 +92,10 @@ class Config(object):
         # print(Options)
         Scope = self.PrepareURLScope(Options['Scope'], Options['PluginGroup'])
         for Target in Scope:
-            self.Core.DB.Target.AddTarget(Target)
+            try:
+                self.Core.DB.Target.AddTarget(Target)
+            except general.DBIntegrityException:
+                cprint(Target + " already exists in DB")
 
     def PrepareURLScope(self, Scope,Group): # Convert all targets to URLs
         NewScope = []

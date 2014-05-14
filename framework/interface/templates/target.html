@@ -3,10 +3,16 @@
 {% block title %}Target Panel{% end %}
 
 {% block includes %}
+<!-- DataTable Requirements -->
 <script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
+<link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
+<!-- End DataTable requirements -->
+
+<!-- Ckeditor requirements -->
 <script type="text/javascript" charset="utf-8" src="/static/js/ckeditor/ckeditor.js"></script>
 <script type="text/javascript" charset="utf-8" src="/static/js/ckeditor/adapters/jquery.js"></script>
-<link href="/static/css/jquery.dataTables.css" rel="stylesheet">
+<!-- End CKeditor requirements -->
 {% end %}
 
 {% block content %}

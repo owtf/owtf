@@ -35,22 +35,22 @@ class POutputDB(object):
     def GenerateQueryUsingSession(self, session, filter_data):
         query = session.query(models.PluginOutput)
         if filter_data.get("plugin_type", None):
-            if isinstance(filter_data.get("plugin_type"), str) or isinstance(filter_data.get("plugin_type"), unicode):
+            if isinstance(filter_data.get("plugin_type"), (str, unicode)):
                 query = query.filter_by(plugin_type = filter_data["plugin_type"])
             if isinstance(filter_data.get("plugin_type"), list):
                 query = query.filter(models.PluginOutput.plugin_type.in_(filter_data["plugin_type"]))
         if filter_data.get("plugin_group", None):
-            if isinstance(filter_data.get("plugin_group"), str) or isinstance(filter_data.get("plugin_group"), unicode):
+            if isinstance(filter_data.get("plugin_group"), (str, unicode)):
                 query = query.filter_by(plugin_group = filter_data["plugin_group"])
             if isinstance(filter_data.get("plugin_type"), list):
                 query = query.filter(models.PluginOutput.plugin_group.in_(filter_data["plugin_group"]))
         if filter_data.get("plugin_code", None):
-            if isinstance(filter_data.get("plugin_code"), str) or isinstance(filter_data.get("plugin_code"), unicode):
+            if isinstance(filter_data.get("plugin_code"), (str, unicode)):
                 query = query.filter_by(plugin_code = filter_data["plugin_code"])
             if isinstance(filter_data.get("plugin_code"), list):
                 query = query.filter(models.PluginOutput.plugin_code.in_(filter_data["plugin_code"]))
         if filter_data.get("status", None):
-            if isinstance(filter_data.get("status"), str) or isinstance(filter_data.get("status"), unicode):
+            if isinstance(filter_data.get("status"), (str, unicode)):
                 query = query.filter_by(status = filter_data["status"])
             if isinstance(filter_data.get("status"), list):
                 query = query.filter(models.PluginOutput.status.in_(filter_data["status"]))
@@ -75,7 +75,9 @@ class POutputDB(object):
             raise general.InvalidParameterType("Integer has to be provided for integer fields")
         return query
 
-    def GetAll(self, filter_data={}, target_id=None):
+    def GetAll(self, filter_data=None, target_id=None):
+        if not filter_data:
+            filter_data = {}
         Session = self.Core.DB.Target.GetOutputDBSession(target_id)
         session = Session()
         query = self.GenerateQueryUsingSession(session, filter_data)
@@ -113,7 +115,7 @@ class POutputDB(object):
                 raise general.InvalidParameterType("Integer has to be provided for integer fields")
         session.close()
 
-    def PluginAlreadyRun(self, PluginInfo, Target = None):
+    def PluginAlreadyRun(self, PluginInfo, Target=None):
         Session = self.Core.DB.Target.GetOutputDBSession(Target)
         session = Session()
         plugin_output = session.query(models.PluginOutput).get(PluginInfo["key"])
@@ -121,7 +123,7 @@ class POutputDB(object):
             return(self.DeriveOutputDict(plugin_output, Target))
         return(plugin_output) # This is nothin but a "None" returned
 
-    def SavePluginOutput(self, Plugin, Output, Duration, Target = None):
+    def SavePluginOutput(self, Plugin, Output, Duration, Target=None):
         Session = self.Core.DB.Target.GetOutputDBSession(Target)
         session = Session()
         session.merge(models.PluginOutput(  key = Plugin["key"],
@@ -138,7 +140,7 @@ class POutputDB(object):
         session.commit()
         session.close()
 
-    def SavePartialPluginOutput(self, Plugin, Output, Message, Duration, Target = None):
+    def SavePartialPluginOutput(self, Plugin, Output, Message, Duration, Target=None):
         Session = self.Core.DB.Target.GetOutputDBSession(Target)
         session = Session()
         session.merge(models.PluginOutput(  key = Plugin["key"],
