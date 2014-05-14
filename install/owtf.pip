@@ -1,9 +1,9 @@
 tornado
 pycurl
 pyopenssl
-jinja2
+#jinja2 # Not necessary
 lxml
-argparse
+#argparse # Present by default
 selenium
 rdflib
 pyvirtualdisplay

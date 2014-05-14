@@ -62,17 +62,17 @@ class TransactionManager(object):
     def GenerateQueryUsingSession(self, session, Criteria):
         query = session.query(models.Transaction)
         if Criteria.get('url', None):
-            if isinstance(Criteria.get('url'), str) or isinstance(Criteria.get('url'), unicode):
+            if isinstance(Criteria.get('url'), (str, unicode)):
                 query = query.filter_by(url = Criteria['url'])
             if isinstance(Criteria.get('url'), list):
                 query = query.filter(models.Transaction.url.in_(Criteria.get('url')))
         if Criteria.get('method', None):
-            if isinstance(Criteria.get('method'), str) or isinstance(Criteria.get('method'), unicode):
+            if isinstance(Criteria.get('method'), (str, unicode)):
                 query = query.filter_by(method = Criteria['method'])
             if isinstance(Criteria.get('method'), list):
                 query = query.filter(models.Transaction.method.in_(Criteria.get('method')))
         if Criteria.get('data', None):
-            if isinstance(Criteria.get('data'), str) or isinstance(Criteria.get('data'), unicode):
+            if isinstance(Criteria.get('data'), (str, unicode)):
                 query = query.filter_by(data = Criteria['data'])
             if isinstance(Criteria.get('data'), list):
                 query = query.filter(models.Transaction.data.in_(Criteria.get('data')))

@@ -42,14 +42,16 @@ class ConfigDB(object):
         session.close()
         if obj:
             return(self.Core.Config.MultipleReplace(obj.value, self.Core.Config.GetReplacementDict()))
-        return(None)
+        else:
+            return(None)
 
     def DeriveConfigDict(self, config_obj):
         if config_obj:
             config_dict = dict(config_obj.__dict__)
             config_dict.pop("_sa_instance_state")
             return config_dict
-        return config_obj
+        else:
+            return config_obj
 
     def DeriveConfigDicts(self, config_obj_list):
         config_dict_list = []
@@ -61,12 +63,12 @@ class ConfigDB(object):
     def GenerateQueryUsingSession(self, session, criteria):
         query = session.query(models.ConfigSetting)
         if criteria.get("key", None):
-            if isinstance(criteria["key"], str) or isinstance(criteria["key"], unicode):
+            if isinstance(criteria["key"], (str, unicode)):
                 query = query.filter_by(key=criteria["key"])
             if isinstance(criteria["key"], list):
                 query = query.filter(models.ConfigSetting.key.in_(criteria["key"]))
         if criteria.get("section", None):
-            if isinstance(criteria["section"], str) or isinstance(criteria["section"], unicode):
+            if isinstance(criteria["section"], (str, unicode)):
                 query = query.filter_by(section=criteria["section"])
             if isinstance(criteria["section"], list):
                 query = query.filter(models.ConfigSetting.section.in_(criteria["section"]))
@@ -76,7 +78,9 @@ class ConfigDB(object):
             query = query.filter_by(dirty=self.Core.Config.ConvertStrToBool(criteria['dirty']))
         return query
 
-    def GetAll(self, criteria={}):
+    def GetAll(self, criteria=None):
+        if not criteria:
+            criteria = {}
         session = self.ConfigDBSession()
         query = self.GenerateQueryUsingSession(session, criteria)
         return self.DeriveConfigDicts(query.all())

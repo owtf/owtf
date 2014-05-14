@@ -35,7 +35,8 @@ import cgi
 import codecs
 from tornado.template import Template, Loader
 from framework.lib.general import *
-from framework.interface.html import renderer
+# TODO: Check if this renderer is really necessary, change the name atleast
+#from framework.interface.html import renderer
 from framework.interface.html.filter import sanitiser
 #from framework.report import summary
 
@@ -43,7 +44,7 @@ class Reporter:
     def __init__(self, CoreObj):
         self.Core = CoreObj  # Keep Reference to Core Object
         self.Init = False
-        self.Render = renderer.HTMLRenderer(self.Core)
+        #self.Render = renderer.HTMLRenderer(self.Core)
         #self.Summary = summary.Summary(self.Core)
         self.Sanitiser = sanitiser.HTMLSanitiser()
         self.Loader = Loader(self.Core.Config.FrameworkConfigGet('POUTPUT_TEMPLATES_DIR'))
