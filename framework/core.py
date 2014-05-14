@@ -35,6 +35,7 @@ from framework.config import config
 from framework.db import db
 from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
+from framework.http.proxy.outbound_proxyminer import Proxy_Miner
 from framework.lib.general import *
 from framework.plugin import plugin_handler, plugin_helper, plugin_params, process_manager
 from framework.protocols import smtp, smb
@@ -66,7 +67,6 @@ class Core:
         self.Config.Init() # Now the the config is hooked to the core, init config sub-components
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
         self.Random = random.Random()
-        self.IsIPInternalRegexp = re.compile("^127.\d{123}.\d{123}.\d{123}$|^10.\d{123}.\d{123}.\d{123}$|^192.168.\d{123}$|^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{123}.[0-9]{123}$")
         self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
         self.Selenium = selenium_handler.Selenium(self)
         self.InteractiveShell = interactive_shell.InteractiveShell(self)
@@ -80,6 +80,12 @@ class Core:
         self.Timer = timer.Timer(self.DB.Config.Get('DATE_TIME_FORMAT')) # Requires user config db
         self.showOutput=True
         self.TOR_process = None
+        # Create internal IPv4 regex following rfc1918
+        self.re_ipv4_internal = re.compile(
+            r"(^128\.\d{1,3}\.\d{1,3}\.\d{1,3}$)|"
+            r"(^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$)|"
+            r"(^192\.168\.\d{1,3}\.\d{1,3}$)|"
+            r"(^172\.(1[6-9]|2[0-9]|3[0-1])\.[0-9]{1,3}\.[0-9]{1,3})$")
 
     def CreateTempStorageDirs(self, OwtfPid):
         temp_storage = os.path.join("/tmp", "owtf", str(OwtfPid))
@@ -140,19 +146,16 @@ class Core:
         for ip in self.DB.Target.GetAll('HOST_IP'):
             if ip:
                 Command = Command.replace(ip, 'xxx.xxx.xxx.xxx')
-        return Command        
-        
+        return Command
+
     def Start_TOR_Mode(self, Options):
         if Options['TOR_mode'] != None:
-            if Options['TOR_mode'][0] != "help":
-                if tor_manager.TOR_manager.is_tor_running():
-                    self.TOR_process = tor_manager.TOR_manager(self, Options['TOR_mode'])
-                    self.TOR_process = self.TOR_process.Run()
-                else:                    
-                    tor_manager.TOR_manager.msg_start_tor(self)
-                    tor_manager.TOR_manager.msg_configure_tor(self)
-                    self.Error.FrameworkAbort("TOR Daemon is not running")
+            #if Options['TOR_mode'][0] != "help":
+            if tor_manager.TOR_manager.is_tor_running():
+                self.TOR_process = tor_manager.TOR_manager(self, Options['TOR_mode'])
+                self.TOR_process = self.TOR_process.Run()
             else:
+                tor_manager.TOR_manager.msg_start_tor(self)
                 tor_manager.TOR_manager.msg_configure_tor()
                 self.Error.FrameworkAbort("Configuration help is running")
      
@@ -168,7 +171,7 @@ class Core:
                 self.Error.FrameworkAbort("Inbound proxy address " + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT") + " already in use")
 
             # If everything is fine
-            self.ProxyProcess = proxy.ProxyProcess( 
+            self.ProxyProcess = proxy.ProxyProcess(
                                                     self,
                                                     Options['OutboundProxy'],
                                                     Options['OutboundProxyAuth']
@@ -186,15 +189,16 @@ class Core:
             #if Options["Interactive"]:
             #    raw_input()
         else:
-            self.Requester = requester.Requester(self, Options['OutboundProxy'])        
-    
+            self.Requester = requester.Requester(self, Options['OutboundProxy'])
+
     def outputfunc(self,q):
-        """
-            This is the function/thread which writes on terminal
-            It takes the content from queue and if showOutput is true it writes to console.
-            Otherwise it appends to a variable. 
-            If the next token is 'end' It simply writes to the console.
-            
+        """This is the function/thread which writes on terminal.
+
+        It takes the content from queue and if showOutput is true it writes to
+        console.
+        Otherwise it appends to a variable.
+        If the next token is 'end' It simply writes to the console.
+
         """
         t=""
         #flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL)
@@ -212,19 +216,15 @@ class Core:
                     pass
                 return
             t = t+k
-            if(self.showOutput): 
-                try:   
+            if(self.showOutput):
+                try:
                     sys.stdout.write(t)
                     t=""
                 except:
-                    pass    
-                                                    
-                                
-        
+                    pass
+
     def initlogger(self):
-        """
-            This function init two logger one for output in log file and stdout
-        """
+        """Init two loggers to output in logfile and stdout."""
         #logger for output in console
         self.outputqueue = multiprocessing.Queue()
         result_queue = logQueue(self.outputqueue)
@@ -236,7 +236,7 @@ class Core:
         log.addHandler(infohandler)
         self.outputthread =Thread(target=self.outputfunc, args=(self.outputqueue,))
         self.outputthread.start()
-        
+
         #logger for output in log file
         log = logging.getLogger('logfile')
         infohandler = logging.FileHandler(self.Config.FrameworkConfigGet("OWTF_LOG_FILE"),mode="w+")
@@ -336,7 +336,7 @@ class Core:
                 if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
                     cprint('Errors saved to ' + self.Config.FrameworkConfigGet('ERROR_DB_NAME') + '. Would you like us to auto-report bugs ?')
                     choice = raw_input("[Y/n] ")
-                    if choice != 'n' or choice != 'N':
+                    if choice != 'n' and choice != 'N':
                         self.ReportErrorsToGithub()
                     else:
                         cprint("We know that you are planning on submitting it manually ;)")
@@ -363,7 +363,7 @@ class Core:
 
     def exitOutput(self):
         if hasattr(self,'outputthread'):
-            self.outputqueue.put('end')    
+            self.outputqueue.put('end')
             self.outputthread.join()
             if os.path.exists("owtf_review"):
                 if os.path.exists("owtf_review/logfile"):
@@ -378,8 +378,8 @@ class Core:
         except AttributeError: # DB not instantiated yet
             return ""
 
-    def IsIPInternal(self, IP):
-        return len(self.IsIPInternalRegexp.findall(IP)) == 1
+    def is_ip_internal(self, ip):
+        return len(self.re_ipv4_internal.findall(ip)) == 1
 
     def IsTargetUnreachable(self, Target = ''):
         if not Target:
@@ -401,7 +401,7 @@ class Core:
                 try:
                     os.kill(int(PidStr), sig)
                 except:
-                    print("unable to kill it")    
-                    
+                    print("unable to kill it")
+
 def Init(RootDir, OwtfPid):
     return Core(RootDir, OwtfPid)

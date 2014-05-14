@@ -7,5 +7,9 @@ lxml
 selenium
 rdflib
 pyvirtualdisplay
+<<<<<<< HEAD
+beautifulsoup4
+=======
 sqlalchemy
 pexpect
+>>>>>>> 3bf5aac7a720d5ceb0b966c484cabf774ed55c04

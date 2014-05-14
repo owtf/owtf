@@ -57,6 +57,7 @@ import pycurl
 def prepare_curl_callback(curl):
     curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
 
+
 class ProxyHandler(tornado.web.RequestHandler):
     """
     This RequestHandler processes all the requests that the application received
@@ -124,7 +125,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         # The requests that come through ssl streams are relative requests, so transparent
         # proxying is required. The following snippet decides the url that should be passed
         # to the async client
-        if self.request.uri.startswith(self.request.protocol,0): # Normal Proxy Request
+        if self.request.uri.startswith(self.request.protocol, 0): # Normal Proxy Request
             self.request.url = self.request.uri
         else:  # Transparent Proxy Request
             self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
@@ -179,41 +180,76 @@ class ProxyHandler(tornado.web.RequestHandler):
                 except ValueError:
                     pass
 
-            # pycurl is needed for curl client
             async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
-            # httprequest object is created and then passed to async client with a callback
-            request = tornado.httpclient.HTTPRequest(
-                    url=self.request.url,
-                    method=self.request.method,
-                    body=self.request.body if self.request.body else None,
-                    headers=self.request.headers,
-                    auth_username=http_auth_username,
-                    auth_password=http_auth_password,
-                    auth_mode=http_auth_mode,
-                    follow_redirects=False,
-                    use_gzip=True,
-                    streaming_callback=self.handle_data_chunk,
-                    header_callback=None,
-                    proxy_host=self.application.outbound_ip,
-                    proxy_port=self.application.outbound_port,
-                    proxy_username=self.application.outbound_username,
-                    proxy_password=self.application.outbound_password,
-                    allow_nonstandard_methods=True,
-                    prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
-                                                                else None, # socks callback function
-                    validate_cert=False)
-            try:
-                response = yield tornado.gen.Task(async_client.fetch, request)
-            except Exception:
-                pass
+            success_response = False  # is used to check the response in the botnet mode
 
-            # Request retries
-            for i in range(0,3):
-                if response.code in [408, 599]:
-                    self.request.response_buffer = ''
+            while not success_response:
+                #Proxy Switching (botnet_mode) code
+                if self.application.Core.Proxy_manager:
+                    proxy = self.application.Core.Proxy_manager.get_next_available_proxy()
+                    #print proxy
+                    self.application.outbound_ip = proxy["proxy"][0]
+                    self.application.outbound_port = int(proxy["proxy"][1])
+
+                #  httprequest object is created and then passed to async client with a callback
+                request = tornado.httpclient.HTTPRequest(
+                        url=self.request.url,
+                        method=self.request.method,
+                        body=self.request.body if self.request.body else None,
+                        headers=self.request.headers,
+                        auth_username=http_auth_username,
+                        auth_password=http_auth_password,
+                        auth_mode=http_auth_mode,
+                        follow_redirects=False,
+                        use_gzip=True,
+                        streaming_callback=self.handle_data_chunk,
+                        header_callback=None,
+                        proxy_host=self.application.outbound_ip,
+                        proxy_port=self.application.outbound_port,
+                        proxy_username=self.application.outbound_username,
+                        proxy_password=self.application.outbound_password,
+                        allow_nonstandard_methods=True,
+                        prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
+                                                                    else None, # socks callback function
+                        validate_cert=False)
+                try:
                     response = yield tornado.gen.Task(async_client.fetch, request)
+                except Exception:
+                    pass
+                # Request retries
+                for i in range(0, 3):
+                    if response.code in [408, 599]:
+                        self.request.response_buffer = ''
+                        response = yield tornado.gen.Task(async_client.fetch, request)
+                    else:
+                        success_response = True
+                        break
+
+                #botnet mode code (proxy switching)
+                #checking the status of the proxy (asynchronous)
+                if self.application.Core.Proxy_manager and not success_response:
+                    proxy_check_req = tornado.httpclient.HTTPRequest(
+                    url=self.application.Core.Proxy_manager.testing_url, #testing url is google.com
+                        use_gzip=True,
+                        proxy_host=self.application.outbound_ip,
+                        proxy_port=self.application.outbound_port,
+                        proxy_username=self.application.outbound_username,
+                        proxy_password=self.application.outbound_password,
+                        prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
+                        else None, # socks callback function
+                        validate_cert=False)
+                    try:
+                        proxy_check_resp = yield tornado.gen.Task(async_client.fetch, proxy_check_req)
+                    except Exception:
+                        pass
+
+                    if proxy_check_resp.code != 200:
+                        #self.application.Core.Proxy_manager.remove_proxy(proxy)
+                        self.application.Core.Proxy_manager.remove_proxy(proxy["index"])
+                    else:
+                        success_response = True
                 else:
-                    break
+                    success_response = True
 
             self.finish_response(response)
             # Cache the response after finishing the response, so caching time is not included in response time
@@ -316,7 +352,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
         # WebSocketClientConnection expects ws:// & wss://
         self.request.url = self.request.url.replace("http", "ws", 1)
-        
+
         # Have to add cookies and stuff
         request_headers = tornado.httputil.HTTPHeaders()
         for name, value in self.request.headers.iteritems():
@@ -487,7 +523,8 @@ class CommandHandler(tornado.web.RequestHandler):
                 info[command] = eval(command)
         self.write(info)
         self.finish()
-                        
+
+
 class ProxyProcess(Process):
 
     def __init__(self, core, outbound_options=[], outbound_auth=""):

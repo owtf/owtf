@@ -267,7 +267,7 @@ class Config(object):
             AlternativeIPs = ipchunks[1:]
         self.Set('ALTERNATIVE_IPS', AlternativeIPs)
         IP = IP.strip()
-        self.Set('INTERNAL_IP', self.Core.IsIPInternal(IP))
+        self.Set('INTERNAL_IP', self.Core.is_ip_internal(IP))
         cprint("The IP address for "+Hostname+" is: '"+IP+"'")
         return IP
 
