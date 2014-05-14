@@ -37,6 +37,8 @@ DESCRIPTION = "Searches transaction DB for timing information"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
+        # TODO: Fix this plugin
+        """
 	NuTransactions = 10
 	SlowTransactions = []
 	Command, IDs = Core.DB.Transaction.GrepTopTransactionIDsBySpeed(NuTransactions, "Desc") # Get Top 10 slowest transactions
@@ -49,4 +51,5 @@ def run(Core, PluginInfo):
 	Content += Core.Reporter.DrawHTTPTransactionTable(SlowTransactions)
 	Content += Core.PluginHelper.DrawCommandTable( Command ) # Show command used to generate info
 	return Content
-
+        """
+        return []

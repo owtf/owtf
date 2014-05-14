@@ -34,6 +34,8 @@ DESCRIPTION = "Searches transaction DB for credentials protections"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
+        # TODO: Needs fixing
+        """
 	Content = "This plugin looks for password fields and then checks the URL (i.e. http vs. https)<br />"
 	Content += "Uniqueness in this case is performed via URL + password field"
 	# This retrieves all hidden password fields found in the DB response bodies:
@@ -53,4 +55,5 @@ def run(Core, PluginInfo):
 	Content += Message+"<br />"
 	Content += Core.PluginHelper.DrawResponseMatchesTables([Command, RegexpName, InsecureMatches], PluginInfo)
 	return Content
-
+        """
+        return []

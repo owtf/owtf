@@ -36,9 +36,7 @@ DESCRIPTION = "Searches transaction DB for Cache snooping protections"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = "This plugin looks for server-side protection headers and tags against cache snooping<br />"
-	AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = Core.PluginHelper.ResearchHeaders(Core.Config.GetHeaderList('HEADERS_FOR_CACHE_PROTECTION'))
-	Content += HeaderTable
-	Content += Core.PluginHelper.FindMultilineResponseMatchesForRegexps(Core.Config.GetAsList([ 'RESPONSE_REGEXP_FOR_CACHE_PROTECTION' ]), PluginInfo)
+	Content = Core.PluginHelper.HtmlString("This plugin looks for server-side protection headers and tags against cache snooping<br />")
+	Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_CACHE_PROTECTION')
+	Content += Core.PluginHelper.FindResponseBodyMatchesForRegexpName('RESPONSE_REGEXP_FOR_CACHE_PROTECTION')
 	return Content
-

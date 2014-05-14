@@ -34,7 +34,7 @@ DESCRIPTION = "Searches transaction DB for juicy files"
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 #	Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('PassiveApplicationDiscoveryCmd'), PluginInfo)
-	Content = "<p>This plugin shows all URLs classified as 'Files' for review, there could be cool stuff here :)</p>"
-	Content += Core.PluginHelper.DrawLinkList('All known File URLs in Scope', Core.DB.GetData('FILE_URLS_DB'))
+	Content = Core.PluginHelper.HtmlString("<p>This plugin shows all URLs classified as 'Files' for review, there could be cool stuff here :)</p>")
+        # TODO: Fix this plugin
+	# Content += Core.PluginHelper.LinkList('All known File URLs in Scope', Core.DB.GetData('FILE_URLS_DB'))
 	return Content
-

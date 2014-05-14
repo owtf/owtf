@@ -37,5 +37,5 @@ DESCRIPTION = "Searches transaction DB for comments"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.FindMultilineResponseMatchesForRegexps(Core.Config.GetAsList([ 'RESPONSE_REGEXP_FOR_HTML_COMMENTS','RESPONSE_REGEXP_FOR_CSS_JS_COMMENTS','RESPONSE_REGEXP_FOR_JS_COMMENTS', 'RESPONSE_REGEXP_FOR_PHP_SOURCE', 'RESPONSE_REGEXP_FOR_ASP_SOURCE' ]), PluginInfo)
+	Content = Core.PluginHelper.FindResponseBodyMatchesForRegexpNames(['RESPONSE_REGEXP_FOR_HTML_COMMENTS','RESPONSE_REGEXP_FOR_CSS_JS_COMMENTS','RESPONSE_REGEXP_FOR_JS_COMMENTS', 'RESPONSE_REGEXP_FOR_PHP_SOURCE', 'RESPONSE_REGEXP_FOR_ASP_SOURCE'])
 	return Content

@@ -36,8 +36,7 @@ DESCRIPTION = "Searches transaction DB for Robots meta tag and X-Robots-Tag HTTP
 
 def run(Core, PluginInfo):
     #Core.Config.Show()
-    Content = "This plugin looks for Robots meta tag and X-Robots-Tag HTTP header<br />"
-    AllValues, HeaderTable , HeaderDict, Header2TransacDict, NuTransactions = Core.PluginHelper.ResearchHeaders(Core.Config.GetHeaderList('HEADERS_FOR_ROBOTS'))
-    Content += HeaderTable
-    Content += Core.PluginHelper.FindMultilineResponseMatchesForRegexps(Core.Config.GetAsList(['RESPONSE_REGEXP_FOR_ROBOTS_META_TAG']), PluginInfo)
+    Content = Core.PluginHelper.HtmlString("This plugin looks for Robots meta tag and X-Robots-Tag HTTP header<br />")
+    Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_ROBOTS')
+    Content += Core.PluginHelper.FindResponseBodyMatchesForRegexpName('RESPONSE_REGEXP_FOR_ROBOTS_META_TAG')
     return Content

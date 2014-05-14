@@ -1,5 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship
 import datetime
 
@@ -99,6 +100,8 @@ class PluginOutput(OutputBase):
     owtf_rank = Column(Integer, nullable=True)
     output_path = Column(String, nullable=True)
 
+    __table_args__ = (UniqueConstraint('plugin_type', 'plugin_code'),)
+
 RegisterBase = declarative_base()
 
 
@@ -124,6 +127,7 @@ class Resource(ResourceBase):
     resource_name = Column(String)
     resource_type = Column(String)
     resource = Column(String)
+    __table_args__ = (UniqueConstraint('resource', 'resource_type', 'resource_name'),)
 
 GeneralBase = declarative_base()
 
@@ -157,7 +161,7 @@ class TestGroup(PluginBase):
 class Plugin(PluginBase):
     __tablename__ = "plugins"
 
-    key = Column(String, primary_key=True)  # Key = plugin_type@code
+    key = Column(String, primary_key=True)  # key = type@code
     title = Column(String)
     name = Column(String)
     code = Column(String, ForeignKey('test_groups.code'))
@@ -166,3 +170,5 @@ class Plugin(PluginBase):
     descrip = Column(String, nullable=True)
     file = Column(String)
     attr = Column(String, nullable=True)
+
+    __table_args__ = (UniqueConstraint('type', 'code'),)

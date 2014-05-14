@@ -116,7 +116,7 @@ class HTTP_Transaction(object):
     def GetGrepOutput(self):
         return(self.GrepOutput)
 
-    def GrepByRegexName(self, regex_name): # Highly misleading name as grepping is already done when adding the transaction
+    def GetGrepOutputFor(self, regex_name): # Highly misleading name as grepping is already done when adding the transaction
         return(self.GrepOutput.get(regex_name, None)) # To prevent python from going crazy when a key is missing
 
     def SetError(self, ErrorMessage): # Only called for unknown errors, 404 and other HTTP stuff handled on self.SetResponse
