@@ -37,19 +37,4 @@ DESCRIPTION = "Searches transaction DB for timing information"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-        # TODO: Fix this plugin
-        """
-	NuTransactions = 10
-	SlowTransactions = []
-	Command, IDs = Core.DB.Transaction.GrepTopTransactionIDsBySpeed(NuTransactions, "Desc") # Get Top 10 slowest transactions
-	for ID in IDs:
-		Transaction = Core.DB.Transaction.GetByID(ID)
-		if Transaction: # Transaction Found in DB
-			SlowTransactions.append(Transaction)
-	Content = "<p>Top "+str(len(SlowTransactions))+" slowest transactions</p>"
-	Content += "<p>Hint: You can also sort by time in descending order on the "+Core.Reporter.Render.DrawButtonLink('Transaction log', "../" + Core.Config.GetHTMLTransaclog(False))+"</p>"
-	Content += Core.Reporter.DrawHTTPTransactionTable(SlowTransactions)
-	Content += Core.PluginHelper.DrawCommandTable( Command ) # Show command used to generate info
-	return Content
-        """
-        return []
+        return Core.PluginHelper.FindTopTransactionsBySpeed()

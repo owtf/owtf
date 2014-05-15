@@ -8,28 +8,30 @@
             </ul>
         </td>
     </tr>
-    <tr>
-        <td>
-            <table class="table table-hover table-striped">
-                <tr>
-                    <th>Match</th>
-                    <th>Found In</th>
-                </tr>
-                {% for match, transactions in SortedMatches.items() %}
+    {% if SortedMatches %}
+        <tr>
+            <td>
+                <table class="table table-hover table-striped">
                     <tr>
-                        <td>
-                            <pre class="wrappedPre">{{ match }}</pre>
-                        </td>
-                        <td>
-                            {% for transaction in transactions %}
-                                <button class="btn btn-xs btn-default" onclick="navigateToTransaction('{{ transaction.ID }}');">
-                                    {{ transaction.ID }}
-                                </button>
-                            {% end %}
-                        </td>
+                        <th>Match</th>
+                        <th>Found In</th>
                     </tr>
-                {% end %}
-            </table>
-        </td>
-    </tr>
+                    {% for match, transactions in SortedMatches.items() %}
+                        <tr>
+                            <td>
+                                <pre class="wrappedPre">{{ match }}</pre>
+                            </td>
+                            <td>
+                                {% for transaction in transactions %}
+                                    <a class="label label-primary" onclick="navigateToTransaction('{{ transaction.ID }}');return(false);" target="_blank" href="#">
+                                        {{ transaction.ID }}
+                                    </a>
+                                {% end %}
+                            </td>
+                        </tr>
+                    {% end %}
+                </table>
+            </td>
+        </tr>
+    {% end %}
 </table>

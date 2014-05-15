@@ -55,11 +55,14 @@ class Reporter:
         """ Draws a table of HTTP Transactions """
         # functions to get the first lines of a long string
         transactions = self.Core.DB.Transaction.GetByIDs(TransactionIDs)
-        return self.Loader.load("transaction_table.html").generate(TransactionList = transactions)
+        return self.TransactionTableForTransactions(transactions)
 
     def TransactionTableForURLList( self, UseCache, URLList, Method = '', Data = '' ):
         transactions = self.Core.Requester.GetTransactions(UseCache, URLList, Method, Data)
-        return self.Loader.load("transaction_table.html").generate(TransactionList = transactions)
+        return self.TransactionTableForTransactions(transactions)
+
+    def TransactionTableForTransactions(self, Transactions):
+        return self.Loader.load("transaction_table.html").generate(TransactionList = Transactions)
 
     def unicode(self, *args):
         try:
@@ -158,7 +161,7 @@ class Reporter:
                     SortedMatches[match] = []
                 SortedMatches[match].append(transaction)
         if int(NumInScope):
-            MatchPercent = (len(Transactions)/int(NumInScope))*100
+            MatchPercent = int((len(Transactions)/float(NumInScope))*100)
         else:
             MatchPercent = 0
         vars = {
@@ -174,21 +177,27 @@ class Reporter:
         regex_name, matched_transactions, num_matched_in_scope = self.Core.DB.Transaction.SearchByRegexName(RegexName)
         # [[regex_name, matched_transactions, num_matched_in_scope]]
         if int(num_matched_in_scope):
-            MatchedPercent = (len(matched_transactions)/int(num_matched_in_scope))*100
+            MatchedPercent = int((len(matched_transactions)/float(num_matched_in_scope))*100)
         else:
             MatchedPercent = 0
-        Matches = []
+        SortedMatches = {}
         for transaction in matched_transactions:
-            Matches += transaction.GetGrepOutputFor(regex_name)
-        UniqueMatches = map(list, set(map(tuple, Matches)))
+            for match in transaction.GetGrepOutputFor(regex_name):
+                match = tuple(match)
+                if not SortedMatches.get(match, None):
+                    SortedMatches[match] = transaction
         # [[unique_matches, matched_transactions, matched_percentage]]
-        return [self.Loader.load("header_searches.html").generate(MatchedPercent = MatchedPercent, UniqueMatches = UniqueMatches), UniqueMatches] #TODO: Activate links for values
+        return [self.Loader.load("header_searches.html").generate(MatchedPercent = MatchedPercent, SortedMatches = SortedMatches), SortedMatches] #TODO: Activate links for values
 
     def FingerprintData(self):
-        HeaderTable, UniqueMatches = self.ResearchHeaders('HEADERS_FOR_FINGERPRINT')
-        for Header,Value in UniqueMatches:
-                HeaderTable += self.VulnerabilitySearchBox(Value) # Add Vulnerability search boxes after table
+        HeaderTable, SortedMatches = self.ResearchHeaders('HEADERS_FOR_FINGERPRINT')
+        for Header,Value in SortedMatches.keys():
+            HeaderTable += self.VulnerabilitySearchBox(Value) # Add Vulnerability search boxes after table
         return HeaderTable
+
+    def TopTransactionsBySpeed(self, Order):
+        transactions = self.Core.DB.Transaction.GetTopTransactionsBySpeed(Order)
+        return self.TransactionTableForTransactions(transactions)
 
     def CookieAttributeAnalysis( self, CookieValueList, Header2TransacDict ):
         vars = {
