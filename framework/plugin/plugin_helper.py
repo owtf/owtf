@@ -347,3 +347,9 @@ class PluginHelper:
             plugin_output["type"] = "FingerprintData"
             plugin_output["output"] = {}
             return([plugin_output])
+
+        def FindTopTransactionsBySpeed(self, Order="Desc"):
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "TopTransactionsBySpeed"
+            plugin_output["output"] = {"Order":Order}
+            return([plugin_output])

@@ -239,16 +239,15 @@ class TransactionManager(object):
         session.close()
         return(self.DeriveTransactions(model_objs))
 
-    def GetTopTransactionIDsBySpeed(self, Num = 10, Order = "Asc"):
+    def GetTopTransactionsBySpeed(self, Order = "Desc", Num = 10):
         Session = self.Core.DB.Target.GetTransactionDBSession()
         session = Session()
         if Order == "Desc":
-            results = session.query(models.Transaction.id).order_by(desc(models.Transaction.time)).limit(Num)
+            results = session.query(models.Transaction).order_by(desc(models.Transaction.time)).limit(Num)
         else:
-            results = session.query(models.Transaction.id).order_by(asc(models.Transaction.time)).limit(Num)
+            results = session.query(models.Transaction).order_by(asc(models.Transaction.time)).limit(Num)
         session.close()
-        results = [i[0] for i in results]
-        return(results) # Return list of matched IDs
+        return(self.DeriveTransactions(results))
 
     def CompileHeaderRegex(self, header_list):
         return(re.compile('('+'|'.join(header_list)+'): ([^\r]*)', re.IGNORECASE))

@@ -32,9 +32,7 @@ https://www.owasp.org/index.php/Testing_for_Old,_Backup_and_Unreferenced_Files_(
 DESCRIPTION = "Searches transaction DB for juicy files"
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-#	Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('PassiveApplicationDiscoveryCmd'), PluginInfo)
 	Content = Core.PluginHelper.HtmlString("<p>This plugin shows all URLs classified as 'Files' for review, there could be cool stuff here :)</p>")
-        # TODO: Fix this plugin
+        # TODO: This here won't make any sense
 	# Content += Core.PluginHelper.LinkList('All known File URLs in Scope', Core.DB.GetData('FILE_URLS_DB'))
 	return Content
