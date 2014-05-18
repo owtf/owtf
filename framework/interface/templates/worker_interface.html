@@ -3,8 +3,11 @@
 {% block title %}Worker Interface{% end %}
 
 {% block content %}
+<!-- Worker Info Area -->
 <div class="row" id="workerInfo">
 </div>
+<!-- End Worker Info Area -->
+
 <script>
 var mySpace = {
                     worker_api_url:"{{ worker_api_url }}",
@@ -13,6 +16,7 @@ var mySpace = {
                     target_configs:{},
                 };
 
+// Function to abort a worker using API
 function abortWorker(){
     $.get(mySpace.worker_api_url+'/abort');
 }

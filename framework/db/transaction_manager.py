@@ -136,22 +136,17 @@ class TransactionManager(object):
             owtf_tlist.append(self.DeriveTransaction(transaction))
         return(owtf_tlist)
 
-    def LogTransaction(self, transaction, target_id = None):
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
-        urls_list = []
-        # TODO: This shit will go crazy on non-ascii characters
+    def GetTransactionModel(self, transaction):
         try:
-            unicode(transaction.GetRawResponseBody(), "utf-8")
-            response_body = transaction.GetRawResponseBody()
+            response_body = unicode(transaction.GetRawResponseBody(), "utf-8")
             binary_response = False
-            grep_output = json.dumps(self.GrepTransaction(transaction))
+            grep_output = json.dumps(self.GrepTransaction(transaction)) if transaction.InScope() else None
         except UnicodeDecodeError:
             response_body = base64.b64encode(transaction.GetRawResponseBody())
             binary_response = True
             grep_output = None
         finally:
-            session.merge(models.Transaction( url = transaction.URL,
+            return(models.Transaction( url = transaction.URL,
                                             scope = transaction.InScope(),
                                             method = transaction.Method,
                                             data = transaction.Data,
@@ -164,6 +159,13 @@ class TransactionManager(object):
                                             binary_response = binary_response,
                                             grep_output = grep_output
                                           ))
+
+    def LogTransaction(self, transaction, target_id = None):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
+        session = Session()
+        urls_list = []
+        # TODO: This shit will go crazy on non-ascii characters
+        session.merge(self.GetTransactionModel(transaction))
         urls_list.append([transaction.URL, True, transaction.InScope()])
         session.commit()
         session.close()
@@ -175,29 +177,7 @@ class TransactionManager(object):
         urls_list = []
         for transaction in transaction_list:
             # TODO: This shit will go crazy on non-ascii characters
-            try:
-                unicode(transaction.GetRawResponseBody(), "utf-8")
-                response_body = transaction.GetRawResponseBody()
-                binary_response = False
-                grep_output = json.dumps(self.GrepTransaction(transaction)) if transaction.InScope() else None
-            except UnicodeDecodeError:
-                response_body = base64.b64encode(transaction.GetRawResponseBody())
-                binary_response = True
-                grep_output = None
-            finally:
-                session.merge(models.Transaction( url = transaction.URL,
-                                                scope = transaction.InScope(),
-                                                method = transaction.Method,
-                                                data = transaction.Data,
-                                                time = float(transaction.Time),
-                                                time_human = transaction.TimeHuman,
-                                                raw_request = transaction.GetRawRequest(),
-                                                response_status = transaction.GetStatus(),
-                                                response_headers = transaction.GetResponseHeaders(),
-                                                response_body = response_body,
-                                                binary_response = binary_response,
-                                                grep_output = grep_output
-                                              ))
+            session.merge(self.GetTransactionModel(transaction))
             urls_list.append([transaction.URL, True, transaction.InScope()])
         session.commit()
         session.close()

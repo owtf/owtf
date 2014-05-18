@@ -10,6 +10,7 @@
 
 {% block content %}
 <div class="row">
+    <!-- Input area to add new targets -->
     <div class="col-md-6">
         <div class="row">
             <h3>Add Targets</h3>
@@ -25,6 +26,8 @@
             </div>
         </div>
     </div>
+    <!-- End Input area for new targets -->
+    <!-- Target list -->
     <div class="col-md-6">
         <table id='targetList' class="table table-striped table-condensed">
             <thead>
@@ -37,12 +40,15 @@
             </tbody>
         </table>
     </div>
+    <!-- End Target list -->
 </div>
 <script>
 var mySpace = {
                     targets_api_url:"{{ targets_api_url }}",
                     targets_ui_url:"{{ targets_ui_url }}"
                   };
+
+// Function that adds targets to the target list(table infact)
 function addTargets(data, status, xhr){
     jQuery('#targetList').dataTable().fnClearTable();
     $.each(data, function(index, obj){
@@ -53,10 +59,12 @@ function addTargets(data, status, xhr){
             });
 }
 
+// Function used to update targets in the list, useful when new targets are added so that table can be updated
 function updateTargets(){
     $.getJSON( mySpace.targets_api_url, addTargets);
 }
 
+// Delete target with id using API
 function deleteTarget(target_id){
     $.ajax({
             url:mySpace.targets_api_url+target_id,
@@ -68,6 +76,7 @@ function deleteTarget(target_id){
             });
 }
 
+// Add new targets using API
 function newTargets(targetUrlsString){
     targetUrls = targetUrlsString.split('\n');
     $.each(targetUrls, function(index, targetUrl){
@@ -83,6 +92,7 @@ function newTargets(targetUrlsString){
             });
 }
 
+// The target list table has to be initialized first
 $(document).ready(function() {
         $('#targetList').dataTable({
                                             "bAutoWidth": false,
