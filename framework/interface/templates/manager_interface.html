@@ -6,8 +6,10 @@
 {% end %}
 
 {% block content %}
+<!-- Workers Info Area -->
 <div class="row" id="workersInfo">
 </div>
+<!-- End Workers Info Area -->
 <script>
 var mySpace = {
                     workers_api_url:"{{ workers_api_url }}",
@@ -16,26 +18,31 @@ var mySpace = {
                     target_configs:{},
                 };
 
+// Abort worker with id using API
 function abortWorker(workerId){
     $.get(mySpace.workers_api_url+workerId+'/abort');
 }
 
+// Pause worker with id using API
 function pauseWorker(workerId){
     $.get(mySpace.workers_api_url+workerId+'/pause');
 }
 
+// Resume worker with id using API
 function resumeWorker(workerId){
     $.get(mySpace.workers_api_url+workerId+'/resume');
 }
 
+// Function to get all target configs using API
 function getTargetConfigs(){
-    $.getJSON(mySpace.targets_api_url+'?workers_page', function(data){
+    $.getJSON(mySpace.targets_api_url+'?workers_page', function(data){  // '?workers_page' used to avoid browser returning cached results
             $.each(data, function(index, obj){
                 mySpace.target_configs[obj.ID] = obj;
             });
         });
 }
 
+// Function to get control buttons based on the present state of a worker i.e return pause button if worker is active & vice versa
 function getControlButtons(obj){
     html = '<div class="btn-group pull-right">';
     if (obj.busy){
@@ -50,12 +57,13 @@ function getControlButtons(obj){
     return(html);
 }
 
+// Function which populates worker info & is called at a regular interval
 function displayWorkersInfo(){
     $.ajax({url: mySpace.workers_api_url,
             ifModified: true,
             dataType:'json',
             success:function(data, textStatus, jqXHR){
-                if (304 != jqXHR.status){
+                if (304 != jqXHR.status){  // To do something only when some information has changed, i.e do nothing on 304 Not Modified
                     $('#workersInfo').html('');
                     spanLength = 12/data.length;
                     $.each(data, function(index, obj){
@@ -88,8 +96,8 @@ function displayWorkersInfo(){
 }
 
 $(document).ready(function() {
-        getTargetConfigs();
-        displayWorkersInfo();
+        getTargetConfigs();  // Target configs are to be fetched first
+        displayWorkersInfo();  // Then workers information can be displayed
 });
 </script>
 {% end %}

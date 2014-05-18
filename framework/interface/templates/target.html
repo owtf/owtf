@@ -107,7 +107,7 @@
 <!-- End Plugin Output Filter Modal -->
 
 <script>
-// All api urls needed for calls
+// All api urls needed for calls, these are provided by the server
 var mySpace = {
                     target_api_url:"{{ target_api_url }}",
                     targets_ui_url:"{{ targets_ui_url }}",
@@ -119,21 +119,26 @@ var mySpace = {
                     url_log_url:"{{ url_log_url }}",
                     target_config:{},
                   };
+
+// Global variable for launch table is required to access the plugin selection by user
 var pluginLaunchTable;
-// For loading plugin report
+
+// For loading plugin report, JS fetches the html and places it at designated place
 function updatePluginReport(){
     $.get( mySpace.filtered_poutput_ui_url, function(data){
             $('#pluginReport').html(data);
             });
 }
-// For loading target info dynamically
+
+// Target info loaded using API, target_api_url is helpful for that
 function updateTargetInfo(){
     $.getJSON(mySpace.target_api_url, function(obj){
             mySpace.target_config = obj;
             $('#TargetInfo').html(obj.TARGET_URL+'<small> ('+obj.HOST_IP+')</small>');
             });
 }
-// For adding plugins to launcher
+
+// This is called, when the plugin launcher modal is clicked. So we avoid unneccessary loading of plugin table unless user needs them 
 function addPluginsToLauncher(){
     $.getJSON(mySpace.plugins_api_url, function(data){
             pluginLaunchTable.fnClearTable();
@@ -150,13 +155,15 @@ function addPluginsToLauncher(){
             });
 }
 
+// This is called, at the start to initialize handlers to catch modal launch
 function initializePluginLauncher(){
-	pluginLaunchTable = $('#pluginLaunchTable').dataTable( {
+	pluginLaunchTable = $('#pluginLaunchTable').dataTable({
                 "bAutoWidth":false,
-	} );
-        $('#pluginLaunchModal').on('show.bs.modal', function(e){addPluginsToLauncher();}); // Load plugins only when modal is shown
+	});
+    $('#pluginLaunchModal').on('show.bs.modal', function(e){addPluginsToLauncher();}); // Load plugins only when modal is shown
 }
 
+// Main function that posts using API to launch plugins
 function postToWorkList(pluginData){
     $.ajax({
             url:mySpace.worklist_api_url,
@@ -169,21 +176,25 @@ function postToWorkList(pluginData){
             });
 }
 
+// Close the modal when plugins are launched successfully
 function pluginLaunchSuccess(){
     $('#pluginLaunchModal').modal('hide');
     alertSuccess("Selected plugins launched, please check worklist to manage :D");
 }
 
+// Get the selected plugins data to post to API url
 function getSelectedPlugins(){
     var sData = $('input', pluginLaunchTable.fnGetNodes()).serializeArray();
     return(sData);
 }
 
+// Get details of plugin from the coded value group@type@code
 function getPluginDetails(pluginInputName){
     pluginDetails = pluginInputName.split('@');
     return({'group':pluginDetails[0], 'type':pluginDetails[1], 'code':pluginDetails[2]})
 }
 
+// To launch plugins by type and group
 function launchPluginsByTypeGroup(){
     var pluginTypes = new Array();
     var pluginGroups = new Array();
@@ -202,6 +213,7 @@ function launchPluginsByTypeGroup(){
     postToWorkList(data);
 }
 
+// To launch plugins by group
 function launchPluginsByGroup(){
     var pluginGroups = new Array();
     $.each(getSelectedPlugins(), function(index, obj){
@@ -215,6 +227,7 @@ function launchPluginsByGroup(){
     postToWorkList(data);
 }
 
+// To launch plugins by code
 function launchPluginsByCode(){
     $.each(getSelectedPlugins(), function(index, obj){
             plugin = getPluginDetails(obj.name);
@@ -222,6 +235,7 @@ function launchPluginsByCode(){
             });
 }
 
+// To launch individual plugins
 function launchPlugins(){
     $.each(getSelectedPlugins(), function(index, obj){
             plugin = getPluginDetails(obj.name);
@@ -231,9 +245,9 @@ function launchPlugins(){
 
 // Initialize everything
 $(document).ready(function() {
-        updateTargetInfo()
-        updatePluginReport();
-        initializePluginLauncher();
+        updateTargetInfo()  // The target info is updated using API, kindof crazy but stable way since api is our main maintainance burden
+        updatePluginReport();  // Plugin report is updated using JS
+        initializePluginLauncher();  // Plugin launcher is done through a modal window
 });
 </script>
 {% end %}
