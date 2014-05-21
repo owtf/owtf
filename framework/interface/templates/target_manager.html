@@ -65,7 +65,7 @@ function updateTargets(){
 }
 
 // Delete target with id using API
-function deleteTarget(target_id){
+function deleteTarget(target_id) {
     $.ajax({
             url:mySpace.targets_api_url+target_id,
             type:'DELETE',
@@ -76,10 +76,17 @@ function deleteTarget(target_id){
             });
 }
 
+function isUrl(str) {
+    // TODO: Add all url protocols to support net plugins
+    var urlPattern = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/;
+    return urlPattern.test(str);
+}
+
 // Add new targets using API
-function newTargets(targetUrlsString){
+function newTargets(targetUrlsString) {
     targetUrls = targetUrlsString.split('\n');
     $.each(targetUrls, function(index, targetUrl){
+        if (isUrl(targetUrl)) {
             $.ajax({
                     url:mySpace.targets_api_url,
                     type:'POST',
@@ -89,7 +96,10 @@ function newTargets(targetUrlsString){
                         alertFail("Unable to add "+targetUrl);
                         }
                     });
-            });
+        } else {
+            alertFail(targetUrl+" is not a valid url");
+        }
+    });
 }
 
 // The target list table has to be initialized first
