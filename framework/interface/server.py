@@ -20,7 +20,10 @@ class InterfaceServer(object):
 
     def start(self):
         try:
-            self.server.bind(8009)
+            self.server.bind(
+                int(self.application.Core.Config.FrameworkConfigGet("UI_SERVER_PORT")),
+                address=self.application.Core.Config.FrameworkConfigGet("UI_SERVER_ADDR")
+            )
             tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/ui.log","--logging=info"])
             self.server.start(1)
             self.manager_cron.start()
