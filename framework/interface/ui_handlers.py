@@ -4,6 +4,11 @@ from framework.interface import custom_handlers
 import tornado.web
 import collections
 
+class Redirect(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+    def get(self):
+        self.redirect(self.reverse_url('home_ui_url'))
+
 class Home(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     def get(self):

@@ -288,7 +288,8 @@ class Core:
     def run_plugins(self):
         Status = self.PluginHandler.ProcessPlugins()
         self.InterfaceServer = server.InterfaceServer(self)
-        cprint("Interface Server is about to start")
+        cprint("Interface Server started. Visit http://" + self.Config.FrameworkConfigGet("UI_SERVER_ADDR") + ":" + self.Config.FrameworkConfigGet("UI_SERVER_PORT"))
+        cprint("Press Ctrl+C when you spawned a shell ;)")
         self.InterfaceServer.start()
         if Status['AllSkipped']:
             self.Finish('Skipped')
