@@ -1,0 +1,29 @@
+{
+  "about": "This is a Zest script. For more details about Zest visit https://developer.mozilla.org/en-US/docs/Zest",
+  "zestVersion": "0.3",
+  "title": "Simple test script",
+  "description": "",
+  "prefix": "",
+  "type": "StandAlone",
+  "parameters": {
+    "tokenStart": "{{",
+    "tokenEnd": "}}",
+    "tokens": {},
+    "elementType": "ZestVariables"
+  },
+  "statements": [
+    {
+      "message": "Test",
+      "index": 1,
+      "elementType": "ZestActionPrint"
+    },
+    {
+      "value": "ABCDE",
+      "index": 2,
+      "elementType": "ZestControlReturn"
+    }
+  ],
+  "authentication": [],
+  "index": 0,
+  "elementType": "ZestScript"
+}
