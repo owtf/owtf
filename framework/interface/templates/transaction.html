@@ -7,7 +7,13 @@
     <div class="pull-right">
         <button class="btn btn-primary" href="#" onclick="navigateToTransactionLog();"><i class="fa fa-chevron-circle-left"></i> Go Back To Transaction Log</button>
         <!-- <button class="btn btn-danger" href="#" onclick="deleteTransaction();"><i class="fa fa-times"></i> Delete Transaction</button> Not of Use-->
-    </div>
+        </div>
+        <div class="pull-left">
+         <button class="btn btn-warning" href="# ><i class="fa fa-filter"></i> Forward </button>
+         <button class="btn btn-default" href="#"><i class="fa fa-refresh"></i> Replay </button>
+         <button class="btn btn-danger" onclick="createZestScript();"> Create a Zest Script ! </button>
+     </div>
+  
 </div>
 <br />
 <div class="row">
@@ -38,11 +44,14 @@
         </div>
     </div>
 </div>
+
 <script>
 var mySpace = {
                     transaction_api_url:"{{ transaction_api_url }}",
-                    transaction_log_url:"{{ transaction_log_url }}"
-                  };
+                    transaction_log_url:"{{ transaction_log_url }}",
+                   
+                 
+              };
 
 function navigateToTransactionLog(){
     window.location.href = mySpace.transaction_log_url;
@@ -59,6 +68,19 @@ function deleteTransaction(){
             });
 }
 
+function createZestScript(){
+    $.ajax({
+            url:mySpace.transaction_api_url+"zest",
+            type:'GET',
+            error:function(xhr, textStatus, serverResponse){
+            alert("Server replied: "+serverResponse);
+                }
+                
+            });
+}
+                  
+
+
 function displayTransaction(){
     $.getJSON( mySpace.transaction_api_url, function(obj){
             $("#raw_request").text(obj.raw_request);
@@ -71,6 +93,8 @@ function displayTransaction(){
             }
         });
 }
+
+
 $(document).ready(function() {
         displayTransaction();
         $('#backLink').attr("href", mySpace.transaction_log_url);
