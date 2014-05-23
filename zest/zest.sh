@@ -2,11 +2,11 @@
 
 <<COMM
 echo "request header -  $2"
-echo "rresponse header - $3"
+echo "response header - $3"
 echo "response body -   $4"
 COMM
 
 
 
-java -jar $5/zest/zest.jar "$1" "$2" "$3" "$4" "$5"
+java -jar $5/zest/zest.jar "$1" "$2" "$3" "$4" "$5" 
 
