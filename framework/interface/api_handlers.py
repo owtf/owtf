@@ -100,8 +100,9 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
         self.Res_status = response['response_status']
         self.Root_Dir = self.application.Core.Config.RootDir
         self.Script_Path = self.Root_Dir + "/zest/zest.sh"
+        self.Output_Dir = self.Output_Dir + "/zest_trans_" + transaction_id + ".zst"
         self.SanitizeArgForCommandline()
-        proc = subprocess.call(['sh', self.Script_Path,self.Output_Dir, self.Raw_Request, self.Res_Headers, self.Res_Body,self.Root_Dir])
+        proc = subprocess.call(['sh', self.Script_Path,self.Output_Dir, self.Raw_Request, self.Res_Headers, self.Res_Body, self.Root_Dir])
         #stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
 
     @tornado.web.asynchronous
