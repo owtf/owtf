@@ -70,6 +70,12 @@ class CacheHandler(object):
         request_mod = self.request.method + self.request.url + self.request.version
         request_mod = request_mod + self.request.body + cookie_string
 
+        # To support proxying of ua-tester
+        try:
+            request_mod = request_mod + self.request.headers["User-Agent"]
+        except KeyError:
+            pass
+
         # Websocket caching technique
         try:
             request_mod = request_mod + self.request.headers["Sec-Websocket-Key"]
