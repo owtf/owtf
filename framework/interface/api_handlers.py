@@ -2,6 +2,9 @@ from framework.lib.general import cprint
 from framework.lib import general
 from framework.interface import custom_handlers
 import tornado.web
+import subprocess,os
+
+
 
 
 class PluginDataHandler(custom_handlers.APIRequestHandler):
@@ -84,6 +87,58 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
 
+class ZestScriptHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self, target_id=None, transaction_id=None):
+
+        response = self.application.Core.DB.Transaction.GetByIDAsDict(int(transaction_id), target_id= int(target_id))
+        self.Output_Dir = self.application.Core.DB.Target.PathConfig['URL_OUTPUT']
+        self.Raw_Request = response['raw_request']
+        self.Res_Headers = response['response_headers']
+        self.Res_Body = response['response_body']
+        self.Res_status = response['response_status']
+        self.Root_Dir = self.application.Core.Config.RootDir
+        self.Script_Path = self.Root_Dir + "/zest/zest.sh"
+        self.SanitizeArgForCommandline()
+        proc = subprocess.call(['sh', self.Script_Path,self.Output_Dir, self.Raw_Request, self.Res_Headers, self.Res_Body,self.Root_Dir])
+        #stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    @tornado.web.asynchronous
+    def post(self, target_url):
+        raise tornado.web.HTTPError(405)
+
+    @tornado.web.asynchronous
+    def put(self):
+        raise tornado.web.HTTPError(405)
+
+    @tornado.web.asynchronous
+    def patch(self):
+        #TODO: allow modification of urls from the ui, may be adjusting scope etc.. but i don't understand it's use yet ;)
+        raise tornado.web.httperror(405)  # @UndefinedVariable
+
+    @tornado.web.asynchronous
+    def delete(self, target_id=None):
+        #TODO: allow deleting of urls from the ui
+        raise tornado.web.httperror(405)  # @UndefinedVariable
+
+    def SanitizeArgForCommandline(self):
+        self.Output_Dir = self.AddQuotes(self.Output_Dir)
+        self.Raw_Request = self.AddQuotes(self.Raw_Request)
+        self.Res_Headers = self.Res_status + self.Res_Headers
+        self.Res_Headers = self.AddQuotes(self.Res_Headers)
+        self.Res_Body = self.EscapeForQuotes(self.Res_Body)
+        self.Res_Body = self.AddQuotes(self.Res_Body)
+
+    def AddQuotes(self, content):
+        content = '"' + content + '"'
+        return content
+
+    def EscapeForQuotes(self, content):
+        content.replace('"', '\"')
+        return content
+
+
 class TransactionDataHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'DELETE']
 
@@ -149,12 +204,12 @@ class URLDataHandler(custom_handlers.APIRequestHandler):
     @tornado.web.asynchronous
     def patch(self):
         #TODO: allow modification of urls from the ui, may be adjusting scope etc.. but i don't understand it's use yet ;)
-        raise tornado.web.httperror(405)
+        raise tornado.web.httperror(405)  # @UndefinedVariable
 
     @tornado.web.asynchronous
     def delete(self, target_id=None):
         #TODO: allow deleting of urls from the ui
-        raise tornado.web.httperror(405)
+        raise tornado.web.httperror(405)  # @UndefinedVariable
 
 
 class PluginOutputHandler(custom_handlers.APIRequestHandler):
@@ -300,3 +355,8 @@ class ConfigurationHandler(custom_handlers.APIRequestHandler):
                 self.application.Core.DB.Config.Update(key, value_list[0])
             except general.InvalidConfigurationReference:
                 raise tornado.web.HTTPError(400)
+
+
+class Struct(object):
+        def __init__(self, **entries):
+            self.__dict__.update(entries)
