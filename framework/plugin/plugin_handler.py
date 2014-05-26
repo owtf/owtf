@@ -241,58 +241,91 @@ class PluginHandler:
                     #self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
                 return PluginOutput
 
-        def ProcessPlugin(self, PluginDir, Plugin, Status={}):
-                self.Core.Timer.StartTimer('Plugin') # Time how long it takes the plugin to execute
-                Plugin['start'] = self.Core.Timer.GetStartDateTimeAsStr('Plugin')
-                Plugin['output_path'] = self.GetPluginOutputDir(Plugin)
-                if not self.CanPluginRun(Plugin, True):         
-                        return None # Skip 
-                Status['AllSkipped'] = False # A plugin is going to be run
-                Plugin["status"] = "Running"
+        def ProcessPlugin(self, plugin_dir, plugin, status={}):
+                # Save how long it takes for the plugin to run.
+                self.Core.Timer.StartTimer('Plugin')
+                plugin['start'] = self.Core.Timer.GetStartDateTimeAsStr(
+                    'Plugin')
+                plugin['output_path'] = self.GetPluginOutputDir(plugin)
+                if not self.CanPluginRun(plugin, True):
+                    return None  # Skip.
+                status['AllSkipped'] = False  # A plugin is going to be run.
+                plugin['status'] = 'Running'
                 self.PluginCount += 1
-                #cprint("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.Config.GetTarget()+" -> Plugin: "+Plugin['Title']+" ("+Plugin['Type']+") " + "_" * 10)
-                log("_" * 10 + " "+str(self.PluginCount)+" - Target: "+self.Core.DB.Target.GetTargetURL()+" -> Plugin: "+Plugin['title']+" ("+Plugin['type']+") " + "_" * 10)
+                log(
+                    '_' * 10 + ' ' + str(self.PluginCount) +
+                    ' - Target: ' + self.Core.DB.Target.GetTargetURL() +
+                    ' -> Plugin: ' + plugin['title'] + ' (' +
+                    plugin['type']+ ') ' + '_' * 10)
                 #self.LogPluginExecution(Plugin)
+                # Skip processing in simulation mode, but show until line above
+                # to illustrate what will run
                 if self.Simulation:
-                        return None # Skip processing in simulation mode, but show until line above to illustrate what will run
-                if 'grep' == Plugin['type'] and self.Core.DB.Transaction.NumTransactions() == 0: # DB empty = grep plugins will fail, skip!!
-                        #cprint("Skipped - Cannot run grep plugins: The Transaction DB is empty")
-                        log("Skipped - Cannot run grep plugins: The Transaction DB is empty")
-                        return None
+                    return None
+                # DB empty => grep plugins will fail, skip!!
+                if ('grep' == plugin['type'] and
+                        self.Core.DB.Transaction.NumTransactions() == 0):
+                    log(
+                        'Skipped - Cannot run grep plugins: '
+                        'The Transaction DB is empty')
+                    return None
                 try:
-                        output = self.RunPlugin(PluginDir, Plugin)
-                        Plugin["status"] = "Successful"
-                        Plugin["end"] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
-                        Status['SomeSuccessful'] = True
-                        self.Core.DB.POutput.SavePluginOutput(Plugin, output, self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
-                        return output
+                    output = self.RunPlugin(plugin_dir, plugin)
+                    plugin['status'] = 'Successful'
+                    plugin['end'] = self.Core.Timer.GetEndDateTimeAsStr(
+                        'Plugin')
+                    status['SomeSuccessful'] = True
+                    self.Core.DB.POutput.SavePluginOutput(
+                        plugin,
+                        output,
+                        self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
+                    return output
                 except KeyboardInterrupt:
-                        # Just explan why crashed
-                        Plugin["status"] = "Aborted"
-                        Plugin["end"] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
-                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, [], "Aborted by User", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
-                        self.Core.Error.UserAbort("Plugin")
-                        Status['SomeAborted (Keyboard Interrupt)'] = True
+                    # Just explain why crashed.
+                    plugin['status'] = 'Aborted'
+                    plugin['end'] = self.Core.Timer.GetEndDateTimeAsStr(
+                        'Plugin')
+                    self.Core.DB.POutput.SavePartialPluginOutput(
+                        plugin,
+                        [],
+                        'Aborted by User',
+                        self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
+                    self.Core.Error.UserAbort('Plugin')
+                    status['SomeAborted (Keyboard Interrupt)'] = True
                 except SystemExit:
-                        raise SystemExit # Abort plugin processing and get out to external exception handling, information saved elsewhere
+                    # Abort plugin processing and get out to external exception
+                    # handling, information saved elsewhere.
+                    raise SystemExit
                 except PluginAbortException, PartialOutput:
-                        #self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Plugin Only)", Plugin) # Save the partial output, but continue to process other plugins
-                        Plugin["status"] = "Aborted (by user)"
-                        Plugin["end"] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
-                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, PartialOutput.parameter, "Aborted by User", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
-                        Status['SomeAborted'] = True
+                    plugin['status'] = 'Aborted (by user)'
+                    plugin['end'] = self.Core.Timer.GetEndDateTimeAsStr(
+                        'Plugin')
+                    self.Core.DB.POutput.SavePartialPluginOutput(
+                        plugin,
+                        PartialOutput.parameter,
+                        'Aborted by User',
+                        self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
+                    status['SomeAborted'] = True
                 except UnreachableTargetException, PartialOutput:
-                        #self.DB.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
-                        Plugin["status"] = "Unreachable Target"
-                        Plugin["end"] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
-                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, PartialOutput.parameter, "Unreachable Target", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
-                        Status['SomeAborted'] = True
+                    plugin['status'] = 'Unreachable Target'
+                    plugin['end'] = self.Core.Timer.GetEndDateTimeAsStr(
+                        'Plugin')
+                    self.Core.DB.POutput.SavePartialPluginOutput(
+                        plugin,
+                        PartialOutput.parameter,
+                        'Unreachable Target',
+                        self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
+                    status['SomeAborted'] = True
                 except FrameworkAbortException, PartialOutput:
-                        #self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Framework Exit)", Plugin) # Save the partial output and exit
-                        Plugin["status"] = "Aborted (Framework Exit)"
-                        Plugin["end"] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
-                        self.Core.DB.POutput.SavePartialPluginOutput(Plugin, PartialOutput.parameter, "Framework Aborted", self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
-                        self.Core.Finish("Aborted")
+                    plugin['status'] = 'Aborted (Framework Exit)'
+                    plugin['end'] = self.Core.Timer.GetEndDateTimeAsStr(
+                        'Plugin')
+                    self.Core.DB.POutput.SavePartialPluginOutput(
+                        plugin,
+                        PartialOutput.parameter,
+                        'Framework Aborted',
+                        self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
+                    self.Core.Finish("Aborted")
                 #TODO: Handle this gracefully
                 #except: # BUG
                 #        Plugin["status"] = "Crashed"
@@ -321,50 +354,62 @@ class PluginHandler:
             return self.Core.Config.Plugin.GetOrder(PluginGroup)
 
         def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList): # TargetList param will be useful for netsec stuff to call this
-                PluginDir = self.GetPluginGroupDir(PluginGroup)
-                if PluginGroup == 'net':
-                        portwaves =  self.Core.Config.Get('PORTWAVES')
-                        waves = portwaves.split(',')
-                        waves.append('-1')
-                        lastwave=0
-                        for Target in TargetList: # For each Target 
-                                self.scanner.scan_network(Target)
-                                #Scanning and processing the first part of the ports
-                                for i in range(1):
-                                        ports = self.Core.Config.GetTcpPorts(lastwave,waves[i])
-                                        print "probing for ports" + str(ports)      
-                                        http = self.scanner.probe_network(Target,"tcp",ports)
-                                        self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-                                        for Plugin in self.get_plugins_in_order_for_PluginGroup(PluginGroup):# For each Plugin
-                                                self.ProcessPlugin( PluginDir, Plugin, Status )
-                                        lastwave = waves[i]
-                                        for http_ports in http:
-                                                if http_ports == '443':
-                                                        self.ProcessPluginsForTargetList('web',{ 'SomeAborted' : False, 'SomeSuccessful' : False, 'AllSkipped' : True },{"https://"+Target.split("//")[1]})
-                                                else:
-                                                        self.ProcessPluginsForTargetList('web',{ 'SomeAborted' : False, 'SomeSuccessful' : False, 'AllSkipped' : True },{Target})
-                                   
-                    
-                else:
-                        pass
-                        #self.WorkerManager.startinput()
-                        #self.WorkerManager.fillWorkList(PluginGroup,TargetList)
-                        #self.WorkerManager.spawn_workers()
-                        #self.WorkerManager.manage_workers()
-                        #self.WorkerManager.poisonPillToWorkers()
-                        #Status = self.WorkerManager.joinWorker()
-                        #if 'breadth' == self.Algorithm: # Loop plugins, then targets
-                        #       for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
-                        #               #print "Processing Plugin="+str(Plugin)
-                        #               for Target in TargetList: # For each Target 
-                        #                       #print "Processing Target="+str(Target)
-                        #                       self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-                        #                       self.ProcessPlugin( PluginDir, Plugin, Status )
-                        #elif 'depth' == self.Algorithm: # Loop Targets, then plugins
-                        #       for Target in TargetList: # For each Target
-                        #               self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-                        #               for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
-                        #                       self.ProcessPlugin( PluginDir, Plugin, Status )
+            PluginDir = self.GetPluginGroupDir(PluginGroup)
+            if PluginGroup == 'net':
+                portwaves =  self.Core.Config.Get('PORTWAVES')
+                waves = portwaves.split(',')
+                waves.append('-1')
+                lastwave=0
+                for Target in TargetList: # For each Target
+                    self.scanner.scan_network(Target)
+                    #Scanning and processing the first part of the ports
+                    for i in range(1):
+                        ports = self.Core.Config.GetTcpPorts(lastwave,waves[i])
+                        print "probing for ports" + str(ports)
+                        http = self.scanner.probe_network(Target, 'tcp', ports)
+                        # Tell Config that all Gets/Sets are now
+                        # Target-specific.
+                        self.SwitchToTarget(Target)
+                        for Plugin in self.get_plugins_in_order_for_PluginGroup(PluginGroup):
+                            self.ProcessPlugin(PluginDir, Plugin, Status)
+                        lastwave = waves[i]
+                        for http_ports in http:
+                            if http_ports == '443':
+                                self.ProcessPluginsForTargetList(
+                                    'web', {
+                                        'SomeAborted': False,
+                                        'SomeSuccessful': False,
+                                        'AllSkipped': True},
+                                    {'https://' + Target.split('//')[1]}
+                                    )
+                            else:
+                                self.ProcessPluginsForTargetList(
+                                    'web', {
+                                        'SomeAborted': False,
+                                        'SomeSuccessful': False,
+                                        'AllSkipped': True},
+                                    {Target}
+                                    )
+            else:
+                pass
+                #self.WorkerManager.startinput()
+                #self.WorkerManager.fillWorkList(PluginGroup,TargetList)
+                #self.WorkerManager.spawn_workers()
+                #self.WorkerManager.manage_workers()
+                #self.WorkerManager.poisonPillToWorkers()
+                #Status = self.WorkerManager.joinWorker()
+                #if 'breadth' == self.Algorithm: # Loop plugins, then targets
+                #       for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
+                #               #print "Processing Plugin="+str(Plugin)
+                #               for Target in TargetList: # For each Target 
+                #                       #print "Processing Target="+str(Target)
+                #                       self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
+                #                       self.ProcessPlugin( PluginDir, Plugin, Status )
+                #elif 'depth' == self.Algorithm: # Loop Targets, then plugins
+                #       for Target in TargetList: # For each Target
+                #               self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
+                #               for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
+                #                       self.ProcessPlugin( PluginDir, Plugin, Status )
 
         def CleanUp(self):
             self.WorkerManager.cleanUp()
