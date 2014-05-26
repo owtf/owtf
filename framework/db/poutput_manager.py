@@ -124,20 +124,28 @@ class POutputDB(object):
             return(self.DeriveOutputDict(plugin_output, Target))
         return(plugin_output) # This is nothin but a "None" returned
 
-    def SavePluginOutput(self, Plugin, Output, Duration, Target=None):
-        Session = self.Core.DB.Target.GetOutputDBSession(Target)
-        session = Session()
-        session.merge(models.PluginOutput(  key = Plugin["key"],
-                                            plugin_code = Plugin["code"],
-                                            plugin_group = Plugin["group"],
-                                            plugin_type = Plugin["type"],
-                                            output = json.dumps(Output),
-                                            start_time = Plugin["start"],
-                                            end_time = Plugin["end"],
-                                            execution_time = Duration,
-                                            status = Plugin["status"],
-                                            output_path = Plugin["output_path"]
-                                         ))
+    def SavePluginOutput(self,
+                         plugin,
+                         output,
+                         duration,
+                         target=None,
+                         owtf_rank=None):
+        """Save into the database the command output of the plugin `plugin."""
+        session = self.Core.DB.Target.GetOutputDBSession(target)
+        session = session()
+        session.merge(models.PluginOutput(
+            key = plugin["key"],
+            plugin_code = plugin["code"],
+            plugin_group = plugin["group"],
+            plugin_type = plugin["type"],
+            output = json.dumps(output),
+            start_time = plugin["start"],
+            end_time = plugin["end"],
+            execution_time = duration,
+            status = plugin["status"],
+            output_path = plugin["output_path"],
+            owtf_rank=owtf_rank)
+            )
         session.commit()
         session.close()
 

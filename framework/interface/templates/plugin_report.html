@@ -29,11 +29,20 @@
                                 <blockquote><h4>{{ poutput['plugin_type'].replace('_',' ').capitalize() }}</h4><small>{{ poutput['plugin_code'] }}</small></blockquote>
                             </div>
                             <div class="pull-right" data-toggle="buttons">
+                                {# TODO: Update highlights when toggled/untoggled. #}
                                 {% set user_rank = poutput['user_rank'] %}
-                                <label class="btn {% if user_rank == 0 %}active{% end %}"><input type="radio" id="0" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
-                                <label class="btn {% if user_rank == 1 %}active{% end %}"><input type="radio" id="1" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-warning"></i></label>
-                                <label class="btn {% if user_rank == 2 %}active{% end %}"><input type="radio" id="2" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-times-circle-o"></i></label>
-                                <label class="btn {% if user_rank == 3 %}active{% end %}"><input type="radio" id="3" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-bug"></i></label>
+                                {% if user_rank in [0, 1, 2, 3] %}
+                                <label class="btn {% if user_rank == 0 %}active btn-info{% end %}"><input type="radio" id="0" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
+                                <label class="btn {% if user_rank == 1 %}active btn-primary{% end %}"><input type="radio" id="1" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-warning"></i></label>
+                                <label class="btn {% if user_rank == 2 %}active btn-warning{% end %}"><input type="radio" id="2" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-times-circle-o"></i></label>
+                                <label class="btn {% if user_rank == 3 %}active btn-danger{% end %}"><input type="radio" id="3" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-bug"></i></label>
+                                {% else %}
+                                {% set owtf_rank = poutput['owtf_rank'] %}
+                                <label class="btn {% if owtf_rank == 0 %}active" style="background: #858585{% end %}"><input type="radio" id="0" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
+                                <label class="btn {% if owtf_rank == 1 %}active" style="background: #858585{% end %}"><input type="radio" id="1" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-warning"></i></label>
+                                <label class="btn {% if owtf_rank == 2 %}active" style="background: #858585{% end %}"><input type="radio" id="2" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-times-circle-o"></i></label>
+                                <label class="btn {% if owtf_rank == 3 %}active" style="background: #858585{% end %}"><input type="radio" id="3" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-bug"></i></label>
+                                {% end %}
                             </div>
                             <br />
                             <br />
