@@ -6,7 +6,7 @@
 """
 
 
-class Info(object):
+class Info(dict):
     """Representation of a result from a report provided by a pentesting tool.
 
         + name: the name of the vulnerability
@@ -15,19 +15,14 @@ class Info(object):
         + kwargs: any key/value attributes the vuln might contain
 
     """
+    __getattr__= dict.__getitem__
+    __setattr__= dict.__setitem__
+    __delattr__= dict.__delitem__
 
     def __init__(self, name=None, ranking=None, description=None, **kwargs):
         """Self-explanatory."""
         self.name = name
         self.ranking = ranking
         self.description = description
-        for key, value in kwargs:
-            self.key = value
-
-    def __str__(self):
-        """String representation of the Info class.
-
-        Can be used to be encoded into a json string and saved into a database.
-
-        """
-        return str(self.__dict__)
+        for key, value in kwargs.items():
+            self[key] = value

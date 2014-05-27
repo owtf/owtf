@@ -30,13 +30,21 @@ class AbstractReport(object):
     def __str__(self):
         return ', '.join([info.__str__() for info in self.vulns])
 
-    def _lowest_ranking(self):
-        """From the ranking scale, retrieve the lowest ranking id possible."""
-        return min([value for value in RANKING_SCALE.values()])
+    def _lowest_risk(self):
+        """Retrieve the ranking id of the lowest risk possible.
 
-    def _highest_ranking(self):
-        """From the ranking scale, retrieve the highest ranking id possible."""
+        According the the ranking scale, 3 represents the lowest.
+
+        """
         return max([value for value in RANKING_SCALE.values()])
+
+    def _highest_risk(self):
+        """Retrieve the ranking id of the highest risk possible.
+
+        According the the ranking scale, 0 represents the lowest.
+
+        """
+        return min([value for value in RANKING_SCALE.values()])
 
     @classmethod
     def is_mine(cls, pathname, filename=None):
@@ -87,9 +95,9 @@ class AbstractReport(object):
         # Be sure that the parsing already happened.
         if self.vulns is None:
             self.parser(*args, **kwargs)
-        highest_possible_ranking = self._highest_ranking()
+        highest_possible_ranking = self._highest_risk()
         # Default highest ranking set to the lowest possible value.
-        highest_ranking = self._lowest_ranking()
+        highest_ranking = self._lowest_risk()
         for vuln in self.vulns:
             if RANKING_SCALE[vuln.ranking] < RANKING_SCALE[highest_ranking]:
                 highest_ranking = vuln.ranking
