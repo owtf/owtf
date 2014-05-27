@@ -249,10 +249,13 @@ class PluginHandler:
                 #(Name, Ext) = os.path.splitext(Name)
                 self.Core.DB.Debug.Add("Running Plugin -> Plugin="+str(Plugin)+", PluginDir="+str(PluginDir))
                 PluginOutput = self.GetModule("", Name, Path+"/").run(self.Core, Plugin)
-                if save_output:
-                        self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
-                return PluginOutput
-
+                if save_output :
+			try :
+                        	self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
+                		return PluginOutput
+			except AttributeError:
+				print(" Enter all the parameters correctly and try again. ")
+				print("Use ./owtf.py -h for the help menu")
         def ProcessPlugin(self, PluginDir, Plugin, Status):
                 self.Core.Timer.StartTimer('Plugin') # Time how long it takes the plugin to execute
                 Plugin['Start'] = self.Core.Timer.GetStartDateTimeAsStr('Plugin')
@@ -270,34 +273,39 @@ class PluginHandler:
                         #cprint("Skipped - Cannot run grep plugins: The Transaction DB is empty")
                         log("Skipped - Cannot run grep plugins: The Transaction DB is empty")
                         return None
-                try:
-                        output = self.RunPlugin(PluginDir, Plugin)
-                        Plugin["Status"] = "Successful"
-                        Status['SomeSuccessful'] = True
-                        return output
-                except KeyboardInterrupt:
-                        self.SavePluginInfo("Aborted by user", Plugin) # cannot save anything here, but at least explain why
-                        Plugin["Status"] = "Aborted"
-                        self.Core.Error.UserAbort("Plugin")
+
+		try:
+	        	output = self.RunPlugin(PluginDir, Plugin)
+	                Plugin["Status"] = "Successful"
+	                Status['SomeSuccessful'] = True
+	                return output
+	        except KeyboardInterrupt:
+	                self.SavePluginInfo("Aborted by user", Plugin) # cannot save anything here, but at least explain why
+	                Plugin["Status"] = "Aborted"
+	                self.Core.Error.UserAbort("Plugin")
                         Status['SomeAborted (Keyboard Interrupt)'] = True
-                except SystemExit:
+	        except SystemExit:
                         raise SystemExit # Abort plugin processing and get out to external exception handling, information saved elsewhere
-                except PluginAbortException, PartialOutput:
-                        self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Plugin Only)", Plugin) # Save the partial output, but continue to process other plugins
-                        Plugin["Status"] = "Aborted (by user)"
+	        except PluginAbortException, PartialOutput:
+	                self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Plugin Only)", Plugin) #Save the partial output, but continue to process other plugins
+	                Plugin["Status"] = "Aborted (by user)"
                         Status['SomeAborted'] = True
-                except UnreachableTargetException, PartialOutput:
-                        self.DB.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
+	        except UnreachableTargetException, PartialOutput:
+	                self.DB.Add('UNREACHABLE_DB', self.Core.Config.GetTarget()) # Mark Target as unreachable
                         Plugin["Status"] = "Unreachable Target"
                         Status['SomeAborted'] = True
-                except FrameworkAbortException, PartialOutput:
-                        self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Framework Exit)", Plugin) # Save the partial output and exit
+	        except FrameworkAbortException, PartialOutput:
+	                self.SavePluginInfo(str(PartialOutput.parameter)+"\nNOTE: Plugin aborted by user (Framework Exit)", Plugin) # Save the partial output and exit
+		
                         Plugin["Status"] = "Aborted (Framework Exit)"
-                        self.Core.Finish("Aborted")
-                except: # BUG
-                        Plugin["Status"] = "Crashed"
+	                self.Core.Finish("Aborted")
+		except AttributeError:
+			print("Use ./owtf.py -h for the help menu")
+		except: # BUG
+	                Plugin["Status"] = "Crashed"
                         self.SavePluginInfo(self.Core.Error.Add("Plugin "+Plugin['Type']+"/"+Plugin['File']+" failed for target "+self.Core.Config.Get('TARGET')), Plugin) # Try to save something
                         #TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
+				
 
         def ProcessPlugins(self):
                 Status = { 'SomeAborted' : False, 'SomeSuccessful' : False, 'AllSkipped' : True }
@@ -368,8 +376,8 @@ class PluginHandler:
 
         def SavePluginInfo(self, PluginOutput, Plugin):
                 self.Core.DB.SaveDBs() # Save new URLs to DB after each request
-                self.Core.Reporter.SavePluginReport(PluginOutput, Plugin) # Timer retrieved by Reporter
-
+		if PluginOutput and Plugin:                
+			self.Core.Reporter.SavePluginReport(PluginOutput, Plugin) # Timer retrieved by Reporter
         def ShowPluginList(self):
                 if self.ListPlugins == 'web':
                         self.ShowWebPluginsBanner()
