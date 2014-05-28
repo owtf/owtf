@@ -1,6 +1,6 @@
 <div class="panel-group" id="pluginOutputs">
     {% for test_code, poutput_list in grouped_plugin_outputs.items() %}
-        <div class="panel panel-default">
+        <div id="header_{{ test_code }}" class="panel panel-default" id="panel_plugin">
             <div class="panel-heading">
               <h4 class="panel-title">
                   <a data-toggle="collapse" data-parent="#pluginOutputs" href="#{{ test_code }}">
@@ -32,16 +32,16 @@
                                 {# TODO: Update highlights when toggled/untoggled. #}
                                 {% set user_rank = poutput['user_rank'] %}
                                 {% if user_rank in [0, 1, 2, 3] %}
-                                <label class="btn {% if user_rank == 0 %}active btn-info{% end %}"><input type="radio" id="0" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
-                                <label class="btn {% if user_rank == 1 %}active btn-primary{% end %}"><input type="radio" id="1" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-warning"></i></label>
-                                <label class="btn {% if user_rank == 2 %}active btn-warning{% end %}"><input type="radio" id="2" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-times-circle-o"></i></label>
-                                <label class="btn {% if user_rank == 3 %}active btn-danger{% end %}"><input type="radio" id="3" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-bug"></i></label>
+                                <label id="{{ test_code }}_0" class="btn {% if user_rank == 0 %}active btn-info{% end %}"><input type="radio" id="0" onchange="updateInfoAndPatch('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
+                                <label id="{{ test_code }}_1" class="btn {% if user_rank == 1 %}active btn-primary{% end %}"><input type="radio" id="1" onchange="updateInfoAndPatch('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-warning"></i></label>
+                                <label id="{{ test_code }}_2" class="btn {% if user_rank == 2 %}active btn-warning{% end %}"><input type="radio" id="2" onchange="updateInfoAndPatch('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-times-circle-o"></i></label>
+                                <label id="{{ test_code }}_3" class="btn {% if user_rank == 3 %}active btn-danger{% end %}"><input type="radio" id="3" onchange="updateInfoAndPatch('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-bug"></i></label>
                                 {% else %}
                                 {% set owtf_rank = poutput['owtf_rank'] %}
-                                <label class="btn {% if owtf_rank == 0 %}active" style="background: #858585{% end %}"><input type="radio" id="0" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
-                                <label class="btn {% if owtf_rank == 1 %}active" style="background: #858585{% end %}"><input type="radio" id="1" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-warning"></i></label>
-                                <label class="btn {% if owtf_rank == 2 %}active" style="background: #858585{% end %}"><input type="radio" id="2" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-times-circle-o"></i></label>
-                                <label class="btn {% if owtf_rank == 3 %}active" style="background: #858585{% end %}"><input type="radio" id="3" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-bug"></i></label>
+                                <label id="{{ test_code }}_0" class="btn {% if owtf_rank == 0 %}active btn-info" style="opacity: 0.5{% end %}"><input type="radio" id="0" onchange="updateInfoAndPatch('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
+                                <label id="{{ test_code }}_1" class="btn {% if owtf_rank == 1 %}active btn-primary" style="opacity: 0.5{% end %}"><input type="radio" id="1" onchange="updateInfoAndPatch('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-warning"></i></label>
+                                <label id="{{ test_code }}_2" class="btn {% if owtf_rank == 2 %}active btn-warning" style="opacity: 0.5{% end %}"><input type="radio" id="2" onchange="updateInfoAndPatch('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-times-circle-o"></i></label>
+                                <label id="{{ test_code }}_3" class="btn {% if owtf_rank == 3 %}active btn-danger" style="opacity: 0.5{% end %}"><input type="radio" id="3" onchange="updateInfoAndPatch('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-bug"></i></label>
                                 {% end %}
                             </div>
                             <br />
@@ -167,5 +167,45 @@ function handleEditor(group, type, code, instance){ // Same function called both
 
 function navigateToTransaction(id){
     window.open(pluginSpace.transaction_log_url+id);
+}
+
+function reset_colors(id) {
+    $("#" + id + "_0").removeClass("btn-info");
+    $("#" + id + "_0").css("opacity", "");
+    $("#" + id + "_1").removeClass("btn-primary");
+    $("#" + id + "_1").css("opacity", "");
+    $("#" + id + "_2").removeClass("btn-warning");
+    $("#" + id + "_2").css("opacity", "");
+    $("#" + id + "_3").removeClass("btn-danger");
+    $("#" + id + "_3").css("opacity", "");
+    $("#header_" + id).removeClass("panel-info panel-primary panel-warning panel-danger");
+};
+
+function updateInfoAndPatch(group, type, code, user_rank) {
+    var id = $("#" + code + "_" + user_rank);
+    var header_id = $("#header_" + code);
+    var new_class = "";
+
+    reset_colors(code);
+
+    if (user_rank == '0')
+        new_class = "info";
+    else if (user_rank == '1')
+        new_class = "primary";
+    else if (user_rank == '2')
+        new_class = "warning";
+    else if (user_rank == '3')
+        new_class = "danger";
+
+    $(id).toggleClass("btn-" + new_class);
+    if ($(id).hasClass("btn-" + new_class)) {
+        $(header_id).removeClass("panel-default");
+        $(header_id).addClass("panel-" + new_class);
+    }
+    else {
+        $(header_id).removeClass("panel-" + new_class);
+        $(header_id).addClass("panel-default");
+    }
+    patchUserRank(group, type, code, user_rank);
 }
 </script>
