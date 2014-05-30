@@ -1,6 +1,6 @@
 <div class="panel-group" id="pluginOutputs">
     {% for test_code, poutput_list in grouped_plugin_outputs.items() %}
-        <div class="panel panel-default">
+        <div id="header_{{ test_code }}"class="panel panel-default">
             <div class="panel-heading" style="padding: 0 15px">
                 <div class="row">
                     <div class="col-md-10" style="padding-left: 15px">
@@ -11,7 +11,7 @@
                         </h4>
                     </div>
                     <div class="col-md-2" style="text-align: center;">
-                        <h4 id="header_{{ test_code }}"></h4>
+                        <h4 id="header_badge_{{ test_code }}"></h4>
                     </div>
                 </div>
             </div>
@@ -194,7 +194,7 @@ function resetPluginColors(id) {
 };
 
 function resetTestCaseColors(id) {
-    $("#header_" + id).removeClass("alert-success alert-info alert-warning alert-danger");
+    $("#header_" + id).removeClass("panel-success panel-info panel-warning panel-danger");
 }
 
 function getAlertColor(level) {
@@ -267,10 +267,12 @@ function updateTestCaseInfo() {
             }
         });
         testCaseMax = (maxUserRank > maxOWTFRank) ? maxUserRank : maxOWTFRank;
-        $("#header_" + code).css("opacity", "");
-        $("#header_" + code).html('<i><small>' + getLabelColor(testCaseMax) + '</small></i>');
+        resetTestCaseColors(code);
+        $("#header_" + code).toggleClass("panel-" + getAlertColor(testCaseMax));
+        $("#header_badge_" + code).css("opacity", "");
+        $("#header_badge_" + code).html('<i><small>' + getLabelColor(testCaseMax) + '</small></i>');
         if (testCaseMax > maxUserRank && testCaseMax != null)
-            $('#header_' + code).css("opacity", "0.7");
+            $('#header_badge_' + code).css("opacity", "0.7");
     });
 }
 
