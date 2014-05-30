@@ -11,6 +11,7 @@ def get_handlers(Core):
                 tornado.web.URLSpec(r'/api/plugins/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginDataHandler, name='plugins_api_url'),
                 tornado.web.URLSpec(r'/api/targets/?([0-9]+)?/?$', api_handlers.TargetConfigHandler, name='targets_api_url'),
                 tornado.web.URLSpec(r'/api/targets/([0-9]+)/urls/?$', api_handlers.URLDataHandler, name='urls_api_url'),
+                tornado.web.URLSpec(r'/api/targets/([0-9]+)/transactions/zest/?$', api_handlers.ZestScriptHandler, name='zest_log_url'),
                 tornado.web.URLSpec(r'/api/targets/([0-9]+)/transactions/([0-9]+)/zest/?$', api_handlers.ZestScriptHandler, name='zest_api_url'),
                 tornado.web.URLSpec(r'/api/targets/([0-9]+)/transactions/?([0-9]+)?/?$', api_handlers.TransactionDataHandler, name='transactions_api_url'),
                 tornado.web.URLSpec(r'/api/targets/([0-9]+)/poutput/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginOutputHandler, name='poutput_api_url'),

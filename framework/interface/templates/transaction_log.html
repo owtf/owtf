@@ -6,14 +6,41 @@
 <script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
 <link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
+<link href="/static/css/bootstrap.min.css" rel="stylesheet">
+<style type="text/css">
+
+.top-buffer { margin-bottom:30px; }
+.check {}
+.launch-modal {margin: 20px;}
+.modal-dialog-center{
+  width: 320px;
+  margin: 0;
+  position: absolute;
+  top: 35%;
+  left: 42%;
+}
+.clear { clear: both; height: 80px; }
+
+</style>
+
 {% end %}
 
+
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <table id="transactionLog" class="table table-striped table-bordered">
+<div id="wrap">
+  <div class="container">
+    <div class="row top-buffer">
+       <div class="col-mid-12">
+         <button class="btn btn-danger" onclick="createZestBtn()" id="createZest">Create Zest Script !</button>
+       </div>
+    </div>
+
+    <div class="row ">
+      <div class="col-mid-12">
+         <table id="transactionLog" class="table table-striped table-bordered">
             <thead>
                 <tr>
+                    <th>Select</th>
                     <th> ID </th>
                     <th> Link </th>
                     <th> Scope </th>
@@ -28,17 +55,61 @@
             <tbody>
             </tbody>
         </table>
-    </div>
+      </div>
+   </div>
+  </div>
 </div>
+
+<!--Fixed-footer for Zest creation-->
+<div class="clear"></div>  <!--used for margin between body and footer-->
+  <div class="navbar navbar-default navbar-fixed-bottom" id="#fixed_bar">
+   <div class= container >
+    <div style="text-align: center;">
+      <button class="btn btn-primary btn-lg launch-modal" id="sendBtn" data-toggle="modal" data-target="#ScriptModal" disabled="true">Send
+      </button>
+      <button class="btn btn-danger btn-lg" onclick="CloseFooter()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!--Script Name Modal-->
+<div class="modal fade" id="ScriptModal" tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog-center">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button"  class="close"  data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Enter Script Name :</h4>
+      </div>
+      <div class="modal-body">
+        <p id="Filecheck" style="color:red"></p>
+        <input type="text" id="textareaID" class="form-control"></input>
+      </div>
+      <div class="modal-footer">
+         <button type="button" class="btn btn-primary" id="saveBtn" onclick="RequestSender()">Generate!</button>
+        <button type="button" class="btn btn-default"  data-dismiss="modal">Cancel</button>
+       
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+
 var mySpace = {
                     max_id:0,
                     transactions_api_url:"{{ transactions_api_url }}",
                     transaction_log_url:"{{ transaction_log_url }}"
                   };
+
+
+var transactionLog;
+
 function addTransactions(data, status, xhr){
     $.each(data, function(index, obj){
             jQuery('#transactionLog').dataTable().fnAddData([
+                                                           
+                                                '<input  type="checkbox"  class="check" name="'+obj.id+'"/>',
                                                 obj.id,
                                                 '<a href="'+mySpace.transaction_log_url+obj.id+'"><span class="btn btn-primary btn-sm"><i class="fa fa-chevron-circle-right"></i> View</span></a>',
                                                 obj.scope,
@@ -53,6 +124,151 @@ function addTransactions(data, status, xhr){
             });
 }
 
+var oTable;
+
+//function to make checkboxes and footer visible
+function createZestBtn(){
+
+        disableButton("createZest");
+        fnShowHide(0);
+        MakeFootervisible();
+}
+
+//function to toggle visibility of a column in datable
+function fnShowHide( iCol ){
+   
+        oTable = $('#transactionLog').dataTable();
+        var bVis = oTable.fnSettings().aoColumns[iCol].bVisible;
+        oTable.fnSetColumnVis( iCol, bVis ? false : true );
+}
+
+//functions to disable/enable buttons using id
+
+function disableButton(id){
+
+        id='#'+id;
+        $(id).prop("disabled",true);
+
+}
+
+function enableButton(id){
+
+        id='#'+id;
+        $(id).removeAttr('disabled');
+}
+
+//handles close button events - 1)Hide column 2) disable footer 3) enable create zest script button
+
+function CloseFooter(){
+
+        MakeFooterInvisible();
+        $('input:checkbox').removeAttr('checked');
+        fnShowHide(0); 
+        enableButton("createZest");
+}
+
+//functions to make footer visible/invisible
+
+function MakeFooterInvisible(){
+
+        $('div[id="#fixed_bar"]').hide();
+}
+function MakeFootervisible(){
+
+        $('div[id="#fixed_bar"]').show();
+}
+
+//enables send button only if at least one check box is ticked - event delegation
+
+$(document).on('click','input:checkbox', function () {
+
+        if ($('.check:checked').length) {
+          enableButton("sendBtn");
+        } 
+        else{
+          disableButton("sendBtn");
+        }
+});
+
+//clears text 
+function ClearText(id){
+
+        id='#'+id;
+        $(id).val('');
+}
+
+// focuses/clears textbox in script modal window
+
+$('#ScriptModal').on('show.bs.modal', function (e) {
+   
+        $('#textareaID').focus();
+        ClearText("textareaID");
+        $("#Filecheck").text('');
+});
+
+
+//send event 
+
+function RequestSender(){
+    
+        var file_name=$('#textareaID').val();
+        //validates file name using regex
+        if(validate_filename(file_name)){
+
+          var trans=new Array();
+          $.each(getSelectedTransaction(), function(index, obj){
+          trans.push(obj.name);
+          });
+
+          var trans_str=JSON.stringify(trans);
+          $.ajax({
+            url:mySpace.transactions_api_url+"zest",
+            type:'POST',
+            data:{trans:trans_str,name:file_name},
+            success:Check_func,
+            traditional: true,
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+          });
+        }
+}
+
+//gets selected transactions
+function getSelectedTransaction(){
+
+        var sData = $('input', oTable.fnGetNodes()).serializeArray();
+        return(sData);
+}
+
+//Checks whether file exists else success
+function Check_func(data, Status, xhr){
+
+        if(!data){
+           $('#ScriptModal').modal('hide');
+           alertSuccess("Script Created :D");
+        }
+        else{
+           $("#Filecheck").text("Script with this name already exists !");
+        }
+
+}
+
+//checks for valid file_name
+function validate_filename(elem){
+
+        var alphaExp = /^[0-9a-zA-Z]+$/;
+        //  var alphaExp=/^[\w,\s-]+/
+        if(elem.match(alphaExp)){
+          // $('#ScriptModal').modal('hide');
+          return true;
+        }
+        else{
+          $("#Filecheck").text("Script name invalid !");
+        }
+}
+
+
 function updateTransactions(){
     $.getJSON( mySpace.transactions_api_url+"?id[gt]="+mySpace.max_id, addTransactions);
     setTimeout(updateTransactions , 5000);
@@ -62,6 +278,12 @@ $(document).ready(function() {
         $('#transactionLog').dataTable({
                                             "bAutoWidth": false
                                         });
+        fnShowHide(0);
+        MakeFooterInvisible();
+      
+        
 });
+
+
 </script>
 {% end %}

@@ -1,12 +1,12 @@
 #/usr/bin/env bash
 
-<<COMM
-echo "request header -  $2"
-echo "response header - $3"
-echo "response body -   $4"
-COMM
+<<comm
+echo "op -  $1"
+echo "root- $2"
+echo "script -   $3"
+echo "trns - $4"
+comm
 
 
-
-java -jar $5/zest/zest.jar "$1" "$2" "$3" "$4" "$5" 
+java -jar $1/zest/zest.jar "$1" "$2" "$3" "$4"
 

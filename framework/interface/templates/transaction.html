@@ -11,7 +11,7 @@
         <div class="pull-left">
          <button class="btn btn-warning" href="# ><i class="fa fa-filter"></i> Forward </button>
          <button class="btn btn-default" href="#"><i class="fa fa-refresh"></i> Replay </button>
-         <button class="btn btn-danger" onclick="createZestScript();"> Create a Zest Script ! </button>
+         <button class="btn btn-danger" onclick="createZestScript()"> Create a Zest Script ! </button>
      </div>
   
 </div>
@@ -71,7 +71,7 @@ function deleteTransaction(){
 function createZestScript(){
     $.ajax({
             url:mySpace.transaction_api_url+"zest",
-            type:'GET',
+            type:'POST',
             error:function(xhr, textStatus, serverResponse){
             alert("Server replied: "+serverResponse);
                 }

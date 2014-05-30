@@ -1,9 +1,10 @@
 from framework.lib.general import cprint
 from framework.lib import general
 from framework.interface import custom_handlers
+from framework import zest
 import tornado.web
 import subprocess,os
-
+import simplejson as json
 
 
 
@@ -88,27 +89,62 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
 
 
 class ZestScriptHandler(custom_handlers.APIRequestHandler):
-    SUPPORTED_METHODS = ['GET']
-
-    def get(self, target_id=None, transaction_id=None):
-
-        response = self.application.Core.DB.Transaction.GetByIDAsDict(int(transaction_id), target_id= int(target_id))
-        self.Output_Dir = self.application.Core.DB.Target.PathConfig['URL_OUTPUT']
-        self.Raw_Request = response['raw_request']
-        self.Res_Headers = response['response_headers']
-        self.Res_Body = response['response_body']
-        self.Res_status = response['response_status']
-        self.Root_Dir = self.application.Core.Config.RootDir
-        self.Script_Path = self.Root_Dir + "/zest/zest.sh"
-        self.Output_Dir = self.Output_Dir + "/zest_trans_" + transaction_id + ".zst"
-        self.SanitizeArgForCommandline()
-        proc = subprocess.call(['sh', self.Script_Path,self.Output_Dir, self.Raw_Request, self.Res_Headers, self.Res_Body, self.Root_Dir])
-        #stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+    SUPPORTED_METHODS = ['POST']
 
     @tornado.web.asynchronous
-    def post(self, target_url):
+    def get(self, target_id=None, transaction_id=None):
         raise tornado.web.HTTPError(405)
 
+# all requests are post methods, Zest class instance then handles the script creation part
+
+    def post(self, target_id=None, transaction_id=None):
+            if not target_id:  # does not make sense if no target id provided
+                raise tornado.web.HTTPError(400)
+            try:
+                self.application.Core.zest = zest.Init(self.application.Core, target_id)  #zest instance assigned
+                if transaction_id: 
+                    if not self.application.Core.zest.ScriptCreateFromSingleTransaction(transaction_id): #zest script creation from single transaction
+                        self.write("file exists")
+                else:  # multiple transactions
+                    trans = self.get_argument('trans', '')   # get transaction ids
+                    sCr_name = self.get_argument('name', '')  # get script name
+                    transactions = json.loads(trans)  # convert to string from json
+                    zest_args = ""
+                    for trans_id in transactions:  # creating argument string
+                        zest_args = zest_args + " " + trans_id
+                    zest_args = zest_args[1:]
+                    if not self.application.Core.zest.ScriptCreateFromMultipleTransactions(sCr_name, zest_args): #zest script creation from multiple transactions
+                        self.write("file exists")
+            except general.InvalidTargetReference as e:
+                cprint(e.parameter)
+                raise tornado.web.HTTPError(400)
+    """
+            self.application.Core.DB.Target.SetTarget(target_id)
+            self.Output_Dir = self.application.Core.DB.Target.PathConfig['URL_OUTPUT']
+            self.Root_Dir = self.application.Core.Config.RootDir
+            self.Output_Dir = self.Root_Dir + "/" + self.Output_Dir
+            self.Script_Path = self.Root_Dir + "/zest/zest.sh"
+            self.Zest_Dir = self.Output_Dir + "/zest"
+            self.application.Core.CreateMissingDirs(self.Zest_Dir)
+
+            if not transaction_id:
+                trans = self.get_argument('trans', '')
+                name = self.get_argument('name', '')
+                result = json.loads(trans)
+                arr = ""
+                for i in result:
+                    arr = arr + " " + i
+                arr = arr[1:]
+            else:
+                name = "zest_trans_" + transaction_id
+                arr = transaction_id
+
+            self.Output_Scr = self.Zest_Dir + "/" + name + ".zst"
+            if os.path.isfile(self.Output_Scr):
+                self.write("File exists")
+            else:
+                proc = subprocess.call(['sh', self.Script_Path, self.Root_Dir, self.Output_Dir, self.Output_Scr, arr])
+"""
     @tornado.web.asynchronous
     def put(self):
         raise tornado.web.HTTPError(405)
@@ -122,22 +158,6 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
     def delete(self, target_id=None):
         #TODO: allow deleting of urls from the ui
         raise tornado.web.httperror(405)  # @UndefinedVariable
-
-    def SanitizeArgForCommandline(self):
-        self.Output_Dir = self.AddQuotes(self.Output_Dir)
-        self.Raw_Request = self.AddQuotes(self.Raw_Request)
-        self.Res_Headers = self.Res_status + self.Res_Headers
-        self.Res_Headers = self.AddQuotes(self.Res_Headers)
-        self.Res_Body = self.EscapeForQuotes(self.Res_Body)
-        self.Res_Body = self.AddQuotes(self.Res_Body)
-
-    def AddQuotes(self, content):
-        content = '"' + content + '"'
-        return content
-
-    def EscapeForQuotes(self, content):
-        content.replace('"', '\"')
-        return content
 
 
 class TransactionDataHandler(custom_handlers.APIRequestHandler):
