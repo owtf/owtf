@@ -336,6 +336,8 @@ class WorkListHandler(custom_handlers.APIRequestHandler):
     def post(self):
         try:
             filter_data = dict(self.request.arguments)
+            if not filter_data:
+                raise tornado.web.HTTPError(400)
             plugin_list = self.application.Core.DB.Plugin.GetAll(filter_data)
             target_list = self.application.Core.DB.Target.GetTargetConfigs(filter_data)
             if (not plugin_list) or (not target_list):

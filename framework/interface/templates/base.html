@@ -19,12 +19,15 @@
     <!-- JS -->
     <script type="text/javascript" src="/static/js/jquery.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+    <!-- End JS -->
     <!-- Set of functions that can be used in every page to display status messages -->
     <script>
+    // Function to activate auto-close of any alert
     function autoCloseAlert(){
         setTimeout(function(){$(".alert").alert('close');}, 5000);
     }
 
+    // Function to display a fail message in status box
     function alertFail(info){
         $('#statusBox').html('<div class="alert alert-danger">\
         <a href="#" class="close" data-dismiss="alert">&times;</a>\
@@ -32,6 +35,7 @@
     </div>');
     }
 
+    // Function to display a success message in status box
     function alertSuccess(info){
         $('#statusBox').html('<div class="alert alert-success">\
         <a href="#" class="close" data-dismiss="alert">&times;</a>\
@@ -40,6 +44,7 @@
         autoCloseAlert();
     }
 
+    // Function to display a warning message in status box
     function alertWarning(info){
         $('#statusBox').html('<div class="alert alert-warning">\
         <a href="#" class="close" data-dismiss="alert">&times;</a>\
@@ -48,6 +53,7 @@
         autoCloseAlert();
     }
 
+    // Function to display a info message in status box
     function alertInfo(info){
         $('#statusBox').html('<div class="alert alert-info">\
         <a href="#" class="close" data-dismiss="alert">&times;</a>\
@@ -56,9 +62,9 @@
         autoCloseAlert();
     }
     </script>
-    <!-- End JS -->
+    <!-- End status box message -->
 
-    <!-- Template specific includes -->
+    <!-- Template specific includes, used by child templates to include something specific -->
     {% block includes %}{% end %}
     <!-- End Includes -->
 

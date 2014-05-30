@@ -164,7 +164,7 @@ class Core:
                 temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 temp_socket.bind((self.DB.Config.Get('INBOUND_PROXY_IP'), int(self.DB.Config.Get('INBOUND_PROXY_PORT'))))
                 temp_socket.close()
-            except KeyboardInterrupt: #Exception:
+            except socket.error: #Exception:
                 self.Error.FrameworkAbort("Inbound proxy address " + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT") + " already in use")
 
             # If everything is fine
@@ -288,7 +288,8 @@ class Core:
     def run_plugins(self):
         Status = self.PluginHandler.ProcessPlugins()
         self.InterfaceServer = server.InterfaceServer(self)
-        cprint("Interface Server is about to start")
+        cprint("Interface Server started. Visit http://" + self.Config.FrameworkConfigGet("UI_SERVER_ADDR") + ":" + self.Config.FrameworkConfigGet("UI_SERVER_PORT"))
+        cprint("Press Ctrl+C when you spawned a shell ;)")
         self.InterfaceServer.start()
         if Status['AllSkipped']:
             self.Finish('Skipped')

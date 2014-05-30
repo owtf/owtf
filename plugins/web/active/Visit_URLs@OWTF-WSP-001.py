@@ -28,7 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This plugin does not perform ANY test: The aim is to visit all URLs grabbed so far and build the transaction log to feed data to other plugins
 NOTE: This is an active plugin because it may visit URLs retrieved by vulnerability scanner spiders which may be considered sensitive or include vulnerability probing
 """
-import logging
 
 DESCRIPTION = "Visit URLs found by other tools, some could be sensitive: need permission"
 
@@ -39,4 +38,4 @@ def run(Core, PluginInfo):
         Core.Requester.GetTransaction(True, url) # Use cache if possible
     Content = str(len(urls))+" URLs were visited"
     Core.log(Content)
-    return([{"type":"Html", "output":{"HtmlString":Content}}])
+    return(Core.PluginHelper.HtmlString(Content))

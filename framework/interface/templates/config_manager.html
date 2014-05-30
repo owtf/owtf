@@ -3,12 +3,15 @@
 {% block title %}Configuration Manager{% end %}
 
 {% block content %}
+<!-- Configuration Update button -->
 <div class="row">
     <div class="btn-group pull-right">
         <button type="submit" id="updateButton" class="btn btn-primary" disabled="true" onclick="updateConfiguration()">Update Configuration!</button>
     </div>
 </div>
+<!-- End Configuration Update Button -->
 </br>
+<!-- Configuration tabs -->
 <div class="row">
     <div class="tabbable tabs-left">
         <ul class="nav nav-pills nav-stacked col-md-3" id="configurationTabsNav">
@@ -17,11 +20,14 @@
         </div>
     </div>
 </div>
+<!-- End Configuration tabs -->
 <script>
 mySpace = {
             configuration_api_url:"{{ configuration_api_url }}"
         }
 
+// Function called when update configuration button is clicked, this first checks for changed configuration options
+// and submits the new values using API
 function updateConfiguration(){
     var input_fields = $('.changed');
     var patch_data = {}
@@ -39,6 +45,7 @@ function updateConfiguration(){
             });
 }
 
+// Populate the configuration tabs
 function displayConfiguration(){
     $.getJSON(mySpace.configuration_api_url, function(data){
             var groupedConfigurations = {}

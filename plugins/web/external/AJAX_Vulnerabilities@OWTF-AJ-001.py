@@ -39,4 +39,3 @@ def run(Core, PluginInfo):
 	#Core.Config.Show()
 	Content = "Intended to show helpful info in the future"
 	return Content
-
