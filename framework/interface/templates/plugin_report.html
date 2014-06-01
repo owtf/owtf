@@ -227,7 +227,7 @@ function updatePluginInfoAndPatch(key, group, type, code, userRank) {
     $("#tab_" + key).css("opacity", "");
 
     patchUserRank(group, type, code, userRank);
-    updateTestCaseInfo();
+    updateTestCaseInfo(code);
     updateTargetInfo();
     updatePluginInfo(key, userRank);
 };
@@ -244,8 +244,37 @@ function updatePluginInfo(key, userRank) {
     $(tabID).toggleClass("alert-" + newClass);
 };
 
-/* Update the header panel's color of a test case. */
-function updateTestCaseInfo() {
+/* Update the header panel's color for one test case. */
+function updateTestCaseInfo(code) {
+    var testCaseMax = 0;
+    var maxUserRank = -1;
+    var maxOWTFRank = -1;
+    $.each(copyPOutputs[code], function (type, poutput) {
+        if (poutput.user_rank != null) {
+            updatePluginInfo(poutput.key.replace('@', '_'), poutput.user_rank);
+            if (poutput.user_rank > maxUserRank)
+                maxUserRank = poutput.user_rank;
+        }
+        else {
+            if (poutput.owtf_rank > maxOWTFRank)
+                maxOWTFRank = poutput.owtf_rank;
+            if (poutput.owtf_rank != null) {
+                updatePluginInfo(poutput.key.replace('@', '_'), poutput.owtf_rank);
+                $("#tab_" + poutput.key.replace('@', '_')).css("opacity", "0.7");
+            }
+        }
+    });
+    testCaseMax = (maxUserRank > maxOWTFRank) ? maxUserRank : maxOWTFRank;
+    resetTestCaseColors(code);
+    $("#header_" + code).toggleClass("panel-" + getAlertColor(testCaseMax));
+    $("#header_badge_" + code).css("opacity", "");
+    $("#header_badge_" + code).html('<i><small>' + getLabelColor(testCaseMax) + '</small></i>');
+    if (testCaseMax > maxUserRank && testCaseMax != null)
+        $('#header_badge_' + code).css("opacity", "0.7");
+}
+
+/* Update the header panel's color of all test cases. */
+function updateAllTestCasesInfo() {
     /* Find the current max for the test case. */
     $.each(copyPOutputs, function(code, types) {
         var testCaseMax = 0;
@@ -294,6 +323,8 @@ function updateTargetInfo() {
             if (maxUserRank == 3 || maxOWTFRank == 3)
                 return false;
         });
+        if (maxUserRank == 3 || maxOWTFRank == 3)
+            return false;
     });
     localMax = (maxUserRank > maxOWTFRank) ? maxUserRank : maxOWTFRank;
 
@@ -319,7 +350,7 @@ $(function() {
     /* Update every colors. */
     req.complete(function() {
         updateTargetInfo();
-        updateTestCaseInfo();
+        updateAllTestCasesInfo();
     });
 });
 </script>
