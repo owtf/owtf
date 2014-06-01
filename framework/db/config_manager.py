@@ -110,8 +110,8 @@ class ConfigDB(object):
         session = self.ConfigDBSession()
         config_list = session.query(models.ConfigSetting.key, models.ConfigSetting.value).all()
         session.close()
-        for key, value in config_list:
-            config_dict[key] = self.Core.Config.MultipleReplace(value, self.Core.Config.GetReplacementDict())
+        for key, value in config_list:  # Need a dict
+            config_dict[key] = value
         return config_dict
 
     def GetTcpPorts(self, startport, endport):
