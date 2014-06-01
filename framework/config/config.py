@@ -47,6 +47,7 @@ class Config(object):
         self.OwtfPid = OwtfPid
         self.Core = CoreObj
         self.initialize_attributes()
+        self.SearchRegex = re.compile(REPLACEMENT_DELIMITER + '([A-Z0-9-_]*?)' + REPLACEMENT_DELIMITER)  # key can consist alphabets, numbers, hyphen & underscore
         # Available profiles = g -> General configuration, n -> Network plugin order, w -> Web plugin order, r -> Resources file
         self.LoadFrameworkConfigFromFile( self.RootDir+'/framework/config/framework_config.cfg' )
 
@@ -116,8 +117,10 @@ class Config(object):
 
     def MultipleReplace(self, Text, ReplaceDict):
         NewText = Text
-        for Search,Replace in ReplaceDict.items():
-                NewText = NewText.replace(REPLACEMENT_DELIMITER + Search + REPLACEMENT_DELIMITER, str(Replace))
+        for key in self.SearchRegex.findall(NewText):
+            if ReplaceDict.get(key, None):  # Check if key exists in the replace dict ;)
+                # A recursive call to remove all level occurences of place holders
+                NewText = NewText.replace(REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER, self.MultipleReplace(ReplaceDict[key], ReplaceDict))
         return NewText
 
     def LoadProxyConfigurations(self, Options):
