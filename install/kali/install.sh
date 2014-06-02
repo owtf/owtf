@@ -52,6 +52,9 @@ export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip i
 echo "[*] Installing LBD, arachni and gnutls-bin from Kali Repos"
 sudo -E apt-get install lbd gnutls-bin arachni
 
+echo "[*] Installing ProxyChains"
+sudo -E apt-get install proxychains
+
 ########## Patch scripts
 "$RootDir/install/kali/kali_patch_w3af.sh"
 "$RootDir/install/kali/kali_patch_nikto.sh"

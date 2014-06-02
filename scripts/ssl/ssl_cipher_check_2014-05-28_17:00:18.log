@@ -1,0 +1,412 @@
+Wed May 28 17:00:19 2014 START
+Testing www.microsoft.com:443
+ : SSL Cipher Check: 1.7
+ :  - http://www.unspecific.com/ssl/
+Testing with OpenSSL 1.0.1e 11 Feb 2013
+Running a total of 330 scans
+.............................................................................................................................................................................................................................................................................................................................................
+
+   SSLv3:ECDHE-ECDSA-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:DHE-DSS-CAMELLIA256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:DHE-DSS-AES256-SHA256 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:RC4-MD5 - ENABLED - STRONG 128 bits 
+   SSLv3:ECDH-RSA-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   SSLv3:ECDHE-RSA-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:AECDH-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   SSLv3:SRP-DSS-3DES-EDE-CBC-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   SSLv3:ECDH-RSA-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:EXP-ADH-RC4-MD5 - DISABLED - WEAK 40 bits  *cipher changed
+   SSLv3:ECDH-RSA-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ADH-AES128-SHA - DISABLED - WEAK 128 bits  *cipher changed
+   SSLv3:PSK-3DES-EDE-CBC-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   SSLv3:DHE-DSS-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:SRP-DSS-AES-256-CBC-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:ADH-CAMELLIA128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:EDH-DSS-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   SSLv3:DES-CBC3-SHA - ENABLED - STRONG 168 bits 
+   SSLv3:AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:CAMELLIA128-SHA - ENABLED - STRONG 128 bits 
+   SSLv3:ADH-AES256-SHA256 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:RC4-SHA - ENABLED - STRONG 128 bits 
+   SSLv3:PSK-AES256-CBC-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:ECDHE-ECDSA-AES256-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:ECDH-RSA-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:EXP-EDH-RSA-DES-CBC-SHA - DISABLED - WEAK 40 bits  *cipher changed
+   SSLv3:DHE-RSA-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDHE-ECDSA-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDH-ECDSA-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:PSK-RC4-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDH-ECDSA-AES256-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:EXP-RC4-MD5 - DISABLED - WEAK 40 bits  *cipher changed
+   SSLv3:ECDHE-ECDSA-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:ECDHE-ECDSA-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:SRP-AES-256-CBC-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:SRP-RSA-3DES-EDE-CBC-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   SSLv3:ECDH-RSA-NULL-SHA - DISABLED - STRONG None  *cipher changed
+   SSLv3:NULL-SHA - DISABLED - WEAK None  *cipher changed
+   SSLv3:EXP-DES-CBC-SHA - DISABLED - WEAK 40 bits  *cipher changed
+   SSLv3:error - DISABLED - STRONG   *
+   SSLv3:SRP-3DES-EDE-CBC-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   SSLv3:EXP-RC2-CBC-MD5 - DISABLED - WEAK 40 bits  *cipher changed
+   SSLv3:PSK-AES128-CBC-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:DHE-RSA-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:DHE-DSS-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:EXP-ADH-DES-CBC-SHA - DISABLED - WEAK 40 bits  *cipher changed
+   SSLv3:ECDHE-RSA-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDHE-ECDSA-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   SSLv3:NULL-SHA256 - DISABLED - STRONG None  *cipher changed
+   SSLv3:ECDHE-RSA-RC4-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:DHE-DSS-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:SRP-RSA-AES-128-CBC-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:EXP-EDH-DSS-DES-CBC-SHA - DISABLED - WEAK 40 bits  *cipher changed
+   SSLv3:ADH-CAMELLIA256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:SRP-AES-128-CBC-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:SRP-DSS-AES-128-CBC-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:DHE-RSA-AES256-SHA256 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:NULL-MD5 - DISABLED - WEAK None  *cipher changed
+   SSLv3:ECDHE-RSA-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:ADH-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDHE-RSA-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   SSLv3:SEED-SHA - ENABLED - STRONG 128 bits 
+   SSLv3:ADH-AES256-SHA - DISABLED - WEAK 256 bits  *cipher changed
+   SSLv3:EDH-RSA-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   SSLv3:EDH-RSA-DES-CBC-SHA - DISABLED - WEAK 56 bits  *cipher changed
+   SSLv3:AECDH-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:DHE-RSA-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDHE-ECDSA-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:AECDH-RC4-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDH-ECDSA-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDH-ECDSA-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDHE-RSA-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDHE-ECDSA-RC4-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDHE-RSA-AES256-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:ECDH-ECDSA-RC4-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDH-RSA-AES256-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:DHE-DSS-CAMELLIA128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDHE-RSA-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:ADH-DES-CBC3-SHA - DISABLED - WEAK 168 bits  *cipher changed
+   SSLv3:AES256-SHA256 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:ECDH-RSA-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:ECDH-RSA-RC4-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ADH-SEED-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:DHE-RSA-CAMELLIA128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:CAMELLIA256-SHA - ENABLED - STRONG 256 bits 
+   SSLv3:DES-CBC-SHA - DISABLED - WEAK 56 bits  *cipher changed
+   SSLv3:EDH-DSS-DES-CBC-SHA - DISABLED - WEAK 56 bits  *cipher changed
+   SSLv3:ECDH-ECDSA-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   SSLv3:ECDH-ECDSA-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:DHE-DSS-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ADH-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ADH-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:AECDH-NULL-SHA - DISABLED - WEAK None  *cipher changed
+   SSLv3:DHE-RSA-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:ADH-DES-CBC-SHA - DISABLED - WEAK 56 bits  *cipher changed
+   SSLv3:ADH-RC4-MD5 - DISABLED - WEAK 128 bits  *cipher changed
+   SSLv3:ECDH-ECDSA-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:DHE-DSS-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:DHE-DSS-SEED-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:DHE-RSA-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDH-ECDSA-NULL-SHA - DISABLED - STRONG None  *cipher changed
+   SSLv3:ECDHE-ECDSA-NULL-SHA - DISABLED - STRONG None  *cipher changed
+   SSLv3:SRP-RSA-AES-256-CBC-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:AES128-SHA - ENABLED - STRONG 128 bits 
+   SSLv3:AES256-SHA - ENABLED - STRONG 256 bits 
+   SSLv3:ECDH-RSA-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:AECDH-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   SSLv3:ECDHE-RSA-NULL-SHA - DISABLED - STRONG None  *cipher changed
+   SSLv3:DHE-RSA-CAMELLIA256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   SSLv3:DHE-RSA-SEED-SHA - DISABLED - STRONG 128 bits  *cipher changed
+  Error 27: certificate not trusted
+  Error 21: unable to verify the first certificate
+  Error 20: unable to get local issuer certificate
+
+   TLSv1:ECDHE-ECDSA-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:DHE-DSS-CAMELLIA256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:DHE-DSS-AES256-SHA256 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:RC4-MD5 - ENABLED - STRONG 128 bits 
+   TLSv1:ECDH-RSA-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   TLSv1:ECDHE-RSA-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:AECDH-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   TLSv1:SRP-DSS-3DES-EDE-CBC-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   TLSv1:ECDH-RSA-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:EXP-ADH-RC4-MD5 - DISABLED - WEAK 40 bits  *cipher changed
+   TLSv1:ECDH-RSA-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ADH-AES128-SHA - DISABLED - WEAK 128 bits  *cipher changed
+   TLSv1:PSK-3DES-EDE-CBC-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   TLSv1:DHE-DSS-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:SRP-DSS-AES-256-CBC-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:ADH-CAMELLIA128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:EDH-DSS-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   TLSv1:DES-CBC3-SHA - ENABLED - STRONG 168 bits 
+   TLSv1:AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:CAMELLIA128-SHA - ENABLED - STRONG 128 bits 
+   TLSv1:ADH-AES256-SHA256 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:RC4-SHA - ENABLED - STRONG 128 bits 
+   TLSv1:PSK-AES256-CBC-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:ECDHE-ECDSA-AES256-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:ECDH-RSA-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:EXP-EDH-RSA-DES-CBC-SHA - DISABLED - WEAK 40 bits  *cipher changed
+   TLSv1:DHE-RSA-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDHE-ECDSA-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDH-ECDSA-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:PSK-RC4-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDH-ECDSA-AES256-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:EXP-RC4-MD5 - DISABLED - WEAK 40 bits  *cipher changed
+   TLSv1:ECDHE-ECDSA-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:ECDHE-ECDSA-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:SRP-AES-256-CBC-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:SRP-RSA-3DES-EDE-CBC-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   TLSv1:ECDH-RSA-NULL-SHA - DISABLED - STRONG None  *cipher changed
+   TLSv1:NULL-SHA - DISABLED - WEAK None  *cipher changed
+   TLSv1:EXP-DES-CBC-SHA - DISABLED - WEAK 40 bits  *cipher changed
+   TLSv1:error - DISABLED - STRONG   *
+   TLSv1:SRP-3DES-EDE-CBC-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   TLSv1:EXP-RC2-CBC-MD5 - DISABLED - WEAK 40 bits  *cipher changed
+   TLSv1:PSK-AES128-CBC-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:DHE-RSA-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:DHE-DSS-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:EXP-ADH-DES-CBC-SHA - DISABLED - WEAK 40 bits  *cipher changed
+   TLSv1:ECDHE-RSA-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDHE-ECDSA-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   TLSv1:NULL-SHA256 - DISABLED - STRONG None  *cipher changed
+   TLSv1:ECDHE-RSA-RC4-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:DHE-DSS-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:SRP-RSA-AES-128-CBC-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:EXP-EDH-DSS-DES-CBC-SHA - DISABLED - WEAK 40 bits  *cipher changed
+   TLSv1:ADH-CAMELLIA256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:SRP-AES-128-CBC-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:SRP-DSS-AES-128-CBC-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:DHE-RSA-AES256-SHA256 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:NULL-MD5 - DISABLED - WEAK None  *cipher changed
+   TLSv1:ECDHE-RSA-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:ADH-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDHE-RSA-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   TLSv1:SEED-SHA - ENABLED - STRONG 128 bits 
+   TLSv1:ADH-AES256-SHA - DISABLED - WEAK 256 bits  *cipher changed
+   TLSv1:EDH-RSA-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   TLSv1:EDH-RSA-DES-CBC-SHA - DISABLED - WEAK 56 bits  *cipher changed
+   TLSv1:AECDH-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:DHE-RSA-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDHE-ECDSA-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:AECDH-RC4-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDH-ECDSA-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDH-ECDSA-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDHE-RSA-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDHE-ECDSA-RC4-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDHE-RSA-AES256-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:ECDH-ECDSA-RC4-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDH-RSA-AES256-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:DHE-DSS-CAMELLIA128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDHE-RSA-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:ADH-DES-CBC3-SHA - DISABLED - WEAK 168 bits  *cipher changed
+   TLSv1:AES256-SHA256 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:ECDH-RSA-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:ECDH-RSA-RC4-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ADH-SEED-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:DHE-RSA-CAMELLIA128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:CAMELLIA256-SHA - ENABLED - STRONG 256 bits 
+   TLSv1:DES-CBC-SHA - DISABLED - WEAK 56 bits  *cipher changed
+   TLSv1:EDH-DSS-DES-CBC-SHA - DISABLED - WEAK 56 bits  *cipher changed
+   TLSv1:ECDH-ECDSA-DES-CBC3-SHA - DISABLED - STRONG 168 bits  *cipher changed
+   TLSv1:ECDH-ECDSA-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:DHE-DSS-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ADH-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ADH-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:AECDH-NULL-SHA - DISABLED - WEAK None  *cipher changed
+   TLSv1:DHE-RSA-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:ADH-DES-CBC-SHA - DISABLED - WEAK 56 bits  *cipher changed
+   TLSv1:ADH-RC4-MD5 - DISABLED - WEAK 128 bits  *cipher changed
+   TLSv1:ECDH-ECDSA-AES128-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:DHE-DSS-AES256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:DHE-DSS-SEED-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:DHE-RSA-AES128-GCM-SHA256 - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDH-ECDSA-NULL-SHA - DISABLED - STRONG None  *cipher changed
+   TLSv1:ECDHE-ECDSA-NULL-SHA - DISABLED - STRONG None  *cipher changed
+   TLSv1:SRP-RSA-AES-256-CBC-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:AES128-SHA - ENABLED - STRONG 128 bits 
+   TLSv1:AES256-SHA - ENABLED - STRONG 256 bits 
+   TLSv1:ECDH-RSA-AES256-GCM-SHA384 - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:AECDH-AES128-SHA - DISABLED - STRONG 128 bits  *cipher changed
+   TLSv1:ECDHE-RSA-NULL-SHA - DISABLED - STRONG None  *cipher changed
+   TLSv1:DHE-RSA-CAMELLIA256-SHA - DISABLED - STRONG 256 bits  *cipher changed
+   TLSv1:DHE-RSA-SEED-SHA - DISABLED - STRONG 128 bits  *cipher changed
+  Error 27: certificate not trusted
+  Error 21: unable to verify the first certificate
+  Error 20: unable to get local issuer certificate
+
+   SSLv2:ECDHE-ECDSA-AES128-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:DHE-DSS-CAMELLIA256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:DHE-DSS-AES256-SHA256 - DISABLED - WEAK 256 bits  *
+   SSLv2:RC4-MD5 - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDH-RSA-DES-CBC3-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:ECDHE-RSA-AES128-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:AECDH-DES-CBC3-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:SRP-DSS-3DES-EDE-CBC-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:ECDH-RSA-AES128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:EXP-ADH-RC4-MD5 - DISABLED - WEAK 40 bits  *
+   SSLv2:ECDH-RSA-AES128-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:ADH-AES128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:PSK-3DES-EDE-CBC-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:DHE-DSS-AES128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:SRP-DSS-AES-256-CBC-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:ADH-CAMELLIA128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:EDH-DSS-DES-CBC3-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:DES-CBC3-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:AES128-GCM-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:CAMELLIA128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:ADH-AES256-SHA256 - DISABLED - WEAK 256 bits  *
+   SSLv2:RC4-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:PSK-AES256-CBC-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:ECDHE-ECDSA-AES256-SHA384 - DISABLED - WEAK 256 bits  *
+   SSLv2:ECDH-RSA-AES128-GCM-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:EXP-EDH-RSA-DES-CBC-SHA - DISABLED - WEAK 40 bits  *
+   SSLv2:DHE-RSA-AES128-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDHE-ECDSA-AES128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDH-ECDSA-AES128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:PSK-RC4-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDH-ECDSA-AES256-SHA384 - DISABLED - WEAK 256 bits  *
+   SSLv2:EXP-RC4-MD5 - DISABLED - WEAK 40 bits  *
+   SSLv2:ECDHE-ECDSA-AES256-GCM-SHA384 - DISABLED - WEAK 256 bits  *
+   SSLv2:ECDHE-ECDSA-AES128-GCM-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:SRP-AES-256-CBC-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:SRP-RSA-3DES-EDE-CBC-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:ECDH-RSA-NULL-SHA - DISABLED - WEAK None  *
+   SSLv2:NULL-SHA - DISABLED - WEAK None  *
+   SSLv2:EXP-DES-CBC-SHA - DISABLED - WEAK 40 bits  *
+   SSLv2:SRP-3DES-EDE-CBC-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:EXP-RC2-CBC-MD5 - DISABLED - WEAK 40 bits  *
+   SSLv2:PSK-AES128-CBC-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:DHE-RSA-AES256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:DHE-DSS-AES256-GCM-SHA384 - DISABLED - WEAK 256 bits  *
+   SSLv2:EXP-ADH-DES-CBC-SHA - DISABLED - WEAK 40 bits  *
+   SSLv2:ECDHE-RSA-AES128-GCM-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDHE-ECDSA-DES-CBC3-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:NULL-SHA256 - DISABLED - WEAK None  *
+   SSLv2:ECDHE-RSA-RC4-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:DHE-DSS-AES128-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:SRP-RSA-AES-128-CBC-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:EXP-EDH-DSS-DES-CBC-SHA - DISABLED - WEAK 40 bits  *
+   SSLv2:ADH-CAMELLIA256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:SRP-AES-128-CBC-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:SRP-DSS-AES-128-CBC-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:DHE-RSA-AES256-SHA256 - DISABLED - WEAK 256 bits  *
+   SSLv2:NULL-MD5 - DISABLED - WEAK None  *
+   SSLv2:ECDHE-RSA-AES256-GCM-SHA384 - DISABLED - WEAK 256 bits  *
+   SSLv2:ADH-AES128-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDHE-RSA-DES-CBC3-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:SEED-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:ADH-AES256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:EDH-RSA-DES-CBC3-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:EDH-RSA-DES-CBC-SHA - DISABLED - WEAK 56 bits  *
+   SSLv2:AECDH-AES256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:DHE-RSA-AES128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDHE-ECDSA-AES256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:AECDH-RC4-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDH-ECDSA-AES128-GCM-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDH-ECDSA-AES256-GCM-SHA384 - DISABLED - WEAK 256 bits  *
+   SSLv2:AES128-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDHE-RSA-AES128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDHE-ECDSA-RC4-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDHE-RSA-AES256-SHA384 - DISABLED - WEAK 256 bits  *
+   SSLv2:ECDH-ECDSA-RC4-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDH-RSA-AES256-SHA384 - DISABLED - WEAK 256 bits  *
+   SSLv2:AES256-GCM-SHA384 - DISABLED - WEAK 256 bits  *
+   SSLv2:DHE-DSS-CAMELLIA128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDHE-RSA-AES256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:ADH-DES-CBC3-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:AES256-SHA256 - DISABLED - WEAK 256 bits  *
+   SSLv2:ECDH-RSA-AES256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:ECDH-RSA-RC4-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:ADH-SEED-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:DHE-RSA-CAMELLIA128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:CAMELLIA256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:DES-CBC-SHA - DISABLED - WEAK 56 bits  *
+   SSLv2:EDH-DSS-DES-CBC-SHA - DISABLED - WEAK 56 bits  *
+   SSLv2:ECDH-ECDSA-DES-CBC3-SHA - DISABLED - WEAK 168 bits  *
+   SSLv2:ECDH-ECDSA-AES256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:DHE-DSS-AES128-GCM-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:ADH-AES128-GCM-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:ADH-AES256-GCM-SHA384 - DISABLED - WEAK 256 bits  *
+   SSLv2:AECDH-NULL-SHA - DISABLED - WEAK None  *
+   SSLv2:DHE-RSA-AES256-GCM-SHA384 - DISABLED - WEAK 256 bits  *
+   SSLv2:ADH-DES-CBC-SHA - DISABLED - WEAK 56 bits  *
+   SSLv2:ADH-RC4-MD5 - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDH-ECDSA-AES128-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:DHE-DSS-AES256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:DHE-DSS-SEED-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:DHE-RSA-AES128-GCM-SHA256 - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDH-ECDSA-NULL-SHA - DISABLED - WEAK None  *
+   SSLv2:ECDHE-ECDSA-NULL-SHA - DISABLED - WEAK None  *
+   SSLv2:SRP-RSA-AES-256-CBC-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:AES128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:AES256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:ECDH-RSA-AES256-GCM-SHA384 - DISABLED - WEAK 256 bits  *
+   SSLv2:AECDH-AES128-SHA - DISABLED - WEAK 128 bits  *
+   SSLv2:ECDHE-RSA-NULL-SHA - DISABLED - WEAK None  *
+   SSLv2:DHE-RSA-CAMELLIA256-SHA - DISABLED - WEAK 256 bits  *
+   SSLv2:DHE-RSA-SEED-SHA - DISABLED - WEAK 128 bits  *
+
+Default:
+   TLSv1/SSLv3, Cipher is AES256-GCM-SHA384
+
+Certificate Details:
+  Key Size: 2048bits
+  Issuer: 
+	Common Name (CN) : Cornel
+	Company (O) : OWASP
+	State (ST) : Timis
+	Organizational Unit (OU) : Sec
+	Contact : cornel.punga@gmail.com
+	Country (C) : RO
+	City (L) : Timisoara
+  Subject: 
+	Common Name (CN) : *.170.184.133
+	Company (O) : OWTF
+	State (ST) : AP
+	Organizational Unit (OU) : Inbound-Proxy
+	Country (C) : IN
+	City (L) : 127.0.0.1
+
+Checking for SSL 3.0 support... yes
+Checking whether %COMPAT is required... no
+Checking for TLS 1.0 support... yes
+Checking for TLS 1.1 support... yes
+Checking fallback from TLS 1.1 to... N/A
+Checking for TLS 1.2 support... yes
+Checking whether we need to disable TLS 1.0... N/A
+Checking for Safe renegotiation support... yes
+Checking for Safe renegotiation support (SCSV)... yes
+Checking for HTTPS server name... not checked
+Checking for version rollback bug in RSA PMS... no
+Checking for version rollback bug in Client Hello... no
+Checking whether the server ignores the RSA PMS version... no
+Checking whether the server can accept Hello Extensions... yes
+Checking whether the server can accept cipher suites not in SSL 3.0 spec... yes
+Checking whether the server can accept a bogus TLS record version in the client hello... yes
+Checking for certificate information... N/A
+Checking for trusted CAs... N/A
+Checking whether the server understands TLS closure alerts... no
+Checking whether the server supports session resumption... no
+Checking for export-grade ciphersuite support... no
+Checking RSA-export ciphersuite info... N/A
+Checking for anonymous authentication support... no
+Checking anonymous Diffie-Hellman group info... N/A
+Checking for ephemeral Diffie-Hellman support... no
+Checking ephemeral Diffie-Hellman group info... N/A
+Checking for AES cipher support (TLS extension)... yes
+Checking for CAMELLIA cipher support (TLS extension)... yes
+Checking for 3DES cipher support... yes
+Checking for ARCFOUR 128 cipher support... yes
+Checking for ARCFOUR 40 cipher support... no
+Checking for MD5 MAC support... yes
+Checking for SHA1 MAC support... yes
+Checking for max record size (TLS extension)... no
+Checking for OpenPGP authentication support (TLS extension)... no
+
+Total Ciphers Enabled: 16
+Scan took 24377 secs to finish
+Wed May 28 23:46:36 2014 FINISHED
