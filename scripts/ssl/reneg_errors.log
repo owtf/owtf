@@ -1,0 +1,20 @@
+|S-chain|-<>-127.0.0.1:8008-<><>-134.170.188.84:443-<><>-O1140381441472168:error:140790E5:SSL routines:SSL23_WRITE:ssl handshake failure:s23_lib.c:177:
+fy error:num=20:unable to get local issuer certificate
+verify return:1
+depth=0 C = IN, ST = AP, L = 127.0.0.1, O = OWTF, OU = Inbound-Proxy, CN = *.170.188.84
+verify error:num=27:certificate not trusted
+verify return:1
+depth=0 C = IN, ST = AP, L = 127.0.0.1, O = OWTF, OU = Inbound-Proxy, CN = *.170.188.84
+verify error:num=21:unable to verify the first certificate
+verify return:1
+RENEGOTIATING
+depth=0 C = IN, ST = AP, L = 127.0.0.1, O = OWTF, OU = Inbound-Proxy, CN = *.170.188.84
+verify error:num=20:unable to get local issuer certificate
+verify return:1
+depth=0 C = IN, ST = AP, L = 127.0.0.1, O = OWTF, OU = Inbound-Proxy, CN = *.170.188.84
+verify error:num=27:certificate not trusted
+verify return:1
+depth=0 C = IN, ST = AP, L = 127.0.0.1, O = OWTF, OU = Inbound-Proxy, CN = *.170.188.84
+verify error:num=21:unable to verify the first certificate
+verify return:1
+DONE
