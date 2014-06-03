@@ -1,7 +1,0 @@
-Mon Jun  2 16:18:03 2014 START
-Testing www.microsoft.com:443
- : SSL Cipher Check: 1.7
- :  - http://www.unspecific.com/ssl/
-Testing with OpenSSL 1.0.1e 11 Feb 2013
-Running a total of 330 scans
-.........................................................................................................................................................................
