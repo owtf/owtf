@@ -1,14 +1,17 @@
 from framework.interface import api_handlers, ui_handlers
 import tornado.web
 
+
 def get_handlers(Core):
 
     plugin_group_re = '(' + '|'.join(Core.DB.Plugin.GetAllGroups()) + ')?'
     plugin_type_re = '(' + '|'.join(Core.DB.Plugin.GetAllTypes()) + ')?'
     plugin_code_re = '([0-9A-Z\-]+)?'
 
-    URLS =  [
+    URLS = [
+                tornado.web.url(r'/api/targets/([0-9]+)/transactions/([0-9]+)/replay?$', api_handlers.ReplayRequestHandler, name='transaction_replay_api_url'),
                 tornado.web.url(r'/api/targets/([0-9]+)/transactions/zest/?$', api_handlers.ZestScriptHandler, name='zest_log_url'),
+                tornado.web.url(r'/api/targets/([0-9]+)/transactions/zconsole/?$', api_handlers.ZestScriptHandler, name='zest_console_api_url'),
                 tornado.web.url(r'/api/targets/([0-9]+)/transactions/([0-9]+)/zest/?$', api_handlers.ZestScriptHandler, name='zest_api_url'),
                 tornado.web.url(r'/api/plugins/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginDataHandler, name='plugins_api_url'),
                 tornado.web.url(r'/api/targets/?([0-9]+)?/?$', api_handlers.TargetConfigHandler, name='targets_api_url'),
@@ -24,6 +27,8 @@ def get_handlers(Core):
                 tornado.web.url(r'/?$', ui_handlers.Redirect, name='redirect_ui_url'),
                 tornado.web.url(r'/ui/?$', ui_handlers.Home, name='home_ui_url'),
                 tornado.web.url(r'/ui/targets/?([0-9]+)?/?$', ui_handlers.TargetManager, name='targets_ui_url'),
+                tornado.web.url(r'/ui/targets/([0-9]+)/transactions/zconsole?$', ui_handlers.ZestScriptConsoleHandler, name='zest_console_url'),
+                tornado.web.url(r'/ui/targets/([0-9]+)/transactions/([0-9]+)/replay?$', ui_handlers.ReplayRequest,name='transaction_replay_url'),
                 tornado.web.url(r'/ui/targets/([0-9]+)/transactions/?([0-9]+)?/?$', ui_handlers.TransactionLog, name='transaction_log_url'),
                 tornado.web.url(r'/ui/targets/([0-9]+)/urls/?$', ui_handlers.UrlLog, name='url_log_url'),
                 tornado.web.url(r'/ui/targets/([0-9]+)/poutput/?', ui_handlers.PluginOutput, name='poutput_ui_url'),
