@@ -32,6 +32,7 @@
     <div class="row top-buffer">
        <div class="col-mid-12">
          <button class="btn btn-danger" onclick="createZestBtn()" id="createZest">Create Zest Script !</button>
+         <button class="btn btn-info" onclick="window.open(mySpace.zest_console_url);" id="ZestConsole"> Zest Script Console</button>
        </div>
     </div>
 
@@ -99,7 +100,8 @@
 var mySpace = {
                     max_id:0,
                     transactions_api_url:"{{ transactions_api_url }}",
-                    transaction_log_url:"{{ transaction_log_url }}"
+                    transaction_log_url:"{{ transaction_log_url }}",
+                    zest_console_url:"{{ zest_console_url }}"
                   };
 
 
