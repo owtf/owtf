@@ -9,8 +9,10 @@
         <!-- <button class="btn btn-danger" href="#" onclick="deleteTransaction();"><i class="fa fa-times"></i> Delete Transaction</button> Not of Use-->
         </div>
         <div class="pull-left">
-         <button class="btn btn-warning" href="# ><i class="fa fa-filter"></i> Forward </button>
-         <button class="btn btn-default" href="#"><i class="fa fa-refresh"></i> Replay </button>
+         <button class="btn btn-warning" href="#" ><i class="fa fa-filter"></i> Forward </button>
+        
+         <button class="btn btn-default" id="replayBtn" onclick="replayRequest()" ><i class="fa fa-refresh"></i> Replay </button>
+
          <button class="btn btn-danger" onclick="createZestScript()"> Create a Zest Script ! </button>
      </div>
   
@@ -45,11 +47,24 @@
     </div>
 </div>
 
+
 <script>
+/*
+$(function () {
+   $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+      // Get the name of active tab
+      var activeTab = $(e.target).text(); 
+      // Get the name of previous tab
+      var previousTab = $(e.relatedTarget).text(); 
+      $(".active-tab span").html(activeTab);
+      $(".previous-tab span").html(previousTab);
+  });
+});
+*/
 var mySpace = {
                     transaction_api_url:"{{ transaction_api_url }}",
                     transaction_log_url:"{{ transaction_log_url }}",
-                   
+                    transaction_replay_url:"{{ transaction_replay_url }}",
                  
               };
 
@@ -69,6 +84,7 @@ function deleteTransaction(){
 }
 
 function createZestScript(){
+
     $.ajax({
             url:mySpace.transaction_api_url+"zest",
             type:'POST',
@@ -79,6 +95,11 @@ function createZestScript(){
             });
 }
                   
+
+function replayRequest(){
+
+    window.open(mySpace.transaction_replay_url, "_blank", "scrollbars=yes, resizable=yes, top=100, left=400, width=850, height=600");
+}
 
 
 function displayTransaction(){
