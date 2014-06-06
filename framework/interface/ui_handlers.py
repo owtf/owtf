@@ -23,16 +23,47 @@ class TransactionLog(custom_handlers.UIRequestHandler):
         if transaction_id:
             self.render("transaction.html",
                         transaction_api_url=self.reverse_url('transactions_api_url', target_id, transaction_id),
-                        transaction_log_url=self.reverse_url('transaction_log_url', target_id, None)
+                        transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
+                        transaction_replay_url=self.reverse_url('transaction_replay_url',target_id, transaction_id)
                         )
         else:
             self.render("transaction_log.html",
                         transactions_api_url=self.reverse_url('transactions_api_url', target_id, None),
-                        transaction_log_url=self.reverse_url('transaction_log_url', target_id, None)
+                        transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
+                        zest_console_url=self.reverse_url('zest_console_url', target_id)
                         )
+
+
+class ReplayRequest(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    @tornado.web.asynchronous
+    def get(self, target_id=None, transaction_id=None):
+        if not target_id or not transaction_id:
+            raise tornado.web.HTTPError(405)
+        else:
+            self.render("replay_request.html",
+                        transaction_api_url=self.reverse_url('transactions_api_url',target_id, transaction_id),
+                        transaction_replay_api_url=self.reverse_url('transaction_replay_api_url',target_id, transaction_id)
+                        )
+
+
+class ZestScriptConsoleHandler(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    @tornado.web.asynchronous
+    def get(self, target_id=None):
+        if not target_id:
+            raise tornado.web.HTTPError(405)
+        else:
+            self.render("zest_console.html",
+                       zest_console_api_url=self.reverse_url('zest_console_api_url',target_id))
+                        # transaction_replay_api_url=self.reverse_url('transaction_replay_api_url',target_id, transaction_id)
+
 
 class UrlLog(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
+
     @tornado.web.asynchronous
     def get(self, target_id=None):
         if not target_id:
