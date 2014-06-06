@@ -279,16 +279,16 @@ class ProxyHandler(tornado.web.RequestHandler):
 
         # Tiny Hack to satisfy proxychains CONNECT request to HTTP port.
         # HTTPS fail check has to be improvised
-        #def ssl_fail():
-        #    self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
-        #    server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
+        def ssl_fail():
+            self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
+            server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
         
         # Hacking to be done here, so as to check for ssl using proxy and auth    
         try:
             s = ssl.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0))
             upstream = tornado.iostream.SSLIOStream(s)
             #start_tunnel()
-            #upstream.set_close_callback(ssl_fail)
+            upstream.set_close_callback(ssl_fail)
             upstream.connect((host, int(port)), start_tunnel)
         except Exception:
             self.finish()

@@ -1,20 +1,28 @@
 <div class="panel-group" id="pluginOutputs">
     {% for test_code, poutput_list in grouped_plugin_outputs.items() %}
-        <div class="panel panel-default">
-            <div class="panel-heading">
-              <h4 class="panel-title">
-                  <a data-toggle="collapse" data-parent="#pluginOutputs" href="#{{ test_code }}">
-                      <h4>{{ test_code }} {{ test_groups[test_code]['descrip'] }} <small>{{ test_groups[test_code]['hint'] }}</small></h4>
-                  </a>
-              </h4>
+        <div id="header_{{ test_code }}"class="panel panel-default">
+            <div class="panel-heading" style="padding: 0 15px">
+                <div class="row">
+                    <div class="col-md-10" style="padding-left: 15px">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#pluginOutputs" href="#{{ test_code }}">
+                                <h4 style="padding: 15px">{{ test_code }} {{ test_groups[test_code]['descrip'] }} <small>{{ test_groups[test_code]['hint'] }}</small></h4>
+                            </a>
+                        </h4>
+                    </div>
+                    <div class="col-md-2" style="text-align: center;">
+                        <h4 id="header_badge_{{ test_code }}"></h4>
+                    </div>
+                </div>
             </div>
             <div id="{{ test_code }}" class="panel-collapse collapse">
                 <div class="panel-body">
                     <ul class="nav nav-tabs">
                         <li class="brand disabled"><a class="btn" disabled="disabled">Type:</a></li>
                         {% for poutput in poutput_list %}
+                        {% set pkey = poutput['key'].replace('@', '_') %}
                         <li>
-                            <a href="#{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}" data-toggle="tab">
+                            <a id="tab_{{ pkey }}" href="#{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}" data-toggle="tab">
                                 {{ poutput['plugin_type'].replace('_',' ') }}
                             </a>
                         </li>
@@ -24,16 +32,26 @@
                     <br />
                     <div class="tab-content">
                         {% for poutput in poutput_list %}
+                        {% set pkey = poutput['key'].replace('@', '_') %}
                         <div class="tab-pane" id="{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}">
                             <div class="pull-left" data-toggle="buttons-checkbox">
                                 <blockquote><h4>{{ poutput['plugin_type'].replace('_',' ').capitalize() }}</h4><small>{{ poutput['plugin_code'] }}</small></blockquote>
                             </div>
                             <div class="pull-right" data-toggle="buttons">
+                                {# TODO: Update highlights when toggled/untoggled. #}
                                 {% set user_rank = poutput['user_rank'] %}
-                                <label class="btn {% if user_rank == 0 %}active{% end %}"><input type="radio" id="0" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
-                                <label class="btn {% if user_rank == 1 %}active{% end %}"><input type="radio" id="1" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-warning"></i></label>
-                                <label class="btn {% if user_rank == 2 %}active{% end %}"><input type="radio" id="2" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-times-circle-o"></i></label>
-                                <label class="btn {% if user_rank == 3 %}active{% end %}"><input type="radio" id="3" onchange="patchUserRank('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-bug"></i></label>
+                                {% if user_rank in [0, 1, 2, 3] %}
+                                <label id="{{ pkey }}_0" class="btn {% if user_rank == 0 %}active btn-success{% end %}"><input type="radio" id="0" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-info-circle"></i></label>
+                                <label id="{{ pkey }}_1" class="btn {% if user_rank == 1 %}active btn-info{% end %}"><input type="radio" id="1" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-exclamation-circle"></i></label>
+                                <label id="{{ pkey }}_2" class="btn {% if user_rank == 2 %}active btn-warning{% end %}"><input type="radio" id="2" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-warning"></i></label>
+                                <label id="{{ pkey }}_3" class="btn {% if user_rank == 3 %}active btn-danger{% end %}"><input type="radio" id="3" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-bell"></i></label>
+                                {% else %}
+                                {% set owtf_rank = poutput['owtf_rank'] %}
+                                <label id="{{ pkey }}_0" class="btn {% if owtf_rank == 0 %}active btn-success" style="opacity: 0.7{% end %}"><input type="radio" id="0" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-info-circle"></i></label>
+                                <label id="{{ pkey }}_1" class="btn {% if owtf_rank == 1 %}active btn-info" style="opacity: 0.7{% end %}"><input type="radio" id="1" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-exclamation-circle"></i></label>
+                                <label id="{{ pkey }}_2" class="btn {% if owtf_rank == 2 %}active btn-warning" style="opacity: 0.7{% end %}"><input type="radio" id="2" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-warning"></i></label>
+                                <label id="{{ pkey }}_3" class="btn {% if owtf_rank == 3 %}active btn-danger" style="opacity: 0.7{% end %}"><input type="radio" id="3" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-bell"></i></label>
+                                {% end %}
                             </div>
                             <br />
                             <br />
@@ -104,6 +122,11 @@
     {% end %}
 </div>
 <script>
+/* Global copy of the plugins' outputs in order to avoid calling the API each
+ * time the user changes a rank.
+ */
+var copyPOutputs = {};
+
 var pluginSpace = {
                     poutput_api_url:"{{ poutput_api_url }}",
                     transaction_log_url:"{{ transaction_log_url }}",
@@ -118,6 +141,8 @@ function patchUserRank(group, type, code, user_rank){
                 alertFail("Server replied: "+serverResponse);
                 }
             });
+    /* Update the user-local copy. */
+    copyPOutputs[code][type].user_rank = user_rank;
 }
 
 function deletePluginOutput(group, type, code){
@@ -159,4 +184,173 @@ function handleEditor(group, type, code, instance){ // Same function called both
 function navigateToTransaction(id){
     window.open(pluginSpace.transaction_log_url+id);
 }
+
+function resetPluginColors(id) {
+    $("#" + id + "_0").removeClass("btn-success");
+    $("#" + id + "_1").removeClass("btn-info");
+    $("#" + id + "_2").removeClass("btn-warning");
+    $("#" + id + "_3").removeClass("btn-danger");
+    $("#tab_" + id).removeClass("alert-success alert-info alert-warning alert-danger");
+};
+
+function resetTestCaseColors(id) {
+    $("#header_" + id).removeClass("panel-success panel-info panel-warning panel-danger");
+}
+
+function getAlertColor(level) {
+    if (level == 0)
+        return "success";
+    else if (level == 1)
+        return "info";
+    else if (level == 2)
+        return "warning";
+    else if (level == 3)
+        return "danger";
+    return "";
+}
+
+function getLabelColor(level) {
+    if (level == 0)
+        return "<label class='alert alert-success' style='margin-bottom: 0px'>Info Risk</label>";
+    else if (level == 1)
+        return "<label class='alert alert-info' style='margin-bottom: 0px'>Low Risk</label>";
+    else if (level == 2)
+        return "<label class='alert alert-warning' style='margin-bottom: 0px'>Medium Risk</label>";
+    else if (level == 3)
+        return "<label class='alert alert-danger' style='margin-bottom: 0px'>High Risk</label>";
+    return "";
+}
+
+/* Update the ranking value of a plugin button. */
+function updatePluginInfoAndPatch(key, group, type, code, userRank) {
+    $("#" + key + "_" + userRank).css("opacity", "");
+    $("#tab_" + key).css("opacity", "");
+
+    patchUserRank(group, type, code, userRank);
+    updateTestCaseInfo(code);
+    updateTargetInfo();
+    updatePluginInfo(key, userRank);
+};
+
+/* Update the tab and buttons' colors of a plugin. */
+function updatePluginInfo(key, userRank) {
+    var id = $("#" + key + "_" + userRank);
+    var tabID = $("#tab_" + key);
+    var newClass = getAlertColor(userRank);
+
+    resetPluginColors(key);
+
+    $(id).toggleClass("btn-" + newClass);
+    $(tabID).toggleClass("alert-" + newClass);
+};
+
+/* Update the header panel's color for one test case. */
+function updateTestCaseInfo(code) {
+    var testCaseMax = 0;
+    var maxUserRank = -1;
+    var maxOWTFRank = -1;
+    $.each(copyPOutputs[code], function (type, poutput) {
+        if (poutput.user_rank != null) {
+            updatePluginInfo(poutput.key.replace('@', '_'), poutput.user_rank);
+            if (poutput.user_rank > maxUserRank)
+                maxUserRank = poutput.user_rank;
+        }
+        else {
+            if (poutput.owtf_rank > maxOWTFRank)
+                maxOWTFRank = poutput.owtf_rank;
+            if (poutput.owtf_rank != null) {
+                updatePluginInfo(poutput.key.replace('@', '_'), poutput.owtf_rank);
+                $("#tab_" + poutput.key.replace('@', '_')).css("opacity", "0.7");
+            }
+        }
+    });
+    testCaseMax = (maxUserRank > maxOWTFRank) ? maxUserRank : maxOWTFRank;
+    resetTestCaseColors(code);
+    $("#header_" + code).toggleClass("panel-" + getAlertColor(testCaseMax));
+    $("#header_badge_" + code).css("opacity", "");
+    $("#header_badge_" + code).html('<i><small>' + getLabelColor(testCaseMax) + '</small></i>');
+    if (testCaseMax > maxUserRank && testCaseMax != null)
+        $('#header_badge_' + code).css("opacity", "0.7");
+}
+
+/* Update the header panel's color of all test cases. */
+function updateAllTestCasesInfo() {
+    /* Find the current max for the test case. */
+    $.each(copyPOutputs, function(code, types) {
+        var testCaseMax = 0;
+        var maxUserRank = -1;
+        var maxOWTFRank = -1;
+        $.each(types, function(type, poutput) {
+            if (poutput.user_rank != null) {
+                updatePluginInfo(poutput.key.replace('@', '_'), poutput.user_rank);
+                if (poutput.user_rank > maxUserRank)
+                    maxUserRank = poutput.user_rank;
+            }
+            else {
+                if (poutput.owtf_rank > maxOWTFRank)
+                    maxOWTFRank = poutput.owtf_rank;
+                if (poutput.owtf_rank != null) {
+                    updatePluginInfo(poutput.key.replace('@', '_'), poutput.owtf_rank);
+                    $("#tab_" + poutput.key.replace('@', '_')).css("opacity", "0.7");
+                }
+            }
+        });
+        testCaseMax = (maxUserRank > maxOWTFRank) ? maxUserRank : maxOWTFRank;
+        resetTestCaseColors(code);
+        $("#header_" + code).toggleClass("panel-" + getAlertColor(testCaseMax));
+        $("#header_badge_" + code).css("opacity", "");
+        $("#header_badge_" + code).html('<i><small>' + getLabelColor(testCaseMax) + '</small></i>');
+        if (testCaseMax > maxUserRank && testCaseMax != null)
+            $('#header_badge_' + code).css("opacity", "0.7");
+    });
+}
+
+/* Update the page header's color of a target. */
+function updateTargetInfo() {
+    var localMax = 0;
+    var maxUserRank = -1;
+    var maxOWTFRank = -1;
+
+    /* Find the current max for the target. */
+    $.each(copyPOutputs, function(code, types) {
+        $.each(types, function(type, poutput) {
+            if (poutput.user_rank != null) {
+                if (poutput.user_rank > maxUserRank)
+                    maxUserRank = poutput.user_rank;
+            }
+            else if (poutput.owtf_rank > maxOWTFRank)
+                maxOWTFRank = poutput.owtf_rank;
+            if (maxUserRank == 3 || maxOWTFRank == 3)
+                return false;
+        });
+        if (maxUserRank == 3 || maxOWTFRank == 3)
+            return false;
+    });
+    localMax = (maxUserRank > maxOWTFRank) ? maxUserRank : maxOWTFRank;
+
+    $('#rankingTargetInfo').css("opacity", "");
+    $('#rankingTargetInfo').html('<i><small>' + getLabelColor(localMax) + '</small></i>');
+    /* If the current max is given by OWTF, highlight it as such. */
+    if (localMax > maxUserRank || localMax == -1)
+        $('#rankingTargetInfo').css("opacity", "0.7");
+}
+
+/* Request to API in order to retrieve the highest ranking value for the
+ * current target.
+ */
+$(function() {
+    var req = $.getJSON(pluginSpace.poutput_api_url, function(data) {
+        /* Global copy of the POutputs. */
+        for (var i = 0; i < data.length; i++) {
+            if (!copyPOutputs[data[i].plugin_code])
+                copyPOutputs[data[i].plugin_code] = {};
+            copyPOutputs[data[i].plugin_code][data[i].plugin_type] = data[i];
+        }
+    });
+    /* Update every colors. */
+    req.complete(function() {
+        updateTargetInfo();
+        updateAllTestCasesInfo();
+    });
+});
 </script>

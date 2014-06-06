@@ -33,6 +33,7 @@ from collections import defaultdict
 from framework.lib.general import *
 import signal
 import subprocess
+import os
 import logging
 
 class Shell(object):
@@ -42,6 +43,8 @@ class Shell(object):
                 #self.CommandInfo = defaultdict(list)
                 self.CommandTimeOffset = 'Command'
                 self.OldCommands = defaultdict(list)
+                # Environment variables for shell
+                self.ShellEnviron = os.environ.copy()
 
         def ShellPathEscape(self, Text):
                 return MultipleReplace(Text, { ' ':'\ ', '(':'\(', ')':'\)' }).strip()
@@ -89,11 +92,23 @@ class Shell(object):
                 return [None, True]
 
         def create_subprocess(self, Command):
-#http://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612)
-            proc = subprocess.Popen(Command, shell=True, preexec_fn=os.setsid,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    bufsize=1)
+            # Add proxy settings to environment variables so that tools can pick it up
+            # TODO: Uncomment the following lines, when testing has been ensured for using environment variables for proxification,
+            # because these variables are set for every command that is run
+            # proxy_ip, proxy_port = self.Core.DB.Config.Get("INBOUND_PROXY_IP"), self.Core.DB.Config.Get("INBOUND_PROXY_PORT")
+            # self.ShellEnviron["http_proxy"] = "http://" + proxy_ip + ":" + proxy_port
+            # self.ShellEnviron["https_proxy"] = "https://" + proxy_ip + ":" + proxy_port
+
+            #http://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612)
+            proc = subprocess.Popen(
+                Command,
+                shell=True,
+                env=self.ShellEnviron,
+                preexec_fn=os.setsid,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                bufsize=1
+            )
             return proc
 
         def shell_exec_monitor(self, Command):
