@@ -2,10 +2,11 @@ from framework.lib.general import cprint
 from framework.lib import general
 from framework.interface import custom_handlers
 from framework import zest
+from framework.http import requester
 import tornado.web
-import subprocess,os
 import simplejson as json
-
+from BaseHTTPServer import BaseHTTPRequestHandler
+from StringIO import StringIO
 
 
 class PluginDataHandler(custom_handlers.APIRequestHandler):
@@ -89,15 +90,31 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
 
 
 class ZestScriptHandler(custom_handlers.APIRequestHandler):
-    SUPPORTED_METHODS = ['POST']
+    SUPPORTED_METHODS = ['GET', 'POST']
 
-    @tornado.web.asynchronous
-    def get(self, target_id=None, transaction_id=None):
-        raise tornado.web.HTTPError(405)
+    def get(self, target_id=None, transaction_id=None):  # get handles zest consoles functions
+        if not target_id:  # does not make sense if no target id provided
+                raise tornado.web.HTTPError(400)
+        try:
+            self.application.Core.zest = zest.Init(self.application.Core, target_id)  # zest instance assigned
+            args = self.request.arguments
+            if(not any(args)):  # check if arguments is empty then load zest console
+                file_list = self.application.Core.zest.getallscripts(self.application.Core.zest.Zest_Dir)
+                tdict = {}
+                tdict["files"] = file_list
+                self.write(tdict)
+            else:  # get zest script content
+                content = self.application.Core.zest.getScriptContent(self.application.Core.zest.Zest_Dir + "/" + args['script'][0])
+                tdict = {}
+                tdict['content'] = content
+                self.write(tdict)
+        except general.InvalidTargetReference as e:
+                cprint(e.parameter)
+                raise tornado.web.HTTPError(400)
 
 # all requests are post methods, Zest class instance then handles the script creation part
 
-    def post(self, target_id=None, transaction_id=None):
+    def post(self, target_id=None, transaction_id=None):  # handles actual zest script creation
             if not target_id:  # does not make sense if no target id provided
                 raise tornado.web.HTTPError(400)
             try:
@@ -151,13 +168,69 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
 
     @tornado.web.asynchronous
     def patch(self):
-        #TODO: allow modification of urls from the ui, may be adjusting scope etc.. but i don't understand it's use yet ;)
+        raise tornado.web.httperror(405)
+
+    @tornado.web.asynchronous
+    def delete(self, target_id=None):
+        raise tornado.web.httperror(405)
+
+
+class ReplayRequestHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = {'POST'}
+
+    @tornado.web.asynchronous
+    def get(self, target_id=None, transaction_id=None):
+        raise tornado.web.HTTPError(405)
+
+    def post(self, target_id=None, transaction_id=None):
+        rw_request = self.get_argument("get_req", '')  # get particular request
+        parsed_Req = HTTPRequest(rw_request)  # parse if its a valid HTTP request
+        if(parsed_Req.error_code == None):
+            self.application.Core.Requester.SetHeaders(parsed_Req.headers)  #Set the headers
+            trans_obj = self.application.Core.Requester.Request(parsed_Req.path, parsed_Req.command)  # make the actual request using requester module
+            Res_data = {}  # received response body and headers will be saved here
+            Res_data['Status'] = trans_obj.Status
+            Res_data['Headers'] = str(trans_obj.ResponseHeaders)
+            Res_data['Body'] = trans_obj.DecodedContent
+            self.write(Res_data)
+        else:
+            print "Cannot send the given HTTP Request" 
+            #send something back to interface to let the user know
+
+    @tornado.web.asynchronous
+    def put(self):
+        raise tornado.web.HTTPError(405)
+
+    @tornado.web.asynchronous
+    def patch(self):
         raise tornado.web.httperror(405)  # @UndefinedVariable
 
     @tornado.web.asynchronous
     def delete(self, target_id=None):
-        #TODO: allow deleting of urls from the ui
         raise tornado.web.httperror(405)  # @UndefinedVariable
+
+
+class HTTPRequest(BaseHTTPRequestHandler):
+    # this class parses the raw request and  verifies
+    def __init__(self, request_text):
+        self.rfile = StringIO(request_text)
+        self.raw_requestline = self.rfile.readline()
+        self.error_code = self.error_message = None
+        self.parse_request()
+
+    def send_error(self, code, message):
+        self.error_code = code
+        self.error_message = message
+"""
+    def print_all(self):
+        print self.error_code       # None  (check this first)
+        print self.command          # "GET"
+        print self.path             # "/who/ken/trust.html"
+        print self.request_version  # "HTTP/1.1"
+        print len(self.headers)     # 3
+        print self.headers   # ['accept-charset', 'host', 'accept']
+        print self.headers['host']
+"""
 
 
 class TransactionDataHandler(custom_handlers.APIRequestHandler):
