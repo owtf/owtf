@@ -34,6 +34,9 @@ from framework.lib.general import *
 from httplib import responses as response_messages
 import cgi
 import logging
+import StringIO
+import gzip,zlib
+
 
 class HTTP_Transaction(object):
     def __init__(self, Timer):
@@ -88,8 +91,8 @@ class HTTP_Transaction(object):
         self.RawRequest = Request
         self.Found = Found
         self.ResponseHeaders = Response.headers
-        #p(self.ResponseHeaders)
         self.ResponseContents = Response.read()
+        self.checkIfCompressed(Response, self.ResponseContents) # a new self.Decodedcontent is added if the received response is in compressed format
         self.EndRequest()
 
     def SetTransactionFromDB(self, id, url, method, status, time, time_human, request_data, raw_request, response_headers, response_body, grep_output):
@@ -170,7 +173,7 @@ class HTTP_Transaction(object):
 
     def GetRawResponseBody(self):
         return self.ResponseContents
-        
+
     def ImportProxyRequestResponse(self, request, response):
         self.IsInScope = request.in_scope
         self.URL = request.url
@@ -195,3 +198,18 @@ class HTTP_Transaction(object):
         self.New = True
         self.ID = ''
         self.HTMLLinkToID = ''
+
+    def getDecodedResponse(self):
+        return self.DecodedResponse
+
+    def checkIfCompressed(self, response, content):
+        if response.info().get('Content-Encoding') == 'gzip':  # check for gzip compression
+            compressedFile = StringIO.StringIO()
+            compressedFile.write(content)
+            compressedFile.seek(0)
+            f = gzip.GzipFile(fileobj=compressedFile, mode='rb')
+            self.DecodedContent = f.read()
+        elif response.info().get('Content-Encoding') == 'deflate':  # check for deflate compression
+            self.DecodedContent = zlib.decompress(content)
+        else:
+            self.DecodedContent = content  # else the no compression
