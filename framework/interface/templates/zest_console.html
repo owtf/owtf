@@ -1,0 +1,157 @@
+{% extends base.html %}
+
+{% block title %}Zest Console{% end %}
+
+
+{% block includes %}
+
+<style type="text/css">
+
+body,html,.row-offcanvas {
+  height:100%;
+}
+
+body {
+  padding-top: 50px;
+}
+
+#sidebar {
+  width: inherit;
+  min-width: 220px;
+  max-width: 220px;
+  background-color:#f5f5f5;
+  float: left;
+  height:100%;
+  position:relative;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+#main {
+  height:100%;
+  overflow:auto;
+}
+
+.btn{
+	margin:30px;
+	padding:7px;
+}
+
+a, a:active, a:focus {
+  outline: none
+}
+/*
+ * off Canvas sidebar
+ * --------------------------------------------------
+ */
+@media screen and (max-width: 768px) {
+  .row-offcanvas {
+    position: relative;
+    -webkit-transition: all 0.25s ease-out;
+    -moz-transition: all 0.25s ease-out;
+    transition: all 0.25s ease-out;
+    width:calc(100% + 220px);
+  }
+  .row-offcanvas-left{
+    left: -220px;
+  }
+
+  .row-offcanvas-left.active {
+    left: 0;
+  }
+
+  .sidebar-offcanvas {
+    position: absolute;
+    top: 0;
+  }
+  
+}
+
+</style>
+
+{% end %}
+
+{% block content %}
+
+<div class="row-offcanvas row-offcanvas-left ">
+  <div id="sidebar" class="sidebar-offcanvas">
+    <div class="col-md-12" id="scripts">
+      <h4>Zest Scripts</h4>
+      <ul class="nav nav-pills nav-stacked scripts" >
+      </ul>
+    </div>
+  </div>
+
+  <div id="main" >
+    <div class="col-md-12">
+      <p class="visible-xs">
+        <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas"><i class="glyphicon glyphicon-chevron-left"></i></button>
+      </p>
+      <h4>Script Content</h4>
+      <pre id="script_content"></pre>
+    </div>
+  </div>
+</div>
+
+<div class="row pull-right" style="text-align:center" >
+  <button class="btn btn-primary " id="recordZest">Record a Zest Script!</button>
+  <button class="btn btn-primary" id="ForwardZest">Forward to ZAP !</button>
+  <button class="btn btn-primary" id="RunZest"> Run the Zest Script !</button>
+</div>
+
+
+<script>
+
+var mySpace = {
+
+                    zest_console_api_url:"{{ zest_console_api_url }}",
+              };
+
+//get scripts in zest output folder of the target
+function getScriptNames(){
+		$.getJSON(mySpace.zest_console_api_url,function(obj){
+    var list=obj.files;
+
+			for (i=0;i<list.length;i++){
+        if (i==0){
+          $("#scripts ul").append('<li class="active"><a href="#">'+list[i]+'</a></li>');
+          getScriptContent(list[i]);
+        }
+        else{
+            $("#scripts ul").append('<li><a href="#">'+list[i]+'</a></li>');
+        }
+      }
+		});
+}
+
+//get content of the active script
+function getScriptContent(script){
+    $.getJSON(mySpace.zest_console_api_url+"?script="+script,function(obj){
+          $("#script_content").text(obj.content);
+          $('#script_content').css("height","500px");
+    });
+}
+
+//sidebar click event delegation
+$('#sidebar').on('click','a', function (e) {
+    $('.nav li').removeClass('active');
+    var $parent = $(this).parent();
+    if (!$parent.hasClass('active')) {
+      $parent.addClass('active');
+      var script = $(this).text();
+      getScriptContent(script);
+    }
+    e.preventDefault();
+});
+
+$(document).ready(function() {
+  $('[data-toggle=offcanvas]').click(function() {
+    $('.row-offcanvas').toggleClass('active');
+  });
+  getScriptNames();
+ 
+});
+
+</script>
+
+{% end %}
