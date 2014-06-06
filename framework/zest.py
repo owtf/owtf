@@ -1,6 +1,8 @@
 import subprocess
 import os
-
+import os.path
+from os import listdir
+from os.path import isfile, join
 
 class Zest(object):
 #basic initialization of Root,Output,Zest Directories from target config
@@ -40,6 +42,21 @@ class Zest(object):
 
     def GetOutputFile(self, script):
             return self.Zest_Dir + "/" + script + ".zst"
+
+    def getallscripts(self, Dir):
+        zestfiles = []
+        if os.path.exists(Dir):
+            zestfiles = [f for f in listdir(Dir) if isfile(join(Dir, f))]
+        else:
+            os.makedirs(Dir)
+        return zestfiles
+
+    def getScriptContent(self, scr):
+        content = ""
+        if os.path.isfile(scr):
+            with open(scr, 'r') as content_file:
+                content = content_file.read()
+        return content
 
 
 def Init(Core, Target_id):
