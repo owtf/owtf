@@ -210,8 +210,7 @@ class PluginHelper:
         def LogURLsFromStr( self, RawOutput ):
                 plugin_output = dict(PLUGIN_OUTPUT)
                 self.Core.Timer.StartTimer( 'LogURLsFromStr' )
-                URLList = RawOutput.strip().split( "\n" )
-                self.Core.DB.URL.ImportURLs( URLList ) # Extract and classify URLs and store in DB
+                URLList = self.Core.DB.URL.ImportURLs(RawOutput.strip().split("\n")) # Extract and classify URLs and store in DB
                 NumFound = 0
                 VisitURLs = False
                 #if self.Core.PluginHandler.IsActiveTestingPossible(): # Can visit new URLs found to feed DB straightaway
