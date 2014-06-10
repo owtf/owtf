@@ -449,21 +449,14 @@ class ProxyProcess(Process):
 
     def __init__(self, core, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
-        # This is anti-csrf token used in Plug-n-Hack commands
-        pnh_token = uuid.uuid4().hex
         # The tornado application, which is used to pass variables to request handler
-        self.application = tornado.web.Application(handlers=[
-                                                            (r'/proxy(.*)', None),
-                                                            ('/'+pnh_token+'/JSON/(.*)', CommandHandler),
-                                                            (r'.*', ProxyHandler)
-                                                            ], 
+        self.application = tornado.web.Application(
                                                     debug=False,
                                                     gzip=True,
                                                    )
         # All required variables in request handler
         # Required variables are added as attributes to application, so that request handler can access these
         self.application.Core = core
-        self.application.pnh_token = pnh_token
         self.application.inbound_ip = self.application.Core.DB.Config.Get('INBOUND_PROXY_IP')
         self.application.inbound_port = int(self.application.Core.DB.Config.Get('INBOUND_PROXY_PORT'))
         self.instances = self.application.Core.DB.Config.Get("INBOUND_PROXY_PROCESSES")
