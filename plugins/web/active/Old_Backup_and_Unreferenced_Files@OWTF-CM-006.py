@@ -36,7 +36,7 @@ def run(Core, PluginInfo):
 	# Define DirBuster Commands to use depending on Interaction Setting:
 	# DirBuster allows much more control when interactive
 	# DirBuster can also be run non-interactively for scripting
-	DirBusterInteraction = { True : 'DirBusterInteractive', False : 'DirBusterNotInteractive' }
+	DirBusterInteraction = { 'true' : 'DirBusterInteractive', 'false' : 'DirBusterNotInteractive' }
 	return Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResourceList([ DirBusterInteraction[Core.DB.Config.Get('INTERACTIVE')], 'DirBuster_Extract_URLs' ]), PluginInfo, [])
 	#return Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources(DirBusterInteraction[Core.Config.Get('Interactive')]), PluginInfo, Content)
 
