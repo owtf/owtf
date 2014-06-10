@@ -27,4 +27,74 @@
                     <button id="btn" type="button" class="btn btn-primary btn-lg">Click to Setup!</button>
                 </div>
         </div>
+<script>
+  var manifest = {"detail":{"url":"{{ manifest_url }}"}};
+  var detected = false;
+  var elements = ['setup','in_progress','success','failure','activated','actions'];
+  // only show UI for the named elements
+    var showUI = function(visible,data){
+        console.log(visible);
+        function replaceTextContent(node, message) {
+            while(node.firstChild) {
+                node.removeChild(node.firstChild);
+            }
+            node.appendChild(document.createTextNode(message));
+        }
+        for(var idx in elements){
+            var elementName = elements[idx];
+            var displayElement = document.getElementById(elements[idx]);
+            var messageElement = document.getElementById(elements[idx]+'Message');
+            if (-1 != visible.indexOf(elementName)) {
+            if(data && data[elementName]) {
+            replaceTextContent(messageElement, data[elementName]);
+            }
+             displayElement.style.display = 'block';
+            } else {
+            displayElement.style.display = 'none';
+            }
+        }
+    };
+  var click = function(event) {
+    var evt = new CustomEvent('ConfigureSecTool', manifest);
+    document.dispatchEvent(evt);
+    setTimeout(function() {
+      if (!detected) {
+        showUI(['setup']);
+     }
+    },1000);
+  };
+  // event listener for configuration started event
+  var started = function(event) {
+    console.log('configuration has started');
+    showUI(['in_progress']);
+    detected = true;
+    };
+  // event listener for configuration failed event
+  // use this to let the user know something has gone wrong
+  var failed = function(event) {
+    console.log('configuration has failed');
+    var detail = event.detail ? JSON.parse(event.detail) : null;
+    showUI(['failure','actions'], detail);
+    };
+  // event listener for configuration succeeded
+  // use this to show a success message to a user in your welcome doc
+  var succeeded = function(event) {
+    console.log('configuration has succeeded');
+    showUI(['success']);
+    };
+  // event listener for browser support activated
+  var activated = function(event) {
+    console.log('activation has occurred');
+    showUI(['activated','actions']);
+    };
+  // hook event listener into button
+  var btn = document.getElementById('btn');
+    btn.addEventListener('click',click,false);
+    // Hook configuration event listeners into the document
+    document.addEventListener('ConfigureSecToolStarted',started,false);
+    document.addEventListener('ConfigureSecToolFailed',failed,false);
+    document.addEventListener('ConfigureSecToolActivated',activated,false);
+    document.addEventListener('ConfigureSecToolSucceeded',succeeded,false);
+
+</script>
 {% end %}
