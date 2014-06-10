@@ -33,15 +33,17 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine, event
 from sqlalchemy import exc
 from framework.db import models, plugin_manager, target_manager, resource_manager, \
-        config_manager, poutput_manager, transaction_manager, url_manager, command_register
+        config_manager, poutput_manager, transaction_manager, url_manager, \
+        command_register, error_manager
 import logging
 import os
 import re
 
 def re_fn(regexp, item):
+    # TODO: Can remove this after ensuring that nothing is using this in DB calls
+    #                                                           - tunnelshade
     regex = re.compile(regexp, re.IGNORECASE | re.DOTALL) # Compile before the loop for speed
     results = regex.findall(item)
-    print(results)
     return results
 
 class DB(object):
@@ -64,6 +66,7 @@ class DB(object):
         self.Target = target_manager.TargetDB(self.Core)
         self.Resource = resource_manager.ResourceDB(self.Core)
         self.Config = config_manager.ConfigDB(self.Core)
+        self.Error = error_manager.ErrorDB(self.Core)
         self.CommandRegister = command_register.CommandRegister(self.Core)
         self.DBHealthCheck()
 
@@ -116,11 +119,3 @@ class DB(object):
             finally:
                 session.close()
                 if success: return success
-
-    def AddError(self, errorObj):
-        self.AddUsingSession(errorObj, self.ErrorDBSession)
-
-    def ErrorCount(self):
-        session = self.ErrorDBSession()
-        count = session.query(models.Error).count()
-        return count
