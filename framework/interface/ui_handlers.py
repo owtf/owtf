@@ -12,7 +12,8 @@ class Redirect(custom_handlers.UIRequestHandler):
 class Home(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     def get(self):
-        self.render('home.html')
+        self.render('home.html') 
+        
 
 class TransactionLog(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
@@ -41,6 +42,21 @@ class UrlLog(custom_handlers.UIRequestHandler):
                     urls_api_url=self.reverse_url('urls_api_url', target_id),
                     transaction_log_url=self.reverse_url('transaction_log_url', target_id, None)
                     )
+
+class PlugnHack(custom_handlers.UIRequestHandler):
+    #SUPPORTED_METHODS = ['GET']
+    #@tornado.web.asynchronous
+    #def get(self, target_id=None):
+    #    if not target_id:
+    #        self.render("plugnhack.html",
+    #                    plugnhack_ui_url=self.reverse_url('plugnhack_ui_url', None)
+    #                    )
+    #    else:
+    #        self.render("plugnhack.html",
+    #                    plugnhack_ui_url=self.reverse_url('plugnhack_ui_url', target_id)
+    #                    )
+    def get(self):
+        self.render('plugnhack.html')
 
 class TargetManager(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
@@ -124,3 +140,50 @@ class ConfigurationManager(custom_handlers.UIRequestHandler):
             "config_manager.html",
             configuration_api_url=self.reverse_url('configuration_api_url')
         )
+
+    
+#class PlugnHackHandler(tornado.web.RequestHandler):
+  #  pass
+ #   """
+#    This handles the requests which are used for firefox configuration 
+   # https://blog.mozilla.org/security/2013/08/22/plug-n-hack/
+  #  """
+ #   @tornado.web.asynchronous
+#    def get(self, extension):
+     #   """
+    #    Root URL (in default case) = http://127.0.0.1:8008/proxy
+   #     Templates folder is framework/http/proxy/templates
+  #      For PnH, following files (all stored as templates) are used :-
+ #       
+     #   File Name       ( Relative path )
+    #    =========       =================
+   #     * Provider file ( /proxy )
+  #      * Tool Manifest ( /proxy.json )
+ #       * Commands      ( /proxy-service.json )
+#        * PAC file      ( /proxy.pac )
+   #     * CA Cert       ( /proxy.crt )
+  #      """
+ #       # Rebuilding the root url
+#        root_url = self.request.protocol + "://" + self.request.host
+     #   command_url = root_url + "/" + self.application.pnh_token
+    #    proxy_url = root_url + "/proxy"
+   #     # Absolute path of templates folder using location of this script (proxy.py)
+  #      templates_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates")
+ #       print(templates_folder)
+#        loader = tornado.template.Loader(templates_folder) # This loads all the templates in the folder
+   #     if extension == "":
+      #      manifest_url = proxy_url + ".json"
+      #      self.write(loader.load("welcome.html").generate(manifest_url=manifest_url))
+      #  elif extension == ".json":
+     #       self.write(loader.load("manifest.json").generate(proxy_url=proxy_url))
+    #        self.set_header("Content-Type", "application/json")
+    #    elif extension == "-service.json":
+    #        self.write(loader.load("service.json").generate(root_url=command_url))
+    #        self.set_header("Content-Type", "application/json")
+    #    elif extension == ".pac":
+    #        self.write(loader.load("proxy.pac").generate(proxy_details=self.request.host))
+     #       self.set_header('Content-Type','text/plain')
+   #     elif extension == ".crt":
+  #          self.write(open(self.application.ca_cert, 'r').read())
+ #           self.set_header('Content-Type','application/pkix-cert')
+#        self.finish()
