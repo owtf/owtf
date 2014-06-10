@@ -30,7 +30,6 @@ The error handler provides a centralised control for aborting the application an
 '''
 
 from framework.lib.general import *
-from framework.db.models import Error
 import logging
 import traceback
 import sys
@@ -74,34 +73,28 @@ class ErrorHandler:
                                 raise PluginAbortException(PartialOutput) # Jump to next handler and pass partial output to avoid losing results
                 return Message
 
-        def LogError(self, errorObj):
+        def LogError(self, Message, Trace=None):
                 try:
-                        self.Core.DB.AddError(errorObj) # Log error in the DB
+                        self.Core.DB.Error.Add(Message, Trace) # Log error in the DB
                 except AttributeError:
                         cprint("ERROR: DB is not setup yet: cannot log errors to file!")
 
         def AddOWTFBug(self, Message):
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 ErrorTraceList = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                ErrorTrace = "\n".join(ErrorTraceList)
-                errorObj = Error(
-                                    owtf_message = Message,
-                                    exc_type = ErrorTraceList[-1],
-                                    exc_traceback = ''.join(ErrorTraceList[:-1])
-                                )
-                self.LogError(errorObj)
+                ErrorTrace = self.Core.AnonymiseCommand("\n".join(ErrorTraceList))
                 #traceback.print_exc()
                 #print repr(traceback.format_stack())
                 #print repr(traceback.extract_stack())
+                Message = self.Core.AnonymiseCommand(Message)
                 Output = self.Padding+"OWTF BUG: Please report the sanitised information below to help make this better. Thank you."+self.SubPadding
-                Output += "\nMessage: "+self.Core.AnonymiseCommand(Message)+"\n"
-                Output += "\nCommand: "+self.Command+"\n"
+                Output += "\nMessage: "+Message+"\n"
                 Output += "\nError Trace:"
-                Output += "\n"+self.Core.AnonymiseCommand(ErrorTrace)
+                Output += "\n"+ErrorTrace
                 Output += "\n"+self.Padding
                 cprint(Output)
-                return "<pre>"+cgi.escape(Output)+"</pre>"
-#TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
+                self.LogError(Message, ErrorTrace)
+                #TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
 
         def Add(self, Message, BugType = 'owtf'):
                 if 'owtf' == BugType:
@@ -109,10 +102,10 @@ class ErrorHandler:
                 else:
                         Output = self.Padding+Message+self.SubPadding
                         cprint(Output)
-                        self.LogError(Output)
+                        self.LogError(Message)
 
         def AddGithubIssue(self, Title='Bug report from OWTF', Info=None, User=None):
-                # TODO: Better verbosity while adding issues
+                # TODO: Has to be ported to use db and infact add to interface
                 # Once db is implemented, better verbosity will be easy
                 error_data = self.Core.DB.ErrorData()
                 for item in error_data:
