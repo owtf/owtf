@@ -118,15 +118,19 @@ class URLManager:
             session.close()
 
         def ImportURLs(self, url_list, target = None): # Extracts and classifies all URLs passed. Expects a newline separated URL list
+            imported_urls = []
             self.AddURLsStart()
             Session = self.Core.DB.Target.GetUrlDBSession(target)
             session = Session()
             for url in url_list:
-                session.merge(models.Url(url = url))
+                if self.IsURL(url):
+                    imported_urls.append(url)
+                    session.merge(models.Url(url = url))
             session.commit()
             session.close()
             count = self.AddURLsEnd()
             Message = str(count)+" URLs have been added and classified"
+            return(imported_urls)  # Return imported urls
 
 #-------------------------------------------------- API Methods --------------------------------------------------
         def DeriveUrlDict(self, url_obj):
