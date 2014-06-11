@@ -450,7 +450,9 @@ class ProxyProcess(Process):
     def __init__(self, core, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
         # The tornado application, which is used to pass variables to request handler
-        self.application = tornado.web.Application(
+        self.application = tornado.web.Application(handlers=[
+                                                            (r'.*', ProxyHandler)
+                                                            ], 
                                                     debug=False,
                                                     gzip=True,
                                                    )
