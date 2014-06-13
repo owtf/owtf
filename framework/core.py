@@ -183,7 +183,6 @@ class Core:
             self.TransactionLogger.start()
             self.Requester = requester.Requester(self, [self.DB.Config.Get('INBOUND_PROXY_IP'), self.DB.Config.Get('INBOUND_PROXY_PORT')])
             cprint("Proxy transaction's log file at %s"%(self.DB.Config.Get("PROXY_LOG")))
-            cprint("Visit http://" + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT") + "/proxy to use Plug-n-Hack standard")
             cprint("Execution of OWTF is halted.You can browse through OWTF proxy) Press Enter to continue with OWTF")
             #if Options["Interactive"]:
             #    raw_input()

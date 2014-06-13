@@ -1,6 +1,7 @@
-""" 
+#!/usr/bin/env python
+'''
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
-Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
+Copyright (c) 2014, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -25,18 +26,21 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-ACTIVE Plugin for Old, Backup and Unreferenced Files (OWASP-CM-006)
-https://www.owasp.org/index.php/Testing_for_Old,_Backup_and_Unreferenced_Files_(OWASP-CM-006)
-"""
+Component to handle data storage and search of all errors
+'''
 
-DESCRIPTION = "Active probing for juicy files (DirBuster)"
+from framework.db import models
 
-def run(Core, PluginInfo):
-	#Core.Config.Show()
-	# Define DirBuster Commands to use depending on Interaction Setting:
-	# DirBuster allows much more control when interactive
-	# DirBuster can also be run non-interactively for scripting
-	DirBusterInteraction = { 'true' : 'DirBusterInteractive', 'false' : 'DirBusterNotInteractive' }
-	return Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResourceList([ DirBusterInteraction[Core.DB.Config.Get('INTERACTIVE')], 'DirBuster_Extract_URLs' ]), PluginInfo, [])
-	#return Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources(DirBusterInteraction[Core.Config.Get('Interactive')]), PluginInfo, Content)
+class ErrorDB(object):
+    def __init__(self, Core):
+        self.Core = Core
+        self.ErrorDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.RegisterBase)
 
+    def Add(self, Message, Trace):
+        print(Trace)
+        print(type(Trace))
+        session = self.ErrorDBSession()
+        error = models.Error(owtf_message = Message, traceback = Trace)
+        session.add(error)
+        session.commit()
+        session.close()

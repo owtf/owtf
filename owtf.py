@@ -43,6 +43,13 @@ from framework import core
 from framework.lib.general import *
 from framework import update
 
+def RootUser():
+    currentUser = os.getuid() # Obtain user uid
+    # On *nix OS uid/gid of root are 0/0
+    if currentUser != 0:
+        print("You need to be root!")
+        sys.exit(1)
+        
 def Banner():
     print("""
                   __       ___  
@@ -405,6 +412,7 @@ def run_owtf(Core, args):
         Core.CleanTempStorageDirs(Core.Config.OwtfPid)
 
 if __name__ == "__main__":
+    RootUser()
     Banner()
     if not "--update" in sys.argv[1:]:
         Core = core.Init(RootDir, OwtfPid)  # Initialise Framework

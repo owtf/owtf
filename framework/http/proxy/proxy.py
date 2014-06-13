@@ -425,49 +425,6 @@ class CustomWebSocketClientConnection(tornado.websocket.WebSocketClientConnectio
         self.code = code
         super(CustomWebSocketClientConnection, self)._handle_1xx(code)
 
-class PlugnHackHandler(tornado.web.RequestHandler):
-    """
-    This handles the requests which are used for firefox configuration 
-    https://blog.mozilla.org/security/2013/08/22/plug-n-hack/
-    """
-    @tornado.web.asynchronous
-    def get(self, ext):
-        """
-        Root URL (in default case) = http://127.0.0.1:8008/proxy
-        Templates folder is framework/http/proxy/templates
-        For PnH, following files (all stored as templates) are used :-
-        
-        File Name       ( Relative path )
-        =========       =================
-        * Provider file ( /proxy )
-        * Tool Manifest ( /proxy.json )
-        * Commands      ( /proxy-service.json )
-        * PAC file      ( /proxy.pac )
-        * CA Cert       ( /proxy.crt )
-        """
-        # Rebuilding the root url
-        root_url = self.request.protocol + "://" + self.request.host
-        command_url = root_url + "/" + self.application.pnh_token
-        proxy_url = root_url + "/proxy"
-        # Absolute path of templates folder using location of this script (proxy.py)
-        templates_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates")
-        loader = tornado.template.Loader(templates_folder) # This loads all the templates in the folder
-        if ext == "":
-            manifest_url = proxy_url + ".json"
-            self.write(loader.load("welcome.html").generate(manifest_url=manifest_url))
-        elif ext == ".json":
-            self.write(loader.load("manifest.json").generate(proxy_url=proxy_url))
-            self.set_header("Content-Type", "application/json")
-        elif ext == "-service.json":
-            self.write(loader.load("service.json").generate(root_url=command_url))
-            self.set_header("Content-Type", "application/json")
-        elif ext == ".pac":
-            self.write(loader.load("proxy.pac").generate(proxy_details=self.request.host))
-            self.set_header('Content-Type','text/plain')
-        elif ext == ".crt":
-            self.write(open(self.application.ca_cert, 'r').read())
-            self.set_header('Content-Type','application/pkix-cert')
-        self.finish()
 
 class CommandHandler(tornado.web.RequestHandler):
     """
@@ -492,12 +449,8 @@ class ProxyProcess(Process):
 
     def __init__(self, core, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
-        # This is anti-csrf token used in Plug-n-Hack commands
-        pnh_token = uuid.uuid4().hex
         # The tornado application, which is used to pass variables to request handler
         self.application = tornado.web.Application(handlers=[
-                                                            (r'/proxy(.*)', PlugnHackHandler),
-                                                            ('/'+pnh_token+'/JSON/(.*)', CommandHandler),
                                                             (r'.*', ProxyHandler)
                                                             ], 
                                                     debug=False,
@@ -506,7 +459,6 @@ class ProxyProcess(Process):
         # All required variables in request handler
         # Required variables are added as attributes to application, so that request handler can access these
         self.application.Core = core
-        self.application.pnh_token = pnh_token
         self.application.inbound_ip = self.application.Core.DB.Config.Get('INBOUND_PROXY_IP')
         self.application.inbound_port = int(self.application.Core.DB.Config.Get('INBOUND_PROXY_PORT'))
         self.instances = self.application.Core.DB.Config.Get("INBOUND_PROXY_PROCESSES")

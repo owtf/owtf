@@ -69,9 +69,8 @@ class Error(ErrorBase):
     __tablename__ = "errors"
 
     id = Column(Integer, primary_key=True)
-    owtf_message = Column(String, nullable=True)
-    exc_type = Column(String)
-    exc_traceback = Column(String)
+    owtf_message = Column(String)
+    traceback = Column(String, nullable=True)
     user_message = Column(String, nullable=True)
     reported = Column(Boolean, default=False)
 

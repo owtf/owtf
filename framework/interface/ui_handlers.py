@@ -3,6 +3,7 @@ from framework.lib import general
 from framework.interface import custom_handlers
 import tornado.web
 import collections
+import uuid
 
 class Redirect(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
@@ -12,7 +13,8 @@ class Redirect(custom_handlers.UIRequestHandler):
 class Home(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     def get(self):
-        self.render('home.html')
+        self.render('home.html') 
+        
 
 class TransactionLog(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
@@ -93,6 +95,30 @@ class TargetManager(custom_handlers.UIRequestHandler):
                         url_log_url=self.reverse_url('url_log_url', target_id)
                        )
 
+class PlugnHack(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+    @tornado.web.asynchronous
+    def get(self, extension=""):
+        self.pnh_token = uuid.uuid4().hex
+        root_url = self.request.protocol + "://" + self.request.host
+        command_url = root_url + "/" + self.pnh_token
+        proxy_url = root_url
+        if extension == "":
+            manifest_url = proxy_url + ".json"
+            self.render("plugnhack.html", manifest_url=manifest_url)
+        elif extension == ".json":
+            self.render("manifest.json", proxy_url=proxy_url)
+            self.set_header("Content-Type", "application/json")
+        elif extension == "-service.json":
+            self.render("service.json", root_url=command_url)
+            self.set_header("Content-Type", "application/json")
+        elif extension == ".pac":
+            self.render("proxy.pac", proxy_details=self.request.host)
+            self.set_header('Content-Type', 'text/plain')
+        elif extension == ".crt":
+            self.render(open(self.application.ca_cert, 'r').read())
+            self.set_header('Content-Type', 'application/pkix-cert')
+
 class PluginOutput(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     @tornado.web.asynchronous
@@ -155,3 +181,5 @@ class ConfigurationManager(custom_handlers.UIRequestHandler):
             "config_manager.html",
             configuration_api_url=self.reverse_url('configuration_api_url')
         )
+
+    
