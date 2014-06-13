@@ -57,8 +57,8 @@ class ZestScriptConsoleHandler(custom_handlers.UIRequestHandler):
             raise tornado.web.HTTPError(405)
         else:
             self.render("zest_console.html",
-                       zest_console_api_url=self.reverse_url('zest_console_api_url',target_id))
-                        # transaction_replay_api_url=self.reverse_url('transaction_replay_api_url',target_id, transaction_id)
+                       zest_console_api_url=self.reverse_url('zest_console_api_url',target_id),
+                       zest_recording=self.application.Core.zest.IsRecording())
 
 
 class UrlLog(custom_handlers.UIRequestHandler):

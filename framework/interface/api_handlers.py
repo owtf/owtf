@@ -96,72 +96,51 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
         if not target_id:  # does not make sense if no target id provided
                 raise tornado.web.HTTPError(400)
         try:
-            self.application.Core.zest = zest.Init(self.application.Core, target_id)  # zest instance assigned
+            #self.application.Core.zest = zest.Init(self.application.Core)  # zest instance assigned
             args = self.request.arguments
             if(not any(args)):  # check if arguments is empty then load zest console
-                file_list = self.application.Core.zest.getallscripts(self.application.Core.zest.Zest_Dir)
+                file_list, record_scripts = self.application.Core.zest.GetAllScripts(target_id)
                 tdict = {}
                 tdict["files"] = file_list
+                tdict["recorded_files"] = record_scripts
                 self.write(tdict)
-            else:  # get zest script content
-                content = self.application.Core.zest.getScriptContent(self.application.Core.zest.Zest_Dir + "/" + args['script'][0])
+            elif 'script' in args and 'record' in args:  # get zest script content
+                if args['record'][0] == "true":  # record script
+                    content = self.application.Core.zest.GetRecordScriptContent(args['script'][0])
+                else:  # target script
+                    content = self.application.Core.zest.GetTargetScriptContent(target_id, args['script'][0])
                 tdict = {}
                 tdict['content'] = content
                 self.write(tdict)
+            else:
+                if 'script' not in args and 'record' in args:  # Recorder handling
+                    if args['record'][0] == "true":
+                        self.application.Core.zest.StartRecorder()
+                    else:
+                        self.application.Core.zest.StopRecorder()
         except general.InvalidTargetReference as e:
                 cprint(e.parameter)
                 raise tornado.web.HTTPError(400)
 
-# all requests are post methods, Zest class instance then handles the script creation part
+# all script creation requests are post methods, Zest class instance then handles the script creation part
 
     def post(self, target_id=None, transaction_id=None):  # handles actual zest script creation
             if not target_id:  # does not make sense if no target id provided
                 raise tornado.web.HTTPError(400)
             try:
-                self.application.Core.zest = zest.Init(self.application.Core, target_id)  #zest instance assigned
-                if transaction_id: 
-                    if not self.application.Core.zest.ScriptCreateFromSingleTransaction(transaction_id): #zest script creation from single transaction
+                if transaction_id:
+                    if not self.application.Core.zest.TargetScriptFromSingleTransaction(transaction_id,target_id): #zest script creation from single transaction
                         self.write("file exists")
                 else:  # multiple transactions
-                    trans = self.get_argument('trans', '')   # get transaction ids
-                    sCr_name = self.get_argument('name', '')  # get script name
-                    transactions = json.loads(trans)  # convert to string from json
-                    zest_args = ""
-                    for trans_id in transactions:  # creating argument string
-                        zest_args = zest_args + " " + trans_id
-                    zest_args = zest_args[1:]
-                    if not self.application.Core.zest.ScriptCreateFromMultipleTransactions(sCr_name, zest_args): #zest script creation from multiple transactions
+                    trans_list = self.get_argument('trans', '')   # get transaction ids
+                    Scr_Name = self.get_argument('name', '')  # get script name
+                    transactions = json.loads(trans_list)  # convert to string from json
+                    if not self.application.Core.zest.TargetScriptFromMultipleTransactions(target_id, Scr_Name, transactions): #zest script creation from multiple transactions
                         self.write("file exists")
             except general.InvalidTargetReference as e:
                 cprint(e.parameter)
                 raise tornado.web.HTTPError(400)
-    """
-            self.application.Core.DB.Target.SetTarget(target_id)
-            self.Output_Dir = self.application.Core.DB.Target.PathConfig['URL_OUTPUT']
-            self.Root_Dir = self.application.Core.Config.RootDir
-            self.Output_Dir = self.Root_Dir + "/" + self.Output_Dir
-            self.Script_Path = self.Root_Dir + "/zest/zest.sh"
-            self.Zest_Dir = self.Output_Dir + "/zest"
-            self.application.Core.CreateMissingDirs(self.Zest_Dir)
 
-            if not transaction_id:
-                trans = self.get_argument('trans', '')
-                name = self.get_argument('name', '')
-                result = json.loads(trans)
-                arr = ""
-                for i in result:
-                    arr = arr + " " + i
-                arr = arr[1:]
-            else:
-                name = "zest_trans_" + transaction_id
-                arr = transaction_id
-
-            self.Output_Scr = self.Zest_Dir + "/" + name + ".zst"
-            if os.path.isfile(self.Output_Scr):
-                self.write("File exists")
-            else:
-                proc = subprocess.call(['sh', self.Script_Path, self.Root_Dir, self.Output_Dir, self.Output_Scr, arr])
-"""
     @tornado.web.asynchronous
     def put(self):
         raise tornado.web.HTTPError(405)
@@ -221,7 +200,9 @@ class HTTPRequest(BaseHTTPRequestHandler):
     def send_error(self, code, message):
         self.error_code = code
         self.error_message = message
+
 """
+    Remove this at the end
     def print_all(self):
         print self.error_code       # None  (check this first)
         print self.command          # "GET"

@@ -39,17 +39,17 @@ import re
 import logging
 import base64
 
-REGEX_TYPES = ['HEADERS', 'BODY'] # The regex find differs for these types :P
+REGEX_TYPES = ['HEADERS', 'BODY']  # The regex find differs for these types :P
 
 class TransactionManager(object):
     def __init__(self, Core):
-        self.Core = Core # Need access to reporter for pretty html trasaction log
+        self.Core = Core  # Need access to reporter for pretty html trasaction log
         self.regexs = defaultdict(list)
         for regex_type in REGEX_TYPES:
             self.regexs[regex_type] = {}
         self.CompileRegexs()
 
-    def NumTransactions(self, Scope = True, target_id = None): # Return num transactions in scope by default
+    def NumTransactions(self, Scope = True, target_id = None):  # Return num transactions in scope by default
         Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
         count = session.query(models.Transaction).filter_by(scope = Scope).count()
@@ -175,11 +175,19 @@ class TransactionManager(object):
         Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
         urls_list = []
+        model_list = []
         for transaction in transaction_list:
             # TODO: This shit will go crazy on non-ascii characters
-            session.merge(self.GetTransactionModel(transaction))
+            mod_obj = self.GetTransactionModel(transaction)
+            model_list.append(mod_obj)
+            session.add(mod_obj)
             urls_list.append([transaction.URL, True, transaction.InScope()])
         session.commit()
+        trans_list = []
+        if self.Core.zest.IsRecording():  # append the transaction in the list if recording is set to on
+            for model in model_list:
+                trans_list.append((target_id, model.id))
+            self.Core.zest.addtoRecordedTrans(trans_list)
         session.close()
         self.Core.DB.URL.ImportProcessedURLs(urls_list, target_id)
 

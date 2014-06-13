@@ -35,35 +35,32 @@ body {
 .btn{
 	margin:30px;
 	padding:7px;
+
 }
 
-a, a:active, a:focus {
-  outline: none
+
+
+.btn:focus,a, a:active, a:focus{
+  outline: none;
 }
-/*
- * off Canvas sidebar
- * --------------------------------------------------
- */
-@media screen and (max-width: 768px) {
-  .row-offcanvas {
-    position: relative;
-    -webkit-transition: all 0.25s ease-out;
-    -moz-transition: all 0.25s ease-out;
-    transition: all 0.25s ease-out;
-    width:calc(100% + 220px);
-  }
-  .row-offcanvas-left{
-    left: -220px;
-  }
 
-  .row-offcanvas-left.active {
-    left: 0;
-  }
 
-  .sidebar-offcanvas {
-    position: absolute;
-    top: 0;
-  }
+  /* 1st level */
+.nav label {
+  color: blue;
+}
+
+/* 2nd level */
+.tree > li > label {
+  padding:10px 15px;  
+}
+
+/* 3rd level */
+.tree > li > ul > li > a {
+  color:#cc0000;
+  font-size:10pt;
+  margin-left:15px;
+}
   
 }
 
@@ -73,73 +70,151 @@ a, a:active, a:focus {
 
 {% block content %}
 
-<div class="row-offcanvas row-offcanvas-left ">
-  <div id="sidebar" class="sidebar-offcanvas">
-    <div class="col-md-12" id="scripts">
-      <h4>Zest Scripts</h4>
-      <ul class="nav nav-pills nav-stacked scripts" >
-      </ul>
-    </div>
-  </div>
-
-  <div id="main" >
-    <div class="col-md-12">
-      <p class="visible-xs">
-        <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas"><i class="glyphicon glyphicon-chevron-left"></i></button>
-      </p>
-      <h4>Script Content</h4>
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+          <div class="well">
+              <div>
+                  <ul id="allscripts" class="nav nav-stacked fixed">
+                      <li>
+                          <label label-default="" class="tree-toggle nav-header">Recorded Scripts</label>
+                          <ul id="rec_scripts" class="nav tree">
+                          </ul>
+                      </li>
+                      <li>
+                        <label label-default="" class="tree-toggle nav-header">Target Scripts</label>
+                        <ul id="tar_scripts" class="nav tree">
+                        </ul>
+                      </li>
+                
+                  </ul>
+              </div>
+          </div>
+      </div>
+      <div class="col-md-9">
+        <h4>Script Content</h4>
       <pre id="script_content"></pre>
-    </div>
-  </div>
-</div>
-
-<div class="row pull-right" style="text-align:center" >
-  <button class="btn btn-primary " id="recordZest">Record a Zest Script!</button>
+          <div class="row pull-right" style="text-align:center" >
+  <button class="btn btn-primary " onclick="RecordToggle()"  id="recordZest">Record a Zest Script!</button>
   <button class="btn btn-primary" id="ForwardZest">Forward to ZAP !</button>
   <button class="btn btn-primary" id="RunZest"> Run the Zest Script !</button>
 </div>
 
+    </div>
+  </div>
+</div>
 
 <script>
 
 var mySpace = {
 
                     zest_console_api_url:"{{ zest_console_api_url }}",
+                    zest_recording:"{{ zest_recording }}",
               };
 
 //get scripts in zest output folder of the target
-function getScriptNames(){
+function GetScriptNames(){
 		$.getJSON(mySpace.zest_console_api_url,function(obj){
-    var list=obj.files;
-
-			for (i=0;i<list.length;i++){
-        if (i==0){
-          $("#scripts ul").append('<li class="active"><a href="#">'+list[i]+'</a></li>');
-          getScriptContent(list[i]);
-        }
-        else{
-            $("#scripts ul").append('<li><a href="#">'+list[i]+'</a></li>');
-        }
-      }
+    var target_list=obj.files;
+    var rec_list=obj.recorded_files;
+    LoadTargetScriptNames(target_list);
+    LoadRecordScriptNames(rec_list);
 		});
 }
 
+function LoadTargetScriptNames(target_list){
+    $("#tar_scripts").empty();
+    for (i=0;i<target_list.length;i++){
+      if (i==0){
+        $("#tar_scripts").append('<li class="active"><a href="#">'+target_list[i]+'</a></li>');
+        GetTargetScriptContent(target_list[i]);
+      }
+      else{
+            $("#tar_scripts").append('<li><a href="#">'+target_list[i]+'</a></li>');
+      }
+    }
+}
+
+function LoadRecordScriptNames(rec_list){
+    $("#rec_scripts").empty();
+    for(i=0;i<rec_list.length;i++){
+      if (i==0){
+        $("#rec_scripts").append('<li class="active"><a href="#">'+rec_list[i]+'</a></li>');
+      }
+      else{
+          $("#rec_scripts").append('<li><a href="#">'+rec_list[i]+'</a></li>');
+      }
+    }
+    $("#rec_scripts").hide();
+}
+
+function SetRecordButton(){
+    if(mySpace.zest_recording=="True"){
+      RecordOn();
+    }
+    else{
+      RecordOff();
+    }
+}
+
+function RecordOn(){
+    $('#recordZest').attr('class','btn btn-danger');
+    $('#recordZest').text('Stop Recording !');
+}
+
+function RecordOff(){
+    $('#recordZest').attr('class','btn btn-primary');
+    $('#recordZest').text('Record a Zest Script!');
+}
+
+function RecordToggle(){
+    if (mySpace.zest_recording=="False"){
+      $.getJSON(mySpace.zest_console_api_url+"?record=true");
+      RecordOn();
+      mySpace.zest_recording = true;
+    }
+    else{
+      $.getJSON(mySpace.zest_console_api_url+"?record=false");
+      RecordOff();
+      mySpace.zest_recording = false;
+    }
+}
+
 //get content of the active script
-function getScriptContent(script){
-    $.getJSON(mySpace.zest_console_api_url+"?script="+script,function(obj){
+function GetTargetScriptContent(script){
+    $.getJSON(mySpace.zest_console_api_url+"?record=false&script="+script,functio
+      (obj){
           $("#script_content").text(obj.content);
           $('#script_content').css("height","500px");
     });
 }
 
+function GetRecordScriptContent(script){
+    $.getJSON(mySpace.zest_console_api_url+"?record=true&script="+script,function(obj){
+          $("#script_content").text(obj.content);
+          $('#script_content').css("height","500px");
+    });
+}
+
+$('.tree-toggle').click(function () {
+  $(this).parent().children('ul.tree').toggle(200);
+});
+
 //sidebar click event delegation
-$('#sidebar').on('click','a', function (e) {
-    $('.nav li').removeClass('active');
+$('#allscripts').on('click','a', function (e) {
+    $('li').removeClass('active');
     var $parent = $(this).parent();
     if (!$parent.hasClass('active')) {
       $parent.addClass('active');
       var script = $(this).text();
-      getScriptContent(script);
+      $p_par = $parent.parent();
+      var script_t = $p_par.attr('id');
+      if(script_t=="tar_scripts"){
+        GetTargetScriptContent(script);
+      }
+      else if (script_t == "rec_scripts"){
+        GetRecordScriptContent(script);
+      }
     }
     e.preventDefault();
 });
@@ -148,7 +223,8 @@ $(document).ready(function() {
   $('[data-toggle=offcanvas]').click(function() {
     $('.row-offcanvas').toggleClass('active');
   });
-  getScriptNames();
+  GetScriptNames();
+  SetRecordButton();
  
 });
 
