@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+
+'''
+    OWTF Git Pre-Commit Hook to Enforce Styleguide
+    ==============================================
+
+    This script is not supposed to be run directly.
+    Instead, copy it to your owtf/.git/hooks/ directory, call it 'pre-commit'
+    and make it executable.
+
+    If you attempt to commit, git will run this script, which in turn will run
+    the styleguide checker over your code and abort the commit if there are any
+    errors. If that happens, please fix the reported errors & retry.
+
+    To install::
+
+        cp owtf/contrib/pep8checker/pre-commit.githook .git/hooks/pre-commit
+        chmod +x .git/hooks/pre-commit
+'''
+
+import sys, os
+from os.path import dirname, abspath, sep, join
+from subprocess import call, Popen, PIPE
+
+curdir = dirname(abspath(__file__))
+owtfdir = sep.join(curdir.split(sep)[:-2])
+srcdir = owtfdir
+script = join(srcdir, 'contrib', 'pep8checker', 'pep8owtf.py')
+try:
+    with open(script): pass
+except IOError:
+    print "Make sure the scipt exists.."
+
+
+proc = Popen(['git', 'diff', '--cached', '--name-status', 'HEAD'], stdout=PIPE)
+proc.wait()
+
+# This gives output like the following:
+#
+#    A       framework/http/requestor.py
+#    A       framework/db/plugin_helper.py
+#    D       owtf/framework/core.py
+#
+# So check for D entries and remove them from targets.
+#
+targets = []
+for target in proc.stdout:
+    parts = [p.strip() for p in target.split()]
+    if parts[0] != 'D':
+        targets.append(join(owtfdir, target.decode(encoding='UTF-8')))
+
+# Untested possibility: After making the changes above for removing deleted
+# files from targets, saw also where the git diff call could be:
+#
+#    git diff --cached --name-only --diff-filter=ACM
+#                                                    (leaving off D)
+#
+# and we could then remove the special handling in python for targets above.
+
+call(['git', 'stash', 'save', '--keep-index', '--quiet'])
+retval = call([sys.executable, script, srcdir] + targets)
+call(['git', 'stash', 'pop', '--quiet'])
+
+if retval:
+    # There are styleguide violations
+    print("Error:", retval, "styleguide violation(s) encountered!")
+    print("Your commit has been aborted. Please fix the violations and retry.")
+    sys.exit(retval)
+
