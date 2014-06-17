@@ -43,6 +43,8 @@ from framework import core
 from framework.lib.general import *
 from framework import update
 
+    
+
 def Banner():
     print("""
                   __       ___  
@@ -54,6 +56,29 @@ def Banner():
  \/___/  \/__//__/   \/__/ \/_/ 
 
 """)
+
+
+def Permissions():
+    """
+    This function checks for writing privileges into /tmp/owtf and /owtf_review.
+    /tmp is an OS directory
+    /owtf_review is stored in OWTF directory
+    """
+    message = "Not having enough privileges to write into: "
+    tmpDirPath = '/tmp/owtf'
+    reviewDirPath = RootDir + '/owtf_review'
+    
+    # If having writing privileges, the value stored in the variable is 'True', otherwise 'False' 
+    tmp_owtf = os.access(tmpDirPath, os.W_OK)
+    owtf_review = os.access(reviewDirPath, os.W_OK)
+
+    if not tmp_owtf:
+        cprint(message + tmpDirPath)
+        sys.exit(1)
+
+    if not owtf_review:
+        cprint(message + reviewDirPath)
+        sys.exit(1)
 
 
 def GetArgs(Core, args):
@@ -406,6 +431,7 @@ def run_owtf(Core, args):
 
 if __name__ == "__main__":
     Banner()
+    Permissions()
     if not "--update" in sys.argv[1:]:
         Core = core.Init(RootDir, OwtfPid)  # Initialise Framework
         print(
