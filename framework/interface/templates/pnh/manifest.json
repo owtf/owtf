@@ -4,7 +4,7 @@
   "features":{
     "proxy":{
       "PAC":"{{ pnh_url }}/proxy.pac",
-      "CACert":"{{ pnh_url }}/.crt"
+      "CACert":"{{ pnh_url }}/ca.crt"
     },
     "commands":{
       "prefix":"owtf",
