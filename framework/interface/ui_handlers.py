@@ -95,11 +95,11 @@ class PlugnHack(custom_handlers.UIRequestHandler):
         ---------------------------------------------------
         """
         root_url = self.request.protocol + "://" + self.request.host
-        command_url = root_url + "/"
+        command_url = os.path.join(root_url,"")
         pnh_url = root_url + "/ui/plugnhack"
         # Obtain path to PlugnHack template files
         # PLUGNHACK_TEMPLATES_DIR is defined in /framework/config/framework_config.cfg
-        pnh_folder = self.application.Core.Config.FrameworkConfigGet('PLUGNHACK_TEMPLATES_DIR') + "/"
+        pnh_folder = os.path.join(self.application.Core.Config.FrameworkConfigGet('PLUGNHACK_TEMPLATES_DIR'),"")
         self.application.ca_cert = os.path.expanduser(self.application.Core.DB.Config.Get('CA_CERT'))
 
         
