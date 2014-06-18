@@ -124,7 +124,7 @@ class PlugnHack(custom_handlers.UIRequestHandler):
                         server_details=self.request.host,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
-        elif extension == ".crt":
+        elif extension == "ca.crt":
             self.render(self.application.ca_cert,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
