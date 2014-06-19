@@ -64,7 +64,7 @@ class Worker(multiprocessing.Process):
                 self.output_q.put('done')
                 #self.output_status = True
             except KeyboardInterrupt:
-                self.Core.log("I am worker with pid: " + str(self.pid) + " & my master doesnt need me anymore")
+                self.Core.log("I am worker with pid: " + str(self.pid) + " & my master doesn't need me anymore")
                 sys.exit()
 
 class WorkerManager(object):
