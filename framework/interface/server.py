@@ -32,7 +32,7 @@ class InterfaceServer(object):
             tornado.options.parse_command_line(
                 args=[
                     'dummy_arg',
-                    '--log_file_prefix=/tmp/ui.log',
+                    '--log_file_prefix='+self.application.Core.DB.Config.Get('SERVER_LOG'),
                     '--logging=info']
                 )
             self.server.start(1)

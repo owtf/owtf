@@ -69,6 +69,7 @@ def Permissions():
     reviewDirPath = RootDir + '/owtf_review'
     
     # If having writing privileges, the value stored in the variable is 'True', otherwise 'False' 
+    # TODO: Remove hardcoding of paths and check if paths exist before checking for privileges
     tmp_owtf = os.access(tmpDirPath, os.W_OK)
     owtf_review = os.access(reviewDirPath, os.W_OK)
 
@@ -431,7 +432,8 @@ def run_owtf(Core, args):
 
 if __name__ == "__main__":
     Banner()
-    Permissions()
+    # Temporarily disabled due to some bugs, because this prevents basic run of owtf
+    # Permissions()
     if not "--update" in sys.argv[1:]:
         Core = core.Init(RootDir, OwtfPid)  # Initialise Framework
         print(
