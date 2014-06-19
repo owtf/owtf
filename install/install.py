@@ -74,8 +74,6 @@ class Installer(object):
             self.install_in_directory(os.path.expanduser(cp.get(section, "directory")), cp.get(section, "command"))
 
     def install(self):
-        # First all distro independent stuff is installed
-        self.install_restricted_from_cfg(self.restricted_cfg)
         # User asked to select distro and distro related stuff is installed
         cp = ConfigParser.ConfigParser({"RootDir":self.RootDir, "Pid":self.pid})
         cp.read(self.distros_cfg)
@@ -99,6 +97,9 @@ class Installer(object):
                 print("Please enter a valid number")
                 continue
 
+        # First all distro independent stuff is installed
+        self.install_restricted_from_cfg(self.restricted_cfg)
+
         # Finally owtf python libraries installed using pip
         self.install_using_pip(self.owtf_pip)
 
@@ -108,4 +109,4 @@ if __name__ == "__main__":
     RootDir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     installer = Installer(RootDir)
     installer.install()
-    print("[*] Hope everything went fine :)")
+    print("[*] Finished")
