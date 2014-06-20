@@ -83,13 +83,16 @@ def Permissions():
         if os.access(reviewDirPath, os.W_OK):
             for root, dirs, files in os.walk(reviewDirPath):
                 for dir_ in dirs:
-                    if not os.access(dir_, os.W_OK):
-                        cprint(message + root + dir_)
+                    dir_path = os.path.join(root, dir_)
+                    #print(dir_path)
+                    if not os.access(dir_path, os.W_OK):
+                        cprint(message + dir_path)
                         perm_error = True
                 for file_ in files:
-                    if not os.access(file_, os.W_OK):
+                    file_path = os.path.join(root, file_)
+                    if not os.access(file_path, os.W_OK):
                         perm_error = True
-                        cprint(message + root + file_)
+                        cprint(message + os.path.join(root, file_))
         else:
             perm_error = True
             cprint(message + reviewDirPath)
