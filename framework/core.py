@@ -76,6 +76,18 @@ class Core:
         #self.messaging_admin = messaging_admin.message_admin(self)
         self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
         self.DB.Init()
+        # Checking the permissions of uilog log file and proxy cache folder
+        #This is useful in case a defines a custom path in the default.cfg
+        uilog = self.DB.Config.Get("SERVER_LOG")
+        proxy_cache_log_dir = self.DB.Config.Get("INBOUND_PROXY_CACHE_DIR")
+        if os.path.isfile(uilog):
+            if not os.access(uilog, os.W_OK):
+                cprint("Not having enough privileges to write into: " + uilog)
+                exit(-1)
+        if os.path.exists(proxy_cache_log_dir):
+             if not os.access(proxy_cache_log_dir, os.W_OK):
+                cprint("Not having enough privileges to write into: " + uilog)
+                exit(-1)
 
         self.Timer = timer.Timer(self.DB.Config.Get('DATE_TIME_FORMAT')) # Requires user config db
         self.showOutput=True
