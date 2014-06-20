@@ -60,25 +60,53 @@ def Banner():
 
 def Permissions():
     """
-    This function checks for writing privileges into /tmp/owtf and /owtf_review.
+    This function checks for writing privileges into /tmp/owtf and /owtf_review recursively
     /tmp is an OS directory
     /owtf_review is stored in OWTF directory
     """
-    message = "Not having enough privileges to write into: "
+    message = "Error: Not having enough privileges to write into: "
     tmpDirPath = '/tmp/owtf'
     reviewDirPath = RootDir + '/owtf_review'
-    
-    # If having writing privileges, the value stored in the variable is 'True', otherwise 'False' 
-    # TODO: Remove hardcoding of paths and check if paths exist before checking for privileges
-    tmp_owtf = os.access(tmpDirPath, os.W_OK)
-    owtf_review = os.access(reviewDirPath, os.W_OK)
+
+    if os.path.exists(tmpDirPath):
+        tmp_owtf = os.access(tmpDirPath, os.W_OK)
+    else:
+        tmp_owtf = True
+        try:
+            os.mkdir(tmpDirPath)
+        except OSError as e:
+            cprint(e.strerror)
+            sys.exit(-1)
+
+    if os.path.exists(reviewDirPath):
+        perm_error = False
+        if os.access(reviewDirPath, os.W_OK):
+            for root, dirs, files in os.walk(reviewDirPath):
+                for dir_ in dirs:
+                    if not os.access(dir_, os.W_OK):
+                        cprint(message + root + dir_)
+                        perm_error = True
+                for file_ in files:
+                    if not os.access(file_, os.W_OK):
+                        perm_error = True
+                        cprint(message + root + file_)
+        else:
+            perm_error = True
+            cprint(message + reviewDirPath)
+
+        if perm_error:
+            sys.exit(-1)
+
+    else:
+
+        try:
+            os.mkdir(reviewDirPath)
+        except OSError as e:
+            cprint(e.strerror)
+            exit(-1)
 
     if not tmp_owtf:
         cprint(message + tmpDirPath)
-        sys.exit(1)
-
-    if not owtf_review:
-        cprint(message + reviewDirPath)
         sys.exit(1)
 
 
@@ -432,8 +460,7 @@ def run_owtf(Core, args):
 
 if __name__ == "__main__":
     Banner()
-    # Temporarily disabled due to some bugs, because this prevents basic run of owtf
-    # Permissions()
+    Permissions()
     if not "--update" in sys.argv[1:]:
         Core = core.Init(RootDir, OwtfPid)  # Initialise Framework
         print(
