@@ -52,6 +52,7 @@ from multiprocessing import Process
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
 import pycurl
+#from session import SessionHandler
 
 
 def prepare_curl_callback(curl):
@@ -62,7 +63,7 @@ class ProxyHandler(tornado.web.RequestHandler):
     This RequestHandler processes all the requests that the application received
     """
     SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE']
-    
+
     def __new__(cls, application, request, **kwargs):
         # http://stackoverflow.com/questions/3209233/how-to-replace-an-instance-in-init-with-a-different-object
         # Based on upgrade header, websocket request handler must be used
@@ -93,9 +94,23 @@ class ProxyHandler(tornado.web.RequestHandler):
             except KeyError:
                 self._reason = tornado.escape.native_str("Server Not Found")
 
+    def extract_session(self, response):
+        """
+        # Watches the response for `Set-Cookie` header and extracts session tokens from it
+        """
+        # this solution should work for both cases; single session cookies and multiple ones
+        for header, value in list(response.headers.items()):
+            if header == 'Set-Cookie':
+                try:
+                    tokens = value.split(',')
+                except:
+                    tokens = value
+                return tokens
+
     # This function writes a new response & caches it
     def finish_response(self, response):
         self.set_status(response.code)
+        print response.headers
         for header, value in list(response.headers.items()):
             if header == "Set-Cookie":
                 self.add_header(header, value)
@@ -118,7 +133,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         * Once ssl stream is formed between browser and proxy, the requests are
           then processed by this function
         """
-        # The flow starts here 
+        # The flow starts here
         self.request.response_buffer = ''
 
         # The requests that come through ssl streams are relative requests, so transparent
@@ -282,8 +297,8 @@ class ProxyHandler(tornado.web.RequestHandler):
         def ssl_fail():
             self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
             server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
-        
-        # Hacking to be done here, so as to check for ssl using proxy and auth    
+
+        # Hacking to be done here, so as to check for ssl using proxy and auth
         try:
             s = ssl.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0))
             upstream = tornado.iostream.SSLIOStream(s)
@@ -297,7 +312,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
     """
     * See docs XD
     * This class is used for handling websocket traffic.
-    * Object of this class replaces the main request handler for a request with 
+    * Object of this class replaces the main request handler for a request with
       header => "Upgrade: websocket"
     * wss:// - CONNECT request is handled by main handler
     """
@@ -316,7 +331,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
         # WebSocketClientConnection expects ws:// & wss://
         self.request.url = self.request.url.replace("http", "ws", 1)
-        
+
         # Have to add cookies and stuff
         request_headers = tornado.httputil.HTTPHeaders()
         for name, value in self.request.headers.iteritems():
@@ -350,7 +365,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.handshake_request.version = "HTTP/1.1" # Tiny hack to protect caching (But according to websocket standards)
             self.handshake_request.body = self.handshake_request.body or "" # I dont know why a None is coming :P
             tornado.websocket.WebSocketHandler._execute(self, transforms, *args, **kwargs) # The regular procedures are to be done
-        
+
         # We try to connect to provided URL & then we proceed with connection on client side.
         self.upstream = self.upstream_connect(callback=start_tunnel)
 
@@ -444,7 +459,7 @@ class CommandHandler(tornado.web.RequestHandler):
                 info[command] = eval(command)
         self.write(info)
         self.finish()
-                        
+
 class ProxyProcess(Process):
 
     def __init__(self, core, outbound_options=[], outbound_auth=""):
@@ -452,7 +467,7 @@ class ProxyProcess(Process):
         # The tornado application, which is used to pass variables to request handler
         self.application = tornado.web.Application(handlers=[
                                                             (r'.*', ProxyHandler)
-                                                            ], 
+                                                            ],
                                                     debug=False,
                                                     gzip=True,
                                                    )
@@ -462,7 +477,7 @@ class ProxyProcess(Process):
         self.application.inbound_ip = self.application.Core.DB.Config.Get('INBOUND_PROXY_IP')
         self.application.inbound_port = int(self.application.Core.DB.Config.Get('INBOUND_PROXY_PORT'))
         self.instances = self.application.Core.DB.Config.Get("INBOUND_PROXY_PROCESSES")
-        
+
         # Proxy CACHE
         # Cache related settings, including creating required folders according to cache folder structure
         self.application.cache_dir = self.application.Core.DB.Config.Get("INBOUND_PROXY_CACHE_DIR")
@@ -475,7 +490,7 @@ class ProxyProcess(Process):
             folder_path = os.path.join(self.application.cache_dir, folder_name)
             if not os.path.exists(folder_path):
                 os.mkdir(folder_path)
-        
+
         # SSL MiTM
         # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory ~/.owtf/proxy )
         self.application.ca_cert = os.path.expanduser(self.application.Core.DB.Config.Get('CA_CERT'))
@@ -497,7 +512,7 @@ class ProxyProcess(Process):
             assert os.path.exists(self.application.certs_folder)
         except AssertionError:
             os.makedirs(self.application.certs_folder)
-        
+
         # Blacklist (or) Whitelist Cookies
         # Building cookie regex to be used for cookie filtering for caching
         if self.application.Core.DB.Config.Get('WHITELIST_COOKIES') == 'None':
@@ -512,7 +527,7 @@ class ProxyProcess(Process):
             regex_cookies_list = [ "(" + cookie + "=[^;]+;?)" for cookie in self.application.Core.DB.Config.Get('COOKIES_LIST') ]
         regex_string = '|'.join(regex_cookies_list)
         self.application.cookie_regex = re.compile(regex_string)
-        
+
         # Outbound Proxy
         # Outbound proxy settings to be used inside request handler
         if outbound_options:
@@ -530,12 +545,12 @@ class ProxyProcess(Process):
             self.application.outbound_username, self.application.outbound_password = outbound_auth.split(":")
         else:
             self.application.outbound_username, self.application.outbound_password = None, None
-        
+
         # Server has to be global, because it is used inside request handler to attach sockets for monitoring
         global server
         server = tornado.httpserver.HTTPServer(self.application)
         self.server = server
-        
+
         # Header filters
         # Restricted headers are picked from framework/config/framework_config.cfg
         # These headers are removed from the response obtained from webserver, before sending it to browser
