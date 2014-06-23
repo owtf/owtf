@@ -77,6 +77,18 @@ class Core:
         #self.messaging_admin = messaging_admin.message_admin(self)
         self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
         self.DB.Init()
+        # Checking the permissions of uilog log file and proxy cache folder
+        #This is useful in case a defines a custom path in the default.cfg
+        uilog = self.DB.Config.Get("SERVER_LOG")
+        proxy_cache_log_dir = self.DB.Config.Get("INBOUND_PROXY_CACHE_DIR")
+        if os.path.isfile(uilog):
+            if not os.access(uilog, os.W_OK):
+                cprint("Not having enough privileges to write into: " + uilog)
+                exit(-1)
+        if os.path.exists(proxy_cache_log_dir):
+             if not os.access(proxy_cache_log_dir, os.W_OK):
+                cprint("Not having enough privileges to write into: " + uilog)
+                exit(-1)
 
         self.Timer = timer.Timer(self.DB.Config.Get('DATE_TIME_FORMAT')) # Requires user config db
         self.showOutput = True
@@ -183,6 +195,7 @@ class Core:
             self.TransactionLogger.start()
             self.Requester = requester.Requester(self, [self.DB.Config.Get('INBOUND_PROXY_IP'), self.DB.Config.Get('INBOUND_PROXY_PORT')])
             cprint("Proxy transaction's log file at %s"%(self.DB.Config.Get("PROXY_LOG")))
+            cprint("Interface server log file at %s"%(self.DB.Config.Get("SERVER_LOG")))
             cprint("Execution of OWTF is halted.You can browse through OWTF proxy) Press Enter to continue with OWTF")
             #if Options["Interactive"]:
             #    raw_input()

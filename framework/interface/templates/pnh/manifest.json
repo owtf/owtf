@@ -3,12 +3,12 @@
   "protocolVersion":"0.2",
   "features":{
     "proxy":{
-      "PAC":"{{ proxy_url }}.pac",
-      "CACert":"{{ proxy_url }}.crt"
+      "PAC":"{{ pnh_url }}/proxy.pac",
+      "CACert":"{{ pnh_url }}/ca.crt"
     },
     "commands":{
       "prefix":"owtf",
-      "manifest":"{{ proxy_url }}-service.json"
+      "manifest":"{{ pnh_url }}/service.json"
     }
   }
 }

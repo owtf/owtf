@@ -43,13 +43,8 @@ from framework import core
 from framework.lib.general import *
 from framework import update
 
-def RootUser():
-    currentUser = os.getuid() # Obtain user uid
-    # On *nix OS uid/gid of root are 0/0
-    if currentUser != 0:
-        print("You need to be root!")
-        sys.exit(1)
-        
+    
+
 def Banner():
     print("""
                   __       ___  
@@ -61,6 +56,61 @@ def Banner():
  \/___/  \/__//__/   \/__/ \/_/ 
 
 """)
+
+
+def Permissions():
+    """
+    This function checks for writing privileges into /tmp/owtf and /owtf_review recursively
+    /tmp is an OS directory
+    /owtf_review is stored in OWTF directory
+    """
+    message = "Error: Not having enough privileges to write into: "
+    tmpDirPath = '/tmp/owtf'
+    reviewDirPath = RootDir + '/owtf_review'
+
+    if os.path.exists(tmpDirPath):
+        tmp_owtf = os.access(tmpDirPath, os.W_OK)
+    else:
+        tmp_owtf = True
+        try:
+            os.mkdir(tmpDirPath)
+        except OSError as e:
+            cprint(e.strerror)
+            sys.exit(-1)
+
+    if os.path.exists(reviewDirPath):
+        perm_error = False
+        if os.access(reviewDirPath, os.W_OK):
+            for root, dirs, files in os.walk(reviewDirPath):
+                for dir_ in dirs:
+                    dir_path = os.path.join(root, dir_)
+                    #print(dir_path)
+                    if not os.access(dir_path, os.W_OK):
+                        cprint(message + dir_path)
+                        perm_error = True
+                for file_ in files:
+                    file_path = os.path.join(root, file_)
+                    if not os.access(file_path, os.W_OK):
+                        perm_error = True
+                        cprint(message + os.path.join(root, file_))
+        else:
+            perm_error = True
+            cprint(message + reviewDirPath)
+
+        if perm_error:
+            sys.exit(-1)
+
+    else:
+
+        try:
+            os.mkdir(reviewDirPath)
+        except OSError as e:
+            cprint(e.strerror)
+            exit(-1)
+
+    if not tmp_owtf:
+        cprint(message + tmpDirPath)
+        sys.exit(1)
 
 
 def GetArgs(Core, args):
@@ -412,8 +462,8 @@ def run_owtf(Core, args):
         Core.CleanTempStorageDirs(Core.Config.OwtfPid)
 
 if __name__ == "__main__":
-    RootUser()
     Banner()
+    Permissions()
     if not "--update" in sys.argv[1:]:
         Core = core.Init(RootDir, OwtfPid)  # Initialise Framework
         print(

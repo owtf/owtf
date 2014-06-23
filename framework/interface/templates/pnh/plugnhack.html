@@ -3,7 +3,14 @@
 {% block title %}PlugnHack{% end %}
 
 {% block content %}
- <h1 class="text-center">Plug-n-Hack Browser configuration</h1>
+    <div class="container">
+        <div class="row-fluid">
+            <div class="col-lg-4"></div>
+                <img src="https://www.owasp.org/images/0/02/OWTFLogoSmall.png" class="img-responsive"/>
+        </div>
+        <h1 class="text-center">Plug-n-Hack Browser configuration</h1>
+	<br>
+	<br>
         <div class="row-fluid" id="messages">
                 <div id="setup" class="alert alert-danger" style="display:none">
                     <p id="setupMessage"><strong>
@@ -15,6 +22,7 @@
                 </div>
                 <div id="success" class="alert alert-success" style="display:none">
                     <p id="successMessage">Configuration succeeded!</p>
+		    <p id="successMessage">You can control both Plug-n-Hack and OWTF via the Firefox Developer Toolbar (Shift+F2) - type 'help pnh' or 'help owtf' to get started. </p>
                 </div>
                 <div id="failure" class="alert alert-danger" style="display:none">
                     <p>Configuration failed: <span id="failureMessage">Configuration failed</span></p>
@@ -95,6 +103,5 @@
     document.addEventListener('ConfigureSecToolFailed',failed,false);
     document.addEventListener('ConfigureSecToolActivated',activated,false);
     document.addEventListener('ConfigureSecToolSucceeded',succeeded,false);
-
 </script>
 {% end %}

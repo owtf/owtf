@@ -34,7 +34,8 @@ def get_handlers(Core):
                 tornado.web.url(r'/ui/targets/([0-9]+)/poutput/?', ui_handlers.PluginOutput, name='poutput_ui_url'),
                 tornado.web.url(r'/ui/workers/?([0-9])?/?', ui_handlers.WorkerManager, name='workers_ui_url'),
                 tornado.web.url(r'/ui/configuration/?$', ui_handlers.ConfigurationManager, name='configuration_ui_url'),
-                tornado.web.url(r'/ui/pnh/?$', ui_handlers.PlugnHack, name='pnh_ui_url'),
+                tornado.web.url(r'/ui/plugnhack/?', ui_handlers.PlugnHack, name='plugnhack_ui_url'),
+                tornado.web.url(r'/ui/plugnhack/?(.*)', ui_handlers.PlugnHack, name='plugnhack_ui_manifest_url'),
                 tornado.web.url(r'/ui/help/?', ui_handlers.Help, name='help_ui_url'),
             ]
     return(URLS)

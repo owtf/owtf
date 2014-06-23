@@ -17,7 +17,9 @@ class InterfaceServer(object):
             )
         self.application.Core = Core
         self.server = tornado.httpserver.HTTPServer(self.application)
-        # The next line is the heart of everything
+        # 'self.manage_cron' is an instance of class 'tornado.ioloop.PeriodicCallback',
+        # it schedules the given callback to be called periodically.
+        # The callback is called every 2000 milliseconds.
         self.manager_cron = tornado.ioloop.PeriodicCallback(
             self.application.Core.WorkerManager.manage_workers,
             2000)
@@ -33,7 +35,7 @@ class InterfaceServer(object):
             tornado.options.parse_command_line(
                 args=[
                     'dummy_arg',
-                    '--log_file_prefix=/tmp/ui.log',
+                    '--log_file_prefix='+self.application.Core.DB.Config.Get('SERVER_LOG'),
                     '--logging=info']
                 )
             self.server.start(1)

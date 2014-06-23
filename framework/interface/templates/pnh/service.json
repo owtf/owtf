@@ -14,7 +14,7 @@
       "defaultValue": "RELEASE"
     }],
     "execAction":{
-      "url":"{{ root_url }}/JSON/?cmd=Core.Config.FrameworkConfigGet('${$.args.type}')",
+      "url":"{{ root_url }}/api/configuration?key=${$.args.type}",
       "expression":"$.*"
     }
   },
@@ -30,9 +30,9 @@
       "defaultValue": "BLACKLIST_COOKIES"
     }],
     "execAction":{
-      "url":"{{ root_url }}/JSON/?cmd=Core.Config.Get('${$.args.type}')",
+      "url":"{{ root_url }}/api/configuration?key=${$.args.type}",
       "expression":"$.*"
     }
-  }
+  },
   ]
 }

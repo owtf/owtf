@@ -3,7 +3,7 @@ from framework.lib import general
 from framework.interface import custom_handlers
 import tornado.web
 import collections
-import uuid
+import os
 
 class Redirect(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
@@ -97,28 +97,69 @@ class TargetManager(custom_handlers.UIRequestHandler):
                        )
 
 class PlugnHack(custom_handlers.UIRequestHandler):
+    """
+    PlugnHack handles the requests which are used for integration
+    of OWTF with Firefox browser using Plug-n-Hack add-on.
+    For more information about Mozilla Plug-n-Hack standard visit:
+    https://blog.mozilla.org/security/2013/08/22/plug-n-hack/
+    """
     SUPPORTED_METHODS = ['GET']
     @tornado.web.asynchronous
     def get(self, extension=""):
-        self.pnh_token = uuid.uuid4().hex
+        """
+        pnh is an abbreviation for Plug-n-Hack
+        URL in default case = http://127.0.0.1:8009/ui/plugnhack/
+        Templates folder is framework/interface/templates/pnh
+        For Plug-n-Hack, following files are used:
+
+        ===================================================
+        |    File Name    |          Relative path        |
+        ===================================================
+        |  Provider file  |   /ui/plugnhack/              |
+        ---------------------------------------------------
+        |  Manifest file  |   /ui/plugnhack/manifest.json |
+        ---------------------------------------------------
+        |  Commands file  |   /ui/plugnhack/service.json  |
+        ---------------------------------------------------
+        |  PAC file       |   /ui/plugnhack/proxy.pac     |
+        ---------------------------------------------------
+        |  CA Cert        |   /ui/plugnhack/ca.crt        |
+        ---------------------------------------------------
+        """
         root_url = self.request.protocol + "://" + self.request.host
-        command_url = root_url + "/" + self.pnh_token
-        proxy_url = root_url
+        command_url = os.path.join(root_url,"")
+        pnh_url = root_url + "/ui/plugnhack"
+        # Obtain path to PlugnHack template files
+        # PLUGNHACK_TEMPLATES_DIR is defined in /framework/config/framework_config.cfg
+        pnh_folder = os.path.join(self.application.Core.Config.FrameworkConfigGet('PLUGNHACK_TEMPLATES_DIR'),"")
+        self.application.ca_cert = os.path.expanduser(self.application.Core.DB.Config.Get('CA_CERT'))
+
+        
         if extension == "":
-            manifest_url = proxy_url + ".json"
-            self.render("plugnhack.html", manifest_url=manifest_url)
-        elif extension == ".json":
-            self.render("manifest.json", proxy_url=proxy_url)
-            self.set_header("Content-Type", "application/json")
-        elif extension == "-service.json":
-            self.render("service.json", root_url=command_url)
-            self.set_header("Content-Type", "application/json")
-        elif extension == ".pac":
-            self.render("proxy.pac", proxy_details=self.request.host)
-            self.set_header('Content-Type', 'text/plain')
-        elif extension == ".crt":
-            self.render(open(self.application.ca_cert, 'r').read())
-            self.set_header('Content-Type', 'application/pkix-cert')
+            manifest_url = pnh_url + "/manifest.json"
+            self.render(pnh_folder + "plugnhack.html",
+                        manifest_url=manifest_url,
+                        plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
+                        )
+        elif extension == "manifest.json":
+            self.render(pnh_folder + "manifest.json",
+                        pnh_url=pnh_url,
+                        plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
+                        )
+        elif extension == "service.json":
+            self.render(pnh_folder + "service.json", 
+                        root_url=command_url,
+                        plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
+                        )
+        elif extension == "proxy.pac":
+            self.render(pnh_folder + "proxy.pac", 
+                        server_details=self.request.host,
+                        plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
+                        )
+        elif extension == "ca.crt":
+            self.render(self.application.ca_cert,
+                        plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
+                        )
 
 class PluginOutput(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
