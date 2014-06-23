@@ -104,14 +104,19 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
                 tdict["files"] = file_list
                 tdict["recorded_files"] = record_scripts
                 self.write(tdict)
-            elif 'script' in args and 'record' in args:  # get zest script content
+            elif 'script' in args and 'record' in args and 'run' not in args:  # get zest script content
                 if args['record'][0] == "true":  # record script
                     content = self.application.Core.zest.GetRecordScriptContent(args['script'][0])
                 else:  # target script
                     content = self.application.Core.zest.GetTargetScriptContent(target_id, args['script'][0])
-                tdict = {}
-                tdict['content'] = content
-                self.write(tdict)
+                self.write({"content": content})
+            elif 'script' in args and 'record'in args and 'run' in args:  # runner handling
+                if args['run'][0] == "true":
+                    if args['record'][0] == "true":  # run record script
+                        result = self.application.Core.zest.RunRecordScript(args['script'][0])
+                    else:  # run target script
+                        result = self.application.Core.zest.RunTargetScript(target_id, args['script'][0])
+                    self.write({"result": result})
             else:
                 if 'script' not in args and 'record' in args:  # Recorder handling
                     if args['record'][0] == "true":
@@ -293,7 +298,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
     def get(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
         try:
             filter_data = dict(self.request.arguments)
-            if not plugin_group:  # First check if plugin_group is present in url
+            if not plugin_group: # First check if plugin_group is present in url
                 self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id))
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group": plugin_group})
@@ -342,7 +347,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
     def delete(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
         try:
             filter_data = dict(self.request.arguments)
-            if not plugin_group:  # First check if plugin_group is present in url
+            if not plugin_group: # First check if plugin_group is present in url
                 self.application.Core.DB.POutput.DeleteAll(filter_data, target_id)
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group": plugin_group})
@@ -397,7 +402,7 @@ class WorkListHandler(custom_handlers.APIRequestHandler):
             if (not plugin_list) or (not target_list):
                 raise tornado.web.HTTPError(400)
             self.application.Core.WorkerManager.fill_work_list(target_list, plugin_list)
-            self.set_status(201)  # TODO: Set proper response code
+            self.set_status(201) # TODO: Set proper response code
         except general.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -432,8 +437,3 @@ class ConfigurationHandler(custom_handlers.APIRequestHandler):
                 self.application.Core.DB.Config.Update(key, value_list[0])
             except general.InvalidConfigurationReference:
                 raise tornado.web.HTTPError(400)
-
-
-class Struct(object):
-        def __init__(self, **entries):
-            self.__dict__.update(entries)

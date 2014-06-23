@@ -10,8 +10,8 @@ class Zest(object):
 
     def __init__(self, core):
             self.Core = core
-            self.recordedTransactions = []
-            self.StopRecorder()
+            self.recordedTransactions = []  # keeps track of recorded transactions
+            self.StopRecorder()  # recorded should be stopped when OWTF starts
 
 # Script creation from single transaction, as of now name 'zest_trans_transaction-id'
 # is implicitly used to keep it more automated, can be changed if required
@@ -30,7 +30,7 @@ class Zest(object):
     def GenerateZest(self, Script, tar_arg, trans_arg, config):
             op_script = self.GetOutputFile(Script, config['Zest_Dir'])
             if not self.CheckifExists(op_script):
-                subprocess.call(['sh', config['Script_Path'], config['Root_Dir'],
+                subprocess.call(['sh', config['Create_Script_Path'], config['Root_Dir'],
                                         config['Output_Dir'], config['target_db'], op_script, tar_arg, trans_arg])
                 return True
             else:
@@ -43,8 +43,11 @@ class Zest(object):
             target_config['Root_Dir'] = self.Core.Config.RootDir
             target_config['Output_Dir'] = target_config['Root_Dir'] + "/" + target_config['Output_Dir']
             target_config['target_db'] = self.Core.Config.FrameworkConfigGet('TCONFIG_DB_PATH')
-            target_config['Script_Path'] = target_config['Root_Dir'] + "/zest/zest.sh"
             target_config['Zest_Dir'] = target_config['Output_Dir'] + "/zest"
+            target_config['Create_Script_Path'] = target_config['Root_Dir'] + "/zest/zest_create.sh"
+            target_config['Runner_Script_Path'] = target_config['Root_Dir'] + "/zest/zest_runner.sh"
+            target_config['Host_and_Port'] = ((self.Core.DB.Target.GetTargetConfigForID(target_id))['HOST_NAME'] 
+                                              + ":" + (self.Core.DB.Target.GetTargetConfigForID(target_id))['PORT_NUMBER'])
             self.Core.CreateMissingDirs(target_config['Zest_Dir'])
             return target_config
 
@@ -110,12 +113,13 @@ class Zest(object):
         record_config['Root_Dir'] = self.Core.Config.RootDir
         record_config['Output_Dir'] = record_config['Root_Dir'] + "/" + self.Core.Config.GetOutputDirForTargets()
         record_config['target_db'] = record_config['Root_Dir'] + "/" + self.Core.Config.FrameworkConfigGetDBPath('TCONFIG_DB_PATH')
-        record_config['Script_Path'] = record_config['Root_Dir'] + "/zest/zest.sh"
+        record_config['Create_Script_Path'] = record_config['Root_Dir'] + "/zest/zest_create.sh"
+        record_config['Runner_Script_Path'] = record_config['Root_Dir'] + "/zest/zest_runner.sh"
         record_config['Zest_Dir'] = record_config['Output_Dir'] + "/recorded_scripts"
         self.Core.CreateMissingDirs(record_config['Zest_Dir'])
         return record_config
 
-    def GetArgumentsfromRecordedTransactions(self):
+    def GetArgumentsfromRecordedTransactions(self):  # splits the list of tuples into two distinct lists
         return map(list, zip(*self.recordedTransactions))
 
     def StartRecorder(self):
@@ -127,9 +131,21 @@ class Zest(object):
     def IsRecording(self):
         return self.Core.DB.Config.Get("ZEST_RECORDING")
 
-    def ConvertToZestArgs(self, arguments):
+    def ConvertToZestArgs(self, arguments):  # converts to string
         zest_args = ""
         for trans_id in arguments:  # creating argument string
             zest_args = zest_args + " " + str(trans_id)
         zest_args = zest_args[1:]
         return zest_args
+
+    def RunRecordScript(self, script):
+        record_config = self.GetRecordConfig()
+        return self.RunZestScript(os.path.join(record_config['Zest_Dir'], script), record_config)
+
+    def RunZestScript(self, script, config):
+        output = subprocess.check_output(['bash', config['Runner_Script_Path'], "-script", script], stderr=subprocess.STDOUT)
+        return output
+
+    def RunTargetScript(self, target_id, script):
+        target_config = self.GetTargetConfig(target_id)
+        return self.RunZestScript(os.path.join(target_config['Zest_Dir'], script), target_config)

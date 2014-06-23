@@ -60,7 +60,8 @@ class ZestScriptConsoleHandler(custom_handlers.UIRequestHandler):
         else:
             self.render("zest_console.html",
                        zest_console_api_url=self.reverse_url('zest_console_api_url',target_id),
-                       zest_recording=self.application.Core.zest.IsRecording())
+                       zest_recording=self.application.Core.zest.IsRecording(),
+                       zest_target_heading=(self.application.Core.zest.GetTargetConfig(target_id))['Host_and_Port'])
 
 
 class UrlLog(custom_handlers.UIRequestHandler):

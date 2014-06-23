@@ -4,6 +4,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.options
 
+
 class InterfaceServer(object):
     def __init__(self, Core):
         self.application = tornado.web.Application(
