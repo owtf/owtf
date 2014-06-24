@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-'''
+"""
+
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -18,8 +19,8 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
@@ -27,8 +28,9 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This is the command-line front-end:
-In charge of processing arguments and call the framework
-'''
+In charge of processing arguments and call the framework.
+"""
+
 from __future__ import print_function
 
 import argparse
@@ -43,9 +45,8 @@ from framework import core
 from framework.lib.general import *
 from framework import update
 
-    
 
-def Banner():
+def banner():
     print("""
                   __       ___  
                  /\ \__  /'___\ 
@@ -454,15 +455,11 @@ def run_owtf(Core, args):
         Core.Finish("Aborted by user")
     except SystemExit:
         pass  # Report already saved, framework tries to exit
-    #except:
-    #    Core.Error.Add("Unknown owtf error")
-        # Interrupted. Must save the DB to disk, finish report, etc
-    #    Core.Finish("Crashed")
     finally: # Needed to rename the temp storage dirs to avoid confusion
-        Core.CleanTempStorageDirs(Core.Config.OwtfPid)
+        Core.clean_temp_storage_dirs()
 
 if __name__ == "__main__":
-    Banner()
+    banner()
     Permissions()
     if not "--update" in sys.argv[1:]:
         Core = core.Init(RootDir, OwtfPid)  # Initialise Framework

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-'''
+"""
+
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -26,37 +27,40 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Description:
-The core is the glue that holds the components together and allows some of them to communicate with each other
-'''
-from framework import timer, error_handler
-from framework.lib.log_queue import logQueue
+The core is the glue that holds the components together and allows some of them
+to communicate with each other
+
+"""
+
+import os
+import re
+import fcntl
+import shutil
+import signal
+import socket
+import logging
+import multiprocessing
+import subprocess
+from threading import Thread
+
+from framework import timer, error_handler, random
 from framework.config import config
 from framework.db import db
 from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
-from framework.lib.general import *
 from framework.plugin import plugin_handler, plugin_helper, plugin_params, process_manager
 from framework.protocols import smtp, smb
 from framework.interface import reporter, server
-#from framework.report.reporting_process import reporting_process
 from framework.selenium import selenium_handler
 from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
-from threading import Thread
-import fcntl
-import logging
-import multiprocessing
-import os
-import re
-import shutil
-import signal
-import subprocess
-import socket
-from framework import random
+from framework.lib.log_queue import logQueue
 from framework.lib.messaging import messaging_admin
+from framework.lib import io
+from framework.lib.general import *
 
-class Core:
+
+class Core(object):
     def __init__(self, RootDir, OwtfPid):
         self.CreateTempStorageDirs(OwtfPid)
         # Tightly coupled, cohesive framework components:
@@ -198,46 +202,39 @@ class Core:
             #if Options["Interactive"]:
             #    raw_input()
         else:
-            self.Requester = requester.Requester(self, Options['OutboundProxy'])        
-    
+            self.Requester = requester.Requester(self, Options['OutboundProxy'])
+
     def outputfunc(self,q):
-        """
-            This is the function/thread which writes on terminal
-            It takes the content from queue and if showOutput is true it writes to console.
-            Otherwise it appends to a variable. 
-            If the next token is 'end' It simply writes to the console.
-            
+        """This is the function/thread which writes on terminal
+
+        It takes the content from queue and if showOutput is true it writes to
+        console. Otherwise it appends to a variable.
+        If the next token is 'end' It simply writes to the console.
+
         """
         t=""
-        #flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL)
-        #fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
         while True:
             try:
                 k = q.get()
-                #print k
             except:
                 continue
-            if k=='end':
+            if k == 'end':
                 try:
                     sys.stdout.write(t)
                 except:
                     pass
                 return
-            t = t+k
-            if(self.showOutput): 
-                try:   
+            t = t + k
+            if(self.showOutput):
+                try:
                     sys.stdout.write(t)
                     t=""
                 except:
-                    pass    
-                                                    
-                                
-        
+                    pass
+
     def initlogger(self):
-        """
-            This function init two logger one for output in log file and stdout
-        """
-        #logger for output in console
+        """Init loggers, one redirected to a log file, the other to stdout."""
+        # Logger for output in console.
         self.outputqueue = multiprocessing.Queue()
         result_queue = logQueue(self.outputqueue)
         log = logging.getLogger('general')
@@ -268,7 +265,7 @@ class Core:
 
         if Options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
-            self.exitOutput()
+            self.exit_output()
             return False # No processing required, just list available modules
         #self.messaging_admin.Init()
         self.Config.ProcessOptions(Options)
@@ -329,7 +326,7 @@ class Core:
         if self.DB.Config.Get('SIMULATION'):
             if hasattr(self,'messaging_admin'):
                 self.messaging_admin.finishMessaging()
-            self.exitOutput()
+            self.exit_output()
             exit()
         else:
             try:
@@ -370,13 +367,13 @@ class Core:
                 if hasattr(self, 'DB'):
                     cprint("Saving DBs")
                     self.DB.SaveDBs() # So that detailed_report_register populated by reporting is saved :P
-                self.exitOutput()
+                self.exit_output()
                 #print self.Timer.GetElapsedTime('core')
                 exit()
 
-    def exitOutput(self):
+    def exit_output(self):
         if hasattr(self,'outputthread'):
-            self.outputqueue.put('end')    
+            self.outputqueue.put('end')
             self.outputthread.join()
             if os.path.exists("owtf_review"):
                 if os.path.exists("owtf_review/logfile"):

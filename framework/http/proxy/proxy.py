@@ -46,17 +46,18 @@ import ssl
 import os
 import datetime
 import uuid
-import shutil
 import re
 from multiprocessing import Process
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
 import pycurl
-#from session import SessionHandler
+
+from framework.lib import io
 
 
 def prepare_curl_callback(curl):
     curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
+
 
 class ProxyHandler(tornado.web.RequestHandler):
     """
