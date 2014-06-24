@@ -56,7 +56,7 @@ class SMB(pexpect_shell.PExpectShell):
 
 	def check_mount_point_existence(self, Options):
 	    if not os.path.exists(Options['SMB_MOUNT_POINT']):
-	        os.makedirs(Options['SMB_MOUNT_POINT'])
+	        io.makedirs(self.Core, Options['SMB_MOUNT_POINT'])
 
 	def Mount(self, Options, PluginInfo):
 		if self.IsMounted():

@@ -58,21 +58,22 @@ class message_admin:
         general.OUTGOING_QUEUE_TO_DIR_MAPPING = defaultdict(list)
         #if /tmp/owtf is not there
         if not os.path.exists(self.Core.Config.Get("MESSAGING_FILE_QUEUE_DIR")):
-            os.mkdir(self.Core.Config.Get("MESSAGING_FILE_QUEUE_DIR"))
-            
+            io.mkdir(
+                self.Core, self.Core.Config.Get("MESSAGING_FILE_QUEUE_DIR"))
+
         for queue_name in general.QUEUES:
             start_path = self.Core.Config.Get("MESSAGING_FILE_QUEUE_DIR") + queue_name+"/"
             if not os.path.exists(start_path):
-                os.mkdir(start_path)
-                
+                io.mkdir(self.Core, start_path)
+
             requests_dir = start_path + 'Requests/'
             responses_dir = start_path + 'Responses/'
             if os.path.exists(requests_dir):
                 general.removeDirs(requests_dir)
             if os.path.exists(responses_dir):
                 general.removeDirs(responses_dir)
-            os.mkdir(requests_dir)
-            os.mkdir(responses_dir)
+            io.mkdir(self.Core, requests_dir)
+            io.mkdir(self.Core, responses_dir)
             general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name] = requests_dir
             general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name] = responses_dir
 

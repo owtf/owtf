@@ -62,12 +62,12 @@ from framework.lib.general import *
 
 class Core(object):
     def __init__(self, RootDir, OwtfPid):
-        self.CreateTempStorageDirs(OwtfPid)
         # Tightly coupled, cohesive framework components:
         self.Error = error_handler.ErrorHandler(self)
         self.Shell = blocking_shell.Shell(self) # Config needs to find plugins via shell = instantiate shell first
         self.Config = config.Config(RootDir, OwtfPid, self)
         self.Config.Init() # Now the the config is hooked to the core, init config sub-components
+        self.create_temp_storage_dirs()
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
         self.Random = random.Random()
         self.IsIPInternalRegexp = re.compile("^127.\d{123}.\d{123}.\d{123}$|^10.\d{123}.\d{123}.\d{123}$|^192.168.\d{123}$|^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{123}.[0-9]{123}$")
@@ -77,36 +77,30 @@ class Core(object):
         self.SET = set_handler.SETHandler(self)
         self.SMTP = smtp.SMTP(self)
         self.SMB = smb.SMB(self)
-        #self.messaging_admin = messaging_admin.message_admin(self)
         self.DB = db.DB(self) # DB is initialised from some Config settings, must be hooked at this point
         self.DB.Init()
-        # Checking the permissions of uilog log file and proxy cache folder
-        #This is useful in case a defines a custom path in the default.cfg
         uilog = self.DB.Config.Get("SERVER_LOG")
         proxy_cache_log_dir = self.DB.Config.Get("INBOUND_PROXY_CACHE_DIR")
-        if os.path.isfile(uilog):
-            if not os.access(uilog, os.W_OK):
-                cprint("Not having enough privileges to write into: " + uilog)
-                exit(-1)
-        if os.path.exists(proxy_cache_log_dir):
-             if not os.access(proxy_cache_log_dir, os.W_OK):
-                cprint("Not having enough privileges to write into: " + uilog)
-                exit(-1)
 
         self.Timer = timer.Timer(self.DB.Config.Get('DATE_TIME_FORMAT')) # Requires user config db
         self.showOutput=True
         self.TOR_process = None
 
-    def CreateTempStorageDirs(self, OwtfPid):
-        temp_storage = os.path.join("/tmp", "owtf", str(OwtfPid))
-        if not os.path.exists(temp_storage):
-            os.makedirs(temp_storage)
+    def create_temp_storage_dirs(self):
+        """Create a temporary directory in /tmp with pid suffix."""
+        tmp_dir = os.path.join('/tmp', 'owtf')
+        if not os.path.exists(tmp_dir):
+            tmp_dir = os.path.join(tmp_dir, str(self.Config.OwtfPid))
+            if not os.path.exists(tmp_dir):
+                io.makedirs(self, tmp_dir)
 
-    def CleanTempStorageDirs(self, OwtfPid):
-        temp_storage = os.path.join("/tmp", "owtf", str(OwtfPid))
-        renamed_temp_storage = os.path.join("/tmp", "owtf", "old-"+str(OwtfPid))
-        if os.path.exists(temp_storage):
-            os.rename(temp_storage, renamed_temp_storage)
+    def clean_temp_storage_dirs(self):
+        """Rename older temporary directory to avoid any further confusions."""
+        curr_tmp_dir = os.path.join('/tmp', 'owtf', str(self.Config.OwtfPid))
+        new_tmp_dir = os.path.join(
+            '/tmp', 'owtf', 'old-%d' % self.Config.OwtfPid)
+        if os.path.exists(curr_tmp_dir) and os.access(curr_tmp_dir, os.W_OK):
+            os.rename(curr_tmp_dir, new_tmp_dir)
 
     #wrapper to log function
     def log(self,*args):
@@ -118,7 +112,7 @@ class Core(object):
         else:
             Dir = Path
         if not os.path.exists(Dir):
-            os.makedirs(Dir) # Create any missing directories
+            io.makedirs(self, Dir) # Create any missing directories
 
     def DumpFile(self, Filename, Contents, Directory):
         SavePath=Directory+WipeBadCharsForFilename(Filename)
@@ -245,12 +239,17 @@ class Core(object):
         log.addHandler(infohandler)
         self.outputthread =Thread(target=self.outputfunc, args=(self.outputqueue,))
         self.outputthread.start()
-        
-        #logger for output in log file
+
+        # Logger for output in log file.
         log = logging.getLogger('logfile')
-        infohandler = logging.FileHandler(self.Config.FrameworkConfigGet("OWTF_LOG_FILE"),mode="w+")
+        output_file = self.Config.FrameworkConfigGet("OWTF_LOG_FILE")
+        infohandler = io.FileHandler(
+            self,
+            self.Config.FrameworkConfigGet("OWTF_LOG_FILE"), mode="w+")
         log.setLevel(logging.INFO)
-        infoformatter = logging.Formatter("%(type)s - %(asctime)s - %(processname)s - %(functionname)s - %(message)s")
+        infoformatter = logging.Formatter(
+            "%(type)s - %(asctime)s - %(processname)s - "
+            "%(functionname)s - %(message)s")
         infohandler.setFormatter(infoformatter)
         log.addHandler(infohandler)
 

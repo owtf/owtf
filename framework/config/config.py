@@ -389,7 +389,7 @@ class Config(object):
         return os.path.join(self.FrameworkConfigGet("OUTPUT_PATH"), self.FrameworkConfigGet("TARGETS_DIR"))
 
     def CleanUpForTarget(self, TargetURL):
-        return shutil.rmtree(self.GetOutputDirForTarget(TargetURL))
+        return io.rmtree(self.Core, self.GetOutputDirForTarget(TargetURL))
 
     def GetOutputDirForTarget(self, TargetURL):
         return os.path.join(self.GetOutputDirForTargets(), TargetURL.replace("/","_").replace(":",""))
