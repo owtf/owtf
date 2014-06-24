@@ -375,13 +375,15 @@ class Core(object):
         if hasattr(self,'outputthread'):
             self.outputqueue.put('end')
             self.outputthread.join()
+            tmp_log = self.Config.FrameworkConfigGet("OWTF_LOG_FILE")
             if os.path.exists("owtf_review"):
-                if os.path.exists("owtf_review/logfile"):
-                    data = open(self.Config.FrameworkConfigGet("OWTF_LOG_FILE")).read()
-                    AppendToFile("owtf_review/logfile", data)
+                if os.path.isfile("owtf_review/logfile"):
+                    if os.path.isfile(tmp_log):
+                        data = open(tmp_log).read()
+                        AppendToFile("owtf_review/logfile", data)
                 else:
-                    shutil.move(self.Config.FrameworkConfigGet("OWTF_LOG_FILE"), "owtf_review")
-        
+                    shutil.move(tmp_log, "owtf_review")
+
     def GetSeed(self):
         try:
             return self.DB.GetSeed()
