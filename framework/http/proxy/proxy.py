@@ -52,8 +52,6 @@ from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
 import pycurl
 
-from framework.lib import io
-
 
 def prepare_curl_callback(curl):
     curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
@@ -484,12 +482,12 @@ class ProxyProcess(Process):
         self.application.cache_dir = self.application.Core.DB.Config.Get("INBOUND_PROXY_CACHE_DIR")
         # Clean possible older cache directory.
         if os.path.exists(self.application.cache_dir):
-            io.rmtree(core, self.application.cache_dir)
-        io.makedirs(core, self.application.cache_dir)
+            core.rmtree(self.application.cache_dir)
+        core.makedirs(self.application.cache_dir)
         for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body', 'resp-time']:
             folder_path = os.path.join(self.application.cache_dir, folder_name)
             if not os.path.exists(folder_path):
-                io.mkdir(core, folder_path)
+                core.mkdir(folder_path)
 
         # SSL MiTM
         # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory ~/.owtf/proxy )
@@ -511,7 +509,7 @@ class ProxyProcess(Process):
         try: # If certs folder missing, create that
             assert os.path.exists(self.application.certs_folder)
         except AssertionError:
-            io.makedirs(core, self.application.certs_folder)
+            core.makedirs(self.application.certs_folder)
 
         # Blacklist (or) Whitelist Cookies
         # Building cookie regex to be used for cookie filtering for caching

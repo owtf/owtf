@@ -40,9 +40,9 @@ from collections import defaultdict
 from framework.db.db_client import *
 from framework.lib import *
 from framework.lib.messaging import pull_server, push_server
-from framework.lib import io
 
-class message_admin:
+
+class message_admin(object):
     def __init__(self, Core):
         # Need access to reporter for pretty html trasaction log.
         self.Core = Core
@@ -58,13 +58,13 @@ class message_admin:
         general.OUTGOING_QUEUE_TO_DIR_MAPPING = defaultdict(list)
         #if /tmp/owtf is not there
         if not os.path.exists(self.Core.Config.Get("MESSAGING_FILE_QUEUE_DIR")):
-            io.mkdir(
-                self.Core, self.Core.Config.Get("MESSAGING_FILE_QUEUE_DIR"))
+            self.Core.mkdir(
+                self.Core.Config.Get("MESSAGING_FILE_QUEUE_DIR"))
 
         for queue_name in general.QUEUES:
             start_path = self.Core.Config.Get("MESSAGING_FILE_QUEUE_DIR") + queue_name+"/"
             if not os.path.exists(start_path):
-                io.mkdir(self.Core, start_path)
+                self.Core.mkdir(start_path)
 
             requests_dir = start_path + 'Requests/'
             responses_dir = start_path + 'Responses/'
@@ -72,8 +72,8 @@ class message_admin:
                 general.removeDirs(requests_dir)
             if os.path.exists(responses_dir):
                 general.removeDirs(responses_dir)
-            io.mkdir(self.Core, requests_dir)
-            io.mkdir(self.Core, responses_dir)
+            self.Core.mkdir(requests_dir)
+            self.Core.mkdir(responses_dir)
             general.INCOMING_QUEUE_TO_DIR_MAPPING[queue_name] = requests_dir
             general.OUTGOING_QUEUE_TO_DIR_MAPPING[queue_name] = responses_dir
 

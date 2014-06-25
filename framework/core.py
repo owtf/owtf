@@ -56,7 +56,6 @@ from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
 from framework.lib.log_queue import logQueue
 from framework.lib.messaging import messaging_admin
-from framework.lib import io
 from framework.lib.general import *
 
 
@@ -67,6 +66,7 @@ class Core(object):
         self.Shell = blocking_shell.Shell(self) # Config needs to find plugins via shell = instantiate shell first
         self.Config = config.Config(RootDir, OwtfPid, self)
         self.Config.Init() # Now the the config is hooked to the core, init config sub-components
+        self.decorate_io()
         self.create_temp_storage_dirs()
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
         self.Random = random.Random()
@@ -92,7 +92,7 @@ class Core(object):
         if not os.path.exists(tmp_dir):
             tmp_dir = os.path.join(tmp_dir, str(self.Config.OwtfPid))
             if not os.path.exists(tmp_dir):
-                io.makedirs(self, tmp_dir)
+                self.makedirs(tmp_dir)
 
     def clean_temp_storage_dirs(self):
         """Rename older temporary directory to avoid any further confusions."""
@@ -112,7 +112,7 @@ class Core(object):
         else:
             Dir = Path
         if not os.path.exists(Dir):
-            io.makedirs(self, Dir) # Create any missing directories
+            self.makedirs(Dir) # Create any missing directories
 
     def DumpFile(self, Filename, Contents, Directory):
         SavePath=Directory+WipeBadCharsForFilename(Filename)
@@ -243,8 +243,7 @@ class Core(object):
         # Logger for output in log file.
         log = logging.getLogger('logfile')
         output_file = self.Config.FrameworkConfigGet("OWTF_LOG_FILE")
-        infohandler = io.FileHandler(
-            self,
+        infohandler = self.FileHandler(
             self.Config.FrameworkConfigGet("OWTF_LOG_FILE"), mode="w+")
         log.setLevel(logging.INFO)
         infoformatter = logging.Formatter(
@@ -412,7 +411,43 @@ class Core(object):
                 try:
                     os.kill(int(PidStr), sig)
                 except:
-                    print("unable to kill it")    
-                    
+                    print("unable to kill it")
+
+    def decorate_io(self):
+        """Decorate different I/O functions to ensure OWTF to properly quit."""
+        def catch_perm(func, ignore_errors=False):
+            """Decorator on I/O functions.
+
+            If an error access due to permissions is detected, force OWTF to
+            quit properly.
+            If `ignore_errors` is True, the OSError and IOError are silently
+            passed.
+
+            """
+            def io_perm(*args, **kwargs):
+                """Call the original function while checking for perm errors.
+
+                Now each function needs the Core object in order to properly
+                quit.
+
+                """
+                try:
+                    return func(*args, **kwargs)
+                except (OSError, IOError) as e:
+                    if not ignore_errors:
+                        self.Error.FrameworkAbort(
+                            "Error when calling '%s'! %s." %
+                            (func.__name__, str(e)))
+            return io_perm
+
+        # From os.
+        self.mkdir = catch_perm(os.mkdir)
+        self.makedirs = catch_perm(os.makedirs)
+        # From shutil.
+        self.rmtree = catch_perm(shutil.rmtree)
+        # From logging.
+        self.FileHandler = catch_perm(logging.FileHandler)
+
+
 def Init(RootDir, OwtfPid):
     return Core(RootDir, OwtfPid)

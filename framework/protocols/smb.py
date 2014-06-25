@@ -39,7 +39,7 @@ import os
 from collections import defaultdict
 from framework.shell import pexpect_shell
 from framework.lib.general import *
-from framework.lib import io
+
 
 class SMB(pexpect_shell.PExpectShell):
 	def __init__(self, Core):
@@ -56,7 +56,7 @@ class SMB(pexpect_shell.PExpectShell):
 
 	def check_mount_point_existence(self, Options):
 	    if not os.path.exists(Options['SMB_MOUNT_POINT']):
-	        io.makedirs(self.Core, Options['SMB_MOUNT_POINT'])
+	        self.Core.makedirs(Options['SMB_MOUNT_POINT'])
 
 	def Mount(self, Options, PluginInfo):
 		if self.IsMounted():
