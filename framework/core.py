@@ -36,6 +36,7 @@ import os
 import re
 import fcntl
 import shutil
+import codecs
 import signal
 import socket
 import logging
@@ -63,10 +64,10 @@ class Core(object):
     def __init__(self, RootDir, OwtfPid):
         # Tightly coupled, cohesive framework components:
         self.Error = error_handler.ErrorHandler(self)
+        self.decorate_io()
         self.Shell = blocking_shell.Shell(self) # Config needs to find plugins via shell = instantiate shell first
         self.Config = config.Config(RootDir, OwtfPid, self)
         self.Config.Init() # Now the the config is hooked to the core, init config sub-components
-        self.decorate_io()
         self.create_temp_storage_dirs()
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
         self.Random = random.Random()
@@ -415,13 +416,11 @@ class Core(object):
 
     def decorate_io(self):
         """Decorate different I/O functions to ensure OWTF to properly quit."""
-        def catch_perm(func, ignore_errors=False):
+        def catch_perm(func):
             """Decorator on I/O functions.
 
             If an error access due to permissions is detected, force OWTF to
             quit properly.
-            If `ignore_errors` is True, the OSError and IOError are silently
-            passed.
 
             """
             def io_perm(*args, **kwargs):
@@ -429,23 +428,27 @@ class Core(object):
 
                 Now each function needs the Core object in order to properly
                 quit.
+                If `owtf_clean` parameter is not explicitely passed or if it is
+                set to `True`, it force OWTF to properly exit.
 
                 """
+                owtf_clean = kwargs.pop('owtf_clean', True)
                 try:
                     return func(*args, **kwargs)
                 except (OSError, IOError) as e:
-                    if not ignore_errors:
+                    if owtf_clean:
                         self.Error.FrameworkAbort(
                             "Error when calling '%s'! %s." %
                             (func.__name__, str(e)))
+                    raise e
             return io_perm
 
-        # From os.
+        # Decorated functions
+        self.open = catch_perm(open)
+        self.codecs_open = catch_perm(codecs.open)
         self.mkdir = catch_perm(os.mkdir)
         self.makedirs = catch_perm(os.makedirs)
-        # From shutil.
         self.rmtree = catch_perm(shutil.rmtree)
-        # From logging.
         self.FileHandler = catch_perm(logging.FileHandler)
 
 
