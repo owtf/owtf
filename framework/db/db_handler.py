@@ -179,14 +179,14 @@ Record="""+str(Record)+"""
             return None # Skip processing below, just simulating
         self.Core.CreateMissingDirs(Path)
         if not os.path.exists(Path):
-            with open(Path, 'w') as file:
+            with self.Core.open(Path, 'w') as file:
                 if DBName == 'TRANSACTION_LOG_HTML': # Start the HTML Transaction log:
                     self.Core.DB.Transaction.InitTransacLogHTMLIndex(file)
             
     def LoadDB(self, Path, DBName): # Load DB to memory
         if self.Core.Config.Get('SIMULATION'):
             return None # Skip processing below, just simulating
-        for Line in open(Path).read().split("\n"):
+        for Line in self.Core.open(Path).read().split("\n"):
             if not Line:
                 continue # Skip blank lines
             if DBName in self.FieldDBNames: # Field DBs need split to convert fields into a list
@@ -223,11 +223,11 @@ Record="""+str(Record)+"""
             #if DBName == 'TRANSACTION_LOG_TXT': self.Core.DB.Debug.Add('DBName='+DBName+", Path="+Path+" will NOT be saved because of blank DB")
             return # Avoid wiping the DB by mistake
         if DBName in self.EditableRowDBs: # DBs that are modified (Run, htmlid) need to be wiped + recreated each time
-            with open(Path, 'w') as file: # Delete + Re-create file to reflect modified last line
+            with self.Core.open(Path, 'w') as file: # Delete + Re-create file to reflect modified last line
                 for Line in self.GetData(DBName, Path): # Save all
                     self.SaveDBLine(file, DBName, Line)
         else:
-            with open(Path, 'a') as file: # Append the missing lines at the end
+            with self.Core.open(Path, 'a') as file: # Append the missing lines at the end
                 #if DBName == 'TRANSACTION_LOG_TXT': self.Core.DB.Debug.Add('Saving DBName='+DBName+", Path="+Path+" from "+str(self.GetSyncCount(DBName, Path))+' until '+str(self.GetLength(DBName, Path)))
                 # Only save new DB lines, instead of the full database (in the hope that it's faster)
                 for Line in self.GetData(DBName, Path)[self.GetSyncCount(DBName, Path):]: 

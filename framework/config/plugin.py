@@ -136,7 +136,7 @@ class PluginConfig:
 
         def LoadPluginOrderFromFile(self, PluginGroup, File): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
 		self.PluginOrder[PluginGroup] = []
-                ConfigFile = open(File, 'r')
+                ConfigFile = self.Core.open(File, 'r')
 		cprint("Loading "+PluginGroup+" Plugin Order from: "+File+" ..") # Indicate file being processed so that the user can fix typos, etc
                 PluginType = ''
                 PreviousStrippedPath = ""

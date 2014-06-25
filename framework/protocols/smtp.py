@@ -113,7 +113,7 @@ class SMTP:
 			
 	def AddBody(self, Message, Text):
 		if os.path.isfile(Text): # If a file has been specified as Body, then set Body to file contents
-			Body = open(Text).read().strip()
+			Body = self.Core.open(Text).read().strip()
 		else:
 			Body = Text
 		Message.attach(MIMEText.MIMEText(Body, Message))
@@ -122,7 +122,7 @@ class SMTP:
 		if not Attachment:
 			return False
 		BinaryBlob = MIMEBase.MIMEBase('application', 'octet-stream')
-		BinaryBlob.set_payload(open(Attachment, 'rb').read())
+		BinaryBlob.set_payload(self.Core.open(Attachment, 'rb').read())
 		Encoders.encode_base64(BinaryBlob) # base64 encode the Binary Blob
 		BinaryBlob.add_header('Content-Disposition','attachment; filename="%s"' % os.path.basename(Attachment)) # Binary Blob headers
 		Message.attach(BinaryBlob)

@@ -494,7 +494,10 @@ class ProxyProcess(Process):
         self.application.ca_cert = os.path.expanduser(self.application.Core.DB.Config.Get('CA_CERT'))
         self.application.ca_key = os.path.expanduser(self.application.Core.DB.Config.Get('CA_KEY'))
         try: # To stop owtf from breaking for our beloved users :P
-            self.application.ca_key_pass = open(os.path.expanduser(self.application.Core.DB.Config.Get('CA_PASS_FILE')),'r').read().strip()
+            self.application.ca_key_pass = core.open(
+                os.path.expanduser(self.application.Core.DB.Config.Get('CA_PASS_FILE')),
+                'r',
+                owtf_clean=False).read().strip()
         except IOError:
             self.application.ca_key_pass = "owtf"
         self.application.proxy_folder = os.path.dirname(self.application.ca_cert)

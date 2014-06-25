@@ -72,7 +72,7 @@ class Config(object):
     def LoadFrameworkConfigFromFile(self, ConfigPath): # Load the configuration frominto a global dictionary
         if 'framework_config' not in ConfigPath:
             cprint("Loading Config from: "+ConfigPath+" ..")
-        ConfigFile = open(ConfigPath, 'r')
+        ConfigFile = self.Core.open(ConfigPath, 'r')
         self.Set('FRAMEWORK_DIR', self.RootDir) # Needed Later
         for line in ConfigFile:
             try:

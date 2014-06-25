@@ -30,7 +30,6 @@ The reporter module is in charge of producing the HTML Report as well as provide
 '''
 
 import json
-import codecs
 from jinja2 import Template
 from jinja2 import Environment, PackageLoader
 from framework.lib.general import *
@@ -217,7 +216,7 @@ class Summary:
 				}
 
 		HTML = template.render(vars)
-		with codecs.open(self.Core.Config.Get('HTML_REPORT_PATH' ), 'w',"utf-8") as file:
+		with self.Core.codecs_open(self.Core.Config.Get('HTML_REPORT_PATH' ), 'w',"utf-8") as file:
 			file.write(HTML) # Closing HTML Report
 		log("Summary report written to: "+self.Core.Config.Get('HTML_REPORT_PATH'))
 

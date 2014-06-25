@@ -118,7 +118,7 @@ class Core(object):
     def DumpFile(self, Filename, Contents, Directory):
         SavePath=Directory+WipeBadCharsForFilename(Filename)
         self.CreateMissingDirs(Directory)
-        with open(SavePath, 'wb') as file:
+        with self.open(SavePath, 'wb') as file:
             file.write(Contents)
         return SavePath
 
@@ -378,7 +378,7 @@ class Core(object):
             if os.path.exists("owtf_review"):
                 if os.path.isfile("owtf_review/logfile"):
                     if os.path.isfile(tmp_log):
-                        data = open(tmp_log).read()
+                        data = self.open(tmp_log).read()
                         AppendToFile("owtf_review/logfile", data)
                 else:
                     shutil.move(tmp_log, "owtf_review")
