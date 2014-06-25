@@ -416,18 +416,15 @@ class Core(object):
 
     def decorate_io(self):
         """Decorate different I/O functions to ensure OWTF to properly quit."""
-        def catch_perm(func):
+        def catch_error(func):
             """Decorator on I/O functions.
 
-            If an error access due to permissions is detected, force OWTF to
-            quit properly.
+            If an error is detected, force OWTF to quit properly.
 
             """
-            def io_perm(*args, **kwargs):
-                """Call the original function while checking for perm errors.
+            def io_error(*args, **kwargs):
+                """Call the original function while checking for errors.
 
-                Now each function needs the Core object in order to properly
-                quit.
                 If `owtf_clean` parameter is not explicitely passed or if it is
                 set to `True`, it force OWTF to properly exit.
 
@@ -444,12 +441,12 @@ class Core(object):
             return io_perm
 
         # Decorated functions
-        self.open = catch_perm(open)
-        self.codecs_open = catch_perm(codecs.open)
-        self.mkdir = catch_perm(os.mkdir)
-        self.makedirs = catch_perm(os.makedirs)
-        self.rmtree = catch_perm(shutil.rmtree)
-        self.FileHandler = catch_perm(logging.FileHandler)
+        self.open = catch_error(open)
+        self.codecs_open = catch_error(codecs.open)
+        self.mkdir = catch_error(os.mkdir)
+        self.makedirs = catch_error(os.makedirs)
+        self.rmtree = catch_error(shutil.rmtree)
+        self.FileHandler = catch_error(logging.FileHandler)
 
 
 def Init(RootDir, OwtfPid):
