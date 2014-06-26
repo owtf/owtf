@@ -57,7 +57,10 @@ from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
 from framework.lib.log_queue import logQueue
 from framework.lib.messaging import messaging_admin
-from framework.lib.general import *
+from framework.lib.general import cprint, log, MultipleReplace, \
+                                  RemoveListBlanks, List2DictKeys, \
+                                  GetFileAsList, AppendToFile, \
+                                  WipeBadCharsForFilename
 
 
 class Core(object):
