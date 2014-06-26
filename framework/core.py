@@ -438,7 +438,7 @@ class Core(object):
                             "Error when calling '%s'! %s." %
                             (func.__name__, str(e)))
                     raise e
-            return io_perm
+            return io_error
 
         # Decorated functions
         self.open = catch_error(open)
