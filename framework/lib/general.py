@@ -111,12 +111,8 @@ def MultipleReplace(Text, ReplaceDict):
 def WipeBadCharsForFilename(Filename):
         return MultipleReplace(Filename, { '(':'', ' ':'_', ')':'', '/':'_' })
 
-def RemoveListBlanks(List):
-        NewList = []
-        for Item in List:
-                if Item:
-                        NewList.append(Item)
-        return NewList
+def RemoveListBlanks(src):
+    return [el for el in src if el]
 
 def List2DictKeys(List):
         Dictionary = defaultdict(list)
