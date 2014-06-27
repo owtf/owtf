@@ -202,15 +202,15 @@ class Core(object):
         else:
             self.Requester = requester.Requester(self, Options['OutboundProxy'])
 
-    def outputfunc(self,q):
-        """This is the function/thread which writes on terminal
+    def outputfunc(self, q):
+        """This is the function/thread which writes on terminal.
 
-        It takes the content from queue and if showOutput is true it writes to
+        It takes the content from queue and if showOutput is True it writes to
         console. Otherwise it appends to a variable.
         If the next token is 'end' It simply writes to the console.
 
         """
-        t=""
+        t = u''
         while True:
             try:
                 k = q.get()
@@ -222,11 +222,11 @@ class Core(object):
                 except:
                     pass
                 return
-            t = t + k
+            t += unicode(k.decode('utf-8'))
             if(self.showOutput):
                 try:
                     sys.stdout.write(t)
-                    t=""
+                    t = u''
                 except:
                     pass
 
