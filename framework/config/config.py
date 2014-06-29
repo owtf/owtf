@@ -36,12 +36,14 @@ repository to get info.
 import os
 import re
 import socket
+
 from urlparse import urlparse
 from collections import defaultdict
 
+from framework.lib.exceptions import PluginAbortException, \
+                                     DBIntegrityException
 from framework.config import plugin, health_check
 from framework.lib.general import cprint
-from framework.lib import general
 from framework.db import models, target_manager
 
 
@@ -105,7 +107,7 @@ class Config(object):
         for Target in Scope:
             try:
                 self.Core.DB.Target.AddTarget(Target)
-            except general.DBIntegrityException:
+            except DBIntegrityException:
                 cprint(Target + " already exists in DB")
 
     def PrepareURLScope(self, Scope,Group): # Convert all targets to URLs

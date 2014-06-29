@@ -1,9 +1,10 @@
-from framework.lib.general import cprint
-from framework.lib import general
-from framework.interface import custom_handlers
-import tornado.web
-import collections
 import os
+import collections
+import tornado.web
+
+from framework.lib.exceptions import InvalidTargetReference
+from framework.lib.general import cprint
+from framework.interface import custom_handlers
 
 
 class Redirect(custom_handlers.UIRequestHandler):
@@ -11,11 +12,12 @@ class Redirect(custom_handlers.UIRequestHandler):
     def get(self):
         self.redirect(self.reverse_url('home_ui_url'))
 
+
 class Home(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     def get(self):
-        self.render('home.html') 
-        
+        self.render('home.html')
+
 
 class TransactionLog(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
@@ -156,7 +158,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id)
                         )
-        except general.InvalidTargetReference as e:
+        except InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)
 
 class WorkerManager(custom_handlers.UIRequestHandler):

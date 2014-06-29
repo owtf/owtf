@@ -6,8 +6,8 @@ from tests.testing_framework.utils import ExpensiveResourceProxy
 from tests.testing_framework.config.environments import PluginConfigEnvironmentBuilder
 from tests.testing_framework.plugin.environments import PluginHandlerEnvironmentBuilder
 from os import path
-from framework.lib.general import PluginAbortException,\
-    UnreachableTargetException
+from framework.lib.exceptions import PluginAbortException,\
+                                     UnreachableTargetException
 from tests.testing_framework.doubles.mock import OrderedExecutionMock
 import multiprocessing
 import time

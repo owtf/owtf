@@ -3,7 +3,7 @@ from tests.testing_framework.utils import ExpensiveResourceProxy
 from flexmock import flexmock
 from hamcrest import *
 from tests.testing_framework.config.environments import ConfigEnvironmentBuilder
-from framework.lib.general import PluginAbortException
+from framework.lib.exceptions import PluginAbortException
 from tests.testing_framework.config.config_state import ConfigState
 
 

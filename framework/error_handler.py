@@ -39,8 +39,9 @@ import cgi
 import json
 import urllib2
 
-from framework.lib.general import cprint, log, \
-                                  FrameworkAbortException, PluginAbortException
+from framework.lib.exceptions import FrameworkAbortException, \
+                                     PluginAbortException
+from framework.lib.general import cprint, log
 
 
 class ErrorHandler(object):

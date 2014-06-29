@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-'''
+"""
+
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -18,35 +19,43 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-The PluginHandler is in charge of running all plugins taking into account the chosen settings
-'''
+The PluginHandler is in charge of running all plugins taking into account the
+chosen settings.
+"""
+
+import os
+import sys
+import imp
+import time
 import json
+import fcntl
+import curses
+import select
+import signal
+import logging
+import termios
+import multiprocessing
+
+from threading import Thread
 from collections import defaultdict
+
+from framework.lib.exceptions import FrameworkAbortException, \
+                                     PluginAbortException, \
+                                     UnreachableTargetException
 from framework.lib.general import *
 from framework.lib.log_queue import logQueue
 from framework.lib.libptp.exceptions import PTPError
 from framework.lib.ptp import PTP
 from framework.plugin.scanner import Scanner
-from threading import Thread
-import curses
-import fcntl
-import imp
-import logging
-import multiprocessing
-import os
-import select
-import signal
-import sys
-import termios
-import time
+
 
 INTRO_BANNER_GENERAL = """
 Short Intro:

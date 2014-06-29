@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-'''
+"""
+
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -18,28 +19,35 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-The DB stores HTTP transactions, unique URLs and more. 
-'''
+The DB stores HTTP transactions, unique URLs and more.
+
+"""
+
+import os
+import re
+import json
+import base64
+import logging
+
 from sqlalchemy import desc, asc
 from collections import defaultdict
+
+from framework.lib.exceptions import InvalidTransactionReference, \
+                                     InvalidParameterType
 from framework.http import transaction
 from framework.db import models
-from framework.lib import general
-import os
-import json
-import re
-import logging
-import base64
+
 
 REGEX_TYPES = ['HEADERS', 'BODY'] # The regex find differs for these types :P
+
 
 class TransactionManager(object):
     def __init__(self, Core):
@@ -90,7 +98,7 @@ class TransactionManager(object):
                     Criteria['id[gt]'] = Criteria['id[gt]'][0]
                 query = query.filter(models.Transaction.id > int(Criteria['id[gt]']))
         except ValueError:
-            raise general.InvalidParameterType("Invalid parameter type for transaction db for id[lt] or id[gt]")
+            raise InvalidParameterType("Invalid parameter type for transaction db for id[lt] or id[gt]")
         return(query)
 
     def GetFirst(self, Criteria, target_id = None): # Assemble only the first transaction that matches the criteria from DB
@@ -319,5 +327,5 @@ class TransactionManager(object):
         transaction_obj = session.query(models.Transaction).get(trans_id)
         session.close()
         if not transaction_obj:
-            raise general.InvalidTransactionReference("No transaction with " + str(trans_id) + " exists for target with id " + str(target_id) if target_id else self.Core.DB.Target.GetTargetID())
+            raise InvalidTransactionReference("No transaction with " + str(trans_id) + " exists for target with id " + str(target_id) if target_id else self.Core.DB.Target.GetTargetID())
         return self.DeriveTransactionDict(transaction_obj, include_raw_data = True)

@@ -1,5 +1,8 @@
-from framework.db import models
 import json
+
+from framework.lib.exceptions import InvalidParameterType
+from framework.db import models
+
 
 class POutputDB(object):
     def __init__(self, Core):
@@ -72,7 +75,7 @@ class POutputDB(object):
                     filter_data["user_rank[gt]"] = filter_data["user_rank[gt]"][0]
                 query = query.filter(models.PluginOutput.user_rank > int(filter_data["user_rank[gt]"]))
         except ValueError:
-            raise general.InvalidParameterType("Integer has to be provided for integer fields")
+            raise InvalidParameterType("Integer has to be provided for integer fields")
         return query
 
     def GetAll(self, filter_data=None, target_id=None):
@@ -113,7 +116,7 @@ class POutputDB(object):
                 session.merge(obj)
                 session.commit()
             except ValueError:
-                raise general.InvalidParameterType("Integer has to be provided for integer fields")
+                raise InvalidParameterType("Integer has to be provided for integer fields")
         session.close()
 
     def PluginAlreadyRun(self, PluginInfo, Target=None):
