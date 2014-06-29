@@ -269,10 +269,13 @@ class Config(object):
                 socket.inet_pton(Socket, Hostname)
                 IP = Hostname
                 break
-            except socket.error: continue
+            except socket.error:
+                continue
         if not IP:
-            try: IP = socket.gethostbyname(Hostname)
-            except socket.gaierror: self.Core.Error.FrameworkAbort("Cannot resolve Hostname: "+Hostname)
+            try:
+                IP = socket.gethostbyname(Hostname)
+            except socket.gaierror:
+                self.Core.Error.FrameworkAbort("Cannot resolve Hostname: "+Hostname)
 
         ipchunks = IP.strip().split("\n")
         AlternativeIPs = []
@@ -293,10 +296,13 @@ class Config(object):
                 socket.inet_pton(Socket, Hostname)
                 IP = Hostname
                 break
-            except socket.error: continue
+            except socket.error:
+                continue
         if not IP:
-            try: IP = socket.gethostbyname(Hostname)
-            except socket.gaierror: self.Core.Error.FrameworkAbort("Cannot resolve Hostname: "+Hostname)
+            try:
+                IP = socket.gethostbyname(Hostname)
+            except socket.gaierror:
+                self.Core.Error.FrameworkAbort("Cannot resolve Hostname: "+Hostname)
 
         ipchunks = IP.strip().split("\n")
         #AlternativeIPs = []
