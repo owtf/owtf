@@ -31,6 +31,7 @@ The DB stores HTTP transactions, unique URLs and more.
 import os
 from collections import defaultdict
 from framework.lib.general import *
+from framework.lib.general import get_random_str
 from framework.db import transaction_manager, url_manager, run_manager, command_register, plugin_register, report_register, debug
 
 FIELD_SEPARATOR = ' || '
@@ -63,7 +64,7 @@ class DBHandler:
         # By having a random seed we make it considerably hard for a website to try to fool owtf to parse transactions incorrectly
         if self.IsEmpty('SEED_DB'): # Seed is global for everything in scope: URLs, Aux modules and Net plugins
             cprint("SEED DB is empty, initialising..")
-            self.Add('SEED_DB', self.Core.Random.GetStr(10)) # Generate a long random seed for this test
+            self.Add('SEED_DB', get_random_str(10)) # Generate a long random seed for this test
         self.RandomSeed = self.GetRecord('SEED_DB', 0)
         self.Core.DB.Transaction.SetRandomSeed(self.RandomSeed)
         self.OldErrorCount = self.GetLength('ERROR_DB')

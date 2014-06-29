@@ -44,7 +44,7 @@ import multiprocessing
 import subprocess
 from threading import Thread
 
-from framework import timer, error_handler, random
+from framework import timer, error_handler
 from framework.config import config
 from framework.db import db
 from framework.http import requester
@@ -72,7 +72,6 @@ class Core(object):
         self.Config.Init() # Now the the config is hooked to the core, init config sub-components
         self.create_temp_storage_dirs()
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
-        self.Random = random.Random()
         self.IsIPInternalRegexp = re.compile("^127.\d{123}.\d{123}.\d{123}$|^10.\d{123}.\d{123}.\d{123}$|^192.168.\d{123}$|^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{123}.[0-9]{123}$")
         self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
         self.Selenium = selenium_handler.Selenium(self)
