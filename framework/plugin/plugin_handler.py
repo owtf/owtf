@@ -51,7 +51,6 @@ from framework.lib.exceptions import FrameworkAbortException, \
                                      PluginAbortException, \
                                      UnreachableTargetException
 from framework.lib.general import *
-from framework.lib.log_queue import logQueue
 from framework.lib.libptp.exceptions import PTPError
 from framework.lib.ptp import PTP
 from framework.plugin.scanner import Scanner

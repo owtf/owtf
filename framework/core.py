@@ -55,9 +55,8 @@ from framework.interface import reporter, server
 from framework.selenium import selenium_handler
 from framework.shell import blocking_shell, interactive_shell
 from framework.wrappers.set import set_handler
-from framework.lib.log_queue import logQueue
 from framework.lib.messaging import messaging_admin
-from framework.lib.general import cprint, log, MultipleReplace, \
+from framework.lib.general import cprint, log, MultipleReplace, LogQueue, \
                                   RemoveListBlanks, List2DictKeys, \
                                   GetFileAsList, AppendToFile, \
                                   WipeBadCharsForFilename
@@ -234,7 +233,7 @@ class Core(object):
         """Init loggers, one redirected to a log file, the other to stdout."""
         # Logger for output in console.
         self.outputqueue = multiprocessing.Queue()
-        result_queue = logQueue(self.outputqueue)
+        result_queue = LogQueue(self.outputqueue)
         log = logging.getLogger('general')
         infohandler = logging.StreamHandler(result_queue)
         log.setLevel(logging.INFO)

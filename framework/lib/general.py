@@ -42,6 +42,21 @@ import threading
 import time,base64
 
 
+class LogQueue(object):
+    """Proxy object for logging a multiprocessing queue to a StreamHandler.
+
+    Check the documentation:
+        https://docs.python.org/2/library/logging.handlers.html#streamhandler
+
+    """
+    def __init__(self, q):
+        self.q = q
+    def write(self, t):
+        self.q.put(t)
+    def flush(self):
+        pass
+
+
 def ConfigGet(Key): # Kludge wrapper function
         global Config # kludge global to avoid having to pass the config around to other components that need it (temporary until I figure out a better way!)
         return Config.Get(Key)
