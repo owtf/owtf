@@ -147,13 +147,6 @@ def DeriveHTTPMethod(Method, Data): # Derives the HTTP method from Data, etc
 def CallMethod(Object, Method, ArgList): # Calls Object.Method(ArgList) dynamically, this helps avoiding code repetition via wrapper convenience functions
         return getattr(Object, Method)(*ArgList)
 
-def GetUnique(List):
-        NewList = []
-        for Item in List:
-                if Item not in NewList:
-                        NewList.append(Item)
-        return NewList
-
 def PathsExist(PathList):
         ValidPaths = True
         for Path in PathList:

@@ -291,7 +291,7 @@ class Requester:
     def GetTransactions(self, UseCache, URLList, Method = '', Data = '', Unique = True):
         Transactions = []
         if Unique:
-            URLList = GetUnique(URLList)
+            URLList = set(URLList)
         for URL in URLList: 
             URL = URL.strip() # Clean up the URL first
             if not URL: continue # skip blank lines 
