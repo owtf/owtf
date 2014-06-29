@@ -144,11 +144,6 @@ def DeriveHTTPMethod(Method, Data): # Derives the HTTP method from Data, etc
                         DMethod = 'POST'
         return DMethod
 
-def GetDictValueOrBlank(Dict, Key): # Return the value if the key is present or blank otherwise
-        if Key in Dict:
-                return Dict[Key]
-        return ''
-
 def CallMethod(Object, Method, ArgList): # Calls Object.Method(ArgList) dynamically, this helps avoiding code repetition via wrapper convenience functions
         return getattr(Object, Method)(*ArgList)
 
