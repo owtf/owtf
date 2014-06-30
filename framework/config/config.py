@@ -175,7 +175,7 @@ class Config(object):
             copy[key] = value.copy()
         return copy
 
-    def GetResources(self, resource_type, target=None):
+    def GetResources(self, resource_type):
         """Replace the resources placeholders with the relevant config."""
         return self.Core.DB.Resource.GetResources(resource_type)
 
