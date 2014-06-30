@@ -41,14 +41,14 @@ class Timer(object):
     # time.
     Time = {}
 
-    def __init__(self, DateTimeFormat = "%d/%m/%Y-%H:%M"):
-        self.DateTimeFormat = DateTimeFormat
+    def __init__(self, datetime_format="%d/%m/%Y-%H:%M"):
+        self.DateTimeFormat = datetime_format
 
-    def StartTimer(self, OffSet = '0'):
-        self.Time[OffSet] = {}
-        self.Time[OffSet]['Start'] = self.GetCurrentDateTime()
-        self.Time[OffSet]['Time'] = time.time()
-        return [ self.Time[OffSet]['Start'], self.Time[OffSet]['Time'] ]
+    def StartTimer(self, offSet='0'):
+        self.Time[offSet] = {}
+        self.Time[offSet]['Start'] = self.GetCurrentDateTime()
+        self.Time[offSet]['Time'] = time.time()
+        return [self.Time[offSet]['Start'], self.Time[offSet]['Time']]
 
     def GetCurrentDateTimeAsStr(self):
         return self.GetTimeAsStr(self.GetCurrentDateTime())
@@ -56,8 +56,8 @@ class Timer(object):
     def GetCurrentDateTime(self):
         return time.strftime(self.DateTimeFormat)
 
-    def GetElapsedTime(self, OffSet = '0'):
-        Time = time.time() - self.Time[OffSet]['Time']
+    def GetElapsedTime(self, offSet='0'):
+        Time = time.time() - self.Time[offSet]['Time']
         return Time
 
     def GetTimeAsStr(self, seconds):
@@ -77,19 +77,19 @@ class Timer(object):
         # Strip necessary to get rid of leading spaces sometimes.
         return TimeStr.strip()
 
-    def EndTimer(self, Offset = '0'):
-        self.Time[Offset]['End'] = self.GetCurrentDateTime()
+    def EndTimer(self, offset='0'):
+        self.Time[offset]['End'] = self.GetCurrentDateTime()
 
-    def GetElapsedTimeAsStr(self, Offset = '0'):
-        Elapsed = self.GetElapsedTime(Offset)
-        ToString = self.GetTimeAsStr(Elapsed)
-        self.EndTimer(Offset)
-        return ToString
+    def GetElapsedTimeAsStr(self, offset='0'):
+        elapsed = self.GetElapsedTime(offset)
+        elapsed_str = self.GetTimeAsStr(elapsed)
+        self.EndTimer(offset)
+        return elapsed_str
 
-    def GetStartDateTimeAsStr(self, Offset = '0'):
-        return self.Time[Offset]['Start']
+    def GetStartDateTimeAsStr(self, offset='0'):
+        return self.Time[offset]['Start']
 
-    def GetEndDateTimeAsStr(self, Offset = '0'):
-        if not 'End' in self.Time[Offset]:
-            self.EndTimer(Offset)
-        return self.Time[Offset]['End']
+    def GetEndDateTimeAsStr(self, offset='0'):
+        if not 'End' in self.Time[offset]:
+            self.EndTimer(offset)
+        return self.Time[offset]['End']
