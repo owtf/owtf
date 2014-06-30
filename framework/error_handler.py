@@ -63,42 +63,53 @@ class ErrorHandler(object):
         return message
 
     def get_option_from_user(self, options):
-        return raw_input("Options: 'e'+Enter= Exit" + options + ", Enter= Next test\n")
+        return raw_input(
+            "Options: 'e'+Enter= Exit" + options + ", Enter= Next test\n")
 
-    def UserAbort(self, level, partial_output = ''): # Levels so far can be Command or Plugin
-        message = log("\nThe " + level + " was aborted by the user: Please check the report and plugin output files")
-        message = ("\nThe " + level + " was aborted by the user: Please check the report and plugin output files")
+    def UserAbort(self, level, partial_output = ''):
+        # Levels so far can be Command or Plugin
+        message = log(
+            "\nThe " + level + " was aborted by the user: Please check the "
+            "report and plugin output files")
+        message = (
+            "\nThe " + level + " was aborted by the user: Please check the "
+            "report and plugin output files")
         options = ""
         if 'Command' == level:
             options = ", 'p'+Enter= Move on to next plugin"
             option = 'p'
             if 'e' == option:
-                if 'Command' == level: # Try to save partial plugin results
+                if 'Command' == level:  # Try to save partial plugin results.
                     raise FrameworkAbortException(partial_output)
-                    self.Core.Finish("Aborted by user") # Interrupted
-            elif 'p' == option: # Move on to next plugin
-                raise PluginAbortException(partial_output) # Jump to next handler and pass partial output to avoid losing results
+                    self.Core.Finish("Aborted by user")  # Interrupted.
+            elif 'p' == option:  # Move on to next plugin.
+                # Jump to next handler and pass partial output to avoid losing
+                # results.
+                raise PluginAbortException(partial_output)
         return message
 
     def LogError(self, message, trace=None):
         try:
-            self.Core.DB.Error.Add(message, trace) # Log error in the DB
+            self.Core.DB.Error.Add(message, trace)  # Log error in the DB.
         except AttributeError:
             cprint("ERROR: DB is not setup yet: cannot log errors to file!")
 
     def AddOWTFBug(self, message):
+        # TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        err_trace_list = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        err_trace_list = traceback.format_exception(
+            exc_type, exc_value, exc_traceback)
         err_trace = self.Core.AnonymiseCommand("\n".join(err_trace_list))
         message = self.Core.AnonymiseCommand(message)
-        output = self.Padding+"OWTF BUG: Please report the sanitised information below to help make this better. Thank you."+self.SubPadding
+        output = self.Padding + "OWTF BUG: Please report the sanitised " \
+                 "information below to help make this better. Thank you." + \
+                 self.SubPadding
         output += "\nMessage: " + message + "\n"
         output += "\nError Trace:"
         output += "\n" + err_trace
         output += "\n"+self.Padding
         cprint(output)
         self.LogError(message, err_trace)
-        #TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
 
     def Add(self, message, bugType='owtf'):
         if 'owtf' == bugType:
@@ -109,23 +120,32 @@ class ErrorHandler(object):
             self.LogError(message)
 
     def AddGithubIssue(self, title='Bug report from OWTF', info=None, user=None):
-        # TODO: Has to be ported to use db and infact add to interface
-        # Once db is implemented, better verbosity will be easy
+        # TODO: Has to be ported to use db and infact add to interface.
+        # Once db is implemented, better verbosity will be easy.
         error_data = self.Core.DB.ErrorData()
         for item in error_data:
             if item.startswith('Message'):
                 title = item[len('Message:'):]
                 break
         data = {'title':'[Auto-Generated] ' + title, 'body':''}
-        data['body'] = '#### OWTF Bug Report\n\n```' + '\n'.join(error_data) + '```\n' # For github markdown
+        # For github markdown.
+        data['body'] = '#### OWTF Bug Report\n\n```' + \
+                       '\n'.join(error_data) + '```\n'
         if info:
             data['body'] += "\n#### User Report\n\n"
             data['body'] += info
         if user:
             data['body'] += "\n\n#### %s" % user
-        data = json.dumps(data) # Converted to string
-        headers = {"Content-Type": "application/json","Authorization": "token " + self.Core.Config.Get("GITHUB_BUG_REPORTER_TOKEN")}
-        request = urllib2.Request(self.Core.Config.Get("GITHUB_API_ISSUES_URL"), headers=headers, data=data)
+        data = json.dumps(data)  # Converted to string.
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization":
+                "token " + self.Core.Config.Get("GITHUB_BUG_REPORTER_TOKEN")
+            }
+        request = urllib2.Request(
+            self.Core.Config.Get("GITHUB_API_ISSUES_URL"),
+            headers=headers,
+            data=data)
         response = urllib2.urlopen(request)
         decoded_resp = json.loads(response.read())
         if response.code == 201:
