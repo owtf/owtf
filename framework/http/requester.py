@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The Requester module is in charge of simplifying HTTP requests and automatically log HTTP transactions by calling the DB module
 '''
-from framework.http import transaction #, httplib_to_urllib2
+from framework.http import transaction
 from framework.lib.general import *
 import cgi
 import httplib
@@ -98,8 +98,6 @@ class Requester:
             ProxyHandler = urllib2.ProxyHandler(ProxyConf)
             self.Opener = urllib2.build_opener(ProxyHandler, MyHTTPHandler, MyHTTPSHandler, SmartRedirectHandler) # works except no raw request on https
         urllib2.install_opener(self.Opener)
-        #self.mhttplib_to_urllib2 = httplib_to_urllib2.httplib_to_urllib2()
-        #response = opener.open('http://www.google.com/')
 
     def log_transactions(self, LogTransactions = True):
         Backup = self.LogTransactions
@@ -300,25 +298,3 @@ class Requester:
                 continue # Skip garbage URLs
             Transactions.append(self.GetTransaction(UseCache, URL, Method, Data))
         return Transactions
-"""
-# Fighting with httplib: server headers are lowercased and shuffled!:
-    def TRACE(self, Hostname, Path):
-        global RawRequest # kludge: necessary to get around urllib2 limitations: Need this to get the exact request that was sent
-
-        connection = httplib.HTTPConnection(Hostname) 
-        connection.request("TRACE", Path) 
-        self.Transaction.Start(Path, Path, "TRACE")
-        try:
-            Response = connection.getresponse()
-            self.mhttplib_to_urllib2.Sethttplib_Response(Response)
-            #p(Response)
-#['__doc__', '__init__', '__module__', '_check_close', '_method', '_read_chunked', '_read_status', '_safe_read', 'begin', 'chunk_left', 'chunked', 'close', 'debuglevel', 'fp', 'getheader', 'getheaders', 'isclosed', 'length', 'msg', 'read', 'reason', 'status', 'strict', 'version', 'will_close']
-            #print str([ Response._method, Response.getheaders(), Response.msg, Response.read(), Response.reason, Response.status, Response.version ])
-            self.Transaction.SetTransaction(None, RawRequest, self.mhttplib_to_urllib2)
-        except IOError:
-            ErrorMessage = "Requester Object -> Unknown HTTP Request error: "+URL+"\n"+str(sys.exc_info())
-            self.Transaction.SetError(ErrorMessage)
-        self.Core.DB.Transaction.LogTransaction(self.Transaction) # Log transaction in DB for analysis later and return modified Transaction with ID
-        return self.Transaction
-"""
-
