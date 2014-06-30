@@ -285,7 +285,7 @@ class Config(object):
     def GetFileName(self, setting, partial=False):
         path = self.Get(setting)
         if partial:
-            return path.split("/")[-1]
+            return os.path.basename(path)
         return path
 
     def GetHTMLTransaclog(self, partial=False):
