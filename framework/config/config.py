@@ -94,8 +94,6 @@ class Config(object):
     def ProcessOptions(self, options):
         self.LoadProfiles(options['Profiles'])
         self.LoadTargets(options)
-        # After all initialisations, run health-check:
-        # self.HealthCheck.run() Please fix it. Health check should check db health etc..
 
     def LoadProfiles(self, profiles):
         self.Profiles = defaultdict(list) # This prevents python from blowing up when the Key does not exist :)
@@ -103,7 +101,6 @@ class Config(object):
             self.Profiles[type] = file
 
     def LoadTargets(self, options):
-        # print(Options)
         scope = self.PrepareURLScope(options['Scope'], options['PluginGroup'])
         for target in scope:
             try:
@@ -162,7 +159,7 @@ class Config(object):
     def GetRawResources(self, resource_type):
         return self.Resources[resource_type]
 
-    def DeriveConfigFromURL(self, target_URL): #,Options):
+    def DeriveConfigFromURL(self, target_URL):
         target_config = dict(target_manager.TARGET_CONFIG)
         target_config['TARGET_URL'] = target_URL # Set the target in the config
         # TODO: Use urlparse here
@@ -170,34 +167,13 @@ class Config(object):
         URL_scheme = parsed_URL.scheme
         protocol = parsed_URL.scheme
         if parsed_URL.port == None: # Port is blank: Derive from scheme
-            """
-            if Options['PluginGroup'] == 'net':
-                if Options['RPort'] != None:
-                    Port = Options['RPort']
-                    if Options['OnlyPlugins']!= None:
-                        for only_plugin in Options['OnlyPlugins']:
-                            service = only_plugin
-                            if service =='httprpc':
-                                                service = 'http_rpc'
-                            self.Set(service.upper()+"_PORT_NUMBER",Port)
-            """
             port = '80'
             if 'https' == URL_scheme:
                 port = '443'
         else: # Port found by urlparse:
             port = str(parsed_URL.port)
-        #\print "Port=" + Port
         host = parsed_URL.hostname
         host_path = parsed_URL.hostname + parsed_URL.path
-        #protocol, crap, host = TargetURL.split('/')[0:3]
-        #DotChunks = TargetURL.split(':')
-        #URLScheme = DotChunks[0]
-        #Port = '80'
-        #if len(DotChunks) == 2: # Case: http://myhost.com -> Derive port from http / https
-        #   if 'https' == URLScheme:
-        #       Port = '443'
-        #else: # Derive port from ":xyz" URL part
-        #   Port = DotChunks[2].split('/')[0]
         target_config['HOST_PATH'] = host_path # Needed for google resource search
         target_config['URL_SCHEME'] = URL_scheme # Some tools need this!
         target_config['PORT_NUMBER'] = port # Some tools need this!
@@ -244,10 +220,6 @@ class Config(object):
         url_db_path = os.path.join(targets_folder, url_info_id, "urls.db")
         plugins_db_path = os.path.join(targets_folder, url_info_id, "plugins.db")
         return [transaction_db_path, url_db_path, plugins_db_path]
-
-    #def DeriveConfigFromURL(self, TargetURL,Options): # Basic configuration tweaks to make things simpler for the plugins
-    #    self.DeriveURLSettings(TargetURL,Options)
-    #    self.DeriveOutputSettingsFromURL(TargetURL)
 
     def GetFileName(self, setting, partial=False):
         path = self.Get(setting)
@@ -306,15 +278,6 @@ class Config(object):
             except socket.gaierror:
                 self.Core.Error.FrameworkAbort("Cannot resolve Hostname: "+hostname)
         ipchunks = ip.strip().split("\n")
-        #AlternativeIPs = []
-        #if len(ipchunks) > 1:
-        #    IP = ipchunks[0]
-        #    cprint(Hostname+" has several IP addresses: ("+", ".join(ipchunks)[0:-3]+"). Choosing first: "+IP+"")
-        #    AlternativeIPs = ipchunks[1:]
-        #self.Set('ALTERNATIVE_IPS', AlternativeIPs)
-        #IP = IP.strip()
-        #self.Set('INTERNAL_IP', self.Core.IsIPInternal(IP))
-        #cprint("The IP address for "+Hostname+" is: '"+IP+"'")
         return ipchunks
 
     def IsSet(self, key):
@@ -364,7 +327,6 @@ class Config(object):
         return self.FrameworkConfigGet(key).split(',')
 
     def SetGeneral(self, type, key, value):
-        #print str(self.Config)
         self.Config[type][key] = value
 
     def Set(self, key, value): # Transparently set config items in Target-specific or General config
