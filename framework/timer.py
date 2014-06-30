@@ -37,7 +37,9 @@ import time
 
 
 class Timer(object):
-    Time = {} # Dictionary of Timers, Several timers can be set at any given point in time 
+    # Dictionary of Timers, Several timers can be set at any given point in
+    # time.
+    Time = {}
 
     def __init__(self, DateTimeFormat = "%d/%m/%Y-%H:%M"):
         self.DateTimeFormat = DateTimeFormat
@@ -72,7 +74,8 @@ class Timer(object):
         if minutes > 0:
             TimeStr += "%2dm, " % minutes
         TimeStr += "%2ds, %3dms" % (seconds,miliseconds)
-        return TimeStr.strip() # Strip necessary to get rid of leading spaces sometimes
+        # Strip necessary to get rid of leading spaces sometimes.
+        return TimeStr.strip()
 
     def EndTimer(self, Offset = '0'):
         self.Time[Offset]['End'] = self.GetCurrentDateTime()
@@ -81,7 +84,6 @@ class Timer(object):
         Elapsed = self.GetElapsedTime(Offset)
         ToString = self.GetTimeAsStr(Elapsed)
         self.EndTimer(Offset)
-        #print "Elapsed="+str(Elapsed)+", ToString="+ToString
         return ToString
 
     def GetStartDateTimeAsStr(self, Offset = '0'):
