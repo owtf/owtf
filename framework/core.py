@@ -63,12 +63,12 @@ from framework.lib.general import cprint, log, MultipleReplace, LogQueue, \
 
 
 class Core(object):
-    def __init__(self, RootDir, OwtfPid):
+    def __init__(self, root_dir, owtf_pid):
         # Tightly coupled, cohesive framework components:
         self.Error = error_handler.ErrorHandler(self)
         self.decorate_io()
         self.Shell = blocking_shell.Shell(self) # Config needs to find plugins via shell = instantiate shell first
-        self.Config = config.Config(RootDir, OwtfPid, self)
+        self.Config = config.Config(root_dir, owtf_pid, self)
         self.Config.Init() # Now the the config is hooked to the core, init config sub-components
         self.create_temp_storage_dirs()
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
@@ -108,67 +108,61 @@ class Core(object):
     def log(self,*args):
         log(*args)
 
-    def CreateMissingDirs(self, Path):
-        if os.path.isfile(Path):
-            Dir = os.path.dirname(Path)
+    def CreateMissingDirs(self, path):
+        if os.path.isfile(path):
+            dir = os.path.dirname(path)
         else:
-            Dir = Path
-        if not os.path.exists(Dir):
-            self.makedirs(Dir) # Create any missing directories
+            dir = path
+        if not os.path.exists(dir):
+            self.makedirs(dir)  # Create any missing directories.
 
-    def DumpFile(self, Filename, Contents, Directory):
-        SavePath=Directory+WipeBadCharsForFilename(Filename)
-        self.CreateMissingDirs(Directory)
-        with self.open(SavePath, 'wb') as file:
-            file.write(Contents)
-        return SavePath
+    def DumpFile(self, filename, contents, directory):
+        save_path = directory + WipeBadCharsForFilename(filename)
+        self.CreateMissingDirs(directory)
+        with self.open(save_path, 'wb') as file:
+            file.write(contents)
+        return save_path
 
     def get_child_pids(self, parent_pid):
-        PsCommand = subprocess.Popen("ps -o pid --ppid %d --noheaders" % parent_pid, shell=True, stdout=subprocess.PIPE)
-        output, error = PsCommand.communicate()
+        ps_command = subprocess.Popen("ps -o pid --ppid %d --noheaders" % parent_pid, shell=True, stdout=subprocess.PIPE)
+        output, error = ps_command.communicate()
         return [int(child_pid) for child_pid in output.readlines("\n")[:-1]]
 
-    def GetPartialPath(self, Path):
-        #return MultipleReplace(Path, List2DictKeys(RemoveListBlanks(self.Config.GetAsList( [ 'HOST_OUTPUT', 'OUTPUT_PATH' ]))))
-        #print str(self.Config.GetAsList( [ 'HOST_OUTPUT', 'OUTPUT_PATH' ] ))
-        #print "Path before="+Path
-        #Path = MultipleReplace(Path, List2DictKeys(RemoveListBlanks(self.Config.GetAsList( [ 'OUTPUT_PATH' ]))))
-        #Need to replace URL OUTPUT first so that "View Unique as HTML" Matches on body links work
-        Path = MultipleReplace(Path, List2DictKeys(RemoveListBlanks(self.Config.GetAsList( [ 'HOST_OUTPUT', 'OUTPUT_PATH' ]))))
-        #print "Path after="+Path
-
-        if '/' == Path[0]: # Stripping out leading "/" if present
-            Path = Path[1:]
-        return Path
+    def GetPartialPath(self, path):
+        path = MultipleReplace(path, List2DictKeys(RemoveListBlanks(self.Config.GetAsList( [ 'HOST_OUTPUT', 'OUTPUT_PATH' ]))))
+        if '/' == path[0]:  # Stripping out leading "/" if present.
+            path = path[1:]
+        return path
 
     def GetCommand(self, argv):
-        # Format command to remove directory and space-separate arguments
+        # Format command to remove directory and space-separate arguments.
         return " ".join(argv).replace(argv[0], os.path.basename(argv[0]))
 
-    def AnonymiseCommand(self, Command):
-        for Host in self.DB.Target.GetAll('HOST_NAME'): # Host name setting value for all targets in scope
-            if Host: # Value is not blank
-                Command = Command.replace(Host, 'some.target.com')
+    def AnonymiseCommand(self, command):
+        # Host name setting value for all targets in scope.
+        for host in self.DB.Target.GetAll('HOST_NAME'):
+            if host: # Value is not blank
+                command = command.replace(host, 'some.target.com')
         for ip in self.DB.Target.GetAll('HOST_IP'):
             if ip:
-                Command = Command.replace(ip, 'xxx.xxx.xxx.xxx')
-        return Command        
-        
-    def Start_TOR_Mode(self, Options):
-        if Options['TOR_mode'] != None:
-            if Options['TOR_mode'][0] != "help":
+                command = command.replace(ip, 'xxx.xxx.xxx.xxx')
+        return command
+
+    def Start_TOR_Mode(self, options):
+        if options['TOR_mode'] != None:
+            if options['TOR_mode'][0] != "help":
                 if tor_manager.TOR_manager.is_tor_running():
-                    self.TOR_process = tor_manager.TOR_manager(self, Options['TOR_mode'])
+                    self.TOR_process = tor_manager.TOR_manager(self, options['TOR_mode'])
                     self.TOR_process = self.TOR_process.Run()
-                else:                    
+                else:
                     tor_manager.TOR_manager.msg_start_tor(self)
                     tor_manager.TOR_manager.msg_configure_tor(self)
                     self.Error.FrameworkAbort("TOR Daemon is not running")
             else:
                 tor_manager.TOR_manager.msg_configure_tor()
                 self.Error.FrameworkAbort("Configuration help is running")
-     
-    def StartProxy(self, Options):
+
+    def StartProxy(self, options):
         # The proxy along with supporting processes are started
         if True:
             # Check if port is in use
@@ -180,11 +174,11 @@ class Core(object):
                 self.Error.FrameworkAbort("Inbound proxy address " + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT") + " already in use")
 
             # If everything is fine
-            self.ProxyProcess = proxy.ProxyProcess( 
-                                                    self,
-                                                    Options['OutboundProxy'],
-                                                    Options['OutboundProxyAuth']
-                                                  )
+            self.ProxyProcess = proxy.ProxyProcess(
+                self,
+                options['OutboundProxy'],
+                options['OutboundProxyAuth']
+                )
             poison_q = multiprocessing.Queue()
             self.TransactionLogger = transaction_logger.TransactionLogger(self, poison_q)
             cprint("Starting Inbound proxy at " + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT"))
@@ -195,10 +189,8 @@ class Core(object):
             cprint("Proxy transaction's log file at %s"%(self.DB.Config.Get("PROXY_LOG")))
             cprint("Interface server log file at %s"%(self.DB.Config.Get("SERVER_LOG")))
             cprint("Execution of OWTF is halted.You can browse through OWTF proxy) Press Enter to continue with OWTF")
-            #if Options["Interactive"]:
-            #    raw_input()
         else:
-            self.Requester = requester.Requester(self, Options['OutboundProxy'])
+            self.Requester = requester.Requester(self, options['OutboundProxy'])
 
     def outputfunc(self, q):
         """This is the function/thread which writes on terminal.
@@ -254,58 +246,46 @@ class Core(object):
         infohandler.setFormatter(infoformatter)
         log.addHandler(infohandler)
 
-    def Start(self, Options):
-        if self.initialise_framework(Options):
+    def Start(self, options):
+        if self.initialise_framework(options):
             return self.run_plugins()
 
-    def initialise_framework(self, Options):
-        self.ProxyMode = Options["ProxyMode"]
+    def initialise_framework(self, options):
+        self.ProxyMode = options["ProxyMode"]
         cprint("Loading framework please wait..")
         self.initlogger()
 
-        if Options['ListPlugins']:
+        if options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
             self.exit_output()
             return False # No processing required, just list available modules
-        #self.messaging_admin.Init()
-        self.Config.ProcessOptions(Options)
-        #self.Timer.StartTimer('core')
-        Command = self.GetCommand(Options['argv'])
+        self.Config.ProcessOptions(options)
+        command = self.GetCommand(options['argv'])
 
-        #self.DB.Run.StartRun(Command) # Log owtf run options, start time, etc
-        #else: # Reporter process is not needed unless a real run
-        #    self.start_reporter()
-        self.StartProxy(Options) # Proxy mode is started in that function
-        #self.Start_TOR_Mode(Options)# TOR mode will start only if the Options are set
-        # Proxy Check
-        # TODO: Fix up proxy check, nothing but uncomment
-        #ProxySuccess, Message = self.Requester.ProxyCheck()
-        #cprint(Message)
-        #if not ProxySuccess: # Regardless of interactivity settings if the proxy check fails = no point to move on
-        #    self.Error.FrameworkAbort(Message) # Abort if proxy check failed
-        # Each Plugin adds its own results to the report, the report is updated on the fly after each plugin completes (or before!)
-        self.Error.SetCommand(self.AnonymiseCommand(Command)) # Set anonymised invoking command for error dump info
-        self.initialise_plugin_handler_and_params(Options)
+        self.StartProxy(options) # Proxy mode is started in that function
+        # Set anonymised invoking command for error dump info.
+        self.Error.SetCommand(self.AnonymiseCommand(command))
+        self.initialise_plugin_handler_and_params(options)
         return True
 
-    def initialise_plugin_handler_and_params(self, Options):
+    def initialise_plugin_handler_and_params(self, options):
         # The order is important here ;)
-        self.PluginHandler = plugin_handler.PluginHandler(self, Options)
-        self.PluginParams = plugin_params.PluginParams(self, Options)
+        self.PluginHandler = plugin_handler.PluginHandler(self, options)
+        self.PluginParams = plugin_params.PluginParams(self, options)
         self.WorkerManager = process_manager.WorkerManager(self)
 
     def run_plugins(self):
-        Status = self.PluginHandler.ProcessPlugins()
+        status = self.PluginHandler.ProcessPlugins()
         self.InterfaceServer = server.InterfaceServer(self)
         cprint("Interface Server started. Visit http://" + self.Config.FrameworkConfigGet("UI_SERVER_ADDR") + ":" + self.Config.FrameworkConfigGet("UI_SERVER_PORT"))
         cprint("Press Ctrl+C when you spawned a shell ;)")
         self.InterfaceServer.start()
-        if Status['AllSkipped']:
+        if status['AllSkipped']:
             self.Finish('Skipped')
-        elif not Status['SomeSuccessful'] and Status['SomeAborted']:
+        elif not status['SomeSuccessful'] and status['SomeAborted']:
             self.Finish('Aborted')
             return False
-        elif not Status['SomeSuccessful']: # Not a single plugin completed successfully, major crash or something
+        elif not status['SomeSuccessful']: # Not a single plugin completed successfully, major crash or something
             self.Finish('Crashed')
             return False
         return True # Scan was successful
@@ -320,7 +300,7 @@ class Core(object):
         else:
             cprint("Unable to add github issue, but thanks for trying :D")
 
-    def Finish(self, Status = 'Complete', Report = True):
+    def Finish(self, status='Complete', report=True):
         if self.TOR_process != None:
             self.TOR_process.terminate()
         if self.DB.Config.Get('SIMULATION'):
@@ -330,28 +310,22 @@ class Core(object):
             exit()
         else:
             try:
-                #self.DB.Run.EndRun(Status)
                 self.PluginHandler.CleanUp()
                 cprint("Saving DBs")
-                self.DB.SaveDBs() # Save DBs prior to producing the report :)
-                if Report:
+                self.DB.SaveDBs()  # Save DBs prior to producing the report :)
+                if report:
                     cprint("Finishing iteration and assembling report again (with updated run information)")
-                    #PreviousTarget = self.Config.GetTarget()
-                    #for Target in self.Config.GetTargets(): # We have to finish all the reports in this run to update run information
-                    #    self.Config.SetTarget(Target) # Much save the report for each target
-                        #self.Reporter.ReportFinish() # Must save the report again at the end regarless of Status => Update Run info
-                    #self.Config.SetTarget(PreviousTarget) # Restore previous target
                 cprint("OWTF iteration finished")
-
-                if self.DB.ErrorCount() > 0: # Some error occurred (counter not accurate but we only need to know if sth happened)
+                # Some error occurred (counter not accurate but we only need to
+                # know if sth happened).
+                if self.DB.ErrorCount() > 0:
                     cprint('Errors saved to ' + self.Config.FrameworkConfigGet('ERROR_DB_NAME') + '. Would you like us to auto-report bugs ?')
                     choice = raw_input("[Y/n] ")
                     if choice != 'n' or choice != 'N':
                         self.ReportErrorsToGithub()
                     else:
                         cprint("We know that you are planning on submitting it manually ;)")
-                #self.dbHandlerProcess.join()
-            except AttributeError: # DB not instantiated yet!
+            except AttributeError:  # DB not instantiated yet!
                 cprint("OWTF finished: No time to report anything! :P")
             finally:
                 if self.ProxyMode:
@@ -362,13 +336,14 @@ class Core(object):
                         # No signal is generated during closing process by terminate()
                         self.TransactionLogger.poison_q.put('done')
                         self.TransactionLogger.join()
-                    except: # It means the proxy was not started
+                    except:  # It means the proxy was not started.
                         pass
                 if hasattr(self, 'DB'):
                     cprint("Saving DBs")
-                    self.DB.SaveDBs() # So that detailed_report_register populated by reporting is saved :P
+                    # So that detailed_report_register populated by reporting
+                    # is saved :P
+                    self.DB.SaveDBs()
                 self.exit_output()
-                #print self.Timer.GetElapsedTime('core')
                 exit()
 
     def exit_output(self):
@@ -387,33 +362,29 @@ class Core(object):
     def GetSeed(self):
         try:
             return self.DB.GetSeed()
-        except AttributeError: # DB not instantiated yet
+        except AttributeError:  # DB not instantiated yet.
             return ""
 
     def IsIPInternal(self, IP):
         return len(self.IsIPInternalRegexp.findall(IP)) == 1
 
-    def IsTargetUnreachable(self, Target = ''):
-        if not Target:
-            Target = self.Config.GetTarget()
-        #print "Target="+Target+" in "+str(self.DB.GetData('UNREACHABLE_DB'))+"?? -> "+str(Target in self.DB.GetData('UNREACHABLE_DB'))
-        return Target in self.DB.GetData('UNREACHABLE_DB')
+    def IsTargetUnreachable(self, target=''):
+        if not target:
+            target = self.Config.GetTarget()
+        return target in self.DB.GetData('UNREACHABLE_DB')
 
-    def GetFileAsList(self, FileName):
-        return GetFileAsList(FileName)
+    def GetFileAsList(self, fileName):
+        return GetFileAsList(fileName)
 
     def KillChildProcesses(self, parent_pid, sig=signal.SIGINT):
-        PsCommand = subprocess.Popen("ps -o pid --ppid %d --noheaders" % parent_pid, shell=True, stdout=subprocess.PIPE)
-        PsOutput = PsCommand.stdout.read()
-        RetCode = PsCommand.wait()
-        #assert RetCode == 0, "ps command returned %d" % RetCode
-        for PidStr in PsOutput.split("\n")[:-1]:
-                self.KillChildProcesses(int(PidStr),sig)
-                #print PidStr
-                try:
-                    os.kill(int(PidStr), sig)
-                except:
-                    print("unable to kill it")
+        ps_command = subprocess.Popen("ps -o pid --ppid %d --noheaders" % parent_pid, shell=True, stdout=subprocess.PIPE)
+        ps_output = ps_command.stdout.read()
+        for pid_str in ps_output.split("\n")[:-1]:
+            self.KillChildProcesses(int(pid_str),sig)
+            try:
+                os.kill(int(pid_str), sig)
+            except:
+                cprint("unable to kill it")
 
     def decorate_io(self):
         """Decorate different I/O functions to ensure OWTF to properly quit."""
@@ -450,5 +421,5 @@ class Core(object):
         self.FileHandler = catch_error(logging.FileHandler)
 
 
-def Init(RootDir, OwtfPid):
-    return Core(RootDir, OwtfPid)
+def Init(root_dir, owtf_pid):
+    return Core(root_dir, owtf_pid)
