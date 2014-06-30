@@ -71,7 +71,7 @@ class ErrorHandler(object):
         options = ""
         if 'Command' == level:
             options = ", 'p'+Enter= Move on to next plugin"
-            option = 'p'#raw_input("Options: 'e'+Enter= Exit"+Options+", Enter= Next test\n")
+            option = 'p'
             if 'e' == option:
                 if 'Command' == level: # Try to save partial plugin results
                     raise FrameworkAbortException(partial_output)
@@ -90,9 +90,6 @@ class ErrorHandler(object):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         err_trace_list = traceback.format_exception(exc_type, exc_value, exc_traceback)
         err_trace = self.Core.AnonymiseCommand("\n".join(err_trace_list))
-        #traceback.print_exc()
-        #print repr(traceback.format_stack())
-        #print repr(traceback.extract_stack())
         message = self.Core.AnonymiseCommand(message)
         output = self.Padding+"OWTF BUG: Please report the sanitised information below to help make this better. Thank you."+self.SubPadding
         output += "\nMessage: " + message + "\n"
