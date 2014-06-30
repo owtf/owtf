@@ -124,12 +124,19 @@ class Core(object):
         return save_path
 
     def get_child_pids(self, parent_pid):
-        ps_command = subprocess.Popen("ps -o pid --ppid %d --noheaders" % parent_pid, shell=True, stdout=subprocess.PIPE)
+        ps_command = subprocess.Popen(
+            "ps -o pid --ppid %d --noheaders" % parent_pid,
+            shell=True,
+            stdout=subprocess.PIPE)
         output, error = ps_command.communicate()
         return [int(child_pid) for child_pid in output.readlines("\n")[:-1]]
 
     def GetPartialPath(self, path):
-        path = MultipleReplace(path, List2DictKeys(RemoveListBlanks(self.Config.GetAsList( [ 'HOST_OUTPUT', 'OUTPUT_PATH' ]))))
+        path = MultipleReplace(
+            path,
+            List2DictKeys(RemoveListBlanks(
+                self.Config.GetAsList(['HOST_OUTPUT', 'OUTPUT_PATH'])))
+            )
         if '/' == path[0]:  # Stripping out leading "/" if present.
             path = path[1:]
         return path
@@ -152,7 +159,9 @@ class Core(object):
         if options['TOR_mode'] != None:
             if options['TOR_mode'][0] != "help":
                 if tor_manager.TOR_manager.is_tor_running():
-                    self.TOR_process = tor_manager.TOR_manager(self, options['TOR_mode'])
+                    self.TOR_process = tor_manager.TOR_manager(
+                        self,
+                        options['TOR_mode'])
                     self.TOR_process = self.TOR_process.Run()
                 else:
                     tor_manager.TOR_manager.msg_start_tor(self)
@@ -168,31 +177,54 @@ class Core(object):
             # Check if port is in use
             try:
                 temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                temp_socket.bind((self.DB.Config.Get('INBOUND_PROXY_IP'), int(self.DB.Config.Get('INBOUND_PROXY_PORT'))))
+                temp_socket.bind((
+                    self.DB.Config.Get('INBOUND_PROXY_IP'),
+                    int(self.DB.Config.Get('INBOUND_PROXY_PORT'))))
                 temp_socket.close()
-            except socket.error: #Exception:
-                self.Error.FrameworkAbort("Inbound proxy address " + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT") + " already in use")
+            except socket.error:
+                self.Error.FrameworkAbort(
+                    "Inbound proxy address " +
+                    self.DB.Config.Get('INBOUND_PROXY_IP') + ":" +
+                    self.DB.Config.Get("INBOUND_PROXY_PORT") +
+                    " already in use")
 
-            # If everything is fine
+            # If everything is fine.
             self.ProxyProcess = proxy.ProxyProcess(
                 self,
                 options['OutboundProxy'],
                 options['OutboundProxyAuth']
                 )
             poison_q = multiprocessing.Queue()
-            self.TransactionLogger = transaction_logger.TransactionLogger(self, poison_q)
-            cprint("Starting Inbound proxy at " + self.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.DB.Config.Get("INBOUND_PROXY_PORT"))
+            self.TransactionLogger = transaction_logger.TransactionLogger(
+                self,
+                poison_q)
+            cprint(
+                "Starting Inbound proxy at " +
+                self.DB.Config.Get('INBOUND_PROXY_IP') + ":" +
+                self.DB.Config.Get("INBOUND_PROXY_PORT"))
             self.ProxyProcess.start()
             cprint("Starting Transaction logger process")
             self.TransactionLogger.start()
-            self.Requester = requester.Requester(self, [self.DB.Config.Get('INBOUND_PROXY_IP'), self.DB.Config.Get('INBOUND_PROXY_PORT')])
-            cprint("Proxy transaction's log file at %s"%(self.DB.Config.Get("PROXY_LOG")))
-            cprint("Interface server log file at %s"%(self.DB.Config.Get("SERVER_LOG")))
-            cprint("Execution of OWTF is halted.You can browse through OWTF proxy) Press Enter to continue with OWTF")
+            self.Requester = requester.Requester(
+                self, [
+                    self.DB.Config.Get('INBOUND_PROXY_IP'),
+                    self.DB.Config.Get('INBOUND_PROXY_PORT')]
+                )
+            cprint(
+                "Proxy transaction's log file at %s" %
+                self.DB.Config.Get("PROXY_LOG"))
+            cprint(
+                "Interface server log file at %s" %
+                self.DB.Config.Get("SERVER_LOG"))
+            cprint(
+                "Execution of OWTF is halted. You can browse through "
+                "OWTF proxy) Press Enter to continue with OWTF")
         else:
-            self.Requester = requester.Requester(self, options['OutboundProxy'])
+            self.Requester = requester.Requester(
+                self,
+                options['OutboundProxy'])
 
-    def outputfunc(self, q):
+    def outputfunc(self, queue):
         """This is the function/thread which writes on terminal.
 
         It takes the content from queue and if showOutput is True it writes to
@@ -200,23 +232,23 @@ class Core(object):
         If the next token is 'end' It simply writes to the console.
 
         """
-        t = u''
+        temp = u''
         while True:
             try:
-                k = q.get()
+                token = queue.get()
             except:
                 continue
-            if k == 'end':
+            if token == 'end':
                 try:
-                    sys.stdout.write(t)
+                    sys.stdout.write(temp)
                 except:
                     pass
                 return
-            t += unicode(k.decode('utf-8'))
+            temp += unicode(token.decode('utf-8'))
             if(self.showOutput):
                 try:
-                    sys.stdout.write(t)
-                    t = u''
+                    sys.stdout.write(temp)
+                    temp = u''
                 except:
                     pass
 
@@ -231,7 +263,9 @@ class Core(object):
         infoformatter = logging.Formatter("%(message)s")
         infohandler.setFormatter(infoformatter)
         log.addHandler(infohandler)
-        self.outputthread =Thread(target=self.outputfunc, args=(self.outputqueue,))
+        self.outputthread = Thread(
+            target=self.outputfunc,
+            args=(self.outputqueue,))
         self.outputthread.start()
 
         # Logger for output in log file.
@@ -255,14 +289,15 @@ class Core(object):
         cprint("Loading framework please wait..")
         self.initlogger()
 
+        # No processing required, just list available modules.
         if options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
             self.exit_output()
-            return False # No processing required, just list available modules
+            return False
         self.Config.ProcessOptions(options)
         command = self.GetCommand(options['argv'])
 
-        self.StartProxy(options) # Proxy mode is started in that function
+        self.StartProxy(options)  # Proxy mode is started in that function.
         # Set anonymised invoking command for error dump info.
         self.Error.SetCommand(self.AnonymiseCommand(command))
         self.initialise_plugin_handler_and_params(options)
@@ -277,7 +312,10 @@ class Core(object):
     def run_plugins(self):
         status = self.PluginHandler.ProcessPlugins()
         self.InterfaceServer = server.InterfaceServer(self)
-        cprint("Interface Server started. Visit http://" + self.Config.FrameworkConfigGet("UI_SERVER_ADDR") + ":" + self.Config.FrameworkConfigGet("UI_SERVER_PORT"))
+        cprint(
+            "Interface Server started. Visit http://" +
+            self.Config.FrameworkConfigGet("UI_SERVER_ADDR") + ":" +
+            self.Config.FrameworkConfigGet("UI_SERVER_PORT"))
         cprint("Press Ctrl+C when you spawned a shell ;)")
         self.InterfaceServer.start()
         if status['AllSkipped']:
@@ -285,15 +323,20 @@ class Core(object):
         elif not status['SomeSuccessful'] and status['SomeAborted']:
             self.Finish('Aborted')
             return False
-        elif not status['SomeSuccessful']: # Not a single plugin completed successfully, major crash or something
+        # Not a single plugin completed successfully, major crash or something.
+        elif not status['SomeSuccessful']:
             self.Finish('Crashed')
             return False
-        return True # Scan was successful
+        return True  # Scan was successful.
 
     def ReportErrorsToGithub(self):
-        cprint("Do you want to add any extra info to the bug report ? [Just press Enter to skip]")
+        cprint(
+            "Do you want to add any extra info to the bug report? "
+            "[Just press Enter to skip]")
         info = raw_input("> ")
-        cprint("Do you want to add your GitHub username to the report? [Press Enter to skip]")
+        cprint(
+            "Do you want to add your GitHub username to the report? "
+            "[Press Enter to skip]")
         user = raw_input("Reported by @")
         if self.Error.AddGithubIssue(Info=info, User=user):
             cprint("Github issue added, Thanks for reporting!!")
@@ -314,26 +357,36 @@ class Core(object):
                 cprint("Saving DBs")
                 self.DB.SaveDBs()  # Save DBs prior to producing the report :)
                 if report:
-                    cprint("Finishing iteration and assembling report again (with updated run information)")
+                    cprint(
+                        "Finishing iteration and assembling report again "
+                        "(with updated run information)")
                 cprint("OWTF iteration finished")
                 # Some error occurred (counter not accurate but we only need to
                 # know if sth happened).
                 if self.DB.ErrorCount() > 0:
-                    cprint('Errors saved to ' + self.Config.FrameworkConfigGet('ERROR_DB_NAME') + '. Would you like us to auto-report bugs ?')
+                    cprint(
+                        'Errors saved to ' +
+                        self.Config.FrameworkConfigGet('ERROR_DB_NAME') +
+                        '. Would you like us to auto-report bugs?')
                     choice = raw_input("[Y/n] ")
                     if choice != 'n' or choice != 'N':
                         self.ReportErrorsToGithub()
                     else:
-                        cprint("We know that you are planning on submitting it manually ;)")
+                        cprint(
+                            "We know that you are planning on submitting it "
+                            "manually ;)")
             except AttributeError:  # DB not instantiated yet!
                 cprint("OWTF finished: No time to report anything! :P")
             finally:
                 if self.ProxyMode:
                     try:
-                        cprint("Stopping inbound proxy processes and cleaning up, Please wait!")
+                        cprint(
+                            "Stopping inbound proxy processes and "
+                            "cleaning up, Please wait!")
                         self.KillChildProcesses(self.ProxyProcess.pid)
                         self.ProxyProcess.terminate()
-                        # No signal is generated during closing process by terminate()
+                        # No signal is generated during closing process by
+                        # terminate()
                         self.TransactionLogger.poison_q.put('done')
                         self.TransactionLogger.join()
                     except:  # It means the proxy was not started.
@@ -377,7 +430,10 @@ class Core(object):
         return GetFileAsList(fileName)
 
     def KillChildProcesses(self, parent_pid, sig=signal.SIGINT):
-        ps_command = subprocess.Popen("ps -o pid --ppid %d --noheaders" % parent_pid, shell=True, stdout=subprocess.PIPE)
+        ps_command = subprocess.Popen(
+            "ps -o pid --ppid %d --noheaders" % parent_pid,
+            shell=True,
+            stdout=subprocess.PIPE)
         ps_output = ps_command.stdout.read()
         for pid_str in ps_output.split("\n")[:-1]:
             self.KillChildProcesses(int(pid_str),sig)
