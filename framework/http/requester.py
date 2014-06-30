@@ -153,8 +153,6 @@ class Requester:
         # network, try target URL :)
         if self.Proxy != None and self.is_request_possible():
             URL = self.Core.DB.Config.Get('PROXY_CHECK_URL')
-            #if self.NeedToAskBeforeRequest() and 'y' != raw_input("Proxy Check: Need to send a GET request to "+URL+". Is this ok?: 'y'+Enter= Continue, Enter= Abort Proxy Check\n"):
-            #   return [ True, "Proxy Check OK: Proxy Check Aborted by User" ]
             RefusedBefore = self.RequestCountRefused
             cprint("Proxy Check: Avoid logging request again if already in DB..")
             LogSettingBackup = False
@@ -192,9 +190,9 @@ class Requester:
         Count = 0
         PrevItem = ''
         for Item in String.strip().split('='):
-            if Count % 2 == 1: # Key
+            if Count % 2 == 1:  # Key.
                 Dict[PrevItem] = Item
-            else: # Value
+            else:  # Value.
                 Dict[Item] = ''
                 PrevItem = Item
             Count += 1
@@ -215,8 +213,6 @@ class Requester:
                 POST = self.StringToDict(POST)
             POST = urllib.urlencode(POST)
         return POST
-        #if Method == 'PUT':
-        #   POST = "data="+POST
 
     def perform_request(self, request):
         return urllib2.urlopen(request)
@@ -255,11 +251,11 @@ class Requester:
         try:
             Response = self.perform_request(request)
             self.set_succesful_transaction(RawRequest, Response)
-        except urllib2.HTTPError, Error: # page NOT found
+        except urllib2.HTTPError, Error:  # page NOT found.
             # Error is really a response for anything other than 200 OK in
             # urllib2 :)
             self.Transaction.SetTransaction(False, RawRequest[0], Error)
-        except urllib2.URLError, Error: # Connection refused?
+        except urllib2.URLError, Error:  # Connection refused?
             ErrorMessage = self.ProcessHTTPErrorCode(Error, URL)
             self.Transaction.SetError(ErrorMessage)
         except IOError:
@@ -312,12 +308,6 @@ class Requester:
 
     def PUT(self, URL, Data, ContentType = 'text/plain'):
         self.BackupHeaders()
-        #Not working yet. Request is not sent, only the data is:
-        #Payload = "data="+Data
-        #self.Headers['Content-Type'] = ContentType
-        #self.Headers['Content-Length'] = len(Payload)
-        #Result = self.Request(URL, Payload, 'PUT')
-        #Working (at least request is sent fine):
         self.Headers['Content-Type'] = ContentType
         self.Headers['Content-Length'] = "0"
         Result = self.Request(URL, 'PUT', None)
@@ -341,15 +331,11 @@ class Requester:
                 self.Core.DB.Transaction.IsTransactionAlreadyAdded(Criteria)):
             if Method in [ '', 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS' ]:
                 return self.Request(URL, Method, Data)
-                #self.Request(URL, Method, Data)
             elif Method == 'DEBUG':
                 return self.DEBUG(URL)
-                #self.DEBUG(URL)
             elif Method == 'PUT':
                 return self.PUT(URL, Data)
-                #self.PUT(URL, Data)
         else:  # Retrieve from DB = faster.
-        #while True: #TODO: Make something better
             # Important since there is no transaction ID with transactions
             # objects created by Requester.
             return self.Core.DB.Transaction.GetFirst(Criteria)
