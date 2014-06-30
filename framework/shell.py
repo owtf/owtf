@@ -32,12 +32,13 @@ framework in order to run third party tools.
 
 """
 
-#import shlex
 import subprocess
-from framework.lib.general import * 
 from collections import defaultdict
 
-class Shell:
+from framework.lib.general import *
+
+
+class Shell(object):
 	def __init__(self, Core):
 		self.DynamicReplacements = {} # Some settings like the plugin output dir are dynamic, config is no place for those
 		self.Core = Core
