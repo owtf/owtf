@@ -32,14 +32,16 @@ automatically log HTTP transactions by calling the DB module.
 
 """
 
-from framework.http import transaction
-from framework.lib.general import *
+import sys
 import cgi
 import httplib
 import logging
-import sys
 import urllib
 import urllib2
+
+from framework.http import transaction
+from framework.lib.general import *
+
 
 # Intercept raw request trick from: http://stackoverflow.com/questions/6085709/get-headers-sent-in-urllib2-http-request
 class MyHTTPConnection(httplib.HTTPConnection):
