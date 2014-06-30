@@ -30,12 +30,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This script helps in updating OWTF.
 """
 
-from framework.lib.general import cprint
-from subprocess import PIPE
-from subprocess import Popen as execute
-import urllib2
 import os
 import json
+import urllib2
+
+from subprocess import PIPE
+from subprocess import Popen as execute
+
+from framework.lib.general import cprint
+
 
 class Updater(object):
     """
