@@ -46,72 +46,73 @@ class Shell(object):
         self.Core = Core
         self.CommandInfo = defaultdict(list)
 
-    def ShellPathEscape(self, Text):
-        return MultipleReplace(Text, { ' ':'\ ', '(':'\(', ')':'\)' }).strip()
+    def ShellPathEscape(self, text):
+        return MultipleReplace(text, {' ': '\ ', '(': '\(', ')': '\)'}).strip()
 
     def RefreshReplacements(self):
         self.DynamicReplacements['###PLUGIN_OUTPUT_DIR###'] = self.Core.Config.Get('PLUGIN_OUTPUT_DIR')
 
-    def GetModifiedShellCommand(self, Command, PluginOutputDir):
+    def GetModifiedShellCommand(self, command, plugin_output_dir):
         self.RefreshReplacements()
-        NewCommand = "cd " + self.ShellPathEscape(PluginOutputDir)
-        NewCommand += "; " + MultipleReplace(Command, self.DynamicReplacements)
-        self.StartCommand(Command, NewCommand)
-        return NewCommand
+        new_cmd = "cd " + self.ShellPathEscape(plugin_output_dir)
+        new_cmd += "; " + MultipleReplace(command, self.DynamicReplacements)
+        self.StartCommand(command, new_cmd)
+        return new_cmd
 
-    def StartCommand(self, OriginalCommand, ModifiedCommand):
-        CommandInfo = defaultdict(list)
+    def StartCommand(self, original_command, modified_command):
+        command_info = defaultdict(list)
         self.Core.Timer.StartTimer('Command')
-        CommandInfo = {
-            'OriginalCommand': OriginalCommand,
-            'ModifiedCommand': ModifiedCommand,
+        command_info = {
+            'OriginalCommand': original_command,
+            'ModifiedCommand': modified_command,
             'Start': self.Core.Timer.GetStartDateTimeAsStr('Command')}
-        self.CommandInfo = CommandInfo
+        self.CommandInfo = command_info
 
-    def FinishCommand(self, CommandInfo, WasCancelled):
-        CommandInfo['End'] = self.Core.Timer.GetEndDateTimeAsStr('Command')
+    def FinishCommand(self, command_info, was_cancelled):
+        command_info['End'] = self.Core.Timer.GetEndDateTimeAsStr('Command')
         Status = "Finished"
-        if WasCancelled:
+        if was_cancelled:
             Status = "Cancelled"
-        CommandInfo['Status'] = Status
-        CommandInfo['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr('Command')
-        CommandInfo['Target'] = self.Core.Config.Get('TARGET')
-        self.Core.DB.CommandRegister.Add(CommandInfo)
+        command_info['Status'] = Status
+        command_info['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr(
+            'Command')
+        command_info['Target'] = self.Core.Config.Get('TARGET')
+        self.Core.DB.CommandRegister.Add(command_info)
         self.CommandInfo = defaultdict(list)
 
-    def CanRunCommand(self, Command):
-        Target = self.Core.DB.CommandRegister.AlreadyRegistered(
-            Command['OriginalCommand'])
-        if Target:  # Command was run before.
+    def CanRunCommand(self, command):
+        target = self.Core.DB.CommandRegister.AlreadyRegistered(
+            command['OriginalCommand'])
+        if target:  # Command was run before.
             # Run several times against same target for grep plugins.
-            if Target == self.Core.Config.Get('TARGET'):
+            if target == self.Core.Config.Get('TARGET'):
                 # Can only run again if against the same target and when -f was
                 # specified.
                 return [None, True]
-            return [Target, False]
+            return [target, False]
         return [None, True]  # Command was not run before.
 
-    def shell_exec_monitor(self, Command):
+    def shell_exec_monitor(self, command):
         if not self.CommandInfo:
-            self.StartCommand(Command, Command)
-        Target, CanRun = self.CanRunCommand(self.CommandInfo)
-        if not CanRun:
-            Message = "The command was already run for target: "+Target
+            self.StartCommand(command, command)
+        target, can_run = self.CanRunCommand(self.CommandInfo)
+        if not can_run:
+            Message = "The command was already run for target: " + target
             return Message
         cprint(
-            "\nExecuting (Control+C to abort THIS COMMAND ONLY):\n" + Command)
+            "\nExecuting (Control+C to abort THIS COMMAND ONLY):\n" + command)
         cprint("")
         cprint(
             "------> Execution Start Date/Time: " +
             self.Core.Timer.GetStartDateTimeAsStr('Command'))
         cprint("")
-        Output = ''
-        Cancelled = False
+        output = ''
+        cancelled = False
         # Stolen from:
         # http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-in-a-separate-process-in-a-wxpyt
         try:
             proc = subprocess.Popen(
-                Command,
+                command,
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -125,22 +126,22 @@ class Shell(object):
                     # Show progress on the screen too!
                     print MultipleReplace(line, { "\n":"", "\r":"" })
                     # Save as much output as possible before a tool crashes! :)
-                    Output += line
+                    output += line
         except KeyboardInterrupt:
-            Cancelled = True
-            self.FinishCommand(self.CommandInfo, Cancelled)
+            cancelled = True
+            self.FinishCommand(self.CommandInfo, cancelled)
             # Identify as Command Level abort.
-            Output += self.Core.Error.UserAbort('Command', Output)
-        if not Cancelled:
-            self.FinishCommand(self.CommandInfo, Cancelled)
-        return Output
+            output += self.Core.Error.UserAbort('Command', output)
+        if not cancelled:
+            self.FinishCommand(self.CommandInfo, cancelled)
+        return output
 
     # Mostly used for internal framework commands.
-    def shell_exec(self, Command, **kwds):
+    def shell_exec(self, command, **kwds):
         # Stolen from (added shell=True tweak, necessary for easy piping
         # straight via the command line, etc):
         # http://stackoverflow.com/questions/236737/making-a-system-call-that-returns-the-stdout-output-as-a-string/236909#236909
         kwds.setdefault("stdout", subprocess.PIPE)
         kwds.setdefault("stderr", subprocess.STDOUT)
-        p = subprocess.Popen(Command, shell=True, **kwds)
+        p = subprocess.Popen(command, shell=True, **kwds)
         return p.communicate()[0]
