@@ -28,7 +28,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The shell module allows running arbitrary shell commands and is critical to the
-framework in order to run third party tools. 
+framework in order to run third party tools.
 
 """
 
@@ -40,7 +40,9 @@ from framework.lib.general import *
 
 class Shell(object):
     def __init__(self, Core):
-        self.DynamicReplacements = {} # Some settings like the plugin output dir are dynamic, config is no place for those
+        # Some settings like the plugin output dir are dynamic, config is no
+        # place for those.
+        self.DynamicReplacements = {}
         self.Core = Core
         self.CommandInfo = defaultdict(list)
 
@@ -52,14 +54,18 @@ class Shell(object):
 
     def GetModifiedShellCommand(self, Command, PluginOutputDir):
         self.RefreshReplacements()
-        NewCommand = "cd "+self.ShellPathEscape(PluginOutputDir)+"; "+MultipleReplace(Command, self.DynamicReplacements)
+        NewCommand = "cd " + self.ShellPathEscape(PluginOutputDir)
+        NewCommand += "; " + MultipleReplace(Command, self.DynamicReplacements)
         self.StartCommand(Command, NewCommand)
         return NewCommand
 
     def StartCommand(self, OriginalCommand, ModifiedCommand):
         CommandInfo = defaultdict(list)
         self.Core.Timer.StartTimer('Command')
-        CommandInfo = { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.Core.Timer.GetStartDateTimeAsStr('Command') } 
+        CommandInfo = {
+            'OriginalCommand': OriginalCommand,
+            'ModifiedCommand': ModifiedCommand,
+            'Start': self.Core.Timer.GetStartDateTimeAsStr('Command')}
         self.CommandInfo = CommandInfo
 
     def FinishCommand(self, CommandInfo, WasCancelled):
@@ -74,12 +80,16 @@ class Shell(object):
         self.CommandInfo = defaultdict(list)
 
     def CanRunCommand(self, Command):
-        Target = self.Core.DB.CommandRegister.AlreadyRegistered(Command['OriginalCommand'])
-        if Target: # Command was run before
-            if Target == self.Core.Config.Get('TARGET'): # Run several times against same target for grep plugins.  #and self.Core.Config.Get('FORCE_OVERWRITE'):
-                return [ None, True ] # Can only run again if against the same target and when -f was specified
-            return [Target, False ]
-        return [ None, True ] # Command was not run before
+        Target = self.Core.DB.CommandRegister.AlreadyRegistered(
+            Command['OriginalCommand'])
+        if Target:  # Command was run before.
+            # Run several times against same target for grep plugins.
+            if Target == self.Core.Config.Get('TARGET'):
+                # Can only run again if against the same target and when -f was
+                # specified.
+                return [None, True]
+            return [Target, False]
+        return [None, True]  # Command was not run before.
 
     def shell_exec_monitor(self, Command):
         if not self.CommandInfo:
@@ -88,13 +98,18 @@ class Shell(object):
         if not CanRun:
             Message = "The command was already run for target: "+Target
             return Message
-        cprint("\nExecuting (Control+C to abort THIS COMMAND ONLY):\n"+Command)
+        cprint(
+            "\nExecuting (Control+C to abort THIS COMMAND ONLY):\n" + Command)
         cprint("")
-        cprint("------> Execution Start Date/Time: "+self.Core.Timer.GetStartDateTimeAsStr('Command'))
+        cprint(
+            "------> Execution Start Date/Time: " +
+            self.Core.Timer.GetStartDateTimeAsStr('Command'))
         cprint("")
         Output = ''
         Cancelled = False
-        try: # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-in-a-separate-process-in-a-wxpyt
+        # Stolen from:
+        # http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-in-a-separate-process-in-a-wxpyt
+        try:
             proc = subprocess.Popen(
                 Command,
                 shell=True,
@@ -105,20 +120,26 @@ class Shell(object):
                     line = proc.stdout.readline()
                     if not line:
                         break
-                    # NOTE: Below MUST BE print instead of "cprint" to clearly distinguish between owtf output and tool output
-                    print MultipleReplace(line, { "\n":"", "\r":"" }) # Show progress on the screen too!
-                    Output += line # Save as much output as possible before a tool crashes! :)
+                    # NOTE: Below MUST BE print instead of "cprint" to clearly
+                    # distinguish between owtf output and tool output.
+                    # Show progress on the screen too!
+                    print MultipleReplace(line, { "\n":"", "\r":"" })
+                    # Save as much output as possible before a tool crashes! :)
+                    Output += line
         except KeyboardInterrupt:
             Cancelled = True
             self.FinishCommand(self.CommandInfo, Cancelled)
-            Output += self.Core.Error.UserAbort('Command', Output) # Identify as Command Level abort
+            # Identify as Command Level abort.
+            Output += self.Core.Error.UserAbort('Command', Output)
         if not Cancelled:
             self.FinishCommand(self.CommandInfo, Cancelled)
         return Output
 
-    def shell_exec(self, Command, **kwds): # Mostly used for internal framework commands
-        #Stolen from (added shell=True tweak, necessary for easy piping straight via the command line, etc):
-        #http://stackoverflow.com/questions/236737/making-a-system-call-that-returns-the-stdout-output-as-a-string/236909#236909
+    # Mostly used for internal framework commands.
+    def shell_exec(self, Command, **kwds):
+        # Stolen from (added shell=True tweak, necessary for easy piping
+        # straight via the command line, etc):
+        # http://stackoverflow.com/questions/236737/making-a-system-call-that-returns-the-stdout-output-as-a-string/236909#236909
         kwds.setdefault("stdout", subprocess.PIPE)
         kwds.setdefault("stderr", subprocess.STDOUT)
         p = subprocess.Popen(Command, shell=True, **kwds)
