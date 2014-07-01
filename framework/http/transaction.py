@@ -55,12 +55,12 @@ class HTTP_Transaction(object):
     def InScope(self):
         return(self.IsInScope)
 
-    def Start(self, URL, Data, Method, IsInScope):
-        self.IsInScope = IsInScope
+    def Start(self, url, data, method, is_in_scope):
+        self.IsInScope = is_in_scope
         self.StartRequest()
-        self.URL = URL
-        self.InitData(Data)
-        self.Method = DeriveHTTPMethod(Method, Data)
+        self.URL = url
+        self.InitData(data)
+        self.Method = DeriveHTTPMethod(method, data)
         self.Found = None
         self.RawRequest = ''
         self.ResponseHeaders = []
@@ -69,8 +69,8 @@ class HTTP_Transaction(object):
         self.HTMLLinkToID = ''
         self.New = True  # Flag new transaction.
 
-    def InitData(self, Data):
-        self.Data = Data
+    def InitData(self, data):
+        self.Data = data
         if self.Data is None:
             # This simplifies other code later, no need to cast to str if None,
             # etc.
@@ -84,25 +84,25 @@ class HTTP_Transaction(object):
         self.Time = str(self.Timer.GetElapsedTime('Request'))
         self.TimeHuman = self.Timer.GetTimeAsStr(self.Time)
 
-    def SetTransaction(self, Found, Request, Response):
+    def SetTransaction(self, found, request, response):
         # Response can be "Response" for 200 OK or "Error" for everything else,
         # we don't care here.
-        if self.URL != Response.url:
-            if Response.code not in [302, 301]:  # No way, error in hook.
+        if self.URL != response.url:
+            if response.code not in [302, 301]:  # No way, error in hook.
                 # Mark as a redirect, dirty but more accurate than 200 :P
                 self.Status = str(302) + " Found"
-                self.Status += " --Redirect--> " + str(Response.code) + " "
-                self.Status += Response.msg
+                self.Status += " --Redirect--> " + str(response.code) + " "
+                self.Status += response.msg
             # Redirect differs in schema (i.e. https instead of http).
-            if self.URL.split(':')[0] != Response.url.split(':')[0]:
+            if self.URL.split(':')[0] != response.url.split(':')[0]:
                 pass
-            self.URL = Response.url
+            self.URL = response.url
         else:
-            self.Status = str(Response.code) + " " + Response.msg
-        self.RawRequest = Request
-        self.Found = Found
-        self.ResponseHeaders = Response.headers
-        self.ResponseContents = Response.read()
+            self.Status = str(response.code) + " " + response.msg
+        self.RawRequest = request
+        self.Found = found
+        self.ResponseHeaders = response.headers
+        self.ResponseContents = response.read()
         self.EndRequest()
 
     def SetTransactionFromDB(self,
@@ -145,18 +145,18 @@ class HTTP_Transaction(object):
         # To prevent python from going crazy when a key is missing.
         return (self.GrepOutput.get(regex_name, None))
 
-    def SetError(self, ErrorMessage):
+    def SetError(self, error_message):
         # Only called for unknown errors, 404 and other HTTP stuff handled on
         # self.SetResponse.
-        self.ResponseContents = ErrorMessage
+        self.ResponseContents = error_message
         self.EndRequest()
 
     def GetID(self):
         return (self.ID)
 
-    def SetID(self, ID, HTMLLinkToID):
-        self.ID = ID
-        self.HTMLLinkToID = HTMLLinkToID
+    def SetID(self, id, html_link_to_id):
+        self.ID = id
+        self.HTMLLinkToID = html_link_to_id
         # Only for new transactions, not when retrieved from DB, etc.
         if self.New:
             log = logging.getLogger('general')
@@ -170,13 +170,13 @@ class HTTP_Transaction(object):
                     self.URL])
                 )
 
-    def GetHTMLLink(self, LinkName=''):
-        if '' == LinkName:
-            LinkName = "Transaction " + self.ID
-        return self.HTMLLinkToID.replace('@@@PLACE_HOLDER@@@', LinkName)
+    def GetHTMLLink(self, link_name=''):
+        if '' == link_name:
+            link_name = "Transaction " + self.ID
+        return self.HTMLLinkToID.replace('@@@PLACE_HOLDER@@@', link_name)
 
-    def GetHTMLLinkWithTime(self, LinkName=''):
-        return self.GetHTMLLink(LinkName) + " (" + self.TimeHuman + ")"
+    def GetHTMLLinkWithTime(self, link_name=''):
+        return self.GetHTMLLink(link_name) + " (" + self.TimeHuman + ")"
 
     def GetRawEscaped(self):
         return "<pre>" + cgi.escape(self.GetRaw()) +"</pre>"
@@ -202,7 +202,7 @@ class HTTP_Transaction(object):
     def GetResponseHeaders(self):
         return self.ResponseHeaders
 
-    def GetRawResponse(self, WithStatus=True):
+    def GetRawResponse(self, with_status=True):
         try:
             return self.GetStatus() + "\r\n" + str(self.ResponseHeaders) + \
                    "\n\n" + self.ResponseContents
@@ -210,7 +210,7 @@ class HTTP_Transaction(object):
             return self.GetStatus() + "\r\n" + str(self.ResponseHeaders) + \
                    "\n\n" + "[Binary Content]"
 
-    def GetRawResponseHeaders(self, WithStatus=True):
+    def GetRawResponseHeaders(self, with_status=True):
         return self.GetStatus() + "\r\n" + str(self.ResponseHeaders)
 
     def GetRawResponseBody(self):
