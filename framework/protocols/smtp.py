@@ -42,96 +42,94 @@ from framework.lib.general import *
 
 
 class SMTP(object):
-	def __init__(self, Core):
-		self.Core = Core
-		self.MsgPrefix = 'OWTF SMTP Client - '
-		
-	def Print(self, Message):
-		cprint(self.MsgPrefix + Message)
-		
+    def __init__(self, Core):
+        self.Core = Core
+        self.MsgPrefix = 'OWTF SMTP Client - '
 
-	def create_connection_with_mail_server(self, Options):
-	    return smtplib.SMTP(Options['SMTP_HOST'], int(Options['SMTP_PORT']))
+    def Print(self, Message):
+        cprint(self.MsgPrefix + Message)
 
-	def Connect(self, Options):
-		MailServer = self.create_connection_with_mail_server(Options)
-		MailServer.ehlo()
-		try:
-			MailServer.starttls() # Give start TLS a shot
-		except Exception, e:
-			self.Print(str(e) + " - Assuming TLS unsupported and trying to continue..")
-		try:
-			MailServer.login(Options['SMTP_LOGIN'], Options['SMTP_PASS'])
-		except Exception, e:
-			self.Print('ERROR: ' + str(e) + " - Assuming open-relay and trying to continue..")
-		return MailServer
-	
+    def create_connection_with_mail_server(self, Options):
+        return smtplib.SMTP(Options['SMTP_HOST'], int(Options['SMTP_PORT']))
 
-	def is_file(self, target):
-	    return os.path.isfile(target)
+    def Connect(self, Options):
+        MailServer = self.create_connection_with_mail_server(Options)
+        MailServer.ehlo()
+        try:
+            MailServer.starttls() # Give start TLS a shot
+        except Exception, e:
+            self.Print(str(e) + " - Assuming TLS unsupported and trying to continue..")
+        try:
+            MailServer.login(Options['SMTP_LOGIN'], Options['SMTP_PASS'])
+        except Exception, e:
+            self.Print('ERROR: ' + str(e) + " - Assuming open-relay and trying to continue..")
+        return MailServer
 
-	def get_file_content_as_list(self, Options):
-	    return GetFileAsList(Options['EMAIL_TARGET'])
+    def is_file(self, target):
+        return os.path.isfile(target)
 
-	def BuildTargetList(self, Options): # Build a list of targets for simplification purposes
-		if self.is_file(Options['EMAIL_TARGET']):
-			TargetList = self.get_file_content_as_list(Options)
-		else:
-			TargetList = [ Options['EMAIL_TARGET'] ]
-		return TargetList
-	
-	def Send(self, Options):
-		NumErrors = 0
-		for Target in self.BuildTargetList(Options):
-			Target = Target.strip()
-			if not Target: continue # Skip blank lines!
-			self.Print("Sending email for target: " + Target)
-			try:
-				Message = self.BuildMessage(Options, Target)
-				MailServer = self.Connect(Options)
-				MailServer.sendmail(Options['SMTP_LOGIN'], Target, Message.as_string())
-				self.Print("Email relay successful!")
-			except Exception, e:
-				self.Core.Error.Add("Error delivering email: " + str(e))
-				NumErrors += 1
-		return (NumErrors == 0)
-		
-	def BuildMessage(self, Options, Target):
-		Message = MIMEMultipart.MIMEMultipart()
-		for Name, Value in Options.items():
-			if Name == 'EMAIL_BODY':
-				self.AddBody(Message, Value)
-			elif Name == 'EMAIL_ATTACHMENT':
-				self.AddAttachment(Message, Value)
-			else: # From, To, Subject, etc
-				self.SetOption(Message, Name, Value, Target)
-		return Message
-	
-	def SetOption(self, Message, Option, Value, Target):
-		if Option == 'EMAIL_FROM':
-			Message['From'] = Value
-		elif Option == 'EMAIL_TARGET':
-			Message['To'] = Target
-		elif Option == 'EMAIL_PRIORITY':
-			if Value == 'yes':
-				Message['X-Priority'] = " 1 (Highest)"
-				Message['X-MSMail-Priority'] = " High"
-		elif Option == 'EMAIL_SUBJECT':
-			Message['Subject'] = Value
-			
-	def AddBody(self, Message, Text):
-		if os.path.isfile(Text): # If a file has been specified as Body, then set Body to file contents
-			Body = self.Core.open(Text).read().strip()
-		else:
-			Body = Text
-		Message.attach(MIMEText.MIMEText(Body, Message))
-	
-	def AddAttachment(self, Message, Attachment):
-		if not Attachment:
-			return False
-		BinaryBlob = MIMEBase.MIMEBase('application', 'octet-stream')
-		BinaryBlob.set_payload(self.Core.open(Attachment, 'rb').read())
-		Encoders.encode_base64(BinaryBlob) # base64 encode the Binary Blob
-		BinaryBlob.add_header('Content-Disposition','attachment; filename="%s"' % os.path.basename(Attachment)) # Binary Blob headers
-		Message.attach(BinaryBlob)
-		return True
+    def get_file_content_as_list(self, Options):
+        return GetFileAsList(Options['EMAIL_TARGET'])
+
+    def BuildTargetList(self, Options): # Build a list of targets for simplification purposes
+        if self.is_file(Options['EMAIL_TARGET']):
+            TargetList = self.get_file_content_as_list(Options)
+        else:
+            TargetList = [ Options['EMAIL_TARGET'] ]
+        return TargetList
+
+    def Send(self, Options):
+        NumErrors = 0
+        for Target in self.BuildTargetList(Options):
+            Target = Target.strip()
+            if not Target: continue # Skip blank lines!
+            self.Print("Sending email for target: " + Target)
+            try:
+                Message = self.BuildMessage(Options, Target)
+                MailServer = self.Connect(Options)
+                MailServer.sendmail(Options['SMTP_LOGIN'], Target, Message.as_string())
+                self.Print("Email relay successful!")
+            except Exception, e:
+                self.Core.Error.Add("Error delivering email: " + str(e))
+                NumErrors += 1
+        return (NumErrors == 0)
+
+    def BuildMessage(self, Options, Target):
+        Message = MIMEMultipart.MIMEMultipart()
+        for Name, Value in Options.items():
+            if Name == 'EMAIL_BODY':
+                self.AddBody(Message, Value)
+            elif Name == 'EMAIL_ATTACHMENT':
+                self.AddAttachment(Message, Value)
+            else: # From, To, Subject, etc
+                self.SetOption(Message, Name, Value, Target)
+        return Message
+
+    def SetOption(self, Message, Option, Value, Target):
+        if Option == 'EMAIL_FROM':
+            Message['From'] = Value
+        elif Option == 'EMAIL_TARGET':
+            Message['To'] = Target
+        elif Option == 'EMAIL_PRIORITY':
+            if Value == 'yes':
+                Message['X-Priority'] = " 1 (Highest)"
+                Message['X-MSMail-Priority'] = " High"
+        elif Option == 'EMAIL_SUBJECT':
+            Message['Subject'] = Value
+
+    def AddBody(self, Message, Text):
+        if os.path.isfile(Text): # If a file has been specified as Body, then set Body to file contents
+            Body = self.Core.open(Text).read().strip()
+        else:
+            Body = Text
+        Message.attach(MIMEText.MIMEText(Body, Message))
+
+    def AddAttachment(self, Message, Attachment):
+        if not Attachment:
+            return False
+        BinaryBlob = MIMEBase.MIMEBase('application', 'octet-stream')
+        BinaryBlob.set_payload(self.Core.open(Attachment, 'rb').read())
+        Encoders.encode_base64(BinaryBlob) # base64 encode the Binary Blob
+        BinaryBlob.add_header('Content-Disposition','attachment; filename="%s"' % os.path.basename(Attachment)) # Binary Blob headers
+        Message.attach(BinaryBlob)
+        return True
