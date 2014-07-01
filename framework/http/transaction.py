@@ -32,12 +32,15 @@ simplify code both in the framework and the plugins.
 
 """
 
+import cgi
+import logging
+
+from httplib import responses as response_messages
+
 from framework import timer
 from framework.http.cookies import cookie_factory
 from framework.lib.general import *
-from httplib import responses as response_messages
-import cgi
-import logging
+
 
 class HTTP_Transaction(object):
     def __init__(self, Timer):
