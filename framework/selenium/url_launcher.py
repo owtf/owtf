@@ -33,12 +33,10 @@ functionality.
 """
 
 from framework.lib.general import *
-#from pyvirtualdisplay import Display
-#from selenium import webdriver
 
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
-import unittest#, time, re
+import unittest
 
 
 class URLLauncher(unittest.TestCase):
@@ -53,10 +51,6 @@ class URLLauncher(unittest.TestCase):
         self.TestURLs()
 
     def SetUp(self):
-        #self.Display = Display(visible=0, size=(800, 600))
-        #self.Display.start()
-        #self.Driver = webdriver.Firefox()
-        #self.Driver.implicitly_wait(30)
         self.verificationErrors = []
 
     def TestURLs(self):
