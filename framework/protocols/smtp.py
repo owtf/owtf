@@ -32,11 +32,16 @@ This is the OWTF SMTP handler, to simplify sending emails.
 
 """
 
-import smtplib, base64, os
+import os
+import base64
+import smtplib
+
 from email import MIMEMultipart, MIMEBase, MIMEText, Encoders
+
 from framework.lib.general import *
 
-class SMTP:
+
+class SMTP(object):
 	def __init__(self, Core):
 		self.Core = Core
 		self.MsgPrefix = 'OWTF SMTP Client - '
