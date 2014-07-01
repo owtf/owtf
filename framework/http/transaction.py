@@ -130,10 +130,10 @@ class HTTP_Transaction(object):
         self.ResponseHeaders = response_headers
         self.ResponseContents = response_body
         self.GrepOutput = grep_output
-        cookies_list = []
-        for header in self.ResponseHeaders.split('\n'):
-            if header.split(':',1)[0].strip() == "Set-Cookie":
-                cookies_list.append(header.split(':',1)[-1].strip())
+        cookies_list = [
+            header.split(':', 1)[-1].strip()
+            for header in self.ResponseHeaders.split('\n')
+            if header.split(':',1)[0].strip() == "Set-Cookie"]
         self.CookieString = ','.join(cookies_list)
 
     def GetGrepOutput(self):
@@ -170,7 +170,7 @@ class HTTP_Transaction(object):
                     self.URL])
                 )
 
-    def GetHTMLLink(self, LinkName = ''):
+    def GetHTMLLink(self, LinkName=''):
         if '' == LinkName:
             LinkName = "Transaction " + self.ID
         return self.HTMLLinkToID.replace('@@@PLACE_HOLDER@@@', LinkName)
@@ -233,10 +233,10 @@ class HTTP_Transaction(object):
         self.TimeHuman = self.Timer.GetTimeAsStr(self.Time)
         self.Found = (self.Status == "200 OK")
         # Cookie string for GetCookies method
-        cookies_list = []
-        for name, value in response.headers.iteritems():
-            if name == "Set-Cookie":
-                cookies_list.append(value.strip())
+        cookies_list = [
+            value.strip()
+            for name, value in response.headers.iteritems()
+            if name == "Set-Cookie"]
         self.CookieString = ','.join(cookies_list)
         self.New = True
         self.ID = ''
