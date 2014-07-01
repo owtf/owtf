@@ -58,11 +58,15 @@ class SMTP(object):
         try:
             MailServer.starttls() # Give start TLS a shot
         except Exception, e:
-            self.Print(str(e) + " - Assuming TLS unsupported and trying to continue..")
+            self.Print(
+                str(e) +
+                " - Assuming TLS unsupported and trying to continue..")
         try:
             MailServer.login(Options['SMTP_LOGIN'], Options['SMTP_PASS'])
         except Exception, e:
-            self.Print('ERROR: ' + str(e) + " - Assuming open-relay and trying to continue..")
+            self.Print(
+                'ERROR: ' + str(e) +
+                " - Assuming open-relay and trying to continue..")
         return MailServer
 
     def is_file(self, target):
@@ -71,7 +75,8 @@ class SMTP(object):
     def get_file_content_as_list(self, Options):
         return GetFileAsList(Options['EMAIL_TARGET'])
 
-    def BuildTargetList(self, Options): # Build a list of targets for simplification purposes
+    def BuildTargetList(self, Options):
+        """Build a list of targets for simplification purposes."""
         if self.is_file(Options['EMAIL_TARGET']):
             TargetList = self.get_file_content_as_list(Options)
         else:
@@ -82,12 +87,16 @@ class SMTP(object):
         NumErrors = 0
         for Target in self.BuildTargetList(Options):
             Target = Target.strip()
-            if not Target: continue # Skip blank lines!
+            if not Target:
+                continue  # Skip blank lines!
             self.Print("Sending email for target: " + Target)
             try:
                 Message = self.BuildMessage(Options, Target)
                 MailServer = self.Connect(Options)
-                MailServer.sendmail(Options['SMTP_LOGIN'], Target, Message.as_string())
+                MailServer.sendmail(
+                    Options['SMTP_LOGIN'],
+                    Target,
+                    Message.as_string())
                 self.Print("Email relay successful!")
             except Exception, e:
                 self.Core.Error.Add("Error delivering email: " + str(e))
@@ -101,7 +110,7 @@ class SMTP(object):
                 self.AddBody(Message, Value)
             elif Name == 'EMAIL_ATTACHMENT':
                 self.AddAttachment(Message, Value)
-            else: # From, To, Subject, etc
+            else:  # From, To, Subject, etc.
                 self.SetOption(Message, Name, Value, Target)
         return Message
 
@@ -118,7 +127,8 @@ class SMTP(object):
             Message['Subject'] = Value
 
     def AddBody(self, Message, Text):
-        if os.path.isfile(Text): # If a file has been specified as Body, then set Body to file contents
+        # If a file has been specified as Body, then set Body to file contents.
+        if os.path.isfile(Text):
             Body = self.Core.open(Text).read().strip()
         else:
             Body = Text
@@ -129,7 +139,10 @@ class SMTP(object):
             return False
         BinaryBlob = MIMEBase.MIMEBase('application', 'octet-stream')
         BinaryBlob.set_payload(self.Core.open(Attachment, 'rb').read())
-        Encoders.encode_base64(BinaryBlob) # base64 encode the Binary Blob
-        BinaryBlob.add_header('Content-Disposition','attachment; filename="%s"' % os.path.basename(Attachment)) # Binary Blob headers
+        Encoders.encode_base64(BinaryBlob)  # base64 encode the Binary Blob.
+        # Binary Blob headers.
+        BinaryBlob.add_header(
+            'Content-Disposition',
+            'attachment; filename="%s"' % os.path.basename(Attachment))
         Message.attach(BinaryBlob)
         return True
