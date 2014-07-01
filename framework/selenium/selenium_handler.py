@@ -36,8 +36,8 @@ from framework.lib.general import *
 
 
 class Selenium(object):
-    def __init__(self, Core):
-        self.Core = Core
+    def __init__(self, core):
+        self.Core = core
         self.Init = False
 
     def SetDisplay(self):
@@ -53,13 +53,16 @@ class Selenium(object):
         self.Driver.implicitly_wait(30)
 
     def InitSelenium(self):
-        if not self.Init: # Perform this expensive operation only once
+        if not self.Init:  # Perform this expensive operation only once.
             self.Init = True
             cprint("Initialising Selenium please wait ..")
             self.SetDisplay()
             self.SetDriver()
 
-    def CreateURLLauncher(self, Args):
+    def CreateURLLauncher(self, args):
         self.InitSelenium()
         from framework.selenium import url_launcher
-        return url_launcher.URLLauncher(self, Args['BASE_URL'], Args['INPUT_FILE'])
+        return url_launcher.URLLauncher(
+            self,
+            args['BASE_URL'],
+            args['INPUT_FILE'])
