@@ -42,39 +42,38 @@ import unittest#, time, re
 
 
 class URLLauncher(unittest.TestCase):
-	def __init__(self, Selenium, BaseURL, VectorFile):
-		self.Selenium = Selenium
-		self.URLList = []
-		for Vector in GetFileAsList(VectorFile):
-			self.URLList.append(BaseURL + Vector)
-	
-	def Run(self):
-		self.SetUp()
-    		self.TestURLs()
+    def __init__(self, Selenium, BaseURL, VectorFile):
+        self.Selenium = Selenium
+        self.URLList = []
+        for Vector in GetFileAsList(VectorFile):
+            self.URLList.append(BaseURL + Vector)
 
-	def SetUp(self):
-		#self.Display = Display(visible=0, size=(800, 600))
-		#self.Display.start()
-		#self.Driver = webdriver.Firefox()
-		#self.Driver.implicitly_wait(30)
-		self.verificationErrors = []
+    def Run(self):
+        self.SetUp()
+        self.TestURLs()
 
-	def TestURLs(self):
-		for URL in self.URLList:
-			cprint("Launching URL: "+URL)
-			self.Selenium.Driver.get(URL)
+    def SetUp(self):
+        #self.Display = Display(visible=0, size=(800, 600))
+        #self.Display.start()
+        #self.Driver = webdriver.Firefox()
+        #self.Driver.implicitly_wait(30)
+        self.verificationErrors = []
 
-	def is_element_present(self, how, what):
-		try: self.Selenium.Driver.find_element(by=how, value=what)
-		except NoSuchElementException, e: return False
-		return True
+    def TestURLs(self):
+        for URL in self.URLList:
+            cprint("Launching URL: "+URL)
+            self.Selenium.Driver.get(URL)
 
-	def is_element_present(self, how, what):
-		try: self.Selenium.Driver.find_element(by=how, value=what)
-		except NoSuchElementException, e: return False
-		return True
+    def is_element_present(self, how, what):
+        try: self.Selenium.Driver.find_element(by=how, value=what)
+        except NoSuchElementException, e: return False
+        return True
 
-	def tearDown(self):
-		self.Selenium.Driver.quit()
-		self.assertEqual([], self.verificationErrors)
+    def is_element_present(self, how, what):
+        try: self.Selenium.Driver.find_element(by=how, value=what)
+        except NoSuchElementException, e: return False
+        return True
 
+    def tearDown(self):
+        self.Selenium.Driver.quit()
+        self.assertEqual([], self.verificationErrors)
