@@ -36,30 +36,30 @@ from framework.lib.general import *
 
 
 class Selenium(object):
-	def __init__(self, Core):
-		self.Core = Core
-		self.Init = False
+    def __init__(self, Core):
+        self.Core = Core
+        self.Init = False
 
-	def SetDisplay(self):
-		cprint("Setting Selenium's display ..")
-		from pyvirtualdisplay import Display
-		self.Display = Display(visible=0, size=(800, 600))
-		self.Display.start()
+    def SetDisplay(self):
+        cprint("Setting Selenium's display ..")
+        from pyvirtualdisplay import Display
+        self.Display = Display(visible=0, size=(800, 600))
+        self.Display.start()
 
-	def SetDriver(self):
-		cprint("Setting Selenium's driver ..")
-		from selenium import webdriver
-		self.Driver = webdriver.Firefox()
-		self.Driver.implicitly_wait(30)
+    def SetDriver(self):
+        cprint("Setting Selenium's driver ..")
+        from selenium import webdriver
+        self.Driver = webdriver.Firefox()
+        self.Driver.implicitly_wait(30)
 
-	def InitSelenium(self):
-		if not self.Init: # Perform this expensive operation only once
-			self.Init = True
-			cprint("Initialising Selenium please wait ..")
-			self.SetDisplay()
-			self.SetDriver()
+    def InitSelenium(self):
+        if not self.Init: # Perform this expensive operation only once
+            self.Init = True
+            cprint("Initialising Selenium please wait ..")
+            self.SetDisplay()
+            self.SetDriver()
 
-	def CreateURLLauncher(self, Args):
-		self.InitSelenium()
-		from framework.selenium import url_launcher
-		return url_launcher.URLLauncher(self, Args['BASE_URL'], Args['INPUT_FILE'])
+    def CreateURLLauncher(self, Args):
+        self.InitSelenium()
+        from framework.selenium import url_launcher
+        return url_launcher.URLLauncher(self, Args['BASE_URL'], Args['INPUT_FILE'])
