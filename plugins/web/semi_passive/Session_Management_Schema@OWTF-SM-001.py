@@ -54,10 +54,4 @@ def run(Core, PluginInfo):
                         AllCookieValues = {}
                         for i in range(0,2): # Get more cookies to perform analysis
                                 Transaction = Core.Requester.GetTransaction(False, URL)
-                                #Cookies = Transaction.GetResponseHeaders().getheader('Set-Cookie').split(',')
-                                for Cookie in Transaction.GetCookies():
-                                        CookieValues[Cookie.Name].append(Transaction.ID, Cookie.Value)
-                                        Core.log("Cookie="+str(Cookie))
-                                        Result += str(Cookie)
-                                        Core.log(dir(Cookie))
         return Result

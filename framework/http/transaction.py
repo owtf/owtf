@@ -38,7 +38,6 @@ import logging
 from httplib import responses as response_messages
 
 from framework import timer
-from framework.http.cookies import cookie_factory
 from framework.lib.general import *
 
 
@@ -189,15 +188,6 @@ class HTTP_Transaction(object):
 
     def GetStatus(self):
         return self.Status
-
-    def GetCookies(self):
-        """Returns a list of easy to use Cookie objects.
-
-        It avoids parsing string each time, etc
-
-        """
-        return cookie_factory.CookieFactory().CreateCookiesFromStr(
-            self.CookieString)
 
     def GetResponseHeaders(self):
         return self.ResponseHeaders
