@@ -32,19 +32,20 @@ functionality.
 
 """
 
-from framework.lib.general import *
+import unittest
 
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
-import unittest
+
+from framework.lib.general import *
 
 
 class URLLauncher(unittest.TestCase):
-    def __init__(self, Selenium, BaseURL, VectorFile):
-        self.Selenium = Selenium
+    def __init__(self, selenium, base_url, vector_file):
+        self.Selenium = selenium
         self.URLList = []
-        for Vector in GetFileAsList(VectorFile):
-            self.URLList.append(BaseURL + Vector)
+        for vector in GetFileAsList(vector_file):
+            self.URLList.append(base_url + vector)
 
     def Run(self):
         self.SetUp()
@@ -54,18 +55,22 @@ class URLLauncher(unittest.TestCase):
         self.verificationErrors = []
 
     def TestURLs(self):
-        for URL in self.URLList:
-            cprint("Launching URL: "+URL)
-            self.Selenium.Driver.get(URL)
+        for url in self.URLList:
+            cprint("Launching URL: " + url)
+            self.Selenium.Driver.get(url)
 
     def is_element_present(self, how, what):
-        try: self.Selenium.Driver.find_element(by=how, value=what)
-        except NoSuchElementException, e: return False
+        try:
+            self.Selenium.Driver.find_element(by=how, value=what)
+        except NoSuchElementException:
+            return False
         return True
 
     def is_element_present(self, how, what):
-        try: self.Selenium.Driver.find_element(by=how, value=what)
-        except NoSuchElementException, e: return False
+        try:
+            self.Selenium.Driver.find_element(by=how, value=what)
+        except NoSuchElementException:
+            return False
         return True
 
     def tearDown(self):
