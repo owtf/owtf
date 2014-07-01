@@ -65,7 +65,6 @@ class SMB(pexpect_shell.PExpectShell):
         self.Open(options, plugin_info)
         cprint("Ensuring Mount Point " + options['SMB_MOUNT_POINT'] + " exists..")
         self.check_mount_point_existence(options)
-        #self.Core.CreateMissingDirs(options['SMB_MOUNT_POINT'])
         mount_cmd = "smbmount //" + options['SMB_HOST'] + "/" + options['SMB_SHARE'] + " " + options['SMB_MOUNT_POINT']
         if options['SMB_USER']: # Pass user if specified
             mount_cmd += " -o user=" + options['SMB_USER']
@@ -93,19 +92,13 @@ class SMB(pexpect_shell.PExpectShell):
     def UnMount(self, plugin_info):
         if self.IsMounted():
             self.Core.Shell.shell_exec_monitor("umount " + self.Options['SMB_MOUNT_POINT'])
-            #self.Run("umount " + self.Options['SMB_MOUNT_POINT'])
-            #self.Expect("#")
             self.SetMounted(False)
             self.Close(plugin_info)
 
     def Upload(self, file_path, mount_point):
         cprint("Copying '" + file_path + "' to '" + mount_point + "'")
         self.Core.Shell.shell_exec_monitor("cp -r " + file_path + " " + mount_point)
-        #self.Run("cp -r " + file_path + " " + mount_point)
-        #self.Expect("#")
 
     def Download(self, remote_file_path, target_dir):
         cprint("Copying '" + remote_file_path + "' to '" + target_dir + "'")
         self.Core.Shell.shell_exec_monitor("cp -r " + remote_file_path + " " + target_dir)
-        #self.Run("cp -r " + remote_file_path + " " + target_dir)
-        #self.Expect("#")
