@@ -96,14 +96,12 @@ class HTTP_Transaction(object):
             # Redirect differs in schema (i.e. https instead of http).
             if self.URL.split(':')[0] != Response.url.split(':')[0]:
                 pass
-                #self.IsInScope = False --> Breaks links, to be fixed in some next release
             self.URL = Response.url
         else:
             self.Status = str(Response.code) + " " + Response.msg
         self.RawRequest = Request
         self.Found = Found
         self.ResponseHeaders = Response.headers
-        #p(self.ResponseHeaders)
         self.ResponseContents = Response.read()
         self.EndRequest()
 
@@ -129,7 +127,6 @@ class HTTP_Transaction(object):
         self.TimeHuman = time_human
         self.Data = request_data
         self.RawRequest = raw_request
-        #self.ResponseHeaders = ResponseHeaders.split("\n")
         self.ResponseHeaders = response_headers
         self.ResponseContents = response_body
         self.GrepOutput = grep_output
