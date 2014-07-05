@@ -43,7 +43,7 @@ from collections import defaultdict
 from framework.lib.exceptions import PluginAbortException, \
                                      DBIntegrityException, \
                                      UnresolvableTargetException
-from framework.config import plugin, health_check
+from framework.config import health_check
 from framework.lib.general import cprint
 from framework.db import models, target_manager
 
