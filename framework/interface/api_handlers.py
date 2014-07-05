@@ -2,6 +2,7 @@ import tornado.web
 
 from framework.lib.exceptions import DBIntegrityException, \
                                      InvalidTargetReference, \
+                                     UnresolvableTargetException, \
                                      InvalidTransactionReference, \
                                      InvalidParameterType, \
                                      InvalidWorkerReference, \
@@ -64,6 +65,9 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
             self.application.Core.DB.Target.AddTarget(str(self.get_argument("TARGET_URL")))
             self.set_status(201)  # Stands for "201 Created"
         except DBIntegrityException as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(409)
+        except UnresolvableTargetException as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(409)
 

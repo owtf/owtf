@@ -41,7 +41,8 @@ from urlparse import urlparse
 from collections import defaultdict
 
 from framework.lib.exceptions import PluginAbortException, \
-                                     DBIntegrityException
+                                     DBIntegrityException, \
+                                     UnresolvableTargetException
 from framework.config import plugin, health_check
 from framework.lib.general import cprint
 from framework.db import models, target_manager
@@ -121,6 +122,8 @@ class Config(object):
                 self.Core.DB.Target.AddTarget(target)
             except DBIntegrityException:
                 cprint(target + " already exists in DB")
+            except UnresolvableTargetException as e:
+                cprint(e.parameter)
 
     def PrepareURLScope(self, scope, group):
         """Convert all targets to URLs."""
@@ -311,8 +314,8 @@ class Config(object):
             try:
                 ip = socket.gethostbyname(hostname)
             except socket.gaierror:
-                self.Core.Error.FrameworkAbort(
-                    "Cannot resolve Hostname: " + hostname)
+                raise UnresolvableTargetException(
+                    "Unable to resolve : " + hostname);
 
         ipchunks = ip.strip().split("\n")
         alternative_IPs = []
@@ -342,8 +345,9 @@ class Config(object):
             try:
                 ip = socket.gethostbyname(hostname)
             except socket.gaierror:
-                self.Core.Error.FrameworkAbort(
-                    "Cannot resolve Hostname: " + hostname)
+                raise UnresolvableTargetException(
+                    "Unable to resolve : " + hostname);
+
         ipchunks = ip.strip().split("\n")
         return ipchunks
 

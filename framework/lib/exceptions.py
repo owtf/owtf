@@ -49,6 +49,8 @@ class PluginAbortException(FrameworkException):
 class UnreachableTargetException(FrameworkException):
     pass
 
+class UnresolvableTargetException(FrameworkException):
+    pass
 
 class DBIntegrityException(FrameworkException):
     pass
