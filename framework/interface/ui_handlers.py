@@ -26,7 +26,8 @@ class TransactionLog(custom_handlers.UIRequestHandler):
             self.render("transaction.html",
                         transaction_api_url=self.reverse_url('transactions_api_url', target_id, transaction_id),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
-                        transaction_replay_url=self.reverse_url('transaction_replay_url',target_id, transaction_id)
+                        transaction_replay_url=self.reverse_url('transaction_replay_url',target_id, transaction_id),
+                        forward_zap_url=self.reverse_url('forward_zap_url',target_id, transaction_id)
                         )
         else:
             self.render("transaction_log.html",

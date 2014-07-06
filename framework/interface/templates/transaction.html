@@ -9,9 +9,9 @@
         <!-- <button class="btn btn-danger" href="#" onclick="deleteTransaction();"><i class="fa fa-times"></i> Delete Transaction</button> Not of Use-->
         </div>
         <div class="pull-left">
-         <button class="btn btn-warning" href="#" ><i class="fa fa-filter"></i> Forward </button>
+         <button class="btn btn-warning" onClick="ForwardToZAP()" ><i class="fa fa-filter"></i> Forward </button>
         
-         <button class="btn btn-default" id="replayBtn" onclick="replayRequest()" ><i class="fa fa-refresh"></i> Replay </button>
+         <button class="btn btn-default" id="replayBtn()" onclick="replayRequest()" ><i class="fa fa-refresh"></i> Replay </button>
 
          <button class="btn btn-danger" onclick="createZestScript()"> Create a Zest Script ! </button>
      </div>
@@ -65,8 +65,22 @@ var mySpace = {
                     transaction_api_url:"{{ transaction_api_url }}",
                     transaction_log_url:"{{ transaction_log_url }}",
                     transaction_replay_url:"{{ transaction_replay_url }}",
-                 
+                    forward_zap_url:"{{ forward_zap_url }}",
               };
+
+function ForwardToZAP(){
+
+    $.ajax({
+            url:mySpace.forward_zap_url,
+            type:'GET',
+            error:function(xhr,textStatus, serverResponse){
+                alert("Server replied: "+serverResponse);
+
+            }
+    });
+
+}
+
 
 function navigateToTransactionLog(){
     window.location.href = mySpace.transaction_log_url;

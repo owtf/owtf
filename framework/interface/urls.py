@@ -9,6 +9,7 @@ def get_handlers(Core):
     plugin_code_re = '([0-9A-Z\-]+)?'
 
     URLS = [
+                tornado.web.url(r'/api/targets/([0-9]+)/transactions/([0-9]+)/forward?$', api_handlers.ForwardToZAPHandler, name='forward_zap_url'),
                 tornado.web.url(r'/api/targets/([0-9]+)/transactions/([0-9]+)/replay?$', api_handlers.ReplayRequestHandler, name='transaction_replay_api_url'),
                 tornado.web.url(r'/api/targets/([0-9]+)/transactions/zest/?$', api_handlers.ZestScriptHandler, name='zest_log_url'),
                 tornado.web.url(r'/api/targets/([0-9]+)/transactions/zconsole/?$', api_handlers.ZestScriptHandler, name='zest_console_api_url'),

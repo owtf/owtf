@@ -39,7 +39,7 @@ from framework.lib.general import *
 from framework.plugin import plugin_handler, plugin_helper, plugin_params, process_manager
 from framework.protocols import smtp, smb
 from framework.interface import reporter, server
-from framework import zest
+from framework import zest, zap
 #from framework.report.reporting_process import reporting_process
 from framework.selenium import selenium_handler
 from framework.shell import blocking_shell, interactive_shell
@@ -94,6 +94,7 @@ class Core:
         self.showOutput = True
         self.TOR_process = None
         self.zest = zest.Zest(self)
+        self.zap_api_handler = zap.ZAP_API(self)
 
     def CreateTempStorageDirs(self, OwtfPid):
         temp_storage = os.path.join("/tmp", "owtf", str(OwtfPid))

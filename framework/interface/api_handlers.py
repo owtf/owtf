@@ -219,6 +219,20 @@ class HTTPRequest(BaseHTTPRequestHandler):
 """
 
 
+class ForwardToZAPHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self, target_id=None, transaction_id=None):
+        try:
+            if not transaction_id or not target_id:
+                raise tornado.web.HTTPError(400)
+            else:
+                self.application.Core.zap_api_handler.ForwardRequest(target_id, transaction_id)
+        except general.InvalidTargetReference as e:
+                cprint(e.parameter)
+                raise tornado.web.HTTPError(400)
+
+
 class TransactionDataHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'DELETE']
 
