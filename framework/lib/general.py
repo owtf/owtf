@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
+
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
-Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org                                                        
+Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
     * Redistributions of source code must retain the above copyright
@@ -16,15 +17,16 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-This library contains helper functions and exceptions for the framework
+Declare the helper functions for the framework.
+
 """
 
 from collections import defaultdict
@@ -39,39 +41,21 @@ import sys
 import threading
 import time,base64
 
-class FrameworkException(Exception):
-    def __init__(self, value):
-        self.parameter = value
 
-    def __str__(self):
-        return repr(self.parameter)
+class LogQueue(object):
+    """Proxy object for logging a multiprocessing queue to a StreamHandler.
 
-class FrameworkAbortException(FrameworkException):
-    pass
+    Check the documentation:
+        https://docs.python.org/2/library/logging.handlers.html#streamhandler
 
-class PluginAbortException(FrameworkException):
-    pass
+    """
+    def __init__(self, q):
+        self.q = q
+    def write(self, t):
+        self.q.put(t)
+    def flush(self):
+        pass
 
-class UnreachableTargetException(FrameworkException):
-    pass
-
-class DBIntegrityException(FrameworkException):
-    pass
-
-class InvalidTargetReference(FrameworkException):
-    pass
-
-class InvalidTransactionReference(FrameworkException):
-    pass
-
-class InvalidParameterType(FrameworkException):
-    pass
-
-class InvalidWorkerReference(FrameworkException):
-    pass
-
-class InvalidConfigurationReference(FrameworkException):
-    pass
 
 def ConfigGet(Key): # Kludge wrapper function
         global Config # kludge global to avoid having to pass the config around to other components that need it (temporary until I figure out a better way!)
@@ -111,12 +95,8 @@ def MultipleReplace(Text, ReplaceDict):
 def WipeBadCharsForFilename(Filename):
         return MultipleReplace(Filename, { '(':'', ' ':'_', ')':'', '/':'_' })
 
-def RemoveListBlanks(List):
-        NewList = []
-        for Item in List:
-                if Item:
-                        NewList.append(Item)
-        return NewList
+def RemoveListBlanks(src):
+    return [el for el in src if el]
 
 def List2DictKeys(List):
         Dictionary = defaultdict(list)
@@ -148,20 +128,8 @@ def DeriveHTTPMethod(Method, Data): # Derives the HTTP method from Data, etc
                         DMethod = 'POST'
         return DMethod
 
-def GetDictValueOrBlank(Dict, Key): # Return the value if the key is present or blank otherwise
-        if Key in Dict:
-                return Dict[Key]
-        return ''
-
 def CallMethod(Object, Method, ArgList): # Calls Object.Method(ArgList) dynamically, this helps avoiding code repetition via wrapper convenience functions
         return getattr(Object, Method)(*ArgList)
-
-def GetUnique(List):
-        NewList = []
-        for Item in List:
-                if Item not in NewList:
-                        NewList.append(Item)
-        return NewList
 
 def PathsExist(PathList):
         ValidPaths = True

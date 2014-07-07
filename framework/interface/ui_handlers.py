@@ -1,20 +1,23 @@
-from framework.lib.general import cprint
-from framework.lib import general
-from framework.interface import custom_handlers
-import tornado.web
-import collections
 import os
+import collections
+import tornado.web
+
+from framework.lib.exceptions import InvalidTargetReference
+from framework.lib.general import cprint
+from framework.interface import custom_handlers
+
 
 class Redirect(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     def get(self):
         self.redirect(self.reverse_url('home_ui_url'))
 
+
 class Home(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     def get(self):
-        self.render('home.html') 
-        
+        self.render('home.html')
+
 
 class TransactionLog(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
@@ -71,7 +74,7 @@ class UrlLog(custom_handlers.UIRequestHandler):
     @tornado.web.asynchronous
     def get(self, target_id=None):
         if not target_id:
-            raise tornado.web.HTTPError(405)
+            raise tornado.web.HTTPError(405) 
         self.render("url_log.html",
                     urls_api_url=self.reverse_url('urls_api_url', target_id),
                     transaction_log_url=self.reverse_url('transaction_log_url', target_id, None)
@@ -127,41 +130,41 @@ class PlugnHack(custom_handlers.UIRequestHandler):
         |  CA Cert        |   /ui/plugnhack/ca.crt        |
         ---------------------------------------------------
         """
-        root_url = self.request.protocol + "://" + self.request.host
-        command_url = os.path.join(root_url,"")
-        pnh_url = root_url + "/ui/plugnhack"
+        root_url = self.request.protocol + "://" + self.request.host # URL of UI SERVER, http://127.0.0.1:8009
+        command_url = os.path.join(root_url,"") # URL for use in service.json, http://127.0.0.1:8009/
+        pnh_url = os.path.join(root_url,"ui/plugnhack") # URL for use in manifest.json, http://127.0.0.1:8009/ui/plugnhack
         # Obtain path to PlugnHack template files
         # PLUGNHACK_TEMPLATES_DIR is defined in /framework/config/framework_config.cfg
         pnh_folder = os.path.join(self.application.Core.Config.FrameworkConfigGet('PLUGNHACK_TEMPLATES_DIR'),"")
-        self.application.ca_cert = os.path.expanduser(self.application.Core.DB.Config.Get('CA_CERT'))
+        self.application.ca_cert = os.path.expanduser(self.application.Core.DB.Config.Get('CA_CERT')) # CA certificate
 
-        
-        if extension == "":
+        if extension == "": # In this case plugnhack.html is rendered and {{ manifest_url }} is replaced with 'manifest_url' value
             manifest_url = pnh_url + "/manifest.json"
             self.render(pnh_folder + "plugnhack.html",
                         manifest_url=manifest_url,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
-        elif extension == "manifest.json":
+        elif extension == "manifest.json": # In this case {{ pnh_url }} in manifest.json are replaced with 'pnh_url' value
             self.render(pnh_folder + "manifest.json",
                         pnh_url=pnh_url,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
-        elif extension == "service.json":
+        elif extension == "service.json": # In this case {{ root_url }} in service.json are replaced with 'root_url' value
             self.render(pnh_folder + "service.json", 
                         root_url=command_url,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
-        elif extension == "proxy.pac":
+        elif extension == "proxy.pac": # In this case {{ proxy_details }} in proxy.pac is replaced with 'proxy_details' value
+            proxy_details = self.application.Core.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.application.Core.DB.Config.Get('INBOUND_PROXY_PORT') # OWTF proxy 127.0.0.1:8008
             self.render(pnh_folder + "proxy.pac", 
-                        server_details=self.request.host,
+                        proxy_details=proxy_details,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
         elif extension == "ca.crt":
             self.render(self.application.ca_cert,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
-
+            
 class PluginOutput(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     @tornado.web.asynchronous
@@ -188,7 +191,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id)
                         )
-        except general.InvalidTargetReference as e:
+        except InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)
 
 class WorkerManager(custom_handlers.UIRequestHandler):

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-'''
+"""
+
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -18,56 +19,64 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-HTTP_Transaction is a container of useful HTTP Transaction information to simplify code both in the framework and the plugins
-'''
-from framework import timer
-from framework.http.cookies import cookie_factory
-from framework.lib.general import *
-from httplib import responses as response_messages
+HTTP_Transaction is a container of useful HTTP Transaction information to
+simplify code both in the framework and the plugins.
+
+"""
+
 import cgi
 import logging
 import StringIO
 import gzip,zlib
 
 
+from httplib import responses as response_messages
+
+from framework import timer
+from framework.lib.general import *
+
+
 class HTTP_Transaction(object):
     def __init__(self, Timer):
         self.Timer = Timer
         self.New = False
-        self.GrepOutput = {} # If None, then get method will result in an error ;)
+        # If None, then get method will result in an error ;)
+        self.GrepOutput = {}
 
     def ScopeToStr(self):
         return str(self.IsInScope)[0]
-    
+
     def InScope(self):
         return(self.IsInScope)
 
-    def Start(self, URL, Data, Method, IsInScope):
-        self.IsInScope = IsInScope
+    def Start(self, url, data, method, is_in_scope):
+        self.IsInScope = is_in_scope
         self.StartRequest()
-        self.URL = URL
-        self.InitData(Data)
-        self.Method = DeriveHTTPMethod(Method, Data)
+        self.URL = url
+        self.InitData(data)
+        self.Method = DeriveHTTPMethod(method, data)
         self.Found = None
         self.RawRequest = ''
         self.ResponseHeaders = []
         self.Status = ''
-        self.ID = '' 
+        self.ID = ''
         self.HTMLLinkToID = ''
-        self.New = True # Flag new transaction
+        self.New = True  # Flag new transaction.
 
-    def InitData(self, Data):
-        self.Data = Data
-        if self.Data == None:
-            self.Data = '' # This simplifies other code later, no need to cast to str if None, etc
+    def InitData(self, data):
+        self.Data = data
+        if self.Data is None:
+            # This simplifies other code later, no need to cast to str if None,
+            # etc.
+            self.Data = ''
 
     def StartRequest(self):
         self.Timer.StartTimer('Request')
@@ -77,27 +86,43 @@ class HTTP_Transaction(object):
         self.Time = str(self.Timer.GetElapsedTime('Request'))
         self.TimeHuman = self.Timer.GetTimeAsStr(self.Time)
 
-    def SetTransaction(self, Found, Request, Response): # Response can be "Response" for 200 OK or "Error" for everything else, we don't care here
-        if self.URL != Response.url:
-            if Response.code not in [ 302, 301 ]: # No way, error in hook
-                self.Status = str(302)+" Found" # Mark as a redirect, dirty but more accurate than 200 :P
-                self.Status += " --Redirect--> "+str(Response.code)+" "+Response.msg 
-            if self.URL.split(':')[0] != Response.url.split(':')[0]: # Redirect differs in schema (i.e. https instead of http)
+    def SetTransaction(self, found, request, response):
+        # Response can be "Response" for 200 OK or "Error" for everything else,
+        # we don't care here.
+        if self.URL != response.url:
+            if response.code not in [302, 301]:  # No way, error in hook.
+                # Mark as a redirect, dirty but more accurate than 200 :P
+                self.Status = str(302) + " Found"
+                self.Status += " --Redirect--> " + str(response.code) + " "
+                self.Status += response.msg
+            # Redirect differs in schema (i.e. https instead of http).
+            if self.URL.split(':')[0] != response.url.split(':')[0]:
                 pass
-                #self.IsInScope = False --> Breaks links, to be fixed in some next release
-            self.URL = Response.url
+            self.URL = response.url
         else:
-            self.Status = str(Response.code)+" "+Response.msg
-        self.RawRequest = Request
-        self.Found = Found
-        self.ResponseHeaders = Response.headers
-        self.ResponseContents = Response.read()
-        self.checkIfCompressed(Response, self.ResponseContents) # a new self.Decodedcontent is added if the received response is in compressed format
+            self.Status = str(response.code)+" "+response.msg
+        self.RawRequest = request
+        self.Found = found
+        self.ResponseHeaders = response.headers
+        self.ResponseContents = response.read()
+        self.checkIfCompressed(response, self.ResponseContents) # a new self.Decodedcontent is added if the received response is in compressed format
+
         self.EndRequest()
 
-    def SetTransactionFromDB(self, id, url, method, status, time, time_human, request_data, raw_request, response_headers, response_body, grep_output):
+    def SetTransactionFromDB(self,
+                             id,
+                             url,
+                             method,
+                             status,
+                             time,
+                             time_human,
+                             request_data,
+                             raw_request,
+                             response_headers,
+                             response_body,
+                             grep_output):
         self.ID = id
-        self.New = False # Flag NOT new transaction
+        self.New = False  # Flag NOT new transaction.
         self.URL = url
         self.Method = method
         self.Status = status
@@ -106,49 +131,62 @@ class HTTP_Transaction(object):
         self.TimeHuman = time_human
         self.Data = request_data
         self.RawRequest = raw_request
-        #self.ResponseHeaders = ResponseHeaders.split("\n")
         self.ResponseHeaders = response_headers
         self.ResponseContents = response_body
         self.GrepOutput = grep_output
-        cookies_list = []
-        for header in self.ResponseHeaders.split('\n'):
-            if header.split(':',1)[0].strip() == "Set-Cookie":
-                cookies_list.append(header.split(':',1)[-1].strip())
+        cookies_list = [
+            header.split(':', 1)[-1].strip()
+            for header in self.ResponseHeaders.split('\n')
+            if header.split(':',1)[0].strip() == "Set-Cookie"]
         self.CookieString = ','.join(cookies_list)
 
     def GetGrepOutput(self):
-        return(self.GrepOutput)
+        return (self.GrepOutput)
 
-    def GetGrepOutputFor(self, regex_name): # Highly misleading name as grepping is already done when adding the transaction
-        return(self.GrepOutput.get(regex_name, None)) # To prevent python from going crazy when a key is missing
+    def GetGrepOutputFor(self, regex_name):
+        # Highly misleading name as grepping is already done when adding the
+        # transaction.
+        # To prevent python from going crazy when a key is missing.
+        return (self.GrepOutput.get(regex_name, None))
 
-    def SetError(self, ErrorMessage): # Only called for unknown errors, 404 and other HTTP stuff handled on self.SetResponse
-        self.ResponseContents = ErrorMessage
+    def SetError(self, error_message):
+        # Only called for unknown errors, 404 and other HTTP stuff handled on
+        # self.SetResponse.
+        self.ResponseContents = error_message
         self.EndRequest()
 
     def GetID(self):
-        return(self.ID)
+        return (self.ID)
 
-    def SetID(self, ID, HTMLLinkToID):
-        self.ID = ID
-        self.HTMLLinkToID = HTMLLinkToID
-        if self.New: # Only for new transactions, not when retrieved from DB, etc
+    def SetID(self, id, html_link_to_id):
+        self.ID = id
+        self.HTMLLinkToID = html_link_to_id
+        # Only for new transactions, not when retrieved from DB, etc.
+        if self.New:
             log = logging.getLogger('general')
-            log.info("New owtf HTTP Transaction: "+" - ".join([self.ID, self.TimeHuman, self.Status, self.Method, self.URL]))
+            log.info(
+                "New owtf HTTP Transaction: " +
+                " - ".join([
+                    self.ID,
+                    self.TimeHuman,
+                    self.Status,
+                    self.Method,
+                    self.URL])
+                )
 
-    def GetHTMLLink(self, LinkName = ''):
-        if '' == LinkName:
-            LinkName = "Transaction "+self.ID
-        return self.HTMLLinkToID.replace('@@@PLACE_HOLDER@@@', LinkName)
+    def GetHTMLLink(self, link_name=''):
+        if '' == link_name:
+            link_name = "Transaction " + self.ID
+        return self.HTMLLinkToID.replace('@@@PLACE_HOLDER@@@', link_name)
 
-    def GetHTMLLinkWithTime(self, LinkName = ''):
-        return self.GetHTMLLink(LinkName)+" ("+self.TimeHuman+")"
+    def GetHTMLLinkWithTime(self, link_name=''):
+        return self.GetHTMLLink(link_name) + " (" + self.TimeHuman + ")"
 
     def GetRawEscaped(self):
-        return "<pre>"+cgi.escape(self.GetRaw())+"</pre>"
+        return "<pre>" + cgi.escape(self.GetRaw()) +"</pre>"
 
     def GetRaw(self):
-        return self.GetRawRequest()+"\n\n"+self.GetRawResponse()
+        return self.GetRawRequest() + "\n\n" + self.GetRawResponse()
 
     def GetRawRequest(self):
         return self.RawRequest
@@ -156,20 +194,19 @@ class HTTP_Transaction(object):
     def GetStatus(self):
         return self.Status
 
-    def GetCookies(self): # Returns a list of easy to use Cookie objects to avoid parsing string each time, etc
-        return cookie_factory.CookieFactory().CreateCookiesFromStr(self.CookieString)
-
     def GetResponseHeaders(self):
         return self.ResponseHeaders
 
-    def GetRawResponse(self, WithStatus = True):
+    def GetRawResponse(self, with_status=True):
         try:
-            return self.GetStatus()+"\r\n"+str(self.ResponseHeaders)+"\n\n"+self.ResponseContents
+            return self.GetStatus() + "\r\n" + str(self.ResponseHeaders) + \
+                   "\n\n" + self.ResponseContents
         except UnicodeDecodeError:
-            return self.GetStatus()+"\r\n"+str(self.ResponseHeaders)+"\n\n"+"[Binary Content]"
+            return self.GetStatus() + "\r\n" + str(self.ResponseHeaders) + \
+                   "\n\n" + "[Binary Content]"
 
-    def GetRawResponseHeaders(self, WithStatus = True):
-        return self.GetStatus()+"\r\n"+str(self.ResponseHeaders)
+    def GetRawResponseHeaders(self, with_status=True):
+        return self.GetStatus() + "\r\n" + str(self.ResponseHeaders)
 
     def GetRawResponseBody(self):
         return self.ResponseContents
@@ -180,7 +217,8 @@ class HTTP_Transaction(object):
         self.InitData(request.body)
         self.Method = request.method
         try:
-            self.Status = str(response.code) + " " + response_messages[int(response.code)]
+            self.Status = str(response.code) + " " + \
+                          response_messages[int(response.code)]
         except KeyError:
             self.Status = str(response.code) + " " + "Unknown Error"
         self.RawRequest = request.raw_request
@@ -190,10 +228,10 @@ class HTTP_Transaction(object):
         self.TimeHuman = self.Timer.GetTimeAsStr(self.Time)
         self.Found = (self.Status == "200 OK")
         # Cookie string for GetCookies method
-        cookies_list = []
-        for name, value in response.headers.iteritems():
-            if name == "Set-Cookie":
-                cookies_list.append(value.strip())
+        cookies_list = [
+            value.strip()
+            for name, value in response.headers.iteritems()
+            if name == "Set-Cookie"]
         self.CookieString = ','.join(cookies_list)
         self.New = True
         self.ID = ''

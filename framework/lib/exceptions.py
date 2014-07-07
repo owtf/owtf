@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-'''
+"""
+
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
-All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
     * Redistributions of source code must retain the above copyright
@@ -18,27 +17,60 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-This is a class in charge of creating cookies
-'''
-from framework.http.cookies import cookie
+Declares the framework exceptions.
 
-class CookieFactory:
-	def __init__(self):
-		pass
+"""
 
-        def CreateCookiesFromStr(self, CookieStr):
-		CookieList = []
-		for CookieStr in CookieStr.split(','): # Several cookies can be set at once separated by ","
-			Cookie = cookie.Cookie()
-			Cookie.CreateFromStr(CookieStr)
-			CookieList.append(Cookie)
-		return CookieList
 
+class FrameworkException(Exception):
+    def __init__(self, value):
+        self.parameter = value
+
+    def __str__(self):
+        return repr(self.parameter)
+
+
+class FrameworkAbortException(FrameworkException):
+    pass
+
+
+class PluginAbortException(FrameworkException):
+    pass
+
+
+class UnreachableTargetException(FrameworkException):
+    pass
+
+class UnresolvableTargetException(FrameworkException):
+    pass
+
+class DBIntegrityException(FrameworkException):
+    pass
+
+
+class InvalidTargetReference(FrameworkException):
+    pass
+
+
+class InvalidTransactionReference(FrameworkException):
+    pass
+
+
+class InvalidParameterType(FrameworkException):
+    pass
+
+
+class InvalidWorkerReference(FrameworkException):
+    pass
+
+
+class InvalidConfigurationReference(FrameworkException):
+    pass

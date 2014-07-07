@@ -28,18 +28,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ACTIVE Plugin for Testing for HTTP Methods and XST (OWASP-CM-008)
 """
 
+from framework.lib.general import get_random_str
+
+
 DESCRIPTION = "Active probing for HTTP methods"
+
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 	#Transaction = Core.Requester.TRACE(Core.Config.Get('HOST_NAME'), '/')
 	URL = Core.DB.Target.Get('TOP_URL')
 	# TODO: PUT not working right yet
-	#PUT_URL = URL+"/_"+Core.Random.GetStr(20)+".txt"
+	#PUT_URL = URL+"/_"+get_random_str(20)+".txt"
 	#print PUT_URL
 	#PUT_URL = URL+"/a.txt"
 	PUT_URL = URL
-	Content = Core.PluginHelper.TransactionTable( [ Core.Requester.GetTransaction(True, URL, 'TRACE'), Core.Requester.GetTransaction(True, URL, 'DEBUG'), Core.Requester.GetTransaction(True, PUT_URL, 'PUT', Core.Random.GetStr(15)) ] ) 
+	Content = Core.PluginHelper.TransactionTable( [ Core.Requester.GetTransaction(True, URL, 'TRACE'), Core.Requester.GetTransaction(True, URL, 'DEBUG'), Core.Requester.GetTransaction(True, PUT_URL, 'PUT', get_random_str(15)) ] ) 
 	Content += Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('ActiveHTTPMethods'), PluginInfo, Content)
 	# Deprecated: Content += Core.PluginHelper.LogURLs(PluginInfo, Core.Config.GetResources('ActiveHTTPMethodsExtractLinks'))
 	return Content

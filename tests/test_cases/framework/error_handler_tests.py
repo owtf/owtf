@@ -2,7 +2,8 @@ from tests.testing_framework.base_test_cases import BaseTestCase
 from hamcrest import *
 from flexmock import flexmock
 from framework.error_handler import ErrorHandler
-from framework.lib.general import FrameworkAbortException, PluginAbortException
+from framework.lib.exceptions import FrameworkAbortException, \
+                                     PluginAbortException
 from framework import error_handler
 import unittest
 

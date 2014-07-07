@@ -46,17 +46,16 @@ import ssl
 import os
 import datetime
 import uuid
-import shutil
 import re
 from multiprocessing import Process
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
 import pycurl
-#from session import SessionHandler
 
 
 def prepare_curl_callback(curl):
     curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
+
 
 class ProxyHandler(tornado.web.RequestHandler):
     """
@@ -481,22 +480,24 @@ class ProxyProcess(Process):
         # Proxy CACHE
         # Cache related settings, including creating required folders according to cache folder structure
         self.application.cache_dir = self.application.Core.DB.Config.Get("INBOUND_PROXY_CACHE_DIR")
-        if not os.path.exists(self.application.cache_dir):
-            os.makedirs(self.application.cache_dir)
-        else:
-            shutil.rmtree(self.application.cache_dir)
-            os.makedirs(self.application.cache_dir)
+        # Clean possible older cache directory.
+        if os.path.exists(self.application.cache_dir):
+            core.rmtree(self.application.cache_dir)
+        core.makedirs(self.application.cache_dir)
         for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body', 'resp-time']:
             folder_path = os.path.join(self.application.cache_dir, folder_name)
             if not os.path.exists(folder_path):
-                os.mkdir(folder_path)
+                core.mkdir(folder_path)
 
         # SSL MiTM
         # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory ~/.owtf/proxy )
         self.application.ca_cert = os.path.expanduser(self.application.Core.DB.Config.Get('CA_CERT'))
         self.application.ca_key = os.path.expanduser(self.application.Core.DB.Config.Get('CA_KEY'))
         try: # To stop owtf from breaking for our beloved users :P
-            self.application.ca_key_pass = open(os.path.expanduser(self.application.Core.DB.Config.Get('CA_PASS_FILE')),'r').read().strip()
+            self.application.ca_key_pass = core.open(
+                os.path.expanduser(self.application.Core.DB.Config.Get('CA_PASS_FILE')),
+                'r',
+                owtf_clean=False).read().strip()
         except IOError:
             self.application.ca_key_pass = "owtf"
         self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
@@ -511,7 +512,7 @@ class ProxyProcess(Process):
         try: # If certs folder missing, create that
             assert os.path.exists(self.application.certs_folder)
         except AssertionError:
-            os.makedirs(self.application.certs_folder)
+            core.makedirs(self.application.certs_folder)
 
         # Blacklist (or) Whitelist Cookies
         # Building cookie regex to be used for cookie filtering for caching

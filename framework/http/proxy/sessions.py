@@ -66,21 +66,21 @@ class SessionHandler(object):
         """
         try:
             session_file = os.path.join(self.GetSessionsDir, 'index')
-            with open(session_file) as session:
+            with self.Core.open(session_file, owtf_clean=False) as session:
                 return json.load(session)
         except IOError, e:
-            print e
+            print e, "cannot read from file"
             exit()
 
     def write(self, data):
         """
         Writes the json data to the session_file
         """
-        with open(os.path.join(self.GetSessionsDir, 'index'), 'w') as outfile:
+        with self.Core.open(os.path.join(self.GetSessionsDir, 'index'), 'w') as outfile:
               json.dump(data, outfile)
 
     def update_tokens(self, tokens):
-        with open(os.path.join(self.GetSessionsDir, 'index'), "r+") as sessionfile:
+        with self.Core.open(os.path.join(self.GetSessionsDir, 'index'), "r+") as sessionfile:
             data = json.load(sessionfile)
 
             for key in data["tokens"]:
@@ -90,10 +90,11 @@ class SessionHandler(object):
             sessionfile.write(json.dumps(data))
         # still incomplete;
 
+
 class AuthenticationHandler(object):
 
-    def __init__(self, core)
-        self.Core = core
+    def __init__(self, Core)
+        self.Core = Core
 
     def get_config(self):
         return self.Core.DB.Config.Get("AUTO_LOGIN")
@@ -137,4 +138,3 @@ class FormsParser(object):
         # parse the dom to find form; specifically the login form
 
         #for form in dom.forms:
-

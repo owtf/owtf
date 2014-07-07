@@ -32,8 +32,8 @@ checking that tool paths exist.
 
 """
 
-
 import os
+
 from framework.lib.general import cprint
 
 
@@ -83,12 +83,10 @@ class HealthCheck(object):
         cprint(
             "WARNING!!!: " +
             str(count) +
-            " tools could not be found. Some suggestions:"
-            )
+            " tools could not be found. Some suggestions:")
         cprint(
             " - Define where your tools are here: " +
-            str(self.core.Config.Profiles['g'])
-            )
+            str(self.core.Config.Profiles['g']))
         if (self.core.Config.Get('INTERACTIVE') and
                 'n' == raw_input("Continue anyway? [Y/n]")):
             self.core.Error.FrameworkAbort("Aborted by user")
@@ -96,5 +94,4 @@ class HealthCheck(object):
     @classmethod
     def print_success(cls):
         return cprint(
-            "SUCCESS: Integrity Check successful -> All tools were found"
-            )
+            "SUCCESS: Integrity Check successful -> All tools were found")

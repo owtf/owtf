@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-'''
+"""
+
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -18,22 +19,25 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-Manager Process
-'''
-from framework.lib import general
-import logging
-import multiprocessing
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  Manager Process
+
+"""
+
 import os
-import signal
 import sys
 import time
+import signal
+import logging
+import multiprocessing
+
+from framework.lib.exceptions import InvalidWorkerReference
+
 
 class Worker(multiprocessing.Process):
     def __init__(self, CoreObj, input_q, output_q):
@@ -222,7 +226,7 @@ class WorkerManager(object):
                 temp_dict["id"] = pseudo_index
                 return(temp_dict)
             except IndexError:
-                raise general.InvalidWorkerReference("No worker process with id: " + str(pseudo_index))
+                raise InvalidWorkerReference("No worker process with id: " + str(pseudo_index))
         else:
             worker_temp_list = []
             for i in range(0,len(self.workers)):
@@ -236,7 +240,7 @@ class WorkerManager(object):
         try:
             return(self.workers[pseudo_index-1])
         except IndexError:
-            raise general.InvalidWorkerReference("No worker process with id: " + str(pseudo_index))
+            raise InvalidWorkerReference("No worker process with id: " + str(pseudo_index))
 
     def pause_worker(self, pseudo_index):
         worker_dict = self.get_worker_dict(pseudo_index)

@@ -66,7 +66,7 @@ class Scanner:
 # Step 2 - Extract IPs
         dns_servers=file_prefix+".dns_server.ips"
         self.core.Shell.shell_exec("grep \"53/open/tcp\" "+file_prefix+".gnmap | cut -f 2 -d \" \" > "+dns_servers)
-        file = self.open_file(dns_servers)
+        file = self.core.open(dns_servers)
         domain_names=file_prefix+".domain_names"
         self.core.Shell.shell_exec("rm -f "+domain_names)
         num_dns_servers = 0
@@ -76,7 +76,7 @@ class Scanner:
                 self.core.Shell.shell_exec("host "+dns_server+" "+dns_server+" | grep 'domain name' | cut -f 5 -d' ' | cut -f 2,3,4,5,6,7 -d. | sed 's/\.$//' >> "+domain_names)
                 num_dns_servers = num_dns_servers+1
         try:
-            file = self.open_file(domain_names)
+            file = self.core.open(domain_names, owtf_clean=False)
         except IOError:
             return
         
@@ -116,7 +116,7 @@ class Scanner:
         regexp = '(.*?)\t(.*?/.*?)\t(.*?)($|\t)(#.*){0,1}'
         re.compile(regexp)
         list = []
-        f = open(self.get_nmap_services_file())
+        f = self.core.open(self.get_nmap_services_file())
         for line in f.readlines():
             if line.lower().find(service) >= 0:
                 match = re.findall(regexp, line)
@@ -128,12 +128,9 @@ class Scanner:
         f.close()
         return list
 
-    def open_file(self, filename):
-        return open(filename)
-
     def target_service(self, nmap_file, service):
         ports_for_service = self.get_ports_for_service(service,"")
-        f = self.open_file(nmap_file.strip())
+        f = self.core.open(nmap_file.strip())
         response = ""
         for host_ports in re.findall('Host: (.*?)\tPorts: (.*?)[\t\n]', f.read()):
             host = host_ports[0].split(' ')[0] # Remove junk at the end

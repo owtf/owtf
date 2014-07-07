@@ -29,13 +29,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This File is for client which has to send a push message
 '''
 from collections import defaultdict
-from framework.random import Random
 from framework.lib import *
 import os
 import time
 from framework.lib.general import get_random_str
 
-    
+
 def push_msg(data,queue_name="push"):
     #Creates a random file inside the /Requests subdirectory within a Queue, 
     #the PushServer will process these files

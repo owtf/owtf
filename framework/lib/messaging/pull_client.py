@@ -31,7 +31,6 @@ This File is for client which has to send a pull message
 from collections import defaultdict
 from framework.lib import *
 from framework.lib.general import log, get_random_str
-from framework.random import Random
 import json
 import os
 import random

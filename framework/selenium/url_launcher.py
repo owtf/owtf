@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-'''
+"""
+
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -18,58 +19,60 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-The random module allows the rest of the framework to have access to random functionality
-'''
-from framework.lib.general import *
-#from pyvirtualdisplay import Display
-#from selenium import webdriver
+The random module allows the rest of the framework to have access to random
+functionality.
+
+"""
+
+import unittest
 
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
-import unittest#, time, re
+
+from framework.lib.general import *
+
 
 class URLLauncher(unittest.TestCase):
-	def __init__(self, Selenium, BaseURL, VectorFile):
-		self.Selenium = Selenium
-		self.URLList = []
-		for Vector in GetFileAsList(VectorFile):
-			self.URLList.append(BaseURL + Vector)
-	
-	def Run(self):
-		self.SetUp()
-    		self.TestURLs()
+    def __init__(self, selenium, base_url, vector_file):
+        self.Selenium = selenium
+        self.URLList = []
+        for vector in GetFileAsList(vector_file):
+            self.URLList.append(base_url + vector)
 
-	def SetUp(self):
-		#self.Display = Display(visible=0, size=(800, 600))
-		#self.Display.start()
-		#self.Driver = webdriver.Firefox()
-		#self.Driver.implicitly_wait(30)
-		self.verificationErrors = []
+    def Run(self):
+        self.SetUp()
+        self.TestURLs()
 
-	def TestURLs(self):
-		for URL in self.URLList:
-			cprint("Launching URL: "+URL)
-			self.Selenium.Driver.get(URL)
+    def SetUp(self):
+        self.verificationErrors = []
 
-	def is_element_present(self, how, what):
-		try: self.Selenium.Driver.find_element(by=how, value=what)
-		except NoSuchElementException, e: return False
-		return True
+    def TestURLs(self):
+        for url in self.URLList:
+            cprint("Launching URL: " + url)
+            self.Selenium.Driver.get(url)
 
-	def is_element_present(self, how, what):
-		try: self.Selenium.Driver.find_element(by=how, value=what)
-		except NoSuchElementException, e: return False
-		return True
+    def is_element_present(self, how, what):
+        try:
+            self.Selenium.Driver.find_element(by=how, value=what)
+        except NoSuchElementException:
+            return False
+        return True
 
-	def tearDown(self):
-		self.Selenium.Driver.quit()
-		self.assertEqual([], self.verificationErrors)
+    def is_element_present(self, how, what):
+        try:
+            self.Selenium.Driver.find_element(by=how, value=what)
+        except NoSuchElementException:
+            return False
+        return True
 
+    def tearDown(self):
+        self.Selenium.Driver.quit()
+        self.assertEqual([], self.verificationErrors)

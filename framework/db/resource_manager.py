@@ -23,7 +23,7 @@ class ResourceDB(object):
 
     def GetResourcesFromFile(self, resource_file):
         resources = []
-        ConfigFile = open(resource_file, 'r').read().splitlines() # To remove stupid '\n' at the end
+        ConfigFile = self.Core.open(resource_file, 'r').read().splitlines() # To remove stupid '\n' at the end
         for line in ConfigFile:
             if '#' == line[0]:
                 continue # Skip comment lines

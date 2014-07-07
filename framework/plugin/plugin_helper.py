@@ -31,11 +31,14 @@ This module contains helper functions to make plugins simpler to read and write,
 import os
 import re
 import cgi
-#from jinja2 import Template # Jinja dependency eliminated
-from tornado.template import Template
-from framework.lib.general import *
-from collections import defaultdict
 import logging
+
+from collections import defaultdict
+from tornado.template import Template
+
+from framework.lib.exceptions import FrameworkAbortException, \
+                                     PluginAbortException
+from framework.lib.general import *
 
 PLUGIN_OUTPUT = {"type":None, "output":None} # This will be json encoded and stored in db as string
 

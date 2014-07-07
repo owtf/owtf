@@ -48,7 +48,7 @@ class reporting_process:
         #if plugin register file from previous runs is present then skip that many plugins
         if os.path.exists(filename):
             self.filesize = os.path.getsize(filename)
-            with open(filename) as f:
+            with self.core.open(filename) as f:
                 lines = f.read().splitlines()
             self.num_plugins=len(lines)
 
@@ -75,7 +75,7 @@ class reporting_process:
             #check if there some new entry in plugin file
             if os.path.getsize(filename)>self.filesize:
                 self.filesize = os.path.getsize(filename)
-                with open(filename) as f:
+                with self.core.open(filename) as f:
                     lines = f.read().splitlines()
                 i=1
                 #mapping of targets to new plugins

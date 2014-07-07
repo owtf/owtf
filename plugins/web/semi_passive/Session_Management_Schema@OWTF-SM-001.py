@@ -54,20 +54,4 @@ def run(Core, PluginInfo):
                         AllCookieValues = {}
                         for i in range(0,2): # Get more cookies to perform analysis
                                 Transaction = Core.Requester.GetTransaction(False, URL)
-                                #Cookies = Transaction.GetResponseHeaders().getheader('Set-Cookie').split(',')
-                                for Cookie in Transaction.GetCookies():
-                                        CookieValues[Cookie.Name].append(Transaction.ID, Cookie.Value)
-                                        Core.log("Cookie="+str(Cookie))
-                                        Result += str(Cookie)
-                                        Core.log(dir(Cookie))
         return Result
-"""
-        for i in range(0,10):
-                for URL in GetUnique(Core.Config.GetAsList(['TARGET_URL', 'TOP_URL']):
-                        
-                TransactionTable = Core.PluginHelper.DrawTransactionTableForURLList(True, Core.Config.GetAsList(['TARGET_URL', 'TOP_URL'])) 
-        Content = Core.PluginHelper.ResearchFingerprintInlog() + TransactionTable
-        Content += Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('SemiPassiveFingerPrint'), PluginInfo, Content)
-        return Content
-"""
-

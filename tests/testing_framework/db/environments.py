@@ -1,7 +1,6 @@
 from flexmock import flexmock
 from framework.db.db import DB
 import framework.db.db_handler as db_handler
-from framework.random import Random
 from collections import defaultdict
 from framework.lib import general
 
@@ -24,7 +23,6 @@ class DBEnvironmentBuilder():
 
     def _create_core_mock(self):
         self.core_mock = flexmock()
-        self.core_mock.Random = Random()
         self.core_mock.Config = flexmock()
         self.core_mock.Config.should_receive("GetAll").and_return(["path"])
 

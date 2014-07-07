@@ -1,6 +1,6 @@
+from framework.lib.exceptions import InvalidConfigurationReference
 from framework.db import models
 from framework.lib.general import cprint
-from framework.lib import general
 import ConfigParser
 
 
@@ -103,7 +103,7 @@ class ConfigDB(object):
             session.close()
         else:
             session.close()
-            raise general.InvalidConfigurationReference("No setting exists with key: " + str(key))
+            raise InvalidConfigurationReference("No setting exists with key: " + str(key))
 
     def GetReplacementDict(self):
         config_dict = {}

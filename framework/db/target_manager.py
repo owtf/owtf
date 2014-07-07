@@ -1,9 +1,15 @@
+import os
+import sqlalchemy.exc
+
+from urlparse import urlparse
+
+from framework.lib.exceptions import DBIntegrityException, \
+                                     InvalidTargetReference, \
+                                     InvalidParameterType
 from framework.db import models
 from framework.lib import general
 from framework.lib.general import cprint #TODO: Shift to logging
-from urlparse import urlparse
-import sqlalchemy.exc
-import os
+
 
 TARGET_CONFIG = {
                     'ID' : 0,
@@ -50,7 +56,7 @@ class TargetDB(object):
             self.OutputDBSession = self.CreateOutputDBSession(self.TargetConfig["TARGET_URL"])
             self.TransactionDBSession = self.CreateTransactionDBSession(self.TargetConfig["TARGET_URL"])
             self.UrlDBSession = self.CreateUrlDBSession(self.TargetConfig["TARGET_URL"])
-        except general.InvalidTargetReference:
+        except InvalidTargetReference:
             pass
 
     def DerivePathConfig(self, target_config):
@@ -123,7 +129,7 @@ class TargetDB(object):
             self.CreateMissingDBsForURL(TargetURL)
             self.SetTarget(target_id)
         else:
-            raise general.DBIntegrityException(TargetURL + " already present in Target DB")
+            raise DBIntegrityException(TargetURL + " already present in Target DB")
 
     def UpdateTarget(self, data_dict, TargetURL=None, ID=None):
         session = self.TargetConfigDBSession()
@@ -132,7 +138,7 @@ class TargetDB(object):
         if TargetURL:
             target_obj = session.query(models.Target).filter_by(target_url = TargetURL).one()
         if not target_obj:
-            raise general.InvalidTargetReference("Target doesn't exist: " + str(ID) if ID else str(TargetURL))
+            raise InvalidTargetReference("Target doesn't exist: " + str(ID) if ID else str(TargetURL))
         # TODO: Updating all related attributes when one attribute is changed
         for key, value in data.items():
             if key == "IN_CONTEXT":
@@ -148,7 +154,7 @@ class TargetDB(object):
         if TargetURL:
             target_obj = session.query(models.Target).filter_by(target_url = TargetURL).one()
         if not target_obj:
-            raise general.InvalidTargetReference("Target doesn't exist: " + str(ID) if ID else str(TargetURL))
+            raise InvalidTargetReference("Target doesn't exist: " + str(ID) if ID else str(TargetURL))
         target_url = target_obj.target_url
         target_id = target_obj.id
         session.delete(target_obj)
@@ -169,7 +175,7 @@ class TargetDB(object):
         session.close()
         if not target_obj:
             cprint("Failing with ID:" + str(ID))
-            raise general.InvalidTargetReference("Target doesn't exist with ID: " + str(ID))
+            raise InvalidTargetReference("Target doesn't exist with ID: " + str(ID))
         return(target_obj.target_url)
 
     def GetTargetConfigForID(self, ID):
@@ -177,7 +183,7 @@ class TargetDB(object):
         target_obj = session.query(models.Target).get(ID)
         session.close()
         if not target_obj:
-            raise general.InvalidTargetReference("Target doesn't exist: " + str(ID))
+            raise InvalidTargetReference("Target doesn't exist: " + str(ID))
         return(self.DeriveTargetConfig(target_obj))
 
     def GetTargetConfigs(self, filter_data={}):
@@ -216,7 +222,7 @@ class TargetDB(object):
                     filter_data['ID[gt]'] = filter_data['ID[gt]'][0]
                 query = query.filter(models.Target.id > int(filter_data['ID[gt]']))
         except ValueError:
-            raise general.InvalidParameterType("Invalid parameter type for target db for ID[lt] or ID[gt]")
+            raise InvalidParameterType("Invalid parameter type for target db for ID[lt] or ID[gt]")
         target_obj_list = query.all()
         session.close()
         return(self.DeriveTargetConfigs(target_obj_list))
