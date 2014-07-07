@@ -152,11 +152,11 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
 
     @tornado.web.asynchronous
     def patch(self):
-        raise tornado.web.httperror(405)
+        raise tornado.web.HTTPError(405)
 
     @tornado.web.asynchronous
     def delete(self, target_id=None):
-        raise tornado.web.httperror(405)
+        raise tornado.web.HTTPError(405)
 
 
 class ReplayRequestHandler(custom_handlers.APIRequestHandler):
@@ -187,11 +187,11 @@ class ReplayRequestHandler(custom_handlers.APIRequestHandler):
 
     @tornado.web.asynchronous
     def patch(self):
-        raise tornado.web.httperror(405)  # @UndefinedVariable
+        raise tornado.web.HTTPError(405)  # @UndefinedVariable
 
     @tornado.web.asynchronous
     def delete(self, target_id=None):
-        raise tornado.web.httperror(405)  # @UndefinedVariable
+        raise tornado.web.HTTPError(405)  # @UndefinedVariable
 
 
 class HTTPRequest(BaseHTTPRequestHandler):
@@ -298,12 +298,12 @@ class URLDataHandler(custom_handlers.APIRequestHandler):
     @tornado.web.asynchronous
     def patch(self):
         #TODO: allow modification of urls from the ui, may be adjusting scope etc.. but i don't understand it's use yet ;)
-        raise tornado.web.httperror(405)  # @UndefinedVariable
+        raise tornado.web.HTTPError(405)  # @UndefinedVariable
 
     @tornado.web.asynchronous
     def delete(self, target_id=None):
         #TODO: allow deleting of urls from the ui
-        raise tornado.web.httperror(405)  # @UndefinedVariable
+        raise tornado.web.HTTPError(405)  # @UndefinedVariable
 
 
 class PluginOutputHandler(custom_handlers.APIRequestHandler):
