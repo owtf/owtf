@@ -9,6 +9,12 @@
     "commands":{
       "prefix":"owtf",
       "manifest":"{{ pnh_url }}/service.json"
+    },
+    "probe":{
+      "transport":"HTTPMessageTransport",
+      "endpoint":"{{ pnh_url }}/?apikey={{ api_key }}&",
+      "oracle":"{{ pnh_url }}/?apikey={{ api_key }}&id=",
+      "endpoint":"OWTF"
     }
   }
 }
