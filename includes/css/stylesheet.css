@@ -20,6 +20,7 @@ body {
         padding-top: 70px;
 }
 
+/* Used in plugin reports */
 .wrappedPre {
         overflow: auto;
         overflow-x: auto;

@@ -72,7 +72,7 @@
         <table id="pluginLaunchTable" class="table table-hover table-striped table-bordered">
             <thead>
                 <tr>
-                    <th>Select</th>
+                    <th><input type="checkbox" onclick="toggleAll(this);"/></th>
                     <th>Code</th>
                     <th>Name</th>
                     <th>Type</th>
@@ -80,14 +80,26 @@
                     <th>Help</th>
                 </tr>
             </thead>
+            <tfoot>
+                <tr>
+                    <th></th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Group</th>
+                    <th>Help</th>
+                </tr>
+            </tfoot>
             <tbody>
             </tbody>
         </table>
       </div>
       <div class="modal-footer">
+        <!-- Not required and definitely not intuitive, what did I think when I wrote this :P
         <button type="button" class="btn" onclick="launchPluginsByGroup();">Run by group!</button>
         <button type="button" class="btn" onclick="launchPluginsByCode();">Run by code!</button>
         <button type="button" class="btn" onclick="launchPluginsByTypeGroup();">Run by type & Group!</button>
+        -->
         <button type="button" class="btn" onclick="launchPlugins();">Run!</button>
       </div>
     </div>
@@ -145,6 +157,12 @@ function updateTargetInfo(){
             });
 }
 
+// Toggle all checkboxes when select all is clicked
+function toggleAll(checkbox){
+    var table= $(checkbox).closest('table');
+    $('td input:checkbox',table).prop('checked',checkbox.checked);
+}
+
 // This is called, when the plugin launcher modal is clicked. So we avoid unneccessary loading of plugin table unless user needs them 
 function addPluginsToLauncher(){
     $.getJSON(mySpace.plugins_api_url, function(data){
@@ -164,9 +182,29 @@ function addPluginsToLauncher(){
 
 // This is called, at the start to initialize handlers to catch modal launch
 function initializePluginLauncher(){
+    // Setup - add a text input to each footer cell
+    $('#pluginLaunchTable tfoot th').each(function (){
+        var title = $('#pluginLaunchTable thead th').eq($(this).index()).text();
+        if (title)
+            $(this).html('<input type="text" style="width: 100%; box-sizing: border-box;" placeholder="Search '+title+'" />' );
+    } );
+
 	pluginLaunchTable = $('#pluginLaunchTable').dataTable({
-                "bAutoWidth":false,
+        "bAutoWidth":false,
 	});
+
+    var table = $("#pluginLaunchTable").DataTable();
+
+    // Apply the filter
+    table.columns().eq(0).each(function(colIdx){
+        $('input', table.column(colIdx).footer()).on( 'keyup change', function (){
+            table
+                .column(colIdx)
+                .search(this.value)
+                .draw();
+        });
+    });
+
     $('#pluginLaunchModal').on('show.bs.modal', function(e){addPluginsToLauncher();}); // Load plugins only when modal is shown
 }
 
@@ -201,6 +239,7 @@ function getPluginDetails(pluginInputName){
     return({'group':pluginDetails[0], 'type':pluginDetails[1], 'code':pluginDetails[2]})
 }
 
+/* Not used right now, will be deleted in future
 // To launch plugins by type and group
 function launchPluginsByTypeGroup(){
     var pluginTypes = new Array();
@@ -245,6 +284,7 @@ function launchPluginsByCode(){
             postToWorkList('ID='+mySpace.target_config.ID+'&code='+plugin.code);
             });
 }
+*/
 
 // To launch individual plugins
 function launchPlugins(){
