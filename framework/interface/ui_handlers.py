@@ -1,7 +1,7 @@
 import os
 import collections
 import tornado.web
-
+import uuid
 from framework.lib.exceptions import InvalidTargetReference
 from framework.lib.general import cprint
 from framework.interface import custom_handlers
@@ -104,6 +104,10 @@ class PlugnHack(custom_handlers.UIRequestHandler):
         # PLUGNHACK_TEMPLATES_DIR is defined in /framework/config/framework_config.cfg
         pnh_folder = os.path.join(self.application.Core.Config.FrameworkConfigGet('PLUGNHACK_TEMPLATES_DIR'),"")
         self.application.ca_cert = os.path.expanduser(self.application.Core.DB.Config.Get('CA_CERT')) # CA certificate
+        # Using UUID system generate a key for substitution of 'api_key' in 
+        # 'manifest.json', 'probe' descriptor section
+        # Its use is temporary, till Bhadarwaj implements 'API key generation'
+        api_key = uuid.uuid4().hex
 
         if extension == "": # In this case plugnhack.html is rendered and {{ manifest_url }} is replaced with 'manifest_url' value
             manifest_url = pnh_url + "/manifest.json"
@@ -114,6 +118,7 @@ class PlugnHack(custom_handlers.UIRequestHandler):
         elif extension == "manifest.json": # In this case {{ pnh_url }} in manifest.json are replaced with 'pnh_url' value
             self.render(pnh_folder + "manifest.json",
                         pnh_url=pnh_url,
+                        api_key=api_key,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
         elif extension == "service.json": # In this case {{ root_url }} in service.json are replaced with 'root_url' value
@@ -131,7 +136,7 @@ class PlugnHack(custom_handlers.UIRequestHandler):
             self.render(self.application.ca_cert,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
-            
+
 class PluginOutput(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     @tornado.web.asynchronous
