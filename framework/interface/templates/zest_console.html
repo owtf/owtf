@@ -59,6 +59,14 @@ body {
   margin-left:15px;
 }
 
+.modal-dialog-center{
+  width: 320px;
+  margin: 0;
+  position: absolute;
+  top: 35%;
+  left: 42%;
+}
+
 </style>
 
 {% end %}
@@ -99,7 +107,7 @@ body {
      </div>
           <div class="row pull-right" style="text-align:center" >
 
-  <button class="btn btn-primary " onclick="RecordToggle()"
+  <button class="btn btn-primary" onclick="RecordToggle()"
     id="recordZest">Record a Zest Script!</button>
   <button class="btn btn-primary" id="ForwardZest">Forward to ZAP !</button>
   <button class="btn btn-primary" id="RunZest" onclick="RunZestScript()"> Run the Zest Script !
@@ -109,6 +117,33 @@ body {
     </div>
   </div>
 </div>
+
+<!--Script Name Modal-->
+<div class="modal fade" id="ScriptModal" tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog-center">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button"  class="close"  data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Enter Script Name :</h4>
+        <h6 class="modal-title" id="name_tip">(only alphanumeric characters)</h6>
+      </div>
+      <div class="modal-body">
+        <p id="Filecheck" style="color:red"></p>
+        <input type="text" id="textareaID" class="form-control"></input>
+      </div>
+      <div class="modal-footer">
+         <button type="button" class="btn-primary" id="startBtn" onclick="StartRecording()">Start!</button>
+        <button type="button" class="btn-default"  data-dismiss="modal">Cancel</button>
+       
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
 
 <script>
 
@@ -210,17 +245,77 @@ function RecordOff(){
     $('#recordZest').text('Record a Zest Script!');
 }
 
+
+function validate_filename(elem){
+
+        var alphaExp = /^[0-9a-zA-Z]+$/;
+        //  var alphaExp=/^[\w,\s-]+/
+        if(elem.match(alphaExp)){
+          // $('#ScriptModal').modal('hide');
+          return true;
+        }
+        else{
+          $("#Filecheck").text("Script name invalid !");
+        }
+}
+
+// focuses/clears textbox in script modal window
+
+$('#ScriptModal').on('show.bs.modal', function (e) {
+   
+        $('#textareaID').focus();
+        ClearText("textareaID");
+        $("#Filecheck").text('');
+});
+
+//clears text 
+function ClearText(id){
+
+        id='#'+id;
+        $(id).val('');
+}
+
+function StartRecording(){
+     var file_name=$('#textareaID').val();
+     //validates file name using regex
+     if(validate_filename(file_name)){
+
+        $.getJSON(mySpace.zest_console_api_url+"?record=true&file="+file_name,function(data, Status, xhr){
+        
+        alert("hi");
+
+        Check_func(data);
+
+        });        
+      }
+
+
+}
 function RecordToggle(){
     if (mySpace.zest_recording=="False"){
-      $.getJSON(mySpace.zest_console_api_url+"?record=true");
-      RecordOn();
-      mySpace.zest_recording = "True";
+
+     $('#ScriptModal').modal('show');
     }
     else{
       $.getJSON(mySpace.zest_console_api_url+"?record=false");
       RecordOff();
       mySpace.zest_recording = "False";
     }
+}
+
+//Checks whether file exists else success 
+function Check_func(data){
+
+        if(!data){
+           $('#ScriptModal').modal('hide');
+           alertSuccess("Script Created :D");
+           RecordOn();
+           mySpace.zest_recording = "True";
+        }
+        else{
+           $("#Filecheck").text("Script with this name already exists !");
+        }
+
 }
 
 //get content of the active script

@@ -12,24 +12,24 @@ class Zest(object):
             self.Core = core
             self.recordedTransactions = []  # keeps track of recorded transactions
             self.StopRecorder()  # recorded should be stopped when OWTF starts
+            self.activerecordscript = "Default"
 
 # Script creation from single transaction, as of now name 'zest_trans_transaction-id'
 # is implicitly used to keep it more automated, can be changed if required
-    def TargetScriptFromSingleTransaction(self, Transaction_id, Target_id):
+    def TargetScriptFromSingleTransaction(self, Transaction_id,Script_name, Target_id):
             target_config = self.GetTargetConfig(Target_id)
-            Script_name = "zest_trans_" + Transaction_id
-            return self.GenerateZest(Script_name, str(Target_id), Transaction_id, target_config)
+            return self.GenerateZest(Script_name, str(Target_id), Transaction_id, target_config, False)
 
 #script creation from multiple requests
     def TargetScriptFromMultipleTransactions(self, Target_id, Script_name, transactions):
             target_config = self.GetTargetConfig(Target_id)
             zest_args = self.ConvertToZestArgs(transactions)
-            return self.GenerateZest(Script_name, str(Target_id), zest_args, target_config)
+            return self.GenerateZest(Script_name, str(Target_id), zest_args, target_config, False)
 
 #script generation if file not already present
-    def GenerateZest(self, Script, tar_arg, trans_arg, config):
+    def GenerateZest(self, Script, tar_arg, trans_arg, config, record):
             op_script = self.GetOutputFile(Script, config['Zest_Dir'])
-            if not self.CheckifExists(op_script):
+            if not self.CheckifExists(op_script) or record is True:
                 subprocess.call(['sh', config['Create_Script_Path'], config['Root_Dir'],
                                         config['Output_Dir'], config['target_db'], op_script, tar_arg, trans_arg])
                 return True
@@ -106,7 +106,7 @@ class Zest(object):
         target_arg = self.ConvertToZestArgs(target_list)
         trans_arg = self.ConvertToZestArgs(transaction_list)
         record_config = self.GetRecordConfig()
-        self.GenerateZest("Defualt", target_arg, trans_arg, record_config)
+        self.GenerateZest(self.activerecordscript, target_arg, trans_arg, record_config, True)
 
     def GetRecordConfig(self):
         record_config = {}
@@ -122,8 +122,14 @@ class Zest(object):
     def GetArgumentsfromRecordedTransactions(self):  # splits the list of tuples into two distinct lists
         return map(list, zip(*self.recordedTransactions))
 
-    def StartRecorder(self):
-        self.Core.DB.Config.Update("ZEST_RECORDING", "True")
+    def StartRecorder(self, file_name):
+        record_config = self.GetRecordConfig()
+        if not self.CheckifExists(self.GetOutputFile(file_name, record_config['Zest_Dir'])):
+            self.Core.DB.Config.Update("ZEST_RECORDING", "True")
+            self.activerecordscript = file_name
+            return True
+        else:
+            return False
 
     def StopRecorder(self):
         self.Core.DB.Config.Update("ZEST_RECORDING", "False")

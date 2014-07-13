@@ -129,9 +129,10 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
                         result = self.application.Core.zest.RunTargetScript(target_id, args['script'][0])
                     self.write({"result": result})
             else:
-                if 'script' not in args and 'record' in args:  # Recorder handling
+                if 'script' not in args and 'record' in args and 'file' in args:  # Recorder handling
                     if args['record'][0] == "true":
-                        self.application.Core.zest.StartRecorder()
+                        if not self.application.Core.zest.StartRecorder(args['file'][0]):
+                            self.write("File exists")
                     else:
                         self.application.Core.zest.StopRecorder()
         except InvalidTargetReference as e:
@@ -145,7 +146,8 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
                 raise tornado.web.HTTPError(400)
             try:
                 if transaction_id:
-                    if not self.application.Core.zest.TargetScriptFromSingleTransaction(transaction_id,target_id): #zest script creation from single transaction
+                    Scr_Name = self.get_argument('name', '')
+                    if not self.application.Core.zest.TargetScriptFromSingleTransaction(transaction_id,Scr_Name,target_id): #zest script creation from single transaction
                         self.write("file exists")
                 else:  # multiple transactions
                     trans_list = self.get_argument('trans', '')   # get transaction ids

@@ -3,6 +3,22 @@
 {% block title %}Transaction{% end %}
 
 {% block content %}
+<style type="text/css">
+
+.top-buffer { margin-bottom:30px; }
+.check {}
+
+.modal-dialog-center{
+  width: 320px;
+  margin: 0;
+  position: absolute;
+  top: 35%;
+  left: 42%;
+}
+.clear { clear: both; height: 80px; }
+
+</style>
+
 <div class="row">
     <div class="pull-right">
         <button class="btn btn-primary" href="#" onclick="navigateToTransactionLog();"><i class="fa fa-chevron-circle-left"></i> Go Back To Transaction Log</button>
@@ -13,7 +29,9 @@
         
          <button class="btn btn-default" id="replayBtn()" onclick="replayRequest()" ><i class="fa fa-refresh"></i> Replay </button>
 
-         <button class="btn btn-danger" onclick="createZestScript()"> Create a Zest Script ! </button>
+         <button class="btn btn-danger launch-modal" data-toggle="modal" data-target="#ScriptModal"> Create a Zest Script ! </button>
+
+      </button>
      </div>
   
 </div>
@@ -46,7 +64,28 @@
         </div>
     </div>
 </div>
-
+<!--Script Name Modal-->
+<div class="modal fade" id="ScriptModal" tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog-center">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button"  class="close"  data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Enter Script Name :</h4>
+        <h6 class="modal-title" id="name_tip">(only alphanumeric characters)</h6>
+      </div>
+      <div class="modal-body">
+        <p id="Filecheck" style="color:red"></p>
+        <input type="text" id="textareaID" class="form-control"></input>
+      </div>
+      <div class="modal-footer">
+         <button type="button" class="btn btn-primary" id="saveBtn" onclick="createZestScript()">Generate!</button>
+        <button type="button" class="btn btn-default"  data-dismiss="modal">Cancel</button>
+       
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 /*
@@ -97,18 +136,66 @@ function deleteTransaction(){
             });
 }
 
+// focuses/clears textbox in script modal window
+
+$('#ScriptModal').on('show.bs.modal', function (e) {
+   
+        $('#textareaID').focus();
+        ClearText("textareaID");
+        $("#Filecheck").text('');
+});
+
+//clears text 
+function ClearText(id){
+
+        id='#'+id;
+        $(id).val('');
+}
+
 function createZestScript(){
 
-    $.ajax({
+    var file_name=$('#textareaID').val();
+        //validates file name using regex
+    if(validate_filename(file_name)){
+
+         $.ajax({
             url:mySpace.transaction_api_url+"zest",
             type:'POST',
+            data:{name:file_name},
+            success:Check_func,
             error:function(xhr, textStatus, serverResponse){
             alert("Server replied: "+serverResponse);
                 }
                 
             });
+    }
 }
-                  
+       
+//Checks whether file exists else success 
+function Check_func(data, Status, xhr){
+
+        if(!data){
+           $('#ScriptModal').modal('hide');
+           alertSuccess("Script Created :D");
+        }
+        else{
+           $("#Filecheck").text("Script with this name already exists !");
+        }
+
+}
+
+function validate_filename(elem){
+
+        var alphaExp = /^[0-9a-zA-Z]+$/;
+        //  var alphaExp=/^[\w,\s-]+/
+        if(elem.match(alphaExp)){
+          // $('#ScriptModal').modal('hide');
+          return true;
+        }
+        else{
+          $("#Filecheck").text("Script name invalid !");
+        }
+}
 
 function replayRequest(){
 
