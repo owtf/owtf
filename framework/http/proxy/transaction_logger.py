@@ -70,19 +70,21 @@ class TransactionLogger(Process):
         return((urlparse(url).hostname in host_list))
 
     def get_owtf_transactions(self, hash_list):
-        transactions_dict = {}
+        transactions_dict = None
         target_list = self.Core.DB.Target.GetIndexedTargets()
-        for target_id, target in target_list:
-            transactions_dict[target_id] = []
-        host_list = self.Core.DB.Target.GetAllInScope('HOST_NAME')
+        if target_list: # If there are no targets in db, where are we going to add. OMG
+            transactions_dict = {}
+            for target_id, target in target_list:
+                transactions_dict[target_id] = []
+            host_list = self.Core.DB.Target.GetAllInScope('HOST_NAME')
 
-        for request_hash in hash_list:
-            request = request_from_cache(request_hash, self.cache_dir)
-            response = response_from_cache(request_hash, self.cache_dir)
-            target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list, host_list)
-            owtf_transaction = transaction.HTTP_Transaction(timer.Timer())
-            owtf_transaction.ImportProxyRequestResponse(request, response)
-            transactions_dict[target_id].append(owtf_transaction)
+            for request_hash in hash_list:
+                request = request_from_cache(request_hash, self.cache_dir)
+                response = response_from_cache(request_hash, self.cache_dir)
+                target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list, host_list)
+                owtf_transaction = transaction.HTTP_Transaction(timer.Timer())
+                owtf_transaction.ImportProxyRequestResponse(request, response)
+                transactions_dict[target_id].append(owtf_transaction)
         return(transactions_dict)
 
     def get_hash_list(self, cache_dir):
@@ -99,7 +101,8 @@ class TransactionLogger(Process):
                 if glob.glob(os.path.join(self.cache_dir, "url", "*.rd")):
                     hash_list = self.get_hash_list(self.cache_dir)
                     transactions_dict = self.get_owtf_transactions(hash_list)
-                    self.Core.DB.Transaction.LogTransactionsFromLogger(transactions_dict)
+                    if transactions_dict: # Make sure you donot have None
+                        self.Core.DB.Transaction.LogTransactionsFromLogger(transactions_dict)
                 else:
                     time.sleep(2)
         except KeyboardInterrupt:

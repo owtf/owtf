@@ -124,8 +124,8 @@ class Core(object):
     def DumpFile(self, filename, contents, directory):
         save_path = directory + WipeBadCharsForFilename(filename)
         self.CreateMissingDirs(directory)
-        with self.open(save_path, 'wb') as file:
-            file.write(unicode(contents.decode('utf-8')))
+        with self.codecs_open(save_path, 'wb', 'utf-8') as f:
+            f.write(contents.decode('utf-8'))
         return save_path
 
     def get_child_pids(self, parent_pid):
