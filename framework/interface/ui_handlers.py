@@ -21,6 +21,7 @@ class Home(custom_handlers.UIRequestHandler):
 
 class TransactionLog(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
+
     @tornado.web.asynchronous
     def get(self, target_id=None, transaction_id=None):
         if not target_id:
@@ -50,7 +51,7 @@ class ReplayRequest(custom_handlers.UIRequestHandler):
         else:
             self.render("replay_request.html",
                         transaction_api_url=self.reverse_url('transactions_api_url',target_id, transaction_id),
-                        transaction_replay_api_url=self.reverse_url('transaction_replay_api_url',target_id, transaction_id)
+                        transaction_replay_api_url=self.reverse_url('transaction_replay_api_url', target_id, transaction_id)
                         )
 
 
@@ -63,7 +64,7 @@ class ZestScriptConsoleHandler(custom_handlers.UIRequestHandler):
             raise tornado.web.HTTPError(405)
         else:
             self.render("zest_console.html",
-                       zest_console_api_url=self.reverse_url('zest_console_api_url',target_id),
+                       zest_console_api_url=self.reverse_url('zest_console_api_url', target_id),
                        zest_recording=self.application.Core.zest.IsRecording(),
                        zest_target_heading=(self.application.Core.zest.GetTargetConfig(target_id))['Host_and_Port'])
 

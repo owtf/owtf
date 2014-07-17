@@ -279,14 +279,16 @@ function StartRecording(){
      var file_name=$('#textareaID').val();
      //validates file name using regex
      if(validate_filename(file_name)){
-
-        $.getJSON(mySpace.zest_console_api_url+"?record=true&file="+file_name,function(data, Status, xhr){
-        
-        alert("hi");
-
-        Check_func(data);
-
-        });        
+  
+        $.ajax({
+            url:mySpace.zest_console_api_url+"?record=true&file="+file_name,
+            type:'GET',
+            success:Check_func,
+            error:function(xhr, textStatus, serverResponse){
+            alert("Server replied: "+serverResponse);
+                }
+                
+            });      
       }
 
 
@@ -300,17 +302,19 @@ function RecordToggle(){
       $.getJSON(mySpace.zest_console_api_url+"?record=false");
       RecordOff();
       mySpace.zest_recording = "False";
+
     }
 }
 
 //Checks whether file exists else success 
-function Check_func(data){
+function Check_func(data, Status, xhr){
 
-        if(!data){
+        if(data.exists!="true"){
            $('#ScriptModal').modal('hide');
            alertSuccess("Script Created :D");
            RecordOn();
            mySpace.zest_recording = "True";
+
         }
         else{
            $("#Filecheck").text("Script with this name already exists !");

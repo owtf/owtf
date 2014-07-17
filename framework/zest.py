@@ -12,7 +12,6 @@ class Zest(object):
             self.Core = core
             self.recordedTransactions = []  # keeps track of recorded transactions
             self.StopRecorder()  # recorded should be stopped when OWTF starts
-            self.activerecordscript = "Default"
 
 # Script creation from single transaction, as of now name 'zest_trans_transaction-id'
 # is implicitly used to keep it more automated, can be changed if required
@@ -106,7 +105,7 @@ class Zest(object):
         target_arg = self.ConvertToZestArgs(target_list)
         trans_arg = self.ConvertToZestArgs(transaction_list)
         record_config = self.GetRecordConfig()
-        self.GenerateZest(self.activerecordscript, target_arg, trans_arg, record_config, True)
+        self.GenerateZest(self.GetRecordScript(), target_arg, trans_arg, record_config, True)
 
     def GetRecordConfig(self):
         record_config = {}
@@ -124,9 +123,10 @@ class Zest(object):
 
     def StartRecorder(self, file_name):
         record_config = self.GetRecordConfig()
-        if not self.CheckifExists(self.GetOutputFile(file_name, record_config['Zest_Dir'])):
+        zest_file = self.GetOutputFile(file_name, record_config['Zest_Dir'])
+        if not self.CheckifExists(zest_file):
             self.Core.DB.Config.Update("ZEST_RECORDING", "True")
-            self.activerecordscript = file_name
+            self.UpadateRecordScript(file_name)
             return True
         else:
             return False
@@ -134,8 +134,15 @@ class Zest(object):
     def StopRecorder(self):
         self.Core.DB.Config.Update("ZEST_RECORDING", "False")
 
+    def UpadateRecordScript(self, record_script):
+        self.Core.DB.Config.Update("RECORD_SCRIPT", record_script)
+        print "done"
+
+    def GetRecordScript(self):
+        return self.Core.DB.Config.Get("RECORD_SCRIPT")
+
     def IsRecording(self):
-        return self.Core.DB.Config.Get("ZEST_RECORDING")
+        return True if (self.Core.DB.Config.Get("ZEST_RECORDING") == "True") else False
 
     def ConvertToZestArgs(self, arguments):  # converts to string
         zest_args = ""

@@ -129,10 +129,10 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
                         result = self.application.Core.zest.RunTargetScript(target_id, args['script'][0])
                     self.write({"result": result})
             else:
-                if 'script' not in args and 'record' in args and 'file' in args:  # Recorder handling
-                    if args['record'][0] == "true":
+                if 'script' not in args and 'record' in args:  # Recorder handling
+                    if args['record'][0] == "true" and 'file' in args:
                         if not self.application.Core.zest.StartRecorder(args['file'][0]):
-                            self.write("File exists")
+                            self.write({"exists": "true"})
                     else:
                         self.application.Core.zest.StopRecorder()
         except InvalidTargetReference as e:
