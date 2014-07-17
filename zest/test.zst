@@ -1,6 +1,6 @@
 {
   "about": "This is a Zest script. For more details about Zest visit https://developer.mozilla.org/en-US/docs/Zest",
-  "zestVersion": "0.3",
+  "zestVersion": "0.7",
   "title": "Simple test script",
   "description": "",
   "prefix": "",
@@ -12,16 +12,7 @@
     "elementType": "ZestVariables"
   },
   "statements": [
-    {
-      "message": "Test",
-      "index": 1,
-      "elementType": "ZestActionPrint"
-    },
-    {
-      "value": "ABCDE",
-      "index": 2,
-      "elementType": "ZestControlReturn"
-    }
+
   ],
   "authentication": [],
   "index": 0,
