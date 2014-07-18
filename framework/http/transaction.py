@@ -144,6 +144,9 @@ class HTTP_Transaction(object):
         # To prevent python from going crazy when a key is missing.
         return (self.GrepOutput.get(regex_name, None))
 
+    def GetSessionTokens(self):
+        return self.CookieString
+
     def SetError(self, error_message):
         # Only called for unknown errors, 404 and other HTTP stuff handled on
         # self.SetResponse.
