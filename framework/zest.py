@@ -15,9 +15,9 @@ class Zest(object):
 
 # Script creation from single transaction, as of now name 'zest_trans_transaction-id'
 # is implicitly used to keep it more automated, can be changed if required
-    def TargetScriptFromSingleTransaction(self, Transaction_id,Script_name, Target_id):
-            target_config = self.GetTargetConfig(Target_id)
-            return self.GenerateZest(Script_name, str(Target_id), Transaction_id, target_config, False)
+    def TargetScriptFromSingleTransaction(self, transaction_id, script_name, target_id):
+            target_config = self.GetTargetConfig(target_id)
+            return self.GenerateZest(script_name, str(target_id), transaction_id, target_config, False)
 
 #script creation from multiple requests
     def TargetScriptFromMultipleTransactions(self, Target_id, Script_name, transactions):
