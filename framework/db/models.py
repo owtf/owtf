@@ -22,6 +22,7 @@ class Transaction(TransactionBase):
     response_headers = Column(String)
     response_body = Column(String, nullable=True)
     binary_response = Column(Boolean, nullable=True)
+    session_tokens = Column(String, nullable=True)
     grep_output = Column(String, nullable=True)
 
     def __repr__(self):
