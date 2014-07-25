@@ -74,3 +74,12 @@ class InvalidWorkerReference(FrameworkException):
 
 class InvalidConfigurationReference(FrameworkException):
     pass
+
+class InvalidUrlReference(FrameworkException):
+    pass
+
+class InvalidActionReference(FrameworkException):
+    pass
+
+class InvalidMessageReference(FrameworkException):
+    pass

@@ -6,15 +6,15 @@ from framework.lib.exceptions import DBIntegrityException, \
                                      InvalidTransactionReference, \
                                      InvalidParameterType, \
                                      InvalidWorkerReference, \
-                                     InvalidConfigurationReference
+                                     InvalidConfigurationReference, \
+                                     InvalidUrlReference, \
+                                     InvalidActionReference, \
+                                     InvalidMessageReference
 from framework.lib.general import cprint
 from framework.interface import custom_handlers
-from framework import zest
-from framework.http import requester
-import tornado.web
-import simplejson as json
 from BaseHTTPServer import BaseHTTPRequestHandler
 from StringIO import StringIO
+import json
 
 
 class PluginDataHandler(custom_handlers.APIRequestHandler):
@@ -465,3 +465,66 @@ class ConfigurationHandler(custom_handlers.APIRequestHandler):
                 self.application.Core.DB.Config.Update(key, value_list[0])
             except InvalidConfigurationReference:
                 raise tornado.web.HTTPError(400)
+
+
+class PlugnhackHandler(custom_handlers.APIRequestHandler):
+    """
+    API handler for Plug-n-Hack. Purpose of this handler is to catch 
+    parameters defining actions (or/and) state that were sent from Plug-n-Hack
+    commands invoked in browser, validate them, then send to proxy Plug-n-Hack
+    Handler that will process received information and take action corresponding to received information (i.e inject probe into a target, start/stop monitor a target)
+    """
+    SUPPORTED_METHODS = ['POST']
+    # PnH API Handler must accept and send only an action that is a member of VALID_ACTIONS group
+    VALID_ACTIONS = ["probe","monitor","oracle","startMonitoring","stopMonitoring"]
+
+    def post(self):
+        # Extract useful information from POST request and store it as a dictionary data structure
+        self.message = dict(self.request.arguments)
+        # Extract value of url, action and state request parameters from request body
+        # Request parameters values by default is []
+        self.url = self.get_body_argument("url", default=[])
+        self.action = self.get_body_argument("action", default=[])
+        self.state = self.get_body_argument("state", default=[])
+        
+        # Validate url parameter
+        try:
+            if not self.url:
+                pass
+            elif self.application.Core.DB.URL.IsURL(self.url):
+                pass
+            else:
+                raise InvalidUrlReference(400)
+        except InvalidUrlReference:
+            raise tornado.web.HTTPError(400, "Invalid URL")
+        # Validate action parameter
+        try: 
+            if (self.action in self.VALID_ACTIONS) or (not self.action):
+                pass
+            else:
+                raise InvalidActionReference(400)
+        except InvalidActionReference:
+            raise tornado.web.HTTPError(400, "Invalid action")
+        # Validate state parameter
+        try:
+            if (self.state == "on") or (self.state == "off") or (not self.state):
+                pass
+            else:
+                raise InvalidActionReference(400)
+        except InvalidActionReference:
+            raise tornado.web.HTTPError(400, "Invalid action state")
+        # If received message is valid, send it to proxy PnH Handler and log this event
+        try:
+            if not self.message:
+                raise InvalidMessageReference
+            else:
+                # TO DO: send message to proxy handler and verify if event registered in log file
+                self.application.Core.write_event(json.dumps(self.message), 'a')
+                    
+        except InvalidMessageReference:
+            raise tornado.web.HTTPError(412, "Empty message")
+        except IOError as e:
+            cprint("\n")
+            cprint("I/O error at event writing: ({0}): {1}".format(e.errno, e.strerror))
+            cprint("\n")
+        
