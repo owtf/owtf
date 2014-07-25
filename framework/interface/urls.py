@@ -16,6 +16,7 @@ def get_handlers(Core):
                 tornado.web.url(r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', api_handlers.WorkerHandler, name='workers_api_url'),
                 tornado.web.url(r'/api/worklist/?$', api_handlers.WorkListHandler, name='worklist_api_url'),
                 tornado.web.url(r'/api/configuration/?$', api_handlers.ConfigurationHandler, name='configuration_api_url'),
+                tornado.web.url(r'/api/plugnhack/?$', api_handlers.PlugnhackHandler, name='plugnhack_api_url'),
 
                 (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': Core.Config.FrameworkConfigGet('STATICFILES_DIR')}),
                 (r'/output_files/(.*)', tornado.web.StaticFileHandler, {'path': Core.Config.GetOutputDirForTargets()}),
