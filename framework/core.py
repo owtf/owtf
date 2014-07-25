@@ -72,6 +72,7 @@ class Core(object):
         self.Config = config.Config(root_dir, owtf_pid, self)
         self.Config.Init() # Now the the config is hooked to the core, init config sub-components
         self.create_temp_storage_dirs()
+        self.pnh_log_file()
         self.PluginHelper = plugin_helper.PluginHelper(self) # Plugin Helper needs access to automate Plugin tasks
         self.IsIPInternalRegexp = re.compile("^127.\d{123}.\d{123}.\d{123}$|^10.\d{123}.\d{123}.\d{123}$|^192.168.\d{123}$|^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{123}.[0-9]{123}$")
         self.Reporter = reporter.Reporter(self) # Reporter needs access to Core to access Config, etc
@@ -116,7 +117,35 @@ class Core(object):
             dir = path
         if not os.path.exists(dir):
             self.makedirs(dir)  # Create any missing directories.
+    
+    def pnh_log_file(self):
+        self.path = self.Config.FrameworkConfigGet('PNH_EVENTS_FILE')
+        self.mode = "w"
+        try:
+            if os.path.isfile(self.path):
+                pass
+            else:
+                with self.open(self.path, self.mode, owtf_clean=False):
+                    pass
+        except IOError as e:
+            self.log("I/O error ({0}): {1}".format(e.errno, e.strerror))
+            raise
 
+    def write_event(self, content, mode):
+        self.content = content
+        self.mode = mode
+        self.file_path = self.Config.FrameworkConfigGet('PNH_EVENTS_FILE')
+        
+        if (os.path.isfile(self.file_path)) and (os.access(self.file_path, os.W_OK)):
+                try:
+                    with self.open(self.file_path, self.mode, owtf_clean=False) as log_file:
+                        log_file.write(self.content)
+                        log_file.write("\n")
+                    return True
+                except IOError:
+                    return False
+                    
+        
     def DumpFile(self, filename, contents, directory):
         save_path = directory + WipeBadCharsForFilename(filename)
         self.CreateMissingDirs(directory)
