@@ -33,6 +33,6 @@ DESCRIPTION = "Cross Site Flashing Plugin to assist manual testing"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-        Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('ExternalCrossSiteFlashing'))
+        Content = Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('ExternalCrossSiteFlashing'))
         return Content
 
