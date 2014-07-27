@@ -39,6 +39,7 @@ from httplib import responses as response_messages
 
 from framework import timer
 from framework.lib.general import *
+from framework.http.cookies import functions
 
 
 class HTTP_Transaction(object):
@@ -145,7 +146,8 @@ class HTTP_Transaction(object):
         return (self.GrepOutput.get(regex_name, None))
 
     def GetSessionTokens(self):
-        return self.CookieString
+        # returns dict of Cookie objects
+        return functions.parse(self.CookieString)
 
     def SetError(self, error_message):
         # Only called for unknown errors, 404 and other HTTP stuff handled on
