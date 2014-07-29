@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 """
-
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -34,12 +33,11 @@ simplify code both in the framework and the plugins.
 
 import cgi
 import logging
-
 from httplib import responses as response_messages
 
 from framework import timer
 from framework.lib.general import *
-from framework.http.cookies import functions
+from framework.http.cookies.functions import parse
 
 
 class HTTP_Transaction(object):
@@ -147,7 +145,7 @@ class HTTP_Transaction(object):
 
     def GetSessionTokens(self):
         # returns dict of Cookie objects
-        return functions.parse(self.CookieString)
+        return parse(self.CookieString)
 
     def SetError(self, error_message):
         # Only called for unknown errors, 404 and other HTTP stuff handled on
