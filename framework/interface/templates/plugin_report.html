@@ -61,7 +61,9 @@
                                         <th> RUNTIME </th>
                                         <th> TIME INTERVAL </th>
                                         <th> STATUS </th>
-                                        <th> OUTPUT FILES </th>
+                                        {% if poutput['output_path'] %}
+                                            <th> OUTPUT FILES </th>
+                                        {% end %}
                                         <th> DELETE </th>
                                     </tr>
                                 </thead>
@@ -84,7 +86,9 @@
                                         <td> {{ poutput['execution_time'] }} </td>
                                         <td> {{ poutput['start_time'] }} <br />{{ poutput['end_time'] }} </td>
                                         <td> {{ poutput['status'] }} </td>
-                                        <td><a href="/output_files/{{ poutput['output_path'] }}" target="_blank" class="btn btn-primary"> Browse </a> </td>
+                                        {% if poutput['output_path'] %}
+                                            <td><a href="/output_files/{{ poutput['output_path'] }}" target="_blank" class="btn btn-primary">Browse</a></td>
+                                        {% end %}
                                         <td>
                                             <button onclick="deletePluginOutput('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}');" class="btn btn-danger">
                                                 <i class="fa fa-times"></i>
