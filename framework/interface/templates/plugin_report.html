@@ -87,7 +87,7 @@
                                         <td> {{ poutput['start_time'] }} <br />{{ poutput['end_time'] }} </td>
                                         <td> {{ poutput['status'] }} </td>
                                         {% if poutput['output_path'] %}
-                                            <td><a href="/output_files/{{ poutput['output_path'] }}" target="_blank" class="btn btn-primary">Browse</a></td>
+                                            <td><a href="/output_files/{{ poutput['output_path'] }}/" target="_blank" class="btn btn-primary">Browse</a></td>
                                         {% end %}
                                         <td>
                                             <button onclick="deletePluginOutput('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}');" class="btn btn-danger">
