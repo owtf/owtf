@@ -440,9 +440,12 @@ class Config(object):
         for k, v in self.GetConfig().items():
             cprint(str(k) + " => " + str(v))
 
+    def GetOutputDir(self):
+        return os.path.expanduser(self.FrameworkConfigGet("OUTPUT_PATH"))
+
     def GetOutputDirForTargets(self):
         return os.path.join(
-            self.FrameworkConfigGet("OUTPUT_PATH"),
+            self.GetOutputDir(),
             self.FrameworkConfigGet("TARGETS_DIR"))
 
     def CleanUpForTarget(self, target_URL):

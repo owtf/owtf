@@ -147,7 +147,7 @@ class Core(object):
                     
         
     def DumpFile(self, filename, contents, directory):
-        save_path = directory + WipeBadCharsForFilename(filename)
+        save_path = os.path.join(directory, WipeBadCharsForFilename(filename))
         self.CreateMissingDirs(directory)
         with self.codecs_open(save_path, 'wb', 'utf-8') as f:
             f.write(contents.decode('utf-8'))
