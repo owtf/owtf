@@ -133,7 +133,6 @@ class TransactionManager(object):
                                                     t.raw_request,
                                                     t.response_headers,
                                                     response_body,
-                                                    t.session_tokens,
                                                     grep_output
                                                  )
             return owtf_transaction

@@ -35,7 +35,7 @@ DESCRIPTION = "Plugin to assist manual testing"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.DrawVulnerabilitySearchBox('')
-	Content += Core.PluginHelper.DrawResourceLinkList('Tools', Core.Config.GetResources('ExternalCAPTCHA'))
+	Content = Core.PluginHelper.VulnerabilitySearchBox('')
+	Content += Core.PluginHelper.ResourceLinkList('Tools', Core.DB.Resource.GetResources('ExternalCAPTCHA'))
 	return Content
 

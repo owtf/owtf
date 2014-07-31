@@ -178,14 +178,11 @@ class PluginHandler:
             return(os.path.join(self.Core.Config.GetOutputDirForTargets(), RelativePath))
 
         def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
-                #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.Core.Config.Get('TARGET')
-                if Plugin['group'] == 'web':
-                        return self.Core.DB.Target.GetPath('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['title'])+"/"+Plugin['type']+"/"
-                elif Plugin['group'] == 'net':
-                        return self.Core.DB.Target.GetPath('PARTIAL_URL_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['title'])+"/" +Plugin['type']+"/"
-                elif Plugin['group'] == 'aux':
-                        return self.Core.Config.Get('AUX_OUTPUT_PATH')+"/"+WipeBadCharsForFilename(Plugin['title'])+"/"+Plugin['type']+"/" 
-
+            #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.Core.Config.Get('TARGET')
+            if ((Plugin['group'] == 'web') or (Plugin['group'] == 'net')):
+                return os.path.join(self.Core.DB.Target.GetPath('PARTIAL_URL_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
+            elif Plugin['group'] == 'aux':
+                return os.path.join(self.Core.Config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
 
         def exists(self, directory):
             return os.path.exists(directory)
@@ -257,7 +254,9 @@ class PluginHandler:
             self.Core.Timer.StartTimer('Plugin')
             plugin['start'] = self.Core.Timer.GetStartDateTimeAsStr(
                 'Plugin')
-            plugin['output_path'] = self.GetPluginOutputDir(plugin)
+            # Use relative path from targets folders while saving
+            plugin['output_path'] = os.path.relpath(self.GetPluginOutputDir(plugin),
+                self.Core.Config.GetOutputDirForTargets())
             if not self.CanPluginRun(plugin, True):
                 return None  # Skip.
             status['AllSkipped'] = False  # A plugin is going to be run.

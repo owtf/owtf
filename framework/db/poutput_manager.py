@@ -1,5 +1,5 @@
+import os
 import json
-
 from framework.lib.exceptions import InvalidParameterType
 from framework.db import models
 
@@ -146,7 +146,8 @@ class POutputDB(object):
             end_time = plugin["end"],
             execution_time = duration,
             status = plugin["status"],
-            output_path = plugin["output_path"],
+            # Save path only if path exists i.e if some files were to be stored, it will be there
+            output_path = (plugin["output_path"] if os.path.exists(self.Core.PluginHandler.GetPluginOutputDir(plugin)) else None),
             owtf_rank=owtf_rank)
             )
         session.commit()
@@ -155,17 +156,19 @@ class POutputDB(object):
     def SavePartialPluginOutput(self, Plugin, Output, Message, Duration, Target=None):
         Session = self.Core.DB.Target.GetOutputDBSession(Target)
         session = Session()
-        session.merge(models.PluginOutput(  key = Plugin["key"],
-                                            plugin_code = Plugin["code"],
-                                            plugin_group = Plugin["group"],
-                                            plugin_type = Plugin["type"],
-                                            output = json.dumps(Output),
-                                            error = Message,
-                                            start_time = Plugin["start"],
-                                            end_time = Plugin["end"],
-                                            execution_time = Duration,
-                                            status = Plugin["status"],
-                                            output_path = Plugin["output_path"]
-                                        ))
+        session.merge(models.PluginOutput(
+            key = Plugin["key"],
+            plugin_code = Plugin["code"],
+            plugin_group = Plugin["group"],
+            plugin_type = Plugin["type"],
+            output = json.dumps(Output),
+            error = Message,
+            start_time = Plugin["start"],
+            end_time = Plugin["end"],
+            execution_time = Duration,
+            status = Plugin["status"],
+            # Save path only if path exists i.e if some files were to be stored, it will be there
+            output_path = (Plugin["output_path"] if os.path.exists(self.Core.PluginHandler.GetPluginOutputDir(Plugin)) else None)
+            ))
         session.commit()
         session.close()

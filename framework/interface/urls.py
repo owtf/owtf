@@ -1,4 +1,4 @@
-from framework.interface import api_handlers, ui_handlers
+from framework.interface import api_handlers, ui_handlers, custom_handlers
 import tornado.web
 
 
@@ -25,7 +25,7 @@ def get_handlers(Core):
                 tornado.web.url(r'/api/plugnhack/?$', api_handlers.PlugnhackHandler, name='plugnhack_api_url'),
 
                 (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': Core.Config.FrameworkConfigGet('STATICFILES_DIR')}),
-                (r'/output_files/(.*)', tornado.web.StaticFileHandler, {'path': Core.Config.GetOutputDirForTargets()}),
+                (r'/output_files/(.*)', custom_handlers.StaticFileHandler, {'path': Core.Config.GetOutputDirForTargets()}),
                 tornado.web.url(r'/?$', ui_handlers.Redirect, name='redirect_ui_url'),
                 tornado.web.url(r'/ui/?$', ui_handlers.Home, name='home_ui_url'),
                 tornado.web.url(r'/ui/targets/?([0-9]+)?/?$', ui_handlers.TargetManager, name='targets_ui_url'),

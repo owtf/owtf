@@ -178,6 +178,7 @@ class PluginHelper:
             output_list = []
             PluginOutputDir = self.InitPluginOutputDir( PluginInfo )
             for Name, Command in ResourceList:
+                dump_file_name = os.path.splitext(Name)[0] + ".txt" # Add txt extension to avoid wrong mimetypes
                 plugin_output = dict(PLUGIN_OUTPUT)
                 ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir = self.RunCommand( Command, PluginInfo, PluginOutputDir )
                 plugin_output["type"] = "CommandDump"
@@ -185,7 +186,7 @@ class PluginHelper:
                                 "Name": self.GetCommandOutputFileNameAndExtension( Name )[0],
                                 "CommandIntro" : CommandIntro ,
                                 "ModifiedCommand": ModifiedCommand,
-                                "RelativeFilePath" : self.Core.PluginHandler.DumpOutputFile( Name, RawOutput, PluginInfo , RelativePath = True),
+                                "RelativeFilePath" : self.Core.PluginHandler.DumpOutputFile( dump_file_name, RawOutput, PluginInfo , RelativePath = True),
                                 "OutputIntro":  OutputIntro,
                                 "TimeStr": TimeStr
                         }

@@ -35,5 +35,5 @@ DESCRIPTION = "CORS Plugin to assist manual testing"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('ExternalCORS'))
+	Content = Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('ExternalCORS'))
 	return Content

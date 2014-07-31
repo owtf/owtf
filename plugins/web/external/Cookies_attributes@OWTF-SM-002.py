@@ -33,5 +33,5 @@ DESCRIPTION = "Cookie Attributes Plugin to assist manual testing"
 
 def run(Core, PluginInfo):
   #Core.Config.Show()
-  Content = Core.PluginHelper.DrawResourceLinkList('Online Hash Cracking Resources', Core.Config.GetResources('ExternalCookiesAttributes'))
+  Content = Core.PluginHelper.ResourceLinkList('Online Hash Cracking Resources', Core.DB.Resource.GetResources('ExternalCookiesAttributes'))
   return Content

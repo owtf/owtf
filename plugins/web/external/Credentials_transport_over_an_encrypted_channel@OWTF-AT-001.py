@@ -37,5 +37,5 @@ DESCRIPTION = "Tools to assist credential transport vulnerability exploitation"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('ExternalCredentialsTransport'))
+	Content = Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('ExternalCredentialsTransport'))
 	return Content
