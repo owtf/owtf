@@ -124,7 +124,7 @@ strings $REPORT_HTTP > $REPORT_HTTP.tmp # Removing binary garbage
 mv $REPORT_HTTP.tmp $REPORT_HTTP
 
 echo
-echo "[*] Done!]"
+echo "[*] Done!"
 
 #discovery webSpider,sharedHosting,allowedMethods,digitSum,content_negotiation,dir_bruter,robotsReader,serverStatus,urlFuzzer
 #discovery detectReverseProxy,detectTransparentProxy
