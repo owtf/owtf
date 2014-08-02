@@ -181,15 +181,16 @@ class ReplayRequestHandler(custom_handlers.APIRequestHandler):
 
     def post(self, target_id=None, transaction_id=None):
         rw_request = self.get_argument("get_req", '')  # get particular request
-        parsed_Req = HTTPRequest(rw_request)  # parse if its a valid HTTP request
-        if(parsed_Req.error_code == None):
-            self.application.Core.Requester.SetHeaders(parsed_Req.headers)  #Set the headers
-            trans_obj = self.application.Core.Requester.Request(parsed_Req.path, parsed_Req.command)  # make the actual request using requester module
-            Res_data = {}  # received response body and headers will be saved here
-            Res_data['Status'] = trans_obj.Status
-            Res_data['Headers'] = str(trans_obj.ResponseHeaders)
-            Res_data['Body'] = trans_obj.DecodedContent
-            self.write(Res_data)
+        parsed_req = HTTPRequest(rw_request)  # parse if its a valid HTTP request
+        if(parsed_req.error_code == None):
+            replay_headers = self.RemoveIfNoneMatch(parsed_req.headers)
+            self.application.Core.Requester.SetHeaders(replay_headers)  #Set the headers
+            trans_obj = self.application.Core.Requester.Request(parsed_req.path, parsed_req.command)  # make the actual request using requester module
+            res_data = {}  # received response body and headers will be saved here
+            res_data['Status'] = trans_obj.Status
+            res_data['Headers'] = str(trans_obj.ResponseHeaders)
+            res_data['Body'] = trans_obj.DecodedContent
+            self.write(res_data)
         else:
             print "Cannot send the given HTTP Request" 
             #send something back to interface to let the user know
@@ -205,6 +206,10 @@ class ReplayRequestHandler(custom_handlers.APIRequestHandler):
     @tornado.web.asynchronous
     def delete(self, target_id=None):
         raise tornado.web.HTTPError(405)  # @UndefinedVariable
+
+    def RemoveIfNoneMatch(self, headers):  # Required to force request and not respond with the cached response
+        del headers["If-None-Match"]
+        return headers
 
 
 class HTTPRequest(BaseHTTPRequestHandler):
