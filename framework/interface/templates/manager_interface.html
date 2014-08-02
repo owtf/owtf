@@ -50,8 +50,8 @@ function getControlButtons(obj){
             html += '<button class="btn btn-success btn-xs" href="#" onclick="resumeWorker('+obj.id+');"><i class="fa fa-play"></i></button>';
         }else{
             html += '<button class="btn btn-primary btn-xs" href="#" onclick="pauseWorker('+obj.id+');"><i class="fa fa-pause"></i></button>';
+            html += '<button class="btn btn-danger btn-xs" href="#" onclick="abortWorker('+obj.id+');"><i class="fa fa-times"></i></button>';
         }
-        html += '<button class="btn btn-danger btn-xs" href="#" onclick="abortWorker('+obj.id+');"><i class="fa fa-times"></i></button>';
     }
     html += '</div>';
     return(html);

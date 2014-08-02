@@ -43,7 +43,10 @@ class ResourceDB(object):
 
     def GetRawResources(self, ResourceType):
         session = self.ResourceDBSession()
-        raw_resources = session.query(models.Resource.resource_name, models.Resource.resource).filter_by(resource_type = ResourceType).all()
+        filter_query = session.query(models.Resource.resource_name, models.Resource.resource).filter_by(resource_type = ResourceType)
+        # Sorting is necessary for working of ExtractURLs, since it must run after main command, so order is imp
+        sort_query = filter_query.order_by(models.Resource.id)
+        raw_resources = sort_query.all()
         session.close()
         return raw_resources
 

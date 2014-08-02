@@ -27,44 +27,57 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This files actually converts target urls & OSVDB codes into clickable links
 '''
 
-import sys, os, re
+import os
+import re
+import sys
+import tornado.template
 
 if len(sys.argv) < 3:
 	print "Usage: "+sys.argv[0]+" <nikto.txt file> <top_url>"
 	exit(-1)
 
-OSVDB_regexp = re.compile("\+ (OSVDB-[0-9]+):.*")
-URL_regexp = re.compile("(/[^ :]*):")
-LinkList = []
-TopURL = sys.argv[2]
-origin = sys.argv[1]
+osvdb_regexp = re.compile("\+ (OSVDB-[0-9]+):.*")
+url_regexp = re.compile("(/[^ :]*):")
+link_list = []
+top_url = sys.argv[2]
+origin = sys.argv[1] # The original nikto output file
 destination = 'Nikto_Verify.html'
+output_template = tornado.template.Template("""
+	<html>
+		<title>Nikto Verification</title>
+		<body>
+			{% autoescape None %}
+			<p>{{ content }}</p>
+		</body>
+	</html>
+	""")
+link_template = tornado.template.Template("<a href='{{ link }}' target='_blank'>{{ text }}</a>")
+
+# Replace the text with links where needed
+nikto_output = open(origin, 'r').read()
+for match in url_regexp.findall(nikto_output):
+	url = top_url + match
+	if url not in link_list:
+		link_list.append(url)
+	nikto_output = nikto_output.replace(match, link_template.generate(link=url, text=match))
+
+for match in osvdb_regexp.findall(nikto_output):
+	osvdb_id = match.split('-')[1]
+	osvdb_url = 'http://osvdb.org/show/osvdb/' + osvdb_id
+	nikto_output = nikto_output.replace(match, link_template.generate(link=osvdb_url, text=match))
+	if osvdb_url not in link_list:
+		link_list.append(osvdb_url)
+
+# Print here, since the links are constructed by here. Why printing? So that it is visible as command output
+print(nikto_output)
+
+# Replace newlines with breaks before writing to html file
+nikto_output = nikto_output.replace('\n', '</br>')
+
 # Generate html output directly to stdout, looks better in the report
 with open(destination, 'w') as file:
-	#file.write("<html><title>Nikto Verification</title><body><pre>\n")
-	#print "<html><title>Nikto Verification</title><body><pre>\n"
-	print "<pre>"
-	for line in open(origin).read().split("\n"):
-		newline = line.strip()
-	
-		for match in URL_regexp.findall(line):
-			URL = TopURL+match
-			if URL not in LinkList:
-				LinkList.append(URL)
-			URL_LINK = '<a href="'+URL+'" target="_blank">'+match+'</a>'
-			newline = newline.replace(match, URL_LINK)
-
-		for match in OSVDB_regexp.findall(line):
-			OSVDBID = match.split('-')[1]
-			OSVDB_URL = 'http://osvdb.org/show/osvdb/'+OSVDBID
-			OSVDB_LINK = '<a href="'+OSVDB_URL+'" target="_blank">'+match+'</a>'
-			newline = newline.replace(match, OSVDB_LINK)
-			if OSVDB_URL not in LinkList:
-				LinkList.append(OSVDB_URL)
-		print newline
-	print "</pre>"
-		#file.write(newline+"\n")
-	#file.write("</pre></body></html>\n")
-#print 'A verification file has been generated <a href="'+os.path.abspath(destination)+'" target="_blank">here</a>'
+	file.write(output_template.generate(content=nikto_output))
