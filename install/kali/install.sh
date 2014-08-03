@@ -55,6 +55,9 @@ sudo -E apt-get install lbd gnutls-bin arachni
 echo "[*] Installing ProxyChains"
 sudo -E apt-get install proxychains
 
+echo "[*] Installing ZAP API"
+pip install python-owasp-zap-v2
+
 ########## Patch scripts
 "$RootDir/install/kali/kali_patch_w3af.sh"
 "$RootDir/install/kali/kali_patch_nikto.sh"
