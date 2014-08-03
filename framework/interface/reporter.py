@@ -117,7 +117,8 @@ class Reporter:
                         "OutputIntro":  OutputIntro,
                         "OutputLines": '\n'.join(OutputLines[0:self.mNumLinesToShow]) if (len(OutputLines) > self.mNumLinesToShow) else '\n'.join(OutputLines),
                         "TimeStr": TimeStr,
-                        "mNumLinesToShow": (len(OutputLines) > self.mNumLinesToShow),
+                        "mNumLinesToShow": self.mNumLinesToShow,
+                        "longOutput": (len(OutputLines) > self.mNumLinesToShow)
                 }
         return self.Loader.load("command_dump.html").generate(**table_vars)
 
