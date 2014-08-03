@@ -228,7 +228,7 @@ function RequestSender(){
             url:mySpace.transactions_api_url+"zest",
             type:'POST',
             data:{trans:trans_str,name:file_name},
-            success:Check_func,
+            success:checkIfFileExists,
             traditional: true,
             error:function(xhr, textStatus, serverResponse){
                 alertFail("Server replied: "+serverResponse);
@@ -245,9 +245,9 @@ function getSelectedTransaction(){
 }
 
 //Checks whether file exists else success
-function Check_func(data, Status, xhr){
+function checkIfFileExists(data, Status, xhr){
 
-        if(!data){
+        if(data.exists!="true"){
            $('#ScriptModal').modal('hide');
            alertSuccess("Script Created :D");
         }
@@ -261,9 +261,7 @@ function Check_func(data, Status, xhr){
 function validate_filename(elem){
 
         var alphaExp = /^[0-9a-zA-Z]+$/;
-        //  var alphaExp=/^[\w,\s-]+/
         if(elem.match(alphaExp)){
-          // $('#ScriptModal').modal('hide');
           return true;
         }
         else{

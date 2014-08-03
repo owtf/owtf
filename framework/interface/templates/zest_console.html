@@ -283,7 +283,7 @@ function StartRecording(){
         $.ajax({
             url:mySpace.zest_console_api_url+"?record=true&file="+file_name,
             type:'GET',
-            success:Check_func,
+            success:checkIfFileExists,
             error:function(xhr, textStatus, serverResponse){
             alert("Server replied: "+serverResponse);
                 }
@@ -307,7 +307,7 @@ function RecordToggle(){
 }
 
 //Checks whether file exists else success 
-function Check_func(data, Status, xhr){
+function checkIfFileExists(data, Status, xhr){
 
         if(data.exists!="true"){
            $('#ScriptModal').modal('hide');

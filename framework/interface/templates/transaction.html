@@ -162,7 +162,7 @@ function createZestScript(){
             url:mySpace.transaction_api_url+"zest",
             type:'POST',
             data:{name:file_name},
-            success:Check_func,
+            success:checkIfFileExists,
             error:function(xhr, textStatus, serverResponse){
             alert("Server replied: "+serverResponse);
                 }
@@ -172,9 +172,9 @@ function createZestScript(){
 }
        
 //Checks whether file exists else success 
-function Check_func(data, Status, xhr){
+function checkIfFileExists(data, Status, xhr){
 
-        if(!data){
+        if(data.exists!="true"){
            $('#ScriptModal').modal('hide');
            alertSuccess("Script Created :D");
         }
