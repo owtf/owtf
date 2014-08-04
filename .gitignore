@@ -26,3 +26,10 @@ scans/*
 tests/cover/*
 tests/.coverage
 tests/tests.log.html
+
+# Zest jars #
+#############
+zest/zest_lib/*
+zest/zest_runner_lib/*
+zest/zest.jar
+zest/zest_runner.jar
