@@ -41,8 +41,24 @@ class Url(URLBase):
     def __repr__(self):
         return "<URL (url='%s')>" % (self.url)
 
-TargetBase = declarative_base()
 
+HTTPSessionsBase = declarative_base()
+
+
+class HTTPSessions(HTTPSessionsBase):
+    __tablename__ = "sessions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    url = Column(String)
+    name = Column(String, nullable=True)
+    tokens = Column(String, nullable=True)
+    active = Column(Boolean)
+
+    def __repr__(self):
+        return "Session (name='%s')>" % (self.name)
+
+
+TargetBase = declarative_base()
 
 class Target(TargetBase):
     __tablename__ = "targets"

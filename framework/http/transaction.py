@@ -151,6 +151,19 @@ class HTTP_Transaction(object):
         # returns dict of Cookie objects
         return parse(self.CookieString)
 
+    def SetSessionFromDB(self,
+                         id,
+                         url,
+                         name=None,
+                         tokens=None,
+                         status=False
+                        ):
+        self.ID = id
+        self.url = url
+        self.name = name
+        self.tokens = tokens
+        self.active = active
+
     def SetError(self, error_message):
         # Only called for unknown errors, 404 and other HTTP stuff handled on
         # self.SetResponse.

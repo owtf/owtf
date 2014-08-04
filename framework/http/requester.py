@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 """
-
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -272,7 +271,7 @@ class Requester:
         message = ""
         if str(error.reason).startswith("[Errno 111]"):
             message = "ERROR: The connection was refused!: " +  str(error)
-            self.RequestCountRefused += 1 
+            self.RequestCountRefused += 1
         elif str(error.reason).startswith("[Errno -2]"):
             self.Core.Error.FrameworkAbort(
                 "ERROR: cannot resolve hostname!: " + str(error))
