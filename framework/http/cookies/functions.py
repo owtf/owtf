@@ -70,7 +70,7 @@ from framework.http.cookies.cookies import Cookies
 
 
 def parse(string):
-    """ Returns a list of dict from the `Set-Cookie` header. """
+    """ Returns cookies(dictionary) from the `Set-Cookie` header. """
     # Several cookies can be set at once separated by ","
     try:
         # resulting cookies object can used like a dict of Cookie objects
@@ -81,3 +81,20 @@ def parse(string):
         return cookies
     except Exception, e:
         raise e
+
+'''
+class HTTPSession(object):
+    """ Instantiates a new http session."""
+
+    def __init__(self, name, active=False, valid=False, tokens):
+        self.name = name
+        self.active = active
+        self.valid = valid
+        self.tokens = {}   # this is of the form { "ASP.NET": (a sorted set of token values)}
+
+    def active_value(self, token):
+        try:
+            return self.tokens[token][0]
+        except Exception, e:
+            raise e
+'''
