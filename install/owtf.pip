@@ -9,3 +9,4 @@ rdflib
 pyvirtualdisplay
 sqlalchemy
 pexpect
+python-owasp-zap-v2
