@@ -1,5 +1,7 @@
 import tornado.web
-
+from BaseHTTPServer import BaseHTTPRequestHandler
+from StringIO import StringIO
+import json
 from framework.lib.exceptions import DBIntegrityException, \
                                      InvalidTargetReference, \
                                      UnresolvableTargetException, \
@@ -12,9 +14,6 @@ from framework.lib.exceptions import DBIntegrityException, \
                                      InvalidMessageReference
 from framework.lib.general import cprint
 from framework.interface import custom_handlers
-from BaseHTTPServer import BaseHTTPRequestHandler
-from StringIO import StringIO
-import json
 
 
 class PluginDataHandler(custom_handlers.APIRequestHandler):
@@ -191,7 +190,7 @@ class ReplayRequestHandler(custom_handlers.APIRequestHandler):
             res_data['Body'] = trans_obj.DecodedContent
             self.write(res_data)
         else:
-            print "Cannot send the given HTTP Request" 
+            print "Cannot send the given HTTP Request"
             #send something back to interface to let the user know
 
     @tornado.web.asynchronous
@@ -473,7 +472,7 @@ class ConfigurationHandler(custom_handlers.APIRequestHandler):
 
 class PlugnhackHandler(custom_handlers.APIRequestHandler):
     """
-    API handler for Plug-n-Hack. Purpose of this handler is to catch 
+    API handler for Plug-n-Hack. Purpose of this handler is to catch
     parameters defining actions (or/and) state that were sent from Plug-n-Hack
     commands invoked in browser, validate them, then send to proxy Plug-n-Hack
     Handler that will process received information and take action corresponding to received information (i.e inject probe into a target, start/stop monitor a target)
@@ -490,7 +489,7 @@ class PlugnhackHandler(custom_handlers.APIRequestHandler):
         self.url = self.get_body_argument("url", default=[])
         self.action = self.get_body_argument("action", default=[])
         self.state = self.get_body_argument("state", default=[])
-        
+
         # Validate url parameter
         try:
             if not self.url:
@@ -502,7 +501,7 @@ class PlugnhackHandler(custom_handlers.APIRequestHandler):
         except InvalidUrlReference:
             raise tornado.web.HTTPError(400, "Invalid URL")
         # Validate action parameter
-        try: 
+        try:
             if (self.action in self.VALID_ACTIONS) or (not self.action):
                 pass
             else:
@@ -524,11 +523,9 @@ class PlugnhackHandler(custom_handlers.APIRequestHandler):
             else:
                 # TO DO: send message to proxy handler and verify if event registered in log file
                 self.application.Core.write_event(json.dumps(self.message), 'a')
-                    
         except InvalidMessageReference:
             raise tornado.web.HTTPError(412, "Empty message")
         except IOError as e:
             cprint("\n")
             cprint("I/O error at event writing: ({0}): {1}".format(e.errno, e.strerror))
             cprint("\n")
-        

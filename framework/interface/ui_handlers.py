@@ -75,11 +75,12 @@ class UrlLog(custom_handlers.UIRequestHandler):
     @tornado.web.asynchronous
     def get(self, target_id=None):
         if not target_id:
-            raise tornado.web.HTTPError(405) 
+            raise tornado.web.HTTPError(405)
         self.render("url_log.html",
                     urls_api_url=self.reverse_url('urls_api_url', target_id),
                     transaction_log_url=self.reverse_url('transaction_log_url', target_id, None)
                     )
+
 
 class TargetManager(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
@@ -100,6 +101,15 @@ class TargetManager(custom_handlers.UIRequestHandler):
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id)
                        )
+
+
+class HTTPSessions(custom_handlers.UIRequestHandler):
+    """ HTTPSessions handles the user session cookies. """
+    SUPPORTED_METHODS = ["GET"]
+    @tornado.web.asynchronous
+    def get(self):
+        self.render("sessions.html")
+
 
 class PlugnHack(custom_handlers.UIRequestHandler):
     """
@@ -138,7 +148,7 @@ class PlugnHack(custom_handlers.UIRequestHandler):
         # PLUGNHACK_TEMPLATES_DIR is defined in /framework/config/framework_config.cfg
         pnh_folder = os.path.join(self.application.Core.Config.FrameworkConfigGet('PLUGNHACK_TEMPLATES_DIR'),"")
         self.application.ca_cert = os.path.expanduser(self.application.Core.DB.Config.Get('CA_CERT')) # CA certificate
-        # Using UUID system generate a key for substitution of 'api_key' in 
+        # Using UUID system generate a key for substitution of 'api_key' in
         # 'manifest.json', 'probe' descriptor section
         # Its use is temporary, till Bhadarwaj implements 'API key generation'
         api_key = uuid.uuid4().hex
@@ -156,13 +166,13 @@ class PlugnHack(custom_handlers.UIRequestHandler):
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
         elif extension == "service.json": # In this case {{ root_url }} in service.json are replaced with 'root_url' value
-            self.render(pnh_folder + "service.json", 
+            self.render(pnh_folder + "service.json",
                         root_url=command_url,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
         elif extension == "proxy.pac": # In this case {{ proxy_details }} in proxy.pac is replaced with 'proxy_details' value
             proxy_details = self.application.Core.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.application.Core.DB.Config.Get('INBOUND_PROXY_PORT') # OWTF proxy 127.0.0.1:8008
-            self.render(pnh_folder + "proxy.pac", 
+            self.render(pnh_folder + "proxy.pac",
                         proxy_details=proxy_details,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
@@ -170,6 +180,7 @@ class PlugnHack(custom_handlers.UIRequestHandler):
             self.render(self.application.ca_cert,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
+
 
 class PluginOutput(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
@@ -200,6 +211,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
         except InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)
 
+
 class WorkerManager(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     @tornado.web.asynchronous
@@ -218,6 +230,7 @@ class WorkerManager(custom_handlers.UIRequestHandler):
                         targets_ui_url=self.reverse_url('targets_ui_url', None)
                         )
 
+
 class Help(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     @tornado.web.asynchronous
@@ -233,5 +246,3 @@ class ConfigurationManager(custom_handlers.UIRequestHandler):
             "config_manager.html",
             configuration_api_url=self.reverse_url('configuration_api_url')
         )
-
-    
