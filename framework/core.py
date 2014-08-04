@@ -122,7 +122,7 @@ class Core(object):
             dir = path
         if not os.path.exists(dir):
             self.makedirs(dir)  # Create any missing directories.
-    
+
     def pnh_log_file(self):
         self.path = self.Config.FrameworkConfigGet('PNH_EVENTS_FILE')
         self.mode = "w"
@@ -140,7 +140,7 @@ class Core(object):
         self.content = content
         self.mode = mode
         self.file_path = self.Config.FrameworkConfigGet('PNH_EVENTS_FILE')
-        
+
         if (os.path.isfile(self.file_path)) and (os.access(self.file_path, os.W_OK)):
                 try:
                     with self.open(self.file_path, self.mode, owtf_clean=False) as log_file:
@@ -149,8 +149,8 @@ class Core(object):
                     return True
                 except IOError:
                     return False
-                    
-        
+
+
     def DumpFile(self, filename, contents, directory):
         save_path = os.path.join(directory, WipeBadCharsForFilename(filename))
         self.CreateMissingDirs(directory)

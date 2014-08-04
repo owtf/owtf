@@ -26,16 +26,16 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-The DB stores HTTP transactions, unique URLs and more. 
+The DB stores HTTP transactions, unique URLs and more.
 '''
 
 from framework.lib.general import *
 # Run DB field order:
 # Start, End, Runtime, Command, LogStatus = self.Core.DB.DBCache['RUN_DB'][-1]#.split(" | ")
 REVIEW_OFFSET = 0
-SUMMARY_HOST_IP = 1 
+SUMMARY_HOST_IP = 1
 SUMMARY_PORT_NUMBER = 2
-REPORT_PATH = 3 
+REPORT_PATH = 3
 REPORT_TYPE = 4 # so far: URL, AUX, future: PORT?
 
 NAME_TO_OFFSET = { 'ReviewOffset' : REVIEW_OFFSET, 'SummaryHostIP' : SUMMARY_HOST_IP, 'SummaryPortNumber' : SUMMARY_PORT_NUMBER, 'ReportPath' : REPORT_PATH, 'ReportType' : REPORT_TYPE }
@@ -44,7 +44,7 @@ class ReportRegister:
 	def __init__(self, Core):
 		self.Core = Core
 
-	def AlreadyRegistered(self, FieldList): 
+	def AlreadyRegistered(self, FieldList):
 		ReviewOffset, SummaryHostIP, SummaryPortNumber, ReportPath, ReportType = FieldList
 		return (len(self.Search( { 'ReviewOffset' : ReviewOffset, 'SummaryHostIP' : SummaryHostIP, 'SummaryPortNumber' : SummaryPortNumber, 'ReportPath' : ReportPath, 'ReportType' : ReportType } )) > 0)
 

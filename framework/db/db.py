@@ -47,7 +47,7 @@ def re_fn(regexp, item):
     return results
 
 class DB(object):
-        
+
     def __init__(self,CoreObj):
         self.Core = CoreObj
         self.Core.CreateMissingDirs(os.path.join(self.Core.Config.FrameworkConfigGet("OUTPUT_PATH"), self.Core.Config.FrameworkConfigGet("DB_DIR")))

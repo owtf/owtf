@@ -26,7 +26,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-The DB stores HTTP transactions, unique URLs and more. 
+The DB stores HTTP transactions, unique URLs and more.
 '''
 import os
 from collections import defaultdict
@@ -38,11 +38,11 @@ FIELD_SEPARATOR = ' || '
 
 class DBHandler:
     FieldDBNames = [ 'TRANSACTION_LOG_TXT', 'RUN_DB', 'COMMAND_REGISTER', 'PLUGIN_REPORT_REGISTER', 'DETAILED_REPORT_REGISTER' ] # Field-based DBs
-    LineDBNames = [ 
+    LineDBNames = [
 # Vetted URL DBs:
 'ALL_URLS_DB', 'ERROR_URLS_DB', 'FILE_URLS_DB', 'IMAGE_URLS_DB', 'FUZZABLE_URLS_DB', 'EXTERNAL_URLS_DB', 'SSI_URLS_DB'
 # Potential URL DBs (scraped from other tools):
-, 'POTENTIAL_ALL_URLS_DB', 'POTENTIAL_ERROR_URLS_DB', 'POTENTIAL_FILE_URLS_DB', 'POTENTIAL_IMAGE_URLS_DB', 'POTENTIAL_FUZZABLE_URLS_DB', 'POTENTIAL_EXTERNAL_URLS_DB', 'POTENTIAL_SSI_URLS_DB' 
+, 'POTENTIAL_ALL_URLS_DB', 'POTENTIAL_ERROR_URLS_DB', 'POTENTIAL_FILE_URLS_DB', 'POTENTIAL_IMAGE_URLS_DB', 'POTENTIAL_FUZZABLE_URLS_DB', 'POTENTIAL_EXTERNAL_URLS_DB', 'POTENTIAL_SSI_URLS_DB'
 # Other DBs:
 , 'TRANSACTION_LOG_HTML', 'ERROR_DB', 'SEED_DB', 'HTMLID_DB', 'DEBUG_DB', 'UNREACHABLE_DB' ] # Line-based DBs
     # DBs which have rows that could change (most are append-only):
@@ -54,7 +54,7 @@ class DBHandler:
         self.Core = Core # Need access to reporter for pretty html trasaction log
         self.Storage = defaultdict(list)
         self.OldErrorCount = 0
-    
+
     def GetFieldSeparator(self):
         return FIELD_SEPARATOR
 
@@ -183,7 +183,7 @@ Record="""+str(Record)+"""
             with self.Core.open(Path, 'w') as file:
                 if DBName == 'TRANSACTION_LOG_HTML': # Start the HTML Transaction log:
                     self.Core.DB.Transaction.InitTransacLogHTMLIndex(file)
-            
+
     def LoadDB(self, Path, DBName): # Load DB to memory
         if self.Core.Config.Get('SIMULATION'):
             return None # Skip processing below, just simulating
@@ -231,7 +231,7 @@ Record="""+str(Record)+"""
             with self.Core.open(Path, 'a') as file: # Append the missing lines at the end
                 #if DBName == 'TRANSACTION_LOG_TXT': self.Core.DB.Debug.Add('Saving DBName='+DBName+", Path="+Path+" from "+str(self.GetSyncCount(DBName, Path))+' until '+str(self.GetLength(DBName, Path)))
                 # Only save new DB lines, instead of the full database (in the hope that it's faster)
-                for Line in self.GetData(DBName, Path)[self.GetSyncCount(DBName, Path):]: 
+                for Line in self.GetData(DBName, Path)[self.GetSyncCount(DBName, Path):]:
                     self.SaveDBLine(file, DBName, Line)
         self.CalcSync(DBName, Path) # Keep count of synced lines
 

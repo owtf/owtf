@@ -44,10 +44,10 @@ import time
     #this functions sends request to messaging system depending on what is response type(push or pull)
 def db_push(argumentlist):
     push_msg(json.dumps(argumentlist),db_pushQ)
-    
+
 
 def db_pull(argumentlist):
-    
+
     result = pull_msg(json.dumps(argumentlist),db_pullQ)
     if result:
         return json.loads(result)

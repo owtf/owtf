@@ -13,7 +13,7 @@ from framework.lib.general import cprint #TODO: Shift to logging
 
 TARGET_CONFIG = {
                     'ID' : 0,
-                    'TARGET_URL' : '', 
+                    'TARGET_URL' : '',
                     'HOST_NAME' : '',
                     'HOST_PATH' : '',
                     'URL_SCHEME' : '',
@@ -99,7 +99,7 @@ class TargetDB(object):
         # Target DB Health Check
         session = self.TargetConfigDBSession()
         target_list = session.query(models.Target).all()
-        if target_list: 
+        if target_list:
         # If needed inorder to prevent an uninitialized value for target in self.SetTarget(target) few lines later
             for target in target_list:
                 self.Core.DB.Target.CreateMissingDBsForURL(target.target_url)

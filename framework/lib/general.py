@@ -116,7 +116,7 @@ def MergeDicts(Dict1, Dict2): # Returns a by-value copy contained the merged con
         AddToDict(Dict1, NewDict)
         AddToDict(Dict2, NewDict)
         return NewDict
-                 
+
 def TruncLines(Str, NumLines, EOL = "\n"):
         return EOL.join(Str.split(EOL)[0:NumLines])
 
@@ -171,18 +171,18 @@ def wait_until_dir_exists(request_dir,delay):
 
 #sleep delay for different sleeps
 sleep_delay = 0.025
-   
-    
+
+
 #this function writes to a file atomically
 def atomic_write_to_file(dirname,file,data):
     filename = dirname+"/"+file
     try:
-        
+
         with FileLock(filename):
             fd = open(filename,'w+')
             fd.write(data)
             fd.close()
-            
+
         return 1
     except KeyboardInterrupt:
         raise KeyboardInterrupt
@@ -190,23 +190,23 @@ def atomic_write_to_file(dirname,file,data):
         return 0
 
 #this function atomically read from the given file
-#if skip_if_locked is true then it tries 2 times to acquire the lock and if 
+#if skip_if_locked is true then it tries 2 times to acquire the lock and if
 #lock is not available it returns with ""
 #else if skip_if_locked is false then default settings are used
 
 def atomic_read_from_file(requests_dir, partial_filename, skip_if_locked = True):
     if skip_if_locked:
         delay=0.30
-    else: 
+    else:
         delay=30
     try:
-        
+
         filename = requests_dir+"/"+partial_filename
         data=""
         while not os.path.exists(filename):
             #AppendToFile("file1", "file is not there "+filename+"\n")
             time.sleep(sleep_delay)
-            
+
         with FileLock(filename, timeout=delay):
             fd = open(filename,'r')
             data = fd.read()
@@ -216,13 +216,13 @@ def atomic_read_from_file(requests_dir, partial_filename, skip_if_locked = True)
     except KeyboardInterrupt:
         raise KeyboardInterrupt
     except:
-        return ""    
+        return ""
 
 def get_random_str(len):
     """function returns random strings of length len"""
     return base64.urlsafe_b64encode(os.urandom(len))[0:len]
 
-    
+
 #cleanly remove directories
 def removeDirs(dir):
     for f in os.listdir(dir):
@@ -251,7 +251,7 @@ LOG_LEVELS = { CRITICAL : 'CRITICAL'
             , ERROR : 'ERROR'
             , WARNING : 'WARNING'
             , INFO : 'INFO'
-            , DEBUG : 'DEBUG' 
+            , DEBUG : 'DEBUG'
             ,BENCHMARK:'BENCHMARK'}
 
 def get_short_info():
@@ -264,7 +264,7 @@ def get_short_info():
     else:
         name = fr.f_code.co_name
     return {'filename': fr.f_code.co_filename, 'name': name}
-       
+
 def get_source_info():
     """
     Retrieves the Source class, function, process and thread, useful to know/process based on where things came from
@@ -283,14 +283,14 @@ def get_source_info():
 
 def get_default_logger(source_info):
     """
-        Give default log element for given source_info.. 
+        Give default log element for given source_info..
         For now it is simply returning general log
     """
     return logging.getLogger("general")
-    
+
 def get_default_logfile(source_info):
     """
-        Give default log file for given source_info.. 
+        Give default log file for given source_info..
         For now it is simply returning log file given in config file
     """
     return logging.getLogger("logfile")
