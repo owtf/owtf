@@ -125,20 +125,21 @@
         </div>
     {% end %}
 </div>
+
 <script>
 /* Global copy of the plugins' outputs in order to avoid calling the API each
  * time the user changes a rank.
  */
 var copyPOutputs = {};
 
-var pluginSpace = {
+var pluginReportSpace = {
                     poutput_api_url:"{{ poutput_api_url }}",
                     transaction_log_url:"{{ transaction_log_url }}",
                     url_log_url:"{{ url_log_url }}"
                   };
 
 function patchUserRank(group, type, code, user_rank){
-    $.ajax({url:pluginSpace.poutput_api_url+group+'/'+type+'/'+code,
+    $.ajax({url:pluginReportSpace.poutput_api_url+group+'/'+type+'/'+code,
             type:'PATCH',
             data:{"user_rank":user_rank},
             error:function(xhr, textStatus, serverResponse){
@@ -150,7 +151,7 @@ function patchUserRank(group, type, code, user_rank){
 }
 
 function deletePluginOutput(group, type, code){
-    $.ajax({url:pluginSpace.poutput_api_url+group+'/'+type+'/'+code,
+    $.ajax({url:pluginReportSpace.poutput_api_url+group+'/'+type+'/'+code,
             type:'DELETE',
             success:function(){alertSuccess("Deleted plugin output for "+type+"@"+code); updatePluginReport();}, //updatePluginReport() is obtained from target.html
             error:function(xhr, textStatus, serverResponse){
@@ -160,7 +161,7 @@ function deletePluginOutput(group, type, code){
 }
 
 function patchUserNotes(group, type, code, user_notes){
-    $.ajax({url:pluginSpace.poutput_api_url+group+'/'+type+'/'+code,
+    $.ajax({url:pluginReportSpace.poutput_api_url+group+'/'+type+'/'+code,
             type:'PATCH',
             data:{"user_notes":user_notes},
             error:function(xhr, textStatus, serverResponse){
@@ -177,7 +178,7 @@ function handleEditor(group, type, code, instance){ // Same function called both
         editor.destroy();
         editorArea.css("display", "None");
     }catch(err){
-        $.getJSON(pluginSpace.poutput_api_url+group+'/'+type+'/'+code, function(data){
+        $.getJSON(pluginReportSpace.poutput_api_url+group+'/'+type+'/'+code, function(data){
                 console.log(data);
                 editorArea.val(data.user_notes);
                 editorArea.ckeditor();
@@ -186,7 +187,7 @@ function handleEditor(group, type, code, instance){ // Same function called both
 }
 
 function navigateToTransaction(id){
-    window.open(pluginSpace.transaction_log_url+id);
+    window.open(pluginReportSpace.transaction_log_url+id);
 }
 
 function resetPluginColors(id) {
@@ -343,7 +344,7 @@ function updateTargetInfo() {
  * current target.
  */
 $(function() {
-    var req = $.getJSON(pluginSpace.poutput_api_url, function(data) {
+    var req = $.getJSON(pluginReportSpace.poutput_api_url, function(data) {
         /* Global copy of the POutputs. */
         for (var i = 0; i < data.length; i++) {
             if (!copyPOutputs[data[i].plugin_code])
