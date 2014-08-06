@@ -33,6 +33,7 @@
 <div class="row">
     <div class="pull-right">
         <div class="btn-group">
+            <!-- Modal content is present in plugin report -->
             <button class="btn btn-primary" data-toggle="modal" data-target="#pluginOutputFilterModal"><i class="fa fa-filter"></i> Filter </button>
             <button class="btn btn-default" onclick="updatePluginReport();" href="#"><i class="fa fa-refresh"></i> Refresh </button>
             <button class="btn btn-danger" data-toggle="modal" data-target="#pluginLaunchModal"><i class="fa fa-flash"></i> Run Plugins </button>
@@ -95,11 +96,6 @@
         </table>
       </div>
       <div class="modal-footer">
-        <!-- Not required and definitely not intuitive, what did I think when I wrote this :P
-        <button type="button" class="btn" onclick="launchPluginsByGroup();">Run by group!</button>
-        <button type="button" class="btn" onclick="launchPluginsByCode();">Run by code!</button>
-        <button type="button" class="btn" onclick="launchPluginsByTypeGroup();">Run by type & Group!</button>
-        -->
         <button type="button" class="btn" onclick="launchPlugins();">Run!</button>
       </div>
     </div>
@@ -116,9 +112,22 @@
         <h4 class="modal-title" id="pluginOutputFilterModalLabel">Advanced Filter</h4>
       </div>
       <div class="modal-body" id="pluginOutputFilterModalBody">
+            {% for filter_type in adv_filter_data.keys() %}
+                <label for="name">{{ filter_type.replace("_", " ").capitalize() }}</label>
+                <div>
+                    {% for data in sorted(adv_filter_data[filter_type]) %}
+                        {% if data %}
+                           <label class="checkbox-inline">
+                              <input type="checkbox" class="filterCheckbox" onchange="modifyFilter(this, '{{ filter_type }}', '{{ data }}');"> {{ data }}
+                           </label>
+                        {% end %}
+                    {% end %}
+                </div>
+                <hr>
+            {% end %}
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" onclick="updateFilteredPOutputApiUrl();">Apply Filter!</button>
+        <button type="button" class="btn btn-danger" onclick="clearFilters();" data-dismiss="modal" aria-hidden="true">Clear Filters!</button>
       </div>
     </div>
   </div>
@@ -131,7 +140,7 @@ var mySpace = {
                     target_api_url:"{{ target_api_url }}",
                     targets_ui_url:"{{ targets_ui_url }}",
                     poutput_ui_url:"{{ poutput_ui_url }}",
-                    filtered_poutput_ui_url:"{{ poutput_ui_url }}", // This gets modified
+                    filter_data:{},
                     plugins_api_url:"{{ plugins_api_url }}",
                     worklist_api_url:"{{ worklist_api_url }}",
                     transaction_log_url:"{{ transaction_log_url }}",
@@ -142,11 +151,25 @@ var mySpace = {
 // Global variable for launch table is required to access the plugin selection by user
 var pluginLaunchTable;
 
+function clearFilters() {
+    mySpace.filter_data = {};
+    $(".filterCheckbox").attr("checked", false);
+}
+
+function modifyFilter(checkbox, filter_type, data){
+    if (typeof mySpace.filter_data[filter_type] === 'undefined') mySpace.filter_data[filter_type] = [];
+    if (checkbox.checked && (mySpace.filter_data[filter_type].indexOf(data) == -1)) {
+        mySpace.filter_data[filter_type].push(data);
+    } else if ((!checkbox.checked) && (mySpace.filter_data[filter_type].indexOf(data) > -1)) {
+        mySpace.filter_data[filter_type].splice(mySpace.filter_data[filter_type].indexOf(data), 1);
+    }
+}
+
 // For loading plugin report, JS fetches the html and places it at designated place
 function updatePluginReport(){
-    $.get( mySpace.filtered_poutput_ui_url, function(data){
-            $('#pluginReport').html(data);
-            });
+    $.get(mySpace.poutput_ui_url+'?'+$.param(mySpace.filter_data, true), function(data){
+        $('#pluginReport').html(data);
+    });
 }
 
 // Target info loaded using API, target_api_url is helpful for that
@@ -239,53 +262,6 @@ function getPluginDetails(pluginInputName){
     return({'group':pluginDetails[0], 'type':pluginDetails[1], 'code':pluginDetails[2]})
 }
 
-/* Not used right now, will be deleted in future
-// To launch plugins by type and group
-function launchPluginsByTypeGroup(){
-    var pluginTypes = new Array();
-    var pluginGroups = new Array();
-    $.each(getSelectedPlugins(), function(index, obj){
-        plugin = getPluginDetails(obj.name);
-        if ($.inArray(plugin.type, pluginTypes) == -1) { pluginTypes.push(plugin.type);}
-        if ($.inArray(plugin.group, pluginGroups) == -1) { pluginGroups.push(plugin.group);}
-    });
-    if (!(pluginTypes.length == 0) || !(pluginGroups.length == 0)){
-        data = 'ID='+mySpace.target_config.ID+'&';
-        $.each(pluginTypes, function(index, pluginType){
-                data += 'type='+pluginType+'&';
-                });
-        $.each(pluginGroups, function(index, pluginGroup){
-                data += 'group='+pluginGroup+'&';
-                });
-        postToWorkList(data);
-    }
-}
-
-// To launch plugins by group
-function launchPluginsByGroup(){
-    var pluginGroups = new Array();
-    $.each(getSelectedPlugins(), function(index, obj){
-        plugin = getPluginDetails(obj.name);
-        if ($.inArray(plugin.group, pluginGroups) == -1) { pluginGroups.push(plugin.group);}
-    });
-    if (!(pluginGroups.length == 0)){
-        data = 'ID='+mySpace.target_config.ID+'&';
-        $.each(pluginGroups, function(index, pluginGroup){
-            data += 'group='+pluginGroup+'&';
-        });
-        postToWorkList(data);
-    }
-}
-
-// To launch plugins by code
-function launchPluginsByCode(){
-    $.each(getSelectedPlugins(), function(index, obj){
-            plugin = getPluginDetails(obj.name);
-            postToWorkList('ID='+mySpace.target_config.ID+'&code='+plugin.code);
-            });
-}
-*/
-
 // To launch individual plugins
 function launchPlugins(){
     $.each(getSelectedPlugins(), function(index, obj){
@@ -299,6 +275,9 @@ $(document).ready(function() {
         updateTargetInfo()  // The target info is updated using API, kindof crazy but stable way since api is our main maintainance burden
         updatePluginReport();  // Plugin report is updated using JS
         initializePluginLauncher();  // Plugin launcher is done through a modal window
+        $('#pluginOutputFilterModal').on('hidden.bs.modal', function () {
+          updatePluginReport();
+        })
 });
 </script>
 {% end %}

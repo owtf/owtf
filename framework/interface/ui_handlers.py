@@ -96,6 +96,7 @@ class TargetManager(custom_handlers.UIRequestHandler):
                         target_api_url=self.reverse_url('targets_api_url', target_id),
                         targets_ui_url=self.reverse_url('targets_ui_url', None),
                         poutput_ui_url=self.reverse_url('poutput_ui_url', target_id),
+                        adv_filter_data=self.application.Core.DB.POutput.GetUnique(target_id),
                         plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
                         worklist_api_url=self.reverse_url('worklist_api_url'),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
@@ -189,18 +190,22 @@ class PluginOutput(custom_handlers.UIRequestHandler):
         if not target_id:
             raise tornado.web.HTTPError(400)
         try:
-            filter_data = dict(self.request.arguments)
+            filter_data = dict(self.request.arguments) # IMPORTANT!!
             plugin_outputs = self.application.Core.DB.POutput.GetAll(filter_data, target_id)
+
+            # Group the plugin outputs to make it easier in template
             grouped_plugin_outputs = {}
             for poutput in plugin_outputs:
                 if not grouped_plugin_outputs.get(poutput['plugin_code'], None):
                     grouped_plugin_outputs[poutput['plugin_code']] = [] # No problem of overwriting
                 grouped_plugin_outputs[poutput['plugin_code']].append(poutput)
             grouped_plugin_outputs = collections.OrderedDict(sorted(grouped_plugin_outputs.items())) # Needed ordered list for ease in templates
+
             # Get test groups as well, for names and info links
             test_groups = {}
             for test_group in self.application.Core.DB.Plugin.GetAllTestGroups():
                 test_groups[test_group['code']] = test_group
+
             self.render("plugin_report.html",
                         grouped_plugin_outputs=grouped_plugin_outputs,
                         test_groups=test_groups,
@@ -209,6 +214,8 @@ class PluginOutput(custom_handlers.UIRequestHandler):
                         url_log_url=self.reverse_url('url_log_url', target_id)
                         )
         except InvalidTargetReference as e:
+            raise tornado.web.HTTPError(400)
+        except InvalidParameterType as e:
             raise tornado.web.HTTPError(400)
 
 
