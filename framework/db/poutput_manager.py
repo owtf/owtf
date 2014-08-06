@@ -58,6 +58,18 @@ class POutputDB(object):
             if isinstance(filter_data.get("status"), list):
                 query = query.filter(models.PluginOutput.status.in_(filter_data["status"]))
         try:
+            if filter_data.get("user_rank", None):
+                if isinstance(filter_data.get("user_rank"), (str, unicode)):
+                    query = query.filter_by(user_rank = int(filter_data["user_rank"]))
+                if isinstance(filter_data.get("user_rank"), list):
+                    numbers_list = [int(x) for x in filter_data["user_rank"]]
+                    query = query.filter(models.PluginOutput.user_rank.in_(numbers_list))
+            if filter_data.get("owtf_rank", None):
+                if isinstance(filter_data.get("owtf_rank"), (str, unicode)):
+                    query = query.filter_by(owtf_rank = int(filter_data["owtf_rank"]))
+                if isinstance(filter_data.get("owtf_rank"), list):
+                    numbers_list = [int(x) for x in filter_data["owtf_rank"]]
+                    query = query.filter(models.PluginOutput.owtf_rank.in_(numbers_list))
             if filter_data.get("owtf_rank[lt]", None):
                 if isinstance(filter_data.get("owtf_rank[lt]"), list):
                     filter_data["owtf_rank[lt]"] = filter_data["owtf_rank[lt]"][0]
@@ -88,6 +100,24 @@ class POutputDB(object):
         results = query.all()
         session.close()
         return(self.DeriveOutputDicts(results, target_id))
+
+    def GetUnique(self, target_id=None):
+        """
+        Returns a dict of some column names and their unique database
+        Useful for advanced filter
+        """
+        self.Core.DB.Target.SetTarget(target_id)
+        Session = self.Core.DB.Target.GetOutputDBSession()
+        session = Session()
+        unique_data = {
+            "plugin_type": [i[0] for i in session.query(models.PluginOutput.plugin_type).distinct().all()],
+            "plugin_group": [i[0] for i in session.query(models.PluginOutput.plugin_group).distinct().all()],
+            "status": [i[0] for i in session.query(models.PluginOutput.status).distinct().all()],
+            "user_rank": [i[0] for i in session.query(models.PluginOutput.user_rank).distinct().all()],
+            "owtf_rank": [i[0] for i in session.query(models.PluginOutput.owtf_rank).distinct().all()]
+        }
+        session.close()
+        return(unique_data)
 
     def DeleteAll(self, filter_data, target_id=None): # Here keeping filter_data optional is very risky
         Session = self.Core.DB.Target.GetOutputDBSession(target_id)
