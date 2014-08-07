@@ -70,6 +70,7 @@ OUTFILE="w3af_report$DATE"
 REPORT_HTTP=$OUTFILE.http.txt
 REPORT_TXT=$OUTFILE.txt
 REPORT_HTML=$OUTFILE.html
+REPORT_XML=$OUTFILE.xml
 W3AF_SCRIPT=$OUTFILE.script.w3af
 DIR=$(pwd) # Remember current dir
 cd "$TOOL_DIR" # W3AF needs to be run from its own folder
@@ -94,6 +95,9 @@ back
 output config text_file
 set http_output_file $REPORT_HTTP
 set output_file $REPORT_TXT
+back
+output config xml_file
+set output_file $REPORT_XML
 back
 back
 misc-settings
