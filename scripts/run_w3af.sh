@@ -51,11 +51,11 @@ else
 fi
 
 if [ $# -ne 3 -a $# -ne 4 ]; then
-        echo "Usage $0 <tool_dir> <target url> <proxy> (<user agent -spaces replaced by # symbol->)"
+        echo "Usage $0 <tool_bin> <target url> <proxy> (<user agent -spaces replaced by # symbol->)"
         exit
 fi
 
-TOOL_DIR=$1
+TOOL_BIN=$1
 URL=$2
 PROXY=$3
 PROXY_IP=$(echo $PROXY | cut -d ":" -f 1)
@@ -72,8 +72,6 @@ REPORT_TXT=$OUTFILE.txt
 REPORT_HTML=$OUTFILE.html
 REPORT_XML=$OUTFILE.xml
 W3AF_SCRIPT=$OUTFILE.script.w3af
-DIR=$(pwd) # Remember current dir
-cd "$TOOL_DIR" # W3AF needs to be run from its own folder
 
 # "set fuzzFormComboValues all" removed because: In a form with ~10 inputs where some of those are <select> the
 # following setting: "set fuzzFormComboValues all" might make w3af run for LOTS of time.
@@ -118,12 +116,10 @@ exit
 " > $W3AF_SCRIPT
 #Redirecting stdout/stderr is messy due to having to use a background tail process with remains hanging if "Control+C"
 #echo "./w3af_console -n -s $W3AF_SCRIPT" > $LOG_TXT 2> $ERR_FILE
-COMMAND="./w3af_console -n -s $W3AF_SCRIPT"
+COMMAND="$TOOL_BIN -n -s $W3AF_SCRIPT"
 echo "[*] Running: $COMMAND"
-./w3af_console -n -s $W3AF_SCRIPT
+$TOOL_BIN -n -s $W3AF_SCRIPT
 
-mv $OUTFILE* $DIR
-cd $DIR # Back to working folder
 strings $REPORT_HTTP > $REPORT_HTTP.tmp # Removing binary garbage
 mv $REPORT_HTTP.tmp $REPORT_HTTP
 
