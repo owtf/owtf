@@ -86,7 +86,7 @@ plugins
 bruteforce !basic_auth,!form_auth
 crawl web_spider, robots_txt, content_negotiation, digit_sum, url_fuzzer
 infrastructure shared_hosting, allowed_methods, server_status
-output html_file,text_file
+output html_file,text_file,xml_file
 output config html_file
 set output_file $REPORT_HTML
 back
