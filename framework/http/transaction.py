@@ -36,10 +36,11 @@ import logging
 import StringIO
 import gzip,zlib
 from httplib import responses as response_messages
+import simplejson as json
 
 from framework import timer
 from framework.lib.general import *
-from framework.http.cookies.functions import parse
+from framework.http.cookies.cookies import Cookies, Cookie
 
 
 class HTTP_Transaction(object):
@@ -148,21 +149,20 @@ class HTTP_Transaction(object):
         return (self.GrepOutput.get(regex_name, None))
 
     def GetSessionTokens(self):
-        # returns dict of Cookie objects
-        return parse(self.CookieString)
+        try:
+            cookie_ls = []
+            # returns a list of cookies and their attributes
+            for cookie in self.CookieString.split(","):
+                cookie_ls.append(Cookie.from_string("Set-Cookie: {}".format(cookie)))
 
-    def SetSessionFromDB(self,
-                         id,
-                         url,
-                         name=None,
-                         tokens=None,
-                         status=False
-                        ):
-        self.ID = id
-        self.url = url
-        self.name = name
-        self.tokens = tokens
-        self.active = active
+            cookie_dict = {}
+            for i in range(len(cookie_ls)):
+                cookie_dict[cookie_ls[i].name] = {"value": str(cookie_ls[i].value),
+                                                  "attributes": cookie_ls[i].attributes()
+                                                }
+            return json.dumps(cookie_dict)
+        except:
+            pass
 
     def SetError(self, error_message):
         # Only called for unknown errors, 404 and other HTTP stuff handled on

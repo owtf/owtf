@@ -165,6 +165,7 @@ class TransactionManager(object):
                                             response_headers = transaction.GetResponseHeaders(),
                                             response_body = response_body,
                                             binary_response = binary_response,
+                                            session_tokens = transaction.GetSessionTokens(),
                                             grep_output = grep_output
                                           ))
 
