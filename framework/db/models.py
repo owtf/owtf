@@ -188,3 +188,23 @@ class Plugin(PluginBase):
     attr = Column(String, nullable=True)
 
     __table_args__ = (UniqueConstraint('type', 'code'),)
+    
+ExpBase = declarative_base()
+
+class Vulnexp(ExpBase):
+    __tablename__ = 'Vulnexp'
+    Title = Column(String, primary_key=True)
+	Desc = Column(String)
+	Category=Column(String)
+
+MappingBase = declarative_base()
+
+class Mappings(MappingBase):
+	__tablename__ = 'Mappings'
+	OWTF_code = Column(String, primary_key=True)
+	OWASP_Testing_Guide_v3_num = Column(String)
+	OWASP_Testing_Guide_v3_Test_Names= Column(String)
+	OWASP_Testing_Guide_v4_num=Column(String)
+	OWASP_Testing_Guide_v4_Test_Names=Column(String)
+	NIST_control=Column(String)
+	Category=Column(String)
