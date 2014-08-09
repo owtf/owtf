@@ -209,7 +209,7 @@ function initializePluginLauncher(){
     $('#pluginLaunchTable tfoot th').each(function (){
         var title = $('#pluginLaunchTable thead th').eq($(this).index()).text();
         if (title)
-            $(this).html('<input type="text" style="width: 100%; box-sizing: border-box;" placeholder="Search '+title+'" />' );
+            $(this).html('<input type="text" style="width: 100%; box-sizing: border-box;" class="form-control" placeholder="Search '+title+'" />' );
     } );
 
 	pluginLaunchTable = $('#pluginLaunchTable').dataTable({
