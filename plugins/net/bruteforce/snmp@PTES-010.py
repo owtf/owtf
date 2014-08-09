@@ -33,4 +33,4 @@ DESCRIPTION = " SNMP Probing "
 def run(Core, PluginInfo):
     #Core.Config.Show()
     #print "Content="+Content
-    return Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('BruteSnmpProbeMethods'), PluginInfo, []) # No previous output
+    return Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('BruteSnmpProbeMethods'), PluginInfo, []) # No previous output
