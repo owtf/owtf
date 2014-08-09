@@ -31,7 +31,6 @@ Plugin for probing ftp
 DESCRIPTION = " DNS Probing "
 
 def run(Core, PluginInfo):
-    #Core.Config.Show()
     #print "Content="+Content
     Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('BruteDnsProbeMethods'), PluginInfo, "") # No previous output
     return Content
