@@ -192,7 +192,7 @@ function addPluginsToLauncher(){
             pluginLaunchTable.fnClearTable();
             $.each(data, function(index, obj){
                 pluginLaunchTable.fnAddData([
-                                            '<input name="statusCheckbox" type="checkbox" name="'+obj.group+'@'+obj.type+'@'+obj.code+'"/>',
+                                            '<input type="checkbox" name="'+obj.group+'@'+obj.type+'@'+obj.code+'"/>',
                                             obj.code,
                                             (obj.name).replace(/_/g,' '),
                                             (obj.type).replace(/_/g,' '),
@@ -222,7 +222,7 @@ function initializePluginLauncher(){
             // checkbox in the table header is selected
             var allChecked = true;
             $('#pluginLaunchTable tbody tr').each(function() {
-                $(this).find(':checkbox[name=statusCheckbox]').each(function(){
+                $(this).find(':checkbox').each(function(){
                     if (!$(this).is(':checked')) allChecked = false;
                 });
             });
