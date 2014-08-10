@@ -78,9 +78,9 @@ if new_hash!=old_hash:
     ExpBase = declarative_base()
     class Vulnexp(ExpBase):
     	__tablename__ = 'Vulnexp'
-    	Title = Column(String, primary_key=True)
-	Desc = Column(String)
-	Category=Column(String)
+    	title = Column(String, primary_key=True)
+	desc = Column(String)
+	category=Column(String)
 
     path=retreiver()
     #getting the path for db creation
@@ -109,9 +109,9 @@ if new_hash!=old_hash:
 	    i=i+1
 
 	title2=title.split(":")
-	vuln = {'Title': title2[1], 'Desc':texto }
+	vuln = {'title': title2[1], 'desc':texto }
 	vuln_desc = json.dumps(texto)
-	obj = Vulnexp(Title = vuln['Title'],Desc=vuln_desc,Category=lock)
+	obj = Vulnexp(title = vuln['Title'],desc=vuln_desc,category=lock)
 	s.add(obj)
 	line=""
 	title=""
