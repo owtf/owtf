@@ -192,19 +192,19 @@ class Plugin(PluginBase):
 ExpBase = declarative_base()
 
 class Vulnexp(ExpBase):
-    __tablename__ = 'Vulnexp'
-    Title = Column(String, primary_key=True)
-	Desc = Column(String)
-	Category=Column(String)
+    __tablename__ = 'vulnexp'
+    title = Column(String, primary_key=True)
+    desc = Column(String)
+    category=Column(String)
 
 MappingBase = declarative_base()
 
 class Mappings(MappingBase):
-	__tablename__ = 'Mappings'
-	OWTF_code = Column(String, primary_key=True)
-	OWASP_Testing_Guide_v3_num = Column(String)
-	OWASP_Testing_Guide_v3_Test_Names= Column(String)
-	OWASP_Testing_Guide_v4_num=Column(String)
-	OWASP_Testing_Guide_v4_Test_Names=Column(String)
-	NIST_control=Column(String)
-	Category=Column(String)
+    __tablename__ = 'mappings'
+    owtf_code = Column(String, primary_key=True)
+    owasp_testing_guide_v3_num = Column(String)
+    owasp_testing_guide_v3_test_names= Column(String)
+    owasp_testing_guide_v4_num=Column(String)
+    owasp_testing_guide_v4_test_names=Column(String)
+    nist_control=Column(String)
+    category=Column(String)
