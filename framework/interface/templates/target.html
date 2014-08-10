@@ -73,7 +73,7 @@
         <table id="pluginLaunchTable" class="table table-hover table-striped table-bordered">
             <thead>
                 <tr>
-                    <th><input type="checkbox" onclick="toggleAll(this);"/></th>
+                    <th><input type="checkbox" id="selectAllCheckbox" onclick="toggleAll(this);"/></th>
                     <th>Code</th>
                     <th>Name</th>
                     <th>Type</th>
@@ -192,7 +192,7 @@ function addPluginsToLauncher(){
             pluginLaunchTable.fnClearTable();
             $.each(data, function(index, obj){
                 pluginLaunchTable.fnAddData([
-                                            '<input type="checkbox" name="'+obj.group+'@'+obj.type+'@'+obj.code+'"/>',
+                                            '<input name="statusCheckbox" type="checkbox" name="'+obj.group+'@'+obj.type+'@'+obj.code+'"/>',
                                             obj.code,
                                             (obj.name).replace(/_/g,' '),
                                             (obj.type).replace(/_/g,' '),
@@ -214,8 +214,23 @@ function initializePluginLauncher(){
 
 	pluginLaunchTable = $('#pluginLaunchTable').dataTable({
         "bAutoWidth":false,
+        "columnDefs":[{ "targets": 0, "orderable": false }], // Disable sorting of fist column ;)
+        "fnDrawCallback": function( settings ) {
+            // Managing the "Select all" checkbox
+            // everytime the table is drawn, it checks if all the
+            // checkboxes are checked and if they are, then the select all
+            // checkbox in the table header is selected
+            var allChecked = true;
+            $('#pluginLaunchTable tbody tr').each(function() {
+                $(this).find(':checkbox[name=statusCheckbox]').each(function(){
+                    if (!$(this).is(':checked')) allChecked = false;
+                });
+            });
+            $('#selectAllCheckbox').prop('checked', allChecked);
+        },
 	});
 
+    // Just needed for column wise search
     var table = $("#pluginLaunchTable").DataTable();
 
     // Apply the filter
