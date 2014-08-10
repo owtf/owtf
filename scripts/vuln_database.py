@@ -14,7 +14,7 @@ import subprocess
 from retreiver import retreiver
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
-file_path=os.path.join(abs_path,"../../framework/scripts/commit-hash")
+file_path=os.path.join(abs_path,"../scripts/commit-hash")
 #getting the old commit-hash for comparison
 old_hash=""
 ink = codecs.open(file_path,mode='r')
@@ -82,40 +82,40 @@ if new_hash!=old_hash:
 	Desc = Column(String)
 	Category=Column(String)
 
-	path=retreiver()
-	#getting the path for db creation
-	path='sqlite:///'+path+'vulnexp.db'
-	engine = create_engine(path)
-	session = sessionmaker()
-	session.configure(bind = engine)
-	ExpBase.metadata.create_all(engine)
-	s = session()
+    path=retreiver()
+    #getting the path for db creation
+    path='sqlite:///'+path+'vulnexp.db'
+    engine = create_engine(path)
+    session = sessionmaker()
+    session.configure(bind = engine)
+    ExpBase.metadata.create_all(engine)
+    s = session()
 
-	texto=""
+    texto=""
+    title=""
+
+    os.chdir("_posts")
+    for file in glob.glob("*.md"):
+        inp=codecs.open(file,mode="r")
+	i=1
+	tect=inp.readlines()
+	for line in tect:
+	    if i==6:
+	        lock=line.strip()
+	    if i==3:
+ 	        title=line.strip()
+	    if i>7:
+	        texto+=line
+	    i=i+1
+
+	title2=title.split(":")
+	vuln = {'Title': title2[1], 'Desc':texto }
+	vuln_desc = json.dumps(texto)
+	obj = Vulnexp(Title = vuln['Title'],Desc=vuln_desc,Category=lock)
+	s.add(obj)
+	line=""
 	title=""
-
-	os.chdir("_posts")
-	for file in glob.glob("*.md"):
-	    inp=codecs.open(file,mode="r")
-	    i=1
-	    tect=inp.readlines()
-	    for line in tect:
-	    	if i==6:
-	    	    lock=line.strip()
-		if i==3:
- 	            title=line.strip()
-	        if i>7:
-	            texto+=line
-		i=i+1
-
-	    title2=title.split(":")
-	    vuln = {'Title': title2[1], 'Desc':texto }
-	    vuln_desc = json.dumps(texto)
-	    obj = Vulnexp(Title = vuln['Title'],Desc=vuln_desc,Category=lock)
-	    s.add(obj)
-	    line=""
-	    title=""
-	    texto=""
-	s.commit()
+	texto=""
+    s.commit()
 else:
     print("No update necessary")
