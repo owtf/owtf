@@ -111,7 +111,7 @@ if new_hash!=old_hash:
 	title2=title.split(":")
 	vuln = {'title': title2[1], 'desc':texto }
 	vuln_desc = json.dumps(texto)
-	obj = Vulnexp(title = vuln['Title'],desc=vuln_desc,category=lock)
+	obj = Vulnexp(title = vuln['title'],desc=vuln_desc,category=lock)
 	s.add(obj)
 	line=""
 	title=""
