@@ -199,12 +199,12 @@ class Vulnexp(ExpBase):
 
 MappingBase = declarative_base()
 
-class Mappings(MappingBase):
-    __tablename__ = 'mappings'
+class Mapping(MappingBase):
+    __tablename__ = 'mapping'
     owtf_code = Column(String, primary_key=True)
-    owasp_testing_guide_v3_num = Column(String)
-    owasp_testing_guide_v3_test_names= Column(String)
-    owasp_testing_guide_v4_num=Column(String)
-    owasp_testing_guide_v4_test_names=Column(String)
+    owasp_guide_v3_num = Column(String)
+    owasp_guide_v3_names= Column(String)
+    owasp_guide_v4_num=Column(String)
+    owasp_guide_v4_names=Column(String)
     nist_control=Column(String)
     category=Column(String)
