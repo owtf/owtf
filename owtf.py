@@ -41,6 +41,7 @@ import os
 from framework import core
 from framework.lib.general import *
 from framework import update
+from framework.http.proxy import tor_manager # Is needed for printing configuration help
 
 
 def banner():
@@ -116,6 +117,13 @@ def get_args(core, args):
         help="ip:port:tor_control_port:password:IP_renew_time - " \
              "Sends all OWTF requests through the TOR network. " \
              "For configuration help run -T help.")
+    parser.add_argument(
+        "-b", "--botnet-mode",
+        dest="Botnet_mode",
+        default=None,
+        help="miner or list:path_of_list - Sends all OWTF requests " \
+             "throw different proxies which can be mined or loaded " \
+             "by a list file.")
     parser.add_argument(
         "-s", "--simulation",
         dest="Simulation",
@@ -262,6 +270,16 @@ def usage(error_message):
         " -o OWTF-WVS-001 http://my.website.com"
         " --tor 127.0.0.1:9050:9051:password:1"
         )
+    print()
+    print(
+        "Run Botnet-mode using miner:                    " + main +
+        " -o OWTF-WVS-001 http://my.website.com -b miner"
+        )
+    print()
+    print(
+        "Run Botnet-mode using custom proxy list:                  " + main +
+        " -o OWTF-WVS-001 http://my.website.com -b list:proxy_list_path.txt"
+        )
     if error_message:
         print("\nERROR: " + error_message)
     exit(-1)
@@ -320,7 +338,9 @@ def process_options(core, user_args):
 
     if arg.TOR_mode:
         arg.TOR_mode = arg.TOR_mode.split(":")
-        print(arg.TOR_mode[0])
+        if(arg.TOR_mode[0] == "help"):
+            tor_manager.TOR_manager.msg_configure_tor()
+            exit(0);
         if len(arg.TOR_mode) == 1:
             if arg.TOR_mode[0] != "help":
                 usage("Invalid argument for TOR-mode")
@@ -338,6 +358,16 @@ def process_options(core, user_args):
                 outbound_proxy_port = arg.TOR_mode[1]
             arg.OutboundProxy = "socks://" + outbound_proxy_ip + \
                                 ":" + outbound_proxy_port
+
+    if arg.Botnet_mode:  # Checking arguments
+        arg.Botnet_mode = arg.Botnet_mode.split(":")
+        if arg.Botnet_mode[0] == "miner" and len(arg.Botnet_mode) != 1:
+            Usage("Invalid argument for Botnet mode\n Mode must be miner or list")
+        if arg.Botnet_mode[0] == "list":
+            if len(arg.Botnet_mode) != 2:
+                Usage("Invalid argument for Botnet mode\n Mode must be miner or list")
+            if not os.path.isfile(os.path.expanduser(arg.Botnet_mode[1])):
+                Usage("Error Proxy List not found! Please check the path.")
 
     if arg.OutboundProxy:
         arg.OutboundProxy = arg.OutboundProxy.split('://')
@@ -430,6 +460,7 @@ def process_options(core, user_args):
         'PortWaves' : arg.PortWaves,
         'ProxyMode': arg.ProxyMode,
         'TOR_mode' : arg.TOR_mode,
+        'Botnet_mode' : arg.Botnet_mode,
         'Args': args}
 
 

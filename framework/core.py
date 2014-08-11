@@ -35,6 +35,7 @@ to communicate with each other
 import os
 import re
 import sys
+import time
 import fcntl
 import shutil
 import codecs
@@ -50,6 +51,8 @@ from framework.config import config
 from framework.db import db
 from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
+from framework.http.proxy.proxy_manager import Proxy_manager, Proxy_Checker
+from framework.http.proxy.outbound_proxyminer import Proxy_Miner
 from framework.plugin import plugin_handler, plugin_helper, plugin_params, process_manager
 from framework.protocols import smtp, smb
 from framework.interface import reporter, server
@@ -206,6 +209,54 @@ class Core(object):
                 tor_manager.TOR_manager.msg_configure_tor()
                 self.Error.FrameworkAbort("Configuration help is running")
 
+    def StartBotnetMode(self, options):
+        self.Proxy_manager = None
+        if options['Botnet_mode'] != None:
+            self.Proxy_manager = Proxy_manager()
+            answer = "Yes"
+            proxies = []
+            if options['Botnet_mode'][0] == "miner":
+                miner = Proxy_Miner()
+                proxies = miner.start_miner()
+
+            if options['Botnet_mode'][0] == "list":  # load proxies from list
+                proxies = self.Proxy_manager.load_proxy_list(options['Botnet_mode'][1])
+                answer = raw_input("[#] Do you want to check the proxy list? [Yes/no] : ")
+
+            if answer.upper() in ["", "YES", "Y"]:
+                proxy_q = multiprocessing.Queue()
+                proxy_checker = multiprocessing.Process(
+                                                        target=Proxy_Checker.check_proxies,
+                                                        args=(proxy_q, proxies,)
+                                                        )
+                cprint("Checking Proxies...")
+                #cprint("Start Time: " + time.strftime('%H:%M:%S', time.localtime(time.time())))
+                start_time = time.time()
+                proxy_checker.start()
+                proxies = proxy_q.get()
+                proxy_checker.join()
+
+            self.Proxy_manager.proxies = proxies
+            self.Proxy_manager.number_of_proxies = len(proxies)
+
+            if options['Botnet_mode'][0] == "miner":
+                print "Writing Proxies to disk(~/.owtf/proxy_miner/proxies.txt)"
+                miner.export_proxies_to_file("proxies.txt", proxies)
+            if answer.upper() in ["", "YES", "Y"]:
+                cprint("Proxy Check Time: " +\
+                        time.strftime('%H:%M:%S',
+                        time.localtime(time.time() - start_time - 3600)
+                                      )
+                       )
+                cprint("Done")
+
+            proxy = self.Proxy_manager.get_next_available_proxy()
+
+            #check proxy var... http:// sock://
+            options['OutboundProxy'] = []
+            options['OutboundProxy'].append(proxy["proxy"][0])
+            options['OutboundProxy'].append(proxy["proxy"][1])
+
     def StartProxy(self, options):
         # The proxy along with supporting processes are started
         if True:
@@ -332,6 +383,7 @@ class Core(object):
         self.Config.ProcessOptions(options)
         command = self.GetCommand(options['argv'])
 
+        self.StartBotnetMode(options)
         self.StartProxy(options)  # Proxy mode is started in that function.
         # Set anonymised invoking command for error dump info.
         self.Error.SetCommand(self.AnonymiseCommand(command))

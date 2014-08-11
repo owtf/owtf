@@ -1,12 +1,11 @@
 tornado
 pycurl
 pyopenssl
-#jinja2 # Not necessary
 lxml
-#argparse # Present by default
 selenium
 rdflib
 pyvirtualdisplay
 sqlalchemy
 pexpect
 python-owasp-zap-v2
+beautifulsoup4
