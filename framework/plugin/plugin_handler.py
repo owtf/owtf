@@ -249,6 +249,52 @@ class PluginHandler:
                     #self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
                 return PluginOutput
 
+
+        @staticmethod
+        def rank_plugin(output, pathname):
+            """Rank the current plugin results using PTP.
+
+            Returns the ranking value.
+
+            """
+            def extract_metasploit_modules(cmd):
+                """Extract the metasploit modules contained in the plugin output.
+
+                Returns the list of (module name, output file) found, an empty list
+                otherwise.
+
+                """
+                return [
+                    (
+                        output['output'].get('ModifiedCommand', '').split(' ')[3],
+                        os.path.basename(
+                            output['output'].get('RelativeFilePath', ''))
+                    )
+                    for output in cmd
+                    if ('output' in output and
+                        'metasploit' in output['output'].get('ModifiedCommand',''))]
+
+            msf_modules = extract_metasploit_modules(output)
+            owtf_rank = -1  # Default ranking value set to Unknown.
+            try:
+                parser = PTP()
+                if msf_modules:
+                    for module in msf_modules:
+                        parser.parse(
+                            pathname=pathname,
+                            filename=module[1],  # Path to output file.
+                            plugin=module[0])  # Metasploit module name.
+                        owtf_rank = max(
+                            owtf_rank,
+                            parser.get_highest_ranking() - 1)
+                else:
+                    parser.parse(pathname=pathname)
+                    owtf_rank = parser.get_highest_ranking() - 1
+            except PTPError:  # Not supported tool or report not found.
+                pass
+            return owtf_rank
+
+
         def ProcessPlugin(self, plugin_dir, plugin, status={}):
             # Save how long it takes for the plugin to run.
             self.Core.Timer.StartTimer('Plugin')
@@ -284,13 +330,9 @@ class PluginHandler:
                 plugin['status'] = 'Successful'
                 plugin['end'] = self.Core.Timer.GetEndDateTimeAsStr(
                     'Plugin')
-                owtf_rank = None
-                try:
-                    parser = PTP()
-                    parser.parse(pathname=plugin['output_path'])
-                    owtf_rank = 3 - parser.get_highest_ranking()
-                except PTPError:  # Not supported tool or report not found.
-                    pass
+                owtf_rank = self.rank_plugin(
+                    output,
+                    self.GetPluginOutputDir(plugin))
                 status['SomeSuccessful'] = True
                 self.Core.DB.POutput.SavePluginOutput(
                     plugin,
