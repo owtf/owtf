@@ -1,76 +1,91 @@
 """
 
-    The Report class will be the summarize of the complete report provided by
-    pentesting tools.
+.. module:: report
+    :synopsis: The Report class will be the summary of a complete report
+        provided by a pentesting tool.
+
+.. moduleauthor:: Tao Sauvage
 
 """
 
 
 import os
 import fnmatch
-from framework.lib.libptp.constants import RANKING_SCALE
+
+from framework.lib.libptp.exceptions import NotSupportedVersionError
+from framework.lib.libptp.constants import UNKNOWN, RANKING_SCALE
 
 
 class AbstractReport(object):
+
     """Abstract representation of a report provided by a pentesting tool.
 
-        + vulns: List of Info instances
+    .. note::
 
-    This class will be extended for each pentesting tool. That way, each tool
-    will add its own parser.
+        This class will be extended for each pentesting tool. That way, each
+        tool will add its own report/parsing specificities.
 
     """
 
+    #: :class:`str` -- Name of the tool.
+    __tool__ = None
+    #: :class:`tuple` -- Available parsers for the tool.
+    __parsers__ = None
+
     def __init__(self, vulns=None):
         """Self-explanatory."""
-        self.vulns = vulns
-        if self.vulns is None:
-            self.vulns = []
+        #: The current parser the report is using.
+        self.parser = None
+        #: List of dictionaries of the results found in the report.
+        self.vulns = [] or vulns
 
     def __str__(self):
         return ', '.join([info.__str__() for info in self.vulns])
 
-    def _lowest_risk(self):
-        """Retrieve the ranking id of the lowest risk possible.
-
-        According the the ranking scale, 3 represents the lowest.
-
-        """
-        return max([value for value in RANKING_SCALE.values()])
-
-    def _highest_risk(self):
-        """Retrieve the ranking id of the highest risk possible.
-
-        According the the ranking scale, 0 represents the lowest.
-
-        """
-        return min([value for value in RANKING_SCALE.values()])
-
     @classmethod
     def is_mine(cls, pathname, filename=None):
-        """Check if it it a report from my tool.
+        """Check if it is a report from the tool this class supports.
 
-        Return True if it is mine, False otherwise.
+        :param str pathname: The path to the report.
+        :param str filename: The name of the report file.
+        :return: `True` if this class supports this tool, `False` otherwise.
+        :rtype: :class:`bool`
 
         """
         return False
 
     @classmethod
-    def check_version(cls, metadata, key='version'):
-        """Checks the version from the metadata against the supported one.
+    def _is_parser(cls, parsers, *args, **kwargs):
+        """Check if a parser exists for that report.
 
-        The version to test is the value of metadata[key].
+        :param :class:`list` parsers: The available parsers of this
+            class.
+        :param list args: Arguments that will be pass to the parser.
+        :param dict kwargs: Arguments that will be pass to the parser.
+        :return: `True` if this class has a parser for this tool, `False`
+            otherwise.
+        :rtype: :class:`bool`
 
         """
-        if metadata[key] in cls.__version__:
-            return True
+        if parsers is not None:
+            for parser in parsers:
+                if parser.is_mine(*args, **kwargs):
+                    return True
         return False
 
     @staticmethod
     def _recursive_find(pathname='./', file_regex='*', early_break=True):
-        """Find the files corresponding to `file_regex`.
+        """Retrieve the full path to the report.
 
         The search occurs in the directory `pathname`.
+        :param str pathname: The root directory where to start the search.
+        :param re file_regex: The regex that will be matched against all files
+            from within `pathname`.
+        :param bool early_break: Stop the search as soon as a file has been
+            matched.
+        :return: A list of paths to matched files starting from
+            `pathname`.
+        :rtype: :class:`list`
 
         """
         founds = []
@@ -83,30 +98,50 @@ class AbstractReport(object):
                 break
         return founds
 
-    def get_highest_ranking(self, *args, **kwargs):
-        """Return the highest ranking of the report.
+    def _init_parser(self, *args, **kwargs):
+        """Instantiate the correct parser for the report.
 
-        Iterates over the list of vulnerabilities.
-        If the current ranking is higher (in risk) than the current highest
-        then switch them.
-        If it finds the highest (in risk) ranking possible, stops.
+        :param list args: Arguments that will be pass to the parser.
+        :param dict kwargs: Arguments that will be pass to the parser.
+
+        :raises: :class:`NotSupportedVersionError` -- if it does not support
+            that version of the tool.
 
         """
-        # Be sure that the parsing already happened.
-        if self.vulns is None:
-            self.parser(*args, **kwargs)
-        highest_possible_ranking = self._highest_risk()
-        # Default highest ranking set to the lowest possible value.
-        highest_ranking = self._lowest_risk()
-        for vuln in self.vulns:
-            if RANKING_SCALE[vuln.ranking] < RANKING_SCALE[highest_ranking]:
-                highest_ranking = vuln.ranking
-            # If the current highest_ranking is already the highest possible
-            # one, we can stop the loop.
-            if RANKING_SCALE[highest_ranking] == highest_possible_ranking:
-                break
-        return highest_ranking
+        for parser in self.__parsers__:
+            try:
+                if parser.is_mine(*args, **kwargs):
+                    self.parser = parser(*args, **kwargs)
+            except TypeError:
+                pass
+            except NotSupportedVersionError:
+                pass
+        if self.parser is None:
+            raise NotSupportedVersionError
+
+    def get_highest_ranking(self):
+        """Return the highest ranking id of the report.
+
+        :return: the risk id of the highest ranked vulnerability
+            referenced in the report.
+        :rtype: :class:`int`
+
+        .. note::
+
+            The risk id varies from `0` (not ranked/unknown) to `n` (the
+            highest risk).
+
+        """
+        if not self.vulns:
+            return UNKNOWN
+        return max(
+            RANKING_SCALE.get(vuln.get('ranking')) for vuln in self.vulns)
 
     def parse(self):
-        """Abstract parser that will parse the report of a tool."""
+        """Abstract parser that will parse the report of a tool.
+
+        :raises: :class:`NotImplementedError` -- because this is an abstract
+            method.
+
+        """
         raise NotImplementedError('The parser MUST be define for each tool.')

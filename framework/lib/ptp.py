@@ -1,33 +1,44 @@
 """
 
-    PTP library.
+.. module:: ptp
+    :synopsis: PTP library.
+
+.. moduleauthor:: Tao Sauvage
 
 """
 
 
 from framework.lib.libptp.exceptions import NotSupportedToolError
-from framework.lib.libptp.tools.arachni.arachni import ArachniReport
-from framework.lib.libptp.tools.skipfish.skipfish import SkipfishReport
-from framework.lib.libptp.tools.w3af.w3af import W3AFReport
-from framework.lib.libptp.tools.wapiti.wapiti import WapitiReport
+from framework.lib.libptp.constants import UNKNOWN
+from framework.lib.libptp.tools.arachni.report import ArachniReport
+from framework.lib.libptp.tools.skipfish.report import SkipfishReport
+from framework.lib.libptp.tools.w3af.report import W3AFReport
+from framework.lib.libptp.tools.wapiti.report import WapitiReport
+from framework.lib.libptp.tools.metasploit.report import MetasploitReport
+from framework.lib.libptp.tools.dirbuster.report import DirbusterReport
+from framework.lib.libptp.tools.nmap.report import NmapReport
 
 
 class PTP(object):
-    """PTP class definition.
 
-    Usage:
+    """PTP class definition aiming to help users to use `libptp`.
+
+    Example::
+
         ptp = PTP()
         ptp.parse(path_to_report)
 
     """
 
-    # Reports for supported tools.
+    #: Dictionary linking the tools to their report classes.
     supported = {
         'arachni': ArachniReport,
         'skipfish': SkipfishReport,
         'w3af': W3AFReport,
-        'wapiti': WapitiReport
-        }
+        'wapiti': WapitiReport,
+        'metasploit': MetasploitReport,
+        'dirbuster': DirbusterReport,
+        'nmap': NmapReport,}
 
     def __init__(self, tool_name=None):
         self.tool_name = tool_name
@@ -36,20 +47,47 @@ class PTP(object):
     def __str__(self):
         return self.report.__str__()
 
-    def parse(self, pathname=None):
+    def parse(self, *args, **kwargs):
+        """Parse a tool report.
+
+        :param pathname: The path to the report.
+        :type pathname: str.
+        :raises: NotSupportedToolError
+
+        :returns: list -- The list of dictionaries of the results found in the
+                  report.
+
+        """
         if self.tool_name is None:
-            for tool in self.supported.values():
-                if tool.is_mine(pathname):
-                    self.report = tool()
-                    break
-        else:
             try:
-                self.report = self.supported[self.tool_name]()
-            except KeyError:
-                pass
+                supported = self.supported.itervalues()
+            except AttributeError:  # Python3 then.
+                supported = self.supported.values()
+            for tool in supported:
+                try:
+                    if tool.is_mine(*args, **kwargs):
+                        self.report = tool
+                        break
+                except TypeError:
+                    pass
+        else:
+            self.report = self.supported.get(self.tool_name)
         if self.report is None:
             raise NotSupportedToolError('This tool is not supported by PTP.')
-        return self.report.parse(pathname)
+        self.report = self.report()  # Instantiate the report class.
+        return self.report.parse(*args, **kwargs)
 
     def get_highest_ranking(self):
-        return self.report.get_highest_ranking()
+        """Retrieve the highest ranked vulnerability level from the report.
+
+        :returns: int -- The highest ranked vulnerability level.
+
+        .. note::
+
+            The `level` starts from `0` to `n` where `n` represents the highest
+            risk.
+
+        """
+        if self.report:
+            return self.report.get_highest_ranking()
+        return UNKNOWN

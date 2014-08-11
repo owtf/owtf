@@ -2,7 +2,7 @@
 
     Wapiti does not provide ranking for the vulnerabilities it has found.
     This file tries to define a ranking for every vulnerability Wapiti might
-    found.
+    find.
 
 """
 
@@ -10,7 +10,6 @@
 from framework.lib.libptp.constants import HIGH, MEDIUM, LOW, INFO
 
 
-# TODO: Complete the signatures database.
 SIGNATURES = {
     # High ranked vulnerabilities
     'SQL Injection': HIGH,
@@ -21,6 +20,7 @@ SIGNATURES = {
     'Htaccess Bypass': MEDIUM,
     'Cross Site Scripting': MEDIUM,
     'CRLF Injection': MEDIUM,
+    'CRLF': MEDIUM,
 
     # Low ranked vulnerabilities
     'File Handling': LOW,  # a.k.a Path or Directory listing

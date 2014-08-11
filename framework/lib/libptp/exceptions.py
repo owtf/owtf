@@ -1,6 +1,9 @@
 """
 
-    Custom exceptions for PTP.
+.. module:: exceptions
+    :synopsis: Custom exceptions for PTP.
+
+.. moduleauthor:: Tao Sauvage
 
 """
 
@@ -11,7 +14,7 @@ class PTPError(Exception):
 
 
 class ReportNotFoundError(PTPError):
-    """General PTP error."""
+    """PTP error raised when the report file(s) was not found."""
     pass
 
 
