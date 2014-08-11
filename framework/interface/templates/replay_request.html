@@ -122,8 +122,8 @@ function GetInitialRequest(){
 function afterGet(obj){
           var $tabs = $('.tabbable li');
           $tabs.filter('.active').next('li').find('a[data-toggle="tab"]').tab('show'); //enables response tab 
-          $("#raw_response_headers").text(obj.Status+"\r\n"+obj.Headers);
-          $("#raw_response_body").text(obj.Body);
+          $("#raw_response_headers").text(obj.STATUS+"\r\n"+obj.HEADERS);
+          $("#raw_response_body").text(obj.BODY);
           //TODO : figure out what to do if binary response
           /*  if (obj.binary_response){
                 $("#raw_response_body_heading").html("Raw Response Body <span class='label label-default'>BASE64 Encoded</span>");

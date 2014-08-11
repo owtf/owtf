@@ -188,8 +188,8 @@ function SetContentResultWindow(content){
 //get scripts in zest output folder of the target
 function GetScriptNames(){
     $.getJSON(mySpace.zest_console_api_url,function(obj){
-    var target_list=obj.files;
-    var rec_list=obj.recorded_files;
+    var target_list=obj.target_scripts;
+    var rec_list=obj.recorded_scripts;
     LoadTargetScriptNames(target_list);
     LoadRecordScriptNames(rec_list);
     });
