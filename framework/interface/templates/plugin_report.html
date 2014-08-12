@@ -131,10 +131,31 @@
 </div>
 
 <script>
-/* Global copy of the plugins' outputs in order to avoid calling the API each
- * time the user changes a rank.
+/* Global copy of the plugins' outputs is built in the template itself to avoid
+api calls. Only needed attributes are extracted
+    + owtf_rank
+    + user_rank
+    + key
  */
 var copyPOutputs = {};
+{% for test_code, poutput_list in grouped_plugin_outputs.items() %}
+    copyPOutputs['{{ test_code }}'] = [];
+    {% for poutput in poutput_list %}
+        copyPOutputs['{{ test_code }}'].push({
+            {% if poutput['owtf_rank'] %}
+                "owtf_rank": {{ poutput['owtf_rank'] }},
+            {% else %}
+                "owtf_rank": null,
+            {% end %}
+            {% if poutput['user_rank'] %}
+                "user_rank": {{ poutput['user_rank'] }},
+            {% else %}
+                "user_rank": null,
+            {% end %}
+            "key": "{{ poutput['key'] }}"
+        });
+    {% end %}
+{% end %}
 
 var pluginReportSpace = {
                     poutput_api_url:"{{ poutput_api_url }}",
@@ -349,22 +370,8 @@ function updateTargetInfo() {
         $('#rankingTargetInfo').css("opacity", "0.7");
 }
 
-/* Request to API in order to retrieve the highest ranking value for the
- * current target.
- */
 $(function() {
-    var req = $.getJSON(pluginReportSpace.poutput_api_url, function(data) {
-        /* Global copy of the POutputs. */
-        for (var i = 0; i < data.length; i++) {
-            if (!copyPOutputs[data[i].plugin_code])
-                copyPOutputs[data[i].plugin_code] = {};
-            copyPOutputs[data[i].plugin_code][data[i].plugin_type] = data[i];
-        }
-    });
-    /* Update every colors. */
-    req.complete(function() {
-        updateTargetInfo();
-        updateAllTestCasesInfo();
-    });
+    updateTargetInfo();
+    updateAllTestCasesInfo();
 });
 </script>
