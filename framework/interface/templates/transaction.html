@@ -112,7 +112,7 @@ function ForwardToZAP(){
             url:mySpace.forward_zap_url,
             type:'GET',
             error:function(xhr,textStatus, serverResponse){
-                alert("Server replied: "+serverResponse);
+                alert("Server replied: "+serverResponse+"\nTip:Check if ZAP proxy is listening on the configured port");
 
             }
     });
@@ -154,7 +154,8 @@ function ClearText(id){
 function createZestScript(){
 
     var file_name=$('#textareaID').val();
-        //validates file name using regex
+
+    //validates file name using regex
     if(validate_filename(file_name)){
 
          $.ajax({
