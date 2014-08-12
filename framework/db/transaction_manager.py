@@ -88,6 +88,10 @@ class TransactionManager(object):
             if isinstance(Criteria.get('scope'), list):
                 Criteria['scope'] = Criteria['scope'][0]
             query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(Criteria['scope']))
+        if Criteria.get('session_tokens', None):
+            if isinstance(Criteria.get('session_tokens'), list):
+                Criteria['session_tokens'] = Criteria['session_tokens'][0]
+            query = query.filter(models.Transaction.session_tokens.in_(Criteria.get('session_tokens')))
         try:
             if Criteria.get('id[lt]', None):
                 if isinstance(Criteria.get('id[lt]'), list):
@@ -338,3 +342,10 @@ class TransactionManager(object):
         if not transaction_obj:
             raise InvalidTransactionReference("No transaction with " + str(trans_id) + " exists for target with id " + str(target_id) if target_id else self.Core.DB.Target.GetTargetID())
         return self.DeriveTransactionDict(transaction_obj, include_raw_data = True)
+
+    def GetSessionData(self, target_id=None):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
+        session = Session()
+        session_data = session.query(models.Transaction.session_tokens).all()
+        session.close()
+        return session_data
