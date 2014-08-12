@@ -45,7 +45,7 @@ class Zest(object):
             target_config['Zest_Dir'] = target_config['Output_Dir'] + "/zest"
             target_config['Create_Script_Path'] = target_config['Root_Dir'] + "/zest/zest_create.sh"
             target_config['Runner_Script_Path'] = target_config['Root_Dir'] + "/zest/zest_runner.sh"
-            target_config['Host_and_Port'] = ((self.Core.DB.Target.GetTargetConfigForID(target_id))['HOST_NAME'] 
+            target_config['Host_and_Port'] = ((self.Core.DB.Target.GetTargetConfigForID(target_id))['HOST_NAME']
                                               + ":" + (self.Core.DB.Target.GetTargetConfigForID(target_id))['PORT_NUMBER'])
             self.Core.CreateMissingDirs(target_config['Zest_Dir'])
             return target_config
