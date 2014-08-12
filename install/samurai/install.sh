@@ -66,8 +66,8 @@ echo "[*] Done"
 echo "[*] Installing missing tools"
 sudo -E apt-get install lbd arachni tlssled set ua-tester wpscan theharvester whatweb dnsrecon metagoofil metasploit waffit
 
-echo "[*] Installing ZAP API"
-pip install python-owasp-zap-v2
+echo "[*] Installting Tor"
+sudo -E apt-get install tor
 
 ########## Patch scripts
 "$RootDir/install/kali/samurai_wtf_patch_w3af.sh"

@@ -195,38 +195,75 @@ class ProxyHandler(tornado.web.RequestHandler):
             # pycurl is needed for curl client
             async_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
             # httprequest object is created and then passed to async client with a callback
-            request = tornado.httpclient.HTTPRequest(
-                    url=self.request.url,
-                    method=self.request.method,
-                    body=self.request.body if self.request.body else None,
-                    headers=self.request.headers,
-                    auth_username=http_auth_username,
-                    auth_password=http_auth_password,
-                    auth_mode=http_auth_mode,
-                    follow_redirects=False,
-                    use_gzip=True,
-                    streaming_callback=self.handle_data_chunk,
-                    header_callback=None,
-                    proxy_host=self.application.outbound_ip,
-                    proxy_port=self.application.outbound_port,
-                    proxy_username=self.application.outbound_username,
-                    proxy_password=self.application.outbound_password,
-                    allow_nonstandard_methods=True,
-                    prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
-                                                                else None, # socks callback function
-                    validate_cert=False)
-            try:
-                response = yield tornado.gen.Task(async_client.fetch, request)
-            except Exception:
-                pass
+            success_response = False  # is used to check the response in the botnet mode
 
-            # Request retries
-            for i in range(0,3):
-                if response.code in [408, 599]:
-                    self.request.response_buffer = ''
+            while not success_response:
+                #Proxy Switching (botnet_mode) code
+                if self.application.Core.Proxy_manager:
+                    proxy = self.application.Core.Proxy_manager.get_next_available_proxy()
+                    #print proxy
+                    self.application.outbound_ip = proxy["proxy"][0]
+                    self.application.outbound_port = int(proxy["proxy"][1])
+
+                #  httprequest object is created and then passed to async client with a callback
+                request = tornado.httpclient.HTTPRequest(
+                        url=self.request.url,
+                        method=self.request.method,
+                        body=self.request.body if self.request.body else None,
+                        headers=self.request.headers,
+                        auth_username=http_auth_username,
+                        auth_password=http_auth_password,
+                        auth_mode=http_auth_mode,
+                        follow_redirects=False,
+                        use_gzip=True,
+                        streaming_callback=self.handle_data_chunk,
+                        header_callback=None,
+                        proxy_host=self.application.outbound_ip,
+                        proxy_port=self.application.outbound_port,
+                        proxy_username=self.application.outbound_username,
+                        proxy_password=self.application.outbound_password,
+                        allow_nonstandard_methods=True,
+                        prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
+                                                                    else None, # socks callback function
+                        validate_cert=False)
+                try:
                     response = yield tornado.gen.Task(async_client.fetch, request)
+                except Exception:
+                    pass
+                # Request retries
+                for i in range(0, 3):
+                    if response.code in [408, 599]:
+                        self.request.response_buffer = ''
+                        response = yield tornado.gen.Task(async_client.fetch, request)
+                    else:
+                        success_response = True
+                        break
+
+                #botnet mode code (proxy switching)
+                #checking the status of the proxy (asynchronous)
+                if self.application.Core.Proxy_manager and not success_response:
+                    proxy_check_req = tornado.httpclient.HTTPRequest(
+                    url=self.application.Core.Proxy_manager.testing_url, #testing url is google.com
+                        use_gzip=True,
+                        proxy_host=self.application.outbound_ip,
+                        proxy_port=self.application.outbound_port,
+                        proxy_username=self.application.outbound_username,
+                        proxy_password=self.application.outbound_password,
+                        prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
+                        else None, # socks callback function
+                        validate_cert=False)
+                    try:
+                        proxy_check_resp = yield tornado.gen.Task(async_client.fetch, proxy_check_req)
+                    except Exception:
+                        pass
+
+                    if proxy_check_resp.code != 200:
+                        #self.application.Core.Proxy_manager.remove_proxy(proxy)
+                        self.application.Core.Proxy_manager.remove_proxy(proxy["index"])
+                    else:
+                        success_response = True
                 else:
-                    break
+                    success_response = True
 
             self.finish_response(response)
             # Cache the response after finishing the response, so caching time is not included in response time
@@ -474,7 +511,11 @@ class ProxyProcess(Process):
         self.application.Core = core
         self.application.inbound_ip = self.application.Core.DB.Config.Get('INBOUND_PROXY_IP')
         self.application.inbound_port = int(self.application.Core.DB.Config.Get('INBOUND_PROXY_PORT'))
-        self.instances = self.application.Core.DB.Config.Get("INBOUND_PROXY_PROCESSES")
+
+        if self.application.Core.Proxy_manager: #Botnet mode needs only one proxy process
+            self.instances = "1"
+        else:
+            self.instances = self.application.Core.DB.Config.Get("INBOUND_PROXY_PROCESSES")
 
         # Proxy CACHE
         # Cache related settings, including creating required folders according to cache folder structure

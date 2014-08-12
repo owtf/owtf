@@ -155,12 +155,13 @@ class HTTP_Transaction(object):
             for cookie in self.CookieString.split(","):
                 cookie_ls.append(Cookie.from_string("Set-Cookie: {}".format(cookie)))
 
-            cookie_dict = {}
+            cookies = []
             for i in range(len(cookie_ls)):
-                cookie_dict[cookie_ls[i].name] = {"value": str(cookie_ls[i].value),
-                                                  "attributes": cookie_ls[i].attributes()
-                                                }
-            return json.dumps(cookie_dict)
+                cookies.append({"name": cookie_ls[i].name,
+                                "value": str(cookie_ls[i].value),
+                                "attributes": cookie_ls[i].attributes()
+                            })
+            return json.dumps(cookies)
         except:
             pass
 
