@@ -108,10 +108,10 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
         try:
             args = self.request.arguments
             if(not any(args)):  # check if arguments is empty then load zest console
-                file_list, record_scripts = self.application.Core.zest.GetAllScripts(target_id)
+                target_scripts, record_scripts = self.application.Core.zest.GetAllScripts(target_id)
                 tdict = {}
-                tdict["files"] = file_list
-                tdict["recorded_files"] = record_scripts
+                tdict["target_scripts"] = target_scripts
+                tdict["recorded_scripts"] = record_scripts
                 self.write(tdict)
             elif 'script' in args and 'record' in args and 'run' not in args:  # get zest script content
                 if args['record'][0] == "true":  # record script
@@ -146,7 +146,7 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
                 if transaction_id:
                     Scr_Name = self.get_argument('name', '')
                     if not self.application.Core.zest.TargetScriptFromSingleTransaction(transaction_id,Scr_Name,target_id): #zest script creation from single transaction
-                        self.write({"exists":"true"})
+                        self.write({"exists": "true"})
                 else:  # multiple transactions
                     trans_list = self.get_argument('trans', '')   # get transaction ids
                     Scr_Name = self.get_argument('name', '')  # get script name
@@ -185,9 +185,9 @@ class ReplayRequestHandler(custom_handlers.APIRequestHandler):
             self.application.Core.Requester.SetHeaders(replay_headers)  #Set the headers
             trans_obj = self.application.Core.Requester.Request(parsed_req.path, parsed_req.command)  # make the actual request using requester module
             res_data = {}  # received response body and headers will be saved here
-            res_data['Status'] = trans_obj.Status
-            res_data['Headers'] = str(trans_obj.ResponseHeaders)
-            res_data['Body'] = trans_obj.DecodedContent
+            res_data['STATUS'] = trans_obj.Status
+            res_data['HEADERS'] = str(trans_obj.ResponseHeaders)
+            res_data['BODY'] = trans_obj.DecodedContent
             self.write(res_data)
         else:
             print "Cannot send the given HTTP Request"
