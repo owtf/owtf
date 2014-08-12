@@ -158,7 +158,7 @@ class Core(object):
         save_path = os.path.join(directory, WipeBadCharsForFilename(filename))
         self.CreateMissingDirs(directory)
         with self.codecs_open(save_path, 'wb', 'utf-8') as f:
-            f.write(contents.decode('utf-8'))
+            f.write(contents.decode('utf-8', 'replace'))
         return save_path
 
     def get_child_pids(self, parent_pid):
@@ -330,7 +330,7 @@ class Core(object):
                 except:
                     pass
                 return
-            temp += unicode(token.decode('utf-8'))
+            temp += unicode(token.decode('utf-8', 'replace'))
             if(self.showOutput):
                 try:
                     sys.stdout.write(temp)
