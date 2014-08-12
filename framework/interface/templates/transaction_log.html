@@ -90,7 +90,7 @@
       <div class="modal-footer">
          <button type="button" class="btn btn-primary" id="saveBtn" onclick="RequestSender()">Generate!</button>
         <button type="button" class="btn btn-default"  data-dismiss="modal">Cancel</button>
-       
+
       </div>
     </div>
   </div>
@@ -111,7 +111,7 @@ var transactionLog;
 function addTransactions(data, status, xhr){
     $.each(data, function(index, obj){
             jQuery('#transactionLog').dataTable().fnAddData([
-                                                           
+
                                                 '<input  type="checkbox"  class="check" name="'+obj.id+'"/>',
                                                 obj.id,
                                                 '<a href="'+mySpace.transaction_log_url+obj.id+'"><span class="btn btn-primary btn-sm"><i class="fa fa-chevron-circle-right"></i> View</span></a>',
@@ -139,7 +139,7 @@ function createZestBtn(){
 
 //function to toggle visibility of a column in datable
 function fnShowHide( iCol ){
-   
+
         oTable = $('#transactionLog').dataTable();
         var bVis = oTable.fnSettings().aoColumns[iCol].bVisible;
         oTable.fnSetColumnVis( iCol, bVis ? false : true );
@@ -166,7 +166,7 @@ function CloseFooter(){
 
         MakeFooterInvisible();
         $('input:checkbox').removeAttr('checked');
-        fnShowHide(0); 
+        fnShowHide(0);
         enableButton("createZest");
 }
 
@@ -187,13 +187,13 @@ $(document).on('click','input:checkbox', function () {
 
         if ($('.check:checked').length) {
           enableButton("sendBtn");
-        } 
+        }
         else{
           disableButton("sendBtn");
         }
 });
 
-//clears text 
+//clears text
 function ClearText(id){
 
         id='#'+id;
@@ -203,17 +203,17 @@ function ClearText(id){
 // focuses/clears textbox in script modal window
 
 $('#ScriptModal').on('show.bs.modal', function (e) {
-   
+
         $('#textareaID').focus();
         ClearText("textareaID");
         $("#Filecheck").text('');
 });
 
 
-//send event 
+//send event
 
 function RequestSender(){
-    
+
         var file_name=$('#textareaID').val();
         //validates file name using regex
         if(validate_filename(file_name)){
@@ -281,10 +281,6 @@ $(document).ready(function() {
                                         });
         fnShowHide(0);
         MakeFooterInvisible();
-      
-        
 });
-
-
 </script>
 {% end %}
