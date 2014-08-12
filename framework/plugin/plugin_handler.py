@@ -286,10 +286,10 @@ class PluginHandler:
                             plugin=module[0])  # Metasploit module name.
                         owtf_rank = max(
                             owtf_rank,
-                            parser.get_highest_ranking() - 1)
+                            parser.get_highest_ranking())
                 else:
                     parser.parse(pathname=pathname)
-                    owtf_rank = parser.get_highest_ranking() - 1
+                    owtf_rank = parser.get_highest_ranking()
             except PTPError:  # Not supported tool or report not found.
                 pass
             return owtf_rank

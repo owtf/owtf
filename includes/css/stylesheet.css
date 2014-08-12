@@ -29,3 +29,23 @@ body {
         word-wrap: normal;
         white-space : normal;
 }
+
+.panel-critical > .panel-heading, .alert-critical {
+    background-image: linear-gradient(to bottom, #d9534f 0px, #c12e2a 100%);
+    background-repeat: repeat-x;
+    border-color: #b92c28;
+    color: #fff;
+}
+
+.btn-critical {
+    background-image: linear-gradient(to bottom, #d9534f 0px, #c12e2a 100%);
+    background-repeat: repeat-x;
+    border-color: #b92c28;
+}
+
+.btn-critical:active, .btn-critical.active {
+    background-color: #c12e2a;
+    border-color: #b92c28;
+    color: #fff;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.125) inset;
+}
