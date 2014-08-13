@@ -139,9 +139,9 @@ api calls. Only needed attributes are extracted
  */
 var copyPOutputs = {};
 {% for test_code, poutput_list in grouped_plugin_outputs.items() %}
-    copyPOutputs['{{ test_code }}'] = [];
+    copyPOutputs['{{ test_code }}'] = {};
     {% for poutput in poutput_list %}
-        copyPOutputs['{{ test_code }}'].push({
+        copyPOutputs['{{ test_code }}']["{{ poutput['plugin_type'] }}"] = {
             {% if poutput['owtf_rank'] %}
                 "owtf_rank": {{ poutput['owtf_rank'] }},
             {% else %}
@@ -153,7 +153,7 @@ var copyPOutputs = {};
                 "user_rank": null,
             {% end %}
             "key": "{{ poutput['key'] }}"
-        });
+        };
     {% end %}
 {% end %}
 
