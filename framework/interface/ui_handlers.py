@@ -2,7 +2,8 @@ import os
 import collections
 import tornado.web
 import uuid
-from framework.lib.exceptions import InvalidTargetReference
+from framework.lib.exceptions import InvalidTargetReference, \
+    InvalidParameterType
 from framework.lib.general import cprint
 from framework.interface import custom_handlers
 
