@@ -99,12 +99,39 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
 
+class SessionsDataHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self, target_id=None):
+        try:
+            self.write(self.application.Core.DB.Transaction.GetSessionData(target_id=int(target_id)))
+        except InvalidTargetReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except InvalidTransactionReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except InvalidParameterType as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+
+    def post(self, target_url):
+        raise tornado.web.HTTPError(405)
+
+    def put(self):
+        raise tornado.web.HTTPError(405)
+
+    def patch(self):
+        #TODO: Allow modification of transactions from the UI, may be adjusting scope etc.. But I don't understand it's use yet ;)
+        raise tornado.web.HTTPError(405)
+
+
 class ZestScriptHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST']
 
     def get(self, target_id=None, transaction_id=None):  # get handles zest consoles functions
         if not target_id:  # does not make sense if no target id provided
-                raise tornado.web.HTTPError(400)
+            raise tornado.web.HTTPError(400)
         try:
             args = self.request.arguments
             if(not any(args)):  # check if arguments is empty then load zest console

@@ -37,7 +37,7 @@
             <button class="btn btn-primary" data-toggle="modal" data-target="#pluginOutputFilterModal"><i class="fa fa-filter"></i> Filter </button>
             <button class="btn btn-default" onclick="updatePluginReport();" href="#"><i class="fa fa-refresh"></i> Refresh </button>
             <button class="btn btn-danger" data-toggle="modal" data-target="#pluginLaunchModal"><i class="fa fa-flash"></i> Run Plugins </button>
-            <button class="btn btn-warning" onclick="alert('Not Implemented Yet :(');"><i class="fa fa-gears"></i> Settings </button>
+            <button class="btn btn-default" onclick="loadSessionManager();" href="#"><i class="fa fa-flag"></i> Launch Sessions Manager </button>
             <div class="btn-group">
                 <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
                     Logs
@@ -146,6 +146,7 @@ var mySpace = {
                     transaction_log_url:"{{ transaction_log_url }}",
                     url_log_url:"{{ url_log_url }}",
                     target_config:{},
+                    sessions_ui_url: "{{ sessions_ui_url }}",
                   };
 
 // Global variable for launch table is required to access the plugin selection by user
@@ -163,6 +164,11 @@ function modifyFilter(checkbox, filter_type, data){
     } else if ((!checkbox.checked) && (mySpace.filter_data[filter_type].indexOf(data) > -1)) {
         mySpace.filter_data[filter_type].splice(mySpace.filter_data[filter_type].indexOf(data), 1);
     }
+}
+
+//Launch user sessions manager
+function loadSessionManager(){
+    window.location.href = mySpace.sessions_ui_url;
 }
 
 // For loading plugin report, JS fetches the html and places it at designated place
@@ -186,7 +192,7 @@ function toggleAll(checkbox){
     $('td input:checkbox',table).prop('checked',checkbox.checked);
 }
 
-// This is called, when the plugin launcher modal is clicked. So we avoid unneccessary loading of plugin table unless user needs them 
+// This is called, when the plugin launcher modal is clicked. So we avoid unneccessary loading of plugin table unless user needs them
 function addPluginsToLauncher(){
     $.getJSON(mySpace.plugins_api_url, function(data){
             pluginLaunchTable.fnClearTable();

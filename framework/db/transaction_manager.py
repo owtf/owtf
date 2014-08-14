@@ -348,4 +348,15 @@ class TransactionManager(object):
         session = Session()
         session_data = session.query(models.Transaction.session_tokens).all()
         session.close()
-        return session_data
+        results = []
+        for i in session_data:
+            if i[0]:
+                results.append(json.loads(i[0]))
+        return(results)
+
+    def GetSessionURLs(self, target_id):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
+        session = Session()
+        session_urls = session.query(models.Transaction.url).filter(group_by(models.Transaction.session_tokens)).getall()
+        session.close()
+        return session_urls

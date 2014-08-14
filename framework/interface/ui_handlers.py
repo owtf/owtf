@@ -42,6 +42,32 @@ class TransactionLog(custom_handlers.UIRequestHandler):
                         )
 
 
+class HTTPSessions(custom_handlers.UIRequestHandler):
+    """ HTTPSessions handles the user sessions. """
+    SUPPORTED_METHODS = ['GET']
+
+    @tornado.web.asynchronous
+    def get(self, target_id=None):
+        if not target_id:
+            raise tornado.web.HTTPError(405)
+        self.render("sessions_manager.html",
+                    sessions_api_url=self.reverse_url('sessions_api_url', target_id),
+                    sessions_viewer_url=self.reverse_url('sessions_viewer_url', target_id)
+                    )
+
+
+class SessionsViewer(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    @tornado.web.asynchronous
+    def get(self, target_id=None):
+        if not target_id:
+            raise tornado.web.HTTPError(405)
+        self.render("sessions_viewer.html",
+                    sessions_api_url=self.reverse_url('sessions_api_url', target_id),
+                    )
+
+
 class ReplayRequest(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
@@ -67,7 +93,8 @@ class ZestScriptConsoleHandler(custom_handlers.UIRequestHandler):
             self.render("zest_console.html",
                        zest_console_api_url=self.reverse_url('zest_console_api_url', target_id),
                        zest_recording=self.application.Core.zest.IsRecording(),
-                       zest_target_heading=(self.application.Core.zest.GetTargetConfig(target_id))['HOST_AND_PORT'])
+                       zest_target_heading=(self.application.Core.zest.GetTargetConfig(target_id))['HOST_AND_PORT']
+                       )
 
 
 class UrlLog(custom_handlers.UIRequestHandler):
@@ -101,16 +128,9 @@ class TargetManager(custom_handlers.UIRequestHandler):
                         plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
                         worklist_api_url=self.reverse_url('worklist_api_url'),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
-                        url_log_url=self.reverse_url('url_log_url', target_id)
+                        url_log_url=self.reverse_url('url_log_url', target_id),
+                        sessions_ui_url=self.reverse_url('sessions_ui_url', target_id),
                        )
-
-
-class HTTPSessions(custom_handlers.UIRequestHandler):
-    """ HTTPSessions handles the user session cookies. """
-    SUPPORTED_METHODS = ["GET"]
-    @tornado.web.asynchronous
-    def get(self):
-        self.render("sessions.html")
 
 
 class PlugnHack(custom_handlers.UIRequestHandler):
