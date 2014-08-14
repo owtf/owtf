@@ -12,6 +12,6 @@ def retreiver():
         if check in ln:
 	    sc=ln.split(':')
 	    location=sc[1]
-	    location=location.lstrip('~')
-	    location=home+location
+	    location=location.split('~')
+	    location=home+location[1]
 	    return location

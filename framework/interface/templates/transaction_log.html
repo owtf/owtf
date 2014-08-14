@@ -110,7 +110,6 @@ var transactionLog;
 function addTransactions(data, status, xhr){
     $.each(data, function(index, obj){
             jQuery('#transactionLog').dataTable().fnAddData([
-
                                                 '<input  type="checkbox"  class="check" name="'+obj.id+'"/>',
                                                 obj.id,
                                                 '<a href="'+mySpace.transaction_log_url+obj.id+'"><span class="btn btn-primary btn-sm"><i class="fa fa-chevron-circle-right"></i> View</span></a>',
@@ -135,8 +134,9 @@ function createZestBtn(){
         MakeFootervisible();
 }
 
+
 //function to toggle visibility of a column in datable
-function fnShowHide( iCol ){
+function fnShowHide(iCol){
 
         oTable = $('#transactionLog').dataTable();
         var bVis = oTable.fnSettings().aoColumns[iCol].bVisible;
@@ -174,6 +174,7 @@ function MakeFooterInvisible(){
 
         $('div[id="#fixed_bar"]').hide();
 }
+
 function MakeFootervisible(){
 
         $('div[id="#fixed_bar"]').show();
