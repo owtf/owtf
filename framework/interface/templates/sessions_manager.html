@@ -56,8 +56,9 @@ var mySpace = {
 function addSessions(data, status, xhr){
     jQuery('#sessions_log').dataTable().fnClearTable();
     $.each(data, function(index, objects){
+        var serial = 0;
         jQuery('#sessions_log').dataTable().fnAddData([
-                                            'Session '+index,
+                                            'Session '+(serial++),
                                             objects[0].name+':'+objects[0].value+', '+objects[1].name+':'+objects[1].value,
                                             ]);
     });
