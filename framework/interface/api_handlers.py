@@ -122,7 +122,6 @@ class SessionsDataHandler(custom_handlers.APIRequestHandler):
         raise tornado.web.HTTPError(405)
 
     def patch(self):
-        #TODO: Allow modification of transactions from the UI, may be adjusting scope etc.. But I don't understand it's use yet ;)
         raise tornado.web.HTTPError(405)
 
 
@@ -304,7 +303,6 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
         raise tornado.web.HTTPError(405)
 
     def patch(self):
-        #TODO: Allow modification of transactions from the UI, may be adjusting scope etc.. But I don't understand it's use yet ;)
         raise tornado.web.HTTPError(405)
 
     def delete(self, target_id=None, transaction_id=None):
