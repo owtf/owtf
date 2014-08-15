@@ -84,21 +84,32 @@ function isUrl(str) {
 
 // Add new targets using API
 function newTargets(targetUrlsString) {
-    targetUrls = targetUrlsString.split('\n');
-    $.each(targetUrls, function(index, targetUrl){
-        if (isUrl(targetUrl)) {
-            $.ajax({
-                    url:mySpace.targets_api_url,
-                    type:'POST',
-                    data:{TARGET_URL:targetUrl},
-                    success:updateTargets,
-                    error:function(xhr, textStatus, serverResponse){
-                        alertFail("Unable to add "+targetUrl);
-                        }
-                    });
-        } else {
+    var lines = targetUrlsString.split('\n');
+    var targetUrls = [];
+
+    // Check if each line is a valid url, and add protocols if only host name is provided
+    $.each(lines, function(index, line) {
+        if (isUrl(line)) { // Check if a valid url
+            targetUrls.push(line);
+        } else if (isUrl("http://"+line)) { // If not valid url and adding http:// makes it a valid url
+            targetUrls.push("http://"+line);
+            targetUrls.push("https://"+line);
+        } else { // Not a valid url
             alertFail(targetUrl+" is not a valid url");
         }
+    });
+
+    // Since we only have valid urls now in targetUrls, add them using api
+    $.each(targetUrls, function(index, targetUrl) {
+        $.ajax({
+                url:mySpace.targets_api_url,
+                type:'POST',
+                data:{TARGET_URL:targetUrl},
+                success:updateTargets,
+                error:function(xhr, textStatus, serverResponse){
+                    alertFail("Unable to add "+targetUrl);
+                    }
+        });
     });
 }
 
