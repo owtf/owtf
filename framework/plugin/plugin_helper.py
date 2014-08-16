@@ -102,7 +102,7 @@ class PluginHelper:
                         RawHTML = Transaction.GetRawResponseBody()
                         FilteredHTML = self.Core.Reporter.Sanitiser.CleanThirdPartyHTML( RawHTML )
                         NotSandboxedPath = self.Core.PluginHandler.DumpOutputFile( "NOT_SANDBOXED_" + Name + ".html", FilteredHTML, PluginInfo )
-                        log( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
+                        logging.info( "File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath )
                         iframe_template = Template( """
                         <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder = '0' style = "overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
                         Your browser does not support iframes
@@ -110,7 +110,7 @@ class PluginHelper:
                         """ )
                         iframe = iframe_template.generate( NotSandboxedPath = NotSandboxedPath.split( '/' )[-1] )
                         SandboxedPath = self.Core.PluginHandler.DumpOutputFile( "SANDBOXED_" + Name + ".html", iframe , PluginInfo )
-                        log( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
+                        logging.info( "File: " + "SANDBOXED_" + Name + ".html" + " saved to: " + SandboxedPath )
                         LinkList.append( ( Name, SandboxedPath ) )
             plugin_output = dict(PLUGIN_OUTPUT)
             plugin_output["type"] = "RequestLinkList"
@@ -158,7 +158,7 @@ class PluginHelper:
                         FrameworkAbort = True
 
                 TimeStr = self.Core.Timer.GetElapsedTimeAsStr('FormatCommandAndOutput')
-                log("Time="+TimeStr)
+                logging.info("Time="+TimeStr)
                 return [ ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir ]
 
         def GetCommandOutputFileNameAndExtension( self, InputName ):
@@ -224,7 +224,7 @@ class PluginHelper:
                         if Transaction.Found:
                             NumFound += 1
                 TimeStr = self.Core.Timer.GetElapsedTimeAsStr('LogURLsFromStr')
-                log("Spider/URL scaper time="+TimeStr)
+                logging.info("Spider/URL scaper time="+TimeStr)
                 plugin_output["type"] = "URLsFromStr"
                 plugin_output["output"] = {"TimeStr":TimeStr, "VisitURLs":VisitURLs, "URLList":URLList, "NumFound":NumFound}
                 return([plugin_output])
@@ -233,7 +233,7 @@ class PluginHelper:
                 save_path = self.Core.PluginHandler.DumpOutputFile( Filename, Contents, PluginInfo )
                 if not LinkName:
                         LinkName = save_path
-                log("File: "+Filename+" saved to: "+save_path)          
+                logging.info("File: "+Filename+" saved to: "+save_path)
                 template = Template( """
                         <a href="{{ Link }}" target="_blank">
                                 {{ LinkName }}

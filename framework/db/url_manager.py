@@ -26,12 +26,12 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-The DB stores HTTP transactions, unique URLs and more. 
+The DB stores HTTP transactions, unique URLs and more.
 '''
 from framework.lib.general import *
 from framework.db import models
-import logging
 import re
+import logging
 
 class URLManager:
         NumURLsBefore = 0
@@ -105,7 +105,7 @@ class URLManager:
         def AddURLsEnd(self):
                 NumURLsAfter = self.GetNumURLs()
                 Message = str(NumURLsAfter-self.NumURLsBefore)+" URLs have been added and classified"
-                log(Message)
+                logging.info(Message)
                 return(NumURLsAfter - self.NumURLsBefore) #Message
 
         def ImportProcessedURLs(self, urls_list, target_id = None):
@@ -113,7 +113,7 @@ class URLManager:
             session = Session()
             for url, visited, scope in urls_list:
                 session.merge(models.Url(url = url, visited = visited, scope = scope))
-                log("Added " + url + " to URLs DB")
+                logging.info("Added " + url + " to URLs DB")
             session.commit()
             session.close()
 

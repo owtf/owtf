@@ -35,40 +35,32 @@ import time
 import signal
 import logging
 import multiprocessing
-
+from framework.lib.owtf_process import OWTFProcess
 from framework.lib.exceptions import InvalidWorkerReference
 
 
-class Worker(multiprocessing.Process):
-    def __init__(self, CoreObj, input_q, output_q):
-        multiprocessing.Process.__init__(self)
-        self.Core = CoreObj
-        self.input_q = input_q
-        self.output_q = output_q
-        #self.status = status
-        #self.output_status = False
-
-    def run(self):
+class Worker(OWTFProcess):
+    def pseudo_run(self):
         # When run for the first time, put something into output queue ;)
         self.output_q.put('Started')
-        while True:
+        while self.poison_q.empty():
             try:
                 try:
                     work = self.input_q.get()
                 except Exception,e:
-                    log("exception while get" + str(e))
+                    logging.error("Exception while getting work", exc_info=True)
                     continue
                     #if work is empty this means no work is there
                 if work == ():
                     sys.exit()
                 target, plugin = work
-                pluginDir = self.Core.PluginHandler.GetPluginGroupDir(plugin['group'])
-                self.Core.PluginHandler.SwitchToTarget(target)
-                self.Core.PluginHandler.ProcessPlugin(pluginDir, plugin)
+                pluginDir = self.core.PluginHandler.GetPluginGroupDir(plugin['group'])
+                self.core.PluginHandler.SwitchToTarget(target)
+                self.core.PluginHandler.ProcessPlugin(pluginDir, plugin)
                 self.output_q.put('done')
                 #self.output_status = True
             except KeyboardInterrupt:
-                self.Core.log("I am worker with pid: " + str(self.pid) + " & my master doesn't need me anymore")
+                logging.debug("I am worker with pid: %d & my master doesn't need me anymore", self.pid)
                 sys.exit()
 
 class WorkerManager(object):
@@ -107,9 +99,9 @@ class WorkerManager(object):
                         self.worklist.remove((target,plugin))
                         return (target,plugin)
             else:
-                self.Core.log("Not enough memory to execute a plugin")
+                logging.warn("Not enough memory to execute a plugin")
         return None
-    
+
     #this function spawns the worker process and give them intitial work
     def spawn_workers(self):
         #check if maximum limit of processes has reached
@@ -119,7 +111,7 @@ class WorkerManager(object):
             self.Core.Error.FrameworkAbort("Zero worker processes created because of lack of memory")
 
     def spawn_worker(self):
-        w = Worker(self.Core, multiprocessing.Queue(), multiprocessing.Queue())
+        w = Worker(self.Core, input_q=multiprocessing.Queue(), output_q=multiprocessing.Queue())
         self.workers.append({
                                 "worker":w,
                                 "work":(),
@@ -142,7 +134,7 @@ class WorkerManager(object):
                 pass
         return False
 
-    #this function manages workers, it polls on each queue of worker and check if it has done his work and then 
+    #this function manages workers, it polls on each queue of worker and check if it has done his work and then
     # give it new process if there is one
     def manage_workers(self):
         k = 0
@@ -187,7 +179,7 @@ class WorkerManager(object):
         self.poison_pill_to_workers()
         self.join_workers()
 
-    #This function empties the pending work list and aborts all processes                 
+    #This function empties the pending work list and aborts all processes
     def exit(self):
         # As worklist is emptied, aborting of plugins will result in killing of workers
         self.worklist=[] # It is a list
@@ -196,18 +188,18 @@ class WorkerManager(object):
             if work==():
                 continue
             self.signal_process(item["worker"].pid, signal.SIGINT)
-            
-    #this function kills all children of a process and abort that process        
+
+    #this function kills all children of a process and abort that process
     def signal_process(self, pid, psignal):
         # Child processes are handled at shell level :P
         # self.Core.KillChildProcesses(pid,signal.SIGINT)
-        try: 
+        try:
         # This will kick the exception handler if plugin is running, so plugin is killed
         # Else, the worker dies :'(
             os.kill(pid , psignal)
         except Exception,e:
-            log("Error while trying to abort Worker process " + str(e))
-    
+            logging.error("Error while trying to abort Worker process " + str(e))
+
     #this function itrates over pending list and removes the tuple having target as selected one
     def stop_target(self, target_id):
         for target,plugin in self.worklist:

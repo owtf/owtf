@@ -65,8 +65,11 @@ class Config(object):
             REPLACEMENT_DELIMITER + '([A-Z0-9-_]*?)' + REPLACEMENT_DELIMITER)
         # Available profiles = g -> General configuration, n -> Network plugin
         # order, w -> Web plugin order, r -> Resources file
-        self.LoadFrameworkConfigFromFile(
-            self.RootDir + '/framework/config/framework_config.cfg')
+        self.LoadFrameworkConfigFromFile(os.path.join(
+            self.RootDir,
+            'framework',
+            'config',
+            'framework_config.cfg'))
 
     def initialize_attributes(self):
         self.Config = defaultdict(list)  # General configuration information.
@@ -392,6 +395,30 @@ class Config(object):
             self.FrameworkConfigGet("OUTPUT_PATH"),
             self.FrameworkConfigGet("DB_DIR"),
             relative_path)
+
+    def FrameworkConfigGetLogsDir(self):
+        """
+        Get log directory by checking if abs or relative path is provided in
+        config file
+        """
+        logs_dir = self.FrameworkConfigGet("LOGS_DIR")
+        if (os.path.isabs(logs_dir)):
+            return logs_dir
+        else:
+            return os.path.join(
+                self.FrameworkConfigGet("OUTPUT_PATH"),
+                logs_dir
+            )
+
+    def FrameworkConfigGetLogPath(self, process_name):
+        """
+        Get the log file path based on the process name
+        """
+        log_file_name = process_name + ".log"
+        return os.path.join(
+            self.FrameworkConfigGetLogsDir(),
+            log_file_name
+        )
 
     def GetAsPartialPath(self, key):
         """Convenience wrapper."""

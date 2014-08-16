@@ -51,11 +51,6 @@ class DB(object):
     def __init__(self,CoreObj):
         self.Core = CoreObj
         self.Core.CreateMissingDirs(os.path.join(self.Core.Config.FrameworkConfigGet("OUTPUT_PATH"), self.Core.Config.FrameworkConfigGet("DB_DIR")))
-        #self.Run = run_manager.RunManager(CoreObj)
-        #self.PluginRegister = plugin_register.PluginRegister(CoreObj)
-        #self.ReportRegister = report_register.ReportRegister(CoreObj)
-        #self.CommandRegister = command_register.CommandRegister(CoreObj)
-        #self.Debug = debug.DebugDB(CoreObj)
 
     def Init(self):
         self.ErrorDBSession = self.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.ErrorBase)
@@ -78,12 +73,12 @@ class DB(object):
         pass
 
     def EnsureDBWithBase(self, DB_PATH, BaseClass):
-        cprint("Ensuring if DB exists at " + DB_PATH)
+        logging.info("Ensuring if DB exists at " + DB_PATH)
         if not os.path.exists(DB_PATH):
             self.CreateDBUsingBase(DB_PATH, BaseClass)
 
     def CreateDBUsingBase(self, DB_PATH, BaseClass):
-        cprint("Creating DB at " + DB_PATH)
+        logging.info("Creating DB at " + DB_PATH)
         engine = create_engine("sqlite:///" + DB_PATH)
         BaseClass.metadata.create_all(engine)
         return engine
@@ -98,7 +93,7 @@ class DB(object):
         def do_begin(conn):
             conn.connection.create_function('regexp', 2, re_fn)
         session_factory = sessionmaker(bind = engine)
-        cprint("Creating Scoped session factory for " + DB_PATH)
+        logging.info("Creating Scoped session factory for " + DB_PATH)
         return scoped_session(session_factory)
 
     def CreateSession(self, DB_PATH):
@@ -116,7 +111,7 @@ class DB(object):
                 session.commit()
                 success = True
             except exc.OperationalError:
-                cprint("Lock occured (might be)")
+                logging.info("Lock occured (might be)")
             finally:
                 session.close()
                 if success: return success

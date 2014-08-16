@@ -65,7 +65,7 @@ class Shell(object):
                         OriginalCommand = self.OldCommands[ModifiedCommand] # Restore original command saved at modification time
                 self.Core.Timer.StartTimer(self.CommandTimeOffset)
                 return { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.Core.Timer.GetStartDateTimeAsStr(self.CommandTimeOffset) }
-                #CommandInfo = { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.Core.Timer.GetStartDateTimeAsStr(self.CommandTimeOffset) } 
+                #CommandInfo = { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.Core.Timer.GetStartDateTimeAsStr(self.CommandTimeOffset) }
                 #self.CommandInfo = CommandInfo
 
         def FinishCommand(self, CommandInfo, WasCancelled):
@@ -119,10 +119,11 @@ class Shell(object):
                 if not CanRun:
                         Message = "The command was already run for target: " + str(Target)
                         return Message
-                log("\nExecuting (s to abort THIS COMMAND ONLY):\n"+Command)
-                log("")
-                log("------> Execution Start Date/Time: "+self.Core.Timer.GetStartDateTimeAsStr('Command'))
-                log("")
+                logging.info("")
+                logging.info("Executing :\n\n%s\n\n", Command)
+                logging.info("")
+                logging.info("------> Execution Start Date/Time: "+self.Core.Timer.GetStartDateTimeAsStr('Command'))
+                logging.info("")
                 Output = ''
                 Cancelled = False
                 try: # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-in-a-separate-process-in-a-wxpyt
@@ -131,12 +132,12 @@ class Shell(object):
                                 line = proc.stdout.readline()
                                 if not line: break
                                 # NOTE: Below MUST BE print instead of "cprint" to clearly distinguish between owtf output and tool output
-                                log(MultipleReplace(line, { "\n":"", "\r":"" })) # Show progress on the screen too!
+                                logging.warn(line.strip()) # Show progress on the screen too!
                                 Output += line # Save as much output as possible before a tool crashes! :)
                 except KeyboardInterrupt:
                         os.killpg(proc.pid, signal.SIGINT)
                         outdata, errdata = proc.communicate()
-                        log(outdata)
+                        logging.warn(outdata)
                         Output += outdata
                         try:
                             os.kill(proc.pid, signal.SIGTERM) # Plugin KIA (Killed in Action)
