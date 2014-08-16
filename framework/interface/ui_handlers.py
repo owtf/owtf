@@ -213,10 +213,12 @@ class PluginOutput(custom_handlers.UIRequestHandler):
         try:
             filter_data = dict(self.request.arguments) # IMPORTANT!!
             plugin_outputs = self.application.Core.DB.POutput.GetAll(filter_data, target_id)
-
-            # Group the plugin outputs to make it easier in template
+	    owtf_code=[] #creating a list of plugin codes
+            
+	    # Group the plugin outputs to make it easier in template
             grouped_plugin_outputs = {}
             for poutput in plugin_outputs:
+		owtf_code.append(poutput['plugin_code']) #Adding the plugin code to the list
                 if not grouped_plugin_outputs.get(poutput['plugin_code'], None):
                     grouped_plugin_outputs[poutput['plugin_code']] = [] # No problem of overwriting
                 grouped_plugin_outputs[poutput['plugin_code']].append(poutput)
@@ -232,7 +234,8 @@ class PluginOutput(custom_handlers.UIRequestHandler):
                         test_groups=test_groups,
                         poutput_api_url=self.reverse_url('poutput_api_url', target_id, None, None, None),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
-                        url_log_url=self.reverse_url('url_log_url', target_id)
+                        url_log_url=self.reverse_url('url_log_url', target_id),
+			html=(self.application.Core.DB.Vulnexp.GetExplanation(owtf_code))
                         )
         except InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)
