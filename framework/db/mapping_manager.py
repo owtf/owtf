@@ -31,3 +31,9 @@ class MappingDB(object):
             except ValueError:
                 cprint("ERROR: The delimiter is incorrect in this line at Mapping File: "+str(line.split('_____')))
         return mapping
+    
+    def GetCategory(self, plugin_code):
+	session = self.MappingDBSession()
+	category = session.query(models.Mapping.category).filter(models.Mapping.owtf_code.in_(plugin_code)).all()
+	#Getting the corresponding category back from db	
+	return category

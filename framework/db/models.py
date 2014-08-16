@@ -189,9 +189,9 @@ class Plugin(PluginBase):
 
     __table_args__ = (UniqueConstraint('type', 'code'),)
     
-ExpBase = declarative_base()
+VulnexpBase = declarative_base()
 
-class Vulnexp(ExpBase):
+class Vulnexp(VulnexpBase):
     __tablename__ = 'vulnexp'
     title = Column(String, primary_key=True)
     desc = Column(String)
