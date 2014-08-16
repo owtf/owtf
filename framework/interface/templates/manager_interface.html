@@ -7,7 +7,13 @@
 
 {% block content %}
 <!-- Workers Info Area -->
-<div class="row" id="workersInfo">
+<div class="row-fluid">
+    <div class="col-md-2 col-md-offset-10">
+        <button class="btn btn-md btn-primary pull-right" onclick="addWorker();"><i class="fa fa-plus"></i> Add worker!</button>
+    </div>
+</div>
+<br>
+<div class="row-fluid" id="workersInfo">
 </div>
 <!-- End Workers Info Area -->
 <script>
@@ -33,6 +39,22 @@ function resumeWorker(workerId){
     $.get(mySpace.workers_api_url+workerId+'/resume');
 }
 
+// Delete a worker process using API
+function deleteWorker(workerId){
+    $.ajax({
+            url:mySpace.workers_api_url+workerId,
+            type:'DELETE',
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+            });
+}
+
+// Add new worker using API
+function addWorker(){
+    $.post(mySpace.workers_api_url);
+}
+
 // Function to get all target configs using API
 function getTargetConfigs(){
     $.getJSON(mySpace.targets_api_url+'?workers_page', function(data){  // '?workers_page' used to avoid browser returning cached results
@@ -52,6 +74,8 @@ function getControlButtons(obj){
             html += '<button class="btn btn-primary btn-xs" href="#" onclick="pauseWorker('+obj.id+');"><i class="fa fa-pause"></i></button>';
             html += '<button class="btn btn-danger btn-xs" href="#" onclick="abortWorker('+obj.id+');"><i class="fa fa-times"></i></button>';
         }
+    } else {
+        html += '<button class="btn btn-danger btn-xs" href="#" onclick="deleteWorker('+obj.id+');"><i class="fa fa-times"></i></button>';
     }
     html += '</div>';
     return(html);

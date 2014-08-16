@@ -166,7 +166,7 @@ class WorkerManager(object):
                     self.workers[k]["work"] = ()
                     self.workers[k]["busy"] = False  # Worker is IDLE
                 else:
-                    self.replace_worker(k)
+                    self.spawn_worker(index=k)
                 work_to_assign = self.get_task()
                 if work_to_assign:
                     trash_can = self.workers[k]["worker"].output_q.get()
