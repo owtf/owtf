@@ -25,14 +25,14 @@ class VulnexpDB(object):
 	    owtf_code=[]
 	    owtf_code.append(i)
 	    plugin_category = self.Core.DB.Mapping.GetCategory(owtf_code)
-	    flag=0 
+	    flag=False
 	    if not plugin_category:
 		temp=[u'Not Applicable'] #if the category is not returned, adding the default value
-		flag=1
+		flag=True
 	    category=[]
-	    if flag==0:
+	    if not flag:
 	        category.append(((plugin_category[0])[0]).encode("utf-8"))
-	    if flag==1:
+	    if flag:
 		category.append((temp[0]).encode("utf-8"))
 	    #Encoding from unicode to utf-8
 	    description = session.query(models.Vulnexp.desc).filter(models.Vulnexp.category.in_(category)).all()
