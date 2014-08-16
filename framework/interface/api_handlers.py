@@ -426,7 +426,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
 
 
 class WorkerHandler(custom_handlers.APIRequestHandler):
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ['GET', 'POST', 'DELETE']
 
     def get(self, worker_id=None, action=None):
         if not worker_id:
@@ -436,6 +436,21 @@ class WorkerHandler(custom_handlers.APIRequestHandler):
                 self.write(self.application.Core.WorkerManager.get_worker_details(int(worker_id)))
             if worker_id and action:
                 getattr(self.application.Core.WorkerManager, action + '_worker')(int(worker_id))
+        except InvalidWorkerReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+
+    def post(self, worker_id=None, action=None):
+        if worker_id or action:
+            raise tornado.web.HTTPError(400)
+        self.application.Core.WorkerManager.create_worker()
+        self.set_status(201)  # Stands for "201 Created"
+
+    def delete(self, worker_id=None, action=None):
+        if (not worker_id) or action:
+            raise tornado.web.HTTPError(400)
+        try:
+            self.application.Core.WorkerManager.delete_worker(int(worker_id))
         except InvalidWorkerReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)

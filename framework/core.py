@@ -54,7 +54,7 @@ from framework.http.proxy import proxy, transaction_logger, tor_manager
 from framework.http.proxy.proxy_manager import Proxy_manager, Proxy_Checker
 from framework.http.proxy.outbound_proxyminer import Proxy_Miner
 from framework.plugin import plugin_handler, plugin_helper, \
-    plugin_params, process_manager
+    plugin_params, worker_manager
 from framework.protocols import smtp, smb
 from framework.interface import reporter, server
 from framework import zest, zap
@@ -410,7 +410,7 @@ class Core(object):
         # The order is important here ;)
         self.PluginHandler = plugin_handler.PluginHandler(self, options)
         self.PluginParams = plugin_params.PluginParams(self, options)
-        self.WorkerManager = process_manager.WorkerManager(self)
+        self.WorkerManager = worker_manager.WorkerManager(self)
 
     def run_server(self):
         """

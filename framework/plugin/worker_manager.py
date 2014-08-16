@@ -41,88 +41,106 @@ from framework.lib.exceptions import InvalidWorkerReference
 
 class Worker(OWTFProcess):
     def pseudo_run(self):
-        # When run for the first time, put something into output queue ;)
+        """
+        When run for the first time, put something into output queue ;)
+        """
         self.output_q.put('Started')
         while self.poison_q.empty():
             try:
                 try:
                     work = self.input_q.get()
-                except Exception,e:
-                    logging.error("Exception while getting work", exc_info=True)
+                except Exception, e:
+                    logging.error(
+                        "Exception while getting work",
+                        exc_info=True)
                     continue
-                    #if work is empty this means no work is there
+                    # If work is empty this means no work is there
                 if work == ():
                     sys.exit()
                 target, plugin = work
-                pluginDir = self.core.PluginHandler.GetPluginGroupDir(plugin['group'])
+                pluginDir = self.core.PluginHandler.GetPluginGroupDir(
+                    plugin['group'])
                 self.core.PluginHandler.SwitchToTarget(target)
                 self.core.PluginHandler.ProcessPlugin(pluginDir, plugin)
                 self.output_q.put('done')
-                #self.output_status = True
             except KeyboardInterrupt:
-                logging.debug("I am worker with pid: %d & my master doesn't need me anymore", self.pid)
+                logging.debug(
+                    "I am worker (%d) & my master doesn't need me anymore",
+                    self.pid)
                 sys.exit()
 
+
 class WorkerManager(object):
-    def __init__(self,CoreObj):
-        self.Core = CoreObj
-        self.worklist = []          #List of unprocessed (plugin*target)
-        self.workers = []                #list of worker and work (worker, work)
-        self.processes_limit = int(self.Core.DB.Config.Get('PROCESS_PER_CORE'))*multiprocessing.cpu_count()
+    def __init__(self, CoreObj):
+        self.core = CoreObj
+        self.worklist = []  # List of unprocessed (plugin*target)
+        self.workers = []  # list of worker and work (worker, work)
         self.spawn_workers()
-        #self.accept_input=True
-        #self.status={}
+
+    def get_allowed_process_count(self):
+        process_per_core = int(self.core.DB.Config.Get('PROCESS_PER_CORE'))
+        cpu_count = multiprocessing.cpu_count()
+        return(process_per_core*cpu_count)
 
     def fill_work_list(self, targets, plugins):
         # Targets are only target_ids and plugins are plugin_dicts
         for plugin in plugins:
             for target in targets:
-                self.worklist.append((target["ID"], plugin)) # Only target_id, since it is only used to switch target db context
+                # Only target_id, enough to switch target db context
+                self.worklist.append((target["ID"], plugin))
 
     def filter_work_list(self, targets, plugins):
-        for target,plugin in self.worklist:
+        for target, plugin in self.worklist:
             if (target in targets) or (plugin in plugins):
                 self.worklist.remove((target, plugin))
 
     def get_work_list(self):
         return(self.worklist)
 
-    #returns next work that can be done depending on RAM state and availability of targets
     def get_task(self):
         if len(self.worklist):
-            free_mem = self.Core.Shell.shell_exec("free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
-            if int(free_mem) > int(self.Core.DB.Config.Get('MIN_RAM_NEEDED')):
-                for target,plugin in self.worklist:
-                    #check if target is being used or not because we dont want to run more than one plugin on one target at one time
-                    #check if RAM can withstand this plugin(training data from history of that plugin)
+            free_mem = self.core.Shell.shell_exec(
+                "free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
+            if int(free_mem) > int(self.core.DB.Config.Get('MIN_RAM_NEEDED')):
+                for target, plugin in self.worklist:
+                    # Check if target is being used or not because we dont want
+                    # to run more than one plugin on one target at one time
+                    # Check if RAM can withstand this plugin(training data from
+                    # history of that plugin)
                     if not self.is_target_in_use(target):
-                        self.worklist.remove((target,plugin))
-                        return (target,plugin)
+                        self.worklist.remove((target, plugin))
+                        return (target, plugin)
             else:
                 logging.warn("Not enough memory to execute a plugin")
         return None
 
-    #this function spawns the worker process and give them intitial work
     def spawn_workers(self):
-        #check if maximum limit of processes has reached
-        while (len(self.workers) < self.processes_limit):
+        """
+        This function spawns the worker process and give them initial work
+        """
+        # Check if maximum limit of processes has reached
+        while (len(self.workers) < self.get_allowed_process_count()):
             self.spawn_worker()
         if not len(self.workers):
-            self.Core.Error.FrameworkAbort("Zero worker processes created because of lack of memory")
+            self.core.Error.FrameworkAbort(
+                "Zero worker processes created because of lack of memory")
 
-    def spawn_worker(self):
-        w = Worker(self.Core, input_q=multiprocessing.Queue(), output_q=multiprocessing.Queue())
-        self.workers.append({
-                                "worker":w,
-                                "work":(),
-                                "busy":False,
-                                "paused":False
-                            })
-        w.start()
+    def spawn_worker(self, index=None):
+        w = Worker(
+            self.core,
+            input_q=multiprocessing.Queue(),
+            output_q=multiprocessing.Queue())
+        worker_dict = {
+            "worker": w,
+            "work": (),
+            "busy": False,
+            "paused": False
+        }
 
-    def replace_worker(self, index):
-        w = Worker(self.Core, multiprocessing.Queue(), multiprocessing.Queue())
-        self.workers[index] = { "worker":w, "work":(), "busy":False, "paused":False }
+        if index:
+            self.workers[index] = worker_dict
+        else:
+            self.workers.append(worker_dict)
         w.start()
 
     def is_target_in_use(self, target):
@@ -130,37 +148,40 @@ class WorkerManager(object):
             try:
                 if target == item["work"][0]:
                     return True
-            except IndexError: # This happens at the spawning of processes
+            except IndexError:  # This happens at the spawning of processes
                 pass
         return False
 
-    #this function manages workers, it polls on each queue of worker and check if it has done his work and then
-    # give it new process if there is one
     def manage_workers(self):
-        k = 0
+        """
+        This function manages workers, it polls on each queue of worker
+        checks if it has done his work and then gives it new work
+        if there is one
+        """
         # Loop while there is some work in worklist
-        while (k < self.processes_limit):
+        for k in range(0, len(self.workers)):
             if (not self.workers[k]["worker"].output_q.empty()) or (not self.workers[k]["worker"].is_alive()):
                 if self.workers[k]["worker"].is_alive():
-                    # Assign target and plugin from tuple work and empty the tuple
-                    #(target,plugin), self.workers[k]["work"] = self.workers[k]["work"], ()
+                    # Assign target, plugin from tuple work and empty the tuple
                     self.workers[k]["work"] = ()
-                    self.workers[k]["busy"] = False # Worker is IDLE
+                    self.workers[k]["busy"] = False  # Worker is IDLE
                 else:
                     self.replace_worker(k)
                 work_to_assign = self.get_task()
                 if work_to_assign:
                     trash_can = self.workers[k]["worker"].output_q.get()
-                    #assign work to worker,set target to used,and process to busy
+                    # Assign work ,set target to used,and process to busy
                     self.workers[k]["worker"].input_q.put(work_to_assign)
                     self.workers[k]["work"] = work_to_assign
                     self.workers[k]["busy"] = True
-            k += 1
 
-    # This function waits for each worker to complete his work and send it Poision Pill(emtpy work)
     def poison_pill_to_workers(self):
+        """
+        This function waits for each worker to complete his work and
+        send it Poision Pill(emtpy work)
+        """
         for item in self.workers:
-            #check if process is doing some work
+            # Check if process is doing some work
             if item["busy"]:
                 if item["paused"]:
                     self.signal_process(item["worker"].pid, signal.SIGCONT)
@@ -169,48 +190,60 @@ class WorkerManager(object):
                 item["work"] = ()
             item["worker"].input_q.put(())
 
-    # Joins all the workers
     def join_workers(self):
+        """
+        Joins all the workers
+        """
         for item in self.workers:
             item["worker"].join()
 
     def clean_up(self):
-        #self.ProcessManager.manageProcess()
         self.poison_pill_to_workers()
         self.join_workers()
 
-    #This function empties the pending work list and aborts all processes
     def exit(self):
-        # As worklist is emptied, aborting of plugins will result in killing of workers
-        self.worklist=[] # It is a list
+        """
+        This function empties the pending work list and aborts all processes
+        """
+        # As worklist is emptied, aborting of plugins will result in
+        # killing of workers
+        self.worklist = []  # It is a list
         for item in self.workers:
             work = item["work"]
-            if work==():
+            if work == ():
                 continue
             self.signal_process(item["worker"].pid, signal.SIGINT)
 
-    #this function kills all children of a process and abort that process
     def signal_process(self, pid, psignal):
+        """
+        This function kills all children of a process and abort that process
+        """
         # Child processes are handled at shell level :P
-        # self.Core.KillChildProcesses(pid,signal.SIGINT)
+        # self.core.KillChildProcesses(pid,signal.SIGINT)
         try:
-        # This will kick the exception handler if plugin is running, so plugin is killed
-        # Else, the worker dies :'(
-            os.kill(pid , psignal)
-        except Exception,e:
-            logging.error("Error while trying to abort Worker process " + str(e))
+            # This will kick the exception handler if plugin is running,
+            # so plugin is killed
+            # Else, the worker dies :'(
+            os.kill(pid, psignal)
+        except Exception, e:
+            logging.error(
+                "Error while trying to abort Worker process",
+                exc_info=True)
 
-    #this function itrates over pending list and removes the tuple having target as selected one
     def stop_target(self, target_id):
-        for target,plugin in self.worklist:
-            if target==target1:
-                self.worklist.remove((target,plugin))
+        """
+        This function itrates over pending list and removes the tuple
+        having target as selected one
+        """
+        for target, plugin in self.worklist:
+            if target == target1:
+                self.worklist.remove((target, plugin))
         self.abort_worker(item["worker"].pid)
 
-#--------------------------------------------------- API Methods ----------------------------------------------------
+# --------------------------- API Methods ---------------------------- #
 # PSEUDO_INDEX = INDEX + 1
 
-    def get_worker_details(self, pseudo_index = None):
+    def get_worker_details(self, pseudo_index=None):
         if pseudo_index:
             try:
                 temp_dict = dict(self.workers[pseudo_index-1])
@@ -218,13 +251,14 @@ class WorkerManager(object):
                 temp_dict["id"] = pseudo_index
                 return(temp_dict)
             except IndexError:
-                raise InvalidWorkerReference("No worker process with id: " + str(pseudo_index))
+                raise InvalidWorkerReference(
+                    "No worker process with id: " + str(pseudo_index))
         else:
             worker_temp_list = []
-            for i in range(0,len(self.workers)):
+            for i in range(0, len(self.workers)):
                 temp_dict = dict(self.workers[i])
                 temp_dict["worker"] = temp_dict["worker"].pid
-                temp_dict["id"] = i+1 # Zero-Index is not human friendly
+                temp_dict["id"] = i+1  # Zero-Index is not human friendly
                 worker_temp_list.append(temp_dict)
             return(worker_temp_list)
 
@@ -232,7 +266,24 @@ class WorkerManager(object):
         try:
             return(self.workers[pseudo_index-1])
         except IndexError:
-            raise InvalidWorkerReference("No worker process with id: " + str(pseudo_index))
+            raise InvalidWorkerReference(
+                "No worker process with id: " + str(pseudo_index))
+
+    def create_worker(self):
+        self.spawn_worker()
+
+    def delete_worker(self, pseudo_index):
+        try:
+            worker_dict = self.workers[pseudo_index-1]
+            if not worker_dict["busy"]:
+                self.signal_process(worker_dict["worker"].pid, signal.SIGINT)
+                del self.workers[pseudo_index-1]
+            else:
+                raise InvalidWorkerReference(
+                    "Worker with id " + str(pseudo_index) + " is busy")
+        except IndexError:
+            raise InvalidWorkerReference(
+                "No worker process with id: " + str(pseudo_index))
 
     def pause_worker(self, pseudo_index):
         worker_dict = self.get_worker_dict(pseudo_index)
