@@ -2,8 +2,7 @@
 
 {% block title %}Zest Console{% end %}
 
-
-{% block includes %}
+{% block content %}
 
 <style type="text/css">
 
@@ -33,8 +32,8 @@ body {
 }
 
 .btn{
-  margin:30px;
-  padding:7px;
+  margin:10px;
+  
 
 }
 
@@ -69,10 +68,6 @@ body {
 
 </style>
 
-{% end %}
-
-{% block content %}
-
 <div class="container">
   <div class="row">
       <div class="col-md-3">
@@ -95,6 +90,9 @@ body {
           </div>
       </div>
       <div class="col-md-9">
+      
+<div class="row">
+  <div class="col-md-12">
         <div id="script_detail">
          <div id="script_data">
         <h4>Script Content</h4>
@@ -105,17 +103,21 @@ body {
       <pre id="script_output"></pre>
        </div>
      </div>
-          <div class="row pull-right" style="text-align:center" >
-
-  <button class="btn btn-primary" onclick="RecordToggle()"
-    id="recordZest">Record a Zest Script!</button>
-  <button class="btn btn-primary" id="ForwardZest">Forward to ZAP !</button>
-  <button class="btn btn-primary" id="RunZest" onclick="RunZestScript()"> Run the Zest Script !
-  </button>
-</div>
-
+    </div>
+ </div>   
+ <div class="row">
+  <div id="ZestButtons" class="row pull-right" style="text-align:center" >
+    <div class="btn-group">
+      <button class="btn btn-danger" id="recordZest" onclick="RecordToggle()"> Record a Zest Script!
+      </button>
+      <button class="btn btn-warning" id="ForwardZest"><i class="fa fa-forward"></i> Forward to ZAP !
+      </button>
+      <button class="btn btn-danger" id="RunZest" onclick="RunZestScript()"><i class="fa fa-play-circle"></i> Run the Zest Script !</button>
     </div>
   </div>
+ </div>
+</div>
+</div>
 </div>
 
 <!--Script Name Modal-->
@@ -140,10 +142,6 @@ body {
     </div>
   </div>
 </div>
-
-
-
-
 
 <script>
 
@@ -236,7 +234,7 @@ function SetRecordButton(){
 }
 
 function RecordOn(){
-    $('#recordZest').attr('class','btn btn-danger');
+    $('#recordZest').attr('class','btn btn-danger'); 
     $('#recordZest').text('Stop Recording !');
 }
 
