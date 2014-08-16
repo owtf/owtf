@@ -1,0 +1,79 @@
+{% extends base.html %}
+
+{% block title %}User Sessions{% end %}
+
+{% block includes %}
+<script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
+<link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
+<style type="text/css">
+
+.top-buffer { margin-bottom:30px; }
+.clear { clear: both; height: 80px; }
+
+</style>
+{% end %}
+
+
+{% block content %}
+<div class="row">
+  <h2>Detected user sessions </h2>
+</div><br /><br />
+<div id="row-fluid">
+  <button onClick="window.open(mySpace.sessions_viewer_url);" class="btn btn-primary btn-lg"> Session Data</button><hr/>
+  <div class="container">
+      <div class="col-mid-10">
+         <table id="sessions_log" class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th> Name </th>
+                    <th> Session Tokens </th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+      </div>
+   </div>
+  </div>
+</div>
+
+<div class="clear"></div>  <!--used for margin between body and footer-->
+  <div class="navbar navbar-default navbar-fixed-bottom" id="#fixed_bar">
+   <div class= container >
+    <div style="text-align: center;">
+    </div>
+  </div>
+</div>
+
+<script>
+var mySpace = {
+                sessions_api_url:"{{ sessions_api_url }}",
+                sessions_viewer_url:"{{ sessions_viewer_url }}"
+              };
+
+
+function addSessions(data, status, xhr){
+    jQuery('#sessions_log').dataTable().fnClearTable();
+    $.each(data, function(index, objects){
+        var serial = 0;
+        jQuery('#sessions_log').dataTable().fnAddData([
+                                            'Session '+(serial++),
+                                            objects[0].name+':'+objects[0].value+', '+objects[1].name+':'+objects[1].value,
+                                            ]);
+    });
+}
+
+function updateUserSessions(){
+    $.getJSON(mySpace.sessions_api_url, addSessions);
+    setTimeout(updateUserSessions, 5000);
+}
+
+$(document).ready(function() {
+        $('#sessions_log').dataTable({
+                                        "bAutoWidth": false
+                                    });
+        updateUserSessions();
+})
+</script>
+{% end %}

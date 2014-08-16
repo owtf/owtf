@@ -75,8 +75,8 @@ if new_hash!=old_hash:
         write_files(GITHUB_REPOS_API_BASE_URL + path, new_dir_name, recursive=recursive)
 
 
-    ExpBase = declarative_base()
-    class Vulnexp(ExpBase):
+    VulnexpBase = declarative_base()
+    class Vulnexp(VulnexpBase):
     	__tablename__ = 'Vulnexp'
     	title = Column(String, primary_key=True)
 	desc = Column(String)
@@ -88,7 +88,7 @@ if new_hash!=old_hash:
     engine = create_engine(path)
     session = sessionmaker()
     session.configure(bind = engine)
-    ExpBase.metadata.create_all(engine)
+    VulnexpBase.metadata.create_all(engine)
     s = session()
 
     texto=""
