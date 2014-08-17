@@ -92,10 +92,10 @@ function displayWorkersInfo(){
                     $.each(data, function(index, obj){
                         // We add three span3 panels in a row, so we use index to add
                         // opening and closing tags for a row
-                        if (index%3 === 0)
+                        if (index%2 === 0)
                             $('#workersInfo').append('<div class="row-fluid">');
 
-                        html = '<div class="span3 panel ';
+                        html = '<div class="span5 panel ';
                         if (obj.busy){
                             html += 'panel-primary"';
                         }else if (obj.paused){
@@ -120,7 +120,7 @@ function displayWorkersInfo(){
 
                         // We add three span3 panels in a row, so we use index to add
                         // opening and closing tags for a row
-                        if (index%3 === 2)
+                        if (index%2 === 1)
                             $('#workersInfo').append('</div>');
                     });
                 }

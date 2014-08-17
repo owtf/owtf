@@ -47,16 +47,10 @@ class Worker(OWTFProcess):
         self.output_q.put('Started')
         while self.poison_q.empty():
             try:
-                try:
-                    work = self.input_q.get()
-                except Exception, e:
-                    logging.error(
-                        "Exception while getting work",
-                        exc_info=True)
-                    continue
-                    # If work is empty this means no work is there
+                work = self.input_q.get()
+                # If work is empty this means no work is there
                 if work == ():
-                    sys.exit()
+                    exit(0)
                 target, plugin = work
                 pluginDir = self.core.PluginHandler.GetPluginGroupDir(
                     plugin['group'])
@@ -67,7 +61,16 @@ class Worker(OWTFProcess):
                 logging.debug(
                     "I am worker (%d) & my master doesn't need me anymore",
                     self.pid)
-                sys.exit()
+                exit(0)
+            except Exception, e:
+                logging.error(
+                    "Exception while getting work",
+                    exc_info=True)
+                continue
+        logging.debug(
+            "I am worker (%d) & my master gave me poison pill",
+            self.pid)
+        exit(0)
 
 
 class WorkerManager(object):
@@ -270,33 +273,48 @@ class WorkerManager(object):
                 "No worker process with id: " + str(pseudo_index))
 
     def create_worker(self):
+        """
+        Create new worker
+        """
         self.spawn_worker()
 
     def delete_worker(self, pseudo_index):
-        try:
-            worker_dict = self.workers[pseudo_index-1]
-            if not worker_dict["busy"]:
-                self.signal_process(worker_dict["worker"].pid, signal.SIGINT)
-                del self.workers[pseudo_index-1]
-            else:
-                raise InvalidWorkerReference(
-                    "Worker with id " + str(pseudo_index) + " is busy")
-        except IndexError:
+        """
+        This actually deletes the worker :
+        + Send SIGINT to the worker
+        + Remove it from self.workers so that is is not restarted by
+          manager cron
+        """
+        worker_dict = self.get_worker_dict(pseudo_index)
+        if not worker_dict["busy"]:
+            self.signal_process(worker_dict["worker"].pid, signal.SIGINT)
+            del self.workers[pseudo_index-1]
+        else:
             raise InvalidWorkerReference(
-                "No worker process with id: " + str(pseudo_index))
+                "Worker with id " + str(pseudo_index) + " is busy")
 
     def pause_worker(self, pseudo_index):
+        """
+        Pause worker by sending SIGSTOP after verifying the process is running
+        """
         worker_dict = self.get_worker_dict(pseudo_index)
         if not worker_dict["paused"]:
             self.signal_process(worker_dict["worker"].pid, signal.SIGSTOP)
             worker_dict["paused"] = True
 
     def resume_worker(self, pseudo_index):
+        """
+        Resume worker by sending SIGCONT after verfifying that process is paused
+        """
         worker_dict = self.get_worker_dict(pseudo_index)
         if worker_dict["paused"]:
             self.signal_process(worker_dict["worker"].pid, signal.SIGCONT)
             worker_dict["paused"] = False
 
     def abort_worker(self, pseudo_index):
+        """
+        Abort worker i.e kill current command, but the worker process is not
+        removed, so manager_cron will restart it
+        """
         worker_dict = self.get_worker_dict(pseudo_index)
         self.signal_process(worker_dict["worker"].pid, signal.SIGINT)

@@ -477,7 +477,7 @@ class PluginHandler:
                 #                       self.ProcessPlugin( PluginDir, Plugin, Status )
 
         def CleanUp(self):
-            self.WorkerManager.cleanUp()
+            self.WorkerManager.clean_up()
 
         def SavePluginInfo(self, PluginOutput, Plugin):
                 self.Core.DB.SaveDBs() # Save new URLs to DB after each request

@@ -442,34 +442,14 @@ class Core(object):
     def Finish(self, status='Complete', report=True):
         if self.TOR_process != None:
             self.TOR_process.terminate()
-        if self.DB.Config.Get('SIMULATION'):
-            exit()
+        # TODO: Fix this for lions_2014
+        # if self.DB.Config.Get('SIMULATION'):
+        #    exit()
         else:
             try:
                 self.PluginHandler.CleanUp()
-                cprint("Saving DBs")
-                self.DB.SaveDBs()  # Save DBs prior to producing the report :)
-                if report:
-                    cprint(
-                        "Finishing iteration and assembling report again "
-                        "(with updated run information)")
-                cprint("OWTF iteration finished")
-                # Some error occurred (counter not accurate but we only need to
-                # know if sth happened).
-                if self.DB.ErrorCount() > 0:
-                    cprint(
-                        'Errors saved to ' +
-                        self.Config.FrameworkConfigGet('ERROR_DB_NAME') +
-                        '. Would you like us to auto-report bugs?')
-                    choice = raw_input("[Y/n] ")
-                    if choice != 'n' or choice != 'N':
-                        self.ReportErrorsToGithub()
-                    else:
-                        cprint(
-                            "We know that you are planning on submitting it "
-                            "manually ;)")
             except AttributeError:  # DB not instantiated yet!
-                cprint("OWTF finished: No time to report anything! :P")
+                cprint("OWTF :P")
             finally:
                 if self.ProxyMode:
                     try:
@@ -486,19 +466,8 @@ class Core(object):
                         pass
                 exit()
 
-    def GetSeed(self):
-        try:
-            return self.DB.GetSeed()
-        except AttributeError:  # DB not instantiated yet.
-            return ""
-
     def IsIPInternal(self, IP):
         return len(self.IsIPInternalRegexp.findall(IP)) == 1
-
-    def IsTargetUnreachable(self, target=''):
-        if not target:
-            target = self.Config.GetTarget()
-        return target in self.DB.GetData('UNREACHABLE_DB')
 
     def KillChildProcesses(self, parent_pid, sig=signal.SIGINT):
         ps_command = subprocess.Popen(
