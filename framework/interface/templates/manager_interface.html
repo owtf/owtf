@@ -9,7 +9,7 @@
 <!-- Workers Info Area -->
 <div class="row-fluid">
     <div class="col-md-2 col-md-offset-10">
-        <button class="btn btn-md btn-primary pull-right" onclick="addWorker();"><i class="fa fa-plus"></i> Add worker!</button>
+        <button class="btn btn-md btn-success pull-right" onclick="addWorker();"><i class="fa fa-plus"></i> Add worker!</button>
     </div>
 </div>
 <br>
@@ -89,9 +89,13 @@ function displayWorkersInfo(){
             success:function(data, textStatus, jqXHR){
                 if (304 != jqXHR.status){  // To do something only when some information has changed, i.e do nothing on 304 Not Modified
                     $('#workersInfo').html('');
-                    spanLength = 12/data.length;
                     $.each(data, function(index, obj){
-                        html = '<div class="span'+spanLength+' panel ';
+                        // We add three span3 panels in a row, so we use index to add
+                        // opening and closing tags for a row
+                        if (index%3 === 0)
+                            $('#workersInfo').append('<div class="row-fluid">');
+
+                        html = '<div class="span3 panel ';
                         if (obj.busy){
                             html += 'panel-primary"';
                         }else if (obj.paused){
@@ -111,7 +115,13 @@ function displayWorkersInfo(){
                         }
                         html += '</div>';
                         html += '</div>';
+
                         $('#workersInfo').append(html);
+
+                        // We add three span3 panels in a row, so we use index to add
+                        // opening and closing tags for a row
+                        if (index%3 === 2)
+                            $('#workersInfo').append('</div>');
                     });
                 }
             }
