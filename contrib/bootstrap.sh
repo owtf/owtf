@@ -37,7 +37,7 @@ print_warning() {
   echo -e "$(tput bold)$(tput setaf 3)$1$(tput sgr0)\n" | fold -sw $(( $T_COLS - 1 ))
 }
 
-# invoking the main install script and adding the hoppy fix by @_7a
+# invoking the main install script (the hoppy fix is now in the main install script)
 Install() {
   cd install/; python2 install.py
 }

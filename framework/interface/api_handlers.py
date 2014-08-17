@@ -104,6 +104,7 @@ class SessionsDataHandler(custom_handlers.APIRequestHandler):
 
     def get(self, target_id=None):
         try:
+            # gets the session_data for the target
             self.write(self.application.Core.DB.Transaction.GetSessionData(target_id=int(target_id)))
         except InvalidTargetReference as e:
             cprint(e.parameter)

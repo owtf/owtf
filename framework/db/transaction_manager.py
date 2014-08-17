@@ -88,10 +88,6 @@ class TransactionManager(object):
             if isinstance(Criteria.get('scope'), list):
                 Criteria['scope'] = Criteria['scope'][0]
             query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(Criteria['scope']))
-        if Criteria.get('session_tokens', None):
-            if isinstance(Criteria.get('session_tokens'), list):
-                Criteria['session_tokens'] = Criteria['session_tokens'][0]
-            query = query.filter(models.Transaction.session_tokens.in_(Criteria.get('session_tokens')))
         try:
             if Criteria.get('id[lt]', None):
                 if isinstance(Criteria.get('id[lt]'), list):
@@ -344,6 +340,12 @@ class TransactionManager(object):
         return self.DeriveTransactionDict(transaction_obj, include_raw_data = True)
 
     def GetSessionData(self, target_id=None):
+        """
+        * This will return the data from the `session_tokens` column in the form of a list,
+          having no `null` values
+        * A sample data: [{"attributes": {"Path": "/", "HttpOnly": true}, "name": "ASP.NET_SessionId", "value": "jx0ydsvwqtfgqcufazwigiih"},
+                          {"attributes": {"Path": "/"}, "name": "amSessionId", "value": "618174515"}]
+        """
         Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
         session_data = session.query(models.Transaction.session_tokens).all()
@@ -355,6 +357,9 @@ class TransactionManager(object):
         return(results)
 
     def GetSessionURLs(self, target_id):
+        """
+        This returns the data in the form of [(url1), (url2), etc]
+        """
         Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
         session_urls = session.query(models.Transaction.url).filter(group_by(models.Transaction.session_tokens)).getall()
