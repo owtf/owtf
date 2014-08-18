@@ -19,6 +19,7 @@ def get_handlers(Core):
                 tornado.web.url(r'/api/targets/([0-9]+)/urls/?$', api_handlers.URLDataHandler, name='urls_api_url'),
                 tornado.web.url(r'/api/targets/([0-9]+)/sessions/?$', api_handlers.SessionsDataHandler, name='sessions_api_url'),
                 tornado.web.url(r'/api/targets/([0-9]+)/transactions/?([0-9]+)?/?$', api_handlers.TransactionDataHandler, name='transactions_api_url'),
+                tornado.web.url(r'/api/targets/([0-9]+)/transactions/search/?$', api_handlers.TransactionSearchHandler, name='transactions_search_api_url'),
                 tornado.web.url(r'/api/targets/([0-9]+)/poutput/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginOutputHandler, name='poutput_api_url'),
                 tornado.web.url(r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', api_handlers.WorkerHandler, name='workers_api_url'),
                 tornado.web.url(r'/api/worklist/?$', api_handlers.WorkListHandler, name='worklist_api_url'),

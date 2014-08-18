@@ -317,6 +317,30 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
 
+class TransactionSearchHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self, target_id=None):
+        if not target_id:  # Must be a integer target id
+            raise tornado.web.HTTPError(400)
+        try:
+            # Empty criteria ensure all transactions
+            filter_data = dict(self.request.arguments)
+            filter_data["search"] = True
+            self.write(self.application.Core.DB.Transaction.SearchAll(
+                filter_data,
+                target_id=int(target_id)))
+        except InvalidTargetReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except InvalidTransactionReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except InvalidParameterType as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+
+
 class URLDataHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 

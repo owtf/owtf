@@ -37,6 +37,7 @@ class TransactionLog(custom_handlers.UIRequestHandler):
         else:
             self.render("transaction_log.html",
                         transactions_api_url=self.reverse_url('transactions_api_url', target_id, None),
+                        transactions_search_api_url=self.reverse_url('transactions_search_api_url', target_id),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         zest_console_url=self.reverse_url('zest_console_url', target_id)
                         )
@@ -214,7 +215,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
             filter_data = dict(self.request.arguments) # IMPORTANT!!
             plugin_outputs = self.application.Core.DB.POutput.GetAll(filter_data, target_id)
 	    owtf_code=[] #creating a list of plugin codes
-            
+
 	    # Group the plugin outputs to make it easier in template
             grouped_plugin_outputs = {}
             for poutput in plugin_outputs:
@@ -235,7 +236,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
                         poutput_api_url=self.reverse_url('poutput_api_url', target_id, None, None, None),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id),
-			html=(self.application.Core.DB.Vulnexp.GetExplanation(owtf_code))
+			#html=(self.application.Core.DB.Vulnexp.GetExplanation(owtf_code))
                         )
         except InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)
