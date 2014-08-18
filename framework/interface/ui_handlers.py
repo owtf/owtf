@@ -65,7 +65,7 @@ class SessionsViewer(custom_handlers.UIRequestHandler):
         if not target_id:
             raise tornado.web.HTTPError(405)
         self.render("sessions_viewer.html",
-                    sessions_api_url=self.reverse_url('sessions_api_url', target_id),
+                    sessions_data=self.application.Core.DB.Transaction.GetSessionData(target_id)
                     )
 
 
