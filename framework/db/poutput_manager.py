@@ -125,9 +125,13 @@ class POutputDB(object):
         query = self.GenerateQueryUsingSession(session, filter_data) # Empty dict will match all results
         # Delete the folders created for these plugins
         for plugin in query.all():
-            output_path = os.path.join(self.Core.Config.GetOutputDirForTargets(),
-                plugin.output_path)
-            if os.path.exists(output_path): self.Core.rmtree(output_path)
+            # First check if path exists in db
+            if plugin.output_path:
+                output_path = os.path.join(
+                    self.Core.Config.GetOutputDirForTargets(),
+                    plugin.output_path)
+                if os.path.exists(output_path):
+                    self.Core.rmtree(output_path)
         # When folders are removed delete the results from db
         results = query.delete()
         session.commit()
