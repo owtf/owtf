@@ -107,6 +107,7 @@ class UrlLog(custom_handlers.UIRequestHandler):
             raise tornado.web.HTTPError(405)
         self.render("url_log.html",
                     urls_api_url=self.reverse_url('urls_api_url', target_id),
+                    urls_search_api_url=self.reverse_url('urls_search_api_url', target_id),
                     transaction_log_url=self.reverse_url('transaction_log_url', target_id, None)
                     )
 
