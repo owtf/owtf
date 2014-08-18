@@ -144,26 +144,74 @@ class URLManager:
                 dict_list.append(self.DeriveUrlDict(url_obj))
             return dict_list
 
-        def GenerateQueryUsingSession(self, session, Criteria):
+        def GenerateQueryUsingSession(self, session, criteria, for_stats=False):
             query = session.query(models.Url)
-            if Criteria.get('url', None):
-                if isinstance(Criteria.get('url'), (str, unicode)):
-                    query = query.filter_by(url = Criteria['url'])
-                if isinstance(Criteria.get('url'), list):
-                    query = query.filter(models.Url.url.in_(Criteria['url']))
-            if Criteria.get('visited', None):
-                if isinstance(Criteria.get('visited'), list):
-                    Criteria['visited'] = Criteria['visited'][0]
-                query = query.filter_by(visited = self.Core.Config.ConvertStrToBool(Criteria['url']))
-            if Criteria.get('scope', None):
-                if isinstance(Criteria.get('scope'), list):
-                    Criteria['scope'] = Criteria['scope'][0]
-                query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(Criteria['scope']))
+            # Check if criteria is url search
+            if criteria.get('search', None):
+                if criteria.get('url', None):
+                    if isinstance(criteria.get('url'), list):
+                        criteria['url'] = criteria['url'][0]
+                    query = query.filter(models.Url.url.like(
+                        '%'+criteria['url']+'%'))
+            else:  # If not search
+                if criteria.get('url', None):
+                    if isinstance(criteria.get('url'), (str, unicode)):
+                        query = query.filter_by(url=criteria['url'])
+                    if isinstance(criteria.get('url'), list):
+                        query = query.filter(
+                            models.Url.url.in_(criteria['url']))
+            # For the following section doesn't matter if filter/search because
+            # it doesn't make sense to search in a boolean column :P
+            if criteria.get('visited', None):
+                if isinstance(criteria.get('visited'), list):
+                    criteria['visited'] = criteria['visited'][0]
+                query = query.filter_by(
+                    visited=self.Core.Config.ConvertStrToBool(criteria['visited']))
+            if criteria.get('scope', None):
+                if isinstance(criteria.get('scope'), list):
+                    criteria['scope'] = criteria['scope'][0]
+                query = query.filter_by(
+                    scope=self.Core.Config.ConvertStrToBool(criteria['scope']))
+            if not for_stats:  # Query for stats can't have limit and offset
+                try:
+                    if criteria.get('offset', None):
+                        if isinstance(criteria.get('offset'), list):
+                            criteria['offset'] = criteria['offset'][0]
+                        query = query.offset(int(criteria['offset']))
+                    if criteria.get('limit', None):
+                        if isinstance(criteria.get('limit'), list):
+                            criteria['limit'] = criteria['limit'][0]
+                        query = query.limit(int(criteria['limit']))
+                except ValueError:
+                    raise InvalidParameterType(
+                        "Invalid parameter type for transaction db")
             return query
 
-        def GetAll(self, Criteria, target_id = None):
+        def GetAll(self, Criteria, target_id=None):
             Session = self.Core.DB.Target.GetUrlDBSession(target_id)
             session = Session()
             query = self.GenerateQueryUsingSession(session, Criteria)
             results = query.all()
             return(self.DeriveUrlDicts(results))
+
+        def SearchAll(self, Criteria, target_id=None):
+            Session = self.Core.DB.Target.GetUrlDBSession(target_id)
+            session = Session()
+            # Three things needed
+            # + Total number of urls
+            # + Filtered url
+            # + Filtered number of url
+            total = session.query(models.Url).count()
+            filtered_url_objs = self.GenerateQueryUsingSession(
+                session,
+                Criteria).all()
+            filtered_number = self.GenerateQueryUsingSession(
+                session,
+                Criteria,
+                for_stats=True).count()
+            return({
+                "records_total": total,
+                "records_filtered": filtered_number,
+                "data": self.DeriveUrlDicts(
+                    filtered_url_objs)
+            })
