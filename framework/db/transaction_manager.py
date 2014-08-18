@@ -211,6 +211,8 @@ class TransactionManager(object):
                                             response_body = response_body,
                                             binary_response = binary_response,
                                             session_tokens = transaction.GetSessionTokens(),
+                                            login = None,
+                                            logout = None,
                                             grep_output = grep_output
                                           ))
 
@@ -434,3 +436,12 @@ class TransactionManager(object):
         session_urls = session.query(models.Transaction.url).filter(group_by(models.Transaction.session_tokens)).getall()
         session.close()
         return session_urls
+
+'''
+    def AddLoginLogoutIndicator(self, target_id=None, trans_id):
+        """ This adds a login/logout indicator to a specific transaction_id. """
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
+        session = Session()
+        session.query(models.Transaction).get(trans_id).update({"login_logout": })
+        session.close()
+'''

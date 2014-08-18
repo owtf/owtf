@@ -23,10 +23,13 @@ class Transaction(TransactionBase):
     response_body = Column(String, nullable=True)
     binary_response = Column(Boolean, nullable=True)
     session_tokens = Column(String, nullable=True)
+    login = Column(Boolean, nullable=True)
+    logout = Column(Boolean, nullable=True)
     grep_output = Column(String, nullable=True)
 
     def __repr__(self):
         return "<HTTP Transaction (url='%s' method='%s' response_status='%s')>" % (self.url, self.method, self.response_status)
+
 
 URLBase = declarative_base()
 
@@ -42,23 +45,8 @@ class Url(URLBase):
         return "<URL (url='%s')>" % (self.url)
 
 
-HTTPSessionsBase = declarative_base()
-
-
-class HTTPSessions(HTTPSessionsBase):
-    __tablename__ = "sessions"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    url = Column(String)
-    name = Column(String, nullable=True)
-    tokens = Column(String, nullable=True)
-    active = Column(Boolean)
-
-    def __repr__(self):
-        return "Session (name='%s')>" % (self.name)
-
-
 TargetBase = declarative_base()
+
 
 class Target(TargetBase):
     __tablename__ = "targets"
@@ -79,6 +67,7 @@ class Target(TargetBase):
     def __repr__(self):
         return "<Target (url='%s')>" % (self.target_url)
 
+
 ErrorBase = declarative_base()
 
 
@@ -93,6 +82,7 @@ class Error(ErrorBase):
 
     def __repr__(self):
         return "<Error (traceback='%s')>" % (self.traceback)
+
 
 OutputBase = declarative_base()
 
@@ -118,6 +108,7 @@ class PluginOutput(OutputBase):
 
     __table_args__ = (UniqueConstraint('plugin_type', 'plugin_code'),)
 
+
 RegisterBase = declarative_base()
 
 
@@ -132,6 +123,7 @@ class Command(RegisterBase):
     modified_command = Column(String)
     original_command = Column(String, primary_key=True)
 
+
 ResourceBase = declarative_base()
 
 
@@ -144,6 +136,7 @@ class Resource(ResourceBase):
     resource_type = Column(String)
     resource = Column(String)
     __table_args__ = (UniqueConstraint('resource', 'resource_type', 'resource_name'),)
+
 
 GeneralBase = declarative_base()
 
@@ -159,6 +152,7 @@ class ConfigSetting(GeneralBase):
 
     def __repr__(self):
         return "<ConfigSetting (key='%s', value='%s', dirty='%r')>" % (self.key, self.value, self.dirty)
+
 
 PluginBase = declarative_base()
 
@@ -188,7 +182,8 @@ class Plugin(PluginBase):
     attr = Column(String, nullable=True)
 
     __table_args__ = (UniqueConstraint('type', 'code'),)
-    
+
+
 VulnexpBase = declarative_base()
 
 class Vulnexp(VulnexpBase):
@@ -196,6 +191,7 @@ class Vulnexp(VulnexpBase):
     title = Column(String, primary_key=True)
     desc = Column(String)
     category=Column(String)
+
 
 MappingBase = declarative_base()
 
