@@ -96,12 +96,12 @@ class PluginHandler:
                 self.scanner = Scanner(self.Core)
                 self.InitExecutionRegistry()
                 self.showOutput = True
-                
+
         def ValidateAndFormatPluginList(self, PluginList):
                 List = [] # Ensure there is always a list to iterate from! :)
                 if PluginList != None:
                         List = PluginList
-                
+
                 ValidatedList = []
                 #print "List to validate="+str(List)
                 for Item in List:
@@ -117,7 +117,7 @@ class PluginHandler:
                 return ValidatedList # Return list of Codes
 
         def InitExecutionRegistry(self): # Initialises the Execution registry: As plugins execute they will be tracked here, useful to avoid calling plugins stupidly :)
-                self.ExecutionRegistry = defaultdict(list) 
+                self.ExecutionRegistry = defaultdict(list)
                 for Target in self.Scope:
                         self.ExecutionRegistry[Target] = []
 
@@ -199,7 +199,7 @@ class PluginHandler:
                         if self.ExceptPluginsSet and Plugin['code'] in self.ExceptPluginsList:
                                 Chosen = False # Skip plugins present in the black-list defined by the user
                 if Plugin['type'] not in self.Core.DB.Plugin.GetTypesForGroup(Plugin['group']):
-                        Chosen = False # Skip plugin: Not matching selected type    
+                        Chosen = False # Skip plugin: Not matching selected type
                 return Chosen
 
         def IsActiveTestingPossible(self): # Checks if 1 active plugin is enabled = active testing possible:
@@ -221,22 +221,22 @@ class PluginHandler:
                 #        return False # Cannot run plugin if target is unreachable
                 if not self.IsChosenPlugin(Plugin):
                         return False # Skip not chosen plugins
-                # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active): 
+                # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active):
                 #if self.PluginAlreadyRun(Plugin) and not self.Core.Config.Get('FORCE_OVERWRITE'): #not Code == 'OWASP-WU-SPID': # For external plugin forced re-run (development)
                 if self.PluginAlreadyRun(Plugin) and ((not self.force_overwrite() and not ('grep' == Plugin['type'])) or Plugin['type'] == 'external'): #not Code == 'OWASP-WU-SPID':
                         if ShowMessages:
-                                log("Plugin: "+Plugin['title']+" ("+Plugin['type']+") has already been run, skipping ..")
+                                logging.info("Plugin: "+Plugin['title']+" ("+Plugin['type']+") has already been run, skipping ..")
                         #if Plugin['Type'] == 'external':
                         # External plugins are run only once per each run, so they are registered for all targets
                         # that are targets in that run. This is an alternative to chaning the js filters etc..
                         #        self.register_plugin_for_all_targets(Plugin)
-                        return False 
+                        return False
                 if 'grep' == Plugin['type'] and self.PluginAlreadyRun(Plugin):
                         return False # Grep plugins can only run if some active or semi_passive plugin was run since the last time
                 return True
 
         def GetPluginFullPath(self, PluginDir, Plugin):
-                return PluginDir+"/"+Plugin['type']+"/"+Plugin['file'] # Path to run the plugin 
+                return PluginDir+"/"+Plugin['type']+"/"+Plugin['file'] # Path to run the plugin
 
         def RunPlugin(self, PluginDir, Plugin, save_output=True):
                 PluginPath = self.GetPluginFullPath(PluginDir, Plugin)
@@ -308,7 +308,7 @@ class PluginHandler:
             status['AllSkipped'] = False  # A plugin is going to be run.
             plugin['status'] = 'Running'
             self.PluginCount += 1
-            log(
+            logging.info(
                 '_' * 10 + ' ' + str(self.PluginCount) +
                 ' - Target: ' + self.Core.DB.Target.GetTargetURL() +
                 ' -> Plugin: ' + plugin['title'] + ' (' +
@@ -321,7 +321,7 @@ class PluginHandler:
             # DB empty => grep plugins will fail, skip!!
             if ('grep' == plugin['type'] and
                     self.Core.DB.Transaction.NumTransactions() == 0):
-                log(
+                logging.info(
                     'Skipped - Cannot run grep plugins: '
                     'The Transaction DB is empty')
                 return None
@@ -466,7 +466,7 @@ class PluginHandler:
                 #if 'breadth' == self.Algorithm: # Loop plugins, then targets
                 #       for Plugin in self.Core.Config.Plugin.GetOrder(PluginGroup):# For each Plugin
                 #               #print "Processing Plugin="+str(Plugin)
-                #               for Target in TargetList: # For each Target 
+                #               for Target in TargetList: # For each Target
                 #                       #print "Processing Target="+str(Target)
                 #                       self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
                 #                       self.ProcessPlugin( PluginDir, Plugin, Status )
@@ -477,7 +477,7 @@ class PluginHandler:
                 #                       self.ProcessPlugin( PluginDir, Plugin, Status )
 
         def CleanUp(self):
-            self.WorkerManager.cleanUp()
+            self.WorkerManager.clean_up()
 
         def SavePluginInfo(self, PluginOutput, Plugin):
                 self.Core.DB.SaveDBs() # Save new URLs to DB after each request
@@ -497,7 +497,7 @@ class PluginHandler:
                 print(INTRO_BANNER_GENERAL+INTRO_BANNER_WEB_PLUGIN_TYPE+"\n Available WEB plugins:""")
 
         def ShowPluginGroupPlugins(self, PluginGroup):
-                for PluginType in self.Core.Config.Plugin.GetTypesForGroup(PluginGroup): 
+                for PluginType in self.Core.Config.Plugin.GetTypesForGroup(PluginGroup):
                         self.ShowPluginTypePlugins(PluginType,PluginGroup)
 
         def ShowPluginTypePlugins(self, PluginType,PluginGroup):

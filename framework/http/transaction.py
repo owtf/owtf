@@ -149,6 +149,12 @@ class HTTP_Transaction(object):
         return (self.GrepOutput.get(regex_name, None))
 
     def GetSessionTokens(self):
+        """
+        * This forms a valid `Cookie` object (in form of a dict),
+          so that it can be parsed and reused.
+        * Takes an input a `CookieString` and parses the multiple cookies
+          into separate dict objects.
+        """
         try:
             cookie_ls = []
             # returns a list of cookies and their attributes

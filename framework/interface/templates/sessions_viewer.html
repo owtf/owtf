@@ -3,117 +3,56 @@
 {% block title %}Session Viewer{% end %}
 
 {% block content %}
-<h2>Session Token info </h2>
+<h2>Cookie-based user sessions data</h2>
 <hr/>
 <div class="row-fluid">
     <div class="panel-group" id="accordion">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h4 id="token0_head" a data-toggle="collapse" data-parent="#accordion" href="#token0"></h4>
-            </div>
-            <div id="token0" class="panel-collapse collapse-in">
-                <div class="panel-body">
-                <ul class="nav nav-tabs">
-                    <li class="pull-right"><button class="btn btn-primary btn-sm"> View URL map</button></li>
-                    <hr />
-                </ul>
-                    <table class="table table-bordered table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th> NAME </th>
-                                <th> VALUE </th>
-                                <th> ATTRIBUTES </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr id="token0"></tr>
-                                <td id="token0_name"></td>
-                                <td id="token0_value"></td>
-                                <td>
-                                    <ul id="token0_attr_domain"></ul>
-                                    <ul id="token0_attr_path"></ul>
-                                    <ul id="token0_attr_secure"></ul>
-                                    <ul id="token0_attr_httponly"></ul>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h4 id="token1_head" a data-toggle="collapse" data-parent="#accordion" href="#token1"></h4>
-            </div>
-            <div id="token1" class="panel-collapse collapse-in">
-                <div class="panel-body">
-                    <ul class="nav nav-tabs">
-                        <li class="pull-right"><button class="btn btn-primary btn-sm"> View URL map</button></li>
-                        <hr />
-                    </ul>
-                    <table class="table table-bordered table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th> NAME </th>
-                                <th> VALUE </th>
-                                <th> ATTRIBUTES </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr id="token2"></tr>
-                                <td id="token1_name"></td>
-                                <td id="token1_value"></td>
-                                <td>
-                                    <ul id="token1_attr_domain"></ul>
-                                    <ul id="token1_attr_path"></ul>
-                                    <ul id="token1_attr_secure"></ul>
-                                    <ul id="token1_attr_httponly"></ul>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
+
 
 <script type="text/javascript">
 
 var mySpace = {
-                sessions_api_url:"{{ sessions_api_url }}"
-};
+    sessions_api_url:"{{ sessions_api_url }}"
+}
 
-function enterSessionData(data, status, xhr){
-    console.log(data);
+function enterSessionData(data){
+    $("#accordion").empty();
     $.each(data, function(ind, objects){
       $.each(objects, function(index, obj){
-        $("#token"+index+"_head").html(obj.name);
-        $("#token"+index+"_name").html('<i><b>'+obj.name+'</i></b>');
-        $("#token"+index+"_value").html('<b>'+obj.value+'</b>');
-        if (obj.attributes.Domain != null){
-            $("#token"+index+"_attr_domain").html('<b>Domain</b>: '+obj.attributes.Domain);
+        html = '<div class="panel panel-default">';
+        html+= '<div class="panel-heading"><h4 id="token_head" data-toggle="collapse" data-parent=".panel-group" href="#token">'+obj.name+'</h4></div>';
+        html+='<div class="panel-body collapse-in" id="token"><ul class="nav nav-tabs"><li class="pull-right"><button class="btn btn-primary btn-sm"> View URL map</button></li><hr /></ul><table class="table table-bordered table-striped table-hover"><thead><tr><th> NAME </th><th> VALUE </th><th> ATTRIBUTES </th></tr></thead><tbody><tr></tr>';
+        html+='<td id="token_name">'+obj.name+'</td>';
+        html+='<td id="token_value">'+obj.value+'</td><td>';
+        if (obj.attributes.Domain){
+            html+='<ul id="token_attr_domain"><b>Domain</b>: '+obj.attributes.Domain+'</ul>';
         }
-        if (obj.attributes.Path != null){
-            $("#token"+index+"_attr_path").html('<b>Path</b>: '+obj.attributes.Path);
+        if (obj.attributes.Path){
+            html+='<ul id="token_attr_path"><b>Path</b>: '+obj.attributes.Path+'</ul>';
         }
-        if (obj.attributes.Secure != null){
-            $("#token"+index+"_attr_secure").html('<b>Secure</b>: '+obj.attributes.Secure);
+        if (obj.attributes.Secure){
+            html+='<ul id="token_attr_secure"><b>Secure</b>: '+obj.attributes.Secure+'</ul>';
         }
-        if (obj.attributes.HttpOnly != null){
-            $("#token"+index+"_attr_httponly").html('<b>HTTP-only</b>: '+obj.attributes.HttpOnly);
+        if (obj.attributes.HttpOnly){
+            html+='<ul id="token_attr_httponly"><b>HttpOnly</b>: '+obj.attributes.HttpOnly+'</ul>';
         }
+        if (obj.attributes.Expires){
+            html+='<ul id="token_attr_expires"><b>Expires</b>: '+obj.attributes.Expires+'</ul>';
+        }
+        html+='</td></tr></tbody></table></div></div></div></div></div>';
+        $("#accordion").append(html)
     });
 });
 }
 
-function updateUserSessions(){
+function updateSessionsData(){
     $.getJSON(mySpace.sessions_api_url, enterSessionData);
-    console.log(mySpace.sessions_api_url);
-    setTimeout(updateUserSessions, 5000);
+    setTimeout(updateSessionsData, 5000);
 }
 
-$(document).ready(updateUserSessions);
+$(document).ready(updateSessionsData);
 
 </script>
 {% end %}

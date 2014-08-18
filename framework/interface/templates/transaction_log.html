@@ -30,12 +30,32 @@
 <div id="wrap">
   <div class="container">
     <div class="row top-buffer">
-       <div class="col-mid-12">
-         <div class="btn-group">
+      <div class="col-md-12">
+        <div class="col-mid-12">
+          <div class="btn-group pull-right">
             <button class="btn btn-danger" onclick="createZestBtn()" id="createZest"><i class="fa fa-file"></i> Create Zest Script !</button>
             <button class="btn btn-info" onclick="window.open(mySpace.zest_console_url);" id="ZestConsole"> <i class="fa fa-desktop"></i> Zest Script Console</button>
           </div>
        </div>
+
+      </div>
+    </div>
+    <!-- Request & response search headers -->
+    <div class="row-fluid">
+      <div class="col-md-12">
+        <form class="form-inline pull-right" role="form">
+          <div class="form-group">
+            <input type="text" class="form-control customTextSearch" col-id="6" placeholder="Search Requests">
+          </div>
+          <div class="form-group">
+            <input type="text" class="form-control customTextSearch" col-id="7" placeholder="Search Response headers">
+          </div>
+          <div class="form-group">
+            <input type="text" class="form-control customTextSearch" col-id="8" placeholder="Search Response bodies">
+          </div>
+        </form>
+      </div>
+
     </div>
 
     <div class="row ">
@@ -43,15 +63,15 @@
          <table id="transactionLog" class="table table-striped table-bordered">
             <thead>
                 <tr>
-                    <th>Select</th>
-                    <th> ID </th>
+                    <th> Select </th>
                     <th> Link </th>
-                    <th> Scope </th>
-                    <th> Seconds </th>
-                    <th> Status </th>
-                    <th> Method </th>
-                    <th> URL </th>
-                    <th> Data </th>
+                    <th> Time </th>
+                    <th class="textSearch"> Method </th>
+                    <th class="textSearch"> Status </th>
+                    <th class="textSearch"> URL </th>
+                    <th> Raw Request </th>
+                    <th> Response Headers </th>
+                    <th> Response Body </th>
                 </tr>
             </thead>
             <tbody>
@@ -69,7 +89,7 @@
     <div style="text-align: center;">
       <button class="btn btn-primary btn-lg launch-modal" id="sendBtn" data-toggle="modal" data-target="#ScriptModal" disabled="true">Send
       </button>
-      <button class="btn btn-danger btn-lg" onclick="CloseFooter()">Close</button>
+      <button class="btn btn-danger btn-lg" onclick="closeFooter()">Close</button>
     </div>
   </div>
 </div>
@@ -89,7 +109,7 @@
         <input type="text" id="textareaID" class="form-control"></input>
       </div>
       <div class="modal-footer">
-         <button type="button" class="btn btn-primary" id="saveBtn" onclick="RequestSender()">Generate!</button>
+         <button type="button" class="btn btn-primary" id="saveBtn" onclick="requestSender()">Generate!</button>
         <button type="button" class="btn btn-default"  data-dismiss="modal">Cancel</button>
 
       </div>
@@ -101,30 +121,15 @@
 
 var mySpace = {
                     max_id:0,
+                    transactions: [],
                     transactions_api_url:"{{ transactions_api_url }}",
+                    transactions_search_api_url:"{{ transactions_search_api_url }}",
                     transaction_log_url:"{{ transaction_log_url }}",
                     zest_console_url:"{{ zest_console_url }}"
                   };
 
 
 var transactionLog;
-
-function addTransactions(data, status, xhr){
-    $.each(data, function(index, obj){
-            jQuery('#transactionLog').dataTable().fnAddData([
-                                                '<input  type="checkbox"  class="check" name="'+obj.id+'"/>',
-                                                obj.id,
-                                                '<a href="'+mySpace.transaction_log_url+obj.id+'"><span class="btn btn-primary btn-sm"><i class="fa fa-chevron-circle-right"></i> View</span></a>',
-                                                obj.scope,
-                                                obj.time_human,
-                                                obj.response_status,
-                                                obj.method,
-                                                obj.url,
-                                                obj.data
-                                                ]);
-            mySpace.max_id = obj.id;
-            });
-}
 
 var oTable;
 
@@ -133,7 +138,7 @@ function createZestBtn(){
 
         disableButton("createZest");
         fnShowHide(0);
-        MakeFootervisible();
+        makeFooterVisible();
 }
 
 
@@ -146,14 +151,12 @@ function fnShowHide(iCol){
 }
 
 //functions to disable/enable buttons using id
-
 function disableButton(id){
 
         id='#'+id;
         $(id).prop("disabled",true);
 
 }
-
 function enableButton(id){
 
         id='#'+id;
@@ -161,29 +164,26 @@ function enableButton(id){
 }
 
 //handles close button events - 1)Hide column 2) disable footer 3) enable create zest script button
+function closeFooter(){
 
-function CloseFooter(){
-
-        MakeFooterInvisible();
+        makeFooterInvisible();
         $('input:checkbox').removeAttr('checked');
         fnShowHide(0);
         enableButton("createZest");
 }
 
 //functions to make footer visible/invisible
-
-function MakeFooterInvisible(){
+function makeFooterInvisible(){
 
         $('div[id="#fixed_bar"]').hide();
 }
 
-function MakeFootervisible(){
+function makeFooterVisible(){
 
         $('div[id="#fixed_bar"]').show();
 }
 
 //enables send button only if at least one check box is ticked - event delegation
-
 $(document).on('click','input:checkbox', function () {
 
         if ($('.check:checked').length) {
@@ -195,7 +195,7 @@ $(document).on('click','input:checkbox', function () {
 });
 
 //clears text
-function ClearText(id){
+function clearText(id){
 
         id='#'+id;
         $(id).val('');
@@ -206,18 +206,17 @@ function ClearText(id){
 $('#ScriptModal').on('show.bs.modal', function (e) {
 
         $('#textareaID').focus();
-        ClearText("textareaID");
+        clearText("textareaID");
         $("#Filecheck").text('');
 });
 
 
-//send event
-
-function RequestSender(){
+//Checks filename, and send POST request with data (the new edited HTTP request)
+function requestSender(){
 
         var file_name=$('#textareaID').val();
         //validates file name using regex
-        if(validate_filename(file_name)){
+        if(validateFilename(file_name)){
 
           var trans=new Array();
           $.each(getSelectedTransaction(), function(index, obj){
@@ -259,7 +258,7 @@ function checkIfFileExists(data, Status, xhr){
 }
 
 //checks for valid file_name
-function validate_filename(elem){
+function validateFilename(elem){
 
         var alphaExp = /^[0-9a-zA-Z]+$/;
         if(elem.match(alphaExp)){
@@ -270,18 +269,108 @@ function validate_filename(elem){
         }
 }
 
-
-function updateTransactions(){
-    $.getJSON( mySpace.transactions_api_url+"?id[gt]="+mySpace.max_id, addTransactions);
-    setTimeout(updateTransactions , 5000);
+function getArray(data) {
+    var table_array = [];
+    $.each(data, function(index, obj){
+      // jQuery('#transactionLog').dataTable().fnAddData([
+      table_array.push([
+        '<input  type="checkbox"  class="check" name="'+obj.id+'"/>',
+        '<a href="'+mySpace.transaction_log_url+obj.id+'" target="_blank"><span class="btn btn-primary btn-md"><i class="fa fa-chevron-circle-right"></i> View</span></a>',
+        obj.time_human,
+        obj.method,
+        obj.response_status,
+        obj.url,
+        null,
+        null,
+        null
+      ]);
+    });
+    return(table_array);
 }
+
+function dummyAjax(data, callback, settings) {
+  // This function takes care of converting dataTable data into owtf api
+  // and then the response back to dataTables type
+  var get_parameters = {};
+  var draw = data.draw;
+  get_parameters['limit'] = data.length;
+  get_parameters['offset'] = data.start;
+
+  var columnMappings = {
+    3: 'method',
+    4: 'response_status',
+    5: 'url',
+    6: 'raw_request',
+    7: 'respone_headers',
+    8: 'response_body'
+  };
+
+  // Iterate over mappings and add search parameters
+  for (var k in columnMappings) {
+    if (data.columns[k].search.value)
+      get_parameters[columnMappings[k]] = data.columns[k].search.value;
+  }
+
+  $.getJSON(mySpace.transactions_search_api_url+'?'+$.param(get_parameters, true), function (responseData) {
+    callback({
+      "draw": draw,
+      "recordsTotal": responseData["records_total"],
+      "recordsFiltered": responseData["records_filtered"],
+      "data": getArray(responseData["data"]),
+      "error": null
+    });
+  });
+}
+
+function drawTable() {
+    $('#transactionLog').dataTable({
+                                        "bAutoWidth": false,
+                                        "bSort": false, // Not yet supported in API, can after shifting to postgres
+                                        "bServerSide": true,
+                                        "ajax": dummyAjax,
+                                        "sDom": "ltip", // Remove global search & processing message
+                                        "columnDefs": [{
+                                          "targets": [6, 7, 8],
+                                          "visible": false,
+                                          "searchable": true
+                                        }]
+                                    });
+
+    var table = $("#transactionLog").DataTable();
+
+    $('#transactionLog thead th.textSearch').each(function () {
+        var title = $('#transactionLog thead th').eq( $(this).index() ).text();
+        $(this).html('<input type="text" style="width: 100%; box-sizing: border-box;" class="form-control" placeholder="'+title+'"/>' );
+    });
+
+    // Apply the search
+    table.columns().eq(0).each(function ( colIdx ){
+        $(':text', table.column( colIdx ).header() ).on('keyup change', function () {
+            table
+                .column( colIdx )
+                .search( this.value )
+                .draw();
+        } );
+    });
+
+    /*
+    // Apply search to custom boxes
+    $('.customTextSearch').each(function (index, obj){
+      jQueryObj = $(obj);
+      jQueryObj.on('keyup change', function(){
+        table
+            .column(parseInt(jQueryObj.attr('col-id')))
+            .search(obj.value)
+            .draw()
+      });
+    });
+    */
+}
+
 $(document).ready(function() {
-        updateTransactions();
-        $('#transactionLog').dataTable({
-                                            "bAutoWidth": false
-                                        });
+        drawTable();
         fnShowHide(0);
-        MakeFooterInvisible();
+        makeFooterInvisible();
 });
 </script>
 {% end %}

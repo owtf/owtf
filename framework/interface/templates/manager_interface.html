@@ -7,7 +7,13 @@
 
 {% block content %}
 <!-- Workers Info Area -->
-<div class="row" id="workersInfo">
+<div class="row-fluid">
+    <div class="col-md-2 col-md-offset-10">
+        <button class="btn btn-md btn-success pull-right" onclick="addWorker();"><i class="fa fa-plus"></i> Add worker!</button>
+    </div>
+</div>
+<br>
+<div class="row-fluid" id="workersInfo">
 </div>
 <!-- End Workers Info Area -->
 <script>
@@ -33,6 +39,22 @@ function resumeWorker(workerId){
     $.get(mySpace.workers_api_url+workerId+'/resume');
 }
 
+// Delete a worker process using API
+function deleteWorker(workerId){
+    $.ajax({
+            url:mySpace.workers_api_url+workerId,
+            type:'DELETE',
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+            });
+}
+
+// Add new worker using API
+function addWorker(){
+    $.post(mySpace.workers_api_url);
+}
+
 // Function to get all target configs using API
 function getTargetConfigs(){
     $.getJSON(mySpace.targets_api_url+'?workers_page', function(data){  // '?workers_page' used to avoid browser returning cached results
@@ -52,6 +74,8 @@ function getControlButtons(obj){
             html += '<button class="btn btn-primary btn-xs" href="#" onclick="pauseWorker('+obj.id+');"><i class="fa fa-pause"></i></button>';
             html += '<button class="btn btn-danger btn-xs" href="#" onclick="abortWorker('+obj.id+');"><i class="fa fa-times"></i></button>';
         }
+    } else {
+        html += '<button class="btn btn-danger btn-xs" href="#" onclick="deleteWorker('+obj.id+');"><i class="fa fa-times"></i></button>';
     }
     html += '</div>';
     return(html);
@@ -65,9 +89,13 @@ function displayWorkersInfo(){
             success:function(data, textStatus, jqXHR){
                 if (304 != jqXHR.status){  // To do something only when some information has changed, i.e do nothing on 304 Not Modified
                     $('#workersInfo').html('');
-                    spanLength = 12/data.length;
                     $.each(data, function(index, obj){
-                        html = '<div class="span'+spanLength+' panel ';
+                        // We add three span3 panels in a row, so we use index to add
+                        // opening and closing tags for a row
+                        if (index%2 === 0)
+                            $('#workersInfo').append('<div class="row-fluid">');
+
+                        html = '<div class="span5 panel ';
                         if (obj.busy){
                             html += 'panel-primary"';
                         }else if (obj.paused){
@@ -87,7 +115,13 @@ function displayWorkersInfo(){
                         }
                         html += '</div>';
                         html += '</div>';
+
                         $('#workersInfo').append(html);
+
+                        // We add three span3 panels in a row, so we use index to add
+                        // opening and closing tags for a row
+                        if (index%2 === 1)
+                            $('#workersInfo').append('</div>');
                     });
                 }
             }

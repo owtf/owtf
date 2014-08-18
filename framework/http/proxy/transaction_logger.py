@@ -29,29 +29,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
 #                     as a part of Google Summer of Code 2013
 '''
-from multiprocessing import Process
+from multiprocessing import Process, current_process
 from framework.http import transaction
-from framework.http.proxy.cache_handler import response_from_cache, request_from_cache
+from framework.http.proxy.cache_handler import response_from_cache, \
+    request_from_cache
+from framework.lib.owtf_process import OWTFProcess
 from framework import timer
 from urlparse import urlparse
 import os
 import glob
 import time
+import logging
 
 
-class TransactionLogger(Process):
+class TransactionLogger(OWTFProcess):
     """
     This transaction logging process is started seperately from tornado proxy
     This logger checks for *.rd files in cache_dir and saves it as owtf db
     transaction, *.rd files serve as a message that the file corresponding
     to the hash is ready to be converted.
     """
-    def __init__(self, coreobj, poison_q):
-        Process.__init__(self)
-        self.Core = coreobj
-        self.poison_q = poison_q
-        self.cache_dir = self.Core.DB.Config.Get('INBOUND_PROXY_CACHE_DIR')
-
     def derive_target_for_transaction(self, request, response, target_list, host_list):
         for target_id,Target in target_list:
             if request.url.startswith(Target):
@@ -64,19 +61,19 @@ class TransactionLogger(Process):
                         return [target_id, self.get_scope_for_url(request.url, host_list)]
                 except KeyError:
                     pass
-        return [self.Core.DB.Target.GetTargetID(), self.get_scope_for_url(request.url, host_list)]
+        return [self.core.DB.Target.GetTargetID(), self.get_scope_for_url(request.url, host_list)]
 
     def get_scope_for_url(self, url, host_list):
         return((urlparse(url).hostname in host_list))
 
     def get_owtf_transactions(self, hash_list):
         transactions_dict = None
-        target_list = self.Core.DB.Target.GetIndexedTargets()
+        target_list = self.core.DB.Target.GetIndexedTargets()
         if target_list: # If there are no targets in db, where are we going to add. OMG
             transactions_dict = {}
             for target_id, target in target_list:
                 transactions_dict[target_id] = []
-            host_list = self.Core.DB.Target.GetAllInScope('HOST_NAME')
+            host_list = self.core.DB.Target.GetAllInScope('HOST_NAME')
 
             for request_hash in hash_list:
                 request = request_from_cache(request_hash, self.cache_dir)
@@ -95,14 +92,14 @@ class TransactionLogger(Process):
             os.remove(file_path)
         return(hash_list)
 
-    def run(self):
+    def pseudo_run(self):
         try:
             while self.poison_q.empty():
                 if glob.glob(os.path.join(self.cache_dir, "url", "*.rd")):
                     hash_list = self.get_hash_list(self.cache_dir)
                     transactions_dict = self.get_owtf_transactions(hash_list)
                     if transactions_dict: # Make sure you donot have None
-                        self.Core.DB.Transaction.LogTransactionsFromLogger(transactions_dict)
+                        self.core.DB.Transaction.LogTransactionsFromLogger(transactions_dict)
                 else:
                     time.sleep(2)
         except KeyboardInterrupt:

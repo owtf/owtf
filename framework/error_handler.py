@@ -41,7 +41,7 @@ import urllib2
 
 from framework.lib.exceptions import FrameworkAbortException, \
                                      PluginAbortException
-from framework.lib.general import cprint, log
+from framework.lib.general import cprint
 
 
 class ErrorHandler(object):
@@ -68,7 +68,7 @@ class ErrorHandler(object):
 
     def UserAbort(self, level, partial_output = ''):
         # Levels so far can be Command or Plugin
-        message = log(
+        message = logging.info(
             "\nThe " + level + " was aborted by the user: Please check the "
             "report and plugin output files")
         message = (

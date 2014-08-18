@@ -67,42 +67,83 @@ class TransactionManager(object):
     def IsTransactionAlreadyAdded(self, Criteria, target_id = None):
         return(len(self.GetAll(Criteria, target_id)) > 0)
 
-    def GenerateQueryUsingSession(self, session, Criteria):
+    def GenerateQueryUsingSession(self, session, criteria, for_stats=False):
         query = session.query(models.Transaction)
-        if Criteria.get('url', None):
-            if isinstance(Criteria.get('url'), (str, unicode)):
-                query = query.filter_by(url = Criteria['url'])
-            if isinstance(Criteria.get('url'), list):
-                query = query.filter(models.Transaction.url.in_(Criteria.get('url')))
-        if Criteria.get('method', None):
-            if isinstance(Criteria.get('method'), (str, unicode)):
-                query = query.filter_by(method = Criteria['method'])
-            if isinstance(Criteria.get('method'), list):
-                query = query.filter(models.Transaction.method.in_(Criteria.get('method')))
-        if Criteria.get('data', None):
-            if isinstance(Criteria.get('data'), (str, unicode)):
-                query = query.filter_by(data = Criteria['data'])
-            if isinstance(Criteria.get('data'), list):
-                query = query.filter(models.Transaction.data.in_(Criteria.get('data')))
-        if Criteria.get('scope', None):
-            if isinstance(Criteria.get('scope'), list):
-                Criteria['scope'] = Criteria['scope'][0]
-            query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(Criteria['scope']))
-        if Criteria.get('session_tokens', None):
-            if isinstance(Criteria.get('session_tokens'), list):
-                Criteria['session_tokens'] = Criteria['session_tokens'][0]
-            query = query.filter(models.Transaction.session_tokens.in_(Criteria.get('session_tokens')))
-        try:
-            if Criteria.get('id[lt]', None):
-                if isinstance(Criteria.get('id[lt]'), list):
-                    Criteria['id[lt]'] = Criteria['id[lt]'][0]
-                query = query.filter(models.Transaction.id < int(Criteria['id[lt]']))
-            if Criteria.get('id[gt]', None):
-                if isinstance(Criteria.get('id[gt]'), list):
-                    Criteria['id[gt]'] = Criteria['id[gt]'][0]
-                query = query.filter(models.Transaction.id > int(Criteria['id[gt]']))
-        except ValueError:
-            raise InvalidParameterType("Invalid parameter type for transaction db for id[lt] or id[gt]")
+        # If transaction search is being done
+        if criteria.get('search', None):
+            if criteria.get('url', None):
+                if isinstance(criteria.get('url'), list):
+                    criteria['url'] = criteria['url'][0]
+                query = query.filter(models.Transaction.url.like(
+                    '%'+criteria['url']+'%'))
+            if criteria.get('method', None):
+                if isinstance(criteria.get('method'), list):
+                    criteria['method'] = criteria['method'][0]
+                query = query.filter(models.Transaction.method.like(
+                    '%'+criteria.get('method')+'%'))
+            if criteria.get('data', None):
+                if isinstance(criteria.get('data'), list):
+                    criteria['data'] = criteria['data'][0]
+                query = query.filter(models.Transaction.data.like(
+                    '%'+criteria.get('data')+'%'))
+            if criteria.get('raw_request', None):
+                if isinstance(criteria.get('raw_request'), list):
+                    criteria['raw_request'] = criteria['raw_request'][0]
+                query = query.filter(models.Transaction.raw_request.like(
+                    '%'+criteria.get('raw_request')+'%'))
+            if criteria.get('response_status', None):
+                if isinstance(criteria.get('response_status'), list):
+                    criteria['response_status'] = criteria['response_status'][0]
+                query = query.filter(models.Transaction.response_status.like(
+                    '%'+criteria.get('response_status')+'%'))
+            if criteria.get('response_headers', None):
+                if isinstance(criteria.get('response_headers'), list):
+                    criteria['response_headers'] = criteria['response_headers'][0]
+                query = query.filter(models.Transaction.response_headers.like(
+                    '%'+criteria.get('response_headers')+'%'))
+            if criteria.get('response_body', None):
+                if isinstance(criteria.get('response_body'), list):
+                    criteria['response_body'] = criteria['response_body'][0]
+                query = query.filter(models.Transaction.response_body.like(
+                    '%'+criteria.get('response_body')+'%'))
+        else:  # If transaction filter is being done
+            if criteria.get('url', None):
+                if isinstance(criteria.get('url'), (str, unicode)):
+                    query = query.filter_by(url = criteria['url'])
+                if isinstance(criteria.get('url'), list):
+                    query = query.filter(models.Transaction.url.in_(criteria.get('url')))
+            if criteria.get('method', None):
+                if isinstance(criteria.get('method'), (str, unicode)):
+                    query = query.filter_by(method = criteria['method'])
+                if isinstance(criteria.get('method'), list):
+                    query = query.filter(models.Transaction.method.in_(criteria.get('method')))
+            if criteria.get('data', None):
+                if isinstance(criteria.get('data'), (str, unicode)):
+                    query = query.filter_by(data = criteria['data'])
+                if isinstance(criteria.get('data'), list):
+                    query = query.filter(models.Transaction.data.in_(criteria.get('data')))
+        # For the following section doesn't matter if filter/search because
+        # it doesn't make sense to search in a boolean column :P
+        if criteria.get('scope', None):
+            if isinstance(criteria.get('scope'), list):
+                criteria['scope'] = criteria['scope'][0]
+            query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(criteria['scope']))
+        if criteria.get('binary_response', None):
+            if isinstance(criteria.get('binary_response'), list):
+                criteria['binary_response'] = criteria['binary_response'][0]
+            query = query.filter_by(binary_response = self.Core.Config.ConvertStrToBool(criteria['binary_response']))
+        if not for_stats:  # query for stats shouldn't have limit and offset
+            try:
+                if criteria.get('offset', None):
+                    if isinstance(criteria.get('offset'), list):
+                        criteria['offset'] = criteria['offset'][0]
+                    query = query.offset(int(criteria['offset']))
+                if criteria.get('limit', None):
+                    if isinstance(criteria.get('limit'), list):
+                        criteria['limit'] = criteria['limit'][0]
+                    query = query.limit(int(criteria['limit']))
+            except ValueError:
+                raise InvalidParameterType("Invalid parameter type for transaction db")
         return(query)
 
     def GetFirst(self, Criteria, target_id = None): # Assemble only the first transaction that matches the criteria from DB
@@ -170,6 +211,8 @@ class TransactionManager(object):
                                             response_body = response_body,
                                             binary_response = binary_response,
                                             session_tokens = transaction.GetSessionTokens(),
+                                            login = None,
+                                            logout = None,
                                             grep_output = grep_output
                                           ))
 
@@ -326,6 +369,30 @@ class TransactionManager(object):
             dict_list.append(self.DeriveTransactionDict(tdb_obj, include_raw_data))
         return dict_list
 
+    def SearchAll(self, Criteria, target_id=None, include_raw_data=False):
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
+        session = Session()
+        # Three things needed
+        # + Total number of transactions
+        # + Filtered transaaction dicts
+        # + Filtered number of transactions
+        total = session.query(models.Transaction).count()
+        filtered_transaction_objs = self.GenerateQueryUsingSession(
+            session,
+            Criteria).all()
+        filtered_number = self.GenerateQueryUsingSession(
+            session,
+            Criteria,
+            for_stats=True).count()
+        return({
+            "records_total": total,
+            "records_filtered": filtered_number,
+            "data": self.DeriveTransactionDicts(
+                filtered_transaction_objs,
+                include_raw_data)
+        })
+
+
     def GetAllAsDicts(self, Criteria, target_id = None, include_raw_data = False): # Assemble ALL transactions that match the criteria from DB
         Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
@@ -344,6 +411,12 @@ class TransactionManager(object):
         return self.DeriveTransactionDict(transaction_obj, include_raw_data = True)
 
     def GetSessionData(self, target_id=None):
+        """
+        * This will return the data from the `session_tokens` column in the form of a list,
+          having no `null` values
+        * A sample data: [{"attributes": {"Path": "/", "HttpOnly": true}, "name": "ASP.NET_SessionId", "value": "jx0ydsvwqtfgqcufazwigiih"},
+                          {"attributes": {"Path": "/"}, "name": "amSessionId", "value": "618174515"}]
+        """
         Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
         session_data = session.query(models.Transaction.session_tokens).all()
@@ -355,8 +428,20 @@ class TransactionManager(object):
         return(results)
 
     def GetSessionURLs(self, target_id):
+        """
+        This returns the data in the form of [(url1), (url2), etc]
+        """
         Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
         session_urls = session.query(models.Transaction.url).filter(group_by(models.Transaction.session_tokens)).getall()
         session.close()
         return session_urls
+
+'''
+    def AddLoginLogoutIndicator(self, target_id=None, trans_id):
+        """ This adds a login/logout indicator to a specific transaction_id. """
+        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
+        session = Session()
+        session.query(models.Transaction).get(trans_id).update({"login_logout": })
+        session.close()
+'''

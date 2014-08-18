@@ -50,6 +50,7 @@ import re
 from multiprocessing import Process
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
+from framework.lib.owtf_process import OWTFProcess
 import pycurl
 
 
@@ -495,9 +496,9 @@ class CommandHandler(tornado.web.RequestHandler):
         self.write(info)
         self.finish()
 
-class ProxyProcess(Process):
+class ProxyProcess(OWTFProcess):
 
-    def __init__(self, core, outbound_options=[], outbound_auth=""):
+    def initialize(self, outbound_options=[], outbound_auth=""):
         Process.__init__(self)
         # The tornado application, which is used to pass variables to request handler
         self.application = tornado.web.Application(handlers=[
@@ -508,7 +509,7 @@ class ProxyProcess(Process):
                                                    )
         # All required variables in request handler
         # Required variables are added as attributes to application, so that request handler can access these
-        self.application.Core = core
+        self.application.Core = self.core
         self.application.inbound_ip = self.application.Core.DB.Config.Get('INBOUND_PROXY_IP')
         self.application.inbound_port = int(self.application.Core.DB.Config.Get('INBOUND_PROXY_PORT'))
 
@@ -522,19 +523,19 @@ class ProxyProcess(Process):
         self.application.cache_dir = self.application.Core.DB.Config.Get("INBOUND_PROXY_CACHE_DIR")
         # Clean possible older cache directory.
         if os.path.exists(self.application.cache_dir):
-            core.rmtree(self.application.cache_dir)
-        core.makedirs(self.application.cache_dir)
+            self.core.rmtree(self.application.cache_dir)
+        self.core.makedirs(self.application.cache_dir)
         for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body', 'resp-time']:
             folder_path = os.path.join(self.application.cache_dir, folder_name)
             if not os.path.exists(folder_path):
-                core.mkdir(folder_path)
+                self.core.mkdir(folder_path)
 
         # SSL MiTM
         # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory ~/.owtf/proxy )
         self.application.ca_cert = os.path.expanduser(self.application.Core.DB.Config.Get('CA_CERT'))
         self.application.ca_key = os.path.expanduser(self.application.Core.DB.Config.Get('CA_KEY'))
         try: # To stop owtf from breaking for our beloved users :P
-            self.application.ca_key_pass = core.open(
+            self.application.ca_key_pass = self.core.open(
                 os.path.expanduser(self.application.Core.DB.Config.Get('CA_PASS_FILE')),
                 'r',
                 owtf_clean=False).read().strip()
@@ -547,12 +548,12 @@ class ProxyProcess(Process):
             assert os.path.exists(self.application.ca_cert)
             assert os.path.exists(self.application.ca_key)
         except AssertionError:
-            core.Error.FrameworkAbort("Files required for SSL MiTM are missing. Please run the install script")
+            self.core.Error.FrameworkAbort("Files required for SSL MiTM are missing. Please run the install script")
 
         try: # If certs folder missing, create that
             assert os.path.exists(self.application.certs_folder)
         except AssertionError:
-            core.makedirs(self.application.certs_folder)
+            self.core.makedirs(self.application.certs_folder)
 
         # Blacklist (or) Whitelist Cookies
         # Building cookie regex to be used for cookie filtering for caching
