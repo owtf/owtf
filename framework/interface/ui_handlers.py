@@ -64,7 +64,7 @@ class SessionsViewer(custom_handlers.UIRequestHandler):
         if not target_id:
             raise tornado.web.HTTPError(405)
         self.render("sessions_viewer.html",
-                    sessions_api_url=self.reverse_url('sessions_api_url', target_id),
+                    sessions_data=self.application.Core.DB.Transaction.GetSessionData(target_id)
                     )
 
 
@@ -214,7 +214,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
             filter_data = dict(self.request.arguments) # IMPORTANT!!
             plugin_outputs = self.application.Core.DB.POutput.GetAll(filter_data, target_id)
 	    owtf_code=[] #creating a list of plugin codes
-            
+
 	    # Group the plugin outputs to make it easier in template
             grouped_plugin_outputs = {}
             for poutput in plugin_outputs:
