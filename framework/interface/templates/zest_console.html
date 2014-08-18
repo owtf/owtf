@@ -2,7 +2,8 @@
 
 {% block title %}Zest Console{% end %}
 
-{% block content %}
+
+{% block includes %}
 
 <style type="text/css">
 
@@ -32,8 +33,8 @@ body {
 }
 
 .btn{
-  margin:10px;
-  
+  margin:30px;
+  padding:7px;
 
 }
 
@@ -68,6 +69,10 @@ body {
 
 </style>
 
+{% end %}
+
+{% block content %}
+
 <div class="container">
   <div class="row">
       <div class="col-md-3">
@@ -90,9 +95,6 @@ body {
           </div>
       </div>
       <div class="col-md-9">
-      
-<div class="row">
-  <div class="col-md-12">
         <div id="script_detail">
          <div id="script_data">
         <h4>Script Content</h4>
@@ -103,21 +105,17 @@ body {
       <pre id="script_output"></pre>
        </div>
      </div>
-    </div>
- </div>   
- <div class="row">
-  <div id="ZestButtons" class="row pull-right" style="text-align:center" >
-    <div class="btn-group">
-      <button class="btn btn-danger" id="recordZest" onclick="RecordToggle()"> Record a Zest Script!
-      </button>
-      <button class="btn btn-warning" id="ForwardZest"><i class="fa fa-forward"></i> Forward to ZAP !
-      </button>
-      <button class="btn btn-danger" id="RunZest" onclick="RunZestScript()"><i class="fa fa-play-circle"></i> Run the Zest Script !</button>
+          <div class="row pull-right" style="text-align:center" >
+
+  <button class="btn btn-primary" onclick="recordToggle()"
+    id="recordZest">Record a Zest Script!</button>
+  <button class="btn btn-primary" id="ForwardZest">Forward to ZAP !</button>
+  <button class="btn btn-primary" id="RunZest" onclick="runZestScript()"> Run the Zest Script !
+  </button>
+</div>
+
     </div>
   </div>
- </div>
-</div>
-</div>
 </div>
 
 <!--Script Name Modal-->
@@ -135,13 +133,17 @@ body {
         <input type="text" id="textareaID" class="form-control"></input>
       </div>
       <div class="modal-footer">
-         <button type="button" class="btn-primary" id="startBtn" onclick="StartRecording()">Start</button>
+         <button type="button" class="btn-primary" id="startBtn" onclick="startRecording()">Start</button>
         <button type="button" class="btn-default"  data-dismiss="modal">Cancel</button>
        
       </div>
     </div>
   </div>
 </div>
+
+
+
+
 
 <script>
 
@@ -152,66 +154,73 @@ var mySpace = {
                     zest_target_heading:"{{ zest_target_heading }}",
               };
 
-
-function RunZestScript(){
+//sets output window and calls runScript
+function runZestScript(){
     $("#script_content").css("height","250px");
     $("#script_result").show();
     $("#script_output").text('');
     $("#script_result").css("height","250px");
     var script = $('li .active')
-    RunScript(script);
+    runScript(script);
 }
 
-function RunScript(script){
+//actually runs the script by sending script name and type 
+function runScript(script){
    var id = script.parent().attr('id');
    if (id=="tar_scripts"){
     $.getJSON(mySpace.zest_console_api_url+"?record=false&run=true&script="+script.attr('name'),function(obj){
-          SetContentResultWindow(obj.result);
+          setContentResultWindow(obj.result);
     });
 
    }
    else{
     $.getJSON(mySpace.zest_console_api_url+"?record=true&run=true&script="+script.text(),function(obj){
-          SetContentResultWindow(obj.result);
+          setContentResultWindow(obj.result);
     });
 
    }
     $("#script_output").css("height","220px");
 }
 
-function SetContentResultWindow(content){
+//takes output and sets the text of output window (after script running)
+function setContentResultWindow(content){
     $("#script_output").text(content);
 
 }
+
 //get scripts in zest output folder of the target
-function GetScriptNames(){
+function getScriptNames(){
     $.getJSON(mySpace.zest_console_api_url,function(obj){
     var target_list=obj.target_scripts;
     var rec_list=obj.recorded_scripts;
-    LoadTargetScriptNames(target_list);
-    LoadRecordScriptNames(rec_list);
+    loadTargetScriptNames(target_list);
+    loadRecordScriptNames(rec_list);
     });
 }
 
-function GetTargetSpecificName(name){
+//gets the domain specific name for e.g example.com:80-script.zst
+function getTargetSpecificName(name){
   return mySpace.zest_target_heading+"-"+name;
 
 }
-function LoadTargetScriptNames(target_list){
+
+//loads all the target scripts of the specific target in the sidebar
+function loadTargetScriptNames(target_list){
     $("#tar_scripts").empty();
     for (i=0;i<target_list.length;i++){
       if (i==0){
         $("#tar_scripts").append('<li class="active" name='+target_list[i]+'><a href="#">'+
-          GetTargetSpecificName(target_list[i])+'</a></li>');
-        GetTargetScriptContent(target_list[i]);
+          getTargetSpecificName(target_list[i])+'</a></li>');
+        getTargetScriptContent(target_list[i]);
       }
       else{
-            $("#tar_scripts").append('<li name='+target_list[i]+'><a href="#">'+GetTargetSpecificName(target_list[i])+'</a></li>');
+            $("#tar_scripts").append('<li name='+target_list[i]+'><a href="#">'+getTargetSpecificName(target_list[i])+'</a></li>');
       }
     }
 }
 
-function LoadRecordScriptNames(rec_list){
+// loads names of all the record scripts stored at /owtf_ouput_directory/misc/recorded_scripts/
+function loadRecordScriptNames(rec_list){
     $("#rec_scripts").empty();
     for(i=0;i<rec_list.length;i++){
       if (i==0){
@@ -224,32 +233,33 @@ function LoadRecordScriptNames(rec_list){
     $("#rec_scripts").hide();
 }
 
-function SetRecordButton(){
+// sets record button while loading zest console
+function setRecordButton(){
     if(mySpace.zest_recording=="True"){
-      RecordOn();
+      recordOn();
     }
     else{
-      RecordOff();
+      recordOff();
     }
 }
 
-function RecordOn(){
-    $('#recordZest').attr('class','btn btn-danger'); 
+//sets zest record button to on and off
+function recordOn(){
+    $('#recordZest').attr('class','btn btn-danger');
     $('#recordZest').text('Stop Recording !');
 }
 
-function RecordOff(){
+function recordOff(){
     $('#recordZest').attr('class','btn btn-primary');
     $('#recordZest').text('Record a Zest Script!');
 }
 
-
-function validate_filename(elem){
+//checks filename contains alpha-numeric characters using regex.
+function validateFilename(elem){
 
         var alphaExp = /^[0-9a-zA-Z]+$/;
         //  var alphaExp=/^[\w,\s-]+/
         if(elem.match(alphaExp)){
-          // $('#ScriptModal').modal('hide');
           return true;
         }
         else{
@@ -258,7 +268,6 @@ function validate_filename(elem){
 }
 
 // focuses/clears textbox in script modal window
-
 $('#ScriptModal').on('show.bs.modal', function (e) {
    
         $('#textareaID').focus();
@@ -273,10 +282,11 @@ function ClearText(id){
         $(id).val('');
 }
 
-function StartRecording(){
+//validates filename and sets recording on by updating "ZEST_RECORDING" as true in config
+function startRecording(){
      var file_name=$('#textareaID').val();
      //validates file name using regex
-     if(validate_filename(file_name)){
+     if(validateFilename(file_name)){
   
         $.ajax({
             url:mySpace.zest_console_api_url+"?record=true&file="+file_name,
@@ -291,14 +301,16 @@ function StartRecording(){
 
 
 }
-function RecordToggle(){
+
+//Toggles the record button
+function recordToggle(){
     if (mySpace.zest_recording=="False"){
 
      $('#ScriptModal').modal('show');
     }
     else{
       $.getJSON(mySpace.zest_console_api_url+"?record=false");
-      RecordOff();
+      recordOff();
       mySpace.zest_recording = "False";
 
     }
@@ -310,7 +322,7 @@ function checkIfFileExists(data, Status, xhr){
         if(data.exists!="true"){
            $('#ScriptModal').modal('hide');
            alertSuccess("Script Created :D");
-           RecordOn();
+           recordOn();
            mySpace.zest_recording = "True";
 
         }
@@ -321,22 +333,24 @@ function checkIfFileExists(data, Status, xhr){
 }
 
 //get content of the active script
-function GetTargetScriptContent(script){
+function getTargetScriptContent(script){
     $.getJSON(mySpace.zest_console_api_url+"?record=false&script="+script,function(obj){
-          SetContentWindow(obj.content);
+          setContentWindow(obj.content);
     });
 }
 
-function SetContentWindow(content){
+//sets the scripts content of the selected zest script
+function setContentWindow(content){
 
    $("#script_content").text(content);
    $("#script_content").css("height","500px");
    $("#script_result").hide();
-
 }
-function GetRecordScriptContent(script){
+
+//fetches record script content
+function getRecordScriptContent(script){
     $.getJSON(mySpace.zest_console_api_url+"?record=true&script="+script,function(obj){
-          SetContentWindow(obj.content);
+          setContentWindow(obj.content);
     });
 }
 
@@ -354,10 +368,10 @@ $('#allscripts').on('click','a', function (e) {
       $p_par = $parent.parent();
       var script_t = $p_par.attr('id');
       if(script_t=="tar_scripts"){
-        GetTargetScriptContent(script);
+        getTargetScriptContent(script);
       }
       else if (script_t == "rec_scripts"){
-        GetRecordScriptContent(script);
+        getRecordScriptContent(script);
       }
     }
     e.preventDefault();
@@ -367,8 +381,8 @@ $(document).ready(function() {
   $('[data-toggle=offcanvas]').click(function() {
     $('.row-offcanvas').toggleClass('active');
   });
-  GetScriptNames();
-  SetRecordButton();
+  getScriptNames();
+  setRecordButton();
   $("#script_result").hide();
 });
 

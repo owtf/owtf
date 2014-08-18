@@ -52,15 +52,15 @@ a, a:active, a:focus {
     </div>
   </div>
   <div class="tab-content">
-	  <div class="tab-pane active" id="request">
+    <div class="tab-pane active" id="request">
       <div class="descriptionarea">
         <span class="namefortxtarea"><h4>Raw Request</h4></span>
         <textarea id="request_area" spellcheck='false'></textarea>
         <span class="buttonfortxtarea">
           <button type="button" class="btn btn-primary"  onclick="replayRequest()">Send</button>
       </span>
-		  </div>
-		</div>
+      </div>
+    </div>
   <div class="tab-pane" id="response">
       <br/>
       <div class="row">
@@ -85,7 +85,8 @@ a, a:active, a:focus {
       </div>
   </div>
   </div>
-</div><!-- tab content -->
+</div>
+<!-- tab content -->
 
 <script>
 
@@ -94,8 +95,8 @@ var mySpace = {
                     transaction_replay_api_url:"{{ transaction_replay_api_url }}",
  };
 
-//loads initial HTTP request
-function GetInitialRequest(){
+//loads initial HTTP request, directly shows the selected request in the editing box
+function getInitialRequest(){
     $.getJSON( mySpace.transaction_api_url, function(obj){
             $("#request_area").text(obj.raw_request);
         });
@@ -131,8 +132,8 @@ function replayRequest(){
 }
 
 $(document).ready(function() {
-	$(".navbar-fixed-top").hide();
-  GetInitialRequest();
+  $(".navbar-fixed-top").hide();
+  getInitialRequest();
 });
 
 

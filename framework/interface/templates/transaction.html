@@ -29,16 +29,12 @@
         <button class="btn btn-danger" href="#" onclick="deleteTransaction();"><i class="fa fa-times"></i> Delete Transaction</button> Not of Use-->
         </div>
         <div class="pull-left">
-        <div class="btn-group">
-         <button class="btn btn-warning" onClick="ForwardToZAP()" ><i class="fa fa-forward"></i> Forward </button>
-
-         <button class="btn btn-default" id="replayBtn()" onclick="replayRequest()" ><i class="fa fa-refresh"></i> Replay </button>
-
-         <button class="btn btn-danger launch-modal" data-toggle="modal" data-target="#ScriptModal"> 
-          <i class="fa fa-file"></i> Create a Zest Script ! </button>
-
-      </div>
-     </div>
+          <div class="btn-group">
+            <button class="btn btn-warning" onClick="forwardToZAP()" ><i class="fa fa-forward"></i> Forward </button>
+            <button class="btn btn-default" id="replayBtn()" onclick="replayRequest()" ><i class="fa fa-refresh"></i> Replay </button>
+            <button class="btn btn-danger launch-modal" data-toggle="modal" data-target="#ScriptModal"> <i class="fa fa-file"></i> Create a Zest Script ! </button>
+          </div>
+        </div>
 
 </div>
 <br />
@@ -109,7 +105,11 @@ var mySpace = {
                     forward_zap_url:"{{ forward_zap_url }}",
               };
 
-function ForwardToZAP(){
+/* 
+sends get request to forward the selected HTTP transaction to ZAP proxy,
+listening at the configured port
+*/
+function forwardToZAP(){
 
     $.ajax({
             url:mySpace.forward_zap_url,
@@ -143,23 +143,27 @@ function deleteTransaction(){
 $('#ScriptModal').on('show.bs.modal', function (e) {
 
         $('#textareaID').focus();
-        ClearText("textareaID");
+        clearText("textareaID");
         $("#Filecheck").text('');
 });
 
 //clears text
-function ClearText(id){
+function clearText(id){
 
         id='#'+id;
         $(id).val('');
 }
 
+/*
+ takes file name, validates it for alpha-numeric characters and finally sends
+POST request to create the Zest script with given name.
+*/
 function createZestScript(){
 
     var file_name=$('#textareaID').val();
 
     //validates file name using regex
-    if(validate_filename(file_name)){
+    if(validateFilename(file_name)){
 
          $.ajax({
             url:mySpace.transaction_api_url+"zest",
@@ -187,12 +191,12 @@ function checkIfFileExists(data, Status, xhr){
 
 }
 
-function validate_filename(elem){
+//checks filename contains alpha-numeric characters using regex.
+function validateFilename(elem){
 
         var alphaExp = /^[0-9a-zA-Z]+$/;
         //  var alphaExp=/^[\w,\s-]+/
         if(elem.match(alphaExp)){
-          // $('#ScriptModal').modal('hide');
           return true;
         }
         else{
@@ -200,6 +204,7 @@ function validate_filename(elem){
         }
 }
 
+//opens the window (HTTP console) to replay the selected request 
 function replayRequest(){
 
     window.open(mySpace.transaction_replay_url, "_blank", "scrollbars=yes, resizable=yes, top=100, left=400, width=850, height=600");
