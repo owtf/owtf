@@ -26,7 +26,6 @@
          <table id="sessions_log" class="table table-striped table-bordered">
             <thead>
                 <tr>
-                    <th> Name </th>
                     <th> Session Tokens </th>
                 </tr>
             </thead>
@@ -56,9 +55,7 @@ var mySpace = {
 function addSessions(data, status, xhr){
     jQuery('#sessions_log').dataTable().fnClearTable();
     $.each(data, function(index, objects){
-        var serial = 0;
         jQuery('#sessions_log').dataTable().fnAddData([
-                                            'Session '+(serial++),
                                             objects[0].name+':'+objects[0].value+', '+objects[1].name+':'+objects[1].value,
                                             ]);
     });
