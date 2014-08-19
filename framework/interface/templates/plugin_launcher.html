@@ -42,7 +42,7 @@ The above module tag is taken from target.html
             <table id="pluginLaunchTable" class="table table-hover table-striped table-bordered">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" id="selectAllCheckbox" onclick="toggleAll(this);"/></th>
+                        <th><input type="checkbox" id="pluginLauncherSelectAllCheckbox" onclick="toggleAll(this);"/></th>
                         <th>Code</th>
                         <th>Name</th>
                         <th>Type</th>
@@ -183,7 +183,7 @@ function initializePluginLauncher(){
                     if (!$(this).is(':checked')) allChecked = false;
                 });
             });
-            $('#selectAllCheckbox').prop('checked', allChecked);
+            $('#pluginLauncherSelectAllCheckbox').prop('checked', allChecked);
         },
   });
 
@@ -200,21 +200,15 @@ function initializePluginLauncher(){
         });
     });
 
-    $('#pluginLaunchModal').on('show.bs.modal', function(e){addPluginsToLauncher();}); // Load plugins only when modal is shown
-}
-
-// Close the modal when plugins are launched successfully
-function pluginLaunchSuccess(){
-    $('#pluginLaunchModal').modal('hide');
-    alertSuccess("Selected plugins launched, please check worklist to manage :D");
+    $('#{{ plugin_launch_modal_id }}').on('show.bs.modal', function(e){addPluginsToLauncher();}); // Load plugins only when modal is shown
 }
 
 // Get the selected plugins data to post to API url
 function getIndividualSelectedPlugins(){
     // Get the selected plugins from the table
-    var individualPluginData = $('input', pluginLaunchTable.fnGetNodes());
+    var individualPluginData = $('input:checkbox:checked', $('#pluginLaunchTable').dataTable().fnGetNodes());
     individualPluginData.attr("checked", false); // Clear checkboxes
-    return(individualPluginData.serializeArray());
+    return(individualPluginData);
 }
 
 function getGroupSelectedPlugins()  {

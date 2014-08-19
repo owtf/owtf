@@ -148,6 +148,12 @@ function updateTargetInfo(){
             });
 }
 
+// Close the modal when plugins are launched successfully
+function pluginLaunchSuccess(){
+    $('#pluginLaunchModal').modal('hide');
+    alertSuccess("Selected plugins launched, please check worklist to manage :D");
+}
+
 // Main function that posts using API to launch plugins
 function postToWorkList(selectedPluginData){
     selectedPluginData["ID"] = mySpace.target_config.ID;
