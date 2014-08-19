@@ -135,12 +135,20 @@ class Reporter:
             Plugin['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr('Plugin')
             Plugin['End'] = self.Core.Timer.GetEndDateTimeAsStr('Plugin')
             plugin_report_template = self.Template_env.get_template('plugin_report.html')
+            host_ip = self.CCG('HOST_IP')
+            if host_ip:  # Sometimes IP and port is not set in aux plugins
+                host_ip.replace(".", "_")
+            else:
+                host_ip = "Unknown Host IP"
+            host_port = self.CCG('PORT_NUMBER')
+            if host_port is None or host_port[0] is None:
+                host_port = "Unknown Host Port"
             plugin_report_vars = {
                     "DivId": self.GetPluginDivId(Plugin),
                     "SAVE_DIR": save_dir, 
                     "REVIEW_OFFSET" : self.CCG('REVIEW_OFFSET'),
-                    "ReportID": "i"+ self.CCG('HOST_IP').replace(".","_") \
-                            + "p" + self.CCG('PORT_NUMBER'),
+                    "ReportID": "i" + host_ip \
+                            + "p" + host_port,
                     "NextHTMLID": self.Core.DB.GetNextHTMLID(),
                     "Plugin": Plugin,
                     "HTMLtext": unicode(HTMLtext, "utf-8") if HTMLtext.__class__ is not unicode else HTMLtext,
@@ -270,9 +278,17 @@ class Reporter:
             self.CopyAccessoryFiles()
             self.Init = True
         report_template = self.Template_env.get_template('report.html')
+        host_ip = self.CCG('HOST_IP')
+        if host_ip:  # Sometimes IP and port is not set in aux plugins
+            host_ip.replace(".", "_")
+        else:
+            host_ip = "Unknown Host IP"
+        host_port = self.CCG('PORT_NUMBER')
+        if host_port is None or host_port[0] is None:
+            host_port = "Unknown Host Port"
         report_vars = {
-            "ReportID": "i"+ self.CCG('HOST_IP').replace(".","_") \
-                        + "p" + self.CCG('PORT_NUMBER'),
+            "ReportID": "i"+ host_ip \
+                        + "p" + host_port,
             "ReportType" :  self.CCG('REPORT_TYPE'),
             "Title" :  self.CCG('REPORT_TYPE') + " Report",
             "Seed": self.Core.GetSeed(),
@@ -282,7 +298,7 @@ class Reporter:
             "TargetLink": self.CCG('TARGET_URL'),
             "HostIP":  self.CCG('HOST_IP'),
             "AlternativeIPs": self.CCG('ALTERNATIVE_IPS'),
-            "PortNumber":  self.CCG('PORT_NUMBER'),
+            "PortNumber":  host_port,
             "RUN_DB": self.Core.DB.GetData('RUN_DB'),
             "PluginTypes": self.Core.Config.Plugin.GetAllGroups(),
             "WebPluginTypes": self.Core.Config.Plugin.GetTypesForGroup('web'),

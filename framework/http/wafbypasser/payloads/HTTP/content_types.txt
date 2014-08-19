@@ -1,0 +1,10 @@
+multipart/form-data
+application/x-www-form-urlencoded
+text/plain
+text/html
+application/java-serialized-object
+image/jpeg
+application/msword
+audio/mp4
+video/mp4
+application/zip

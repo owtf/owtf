@@ -80,7 +80,8 @@ class PluginParams:
 		if len(FullArgList['Optional']) > 0:
 			self.ListArgs(FullArgList['Optional'], False)
 		cprint("\nUsage: "+self.GetArgsExample(FullArgList, Plugin)+"\n")
-		self.Core.Error.FrameworkAbort("User is only viewing options, exiting", False)
+		#self.Core.Error.FrameworkAbort("User is only viewing options, exiting", False)
+        cprint("User is only viewing options, exiting")
 
 	def ShowPlugin(self, Plugin):
 		return "Plugin: "+Plugin['Type']+"/"+Plugin['File']
