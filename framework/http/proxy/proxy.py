@@ -499,7 +499,6 @@ class CommandHandler(tornado.web.RequestHandler):
 class ProxyProcess(OWTFProcess):
 
     def initialize(self, outbound_options=[], outbound_auth=""):
-        Process.__init__(self)
         # The tornado application, which is used to pass variables to request handler
         self.application = tornado.web.Application(handlers=[
                                                             (r'.*', ProxyHandler)
@@ -615,6 +614,13 @@ class ProxyProcess(OWTFProcess):
 
     # "0" equals the number of cores present in a machine
     def run(self):
+        """
+        Why not pseudo_run, aren't we supposed to do that? Actually NO!
+        Tornado has its own logging enabled so it is not worth overriding its
+        root loggers. This principle will work with any tornado process. But
+        then why use OWTFProcess at all for tornado servers ? So that the
+        process of restarting or terminating can be centralized
+        """
         try:
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
