@@ -1,12 +1,14 @@
 <div class="panel-group" id="pluginOutputs">
     {% for test_code, poutput_list in grouped_plugin_outputs.items() %}
+     {% for poutput in poutput_list %}
+	{% set mapping_code = poutput["mapping"] %}
         <div id="header_{{ test_code }}"class="panel panel-default">
             <div class="panel-heading" style="padding: 0 15px">
                 <div class="row">
                     <div class="col-md-10" style="padding-left: 15px">
                         <h4 class="panel-title">
                             <a data-toggle="collapse" data-parent="#pluginOutputs" href="#{{ test_code }}">
-                                <h4 style="padding: 15px">{{ test_code }} {{ test_groups[test_code]['descrip'] }} <small>{{ test_groups[test_code]['hint'] }}</small></h4>
+                                <h4 style="padding: 15px">{{ mapping_code }} {{ test_groups[test_code]['descrip'] }} <small>{{ test_groups[test_code]['hint'] }}</small></h4>
                             </a>
                         </h4>
                     </div>
@@ -15,6 +17,7 @@
                     </div>
                 </div>
             </div>
+            {% end %}
             <div id="{{ test_code }}" class="panel-collapse collapse">
                 <div class="panel-body">
                     <ul class="nav nav-tabs">

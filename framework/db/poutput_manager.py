@@ -2,6 +2,7 @@ import os
 import json
 from framework.lib.exceptions import InvalidParameterType
 from framework.db import models
+from framework.lib.general import cprint
 
 
 class POutputDB(object):
@@ -15,7 +16,7 @@ class POutputDB(object):
             Content += getattr(self.Core.Reporter, item["type"])(**item["output"])
         return(Content)
 
-    def DeriveOutputDict(self, obj, target_id=None):
+    def DeriveOutputDict(self, obj, target_id=None, mapping=None):
         if target_id:
             self.Core.DB.Target.SetTarget(target_id)
         if obj:
@@ -25,14 +26,20 @@ class POutputDB(object):
                 pdict["output"] = self.DeriveHTMLOutput(json.loads(pdict["output"]))
             if pdict.get("date_time", None):
                 pdict["date_time"] = pdict["date_time"].strftime(self.Core.DB.Config.Get("DATE_TIME_FORMAT"))
+            
+            if pdict.get("plugin_code", None):
+            	pdict["mapping"] = pdict["plugin_code"]
+                if not mapping == None:
+                    l = pdict["plugin_code"]
+                    pdict["mapping"] = self.GetMapping(mapping,l) #Assigning the corresponding mapped value to pdict
             return pdict
 
-    def DeriveOutputDicts(self, obj_list, target_id=None):
+    def DeriveOutputDicts(self, obj_list, target_id=None, mapping = None):
         if target_id:
             self.Core.DB.Target.SetTarget(target_id)
         dict_list = []
         for obj in obj_list:
-            dict_list.append(self.DeriveOutputDict(obj))
+            dict_list.append(self.DeriveOutputDict(obj,target_id,mapping))
         return(dict_list)
 
     def GenerateQueryUsingSession(self, session, filter_data):
@@ -93,13 +100,42 @@ class POutputDB(object):
     def GetAll(self, filter_data=None, target_id=None):
         if not filter_data:
             filter_data = {}
+            mapping = None
         self.Core.DB.Target.SetTarget(target_id)
         Session = self.Core.DB.Target.GetOutputDBSession()
         session = Session()
         query = self.GenerateQueryUsingSession(session, filter_data)
         results = query.all()
+
+        for name in filter_data.keys():
+            if name == "mapping":
+                mapping = (filter_data["mapping"])
+            else:
+                mapping = None
         session.close()
-        return(self.DeriveOutputDicts(results, target_id))
+        return(self.DeriveOutputDicts(results, target_id, mapping))
+
+    def GetMapping(self,mapping,filter_data):
+        session = self.Core.DB.Mapping.MappingDBSession()
+        if not filter_data:
+    	   return None
+        mapping_name = []
+        mapping_name.append(filter_data)
+        for name in mapping:
+            if name == "OWASP_V4":
+                mapping_name_replace = session.query(models.Mapping.owasp_guide_v4_num).filter(models.Mapping.owtf_code.in_(mapping_name)).all()
+            #checking for corresponding mapping in db
+            else:
+                if name == "NIST":
+                    mapping_name_replace = session.query(models.Mapping.nist_control).filter(models.Mapping.owtf_code.in_(mapping_name)).all()
+                else:
+                    mapping_name_replace = " " 
+        
+        if not (mapping_name_replace == " " or mapping_name_replace == []):
+            return ((mapping_name_replace[0])[0]) #if mapping doesn't exist, original owtf_code is retained
+        else:
+            mapping_name_replace = filter_data
+        return mapping_name_replace
 
     def GetUnique(self, target_id=None):
         """
@@ -114,7 +150,8 @@ class POutputDB(object):
             "plugin_group": [i[0] for i in session.query(models.PluginOutput.plugin_group).distinct().all()],
             "status": [i[0] for i in session.query(models.PluginOutput.status).distinct().all()],
             "user_rank": [i[0] for i in session.query(models.PluginOutput.user_rank).distinct().all()],
-            "owtf_rank": [i[0] for i in session.query(models.PluginOutput.owtf_rank).distinct().all()]
+            "owtf_rank": [i[0] for i in session.query(models.PluginOutput.owtf_rank).distinct().all()],
+            "mapping": ["OWASP_V4", "NIST"]
         }
         session.close()
         return(unique_data)
