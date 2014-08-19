@@ -2,8 +2,6 @@ import os
 import json
 from framework.lib.exceptions import InvalidParameterType
 from framework.db import models
-from framework.lib.general import cprint
-
 
 class POutputDB(object):
     def __init__(self, Core):
