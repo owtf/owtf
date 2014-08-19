@@ -170,6 +170,7 @@ class PlugnHack(custom_handlers.UIRequestHandler):
         root_url = self.request.protocol + "://" + self.request.host # URL of UI SERVER, http://127.0.0.1:8009
         command_url = os.path.join(root_url,"") # URL for use in service.json, http://127.0.0.1:8009/
         pnh_url = os.path.join(root_url,"ui/plugnhack") # URL for use in manifest.json, http://127.0.0.1:8009/ui/plugnhack
+        probe_url = root_url.replace('8009','8008') # URL for use in manifest.json, Plug-n-Hack probe will send messages to http://127.0.0.1:8008/plugnhack
         # Obtain path to PlugnHack template files
         # PLUGNHACK_TEMPLATES_DIR is defined in /framework/config/framework_config.cfg
         pnh_folder = os.path.join(self.application.Core.Config.FrameworkConfigGet('PLUGNHACK_TEMPLATES_DIR'),"")
@@ -181,28 +182,152 @@ class PlugnHack(custom_handlers.UIRequestHandler):
 
         if extension == "": # In this case plugnhack.html is rendered and {{ manifest_url }} is replaced with 'manifest_url' value
             manifest_url = pnh_url + "/manifest.json"
+            # Set response status code to 200 'OK'
+            self.set_status(200)
+            # Set response header 'Content-Type' 
+            self.set_header("Content-Type","text/html")
+            # Set response header 'Etag', it will not appear in response,
+            # we don't need web-cache validation 
+            self.set_header("Etag","")
+            # Set response header 'Server, it will not appear in response
+            self.set_header("Server","")
+            # Set response header 'Date', it will not appear in response
+            self.set_header("Date","")
+            # Set response header 'Cache-Control', it will not appear, 
+            # we don't need caching for Plugnhack
+            self.add_header("Cache-Control","no-cache")
+            # Set response header 'Pragma', it will not appear in response
+            self.add_header("Pragma","no-cache")
+            # Set response headers for CORS, it allows many resources on a 
+            # web page to be requested from another domain outside the domain 
+            # the resource originated from. This mechanism is used in OWASP ZAP.
+            self.add_header("Access-Control-Allow-Origin","*")
+            self.add_header("Access-Control-Allow-Header","OWTF-Header")
+            self.add_header("Access-Control-Allow-Method","GET,POST,OPTIONS")
+
             self.render(pnh_folder + "plugnhack.html",
                         manifest_url=manifest_url,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
+            
         elif extension == "manifest.json": # In this case {{ pnh_url }} in manifest.json are replaced with 'pnh_url' value
+            # Set response status code to 200 'OK'
+            self.set_status(200)
+            # Set response header 'Content-Type' 
+            self.set_header("Content-Type","application/json")
+            # Set response header 'Etag', it will not appear in response,
+            # we don't need web-cache validation 
+            self.set_header("Etag","")
+            # Set response header 'Server, it will not appear in response
+            self.set_header("Server","")
+            # Set response header 'Date', it will not appear in response
+            self.set_header("Date","")
+            # Set response header 'Cache-Control', it will not appear, 
+            # we don't need caching for Plugnhack
+            self.add_header("Cache-Control","no-cache")
+            # Set response header 'Pragma', it will not appear in response
+            self.add_header("Pragma","no-cache")
+            # Set response headers for CORS, it allows many resources on a 
+            # web page to be requested from another domain outside the domain 
+            # the resource originated from. This mechanism is used in OWASP ZAP.
+            # Without this Plug-n-Hack cannot send messages and error:
+            # 'Cross-Origin Request Blocked: The Same Origin Policy disallows reading
+            # the remote resource at' will be present in browser console
+            self.add_header("Access-Control-Allow-Origin","*")
+            self.add_header("Access-Control-Allow-Header","OWTF-Header")
+            self.add_header("Access-Control-Allow-Method","GET,POST,OPTIONS")
+
             self.render(pnh_folder + "manifest.json",
                         pnh_url=pnh_url,
+                        probe_url=probe_url,
                         api_key=api_key,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
         elif extension == "service.json": # In this case {{ root_url }} in service.json are replaced with 'root_url' value
+            # Set response status code to 200 'OK'
+            self.set_status(200)
+            # Set response header 'Content-Type' 
+            self.set_header("Content-Type","application/json")
+            # Set response header 'Etag', it will not appear in response,
+            # we don't need web-cache validation 
+            self.set_header("Etag","")
+            # Set response header 'Server, it will not appear in response
+            self.set_header("Server","")
+            # Set response header 'Date', it will not appear in response
+            self.set_header("Date","")
+            # Set response header 'Cache-Control', it will not appear, 
+            # we don't need caching for Plugnhack
+            self.add_header("Cache-Control","no-cache")
+            # Set response header 'Pragma', it will not appear in response
+            self.add_header("Pragma","no-cache")
+            # Set response headers for CORS, it allows many resources on a 
+            # web page to be requested from another domain outside the domain 
+            # the resource originated from. This mechanism is used in OWASP ZAP.
+
+            self.add_header("Access-Control-Allow-Origin","*")
+            self.add_header("Access-Control-Allow-Header","OWTF-Header")
+            self.add_header("Access-Control-Allow-Method","GET,POST,OPTIONS")
+
             self.render(pnh_folder + "service.json",
                         root_url=command_url,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
+
         elif extension == "proxy.pac": # In this case {{ proxy_details }} in proxy.pac is replaced with 'proxy_details' value
             proxy_details = self.application.Core.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.application.Core.DB.Config.Get('INBOUND_PROXY_PORT') # OWTF proxy 127.0.0.1:8008
+
+            # Set response status code to 200 'OK'
+            self.set_status(200)
+            # Set response header 'Content-Type' 
+            self.set_header("Content-Type","text/plain")
+            # Set response header 'Etag', it will not appear in response,
+            # we don't need web-cache validation 
+            self.set_header("Etag","")
+            # Set response header 'Server, it will not appear in response
+            self.set_header("Server","")
+            # Set response header 'Date', it will not appear in response
+            self.set_header("Date","")
+            # Set response header 'Cache-Control', it will not appear, 
+            # we don't need caching for Plugnhack
+            self.add_header("Cache-Control","no-cache")
+            # Set response header 'Pragma', it will not appear in response
+            self.add_header("Pragma","no-cache")
+            # Set response headers for CORS, it allows many resources on a 
+            # web page to be requested from another domain outside the domain 
+            # the resource originated from. This mechanism is used in OWASP ZAP.
+            self.add_header("Access-Control-Allow-Origin","*")
+            self.add_header("Access-Control-Allow-Header","OWTF-Header")
+            self.add_header("Access-Control-Allow-Method","GET,POST,OPTIONS")
+
             self.render(pnh_folder + "proxy.pac",
                         proxy_details=proxy_details,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
+
         elif extension == "ca.crt":
+            # Set response status code to 200 'OK'
+            self.set_status(200)
+            # Set response header 'Content-Type' 
+            self.set_header("Content-Type","application/pkix-cert")
+            # Set response header 'Etag', it will not appear in response,
+            # we don't need web-cache validation 
+            self.set_header("Etag","")
+            # Set response header 'Server, it will not appear in response
+            self.set_header("Server","")
+            # Set response header 'Date', it will not appear in response
+            self.set_header("Date","")
+            # Set response header 'Cache-Control', it will not appear, 
+            # we don't need caching for Plugnhack
+            self.add_header("Cache-Control","no-cache")
+            # Set response header 'Pragma', it will not appear in response
+            self.add_header("Pragma","no-cache")
+            # Set response headers for CORS, it allows many resources on a 
+            # web page to be requested from another domain outside the domain 
+            # the resource originated from. This mechanism is used in OWASP ZAP.
+            self.add_header("Access-Control-Allow-Origin","*")
+            self.add_header("Access-Control-Allow-Header","OWTF-Header")
+            self.add_header("Access-Control-Allow-Method","GET,POST,OPTIONS")
+
             self.render(self.application.ca_cert,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )

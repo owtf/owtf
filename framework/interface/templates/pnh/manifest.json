@@ -12,9 +12,9 @@
     },
     "probe":{
       "transport":"HTTPMessageTransport",
-      "endpoint":"{{ pnh_url }}/?apikey={{ api_key }}&",
-      "oracle":"{{ pnh_url }}/?apikey={{ api_key }}&id=",
-      "endpoint":"OWTF"
+      "endpoint":"{{ probe_url }}/plugnhack/monitor/?apikey={{ api_key }}&",
+      "oracle":"{{ probe_url }}/plugnhack/oracle/?apikey={{ api_key }}&id=",
+      "endpointName":"OWTF"
     }
   }
 }
