@@ -45,7 +45,7 @@ class POutputDB(object):
         if filter_data.get("plugin_group", None):
             if isinstance(filter_data.get("plugin_group"), (str, unicode)):
                 query = query.filter_by(plugin_group = filter_data["plugin_group"])
-            if isinstance(filter_data.get("plugin_type"), list):
+            if isinstance(filter_data.get("plugin_group"), list):
                 query = query.filter(models.PluginOutput.plugin_group.in_(filter_data["plugin_group"]))
         if filter_data.get("plugin_code", None):
             if isinstance(filter_data.get("plugin_code"), (str, unicode)):
