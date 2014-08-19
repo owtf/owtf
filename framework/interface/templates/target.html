@@ -61,69 +61,12 @@
 </div>
 <!-- End Plugin Outputs -->
 
-<!-- Plugin launch modal window -->
-<div class="modal fade" id="pluginLaunchModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <ul class="nav nav-pills" role="tablist">
-          <li class="active"><a href="#individualPluginLaunch" role="tab" data-toggle="tab">Launch Individually</a></li>
-          <li><a href="#groupedPluginLaunch" role="tab" data-toggle="tab">Launch in groups</a></li>
-        </ul>
-      </div>
-      <div class="modal-body" id="pluginLaunchModalBody">
-        <!-- Tab panes -->
-        <div class="tab-content">
-          <div class="tab-pane active" id="individualPluginLaunch">
-            <table id="pluginLaunchTable" class="table table-hover table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="selectAllCheckbox" onclick="toggleAll(this);"/></th>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Group</th>
-                        <th>Help</th>
-                    </tr>
-                </thead>
-                <tfoot>
-                    <tr>
-                        <th></th>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Group</th>
-                        <th>Help</th>
-                    </tr>
-                </tfoot>
-                <tbody>
-                </tbody>
-            </table>
-          </div>
-          <div class="tab-pane" id="groupedPluginLaunch">
-            <div class="row-fluid">
-              <div class="col-md-6">
-                <h4>Plugin Groups</h4>
-                <div id="pluginGroups">
-                </div>
-              </div>
-              <div class="col-md-6">
-                <h4>Plugin Types</h4>
-                <div id="pluginTypes">
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn" onclick="launchPlugins();">Run!</button>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- End plugin launch modal -->
+<!-- Plugin launcher template -->
+{% module Template("plugin_launcher.html",
+    plugin_launch_modal_id="pluginLaunchModal",
+    plugins_api_url="mySpace.plugins_api_url",
+    worklist_post_func="postToWorkList") %}
+<!-- End plugin launcher template -->
 
 <!-- Begin Plugin Output Filter Modal -->
 <div class="modal fade" id="pluginOutputFilterModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -171,9 +114,6 @@ var mySpace = {
                     sessions_ui_url: "{{ sessions_ui_url }}",
                   };
 
-// Global variable for launch table is required to access the plugin selection by user
-var pluginLaunchTable;
-
 function clearFilters() {
     mySpace.filter_data = {};
     $(".filterCheckbox").attr("checked", false);
@@ -208,123 +148,13 @@ function updateTargetInfo(){
             });
 }
 
-// Toggle all checkboxes when select all is clicked
-function toggleAll(checkbox){
-    var table= $(checkbox).closest('table');
-    $('td input:checkbox',table).prop('checked',checkbox.checked);
-}
-
-// This is called, when the plugin launcher modal is clicked. So we avoid unneccessary loading of plugin table unless user needs them
-function addPluginsToLauncher(){
-    // There are two ways to launch plugins
-    // + Launch plugins Individually
-    // + Launch plugins in groups
-    // How we do it ?
-    // First fetch all the plugins
-    $.ajax({url: mySpace.plugins_api_url,
-        ifModified: true,
-        dataType:'json',
-        success:function(data, textStatus, jqXHR) {
-            if (304 != jqXHR.status) {  // To do something only when some information has changed, i.e do nothing on 304 Not Modified
-
-                // Collect the plugin types and groups into the following arrays while iterating
-                // to add them to the individual plugin launch table (saving loop time)
-                var pluginGroups = [];
-                var pluginTypes = [];
-
-                // Cleanup any html left there
-                pluginLaunchTable.fnClearTable();
-                $("#pluginGroups").html('');
-                $("#pluginTypes").html('');
-
-                // Iterate over plugins and add them to launch table, and also add types and groups to
-                // corresponding arrays
-                $.each(data, function(index, obj){
-                    if (pluginGroups.indexOf(obj.group) == -1) pluginGroups.push(obj.group);
-                    if (pluginTypes.indexOf(obj.type) == -1) pluginTypes.push(obj.type);
-                    pluginLaunchTable.fnAddData([
-                        '<input type="checkbox" name="'+obj.group+'@'+obj.type+'@'+obj.code+'"/>',
-                        obj.code,
-                        (obj.name).replace(/_/g,' '),
-                        (obj.type).replace(/_/g,' '),
-                        obj.group,
-                        obj.descrip
-                    ]);
-                });
-
-                // Iterate over plugin groups array and add checkboxes
-                $.each(pluginGroups, function(index, group){
-                    html = '<div class="checkbox">';
-                    html += '<label>';
-                    html += '<input type="checkbox" class="groupedPluginLaunchCheckbox" value="group='+group+'">' + group;
-                    html += '</label>';
-                    html += '</div>';
-                    $("#pluginGroups").append(html);
-                });
-
-                // Iterate over plugin types array and add checkboxes
-                $.each(pluginTypes, function(index, type){
-                    html = '<div class="checkbox">';
-                    html += '<label>';
-                    html += '<input type="checkbox" class="groupedPluginLaunchCheckbox" value="type='+type+'">' + type.replace(/_/g,' ');
-                    html += '</label>';
-                    html += '</div>';
-                    $("#pluginTypes").append(html);
-                });
-            }
-        }
-    });
-}
-
-// This is called, at the start to initialize handlers to catch modal launch
-function initializePluginLauncher(){
-    // Setup - add a text input to each footer cell
-    $('#pluginLaunchTable tfoot th').each(function (){
-        var title = $('#pluginLaunchTable thead th').eq($(this).index()).text();
-        if (title)
-            $(this).html('<input type="text" style="width: 100%; box-sizing: border-box;" class="form-control" placeholder="Search '+title+'" />' );
-    } );
-
-	pluginLaunchTable = $('#pluginLaunchTable').dataTable({
-        "bAutoWidth":false,
-        "columnDefs":[{ "targets": 0, "orderable": false }], // Disable sorting of fist column ;)
-        "fnDrawCallback": function( settings ) {
-            // Managing the "Select all" checkbox
-            // everytime the table is drawn, it checks if all the
-            // checkboxes are checked and if they are, then the select all
-            // checkbox in the table header is selected
-            var allChecked = true;
-            $('#pluginLaunchTable tbody tr').each(function() {
-                $(this).find(':checkbox').each(function(){
-                    if (!$(this).is(':checked')) allChecked = false;
-                });
-            });
-            $('#selectAllCheckbox').prop('checked', allChecked);
-        },
-	});
-
-    // Just needed for column wise search
-    var table = $("#pluginLaunchTable").DataTable();
-
-    // Apply the filter
-    table.columns().eq(0).each(function(colIdx){
-        $('input', table.column(colIdx).footer()).on( 'keyup change', function (){
-            table
-                .column(colIdx)
-                .search(this.value)
-                .draw();
-        });
-    });
-
-    $('#pluginLaunchModal').on('show.bs.modal', function(e){addPluginsToLauncher();}); // Load plugins only when modal is shown
-}
-
 // Main function that posts using API to launch plugins
-function postToWorkList(pluginData){
+function postToWorkList(selectedPluginData){
+    selectedPluginData["ID"] = mySpace.target_config.ID;
     $.ajax({
             url:mySpace.worklist_api_url,
             type:'POST',
-            data:pluginData,
+            data:$.param(selectedPluginData, true),
             success:pluginLaunchSuccess,
             error:function(xhr, textStatus, serverResponse){
                 alertFail("Server replied: "+serverResponse);
@@ -332,56 +162,13 @@ function postToWorkList(pluginData){
             });
 }
 
-// Close the modal when plugins are launched successfully
-function pluginLaunchSuccess(){
-    $('#pluginLaunchModal').modal('hide');
-    alertSuccess("Selected plugins launched, please check worklist to manage :D");
-}
-
-// Get the selected plugins data to post to API url
-function getIndividualSelectedPlugins(){
-    // Get the selected plugins from the table
-    var individualPluginData = $('input', pluginLaunchTable.fnGetNodes()).serializeArray();
-    return(individualPluginData);
-}
-
-function getGroupSelectedPlugins()  {
-    // Get the selected groups/types
-    var groupedPluginData = $('.groupedPluginLaunchCheckbox:checkbox:checked');
-    return(groupedPluginData);
-}
-
-// Get details of plugin from the coded value group@type@code
-function getPluginDetails(pluginInputName){
-    pluginDetails = pluginInputName.split('@');
-    return({'group':pluginDetails[0], 'type':pluginDetails[1], 'code':pluginDetails[2]})
-}
-
-// To launch individual plugins & group select plugins
-function launchPlugins(){
-    // First fire off individual plugins
-    $.each(getIndividualSelectedPlugins(), function(index, obj){
-        plugin = getPluginDetails(obj.name);
-        postToWorkList('ID='+mySpace.target_config.ID+'&group='+plugin.group+'&type='+plugin.type+'&code='+plugin.code);
-    });
-
-    // Then fire off any selected groups
-    var pluginUrlQuery = ''
-    $.each(getGroupSelectedPlugins(), function(index, checkbox) {
-        pluginUrlQuery += '&' + checkbox.value;
-    });
-    if (pluginUrlQuery != '') // i.e no checkboxes checked then donot send a request
-        postToWorkList('ID='+mySpace.target_config.ID+pluginUrlQuery)
-}
-
 // Initialize everything
 $(document).ready(function() {
-        updateTargetInfo()  // The target info is updated using API, kindof crazy but stable way since api is our main maintainance burden
-        updatePluginReport();  // Plugin report is updated using JS
-        initializePluginLauncher();  // Plugin launcher is done through a modal window
-        $('#pluginOutputFilterModal').on('hidden.bs.modal', function () {
-          updatePluginReport();
-        })
+    updateTargetInfo()  // The target info is updated using API, kindof crazy but stable way since api is our main maintainance burden
+    updatePluginReport();  // Plugin report is updated using JS
+    $('#pluginOutputFilterModal').on('hidden.bs.modal', function () {
+      updatePluginReport();
+    })
 });
 </script>
 {% end %}
