@@ -47,7 +47,7 @@ import os
 import datetime
 import uuid
 import re
-from multiprocessing import Process
+from multiprocessing import Process, Value, Lock
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
 from framework.lib.owtf_process import OWTFProcess
@@ -509,6 +509,11 @@ class ProxyProcess(OWTFProcess):
         # All required variables in request handler
         # Required variables are added as attributes to application, so that request handler can access these
         self.application.Core = self.core
+        # ctypes object allocated from shared memory to verify if proxy must inject probe code or not
+        # 'i' means ctypes type is integer, initialization value is 0
+        # if lock is True then a new recursive lock object is created to
+        # synchronize access to the value
+        self.application.Core.pnh_inject = Value('i',0,lock=True)
         self.application.inbound_ip = self.application.Core.DB.Config.Get('INBOUND_PROXY_IP')
         self.application.inbound_port = int(self.application.Core.DB.Config.Get('INBOUND_PROXY_PORT'))
 
