@@ -186,21 +186,20 @@ class Plugin(PluginBase):
 
 VulnexpBase = declarative_base()
 
+
 class Vulnexp(VulnexpBase):
     __tablename__ = 'vulnexp'
     title = Column(String, primary_key=True)
     desc = Column(String)
-    category=Column(String)
+    category = Column(String)
 
 
 MappingBase = declarative_base()
 
+
 class Mapping(MappingBase):
-    __tablename__ = 'mapping'
+    __tablename__ = 'mappings'
+
     owtf_code = Column(String, primary_key=True)
-    owasp_guide_v3_num = Column(String)
-    owasp_guide_v3_names= Column(String)
-    owasp_guide_v4_num=Column(String)
-    owasp_guide_v4_names=Column(String)
-    nist_control=Column(String)
-    category=Column(String)
+    mappings = Column(String)
+    category = Column(String, nullable=True)

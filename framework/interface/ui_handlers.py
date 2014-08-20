@@ -124,11 +124,13 @@ class TargetManager(custom_handlers.UIRequestHandler):
                         worklist_api_url=self.reverse_url('worklist_api_url')
                         )
         else:
+            adv_filter_data = self.application.Core.DB.POutput.GetUnique(target_id)
+            adv_filter_data["mapping"] = self.application.Core.DB.Mapping.GetMappingTypes()
             self.render("target.html",
                         target_api_url=self.reverse_url('targets_api_url', target_id),
                         targets_ui_url=self.reverse_url('targets_ui_url', None),
                         poutput_ui_url=self.reverse_url('poutput_ui_url', target_id),
-                        adv_filter_data=self.application.Core.DB.POutput.GetUnique(target_id),
+                        adv_filter_data=adv_filter_data,
                         plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
                         worklist_api_url=self.reverse_url('worklist_api_url'),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
@@ -184,22 +186,22 @@ class PlugnHack(custom_handlers.UIRequestHandler):
             manifest_url = pnh_url + "/manifest.json"
             # Set response status code to 200 'OK'
             self.set_status(200)
-            # Set response header 'Content-Type' 
+            # Set response header 'Content-Type'
             self.set_header("Content-Type","text/html")
             # Set response header 'Etag', it will not appear in response,
-            # we don't need web-cache validation 
+            # we don't need web-cache validation
             self.set_header("Etag","")
             # Set response header 'Server, it will not appear in response
             self.set_header("Server","")
             # Set response header 'Date', it will not appear in response
             self.set_header("Date","")
-            # Set response header 'Cache-Control', it will not appear, 
+            # Set response header 'Cache-Control', it will not appear,
             # we don't need caching for Plugnhack
             self.add_header("Cache-Control","no-cache")
             # Set response header 'Pragma', it will not appear in response
             self.add_header("Pragma","no-cache")
-            # Set response headers for CORS, it allows many resources on a 
-            # web page to be requested from another domain outside the domain 
+            # Set response headers for CORS, it allows many resources on a
+            # web page to be requested from another domain outside the domain
             # the resource originated from. This mechanism is used in OWASP ZAP.
             self.add_header("Access-Control-Allow-Origin","*")
             self.add_header("Access-Control-Allow-Header","OWTF-Header")
@@ -209,26 +211,26 @@ class PlugnHack(custom_handlers.UIRequestHandler):
                         manifest_url=manifest_url,
                         plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
                         )
-            
+
         elif extension == "manifest.json": # In this case {{ pnh_url }} in manifest.json are replaced with 'pnh_url' value
             # Set response status code to 200 'OK'
             self.set_status(200)
-            # Set response header 'Content-Type' 
+            # Set response header 'Content-Type'
             self.set_header("Content-Type","application/json")
             # Set response header 'Etag', it will not appear in response,
-            # we don't need web-cache validation 
+            # we don't need web-cache validation
             self.set_header("Etag","")
             # Set response header 'Server, it will not appear in response
             self.set_header("Server","")
             # Set response header 'Date', it will not appear in response
             self.set_header("Date","")
-            # Set response header 'Cache-Control', it will not appear, 
+            # Set response header 'Cache-Control', it will not appear,
             # we don't need caching for Plugnhack
             self.add_header("Cache-Control","no-cache")
             # Set response header 'Pragma', it will not appear in response
             self.add_header("Pragma","no-cache")
-            # Set response headers for CORS, it allows many resources on a 
-            # web page to be requested from another domain outside the domain 
+            # Set response headers for CORS, it allows many resources on a
+            # web page to be requested from another domain outside the domain
             # the resource originated from. This mechanism is used in OWASP ZAP.
             # Without this Plug-n-Hack cannot send messages and error:
             # 'Cross-Origin Request Blocked: The Same Origin Policy disallows reading
@@ -246,22 +248,22 @@ class PlugnHack(custom_handlers.UIRequestHandler):
         elif extension == "service.json": # In this case {{ root_url }} in service.json are replaced with 'root_url' value
             # Set response status code to 200 'OK'
             self.set_status(200)
-            # Set response header 'Content-Type' 
+            # Set response header 'Content-Type'
             self.set_header("Content-Type","application/json")
             # Set response header 'Etag', it will not appear in response,
-            # we don't need web-cache validation 
+            # we don't need web-cache validation
             self.set_header("Etag","")
             # Set response header 'Server, it will not appear in response
             self.set_header("Server","")
             # Set response header 'Date', it will not appear in response
             self.set_header("Date","")
-            # Set response header 'Cache-Control', it will not appear, 
+            # Set response header 'Cache-Control', it will not appear,
             # we don't need caching for Plugnhack
             self.add_header("Cache-Control","no-cache")
             # Set response header 'Pragma', it will not appear in response
             self.add_header("Pragma","no-cache")
-            # Set response headers for CORS, it allows many resources on a 
-            # web page to be requested from another domain outside the domain 
+            # Set response headers for CORS, it allows many resources on a
+            # web page to be requested from another domain outside the domain
             # the resource originated from. This mechanism is used in OWASP ZAP.
 
             self.add_header("Access-Control-Allow-Origin","*")
@@ -278,22 +280,22 @@ class PlugnHack(custom_handlers.UIRequestHandler):
 
             # Set response status code to 200 'OK'
             self.set_status(200)
-            # Set response header 'Content-Type' 
+            # Set response header 'Content-Type'
             self.set_header("Content-Type","text/plain")
             # Set response header 'Etag', it will not appear in response,
-            # we don't need web-cache validation 
+            # we don't need web-cache validation
             self.set_header("Etag","")
             # Set response header 'Server, it will not appear in response
             self.set_header("Server","")
             # Set response header 'Date', it will not appear in response
             self.set_header("Date","")
-            # Set response header 'Cache-Control', it will not appear, 
+            # Set response header 'Cache-Control', it will not appear,
             # we don't need caching for Plugnhack
             self.add_header("Cache-Control","no-cache")
             # Set response header 'Pragma', it will not appear in response
             self.add_header("Pragma","no-cache")
-            # Set response headers for CORS, it allows many resources on a 
-            # web page to be requested from another domain outside the domain 
+            # Set response headers for CORS, it allows many resources on a
+            # web page to be requested from another domain outside the domain
             # the resource originated from. This mechanism is used in OWASP ZAP.
             self.add_header("Access-Control-Allow-Origin","*")
             self.add_header("Access-Control-Allow-Header","OWTF-Header")
@@ -307,22 +309,22 @@ class PlugnHack(custom_handlers.UIRequestHandler):
         elif extension == "ca.crt":
             # Set response status code to 200 'OK'
             self.set_status(200)
-            # Set response header 'Content-Type' 
+            # Set response header 'Content-Type'
             self.set_header("Content-Type","application/pkix-cert")
             # Set response header 'Etag', it will not appear in response,
-            # we don't need web-cache validation 
+            # we don't need web-cache validation
             self.set_header("Etag","")
             # Set response header 'Server, it will not appear in response
             self.set_header("Server","")
             # Set response header 'Date', it will not appear in response
             self.set_header("Date","")
-            # Set response header 'Cache-Control', it will not appear, 
+            # Set response header 'Cache-Control', it will not appear,
             # we don't need caching for Plugnhack
             self.add_header("Cache-Control","no-cache")
             # Set response header 'Pragma', it will not appear in response
             self.add_header("Pragma","no-cache")
-            # Set response headers for CORS, it allows many resources on a 
-            # web page to be requested from another domain outside the domain 
+            # Set response headers for CORS, it allows many resources on a
+            # web page to be requested from another domain outside the domain
             # the resource originated from. This mechanism is used in OWASP ZAP.
             self.add_header("Access-Control-Allow-Origin","*")
             self.add_header("Access-Control-Allow-Header","OWTF-Header")
@@ -335,36 +337,54 @@ class PlugnHack(custom_handlers.UIRequestHandler):
 
 class PluginOutput(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
-    @tornado.web.asynchronous
+
     def get(self, target_id=None):
         if not target_id:
             raise tornado.web.HTTPError(400)
         try:
-            filter_data = dict(self.request.arguments) # IMPORTANT!!
-            plugin_outputs = self.application.Core.DB.POutput.GetAll(filter_data, target_id)
-	    owtf_code=[] #creating a list of plugin codes
-
-	    # Group the plugin outputs to make it easier in template
+            filter_data = dict(self.request.arguments)  # IMPORTANT!!
+            plugin_outputs = self.application.Core.DB.POutput.GetAll(
+                filter_data,
+                target_id)
+            # Group the plugin outputs to make it easier in template
             grouped_plugin_outputs = {}
             for poutput in plugin_outputs:
-		owtf_code.append(poutput['plugin_code']) #Adding the plugin code to the list
-                if not grouped_plugin_outputs.get(poutput['plugin_code'], None):
-                    grouped_plugin_outputs[poutput['plugin_code']] = [] # No problem of overwriting
+                if grouped_plugin_outputs.get(poutput['plugin_code']) is None:
+                    # No problem of overwriting
+                    grouped_plugin_outputs[poutput['plugin_code']] = []
                 grouped_plugin_outputs[poutput['plugin_code']].append(poutput)
-            grouped_plugin_outputs = collections.OrderedDict(sorted(grouped_plugin_outputs.items())) # Needed ordered list for ease in templates
+            # Needed ordered list for ease in templates
+            grouped_plugin_outputs = collections.OrderedDict(
+                sorted(grouped_plugin_outputs.items()))
+
+            # Get mappings
+            if self.get_argument("mapping", None):
+                mappings = self.application.Core.DB.Mapping.GetMappings(
+                    self.get_argument("mapping", None))
+            else:
+                mappings = None
 
             # Get test groups as well, for names and info links
             test_groups = {}
             for test_group in self.application.Core.DB.Plugin.GetAllTestGroups():
+                test_group["mapped_code"] = test_group["code"]
+                test_group["mapped_descrip"] = test_group["descrip"]
+                if mappings:
+                    try:
+                        test_group["mapped_code"] = mappings[test_group['code']][0]
+                        test_group["mapped_descrip"] = mappings[test_group['code']][1]
+                    except KeyError:
+                        pass
                 test_groups[test_group['code']] = test_group
 
             self.render("plugin_report.html",
                         grouped_plugin_outputs=grouped_plugin_outputs,
                         test_groups=test_groups,
-                        poutput_api_url=self.reverse_url('poutput_api_url', target_id, None, None, None),
+                        poutput_api_url=self.reverse_url(
+                            'poutput_api_url', target_id, None, None, None),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id),
-			html=(self.application.Core.DB.Vulnexp.GetExplanation(owtf_code))
+                        html=(self.application.Core.DB.Vulnexp.GetExplanation(owtf_code))
                         )
         except InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)

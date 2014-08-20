@@ -83,3 +83,6 @@ class InvalidActionReference(FrameworkException):
 
 class InvalidMessageReference(FrameworkException):
     pass
+
+class InvalidMappingReference(FrameworkException):
+    pass
