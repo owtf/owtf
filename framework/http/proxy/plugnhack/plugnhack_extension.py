@@ -1,10 +1,10 @@
-import monitor_manager
+import monitor_manager, oracle_manager
 import tornado.web
 
 class PlugnhackExtension(object):
     def __init__(self):
         self._mpm = monitor_manager.MonitoredPage()
-        self._oracle = None
+        self._oracle = oracle_manager.OracleManager()
         self._id_count = 0
         self._known_types = list()
     
