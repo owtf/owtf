@@ -170,7 +170,8 @@ class PlugnHack(custom_handlers.UIRequestHandler):
         root_url = self.request.protocol + "://" + self.request.host # URL of UI SERVER, http://127.0.0.1:8009
         command_url = os.path.join(root_url,"") # URL for use in service.json, http://127.0.0.1:8009/
         pnh_url = os.path.join(root_url,"ui/plugnhack") # URL for use in manifest.json, http://127.0.0.1:8009/ui/plugnhack
-        probe_url = root_url.replace('8009','8008') # URL for use in manifest.json, Plug-n-Hack probe will send messages to http://127.0.0.1:8008/plugnhack
+        probe_url = "http://" + self.application.Core.DB.Config.Get('INBOUND_PROXY_IP') + ":" + self.application.Core.DB.Config.Get('INBOUND_PROXY_PORT') # URL for use in manifest.json, Plug-n-Hack probe will send messages to http://127.0.0.1:8008/plugnhack
+        print probe_url
         # Obtain path to PlugnHack template files
         # PLUGNHACK_TEMPLATES_DIR is defined in /framework/config/framework_config.cfg
         pnh_folder = os.path.join(self.application.Core.Config.FrameworkConfigGet('PLUGNHACK_TEMPLATES_DIR'),"")
