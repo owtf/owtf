@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey, Text
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship
 import datetime
@@ -20,7 +20,7 @@ class Transaction(TransactionBase):
     raw_request = Column(String)
     response_status = Column(String)
     response_headers = Column(String)
-    response_body = Column(String, nullable=True)
+    response_body = Column(Text, nullable=True)
     binary_response = Column(Boolean, nullable=True)
     session_tokens = Column(String, nullable=True)
     login = Column(Boolean, nullable=True)

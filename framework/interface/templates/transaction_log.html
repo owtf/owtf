@@ -301,7 +301,7 @@ function dummyAjax(data, callback, settings) {
     4: 'response_status',
     5: 'url',
     6: 'raw_request',
-    7: 'respone_headers',
+    7: 'response_headers',
     8: 'response_body'
   };
 
@@ -343,28 +343,31 @@ function drawTable() {
         $(this).html('<input type="text" style="width: 100%; box-sizing: border-box;" class="form-control" placeholder="'+title+'"/>' );
     });
 
-    // Apply the search
-    table.columns().eq(0).each(function ( colIdx ){
-        $(':text', table.column( colIdx ).header() ).on('keyup change', function () {
+    // Apply search to custom boxes, but since these searches take type, only respond on
+    // 'change' or 'return key press'
+    $.each([0, 1, 2, 3, 4, 5], function ( colIdx ){
+        $(':text', table.column( colIdx ).header() ).on('keyup change', function (e) {
+          if (((e.type == "keyup") && (e.keyCode == 13)) || (e.type == "change")) {
             table
                 .column( colIdx )
                 .search( this.value )
                 .draw();
-        } );
+          }
+        });
     });
 
-    /*
-    // Apply search to custom boxes
+    // Apply search to custom boxes, but since these searches take type, only respond on
+    // 'change' or 'return key press'
     $('.customTextSearch').each(function (index, obj){
-      jQueryObj = $(obj);
-      jQueryObj.on('keyup change', function(){
-        table
-            .column(parseInt(jQueryObj.attr('col-id')))
-            .search(obj.value)
-            .draw()
+      $(obj).on('keyup change', function(e){
+        if (((e.type == "keyup") && (e.keyCode == 13)) || (e.type == "change")) {
+          table
+              .column(parseInt(this.getAttribute('col-id')))
+              .search(this.value)
+              .draw()
+        }
       });
     });
-    */
 }
 
 $(document).ready(function() {
