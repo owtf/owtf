@@ -166,9 +166,6 @@ class TransactionManager(object):
             response_body = t.response_body
             if t.binary_response:
                 response_body = base64.b64decode(response_body)
-            grep_output = None
-            if t.grep_output:
-                grep_output = json.loads(t.grep_output)
             owtf_transaction.SetTransactionFromDB(
                                                     t.id,
                                                     t.url,
@@ -179,8 +176,7 @@ class TransactionManager(object):
                                                     t.data,
                                                     t.raw_request,
                                                     t.response_headers,
-                                                    response_body,
-                                                    grep_output
+                                                    response_body
                                                  )
             return owtf_transaction
         return(None)
@@ -195,57 +191,95 @@ class TransactionManager(object):
         try:
             response_body = unicode(transaction.GetRawResponseBody(), "utf-8")
             binary_response = False
-            grep_output = json.dumps(self.GrepTransaction(transaction)) if transaction.InScope() else None
         except UnicodeDecodeError:
             response_body = base64.b64encode(transaction.GetRawResponseBody())
             binary_response = True
-            grep_output = None
         finally:
-            return(models.Transaction( url = transaction.URL,
-                                            scope = transaction.InScope(),
-                                            method = transaction.Method,
-                                            data = transaction.Data,
-                                            time = float(transaction.Time),
-                                            time_human = transaction.TimeHuman,
-                                            raw_request = transaction.GetRawRequest(),
-                                            response_status = transaction.GetStatus(),
-                                            response_headers = transaction.GetResponseHeaders(),
-                                            response_body = response_body,
-                                            binary_response = binary_response,
-                                            session_tokens = transaction.GetSessionTokens(),
-                                            login = None,
-                                            logout = None,
-                                            grep_output = grep_output
-                                          ))
+            transaction_model = models.Transaction(
+                url=transaction.URL,
+                scope=transaction.InScope(),
+                method=transaction.Method,
+                data=transaction.Data,
+                time=float(transaction.Time),
+                time_human=transaction.TimeHuman,
+                raw_request=transaction.GetRawRequest(),
+                response_status=transaction.GetStatus(),
+                response_headers=transaction.GetResponseHeaders(),
+                response_body=response_body,
+                binary_response=binary_response,
+                session_tokens=transaction.GetSessionTokens(),
+                login=None,
+                logout=None
+            )
+            return transaction_model
 
-    def LogTransaction(self, transaction, target_id = None):
+    def LogTransactions(self, transaction_list, target_id=None):
+        """
+        This function does the following things in order
+        + Add all transactions to a session and commit
+        + Add all the grepped results and commit
+        + Add all urls to url db
+        """
+        # Create a usable session
         Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
         session = Session()
+        # Initiate urls_list for holding urls and transaction_model_list
+        # for holding transaction models
         urls_list = []
-        # TODO: This shit will go crazy on non-ascii characters
-        session.merge(self.GetTransactionModel(transaction))
-        urls_list.append([transaction.URL, True, transaction.InScope()])
-        session.commit()
-        session.close()
-        self.Core.DB.URL.ImportProcessedURLs(urls_list)
-
-    def LogTransactions(self, transaction_list, target_id = None):
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
-        urls_list = []
-        model_list = []
+        transaction_model_list = []
+        # Add transactions and commit so that we can have access to
+        # transaction ids etc..
         for transaction in transaction_list:
             # TODO: This shit will go crazy on non-ascii characters
-            mod_obj = self.GetTransactionModel(transaction)
-            model_list.append(mod_obj)
-            session.add(mod_obj)
+            transaction_model = self.GetTransactionModel(transaction)
+            transaction_model_list.append(transaction_model)
+            session.add(transaction_model)
             urls_list.append([transaction.URL, True, transaction.InScope()])
         session.commit()
-        trans_list = []
-        if self.Core.zest.IsRecording():  # append the transaction in the list if recording is set to on
-            for model in model_list:
-                trans_list.append((target_id, model.id))
-            self.Core.zest.addtoRecordedTrans(trans_list)
+        # Now since we have the ids ready, we can process the grep output and
+        # add accordingly. So iterate over transactions and their models.
+        for i in range(0, len(transaction_list)):
+            # Get the transaction and transaction model from their lists
+            owtf_transaction = transaction_list[i]
+            transaction_model = transaction_model_list[i]
+            # Check if grepping is valid for this transaction
+            # For grepping to be valid
+            # + Transaction must not have a binary response
+            # + Transaction must be in scope
+            if (not transaction_model.binary_response) and (transaction_model.scope):
+                # Get the grep results
+                grep_outputs = self.GrepTransaction(owtf_transaction)
+                if grep_outputs:  # If valid grep results exist
+                    # Iterate over regex_name and regex results
+                    for regex_name, regex_results in grep_outputs.iteritems():
+                        # Then iterate over the results to store each result in
+                        # a seperate row, but also check to avoid duplicate
+                        # entries as we have many-to-many relationship
+                        # available for linking
+                        for match in regex_results:
+                            # Conver the match to json
+                            match = json.dumps(match)
+                            # Fetch if any existing entry
+                            existing_grep_output = session.query(
+                                models.GrepOutput).filter_by(
+                                    name=regex_name,
+                                    output=match).first()
+                            if existing_grep_output:
+                                existing_grep_output.transactions.append(
+                                    transaction_model)
+                                session.merge(existing_grep_output)
+                            else:
+                                session.add(models.GrepOutput(
+                                    transactions=[transaction_model],
+                                    name=regex_name,
+                                    output=match))
+        session.commit()
+        zest_trans_list = []
+        # Append the transaction in the list if recording is set to on
+        if self.Core.zest.IsRecording():
+            for model in transaction_model_list:
+                zest_trans_list.append((target_id, model.id))
+            self.Core.zest.addtoRecordedTrans(zest_trans_list)
         session.close()
         self.Core.DB.URL.ImportProcessedURLs(urls_list, target_id)
 
@@ -332,22 +366,75 @@ class TransactionManager(object):
             output.update({regex_name: results})
         return(output)
 
-    def SearchByRegexName(self, regex_name, target = None):
-        Session = self.Core.DB.Target.GetTransactionDBSession(target)
-        session = Session()
-        transaction_models = session.query(models.Transaction).filter(models.Transaction.grep_output.like("%"+regex_name+"%")).all()
-        num_transactions_in_scope = session.query(models.Transaction).filter_by(scope = True).count()
-        session.close()
-        return([regex_name, self.DeriveTransactions(transaction_models), num_transactions_in_scope])
+    def SearchByRegexName(self, regex_name, stats=False, session=None, target=None):
+        """
+        Allows searching of the grep_outputs table using a regex name
+        What this function returns :
+        + regex_name
+        + grep_outputs - list of unique matches
+        + transaction_ids - list of one transaction id per unique match
+        + match_percent
+        """
+        if session:
+            session_provided = True
+        else:
+            session_provided = False
+            Session = self.Core.DB.Target.GetTransactionDBSession(target)
+            session = Session()
+        # Get the grep outputs and only unique values
+        grep_outputs = session.query(
+            models.GrepOutput.output).filter_by(
+                name=regex_name).group_by(models.GrepOutput.output).all()
+        grep_outputs = [i[0] for i in grep_outputs]
+        # Get one transaction per match
+        transaction_ids = []
+        for grep_output in grep_outputs:
+            transaction_ids.append(session.query(models.Transaction.id).join(
+                models.Transaction.grep_outputs).filter(
+                    models.GrepOutput.output == grep_output).limit(1).all()[0][0])
+        # Calculate stats if needed
+        if stats:
+            # Calculate the total number of matches
+            num_matched_transactions = session.query(models.Transaction).join(
+                models.Transaction.grep_outputs).filter(
+                    models.GrepOutput.name == regex_name).count()
+            # Calculate total number of transactions in scope
+            num_transactions_in_scope = session.query(models.Transaction).filter_by(
+                scope=True).count()
+            # Calculate matched percentage
+            if int(num_transactions_in_scope):
+                match_percent = int((num_matched_transactions/float(num_transactions_in_scope))*100)
+            else:
+                match_percent = 0
+        else:
+            match_percent = None
+        # Close the session only if it created inside this function
+        if not session_provided:
+            session.close()
+        return([
+            regex_name,
+            [json.loads(i) for i in grep_outputs],
+            transaction_ids,
+            match_percent])
 
-    def SearchByRegexNames(self, name_list, target = None):
+    def SearchByRegexNames(self, name_list, stats=False, target=None):
+        """
+        Allows searching of the grep_outputs table using a regex name
+        What this function returns is a list of list containing
+        + regex_name
+        + grep_outputs - list of unique matches
+        + transaction_ids - list of one transaction id per unique match
+        + match_percent
+        """
+        results = []
         Session = self.Core.DB.Target.GetTransactionDBSession(target)
         session = Session()
-        results = []
         for regex_name in name_list:
-            transaction_models = session.query(models.Transaction).filter(models.Transaction.grep_output.like("%"+regex_name+"%")).all()
-            num_transactions_in_scope = session.query(models.Transaction).filter_by(scope = True).count()
-            results.append([regex_name, self.DeriveTransactions(transaction_models), num_transactions_in_scope])
+            results.append(self.SearchByRegexName(
+                regex_name,
+                stats=stats,
+                session=session,
+                target=target))
         session.close()
         return(results)
 
@@ -355,7 +442,6 @@ class TransactionManager(object):
     def DeriveTransactionDict(self, tdb_obj, include_raw_data = False):
         tdict = dict(tdb_obj.__dict__)  # Create a new copy so no accidental changes
         tdict.pop("_sa_instance_state")
-        tdict.pop("grep_output")  # grep_output only required by OWTF and not for any API user
         if not include_raw_data:
             tdict.pop("raw_request", None)
             tdict.pop("response_headers", None)
@@ -393,7 +479,6 @@ class TransactionManager(object):
                 filtered_transaction_objs,
                 include_raw_data)
         })
-
 
     def GetAllAsDicts(self, Criteria, target_id = None, include_raw_data = False): # Assemble ALL transactions that match the criteria from DB
         Session = self.Core.DB.Target.GetTransactionDBSession(target_id)

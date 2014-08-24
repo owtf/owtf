@@ -30,14 +30,24 @@ This file handles all the database transactions.
 '''
 from framework.lib.general import cprint
 from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy import create_engine, event
-from sqlalchemy import exc
+from sqlalchemy import create_engine, event, exc
+from sqlalchemy.engine import Engine
 from framework.db import models, plugin_manager, target_manager, resource_manager, \
         config_manager, poutput_manager, transaction_manager, url_manager, \
         command_register, error_manager, mapping_manager, vulnexp_manager
 import logging
 import os
 import re
+
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    """
+    Allows us to use foreing keys with sqlite
+    """
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 def re_fn(regexp, item):
     # TODO: Can remove this after ensuring that nothing is using this in DB calls

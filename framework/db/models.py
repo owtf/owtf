@@ -1,10 +1,20 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey, Text
+from sqlalchemy import Table, Column, Integer, String, Boolean,\
+    Float, DateTime, ForeignKey, Text
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship
 import datetime
 
 TransactionBase = declarative_base()
+
+# This table actually allows us to make a many to many relationship
+# between transactions table and grep_outputs table
+transaction_association_table = Table(
+    'transaction_grep_association',
+    TransactionBase.metadata,
+    Column('transaction_id', Integer, ForeignKey('transactions.id')),
+    Column('grep_output_id', Integer, ForeignKey('grep_outputs.id'))
+)
 
 
 class Transaction(TransactionBase):
@@ -17,18 +27,31 @@ class Transaction(TransactionBase):
     data = Column(String, nullable=True)  # Post DATA
     time = Column(Float(precision=10))
     time_human = Column(String)
-    raw_request = Column(String)
+    raw_request = Column(Text)
     response_status = Column(String)
-    response_headers = Column(String)
+    response_headers = Column(Text)
     response_body = Column(Text, nullable=True)
     binary_response = Column(Boolean, nullable=True)
     session_tokens = Column(String, nullable=True)
     login = Column(Boolean, nullable=True)
     logout = Column(Boolean, nullable=True)
-    grep_output = Column(String, nullable=True)
+    grep_outputs = relationship(
+        "GrepOutput",
+        secondary=transaction_association_table,
+        backref="transactions")
 
     def __repr__(self):
         return "<HTTP Transaction (url='%s' method='%s' response_status='%s')>" % (self.url, self.method, self.response_status)
+
+
+class GrepOutput(TransactionBase):
+    __tablename__ = "grep_outputs"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    output = Column(String)
+
+    __table_args__ = (UniqueConstraint('name', 'output'),)
 
 
 URLBase = declarative_base()
@@ -165,7 +188,6 @@ class TestGroup(PluginBase):
     descrip = Column(String)
     hint = Column(String, nullable=True)
     url = Column(String)
-    plugins = relationship("Plugin")
 
 
 class Plugin(PluginBase):
@@ -174,7 +196,7 @@ class Plugin(PluginBase):
     key = Column(String, primary_key=True)  # key = type@code
     title = Column(String)
     name = Column(String)
-    code = Column(String, ForeignKey('test_groups.code'))
+    code = Column(String)
     group = Column(String)
     type = Column(String)
     descrip = Column(String, nullable=True)

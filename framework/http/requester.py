@@ -220,7 +220,7 @@ class Requester:
         return self.Transaction.SetTransaction(True, raw_request[0], response)
 
     def log_transaction(self):
-        self.Core.DB.Transaction.LogTransaction(self.Transaction)
+        self.Core.DB.Transaction.LogTransactions([self.Transaction])
 
     def Request(self, url, method=None, post=None):
         # kludge: necessary to get around urllib2 limitations: Need this to get

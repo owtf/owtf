@@ -1,14 +1,15 @@
+<h4>{{ name }}</h4>
 <table class="table table-bordered">
     <tr>
         <td colspan="2">
             <b>Stats</b>
             <ul>
-                <li> {{ len(SortedMatches.keys()) }} Unique matches found</li>
-                <li> {{ MatchPercent }} transactions matched</li>
+                <li> {{ len(matches) }} Unique matches found</li>
+                <li> {{ match_percent }} transactions matched</li>
             </ul>
         </td>
     </tr>
-    {% if SortedMatches %}
+    {% if matches %}
         <tr>
             <td>
                 <table class="table table-hover table-striped">
@@ -16,17 +17,15 @@
                         <th>Match</th>
                         <th>Found In</th>
                     </tr>
-                    {% for match, transactions in SortedMatches.items() %}
+                    {% for i in range(0, len(matches)) %}
                         <tr>
                             <td>
-                                <pre class="wrappedPre">{{ match }}</pre>
+                                <pre class="wrappedPre">{{ matches[i] }}</pre>
                             </td>
                             <td>
-                                {% for transaction in transactions %}
-                                    <a class="label label-primary" onclick="navigateToTransaction('{{ transaction.ID }}');return(false);" target="_blank" href="#">
-                                        {{ transaction.ID }}
-                                    </a>
-                                {% end %}
+                                <a class="label label-primary" onclick="navigateToTransaction('{{ transaction_ids[i] }}');return(false);" target="_blank" href="#">
+                                    {{ transaction_ids[i] }}
+                                </a>
                             </td>
                         </tr>
                     {% end %}
