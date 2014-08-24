@@ -618,14 +618,8 @@ class ProxyProcess(OWTFProcess):
             self.application.http_auth = False
 
     # "0" equals the number of cores present in a machine
-    def run(self):
-        """
-        Why not pseudo_run, aren't we supposed to do that? Actually NO!
-        Tornado has its own logging enabled so it is not worth overriding its
-        root loggers. This principle will work with any tornado process. But
-        then why use OWTFProcess at all for tornado servers ? So that the
-        process of restarting or terminating can be centralized
-        """
+    def pseudo_run(self):
+        self.application.Core.disable_console_logging()
         try:
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
