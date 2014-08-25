@@ -397,7 +397,8 @@ class TransactionManager(object):
             # Calculate the total number of matches
             num_matched_transactions = session.query(models.Transaction).join(
                 models.Transaction.grep_outputs).filter(
-                    models.GrepOutput.name == regex_name).count()
+                    models.GrepOutput.name == regex_name).group_by(
+                        models.Transaction).count()
             # Calculate total number of transactions in scope
             num_transactions_in_scope = session.query(models.Transaction).filter_by(
                 scope=True).count()
