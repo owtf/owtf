@@ -5,8 +5,9 @@
 {% block includes %}
 <script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/spin.min.js"></script>
+
 <link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
-<link href="/static/css/bootstrap.min.css" rel="stylesheet">
 <style type="text/css">
 
 .top-buffer { margin-bottom:30px; }
@@ -291,6 +292,9 @@ function getArray(data) {
 function dummyAjax(data, callback, settings) {
   // This function takes care of converting dataTable data into owtf api
   // and then the response back to dataTables type
+
+  // Add overlay spinner to transaction log while ajax requests
+  addOverlaySpinner('transactionLog');
   var get_parameters = {};
   var draw = data.draw;
   get_parameters['limit'] = data.length;
@@ -312,6 +316,8 @@ function dummyAjax(data, callback, settings) {
   }
 
   $.getJSON(mySpace.transactions_search_api_url+'?'+$.param(get_parameters, true), function (responseData) {
+    // Remove the spinner once we have the response, since dataTables takes very less time to populate
+    removeOverlaySpinner('transactionLog');
     callback({
       "draw": draw,
       "recordsTotal": responseData["records_total"],
@@ -322,19 +328,67 @@ function dummyAjax(data, callback, settings) {
   });
 }
 
+// Add overlay and spinner
+function addOverlaySpinner(divId) {
+    // Fetch plugin report obj
+    var plugin_report_div = $('#'+divId);
+    // Get all the position related stuff
+    pos = $.extend({
+       width: plugin_report_div.outerWidth(),
+       height: plugin_report_div.outerHeight()
+    }, plugin_report_div.position());
+    // Add overlay
+    $('<div>', {
+        id: divId+'Overlay',
+        css: {
+            position: 'absolute',
+            top: pos.top,
+            left: pos.left,
+            width: pos.width,
+            height: pos.height,
+            backgroundColor: '#FFFFFF',
+            opacity: 0.50
+        }
+    }).appendTo(plugin_report_div);
+    var opts = {
+      lines: 13, // The number of lines to draw
+      length: 20, // The length of each line
+      width: 5, // The line thickness
+      radius: 20, // The radius of the inner circle
+      corners: 1, // Corner roundness (0..1)
+      rotate: 0, // The rotation offset
+      direction: 1, // 1: clockwise, -1: counterclockwise
+      color: '#000', // #rgb or #rrggbb or array of colors
+      speed: 1, // Rounds per second
+      trail: 60, // Afterglow percentage
+      shadow: false, // Whether to render a shadow
+      hwaccel: false, // Whether to use hardware acceleration
+      className: 'spinner', // The CSS class to assign to the spinner
+      zIndex: 2e9, // The z-index (defaults to 2000000000)
+      top: '10%', // Top position relative to parent
+      left: '50%' // Left position relative to parent
+    };
+    var target = document.getElementById(divId+'Overlay');
+    var spinner = new Spinner(opts).spin(target);
+}
+
+function removeOverlaySpinner(divId) {
+  $('#'+divId+'Overlay').remove();
+}
+
 function drawTable() {
     $('#transactionLog').dataTable({
-                                        "bAutoWidth": false,
-                                        "bSort": false, // Not yet supported in API, can after shifting to postgres
-                                        "bServerSide": true,
-                                        "ajax": dummyAjax,
-                                        "sDom": "ltip", // Remove global search & processing message
-                                        "columnDefs": [{
-                                          "targets": [6, 7, 8],
-                                          "visible": false,
-                                          "searchable": true
-                                        }]
-                                    });
+      "bAutoWidth": false,
+      "bSort": false, // Not yet supported in API, can after shifting to postgres
+      "bServerSide": true,
+      "ajax": dummyAjax,
+      "sDom": "ltip", // Remove global search & processing message
+      "columnDefs": [{
+        "targets": [6, 7, 8],
+        "visible": false,
+        "searchable": true
+      }],
+    });
 
     var table = $("#transactionLog").DataTable();
 
