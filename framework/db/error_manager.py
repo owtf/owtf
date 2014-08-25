@@ -30,17 +30,84 @@ Component to handle data storage and search of all errors
 '''
 
 from framework.db import models
+from framework.lib import exceptions
+
 
 class ErrorDB(object):
     def __init__(self, Core):
         self.Core = Core
-        self.ErrorDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.RegisterBase)
+        self.ErrorDBSession = self.Core.DB.CreateScopedSession(
+            self.Core.Config.FrameworkConfigGetDBPath("ERROR_DB_PATH"),
+            models.RegisterBase)
 
     def Add(self, Message, Trace):
-        print(Trace)
-        print(type(Trace))
         session = self.ErrorDBSession()
-        error = models.Error(owtf_message = Message, traceback = Trace)
+        error = models.Error(
+            owtf_message=Message,
+            traceback=Trace)
         session.add(error)
         session.commit()
         session.close()
+
+    def Delete(self, error_id):
+        session = self.ErrorDBSession()
+        error = session.query(models.Error).get(error_id)
+        if error:
+            session.delete(error)
+            session.commit()
+            session.close()
+        else:
+            session.close()
+            raise exceptions.InvalidErrorReference(
+                "No error with id " + str(error_id))
+
+    def GenerateQueryUsingSession(self, session, criteria):
+        query = session.query(models.Error)
+        if criteria.get('reported', None):
+            if isinstance(criteria.get('reported'), list):
+                criteria['reported'] = criteria['reported'][0]
+            query = query.filter_by(
+                reported=self.Core.Config.ConvertStrToBool(
+                    criteria['reported']))
+        return(query)
+
+    def Update(self, error_id, user_message):
+        session = self.ErrorDBSession()
+        error = session.query(models.Error).get(error_id)
+        if not error:  # If invalid error id, bail out
+            raise exceptions.InvalidErrorReference(
+                "No error with id " + str(error_id))
+        error.user_message = patch_data["user_message"]
+        session.merge(error)
+        session.commit()
+        session.close()
+
+    def DeriveErrorDict(self, error_obj):
+        tdict = dict(error_obj.__dict__)
+        tdict.pop("_sa_instance_state", None)
+        return(tdict)
+
+    def DeriveErrorDicts(self, error_obj_list):
+        results = []
+        for error_obj in error_obj_list:
+            if error_obj:
+                results.append(self.DeriveErrorDict(error_obj))
+        return results
+
+    def GetAll(self, criteria=None):
+        if not criteria:
+            criteria = {}
+        session = self.ErrorDBSession()
+        query = self.GenerateQueryUsingSession(session, criteria)
+        results = query.all()
+        session.close()
+        return(self.DeriveErrorDicts(results))
+
+    def Get(self, error_id):
+        session = self.ErrorDBSession()
+        error = session.query(models.Error).get(error_id)
+        session.close()
+        if not error:  # If invalid error id, bail out
+            raise exceptions.InvalidErrorReference(
+                "No error with id " + str(error_id))
+        return(self.DeriveErrorDict(error))

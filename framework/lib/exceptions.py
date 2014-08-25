@@ -72,6 +72,10 @@ class InvalidWorkerReference(FrameworkException):
     pass
 
 
+class InvalidErrorReference(FrameworkException):
+    pass
+
+
 class InvalidConfigurationReference(FrameworkException):
     pass
 

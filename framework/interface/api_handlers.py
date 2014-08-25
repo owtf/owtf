@@ -2,16 +2,7 @@ import tornado.web
 from BaseHTTPServer import BaseHTTPRequestHandler
 from StringIO import StringIO
 import json
-from framework.lib.exceptions import DBIntegrityException, \
-                                     InvalidTargetReference, \
-                                     UnresolvableTargetException, \
-                                     InvalidTransactionReference, \
-                                     InvalidParameterType, \
-                                     InvalidWorkerReference, \
-                                     InvalidConfigurationReference, \
-                                     InvalidUrlReference, \
-                                     InvalidActionReference, \
-                                     InvalidMessageReference
+from framework.lib import exceptions
 from framework.lib.general import cprint
 from framework.interface import custom_handlers
 
@@ -42,7 +33,7 @@ class PluginDataHandler(custom_handlers.APIRequestHandler):
                     self.write(results[0])
                 else:
                     raise tornado.web.HTTPError(400)
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -59,7 +50,7 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
                 self.write(self.application.Core.DB.Target.GetTargetConfigs(filter_data))
             else:
                 self.write(self.application.Core.DB.Target.GetTargetConfigForID(target_id))
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -69,7 +60,7 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
         try:
             self.application.Core.DB.Target.AddTarget(str(self.get_argument("TARGET_URL")))
             self.set_status(201)  # Stands for "201 Created"
-        except DBIntegrityException as e:
+        except exceptions.DBIntegrityException as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(409)
         except UnresolvableTargetException as e:
@@ -85,7 +76,7 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
         try:
             patch_data = dict(self.request.arguments)
             self.application.Core.DB.Target.UpdateTarget(patch_data, ID=target_id)
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -94,7 +85,7 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
         try:
             self.application.Core.DB.Target.DeleteTarget(ID=target_id)
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -106,13 +97,13 @@ class SessionsDataHandler(custom_handlers.APIRequestHandler):
         try:
             # gets the session_data for the target
             self.write(self.application.Core.DB.Transaction.GetSessionData(target_id=int(target_id)))
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidTransactionReference as e:
+        except exceptions.InvalidTransactionReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidParameterType as e:
+        except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -160,7 +151,7 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
                             self.write({"exists": "true"})
                     else:
                         self.application.Core.zest.StopRecorder()
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
                 cprint(e.parameter)
                 raise tornado.web.HTTPError(400)
 
@@ -180,7 +171,7 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
                     transactions = json.loads(trans_list)  # convert to string from json
                     if not self.application.Core.zest.TargetScriptFromMultipleTransactions(target_id, Scr_Name, transactions): #zest script creation from multiple transactions
                         self.write({"exists": "true"})
-            except InvalidTargetReference as e:
+            except exceptions.InvalidTargetReference as e:
                 cprint(e.parameter)
                 raise tornado.web.HTTPError(400)
 
@@ -271,7 +262,7 @@ class ForwardToZAPHandler(custom_handlers.APIRequestHandler):
                 raise tornado.web.HTTPError(400)
             else:
                 self.application.Core.zap_api_handler.ForwardRequest(target_id, transaction_id)
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
                 cprint(e.parameter)
                 raise tornado.web.HTTPError(400)
 
@@ -287,13 +278,13 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
                 self.write(self.application.Core.DB.Transaction.GetAllAsDicts(filter_data, target_id=int(target_id)))
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidTransactionReference as e:
+        except exceptions.InvalidTransactionReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidParameterType as e:
+        except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -312,7 +303,7 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
                 self.application.Core.DB.Transaction.DeleteTransaction(int(transaction_id), int(target_id))
             else:
                 raise tornado.web.HTTPError(400)
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -330,13 +321,13 @@ class TransactionSearchHandler(custom_handlers.APIRequestHandler):
             self.write(self.application.Core.DB.Transaction.SearchAll(
                 filter_data,
                 target_id=int(target_id)))
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidTransactionReference as e:
+        except exceptions.InvalidTransactionReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidParameterType as e:
+        except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -349,7 +340,7 @@ class URLDataHandler(custom_handlers.APIRequestHandler):
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
             self.write(self.application.Core.DB.URL.GetAll(filter_data, target_id=target_id))
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -385,10 +376,10 @@ class URLSearchHandler(custom_handlers.APIRequestHandler):
             self.write(self.application.Core.DB.URL.SearchAll(
                 filter_data,
                 target_id=int(target_id)))
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidParameterType as e:
+        except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -418,10 +409,10 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                     self.write(results[0])
                 else:
                     raise tornado.web.HTTPError(400)
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidParameterType as e:
+        except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -438,10 +429,10 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
             else:
                 patch_data = dict(self.request.arguments)
                 self.application.Core.DB.POutput.Update(plugin_group, plugin_type, plugin_code, patch_data, target_id)
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidParameterType as e:
+        except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -463,10 +454,10 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code})
                 self.application.Core.DB.POutput.DeleteAll(filter_data, target_id)
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidParameterType as e:
+        except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -482,7 +473,7 @@ class WorkerHandler(custom_handlers.APIRequestHandler):
                 self.write(self.application.Core.WorkerManager.get_worker_details(int(worker_id)))
             if worker_id and action:
                 getattr(self.application.Core.WorkerManager, action + '_worker')(int(worker_id))
-        except InvalidWorkerReference as e:
+        except exceptions.InvalidWorkerReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -497,7 +488,7 @@ class WorkerHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
         try:
             self.application.Core.WorkerManager.delete_worker(int(worker_id))
-        except InvalidWorkerReference as e:
+        except exceptions.InvalidWorkerReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -519,11 +510,11 @@ class WorkListHandler(custom_handlers.APIRequestHandler):
                 raise tornado.web.HTTPError(400)
             self.application.Core.WorkerManager.fill_work_list(target_list, plugin_list)
             self.set_status(201)  # TODO: Set proper response code
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
 
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidParameterType as e:
+        except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -533,10 +524,10 @@ class WorkListHandler(custom_handlers.APIRequestHandler):
             plugin_list = self.application.Core.DB.Plugin.GetAll(filter_data)
             target_list = self.application.Core.DB.Target.GetTargetConfigs(filter_data)
             self.application.Core.WorkerManager.filter_work_list(target_list, plugin_list)
-        except InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidParameterType as e:
+        except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
@@ -552,8 +543,39 @@ class ConfigurationHandler(custom_handlers.APIRequestHandler):
         for key, value_list in self.request.arguments.items():
             try:
                 self.application.Core.DB.Config.Update(key, value_list[0])
-            except InvalidConfigurationReference:
+            except exceptions.InvalidConfigurationReference:
                 raise tornado.web.HTTPError(400)
+
+
+class ErrorDataHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ('GET', 'PATCH', 'DELETE')
+
+    def get(self, error_id=None):
+        if error_id is None:
+            filter_data = dict(self.request.arguments)
+            self.write(self.application.Core.DB.Error.GetAll(filter_data))
+        else:
+            try:
+                self.write(self.application.Core.DB.Error.Get(error_id))
+            except exceptions.InvalidErrorReference:
+                raise tornado.web.HTTPError(400)
+
+    def patch(self, error_id=None):
+        if error_id is None:
+            raise tornado.web.HTTPError(400)
+        if self.request.arguments.get_argument("user_message", default=None):
+            raise tornado.web.HTTPError(400)
+        self.application.Core.DB.Error.Update(
+            error_id,
+            self.request.arguments.get_argument("user_message"))
+
+    def delete(self, error_id=None):
+        if error_id is None:
+            raise tornado.web.HTTPError(400)
+        try:
+            self.application.Core.DB.Error.Delete(error_id)
+        except exceptions.InvalidErrorReference:
+            raise tornado.web.HTTPError(400)
 
 
 class PlugnhackHandler(custom_handlers.APIRequestHandler):
@@ -583,33 +605,33 @@ class PlugnhackHandler(custom_handlers.APIRequestHandler):
             elif self.application.Core.DB.URL.IsURL(self.url):
                 pass
             else:
-                raise InvalidUrlReference(400)
-        except InvalidUrlReference:
-            raise tornado.web.HTTPError(400, "Invalid URL")
+                raise exceptions.InvalidUrlReference(400)
+        except exceptions.InvalidUrlReference:
+            raise tornado.web.HTTPError(400, "exceptions.Invalid URL")
         # Validate action parameter
         try:
             if (self.action in self.VALID_ACTIONS) or (not self.action):
                 pass
             else:
-                raise InvalidActionReference(400)
-        except InvalidActionReference:
-            raise tornado.web.HTTPError(400, "Invalid action")
+                raise exceptions.InvalidActionReference(400)
+        except exceptions.InvalidActionReference:
+            raise tornado.web.HTTPError(400, "exceptions.Invalid action")
         # Validate state parameter
         try:
             if (self.state == "on") or (self.state == "off") or (not self.state):
                 pass
             else:
-                raise InvalidActionReference(400)
-        except InvalidActionReference:
-            raise tornado.web.HTTPError(400, "Invalid action state")
+                raise exceptions.InvalidActionReference(400)
+        except exceptions.InvalidActionReference:
+            raise tornado.web.HTTPError(400, "exceptions.Invalid action state")
         # If received message is valid, send it to proxy PnH Handler and log this event
         try:
             if not self.message:
-                raise InvalidMessageReference
+                raise exceptions.InvalidMessageReference
             else:
                 # TO DO: send message to proxy handler and verify if event registered in log file
                 self.application.Core.write_event(json.dumps(self.message), 'a')
-        except InvalidMessageReference:
+        except exceptions.InvalidMessageReference:
             raise tornado.web.HTTPError(412, "Empty message")
         except IOError as e:
             cprint("\n")
