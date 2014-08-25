@@ -160,10 +160,11 @@ class Reporter:
             TimeStr):
         AbsPath = self.Core.PluginHandler.RetrieveAbsPath(RelativeFilePath)
         OutputLines = open(AbsPath, "r").readlines()
+        longOutput = (len(OutputLines) > self.mNumLinesToShow)
         if (len(OutputLines) > self.mNumLinesToShow):
-            OutputLines = '\n'.join(OutputLines[0:self.mNumLinesToShow])
+            OutputLines = ''.join(OutputLines[0:self.mNumLinesToShow])
         else:
-            '\n'.join(OutputLines)
+            OutputLines = ''.join(OutputLines)
         table_vars = {
             "Name": Name,
             "CommandIntro": CommandIntro,
@@ -173,7 +174,7 @@ class Reporter:
             "OutputLines": OutputLines,
             "TimeStr": TimeStr,
             "mNumLinesToShow": self.mNumLinesToShow,
-            "longOutput": (len(OutputLines) > self.mNumLinesToShow)
+            "longOutput": longOutput
         }
         return self.Loader.load("command_dump.html").generate(**table_vars)
 
