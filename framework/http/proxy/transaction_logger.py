@@ -71,8 +71,6 @@ class TransactionLogger(OWTFProcess):
         target_list = self.core.DB.Target.GetIndexedTargets()
         if target_list: # If there are no targets in db, where are we going to add. OMG
             transactions_dict = {}
-            for target_id, target in target_list:
-                transactions_dict[target_id] = []
             host_list = self.core.DB.Target.GetAllInScope('HOST_NAME')
 
             for request_hash in hash_list:
@@ -81,7 +79,10 @@ class TransactionLogger(OWTFProcess):
                 target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list, host_list)
                 owtf_transaction = transaction.HTTP_Transaction(timer.Timer())
                 owtf_transaction.ImportProxyRequestResponse(request, response)
-                transactions_dict[target_id].append(owtf_transaction)
+                try:
+                    transactions_dict[target_id].append(owtf_transaction)
+                except KeyError:
+                    transactions_dict[target_id] = [owtf_transaction]
         return(transactions_dict)
 
     def get_hash_list(self, cache_dir):
