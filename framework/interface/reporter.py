@@ -147,8 +147,15 @@ class Reporter:
         """
         Draws HTML tabs for a list of TabName => Resource Group (i.e. how to run hydra, etc)
         """
+        TitleList = []
+        CommandList = []
+        for item in CommandCategoryList:
+            TitleList.append(item[0])
+            CommandList.append(self.Core.DB.Resource.GetResources(item[1]))
         return self.Loader.load("suggested_command_box.html").generate(
-            Header=Header)  # TODO: Fix up the plugin
+            Header=Header,
+            TitleList=TitleList,
+            CommandList=CommandList)  # TODO: Fix up the plugin
 
     def CommandDump(
             self,
