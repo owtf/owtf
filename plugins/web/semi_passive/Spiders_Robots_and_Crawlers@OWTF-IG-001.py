@@ -25,24 +25,29 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Robots.txt semi-passive plugin, parses robots.txt file to generate on-screen links and save them for later spidering and analysis
+Robots.txt semi-passive plugin, parses robots.txt file to generate on-screen
+links and save them for later spidering and analysis
 """
-import re, cgi,logging
+import re
+import cgi
+import logging
 
 DESCRIPTION = "Normal request for robots.txt analysis"
 
-def run(Core, PluginInfo):
 
+def run(Core, PluginInfo):
     TopURL = Core.DB.Target.Get('TOP_URL')
     URL = TopURL+"/robots.txt"
-    # TODO: Check the below line's necessity
-    #TestResult = Core.Reporter.Render.DrawButtonLink(URL, URL)
     TestResult = []
-    HTTP_Transaction = Core.Requester.GetTransaction(True, URL) # Use transaction cache if possible for speed
+    # Use transaction cache if possible for speed
+    HTTP_Transaction = Core.Requester.GetTransaction(True, URL)
     if HTTP_Transaction.Found:
-        TestResult += Core.PluginHelper.ProcessRobots(PluginInfo, HTTP_Transaction.GetRawResponseBody(), TopURL, '')
-    else: # robots.txt NOT found
-	Core.log("robots.txt was NOT found")
-    TestResult += Core.PluginHelper.TransactionTable([ HTTP_Transaction ])
+        TestResult += Core.PluginHelper.ProcessRobots(
+            PluginInfo,
+            HTTP_Transaction.GetRawResponseBody(),
+            TopURL,
+            '')
+    else:  # robots.txt NOT found
+        Core.log("robots.txt was NOT found")
+        TestResult += Core.PluginHelper.TransactionTableForURLList(True, [URL])
     return TestResult
-

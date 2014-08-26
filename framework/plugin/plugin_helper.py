@@ -252,15 +252,15 @@ class PluginHelper:
                 num_disallow = len( DisallowedEntries ) # Number of lines that start with "Disallow:"
                 SitemapEntries = list(set(self.RobotsSiteMap.findall( Contents )))
                 num_sitemap = len( SitemapEntries ) # Number of lines that start with "Sitemap:"
-                NotStr = ''
+                RobotsFound = True
                 if 0 == num_allow and 0 == num_disallow and 0 == num_sitemap:
-                        NotStr = 'NOT '
-                return [ num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap , NotStr ]
+                        RobotsFound = False
+                return [num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, RobotsFound]
 
         def ProcessRobots( self, PluginInfo, Contents, LinkStart, LinkEnd, Filename = 'robots.txt' ):
                 plugin_output = dict(PLUGIN_OUTPUT)
                 plugin_output["type"] = "Robots"
-                num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = self.AnalyseRobotsEntries( Contents )
+                num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, RobotsFound = self.AnalyseRobotsEntries( Contents )
                 SavePath = self.Core.PluginHandler.DumpOutputFile( Filename, Contents, PluginInfo, True )
                 TopURL = self.Core.DB.Target.Get( 'TOP_URL' )
                 EntriesList = []
@@ -278,14 +278,12 @@ class PluginHelper:
                                                 self.Core.DB.URL.AddURL( URL ) # Store real links in the DB
                                                 Links.append( [ Entry, LinkStart + Entry + LinkEnd ] ) # Show link in defined format (passive/semi_passive)
                                 EntriesList.append(( Display, Links ))
-                NumAddedURLs = self.Core.DB.URL.AddURLsEnd()
-                plugin_output["output"] = { "NotStr":NotStr,
+                plugin_output["output"] = { "RobotsFound":RobotsFound,
                                             "NumLines":num_lines,
                                             "NumAllow":num_allow,
                                             "NumDisallow":num_disallow,
                                             "NumSitemap":num_sitemap,
                                             "SavePath":SavePath,
-                                            "NumAddedURLs":NumAddedURLs,
                                             "EntriesList":EntriesList
                                             }
                 return([plugin_output])
