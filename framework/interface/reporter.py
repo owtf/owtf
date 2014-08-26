@@ -190,16 +190,15 @@ class Reporter:
 
     def Robots(
             self,
-            NotStr,
+            RobotsFound,
             NumLines,
             NumAllow,
             NumDisallow,
             NumSitemap,
             SavePath,
-            NumAddedURLs,
             EntriesList):
         vars = {
-            "NotStr":  NotStr,
+            "robots_found": RobotsFound,
             "num_lines": NumLines,
             "num_allow": NumAllow,
             "num_disallow": NumDisallow,
@@ -212,7 +211,6 @@ class Reporter:
             for Display, Links in EntriesList:
                 if Links:  # Filters empty lists
                     TestResult += self.ResourceLinkList(Display, Links)
-        TestResult += str(NumAddedURLs) + " URLs have been added and classified"
         return TestResult
 
     def HtmlString(self, String):
