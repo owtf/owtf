@@ -5,16 +5,16 @@
     </thead>
     <tbody>
         {% for Transaction in TransactionList %}
-                <tr> 
+                <tr>
                     <td>
-                        <pre>{{ escape(Transaction.GetRawRequest()) }}</pre>
+                        <pre class="wrappedPre">{{ escape(Transaction.GetRawRequest()) }}</pre>
                     </td>
                     <td>
-                        <pre>{{ escape(Transaction.GetRawResponseHeaders()) }} ...
+                        <pre class="wrappedPre">{{ escape(Transaction.GetRawResponseHeaders()) }} ...
                         <a class="btn btn-default btn-xs" onclick="navigateToTransaction({{ Transaction.GetID() }})">
                             <i class="fa fa-chevron-circle-right"></i> Full Transaction
                         </a>
-                        </pre> 
+                        </pre>
                     </td>
                 </tr>
         {% end %}

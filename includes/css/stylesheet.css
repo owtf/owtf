@@ -16,7 +16,7 @@
 	color: #F00;
 }
 
-body { 
+body {
         padding-top: 70px;
 }
 
@@ -27,7 +27,11 @@ body {
         white-space: pre-wrap;
         white-space: -moz-pre-wrap;
         word-wrap: normal;
-        white-space : normal;
+}
+
+.commandPre {
+    .wrappedPre;
+    white-space: normal;
 }
 
 .panel-critical > .panel-heading, .alert-critical {
