@@ -25,27 +25,25 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Cross Site Flashing semi passive plugin: Tries to retrieve the crossdomain.xml file and display it for review
+Cross Site Flashing semi passive plugin: Tries to retrieve the crossdomain.xml
+file and display it for review
 """
-import re, cgi,logging
+import re
+import cgi
+import logging
 
 DESCRIPTION = "Normal requests for XSF analysis"
 
+
 def run(Core, PluginInfo):
-	#NotFoundMsg = "Not Found"
-	#Table = Core.Reporter.Render.CreateTable()
-	URLList = []
-	for File in [ "crossdomain.xml", "clientaccesspolicy.xml" ]:
-		for URL in Core.DB.Target.GetAsList(['TARGET_URL', 'TOP_URL']):
-			URLList.append(URL+"/"+File) # Compute all URL + File combinations
-	TransactionList = Core.Requester.GetTransactions(True, URLList) # The requester framework component will unique the URLs
-        # TODO: Check the following piece of code
-	#for Transaction in TransactionList:
-	#	Table.CreateRow([Core.Reporter.Render.DrawButtonLink(Transaction.URL, Transaction.URL)], True)
-	#	if Transaction.Found:
-	#		Table.CreateRow(["<br/><pre>"+cgi.escape(Transaction.GetRawResponseBody())+"</pre>"])
-	#	else:
-	#		Table.CreateRow([NotFoundMsg])
-	#		Core.log(NotFoundMsg)
-	#return Table.Render() + Core.Reporter.DrawHTTPTransactionTable(TransactionList)
-        return(Core.PluginHelper.TransactionTable(TransactionList))
+    URLList = []
+    for File in ["crossdomain.xml", "clientaccesspolicy.xml"]:
+        for URL in Core.DB.Target.GetAsList(['TARGET_URL', 'TOP_URL']):
+            URLList.append(URL+"/"+File)  # Compute all URL + File combinations
+    # The requester framework component will unique the URLs
+    TransactionList = Core.Requester.GetTransactions(True, URLList)
+    # Even though we have transaction list, those transactions do not have id
+    # because our proxy stores the transactions and not the requester. So the
+    # best way is to use the url list to retrieve transactions while making the
+    # report
+    return(Core.PluginHelper.TransactionTableForURLList(True, URLList))
