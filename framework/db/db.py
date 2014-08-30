@@ -48,20 +48,20 @@ class DB(object):
         # Fetch settings only once for consistency
         self._db_settings = self._get_db_settings()
         # self.Core.CreateMissingDirs(os.path.join(self.Core.Config.FrameworkConfigGet("OUTPUT_PATH"), self.Core.Config.FrameworkConfigGet("DB_DIR")))
-        self.Session = self.CreateScopedSession()
+        self.create_session()
 
     def Init(self):
-        self.Transaction = transaction_manager.TransactionManager(self.Core, self.Session)
-        self.URL = url_manager.URLManager(self.Core, self.Session)
-        self.Plugin = plugin_manager.PluginDB(self.Core, self.Session)
-        self.POutput = poutput_manager.POutputDB(self.Core, self.Session)
-        self.Target = target_manager.TargetDB(self.Core, self.Session)
-        self.Resource = resource_manager.ResourceDB(self.Core, self.Session)
-        self.Config = config_manager.ConfigDB(self.Core, self.Session)
-        self.Error = error_manager.ErrorDB(self.Core, self.Session)
-        self.CommandRegister = command_register.CommandRegister(self.Core, self.Session)
-        self.Mapping = mapping_manager.MappingDB(self.Core, self.Session)
-        #self.Vulnexp = vulnexp_manager.VulnexpDB(self.Core, self.Session)
+        self.Transaction = transaction_manager.TransactionManager(self.Core)
+        self.URL = url_manager.URLManager(self.Core)
+        self.Plugin = plugin_manager.PluginDB(self.Core)
+        self.POutput = poutput_manager.POutputDB(self.Core)
+        self.Target = target_manager.TargetDB(self.Core)
+        self.Resource = resource_manager.ResourceDB(self.Core)
+        self.Config = config_manager.ConfigDB(self.Core)
+        self.Error = error_manager.ErrorDB(self.Core)
+        self.CommandRegister = command_register.CommandRegister(self.Core)
+        self.Mapping = mapping_manager.MappingDB(self.Core)
+        #self.Vulnexp = vulnexp_manager.VulnexpDB(self.Core)
         self.DBHealthCheck()
 
     def DBHealthCheck(self):
@@ -69,8 +69,9 @@ class DB(object):
         return
         self.Target.DBHealthCheck()
 
-    def ReInit(self):
+    def create_session(self):
         self.Session = self.CreateScopedSession()
+        self.session = self.Session()
 
     def _get_db_settings(self):
         """

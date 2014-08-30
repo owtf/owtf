@@ -4,22 +4,19 @@ from framework.lib.general import cprint
 import os
 
 class ResourceDB(object):
-    def __init__(self, Core, Session):
+    def __init__(self, Core):
         self.Core = Core
-        self.Session = Session
         self.LoadResourceDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE"))
 
     def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         cprint("Loading Resources from: " + file_path + " ..")
         resources = self.GetResourcesFromFile(file_path)
         # resources = [(Type, Name, Resource), (Type, Name, Resource),]
-        session = self.Session()
         for Type, Name, Resource in resources:
             # Need more filtering to avoid duplicates
-            if not session.query(models.Resource).filter_by(resource_type = Type, resource_name = Name, resource = Resource).all():
-                session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
-        session.commit()
-        session.close()
+            if not self.Core.DB.session.query(models.Resource).filter_by(resource_type = Type, resource_name = Name, resource = Resource).all():
+                self.Core.DB.session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
+        self.Core.DB.session.commit()
 
     def GetResourcesFromFile(self, resource_file):
         resources = []
@@ -42,12 +39,10 @@ class ResourceDB(object):
         return configuration
 
     def GetRawResources(self, ResourceType):
-        session = self.Session()
-        filter_query = session.query(models.Resource.resource_name, models.Resource.resource).filter_by(resource_type = ResourceType)
+        filter_query = self.Core.DB.session.query(models.Resource.resource_name, models.Resource.resource).filter_by(resource_type = ResourceType)
         # Sorting is necessary for working of ExtractURLs, since it must run after main command, so order is imp
         sort_query = filter_query.order_by(models.Resource.id)
         raw_resources = sort_query.all()
-        session.close()
         return raw_resources
 
     def GetResources(self, ResourceType):
@@ -59,9 +54,7 @@ class ResourceDB(object):
         return resources
 
     def GetRawResourceList(self, ResourceList):
-        session = self.Session()
-        raw_resources = session.query(models.Resource.resource_name, models.Resource.resource).filter(models.Resource.resource_type.in_(ResourceList)).all()
-        session.close()
+        raw_resources = self.Core.DB.session.query(models.Resource.resource_name, models.Resource.resource).filter(models.Resource.resource_type.in_(ResourceList)).all()
         return raw_resources
 
     def GetResourceList(self, ResourceTypeList):
@@ -71,4 +64,3 @@ class ResourceDB(object):
         for name, resource in raw_resources:
             resources.append([name, self.Core.Config.MultipleReplace(resource, replacement_dict)])
         return resources
-

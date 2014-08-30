@@ -9,9 +9,8 @@ TEST_GROUPS = ['web', 'net', 'aux']
 
 
 class PluginDB(object):
-    def __init__(self, Core, Session):
+    def __init__(self, Core):
         self.Core = Core
-        self.Session = Session
         self.LoadWebTestGroups(self.Core.Config.FrameworkConfigGet("WEB_TEST_GROUPS"))
         self.LoadNetTestGroups(self.Core.Config.FrameworkConfigGet("NET_TEST_GROUPS"))
         # After loading the test groups then load the plugins, because of many-to-one relationship
@@ -36,9 +35,8 @@ class PluginDB(object):
 
     def LoadWebTestGroups(self, test_groups_file):
         WebTestGroups = self.GetTestGroupsFromFile(test_groups_file)
-        session = self.Session()
         for group in WebTestGroups:
-            session.merge(
+            self.Core.DB.session.merge(
                 models.TestGroup(
                     code=group['code'],
                     descrip=group['descrip'],
@@ -46,14 +44,12 @@ class PluginDB(object):
                     url=group['url'],
                     group="web")
                 )
-        session.commit()
-        session.close()
+        self.Core.DB.session.commit()
 
     def LoadNetTestGroups(self, test_groups_file):
         NetTestGroups = self.GetTestGroupsFromFile(test_groups_file)
-        session = self.Session()
         for group in NetTestGroups:
-            session.merge(
+            self.Core.DB.session.merge(
                 models.TestGroup(
                     code=group['code'],
                     descrip=group['descrip'],
@@ -61,8 +57,7 @@ class PluginDB(object):
                     url=group['url'],
                     group="net")
                 )
-        session.commit()
-        session.close()
+        self.Core.DB.session.commit()
 
     def LoadFromFileSystem(self):
         """Loads the plugins from the filesystem and updates their info.
@@ -82,7 +77,6 @@ class PluginDB(object):
         """
         # TODO: When the -t, -e or -o is given to OWTF command line, only load
         # the specific plugins (and not all of them like below).
-        session = self.Session()
         # Retrieve the list of the plugins (sorted) from the directory given by
         # 'PLUGIN_DIR'.
         plugins = []
@@ -123,7 +117,7 @@ class PluginDB(object):
             except AttributeError:  # The plugin didn't define an attr dict.
                 pass
             # Save the plugin into the database.
-            session.merge(
+            self.Core.DB.session.merge(
                 models.Plugin(
                     key=type + '@' + code,
                     group=group,
@@ -136,7 +130,7 @@ class PluginDB(object):
                     attr=attr
                 )
             )
-        session.commit()
+        self.Core.DB.session.commit()
 
     def DeriveTestGroupDict(self, obj):
         if obj:
@@ -151,35 +145,25 @@ class PluginDB(object):
         return dict_list
 
     def GetTestGroup(self, code):
-        session = self.Session()
-        group = session.query(models.TestGroup).get(code)
-        session.close()
+        group = self.Core.DB.session.query(models.TestGroup).get(code)
         return(self.DeriveTestGroupDict(group))
 
     def GetAllTestGroups(self):
-        session = self.Session()
-        test_groups = session.query(models.TestGroup).all()
-        session.close()
+        test_groups = self.Core.DB.session.query(models.TestGroup).all()
         return(self.DeriveTestGroupDicts(test_groups))
 
     def GetAllGroups(self):
-        session = self.Session()
-        groups = session.query(models.Plugin.group).distinct().all()
-        session.close()
+        groups = self.Core.DB.session.query(models.Plugin.group).distinct().all()
         groups = [i[0] for i in groups]
         return(groups)
 
     def GetAllTypes(self):
-        session = self.Session()
-        plugin_types = session.query(models.Plugin.type).distinct().all()
-        session.close()
+        plugin_types = self.Core.DB.session.query(models.Plugin.type).distinct().all()
         plugin_types = [i[0] for i in plugin_types]  # Necessary because of sqlalchemy
         return(plugin_types)
 
     def GetTypesForGroup(self, PluginGroup):
-        session = self.Session()
-        plugin_types = session.query(models.Plugin.type).filter_by(group=PluginGroup).distinct().all()
-        session.close()
+        plugin_types = self.Core.DB.session.query(models.Plugin.type).filter_by(group=PluginGroup).distinct().all()
         plugin_types = [i[0] for i in plugin_types]
         return(plugin_types)
 
@@ -195,8 +179,8 @@ class PluginDB(object):
             plugin_dicts.append(self.DerivePluginDict(obj))
         return(plugin_dicts)
 
-    def GenerateQueryUsingSession(self, session, criteria):
-        query = session.query(models.Plugin)
+    def GenerateQueryUsingSession(self, criteria):
+        query = self.Core.DB.session.query(models.Plugin)
         if criteria.get("type", None):
             if isinstance(criteria["type"], (str, unicode)):
                 query = query.filter_by(type=criteria["type"])
@@ -220,8 +204,7 @@ class PluginDB(object):
         return query
 
     def GetAll(self, Criteria={}):
-        session = self.Session()
-        query = self.GenerateQueryUsingSession(session, Criteria)
+        query = self.GenerateQueryUsingSession(Criteria)
         plugin_obj_list = query.all()
         return(self.DerivePluginDicts(plugin_obj_list))
 
@@ -232,14 +215,10 @@ class PluginDB(object):
         return(self.GetAll({"plugin_group": PluginGroup}))
 
     def GetPluginsByGroupType(self, PluginGroup, PluginTypeList):
-        session = self.Session()
-        plugins = session.query(models.Plugin).filter(models.Plugin.group == PluginGroup, models.Plugin.type.in_(PluginTypeList)).all()
-        session.close()
+        plugins = self.Core.DB.session.query(models.Plugin).filter(models.Plugin.group == PluginGroup, models.Plugin.type.in_(PluginTypeList)).all()
         return(self.DerivePluginDicts(plugins))
 
     def GetGroupsForPlugins(self, Plugins):
-        session = self.Session()
-        groups = session.query(models.Plugin.plugin_group).filter(or_(models.Plugin.code.in_(Plugins), models.Plugin.name.in_(Plugins))).distinct().all()
-        session.close()
+        groups = self.Core.DB.session.query(models.Plugin.plugin_group).filter(or_(models.Plugin.code.in_(Plugins), models.Plugin.name.in_(Plugins))).distinct().all()
         groups = [i[0] for i in groups]
         return(groups)

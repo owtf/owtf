@@ -68,6 +68,8 @@ class OWTFProcess(Process):
         + Set proper logger with file handler and Formatter
         + Launch process specific code
         """
+        # ------ DB Reinitialization ------ #
+        self.core.DB.create_session()
         # ------ Logging initialization ------ #
         self.core.enable_logging()
         # - Finally run process specific code - #

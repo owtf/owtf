@@ -34,13 +34,11 @@ from framework.db import models
 from framework.db.target_manager import target_required
 
 class CommandRegister(object):
-    def __init__(self, Core, Session):
+    def __init__(self, Core):
         self.Core = Core
-        self.Session = Session
 
     def AddCommand(self, Command):
-        session = self.Session()
-        session.merge(models.Command(
+        self.Core.DB.session.merge(models.Command(
             start=Command['Start'],
             end=Command['End'],
             run_time=Command['RunTime'],
@@ -49,20 +47,16 @@ class CommandRegister(object):
             modified_command=Command['ModifiedCommand'].strip(),
             original_command=Command['OriginalCommand'].strip()
         ))
-        session.commit()
-        session.close()
+        self.Core.DB.session.commit()
 
     def DeleteCommand(self, Command):
-        session = self.Session()
-        command_obj = session.query(models.Command).get(Command)
-        session.delete(command_obj)
-        session.commit()
-        session.close()
+        command_obj = self.Core.DB.session.query(models.Command).get(Command)
+        self.Core.DB.session.delete(command_obj)
+        self.Core.DB.session.commit()
 
     @target_required
     def CommandAlreadyRegistered(self, original_command, target_id=None):
-        session = self.Session()
-        register_entry = session.query(models.Command).get(original_command)
+        register_entry = self.Core.DB.session.query(models.Command).get(original_command)
         if register_entry and register_entry.success:
             if register_entry.success:
                 self.DeleteCommand(original_command)

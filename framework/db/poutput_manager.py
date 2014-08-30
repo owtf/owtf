@@ -6,9 +6,8 @@ from framework.db import models
 
 
 class POutputDB(object):
-    def __init__(self, Core, Session):
+    def __init__(self, Core):
         self.Core = Core
-        self.Session = Session
 
     def DeriveHTMLOutput(self, plugin_output):
         self.Core.Reporter.Loader.reset()
@@ -40,8 +39,8 @@ class POutputDB(object):
             dict_list.append(self.DeriveOutputDict(obj, target_id=target_id))
         return(dict_list)
 
-    def GenerateQueryUsingSession(self, session, filter_data, target_id):
-        query = session.query(models.PluginOutput).filter_by(target_id=target_id)
+    def GenerateQueryUsingSession(self, filter_data, target_id):
+        query = self.Core.DB.session.query(models.PluginOutput).filter_by(target_id=target_id)
         if filter_data.get("target_id", None):
             query.filter_by(target_id=filter_data["target_id"])
         if filter_data.get("plugin_type", None):
@@ -86,24 +85,6 @@ class POutputDB(object):
                     numbers_list = [int(x) for x in filter_data["owtf_rank"]]
                     query = query.filter(models.PluginOutput.owtf_rank.in_(
                         numbers_list))
-            """ Not sure if these are needed
-            if filter_data.get("owtf_rank[lt]", None):
-                if isinstance(filter_data.get("owtf_rank[lt]"), list):
-                    filter_data["owtf_rank[lt]"] = filter_data["owtf_rank[lt]"][0]
-                query = query.filter(models.PluginOutput.owtf_rank < int(filter_data["owtf_rank[lt]"]))
-            if filter_data.get("owtf_rank[gt]", None):
-                if isinstance(filter_data.get("owtf_rank[gt]"), list):
-                    filter_data["owtf_rank[gt]"] = filter_data["owtf_rank[gt]"][0]
-                query = query.filter(models.PluginOutput.owtf_rank > int(filter_data["owtf_rank[gt]"]))
-            if filter_data.get("user_rank[lt]", None):
-                if isinstance(filter_data.get("user_rank[lt]"), list):
-                    filter_data["user_rank[lt]"] = filter_data["user_rank[lt]"][0]
-                query = query.filter(models.PluginOutput.user_rank < int(filter_data["user_rank[lt]"]))
-            if filter_data.get("user_rank[gt]", None):
-                if isinstance(filter_data.get("user_rank[gt]"), list):
-                    filter_data["user_rank[gt]"] = filter_data["user_rank[gt]"][0]
-                query = query.filter(models.PluginOutput.user_rank > int(filter_data["user_rank[gt]"]))
-            """
         except ValueError:
             raise InvalidParameterType(
                 "Integer has to be provided for integer fields")
@@ -114,10 +95,8 @@ class POutputDB(object):
         if not filter_data:
             filter_data = {}
         self.Core.DB.Target.SetTarget(target_id)
-        session = self.Session()
-        query = self.GenerateQueryUsingSession(session, filter_data, target_id)
+        query = self.GenerateQueryUsingSession(filter_data, target_id)
         results = query.all()
-        session.close()
         return(self.DeriveOutputDicts(results, target_id=target_id))
 
     @target_required
@@ -126,25 +105,23 @@ class POutputDB(object):
         Returns a dict of some column names and their unique database
         Useful for advanced filter
         """
-        session = self.Session()
         unique_data = {
-            "plugin_type": [i[0] for i in session.query(
+            "plugin_type": [i[0] for i in self.Core.DB.session.query(
                 models.PluginOutput.plugin_type).filter_by(
                     target_id=target_id).distinct().all()],
-            "plugin_group": [i[0] for i in session.query(
+            "plugin_group": [i[0] for i in self.Core.DB.session.query(
                 models.PluginOutput.plugin_group).filter_by(
                     target_id=target_id).distinct().all()],
-            "status": [i[0] for i in session.query(
+            "status": [i[0] for i in self.Core.DB.session.query(
                 models.PluginOutput.status).filter_by(
                     target_id=target_id).distinct().all()],
-            "user_rank": [i[0] for i in session.query(
+            "user_rank": [i[0] for i in self.Core.DB.session.query(
                 models.PluginOutput.user_rank).filter_by(
                     target_id=target_id).distinct().all()],
-            "owtf_rank": [i[0] for i in session.query(
+            "owtf_rank": [i[0] for i in self.Core.DB.session.query(
                 models.PluginOutput.owtf_rank).filter_by(
                     target_id=target_id).distinct().all()],
         }
-        session.close()
         return(unique_data)
 
     @target_required
@@ -152,9 +129,7 @@ class POutputDB(object):
         """
         Here keeping filter_data optional is very risky
         """
-        session = self.Session()
         query = self.GenerateQueryUsingSession(
-            session,
             filter_data,
             target_id)  # Empty dict will match all results
         # Delete the folders created for these plugins
@@ -168,8 +143,7 @@ class POutputDB(object):
                     self.Core.rmtree(output_path)
         # When folders are removed delete the results from db
         results = query.delete()
-        session.commit()
-        session.close()
+        self.Core.DB.session.commit()
 
     @target_required
     def Update(
@@ -179,9 +153,7 @@ class POutputDB(object):
             plugin_code,
             patch_data,
             target_id=None):
-        session = self.Session()
         query = self.GenerateQueryUsingSession(
-            session,
             {
                 "plugin_group": plugin_group,
                 "plugin_type": plugin_type,
@@ -199,17 +171,15 @@ class POutputDB(object):
                     if isinstance(patch_data["user_notes"], list):
                         patch_data["user_notes"] = patch_data["user_notes"][0]
                     obj.user_notes = patch_data["user_notes"]
-                session.merge(obj)
-                session.commit()
+                self.Core.DB.session.merge(obj)
+                self.Core.DB.session.commit()
             except ValueError:
                 raise InvalidParameterType(
                     "Integer has to be provided for integer fields")
-        session.close()
 
     @target_required
     def PluginAlreadyRun(self, PluginInfo, target_id=None):
-        session = self.Session()
-        plugin_output = session.query(models.PluginOutput).filter_by(
+        plugin_output = self.Core.DB.session.query(models.PluginOutput).filter_by(
             target_id=target_id,
             plugin_code=PluginInfo["code"],
             plugin_type=PluginInfo["type"],
@@ -226,8 +196,7 @@ class POutputDB(object):
                          target_id=None,
                          owtf_rank=None):
         """Save into the database the command output of the plugin `plugin."""
-        session = self.Session()
-        session.merge(models.PluginOutput(
+        self.Core.DB.session.merge(models.PluginOutput(
             plugin_code=plugin["code"],
             plugin_group=plugin["group"],
             plugin_type=plugin["type"],
@@ -243,8 +212,7 @@ class POutputDB(object):
                 self.Core.PluginHandler.GetPluginOutputDir(plugin)) else None),
             owtf_rank=owtf_rank)
             )
-        session.commit()
-        session.close()
+        self.Core.DB.session.commit()
 
     @target_required
     def SavePartialPluginOutput(
@@ -254,8 +222,7 @@ class POutputDB(object):
             Message,
             Duration,
             target_id=None):
-        session = self.Session()
-        session.merge(models.PluginOutput(
+        self.Core.DB.session.merge(models.PluginOutput(
             plugin_code=Plugin["code"],
             plugin_group=Plugin["group"],
             plugin_type=Plugin["type"],
@@ -271,5 +238,4 @@ class POutputDB(object):
             output_path=(Plugin["output_path"] if os.path.exists(
                 self.Core.PluginHandler.GetPluginOutputDir(Plugin)) else None)
             ))
-        session.commit()
-        session.close()
+        self.Core.DB.session.commit()

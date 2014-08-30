@@ -8,12 +8,11 @@ import ConfigParser
 
 
 class MappingDB(object):
-    def __init__(self, Core, Session):
+    def __init__(self, Core):
         """
         The mapping_types attributes contain the unique mappings in memory
         """
         self.Core = Core
-        self.Session = Session
         self.mapping_types = []
         self.LoadMappingDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_MAPPING_PROFILE"))
 
@@ -27,7 +26,6 @@ class MappingDB(object):
         # Otherwise all the keys are converted to lowercase xD
         config_parser.optionxform = str
         config_parser.read(file_path)
-        session = self.Session()
         for owtf_code in config_parser.sections():
             mappings = {}
             category = None
@@ -39,12 +37,11 @@ class MappingDB(object):
                     mappings[mapping_type] = [mapped_code, mapped_name]
                 else:
                     category = data
-            session.merge(models.Mapping(
+            self.Core.DB.session.merge(models.Mapping(
                 owtf_code=owtf_code,
                 mappings=json.dumps(mappings),
                 category=category))
-        session.commit()
-        session.close()
+        self.Core.DB.session.commit()
 
     def DeriveMappingDict(self, obj):
         if obj:
@@ -69,8 +66,7 @@ class MappingDB(object):
 
     def GetMappings(self, mapping_type):
         if mapping_type in self.mapping_types:
-            session = self.Session()
-            mapping_objs = session.query(models.Mapping).all()
+            mapping_objs = self.Core.DB.session.query(models.Mapping).all()
             mappings = {}
             for mapping_dict in self.DeriveMappingDicts(mapping_objs):
                 if mapping_dict["mappings"].get(mapping_type, None):
@@ -80,8 +76,6 @@ class MappingDB(object):
             raise InvalidMappingReference("InvalidMappingReference " + mapping_type + " requested")
 
     def GetCategory(self, plugin_code):
-        session = self.Session()
-        category = session.query(models.Mapping.category).get(plugin_code)
+        category = self.Core.DB.session.query(models.Mapping.category).get(plugin_code)
         # Getting the corresponding category back from db
-        session.close()
         return category

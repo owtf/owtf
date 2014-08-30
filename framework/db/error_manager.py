@@ -34,33 +34,27 @@ from framework.lib import exceptions
 
 
 class ErrorDB(object):
-    def __init__(self, Core, Session):
+    def __init__(self, Core):
         self.Core = Core
-        self.Session = Session
 
     def Add(self, Message, Trace):
-        session = self.Session()
         error = models.Error(
             owtf_message=Message,
             traceback=Trace)
-        session.add(error)
-        session.commit()
-        session.close()
+        self.Core.DB.session.add(error)
+        self.Core.DB.session.commit()
 
     def Delete(self, error_id):
-        session = self.Session()
-        error = session.query(models.Error).get(error_id)
+        error = self.Core.DB.session.query(models.Error).get(error_id)
         if error:
-            session.delete(error)
-            session.commit()
-            session.close()
+            self.Core.DB.session.delete(error)
+            self.Core.DB.session.commit()
         else:
-            session.close()
             raise exceptions.InvalidErrorReference(
                 "No error with id " + str(error_id))
 
     def GenerateQueryUsingSession(self, session, criteria):
-        query = session.query(models.Error)
+        query = self.Core.DB.session.query(models.Error)
         if criteria.get('reported', None):
             if isinstance(criteria.get('reported'), list):
                 criteria['reported'] = criteria['reported'][0]
@@ -70,15 +64,13 @@ class ErrorDB(object):
         return(query)
 
     def Update(self, error_id, user_message):
-        session = self.Session()
-        error = session.query(models.Error).get(error_id)
+        error = self.Core.DB.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
             raise exceptions.InvalidErrorReference(
                 "No error with id " + str(error_id))
         error.user_message = patch_data["user_message"]
-        session.merge(error)
-        session.commit()
-        session.close()
+        self.Core.DB.session.merge(error)
+        self.Core.DB.session.commit()
 
     def DeriveErrorDict(self, error_obj):
         tdict = dict(error_obj.__dict__)
@@ -95,16 +87,12 @@ class ErrorDB(object):
     def GetAll(self, criteria=None):
         if not criteria:
             criteria = {}
-        session = self.Session()
         query = self.GenerateQueryUsingSession(session, criteria)
         results = query.all()
-        session.close()
         return(self.DeriveErrorDicts(results))
 
     def Get(self, error_id):
-        session = self.Session()
-        error = session.query(models.Error).get(error_id)
-        session.close()
+        error = self.Core.DB.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
             raise exceptions.InvalidErrorReference(
                 "No error with id " + str(error_id))

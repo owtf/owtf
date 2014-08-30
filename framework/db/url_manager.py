@@ -36,9 +36,8 @@ import logging
 
 
 class URLManager:
-    def __init__(self, Core, Session):
+    def __init__(self, Core):
         self.Core = Core
-        self.Session = Session
         # Compile regular expressions once at the beginning for speed purposes:
         self.IsFileRegexp = re.compile(
             Core.Config.FrameworkConfigGet('REGEXP_FILE_URL'),
@@ -76,11 +75,9 @@ class URLManager:
     def GetURLsToVisit(self, target_id=None):
         if target_id is None:
             target_id = self.Core.DB.Target.GetTargetID()
-        session = self.Session()
-        urls = session.query(models.Url.url).filter_by(
+        urls = self.Core.DB.session.query(models.Url.url).filter_by(
             target_id=target_id,
             visited=False).all()
-        session.close()
         urls = [i[0] for i in urls]
         return(urls)
 
@@ -94,14 +91,13 @@ class URLManager:
             # can happen without this
             url = url.strip()
             scope = self.Core.DB.Target.IsInScopeURL(url)
-            session = self.Session()
-            session.merge(models.Url(
+
+            self.Core.DB.session.merge(models.Url(
                 target_id=target_id,
                 url=url,
                 visited=visited,
                 scope=scope))
-            session.commit()
-            session.close()
+            self.Core.DB.session.commit()
 
     @target_required
     def AddURL(self, url, found=None, target_id=None):
@@ -115,15 +111,13 @@ class URLManager:
 
     @target_required
     def ImportProcessedURLs(self, urls_list, target_id=None):
-        session = self.Session()
         for url, visited, scope in urls_list:
-            session.merge(models.Url(
+            self.Core.DB.session.merge(models.Url(
                 target_id=target_id,
                 url=url,
                 visited=visited,
                 scope=scope))
-        session.commit()
-        session.close()
+        self.Core.DB.session.commit()
 
     @target_required
     def ImportURLs(self, url_list, target_id=None):
@@ -132,13 +126,12 @@ class URLManager:
         URL list
         """
         imported_urls = []
-        session = self.Session()
+
         for url in url_list:
             if self.IsURL(url):
                 imported_urls.append(url)
-                session.merge(models.Url(url=url, target_id=target_id))
-        session.commit()
-        session.close()
+                self.Core.DB.session.merge(models.Url(url=url, target_id=target_id))
+        self.Core.DB.session.commit()
         return(imported_urls)  # Return imported urls
 
 # ------------------------------- API Methods--------------------------------
@@ -155,11 +148,10 @@ class URLManager:
 
     def GenerateQueryUsingSession(
             self,
-            session,
             criteria,
             target_id,
             for_stats=False):
-        query = session.query(models.Url).filter_by(target_id=target_id)
+        query = self.Core.DB.session.query(models.Url).filter_by(target_id=target_id)
         # Check if criteria is url search
         if criteria.get('search', None):
             if criteria.get('url', None):
@@ -203,9 +195,7 @@ class URLManager:
 
     @target_required
     def GetAll(self, Criteria, target_id=None):
-        session = self.Session()
         query = self.GenerateQueryUsingSession(
-            session,
             Criteria,
             target_id)
         results = query.all()
@@ -213,19 +203,17 @@ class URLManager:
 
     @target_required
     def SearchAll(self, Criteria, target_id=None):
-        session = self.Session()
+
         # Three things needed
         # + Total number of urls
         # + Filtered url
         # + Filtered number of url
-        total = session.query(
+        total = self.Core.DB.session.query(
             models.Url).filter_by(target_id=target_id).count()
         filtered_url_objs = self.GenerateQueryUsingSession(
-            session,
             Criteria,
             target_id).all()
         filtered_number = self.GenerateQueryUsingSession(
-            session,
             Criteria,
             target_id,
             for_stats=True).count()
