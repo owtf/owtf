@@ -34,14 +34,12 @@ from framework.lib import exceptions
 
 
 class ErrorDB(object):
-    def __init__(self, Core):
+    def __init__(self, Core, Session):
         self.Core = Core
-        self.ErrorDBSession = self.Core.DB.CreateScopedSession(
-            self.Core.Config.FrameworkConfigGetDBPath("ERROR_DB_PATH"),
-            models.RegisterBase)
+        self.Session = Session
 
     def Add(self, Message, Trace):
-        session = self.ErrorDBSession()
+        session = self.Session()
         error = models.Error(
             owtf_message=Message,
             traceback=Trace)
@@ -50,7 +48,7 @@ class ErrorDB(object):
         session.close()
 
     def Delete(self, error_id):
-        session = self.ErrorDBSession()
+        session = self.Session()
         error = session.query(models.Error).get(error_id)
         if error:
             session.delete(error)
@@ -72,7 +70,7 @@ class ErrorDB(object):
         return(query)
 
     def Update(self, error_id, user_message):
-        session = self.ErrorDBSession()
+        session = self.Session()
         error = session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
             raise exceptions.InvalidErrorReference(
@@ -97,14 +95,14 @@ class ErrorDB(object):
     def GetAll(self, criteria=None):
         if not criteria:
             criteria = {}
-        session = self.ErrorDBSession()
+        session = self.Session()
         query = self.GenerateQueryUsingSession(session, criteria)
         results = query.all()
         session.close()
         return(self.DeriveErrorDicts(results))
 
     def Get(self, error_id):
-        session = self.ErrorDBSession()
+        session = self.Session()
         error = session.query(models.Error).get(error_id)
         session.close()
         if not error:  # If invalid error id, bail out

@@ -8,13 +8,13 @@ import ConfigParser
 
 
 class MappingDB(object):
-    def __init__(self, Core):
+    def __init__(self, Core, Session):
         """
         The mapping_types attributes contain the unique mappings in memory
         """
         self.Core = Core
+        self.Session = Session
         self.mapping_types = []
-        self.MappingDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("MAPPINGS_DB_PATH"), models.MappingBase)
         self.LoadMappingDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_MAPPING_PROFILE"))
 
     def LoadMappingDBFromFile(self, file_path):
@@ -27,7 +27,7 @@ class MappingDB(object):
         # Otherwise all the keys are converted to lowercase xD
         config_parser.optionxform = str
         config_parser.read(file_path)
-        session = self.MappingDBSession()
+        session = self.Session()
         for owtf_code in config_parser.sections():
             mappings = {}
             category = None
@@ -69,7 +69,7 @@ class MappingDB(object):
 
     def GetMappings(self, mapping_type):
         if mapping_type in self.mapping_types:
-            session = self.MappingDBSession()
+            session = self.Session()
             mapping_objs = session.query(models.Mapping).all()
             mappings = {}
             for mapping_dict in self.DeriveMappingDicts(mapping_objs):
@@ -80,7 +80,7 @@ class MappingDB(object):
             raise InvalidMappingReference("InvalidMappingReference " + mapping_type + " requested")
 
     def GetCategory(self, plugin_code):
-        session = self.MappingDBSession()
+        session = self.Session()
         category = session.query(models.Mapping.category).get(plugin_code)
         # Getting the corresponding category back from db
         session.close()

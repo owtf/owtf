@@ -31,44 +31,41 @@ Component to handle data storage and search of all commands run
 
 from framework.lib.general import cprint
 from framework.db import models
+from framework.db.target_manager import target_required
 
 class CommandRegister(object):
-    def __init__(self, Core):
+    def __init__(self, Core, Session):
         self.Core = Core
-        self.CommandRegisterSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("CREGISTER_DB_PATH"), models.RegisterBase)
+        self.Session = Session
 
     def AddCommand(self, Command):
-        session = self.CommandRegisterSession()
+        session = self.Session()
         session.merge(models.Command(
-                                        start = Command['Start'],
-                                        end = Command['End'],
-                                        run_time = Command['RunTime'],
-                                        success = Command['Success'],
-                                        target = Command['Target'],
-                                        modified_command = Command['ModifiedCommand'].strip(),
-                                        original_command = Command['OriginalCommand'].strip()
-                                    ))
+            start=Command['Start'],
+            end=Command['End'],
+            run_time=Command['RunTime'],
+            success=Command['Success'],
+            target_id=Command['Target'],
+            modified_command=Command['ModifiedCommand'].strip(),
+            original_command=Command['OriginalCommand'].strip()
+        ))
         session.commit()
         session.close()
 
     def DeleteCommand(self, Command):
-        session = self.CommandRegisterSession()
+        session = self.Session()
         command_obj = session.query(models.Command).get(Command)
         session.delete(command_obj)
         session.commit()
         session.close()
 
-    def CommandAlreadyRegistered(self, original_command, Target = None):
-        session = self.CommandRegisterSession()
+    @target_required
+    def CommandAlreadyRegistered(self, original_command, target_id=None):
+        session = self.Session()
         register_entry = session.query(models.Command).get(original_command)
         if register_entry and register_entry.success:
             if register_entry.success:
                 self.DeleteCommand(original_command)
-            return self.Core.DB.Target.GetTargetURLForID(register_entry.target)
+            return self.Core.DB.Target.GetTargetURLForID(
+                register_entry.target_id)
         return None
-
-    def RemoveForTarget(self, Target):
-        session = self.CommandRegisterSession()
-        session.query(models.Command).filter_by(target = Target).delete()
-        session.commit()
-        session.close()

@@ -440,7 +440,7 @@ class Core(object):
             cprint("Unable to add github issue, but thanks for trying :D")
 
     def Finish(self, status='Complete', report=True):
-        if self.TOR_process != None:
+        if getattr(self, "TOR_process", None) is not None:
             self.TOR_process.terminate()
         # TODO: Fix this for lions_2014
         # if self.DB.Config.Get('SIMULATION'):
@@ -451,7 +451,7 @@ class Core(object):
             except AttributeError:  # DB not instantiated yet!
                 cprint("OWTF :P")
             finally:
-                if self.ProxyMode:
+                if getattr(self, "ProxyMode", None) is not None:
                     try:
                         cprint(
                             "Stopping inbound proxy processes and "

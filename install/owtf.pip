@@ -1,5 +1,6 @@
 markdown
 tornado
+psycopg2
 pycurl
 pyopenssl
 lxml

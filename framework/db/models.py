@@ -5,21 +5,48 @@ from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship
 import datetime
 
-TransactionBase = declarative_base()
+Base = declarative_base()
+
+
+class Target(Base):
+    __tablename__ = "targets"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    target_url = Column(String, unique=True)
+    host_ip = Column(String)
+    port_number = Column(String)
+    url_scheme = Column(String)
+    alternative_ips = Column(String, nullable=True)  # Comma seperated
+    host_name = Column(String)
+    host_path = Column(String)
+    ip_url = Column(String)
+    top_domain = Column(String)
+    top_url = Column(String)
+    scope = Column(Boolean, default=True)
+    transactions = relationship("Transaction", cascade="delete")
+    poutputs = relationship("PluginOutput", cascade="delete")
+    urls = relationship("Url", cascade="delete")
+    grep_outputs = relationship("GrepOutput", cascade="delete")
+    commands = relationship("Command", cascade="delete")
+
+    def __repr__(self):
+        return "<Target (url='%s')>" % (self.target_url)
+
 
 # This table actually allows us to make a many to many relationship
 # between transactions table and grep_outputs table
 transaction_association_table = Table(
     'transaction_grep_association',
-    TransactionBase.metadata,
+    Base.metadata,
     Column('transaction_id', Integer, ForeignKey('transactions.id')),
     Column('grep_output_id', Integer, ForeignKey('grep_outputs.id'))
 )
 
 
-class Transaction(TransactionBase):
+class Transaction(Base):
     __tablename__ = "transactions"
 
+    target_id = Column(Integer, ForeignKey("targets.id"))
     id = Column(Integer, primary_key=True)
     url = Column(String)
     scope = Column(Boolean, default=False)
@@ -44,22 +71,21 @@ class Transaction(TransactionBase):
         return "<HTTP Transaction (url='%s' method='%s' response_status='%s')>" % (self.url, self.method, self.response_status)
 
 
-class GrepOutput(TransactionBase):
+class GrepOutput(Base):
     __tablename__ = "grep_outputs"
 
+    target_id = Column(Integer, ForeignKey("targets.id"))
     id = Column(Integer, primary_key=True)
     name = Column(String)
     output = Column(String)
 
-    __table_args__ = (UniqueConstraint('name', 'output'),)
+    __table_args__ = (UniqueConstraint('name', 'output', target_id),)
 
 
-URLBase = declarative_base()
-
-
-class Url(URLBase):
+class Url(Base):
     __tablename__ = "urls"
 
+    target_id = Column(Integer, ForeignKey("targets.id"))
     url = Column(String, primary_key=True)
     visited = Column(Boolean, default=False)
     scope = Column(Boolean, default=True)
@@ -68,52 +94,11 @@ class Url(URLBase):
         return "<URL (url='%s')>" % (self.url)
 
 
-TargetBase = declarative_base()
-
-
-class Target(TargetBase):
-    __tablename__ = "targets"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    target_url = Column(String, unique=True)
-    host_ip = Column(String)
-    port_number = Column(String)
-    url_scheme = Column(String)
-    alternative_ips = Column(String, nullable=True)  # Comma seperated
-    host_name = Column(String)
-    host_path = Column(String)
-    ip_url = Column(String)
-    top_domain = Column(String)
-    top_url = Column(String)
-    scope = Column(Boolean, default=True)
-
-    def __repr__(self):
-        return "<Target (url='%s')>" % (self.target_url)
-
-
-ErrorBase = declarative_base()
-
-
-class Error(ErrorBase):
-    __tablename__ = "errors"
-
-    id = Column(Integer, primary_key=True)
-    owtf_message = Column(String)
-    traceback = Column(String, nullable=True)
-    user_message = Column(String, nullable=True)
-    reported = Column(Boolean, default=False)
-
-    def __repr__(self):
-        return "<Error (traceback='%s')>" % (self.traceback)
-
-
-OutputBase = declarative_base()
-
-
-class PluginOutput(OutputBase):
+class PluginOutput(Base):
     __tablename__ = "plugin_outputs"
 
-    key = Column(String, primary_key=True)  # Key = plugin_type@code
+    target_id = Column(Integer, ForeignKey("targets.id"))
+    id = Column(Integer, primary_key=True)
     plugin_code = Column(String)  # OWTF Code
     plugin_group = Column(String)
     plugin_type = Column(String)
@@ -129,28 +114,35 @@ class PluginOutput(OutputBase):
     owtf_rank = Column(Integer, nullable=True)
     output_path = Column(String, nullable=True)
 
-    __table_args__ = (UniqueConstraint('plugin_type', 'plugin_code'),)
+    __table_args__ = (UniqueConstraint('plugin_type', 'plugin_code', 'target_id'),)
 
 
-RegisterBase = declarative_base()
-
-
-class Command(RegisterBase):
+class Command(Base):
     __tablename__ = "command_register"
 
     start = Column(String)
     end = Column(String)
     run_time = Column(String)
     success = Column(Boolean, default=False)
-    target = Column(Integer)
+    target_id = Column(Integer, ForeignKey("targets.id"))
     modified_command = Column(String)
     original_command = Column(String, primary_key=True)
 
 
-ResourceBase = declarative_base()
+class Error(Base):
+    __tablename__ = "errors"
+
+    id = Column(Integer, primary_key=True)
+    owtf_message = Column(String)
+    traceback = Column(String, nullable=True)
+    user_message = Column(String, nullable=True)
+    reported = Column(Boolean, default=False)
+
+    def __repr__(self):
+        return "<Error (traceback='%s')>" % (self.traceback)
 
 
-class Resource(ResourceBase):
+class Resource(Base):
     __tablename__ = "resources"
 
     id = Column(Integer, primary_key=True)
@@ -161,10 +153,7 @@ class Resource(ResourceBase):
     __table_args__ = (UniqueConstraint('resource', 'resource_type', 'resource_name'),)
 
 
-GeneralBase = declarative_base()
-
-
-class ConfigSetting(GeneralBase):
+class ConfigSetting(Base):
     __tablename__ = "configuration"
 
     key = Column(String, primary_key=True)
@@ -177,10 +166,7 @@ class ConfigSetting(GeneralBase):
         return "<ConfigSetting (key='%s', value='%s', dirty='%r')>" % (self.key, self.value, self.dirty)
 
 
-PluginBase = declarative_base()
-
-
-class TestGroup(PluginBase):
+class TestGroup(Base):
     __tablename__ = "test_groups"
 
     code = Column(String, primary_key=True)
@@ -190,7 +176,7 @@ class TestGroup(PluginBase):
     url = Column(String)
 
 
-class Plugin(PluginBase):
+class Plugin(Base):
     __tablename__ = "plugins"
 
     key = Column(String, primary_key=True)  # key = type@code
@@ -206,22 +192,18 @@ class Plugin(PluginBase):
     __table_args__ = (UniqueConstraint('type', 'code'),)
 
 
-VulnexpBase = declarative_base()
+class Mapping(Base):
+    __tablename__ = 'mappings'
 
+    owtf_code = Column(String, primary_key=True)
+    mappings = Column(String)
+    category = Column(String, nullable=True)
+
+
+VulnexpBase = declarative_base()
 
 class Vulnexp(VulnexpBase):
     __tablename__ = 'vulnexp'
     title = Column(String, primary_key=True)
     desc = Column(String)
     category = Column(String)
-
-
-MappingBase = declarative_base()
-
-
-class Mapping(MappingBase):
-    __tablename__ = 'mappings'
-
-    owtf_code = Column(String, primary_key=True)
-    mappings = Column(String)
-    category = Column(String, nullable=True)

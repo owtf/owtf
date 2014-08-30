@@ -5,9 +5,9 @@ import ConfigParser
 
 
 class ConfigDB(object):
-    def __init__(self, Core):
+    def __init__(self, Core, Session):
         self.Core = Core
-        self.ConfigDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("CONFIG_DB_PATH"), models.GeneralBase)
+        self.Session = Session
         self.LoadConfigDBFromFile(self.Core.Config.FrameworkConfigGet('DEFAULT_GENERAL_PROFILE'))
 
     def IsConvertable(self, value, conv):
@@ -22,7 +22,7 @@ class ConfigDB(object):
         config_parser = ConfigParser.RawConfigParser()
         config_parser.optionxform = str  # Otherwise all the keys are converted to lowercase xD
         config_parser.read(file_path)
-        session = self.ConfigDBSession()
+        session = self.Session()
         for section in config_parser.sections():
             for key, value in config_parser.items(section):
                 old_config_obj = session.query(models.ConfigSetting).get(key)
@@ -37,7 +37,7 @@ class ConfigDB(object):
         session.close()
 
     def Get(self, Key):
-        session = self.ConfigDBSession()
+        session = self.Session()
         obj = session.query(models.ConfigSetting).get(Key)
         session.close()
         if obj:
@@ -81,19 +81,19 @@ class ConfigDB(object):
     def GetAll(self, criteria=None):
         if not criteria:
             criteria = {}
-        session = self.ConfigDBSession()
+        session = self.Session()
         query = self.GenerateQueryUsingSession(session, criteria)
         return self.DeriveConfigDicts(query.all())
 
     def GetSections(self):
-        session = self.ConfigDBSession()
+        session = self.Session()
         sections = session.query(models.ConfigSetting.section).distinct().all()
         session.close()
         sections = [i[0] for i in sections]
         return sections
 
     def Update(self, key, value):
-        session = self.ConfigDBSession()
+        session = self.Session()
         config_obj = session.query(models.ConfigSetting).get(key)
         if config_obj:
             config_obj.value = value
@@ -107,7 +107,7 @@ class ConfigDB(object):
 
     def GetReplacementDict(self):
         config_dict = {}
-        session = self.ConfigDBSession()
+        session = self.Session()
         config_list = session.query(models.ConfigSetting.key, models.ConfigSetting.value).all()
         session.close()
         for key, value in config_list:  # Need a dict

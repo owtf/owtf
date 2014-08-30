@@ -63,7 +63,7 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
         except exceptions.DBIntegrityException as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(409)
-        except UnresolvableTargetException as e:
+        except exceptions.UnresolvableTargetException as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(409)
 
@@ -273,11 +273,11 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
     def get(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.write(self.application.Core.DB.Transaction.GetByIDAsDict(int(transaction_id), target_id=int(target_id)))
+                self.write(self.application.Core.DB.Transaction.GetByIDAsDict(int(transaction_id)))
             else:
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
-                self.write(self.application.Core.DB.Transaction.GetAllAsDicts(filter_data, target_id=int(target_id)))
+                self.write(self.application.Core.DB.Transaction.GetAllAsDicts(filter_data))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -300,7 +300,7 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
     def delete(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.application.Core.DB.Transaction.DeleteTransaction(int(transaction_id), int(target_id))
+                self.application.Core.DB.Transaction.DeleteTransaction(int(transaction_id))
             else:
                 raise tornado.web.HTTPError(400)
         except exceptions.InvalidTargetReference as e:
@@ -391,20 +391,20 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group: # First check if plugin_group is present in url
-                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id))
+                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id=target_id))
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group": plugin_group})
-                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id))
+                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id=target_id))
             if plugin_type and plugin_group and (not plugin_code):
                 if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
-                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id))
+                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id=target_id))
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code})
-                results = self.application.Core.DB.POutput.GetAll(filter_data, target_id)
+                results = self.application.Core.DB.POutput.GetAll(filter_data, target_id=target_id)
                 if results:
                     self.write(results[0])
                 else:
@@ -428,7 +428,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                 raise tornado.web.HTTPError(400)
             else:
                 patch_data = dict(self.request.arguments)
-                self.application.Core.DB.POutput.Update(plugin_group, plugin_type, plugin_code, patch_data, target_id)
+                self.application.Core.DB.POutput.Update(plugin_group, plugin_type, plugin_code, patch_data, target_id=int(target_id))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -440,20 +440,20 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group: # First check if plugin_group is present in url
-                self.application.Core.DB.POutput.DeleteAll(filter_data, target_id)
+                self.application.Core.DB.POutput.DeleteAll(filter_data, target_id=int(target_id))
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group": plugin_group})
-                self.application.Core.DB.POutput.DeleteAll(filter_data, target_id)
+                self.application.Core.DB.POutput.DeleteAll(filter_data, target_id=int(target_id))
             if plugin_type and plugin_group and (not plugin_code):
                 if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
-                self.application.Core.DB.POutput.DeleteAll(filter_data, target_id)
+                self.application.Core.DB.POutput.DeleteAll(filter_data, target_id=int(target_id))
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code})
-                self.application.Core.DB.POutput.DeleteAll(filter_data, target_id)
+                self.application.Core.DB.POutput.DeleteAll(filter_data, target_id=int(target_id))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)

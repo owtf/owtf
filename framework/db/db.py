@@ -32,6 +32,7 @@ from framework.lib.general import cprint
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine, event, exc
 from sqlalchemy.engine import Engine
+from sqlalchemy.pool import NullPool
 from framework.db import models, plugin_manager, target_manager, resource_manager, \
         config_manager, poutput_manager, transaction_manager, url_manager, \
         command_register, error_manager, mapping_manager, vulnexp_manager
@@ -40,89 +41,81 @@ import os
 import re
 
 
-@event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    """
-    Allows us to use foreing keys with sqlite
-    """
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
-
-def re_fn(regexp, item):
-    # TODO: Can remove this after ensuring that nothing is using this in DB calls
-    #                                                           - tunnelshade
-    regex = re.compile(regexp, re.IGNORECASE | re.DOTALL) # Compile before the loop for speed
-    results = regex.findall(item)
-    return results
-
 class DB(object):
 
     def __init__(self,CoreObj):
         self.Core = CoreObj
-        self.Core.CreateMissingDirs(os.path.join(self.Core.Config.FrameworkConfigGet("OUTPUT_PATH"), self.Core.Config.FrameworkConfigGet("DB_DIR")))
+        # Fetch settings only once for consistency
+        self._db_settings = self._get_db_settings()
+        # self.Core.CreateMissingDirs(os.path.join(self.Core.Config.FrameworkConfigGet("OUTPUT_PATH"), self.Core.Config.FrameworkConfigGet("DB_DIR")))
+        self.Session = self.CreateScopedSession()
 
     def Init(self):
-        self.ErrorDBSession = self.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.ErrorBase)
-        self.Transaction = transaction_manager.TransactionManager(self.Core)
-        self.URL = url_manager.URLManager(self.Core)
-        self.Plugin = plugin_manager.PluginDB(self.Core)
-        self.POutput = poutput_manager.POutputDB(self.Core)
-        self.Target = target_manager.TargetDB(self.Core)
-        self.Resource = resource_manager.ResourceDB(self.Core)
-        self.Config = config_manager.ConfigDB(self.Core)
-        self.Error = error_manager.ErrorDB(self.Core)
-        self.CommandRegister = command_register.CommandRegister(self.Core)
-        self.Mapping = mapping_manager.MappingDB(self.Core)
-        self.Vulnexp = vulnexp_manager.VulnexpDB(self.Core)
+        self.Transaction = transaction_manager.TransactionManager(self.Core, self.Session)
+        self.URL = url_manager.URLManager(self.Core, self.Session)
+        self.Plugin = plugin_manager.PluginDB(self.Core, self.Session)
+        self.POutput = poutput_manager.POutputDB(self.Core, self.Session)
+        self.Target = target_manager.TargetDB(self.Core, self.Session)
+        self.Resource = resource_manager.ResourceDB(self.Core, self.Session)
+        self.Config = config_manager.ConfigDB(self.Core, self.Session)
+        self.Error = error_manager.ErrorDB(self.Core, self.Session)
+        self.CommandRegister = command_register.CommandRegister(self.Core, self.Session)
+        self.Mapping = mapping_manager.MappingDB(self.Core, self.Session)
+        #self.Vulnexp = vulnexp_manager.VulnexpDB(self.Core, self.Session)
         self.DBHealthCheck()
 
     def DBHealthCheck(self):
+        # TODO: Fix this for psotgres
+        return
         self.Target.DBHealthCheck()
 
-    def SaveDBs(self):
-        pass
+    def ReInit(self):
+        self.Session = self.CreateScopedSession()
 
-    def EnsureDBWithBase(self, DB_PATH, BaseClass):
-        logging.info("Ensuring if DB exists at " + DB_PATH)
-        if not os.path.exists(DB_PATH):
-            self.CreateDBUsingBase(DB_PATH, BaseClass)
-
-    def CreateDBUsingBase(self, DB_PATH, BaseClass):
-        logging.info("Creating DB at " + DB_PATH)
-        engine = create_engine("sqlite:///" + DB_PATH)
-        BaseClass.metadata.create_all(engine)
-        return engine
-
-    def CreateScopedSession(self, DB_PATH, BaseClass):
-        # Not to be used apart from main process, use CreateSession instead
-        if not os.path.exists(DB_PATH):
-            engine = self.CreateDBUsingBase(DB_PATH, BaseClass)
-        else:
-            engine = create_engine("sqlite:///" + DB_PATH)
-        @event.listens_for(engine, "begin")
-        def do_begin(conn):
-            conn.connection.create_function('regexp', 2, re_fn)
-        session_factory = sessionmaker(bind = engine)
-        logging.info("Creating Scoped session factory for " + DB_PATH)
-        return scoped_session(session_factory)
-
-    def CreateSession(self, DB_PATH):
-        engine = create_engine("sqlite:///" + DB_PATH)
-        @event.listens_for(engine, "begin")
-        def do_begin(conn):
-            conn.connection.create_function('regexp', 2, re_fn)
-        return sessionmaker(bind = engine)
-
-    def AddUsingSession(self, Obj, session):
-        while True:
+    def _get_db_settings(self):
+        """
+        Get database settings, must be used only here
+        """
+        config_path = os.path.expanduser(self.Core.Config.FrameworkConfigGet(
+            'DATABASE_SETTINGS_FILE'))
+        config_file = self.Core.open(
+            config_path,
+            'r')
+        settings = {}
+        for line in config_file:
             try:
-                session = session()
-                session.add(Obj)
-                session.commit()
-                success = True
-            except exc.OperationalError:
-                logging.info("Lock occured (might be)")
-            finally:
-                session.close()
-                if success: return success
+                key = line.split(':')[0]
+                if key[0] == '#':  # Ignore comment lines.
+                    continue
+                value = line.replace(key + ": ", "").strip()
+                settings[key] = value
+            except ValueError:
+                self.Core.Error.FrameworkAbort(
+                    "Problem in config file: '" + config_path +
+                    "' -> Cannot parse line: " + line)
+        return settings
+
+    def CreateEngine(self, BaseClass):
+        try:
+            engine = create_engine(
+                "postgresql+psycopg2://{0}:{1}@{2}:{3}/{4}".format(
+                    self._db_settings['DATABASE_USER'],
+                    self._db_settings['DATABASE_PASS'],
+                    self._db_settings['DATABASE_IP'],
+                    self._db_settings['DATABASE_PORT'],
+                    self._db_settings['DATABASE_NAME']),
+                poolclass=NullPool)  # TODO: Fix for forking
+            BaseClass.metadata.create_all(engine)
+            return engine
+        except KeyError:  # Indicates incomplete db config file
+            self.Core.Error.FrameworkAbort(
+                "Incomplete database configuration settings in "
+                "" + self.Core.Config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'))
+        except exc.OperationalError as e:
+            self.Core.Error.FrameworkAbort("[DB] " + str(e))
+
+    def CreateScopedSession(self):
+        # Not to be used apart from main process, use CreateSession instead
+        self.engine = self.CreateEngine(models.Base)
+        session_factory = sessionmaker(bind=self.engine)
+        return scoped_session(session_factory)

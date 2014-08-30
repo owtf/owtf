@@ -4,16 +4,16 @@ from framework.lib.general import cprint
 import os
 
 class ResourceDB(object):
-    def __init__(self, Core):
+    def __init__(self, Core, Session):
         self.Core = Core
-        self.ResourceDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("RESOURCE_DB_PATH"), models.ResourceBase)
+        self.Session = Session
         self.LoadResourceDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE"))
 
     def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         cprint("Loading Resources from: " + file_path + " ..")
         resources = self.GetResourcesFromFile(file_path)
         # resources = [(Type, Name, Resource), (Type, Name, Resource),]
-        session = self.ResourceDBSession()
+        session = self.Session()
         for Type, Name, Resource in resources:
             # Need more filtering to avoid duplicates
             if not session.query(models.Resource).filter_by(resource_type = Type, resource_name = Name, resource = Resource).all():
@@ -42,7 +42,7 @@ class ResourceDB(object):
         return configuration
 
     def GetRawResources(self, ResourceType):
-        session = self.ResourceDBSession()
+        session = self.Session()
         filter_query = session.query(models.Resource.resource_name, models.Resource.resource).filter_by(resource_type = ResourceType)
         # Sorting is necessary for working of ExtractURLs, since it must run after main command, so order is imp
         sort_query = filter_query.order_by(models.Resource.id)
@@ -59,7 +59,7 @@ class ResourceDB(object):
         return resources
 
     def GetRawResourceList(self, ResourceList):
-        session = self.ResourceDBSession()
+        session = self.Session()
         raw_resources = session.query(models.Resource.resource_name, models.Resource.resource).filter(models.Resource.resource_type.in_(ResourceList)).all()
         session.close()
         return raw_resources

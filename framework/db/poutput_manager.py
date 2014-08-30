@@ -1,23 +1,26 @@
 import os
 import json
+from framework.db.target_manager import target_required
 from framework.lib.exceptions import InvalidParameterType
 from framework.db import models
 
 
 class POutputDB(object):
-    def __init__(self, Core):
+    def __init__(self, Core, Session):
         self.Core = Core
+        self.Session = Session
 
     def DeriveHTMLOutput(self, plugin_output):
         self.Core.Reporter.Loader.reset()
         Content = ''
         for item in plugin_output:
-            Content += getattr(self.Core.Reporter, item["type"])(**item["output"])
+            Content += getattr(
+                self.Core.Reporter,
+                item["type"])(**item["output"])
         return(Content)
 
+    @target_required
     def DeriveOutputDict(self, obj, target_id=None):
-        if target_id:
-            self.Core.DB.Target.SetTarget(target_id)
         if obj:
             pdict = dict(obj.__dict__)
             pdict.pop("_sa_instance_state", None)
@@ -30,16 +33,17 @@ class POutputDB(object):
                     self.Core.DB.Config.Get("DATE_TIME_FORMAT"))
             return pdict
 
+    @target_required
     def DeriveOutputDicts(self, obj_list, target_id=None):
-        if target_id:
-            self.Core.DB.Target.SetTarget(target_id)
         dict_list = []
         for obj in obj_list:
-            dict_list.append(self.DeriveOutputDict(obj, target_id))
+            dict_list.append(self.DeriveOutputDict(obj, target_id=target_id))
         return(dict_list)
 
-    def GenerateQueryUsingSession(self, session, filter_data):
-        query = session.query(models.PluginOutput)
+    def GenerateQueryUsingSession(self, session, filter_data, target_id):
+        query = session.query(models.PluginOutput).filter_by(target_id=target_id)
+        if filter_data.get("target_id", None):
+            query.filter_by(target_id=filter_data["target_id"])
         if filter_data.get("plugin_type", None):
             if isinstance(filter_data.get("plugin_type"), (str, unicode)):
                 query = query.filter_by(plugin_type=filter_data["plugin_type"])
@@ -105,44 +109,54 @@ class POutputDB(object):
                 "Integer has to be provided for integer fields")
         return query
 
+    @target_required
     def GetAll(self, filter_data=None, target_id=None):
         if not filter_data:
             filter_data = {}
         self.Core.DB.Target.SetTarget(target_id)
-        Session = self.Core.DB.Target.GetOutputDBSession()
-        session = Session()
-        query = self.GenerateQueryUsingSession(session, filter_data)
+        session = self.Session()
+        query = self.GenerateQueryUsingSession(session, filter_data, target_id)
         results = query.all()
         session.close()
-        return(self.DeriveOutputDicts(results, target_id))
+        return(self.DeriveOutputDicts(results, target_id=target_id))
 
+    @target_required
     def GetUnique(self, target_id=None):
         """
         Returns a dict of some column names and their unique database
         Useful for advanced filter
         """
-        self.Core.DB.Target.SetTarget(target_id)
-        Session = self.Core.DB.Target.GetOutputDBSession(target_id)
-        session = Session()
+        session = self.Session()
         unique_data = {
-            "plugin_type": [i[0] for i in session.query(models.PluginOutput.plugin_type).distinct().all()],
-            "plugin_group": [i[0] for i in session.query(models.PluginOutput.plugin_group).distinct().all()],
-            "status": [i[0] for i in session.query(models.PluginOutput.status).distinct().all()],
-            "user_rank": [i[0] for i in session.query(models.PluginOutput.user_rank).distinct().all()],
-            "owtf_rank": [i[0] for i in session.query(models.PluginOutput.owtf_rank).distinct().all()],
+            "plugin_type": [i[0] for i in session.query(
+                models.PluginOutput.plugin_type).filter_by(
+                    target_id=target_id).distinct().all()],
+            "plugin_group": [i[0] for i in session.query(
+                models.PluginOutput.plugin_group).filter_by(
+                    target_id=target_id).distinct().all()],
+            "status": [i[0] for i in session.query(
+                models.PluginOutput.status).filter_by(
+                    target_id=target_id).distinct().all()],
+            "user_rank": [i[0] for i in session.query(
+                models.PluginOutput.user_rank).filter_by(
+                    target_id=target_id).distinct().all()],
+            "owtf_rank": [i[0] for i in session.query(
+                models.PluginOutput.owtf_rank).filter_by(
+                    target_id=target_id).distinct().all()],
         }
         session.close()
         return(unique_data)
 
+    @target_required
     def DeleteAll(self, filter_data, target_id=None):
         """
         Here keeping filter_data optional is very risky
         """
-        Session = self.Core.DB.Target.GetOutputDBSession(target_id)
-        session = Session()
+        session = self.Session()
         query = self.GenerateQueryUsingSession(
             session,
-            filter_data)  # Empty dict will match all results
+            filter_data,
+            target_id)  # Empty dict will match all results
         # Delete the folders created for these plugins
         for plugin in query.all():
             # First check if path exists in db
@@ -157,16 +171,23 @@ class POutputDB(object):
         session.commit()
         session.close()
 
-    def Update(self, plugin_group, plugin_type, plugin_code, patch_data, target_id=None):
-        Session = self.Core.DB.Target.GetOutputDBSession(target_id)
-        session = Session()
+    @target_required
+    def Update(
+            self,
+            plugin_group,
+            plugin_type,
+            plugin_code,
+            patch_data,
+            target_id=None):
+        session = self.Session()
         query = self.GenerateQueryUsingSession(
             session,
             {
                 "plugin_group": plugin_group,
                 "plugin_type": plugin_type,
-                "plugin_code": plugin_code
-            })
+                "plugin_code": plugin_code,
+            },
+            target_id)
         obj = query.first()
         if obj:
             try:
@@ -185,26 +206,28 @@ class POutputDB(object):
                     "Integer has to be provided for integer fields")
         session.close()
 
-    def PluginAlreadyRun(self, PluginInfo, Target=None):
-        Session = self.Core.DB.Target.GetOutputDBSession(Target)
-        session = Session()
-        plugin_output = session.query(models.PluginOutput).get(
-            PluginInfo["key"])
+    @target_required
+    def PluginAlreadyRun(self, PluginInfo, target_id=None):
+        session = self.Session()
+        plugin_output = session.query(models.PluginOutput).filter_by(
+            target_id=target_id,
+            plugin_code=PluginInfo["code"],
+            plugin_type=PluginInfo["type"],
+            plugin_group=PluginInfo["group"]).first()
         if plugin_output:
-            return(self.DeriveOutputDict(plugin_output, Target))
+            return(self.DeriveOutputDict(plugin_output, target_id=target_id))
         return(plugin_output)  # This is nothin but a "None" returned
 
+    @target_required
     def SavePluginOutput(self,
                          plugin,
                          output,
                          duration,
-                         target=None,
+                         target_id=None,
                          owtf_rank=None):
         """Save into the database the command output of the plugin `plugin."""
-        session = self.Core.DB.Target.GetOutputDBSession(target)
-        session = session()
+        session = self.Session()
         session.merge(models.PluginOutput(
-            key=plugin["key"],
             plugin_code=plugin["code"],
             plugin_group=plugin["group"],
             plugin_type=plugin["type"],
@@ -213,6 +236,7 @@ class POutputDB(object):
             end_time=plugin["end"],
             execution_time=duration,
             status=plugin["status"],
+            target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored
             # it will be there
             output_path=(plugin["output_path"] if os.path.exists(
@@ -222,11 +246,16 @@ class POutputDB(object):
         session.commit()
         session.close()
 
-    def SavePartialPluginOutput(self, Plugin, Output, Message, Duration, target_id=None):
-        Session = self.Core.DB.Target.GetOutputDBSession(target_id)
-        session = Session()
+    @target_required
+    def SavePartialPluginOutput(
+            self,
+            Plugin,
+            Output,
+            Message,
+            Duration,
+            target_id=None):
+        session = self.Session()
         session.merge(models.PluginOutput(
-            key=Plugin["key"],
             plugin_code=Plugin["code"],
             plugin_group=Plugin["group"],
             plugin_type=Plugin["type"],
@@ -236,6 +265,7 @@ class POutputDB(object):
             end_time=Plugin["end"],
             execution_time=Duration,
             status=Plugin["status"],
+            target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored
             # it will be there
             output_path=(Plugin["output_path"] if os.path.exists(

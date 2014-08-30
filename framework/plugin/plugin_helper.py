@@ -265,7 +265,6 @@ class PluginHelper:
                 TopURL = self.Core.DB.Target.Get( 'TOP_URL' )
                 EntriesList = []
                 if num_disallow > 0 or num_allow > 0 or num_sitemap > 0: # robots.txt contains some entries, show browsable list! :)
-                        self.Core.DB.URL.AddURLsStart()
                         for Display, Entries in [ [ 'Disallowed Entries', DisallowedEntries ], [ 'Allowed Entries', AllowedEntries ], [ 'Sitemap Entries', SitemapEntries ] ]:
                                 Links = [] # Initialise category-specific link list
                                 for Entry in Entries:

@@ -20,7 +20,7 @@
                     <ul class="nav nav-tabs">
                         <li class="brand disabled"><a class="btn" disabled="disabled">Type:</a></li>
                         {% for poutput in poutput_list %}
-                        {% set pkey = poutput['key'].replace('@', '_') %}
+                        {% set pkey = poutput['plugin_type'] + '_' + poutput['plugin_code'] %}
                         <li>
                             <a id="tab_{{ pkey }}" href="#{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}" data-toggle="tab">
                                 {{ poutput['plugin_type'].replace('_',' ') }}
@@ -32,7 +32,7 @@
                     <br />
                     <div class="tab-content">
                         {% for poutput in poutput_list %}
-                        {% set pkey = poutput['key'].replace('@', '_') %}
+                        {% set pkey = poutput['plugin_type'] + '_' + poutput['plugin_code'] %}
                         <div class="tab-pane" id="{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}">
                             <div class="pull-left" data-toggle="buttons-checkbox">
                                 <blockquote><h4>{{ poutput['plugin_type'].replace('_',' ').capitalize() }}</h4><small>{{ poutput['plugin_code'] }}</small></blockquote>
@@ -155,7 +155,7 @@ var copyPOutputs = {};
             {% else %}
                 "user_rank": null,
             {% end %}
-            "key": "{{ poutput['key'] }}"
+            "key": "{{ poutput['plugin_type'] }}@{{ poutput['plugin_code'] }}"
         };
     {% end %}
 {% end %}

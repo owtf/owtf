@@ -39,9 +39,9 @@ import logging
 
 from sqlalchemy import desc, asc
 from collections import defaultdict
-
+from framework.db.target_manager import target_required
 from framework.lib.exceptions import InvalidTransactionReference, \
-                                     InvalidParameterType
+    InvalidParameterType
 from framework.http import transaction
 from framework.db import models
 
@@ -50,25 +50,37 @@ REGEX_TYPES = ['HEADERS', 'BODY']  # The regex find differs for these types :P
 
 
 class TransactionManager(object):
-    def __init__(self, Core):
+    def __init__(self, Core, Session):
         self.Core = Core  # Need access to reporter for pretty html trasaction log
+        self.Session = Session
         self.regexs = defaultdict(list)
         for regex_type in REGEX_TYPES:
             self.regexs[regex_type] = {}
         self.CompileRegexs()
 
-    def NumTransactions(self, Scope = True, target_id = None):  # Return num transactions in scope by default
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
-        count = session.query(models.Transaction).filter_by(scope = Scope).count()
+    @target_required
+    def NumTransactions(self, Scope=True, target_id=None):
+        """
+        Return num transactions in scope by default
+        """
+        session = self.Session()
+        count = session.query(models.Transaction).filter_by(
+            scope=Scope,
+            target_id=target_id).count()
         session.close()
         return(count)
 
-    def IsTransactionAlreadyAdded(self, Criteria, target_id = None):
-        return(len(self.GetAll(Criteria, target_id)) > 0)
+    def IsTransactionAlreadyAdded(self, Criteria, target_id=None):
+        return(len(self.GetAll(Criteria, target_id=target_id)) > 0)
 
-    def GenerateQueryUsingSession(self, session, criteria, for_stats=False):
-        query = session.query(models.Transaction)
+    def GenerateQueryUsingSession(
+            self,
+            session,
+            criteria,
+            target_id,
+            for_stats=False):
+        query = session.query(models.Transaction).filter_by(
+            target_id=target_id)
         # If transaction search is being done
         if criteria.get('search', None):
             if criteria.get('url', None):
@@ -148,16 +160,22 @@ class TransactionManager(object):
                 raise InvalidParameterType("Invalid parameter type for transaction db")
         return(query)
 
-    def GetFirst(self, Criteria, target_id = None): # Assemble only the first transaction that matches the criteria from DB
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
-        query = self.GenerateQueryUsingSession(session, Criteria)
+    @target_required
+    def GetFirst(self, Criteria, target_id=None):
+        """
+        Assemble only the first transaction that matches the criteria from DB
+        """
+        session = self.Session()
+        query = self.GenerateQueryUsingSession(session, Criteria, target_id)
         return(self.DeriveTransaction(query.first()))
 
-    def GetAll(self, Criteria, target_id = None): # Assemble ALL transactions that match the criteria from DB
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
-        query = self.GenerateQueryUsingSession(session, Criteria)
+    @target_required
+    def GetAll(self, Criteria, target_id=None):
+        """
+        Assemble ALL transactions that match the criteria from DB
+        """
+        session = self.Session()
+        query = self.GenerateQueryUsingSession(session, Criteria, target_id)
         return(self.DeriveTransactions(query.all()))
 
     def DeriveTransaction(self, t):
@@ -213,6 +231,7 @@ class TransactionManager(object):
             )
             return transaction_model
 
+    @target_required
     def LogTransactions(self, transaction_list, target_id=None):
         """
         This function does the following things in order
@@ -221,8 +240,7 @@ class TransactionManager(object):
         + Add all urls to url db
         """
         # Create a usable session
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
+        session = self.Session()
         # Initiate urls_list for holding urls and transaction_model_list
         # for holding transaction models
         urls_list = []
@@ -232,6 +250,7 @@ class TransactionManager(object):
         for transaction in transaction_list:
             # TODO: This shit will go crazy on non-ascii characters
             transaction_model = self.GetTransactionModel(transaction)
+            transaction_model.target_id = target_id
             transaction_model_list.append(transaction_model)
             session.add(transaction_model)
             urls_list.append([transaction.URL, True, transaction.InScope()])
@@ -262,6 +281,7 @@ class TransactionManager(object):
                             # Fetch if any existing entry
                             existing_grep_output = session.query(
                                 models.GrepOutput).filter_by(
+                                    target_id=target_id,
                                     name=regex_name,
                                     output=match).first()
                             if existing_grep_output:
@@ -270,6 +290,7 @@ class TransactionManager(object):
                                 session.merge(existing_grep_output)
                             else:
                                 session.add(models.GrepOutput(
+                                    target_id=target_id,
                                     transactions=[transaction_model],
                                     name=regex_name,
                                     output=match))
@@ -281,36 +302,34 @@ class TransactionManager(object):
                 zest_trans_list.append((target_id, model.id))
             self.Core.zest.addtoRecordedTrans(zest_trans_list)
         session.close()
-        self.Core.DB.URL.ImportProcessedURLs(urls_list, target_id)
+        self.Core.DB.URL.ImportProcessedURLs(urls_list, target_id=target_id)
 
     def LogTransactionsFromLogger(self, transactions_dict):
         # transaction_dict is a dictionary with target_id as key and list of owtf transactions
         for target_id, transaction_list in transactions_dict.items():
             if transaction_list:
-                self.LogTransactions(transaction_list, target_id)
+                self.LogTransactions(transaction_list, target_id=target_id)
 
-    def DeleteTransaction(self, transaction_id, target_id = None):
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
+    def DeleteTransaction(self, transaction_id):
+        session = self.Session()
         session.delete(session.query(models.Transaction).get(transaction_id))
         session.commit()
         session.close()
 
-    def GetNumTransactionsInScope(self, target_id = None):
-        return self.NumTransactions(target_id = target_id)
+    @target_required
+    def GetNumTransactionsInScope(self, target_id=None):
+        return self.NumTransactions(target_id=target_id)
 
-    def GetByID(self, ID, target_id = None):
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
+    def GetByID(self, ID):
+        session = self.Session()
         model_obj = session.query(models.Transaction).get(ID)
         session.close()
         if model_obj:
             return(self.DeriveTransaction(model_obj))
         return(model_obj) # None returned if no such transaction
 
-    def GetByIDs(self, id_list, target_id = None):
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
+    def GetByIDs(self, id_list):
+        session = self.Session()
         model_objs = []
         for ID in id_list:
             model_obj = session.query(models.Transaction).get(ID)
@@ -319,13 +338,13 @@ class TransactionManager(object):
         session.close()
         return(self.DeriveTransactions(model_objs))
 
-    def GetTopTransactionsBySpeed(self, Order = "Desc", Num = 10):
-        Session = self.Core.DB.Target.GetTransactionDBSession()
-        session = Session()
+    @target_required
+    def GetTopTransactionsBySpeed(self, Order="Desc", Num=10, target_id=None):
+        session = self.Session()
         if Order == "Desc":
-            results = session.query(models.Transaction).order_by(desc(models.Transaction.time)).limit(Num)
+            results = session.query(models.Transaction).filter_by(target_id=target_id).order_by(desc(models.Transaction.time)).limit(Num)
         else:
-            results = session.query(models.Transaction).order_by(asc(models.Transaction.time)).limit(Num)
+            results = session.query(models.Transaction).filter_by(target_id=target_id).order_by(asc(models.Transaction.time)).limit(Num)
         session.close()
         return(self.DeriveTransactions(results))
 
@@ -366,7 +385,13 @@ class TransactionManager(object):
             output.update({regex_name: results})
         return(output)
 
-    def SearchByRegexName(self, regex_name, stats=False, session=None, target=None):
+    @target_required
+    def SearchByRegexName(
+            self,
+            regex_name,
+            stats=False,
+            session=None,
+            target_id=None):
         """
         Allows searching of the grep_outputs table using a regex name
         What this function returns :
@@ -379,29 +404,32 @@ class TransactionManager(object):
             session_provided = True
         else:
             session_provided = False
-            Session = self.Core.DB.Target.GetTransactionDBSession(target)
-            session = Session()
+            session = self.Session()
         # Get the grep outputs and only unique values
         grep_outputs = session.query(
             models.GrepOutput.output).filter_by(
-                name=regex_name).group_by(models.GrepOutput.output).all()
+                name=regex_name,
+                target_id=target_id).group_by(models.GrepOutput.output).all()
         grep_outputs = [i[0] for i in grep_outputs]
         # Get one transaction per match
         transaction_ids = []
         for grep_output in grep_outputs:
             transaction_ids.append(session.query(models.Transaction.id).join(
                 models.Transaction.grep_outputs).filter(
-                    models.GrepOutput.output == grep_output).limit(1).all()[0][0])
+                    models.GrepOutput.output == grep_output,
+                    models.GrepOutput.target_id == target_id).limit(1).all()[0][0])
         # Calculate stats if needed
         if stats:
             # Calculate the total number of matches
             num_matched_transactions = session.query(models.Transaction).join(
                 models.Transaction.grep_outputs).filter(
-                    models.GrepOutput.name == regex_name).group_by(
+                    models.GrepOutput.name == regex_name,
+                    models.GrepOutput.target_id == target_id).group_by(
                         models.Transaction).count()
             # Calculate total number of transactions in scope
             num_transactions_in_scope = session.query(models.Transaction).filter_by(
-                scope=True).count()
+                scope=True,
+                target_id=target_id).count()
             # Calculate matched percentage
             if int(num_transactions_in_scope):
                 match_percent = int((num_matched_transactions/float(num_transactions_in_scope))*100)
@@ -418,7 +446,8 @@ class TransactionManager(object):
             transaction_ids,
             match_percent])
 
-    def SearchByRegexNames(self, name_list, stats=False, target=None):
+    @target_required
+    def SearchByRegexNames(self, name_list, stats=False, target_id=None):
         """
         Allows searching of the grep_outputs table using a regex name
         What this function returns is a list of list containing
@@ -428,20 +457,20 @@ class TransactionManager(object):
         + match_percent
         """
         results = []
-        Session = self.Core.DB.Target.GetTransactionDBSession(target)
-        session = Session()
+        session = self.Session()
         for regex_name in name_list:
             results.append(self.SearchByRegexName(
                 regex_name,
                 stats=stats,
                 session=session,
-                target=target))
+                target_id=target_id))
         session.close()
         return(results)
 
-#-------------------------------------------------- API Methods --------------------------------------------------
-    def DeriveTransactionDict(self, tdb_obj, include_raw_data = False):
-        tdict = dict(tdb_obj.__dict__)  # Create a new copy so no accidental changes
+# ----------------------------- API Methods -----------------------------
+    def DeriveTransactionDict(self, tdb_obj, include_raw_data=False):
+        # Create a new copy so no accidental changes
+        tdict = dict(tdb_obj.__dict__)
         tdict.pop("_sa_instance_state")
         if not include_raw_data:
             tdict.pop("raw_request", None)
@@ -452,26 +481,29 @@ class TransactionManager(object):
                 tdict["response_body"] = base64.b64encode(str(tdict["response_body"]))
         return tdict
 
-    def DeriveTransactionDicts(self, tdb_obj_list, include_raw_data = False):
+    def DeriveTransactionDicts(self, tdb_obj_list, include_raw_data=False):
         dict_list = []
         for tdb_obj in tdb_obj_list:
             dict_list.append(self.DeriveTransactionDict(tdb_obj, include_raw_data))
         return dict_list
 
+    @target_required
     def SearchAll(self, Criteria, target_id=None, include_raw_data=False):
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
+        session = self.Session()
         # Three things needed
         # + Total number of transactions
         # + Filtered transaaction dicts
         # + Filtered number of transactions
-        total = session.query(models.Transaction).count()
+        total = session.query(
+            models.Transaction).filter_by(target_id=target_id).count()
         filtered_transaction_objs = self.GenerateQueryUsingSession(
             session,
-            Criteria).all()
+            Criteria,
+            target_id).all()
         filtered_number = self.GenerateQueryUsingSession(
             session,
             Criteria,
+            target_id,
             for_stats=True).count()
         return({
             "records_total": total,
@@ -481,23 +513,24 @@ class TransactionManager(object):
                 include_raw_data)
         })
 
-    def GetAllAsDicts(self, Criteria, target_id = None, include_raw_data = False): # Assemble ALL transactions that match the criteria from DB
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
-        query = self.GenerateQueryUsingSession(session, Criteria)
+    @target_required
+    def GetAllAsDicts(self, Criteria, target_id=None, include_raw_data=False):
+        # Assemble ALL transactions that match the criteria from DB
+        session = self.Session()
+        query = self.GenerateQueryUsingSession(session, Criteria, target_id)
         transaction_objs = query.all()
         session.close()
         return(self.DeriveTransactionDicts(transaction_objs, include_raw_data))
 
-    def GetByIDAsDict(self, trans_id, target_id = None):
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
+    def GetByIDAsDict(self, trans_id):
+        session = self.Session()
         transaction_obj = session.query(models.Transaction).get(trans_id)
         session.close()
         if not transaction_obj:
-            raise InvalidTransactionReference("No transaction with " + str(trans_id) + " exists for target with id " + str(target_id) if target_id else self.Core.DB.Target.GetTargetID())
-        return self.DeriveTransactionDict(transaction_obj, include_raw_data = True)
+            raise InvalidTransactionReference("No transaction with " + str(trans_id) + " exists")
+        return self.DeriveTransactionDict(transaction_obj, include_raw_data=True)
 
+    @target_required
     def GetSessionData(self, target_id=None):
         """
         * This will return the data from the `session_tokens` column in the form of a list,
@@ -505,9 +538,10 @@ class TransactionManager(object):
         * A sample data: [{"attributes": {"Path": "/", "HttpOnly": true}, "name": "ASP.NET_SessionId", "value": "jx0ydsvwqtfgqcufazwigiih"},
                           {"attributes": {"Path": "/"}, "name": "amSessionId", "value": "618174515"}]
         """
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
-        session_data = session.query(models.Transaction.session_tokens).all()
+        session = self.Session()
+        session_data = session.query(
+            models.Transaction.session_tokens).filter_by(
+                target_id=target_id).all()
         session.close()
         results = []
         for i in session_data:
@@ -515,21 +549,23 @@ class TransactionManager(object):
                 results.append(json.loads(i[0]))
         return(results)
 
-    def GetSessionURLs(self, target_id):
+    @target_required
+    def GetSessionURLs(self, target_id=None):
         """
         This returns the data in the form of [(url1), (url2), etc]
         """
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
-        session_urls = session.query(models.Transaction.url).filter(group_by(models.Transaction.session_tokens)).getall()
+        session = self.Session()
+        session_urls = session.query(models.Transaction.url).filter(
+            models.Transaction.target_id == target_id,
+            group_by(models.Transaction.session_tokens)).getall()
         session.close()
         return session_urls
 
 '''
     def AddLoginLogoutIndicator(self, target_id=None, trans_id):
         """ This adds a login/logout indicator to a specific transaction_id. """
-        Session = self.Core.DB.Target.GetTransactionDBSession(target_id)
-        session = Session()
+        Session = self.Session
+        session = self.Session()
         session.query(models.Transaction).get(trans_id).update({"login_logout": })
         session.close()
 '''
