@@ -60,6 +60,10 @@ class InvalidTargetReference(FrameworkException):
     pass
 
 
+class InvalidSessionReference(FrameworkException):
+    pass
+
+
 class InvalidTransactionReference(FrameworkException):
     pass
 

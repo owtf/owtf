@@ -7,6 +7,7 @@ from framework.lib.exceptions import DBIntegrityException, \
                                      InvalidTargetReference, \
                                      InvalidParameterType
 from framework.db import models
+from framework.db.session_manager import session_required
 from framework.lib import general
 from framework.lib.general import cprint #TODO: Shift to logging
 
@@ -112,7 +113,8 @@ class TargetDB(object):
                 self.Core.DB.Target.CreateMissingDBsForURL(target.target_url)
             self.SetTarget(target.id) # This is to avoid "None" value for the main settings
 
-    def AddTarget(self, TargetURL):
+    @session_required
+    def AddTarget(self, TargetURL, session_id=None):
         if TargetURL not in self.GetTargetURLs():
             # A try-except can be used here, but then ip-resolution takes time
             # even if target is present
@@ -130,12 +132,24 @@ class TargetDB(object):
             config_obj.top_url = target_config["TOP_URL"]
             # ----------------------------------------------------
             self.Core.DB.session.add(config_obj)
+            config_obj.sessions.append(
+                self.Core.DB.session.query(models.Session).get(session_id))
             self.Core.DB.session.commit()
             target_id = config_obj.id
             self.CreateMissingDBsForURL(TargetURL)
             self.SetTarget(target_id)
         else:
-            raise DBIntegrityException(TargetURL + " already present in Target DB")
+            session_obj = self.Core.DB.session.query(
+                models.Session).get(session_id)
+            target_obj = self.Core.DB.session.query(
+                models.Target).filter_by(target_url=TargetURL).one()
+            if session_obj in target_obj.sessions:
+                raise DBIntegrityException(
+                    TargetURL + " already present in Target DB & session")
+            else:
+                self.Core.DB.OWTFSession.add_target_to_session(
+                    target_obj.id,
+                    session_id=session_obj.id)
 
     def UpdateTarget(self, data_dict, TargetURL=None, ID=None):
         if ID:
@@ -145,10 +159,8 @@ class TargetDB(object):
         if not target_obj:
             raise InvalidTargetReference("Target doesn't exist: " + str(ID) if ID else str(TargetURL))
         # TODO: Updating all related attributes when one attribute is changed
-        for key, value in data.items():
-            if key == "IN_CONTEXT":
-                setattr(target_obj, key.lower(), self.Core.Config.ConvertStrToBool(value))
-        self.Core.DB.session.merge(target_obj)
+        if data_dict.get("SCOPE", None) is not None:
+            target_obj.scope = self.Core.Config.ConvertStrToBool(value)
         self.Core.DB.session.commit()
 
     def DeleteTarget(self, TargetURL=None, ID=None):
@@ -180,10 +192,12 @@ class TargetDB(object):
             raise InvalidTargetReference("Target doesn't exist: " + str(ID))
         return(self.DeriveTargetConfig(target_obj))
 
-    def GetTargetConfigs(self, filter_data=None):
+    @session_required
+    def GetTargetConfigs(self, filter_data=None, session_id=None):
         if filter_data is None:
             filter_data = {}
-        query = self.Core.DB.session.query(models.Target)
+        query = self.Core.DB.session.query(models.Target).filter(
+            models.Target.sessions.any(id=session_id))
         if filter_data.get("TARGET_URL", None):
             if isinstance(filter_data["TARGET_URL"], (str, unicode)):
                 query = query.filter_by(target_url = filter_data["TARGET_URL"])

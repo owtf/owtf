@@ -118,6 +118,7 @@ class TargetManager(custom_handlers.UIRequestHandler):
     def get(self, target_id=None):
         if not target_id:
             self.render("target_manager.html",
+                        owtf_sessions_api_url=self.reverse_url('owtf_sessions_api_url', None, None),
                         targets_api_url=self.reverse_url('targets_api_url', None),
                         targets_ui_url=self.reverse_url('targets_ui_url', None),
                         plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),

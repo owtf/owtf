@@ -34,8 +34,9 @@ from sqlalchemy import create_engine, event, exc
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool
 from framework.db import models, plugin_manager, target_manager, resource_manager, \
-        config_manager, poutput_manager, transaction_manager, url_manager, \
-        command_register, error_manager, mapping_manager, vulnexp_manager
+    config_manager, poutput_manager, transaction_manager, url_manager, \
+    command_register, error_manager, mapping_manager, vulnexp_manager, \
+    session_manager
 import logging
 import os
 import re
@@ -61,6 +62,7 @@ class DB(object):
         self.Error = error_manager.ErrorDB(self.Core)
         self.CommandRegister = command_register.CommandRegister(self.Core)
         self.Mapping = mapping_manager.MappingDB(self.Core)
+        self.OWTFSession = session_manager.OWTFSessionDB(self.Core)
         #self.Vulnexp = vulnexp_manager.VulnexpDB(self.Core)
         self.DBHealthCheck()
 

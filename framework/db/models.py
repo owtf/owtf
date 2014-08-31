@@ -7,6 +7,27 @@ import datetime
 
 Base = declarative_base()
 
+# This table actually allows us to make a many to many relationship
+# between transactions table and grep_outputs table
+target_association_table = Table(
+    'target_session_association',
+    Base.metadata,
+    Column('target_id', Integer, ForeignKey('targets.id')),
+    Column('session_id', Integer, ForeignKey('sessions.id'))
+)
+
+
+class Session(Base):
+    __tablename__ = "sessions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, unique=True)
+    active = Column(Boolean, default=False)
+    targets = relationship(
+        "Target",
+        secondary=target_association_table,
+        backref="sessions")
+
 
 class Target(Base):
     __tablename__ = "targets"
@@ -26,8 +47,9 @@ class Target(Base):
     transactions = relationship("Transaction", cascade="delete")
     poutputs = relationship("PluginOutput", cascade="delete")
     urls = relationship("Url", cascade="delete")
-    grep_outputs = relationship("GrepOutput", cascade="delete")
     commands = relationship("Command", cascade="delete")
+    # Also has a column session specified as backref in
+    # session model
 
     def __repr__(self):
         return "<Target (url='%s')>" % (self.target_url)
@@ -65,6 +87,7 @@ class Transaction(Base):
     grep_outputs = relationship(
         "GrepOutput",
         secondary=transaction_association_table,
+        cascade="delete",
         backref="transactions")
 
     def __repr__(self):
@@ -78,6 +101,8 @@ class GrepOutput(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     output = Column(String)
+    # Also has a column transactions, which is added by
+    # using backref in transaction
 
     __table_args__ = (UniqueConstraint('name', 'output', target_id),)
 
