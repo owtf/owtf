@@ -70,9 +70,19 @@ function displayConfiguration(){
                     html = '<div class="form-group">';
                     html += '<label class="control-label col-md-4" for="'+obj.key+'">'+obj.key.replace(/_/g,' ')+'</label>';
                     html += '<div class="col-md-8">';
-                    html += '<input name="'+obj.key+'" class="form-control" type="text" data-toggle="tooltip" ';
+                    indexCariot = obj.value.indexOf('\n');
+                    if (indexCariot > -1) {
+                        html += '<textarea ';
+                    } else {
+                        html += '<input ';
+                    }
+                    html += 'name="'+obj.key+'" class="form-control" type="text" data-toggle="tooltip" ';
                     if (obj.descrip) { html += 'title="'+obj.descrip+'" ';}
-                    html += 'value="'+escapeHtml(obj.value)+'">';
+                    if (indexCariot > -1) {
+                        html += '>'+escapeHtml(obj.value)+'</textarea>';
+                    } else {
+                        html += 'value="'+escapeHtml(obj.value)+'">';
+                    }
                     html += '</div>'; // Closing </div> for col-md-8
                     html += '</div>';
                     $('#form_'+section).append(html);
