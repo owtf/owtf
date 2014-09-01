@@ -22,6 +22,15 @@
 </div>
 <!-- End Configuration tabs -->
 <script>
+ var entityMap = {
+    "&": "&amp;","<": "&lt;",">": "&gt;",'"': '&quot;',"'": '&#39;',"/": '&#x2F;'};
+
+  function escapeHtml(string) {
+    return String(string).replace(/[&<>"'\/]/g, function (s) {
+      return entityMap[s];
+    });
+  }
+
 mySpace = {
             configuration_api_url:"{{ configuration_api_url }}"
         }
@@ -63,7 +72,7 @@ function displayConfiguration(){
                     html += '<div class="col-md-8">';
                     html += '<input name="'+obj.key+'" class="form-control" type="text" data-toggle="tooltip" ';
                     if (obj.descrip) { html += 'title="'+obj.descrip+'" ';}
-                    html += 'value="'+obj.value+'">';
+                    html += 'value="'+escapeHtml(obj.value)+'">';
                     html += '</div>'; // Closing </div> for col-md-8
                     html += '</div>';
                     $('#form_'+section).append(html);
