@@ -93,6 +93,10 @@ function displayConfiguration(){
                 $(this).addClass('changed');
                 $('#updateButton').prop('disabled', false);
             });
+            $('textarea').change(function(){
+                $(this).addClass('changed');
+                $('#updateButton').prop('disabled', false);
+            });
         });
 }
 
