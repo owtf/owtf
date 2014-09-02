@@ -171,7 +171,7 @@ function newSession(session_name) {
                 url:mySpace.owtf_sessions_api_url,
                 type:'POST',
                 data:{name:session_name},
-                success:updateSessions,
+                success: function() { updateSessions(); updateTargets(); },
                 error:function(xhr, textStatus, serverResponse){
                     alertFail("Unable to add "+session_name);
                     }
