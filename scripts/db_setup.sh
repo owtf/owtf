@@ -60,7 +60,7 @@ Action=$1
 
 FILE_PATH=$(readlink -f "$0")
 SCRIPTS_DIR=$(dirname "$FILE_PATH")
-RootDir=${2:-$(dirname "$INSTALL_DIR")}
+RootDir=${2:-$(dirname "$SCRIPTS_DIR")}
 
 config_file="$RootDir/framework/config/framework_config.cfg"
 db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
