@@ -489,7 +489,8 @@ class TransactionManager(object):
         transaction_objs = query.all()
         return(self.DeriveTransactionDicts(transaction_objs, include_raw_data))
 
-    def GetByIDAsDict(self, trans_id):
+    @target_required
+    def GetByIDAsDict(self, trans_id, target_id=None):
         transaction_obj = self.Core.DB.session.query(models.Transaction).get(trans_id)
         if not transaction_obj:
             raise InvalidTransactionReference("No transaction with " + str(trans_id) + " exists")

@@ -63,9 +63,9 @@ class Worker(OWTFProcess):
                     self.pid)
                 exit(0)
             except Exception, e:
-                logging.error(
-                    "Exception while getting work",
-                    exc_info=True)
+                self.core.Error.LogError(
+                    "Exception occured while running :",
+                    trace=str(e))
                 continue
         logging.debug(
             "I am worker (%d) & my master gave me poison pill",

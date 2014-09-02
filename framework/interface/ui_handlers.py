@@ -126,7 +126,7 @@ class TargetManager(custom_handlers.UIRequestHandler):
                         )
         else:
             adv_filter_data = self.application.Core.DB.POutput.GetUnique(target_id=int(target_id))
-            adv_filter_data["mappings"] = self.application.Core.DB.Mapping.GetMappingTypes()
+            adv_filter_data["mapping"] = self.application.Core.DB.Mapping.GetMappingTypes()
             self.render("target.html",
                         target_api_url=self.reverse_url('targets_api_url', target_id),
                         targets_ui_url=self.reverse_url('targets_ui_url', None),
