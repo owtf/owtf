@@ -481,7 +481,7 @@ class Config(object):
     def GetOutputDirForTarget(self, target_URL):
         return os.path.join(
             self.GetOutputDirForTargets(),
-            target_URL.replace("/", "_").replace(":", ""))
+            target_URL.replace("/", "_").replace(":", "").replace("#", ""))
 
     def CreateOutputDirForTarget(self, target_URL):
         self.Core.CreateMissingDirs(self.GetOutputDirForTarget(target_URL))

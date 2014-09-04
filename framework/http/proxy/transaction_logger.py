@@ -55,12 +55,11 @@ class TransactionLogger(OWTFProcess):
                 return [target_id, True]
             elif Target in request.url:
                 return [target_id, self.get_scope_for_url(request.url, host_list)]
-            else:
-                try:
-                    if response.headers["Referer"].startswith(Target):
-                        return [target_id, self.get_scope_for_url(request.url, host_list)]
-                except KeyError:
-                    pass
+            elif response.headers.get("Referer", None) and response.headers["Referer"].startswith(Target):
+                return [target_id, self.get_scope_for_url(request.url, host_list)]
+            # This check must be at the last
+            elif urlparse(request.url).hostname == urlparse(Target).hostname:
+                return [target_id, True]
         return [self.core.DB.Target.GetTargetID(), self.get_scope_for_url(request.url, host_list)]
 
     def get_scope_for_url(self, url, host_list):
