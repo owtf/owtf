@@ -554,13 +554,24 @@ class WorkerHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
 
-class WorkListHandler(custom_handlers.APIRequestHandler):
-    SUPPORTED_METHODS = ['GET', 'POST']
+class WorklistHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'PATCH']
 
-    def get(self):
-        self.write(self.application.Core.WorkerManager.get_work_list())
+    def get(self, work_id=None, action=None):
+        try:
+            if work_id is None:
+                criteria = dict(self.request.arguments)
+                self.write(self.application.Core.DB.Worklist.get_all(criteria))
+            else:
+                self.write(self.application.Core.DB.Worklist.get(int(work_id)))
+        except exceptions.InvalidParameterType:
+            raise tornado.web.HTTPError(400)
+        except exceptions.InvalidWorkReference:
+            raise tornado.web.HTTPError(400)
 
-    def post(self):
+    def post(self, work_id=None, action=None):
+        if work_id is not None or action is not None:
+            tornado.web.HTTPError(400)
         try:
             filter_data = dict(self.request.arguments)
             if not filter_data:
@@ -569,27 +580,38 @@ class WorkListHandler(custom_handlers.APIRequestHandler):
             target_list = self.application.Core.DB.Target.GetTargetConfigs(filter_data)
             if (not plugin_list) or (not target_list):
                 raise tornado.web.HTTPError(400)
-            self.application.Core.WorkerManager.fill_work_list(target_list, plugin_list)
-            self.set_status(201)  # TODO: Set proper response code
+            self.application.Core.DB.Worklist.add_work(
+                target_list, plugin_list)
+            self.set_status(201)
         except exceptions.InvalidTargetReference as e:
-
-            cprint(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType as e:
-            cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
-    def delete(self):
+    def delete(self, work_id=None, action=None):
+        if work_id is None or action is not None:
+            tornado.web.HTTPError(400)
         try:
-            filter_data = dict(self.request.arguments)
-            plugin_list = self.application.Core.DB.Plugin.GetAll(filter_data)
-            target_list = self.application.Core.DB.Target.GetTargetConfigs(filter_data)
-            self.application.Core.WorkerManager.filter_work_list(target_list, plugin_list)
+            self.application.Core.DB.Worklist.remove_work(int(work_id))
+            self.set_status(200)
         except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType as e:
-            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except exceptions.InvalidWorkReference as e:
+            raise tornado.web.HTTPError(400)
+
+    def patch(self, work_id=None, action=None):
+        if work_id is None or action is None:
+            tornado.web.HTTPError(400)
+        try:
+            if action == 'activate':
+                self.application.Core.DB.Worklist.patch_work(
+                    int(work_id), active=True)
+            else:
+                self.application.Core.DB.Worklist.patch_work(
+                    int(work_id), active=False)
+        except exceptions.InvalidWorkReference as e:
             raise tornado.web.HTTPError(400)
 
 

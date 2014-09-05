@@ -54,7 +54,7 @@ class Worker(OWTFProcess):
                 target, plugin = work
                 pluginDir = self.core.PluginHandler.GetPluginGroupDir(
                     plugin['group'])
-                self.core.PluginHandler.SwitchToTarget(target)
+                self.core.PluginHandler.SwitchToTarget(target["ID"])
                 self.core.PluginHandler.ProcessPlugin(pluginDir, plugin)
                 self.output_q.put('done')
             except KeyboardInterrupt:
@@ -85,37 +85,15 @@ class WorkerManager(object):
         cpu_count = multiprocessing.cpu_count()
         return(process_per_core*cpu_count)
 
-    def fill_work_list(self, targets, plugins):
-        # Targets are only target_ids and plugins are plugin_dicts
-        for plugin in plugins:
-            for target in targets:
-                # Only target_id, enough to switch target db context
-                self.worklist.append((target["ID"], plugin))
-
-    def filter_work_list(self, targets, plugins):
-        for target, plugin in self.worklist:
-            if (target in targets) or (plugin in plugins):
-                self.worklist.remove((target, plugin))
-
-    def get_work_list(self):
-        return(self.worklist)
-
     def get_task(self):
-        if len(self.worklist):
-            free_mem = self.core.Shell.shell_exec(
-                "free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
-            if int(free_mem) > int(self.core.DB.Config.Get('MIN_RAM_NEEDED')):
-                for target, plugin in self.worklist:
-                    # Check if target is being used or not because we dont want
-                    # to run more than one plugin on one target at one time
-                    # Check if RAM can withstand this plugin(training data from
-                    # history of that plugin)
-                    if not self.is_target_in_use(target):
-                        self.worklist.remove((target, plugin))
-                        return (target, plugin)
-            else:
-                logging.warn("Not enough memory to execute a plugin")
-        return None
+        work = None
+        free_mem = self.core.Shell.shell_exec(
+            "free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
+        if int(free_mem) > int(self.core.DB.Config.Get('MIN_RAM_NEEDED')):
+            work = self.core.DB.Worklist.get_work(self.targets_in_use())
+        else:
+            logging.warn("Not enough memory to execute a plugin")
+        return work
 
     def spawn_workers(self):
         """
@@ -146,14 +124,14 @@ class WorkerManager(object):
             self.workers.append(worker_dict)
         w.start()
 
-    def is_target_in_use(self, target):
+    def targets_in_use(self):
+        target_ids = []
         for item in self.workers:
             try:
-                if target == item["work"][0]:
-                    return True
-            except IndexError:  # This happens at the spawning of processes
-                pass
-        return False
+                target_ids.append(item["work"][0]["ID"])
+            except IndexError:
+                continue
+        return target_ids
 
     def manage_workers(self):
         """

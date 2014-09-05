@@ -122,7 +122,7 @@ class TargetManager(custom_handlers.UIRequestHandler):
                         targets_api_url=self.reverse_url('targets_api_url', None),
                         targets_ui_url=self.reverse_url('targets_ui_url', None),
                         plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
-                        worklist_api_url=self.reverse_url('worklist_api_url')
+                        worklist_api_url=self.reverse_url('worklist_api_url', None, None)
                         )
         else:
             adv_filter_data = self.application.Core.DB.POutput.GetUnique(target_id=int(target_id))
@@ -133,7 +133,7 @@ class TargetManager(custom_handlers.UIRequestHandler):
                         poutput_ui_url=self.reverse_url('poutput_ui_url', target_id),
                         adv_filter_data=adv_filter_data,
                         plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
-                        worklist_api_url=self.reverse_url('worklist_api_url'),
+                        worklist_api_url=self.reverse_url('worklist_api_url', None, None),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id),
                         sessions_ui_url=self.reverse_url('sessions_ui_url', target_id),
@@ -399,7 +399,7 @@ class WorkerManager(custom_handlers.UIRequestHandler):
     def get(self, worker_id=None):
         if not worker_id:
             self.render("manager_interface.html",
-                        worklist_api_url=self.reverse_url('worklist_api_url'),
+                        worklist_api_url=self.reverse_url('worklist_api_url', None, None),
                         workers_api_url=self.reverse_url('workers_api_url', None, None),
                         targets_api_url=self.reverse_url('targets_api_url', None),
                         targets_ui_url=self.reverse_url('targets_ui_url', None),

@@ -143,15 +143,7 @@ class PluginHandler:
                 return -1
 
         def PluginAlreadyRun(self, PluginInfo):
-            #if self.Simulation:
-            #        return self.HasPluginExecuted(PluginInfo)
-            #SaveDir = self.GetPluginOutputDir(PluginInfo)
-            #if not self.exists(SaveDir): # At least one directory is missing
-            #        return False # This is the first time the plugin is going to run (i.e. some directory was missing)
-            #return True # The path already exists, therefore the plugin has been run before
-            if self.Core.DB.POutput.PluginAlreadyRun(PluginInfo):
-                return(True)
-            return(False)
+            return self.Core.DB.POutput.PluginAlreadyRun(PluginInfo)
 
         def GetExecLogSinceLastExecution(self, Plugin): # Get all execution entries from log since last time the passed plugin executed
                 return self.ExecutionRegistry[self.Core.Config.GetTarget()][self.GetLastPluginExecution(Plugin):]

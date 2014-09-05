@@ -80,6 +80,10 @@ class InvalidErrorReference(FrameworkException):
     pass
 
 
+class InvalidWorkReference(FrameworkException):
+    pass
+
+
 class InvalidConfigurationReference(FrameworkException):
     pass
 

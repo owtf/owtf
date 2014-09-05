@@ -179,14 +179,14 @@ class POutputDB(object):
 
     @target_required
     def PluginAlreadyRun(self, PluginInfo, target_id=None):
-        plugin_output = self.Core.DB.session.query(models.PluginOutput).filter_by(
+        plugin_output_count = self.Core.DB.session.query(models.PluginOutput).filter_by(
             target_id=target_id,
             plugin_code=PluginInfo["code"],
             plugin_type=PluginInfo["type"],
-            plugin_group=PluginInfo["group"]).first()
-        if plugin_output:
-            return(self.DeriveOutputDict(plugin_output, target_id=target_id))
-        return(plugin_output)  # This is nothin but a "None" returned
+            plugin_group=PluginInfo["group"]).count()
+        if plugin_output_count > 0:
+            return(True)
+        return(False)  # This is nothin but a "None" returned
 
     @target_required
     def SavePluginOutput(self,
