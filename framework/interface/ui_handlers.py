@@ -412,6 +412,18 @@ class WorkerManager(custom_handlers.UIRequestHandler):
                         )
 
 
+class WorklistManager(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        self.render(
+            "worklist_manager.html",
+            worklist_api_url=self.reverse_url('worklist_api_url', None, None),
+            worklist_search_api_url=self.reverse_url('worklist_search_api_url'),
+            targets_ui_url=self.reverse_url('targets_ui_url', None),
+        )
+
+
 class Help(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     @tornado.web.asynchronous

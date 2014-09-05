@@ -25,7 +25,8 @@ def get_handlers(Core):
                 tornado.web.url(r'/api/targets/([0-9]+)/transactions/search/?$', api_handlers.TransactionSearchHandler, name='transactions_search_api_url'),
                 tornado.web.url(r'/api/targets/([0-9]+)/poutput/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginOutputHandler, name='poutput_api_url'),
                 tornado.web.url(r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', api_handlers.WorkerHandler, name='workers_api_url'),
-                tornado.web.url(r'/api/worklist/?([0-9]+)?/?(deactivate|activate)?/?$', api_handlers.WorklistHandler, name='worklist_api_url'),
+                tornado.web.url(r'/api/worklist/?([0-9]+)?/?(pause|resume)?/?$', api_handlers.WorklistHandler, name='worklist_api_url'),
+                tornado.web.url(r'/api/worklist/search/?$', api_handlers.WorklistSearchHandler, name='worklist_search_api_url'),
                 tornado.web.url(r'/api/configuration/?$', api_handlers.ConfigurationHandler, name='configuration_api_url'),
                 tornado.web.url(r'/api/plugnhack/?$', api_handlers.PlugnhackHandler, name='plugnhack_api_url'),
 
@@ -42,6 +43,7 @@ def get_handlers(Core):
                 tornado.web.url(r'/ui/targets/([0-9]+)/urls/?$', ui_handlers.UrlLog, name='url_log_url'),
                 tornado.web.url(r'/ui/targets/([0-9]+)/poutput/?', ui_handlers.PluginOutput, name='poutput_ui_url'),
                 tornado.web.url(r'/ui/workers/?([0-9])?/?', ui_handlers.WorkerManager, name='workers_ui_url'),
+                tornado.web.url(r'/ui/worklist/?', ui_handlers.WorklistManager, name='worklist_ui_url'),
                 tornado.web.url(r'/ui/configuration/?$', ui_handlers.ConfigurationManager, name='configuration_ui_url'),
                 tornado.web.url(r'/ui/plugnhack/?', ui_handlers.PlugnHack, name='plugnhack_ui_url'),
                 tornado.web.url(r'/ui/plugnhack/?(.*)', ui_handlers.PlugnHack, name='plugnhack_ui_manifest_url'),

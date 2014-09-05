@@ -39,10 +39,32 @@ class WorklistManager(object):
     def __init__(self, Core):
         self.Core = Core
 
-    def _generate_query(self, criteria=None):
+    def _generate_query(self, criteria=None, for_stats=False):
         if criteria is None:
             criteria = {}
-        query = self.Core.DB.session.query(models.Work)
+        query = self.Core.DB.session.query(models.Work).join(
+            models.Target).join(models.Plugin)
+        if criteria.get('search', None):
+            if criteria.get('TARGET_URL', None):
+                if isinstance(criteria.get('TARGET_URL'), list):
+                    criteria['TARGET_URL'] = criteria['TARGET_URL'][0]
+                query = query.filter(models.Target.target_url.like(
+                    '%'+criteria['TARGET_URL']+'%'))
+            if criteria.get('type', None):
+                if isinstance(criteria.get('type'), list):
+                    criteria['type'] = criteria['type'][0]
+                query = query.filter(models.Plugin.type.like(
+                    '%'+criteria['type']+'%'))
+            if criteria.get('group', None):
+                if isinstance(criteria.get('group'), list):
+                    criteria['group'] = criteria['group'][0]
+                query = query.filter(models.Plugin.group.like(
+                    '%'+criteria['group']+'%'))
+            if criteria.get('name', None):
+                if isinstance(criteria.get('name'), list):
+                    criteria['name'] = criteria['name'][0]
+                query = query.filter(models.Plugin.name.like(
+                    '%'+criteria['name']+'%'))
         try:
             if criteria.get('ID', None):
                 if isinstance(criteria.get('ID'), list):
@@ -51,14 +73,15 @@ class WorklistManager(object):
                 if isinstance(criteria.get('ID'), (str, unicode)):
                     query = query.filter_by(
                         target_id == int(criteria.get('ID')))
-            if criteria.get('offset', None):
-                if isinstance(criteria.get('offset'), list):
-                    criteria['offset'] = criteria['offset'][0]
-                query = query.offset(int(criteria['offset']))
-            if criteria.get('limit', None):
-                if isinstance(criteria.get('limit'), list):
-                    criteria['limit'] = criteria['limit'][0]
-                query = query.limit(int(criteria['limit']))
+            if not for_stats:
+                if criteria.get('offset', None):
+                    if isinstance(criteria.get('offset'), list):
+                        criteria['offset'] = criteria['offset'][0]
+                    query = query.offset(int(criteria['offset']))
+                if criteria.get('limit', None):
+                    if isinstance(criteria.get('limit'), list):
+                        criteria['limit'] = criteria['limit'][0]
+                    query = query.limit(int(criteria['limit']))
         except ValueError:
             raise InvalidParameterType(
                 "Invalid parameter type for transaction db")
@@ -125,16 +148,16 @@ class WorklistManager(object):
                             work_model)
         self.Core.DB.session.commit()
 
-    def remove_work(self, id):
-        work_obj = self.Core.DB.session.query(models.Work).get(id)
+    def remove_work(self, work_id):
+        work_obj = self.Core.DB.session.query(models.Work).get(work_id)
         if work_obj is None:
             raise exceptions.InvalidWorkReference(
                 "No work with id " + str(work_id))
         self.Core.DB.session.delete(work_obj)
         self.Core.DB.session.commit()
 
-    def patch_work(self, id, active=True):
-        work_obj = self.Core.DB.session.query(models.Work).get(id)
+    def patch_work(self, work_id, active=True):
+        work_obj = self.Core.DB.session.query(models.Work).get(work_id)
         if work_obj is None:
             raise exceptions.InvalidWorkReference(
                 "No work with id " + str(work_id))
@@ -142,3 +165,42 @@ class WorklistManager(object):
             work_obj.active = active
             self.Core.DB.session.merge(work_obj)
             self.Core.DB.session.commit()
+
+    def pause_all(self):
+        query = self.Core.DB.session.query(models.Work)
+        query.update({"active": False})
+        self.Core.DB.session.commit()
+
+    def resume_all(self):
+        query = self.Core.DB.session.query(models.Work)
+        query.update({"active": True})
+        self.Core.DB.session.commit()
+
+    def stop_plugins(self, plugin_list):
+        query = self.Core.DB.session.query(models.Work)
+        for plugin in plugin_list:
+            query.filter_by(plugin_key=plugin["key"]).update(
+                {"active": False})
+        self.Core.DB.session.commit()
+
+    def stop_targets(self, target_list):
+        query = self.Core.DB.session.query(models.Work)
+        for target in target_list:
+            query.filter_by(target_id=target["ID"]).update(
+                {"active": False})
+        self.Core.DB.session.commit()
+
+    def search_all(self, criteria):
+        # Three things needed
+        # + Total number of work
+        # + Filtered work dicts
+        # + Filtered number of works
+        total = self.Core.DB.session.query(
+            models.Work).count()
+        filtered_work_objs = self._generate_query(criteria).all()
+        filtered_number = self._generate_query(criteria, for_stats=True).count()
+        return({
+            "records_total": total,
+            "records_filtered": filtered_number,
+            "data": self._derive_work_dicts(filtered_work_objs)
+        })

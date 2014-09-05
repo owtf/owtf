@@ -605,13 +605,32 @@ class WorklistHandler(custom_handlers.APIRequestHandler):
         if work_id is None or action is None:
             tornado.web.HTTPError(400)
         try:
-            if action == 'activate':
-                self.application.Core.DB.Worklist.patch_work(
-                    int(work_id), active=True)
+            work_id = int(work_id)
+            if work_id != 0:  # 0 is like broadcast address
+                if action == 'resume':
+                    self.application.Core.DB.Worklist.patch_work(
+                        work_id, active=True)
+                elif action == 'pause':
+                    self.application.Core.DB.Worklist.patch_work(
+                        work_id, active=False)
             else:
-                self.application.Core.DB.Worklist.patch_work(
-                    int(work_id), active=False)
+                if action == 'pause':
+                    self.application.Core.DB.Worklist.pause_all()
+                elif action == 'resume':
+                    self.application.Core.DB.Worklist.resume_all()
         except exceptions.InvalidWorkReference as e:
+            raise tornado.web.HTTPError(400)
+
+
+class WorklistSearchHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        try:
+            criteria = dict(self.request.arguments)
+            criteria["search"] = True
+            self.write(self.application.Core.DB.Worklist.search_all(criteria))
+        except exceptions.InvalidParameterType:
             raise tornado.web.HTTPError(400)
 
 
