@@ -24,7 +24,9 @@ TARGET_CONFIG = {
                     'IP_URL' : '',
                     'TOP_DOMAIN' : '',
                     'TOP_URL' : '',
-                    'SCOPE' : True
+                    'SCOPE' : True,
+                    "MAX_USER_RANK": -1,
+                    "MAX_OWTF_RANK": -1
                 }
 
 PATH_CONFIG = {
