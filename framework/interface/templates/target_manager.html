@@ -184,7 +184,7 @@ function deleteSession(session_id) {
     $.ajax({
             url:mySpace.owtf_sessions_api_url+session_id,
             type:'DELETE',
-            success:updateSessions,
+            success: function() { updateSessions(); updateTargets(); },
             error:function(xhr, textStatus, serverResponse){
                 alertFail("Server replied: "+serverResponse);
                 }
@@ -225,15 +225,15 @@ function updateSessions() {
 // get label color for target rating
 function getLabel(level) {
     if (level == 1)
-        return "<span class='label label-success' style='margin-bottom: 0px'>Info Risk</span>";
+        return "<span class='label label-success' style='margin-bottom: 0px'>Info</span>";
     else if (level == 2)
-        return "<span class='label label-info' style='margin-bottom: 0px'>Low Risk</span>";
+        return "<span class='label label-info' style='margin-bottom: 0px'>Low</span>";
     else if (level == 3)
-        return "<span class='label label-warning' style='margin-bottom: 0px'>Medium Risk</span>";
+        return "<span class='label label-warning' style='margin-bottom: 0px'>Medium</span>";
     else if (level == 4)
-        return "<span class='label label-danger' style='margin-bottom: 0px'>High Risk</span>";
+        return "<span class='label label-danger' style='margin-bottom: 0px'>High</span>";
     else if (level == 5)
-        return "<span class='label label-danger' style='margin-bottom: 0px'>Critical Risk</span>";
+        return "<span class='label label-danger' style='margin-bottom: 0px'>Critical</span>";
     return "";
 }
 
