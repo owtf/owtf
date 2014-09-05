@@ -86,6 +86,9 @@ class OWTFSessionDB(object):
             raise exceptions.InvalidTargetReference(
                 "No target with id: " + str(target_id))
         session_obj.targets.remove(target_obj)
+        # Delete target whole together if present in this session alone
+        if len(target_obj.sessions) == 0:
+            self.Core.DB.Target.DeleteTarget(ID=target_obj.id)
         self.Core.DB.session.commit()
 
     def delete_session(self, session_id):
@@ -99,6 +102,7 @@ class OWTFSessionDB(object):
             if len(target.sessions) == 1:
                 self.Core.DB.Target.DeleteTarget(ID=target.id)
         self.Core.DB.session.delete(session_obj)
+        self._ensure_default_session()  # i.e if there are no sessions, add one
         self.Core.DB.session.commit()
 
     def derive_session_dict(self, session_obj):
