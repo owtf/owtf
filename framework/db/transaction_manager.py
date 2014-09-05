@@ -408,7 +408,8 @@ class TransactionManager(object):
                 target_id=target_id).count()
             # Calculate matched percentage
             if int(num_transactions_in_scope):
-                match_percent = int((num_matched_transactions / float(num_transactions_in_scope)) * 100)
+                match_percent = int(
+                    (num_matched_transactions / float(num_transactions_in_scope)) * 100)
             else:
                 match_percent = 0
         else:
@@ -429,12 +430,9 @@ class TransactionManager(object):
         + transaction_ids - list of one transaction id per unique match
         + match_percent
         """
-        results = []
-        for regex_name in name_list:
-            results.append(self.SearchByRegexName(
-                regex_name,
-                stats=stats,
-                target_id=target_id))
+        results = [
+            self.SearchByRegexName(regex_name, stats=stats, target_id=target_id)
+            for regex_name in name_list]
         return (results)
 
 # ----------------------------- API Methods -----------------------------
@@ -452,10 +450,9 @@ class TransactionManager(object):
         return tdict
 
     def DeriveTransactionDicts(self, tdb_obj_list, include_raw_data=False):
-        dict_list = []
-        for tdb_obj in tdb_obj_list:
-            dict_list.append(self.DeriveTransactionDict(tdb_obj, include_raw_data))
-        return dict_list
+        return [
+            self.DeriveTransactionDict(tdb_obj, include_raw_data)
+            for tdb_obj in tdb_obj_list]
 
     @target_required
     def SearchAll(self, Criteria, target_id=None, include_raw_data=False):
@@ -505,10 +502,7 @@ class TransactionManager(object):
         session_data = self.Core.DB.session.query(
             models.Transaction.session_tokens).filter_by(
                 target_id=target_id).all()
-        results = []
-        for i in session_data:
-            if i[0]:
-                results.append(json.loads(i[0]))
+        results = [json.loads(el[0]) for el in session_data if el and el[0]]
         return (results)
 
     @target_required
