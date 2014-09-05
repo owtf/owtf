@@ -55,11 +55,15 @@ class Target(Base):
 
     @hybrid_property
     def max_user_rank(self):
-        return(max(poutput.user_rank for poutput in self.poutputs))
+        user_ranks = [-1]
+        user_ranks += [poutput.user_rank for poutput in self.poutputs]
+        return(max(user_ranks))
 
     @hybrid_property
     def max_owtf_rank(self):
-        return(max(poutput.owtf_rank for poutput in self.poutputs))
+        owtf_ranks = [-1]
+        owtf_ranks += [poutput.owtf_rank for poutput in self.poutputs]
+        return(max(owtf_ranks))
 
     def __repr__(self):
         return "<Target (url='%s')>" % (self.target_url)
@@ -145,8 +149,8 @@ class PluginOutput(Base):
     error = Column(String, nullable=True)
     status = Column(String, nullable=True)
     user_notes = Column(String, nullable=True)
-    user_rank = Column(Integer, nullable=True)
-    owtf_rank = Column(Integer, nullable=True)
+    user_rank = Column(Integer, nullable=True, default=-1)
+    owtf_rank = Column(Integer, nullable=True, default=-1)
     output_path = Column(String, nullable=True)
 
     __table_args__ = (UniqueConstraint('plugin_type', 'plugin_code', 'target_id'),)

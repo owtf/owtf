@@ -222,6 +222,21 @@ function updateSessions() {
     $.getJSON( mySpace.owtf_sessions_api_url, addSessions);
 }
 
+// get label color for target rating
+function getLabel(level) {
+    if (level == 1)
+        return "<span class='label label-success' style='margin-bottom: 0px'>Info Risk</span>";
+    else if (level == 2)
+        return "<span class='label label-info' style='margin-bottom: 0px'>Low Risk</span>";
+    else if (level == 3)
+        return "<span class='label label-warning' style='margin-bottom: 0px'>Medium Risk</span>";
+    else if (level == 4)
+        return "<span class='label label-danger' style='margin-bottom: 0px'>High Risk</span>";
+    else if (level == 5)
+        return "<span class='label label-danger' style='margin-bottom: 0px'>Critical Risk</span>";
+    return "";
+}
+
 // Function that adds targets to the target list(table infact)
 function addTargets(data, status, xhr){
     jQuery('#targetTable').dataTable().fnClearTable();
@@ -232,9 +247,14 @@ function addTargets(data, status, xhr){
         actionButtons += '<button class="btn btn-xs btn-danger" onclick="deleteTarget('+obj.ID+');" data-toggle="tooltip" data-placement="bottom" title="Delete target from everywhere">';
         actionButtons += '<i class="fa fa-times"></i></button>';
         actionButtons += '</div>';
+        target_string = '<a href="'+mySpace.targets_ui_url+obj.ID+'">'+obj.TARGET_URL+' ('+obj.HOST_IP+') </a> ';
+        max_rank = Math.max(obj.MAX_USER_RANK, obj.MAX_OWTF_RANK)
+        if (max_rank != -1) {
+            target_string += getLabel(max_rank);
+        }
         jQuery('#targetTable').dataTable().fnAddData([
             '<input type="checkbox" target-id="'+obj.ID+'"/>',
-            '<a href="'+mySpace.targets_ui_url+obj.ID+'">'+obj.TARGET_URL+' ('+obj.HOST_IP+') </a>',
+            target_string,
             actionButtons,
         ]);
     });
