@@ -41,40 +41,36 @@ from sqlalchemy import desc, asc
 from collections import defaultdict
 from framework.db.target_manager import target_required
 from framework.lib.exceptions import InvalidTransactionReference, \
-    InvalidParameterType
+                                     InvalidParameterType
 from framework.http import transaction
 from framework.db import models
 
 
-REGEX_TYPES = ['HEADERS', 'BODY']  # The regex find differs for these types :P
+# The regex find differs for these types :P
+REGEX_TYPES = ['HEADERS', 'BODY']
 
 
 class TransactionManager(object):
-    def __init__(self, Core):
-        self.Core = Core  # Need access to reporter for pretty html trasaction log
+    def __init__(self, core):
+        # Need access to reporter for pretty html trasaction log.
+        self.Core = core
         self.regexs = defaultdict(list)
         for regex_type in REGEX_TYPES:
             self.regexs[regex_type] = {}
         self.CompileRegexs()
 
     @target_required
-    def NumTransactions(self, Scope=True, target_id=None):
-        """
-        Return num transactions in scope by default
-        """
+    def NumTransactions(self, scope=True, target_id=None):
+        """Return num transactions in scope by default."""
         count = self.Core.DB.session.query(models.Transaction).filter_by(
-            scope=Scope,
+            scope=scope,
             target_id=target_id).count()
         return(count)
 
-    def IsTransactionAlreadyAdded(self, Criteria, target_id=None):
-        return(len(self.GetAll(Criteria, target_id=target_id)) > 0)
+    def IsTransactionAlreadyAdded(self, criteria, target_id=None):
+        return(len(self.GetAll(criteria, target_id=target_id)) > 0)
 
-    def GenerateQueryUsingSession(
-            self,
-            criteria,
-            target_id,
-            for_stats=False):
+    def GenerateQueryUsingSession(self, criteria, target_id, for_stats=False):
         query = self.Core.DB.session.query(models.Transaction).filter_by(
             target_id=target_id)
         # If transaction search is being done
@@ -83,53 +79,55 @@ class TransactionManager(object):
                 if isinstance(criteria.get('url'), list):
                     criteria['url'] = criteria['url'][0]
                 query = query.filter(models.Transaction.url.like(
-                    '%'+criteria['url']+'%'))
+                    '%' + criteria['url'] + '%'))
             if criteria.get('method', None):
                 if isinstance(criteria.get('method'), list):
                     criteria['method'] = criteria['method'][0]
                 query = query.filter(models.Transaction.method.like(
-                    '%'+criteria.get('method')+'%'))
+                    '%' + criteria.get('method') + '%'))
             if criteria.get('data', None):
                 if isinstance(criteria.get('data'), list):
                     criteria['data'] = criteria['data'][0]
                 query = query.filter(models.Transaction.data.like(
-                    '%'+criteria.get('data')+'%'))
+                    '%' + criteria.get('data') + '%'))
             if criteria.get('raw_request', None):
                 if isinstance(criteria.get('raw_request'), list):
                     criteria['raw_request'] = criteria['raw_request'][0]
                 query = query.filter(models.Transaction.raw_request.like(
-                    '%'+criteria.get('raw_request')+'%'))
+                    '%' + criteria.get('raw_request') + '%'))
             if criteria.get('response_status', None):
                 if isinstance(criteria.get('response_status'), list):
                     criteria['response_status'] = criteria['response_status'][0]
                 query = query.filter(models.Transaction.response_status.like(
-                    '%'+criteria.get('response_status')+'%'))
+                    '%' + criteria.get('response_status') + '%'))
             if criteria.get('response_headers', None):
                 if isinstance(criteria.get('response_headers'), list):
                     criteria['response_headers'] = criteria['response_headers'][0]
                 query = query.filter(models.Transaction.response_headers.like(
-                    '%'+criteria.get('response_headers')+'%'))
+                    '%' + criteria.get('response_headers') + '%'))
             if criteria.get('response_body', None):
                 if isinstance(criteria.get('response_body'), list):
                     criteria['response_body'] = criteria['response_body'][0]
                 query = query.filter(
-                    models.Transaction.binary_response==False,
+                    models.Transaction.binary_response is False,
                     models.Transaction.response_body.like(
-                        '%'+criteria.get('response_body')+'%'))
+                        '%' + criteria.get('response_body') + '%'))
         else:  # If transaction filter is being done
             if criteria.get('url', None):
                 if isinstance(criteria.get('url'), (str, unicode)):
-                    query = query.filter_by(url = criteria['url'])
+                    query = query.filter_by(url=criteria['url'])
                 if isinstance(criteria.get('url'), list):
-                    query = query.filter(models.Transaction.url.in_(criteria.get('url')))
+                    query = query.filter(
+                        models.Transaction.url.in_(criteria.get('url')))
             if criteria.get('method', None):
                 if isinstance(criteria.get('method'), (str, unicode)):
-                    query = query.filter_by(method = criteria['method'])
+                    query = query.filter_by(method=criteria['method'])
                 if isinstance(criteria.get('method'), list):
-                    query = query.filter(models.Transaction.method.in_(criteria.get('method')))
+                    query = query.filter(
+                        models.Transaction.method.in_(criteria.get('method')))
             if criteria.get('data', None):
                 if isinstance(criteria.get('data'), (str, unicode)):
-                    query = query.filter_by(data = criteria['data'])
+                    query = query.filter_by(data=criteria['data'])
                 if isinstance(criteria.get('data'), list):
                     query = query.filter(models.Transaction.data.in_(criteria.get('data')))
         # For the following section doesn't matter if filter/search because
@@ -137,11 +135,11 @@ class TransactionManager(object):
         if criteria.get('scope', None):
             if isinstance(criteria.get('scope'), list):
                 criteria['scope'] = criteria['scope'][0]
-            query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(criteria['scope']))
+            query = query.filter_by(scope=self.Core.Config.ConvertStrToBool(criteria['scope']))
         if criteria.get('binary_response', None):
             if isinstance(criteria.get('binary_response'), list):
                 criteria['binary_response'] = criteria['binary_response'][0]
-            query = query.filter_by(binary_response = self.Core.Config.ConvertStrToBool(criteria['binary_response']))
+            query = query.filter_by(binary_response=self.Core.Config.ConvertStrToBool(criteria['binary_response']))
         if not for_stats:  # query for stats shouldn't have limit and offset
             try:
                 if criteria.get('offset', None):
@@ -153,7 +151,8 @@ class TransactionManager(object):
                         criteria['limit'] = criteria['limit'][0]
                     query = query.limit(int(criteria['limit']))
             except ValueError:
-                raise InvalidParameterType("Invalid parameter type for transaction db")
+                raise InvalidParameterType(
+                    "Invalid parameter type for transaction db")
         return(query)
 
     @target_required
@@ -172,26 +171,25 @@ class TransactionManager(object):
         query = self.GenerateQueryUsingSession(Criteria, target_id)
         return(self.DeriveTransactions(query.all()))
 
-    def DeriveTransaction(self, t):
-        if t:
+    def DeriveTransaction(self, trans):
+        if trans:
             owtf_transaction = transaction.HTTP_Transaction(None)
-            response_body = t.response_body
-            if t.binary_response:
+            response_body = trans.response_body
+            if trans.binary_response:
                 response_body = base64.b64decode(response_body)
             owtf_transaction.SetTransactionFromDB(
-                                                    t.id,
-                                                    t.url,
-                                                    t.method,
-                                                    t.response_status,
-                                                    str(t.time),
-                                                    t.time_human,
-                                                    t.data,
-                                                    t.raw_request,
-                                                    t.response_headers,
-                                                    response_body
-                                                 )
+                trans.id,
+                trans.url,
+                trans.method,
+                trans.response_status,
+                str(trans.time),
+                trans.time_human,
+                trans.data,
+                trans.raw_request,
+                trans.response_headers,
+                response_body)
             return owtf_transaction
-        return(None)
+        return (None)
 
     def DeriveTransactions(self, transactions):
         owtf_tlist = []
@@ -221,8 +219,7 @@ class TransactionManager(object):
                 binary_response=binary_response,
                 session_tokens=transaction.GetSessionTokens(),
                 login=None,
-                logout=None
-            )
+                logout=None)
             return transaction_model
 
     @target_required
@@ -303,7 +300,8 @@ class TransactionManager(object):
                 self.LogTransactions(transaction_list, target_id=target_id)
 
     def DeleteTransaction(self, transaction_id):
-        self.Core.DB.session.delete(self.Core.DB.session.query(models.Transaction).get(transaction_id))
+        self.Core.DB.session.delete(
+            self.Core.DB.session.query(models.Transaction).get(transaction_id))
         self.Core.DB.session.commit()
 
     @target_required
@@ -313,8 +311,8 @@ class TransactionManager(object):
     def GetByID(self, ID):
         model_obj = self.Core.DB.session.query(models.Transaction).get(ID)
         if model_obj:
-            return(self.DeriveTransaction(model_obj))
-        return(model_obj)  # None returned if no such transaction
+            return (self.DeriveTransaction(model_obj))
+        return (model_obj)  # None returned if no such transaction.
 
     def GetByIDs(self, id_list):
         model_objs = []
@@ -327,20 +325,22 @@ class TransactionManager(object):
     @target_required
     def GetTopTransactionsBySpeed(self, Order="Desc", Num=10, target_id=None):
         if Order == "Desc":
-            results = self.Core.DB.session.query(models.Transaction).filter_by(target_id=target_id).order_by(desc(models.Transaction.time)).limit(Num)
+            results = self.Core.DB.session.query(models.Transaction).filter_by(
+                target_id=target_id).order_by(desc(models.Transaction.time)).limit(Num)
         else:
-            results = self.Core.DB.session.query(models.Transaction).filter_by(target_id=target_id).order_by(asc(models.Transaction.time)).limit(Num)
-        return(self.DeriveTransactions(results))
+            results = self.Core.DB.session.query(models.Transaction).filter_by(
+                target_id=target_id).order_by(asc(models.Transaction.time)).limit(Num)
+        return (self.DeriveTransactions(results))
 
     def CompileHeaderRegex(self, header_list):
-        return(re.compile('('+'|'.join(header_list)+'): ([^\r]*)', re.IGNORECASE))
+        return (re.compile('(' + '|'.join(header_list) + '): ([^\r]*)', re.IGNORECASE))
 
     def CompileResponseRegex(self, regexp):
-        return(re.compile(regexp, re.IGNORECASE | re.DOTALL))
+        return (re.compile(regexp, re.IGNORECASE | re.DOTALL))
 
     def CompileRegexs(self):
         for key in self.Core.Config.GetFrameworkConfigDict().keys():
-            key = key[3:-3] # Remove "@@@"
+            key = key[3:-3]  # Remove "@@@"
             if key.startswith('HEADERS'):
                 header_list = self.Core.Config.GetHeaderList(key)
                 self.regexs['HEADERS'][key] = self.CompileHeaderRegex(header_list)
@@ -351,30 +351,28 @@ class TransactionManager(object):
     def GrepTransaction(self, owtf_transaction):
         grep_output = {}
         for regex_name, regex in self.regexs['HEADERS'].items():
-            grep_output.update(self.GrepResponseHeaders(regex_name, regex, owtf_transaction))
+            grep_output.update(
+                self.GrepResponseHeaders(regex_name, regex, owtf_transaction))
         for regex_name, regex in self.regexs['BODY'].items():
-            grep_output.update(self.GrepResponseBody(regex_name, regex, owtf_transaction))
-        return(grep_output)
+            grep_output.update(
+                self.GrepResponseBody(regex_name, regex, owtf_transaction))
+        return (grep_output)
 
     def GrepResponseBody(self, regex_name, regex, owtf_transaction):
-        return(self.Grep(regex_name, regex, owtf_transaction.GetRawResponseBody()))
+        return (self.Grep(regex_name, regex, owtf_transaction.GetRawResponseBody()))
 
     def GrepResponseHeaders(self, regex_name, regex, owtf_transaction):
-        return(self.Grep(regex_name, regex, owtf_transaction.GetResponseHeaders()))
+        return (self.Grep(regex_name, regex, owtf_transaction.GetResponseHeaders()))
 
     def Grep(self, regex_name, regex, data):
         results = regex.findall(data)
         output = {}
         if results:
             output.update({regex_name: results})
-        return(output)
+        return (output)
 
     @target_required
-    def SearchByRegexName(
-            self,
-            regex_name,
-            stats=False,
-            target_id=None):
+    def SearchByRegexName(self, regex_name, stats=False, target_id=None):
         """
         Allows searching of the grep_outputs table using a regex name
         What this function returns :
@@ -410,12 +408,12 @@ class TransactionManager(object):
                 target_id=target_id).count()
             # Calculate matched percentage
             if int(num_transactions_in_scope):
-                match_percent = int((num_matched_transactions/float(num_transactions_in_scope))*100)
+                match_percent = int((num_matched_transactions / float(num_transactions_in_scope)) * 100)
             else:
                 match_percent = 0
         else:
             match_percent = None
-        return([
+        return ([
             regex_name,
             [json.loads(i) for i in grep_outputs],
             transaction_ids,
@@ -437,7 +435,7 @@ class TransactionManager(object):
                 regex_name,
                 stats=stats,
                 target_id=target_id))
-        return(results)
+        return (results)
 
 # ----------------------------- API Methods -----------------------------
     def DeriveTransactionDict(self, tdb_obj, include_raw_data=False):
@@ -474,17 +472,16 @@ class TransactionManager(object):
             Criteria,
             target_id,
             for_stats=True).count()
-        return({
+        return ({
             "records_total": total,
             "records_filtered": filtered_number,
             "data": self.DeriveTransactionDicts(
                 filtered_transaction_objs,
-                include_raw_data)
-        })
+                include_raw_data)})
 
     @target_required
     def GetAllAsDicts(self, Criteria, target_id=None, include_raw_data=False):
-        # Assemble ALL transactions that match the criteria from DB
+        # Assemble ALL transactions that match the criteria from DB.
         query = self.GenerateQueryUsingSession(Criteria, target_id)
         transaction_objs = query.all()
         return(self.DeriveTransactionDicts(transaction_objs, include_raw_data))
@@ -493,7 +490,8 @@ class TransactionManager(object):
     def GetByIDAsDict(self, trans_id, target_id=None):
         transaction_obj = self.Core.DB.session.query(models.Transaction).get(trans_id)
         if not transaction_obj:
-            raise InvalidTransactionReference("No transaction with " + str(trans_id) + " exists")
+            raise InvalidTransactionReference(
+                "No transaction with " + str(trans_id) + " exists")
         return self.DeriveTransactionDict(transaction_obj, include_raw_data=True)
 
     @target_required
@@ -511,7 +509,7 @@ class TransactionManager(object):
         for i in session_data:
             if i[0]:
                 results.append(json.loads(i[0]))
-        return(results)
+        return (results)
 
     @target_required
     def GetSessionURLs(self, target_id=None):
@@ -522,10 +520,3 @@ class TransactionManager(object):
             models.Transaction.target_id == target_id,
             group_by(models.Transaction.session_tokens)).getall()
         return session_urls
-
-'''
-    def AddLoginLogoutIndicator(self, target_id=None, trans_id):
-        """ This adds a login/logout indicator to a specific transaction_id. """
-        Session = self.Core.DB.Session
-        self.Core.DB.session.query(models.Transaction).get(trans_id).update({"login_logout": })
-'''
