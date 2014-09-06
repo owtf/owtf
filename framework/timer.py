@@ -33,6 +33,7 @@ human-readable form.
 
 """
 
+import math
 import datetime
 
 
@@ -60,8 +61,9 @@ class Timer(object):
         return datetime.datetime.now() - self.Time[offSet]['start']
 
     def get_time_as_str(self, timedelta):
-        seconds = timedelta.total_seconds()
-        miliseconds = timedelta.microseconds/1000
+        microseconds, seconds = math.modf(timedelta.total_seconds())
+        seconds = int(seconds)
+        miliseconds = int(microseconds*1000)
         hours = seconds / 3600
         seconds -= 3600*hours
         minutes = seconds / 60
