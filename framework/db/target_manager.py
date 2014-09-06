@@ -171,6 +171,11 @@ class TargetDB(object):
                     target_obj.id,
                     session_id=session_obj.id)
 
+    @session_required
+    def AddTargets(self, target_urls, session_id=None):
+        for target_url in target_urls:
+            self.AddTarget(target_url, session_id=session_id)
+
     def UpdateTarget(self, data_dict, TargetURL=None, ID=None):
         if ID:
             target_obj = self.Core.DB.session.query(models.Target).get(ID)

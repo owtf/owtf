@@ -22,7 +22,7 @@
         <br />
         <div class="row">
             <div class="col-md-2">
-                <button class="btn btn-primary" type="button" onclick="newTargets($('#newTargetUrls').val());">Add Targets!</button>
+                <button class="btn btn-primary" type="button" onclick="newTargets($('#newTargetUrls').val(), this);">Add Targets!</button>
             </div>
         </div>
     </div>
@@ -291,7 +291,8 @@ function isUrl(str) {
 }
 
 // Add new targets using API
-function newTargets(targetUrlsString) {
+function newTargets(targetUrlsString, button) {
+    $(button).hide() // Hide the button and show once the request is complete
     var lines = targetUrlsString.split('\n');
     var targetUrls = [];
 
@@ -308,16 +309,19 @@ function newTargets(targetUrlsString) {
     });
 
     // Since we only have valid urls now in targetUrls, add them using api
-    $.each(targetUrls, function(index, targetUrl) {
-        $.ajax({
-                url:mySpace.targets_api_url,
-                type:'POST',
-                data:{TARGET_URL:targetUrl},
-                success:updateTargets,
-                error:function(xhr, textStatus, serverResponse){
-                    alertFail("Unable to add "+targetUrl);
-                    }
-        });
+    $.ajax({
+            url:mySpace.targets_api_url,
+            type:'POST',
+            data:$.param({'TARGET_URL':targetUrls}, true),
+            complete: function() {
+                $(button).show(); // Show the button once request is complete
+            },
+            success: function() {
+                updateTargets();
+            },
+            error:function(xhr, textStatus, serverResponse) {
+                alertFail("Unable to add some targets");
+            }
     });
 }
 
