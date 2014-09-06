@@ -171,6 +171,12 @@ class PluginDB(object):
         if obj:
             pdict = dict(obj.__dict__)
             pdict.pop("_sa_instance_state")
+            times = obj.min_max_run_times
+            if times is not None:
+                pdict["min_time"] = self.Core.Timer.get_time_as_str(times[0])
+                pdict["max_time"] = self.Core.Timer.get_time_as_str(times[1])
+            else:
+                pdict["min_time"], pdict["max_time"] = None, None
             return pdict
 
     def DerivePluginDicts(self, obj_list):

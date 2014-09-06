@@ -137,6 +137,9 @@ class PluginOutput(Base):
     __tablename__ = "plugin_outputs"
 
     target_id = Column(Integer, ForeignKey("targets.id"))
+    plugin_key = Column(String, ForeignKey("plugins.key"))
+    # There is a column named plugin which is caused by backref
+    # from the plugin class
     id = Column(Integer, primary_key=True)
     plugin_code = Column(String)  # OWTF Code
     plugin_group = Column(String)
@@ -156,8 +159,7 @@ class PluginOutput(Base):
     def run_time(self):
         return(self.end_time - self.start_time)
 
-    __table_args__ = (UniqueConstraint('plugin_type', 'plugin_code', 'target_id'),)
-
+    __table_args__ = (UniqueConstraint('plugin_key', 'target_id'),)
 
 
 class Command(Base):
@@ -235,6 +237,22 @@ class Plugin(Base):
     file = Column(String)
     attr = Column(String, nullable=True)
     works = relationship("Work", backref="plugin", cascade="delete")
+    outputs = relationship("PluginOutput", backref="plugin")
+
+    @hybrid_property
+    def min_max_run_times(self):
+        """
+        Consider last 5 runs only, better performance and accuracy
+        """
+        poutputs = len(self.outputs)
+        if poutputs != 0:
+            if poutputs < 5:
+                run_times = [poutput.run_time for poutput in self.outputs]
+            else:
+                run_times = [poutput.run_time for poutput in self.outputs[-5:]]
+            return([min(run_times), max(run_times)])
+        else:
+            return None
 
     __table_args__ = (UniqueConstraint('type', 'code'),)
 

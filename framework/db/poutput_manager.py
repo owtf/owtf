@@ -198,6 +198,7 @@ class POutputDB(object):
                          owtf_rank=None):
         """Save into the database the command output of the plugin `plugin."""
         self.Core.DB.session.merge(models.PluginOutput(
+            plugin_key=plugin["key"],
             plugin_code=plugin["code"],
             plugin_group=plugin["group"],
             plugin_type=plugin["type"],
@@ -222,6 +223,7 @@ class POutputDB(object):
             Message,
             target_id=None):
         self.Core.DB.session.merge(models.PluginOutput(
+            plugin_key=Plugin["key"],
             plugin_code=Plugin["code"],
             plugin_group=Plugin["group"],
             plugin_type=Plugin["type"],

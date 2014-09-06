@@ -26,7 +26,7 @@
        <table id="worklistTable" class="table table-hover">
           <thead>
               <tr>
-                  <th>Est. Time</th>
+                  <th>Est. Time (min)</th>
                   <th>Actions</th>
                   <th class="textSearch">Target</th>
                   <th class="textSearch">Plugin Group</th>
@@ -122,7 +122,7 @@ function getArray(data) {
     var table_array = [];
     $.each(data, function(index, obj){
       table_array.push([
-        null,
+        obj.plugin.min_time,
         getControlButtons(obj),
         '<a href="'+mySpace.targets_ui_url+obj.target.ID+'" target="_blank">'+obj.target.TARGET_URL+'</a>',
         obj.plugin.group,
@@ -156,7 +156,6 @@ function dummyAjax(data, callback, settings) {
     if (data.columns[k].search.value)
       get_parameters[columnMappings[k]] = data.columns[k].search.value;
   }
-  console.log(get_parameters);
   $.getJSON(mySpace.worklist_search_api_url+'?'+$.param(get_parameters, true), function (responseData) {
     // Remove the spinner once we have the response, since dataTables takes very less time to populate
     // removeOverlaySpinner('worklistTable');

@@ -43,7 +43,7 @@ class WorklistManager(object):
         if criteria is None:
             criteria = {}
         query = self.Core.DB.session.query(models.Work).join(
-            models.Target).join(models.Plugin)
+            models.Target).join(models.Plugin).order_by(models.Work.id)
         if criteria.get('search', None):
             if criteria.get('TARGET_URL', None):
                 if isinstance(criteria.get('TARGET_URL'), list):
@@ -107,7 +107,8 @@ class WorklistManager(object):
         return results
 
     def get_work(self, in_use_target_list):
-        query = self.Core.DB.session.query(models.Work).filter_by(active=True)
+        query = self.Core.DB.session.query(models.Work).filter_by(
+            active=True).order_by(models.Work.id)
         if len(in_use_target_list) > 0:
             query = query.filter(
                 not_(models.Work.target_id.in_(in_use_target_list)))
