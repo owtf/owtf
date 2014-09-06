@@ -62,11 +62,11 @@ class Worker(OWTFProcess):
                     "I am worker (%d) & my master doesn't need me anymore",
                     self.pid)
                 exit(0)
-            except Exception, e:
-                self.core.Error.LogError(
-                    "Exception occured while running :",
-                    trace=str(e))
-                continue
+            #except Exception, e:
+            #    self.core.Error.LogError(
+            #        "Exception occured while running :",
+            #        trace=str(e))
+            #    continue
         logging.debug(
             "I am worker (%d) & my master gave me poison pill",
             self.pid)

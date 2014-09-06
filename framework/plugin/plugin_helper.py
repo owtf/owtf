@@ -145,7 +145,7 @@ class PluginHelper:
                 FrameworkAbort = PluginAbort = False
                 if not PluginOutputDir:
                         PluginOutputDir = self.InitPluginOutputDir( PluginInfo )
-                self.Core.Timer.StartTimer( 'FormatCommandAndOutput' )
+                self.Core.Timer.start_timer( 'FormatCommandAndOutput' )
                 ModifiedCommand = self.Core.Shell.GetModifiedShellCommand( Command, PluginOutputDir )
                 try:
                         RawOutput = self.Core.Shell.shell_exec_monitor( ModifiedCommand )
@@ -157,7 +157,7 @@ class PluginHelper:
                         RawOutput = str( PartialOutput.parameter ) # Save Partial Output
                         FrameworkAbort = True
 
-                TimeStr = self.Core.Timer.GetElapsedTimeAsStr('FormatCommandAndOutput')
+                TimeStr = self.Core.Timer.get_elapsed_time_as_str('FormatCommandAndOutput')
                 logging.info("Time="+TimeStr)
                 return [ ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir ]
 
@@ -213,7 +213,7 @@ class PluginHelper:
 
         def LogURLsFromStr( self, RawOutput ):
                 plugin_output = dict(PLUGIN_OUTPUT)
-                self.Core.Timer.StartTimer( 'LogURLsFromStr' )
+                self.Core.Timer.start_timer('LogURLsFromStr')
                 URLList = self.Core.DB.URL.ImportURLs(RawOutput.strip().split("\n")) # Extract and classify URLs and store in DB
                 NumFound = 0
                 VisitURLs = False
@@ -223,7 +223,7 @@ class PluginHelper:
                     for Transaction in self.Core.Requester.GetTransactions( True, self.Core.DB.URL.GetURLsToVisit() ): # Visit all URLs if not in Cache
                         if Transaction.Found:
                             NumFound += 1
-                TimeStr = self.Core.Timer.GetElapsedTimeAsStr('LogURLsFromStr')
+                TimeStr = self.Core.Timer.get_elapsed_time_as_str('LogURLsFromStr')
                 logging.info("Spider/URL scaper time="+TimeStr)
                 plugin_output["type"] = "URLsFromStr"
                 plugin_output["output"] = {"TimeStr":TimeStr, "VisitURLs":VisitURLs, "URLList":URLList, "NumFound":NumFound}

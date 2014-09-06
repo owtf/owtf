@@ -63,18 +63,17 @@ class Shell(object):
                 #CommandInfo = defaultdict(list)
                 if OriginalCommand == ModifiedCommand and ModifiedCommand in self.OldCommands:
                         OriginalCommand = self.OldCommands[ModifiedCommand] # Restore original command saved at modification time
-                self.Core.Timer.StartTimer(self.CommandTimeOffset)
-                return { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.Core.Timer.GetStartDateTimeAsStr(self.CommandTimeOffset) }
+                self.Core.Timer.start_timer(self.CommandTimeOffset)
+                return { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.Core.Timer.get_start_date_time(self.CommandTimeOffset) }
                 #CommandInfo = { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.Core.Timer.GetStartDateTimeAsStr(self.CommandTimeOffset) }
                 #self.CommandInfo = CommandInfo
 
         def FinishCommand(self, CommandInfo, WasCancelled):
-                CommandInfo['End'] = self.Core.Timer.GetEndDateTimeAsStr(self.CommandTimeOffset)
+                CommandInfo['End'] = self.Core.Timer.get_end_date_time(self.CommandTimeOffset)
                 Success = True
                 if WasCancelled:
                         Success = False
                 CommandInfo['Success'] = Success
-                CommandInfo['RunTime'] = self.Core.Timer.GetElapsedTimeAsStr(self.CommandTimeOffset)
                 CommandInfo['Target'] = self.Core.DB.Target.GetTargetID()
                 self.Core.DB.CommandRegister.AddCommand(CommandInfo)
                 #self.CommandInfo = defaultdict(list)
@@ -122,7 +121,7 @@ class Shell(object):
                 logging.info("")
                 logging.info("Executing :\n\n%s\n\n", Command)
                 logging.info("")
-                logging.info("------> Execution Start Date/Time: "+self.Core.Timer.GetStartDateTimeAsStr('Command'))
+                logging.info("------> Execution Start Date/Time: "+self.Core.Timer.get_start_date_time_as_str('Command'))
                 logging.info("")
                 Output = ''
                 Cancelled = False

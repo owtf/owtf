@@ -76,12 +76,12 @@ class HTTP_Transaction(object):
             self.Data = ''
 
     def StartRequest(self):
-        self.Timer.StartTimer('Request')
+        self.Timer.start_timer('Request')
         self.Time = self.TimeHuman = ''
 
     def EndRequest(self):
-        self.Time = str(self.Timer.GetElapsedTime('Request'))
-        self.TimeHuman = self.Timer.GetTimeAsStr(self.Time)
+        self.Time = self.Timer.get_elapsed_time_as_str('Request')
+        self.TimeHuman = self.Time
 
     def SetTransaction(self, found, request, response):
         # Response can be "Response" for 200 OK or "Error" for everything else,
@@ -234,7 +234,7 @@ class HTTP_Transaction(object):
         self.ResponseHeaders = response.header_string
         self.ResponseContents = response.body
         self.Time = str(response.request_time)
-        self.TimeHuman = self.Timer.GetTimeAsStr(self.Time)
+        self.TimeHuman = self.Timer.get_time_human(self.Time)
         self.Found = (self.Status == "200 OK")
         # Cookie string for GetCookies method
         cookies_list = [

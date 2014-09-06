@@ -289,8 +289,8 @@ class PluginHandler:
 
         def ProcessPlugin(self, plugin_dir, plugin, status={}):
             # Save how long it takes for the plugin to run.
-            self.Core.Timer.StartTimer('Plugin')
-            plugin['start'] = self.Core.Timer.GetStartDateTimeAsStr(
+            self.Core.Timer.start_timer('Plugin')
+            plugin['start'] = self.Core.Timer.get_start_date_time(
                 'Plugin')
             # Use relative path from targets folders while saving
             plugin['output_path'] = os.path.relpath(self.GetPluginOutputDir(plugin),
@@ -320,7 +320,7 @@ class PluginHandler:
             try:
                 output = self.RunPlugin(plugin_dir, plugin)
                 plugin['status'] = 'Successful'
-                plugin['end'] = self.Core.Timer.GetEndDateTimeAsStr(
+                plugin['end'] = self.Core.Timer.get_end_date_time(
                     'Plugin')
                 owtf_rank = self.rank_plugin(
                     output,
@@ -329,19 +329,17 @@ class PluginHandler:
                 self.Core.DB.POutput.SavePluginOutput(
                     plugin,
                     output,
-                    self.Core.Timer.GetElapsedTimeAsStr('Plugin'),
                     owtf_rank=owtf_rank)
                 return output
             except KeyboardInterrupt:
                 # Just explain why crashed.
                 plugin['status'] = 'Aborted'
-                plugin['end'] = self.Core.Timer.GetEndDateTimeAsStr(
+                plugin['end'] = self.Core.Timer.get_end_date_time(
                     'Plugin')
                 self.Core.DB.POutput.SavePartialPluginOutput(
                     plugin,
                     [],
-                    'Aborted by User',
-                    self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
+                    'Aborted by User')
                 self.Core.Error.UserAbort('Plugin')
                 status['SomeAborted (Keyboard Interrupt)'] = True
             except SystemExit:
@@ -350,33 +348,30 @@ class PluginHandler:
                 raise SystemExit
             except PluginAbortException, PartialOutput:
                 plugin['status'] = 'Aborted (by user)'
-                plugin['end'] = self.Core.Timer.GetEndDateTimeAsStr(
+                plugin['end'] = self.Core.Timer.get_end_date_time(
                     'Plugin')
                 self.Core.DB.POutput.SavePartialPluginOutput(
                     plugin,
                     PartialOutput.parameter,
-                    'Aborted by User',
-                    self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
+                    'Aborted by User')
                 status['SomeAborted'] = True
             except UnreachableTargetException, PartialOutput:
                 plugin['status'] = 'Unreachable Target'
-                plugin['end'] = self.Core.Timer.GetEndDateTimeAsStr(
+                plugin['end'] = self.Core.Timer.get_end_date_time(
                     'Plugin')
                 self.Core.DB.POutput.SavePartialPluginOutput(
                     plugin,
                     PartialOutput.parameter,
-                    'Unreachable Target',
-                    self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
+                    'Unreachable Target')
                 status['SomeAborted'] = True
             except FrameworkAbortException, PartialOutput:
                 plugin['status'] = 'Aborted (Framework Exit)'
-                plugin['end'] = self.Core.Timer.GetEndDateTimeAsStr(
+                plugin['end'] = self.Core.Timer.get_end_date_time(
                     'Plugin')
                 self.Core.DB.POutput.SavePartialPluginOutput(
                     plugin,
                     PartialOutput.parameter,
-                    'Framework Aborted',
-                    self.Core.Timer.GetElapsedTimeAsStr('Plugin'))
+                    'Framework Aborted')
                 self.Core.Finish("Aborted")
             #TODO: Handle this gracefully
             #except: # BUG

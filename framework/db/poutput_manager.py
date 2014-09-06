@@ -27,9 +27,11 @@ class POutputDB(object):
             if pdict.get("output", None):
                 pdict["output"] = self.DeriveHTMLOutput(
                     json.loads(pdict["output"]))
-            if pdict.get("date_time", None):
-                pdict["date_time"] = pdict["date_time"].strftime(
-                    self.Core.DB.Config.Get("DATE_TIME_FORMAT"))
+            pdict["start_time"] = obj.start_time.strftime(
+                self.Core.DB.Config.Get("DATE_TIME_FORMAT"))
+            pdict["end_time"] = obj.end_time.strftime(
+                self.Core.DB.Config.Get("DATE_TIME_FORMAT"))
+            pdict["run_time"] = self.Core.Timer.get_time_as_str(obj.run_time)
             return pdict
 
     @target_required
@@ -192,7 +194,6 @@ class POutputDB(object):
     def SavePluginOutput(self,
                          plugin,
                          output,
-                         duration,
                          target_id=None,
                          owtf_rank=None):
         """Save into the database the command output of the plugin `plugin."""
@@ -203,7 +204,6 @@ class POutputDB(object):
             output=json.dumps(output),
             start_time=plugin["start"],
             end_time=plugin["end"],
-            execution_time=duration,
             status=plugin["status"],
             target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored
@@ -220,7 +220,6 @@ class POutputDB(object):
             Plugin,
             Output,
             Message,
-            Duration,
             target_id=None):
         self.Core.DB.session.merge(models.PluginOutput(
             plugin_code=Plugin["code"],
@@ -230,7 +229,6 @@ class POutputDB(object):
             error=Message,
             start_time=Plugin["start"],
             end_time=Plugin["end"],
-            execution_time=Duration,
             status=Plugin["status"],
             target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored

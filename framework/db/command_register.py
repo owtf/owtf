@@ -39,9 +39,8 @@ class CommandRegister(object):
 
     def AddCommand(self, Command):
         self.Core.DB.session.merge(models.Command(
-            start=Command['Start'],
-            end=Command['End'],
-            run_time=Command['RunTime'],
+            start_time=Command['Start'],
+            end_time=Command['End'],
             success=Command['Success'],
             target_id=Command['Target'],
             modified_command=Command['ModifiedCommand'].strip(),

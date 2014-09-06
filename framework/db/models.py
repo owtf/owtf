@@ -142,9 +142,8 @@ class PluginOutput(Base):
     plugin_group = Column(String)
     plugin_type = Column(String)
     date_time = Column(DateTime, default=datetime.datetime.now())
-    start_time = Column(String)
-    end_time = Column(String)
-    execution_time = Column(String)
+    start_time = Column(DateTime)
+    end_time = Column(DateTime)
     output = Column(String, nullable=True)
     error = Column(String, nullable=True)
     status = Column(String, nullable=True)
@@ -153,19 +152,27 @@ class PluginOutput(Base):
     owtf_rank = Column(Integer, nullable=True, default=-1)
     output_path = Column(String, nullable=True)
 
+    @hybrid_property
+    def run_time(self):
+        return(self.end_time - self.start_time)
+
     __table_args__ = (UniqueConstraint('plugin_type', 'plugin_code', 'target_id'),)
+
 
 
 class Command(Base):
     __tablename__ = "command_register"
 
-    start = Column(String)
-    end = Column(String)
-    run_time = Column(String)
+    start_time = Column(DateTime)
+    end_time = Column(DateTime)
     success = Column(Boolean, default=False)
     target_id = Column(Integer, ForeignKey("targets.id"))
     modified_command = Column(String)
     original_command = Column(String, primary_key=True)
+
+    @hybrid_property
+    def run_time(self):
+        return(self.end_time - self.start_time)
 
 
 class Error(Base):

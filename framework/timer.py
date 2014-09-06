@@ -33,7 +33,7 @@ human-readable form.
 
 """
 
-import time
+import datetime
 
 
 class Timer(object):
@@ -42,26 +42,41 @@ class Timer(object):
     Time = {}
 
     def __init__(self, datetime_format="%d/%m/%Y-%H:%M"):
-        self.DateTimeFormat = datetime_format
+        self.date_time_format = datetime_format
 
-    def StartTimer(self, offSet='0'):
+    def start_timer(self, offSet='0'):
         self.Time[offSet] = {}
-        self.Time[offSet]['Start'] = self.GetCurrentDateTime()
-        self.Time[offSet]['Time'] = time.time()
-        return [self.Time[offSet]['Start'], self.Time[offSet]['Time']]
+        self.Time[offSet]['start'] = self.get_current_date_time()
+        return self.Time[offSet]['start']
 
-    def GetCurrentDateTimeAsStr(self):
-        return self.GetTimeAsStr(self.GetCurrentDateTime())
+    def get_current_date_time_as_str(self):
+        return self.get_current_date_time().strftime(self.date_time_format)
 
-    def GetCurrentDateTime(self):
-        return time.strftime(self.DateTimeFormat)
+    @staticmethod
+    def get_current_date_time():
+        return datetime.datetime.now()
 
-    def GetElapsedTime(self, offSet='0'):
-        Time = time.time() - self.Time[offSet]['Time']
-        return Time
+    def get_elapsed_time(self, offSet='0'):
+        return datetime.datetime.now() - self.Time[offSet]['start']
 
-    def GetTimeAsStr(self, seconds):
-        seconds, miliseconds = str(seconds).split('.')
+    def get_time_as_str(self, timedelta):
+        seconds = timedelta.total_seconds()
+        miliseconds = timedelta.microseconds/1000
+        hours = seconds / 3600
+        seconds -= 3600*hours
+        minutes = seconds / 60
+        seconds -= 60*minutes
+        TimeStr = ''
+        if hours > 0:
+            TimeStr += "%2dh, " % hours
+        if minutes > 0:
+            TimeStr += "%2dm, " % minutes
+        TimeStr += "%2ds, %3dms" % (seconds, miliseconds)
+        # Strip necessary to get rid of leading spaces sometimes.
+        return TimeStr.strip()
+
+    def get_time_human(self, seconds_str):
+        seconds, miliseconds = str(seconds_str).split('.')
         seconds = int(seconds)
         miliseconds = int(miliseconds[0:3])
         hours = seconds / 3600
@@ -73,23 +88,28 @@ class Timer(object):
             TimeStr += "%2dh, " % hours
         if minutes > 0:
             TimeStr += "%2dm, " % minutes
-        TimeStr += "%2ds, %3dms" % (seconds,miliseconds)
+        TimeStr += "%2ds, %3dms" % (seconds, miliseconds)
         # Strip necessary to get rid of leading spaces sometimes.
         return TimeStr.strip()
 
-    def EndTimer(self, offset='0'):
-        self.Time[offset]['End'] = self.GetCurrentDateTime()
+    def end_timer(self, offset='0'):
+        self.Time[offset]['end'] = self.get_current_date_time()
 
-    def GetElapsedTimeAsStr(self, offset='0'):
-        elapsed = self.GetElapsedTime(offset)
-        elapsed_str = self.GetTimeAsStr(elapsed)
-        self.EndTimer(offset)
-        return elapsed_str
+    def get_elapsed_time_as_str(self, offset='0'):
+        elapsed = self.get_elapsed_time(offset)
+        self.end_timer(offset)
+        return(self.get_time_as_str(elapsed))
 
-    def GetStartDateTimeAsStr(self, offset='0'):
-        return self.Time[offset]['Start']
+    def get_start_date_time(self, offset='0'):
+        return self.Time[offset]['start']
 
-    def GetEndDateTimeAsStr(self, offset='0'):
-        if not 'End' in self.Time[offset]:
-            self.EndTimer(offset)
-        return self.Time[offset]['End']
+    def get_end_date_time(self, offset='0'):
+        if 'end' not in self.Time[offset].keys():
+            self.end_timer(offset)
+        return self.Time[offset]['end']
+
+    def get_start_date_time_as_str(self, offset='0'):
+        return self.get_start_date_time(offset).strftime(self.date_time_format)
+
+    def get_end_date_time_as_str(self, offset='0'):
+        return self.get_end_date_time(offset).strftime(self.date_time_format)
