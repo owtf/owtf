@@ -114,7 +114,7 @@ class GrepOutput(Base):
     target_id = Column(Integer, ForeignKey("targets.id"))
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    output = Column(String)
+    output = Column(Text)
     # Also has a column transactions, which is added by
     # using backref in transaction
 
@@ -240,17 +240,32 @@ class Plugin(Base):
     outputs = relationship("PluginOutput", backref="plugin")
 
     @hybrid_property
-    def min_max_run_times(self):
+    def min_time(self):
         """
         Consider last 5 runs only, better performance and accuracy
         """
-        poutputs = len(self.outputs)
-        if poutputs != 0:
-            if poutputs < 5:
+        poutputs_num = len(self.outputs)
+        if poutputs_num != 0:
+            if poutputs_num < 5:
                 run_times = [poutput.run_time for poutput in self.outputs]
             else:
                 run_times = [poutput.run_time for poutput in self.outputs[-5:]]
-            return([min(run_times), max(run_times)])
+            return(min(run_times))
+        else:
+            return None
+
+    @hybrid_property
+    def max_time(self):
+        """
+        Consider last 5 runs only, better performance and accuracy
+        """
+        poutputs_num = len(self.outputs)
+        if poutputs_num != 0:
+            if poutputs_num < 5:
+                run_times = [poutput.run_time for poutput in self.outputs]
+            else:
+                run_times = [poutput.run_time for poutput in self.outputs[-5:]]
+            return(max(run_times))
         else:
             return None
 
