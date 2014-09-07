@@ -109,7 +109,7 @@ class TransactionManager(object):
                 if isinstance(criteria.get('response_body'), list):
                     criteria['response_body'] = criteria['response_body'][0]
                 query = query.filter(
-                    models.Transaction.binary_response is False,
+                    models.Transaction.binary_response == False,
                     models.Transaction.response_body.like(
                         '%' + criteria.get('response_body') + '%'))
         else:  # If transaction filter is being done

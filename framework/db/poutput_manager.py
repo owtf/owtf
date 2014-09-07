@@ -10,7 +10,9 @@ class POutputDB(object):
         self.Core = Core
 
     def DeriveHTMLOutput(self, plugin_output):
-        self.Core.Reporter.Loader.reset()
+        # Following line only to prevent caching
+        # when modifying poutput templates
+        # self.Core.Reporter.Loader.reset()
         Content = ''
         for item in plugin_output:
             Content += getattr(
