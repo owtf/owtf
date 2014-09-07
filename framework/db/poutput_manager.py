@@ -23,6 +23,7 @@ class POutputDB(object):
         if obj:
             pdict = dict(obj.__dict__)
             pdict.pop("_sa_instance_state", None)
+            pdict.pop("date_time")
             # If output is present, json decode it
             if pdict.get("output", None):
                 pdict["output"] = self.DeriveHTMLOutput(
