@@ -22,7 +22,7 @@
         <br />
         <div class="row">
             <div class="col-md-2">
-                <button class="btn btn-primary" type="button" onclick="newTargets($('#newTargetUrls').val(), this);">Add Targets!</button>
+                <button class="btn btn-primary" id="addTargetBtn" type="button" onclick="newTargets($('#newTargetUrls').val(), this);">Add Targets!</button>
             </div>
         </div>
     </div>
@@ -292,7 +292,7 @@ function isUrl(str) {
 
 // Add new targets using API
 function newTargets(targetUrlsString, button) {
-    $(button).hide() // Hide the button and show once the request is complete
+    disableInput("#addTargetBtn"); // Hide the button and show once the request is complete
     var lines = targetUrlsString.split('\n');
     var targetUrls = [];
 
@@ -304,7 +304,7 @@ function newTargets(targetUrlsString, button) {
             targetUrls.push("http://"+line);
             targetUrls.push("https://"+line);
         } else { // Not a valid url
-            alertFail(targetUrl+" is not a valid url");
+            alertFail(line+" is not a valid url");
         }
     });
 
@@ -313,14 +313,13 @@ function newTargets(targetUrlsString, button) {
             url:mySpace.targets_api_url,
             type:'POST',
             data:$.param({'TARGET_URL':targetUrls}, true),
-            complete: function() {
-                $(button).show(); // Show the button once request is complete
-            },
             success: function() {
                 updateTargets();
+                enableInput("#addTargetBtn");
             },
             error:function(xhr, textStatus, serverResponse) {
                 alertFail("Unable to add some targets");
+                enableInput("#addTargetBtn");
             }
     });
 }
