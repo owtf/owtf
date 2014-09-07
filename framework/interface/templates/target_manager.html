@@ -130,8 +130,8 @@ function getSelectedTargets() {
 
 // Main function that posts using API to launch plugins
 function postToWorkList(selectedPluginData){
-    selectedPluginData["ID"] = getSelectedTargets();
-    if (selectedPluginData["ID"].length < 1) {  // If no targets selected
+    selectedPluginData["id"] = getSelectedTargets();
+    if (selectedPluginData["id"].length < 1) {  // If no targets selected
         alertFail("No targets selected to launch plugins");
     }
     $.ajax({
@@ -242,18 +242,18 @@ function addTargets(data, status, xhr){
     jQuery('#targetTable').dataTable().fnClearTable();
     $.each(data, function(index, obj){
         actionButtons = '<div class="btn-group">';
-        actionButtons += '<button class="btn btn-xs btn-warning" onclick="removeTargetFromCurrentSession('+obj.ID+');" data-toggle="tooltip" data-placement="bottom" title="Remove target from this session">';
+        actionButtons += '<button class="btn btn-xs btn-warning" onclick="removeTargetFromCurrentSession('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Remove target from this session">';
         actionButtons += '<i class="fa fa-minus"></i></button>';
-        actionButtons += '<button class="btn btn-xs btn-danger" onclick="deleteTarget('+obj.ID+');" data-toggle="tooltip" data-placement="bottom" title="Delete target from everywhere">';
+        actionButtons += '<button class="btn btn-xs btn-danger" onclick="deleteTarget('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Delete target from everywhere">';
         actionButtons += '<i class="fa fa-times"></i></button>';
         actionButtons += '</div>';
-        target_string = '<a href="'+mySpace.targets_ui_url+obj.ID+'">'+obj.TARGET_URL+' ('+obj.HOST_IP+') </a> ';
+        target_string = '<a href="'+mySpace.targets_ui_url+obj.id+'">'+obj.TARGET_URL+' ('+obj.HOST_IP+') </a> ';
         max_rank = Math.max(obj.MAX_USER_RANK, obj.MAX_OWTF_RANK)
         if (max_rank != -1) {
             target_string += getLabel(max_rank);
         }
         jQuery('#targetTable').dataTable().fnAddData([
-            '<input type="checkbox" target-id="'+obj.ID+'"/>',
+            '<input type="checkbox" target-id="'+obj.id+'"/>',
             target_string,
             actionButtons,
         ]);

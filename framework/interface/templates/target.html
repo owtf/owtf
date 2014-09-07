@@ -160,7 +160,7 @@ function pluginLaunchSuccess(){
 
 // Main function that posts using API to launch plugins
 function postToWorkList(selectedPluginData){
-    selectedPluginData["ID"] = mySpace.target_config.ID;
+    selectedPluginData["id"] = mySpace.target_config.id;
     $.ajax({
             url:mySpace.worklist_api_url,
             type:'POST',

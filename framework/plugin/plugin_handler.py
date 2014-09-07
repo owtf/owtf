@@ -389,7 +389,7 @@ class PluginHandler:
                 self.ProcessPluginsForTargetList(
                     self.PluginGroup,
                     status,
-                    self.Core.DB.Target.GetAll("ID"))
+                    self.Core.DB.Target.GetAll("id"))
             return status
 
         def GetPluginGroupDir(self, PluginGroup):

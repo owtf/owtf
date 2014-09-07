@@ -13,7 +13,7 @@ from framework.lib.general import cprint  # TODO: Shift to logging
 
 
 TARGET_CONFIG = {
-    'ID': 0,
+    'id': 0,
     'TARGET_URL': '',
     'HOST_NAME': '',
     'HOST_PATH': '',
@@ -251,22 +251,22 @@ class TargetDB(object):
                 query = query.filter(models.Target.host_name.in_(
                     filter_data.get("HOST_NAME")))
         try:
-            if filter_data.get("ID", None):
-                if isinstance(filter_data["ID"], (str, unicode)):
-                    query = query.filter_by(id=filter_data["ID"])
-                if isinstance(filter_data["ID"], list):
-                    query = query.filter(models.Target.id.in_(filter_data.get("ID")))
-            if filter_data.get('ID[lt]', None):
-                if isinstance(filter_data.get('ID[lt]'), list):
-                    filter_data['id[lt]'] = filter_data['ID[lt]'][0]
-                query = query.filter(models.Target.id < int(filter_data['ID[lt]']))
-            if filter_data.get('ID[gt]', None):
-                if isinstance(filter_data.get('ID[gt]'), list):
-                    filter_data['ID[gt]'] = filter_data['ID[gt]'][0]
-                query = query.filter(models.Target.id > int(filter_data['ID[gt]']))
+            if filter_data.get("id", None):
+                if isinstance(filter_data["id"], (str, unicode)):
+                    query = query.filter_by(id=filter_data["id"])
+                if isinstance(filter_data["id"], list):
+                    query = query.filter(models.Target.id.in_(filter_data.get("id")))
+            if filter_data.get('id[lt]', None):
+                if isinstance(filter_data.get('id[lt]'), list):
+                    filter_data['id[lt]'] = filter_data['id[lt]'][0]
+                query = query.filter(models.Target.id < int(filter_data['id[lt]']))
+            if filter_data.get('id[gt]', None):
+                if isinstance(filter_data.get('id[gt]'), list):
+                    filter_data['id[gt]'] = filter_data['id[gt]'][0]
+                query = query.filter(models.Target.id > int(filter_data['id[gt]']))
         except ValueError:
             raise InvalidParameterType(
-                "Invalid parameter type for target db for ID[lt] or ID[gt]")
+                "Invalid parameter type for target db for id[lt] or id[gt]")
         target_obj_list = query.all()
         return(self.DeriveTargetConfigs(target_obj_list))
 

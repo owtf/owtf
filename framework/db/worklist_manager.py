@@ -66,13 +66,13 @@ class WorklistManager(object):
                 query = query.filter(models.Plugin.name.like(
                     '%'+criteria['name']+'%'))
         try:
-            if criteria.get('ID', None):
-                if isinstance(criteria.get('ID'), list):
+            if criteria.get('id', None):
+                if isinstance(criteria.get('id'), list):
                     query = query.filter(
-                        models.Work.target_id.in_(criteria.get('ID')))
-                if isinstance(criteria.get('ID'), (str, unicode)):
+                        models.Work.target_id.in_(criteria.get('id')))
+                if isinstance(criteria.get('id'), (str, unicode)):
                     query = query.filter_by(
-                        target_id == int(criteria.get('ID')))
+                        target_id == int(criteria.get('id')))
             if not for_stats:
                 if criteria.get('offset', None):
                     if isinstance(criteria.get('offset'), list):
@@ -137,13 +137,13 @@ class WorklistManager(object):
             for plugin in plugin_list:
                 # Check if it already in worklist
                 if self.Core.DB.session.query(models.Work).filter_by(
-                        target_id=target["ID"],
+                        target_id=target["id"],
                         plugin_key=plugin["key"]).count() == 0:
                     # Check if it is already run ;) before adding
                     if self.Core.DB.POutput.PluginAlreadyRun(
-                            plugin, target_id=target["ID"]) is False:
+                            plugin, target_id=target["id"]) is False:
                         work_model = models.Work(
-                            target_id=target["ID"],
+                            target_id=target["id"],
                             plugin_key=plugin["key"])
                         self.Core.DB.session.add(
                             work_model)
@@ -187,7 +187,7 @@ class WorklistManager(object):
     def stop_targets(self, target_list):
         query = self.Core.DB.session.query(models.Work)
         for target in target_list:
-            query.filter_by(target_id=target["ID"]).update(
+            query.filter_by(target_id=target["id"]).update(
                 {"active": False})
         self.Core.DB.session.commit()
 

@@ -54,7 +54,7 @@ class Worker(OWTFProcess):
                 target, plugin = work
                 pluginDir = self.core.PluginHandler.GetPluginGroupDir(
                     plugin['group'])
-                self.core.PluginHandler.SwitchToTarget(target["ID"])
+                self.core.PluginHandler.SwitchToTarget(target["id"])
                 self.core.PluginHandler.ProcessPlugin(pluginDir, plugin)
                 self.output_q.put('done')
             except KeyboardInterrupt:
@@ -127,7 +127,7 @@ class WorkerManager(object):
         target_ids = []
         for item in self.workers:
             try:
-                target_ids.append(item["work"][0]["ID"])
+                target_ids.append(item["work"][0]["id"])
             except IndexError:
                 continue
         return target_ids
