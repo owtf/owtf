@@ -262,7 +262,7 @@ class PluginHelper:
                 plugin_output["type"] = "Robots"
                 num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, RobotsFound = self.AnalyseRobotsEntries( Contents )
                 SavePath = self.Core.PluginHandler.DumpOutputFile( Filename, Contents, PluginInfo, True )
-                TopURL = self.Core.DB.Target.Get( 'TOP_URL' )
+                TopURL = self.Core.DB.Target.Get( 'top_url' )
                 EntriesList = []
                 if num_disallow > 0 or num_allow > 0 or num_sitemap > 0: # robots.txt contains some entries, show browsable list! :)
                         for Display, Entries in [ [ 'Disallowed Entries', DisallowedEntries ], [ 'Allowed Entries', AllowedEntries ], [ 'Sitemap Entries', SitemapEntries ] ]:

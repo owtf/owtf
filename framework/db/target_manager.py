@@ -23,7 +23,7 @@ TARGET_CONFIG = {
     'alternative_ips': '',  # str(list), so it can easily reversed using list(str)
     'ip_url': '',
     'top_domain': '',
-    'TOP_URL': '',
+    'top_url': '',
     'SCOPE': True,
     "max_user_rank": -1,
     "max_owtf_rank": -1
@@ -149,7 +149,7 @@ class TargetDB(object):
             config_obj.alternative_ips = str(target_config["alternative_ips"])
             config_obj.ip_url = target_config["ip_url"]
             config_obj.top_domain = target_config["top_domain"]
-            config_obj.top_url = target_config["TOP_URL"]
+            config_obj.top_url = target_config["top_url"]
             # ----------------------------------------------------
             self.Core.DB.session.add(config_obj)
             config_obj.sessions.append(

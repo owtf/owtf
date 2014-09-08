@@ -36,7 +36,7 @@ DESCRIPTION = "Normal request for robots.txt analysis"
 
 
 def run(Core, PluginInfo):
-    TopURL = Core.DB.Target.Get('TOP_URL')
+    TopURL = Core.DB.Target.Get('top_url')
     URL = TopURL+"/robots.txt"
     TestResult = []
     # Use transaction cache if possible for speed

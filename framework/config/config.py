@@ -230,7 +230,7 @@ class Config(object):
             # Get "example.com" from "www.example.com"
             target_config['top_domain'] = '.'.join(hostname_chunks[1:])
         # Set the top URL.
-        target_config['TOP_URL'] = protocol + "://" + host + ":" + port
+        target_config['top_url'] = protocol + "://" + host + ":" + port
         return target_config
 
     def DeriveOutputSettingsFromURL(self, target_URL):

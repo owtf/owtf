@@ -32,7 +32,7 @@ DESCRIPTION = "Normal request for HTTP methods analysis"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.TransactionTableForURLList(True, Core.DB.Target.GetAsList(['TARGET_URL', 'TOP_URL']), 'OPTIONS')
+	Content = Core.PluginHelper.TransactionTableForURLList(True, Core.DB.Target.GetAsList(['TARGET_URL', 'top_url']), 'OPTIONS')
 	#print "Content="+Content
 	Content += Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('SemiPassiveHTTPMethods'), PluginInfo, []) # No previous output
 	return Content

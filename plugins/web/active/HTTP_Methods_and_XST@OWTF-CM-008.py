@@ -37,7 +37,7 @@ DESCRIPTION = "Active probing for HTTP methods"
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 	#Transaction = Core.Requester.TRACE(Core.Config.Get('HOST_NAME'), '/')
-	URL = Core.DB.Target.Get('TOP_URL')
+	URL = Core.DB.Target.Get('top_url')
 	# TODO: PUT not working right yet
 	#PUT_URL = URL+"/_"+get_random_str(20)+".txt"
 	#print PUT_URL

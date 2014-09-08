@@ -36,7 +36,7 @@ DESCRIPTION = "Normal requests to gather fingerprint info"
 def run(Core, PluginInfo):
 	#Core.Config.Show()
 	# True = Use Transaction Cache if possible: Visit the start URLs if not already visited
-	TransactionTable = Core.PluginHelper.TransactionTableForURLList(True, Core.DB.Target.GetAsList(['TARGET_URL', 'TOP_URL'])) 
+	TransactionTable = Core.PluginHelper.TransactionTableForURLList(True, Core.DB.Target.GetAsList(['TARGET_URL', 'top_url'])) 
 	Content = Core.PluginHelper.ResearchFingerprintInlog() + TransactionTable
 	Content += Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('SemiPassiveFingerPrint'), PluginInfo, Content)
 	return Content
