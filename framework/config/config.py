@@ -214,7 +214,7 @@ class Config(object):
         # Some tools need this!
         target_config['PORT_NUMBER'] = port
         # Set the top URL.
-        target_config['HOST_NAME'] = host
+        target_config['host_name'] = host
 
         host_IP = self.GetIPFromHostname(host)
         host_IPs = self.GetIPsFromHostname(host)
@@ -223,9 +223,9 @@ class Config(object):
 
         ip_url = target_config['TARGET_URL'].replace(host, host_IP)
         target_config['ip_url'] = ip_url
-        target_config['top_domain'] = target_config['HOST_NAME']
+        target_config['top_domain'] = target_config['host_name']
 
-        hostname_chunks = target_config['HOST_NAME'].split('.')
+        hostname_chunks = target_config['host_name'].split('.')
         if self.IsHostNameNOTIP(host, host_IP) and len(hostname_chunks) > 2:
             # Get "example.com" from "www.example.com"
             target_config['top_domain'] = '.'.join(hostname_chunks[1:])

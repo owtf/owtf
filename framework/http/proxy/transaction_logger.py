@@ -70,7 +70,7 @@ class TransactionLogger(OWTFProcess):
         target_list = self.core.DB.Target.GetIndexedTargets()
         if target_list: # If there are no targets in db, where are we going to add. OMG
             transactions_dict = {}
-            host_list = self.core.DB.Target.GetAllInScope('HOST_NAME')
+            host_list = self.core.DB.Target.GetAllInScope('host_name')
 
             for request_hash in hash_list:
                 request = request_from_cache(request_hash, self.cache_dir)

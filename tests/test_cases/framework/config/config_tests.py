@@ -110,7 +110,7 @@ class ConfigTests(BaseTestCase):
         assert_that(config_property_is_defined("HOST_PATH"))
         assert_that(config_property_is_defined("URL_SCHEME"))
         assert_that(config_property_is_defined("PORT_NUMBER"))
-        assert_that(config_property_is_defined("HOST_NAME"))
+        assert_that(config_property_is_defined("host_name"))
         assert_that(config_property_is_defined("host_ip"))
         assert_that(config_property_is_defined("ip_url"))
         assert_that(config_property_is_defined("top_domain"))

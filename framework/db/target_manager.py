@@ -15,7 +15,7 @@ from framework.lib.general import cprint  # TODO: Shift to logging
 TARGET_CONFIG = {
     'id': 0,
     'TARGET_URL': '',
-    'HOST_NAME': '',
+    'host_name': '',
     'HOST_PATH': '',
     'URL_SCHEME': '',
     'PORT_NUMBER': '',  # In str form
@@ -141,7 +141,7 @@ class TargetDB(object):
             target_config = self.Core.Config.DeriveConfigFromURL(TargetURL)
             # ----------- Target model object creation -----------
             config_obj = models.Target(target_url=TargetURL)
-            config_obj.host_name = target_config["HOST_NAME"]
+            config_obj.host_name = target_config["host_name"]
             config_obj.host_path = target_config["HOST_PATH"]
             config_obj.url_scheme = target_config["URL_SCHEME"]
             config_obj.port_number = target_config["PORT_NUMBER"]
@@ -244,12 +244,12 @@ class TargetDB(object):
             filter_data["scope"] = filter_data["scope"][0]
             query = query.filter_by(
                 scope=self.Core.Config.ConvertStrToBool(filter_data.get("scope")))
-        if filter_data.get("HOST_NAME", None):
-            if isinstance(filter_data["HOST_NAME"], (str, unicode)):
-                query = query.filter_by(host_name=filter_data["HOST_NAME"])
-            if isinstance(filter_data["HOST_NAME"], list):
+        if filter_data.get("host_name", None):
+            if isinstance(filter_data["host_name"], (str, unicode)):
+                query = query.filter_by(host_name=filter_data["host_name"])
+            if isinstance(filter_data["host_name"], list):
                 query = query.filter(models.Target.host_name.in_(
-                    filter_data.get("HOST_NAME")))
+                    filter_data.get("host_name")))
         try:
             if filter_data.get("id", None):
                 if isinstance(filter_data["id"], (str, unicode)):
@@ -308,7 +308,7 @@ class TargetDB(object):
     def IsInScopeURL(self, URL):  # To avoid following links to other domains.
         ParsedURL = urlparse(URL)
         # Get all known Host Names in Scope.
-        for HostName in self.GetAll('HOST_NAME'):
+        for HostName in self.GetAll('host_name'):
             if ParsedURL.hostname == HostName:
                 return True
         return False

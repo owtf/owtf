@@ -217,7 +217,7 @@ class Core(object):
 
     def AnonymiseCommand(self, command):
         # Host name setting value for all targets in scope.
-        for host in self.DB.Target.GetAll('HOST_NAME'):
+        for host in self.DB.Target.GetAll('host_name'):
             if host:  # Value is not blank
                 command = command.replace(host, 'some.target.com')
         for ip in self.DB.Target.GetAll('host_ip'):

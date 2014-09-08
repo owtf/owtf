@@ -49,7 +49,7 @@ class Zest(object):
         target_config['ZEST_DIR'] = os.path.join(target_config['OUTPUT_DIR'], "zest")
         target_config['CREATE_SCRIPT_PATH'] = os.path.join(target_config['ROOT_DIR'], "zest", "zest_create.sh")
         target_config['RUNNER_SCRIPT_PATH'] = os.path.join(target_config['ROOT_DIR'], "zest","zest_runner.sh")
-        target_config['HOST_AND_PORT'] = ((self.Core.DB.Target.GetTargetConfigForID(target_id))['HOST_NAME'] 
+        target_config['HOST_AND_PORT'] = ((self.Core.DB.Target.GetTargetConfigForID(target_id))['host_name'] 
                                               + ":" + (self.Core.DB.Target.GetTargetConfigForID(target_id))['PORT_NUMBER'])
         self.Core.CreateMissingDirs(target_config['ZEST_DIR'])
         return target_config
