@@ -141,7 +141,9 @@ class ProxyHandler(tornado.web.RequestHandler):
         if self.request.uri.startswith(self.request.protocol,0): # Normal Proxy Request
             self.request.url = self.request.uri
         else:  # Transparent Proxy Request
-            self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
+            self.request.url = self.request.protocol + "://" + self.request.host
+            if self.request.uri != '/':  # Add uri only if needed
+                self.request.url += self.request.uri
 
         # This block here checks for already cached response and if present returns one
         self.cache_handler = CacheHandler(
