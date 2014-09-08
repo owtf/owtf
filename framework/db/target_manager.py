@@ -18,7 +18,7 @@ TARGET_CONFIG = {
     'host_name': '',
     'host_path': '',
     'url_scheme': '',
-    'PORT_NUMBER': '',  # In str form
+    'port_number': '',  # In str form
     'host_ip': '',
     'alternative_ips': '',  # str(list), so it can easily reversed using list(str)
     'ip_url': '',
@@ -83,7 +83,7 @@ class TargetDB(object):
             target_config['host_ip'])
         path_config['port_output'] = os.path.join(
             path_config['host_output'],
-            target_config['PORT_NUMBER'])
+            target_config['port_number'])
         # Set the URL output directory (plugins will save their data here).
         path_config['url_output'] = os.path.join(
             self.Core.Config.GetOutputDirForTarget(target_config['TARGET_URL']))
@@ -144,7 +144,7 @@ class TargetDB(object):
             config_obj.host_name = target_config["host_name"]
             config_obj.host_path = target_config["host_path"]
             config_obj.url_scheme = target_config["url_scheme"]
-            config_obj.port_number = target_config["PORT_NUMBER"]
+            config_obj.port_number = target_config["port_number"]
             config_obj.host_ip = target_config["host_ip"]
             config_obj.alternative_ips = str(target_config["alternative_ips"])
             config_obj.ip_url = target_config["ip_url"]

@@ -212,7 +212,7 @@ class Config(object):
         # Some tools need this!
         target_config['url_scheme'] = URL_scheme
         # Some tools need this!
-        target_config['PORT_NUMBER'] = port
+        target_config['port_number'] = port
         # Set the top URL.
         target_config['host_name'] = host
 
@@ -241,7 +241,7 @@ class Config(object):
         # Set the output directory.
         self.Set(
             'port_output',
-            self.Get('host_output') + "/" + self.Get('PORT_NUMBER'))
+            self.Get('host_output') + "/" + self.Get('port_number'))
         URL_info_ID = target_URL.replace('/','_').replace(':','')
         # Set the URL output directory (plugins will save their data here).
         self.Set(
