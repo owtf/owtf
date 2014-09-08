@@ -210,7 +210,7 @@ class Config(object):
         # Needed for google resource search.
         target_config['host_path'] = host_path
         # Some tools need this!
-        target_config['URL_SCHEME'] = URL_scheme
+        target_config['url_scheme'] = URL_scheme
         # Some tools need this!
         target_config['PORT_NUMBER'] = port
         # Set the top URL.
@@ -236,19 +236,19 @@ class Config(object):
     def DeriveOutputSettingsFromURL(self, target_URL):
         # Set the output directory.
         self.Set(
-            'HOST_OUTPUT',
+            'host_output',
             self.Get('OUTPUT_PATH') + "/" + self.Get('host_ip'))
         # Set the output directory.
         self.Set(
-            'PORT_OUTPUT',
-            self.Get('HOST_OUTPUT') + "/" + self.Get('PORT_NUMBER'))
+            'port_output',
+            self.Get('host_output') + "/" + self.Get('PORT_NUMBER'))
         URL_info_ID = target_URL.replace('/','_').replace(':','')
         # Set the URL output directory (plugins will save their data here).
         self.Set(
-            'URL_OUTPUT',
-            self.Get('PORT_OUTPUT') + "/" + URL_info_ID + "/")
+            'url_output',
+            self.Get('port_output') + "/" + URL_info_ID + "/")
         # Set the partial results path.
-        self.Set('partial_url_output_path', self.Get('URL_OUTPUT')+'partial')
+        self.Set('partial_url_output_path', self.Get('url_output')+'partial')
         self.Set(
             'PARTIAL_REPORT_REGISTER',
             self.Get('partial_url_output_path') + "/partial_report_register.txt")
@@ -267,12 +267,12 @@ class Config(object):
             self.Get('OUTPUT_PATH') + "/index.html")
 
         if not self.Get('SIMULATION'):
-            self.Core.CreateMissingDirs(self.Get('HOST_OUTPUT'))
+            self.Core.CreateMissingDirs(self.Get('host_output'))
 
         # URL Analysis DBs
         # URL DBs: Distintion between vetted, confirmed-to-exist, in
         # transaction DB URLs and potential URLs.
-        self.InitHTTPDBs(self.Get('URL_OUTPUT'))
+        self.InitHTTPDBs(self.Get('url_output'))
 
     def DeriveDBPathsFromURL(self, target_URL):
         targets_folder = os.path.expanduser(self.Get('TARGETS_DB_FOLDER'))

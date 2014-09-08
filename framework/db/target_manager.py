@@ -17,7 +17,7 @@ TARGET_CONFIG = {
     'TARGET_URL': '',
     'host_name': '',
     'host_path': '',
-    'URL_SCHEME': '',
+    'url_scheme': '',
     'PORT_NUMBER': '',  # In str form
     'host_ip': '',
     'alternative_ips': '',  # str(list), so it can easily reversed using list(str)
@@ -31,9 +31,9 @@ TARGET_CONFIG = {
 
 PATH_CONFIG = {
     'partial_url_output_path': '',
-    'HOST_OUTPUT': '',
-    'PORT_OUTPUT': '',
-    'URL_OUTPUT': '',
+    'host_output': '',
+    'port_output': '',
+    'url_output': '',
     'plugin_output_dir': ''
 }
 
@@ -78,18 +78,18 @@ class TargetDB(object):
     def DerivePathConfig(self, target_config):
         path_config = {}
         # Set the output directory.
-        path_config['HOST_OUTPUT'] = os.path.join(
+        path_config['host_output'] = os.path.join(
             self.Core.Config.FrameworkConfigGet('OUTPUT_PATH'),
             target_config['host_ip'])
-        path_config['PORT_OUTPUT'] = os.path.join(
-            path_config['HOST_OUTPUT'],
+        path_config['port_output'] = os.path.join(
+            path_config['host_output'],
             target_config['PORT_NUMBER'])
         # Set the URL output directory (plugins will save their data here).
-        path_config['URL_OUTPUT'] = os.path.join(
+        path_config['url_output'] = os.path.join(
             self.Core.Config.GetOutputDirForTarget(target_config['TARGET_URL']))
         # Set the partial results path.
         path_config['partial_url_output_path'] = os.path.join(
-            path_config['URL_OUTPUT'],
+            path_config['url_output'],
             'partial')
         return path_config
 
@@ -143,7 +143,7 @@ class TargetDB(object):
             config_obj = models.Target(target_url=TargetURL)
             config_obj.host_name = target_config["host_name"]
             config_obj.host_path = target_config["host_path"]
-            config_obj.url_scheme = target_config["URL_SCHEME"]
+            config_obj.url_scheme = target_config["url_scheme"]
             config_obj.port_number = target_config["PORT_NUMBER"]
             config_obj.host_ip = target_config["host_ip"]
             config_obj.alternative_ips = str(target_config["alternative_ips"])

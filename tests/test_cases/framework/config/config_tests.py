@@ -108,7 +108,7 @@ class ConfigTests(BaseTestCase):
 
         assert_that(config_property_is_defined("TARGET_URL"))
         assert_that(config_property_is_defined("host_path"))
-        assert_that(config_property_is_defined("URL_SCHEME"))
+        assert_that(config_property_is_defined("url_scheme"))
         assert_that(config_property_is_defined("PORT_NUMBER"))
         assert_that(config_property_is_defined("host_name"))
         assert_that(config_property_is_defined("host_ip"))
@@ -121,9 +121,9 @@ class ConfigTests(BaseTestCase):
 
         self.config.DeriveOutputSettingsFromURL("http://localhost")
 
-        assert_that(config_property_is_defined("HOST_OUTPUT"))
-        assert_that(config_property_is_defined("PORT_OUTPUT"))
-        assert_that(config_property_is_defined("URL_OUTPUT"))
+        assert_that(config_property_is_defined("host_output"))
+        assert_that(config_property_is_defined("port_output"))
+        assert_that(config_property_is_defined("url_output"))
         assert_that(config_property_is_defined("partial_url_output_path"))
         assert_that(config_property_is_defined("PARTIAL_REPORT_REGISTER"))
         assert_that(config_property_is_defined("HTML_DETAILED_REPORT_PATH"))

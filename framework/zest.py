@@ -44,7 +44,7 @@ class Zest(object):
         target_config = {}
         self.Core.DB.Target.SetTarget(target_id)
         target_config['ROOT_DIR'] = self.Core.Config.RootDir
-        target_config['OUTPUT_DIR'] = os.path.join(target_config['ROOT_DIR'], self.Core.DB.Target.PathConfig['URL_OUTPUT'])
+        target_config['OUTPUT_DIR'] = os.path.join(target_config['ROOT_DIR'], self.Core.DB.Target.PathConfig['url_output'])
         target_config['TARGET_DB'] = self.Core.Config.FrameworkConfigGet('TCONFIG_DB_PATH')
         target_config['ZEST_DIR'] = os.path.join(target_config['OUTPUT_DIR'], "zest")
         target_config['CREATE_SCRIPT_PATH'] = os.path.join(target_config['ROOT_DIR'], "zest", "zest_create.sh")
