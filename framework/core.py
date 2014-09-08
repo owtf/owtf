@@ -220,7 +220,7 @@ class Core(object):
         for host in self.DB.Target.GetAll('HOST_NAME'):
             if host:  # Value is not blank
                 command = command.replace(host, 'some.target.com')
-        for ip in self.DB.Target.GetAll('HOST_IP'):
+        for ip in self.DB.Target.GetAll('host_ip'):
             if ip:
                 command = command.replace(ip, 'xxx.xxx.xxx.xxx')
         return command

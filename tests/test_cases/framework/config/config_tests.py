@@ -48,7 +48,7 @@ class ConfigTests(BaseTestCase):
         method_backup = self.config.Get
 
         def fake_get(key):
-            if key == "HOST_IP": return "127.0.0.1"
+            if key == "host_ip": return "127.0.0.1"
             elif key == "PORT_NUMBER": return "80"
             elif key == "OUTPUT_PATH": return "some/path"
         self.config.Get = fake_get
@@ -111,12 +111,12 @@ class ConfigTests(BaseTestCase):
         assert_that(config_property_is_defined("URL_SCHEME"))
         assert_that(config_property_is_defined("PORT_NUMBER"))
         assert_that(config_property_is_defined("HOST_NAME"))
-        assert_that(config_property_is_defined("HOST_IP"))
+        assert_that(config_property_is_defined("host_ip"))
         assert_that(config_property_is_defined("ip_url"))
         assert_that(config_property_is_defined("top_domain"))
 
     def test_DeriveOutputSettingsFromURL_sets_output_settings(self):
-        self.config.Set("HOST_IP", "127.0.0.1")
+        self.config.Set("host_ip", "127.0.0.1")
         self.config.Set("PORT_NUMBER", "80")
 
         self.config.DeriveOutputSettingsFromURL("http://localhost")

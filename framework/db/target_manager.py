@@ -19,7 +19,7 @@ TARGET_CONFIG = {
     'HOST_PATH': '',
     'URL_SCHEME': '',
     'PORT_NUMBER': '',  # In str form
-    'HOST_IP': '',
+    'host_ip': '',
     'alternative_ips': '',  # str(list), so it can easily reversed using list(str)
     'ip_url': '',
     'top_domain': '',
@@ -80,7 +80,7 @@ class TargetDB(object):
         # Set the output directory.
         path_config['HOST_OUTPUT'] = os.path.join(
             self.Core.Config.FrameworkConfigGet('OUTPUT_PATH'),
-            target_config['HOST_IP'])
+            target_config['host_ip'])
         path_config['PORT_OUTPUT'] = os.path.join(
             path_config['HOST_OUTPUT'],
             target_config['PORT_NUMBER'])
@@ -145,7 +145,7 @@ class TargetDB(object):
             config_obj.host_path = target_config["HOST_PATH"]
             config_obj.url_scheme = target_config["URL_SCHEME"]
             config_obj.port_number = target_config["PORT_NUMBER"]
-            config_obj.host_ip = target_config["HOST_IP"]
+            config_obj.host_ip = target_config["host_ip"]
             config_obj.alternative_ips = str(target_config["alternative_ips"])
             config_obj.ip_url = target_config["ip_url"]
             config_obj.top_domain = target_config["top_domain"]
@@ -234,12 +234,12 @@ class TargetDB(object):
             if isinstance(filter_data["TARGET_URL"], list):
                 query = query.filter(models.Target.target_url.in_(
                     filter_data.get("TARGET_URL")))
-        if filter_data.get("HOST_IP", None):
-            if isinstance(filter_data["HOST_IP"], (str, unicode)):
-                query = query.filter_by(host_ip=filter_data["HOST_IP"])
-            if isinstance(filter_data["HOST_IP"], list):
+        if filter_data.get("host_ip", None):
+            if isinstance(filter_data["host_ip"], (str, unicode)):
+                query = query.filter_by(host_ip=filter_data["host_ip"])
+            if isinstance(filter_data["host_ip"], list):
                 query = query.filter(models.Target.host_ip.in_(
-                    filter_data.get("HOST_IP")))
+                    filter_data.get("host_ip")))
         if filter_data.get("scope", None):
             filter_data["scope"] = filter_data["scope"][0]
             query = query.filter_by(

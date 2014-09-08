@@ -218,7 +218,7 @@ class Config(object):
 
         host_IP = self.GetIPFromHostname(host)
         host_IPs = self.GetIPsFromHostname(host)
-        target_config['HOST_IP'] = host_IP
+        target_config['host_ip'] = host_IP
         target_config['alternative_ips'] = host_IPs
 
         ip_url = target_config['TARGET_URL'].replace(host, host_IP)
@@ -237,7 +237,7 @@ class Config(object):
         # Set the output directory.
         self.Set(
             'HOST_OUTPUT',
-            self.Get('OUTPUT_PATH') + "/" + self.Get('HOST_IP'))
+            self.Get('OUTPUT_PATH') + "/" + self.Get('host_ip'))
         # Set the output directory.
         self.Set(
             'PORT_OUTPUT',
