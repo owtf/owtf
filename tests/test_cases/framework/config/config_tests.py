@@ -107,7 +107,7 @@ class ConfigTests(BaseTestCase):
         self.config.DeriveURLSettings(target, options)
 
         assert_that(config_property_is_defined("TARGET_URL"))
-        assert_that(config_property_is_defined("HOST_PATH"))
+        assert_that(config_property_is_defined("host_path"))
         assert_that(config_property_is_defined("URL_SCHEME"))
         assert_that(config_property_is_defined("PORT_NUMBER"))
         assert_that(config_property_is_defined("host_name"))

@@ -16,7 +16,7 @@ TARGET_CONFIG = {
     'id': 0,
     'TARGET_URL': '',
     'host_name': '',
-    'HOST_PATH': '',
+    'host_path': '',
     'URL_SCHEME': '',
     'PORT_NUMBER': '',  # In str form
     'host_ip': '',
@@ -142,7 +142,7 @@ class TargetDB(object):
             # ----------- Target model object creation -----------
             config_obj = models.Target(target_url=TargetURL)
             config_obj.host_name = target_config["host_name"]
-            config_obj.host_path = target_config["HOST_PATH"]
+            config_obj.host_path = target_config["host_path"]
             config_obj.url_scheme = target_config["URL_SCHEME"]
             config_obj.port_number = target_config["PORT_NUMBER"]
             config_obj.host_ip = target_config["host_ip"]

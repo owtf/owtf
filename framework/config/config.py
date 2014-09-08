@@ -208,7 +208,7 @@ class Config(object):
         host = parsed_URL.hostname
         host_path = parsed_URL.hostname + parsed_URL.path
         # Needed for google resource search.
-        target_config['HOST_PATH'] = host_path
+        target_config['host_path'] = host_path
         # Some tools need this!
         target_config['URL_SCHEME'] = URL_scheme
         # Some tools need this!
