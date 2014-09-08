@@ -34,7 +34,7 @@ PATH_CONFIG = {
     'HOST_OUTPUT': '',
     'PORT_OUTPUT': '',
     'URL_OUTPUT': '',
-    'PLUGIN_OUTPUT_DIR': ''
+    'plugin_output_dir': ''
 }
 
 
@@ -119,7 +119,7 @@ class TargetDB(object):
 
     def SetPath(self, output_type, path):
         # Mainly used for setting output paths for individual plugins, which
-        # need not be saved: PLUGIN_OUTPUT_DIR.
+        # need not be saved: plugin_output_dir.
         self.PathConfig[output_type] = path
 
     def DBHealthCheck(self):

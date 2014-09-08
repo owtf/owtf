@@ -50,7 +50,7 @@ class Shell(object):
                 return MultipleReplace(Text, { ' ':'\ ', '(':'\(', ')':'\)' }).strip()
 
         def RefreshReplacements(self):
-                self.DynamicReplacements['###PLUGIN_OUTPUT_DIR###'] = self.Core.DB.Target.GetPath('PLUGIN_OUTPUT_DIR')
+                self.DynamicReplacements['###plugin_output_dir###'] = self.Core.DB.Target.GetPath('plugin_output_dir')
 
         def GetModifiedShellCommand(self, Command, PluginOutputDir):
                 self.RefreshReplacements()
