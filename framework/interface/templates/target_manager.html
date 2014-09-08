@@ -248,7 +248,7 @@ function addTargets(data, status, xhr){
         actionButtons += '<i class="fa fa-times"></i></button>';
         actionButtons += '</div>';
         target_string = '<a href="'+mySpace.targets_ui_url+obj.id+'">'+obj.TARGET_URL+' ('+obj.HOST_IP+') </a> ';
-        max_rank = Math.max(obj.MAX_USER_RANK, obj.MAX_OWTF_RANK)
+        max_rank = Math.max(obj.max_user_rank, obj.max_owtf_rank)
         if (max_rank != -1) {
             target_string += getLabel(max_rank);
         }
