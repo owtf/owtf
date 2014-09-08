@@ -20,7 +20,7 @@ TARGET_CONFIG = {
     'URL_SCHEME': '',
     'PORT_NUMBER': '',  # In str form
     'HOST_IP': '',
-    'ALTERNATIVE_IPS': '',  # str(list), so it can easily reversed using list(str)
+    'alternative_ips': '',  # str(list), so it can easily reversed using list(str)
     'IP_URL': '',
     'TOP_DOMAIN': '',
     'TOP_URL': '',
@@ -146,7 +146,7 @@ class TargetDB(object):
             config_obj.url_scheme = target_config["URL_SCHEME"]
             config_obj.port_number = target_config["PORT_NUMBER"]
             config_obj.host_ip = target_config["HOST_IP"]
-            config_obj.alternative_ips = str(target_config["ALTERNATIVE_IPS"])
+            config_obj.alternative_ips = str(target_config["alternative_ips"])
             config_obj.ip_url = target_config["IP_URL"]
             config_obj.top_domain = target_config["TOP_DOMAIN"]
             config_obj.top_url = target_config["TOP_URL"]

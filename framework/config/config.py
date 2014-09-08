@@ -219,7 +219,7 @@ class Config(object):
         host_IP = self.GetIPFromHostname(host)
         host_IPs = self.GetIPsFromHostname(host)
         target_config['HOST_IP'] = host_IP
-        target_config['ALTERNATIVE_IPS'] = host_IPs
+        target_config['alternative_ips'] = host_IPs
 
         IP_URL = target_config['TARGET_URL'].replace(host, host_IP)
         target_config['IP_URL'] = IP_URL
@@ -328,7 +328,7 @@ class Config(object):
                 hostname + " has several IP addresses: (" +
                 ", ".join(ipchunks)[0:-3] + "). Choosing first: " + ip + "")
             alternative_IPs = ipchunks[1:]
-        self.Set('ALTERNATIVE_IPS', alternative_IPs)
+        self.Set('alternative_ips', alternative_IPs)
         ip = ip.strip()
         self.Set('INTERNAL_IP', self.Core.IsIPInternal(ip))
         cprint("The IP address for " + hostname + " is: '" + ip + "'")
