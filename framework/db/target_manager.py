@@ -24,7 +24,7 @@ TARGET_CONFIG = {
     'ip_url': '',
     'top_domain': '',
     'top_url': '',
-    'SCOPE': True,
+    'scope': True,
     "max_user_rank": -1,
     "max_owtf_rank": -1
 }
@@ -186,7 +186,7 @@ class TargetDB(object):
             raise InvalidTargetReference(
                 "Target doesn't exist: " + str(ID) if ID else str(TargetURL))
         # TODO: Updating all related attributes when one attribute is changed
-        if data_dict.get("SCOPE", None) is not None:
+        if data_dict.get("scope", None) is not None:
             target_obj.scope = self.Core.Config.ConvertStrToBool(value)
         self.Core.DB.session.commit()
 
@@ -240,10 +240,10 @@ class TargetDB(object):
             if isinstance(filter_data["HOST_IP"], list):
                 query = query.filter(models.Target.host_ip.in_(
                     filter_data.get("HOST_IP")))
-        if filter_data.get("SCOPE", None):
-            filter_data["SCOPE"] = filter_data["SCOPE"][0]
+        if filter_data.get("scope", None):
+            filter_data["scope"] = filter_data["scope"][0]
             query = query.filter_by(
-                scope=self.Core.Config.ConvertStrToBool(filter_data.get("SCOPE")))
+                scope=self.Core.Config.ConvertStrToBool(filter_data.get("scope")))
         if filter_data.get("HOST_NAME", None):
             if isinstance(filter_data["HOST_NAME"], (str, unicode)):
                 query = query.filter_by(host_name=filter_data["HOST_NAME"])
