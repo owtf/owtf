@@ -124,7 +124,7 @@ function getArray(data) {
       table_array.push([
         obj.plugin.min_time,
         getControlButtons(obj),
-        '<a href="'+mySpace.targets_ui_url+obj.target.ID+'" target="_blank">'+obj.target.TARGET_URL+'</a>',
+        '<a href="'+mySpace.targets_ui_url+obj.target.ID+'" target="_blank">'+obj.target.target_url+'</a>',
         obj.plugin.group,
         (obj.plugin.type).replace(/_/g,' '),
         (obj.plugin.name).replace(/_/g,' '),
@@ -145,7 +145,7 @@ function dummyAjax(data, callback, settings) {
   get_parameters['offset'] = data.start;
 
   var columnMappings = {
-    2: 'TARGET_URL',
+    2: 'target_url',
     3: 'group',
     4: 'type',
     5: 'name',

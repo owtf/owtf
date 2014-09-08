@@ -38,7 +38,7 @@ DESCRIPTION = "Normal requests for XSF analysis"
 def run(Core, PluginInfo):
     URLList = []
     for File in ["crossdomain.xml", "clientaccesspolicy.xml"]:
-        for URL in Core.DB.Target.GetAsList(['TARGET_URL', 'top_url']):
+        for URL in Core.DB.Target.GetAsList(['target_url', 'top_url']):
             URLList.append(URL+"/"+File)  # Compute all URL + File combinations
     # The requester framework component will unique the URLs
     TransactionList = Core.Requester.GetTransactions(True, URLList)

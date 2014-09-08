@@ -148,7 +148,7 @@ function updatePluginReport(){
 function updateTargetInfo(){
     $.getJSON(mySpace.target_api_url, function(obj){
             mySpace.target_config = obj;
-            $('#TargetInfo').html(obj.TARGET_URL+'<small> ('+obj.host_ip+')</small>');
+            $('#TargetInfo').html(obj.target_url+'<small> ('+obj.host_ip+')</small>');
             });
 }
 

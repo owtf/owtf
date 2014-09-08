@@ -97,7 +97,7 @@ function displayWorkersInfo(){
                         html += '<div class="panel-body">';
                         html += '<p><strong>PID:</strong> '+obj.worker+'</p>';
                         if (obj.work.length > 0){
-                            html += '<p><strong>Target:</strong> <a href="'+mySpace.targets_ui_url+obj.work[0]["id"]+'">'+obj.work[0].TARGET_URL+'</a></p>';
+                            html += '<p><strong>Target:</strong> <a href="'+mySpace.targets_ui_url+obj.work[0]["id"]+'">'+obj.work[0].target_url+'</a></p>';
                             html += '<p><strong>Plugin:</strong> '+obj.work[1].title+'</p>';
                             html += '<p><strong>Type:</strong> '+obj.work[1].type.replace('_',' ')+'</p>';
                             html += '<p><strong>Group:</strong> '+obj.work[1].group+'</p>';

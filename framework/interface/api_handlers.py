@@ -55,11 +55,11 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
     def post(self, target_id=None):
-        if (target_id) or (not self.get_argument("TARGET_URL", default=None)):  # How can one post using an id xD
+        if (target_id) or (not self.get_argument("target_url", default=None)):  # How can one post using an id xD
             raise tornado.web.HTTPError(400)
         try:
             self.application.Core.DB.Target.AddTargets(
-                dict(self.request.arguments)["TARGET_URL"])
+                dict(self.request.arguments)["target_url"])
             self.set_status(201)  # Stands for "201 Created"
         except exceptions.DBIntegrityException as e:
             cprint(e.parameter)

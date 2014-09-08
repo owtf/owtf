@@ -45,11 +45,11 @@ class WorklistManager(object):
         query = self.Core.DB.session.query(models.Work).join(
             models.Target).join(models.Plugin).order_by(models.Work.id)
         if criteria.get('search', None):
-            if criteria.get('TARGET_URL', None):
-                if isinstance(criteria.get('TARGET_URL'), list):
-                    criteria['TARGET_URL'] = criteria['TARGET_URL'][0]
+            if criteria.get('target_url', None):
+                if isinstance(criteria.get('target_url'), list):
+                    criteria['target_url'] = criteria['target_url'][0]
                 query = query.filter(models.Target.target_url.like(
-                    '%'+criteria['TARGET_URL']+'%'))
+                    '%'+criteria['target_url']+'%'))
             if criteria.get('type', None):
                 if isinstance(criteria.get('type'), list):
                     criteria['type'] = criteria['type'][0]

@@ -14,7 +14,7 @@ from framework.lib.general import cprint  # TODO: Shift to logging
 
 TARGET_CONFIG = {
     'id': 0,
-    'TARGET_URL': '',
+    'target_url': '',
     'host_name': '',
     'host_path': '',
     'url_scheme': '',
@@ -86,7 +86,7 @@ class TargetDB(object):
             target_config['port_number'])
         # Set the URL output directory (plugins will save their data here).
         path_config['url_output'] = os.path.join(
-            self.Core.Config.GetOutputDirForTarget(target_config['TARGET_URL']))
+            self.Core.Config.GetOutputDirForTarget(target_config['target_url']))
         # Set the partial results path.
         path_config['partial_url_output_path'] = os.path.join(
             path_config['url_output'],
@@ -97,10 +97,10 @@ class TargetDB(object):
         return self.TargetID
 
     def GetTargetURL(self):
-        return self.Get("TARGET_URL")
+        return self.Get("target_url")
 
     def GetTargetURLs(self):
-        return self.GetAll("TARGET_URL")
+        return self.GetAll("target_url")
 
     def GetIndexedTargets(self):
         results = self.Core.DB.session.query(
@@ -228,12 +228,12 @@ class TargetDB(object):
             filter_data = {}
         query = self.Core.DB.session.query(models.Target).filter(
             models.Target.sessions.any(id=session_id))
-        if filter_data.get("TARGET_URL", None):
-            if isinstance(filter_data["TARGET_URL"], (str, unicode)):
-                query = query.filter_by(target_url=filter_data["TARGET_URL"])
-            if isinstance(filter_data["TARGET_URL"], list):
+        if filter_data.get("target_url", None):
+            if isinstance(filter_data["target_url"], (str, unicode)):
+                query = query.filter_by(target_url=filter_data["target_url"])
+            if isinstance(filter_data["target_url"], list):
                 query = query.filter(models.Target.target_url.in_(
-                    filter_data.get("TARGET_URL")))
+                    filter_data.get("target_url")))
         if filter_data.get("host_ip", None):
             if isinstance(filter_data["host_ip"], (str, unicode)):
                 query = query.filter_by(host_ip=filter_data["host_ip"])

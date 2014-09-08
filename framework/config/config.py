@@ -194,7 +194,7 @@ class Config(object):
     def DeriveConfigFromURL(self, target_URL):
         target_config = dict(target_manager.TARGET_CONFIG)
         # Set the target in the config.
-        target_config['TARGET_URL'] = target_URL
+        target_config['target_url'] = target_URL
         # TODO: Use urlparse here.
         parsed_URL = urlparse(target_URL)
         URL_scheme = parsed_URL.scheme
@@ -221,7 +221,7 @@ class Config(object):
         target_config['host_ip'] = host_IP
         target_config['alternative_ips'] = host_IPs
 
-        ip_url = target_config['TARGET_URL'].replace(host, host_IP)
+        ip_url = target_config['target_url'].replace(host, host_IP)
         target_config['ip_url'] = ip_url
         target_config['top_domain'] = target_config['host_name']
 

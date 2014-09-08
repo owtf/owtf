@@ -247,7 +247,7 @@ function addTargets(data, status, xhr){
         actionButtons += '<button class="btn btn-xs btn-danger" onclick="deleteTarget('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Delete target from everywhere">';
         actionButtons += '<i class="fa fa-times"></i></button>';
         actionButtons += '</div>';
-        target_string = '<a href="'+mySpace.targets_ui_url+obj.id+'">'+obj.TARGET_URL+' ('+obj.host_ip+') </a> ';
+        target_string = '<a href="'+mySpace.targets_ui_url+obj.id+'">'+obj.target_url+' ('+obj.host_ip+') </a> ';
         max_rank = Math.max(obj.max_user_rank, obj.max_owtf_rank)
         if (max_rank != -1) {
             target_string += getLabel(max_rank);
@@ -312,7 +312,7 @@ function newTargets(targetUrlsString, button) {
     $.ajax({
             url:mySpace.targets_api_url,
             type:'POST',
-            data:$.param({'TARGET_URL':targetUrls}, true),
+            data:$.param({'target_url':targetUrls}, true),
             success: function() {
                 updateTargets();
                 enableInput("#addTargetBtn");
