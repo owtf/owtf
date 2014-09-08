@@ -62,7 +62,7 @@ class Config(object):
         self.initialize_attributes()
         # key can consist alphabets, numbers, hyphen & underscore.
         self.SearchRegex = re.compile(
-            REPLACEMENT_DELIMITER + '([A-Z0-9-_]*?)' + REPLACEMENT_DELIMITER)
+            REPLACEMENT_DELIMITER + '([a-zA-Z0-9-_]*?)' + REPLACEMENT_DELIMITER)
         # Available profiles = g -> General configuration, n -> Network plugin
         # order, w -> Web plugin order, r -> Resources file
         self.LoadFrameworkConfigFromFile(os.path.join(
@@ -223,12 +223,12 @@ class Config(object):
 
         ip_url = target_config['TARGET_URL'].replace(host, host_IP)
         target_config['ip_url'] = ip_url
-        target_config['TOP_DOMAIN'] = target_config['HOST_NAME']
+        target_config['top_domain'] = target_config['HOST_NAME']
 
         hostname_chunks = target_config['HOST_NAME'].split('.')
         if self.IsHostNameNOTIP(host, host_IP) and len(hostname_chunks) > 2:
             # Get "example.com" from "www.example.com"
-            target_config['TOP_DOMAIN'] = '.'.join(hostname_chunks[1:])
+            target_config['top_domain'] = '.'.join(hostname_chunks[1:])
         # Set the top URL.
         target_config['TOP_URL'] = protocol + "://" + host + ":" + port
         return target_config
