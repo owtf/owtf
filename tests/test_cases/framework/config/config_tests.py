@@ -112,7 +112,7 @@ class ConfigTests(BaseTestCase):
         assert_that(config_property_is_defined("PORT_NUMBER"))
         assert_that(config_property_is_defined("HOST_NAME"))
         assert_that(config_property_is_defined("HOST_IP"))
-        assert_that(config_property_is_defined("IP_URL"))
+        assert_that(config_property_is_defined("ip_url"))
         assert_that(config_property_is_defined("TOP_DOMAIN"))
 
     def test_DeriveOutputSettingsFromURL_sets_output_settings(self):

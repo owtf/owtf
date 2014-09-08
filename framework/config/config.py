@@ -221,8 +221,8 @@ class Config(object):
         target_config['HOST_IP'] = host_IP
         target_config['alternative_ips'] = host_IPs
 
-        IP_URL = target_config['TARGET_URL'].replace(host, host_IP)
-        target_config['IP_URL'] = IP_URL
+        ip_url = target_config['TARGET_URL'].replace(host, host_IP)
+        target_config['ip_url'] = ip_url
         target_config['TOP_DOMAIN'] = target_config['HOST_NAME']
 
         hostname_chunks = target_config['HOST_NAME'].split('.')
