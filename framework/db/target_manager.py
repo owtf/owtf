@@ -30,7 +30,7 @@ TARGET_CONFIG = {
 }
 
 PATH_CONFIG = {
-    'PARTIAL_URL_OUTPUT_PATH': '',
+    'partial_url_output_path': '',
     'HOST_OUTPUT': '',
     'PORT_OUTPUT': '',
     'URL_OUTPUT': '',
@@ -88,7 +88,7 @@ class TargetDB(object):
         path_config['URL_OUTPUT'] = os.path.join(
             self.Core.Config.GetOutputDirForTarget(target_config['TARGET_URL']))
         # Set the partial results path.
-        path_config['PARTIAL_URL_OUTPUT_PATH'] = os.path.join(
+        path_config['partial_url_output_path'] = os.path.join(
             path_config['URL_OUTPUT'],
             'partial')
         return path_config

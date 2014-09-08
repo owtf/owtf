@@ -170,9 +170,9 @@ class PluginHandler:
             return(os.path.join(self.Core.Config.GetOutputDirForTargets(), RelativePath))
 
         def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
-            #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.Core.Config.Get('TARGET')
+            #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('partial_url_output_path'))+", TARGET="+self.Core.Config.Get('TARGET')
             if ((Plugin['group'] == 'web') or (Plugin['group'] == 'net')):
-                return os.path.join(self.Core.DB.Target.GetPath('PARTIAL_URL_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
+                return os.path.join(self.Core.DB.Target.GetPath('partial_url_output_path'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
             elif Plugin['group'] == 'aux':
                 return os.path.join(self.Core.Config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
 

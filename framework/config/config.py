@@ -248,10 +248,10 @@ class Config(object):
             'URL_OUTPUT',
             self.Get('PORT_OUTPUT') + "/" + URL_info_ID + "/")
         # Set the partial results path.
-        self.Set('PARTIAL_URL_OUTPUT_PATH', self.Get('URL_OUTPUT')+'partial')
+        self.Set('partial_url_output_path', self.Get('URL_OUTPUT')+'partial')
         self.Set(
             'PARTIAL_REPORT_REGISTER',
-            self.Get('PARTIAL_URL_OUTPUT_PATH') + "/partial_report_register.txt")
+            self.Get('partial_url_output_path') + "/partial_report_register.txt")
 
         # Tested in FF 8: Different directory = Different localStorage!! -> All
         # localStorage-dependent reports must be on the same directory.

@@ -124,7 +124,7 @@ class ConfigTests(BaseTestCase):
         assert_that(config_property_is_defined("HOST_OUTPUT"))
         assert_that(config_property_is_defined("PORT_OUTPUT"))
         assert_that(config_property_is_defined("URL_OUTPUT"))
-        assert_that(config_property_is_defined("PARTIAL_URL_OUTPUT_PATH"))
+        assert_that(config_property_is_defined("partial_url_output_path"))
         assert_that(config_property_is_defined("PARTIAL_REPORT_REGISTER"))
         assert_that(config_property_is_defined("HTML_DETAILED_REPORT_PATH"))
         assert_that(config_property_is_defined("URL_REPORT_LINK_PATH"))
