@@ -68,8 +68,8 @@
         var div = $(selector);
         // Get all the position related stuff
         pos = $.extend({
-           width: div.outerWidth(),
-           height: div.outerHeight()
+           width: div.outerWidth(true), // true to include margin
+           height: div.outerHeight(true)
         }, div.position());
         // Add overlay
         var overlayDiv = $('<div>', {

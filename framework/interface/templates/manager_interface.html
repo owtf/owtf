@@ -24,16 +24,19 @@ var mySpace = {
 
 // Abort worker with id using API
 function abortWorker(workerId){
+    addOverlay('#worker_'+workerId); // just add overlay the worker info refresh will auto. remove it
     $.get(mySpace.workers_api_url+workerId+'/abort');
 }
 
 // Pause worker with id using API
 function pauseWorker(workerId){
+    addOverlay('#worker_'+workerId); // just add overlay the worker info refresh will auto. remove it
     $.get(mySpace.workers_api_url+workerId+'/pause');
 }
 
 // Resume worker with id using API
 function resumeWorker(workerId){
+    addOverlay('#worker_'+workerId); // just add overlay the worker info refresh will auto. remove it
     $.get(mySpace.workers_api_url+workerId+'/resume');
 }
 
@@ -85,14 +88,14 @@ function displayWorkersInfo(){
                             $('#workersInfo').append('<div class="row-fluid">');
 
                         html = '<div class="span5 panel ';
-                        if (obj.busy){
+                        if (obj.busy && !obj.paused){
                             html += 'panel-primary"';
                         }else if (obj.paused){
                             html += 'panel-info"';
                         }else{
                             html += 'panel-default"';
                         }
-                        html += ' id="'+obj.id+'">';
+                        html += ' id="worker_'+obj.id+'">';
                         html += '<div class="panel-heading"><h3 class="panel-title">Worker '+obj.id+getControlButtons(obj)+'</h3></div>';
                         html += '<div class="panel-body">';
                         html += '<p><strong>PID:</strong> '+obj.worker+'</p>';

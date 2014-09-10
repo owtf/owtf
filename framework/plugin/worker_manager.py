@@ -33,6 +33,7 @@ import os
 import sys
 import time
 import signal
+import subprocess
 import logging
 import multiprocessing
 from framework.lib.owtf_process import OWTFProcess
@@ -164,7 +165,7 @@ class WorkerManager(object):
             # Check if process is doing some work
             if item["busy"]:
                 if item["paused"]:
-                    self.signal_process(item["worker"].pid, signal.SIGCONT)
+                    self._signal_process(item["worker"].pid, signal.SIGCONT)
                 trash = item["worker"].output_q.get()
                 item["busy"] = False
                 item["work"] = ()
@@ -192,9 +193,9 @@ class WorkerManager(object):
             work = item["work"]
             if work == ():
                 continue
-            self.signal_process(item["worker"].pid, signal.SIGINT)
+            self._signal_process(item["worker"].pid, signal.SIGINT)
 
-    def signal_process(self, pid, psignal):
+    def _signal_process(self, pid, psignal):
         """
         This function kills all children of a process and abort that process
         """
@@ -210,15 +211,18 @@ class WorkerManager(object):
                 "Error while trying to abort Worker process",
                 exc_info=True)
 
-    def stop_target(self, target_id):
-        """
-        This function itrates over pending list and removes the tuple
-        having target as selected one
-        """
-        for target, plugin in self.worklist:
-            if target == target1:
-                self.worklist.remove((target, plugin))
-        self.abort_worker(item["worker"].pid)
+    def _signal_children(self, parent_pid, psignal):
+        ps_command = subprocess.Popen(
+            "ps -o pid --ppid %d --noheaders" % parent_pid,
+            shell=True,
+            stdout=subprocess.PIPE)
+        ps_output = ps_command.stdout.read()
+        for pid_str in ps_output.split("\n")[:-1]:
+            self._signal_children(int(pid_str), psignal)
+            try:
+                os.kill(int(pid_str), psignal)
+            except Exception:
+                logging.error("Error while trying to signal", exc_info=True)
 
 # --------------------------- API Methods ---------------------------- #
 # PSEUDO_INDEX = INDEX + 1
@@ -264,7 +268,7 @@ class WorkerManager(object):
         """
         worker_dict = self.get_worker_dict(pseudo_index)
         if not worker_dict["busy"]:
-            self.signal_process(worker_dict["worker"].pid, signal.SIGINT)
+            self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
             del self.workers[pseudo_index-1]
         else:
             raise InvalidWorkerReference(
@@ -276,7 +280,8 @@ class WorkerManager(object):
         """
         worker_dict = self.get_worker_dict(pseudo_index)
         if not worker_dict["paused"]:
-            self.signal_process(worker_dict["worker"].pid, signal.SIGSTOP)
+            self._signal_children(worker_dict["worker"].pid, signal.SIGSTOP)
+            self._signal_process(worker_dict["worker"].pid, signal.SIGSTOP)
             worker_dict["paused"] = True
 
     def resume_worker(self, pseudo_index):
@@ -285,7 +290,8 @@ class WorkerManager(object):
         """
         worker_dict = self.get_worker_dict(pseudo_index)
         if worker_dict["paused"]:
-            self.signal_process(worker_dict["worker"].pid, signal.SIGCONT)
+            self._signal_children(worker_dict["worker"].pid, signal.SIGCONT)
+            self._signal_process(worker_dict["worker"].pid, signal.SIGCONT)
             worker_dict["paused"] = False
 
     def abort_worker(self, pseudo_index):
@@ -294,4 +300,6 @@ class WorkerManager(object):
         removed, so manager_cron will restart it
         """
         worker_dict = self.get_worker_dict(pseudo_index)
-        self.signal_process(worker_dict["worker"].pid, signal.SIGINT)
+        # You only send SIGINT to worker since it will handle it more
+        # gracefully and kick the command process's ***
+        self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
