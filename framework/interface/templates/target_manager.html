@@ -55,9 +55,9 @@
                 <table id='targetTable' class="table table-striped table-condensed">
                     <thead>
                         <tr>
-                            <td><input type="checkbox" id="targetTableSelectAllCheckbox" onclick="toggleAll(this);"/></td>
-                            <td>Target</td>
-                            <td>Actions</td>
+                            <th><input type="checkbox" id="targetTableSelectAllCheckbox" onclick="toggleAll(this);"/></th>
+                            <th class="textSearch">Target</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -107,6 +107,7 @@
 var mySpace = {
                     owtf_sessions_api_url:"{{ owtf_sessions_api_url }}",
                     targets_api_url:"{{ targets_api_url }}",
+                    targets_search_api_url:"{{ targets_search_api_url }}",
                     targets_ui_url:"{{ targets_ui_url }}",
                     plugins_api_url:"{{ plugins_api_url }}?group=web&group=net",
                     worklist_api_url:"{{ worklist_api_url }}"
@@ -157,7 +158,7 @@ function removeTargetFromCurrentSession(target_id) {
     $.ajax({url:mySpace.owtf_sessions_api_url+session_id+'/remove',
         type:'PATCH',
         data:{'target_id':target_id},
-        success: updateTargets,
+        success: updateCurrentSessionInfo,
         error:function(xhr, textStatus, serverResponse){
             alertFail("Server replied: "+serverResponse);
             }
@@ -171,7 +172,7 @@ function newSession(session_name) {
                 url:mySpace.owtf_sessions_api_url,
                 type:'POST',
                 data:{name:session_name},
-                success: function() { updateSessions(); updateTargets(); },
+                success: function() { updateSessions(); updateCurrentSessionInfo(); },
                 error:function(xhr, textStatus, serverResponse){
                     alertFail("Unable to add "+session_name);
                     }
@@ -184,7 +185,7 @@ function deleteSession(session_id) {
     $.ajax({
             url:mySpace.owtf_sessions_api_url+session_id,
             type:'DELETE',
-            success: function() { updateSessions(); updateTargets(); },
+            success: function() { updateSessions(); updateCurrentSessionInfo(); },
             error:function(xhr, textStatus, serverResponse){
                 alertFail("Server replied: "+serverResponse);
                 }
@@ -195,7 +196,7 @@ function deleteSession(session_id) {
 function activateSession(session_id) {
     $.ajax({url:mySpace.owtf_sessions_api_url+session_id+'/activate',
         type:'PATCH',
-        success: updateTargets,
+        success: updateCurrentSessionInfo,
         error:function(xhr, textStatus, serverResponse){
             alertFail("Server replied: "+serverResponse);
             }
@@ -225,7 +226,7 @@ function updateSessions() {
 // get label color for target rating
 function getLabel(level) {
     if (level == 1)
-        return "<span class='label label-success' style='margin-bottom: 0px'>Info</span>";
+        return "<span class='label label-success' style='text'>Info</span>";
     else if (level == 2)
         return "<span class='label label-info' style='margin-bottom: 0px'>Low</span>";
     else if (level == 3)
@@ -238,38 +239,32 @@ function getLabel(level) {
 }
 
 // Function that adds targets to the target list(table infact)
-function addTargets(data, status, xhr){
-    jQuery('#targetTable').dataTable().fnClearTable();
-    $.each(data, function(index, obj){
-        actionButtons = '<div class="btn-group">';
-        actionButtons += '<button class="btn btn-xs btn-warning" onclick="removeTargetFromCurrentSession('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Remove target from this session">';
-        actionButtons += '<i class="fa fa-minus"></i></button>';
-        actionButtons += '<button class="btn btn-xs btn-danger" onclick="deleteTarget('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Delete target from everywhere">';
-        actionButtons += '<i class="fa fa-times"></i></button>';
-        actionButtons += '</div>';
-        target_string = '<a href="'+mySpace.targets_ui_url+obj.id+'">'+obj.target_url+' ('+obj.host_ip+') </a> ';
-        max_rank = Math.max(obj.max_user_rank, obj.max_owtf_rank)
-        if (max_rank != -1) {
-            target_string += getLabel(max_rank);
-        }
-        jQuery('#targetTable').dataTable().fnAddData([
-            '<input type="checkbox" target-id="'+obj.id+'"/>',
-            target_string,
-            actionButtons,
-        ]);
-    });
+function getActionButtons(obj){
+    var actionButtons = '<div class="btn-group">';
+    actionButtons += '<button class="btn btn-xs btn-warning" onclick="removeTargetFromCurrentSession('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Remove target from this session">';
+    actionButtons += '<i class="fa fa-minus"></i></button>';
+    actionButtons += '<button class="btn btn-xs btn-danger" onclick="deleteTarget('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Delete target from everywhere">';
+    actionButtons += '<i class="fa fa-times"></i></button>';
+    actionButtons += '</div>';
+    return(actionButtons);
+}
+
+function getSeverityLabel(obj) {
+    max_rank = Math.max(obj.max_user_rank, obj.max_owtf_rank)
+    return getLabel(max_rank);
 }
 
 // Function used to update targets in the list, useful when new targets are added so that table can be updated
 // First update session info and then targets
-function updateTargets(){
+function updateCurrentSessionInfo(){
     $.getJSON(mySpace.owtf_sessions_api_url+'?active=true', function(data) {
         $.each(data, function(index, obj) {
             $('#sessionName').val(obj.name);
             $('#sessionId').val(obj.id);
         });
     });
-    $.getJSON( mySpace.targets_api_url, addTargets);
+    // Update targets as well
+    $('#targetTable').dataTable().fnDraw(true);
 }
 
 // Delete target with id using API
@@ -277,7 +272,7 @@ function deleteTarget(target_id) {
     $.ajax({
             url:mySpace.targets_api_url+target_id,
             type:'DELETE',
-            success:updateTargets,
+            success:updateCurrentSessionInfo,
             error:function(xhr, textStatus, serverResponse){
                 alertFail("Server replied: "+serverResponse);
                 }
@@ -314,7 +309,7 @@ function newTargets(targetUrlsString, button) {
             type:'POST',
             data:$.param({'target_url':targetUrls}, true),
             success: function() {
-                updateTargets();
+                updateCurrentSessionInfo();
                 enableInput("#addTargetBtn");
             },
             error:function(xhr, textStatus, serverResponse) {
@@ -324,15 +319,49 @@ function newTargets(targetUrlsString, button) {
     });
 }
 
-// The target list table has to be initialized first
-$(document).ready(function() {
+function getArray(data) {
+    var table_array = [];
+    $.each(data, function(index, obj){
+      table_array.push([
+        '<input type="checkbox" target-id="'+obj.id+'"/>',
+        '<a href="'+mySpace.targets_ui_url+obj.id+'">'+obj.target_url+' ('+obj.host_ip+') </a> '+getSeverityLabel(obj),
+        getActionButtons(obj)
+      ]);
+    });
+    return(table_array);
+}
+
+function dummyAjax(data, callback, settings) {
+  // This function takes care of converting dataTable data into owtf api
+  // and then the response back to dataTables type
+  var get_parameters = {};
+  var draw = data.draw;
+  get_parameters['limit'] = data.length;
+  get_parameters['offset'] = data.start;
+  if (data.search.value) {
+    get_parameters['target_url'] = data.search.value;
+  }
+
+  $.getJSON(mySpace.targets_search_api_url+'?'+$.param(get_parameters, true), function (responseData) {
+    // Remove the spinner once we have the response, since dataTables takes very less time to populate
+    // removeOverlaySpinner('worklistTable');
+    callback({
+      "draw": draw,
+      "recordsTotal": responseData["records_total"],
+      "recordsFiltered": responseData["records_filtered"],
+      "data": getArray(responseData["data"]),
+      "error": null
+    });
+  });
+}
+
+function drawTargetTable() {
     // Initialize target table
     $('#targetTable').dataTable({
         "bAutoWidth": false,
-        "columnDefs": [{
-          "targets": [0, 2],
-          "orderable": false
-        }],
+        "bSort": false, // Not yet supported in API, can after shifting to postgres
+        "bServerSide": true,
+        "ajax": dummyAjax,
         "fnDrawCallback": function( settings ) {
             // Managing the "Select all" checkbox
             // everytime the table is drawn, it checks if all the
@@ -347,6 +376,22 @@ $(document).ready(function() {
             $('#targetTableSelectAllCheckbox').prop('checked', allChecked);
         },
     });
+
+    var table = $("#targetTable").dataTable();
+
+    // Override global search of data Tables
+    var search_box = $("div.dataTables_filter input[aria-controls='targetTable']");
+    search_box.unbind();
+    search_box.on("keyup change", function (e) {
+      if (((e.type == "keyup") && (e.keyCode == 13)) || (e.type == "change")) {
+        table.fnFilter(this.value);
+      }
+    });
+}
+
+// The target list table has to be initialized first
+$(document).ready(function() {
+    drawTargetTable();
     // Initialize session table but donot populate until modal is opened
     $('#sessionTable').dataTable({
         "bAutoWidth": false,
@@ -359,8 +404,7 @@ $(document).ready(function() {
     $('#sessionModal').on('show.bs.modal', function (e) {
         updateSessions();
     });
-    // Update targets
-    updateTargets();
+    updateCurrentSessionInfo()
 });
 </script>
 {% end %}

@@ -120,6 +120,7 @@ class TargetManager(custom_handlers.UIRequestHandler):
             self.render("target_manager.html",
                         owtf_sessions_api_url=self.reverse_url('owtf_sessions_api_url', None, None),
                         targets_api_url=self.reverse_url('targets_api_url', None),
+                        targets_search_api_url=self.reverse_url('targets_search_api_url'),
                         targets_ui_url=self.reverse_url('targets_ui_url', None),
                         plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
                         worklist_api_url=self.reverse_url('worklist_api_url', None, None)
