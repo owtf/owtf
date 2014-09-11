@@ -416,10 +416,12 @@ class Core(object):
         """
         This method starts the interface server
         """
+        self.FileServer = server.FileServer(self)
+        self.FileServer.start()
         self.InterfaceServer = server.InterfaceServer(self)
         logging.info(
             "Interface Server started. Visit http://%s:%s",
-            self.Config.FrameworkConfigGet("UI_SERVER_ADDR"),
+            self.Config.FrameworkConfigGet("SERVER_ADDR"),
             self.Config.FrameworkConfigGet("UI_SERVER_PORT"))
         self.disable_console_logging()
         logging.info("Press Ctrl+C when you spawned a shell ;)")
