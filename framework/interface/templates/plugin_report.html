@@ -71,7 +71,7 @@
                                         {% if poutput['output_path'] %}
                                             <th> OUTPUT FILES </th>
                                         {% end %}
-                                        <th> DELETE </th>
+                                        <th> ACTIONS </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -97,9 +97,14 @@
                                             <td><a href="/output_files/{{ poutput['output_path'] }}/" target="_blank" class="btn btn-primary">Browse</a></td>
                                         {% end %}
                                         <td>
-                                            <button onclick="deletePluginOutput('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}');" class="btn btn-danger">
-                                                <i class="fa fa-times"></i>
-                                            </button>
+                                            <div class="btn-group">
+                                                <button onclick="reRunPlugin('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}');" class="btn btn-success" data-toggle="tooltip" data-placement="bottom" title="Rerun plugin">
+                                                    <i class="fa fa-refresh"></i>
+                                                </button>
+                                                <button onclick="deletePluginOutput('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}');" class="btn btn-danger" data-toggle="tooltip" data-placement="bottom" title="Delete plugin output">
+                                                    <i class="fa fa-times"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                     <tr>
@@ -176,6 +181,20 @@ function patchUserRank(group, type, code, user_rank){
             });
     /* Update the user-local copy. */
     copyPOutputs[code][type].user_rank = user_rank;
+}
+
+function reRunPlugin(group, type, code) {
+    $.ajax({url:pluginReportSpace.poutput_api_url+group+'/'+type+'/'+code,
+        type:'DELETE',
+        success: function() {
+            //postToWorkList & updatePluginReport are obtained from target.html
+            postToWorkList({"code":code, "group":group, "type":type});
+            updatePluginReport();
+        },
+        error: function(xhr, textStatus, serverResponse) {
+            alertFail("Server replied: "+serverResponse);
+        }
+    });
 }
 
 function deletePluginOutput(group, type, code){
