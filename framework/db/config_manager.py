@@ -1,14 +1,21 @@
+from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib.exceptions import InvalidConfigurationReference
 from framework.db import models
 from framework.lib.general import cprint
 import ConfigParser
 
 
-class ConfigDB(object):
+class ConfigDB(BaseComponent):
+
+    COMPONENT_NAME = "db_config"
+
     def __init__(self, Core):
+        self.register_in_service_locator()
         self.Core = Core
-        self.ConfigDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("CONFIG_DB_PATH"), models.GeneralBase)
-        self.LoadConfigDBFromFile(self.Core.Config.FrameworkConfigGet('DEFAULT_GENERAL_PROFILE'))
+        self.config = self.Core.Config
+        self.db = self.Core.DB
+        self.ConfigDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("CONFIG_DB_PATH"), models.GeneralBase)
+        self.LoadConfigDBFromFile(self.config.FrameworkConfigGet('DEFAULT_GENERAL_PROFILE'))
 
     def IsConvertable(self, value, conv):
         try:
@@ -41,7 +48,7 @@ class ConfigDB(object):
         obj = session.query(models.ConfigSetting).get(Key)
         session.close()
         if obj:
-            return(self.Core.Config.MultipleReplace(obj.value, self.Core.Config.GetReplacementDict()))
+            return(self.config.MultipleReplace(obj.value, self.config.GetReplacementDict()))
         else:
             return(None)
 
@@ -75,7 +82,7 @@ class ConfigDB(object):
         if criteria.get('dirty', None):
             if isinstance(criteria.get('dirty'), list):
                 criteria['dirty'] = criteria['dirty'][0]
-            query = query.filter_by(dirty=self.Core.Config.ConvertStrToBool(criteria['dirty']))
+            query = query.filter_by(dirty=self.config.ConvertStrToBool(criteria['dirty']))
         return query
 
     def GetAll(self, criteria=None):

@@ -1,13 +1,22 @@
 from framework.db import models
 from framework.config import config
+from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib.general import cprint
 import os
 
-class ResourceDB(object):
+class ResourceDB(BaseComponent):
+
+    COMPONENT_NAME = "resource"
+
     def __init__(self, Core):
+        self.register_in_service_locator()
         self.Core = Core
-        self.ResourceDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("RESOURCE_DB_PATH"), models.ResourceBase)
-        self.LoadResourceDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE"))
+        self.config = self.Core.Config
+        self.db_config = self.Core.DB.Config
+        self.target = self.Core.DB.Target
+        self.db = self.Core.DB
+        self.ResourceDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("RESOURCE_DB_PATH"), models.ResourceBase)
+        self.LoadResourceDBFromFile(self.config.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE"))
 
     def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         cprint("Loading Resources from: " + file_path + " ..")
@@ -36,9 +45,9 @@ class ResourceDB(object):
         return resources
 
     def GetReplacementDict(self):
-        configuration = self.Core.DB.Config.GetReplacementDict()
-        configuration.update(self.Core.DB.Target.GetTargetConfig())
-        configuration.update(self.Core.Config.GetReplacementDict())
+        configuration = self.db_config.GetReplacementDict()
+        configuration.update(self.target.GetTargetConfig())
+        configuration.update(self.config.GetReplacementDict())
         return configuration
 
     def GetRawResources(self, ResourceType):
@@ -55,7 +64,7 @@ class ResourceDB(object):
         raw_resources = self.GetRawResources(ResourceType)
         resources = []
         for name, resource in raw_resources:
-            resources.append([name, self.Core.Config.MultipleReplace(resource, replacement_dict)])
+            resources.append([name, self.config.MultipleReplace(resource, replacement_dict)])
         return resources
 
     def GetRawResourceList(self, ResourceList):
@@ -69,6 +78,6 @@ class ResourceDB(object):
         raw_resources = self.GetRawResourceList(ResourceTypeList)
         resources = []
         for name, resource in raw_resources:
-            resources.append([name, self.Core.Config.MultipleReplace(resource, replacement_dict)])
+            resources.append([name, self.config.MultipleReplace(resource, replacement_dict)])
         return resources
 

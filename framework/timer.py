@@ -34,14 +34,19 @@ human-readable form.
 """
 
 import time
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 
-class Timer(object):
+class Timer(BaseComponent):
+
+    COMPONENT_NAME = "timer"
+
     # Dictionary of Timers, Several timers can be set at any given point in
     # time.
     Time = {}
 
     def __init__(self, datetime_format="%d/%m/%Y-%H:%M"):
+        self.register_in_service_locator()
         self.DateTimeFormat = datetime_format
 
     def StartTimer(self, offSet='0'):

@@ -2,14 +2,21 @@ import subprocess
 import os.path
 from os import listdir
 from os.path import isfile, join
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 
-class Zest(object):
+class Zest(BaseComponent):
+
+    COMPONENT_NAME = "zest"
+
 #basic initialization of Root,Output,Zest Directories from target config
 
     def __init__(self, core):
+        self.register_in_service_locator()
         self.Core = core
         self.recordedTransactions = []  # keeps track of recorded transactions
+
+    def init(self):
         self.StopRecorder()  # recorded should be stopped when OWTF starts
 
 # Script creation from single transaction

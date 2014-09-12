@@ -30,11 +30,19 @@ Component to handle data storage and search of all errors
 '''
 
 from framework.db import models
+from framework.dependency_management.dependency_resolver import BaseComponent
 
-class ErrorDB(object):
+
+class ErrorDB(BaseComponent):
+
+    COMPONENT_NAME = "db_error"
+
     def __init__(self, Core):
+        self.register_in_service_locator()
         self.Core = Core
-        self.ErrorDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.RegisterBase)
+        self.db = self.Core.DB
+        self.config = self.Core.Config
+        self.ErrorDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.RegisterBase)
 
     def Add(self, Message, Trace):
         print(Trace)

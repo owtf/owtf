@@ -39,6 +39,7 @@ import socket
 
 from urlparse import urlparse
 from collections import defaultdict
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 from framework.lib.exceptions import PluginAbortException, \
                                      DBIntegrityException, \
@@ -53,12 +54,20 @@ REPLACEMENT_DELIMITER_LENGTH = len(REPLACEMENT_DELIMITER)
 CONFIG_TYPES = [ 'string', 'other' ]
 
 
-class Config(object):
+class Config(BaseComponent):
+
+    COMPONENT_NAME = "config"
+
     Target = None
     def __init__(self, root_dir, owtf_pid, core):
+        self.register_in_service_locator()
         self.RootDir = root_dir
         self.OwtfPid = owtf_pid
         self.Core = core
+        self.resource = None
+        self.error_handler = None
+        self.target = None
+        self.Config = None
         self.initialize_attributes()
         # key can consist alphabets, numbers, hyphen & underscore.
         self.SearchRegex = re.compile(
@@ -70,6 +79,11 @@ class Config(object):
             'framework',
             'config',
             'framework_config.cfg'))
+
+    def init(self):
+        self.resource = self.Core.DB.Resource
+        self.error_handler = self.Core.Error
+        self.target = self.Core.DB.Target
 
     def initialize_attributes(self):
         self.Config = defaultdict(list)  # General configuration information.
@@ -100,7 +114,7 @@ class Config(object):
                         )
                     )
             except ValueError:
-                self.Core.Error.FrameworkAbort(
+                self.error_handler.FrameworkAbort(
                     "Problem in config file: '" + config_path +
                     "' -> Cannot parse line: " + line)
 
@@ -122,7 +136,7 @@ class Config(object):
         scope = self.PrepareURLScope(options['Scope'], options['PluginGroup'])
         for target in scope:
             try:
-                self.Core.DB.Target.AddTarget(target)
+                self.target.AddTarget(target)
             except DBIntegrityException:
                 cprint(target + " already exists in DB")
             except UnresolvableTargetException as e:
@@ -183,10 +197,10 @@ class Config(object):
 
     def GetResources(self, resource_type):
         """Replace the resources placeholders with the relevant config."""
-        return self.Core.DB.Resource.GetResources(resource_type)
+        return self.resource.GetResources(resource_type)
 
     def GetResourceList(self, resource_type_list):
-        return self.Core.DB.Resource.GetResourceList(resource_type_list)
+        return self.resource.GetResourceList(resource_type_list)
 
     def GetRawResources(self, resource_type):
         return self.Resources[resource_type]
@@ -383,7 +397,7 @@ class Config(object):
             return self.GetKeyValue(key)
         except KeyError:
             message = "The configuration item: '" + key + "' does not exist!"
-            self.Core.Error.Add(message)
+            self.error_handler.Add(message)
             # Raise plugin-level exception to move on to next plugin.
             raise PluginAbortException(message)
 

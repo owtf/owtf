@@ -2,6 +2,7 @@ import os
 import sqlalchemy.exc
 
 from urlparse import urlparse
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 from framework.lib.exceptions import DBIntegrityException, \
                                      InvalidTargetReference, \
@@ -34,7 +35,7 @@ PATH_CONFIG = {
                     'PLUGIN_OUTPUT_DIR' : ''
               }
 
-class TargetDB(object):
+class TargetDB(BaseComponent):
     # All these variables reflect to current target which is referenced by a unique ID
     TargetID = None
     TargetConfig = dict(TARGET_CONFIG)
@@ -43,9 +44,15 @@ class TargetDB(object):
     TransactionDBSession = None
     UrlDBSession = None
 
+    COMPONENT_NAME = "target"
+
     def __init__(self, Core):
+        self.register_in_service_locator()
         self.Core = Core
-        self.TargetConfigDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("TCONFIG_DB_PATH"), models.TargetBase)
+        self.config = self.Core.Config
+        self.command_register = self.Core.DB.CommandRegister
+        self.db = self.Core.DB
+        self.TargetConfigDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("TCONFIG_DB_PATH"), models.TargetBase)
         #self.TargetDBHealthCheck()
 
     def SetTarget(self, target_id):
@@ -61,9 +68,9 @@ class TargetDB(object):
 
     def DerivePathConfig(self, target_config):
         path_config = {}
-        path_config['HOST_OUTPUT'] = os.path.join(self.Core.Config.FrameworkConfigGet('OUTPUT_PATH'), target_config['HOST_IP']) # Set the output directory
+        path_config['HOST_OUTPUT'] = os.path.join(self.config.FrameworkConfigGet('OUTPUT_PATH'), target_config['HOST_IP']) # Set the output directory
         path_config['PORT_OUTPUT'] = os.path.join(path_config['HOST_OUTPUT'], target_config['PORT_NUMBER']) # Set the output directory
-        path_config['URL_OUTPUT'] = os.path.join(self.Core.Config.GetOutputDirForTarget(target_config['TARGET_URL'])) # Set the URL output directory (plugins will save their data here)
+        path_config['URL_OUTPUT'] = os.path.join(self.config.GetOutputDirForTarget(target_config['TARGET_URL'])) # Set the URL output directory (plugins will save their data here)
         path_config['PARTIAL_URL_OUTPUT_PATH'] = os.path.join(path_config['URL_OUTPUT'], 'partial') # Set the partial results path
         return path_config
 
@@ -102,13 +109,13 @@ class TargetDB(object):
         if target_list:
         # If needed inorder to prevent an uninitialized value for target in self.SetTarget(target) few lines later
             for target in target_list:
-                self.Core.DB.Target.CreateMissingDBsForURL(target.target_url)
+                self.CreateMissingDBsForURL(target.target_url)
             self.SetTarget(target.id) # This is to avoid "None" value for the main settings
 
     def AddTarget(self, TargetURL):
         if TargetURL not in self.GetTargetURLs():
         # A try-except can be used here, but then ip-resolution takes time even if target is present
-            target_config = self.Core.Config.DeriveConfigFromURL(TargetURL)
+            target_config = self.config.DeriveConfigFromURL(TargetURL)
             #----------- Target model object creation -----------
             config_obj = models.Target(target_url = TargetURL)
             config_obj.host_name = target_config["HOST_NAME"]
@@ -142,7 +149,7 @@ class TargetDB(object):
         # TODO: Updating all related attributes when one attribute is changed
         for key, value in data.items():
             if key == "IN_CONTEXT":
-                setattr(target_obj, key.lower(), self.Core.Config.ConvertStrToBool(value))
+                setattr(target_obj, key.lower(), self.config.ConvertStrToBool(value))
         session.merge(target_obj)
         session.commit()
         session.close()
@@ -159,15 +166,15 @@ class TargetDB(object):
         target_id = target_obj.id
         session.delete(target_obj)
         session.commit()
-        self.Core.DB.CommandRegister.RemoveForTarget(target_id)
-        self.Core.Config.CleanUpForTarget(target_url)
+        self.command_register.RemoveForTarget(target_id)
+        self.config.CleanUpForTarget(target_url)
         session.close()
 
     def CreateMissingDBsForURL(self, TargetURL):
-        self.Core.Config.CreateOutputDirForTarget(TargetURL)
-        self.Core.DB.EnsureDBWithBase(self.Core.Config.GetTransactionDBPathForTarget(TargetURL), models.TransactionBase)
-        self.Core.DB.EnsureDBWithBase(self.Core.Config.GetUrlDBPathForTarget(TargetURL), models.URLBase)
-        self.Core.DB.EnsureDBWithBase(self.Core.Config.GetOutputDBPathForTarget(TargetURL), models.OutputBase)
+        self.config.CreateOutputDirForTarget(TargetURL)
+        self.db.EnsureDBWithBase(self.config.GetTransactionDBPathForTarget(TargetURL), models.TransactionBase)
+        self.db.EnsureDBWithBase(self.config.GetUrlDBPathForTarget(TargetURL), models.URLBase)
+        self.db.EnsureDBWithBase(self.config.GetOutputDBPathForTarget(TargetURL), models.OutputBase)
 
     def GetTargetURLForID(self, ID):
         session = self.TargetConfigDBSession()
@@ -201,7 +208,7 @@ class TargetDB(object):
                 query = query.filter(models.Target.host_ip.in_(filter_data.get("HOST_IP")))
         if filter_data.get("SCOPE", None):
             filter_data["SCOPE"] = filter_data["SCOPE"][0]
-            query = query.filter_by(scope = self.Core.Config.ConvertStrToBool(filter_data.get("SCOPE")))
+            query = query.filter_by(scope = self.config.ConvertStrToBool(filter_data.get("SCOPE")))
         if filter_data.get("HOST_NAME", None):
             if isinstance(filter_data["HOST_NAME"], (str, unicode)):
                 query = query.filter_by(host_name = filter_data["HOST_NAME"])
@@ -274,13 +281,13 @@ class TargetDB(object):
         return False
 
     def CreateOutputDBSession(self, TargetURL):
-        return(self.Core.DB.CreateSession(self.Core.Config.GetOutputDBPathForTarget(TargetURL)))
+        return(self.db.CreateSession(self.config.GetOutputDBPathForTarget(TargetURL)))
 
     def CreateTransactionDBSession(self, TargetURL):
-        return(self.Core.DB.CreateSession(self.Core.Config.GetTransactionDBPathForTarget(TargetURL)))
+        return(self.db.CreateSession(self.config.GetTransactionDBPathForTarget(TargetURL)))
 
     def CreateUrlDBSession(self, TargetURL):
-        return(self.Core.DB.CreateSession(self.Core.Config.GetUrlDBPathForTarget(TargetURL)))
+        return(self.db.CreateSession(self.config.GetUrlDBPathForTarget(TargetURL)))
 
     def GetOutputDBSession(self, target_id = None):
         if ((not target_id) or (self.TargetID == target_id)):

@@ -38,18 +38,24 @@ import sys
 import cgi
 import json
 import urllib2
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 from framework.lib.exceptions import FrameworkAbortException, \
                                      PluginAbortException
 from framework.lib.general import cprint
 
 
-class ErrorHandler(object):
+class ErrorHandler(BaseComponent):
     Command = ''
     PaddingLength = 100
+    COMPONENT_NAME = "error_handler"
 
     def __init__(self, Core):
+        self.register_in_service_locator()
         self.Core = Core
+        self.db = self.Core.DB
+        self.db_error = self.Core.DB.Error
+        self.config = self.Core.Config
         self.Padding = "\n" + "_" * self.PaddingLength + "\n\n"
         self.SubPadding = "\n" + "*" * self.PaddingLength + "\n"
 
@@ -90,7 +96,7 @@ class ErrorHandler(object):
 
     def LogError(self, message, trace=None):
         try:
-            self.Core.DB.Error.Add(message, trace)  # Log error in the DB.
+            self.db_error.Add(message, trace)  # Log error in the DB.
         except AttributeError:
             cprint("ERROR: DB is not setup yet: cannot log errors to file!")
 
@@ -122,7 +128,7 @@ class ErrorHandler(object):
     def AddGithubIssue(self, title='Bug report from OWTF', info=None, user=None):
         # TODO: Has to be ported to use db and infact add to interface.
         # Once db is implemented, better verbosity will be easy.
-        error_data = self.Core.DB.ErrorData()
+        error_data = self.db.ErrorData()
         for item in error_data:
             if item.startswith('Message'):
                 title = item[len('Message:'):]
@@ -140,10 +146,10 @@ class ErrorHandler(object):
         headers = {
             "Content-Type": "application/json",
             "Authorization":
-                "token " + self.Core.Config.Get("GITHUB_BUG_REPORTER_TOKEN")
+                "token " + self.config.Get("GITHUB_BUG_REPORTER_TOKEN")
             }
         request = urllib2.Request(
-            self.Core.Config.Get("GITHUB_API_ISSUES_URL"),
+            self.config.Get("GITHUB_API_ISSUES_URL"),
             headers=headers,
             data=data)
         response = urllib2.urlopen(request)

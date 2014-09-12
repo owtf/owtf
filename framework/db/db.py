@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This file handles all the database transactions.
 '''
+from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib.general import cprint
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine, event
@@ -46,14 +47,31 @@ def re_fn(regexp, item):
     results = regex.findall(item)
     return results
 
-class DB(object):
+class DB(BaseComponent):
+
+    COMPONENT_NAME = "db"
 
     def __init__(self,CoreObj):
+        self.register_in_service_locator()
         self.Core = CoreObj
-        self.Core.CreateMissingDirs(os.path.join(self.Core.Config.FrameworkConfigGet("OUTPUT_PATH"), self.Core.Config.FrameworkConfigGet("DB_DIR")))
+        self.config = None
+        self.ErrorDBSession = None
+        self.Transaction = None
+        self.URL = None
+        self.Plugin = None
+        self.POutput = None
+        self.Target = None
+        self.Resource = None
+        self.Config = None
+        self.Error = None
+        self.CommandRegister = None
+        self.Mapping = None
+        self.Vulnexp = None
 
     def Init(self):
-        self.ErrorDBSession = self.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.ErrorBase)
+        self.config = self.Core.Config
+        self.Core.CreateMissingDirs(os.path.join(self.config.FrameworkConfigGet("OUTPUT_PATH"), self.config.FrameworkConfigGet("DB_DIR")))
+        self.ErrorDBSession = self.CreateScopedSession(self.config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.ErrorBase)
         self.Transaction = transaction_manager.TransactionManager(self.Core)
         self.URL = url_manager.URLManager(self.Core)
         self.Plugin = plugin_manager.PluginDB(self.Core)
@@ -66,6 +84,9 @@ class DB(object):
         self.Mapping = mapping_manager.MappingDB(self.Core)
         self.Vulnexp = vulnexp_manager.VulnexpDB(self.Core)
         self.DBHealthCheck()
+
+    def get_category(self, plugin_code):
+        return self.Mapping.GetCategory(plugin_code)
 
     def DBHealthCheck(self):
         self.Target.DBHealthCheck()

@@ -3,17 +3,25 @@ import imp
 import json
 from framework.db import models
 from sqlalchemy import or_
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 
 TEST_GROUPS = ['web', 'net', 'aux']
 
 
-class PluginDB(object):
+class PluginDB(BaseComponent):
+    
+    COMPONENT_NAME = "db_plugin"
+    
     def __init__(self, Core):
+        self.register_in_service_locator()
         self.Core = Core
-        self.PluginDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("PLUGIN_DB_PATH"), models.PluginBase)
-        self.LoadWebTestGroups(self.Core.Config.FrameworkConfigGet("WEB_TEST_GROUPS"))
-        self.LoadNetTestGroups(self.Core.Config.FrameworkConfigGet("NET_TEST_GROUPS"))
+        self.config = self.Core.Config
+        self.db = self.Core.DB
+        self.error_handler = self.Core.Error
+        self.PluginDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("PLUGIN_DB_PATH"), models.PluginBase)
+        self.LoadWebTestGroups(self.config.FrameworkConfigGet("WEB_TEST_GROUPS"))
+        self.LoadNetTestGroups(self.config.FrameworkConfigGet("NET_TEST_GROUPS"))
         # After loading the test groups then load the plugins, because of many-to-one relationship
         self.LoadFromFileSystem()  # Load plugins :P
 
@@ -26,7 +34,7 @@ class PluginDB(object):
             try:
                     Code, Descrip, Hint, URL = line.strip().split(' | ')
             except ValueError:
-                    self.Core.Error.FrameworkAbort("Problem in Test Groups file: '" + file_path + "' -> Cannot parse line: " + line)
+                    self.error_handler.FrameworkAbort("Problem in Test Groups file: '" + file_path + "' -> Cannot parse line: " + line)
             if len(Descrip) < 2:
                     Descrip = Hint
             if len(Hint) < 2:
@@ -86,7 +94,7 @@ class PluginDB(object):
         # Retrieve the list of the plugins (sorted) from the directory given by
         # 'PLUGIN_DIR'.
         plugins = []
-        for root, _, files in os.walk(self.Core.Config.FrameworkConfigGet('PLUGINS_DIR')):
+        for root, _, files in os.walk(self.config.FrameworkConfigGet('PLUGINS_DIR')):
             plugins.extend([
                 os.path.join(root, filename) for filename in files
                 if filename.endswith('py')])
@@ -95,7 +103,7 @@ class PluginDB(object):
         for plugin_path in plugins:
             # Only keep the relative path to the plugin
             plugin = plugin_path.replace(
-                self.Core.Config.FrameworkConfigGet('PLUGINS_DIR'), '')
+                self.config.FrameworkConfigGet('PLUGINS_DIR'), '')
             # TODO: Using os.path.sep might not be portable especially on
             # Windows platform since it allows '/' and '\' in the path.
             # Retrieve the group, the type and the file of the plugin.

@@ -1,23 +1,38 @@
 import os
 import json
+from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib.exceptions import InvalidParameterType
 from framework.db import models
 
 
-class POutputDB(object):
+class POutputDB(BaseComponent):
+
+    COMPONENT_NAME = "plugin_output"
+
     def __init__(self, Core):
+        self.register_in_service_locator()
         self.Core = Core
+        self.config = self.Core.Config
+        self.db_config = self.Core.DB.Config
+        self.target = None
+        self.plugin_handler = None
+        self.reporter = None
+
+    def init(self):
+        self.plugin_handler = self.Core.PluginHandler
+        self.reporter = self.Core.Reporter
+        self.target = self.Core.DB.Target
 
     def DeriveHTMLOutput(self, plugin_output):
-        self.Core.Reporter.Loader.reset()
+        self.reporter.Loader.reset()
         Content = ''
         for item in plugin_output:
-            Content += getattr(self.Core.Reporter, item["type"])(**item["output"])
+            Content += getattr(self.reporter, item["type"])(**item["output"])
         return(Content)
 
     def DeriveOutputDict(self, obj, target_id=None):
         if target_id:
-            self.Core.DB.Target.SetTarget(target_id)
+            self.target.SetTarget(target_id)
         if obj:
             pdict = dict(obj.__dict__)
             pdict.pop("_sa_instance_state", None)
@@ -27,12 +42,12 @@ class POutputDB(object):
                     json.loads(pdict["output"]))
             if pdict.get("date_time", None):
                 pdict["date_time"] = pdict["date_time"].strftime(
-                    self.Core.DB.Config.Get("DATE_TIME_FORMAT"))
+                    self.db_config.Get("DATE_TIME_FORMAT"))
             return pdict
 
     def DeriveOutputDicts(self, obj_list, target_id=None):
         if target_id:
-            self.Core.DB.Target.SetTarget(target_id)
+            self.target.SetTarget(target_id)
         dict_list = []
         for obj in obj_list:
             dict_list.append(self.DeriveOutputDict(obj, target_id))
@@ -108,8 +123,8 @@ class POutputDB(object):
     def GetAll(self, filter_data=None, target_id=None):
         if not filter_data:
             filter_data = {}
-        self.Core.DB.Target.SetTarget(target_id)
-        Session = self.Core.DB.Target.GetOutputDBSession()
+        self.target.SetTarget(target_id)
+        Session = self.target.GetOutputDBSession()
         session = Session()
         query = self.GenerateQueryUsingSession(session, filter_data)
         results = query.all()
@@ -121,8 +136,8 @@ class POutputDB(object):
         Returns a dict of some column names and their unique database
         Useful for advanced filter
         """
-        self.Core.DB.Target.SetTarget(target_id)
-        Session = self.Core.DB.Target.GetOutputDBSession(target_id)
+        self.target.SetTarget(target_id)
+        Session = self.target.GetOutputDBSession(target_id)
         session = Session()
         unique_data = {
             "plugin_type": [i[0] for i in session.query(models.PluginOutput.plugin_type).distinct().all()],
@@ -138,7 +153,7 @@ class POutputDB(object):
         """
         Here keeping filter_data optional is very risky
         """
-        Session = self.Core.DB.Target.GetOutputDBSession(target_id)
+        Session = self.target.GetOutputDBSession(target_id)
         session = Session()
         query = self.GenerateQueryUsingSession(
             session,
@@ -148,7 +163,7 @@ class POutputDB(object):
             # First check if path exists in db
             if plugin.output_path:
                 output_path = os.path.join(
-                    self.Core.Config.GetOutputDirForTargets(),
+                    self.config.GetOutputDirForTargets(),
                     plugin.output_path)
                 if os.path.exists(output_path):
                     self.Core.rmtree(output_path)
@@ -158,7 +173,7 @@ class POutputDB(object):
         session.close()
 
     def Update(self, plugin_group, plugin_type, plugin_code, patch_data, target_id=None):
-        Session = self.Core.DB.Target.GetOutputDBSession(target_id)
+        Session = self.target.GetOutputDBSession(target_id)
         session = Session()
         query = self.GenerateQueryUsingSession(
             session,
@@ -186,7 +201,7 @@ class POutputDB(object):
         session.close()
 
     def PluginAlreadyRun(self, PluginInfo, Target=None):
-        Session = self.Core.DB.Target.GetOutputDBSession(Target)
+        Session = self.target.GetOutputDBSession(Target)
         session = Session()
         plugin_output = session.query(models.PluginOutput).get(
             PluginInfo["key"])
@@ -201,7 +216,7 @@ class POutputDB(object):
                          target=None,
                          owtf_rank=None):
         """Save into the database the command output of the plugin `plugin."""
-        session = self.Core.DB.Target.GetOutputDBSession(target)
+        session = self.target.GetOutputDBSession(target)
         session = session()
         session.merge(models.PluginOutput(
             key=plugin["key"],
@@ -216,14 +231,14 @@ class POutputDB(object):
             # Save path only if path exists i.e if some files were to be stored
             # it will be there
             output_path=(plugin["output_path"] if os.path.exists(
-                self.Core.PluginHandler.GetPluginOutputDir(plugin)) else None),
+                self.plugin_handler.GetPluginOutputDir(plugin)) else None),
             owtf_rank=owtf_rank)
             )
         session.commit()
         session.close()
 
     def SavePartialPluginOutput(self, Plugin, Output, Message, Duration, target_id=None):
-        Session = self.Core.DB.Target.GetOutputDBSession(target_id)
+        Session = self.target.GetOutputDBSession(target_id)
         session = Session()
         session.merge(models.PluginOutput(
             key=Plugin["key"],
@@ -239,7 +254,7 @@ class POutputDB(object):
             # Save path only if path exists i.e if some files were to be stored
             # it will be there
             output_path=(Plugin["output_path"] if os.path.exists(
-                self.Core.PluginHandler.GetPluginOutputDir(Plugin)) else None)
+                self.plugin_handler.GetPluginOutputDir(Plugin)) else None)
             ))
         session.commit()
         session.close()

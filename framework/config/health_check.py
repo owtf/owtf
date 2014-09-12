@@ -49,6 +49,8 @@ class HealthCheck(object):
 
     def __init__(self, core):
         self.core = core
+        self.config = self.core.Config
+        self.error_handler = self.core.Error
 
     def run(self):
         count = self.count_not_installed_tools()
@@ -86,10 +88,10 @@ class HealthCheck(object):
             " tools could not be found. Some suggestions:")
         cprint(
             " - Define where your tools are here: " +
-            str(self.core.Config.Profiles['g']))
-        if (self.core.Config.Get('INTERACTIVE') and
+            str(self.config.Profiles['g']))
+        if (self.config.Get('INTERACTIVE') and
                 'n' == raw_input("Continue anyway? [Y/n]")):
-            self.core.Error.FrameworkAbort("Aborted by user")
+            self.error_handler.FrameworkAbort("Aborted by user")
 
     @classmethod
     def print_success(cls):

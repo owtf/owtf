@@ -87,20 +87,28 @@ class Core(object):
         # ------------------------ IO decoration ------------------------ #
         self.decorate_io()
 
-        # ------------------------ Error & Config ------------------------ #
-        self.Error = error_handler.ErrorHandler(self)
+        # -------------------- Component attachment -------------------- #
+        # (Order is important, if there is a dependency on some other
+        # other component please mention in a comment)
+        # Shell might be needed in some places
+        # As soon as you have config create logger for MainProcess
+        # DB needs Config for some settings
+        self.DB = db.DB(self)
         self.Config = config.Config(root_dir, owtf_pid, self)
+        self.zest = zest.Zest(self)
+        self.zap_api_handler = zap.ZAP_API(self)
+        self.Error = error_handler.ErrorHandler(self)
+        self.DB.Init()  # Separate Init because of self reference
+        # Zest related components
+        self.Config.init()
+        self.zest.init()
 
         # ----------------------- Directory creation ----------------------- #
         self.create_dirs()
         self.pnh_log_file()  # <-- This is not supposed to be here
 
-        # -------------------- Component attachment -------------------- #
-        # (Order is important, if there is a dependency on some other
-        # other component please mention in a comment)
-        # Shell might be needed in some places
+        self.Timer = timer.Timer(self.DB.Config.Get('DATE_TIME_FORMAT'))
         self.Shell = blocking_shell.Shell(self)
-        # As soon as you have config create logger for MainProcess
         self.enable_logging()
         # Plugin Helper needs access to automate Plugin tasks
         self.PluginHelper = plugin_helper.PluginHelper(self)
@@ -111,14 +119,9 @@ class Core(object):
         self.SET = set_handler.SETHandler(self)
         self.SMTP = smtp.SMTP(self)
         self.SMB = smb.SMB(self)
-        # DB needs Config for some settings
-        self.DB = db.DB(self)
-        self.DB.Init()  # Seperate Init because of self reference
-        # Timer requires DB
-        self.Timer = timer.Timer(self.DB.Config.Get('DATE_TIME_FORMAT'))
-        # Zest related components
-        self.zest = zest.Zest(self)
-        self.zap_api_handler = zap.ZAP_API(self)
+
+
+
 
         # -------------------- Booleans and attributes -------------------- #
         self.IsIPInternalRegexp = re.compile(
@@ -401,14 +404,18 @@ class Core(object):
 
         self.StartBotnetMode(options)
         self.StartProxy(options)  # Proxy mode is started in that function.
+        self.initialise_plugin_handler_and_params(options)
         # Set anonymised invoking command for error dump info.
         self.Error.SetCommand(self.AnonymiseCommand(command))
-        self.initialise_plugin_handler_and_params(options)
         return True
 
     def initialise_plugin_handler_and_params(self, options):
         # The order is important here ;)
         self.PluginHandler = plugin_handler.PluginHandler(self, options)
+        ## the following init() are invoked because they have dependency with plugin handler
+        self.DB.POutput.init()
+        self.Reporter.init()
+        self.Requester.init()
         self.PluginParams = plugin_params.PluginParams(self, options)
         self.WorkerManager = worker_manager.WorkerManager(self)
 
@@ -421,7 +428,7 @@ class Core(object):
             "Interface Server started. Visit http://%s:%s",
             self.Config.FrameworkConfigGet("UI_SERVER_ADDR"),
             self.Config.FrameworkConfigGet("UI_SERVER_PORT"))
-        self.disable_console_logging()
+        #self.disable_console_logging()
         logging.info("Press Ctrl+C when you spawned a shell ;)")
         self.InterfaceServer.start()
 

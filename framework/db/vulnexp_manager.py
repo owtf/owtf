@@ -24,7 +24,7 @@ class VulnexpDB(object):
 	for i in plugin_code:
 	    owtf_code=[]
 	    owtf_code.append(i)
-	    plugin_category = self.Core.DB.Mapping.GetCategory(owtf_code)
+	    plugin_category = self.Core.DB.get_category(owtf_code)
 	    flag=False
 	    if not plugin_category:
 		temp=[u'Not Applicable'] #if the category is not returned, adding the default value

@@ -28,14 +28,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Component to handle data storage and search of all commands run
 '''
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 from framework.lib.general import cprint
 from framework.db import models
 
-class CommandRegister(object):
+class CommandRegister(BaseComponent):
+
+    COMPONENT_NAME = "command_register"
+
     def __init__(self, Core):
+        self.register_in_service_locator()
         self.Core = Core
-        self.CommandRegisterSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("CREGISTER_DB_PATH"), models.RegisterBase)
+        self.config = self.Core.Config
+        self.db = self.Core.DB
+        self.CommandRegisterSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("CREGISTER_DB_PATH"), models.RegisterBase)
 
     def AddCommand(self, Command):
         session = self.CommandRegisterSession()
@@ -64,7 +71,7 @@ class CommandRegister(object):
         if register_entry and register_entry.success:
             if register_entry.success:
                 self.DeleteCommand(original_command)
-            return self.Core.DB.Target.GetTargetURLForID(register_entry.target)
+            return self.db.Target.GetTargetURLForID(register_entry.target)
         return None
 
     def RemoveForTarget(self, Target):
