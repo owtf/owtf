@@ -32,6 +32,7 @@ def get_handlers(Core):
         tornado.web.url(r'/api/plugnhack/?$', api_handlers.PlugnhackHandler, name='plugnhack_api_url'),
 
         (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': Core.Config.FrameworkConfigGet('STATICFILES_DIR')}),
+        tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),
         tornado.web.url(r'/?$', ui_handlers.Redirect, name='redirect_ui_url'),
         tornado.web.url(r'/ui/?$', ui_handlers.Home, name='home_ui_url'),
         tornado.web.url(r'/ui/targets/?([0-9]+)?/?$', ui_handlers.TargetManager, name='targets_ui_url'),

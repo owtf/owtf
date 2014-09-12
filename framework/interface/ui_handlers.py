@@ -379,13 +379,6 @@ class PluginOutput(custom_handlers.UIRequestHandler):
                         pass
                 test_groups[test_group['code']] = test_group
 
-            output_files_server = "%s://%s" % (
-                self.request.protocol,
-                self.request.host.replace(
-                    self.application.Core.Config.FrameworkConfigGet(
-                        "UI_SERVER_PORT"),
-                    self.application.Core.Config.FrameworkConfigGet(
-                        "FILE_SERVER_PORT")))
             self.render("plugin_report.html",
                         grouped_plugin_outputs=grouped_plugin_outputs,
                         test_groups=test_groups,
@@ -393,7 +386,6 @@ class PluginOutput(custom_handlers.UIRequestHandler):
                             'poutput_api_url', target_id, None, None, None),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id),
-                        output_files_server=output_files_server,
                         # html=(self.application.Core.DB.Vulnexp.GetExplanation(owtf_code))
                         )
         except InvalidTargetReference as e:
@@ -435,16 +427,31 @@ class WorklistManager(custom_handlers.UIRequestHandler):
 
 class Help(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
-    @tornado.web.asynchronous
+
     def get(self):
         self.render("help.html")
 
 
 class ConfigurationManager(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ('GET')
-    @tornado.web.asynchronous
+
     def get(self):
         self.render(
             "config_manager.html",
             configuration_api_url=self.reverse_url('configuration_api_url')
         )
+
+
+class FileRedirectHandler(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ('GET')
+
+    def get(self, file_url):
+        output_files_server = "%s://%s/" % (
+            self.request.protocol,
+            self.request.host.replace(
+                self.application.Core.Config.FrameworkConfigGet(
+                    "UI_SERVER_PORT"),
+                self.application.Core.Config.FrameworkConfigGet(
+                    "FILE_SERVER_PORT")))
+        redirect_file_url = output_files_server + file_url
+        self.redirect(redirect_file_url, permanent=True)
