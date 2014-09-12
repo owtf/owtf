@@ -47,7 +47,7 @@ import subprocess
 from threading import Thread
 
 from framework import timer, error_handler
-from framework.config import config
+from framework.config import config, health_check
 from framework.db import db
 from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
@@ -129,6 +129,10 @@ class Core(object):
 
         # --------------------------- Init calls --------------------------- #
         # Nothing as of now
+        self.health_check()
+
+    def health_check(self):
+        self.HealthCheck = health_check.HealthCheck(self)
 
     def create_dirs(self):
         """
