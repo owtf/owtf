@@ -67,7 +67,6 @@ class SETHandler(pexpect_shell.PExpectShell):
 				#Output += self.Read(5)
 		return Output
 			#print "Testing line=" + line 
-		#self.RunCommandList(self.Core.GetFileAsList(FilePath))
 """
 with open(Params['SET_TMP_SCRIPT'], 'w') as file: # Step 2 - Create temporary script with hard-coded values from parameters:
 	file.write(MultipleReplace(open(Params['SET_PARAMS_SCRIPT']).read(), Params))

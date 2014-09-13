@@ -48,6 +48,7 @@ import datetime
 import uuid
 import re
 from multiprocessing import Process, Value, Lock
+from framework.utils import FileOperations
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
 from framework.lib.owtf_process import OWTFProcess
@@ -527,8 +528,8 @@ class ProxyProcess(OWTFProcess):
         self.application.cache_dir = self.application.Core.DB.Config.Get("INBOUND_PROXY_CACHE_DIR")
         # Clean possible older cache directory.
         if os.path.exists(self.application.cache_dir):
-            self.core.rmtree(self.application.cache_dir)
-        self.core.makedirs(self.application.cache_dir)
+            FileOperations.rm_tree(self.application.cache_dir)
+        FileOperations.make_dirs(self.application.cache_dir)
         for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body', 'resp-time']:
             folder_path = os.path.join(self.application.cache_dir, folder_name)
             if not os.path.exists(folder_path):
@@ -539,7 +540,7 @@ class ProxyProcess(OWTFProcess):
         self.application.ca_cert = os.path.expanduser(self.application.Core.DB.Config.Get('CA_CERT'))
         self.application.ca_key = os.path.expanduser(self.application.Core.DB.Config.Get('CA_KEY'))
         try: # To stop owtf from breaking for our beloved users :P
-            self.application.ca_key_pass = self.core.open(
+            self.application.ca_key_pass = FileOperations.open(
                 os.path.expanduser(self.application.Core.DB.Config.Get('CA_PASS_FILE')),
                 'r',
                 owtf_clean=False).read().strip()
@@ -557,7 +558,7 @@ class ProxyProcess(OWTFProcess):
         try: # If certs folder missing, create that
             assert os.path.exists(self.application.certs_folder)
         except AssertionError:
-            self.core.makedirs(self.application.certs_folder)
+            FileOperations.make_dirs(self.application.certs_folder)
 
         # Blacklist (or) Whitelist Cookies
         # Building cookie regex to be used for cookie filtering for caching

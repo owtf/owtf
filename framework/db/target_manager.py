@@ -49,9 +49,9 @@ class TargetDB(BaseComponent):
     def __init__(self, Core):
         self.register_in_service_locator()
         self.Core = Core
-        self.config = self.Core.Config
-        self.command_register = self.Core.DB.CommandRegister
-        self.db = self.Core.DB
+        self.config = self.get_component("config")
+        self.command_register = self.get_component("command_register")
+        self.db = self.get_component("db")
         self.TargetConfigDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("TCONFIG_DB_PATH"), models.TargetBase)
         #self.TargetDBHealthCheck()
 

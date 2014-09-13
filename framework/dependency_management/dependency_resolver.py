@@ -21,3 +21,16 @@ class ServiceLocator:
 class BaseComponent():
     def register_in_service_locator(self):
         ServiceLocator.register_component(self.COMPONENT_NAME, self)
+
+    @classmethod
+    def get_component(cls, component_name):
+        if ServiceLocator.already_registered(component_name):
+            return ServiceLocator.get_component(component_name)
+        else:
+            raise ComponentNotFoundException("Component not found in ServiceLocator: " + component_name)
+
+
+class ComponentNotFoundException(Exception):
+
+    def __init__(self, message):
+        self.message = message

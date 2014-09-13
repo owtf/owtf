@@ -43,8 +43,8 @@ class URLManager(BaseComponent):
     def __init__(self, Core):
         self.register_in_service_locator()
         self.Core = Core
-        self.config = self.Core.Config
-        self.target = self.Core.DB.Target
+        self.config = self.get_component("config")
+        self.target = self.get_component("target")
         # Compile regular expressions once at the beginning for speed purposes:
         self.IsFileRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_FILE_URL'), re.IGNORECASE)
         self.IsSmallFileRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_SMALL_FILE_URL'), re.IGNORECASE)

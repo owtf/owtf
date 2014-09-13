@@ -39,6 +39,8 @@ from framework.db import models, plugin_manager, target_manager, resource_manage
 import logging
 import os
 import re
+from framework.utils import FileOperations
+
 
 def re_fn(regexp, item):
     # TODO: Can remove this after ensuring that nothing is using this in DB calls
@@ -69,18 +71,18 @@ class DB(BaseComponent):
         self.Vulnexp = None
 
     def Init(self):
-        self.config = self.Core.Config
-        self.Core.CreateMissingDirs(os.path.join(self.config.FrameworkConfigGet("OUTPUT_PATH"), self.config.FrameworkConfigGet("DB_DIR")))
+        self.config = self.get_component("config")
+        FileOperations.create_missing_dirs(os.path.join(self.config.FrameworkConfigGet("OUTPUT_PATH"), self.config.FrameworkConfigGet("DB_DIR")))
         self.ErrorDBSession = self.CreateScopedSession(self.config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.ErrorBase)
-        self.Transaction = transaction_manager.TransactionManager(self.Core)
+        self.CommandRegister = command_register.CommandRegister(self.Core)
+        self.Target = target_manager.TargetDB(self.Core)
         self.URL = url_manager.URLManager(self.Core)
+        self.Transaction = transaction_manager.TransactionManager(self.Core)
         self.Plugin = plugin_manager.PluginDB(self.Core)
         self.POutput = poutput_manager.POutputDB(self.Core)
-        self.Target = target_manager.TargetDB(self.Core)
         self.Resource = resource_manager.ResourceDB(self.Core)
         self.Config = config_manager.ConfigDB(self.Core)
         self.Error = error_manager.ErrorDB(self.Core)
-        self.CommandRegister = command_register.CommandRegister(self.Core)
         self.Mapping = mapping_manager.MappingDB(self.Core)
         self.Vulnexp = vulnexp_manager.VulnexpDB(self.Core)
         self.DBHealthCheck()

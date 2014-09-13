@@ -40,8 +40,8 @@ class CommandRegister(BaseComponent):
     def __init__(self, Core):
         self.register_in_service_locator()
         self.Core = Core
-        self.config = self.Core.Config
-        self.db = self.Core.DB
+        self.config = self.get_component("config")
+        self.db = self.get_component("db")
         self.CommandRegisterSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("CREGISTER_DB_PATH"), models.RegisterBase)
 
     def AddCommand(self, Command):

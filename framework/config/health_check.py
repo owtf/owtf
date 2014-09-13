@@ -33,11 +33,12 @@ checking that tool paths exist.
 """
 
 import os
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 from framework.lib.general import cprint
 
 
-class HealthCheck(object):
+class HealthCheck(BaseComponent):
 
     """Verifies the integrity of the configuration.
 
@@ -49,8 +50,8 @@ class HealthCheck(object):
 
     def __init__(self, core):
         self.core = core
-        self.config = self.core.Config
-        self.error_handler = self.core.Error
+        self.config = self.get_component("config")
+        self.error_handler = self.get_component("error_handler")
 
     def run(self):
         count = self.count_not_installed_tools()

@@ -1,5 +1,6 @@
 from framework.db import models
 from framework.config import config
+from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib.exceptions import InvalidMappingReference
 import os
 import json
@@ -7,15 +8,17 @@ import logging
 import ConfigParser
 
 
-class MappingDB(object):
+class MappingDB(BaseComponent):
     def __init__(self, Core):
         """
         The mapping_types attributes contain the unique mappings in memory
         """
         self.Core = Core
+        self.config = self.get_component("config")
+        self.db = self.get_component("db")
         self.mapping_types = []
-        self.MappingDBSession = self.Core.DB.CreateScopedSession(self.Core.Config.FrameworkConfigGetDBPath("MAPPINGS_DB_PATH"), models.MappingBase)
-        self.LoadMappingDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_MAPPING_PROFILE"))
+        self.MappingDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("MAPPINGS_DB_PATH"), models.MappingBase)
+        self.LoadMappingDBFromFile(self.config.FrameworkConfigGet("DEFAULT_MAPPING_PROFILE"))
 
     def LoadMappingDBFromFile(self, file_path):
         """

@@ -48,6 +48,7 @@ from threading import Thread
 from collections import defaultdict
 from ptp import PTP
 from ptp.libptp.exceptions import PTPError
+from framework.core import Core
 from framework.dependency_management.dependency_resolver import BaseComponent
 
 from framework.lib.exceptions import FrameworkAbortException, \
@@ -55,6 +56,7 @@ from framework.lib.exceptions import FrameworkAbortException, \
     UnreachableTargetException
 from framework.lib.general import *
 from framework.plugin.scanner import Scanner
+from framework.utils import FileOperations
 
 
 INTRO_BANNER_GENERAL = """
@@ -82,14 +84,15 @@ class PluginHandler(BaseComponent):
     def __init__(self, CoreObj, Options):
         self.register_in_service_locator()
         self.Core = CoreObj
-        self.config = self.Core.Config
-        self.plugin_output = self.Core.DB.POutput
-        self.db_plugin = self.Core.DB.Plugin
-        self.target = self.Core.DB.Target
-        self.transaction = self.Core.DB.Transaction
-        self.error_handler = self.Core.Error
-        self.reporter = self.Core.Reporter
-        self.timer = self.Core.Timer
+        self.db = self.get_component("db")
+        self.config = self.get_component("config")
+        self.plugin_output = self.get_component("plugin_output")
+        self.db_plugin = self.get_component("db_plugin")
+        self.target = self.get_component("target")
+        self.transaction = self.get_component("trasnaction")
+        self.error_handler = self.get_component("error_handler")
+        self.reporter = self.get_component("reporter")
+        self.timer = self.get_component("timer")
         # This should be dynamic from filesystem:
         #self.PluginGroups = [ 'web', 'net', 'aux' ]
         #self.PluginTypes = [ 'passive', 'semi_passive', 'active', 'grep' ]
@@ -190,7 +193,7 @@ class PluginHandler(BaseComponent):
 
     def DumpOutputFile(self, Filename, Contents, Plugin, RelativePath=False):
         SaveDir = self.GetPluginOutputDir(Plugin)
-        abs_path = self.Core.DumpFile(Filename, Contents, SaveDir)
+        abs_path = FileOperations.dump_file(Filename, Contents, SaveDir)
         if RelativePath:
             return (os.path.relpath(abs_path, self.config.GetOutputDirForTargets()))
         return (abs_path)
@@ -269,7 +272,7 @@ class PluginHandler(BaseComponent):
         PluginPath = self.GetPluginFullPath(PluginDir, Plugin)
         (Path, Name) = os.path.split(PluginPath)
         # (Name, Ext) = os.path.splitext(Name)
-        #self.Core.DB.Debug.Add("Running Plugin -> Plugin="+str(Plugin)+", PluginDir="+str(PluginDir))
+        #self.db.Debug.Add("Running Plugin -> Plugin="+str(Plugin)+", PluginDir="+str(PluginDir))
         PluginOutput = self.GetModule("", Name, Path + "/").run(self.Core, Plugin)
         #if save_output:
         #print(PluginOutput)
@@ -413,7 +416,7 @@ class PluginHandler(BaseComponent):
                 PartialOutput.parameter,
                 'Framework Aborted',
                 self.timer.GetElapsedTimeAsStr('Plugin'))
-            self.Core.Finish("Aborted")
+            Core.current_instance.Finish("Aborted")
             #TODO: Handle this gracefully
             #except: # BUG
             #        Plugin["status"] = "Crashed"
@@ -509,7 +512,7 @@ class PluginHandler(BaseComponent):
         self.WorkerManager.clean_up()
 
     def SavePluginInfo(self, PluginOutput, Plugin):
-        self.Core.DB.SaveDBs()  # Save new URLs to DB after each request
+        self.db.SaveDBs()  # Save new URLs to DB after each request
         self.reporter.SavePluginReport(PluginOutput, Plugin)  # Timer retrieved by Reporter
 
     def ShowPluginList(self):

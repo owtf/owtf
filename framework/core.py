@@ -49,6 +49,7 @@ from threading import Thread
 from framework import timer, error_handler
 from framework.config import config
 from framework.db import db
+from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
 from framework.http.proxy.proxy_manager import Proxy_manager, Proxy_Checker
@@ -61,16 +62,21 @@ from framework import zest, zap
 from framework.lib.formatters import ConsoleFormatter, FileFormatter
 from framework.selenium import selenium_handler
 from framework.shell import blocking_shell, interactive_shell
+from framework.utils import FileOperations, catch_io_errors, OutputCleaner
 from framework.wrappers.set import set_handler
 from framework.lib.general import cprint, RemoveListBlanks, \
     List2DictKeys, WipeBadCharsForFilename
 
 
 class Core(object):
+
+    current_instance = None
+
     """
     The glue which holds everything together
     """
     def __init__(self, root_dir, owtf_pid):
+        self.current_instance = self
         """
         [*] Tightly coupled, cohesive framework components
         [*] Order is important
@@ -95,11 +101,14 @@ class Core(object):
         # DB needs Config for some settings
         self.DB = db.DB(self)
         self.Config = config.Config(root_dir, owtf_pid, self)
+
+        # Zest related components
         self.zest = zest.Zest(self)
         self.zap_api_handler = zap.ZAP_API(self)
-        self.Error = error_handler.ErrorHandler(self)
+
         self.DB.Init()  # Separate Init because of self reference
-        # Zest related components
+        self.Error = error_handler.ErrorHandler(self)
+        ServiceLocator.get_component("db_plugin").init()
         self.Config.init()
         self.zest.init()
 
@@ -120,14 +129,7 @@ class Core(object):
         self.SMTP = smtp.SMTP(self)
         self.SMB = smb.SMB(self)
 
-
-
-
         # -------------------- Booleans and attributes -------------------- #
-        self.IsIPInternalRegexp = re.compile(
-            "^127.\d{123}.\d{123}.\d{123}$|^10.\d{123}.\d{123}.\d{123}$|"
-            "^192.168.\d{123}$|^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{123}.[0-9]{123}$"
-        )
         self.TOR_process = None
 
         # --------------------------- Init calls --------------------------- #
@@ -140,7 +142,7 @@ class Core(object):
         """
         # Logs folder creation
         if not os.path.exists(self.Config.FrameworkConfigGetLogsDir()):
-            self.CreateMissingDirs(self.Config.FrameworkConfigGetLogsDir())
+            FileOperations.create_missing_dirs(self.Config.FrameworkConfigGetLogsDir())
         # Temporary storage directories creation
         self.create_temp_storage_dirs()
 
@@ -150,7 +152,7 @@ class Core(object):
         if not os.path.exists(tmp_dir):
             tmp_dir = os.path.join(tmp_dir, str(self.Config.OwtfPid))
             if not os.path.exists(tmp_dir):
-                self.makedirs(tmp_dir)
+                FileOperations.make_dirs(tmp_dir)
 
     def clean_temp_storage_dirs(self):
         """Rename older temporary directory to avoid any further confusions."""
@@ -164,14 +166,6 @@ class Core(object):
     def log(self, msg, *args, **kwargs):
         logging.info(msg, *args, **kwargs)
 
-    def CreateMissingDirs(self, path):
-        if os.path.isfile(path):
-            dir = os.path.dirname(path)
-        else:
-            dir = path
-        if not os.path.exists(dir):
-            self.makedirs(dir)  # Create any missing directories.
-
     def pnh_log_file(self):
         self.path = self.Config.FrameworkConfigGet('PNH_EVENTS_FILE')
         self.mode = "w"
@@ -179,7 +173,7 @@ class Core(object):
             if os.path.isfile(self.path):
                 pass
             else:
-                with self.open(self.path, self.mode, owtf_clean=False):
+                with FileOperations.open(self.path, self.mode, owtf_clean=False):
                     pass
         except IOError as e:
             self.log("I/O error ({0}): {1}".format(e.errno, e.strerror))
@@ -192,19 +186,12 @@ class Core(object):
 
         if (os.path.isfile(self.file_path) and os.access(self.file_path, os.W_OK)):
             try:
-                with self.open(self.file_path, self.mode, owtf_clean=False) as log_file:
+                with FileOperations.open(self.file_path, self.mode, owtf_clean=False) as log_file:
                     log_file.write(self.content)
                     log_file.write("\n")
                 return True
             except IOError:
                 return False
-
-    def DumpFile(self, filename, contents, directory):
-        save_path = os.path.join(directory, WipeBadCharsForFilename(filename))
-        self.CreateMissingDirs(directory)
-        with self.codecs_open(save_path, 'wb', 'utf-8') as f:
-            f.write(contents.decode('utf-8', 'replace'))
-        return save_path
 
     def get_child_pids(self, parent_pid):
         ps_command = subprocess.Popen(
@@ -217,16 +204,6 @@ class Core(object):
     def GetCommand(self, argv):
         # Format command to remove directory and space-separate arguments.
         return " ".join(argv).replace(argv[0], os.path.basename(argv[0]))
-
-    def AnonymiseCommand(self, command):
-        # Host name setting value for all targets in scope.
-        for host in self.DB.Target.GetAll('HOST_NAME'):
-            if host:  # Value is not blank
-                command = command.replace(host, 'some.target.com')
-        for ip in self.DB.Target.GetAll('HOST_IP'):
-            if ip:
-                command = command.replace(ip, 'xxx.xxx.xxx.xxx')
-        return command
 
     def Start_TOR_Mode(self, options):
         if options['TOR_mode'] is not None:
@@ -406,7 +383,7 @@ class Core(object):
         self.StartProxy(options)  # Proxy mode is started in that function.
         self.initialise_plugin_handler_and_params(options)
         # Set anonymised invoking command for error dump info.
-        self.Error.SetCommand(self.AnonymiseCommand(command))
+        self.Error.SetCommand(OutputCleaner.anonymise_command(command))
         return True
 
     def initialise_plugin_handler_and_params(self, options):
@@ -473,9 +450,6 @@ class Core(object):
                         pass
                 exit()
 
-    def IsIPInternal(self, IP):
-        return len(self.IsIPInternalRegexp.findall(IP)) == 1
-
     def KillChildProcesses(self, parent_pid, sig=signal.SIGINT):
         ps_command = subprocess.Popen(
             "ps -o pid --ppid %d --noheaders" % parent_pid,
@@ -490,38 +464,7 @@ class Core(object):
                 cprint("unable to kill it")
 
     def decorate_io(self):
-        """Decorate different I/O functions to ensure OWTF to properly quit."""
-        def catch_error(func):
-            """Decorator on I/O functions.
-
-            If an error is detected, force OWTF to quit properly.
-
-            """
-            def io_error(*args, **kwargs):
-                """Call the original function while checking for errors.
-
-                If `owtf_clean` parameter is not explicitely passed or if it is
-                set to `True`, it force OWTF to properly exit.
-
-                """
-                owtf_clean = kwargs.pop('owtf_clean', True)
-                try:
-                    return func(*args, **kwargs)
-                except (OSError, IOError) as e:
-                    if owtf_clean:
-                        self.Error.FrameworkAbort(
-                            "Error when calling '%s'! %s." %
-                            (func.__name__, str(e)))
-                    raise e
-            return io_error
-
-        # Decorated functions
-        self.open = catch_error(open)
-        self.codecs_open = catch_error(codecs.open)
-        self.mkdir = catch_error(os.mkdir)
-        self.makedirs = catch_error(os.makedirs)
-        self.rmtree = catch_error(shutil.rmtree)
-        self.FileHandler = catch_error(logging.FileHandler)
+        self.FileHandler = catch_io_errors(logging.FileHandler)
 
 
 def Init(root_dir, owtf_pid):

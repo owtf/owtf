@@ -48,9 +48,9 @@ class Reporter(BaseComponent):
     def __init__(self, CoreObj):
         self.register_in_service_locator()
         self.Core = CoreObj  # Keep Reference to Core Object
-        self.config = self.Core.Config
-        self.resource = self.Core.DB.Resource
-        self.transaction = self.Core.DB.Transaction
+        self.config = self.get_component("config")
+        self.resource = self.get_component("resource")
+        self.transaction = self.get_component("transaction")
         self.plugin_handler = None
         self.requester = None
         self.Init = False
@@ -62,8 +62,8 @@ class Reporter(BaseComponent):
         self.CounterList = []
 
     def init(self):
-        self.plugin_handler = self.Core.PluginHandler
-        self.requester = self.Core.Requester
+        self.plugin_handler = self.get_component("plugin_handler")
+        self.requester = self.get_component("requester")
 
     def TransactionTableFromIDs(self, TransactionIDs, NumLinesReq=15, NumLinesRes=15):
         """ Draws a table of HTTP Transactions """

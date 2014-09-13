@@ -47,6 +47,7 @@ from framework.lib.exceptions import PluginAbortException, \
 from framework.config import health_check
 from framework.lib.general import cprint
 from framework.db import models, target_manager
+from framework.utils import NetworkOperations, FileOperations
 
 
 REPLACEMENT_DELIMITER = "@@@"
@@ -81,9 +82,9 @@ class Config(BaseComponent):
             'framework_config.cfg'))
 
     def init(self):
-        self.resource = self.Core.DB.Resource
-        self.error_handler = self.Core.Error
-        self.target = self.Core.DB.Target
+        self.resource = self.get_component("resource")
+        self.error_handler = self.get_component("error_handler")
+        self.target = self.get_component("target")
 
     def initialize_attributes(self):
         self.Config = defaultdict(list)  # General configuration information.
@@ -97,7 +98,7 @@ class Config(BaseComponent):
         """Load the configuration from into a global dictionary."""
         if 'framework_config' not in config_path:
             cprint("Loading Config from: " + config_path + " ..")
-        config_file = self.Core.open(config_path, 'r')
+        config_file = FileOperations.open(config_path, 'r')
         self.Set('FRAMEWORK_DIR', self.RootDir)  # Needed Later.
         for line in config_file:
             try:
@@ -281,7 +282,7 @@ class Config(BaseComponent):
             self.Get('OUTPUT_PATH') + "/index.html")
 
         if not self.Get('SIMULATION'):
-            self.Core.CreateMissingDirs(self.Get('HOST_OUTPUT'))
+            FileOperations.create_missing_dirs(self.Get('HOST_OUTPUT'))
 
         # URL Analysis DBs
         # URL DBs: Distintion between vetted, confirmed-to-exist, in
@@ -344,7 +345,7 @@ class Config(BaseComponent):
             alternative_IPs = ipchunks[1:]
         self.Set('ALTERNATIVE_IPS', alternative_IPs)
         ip = ip.strip()
-        self.Set('INTERNAL_IP', self.Core.IsIPInternal(ip))
+        self.Set('INTERNAL_IP', NetworkOperations.is_ip_internal(ip))
         cprint("The IP address for " + hostname + " is: '" + ip + "'")
         return ip
 
@@ -434,10 +435,6 @@ class Config(BaseComponent):
             log_file_name
         )
 
-    def GetAsPartialPath(self, key):
-        """Convenience wrapper."""
-        return self.Core.GetPartialPath(self.Get(key))
-
     def GetAsList(self, key_list):
         value_list = []
         for key in key_list:
@@ -490,7 +487,7 @@ class Config(BaseComponent):
             self.FrameworkConfigGet("TARGETS_DIR"))
 
     def CleanUpForTarget(self, target_URL):
-        return self.Core.rmtree(self.GetOutputDirForTarget(target_URL))
+        return FileOperations.rm_tree(self.GetOutputDirForTarget(target_URL))
 
     def GetOutputDirForTarget(self, target_URL):
         return os.path.join(
@@ -498,7 +495,7 @@ class Config(BaseComponent):
             target_URL.replace("/", "_").replace(":", ""))
 
     def CreateOutputDirForTarget(self, target_URL):
-        self.Core.CreateMissingDirs(self.GetOutputDirForTarget(target_URL))
+        FileOperations.create_missing_dirs(self.GetOutputDirForTarget(target_URL))
 
     def GetTransactionDBPathForTarget(self, target_URL):
         return os.path.join(

@@ -38,11 +38,13 @@ import sys
 import cgi
 import json
 import urllib2
+from framework.core import Core
 from framework.dependency_management.dependency_resolver import BaseComponent
 
 from framework.lib.exceptions import FrameworkAbortException, \
                                      PluginAbortException
 from framework.lib.general import cprint
+from framework.utils import OutputCleaner
 
 
 class ErrorHandler(BaseComponent):
@@ -53,9 +55,9 @@ class ErrorHandler(BaseComponent):
     def __init__(self, Core):
         self.register_in_service_locator()
         self.Core = Core
-        self.db = self.Core.DB
-        self.db_error = self.Core.DB.Error
-        self.config = self.Core.Config
+        self.db = self.get_component("db")
+        self.db_error = self.get_component("db_error")
+        self.config = self.get_component("config")
         self.Padding = "\n" + "_" * self.PaddingLength + "\n\n"
         self.SubPadding = "\n" + "*" * self.PaddingLength + "\n"
 
@@ -65,7 +67,7 @@ class ErrorHandler(BaseComponent):
     def FrameworkAbort(self, message, report=True):
         message = "Aborted by Framework: " + message
         cprint(message)
-        self.Core.Finish(message, report)
+        Core.current_instance.Finish(message, report)
         return message
 
     def get_option_from_user(self, options):
@@ -87,7 +89,7 @@ class ErrorHandler(BaseComponent):
             if 'e' == option:
                 if 'Command' == level:  # Try to save partial plugin results.
                     raise FrameworkAbortException(partial_output)
-                    self.Core.Finish("Aborted by user")  # Interrupted.
+                    Core.current_instance("Aborted by user")  # Interrupted.
             elif 'p' == option:  # Move on to next plugin.
                 # Jump to next handler and pass partial output to avoid losing
                 # results.
@@ -105,8 +107,8 @@ class ErrorHandler(BaseComponent):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         err_trace_list = traceback.format_exception(
             exc_type, exc_value, exc_traceback)
-        err_trace = self.Core.AnonymiseCommand("\n".join(err_trace_list))
-        message = self.Core.AnonymiseCommand(message)
+        err_trace = OutputCleaner.anonymise_command("\n".join(err_trace_list))
+        message = OutputCleaner.anonymise_command(message)
         output = self.Padding + "OWTF BUG: Please report the sanitised " \
                  "information below to help make this better. Thank you." + \
                  self.SubPadding

@@ -40,8 +40,8 @@ class ErrorDB(BaseComponent):
     def __init__(self, Core):
         self.register_in_service_locator()
         self.Core = Core
-        self.db = self.Core.DB
-        self.config = self.Core.Config
+        self.db = self.get_component("db")
+        self.config = self.get_component("config")
         self.ErrorDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.RegisterBase)
 
     def Add(self, Message, Trace):

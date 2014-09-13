@@ -3,6 +3,8 @@ from framework.config import config
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib.general import cprint
 import os
+from framework.utils import FileOperations
+
 
 class ResourceDB(BaseComponent):
 
@@ -11,10 +13,10 @@ class ResourceDB(BaseComponent):
     def __init__(self, Core):
         self.register_in_service_locator()
         self.Core = Core
-        self.config = self.Core.Config
-        self.db_config = self.Core.DB.Config
-        self.target = self.Core.DB.Target
-        self.db = self.Core.DB
+        self.config = self.get_component("config")
+        self.db_config = self.get_component("db_config")
+        self.target = self.get_component("target")
+        self.db = self.get_component("db")
         self.ResourceDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("RESOURCE_DB_PATH"), models.ResourceBase)
         self.LoadResourceDBFromFile(self.config.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE"))
 
@@ -32,7 +34,7 @@ class ResourceDB(BaseComponent):
 
     def GetResourcesFromFile(self, resource_file):
         resources = []
-        ConfigFile = self.Core.open(resource_file, 'r').read().splitlines() # To remove stupid '\n' at the end
+        ConfigFile = FileOperations.open(resource_file, 'r').read().splitlines() # To remove stupid '\n' at the end
         for line in ConfigFile:
             if '#' == line[0]:
                 continue # Skip comment lines

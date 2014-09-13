@@ -57,10 +57,10 @@ class TransactionManager(BaseComponent):
     def __init__(self, Core):
         self.register_in_service_locator()
         self.Core = Core
-        self.config = self.Core.Config
-        self.target = self.Core.DB.Target
-        self.url_manager = self.Core.DB.URL
-        self.zest = self.Core.zest
+        self.config = self.get_component("config")
+        self.target = self.get_component("target")
+        self.url_manager = self.get_component("url_manager")
+        self.zest = self.get_component("zest")
         self.regexs = defaultdict(list)
         for regex_type in REGEX_TYPES:
             self.regexs[regex_type] = {}

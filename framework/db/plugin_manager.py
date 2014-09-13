@@ -4,6 +4,7 @@ import json
 from framework.db import models
 from sqlalchemy import or_
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.utils import FileOperations
 
 
 TEST_GROUPS = ['web', 'net', 'aux']
@@ -16,18 +17,21 @@ class PluginDB(BaseComponent):
     def __init__(self, Core):
         self.register_in_service_locator()
         self.Core = Core
-        self.config = self.Core.Config
-        self.db = self.Core.DB
-        self.error_handler = self.Core.Error
+        self.config = self.get_component("config")
+        self.db = self.get_component("db")
+        self.error_handler = None
         self.PluginDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("PLUGIN_DB_PATH"), models.PluginBase)
         self.LoadWebTestGroups(self.config.FrameworkConfigGet("WEB_TEST_GROUPS"))
         self.LoadNetTestGroups(self.config.FrameworkConfigGet("NET_TEST_GROUPS"))
         # After loading the test groups then load the plugins, because of many-to-one relationship
         self.LoadFromFileSystem()  # Load plugins :P
 
+    def init(self):
+        self.error_handler = self.get_component("error_handler")
+
     def GetTestGroupsFromFile(self, file_path):  # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         TestGroups = []
-        ConfigFile = self.Core.open(file_path, 'r').read().splitlines()
+        ConfigFile = FileOperations.open(file_path, 'r').read().splitlines()
         for line in ConfigFile:
             if '#' == line[0]:
                     continue  # Skip comments

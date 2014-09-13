@@ -12,8 +12,8 @@ class ConfigDB(BaseComponent):
     def __init__(self, Core):
         self.register_in_service_locator()
         self.Core = Core
-        self.config = self.Core.Config
-        self.db = self.Core.DB
+        self.config = self.get_component("config")
+        self.db = self.get_component("db")
         self.ConfigDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("CONFIG_DB_PATH"), models.GeneralBase)
         self.LoadConfigDBFromFile(self.config.FrameworkConfigGet('DEFAULT_GENERAL_PROFILE'))
 

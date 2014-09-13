@@ -46,10 +46,10 @@ class Shell(BaseComponent):
         self.register_in_service_locator()
         self.DynamicReplacements = {}  # Some settings like the plugin output dir are dynamic, config is no place for those
         self.Core = Core
-        self.command_register = self.Core.DB.CommandRegister
-        self.target = self.Core.DB.Target
-        self.error_handler = self.Core.Error
-        self.timer = self.Core.Timer
+        self.command_register = self.get_component("command_register")
+        self.target = self.get_component("target")
+        self.error_handler = self.get_component("error_handler")
+        self.timer = self.get_component("timer")
         #self.CommandInfo = defaultdict(list)
         self.CommandTimeOffset = 'Command'
         self.OldCommands = defaultdict(list)

@@ -3,6 +3,7 @@ import json
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib.exceptions import InvalidParameterType
 from framework.db import models
+from framework.utils import FileOperations
 
 
 class POutputDB(BaseComponent):
@@ -12,16 +13,17 @@ class POutputDB(BaseComponent):
     def __init__(self, Core):
         self.register_in_service_locator()
         self.Core = Core
-        self.config = self.Core.Config
-        self.db_config = self.Core.DB.Config
+        self.config = self.get_component("config")
+        self.db_config = None
         self.target = None
         self.plugin_handler = None
         self.reporter = None
 
     def init(self):
-        self.plugin_handler = self.Core.PluginHandler
-        self.reporter = self.Core.Reporter
-        self.target = self.Core.DB.Target
+        self.plugin_handler = self.get_component("plugin_handler")
+        self.reporter = self.get_component("reporter")
+        self.target = self.get_component("target")
+        self.db_config = self.get_component("db_config")
 
     def DeriveHTMLOutput(self, plugin_output):
         self.reporter.Loader.reset()
@@ -166,7 +168,7 @@ class POutputDB(BaseComponent):
                     self.config.GetOutputDirForTargets(),
                     plugin.output_path)
                 if os.path.exists(output_path):
-                    self.Core.rmtree(output_path)
+                    FileOperations.rm_tree(output_path)
         # When folders are removed delete the results from db
         results = query.delete()
         session.commit()

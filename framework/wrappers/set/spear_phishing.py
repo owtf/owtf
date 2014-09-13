@@ -43,8 +43,8 @@ class SpearPhishing(BaseComponent):
     def __init__(self, Core, set):
         self.register_in_service_locator()
         self.Core = Core
-        self.config = self.Core.Config
-        self.error_handler = self.Core.Error
+        self.config = self.get_component("config")
+        self.error_handler = self.get_component("error_handler")
         self.set = set
 
     def Run(self, Args, PluginInfo):
