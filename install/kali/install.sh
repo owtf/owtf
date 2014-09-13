@@ -40,6 +40,8 @@ RootDir=$1
 sudo -E apt-get install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev
 export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip in kali
 
+# psycopg2 dependency
+sudo -E apt-get install postgresql-server-dev-all
 
 ############ Tools missing in Kali
 #mkdir -p $RootDir/tools/restricted
