@@ -114,9 +114,8 @@
       <div class="modal-body">
         <!-- Nav tabs -->
         <ul class="nav nav-tabs" role="tablist">
-          <li class="active"><a href="#raw_request_tab" role="tab" data-toggle="tab">Raw Request</a></li>
-          <li><a href="#raw_response_headers_tab" role="tab" data-toggle="tab">Response Headers</a></li>
-          <li><a href="#raw_response_body_tab" role="tab" data-toggle="tab">Response Body</a></li>
+          <li class="active"><a href="#raw_request_tab" role="tab" data-toggle="tab">Request</a></li>
+          <li><a href="#raw_response_tab" role="tab" data-toggle="tab">Response</a></li>
         </ul>
         <br/>
         <!-- Tab panes -->
@@ -124,11 +123,10 @@
           <div class="tab-pane active" id="raw_request_tab">
             <pre class="scrollablePre" id="raw_request_pre">Raw request</pre>
           </div>
-          <div class="tab-pane" id="raw_response_headers_tab">
-            <pre class="scrollablePre" id="raw_response_headers_pre">Response Headders</pre>
-          </div>
-          <div class="tab-pane" id="raw_response_body_tab">
-            <pre class="scrollablePre" id="raw_response_body_pre">body</pre>
+          <div class="tab-pane" id="raw_response_tab">
+            <pre class="scrollablePre" id="raw_response_headers_pre">Response Headers</pre>
+            <br>
+            <pre class="scrollablePre" id="raw_response_body_pre">Response Body</pre>
           </div>
         </div>
       </div>
@@ -344,11 +342,11 @@ function showTransactionWithOffset(offset) {
         disableInput("#nextTransactionBtn");
       }
       // First add the transaction info
-      transactionInfo = '<h5>';
-      transactionInfo += '<span class="label label-primary">ID: '+obj.id+'</span> ';
-      transactionInfo += '<span class="label label-default">TIME: '+obj.time_human+'</span> ';
-      transactionInfo += '<span class="label label-default">'+(offset+1)+' of '+records_filtered+' (filtered from '+records_total+')';
-      transactionInfo += '</h5>';
+      transactionInfo = '<div class="btn-group">';
+      transactionInfo += '<button class="btn btn-primary btn-xs" onclick="window.open(\''+mySpace.transaction_log_url+obj.id+'\');">ID: '+obj.id+'</button>';
+      transactionInfo += '<button class="btn btn-default btn-xs" disabled>TIME: '+obj.time_human+'</button>';
+      transactionInfo += '<button class="btn btn-default btn-xs" disabled>'+(offset+1)+' of '+records_filtered+' (filtered from '+records_total+')</button>';
+      transactionInfo += '</div>';
       $("#transactionInfo").html(transactionInfo);
       // Then add the raw request and highlight if any search terms
       $("#raw_request_pre").text(obj.raw_request);
@@ -369,9 +367,9 @@ function showTransactionWithOffset(offset) {
         $("#raw_response_body_pre").highlight(mySpace.search_parameters["response_body"]);
       }
       if (obj.binary_response){
-          $("a[href='#raw_response_body_tab']").html("Raw Response Body <span class='label label-default'>BASE64 Encoded</span>");
+          $("a[href='#raw_response_tab']").html("Response <span class='label label-default'>BASE64 Encoded</span>");
       } else {
-          $("a[href='#raw_response_body_tab']").html("Raw Response Body");
+          $("a[href='#raw_response_tab']").html("Response");
       }
     }
   });
