@@ -5,6 +5,7 @@
 {% block includes %}
 <script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/jquery.highlight.js"></script>
 
 <link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
 <style type="text/css">
@@ -21,6 +22,16 @@
 }
 .clear { clear: both; height: 80px; }
 
+.scrollablePre {
+  overflow: auto;
+  word-wrap: normal;
+  overflow-wrap: normal;
+  white-space: pre;
+}
+
+.highlight {
+  background-color: #FFFF88
+}
 </style>
 
 {% end %}
@@ -82,6 +93,51 @@
   </div>
 </div>
 
+<!-- Transaction viewer modal -->
+<div class="modal fade transaction-modal-lg" tabindex="-1" role="dialog" aria-labelledby="transactionLargeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="row-fluid">
+          <div class="col-md-10">
+            <p class="pull-left" id="transactionInfo"></p>
+          </div>
+          <div class="col-md-2">
+            <div class="btn-group pull-right">
+              <button type="button" class="btn btn-default" id="previousTransactionBtn" onclick="showPreviousTransaction();"><i class="fa fa-arrow-circle-left"></i></button>
+              <button type="button" class="btn btn-default" id="nextTransactionBtn" onclick="showNextTransaction();"><i class="fa fa-arrow-circle-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="active"><a href="#raw_request_tab" role="tab" data-toggle="tab">Raw Request</a></li>
+          <li><a href="#raw_response_headers_tab" role="tab" data-toggle="tab">Response Headers</a></li>
+          <li><a href="#raw_response_body_tab" role="tab" data-toggle="tab">Response Body</a></li>
+        </ul>
+        <br/>
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <div class="tab-pane active" id="raw_request_tab">
+            <pre class="scrollablePre" id="raw_request_pre">Raw request</pre>
+          </div>
+          <div class="tab-pane" id="raw_response_headers_tab">
+            <pre class="scrollablePre" id="raw_response_headers_pre">Response Headders</pre>
+          </div>
+          <div class="tab-pane" id="raw_response_body_tab">
+            <pre class="scrollablePre" id="raw_response_body_pre">body</pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- End transaction viewer modal -->
+
 <!--Fixed-footer for Zest creation-->
 <div class="clear"></div>  <!--used for margin between body and footer-->
   <div class="navbar navbar-default navbar-fixed-bottom" id="#fixed_bar">
@@ -120,8 +176,7 @@
 <script>
 
 var mySpace = {
-                    max_id:0,
-                    transactions: [],
+                    search_parameters: {},
                     transactions_api_url:"{{ transactions_api_url }}",
                     transactions_search_api_url:"{{ transactions_search_api_url }}",
                     transaction_log_url:"{{ transaction_log_url }}",
@@ -256,13 +311,81 @@ function validateFilename(elem){
         }
 }
 
-function getArray(data) {
+function showNextTransaction() {
+  showTransactionWithOffset(mySpace.search_parameters["offset"]+1);
+}
+
+function showPreviousTransaction() {
+  showTransactionWithOffset(mySpace.search_parameters["offset"]-1);
+}
+
+function openTransactionModal(offset) {
+  $(".transaction-modal-lg").modal();
+  showTransactionWithOffset(offset);
+}
+
+function showTransactionWithOffset(offset) {
+  // First fetch the offset for id, then
+  mySpace.search_parameters["limit"] = 1;
+  mySpace.search_parameters["offset"] = offset;
+  $.getJSON(mySpace.transactions_search_api_url+'?'+$.param(mySpace.search_parameters, true), function(response) {
+    if (response["data"].length == 1) {
+      // some variables
+      var records_filtered = response["records_filtered"];
+      var records_total = response["records_total"];
+      var obj = response["data"][0];
+      // Disable transaction buttons as neccessary
+      enableInput("#previousTransactionBtn");
+      enableInput("#nextTransactionBtn");
+      if (offset == 0) {
+        disableInput("#previousTransactionBtn");
+      }
+      if ((offset+1) == records_filtered) { // Remember offset is zero based
+        disableInput("#nextTransactionBtn");
+      }
+      // First add the transaction info
+      transactionInfo = '<h5>';
+      transactionInfo += '<span class="label label-primary">ID: '+obj.id+'</span> ';
+      transactionInfo += '<span class="label label-default">TIME: '+obj.time_human+'</span> ';
+      transactionInfo += '<span class="label label-default">'+(offset+1)+' of '+records_filtered+' (filtered from '+records_total+')';
+      transactionInfo += '</h5>';
+      $("#transactionInfo").html(transactionInfo);
+      // Then add the raw request and highlight if any search terms
+      $("#raw_request_pre").text(obj.raw_request);
+      if (mySpace.search_parameters["raw_request"] !== undefined) {
+        $("#raw_request_pre").highlight(mySpace.search_parameters["raw_request"]);
+      }
+      // Then add the response and highlight if any search terms
+      $("#raw_response_headers_pre").text(obj.response_status+"\r\n"+obj.response_headers);
+      if ((mySpace.search_parameters["response_status"] !== undefined) ||
+          (mySpace.search_parameters["response_headers"])) {
+        $("#raw_response_headers_pre").highlight(mySpace.search_parameters["response_status"], mySpace.search_parameters["response_headers"]);
+      }
+      // THen the response body
+      $("#raw_response_body_pre").text(obj.response_body);
+      if (mySpace.search_parameters["response_body"] !== undefined) {
+        $("#raw_response_body_pre").highlight(mySpace.search_parameters["response_body"]);
+      }
+      if (obj.binary_response){
+          $("a[href='#raw_response_body_tab']").html("Raw Response Body <span class='label label-default'>BASE64 Encoded</span>");
+      } else {
+          $("a[href='#raw_response_body_tab']").html("Raw Response Body");
+      }
+    }
+  });
+}
+
+function getArray(data, starting_offset) {
     var table_array = [];
     $.each(data, function(index, obj){
+      var btns = '<div class="btn-group">';
+      btns += '<button class="btn btn-default btn-xs" onclick="openTransactionModal('+(starting_offset+index)+');"><i class="fa fa-info-circle"></i></button>';
+      btns += '<button class="btn btn-default btn-xs" onclick="window.open(\''+mySpace.transaction_log_url+obj.id+'\');"><i class="fa fa-desktop"></i></button>';
+      btns += '</div>';
       // jQuery('#transactionLog').dataTable().fnAddData([
       table_array.push([
         '<input  type="checkbox"  class="check" name="'+obj.id+'"/>',
-        '<a href="'+mySpace.transaction_log_url+obj.id+'" target="_blank"><span class="btn btn-primary btn-md"><i class="fa fa-chevron-circle-right"></i> View</span></a>',
+        btns,
         obj.time_human,
         obj.method,
         obj.response_status,
@@ -300,13 +423,14 @@ function dummyAjax(data, callback, settings) {
       get_parameters[columnMappings[k]] = data.columns[k].search.value;
   }
 
+  mySpace.search_parameters = $.extend({}, get_parameters); // Make a copy of search parameters
   $.getJSON(mySpace.transactions_search_api_url+'?'+$.param(get_parameters, true), function (responseData) {
     enableInput('input'); // Reenable all inputs
     callback({
       "draw": draw,
       "recordsTotal": responseData["records_total"],
       "recordsFiltered": responseData["records_filtered"],
-      "data": getArray(responseData["data"]),
+      "data": getArray(responseData["data"], data.start),
       "error": null
     });
   });

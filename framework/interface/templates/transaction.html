@@ -17,47 +17,47 @@
 }
 .clear { clear: both; height: 80px; }
 
-.tab-view{
-  margin: 20px;
+.scrollablePre {
+  overflow: auto;
+  word-wrap: normal;
+  overflow-wrap: normal;
+  white-space: pre;
 }
+
 </style>
 
 <div class="row">
-    <div class="pull-right">
-        <!--
-        <button class="btn btn-primary" href="#" onclick="navigateToTransactionLog();"><i class="fa fa-chevron-circle-left"></i> Go Back To Transaction Log</button>
-        <button class="btn btn-danger" href="#" onclick="deleteTransaction();"><i class="fa fa-times"></i> Delete Transaction</button> Not of Use-->
-        </div>
-        <div class="pull-left">
-          <div class="btn-group">
-            <button class="btn btn-warning" onClick="forwardToZAP()" ><i class="fa fa-forward"></i> Forward </button>
-            <button class="btn btn-default" id="replayBtn()" onclick="replayRequest()" ><i class="fa fa-refresh"></i> Replay </button>
-            <button class="btn btn-danger launch-modal" data-toggle="modal" data-target="#ScriptModal"> <i class="fa fa-file"></i> Create a Zest Script ! </button>
-          </div>
-        </div>
-
+    <div class="btn-group pull-left">
+         <button class="btn btn-warning" onClick="forwardToZAP()"><i class="fa fa-filter"></i> Forward </button>
+         <button class="btn btn-default" onclick="replayRequest()"><i class="fa fa-refresh"></i> Replay </button>
+         <button class="btn btn-danger launch-modal" data-toggle="modal" data-target="#ScriptModal"> Create a Zest Script ! </button>
+    </div>
 </div>
 <br />
-<div class="tab-view">
-    <ul class="nav nav-tabs">
-        <li class="active"><a data-toggle="tab" href="#request">Raw Request</a></li>
-        <li><a data-toggle="tab" href="#response">Raw Response</a></li>
-        <li><a data-toggle="tab" id="raw_response_body_heading" href="#response_body">Raw Response Body</a></li>
-    </ul>
-    <div class="tab-content">
-        <div id="request" class="tab-pane fade in active">
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">Raw Request</div>
             <div class="panel-body">
-                <pre id="raw_request"></pre>
+                <pre class="scrollablePre" id="raw_request"></pre>
             </div>
         </div>
-        <div id="response" class="tab-pane fade">
+    </div>
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">Raw Response Headers</div>
             <div class="panel-body">
-                <pre id="raw_response_headers"></pre>
+                <pre class="scrollablePre" id="raw_response_headers"></pre>
             </div>
         </div>
-        <div id="response_body" class="tab-pane fade">
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div id="raw_response_body_heading" class="panel-heading">Raw Response Body</div>
             <div class="panel-body">
-                <pre id="raw_response_body"></pre>
+                <pre class="scrollablePre" id="raw_response_body"></pre>
             </div>
         </div>
     </div>
@@ -86,18 +86,7 @@
 </div>
 
 <script>
-/*
-$(function () {
-   $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-      // Get the name of active tab
-      var activeTab = $(e.target).text();
-      // Get the name of previous tab
-      var previousTab = $(e.relatedTarget).text();
-      $(".active-tab span").html(activeTab);
-      $(".previous-tab span").html(previousTab);
-  });
-});
-*/
+
 var mySpace = {
                     transaction_api_url:"{{ transaction_api_url }}",
                     transaction_log_url:"{{ transaction_log_url }}",
@@ -105,7 +94,7 @@ var mySpace = {
                     forward_zap_url:"{{ forward_zap_url }}",
               };
 
-/* 
+/*
 sends get request to forward the selected HTTP transaction to ZAP proxy,
 listening at the configured port
 */
@@ -161,8 +150,7 @@ POST request to create the Zest script with given name.
 function createZestScript(){
 
     var file_name=$('#textareaID').val();
-
-    //validates file name using regex
+        //validates file name using regex
     if(validateFilename(file_name)){
 
          $.ajax({
@@ -204,7 +192,7 @@ function validateFilename(elem){
         }
 }
 
-//opens the window (HTTP console) to replay the selected request 
+//opens the window (HTTP console) to replay the selected request
 function replayRequest(){
 
     window.open(mySpace.transaction_replay_url, "_blank", "scrollbars=yes, resizable=yes, top=100, left=400, width=850, height=600");

@@ -3,6 +3,7 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 import tornado.options
+from framework.lib.owtf_process import OWTFProcess
 
 
 class InterfaceServer(object):
@@ -30,16 +31,47 @@ class InterfaceServer(object):
                 int(self.application.Core.Config.FrameworkConfigGet(
                     "UI_SERVER_PORT")),
                 address=self.application.Core.Config.FrameworkConfigGet(
-                    "UI_SERVER_ADDR")
+                    "SERVER_ADDR")
                 )
             tornado.options.parse_command_line(
                 args=[
                     'dummy_arg',
-                    '--log_file_prefix='+self.application.Core.DB.Config.Get('SERVER_LOG'),
+                    '--log_file_prefix='+self.application.Core.DB.Config.Get('UI_SERVER_LOG'),
                     '--logging=info']
                 )
             self.server.start(1)
             self.manager_cron.start()
+            tornado.ioloop.IOLoop.instance().start()
+        except KeyboardInterrupt:
+            pass
+
+
+class FileServer(OWTFProcess):
+
+    def pseudo_run(self):
+        try:
+            self.core.disable_console_logging()
+            self.application = tornado.web.Application(
+                handlers=urls.get_file_server_handlers(self.core),
+                template_path=self.core.Config.FrameworkConfigGet(
+                    'INTERFACE_TEMPLATES_DIR'),
+                debug=False,
+                gzip=True)
+            self.application.Core = self.core
+            self.server = tornado.httpserver.HTTPServer(self.application)
+            self.server.bind(
+                int(self.core.Config.FrameworkConfigGet(
+                    "FILE_SERVER_PORT")),
+                address=self.core.Config.FrameworkConfigGet(
+                    "SERVER_ADDR")
+                )
+            tornado.options.parse_command_line(
+                args=[
+                    'dummy_arg',
+                    '--log_file_prefix='+self.core.DB.Config.Get('FILE_SERVER_LOG'),
+                    '--logging=info']
+                )
+            self.server.start(1)
             tornado.ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:
             pass

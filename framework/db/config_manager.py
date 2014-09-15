@@ -79,6 +79,15 @@ class ConfigDB(object):
         query = self.GenerateQueryUsingSession(criteria)
         return self.DeriveConfigDicts(query.all())
 
+    def GetAllTools(self):
+        results = self.Core.DB.session.query(models.ConfigSetting).filter(
+            models.ConfigSetting.key.like("%TOOL_%")).all()
+        config_dicts = self.DeriveConfigDicts(results)
+        for config_dict in config_dicts:
+            config_dict["value"] = self.Core.Config.MultipleReplace(
+                config_dict["value"], self.Core.Config.GetReplacementDict())
+        return(config_dicts)
+
     def GetSections(self):
         sections = self.Core.DB.session.query(models.ConfigSetting.section).distinct().all()
         sections = [i[0] for i in sections]

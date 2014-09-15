@@ -11,6 +11,9 @@ class ResourceDB(object):
     def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         cprint("Loading Resources from: " + file_path + " ..")
         resources = self.GetResourcesFromFile(file_path)
+        # Delete all old resources which are not edited by user
+        # because we may have updated the resource
+        self.Core.DB.session.query(models.Resource).filter_by(dirty=False).delete()
         # resources = [(Type, Name, Resource), (Type, Name, Resource),]
         for Type, Name, Resource in resources:
             # Need more filtering to avoid duplicates

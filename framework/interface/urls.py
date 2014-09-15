@@ -17,6 +17,7 @@ def get_handlers(Core):
         tornado.web.url(r'/api/targets/([0-9]+)/transactions/zconsole/?$', api_handlers.ZestScriptHandler, name='zest_console_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/transactions/([0-9]+)/zest/?$', api_handlers.ZestScriptHandler, name='zest_api_url'),
         tornado.web.url(r'/api/plugins/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginDataHandler, name='plugins_api_url'),
+        tornado.web.url(r'/api/targets/search/?$', api_handlers.TargetConfigSearchHandler, name='targets_search_api_url'),
         tornado.web.url(r'/api/targets/?([0-9]+)?/?$', api_handlers.TargetConfigHandler, name='targets_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/urls/?$', api_handlers.URLDataHandler, name='urls_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/urls/search/?$', api_handlers.URLSearchHandler, name='urls_search_api_url'),
@@ -31,7 +32,7 @@ def get_handlers(Core):
         tornado.web.url(r'/api/plugnhack/?$', api_handlers.PlugnhackHandler, name='plugnhack_api_url'),
 
         (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': Core.Config.FrameworkConfigGet('STATICFILES_DIR')}),
-        (r'/output_files/(.*)', custom_handlers.StaticFileHandler, {'path': Core.Config.GetOutputDirForTargets()}),
+        tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),
         tornado.web.url(r'/?$', ui_handlers.Redirect, name='redirect_ui_url'),
         tornado.web.url(r'/ui/?$', ui_handlers.Home, name='home_ui_url'),
         tornado.web.url(r'/ui/targets/?([0-9]+)?/?$', ui_handlers.TargetManager, name='targets_ui_url'),
@@ -49,3 +50,10 @@ def get_handlers(Core):
         tornado.web.url(r'/ui/plugnhack/?(.*)', ui_handlers.PlugnHack, name='plugnhack_ui_manifest_url'),
         tornado.web.url(r'/ui/help/?', ui_handlers.Help, name='help_ui_url')]
     return (URLS)
+
+
+def get_file_server_handlers(Core):
+    URLS = [
+        tornado.web.url(r'/(.*)', custom_handlers.StaticFileHandler, {'path': Core.Config.GetOutputDirForTargets()}, name="output_files_url"),
+    ]
+    return(URLS)

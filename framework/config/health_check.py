@@ -33,8 +33,7 @@ checking that tool paths exist.
 """
 
 import os
-
-from framework.lib.general import cprint
+import logging
 
 
 class HealthCheck(object):
@@ -49,6 +48,7 @@ class HealthCheck(object):
 
     def __init__(self, core):
         self.core = core
+        self.run()
 
     def run(self):
         count = self.count_not_installed_tools()
@@ -57,19 +57,19 @@ class HealthCheck(object):
     def count_not_installed_tools(self):
         """Count the number of missing tools by checking their paths."""
         count = 0
-        for key, value in self.core.Config.GetConfig():
-            setting = self.core.Config.StripKey(key)
-            if self.is_tool(setting) and not self.is_installed(value):
-                cprint("WARNING: Tool path not found for: " + str(value))
+        tool_settings = self.core.DB.Config.GetAllTools()
+        for tool_setting in tool_settings:
+            if self.is_tool(tool_setting['key']) and not self.is_installed(tool_setting['value']):
+                logging.error("WARNING: Tool path not found for: " + str(tool_setting['value']))
                 count += 1
         return count
 
-    @classmethod
-    def is_tool(cls, setting):
+    @staticmethod
+    def is_tool(setting):
         return setting.startswith('TOOL_')
 
-    @classmethod
-    def is_installed(cls, value):
+    @staticmethod
+    def is_installed(value):
         return os.path.exists(value)
 
     def show_help(self, count):
@@ -79,19 +79,16 @@ class HealthCheck(object):
             self.print_success()
 
     def print_warning(self, count):
-        cprint("")
-        cprint(
+        logging.info(
             "WARNING!!!: " +
             str(count) +
             " tools could not be found. Some suggestions:")
-        cprint(
-            " - Define where your tools are here: " +
-            str(self.core.Config.Profiles['g']))
-        if (self.core.Config.Get('INTERACTIVE') and
-                'n' == raw_input("Continue anyway? [Y/n]")):
+        logging.info(
+            " - You can define your tool paths from the interface as well ")
+        if ('n' == raw_input("Continue anyway? [Y/n]")):
             self.core.Error.FrameworkAbort("Aborted by user")
 
-    @classmethod
-    def print_success(cls):
-        return cprint(
+    @staticmethod
+    def print_success():
+        logging.info(
             "SUCCESS: Integrity Check successful -> All tools were found")

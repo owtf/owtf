@@ -47,7 +47,7 @@ import subprocess
 from threading import Thread
 
 from framework import timer, error_handler
-from framework.config import config
+from framework.config import config, health_check
 from framework.db import db
 from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
@@ -129,6 +129,10 @@ class Core(object):
 
         # --------------------------- Init calls --------------------------- #
         # Nothing as of now
+        self.health_check()
+
+    def health_check(self):
+        self.HealthCheck = health_check.HealthCheck(self)
 
     def create_dirs(self):
         """
@@ -416,10 +420,12 @@ class Core(object):
         """
         This method starts the interface server
         """
+        self.FileServer = server.FileServer(self)
+        self.FileServer.start()
         self.InterfaceServer = server.InterfaceServer(self)
         logging.info(
             "Interface Server started. Visit http://%s:%s",
-            self.Config.FrameworkConfigGet("UI_SERVER_ADDR"),
+            self.Config.FrameworkConfigGet("SERVER_ADDR"),
             self.Config.FrameworkConfigGet("UI_SERVER_PORT"))
         self.disable_console_logging()
         logging.info("Press Ctrl+C when you spawned a shell ;)")

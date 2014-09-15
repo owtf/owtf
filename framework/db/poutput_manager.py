@@ -44,7 +44,7 @@ class POutputDB(object):
             dict_list.append(self.DeriveOutputDict(obj, target_id=target_id))
         return(dict_list)
 
-    def GenerateQueryUsingSession(self, filter_data, target_id):
+    def GenerateQueryUsingSession(self, filter_data, target_id, for_delete=False):
         query = self.Core.DB.session.query(models.PluginOutput).filter_by(target_id=target_id)
         if filter_data.get("target_id", None):
             query.filter_by(target_id=filter_data["target_id"])
@@ -93,6 +93,8 @@ class POutputDB(object):
         except ValueError:
             raise InvalidParameterType(
                 "Integer has to be provided for integer fields")
+        if not for_delete:
+            query = query.order_by(models.PluginOutput.plugin_key.asc())
         return query
 
     @target_required
@@ -136,7 +138,8 @@ class POutputDB(object):
         """
         query = self.GenerateQueryUsingSession(
             filter_data,
-            target_id)  # Empty dict will match all results
+            target_id,
+            for_delete=True)  # Empty dict will match all results
         # Delete the folders created for these plugins
         for plugin in query.all():
             # First check if path exists in db

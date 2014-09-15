@@ -144,12 +144,14 @@ class TransactionManager(object):
             try:
                 if criteria.get('offset', None):
                     if isinstance(criteria.get('offset'), list):
-                        criteria['offset'] = criteria['offset'][0]
-                    query = query.offset(int(criteria['offset']))
+                        criteria['offset'] = int(criteria['offset'][0])
+                    if criteria['offset'] >= 0:
+                        query = query.offset(criteria['offset'])
                 if criteria.get('limit', None):
                     if isinstance(criteria.get('limit'), list):
-                        criteria['limit'] = criteria['limit'][0]
-                    query = query.limit(int(criteria['limit']))
+                        criteria['limit'] = int(criteria['limit'][0])
+                    if criteria['limit'] >= 0:
+                        query = query.limit(criteria['limit'])
             except ValueError:
                 raise InvalidParameterType(
                     "Invalid parameter type for transaction db")
@@ -455,7 +457,7 @@ class TransactionManager(object):
             for tdb_obj in tdb_obj_list]
 
     @target_required
-    def SearchAll(self, Criteria, target_id=None, include_raw_data=False):
+    def SearchAll(self, Criteria, target_id=None, include_raw_data=True):
         # Three things needed
         # + Total number of transactions
         # + Filtered transaaction dicts

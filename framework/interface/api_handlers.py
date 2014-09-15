@@ -91,6 +91,19 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
 
+class TargetConfigSearchHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        try:
+            filter_data = dict(self.request.arguments)
+            filter_data["search"] = True
+            self.write(self.application.Core.DB.Target.SearchTargetConfigs(
+                filter_data=filter_data))
+        except exceptions.InvalidParameterType as e:
+            raise tornado.web.HTTPError(400)
+
+
 class OWTFSessionHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 

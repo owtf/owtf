@@ -222,59 +222,93 @@ class TargetDB(object):
             raise InvalidTargetReference("Target doesn't exist: " + str(ID))
         return(self.DeriveTargetConfig(target_obj))
 
-    @session_required
-    def GetTargetConfigs(self, filter_data=None, session_id=None):
-        if filter_data is None:
-            filter_data = {}
+    def _generate_query(self, filter_data, session_id, for_stats=False):
         query = self.Core.DB.session.query(models.Target).filter(
             models.Target.sessions.any(id=session_id))
-        if filter_data.get("target_url", None):
-            if isinstance(filter_data["target_url"], (str, unicode)):
-                query = query.filter_by(target_url=filter_data["target_url"])
-            if isinstance(filter_data["target_url"], list):
-                query = query.filter(models.Target.target_url.in_(
-                    filter_data.get("target_url")))
-        if filter_data.get("host_ip", None):
-            if isinstance(filter_data["host_ip"], (str, unicode)):
-                query = query.filter_by(host_ip=filter_data["host_ip"])
-            if isinstance(filter_data["host_ip"], list):
-                query = query.filter(models.Target.host_ip.in_(
-                    filter_data.get("host_ip")))
-        if filter_data.get("scope", None):
-            filter_data["scope"] = filter_data["scope"][0]
-            query = query.filter_by(
-                scope=self.Core.Config.ConvertStrToBool(filter_data.get("scope")))
-        if filter_data.get("host_name", None):
-            if isinstance(filter_data["host_name"], (str, unicode)):
-                query = query.filter_by(host_name=filter_data["host_name"])
-            if isinstance(filter_data["host_name"], list):
-                query = query.filter(models.Target.host_name.in_(
-                    filter_data.get("host_name")))
-        try:
+        if filter_data.get("search") is not None:
+            if filter_data.get('target_url', None):
+                if isinstance(filter_data.get('target_url'), list):
+                    filter_data['target_url'] = filter_data['target_url'][0]
+                query = query.filter(models.Target.target_url.like(
+                    '%' + filter_data['target_url'] + '%'))
+        else:
+            if filter_data.get("target_url", None):
+                if isinstance(filter_data["target_url"], (str, unicode)):
+                    query = query.filter_by(target_url=filter_data["target_url"])
+                if isinstance(filter_data["target_url"], list):
+                    query = query.filter(models.Target.target_url.in_(
+                        filter_data.get("target_url")))
+            if filter_data.get("host_ip", None):
+                if isinstance(filter_data["host_ip"], (str, unicode)):
+                    query = query.filter_by(host_ip=filter_data["host_ip"])
+                if isinstance(filter_data["host_ip"], list):
+                    query = query.filter(models.Target.host_ip.in_(
+                        filter_data.get("host_ip")))
+            if filter_data.get("scope", None):
+                filter_data["scope"] = filter_data["scope"][0]
+                query = query.filter_by(
+                    scope=self.Core.Config.ConvertStrToBool(filter_data.get("scope")))
+            if filter_data.get("host_name", None):
+                if isinstance(filter_data["host_name"], (str, unicode)):
+                    query = query.filter_by(host_name=filter_data["host_name"])
+                if isinstance(filter_data["host_name"], list):
+                    query = query.filter(models.Target.host_name.in_(
+                        filter_data.get("host_name")))
             if filter_data.get("id", None):
                 if isinstance(filter_data["id"], (str, unicode)):
                     query = query.filter_by(id=filter_data["id"])
                 if isinstance(filter_data["id"], list):
                     query = query.filter(models.Target.id.in_(filter_data.get("id")))
-            if filter_data.get('id[lt]', None):
-                if isinstance(filter_data.get('id[lt]'), list):
-                    filter_data['id[lt]'] = filter_data['id[lt]'][0]
-                query = query.filter(models.Target.id < int(filter_data['id[lt]']))
-            if filter_data.get('id[gt]', None):
-                if isinstance(filter_data.get('id[gt]'), list):
-                    filter_data['id[gt]'] = filter_data['id[gt]'][0]
-                query = query.filter(models.Target.id > int(filter_data['id[gt]']))
-        except ValueError:
-            raise InvalidParameterType(
-                "Invalid parameter type for target db for id[lt] or id[gt]")
-        target_obj_list = query.all()
+        if not for_stats:  # query for stats shouldn't have limit and offset
+            try:
+                if filter_data.get('offset', None):
+                    if isinstance(filter_data.get('offset'), list):
+                        filter_data['offset'] = filter_data['offset'][0]
+                    query = query.offset(int(filter_data['offset']))
+                if filter_data.get('limit', None):
+                    if isinstance(filter_data.get('limit'), list):
+                        filter_data['limit'] = filter_data['limit'][0]
+                    query = query.limit(int(filter_data['limit']))
+            except ValueError:
+                raise InvalidParameterType(
+                    "Invalid parameter type for target db for "
+                    "id[lt] or id[gt]")
+        return(query)
+
+    @session_required
+    def SearchTargetConfigs(self, filter_data=None, session_id=None):
+        # Three things needed
+        # + Total number of targets
+        # + Filtered target dicts
+        # + Filtered number of targets
+        total = self.Core.DB.session.query(models.Target).filter(
+            models.Target.sessions.any(id=session_id)).count()
+        filtered_target_objs = self._generate_query(
+            filter_data,
+            session_id).all()
+        filtered_number = self._generate_query(
+            filter_data,
+            session_id,
+            for_stats=True).count()
+        return ({
+            "records_total": total,
+            "records_filtered": filtered_number,
+            "data": self.DeriveTargetConfigs(
+                filtered_target_objs)})
+
+
+    @session_required
+    def GetTargetConfigs(self, filter_data=None, session_id=None):
+        if filter_data is None:
+            filter_data = {}
+        target_obj_list = self._generate_query(filter_data, session_id).all()
         return(self.DeriveTargetConfigs(target_obj_list))
 
     def DeriveTargetConfig(self, target_obj):
         target_config = dict(TARGET_CONFIG)
         if target_obj:
             for key in TARGET_CONFIG.keys():
-                target_config[key] = getattr(target_obj, key.lower())
+                target_config[key] = getattr(target_obj, key)
             return target_config
         return(None)
 
