@@ -152,6 +152,8 @@ class TransactionManager(object):
                         criteria['limit'] = int(criteria['limit'][0])
                     if criteria['limit'] >= 0:
                         query = query.limit(criteria['limit'])
+                else:  # It is too dangerous without a limit argument
+                    query.limit(10)  # Default limit value is 10
             except ValueError:
                 raise InvalidParameterType(
                     "Invalid parameter type for transaction db")
@@ -301,9 +303,11 @@ class TransactionManager(object):
             if transaction_list:
                 self.LogTransactions(transaction_list, target_id=target_id)
 
-    def DeleteTransaction(self, transaction_id):
-        self.Core.DB.session.delete(
-            self.Core.DB.session.query(models.Transaction).get(transaction_id))
+    @target_required
+    def DeleteTransaction(self, transaction_id, target_id=None):
+        self.Core.DB.session.query(models.Transaction).filter_by(
+            target_id=target_id,
+            id=transaction_id).delete()
         self.Core.DB.session.commit()
 
     @target_required
@@ -487,7 +491,10 @@ class TransactionManager(object):
 
     @target_required
     def GetByIDAsDict(self, trans_id, target_id=None):
-        transaction_obj = self.Core.DB.session.query(models.Transaction).get(trans_id)
+        transaction_obj = self.Core.DB.session.query(
+            models.Transaction).filter_by(
+                target_id=target_id,
+                id=trans_id).first()
         if not transaction_obj:
             raise InvalidTransactionReference(
                 "No transaction with " + str(trans_id) + " exists")

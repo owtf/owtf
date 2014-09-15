@@ -348,11 +348,17 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
     def get(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.write(self.application.Core.DB.Transaction.GetByIDAsDict(int(transaction_id)))
+                self.write(
+                    self.application.Core.DB.Transaction.GetByIDAsDict(
+                        int(transaction_id),
+                        target_id=int(target_id)))
             else:
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
-                self.write(self.application.Core.DB.Transaction.GetAllAsDicts(filter_data))
+                self.write(
+                    self.application.Core.DB.Transaction.GetAllAsDicts(
+                        filter_data,
+                        target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -375,7 +381,9 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
     def delete(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.application.Core.DB.Transaction.DeleteTransaction(int(transaction_id))
+                self.application.Core.DB.Transaction.DeleteTransaction(
+                    int(transaction_id),
+                    target_id=int(target_id))
             else:
                 raise tornado.web.HTTPError(400)
         except exceptions.InvalidTargetReference as e:
