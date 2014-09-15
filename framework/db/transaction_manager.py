@@ -289,7 +289,7 @@ class TransactionManager(object):
         # Append the transaction in the list if recording is set to on
         if self.Core.zest.IsRecording():
             for model in transaction_model_list:
-                zest_trans_list.append((target_id, model.id))
+                zest_trans_list.append(model.id)
             self.Core.zest.addtoRecordedTrans(zest_trans_list)
         self.Core.DB.URL.ImportProcessedURLs(urls_list, target_id=target_id)
 

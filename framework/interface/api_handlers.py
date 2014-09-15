@@ -225,7 +225,7 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
             try:
                 if transaction_id:
                     Scr_Name = self.get_argument('name', '')
-                    if not self.application.Core.zest.TargetScriptFromSingleTransaction(transaction_id,Scr_Name,target_id): #zest script creation from single transaction
+                    if not self.application.Core.zest.TargetScriptFromSingleTransaction(transaction_id, Scr_Name, target_id): #zest script creation from single transaction
                         self.write({"exists": "true"})
                 else:  # multiple transactions
                     trans_list = self.get_argument('trans', '')   # get transaction ids

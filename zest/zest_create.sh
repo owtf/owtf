@@ -1,4 +1,4 @@
 #/usr/bin/env bash
 
-java -jar $1/zest/zest.jar "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+java -jar $1/zest/zest.jar "$1" "$2" "$3" "$4" "$5" "$6"
 
