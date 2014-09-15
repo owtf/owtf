@@ -357,10 +357,12 @@ function showTransactionWithOffset(offset) {
       }
       // Then add the response and highlight if any search terms
       $("#raw_response_headers_pre").text(obj.response_status+"\r\n"+obj.response_headers);
-      if ((mySpace.search_parameters["response_status"] !== undefined) ||
-          (mySpace.search_parameters["response_headers"])) {
-        $("#raw_response_headers_pre").highlight(mySpace.search_parameters["response_status"], mySpace.search_parameters["response_headers"]);
-      }
+      var response_headers_highlight = [];
+      if (mySpace.search_parameters["response_status"] !== undefined)
+        response_headers_highlight.push(mySpace.search_parameters["response_status"]);
+      if (mySpace.search_parameters["response_headers"] !== undefined)
+        response_headers_highlight.push(mySpace.search_parameters["response_headers"]);
+      $("#raw_response_headers_pre").highlight(response_headers_highlight);
       // THen the response body
       $("#raw_response_body_pre").text(obj.response_body);
       if (mySpace.search_parameters["response_body"] !== undefined) {
