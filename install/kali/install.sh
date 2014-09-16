@@ -65,6 +65,7 @@ sudo -E apt-get install tor
 "$RootDir/install/kali/kali_patch_nikto.sh"
 "$RootDir/install/kali/kali_patch_tlssled.sh"
 ###### Dictionaries missing in Kali
+mkdir -p $RootDir/dictionaries/restricted
 cd $RootDir/dictionaries/restricted
 IsInstalled "dirbuster"
 if [ $? -eq 0 ]; then # Not installed
