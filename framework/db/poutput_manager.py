@@ -185,6 +185,12 @@ class POutputDB(object):
                 raise InvalidParameterType(
                     "Integer has to be provided for integer fields")
 
+    def PluginOutputExists(self, plugin_key, target_id):
+        count = self.Core.DB.session.query(models.PluginOutput).filter_by(
+            target_id=target_id,
+            plugin_key=plugin_key).count()
+        return(True if (count > 0) else False)
+
     @target_required
     def PluginAlreadyRun(self, PluginInfo, target_id=None):
         plugin_output_count = self.Core.DB.session.query(models.PluginOutput).filter_by(

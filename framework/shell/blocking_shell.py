@@ -68,13 +68,14 @@ class Shell(object):
                 #CommandInfo = { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.Core.Timer.GetStartDateTimeAsStr(self.CommandTimeOffset) }
                 #self.CommandInfo = CommandInfo
 
-        def FinishCommand(self, CommandInfo, WasCancelled):
+        def FinishCommand(self, CommandInfo, WasCancelled, PluginInfo):
                 CommandInfo['End'] = self.Core.Timer.get_end_date_time(self.CommandTimeOffset)
                 Success = True
                 if WasCancelled:
                         Success = False
                 CommandInfo['Success'] = Success
                 CommandInfo['Target'] = self.Core.DB.Target.GetTargetID()
+                CommandInfo['PluginKey'] = PluginInfo["key"]
                 self.Core.DB.CommandRegister.AddCommand(CommandInfo)
                 #self.CommandInfo = defaultdict(list)
 
@@ -110,7 +111,7 @@ class Shell(object):
             )
             return proc
 
-        def shell_exec_monitor(self, Command):
+        def shell_exec_monitor(self, Command, PluginInfo):
                 #if not self.CommandInfo:
                 CommandInfo = self.StartCommand(Command, Command)
                 #Target, CanRun = self.CanRunCommand(self.CommandInfo)
@@ -146,7 +147,7 @@ class Shell(object):
                         #self.FinishCommand(self.CommandInfo, Cancelled)
                         Output += self.Core.Error.UserAbort('Command', Output) # Identify as Command Level abort
                 finally:
-                        self.FinishCommand(CommandInfo, Cancelled)
+                        self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
                 return Output
 
         def shell_exec(self, Command, **kwds): # Mostly used for internal framework commands

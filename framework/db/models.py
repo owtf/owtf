@@ -169,6 +169,7 @@ class Command(Base):
     end_time = Column(DateTime)
     success = Column(Boolean, default=False)
     target_id = Column(Integer, ForeignKey("targets.id"))
+    plugin_key = Column(String, ForeignKey("plugins.key"))
     modified_command = Column(String)
     original_command = Column(String, primary_key=True)
 

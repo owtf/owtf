@@ -148,7 +148,7 @@ class PluginHelper:
                 self.Core.Timer.start_timer( 'FormatCommandAndOutput' )
                 ModifiedCommand = self.Core.Shell.GetModifiedShellCommand( Command, PluginOutputDir )
                 try:
-                        RawOutput = self.Core.Shell.shell_exec_monitor( ModifiedCommand )
+                        RawOutput = self.Core.Shell.shell_exec_monitor( ModifiedCommand, PluginInfo )
 
                 except PluginAbortException, PartialOutput:
                         RawOutput = str( PartialOutput.parameter ) # Save Partial Output
