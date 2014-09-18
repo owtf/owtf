@@ -184,17 +184,8 @@ function patchUserRank(group, type, code, user_rank){
 }
 
 function reRunPlugin(group, type, code) {
-    $.ajax({url:pluginReportSpace.poutput_api_url+group+'/'+type+'/'+code,
-        type:'DELETE',
-        success: function() {
-            //postToWorkList & updatePluginReport are obtained from target.html
-            postToWorkList({"code":code, "group":group, "type":type});
-            updatePluginReport();
-        },
-        error: function(xhr, textStatus, serverResponse) {
-            alertFail("Server replied: "+serverResponse);
-        }
-    });
+    //postToWorkList & updatePluginReport are obtained from target.html
+    postToWorkList({"code":code, "group":group, "type":type}, true);
 }
 
 function deletePluginOutput(group, type, code){

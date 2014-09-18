@@ -130,8 +130,9 @@ function getSelectedTargets() {
 }
 
 // Main function that posts using API to launch plugins
-function postToWorkList(selectedPluginData){
+function postToWorkList(selectedPluginData, force_overwrite){
     selectedPluginData["id"] = getSelectedTargets();
+    selectedPluginData["force_overwrite"] = force_overwrite;
     if (selectedPluginData["id"].length < 1) {  // If no targets selected
         alertFail("No targets selected to launch plugins");
     }

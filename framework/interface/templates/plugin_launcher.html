@@ -81,6 +81,11 @@ The above module tag is taken from target.html
         </div>
       </div>
       <div class="modal-footer">
+        <div class="checkbox pull-left">
+          <label>
+            <input type="checkbox" id="force_overwrite"> Force Overwrite
+          </label>
+        </div>
         <button type="button" class="btn" onclick="launchPlugins();">Run!</button>
       </div>
     </div>
@@ -225,7 +230,7 @@ function getPluginDetails(pluginInputName){
 function launchPlugins(){
     // First fire off individual plugins
     $.each(getIndividualSelectedPlugins(), function(index, obj){
-        {{ worklist_post_func }}(getPluginDetails(obj.name));
+        {{ worklist_post_func }}(getPluginDetails(obj.name), $("#force_overwrite").prop("checked"));
     });
 
     // Then fire off any selected groups
@@ -237,7 +242,7 @@ function launchPlugins(){
       pluginSelection[checkbox.attr("collection-type")].push(checkbox.attr("collection-name"));
     });
     if (!($.isEmptyObject(pluginSelection))) // i.e no checkboxes checked then donot send a request
-        {{ worklist_post_func }}(pluginSelection);
+        {{ worklist_post_func }}(pluginSelection, $("#force_overwrite").prop("checked"));
 }
 
 $(document).ready(function() {
