@@ -226,6 +226,6 @@ class PluginDB(object):
         return(self.DerivePluginDicts(plugins))
 
     def GetGroupsForPlugins(self, Plugins):
-        groups = self.Core.DB.session.query(models.Plugin.plugin_group).filter(or_(models.Plugin.code.in_(Plugins), models.Plugin.name.in_(Plugins))).distinct().all()
+        groups = self.Core.DB.session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(Plugins), models.Plugin.name.in_(Plugins))).distinct().all()
         groups = [i[0] for i in groups]
         return(groups)

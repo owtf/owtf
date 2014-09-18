@@ -109,7 +109,29 @@ class Config(object):
 
     def ProcessOptions(self, options):
         self.LoadProfiles(options['Profiles'])
-        self.LoadTargets(options)
+        target_urls = self.LoadTargets(options)
+        self.LoadWork(options, target_urls)
+
+    def LoadWork(self, options, target_urls):
+        """
+        Add plugins and targets to worklist
+        """
+        targets = self.Core.DB.Target.GetTargetConfigs({
+            "target_url": target_urls})
+        if options["OnlyPlugins"] is None:
+            filter_data = {
+                "type": options["PluginType"],
+                "group": options["PluginGroup"],
+            }
+        else:
+            filter_data = {"code": options["OnlyPlugins"]}
+        plugins = self.Core.DB.Plugin.GetAll(filter_data)
+        force_overwrite = options["Force_Overwrite"]
+        self.Core.DB.Worklist.add_work(
+            targets,
+            plugins,
+            force_overwrite=force_overwrite)
+
 
     def LoadProfiles(self, profiles):
         # This prevents python from blowing up when the Key does not exist :)
@@ -127,6 +149,7 @@ class Config(object):
                 cprint(target + " already exists in DB")
             except UnresolvableTargetException as e:
                 cprint(e.parameter)
+        return(scope)
 
     def PrepareURLScope(self, scope, group):
         """Convert all targets to URLs."""
