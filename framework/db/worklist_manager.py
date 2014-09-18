@@ -132,7 +132,7 @@ class WorklistManager(object):
                 "No work with id " + str(work_id))
         return(self._derive_work_dict(work))
 
-    def add_work(self, target_list, plugin_list):
+    def add_work(self, target_list, plugin_list, force_overwrite=False):
         for target in target_list:
             for plugin in plugin_list:
                 # Check if it already in worklist
@@ -140,8 +140,10 @@ class WorklistManager(object):
                         target_id=target["id"],
                         plugin_key=plugin["key"]).count() == 0:
                     # Check if it is already run ;) before adding
-                    if self.Core.DB.POutput.PluginAlreadyRun(
-                            plugin, target_id=target["id"]) is False:
+                    if ((force_overwrite is True) or
+                        (force_overwrite is False and
+                            self.Core.DB.POutput.PluginAlreadyRun(
+                                plugin, target_id=target["id"]) is False)):
                         work_model = models.Work(
                             target_id=target["id"],
                             plugin_key=plugin["key"])

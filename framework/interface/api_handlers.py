@@ -603,7 +603,11 @@ class WorklistHandler(custom_handlers.APIRequestHandler):
             if (not plugin_list) or (not target_list):
                 raise tornado.web.HTTPError(400)
             self.application.Core.DB.Worklist.add_work(
-                target_list, plugin_list)
+                target_list,
+                plugin_list,
+                force_overwrite=self.application.Core.Config.ConvertStrToBool(
+                    self.get_argument("force_overwrite", "False"))
+            )
             self.set_status(201)
         except exceptions.InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)

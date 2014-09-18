@@ -295,8 +295,6 @@ class PluginHandler:
             # Use relative path from targets folders while saving
             plugin['output_path'] = os.path.relpath(self.GetPluginOutputDir(plugin),
                 self.Core.Config.GetOutputDirForTargets())
-            if not self.CanPluginRun(plugin, True):
-                return None  # Skip.
             status['AllSkipped'] = False  # A plugin is going to be run.
             plugin['status'] = 'Running'
             self.PluginCount += 1
