@@ -55,13 +55,13 @@
                                 <label id="{{ pkey }}_3" class="btn {% if owtf_rank == 3 %}active btn-warning" style="opacity: 0.7{% end %}"><input type="radio" id="3" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-warning"></i></label>
                                 <label id="{{ pkey }}_4" class="btn {% if owtf_rank == 4 %}active btn-danger" style="opacity: 0.7{% end %}"><input type="radio" id="4" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '4');"/><i class="fa fa-bell"></i></label>
                                 <label id="{{ pkey }}_5" class="btn {% if user_rank == 5 %}active btn-critical{% end %}"><input type="radio" id="5" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '5');"/><i class="fa fa-bomb"></i></label>
-			    	{% end %}
+			    	            {% end %}
                             </div>
                             <br />
                             <br />
-			    <br />
-		  	    <br />
-			    {# raw html[poutput["plugin_code"]] #}
+            			    <br />
+            		  	    <br />
+            			    {# raw html[poutput["plugin_code"]] #}
                             <table class="table table-bordered table-striped table-hover">
                                 <thead>
                                     <tr>
@@ -298,7 +298,7 @@ function updateTestCaseInfo(code) {
     var maxUserRank = -1;
     var maxOWTFRank = -1;
     $.each(copyPOutputs[code], function (type, poutput) {
-        if (poutput.user_rank != null) {
+        if (poutput.user_rank != -1) {
             updatePluginInfo(poutput.key.replace('@', '_'), poutput.user_rank);
             if (poutput.user_rank > maxUserRank)
                 maxUserRank = poutput.user_rank;
@@ -306,7 +306,7 @@ function updateTestCaseInfo(code) {
         else {
             if (poutput.owtf_rank > maxOWTFRank)
                 maxOWTFRank = poutput.owtf_rank;
-            if (poutput.owtf_rank != null) {
+            if (poutput.owtf_rank != -1) {
                 updatePluginInfo(poutput.key.replace('@', '_'), poutput.owtf_rank);
                 $("#tab_" + poutput.key.replace('@', '_')).css("opacity", "0.7");
             }
@@ -317,7 +317,7 @@ function updateTestCaseInfo(code) {
     $("#header_" + code).toggleClass("panel-" + getAlertColor(testCaseMax));
     $("#header_badge_" + code).css("opacity", "");
     $("#header_badge_" + code).html('<i><small>' + getLabelColor(testCaseMax) + '</small></i>');
-    if (testCaseMax > maxUserRank && testCaseMax != null)
+    if (testCaseMax > maxUserRank && testCaseMax != -1)
         $('#header_badge_' + code).css("opacity", "0.7");
 }
 
@@ -329,7 +329,7 @@ function updateAllTestCasesInfo() {
         var maxUserRank = -1;
         var maxOWTFRank = -1;
         $.each(types, function(type, poutput) {
-            if (poutput.user_rank != null) {
+            if (poutput.user_rank != -1) {
                 updatePluginInfo(poutput.key.replace('@', '_'), poutput.user_rank);
                 if (poutput.user_rank > maxUserRank)
                     maxUserRank = poutput.user_rank;
@@ -337,7 +337,7 @@ function updateAllTestCasesInfo() {
             else {
                 if (poutput.owtf_rank > maxOWTFRank)
                     maxOWTFRank = poutput.owtf_rank;
-                if (poutput.owtf_rank != null) {
+                if (poutput.owtf_rank != -1) {
                     updatePluginInfo(poutput.key.replace('@', '_'), poutput.owtf_rank);
                     $("#tab_" + poutput.key.replace('@', '_')).css("opacity", "0.7");
                 }
@@ -348,7 +348,7 @@ function updateAllTestCasesInfo() {
         $("#header_" + code).toggleClass("panel-" + getAlertColor(testCaseMax));
         $("#header_badge_" + code).css("opacity", "");
         $("#header_badge_" + code).html('<i><small>' + getLabelColor(testCaseMax) + '</small></i>');
-        if (testCaseMax > maxUserRank && testCaseMax != null)
+        if (testCaseMax > maxUserRank && testCaseMax != -1)
             $('#header_badge_' + code).css("opacity", "0.7");
     });
 }
@@ -362,7 +362,7 @@ function updateTargetInfo() {
     /* Find the current max for the target. */
     $.each(copyPOutputs, function(code, types) {
         $.each(types, function(type, poutput) {
-            if (poutput.user_rank != null) {
+            if (poutput.user_rank != -1) {
                 if (poutput.user_rank > maxUserRank)
                     maxUserRank = poutput.user_rank;
             }
