@@ -363,15 +363,16 @@ class Core(object):
             multiprocessing.current_process().name
         )
         logger = logging.getLogger()
-        # logger.setLevel(logging.DEBUG)
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.DEBUG)
         file_handler = self.FileHandler(
             self.Config.FrameworkConfigGetLogPath(process_name),
             mode="w+"
         )
+        file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(FileFormatter())
 
         stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setLevel(logging.INFO)
         stream_handler.setFormatter(ConsoleFormatter())
 
         # Replace any old handlers

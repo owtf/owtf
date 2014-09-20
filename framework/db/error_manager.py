@@ -53,7 +53,7 @@ class ErrorDB(object):
             raise exceptions.InvalidErrorReference(
                 "No error with id " + str(error_id))
 
-    def GenerateQueryUsingSession(self, session, criteria):
+    def GenerateQueryUsingSession(self, criteria):
         query = self.Core.DB.session.query(models.Error)
         if criteria.get('reported', None):
             if isinstance(criteria.get('reported'), list):
@@ -87,7 +87,7 @@ class ErrorDB(object):
     def GetAll(self, criteria=None):
         if not criteria:
             criteria = {}
-        query = self.GenerateQueryUsingSession(session, criteria)
+        query = self.GenerateQueryUsingSession(criteria)
         results = query.all()
         return(self.DeriveErrorDicts(results))
 
