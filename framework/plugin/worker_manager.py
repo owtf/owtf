@@ -118,9 +118,11 @@ class WorkerManager(object):
             "paused": False
         }
 
-        if index:
+        if index is not None:
+            logging.debug("Replacing worker at index %d" % (index))
             self.workers[index] = worker_dict
         else:
+            logging.debug("Adding a new worker")
             self.workers.append(worker_dict)
         w.start()
 
@@ -147,9 +149,15 @@ class WorkerManager(object):
                     self.workers[k]["work"] = ()
                     self.workers[k]["busy"] = False  # Worker is IDLE
                 else:
+                    logging.info("Worker with name %s and pid %s seems dead" % (
+                        self.workers[k]["worker"].name,
+                        self.workers[k]["worker"].pid))
                     self.spawn_worker(index=k)
                 work_to_assign = self.get_task()
                 if work_to_assign:
+                    logging.info("Work assigned to %s with pid %d" % (
+                        self.workers[k]["worker"].name,
+                        self.workers[k]["worker"].pid))
                     trash_can = self.workers[k]["worker"].output_q.get()
                     # Assign work ,set target to used,and process to busy
                     self.workers[k]["worker"].input_q.put(work_to_assign)
@@ -169,7 +177,7 @@ class WorkerManager(object):
                 trash = item["worker"].output_q.get()
                 item["busy"] = False
                 item["work"] = ()
-            item["worker"].input_q.put(())
+            item["worker"].poison_q.put("DIE")
 
     def join_workers(self):
         """
@@ -190,9 +198,7 @@ class WorkerManager(object):
         # killing of workers
         self.worklist = []  # It is a list
         for item in self.workers:
-            work = item["work"]
-            if work == ():
-                continue
+            work = item["worker"].poison_q.put("DIE")
             self._signal_process(item["worker"].pid, signal.SIGINT)
 
     def _signal_process(self, pid, psignal):
