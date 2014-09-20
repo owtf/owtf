@@ -363,7 +363,8 @@ class Core(object):
             multiprocessing.current_process().name
         )
         logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
+        # logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.INFO)
         file_handler = self.FileHandler(
             self.Config.FrameworkConfigGetLogPath(process_name),
             mode="w+"
