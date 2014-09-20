@@ -37,8 +37,7 @@ from tornado.httpclient import HTTPRequest
 import os
 from tornado.ioloop import IOLoop
 from tornado import gen
-
-
+import logging
 
 class Proxy_manager():
 
@@ -62,7 +61,7 @@ class Proxy_manager():
         for line in lines:
             if str(line).strip() != "":
                 proxies.append(line.split(":"))
-        print "ProxyList loaded"
+        logging.info("ProxyList loaded")
         return proxies
 
     def get_next_available_proxy(self):  #  returns the next proxy 
@@ -81,7 +80,7 @@ class Proxy_manager():
 
 class Proxy_Checker():  # This class is responsible for proxy checking
     Proxies = []
-    number_of_responces = 0
+    number_of_responses = 0
     working_proxies = 0
 
     @staticmethod
@@ -108,16 +107,16 @@ class Proxy_Checker():  # This class is responsible for proxy checking
                           )
         http_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
         response = yield gen.Task(http_client.fetch, request)
-        if response.code == 200 and response.body.find(Proxy_manager.testing_url_patern) != -1: #if proxy is good
+        if response.code == 200 and response.body.find(Proxy_manager.testing_url_patern) != -1:  # if proxy is alive
             Proxy_Checker.Proxies.append(proxy)
             Proxy_Checker.working_proxies += 1
 
         Proxy_Checker.number_of_responses += 1
         #
-        print "Checking [ " + str(Proxy_Checker.number_of_responses)+"/"+\
+        logging.info("Checking [ " + str(Proxy_Checker.number_of_responses)+"/"+\
         str(Proxy_Checker.number_of_unchecked_proxies)+" ] Working Proxies: [ "+\
-        str(Proxy_Checker.working_proxies)+" ]"
-        #if all proxies has been checked stop IOLoop
+        str(Proxy_Checker.working_proxies)+" ]")
+        # if all proxies has been checked stop IOLoop
         if Proxy_Checker.number_of_responses == Proxy_Checker.number_of_unchecked_proxies:
             IOLoop.instance().stop()
-            print "Proxy Check: Done"
+            logging.info("Proxy Check: Done")
