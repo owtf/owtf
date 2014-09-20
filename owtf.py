@@ -35,9 +35,6 @@ In charge of processing arguments and call the framework.
 from __future__ import print_function
 
 import argparse
-import sys
-import os
-
 from framework import core
 from framework.lib.general import *
 from framework import update
@@ -340,7 +337,7 @@ def process_options(core, user_args):
         arg.TOR_mode = arg.TOR_mode.split(":")
         if(arg.TOR_mode[0] == "help"):
             tor_manager.TOR_manager.msg_configure_tor()
-            exit(0);
+            exit(0)
         if len(arg.TOR_mode) == 1:
             if arg.TOR_mode[0] != "help":
                 usage("Invalid argument for TOR-mode")
@@ -362,12 +359,12 @@ def process_options(core, user_args):
     if arg.Botnet_mode:  # Checking arguments
         arg.Botnet_mode = arg.Botnet_mode.split(":")
         if arg.Botnet_mode[0] == "miner" and len(arg.Botnet_mode) != 1:
-            Usage("Invalid argument for Botnet mode\n Mode must be miner or list")
+            usage("Invalid argument for Botnet mode\n Mode must be miner or list")
         if arg.Botnet_mode[0] == "list":
             if len(arg.Botnet_mode) != 2:
-                Usage("Invalid argument for Botnet mode\n Mode must be miner or list")
+                usage("Invalid argument for Botnet mode\n Mode must be miner or list")
             if not os.path.isfile(os.path.expanduser(arg.Botnet_mode[1])):
-                Usage("Error Proxy List not found! Please check the path.")
+                usage("Error Proxy List not found! Please check the path.")
 
     if arg.OutboundProxy:
         arg.OutboundProxy = arg.OutboundProxy.split('://')
