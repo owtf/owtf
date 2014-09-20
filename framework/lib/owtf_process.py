@@ -54,7 +54,7 @@ class OWTFProcess(Process):
         """
         Method used to set daemon value to true
         """
-        self.daemon = true
+        self.daemon = True
 
     def initialize(self, **kwargs):
         """
