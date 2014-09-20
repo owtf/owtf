@@ -116,7 +116,7 @@ class PluginHelper(BaseComponent):
                 Transaction = self.requester.GetTransaction(True, URL, Method, POST)
             if Transaction.Found:
                 RawHTML = Transaction.GetRawResponseBody()
-                FilteredHTML = self.reporter.Sanitiser.CleanThirdPartyHTML(RawHTML)
+                FilteredHTML = self.reporter.sanitize_html(RawHTML)
                 NotSandboxedPath = self.plugin_handler.DumpOutputFile("NOT_SANDBOXED_" + Name + ".html",
                                                                           FilteredHTML, PluginInfo)
                 logging.info("File: " + "NOT_SANDBOXED_" + Name + ".html" + " saved to: " + NotSandboxedPath)

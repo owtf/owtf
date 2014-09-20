@@ -1,12 +1,13 @@
 from framework.db import models
 from framework.config import config
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import ResourceInterface
 from framework.lib.general import cprint
 import os
 from framework.utils import FileOperations
 
 
-class ResourceDB(BaseComponent):
+class ResourceDB(BaseComponent, ResourceInterface):
 
     COMPONENT_NAME = "resource"
 

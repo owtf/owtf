@@ -38,6 +38,7 @@ import logging
 import urllib
 import urllib2
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import RequesterInterface
 
 from framework.http import transaction
 from framework.lib.general import *
@@ -101,7 +102,7 @@ class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
         return result
 
 
-class Requester(BaseComponent):
+class Requester(BaseComponent, RequesterInterface):
 
     COMPONENT_NAME = "requester"
 

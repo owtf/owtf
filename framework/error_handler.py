@@ -39,6 +39,7 @@ import cgi
 import json
 import urllib2
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import ErrorHandlerInterface
 
 from framework.lib.exceptions import FrameworkAbortException, \
                                      PluginAbortException
@@ -46,7 +47,7 @@ from framework.lib.general import cprint
 from framework.utils import OutputCleaner
 
 
-class ErrorHandler(BaseComponent):
+class ErrorHandler(BaseComponent, ErrorHandlerInterface):
     Command = ''
     PaddingLength = 100
     COMPONENT_NAME = "error_handler"

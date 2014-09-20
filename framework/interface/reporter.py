@@ -35,13 +35,14 @@ import cgi
 import codecs
 from tornado.template import Template, Loader
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import ReporterInterface
 from framework.lib.general import *
 # TODO: Check if this renderer is really necessary, change the name atleast
 #from framework.interface.html import renderer
 from framework.interface.html.filter import sanitiser
 #from framework.report import summary
 
-class Reporter(BaseComponent):
+class Reporter(BaseComponent, ReporterInterface):
 
     COMPONENT_NAME = "reporter"
 
@@ -82,6 +83,12 @@ class Reporter(BaseComponent):
             return unicode(*args)
         except TypeError:
             return args[0]  # Input is already Unicode
+
+    def sanitize_html(self, RawHTML):
+        return self.Sanitiser.CleanThirdPartyHTML(RawHTML)
+
+    def reset_loader(self):
+        return self.Loader.reset()
 
 #----------------------------------- Methods exported from plugin_helper.py ---------------------------------
 

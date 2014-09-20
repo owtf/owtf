@@ -1,12 +1,13 @@
 import os
 import json
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import PluginOutputInterface
 from framework.lib.exceptions import InvalidParameterType
 from framework.db import models
 from framework.utils import FileOperations
 
 
-class POutputDB(BaseComponent):
+class POutputDB(BaseComponent, PluginOutputInterface):
 
     COMPONENT_NAME = "plugin_output"
 
@@ -20,7 +21,7 @@ class POutputDB(BaseComponent):
         self.db_config = self.get_component("db_config")
 
     def DeriveHTMLOutput(self, plugin_output):
-        self.reporter.Loader.reset()
+        self.reporter.reset_loader()
         Content = ''
         for item in plugin_output:
             Content += getattr(self.reporter, item["type"])(**item["output"])

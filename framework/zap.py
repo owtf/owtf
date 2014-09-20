@@ -1,8 +1,9 @@
 from zapv2 import ZAPv2
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import ZapAPIInterface
 
 
-class ZAP_API(BaseComponent):
+class ZAP_API(BaseComponent, ZapAPIInterface):
 
     COMPONENT_NAME = "zap_api"
 

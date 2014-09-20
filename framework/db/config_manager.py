@@ -1,11 +1,12 @@
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import DBConfigInterface
 from framework.lib.exceptions import InvalidConfigurationReference
 from framework.db import models
 from framework.lib.general import cprint
 import ConfigParser
 
 
-class ConfigDB(BaseComponent):
+class ConfigDB(BaseComponent, DBConfigInterface):
 
     COMPONENT_NAME = "db_config"
 

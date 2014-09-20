@@ -35,9 +35,10 @@ human-readable form.
 
 import time
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import TimerInterface
 
 
-class Timer(BaseComponent):
+class Timer(BaseComponent, TimerInterface):
 
     COMPONENT_NAME = "timer"
 

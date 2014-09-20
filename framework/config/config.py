@@ -40,6 +40,7 @@ import socket
 from urlparse import urlparse
 from collections import defaultdict
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import ConfigInterface
 
 from framework.lib.exceptions import PluginAbortException, \
                                      DBIntegrityException, \
@@ -55,9 +56,13 @@ REPLACEMENT_DELIMITER_LENGTH = len(REPLACEMENT_DELIMITER)
 CONFIG_TYPES = [ 'string', 'other' ]
 
 
-class Config(BaseComponent):
+class Config(BaseComponent, ConfigInterface):
 
     COMPONENT_NAME = "config"
+
+    RootDir = None
+    OwtfPid = None
+    Profiles = None
 
     Target = None
     def __init__(self, root_dir, owtf_pid, core):

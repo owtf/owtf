@@ -36,6 +36,7 @@ import signal
 import logging
 import multiprocessing
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import WorkerManagerInterface
 from framework.lib.owtf_process import OWTFProcess
 from framework.lib.exceptions import InvalidWorkerReference
 
@@ -74,7 +75,7 @@ class Worker(OWTFProcess):
         exit(0)
 
 
-class WorkerManager(BaseComponent):
+class WorkerManager(BaseComponent, WorkerManagerInterface):
 
     COMPONENT_NAME = "worker_manager"
 

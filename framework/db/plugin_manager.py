@@ -4,13 +4,14 @@ import json
 from framework.db import models
 from sqlalchemy import or_
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import DBPluginInterface
 from framework.utils import FileOperations
 
 
 TEST_GROUPS = ['web', 'net', 'aux']
 
 
-class PluginDB(BaseComponent):
+class PluginDB(BaseComponent, DBPluginInterface):
     
     COMPONENT_NAME = "db_plugin"
     

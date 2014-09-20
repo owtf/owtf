@@ -31,6 +31,7 @@ The shell module allows running arbitrary shell commands and is critical to the 
 # import shlex
 from collections import defaultdict
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import ShellInterface
 from framework.lib.general import *
 import signal
 import subprocess
@@ -38,7 +39,7 @@ import os
 import logging
 
 
-class Shell(BaseComponent):
+class Shell(BaseComponent, ShellInterface):
 
     COMPONENT_NAME = "shell"
 

@@ -1,6 +1,7 @@
 from framework.db import models
 from framework.config import config
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import MappingDBInterface
 from framework.lib.exceptions import InvalidMappingReference
 import os
 import json
@@ -8,7 +9,7 @@ import logging
 import ConfigParser
 
 
-class MappingDB(BaseComponent):
+class MappingDB(BaseComponent, MappingDBInterface):
 
     COMPONENT_NAME = "mapping_db"
 

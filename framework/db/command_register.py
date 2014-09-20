@@ -29,11 +29,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Component to handle data storage and search of all commands run
 '''
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import CommandRegisterInterface
 
 from framework.lib.general import cprint
 from framework.db import models
 
-class CommandRegister(BaseComponent):
+class CommandRegister(BaseComponent, CommandRegisterInterface):
 
     COMPONENT_NAME = "command_register"
 

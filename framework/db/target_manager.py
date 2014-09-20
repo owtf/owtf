@@ -3,6 +3,7 @@ import sqlalchemy.exc
 
 from urlparse import urlparse
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import TargetInterface
 
 from framework.lib.exceptions import DBIntegrityException, \
                                      InvalidTargetReference, \
@@ -35,7 +36,7 @@ PATH_CONFIG = {
                     'PLUGIN_OUTPUT_DIR' : ''
               }
 
-class TargetDB(BaseComponent):
+class TargetDB(BaseComponent, TargetInterface):
     # All these variables reflect to current target which is referenced by a unique ID
     TargetID = None
     TargetConfig = dict(TARGET_CONFIG)

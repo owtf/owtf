@@ -40,6 +40,7 @@ import logging
 from sqlalchemy import desc, asc
 from collections import defaultdict
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import TransactionInterface
 
 from framework.lib.exceptions import InvalidTransactionReference, \
                                      InvalidParameterType
@@ -50,7 +51,7 @@ from framework.db import models
 REGEX_TYPES = ['HEADERS', 'BODY']  # The regex find differs for these types :P
 
 
-class TransactionManager(BaseComponent):
+class TransactionManager(BaseComponent, TransactionInterface):
 
     COMPONENT_NAME = "transaction"
 

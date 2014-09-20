@@ -29,13 +29,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The DB stores HTTP transactions, unique URLs and more.
 '''
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import URLManagerInterface
 from framework.lib.general import *
 from framework.db import models
 import re
 import logging
 
 
-class URLManager(BaseComponent):
+class URLManager(BaseComponent, URLManagerInterface):
     NumURLsBefore = 0
 
     COMPONENT_NAME = "url_manager"

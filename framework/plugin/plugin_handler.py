@@ -49,6 +49,7 @@ from collections import defaultdict
 from ptp import PTP
 from ptp.libptp.exceptions import PTPError
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import PluginHandlerInterface
 
 from framework.lib.exceptions import FrameworkAbortException, \
     PluginAbortException, \
@@ -75,10 +76,13 @@ WEB Plugin Types:
 """
 
 
-class PluginHandler(BaseComponent):
+class PluginHandler(BaseComponent, PluginHandlerInterface):
     PluginCount = 0
 
     COMPONENT_NAME = "plugin_handler"
+
+    OnlyPluginsList = None
+    OnlyPluginsSet = None
 
     def __init__(self, CoreObj, Options):
         self.register_in_service_locator()

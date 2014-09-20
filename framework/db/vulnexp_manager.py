@@ -2,12 +2,13 @@ from framework.db import models
 from framework.config import config
 import os
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import VulnexpDBInterface
 from framework.lib.general import cprint
 import markdown
 import json
 
 
-class VulnexpDB(BaseComponent):
+class VulnexpDB(BaseComponent, VulnexpDBInterface):
 
     COMPONENT_NAME = "vulnexp_db"
 

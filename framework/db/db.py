@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This file handles all the database transactions.
 '''
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import DBInterface
 from framework.lib.general import cprint
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine, event
@@ -49,7 +50,7 @@ def re_fn(regexp, item):
     results = regex.findall(item)
     return results
 
-class DB(BaseComponent):
+class DB(BaseComponent, DBInterface):
 
     COMPONENT_NAME = "db"
 
