@@ -16,13 +16,11 @@ class Zest(BaseComponent):
         self.register_in_service_locator()
         self.Core = core
         self.config = self.get_component("config")
-        self.db_config = None
-        self.target = None
+        self.db_config = self.get_component("db_config")
+        self.target = self.get_component("target")
         self.recordedTransactions = []  # keeps track of recorded transactions
 
     def init(self):
-        self.db_config = self.get_component("db_config")
-        self.target = self.get_component("target")
         self.StopRecorder()  # recorded should be stopped when OWTF starts
 
 # Script creation from single transaction

@@ -33,107 +33,76 @@ to communicate with each other
 """
 
 import os
-import re
 import sys
 import time
-import fcntl
-import shutil
-import codecs
 import signal
 import socket
 import logging
 import multiprocessing
 import subprocess
-from threading import Thread
 
-from framework import timer, error_handler
-from framework.config import config
-from framework.db import db
-from framework.dependency_management.dependency_resolver import ServiceLocator
-from framework.http import requester
+from framework.dependency_management.component_initialiser import ComponentInitialiser
 from framework.http.proxy import proxy, transaction_logger, tor_manager
-from framework.http.proxy.proxy_manager import Proxy_manager, Proxy_Checker
-from framework.http.proxy.outbound_proxyminer import Proxy_Miner
-from framework.plugin import plugin_handler, plugin_helper, \
-    plugin_params, worker_manager
-from framework.protocols import smtp, smb
-from framework.interface import reporter, server
-from framework import zest, zap
+from framework.plugin import worker_manager
+from framework.protocols import smb
+from framework.interface import server
 from framework.lib.formatters import ConsoleFormatter, FileFormatter
 from framework.selenium import selenium_handler
-from framework.shell import blocking_shell, interactive_shell
+from framework.shell import interactive_shell
 from framework.utils import FileOperations, catch_io_errors, OutputCleaner
 from framework.wrappers.set import set_handler
-from framework.lib.general import cprint, RemoveListBlanks, \
-    List2DictKeys, WipeBadCharsForFilename
+from framework.lib.general import cprint
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 
-class Core(object):
+class Core(BaseComponent):
 
-    current_instance = None
+    COMPONENT_NAME = "core"
 
     """
     The glue which holds everything together
     """
-    def __init__(self, root_dir, owtf_pid):
-        self.current_instance = self
+    def __init__(self, root_dir, owtf_pid, args):
+        self.register_in_service_locator()
         """
         [*] Tightly coupled, cohesive framework components
         [*] Order is important
 
         + IO decorated so as to abort on any permission errors
-        + Attach error handler and config
         + Required folders created
-        + All other components are attached to core: shell, db etc...
-        + Required booleans and attributes are initialised
-        + If modules have Init calls, they are run
-          Init procedures can exist only if the component can do some
-          initialisation only after addition of all components
+        + All other components are attached to core: shell, db etc... (using ServiceLocator)
         """
+
         # ------------------------ IO decoration ------------------------ #
         self.decorate_io()
 
         # -------------------- Component attachment -------------------- #
-        # (Order is important, if there is a dependency on some other
-        # other component please mention in a comment)
-        # Shell might be needed in some places
-        # As soon as you have config create logger for MainProcess
-        # DB needs Config for some settings
-        self.DB = db.DB(self)
-        self.Config = config.Config(root_dir, owtf_pid, self)
-
-        # Zest related components
-        self.zest = zest.Zest(self)
-        self.zap_api_handler = zap.ZAP_API(self)
-
-        self.DB.Init()  # Separate Init because of self reference
-        self.Error = error_handler.ErrorHandler(self)
-        ServiceLocator.get_component("db_plugin").init()
-        self.Config.init()
-        self.zest.init()
+        self.db = self.get_component("db")
+        self.config = self.get_component("config")
+        self.db_config = self.get_component("db_config")
+        self.zest = self.get_component("zest")
+        self.zap_api_handler = self.get_component("zap_api")
+        self.error_handler = self.get_component("error_handler")
 
         # ----------------------- Directory creation ----------------------- #
         self.create_dirs()
         self.pnh_log_file()  # <-- This is not supposed to be here
 
-        self.Timer = timer.Timer(self.DB.Config.Get('DATE_TIME_FORMAT'))
-        self.Shell = blocking_shell.Shell(self)
+        self.timer = self.get_component("timer")
+        self.shell = self.get_component("shell")
         self.enable_logging()
-        # Plugin Helper needs access to automate Plugin tasks
-        self.PluginHelper = plugin_helper.PluginHelper(self)
-        # Reporter needs access to Core to access Config, etc
-        self.Reporter = reporter.Reporter(self)
-        self.Selenium = selenium_handler.Selenium(self)
-        self.InteractiveShell = interactive_shell.InteractiveShell(self)
-        self.SET = set_handler.SETHandler(self)
-        self.SMTP = smtp.SMTP(self)
-        self.SMB = smb.SMB(self)
+        self.reporter = self.get_component("reporter")
+        self.selenium = selenium_handler.Selenium(self)
+        self.interactive_shell = interactive_shell.InteractiveShell(self)
+        self.set = set_handler.SETHandler(self)
+        self.smtp = self.get_component("smtp")
+        self.smb = smb.SMB(self)
 
-        # -------------------- Booleans and attributes -------------------- #
-        self.TOR_process = None
+        # The following attributes will be initialised later
+        self.plugin_helper = None
+        self.tor_process = None
+        self.requester = None
 
-        # --------------------------- Init calls --------------------------- #
-        # Nothing as of now
 
     def create_dirs(self):
         """
@@ -141,8 +110,8 @@ class Core(object):
         needs to be placed inside here. No hardcoding of paths please
         """
         # Logs folder creation
-        if not os.path.exists(self.Config.FrameworkConfigGetLogsDir()):
-            FileOperations.create_missing_dirs(self.Config.FrameworkConfigGetLogsDir())
+        if not os.path.exists(self.config.FrameworkConfigGetLogsDir()):
+            FileOperations.create_missing_dirs(self.config.FrameworkConfigGetLogsDir())
         # Temporary storage directories creation
         self.create_temp_storage_dirs()
 
@@ -150,15 +119,15 @@ class Core(object):
         """Create a temporary directory in /tmp with pid suffix."""
         tmp_dir = os.path.join('/tmp', 'owtf')
         if not os.path.exists(tmp_dir):
-            tmp_dir = os.path.join(tmp_dir, str(self.Config.OwtfPid))
+            tmp_dir = os.path.join(tmp_dir, str(self.config.OwtfPid))
             if not os.path.exists(tmp_dir):
                 FileOperations.make_dirs(tmp_dir)
 
     def clean_temp_storage_dirs(self):
         """Rename older temporary directory to avoid any further confusions."""
-        curr_tmp_dir = os.path.join('/tmp', 'owtf', str(self.Config.OwtfPid))
+        curr_tmp_dir = os.path.join('/tmp', 'owtf', str(self.config.OwtfPid))
         new_tmp_dir = os.path.join(
-            '/tmp', 'owtf', 'old-%d' % self.Config.OwtfPid)
+            '/tmp', 'owtf', 'old-%d' % self.config.OwtfPid)
         if os.path.exists(curr_tmp_dir) and os.access(curr_tmp_dir, os.W_OK):
             os.rename(curr_tmp_dir, new_tmp_dir)
 
@@ -167,7 +136,7 @@ class Core(object):
         logging.info(msg, *args, **kwargs)
 
     def pnh_log_file(self):
-        self.path = self.Config.FrameworkConfigGet('PNH_EVENTS_FILE')
+        self.path = self.config.FrameworkConfigGet('PNH_EVENTS_FILE')
         self.mode = "w"
         try:
             if os.path.isfile(self.path):
@@ -182,7 +151,7 @@ class Core(object):
     def write_event(self, content, mode):
         self.content = content
         self.mode = mode
-        self.file_path = self.Config.FrameworkConfigGet('PNH_EVENTS_FILE')
+        self.file_path = self.config.FrameworkConfigGet('PNH_EVENTS_FILE')
 
         if (os.path.isfile(self.file_path) and os.access(self.file_path, os.W_OK)):
             try:
@@ -209,123 +178,70 @@ class Core(object):
         if options['TOR_mode'] is not None:
             if options['TOR_mode'][0] != "help":
                 if tor_manager.TOR_manager.is_tor_running():
-                    self.TOR_process = tor_manager.TOR_manager(
+                    self.tor_process = tor_manager.TOR_manager(
                         self,
                         options['TOR_mode'])
-                    self.TOR_process = self.TOR_process.Run()
+                    self.tor_process = self.tor_process.Run()
                 else:
                     tor_manager.TOR_manager.msg_start_tor(self)
                     tor_manager.TOR_manager.msg_configure_tor(self)
-                    self.Error.FrameworkAbort("TOR Daemon is not running")
+                    self.error_handler.FrameworkAbort("TOR Daemon is not running")
             else:
                 tor_manager.TOR_manager.msg_configure_tor()
-                self.Error.FrameworkAbort("Configuration help is running")
+                self.error_handler.FrameworkAbort("Configuration help is running")
 
     def StartBotnetMode(self, options):
-        self.Proxy_manager = None
-        if options['Botnet_mode'] is not None:
-            self.Proxy_manager = Proxy_manager()
-            answer = "Yes"
-            proxies = []
-            if options['Botnet_mode'][0] == "miner":
-                miner = Proxy_Miner()
-                proxies = miner.start_miner()
-
-            if options['Botnet_mode'][0] == "list":  # load proxies from list
-                proxies = self.Proxy_manager.load_proxy_list(
-                    options['Botnet_mode'][1]
-                )
-                answer = raw_input(
-                    "[#] Do you want to check the proxy list? [Yes/no] : "
-                )
-
-            if answer.upper() in ["", "YES", "Y"]:
-                proxy_q = multiprocessing.Queue()
-                proxy_checker = multiprocessing.Process(
-                    target=Proxy_Checker.check_proxies,
-                    args=(proxy_q, proxies,)
-                )
-                logging.info("Checking Proxies...")
-                start_time = time.time()
-                proxy_checker.start()
-                proxies = proxy_q.get()
-                proxy_checker.join()
-
-            self.Proxy_manager.proxies = proxies
-            self.Proxy_manager.number_of_proxies = len(proxies)
-
-            if options['Botnet_mode'][0] == "miner":
-                logging.info("Writing proxies to disk(~/.owtf/proxy_miner/proxies.txt)")
-                miner.export_proxies_to_file("proxies.txt", proxies)
-            if answer.upper() in ["", "YES", "Y"]:
-                logging.info(
-                    "Proxy Check Time: %s",
-                    time.strftime(
-                        '%H:%M:%S',
-                        time.localtime(time.time() - start_time - 3600)
-                    )
-                )
-                cprint("Done")
-
-            proxy = self.Proxy_manager.get_next_available_proxy()
-
-            # check proxy var... http:// sock://
-            options['OutboundProxy'] = []
-            options['OutboundProxy'].append(proxy["proxy"][0])
-            options['OutboundProxy'].append(proxy["proxy"][1])
+        ComponentInitialiser.intialise_proxy_manager(options)
 
     def StartProxy(self, options):
+        ComponentInitialiser.step_3([self.db_config.Get('INBOUND_PROXY_IP'), self.db_config.Get('INBOUND_PROXY_PORT')])
         # The proxy along with supporting processes are started
         if True:
             # Check if port is in use
             try:
                 temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 temp_socket.bind((
-                    self.DB.Config.Get('INBOUND_PROXY_IP'),
-                    int(self.DB.Config.Get('INBOUND_PROXY_PORT'))))
+                    self.db_config.Get('INBOUND_PROXY_IP'),
+                    int(self.db_config.Get('INBOUND_PROXY_PORT'))))
                 temp_socket.close()
             except socket.error:
-                self.Error.FrameworkAbort(
+                self.error_handler.FrameworkAbort(
                     "Inbound proxy address " +
-                    self.DB.Config.Get('INBOUND_PROXY_IP') + ":" +
-                    self.DB.Config.Get("INBOUND_PROXY_PORT") +
+                    self.db_config.Get('INBOUND_PROXY_IP') + ":" +
+                    self.db_config.Get("INBOUND_PROXY_PORT") +
                     " already in use")
 
             # If everything is fine.
-            self.ProxyProcess = proxy.ProxyProcess(self)
+            self.ProxyProcess = proxy.ProxyProcess()
             self.ProxyProcess.initialize(
                 options['OutboundProxy'],
                 options['OutboundProxyAuth']
             )
             self.TransactionLogger = transaction_logger.TransactionLogger(
-                self,
-                cache_dir=self.DB.Config.Get('INBOUND_PROXY_CACHE_DIR')
+                cache_dir=self.db_config.Get('INBOUND_PROXY_CACHE_DIR')
             )
             logging.info(
                 "Starting Inbound proxy at %s:%s",
-                self.DB.Config.Get('INBOUND_PROXY_IP'),
-                self.DB.Config.Get("INBOUND_PROXY_PORT"))
+                self.db_config.Get('INBOUND_PROXY_IP'),
+                self.db_config.Get("INBOUND_PROXY_PORT"))
             self.ProxyProcess.start()
             logging.info("Starting Transaction logger process")
             self.TransactionLogger.start()
-            self.Requester = requester.Requester(
-                self, [
-                    self.DB.Config.Get('INBOUND_PROXY_IP'),
-                    self.DB.Config.Get('INBOUND_PROXY_PORT')]
-                )
+            self.plugin_helper = self.get_component("plugin_helper")
+            self.requester = self.get_component("requester")
             logging.info(
                 "Proxy transaction's log file at %s",
-                self.DB.Config.Get("PROXY_LOG"))
+                self.db_config.Get("PROXY_LOG"))
             logging.info(
                 "Interface server log file at %s",
-                self.DB.Config.Get("SERVER_LOG"))
+                self.db_config.Get("SERVER_LOG"))
             logging.info(
                 "Execution of OWTF is halted. You can browse through "
                 "OWTF proxy) Press Enter to continue with OWTF")
         else:
-            self.Requester = requester.Requester(
-                self,
-                options['OutboundProxy'])
+            ComponentInitialiser.step_3(options['OutboundProxy'])
+            self.requester = self.get_component("requester")
+
 
     def enable_logging(self, **kwargs):
         """
@@ -341,7 +257,7 @@ class Core(object):
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
         file_handler = self.FileHandler(
-            self.Config.FrameworkConfigGetLogPath(process_name),
+            self.config.FrameworkConfigGetLogPath(process_name),
             mode="w+"
         )
         file_handler.setFormatter(FileFormatter())
@@ -376,35 +292,31 @@ class Core(object):
             self.PluginHandler.ShowPluginList()
             self.exit_output()
             return False
-        self.Config.ProcessOptions(options)
+        self.config.ProcessOptions(options)
         command = self.GetCommand(options['argv'])
 
         self.StartBotnetMode(options)
         self.StartProxy(options)  # Proxy mode is started in that function.
         self.initialise_plugin_handler_and_params(options)
         # Set anonymised invoking command for error dump info.
-        self.Error.SetCommand(OutputCleaner.anonymise_command(command))
+        self.error_handler.SetCommand(OutputCleaner.anonymise_command(command))
         return True
 
     def initialise_plugin_handler_and_params(self, options):
         # The order is important here ;)
-        self.PluginHandler = plugin_handler.PluginHandler(self, options)
-        ## the following init() are invoked because they have dependency with plugin handler
-        self.DB.POutput.init()
-        self.Reporter.init()
-        self.Requester.init()
-        self.PluginParams = plugin_params.PluginParams(self, options)
-        self.WorkerManager = worker_manager.WorkerManager(self)
+        self.PluginHandler = self.get_component("plugin_handler") #plugin_handler.PluginHandler(self, options)
+        self.PluginParams = self.get_component("plugin_params")
+        self.WorkerManager = worker_manager.WorkerManager()
 
     def run_server(self):
         """
         This method starts the interface server
         """
-        self.InterfaceServer = server.InterfaceServer(self)
+        self.InterfaceServer = server.InterfaceServer()
         logging.info(
             "Interface Server started. Visit http://%s:%s",
-            self.Config.FrameworkConfigGet("UI_SERVER_ADDR"),
-            self.Config.FrameworkConfigGet("UI_SERVER_PORT"))
+            self.config.FrameworkConfigGet("UI_SERVER_ADDR"),
+            self.config.FrameworkConfigGet("UI_SERVER_PORT"))
         #self.disable_console_logging()
         logging.info("Press Ctrl+C when you spawned a shell ;)")
         self.InterfaceServer.start()
@@ -418,16 +330,16 @@ class Core(object):
             "Do you want to add your GitHub username to the report? "
             "[Press Enter to skip]")
         user = raw_input("Reported by @")
-        if self.Error.AddGithubIssue(Info=info, User=user):
+        if self.error_handler.AddGithubIssue(Info=info, User=user):
             cprint("Github issue added, Thanks for reporting!!")
         else:
             cprint("Unable to add github issue, but thanks for trying :D")
 
     def Finish(self, status='Complete', report=True):
-        if self.TOR_process != None:
-            self.TOR_process.terminate()
+        if self.tor_process != None:
+            self.tor_process.terminate()
         # TODO: Fix this for lions_2014
-        # if self.DB.Config.Get('SIMULATION'):
+        # if self.db_config.Get('SIMULATION'):
         #    exit()
         else:
             try:
@@ -467,5 +379,5 @@ class Core(object):
         self.FileHandler = catch_io_errors(logging.FileHandler)
 
 
-def Init(root_dir, owtf_pid):
-    return Core(root_dir, owtf_pid)
+def Init(root_dir, owtf_pid, args):
+    return Core(root_dir, owtf_pid, args)

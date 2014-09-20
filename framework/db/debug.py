@@ -33,7 +33,11 @@ from framework.dependency_management.dependency_resolver import BaseComponent
 
 
 class DebugDB(BaseComponent):
+
+    COMPONENT_NAME = "debug_db"
+
     def __init__(self, Core):
+        self.register_in_service_locator()
         self.Core = Core
         self.db = self.get_component("db")
 

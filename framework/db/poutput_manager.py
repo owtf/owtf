@@ -14,12 +14,6 @@ class POutputDB(BaseComponent):
         self.register_in_service_locator()
         self.Core = Core
         self.config = self.get_component("config")
-        self.db_config = None
-        self.target = None
-        self.plugin_handler = None
-        self.reporter = None
-
-    def init(self):
         self.plugin_handler = self.get_component("plugin_handler")
         self.reporter = self.get_component("reporter")
         self.target = self.get_component("target")

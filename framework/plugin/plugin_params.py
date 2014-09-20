@@ -35,7 +35,11 @@ from collections import defaultdict
 
 
 class PluginParams(BaseComponent):
+
+    COMPONENT_NAME = "plugin_params"
+
     def __init__(self, Core, Options):
+        self.register_in_service_locator()
         self.Core = Core
         self.config = self.get_component("config")
         self.error_handler = self.get_component("error_handler")

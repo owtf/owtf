@@ -8,7 +8,11 @@ import json
 
 
 class VulnexpDB(BaseComponent):
+
+    COMPONENT_NAME = "vulnexp_db"
+
     def __init__(self, Core):
+        self.register_in_service_locator()
         self.Core = Core
         self.config = self.get_component("config")
         self.db = self.get_component("db")

@@ -1,11 +1,14 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.interface import api_handlers, ui_handlers, custom_handlers
 import tornado.web
 
 
-def get_handlers(Core):
+def get_handlers():
 
-    plugin_group_re = '(' + '|'.join(Core.DB.Plugin.GetAllGroups()) + ')?'
-    plugin_type_re = '(' + '|'.join(Core.DB.Plugin.GetAllTypes()) + ')?'
+    db_plugin = ServiceLocator.get_component("db_plugin")
+    config = ServiceLocator.get_component("config")
+    plugin_group_re = '(' + '|'.join(db_plugin.GetAllGroups()) + ')?'
+    plugin_type_re = '(' + '|'.join(db_plugin.GetAllTypes()) + ')?'
     plugin_code_re = '([0-9A-Z\-]+)?'
 
     URLS = [
@@ -27,8 +30,8 @@ def get_handlers(Core):
                 tornado.web.url(r'/api/configuration/?$', api_handlers.ConfigurationHandler, name='configuration_api_url'),
                 tornado.web.url(r'/api/plugnhack/?$', api_handlers.PlugnhackHandler, name='plugnhack_api_url'),
 
-                (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': Core.Config.FrameworkConfigGet('STATICFILES_DIR')}),
-                (r'/output_files/(.*)', custom_handlers.StaticFileHandler, {'path': Core.Config.GetOutputDirForTargets()}),
+                (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': config.FrameworkConfigGet('STATICFILES_DIR')}),
+                (r'/output_files/(.*)', custom_handlers.StaticFileHandler, {'path': config.GetOutputDirForTargets()}),
                 tornado.web.url(r'/?$', ui_handlers.Redirect, name='redirect_ui_url'),
                 tornado.web.url(r'/ui/?$', ui_handlers.Home, name='home_ui_url'),
                 tornado.web.url(r'/ui/targets/?([0-9]+)?/?$', ui_handlers.TargetManager, name='targets_ui_url'),

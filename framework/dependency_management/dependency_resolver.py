@@ -18,6 +18,7 @@ class ServiceLocator:
     def already_registered(cls, name):
         return cls.registry.has_key(name)
 
+
 class BaseComponent():
     def register_in_service_locator(self):
         ServiceLocator.register_component(self.COMPONENT_NAME, self)

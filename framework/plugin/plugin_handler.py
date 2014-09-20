@@ -48,7 +48,6 @@ from threading import Thread
 from collections import defaultdict
 from ptp import PTP
 from ptp.libptp.exceptions import PTPError
-from framework.core import Core
 from framework.dependency_management.dependency_resolver import BaseComponent
 
 from framework.lib.exceptions import FrameworkAbortException, \
@@ -83,15 +82,15 @@ class PluginHandler(BaseComponent):
 
     def __init__(self, CoreObj, Options):
         self.register_in_service_locator()
-        self.Core = CoreObj
+        self.Core = None
         self.db = self.get_component("db")
         self.config = self.get_component("config")
-        self.plugin_output = self.get_component("plugin_output")
+        self.plugin_output = None
         self.db_plugin = self.get_component("db_plugin")
         self.target = self.get_component("target")
-        self.transaction = self.get_component("trasnaction")
+        self.transaction = self.get_component("transaction")
         self.error_handler = self.get_component("error_handler")
-        self.reporter = self.get_component("reporter")
+        self.reporter = None
         self.timer = self.get_component("timer")
         # This should be dynamic from filesystem:
         #self.PluginGroups = [ 'web', 'net', 'aux' ]
@@ -112,9 +111,15 @@ class PluginHandler(BaseComponent):
         self.AllowedPlugins = self.db_plugin.GetPluginsByGroupType(self.PluginGroup, Options['PluginType'])
         self.OnlyPluginsSet = len(self.OnlyPluginsList) > 0
         self.ExceptPluginsSet = len(self.ExceptPluginsList) > 0
-        self.scanner = Scanner(self.Core)
+        self.scanner = None
         self.InitExecutionRegistry()
         self.showOutput = True
+
+    def init(self):
+        self.Core = self.get_component("core")
+        self.plugin_output = self.get_component("plugin_output")
+        self.reporter = self.get_component("reporter")
+        self.scanner = Scanner(self.Core)
 
     def ValidateAndFormatPluginList(self, PluginList):
         List = []  # Ensure there is always a list to iterate from! :)
@@ -416,7 +421,7 @@ class PluginHandler(BaseComponent):
                 PartialOutput.parameter,
                 'Framework Aborted',
                 self.timer.GetElapsedTimeAsStr('Plugin'))
-            Core.current_instance.Finish("Aborted")
+            self.Core.Finish("Aborted")
             #TODO: Handle this gracefully
             #except: # BUG
             #        Plugin["status"] = "Crashed"

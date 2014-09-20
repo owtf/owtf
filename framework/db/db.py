@@ -64,7 +64,6 @@ class DB(BaseComponent):
         self.POutput = None
         self.Target = None
         self.Resource = None
-        self.Config = None
         self.Error = None
         self.CommandRegister = None
         self.Mapping = None
@@ -74,17 +73,16 @@ class DB(BaseComponent):
         self.config = self.get_component("config")
         FileOperations.create_missing_dirs(os.path.join(self.config.FrameworkConfigGet("OUTPUT_PATH"), self.config.FrameworkConfigGet("DB_DIR")))
         self.ErrorDBSession = self.CreateScopedSession(self.config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.ErrorBase)
-        self.CommandRegister = command_register.CommandRegister(self.Core)
-        self.Target = target_manager.TargetDB(self.Core)
-        self.URL = url_manager.URLManager(self.Core)
-        self.Transaction = transaction_manager.TransactionManager(self.Core)
-        self.Plugin = plugin_manager.PluginDB(self.Core)
-        self.POutput = poutput_manager.POutputDB(self.Core)
-        self.Resource = resource_manager.ResourceDB(self.Core)
-        self.Config = config_manager.ConfigDB(self.Core)
-        self.Error = error_manager.ErrorDB(self.Core)
-        self.Mapping = mapping_manager.MappingDB(self.Core)
-        self.Vulnexp = vulnexp_manager.VulnexpDB(self.Core)
+        self.CommandRegister = self.get_component("command_register")
+        self.Target = self.get_component("target")
+        self.URL = self.get_component("url_manager")
+        self.Transaction = self.get_component("transaction")
+        self.Plugin = self.get_component("db_plugin")
+        self.POutput = self.get_component("plugin_output")
+        self.Resource = self.get_component("resource")
+        self.Error = self.get_component("db_error")
+        self.Mapping = self.get_component("mapping_db")
+        self.Vulnexp = self.get_component("vulnexp_db")
         self.DBHealthCheck()
 
     def get_category(self, plugin_code):

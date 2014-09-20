@@ -24,20 +24,20 @@ class PluginDataHandler(custom_handlers.APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group:  # Check if plugin_group is present in url
-                self.write(self.application.Core.DB.Plugin.GetAll(filter_data))
+                self.write(self.get_component("db_plugin").GetAll(filter_data))
             if plugin_group and (not plugin_type) and (not plugin_code):
                 filter_data.update({"group": plugin_group})
-                self.write(self.application.Core.DB.Plugin.GetAll(filter_data))
+                self.write(self.get_component("db_plugin").GetAll(filter_data))
             if plugin_group and plugin_type and (not plugin_code):
-                if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
+                if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"type": plugin_type, "group": plugin_group})
-                self.write(self.application.Core.DB.Plugin.GetAll(filter_data))
+                self.write(self.get_component("db_plugin").GetAll(filter_data))
             if plugin_group and plugin_type and plugin_code:
-                if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
+                if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"type": plugin_type, "group": plugin_group, "code": plugin_code})
-                results = self.application.Core.DB.Plugin.GetAll(filter_data)  # This combination will be unique, so have to return a dict
+                results = self.get_component("db_plugin").GetAll(filter_data)  # This combination will be unique, so have to return a dict
                 if results:
                     self.write(results[0])
                 else:
@@ -56,9 +56,9 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
             if not target_id:
                 # Get all filter data here, so that it can be passed
                 filter_data = dict(self.request.arguments)
-                self.write(self.application.Core.DB.Target.GetTargetConfigs(filter_data))
+                self.write(self.get_component("target").GetTargetConfigs(filter_data))
             else:
-                self.write(self.application.Core.DB.Target.GetTargetConfigForID(target_id))
+                self.write(self.get_component("target").GetTargetConfigForID(target_id))
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -67,7 +67,7 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
         if (target_id) or (not self.get_argument("TARGET_URL", default=None)):  # How can one post using an id xD
             raise tornado.web.HTTPError(400)
         try:
-            self.application.Core.DB.Target.AddTarget(str(self.get_argument("TARGET_URL")))
+            self.get_component("target").AddTarget(str(self.get_argument("TARGET_URL")))
             self.set_status(201)  # Stands for "201 Created"
         except DBIntegrityException as e:
             cprint(e.parameter)
@@ -84,7 +84,7 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
         try:
             patch_data = dict(self.request.arguments)
-            self.application.Core.DB.Target.UpdateTarget(patch_data, ID=target_id)
+            self.get_component("target").UpdateTarget(patch_data, ID=target_id)
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -93,7 +93,7 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
         if not target_id:
             raise tornado.web.HTTPError(400)
         try:
-            self.application.Core.DB.Target.DeleteTarget(ID=target_id)
+            self.get_component("target").DeleteTarget(ID=target_id)
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -105,7 +105,7 @@ class SessionsDataHandler(custom_handlers.APIRequestHandler):
     def get(self, target_id=None):
         try:
             # gets the session_data for the target
-            self.write(self.application.Core.DB.Transaction.GetSessionData(target_id=int(target_id)))
+            self.write(self.get_component("transaction").GetSessionData(target_id=int(target_id)))
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -135,31 +135,31 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
         try:
             args = self.request.arguments
             if(not any(args)):  # check if arguments is empty then load zest console
-                target_scripts, record_scripts = self.application.Core.zest.GetAllScripts(target_id)
+                target_scripts, record_scripts = self.get_component("zest").GetAllScripts(target_id)
                 tdict = {}
                 tdict["target_scripts"] = target_scripts
                 tdict["recorded_scripts"] = record_scripts
                 self.write(tdict)
             elif 'script' in args and 'record' in args and 'run' not in args:  # get zest script content
                 if args['record'][0] == "true":  # record script
-                    content = self.application.Core.zest.GetRecordScriptContent(args['script'][0])
+                    content = self.get_component("zest").GetRecordScriptContent(args['script'][0])
                 else:  # target script
-                    content = self.application.Core.zest.GetTargetScriptContent(target_id, args['script'][0])
+                    content = self.get_component("zest").GetTargetScriptContent(target_id, args['script'][0])
                 self.write({"content": content})
             elif 'script' in args and 'record'in args and 'run' in args:  # runner handling
                 if args['run'][0] == "true":
                     if args['record'][0] == "true":  # run record script
-                        result = self.application.Core.zest.RunRecordScript(args['script'][0])
+                        result = self.get_component("zest").RunRecordScript(args['script'][0])
                     else:  # run target script
-                        result = self.application.Core.zest.RunTargetScript(target_id, args['script'][0])
+                        result = self.get_component("zest").RunTargetScript(target_id, args['script'][0])
                     self.write({"result": result})
             else:
                 if 'script' not in args and 'record' in args:  # Recorder handling
                     if args['record'][0] == "true" and 'file' in args:
-                        if not self.application.Core.zest.StartRecorder(args['file'][0]):
+                        if not self.get_component("zest").StartRecorder(args['file'][0]):
                             self.write({"exists": "true"})
                     else:
-                        self.application.Core.zest.StopRecorder()
+                        self.get_component("zest").StopRecorder()
         except InvalidTargetReference as e:
                 cprint(e.parameter)
                 raise tornado.web.HTTPError(400)
@@ -172,13 +172,13 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
             try:
                 if transaction_id:
                     Scr_Name = self.get_argument('name', '')
-                    if not self.application.Core.zest.TargetScriptFromSingleTransaction(transaction_id,Scr_Name,target_id): #zest script creation from single transaction
+                    if not self.get_component("zest").TargetScriptFromSingleTransaction(transaction_id,Scr_Name,target_id): #zest script creation from single transaction
                         self.write({"exists": "true"})
                 else:  # multiple transactions
                     trans_list = self.get_argument('trans', '')   # get transaction ids
                     Scr_Name = self.get_argument('name', '')  # get script name
                     transactions = json.loads(trans_list)  # convert to string from json
-                    if not self.application.Core.zest.TargetScriptFromMultipleTransactions(target_id, Scr_Name, transactions): #zest script creation from multiple transactions
+                    if not self.get_component("zest").TargetScriptFromMultipleTransactions(target_id, Scr_Name, transactions): #zest script creation from multiple transactions
                         self.write({"exists": "true"})
             except InvalidTargetReference as e:
                 cprint(e.parameter)
@@ -209,8 +209,8 @@ class ReplayRequestHandler(custom_handlers.APIRequestHandler):
         parsed_req = HTTPRequest(rw_request)  # parse if its a valid HTTP request
         if(parsed_req.error_code == None):
             replay_headers = self.RemoveIfNoneMatch(parsed_req.headers)
-            self.application.Core.Requester.SetHeaders(replay_headers)  #Set the headers
-            trans_obj = self.application.Core.Requester.Request(parsed_req.path, parsed_req.command)  # make the actual request using requester module
+            self.get_component("requester").SetHeaders(replay_headers)  #Set the headers
+            trans_obj = self.get_component("requester").Request(parsed_req.path, parsed_req.command)  # make the actual request using requester module
             res_data = {}  # received response body and headers will be saved here
             res_data['STATUS'] = trans_obj.Status
             res_data['HEADERS'] = str(trans_obj.ResponseHeaders)
@@ -270,7 +270,7 @@ class ForwardToZAPHandler(custom_handlers.APIRequestHandler):
             if not transaction_id or not target_id:
                 raise tornado.web.HTTPError(400)
             else:
-                self.application.Core.zap_api_handler.ForwardRequest(target_id, transaction_id)
+                self.get_component("zap_api").ForwardRequest(target_id, transaction_id)
         except InvalidTargetReference as e:
                 cprint(e.parameter)
                 raise tornado.web.HTTPError(400)
@@ -282,11 +282,11 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
     def get(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.write(self.application.Core.DB.Transaction.GetByIDAsDict(int(transaction_id), target_id=int(target_id)))
+                self.write(self.get_component("transaction").GetByIDAsDict(int(transaction_id), target_id=int(target_id)))
             else:
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
-                self.write(self.application.Core.DB.Transaction.GetAllAsDicts(filter_data, target_id=int(target_id)))
+                self.write(self.get_component("transaction").GetAllAsDicts(filter_data, target_id=int(target_id)))
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -309,7 +309,7 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
     def delete(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.application.Core.DB.Transaction.DeleteTransaction(int(transaction_id), int(target_id))
+                self.get_component("transaction").DeleteTransaction(int(transaction_id), int(target_id))
             else:
                 raise tornado.web.HTTPError(400)
         except InvalidTargetReference as e:
@@ -327,7 +327,7 @@ class TransactionSearchHandler(custom_handlers.APIRequestHandler):
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
-            self.write(self.application.Core.DB.Transaction.SearchAll(
+            self.write(self.get_component("transaction").SearchAll(
                 filter_data,
                 target_id=int(target_id)))
         except InvalidTargetReference as e:
@@ -348,7 +348,7 @@ class URLDataHandler(custom_handlers.APIRequestHandler):
         try:
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
-            self.write(self.application.Core.DB.URL.GetAll(filter_data, target_id=target_id))
+            self.write(self.get_component("url_manager").GetAll(filter_data, target_id=target_id))
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -382,7 +382,7 @@ class URLSearchHandler(custom_handlers.APIRequestHandler):
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
-            self.write(self.application.Core.DB.URL.SearchAll(
+            self.write(self.get_component("url_manager").SearchAll(
                 filter_data,
                 target_id=int(target_id)))
         except InvalidTargetReference as e:
@@ -400,20 +400,20 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group: # First check if plugin_group is present in url
-                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id))
+                self.write(self.get_component("plugin_output").GetAll(filter_data, target_id))
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group": plugin_group})
-                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id))
+                self.write(self.get_component("plugin_output").GetAll(filter_data, target_id))
             if plugin_type and plugin_group and (not plugin_code):
-                if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
+                if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
-                self.write(self.application.Core.DB.POutput.GetAll(filter_data, target_id))
+                self.write(self.get_component("plugin_output").GetAll(filter_data, target_id))
             if plugin_type and plugin_group and plugin_code:
-                if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
+                if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code})
-                results = self.application.Core.DB.POutput.GetAll(filter_data, target_id)
+                results = self.get_component("plugin_output").GetAll(filter_data, target_id)
                 if results:
                     self.write(results[0])
                 else:
@@ -437,7 +437,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                 raise tornado.web.HTTPError(400)
             else:
                 patch_data = dict(self.request.arguments)
-                self.application.Core.DB.POutput.Update(plugin_group, plugin_type, plugin_code, patch_data, target_id)
+                self.get_component("plugin_output").Update(plugin_group, plugin_type, plugin_code, patch_data, target_id)
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -449,20 +449,20 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group: # First check if plugin_group is present in url
-                self.application.Core.DB.POutput.DeleteAll(filter_data, target_id)
+                self.get_component("plugin_output").DeleteAll(filter_data, target_id)
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group": plugin_group})
-                self.application.Core.DB.POutput.DeleteAll(filter_data, target_id)
+                self.get_component("plugin_output").DeleteAll(filter_data, target_id)
             if plugin_type and plugin_group and (not plugin_code):
-                if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
+                if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
-                self.application.Core.DB.POutput.DeleteAll(filter_data, target_id)
+                self.get_component("plugin_output").DeleteAll(filter_data, target_id)
             if plugin_type and plugin_group and plugin_code:
-                if plugin_type not in self.application.Core.DB.Plugin.GetTypesForGroup(plugin_group):
+                if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code})
-                self.application.Core.DB.POutput.DeleteAll(filter_data, target_id)
+                self.get_component("plugin_output").DeleteAll(filter_data, target_id)
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -476,12 +476,12 @@ class WorkerHandler(custom_handlers.APIRequestHandler):
 
     def get(self, worker_id=None, action=None):
         if not worker_id:
-            self.write(self.application.Core.WorkerManager.get_worker_details())
+            self.write(self.get_component("worker_manager").get_worker_details())
         try:
             if worker_id and (not action):
-                self.write(self.application.Core.WorkerManager.get_worker_details(int(worker_id)))
+                self.write(self.get_component("worker_manager").get_worker_details(int(worker_id)))
             if worker_id and action:
-                getattr(self.application.Core.WorkerManager, action + '_worker')(int(worker_id))
+                getattr(self.get_component("worker_manager"), action + '_worker')(int(worker_id))
         except InvalidWorkerReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -489,14 +489,14 @@ class WorkerHandler(custom_handlers.APIRequestHandler):
     def post(self, worker_id=None, action=None):
         if worker_id or action:
             raise tornado.web.HTTPError(400)
-        self.application.Core.WorkerManager.create_worker()
+        self.get_component("worker_manager").create_worker()
         self.set_status(201)  # Stands for "201 Created"
 
     def delete(self, worker_id=None, action=None):
         if (not worker_id) or action:
             raise tornado.web.HTTPError(400)
         try:
-            self.application.Core.WorkerManager.delete_worker(int(worker_id))
+            self.get_component("worker_manager").delete_worker(int(worker_id))
         except InvalidWorkerReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -506,18 +506,18 @@ class WorkListHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST']
 
     def get(self):
-        self.write(self.application.Core.WorkerManager.get_work_list())
+        self.write(self.get_component("worker_manager").get_work_list())
 
     def post(self):
         try:
             filter_data = dict(self.request.arguments)
             if not filter_data:
                 raise tornado.web.HTTPError(400)
-            plugin_list = self.application.Core.DB.Plugin.GetAll(filter_data)
-            target_list = self.application.Core.DB.Target.GetTargetConfigs(filter_data)
+            plugin_list = self.get_component("db_plugin").GetAll(filter_data)
+            target_list = self.get_component("target").GetTargetConfigs(filter_data)
             if (not plugin_list) or (not target_list):
                 raise tornado.web.HTTPError(400)
-            self.application.Core.WorkerManager.fill_work_list(target_list, plugin_list)
+            self.get_component("worker_manager").fill_work_list(target_list, plugin_list)
             self.set_status(201)  # TODO: Set proper response code
         except InvalidTargetReference as e:
 
@@ -530,9 +530,9 @@ class WorkListHandler(custom_handlers.APIRequestHandler):
     def delete(self):
         try:
             filter_data = dict(self.request.arguments)
-            plugin_list = self.application.Core.DB.Plugin.GetAll(filter_data)
-            target_list = self.application.Core.DB.Target.GetTargetConfigs(filter_data)
-            self.application.Core.WorkerManager.filter_work_list(target_list, plugin_list)
+            plugin_list = self.get_component("db_plugin").GetAll(filter_data)
+            target_list = self.get_component("target").GetTargetConfigs(filter_data)
+            self.get_component("worker_manager").filter_work_list(target_list, plugin_list)
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -546,12 +546,12 @@ class ConfigurationHandler(custom_handlers.APIRequestHandler):
 
     def get(self):
         filter_data = dict(self.request.arguments)
-        self.write(self.application.Core.DB.Config.GetAll(filter_data))
+        self.write(self.get_component("db_config").GetAll(filter_data))
 
     def patch(self):
         for key, value_list in self.request.arguments.items():
             try:
-                self.application.Core.DB.Config.Update(key, value_list[0])
+                self.get_component("db_config").Update(key, value_list[0])
             except InvalidConfigurationReference:
                 raise tornado.web.HTTPError(400)
 
@@ -580,7 +580,7 @@ class PlugnhackHandler(custom_handlers.APIRequestHandler):
         try:
             if not self.url:
                 pass
-            elif self.application.Core.DB.URL.IsURL(self.url):
+            elif self.get_component("url_manager").IsURL(self.url):
                 pass
             else:
                 raise InvalidUrlReference(400)

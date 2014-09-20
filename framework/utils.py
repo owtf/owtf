@@ -20,7 +20,7 @@ class NetworkOperations():
 class OutputCleaner():
 
     @staticmethod
-    def anonymise_command(self, command):
+    def anonymise_command(command):
         target = ServiceLocator.get_component("target")
         # Host name setting value for all targets in scope.
         for host in target.GetAll('HOST_NAME'):
@@ -98,3 +98,8 @@ class FileOperations():
     @catch_io_errors
     def rm_tree(cls, *args, **kwargs):
         return shutil.rmtree(*args, **kwargs)
+
+    @classmethod
+    @catch_io_errors
+    def mkdir(cls, *args, **kwargs):
+        return os.mkdir(*args, **kwargs)

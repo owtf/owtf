@@ -8,9 +8,10 @@ import mimetypes
 import email.utils
 import tornado.web
 import tornado.template
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 
-class APIRequestHandler(tornado.web.RequestHandler):
+class APIRequestHandler(tornado.web.RequestHandler, BaseComponent):
     def write(self, chunk):
         if isinstance(chunk, list):
             super(APIRequestHandler, self).write(json.dumps(chunk))
@@ -19,7 +20,7 @@ class APIRequestHandler(tornado.web.RequestHandler):
             super(APIRequestHandler, self).write(chunk)
 
 
-class UIRequestHandler(tornado.web.RequestHandler):
+class UIRequestHandler(tornado.web.RequestHandler, BaseComponent):
     def reverse_url(self, name, *args):
         url = super(UIRequestHandler, self).reverse_url(name, *args)
         url = url.replace('?','')

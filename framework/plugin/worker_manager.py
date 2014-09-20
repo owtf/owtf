@@ -35,6 +35,7 @@ import time
 import signal
 import logging
 import multiprocessing
+from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib.owtf_process import OWTFProcess
 from framework.lib.exceptions import InvalidWorkerReference
 
@@ -52,10 +53,10 @@ class Worker(OWTFProcess):
                 if work == ():
                     exit(0)
                 target, plugin = work
-                pluginDir = self.core.PluginHandler.GetPluginGroupDir(
+                pluginDir = self.plugin_handler.GetPluginGroupDir(
                     plugin['group'])
-                self.core.PluginHandler.SwitchToTarget(target)
-                self.core.PluginHandler.ProcessPlugin(pluginDir, plugin)
+                self.plugin_handler.SwitchToTarget(target)
+                self.plugin_handler.ProcessPlugin(pluginDir, plugin)
                 self.output_q.put('done')
             except KeyboardInterrupt:
                 logging.debug(
@@ -73,15 +74,21 @@ class Worker(OWTFProcess):
         exit(0)
 
 
-class WorkerManager(object):
-    def __init__(self, CoreObj):
-        self.core = CoreObj
+class WorkerManager(BaseComponent):
+
+    COMPONENT_NAME = "worker_manager"
+
+    def __init__(self):
+        self.register_in_service_locator()
+        self.db_config = self.get_component("db_config")
+        self.error_handler = self.get_component("error_handler")
+        self.shell = self.get_component("shell")
         self.worklist = []  # List of unprocessed (plugin*target)
         self.workers = []  # list of worker and work (worker, work)
         self.spawn_workers()
 
     def get_allowed_process_count(self):
-        process_per_core = int(self.core.DB.Config.Get('PROCESS_PER_CORE'))
+        process_per_core = int(self.db_config.Get('PROCESS_PER_CORE'))
         cpu_count = multiprocessing.cpu_count()
         return(process_per_core*cpu_count)
 
@@ -102,9 +109,9 @@ class WorkerManager(object):
 
     def get_task(self):
         if len(self.worklist):
-            free_mem = self.core.Shell.shell_exec(
+            free_mem = self.shell.shell_exec(
                 "free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
-            if int(free_mem) > int(self.core.DB.Config.Get('MIN_RAM_NEEDED')):
+            if int(free_mem) > int(self.db_config.Get('MIN_RAM_NEEDED')):
                 for target, plugin in self.worklist:
                     # Check if target is being used or not because we dont want
                     # to run more than one plugin on one target at one time
@@ -125,12 +132,11 @@ class WorkerManager(object):
         while (len(self.workers) < self.get_allowed_process_count()):
             self.spawn_worker()
         if not len(self.workers):
-            self.core.Error.FrameworkAbort(
+            self.error_handler.FrameworkAbort(
                 "Zero worker processes created because of lack of memory")
 
     def spawn_worker(self, index=None):
         w = Worker(
-            self.core,
             input_q=multiprocessing.Queue(),
             output_q=multiprocessing.Queue())
         worker_dict = {

@@ -75,6 +75,7 @@ class Config(BaseComponent):
             REPLACEMENT_DELIMITER + '([A-Z0-9-_]*?)' + REPLACEMENT_DELIMITER)
         # Available profiles = g -> General configuration, n -> Network plugin
         # order, w -> Web plugin order, r -> Resources file
+        self.initialize_attributes()
         self.LoadFrameworkConfigFromFile(os.path.join(
             self.RootDir,
             'framework',

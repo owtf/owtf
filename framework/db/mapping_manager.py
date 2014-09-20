@@ -9,10 +9,14 @@ import ConfigParser
 
 
 class MappingDB(BaseComponent):
+
+    COMPONENT_NAME = "mapping_db"
+
     def __init__(self, Core):
         """
         The mapping_types attributes contain the unique mappings in memory
         """
+        self.register_in_service_locator()
         self.Core = Core
         self.config = self.get_component("config")
         self.db = self.get_component("db")

@@ -49,6 +49,12 @@ class TransactionLogger(OWTFProcess):
     transaction, *.rd files serve as a message that the file corresponding
     to the hash is ready to be converted.
     """
+
+    def __init__(self, **kwargs):
+        super(TransactionLogger, self).__init__(**kwargs)
+        self.target = self.get_component("target")
+        self.transaction = self.get_component("transaction")
+
     def derive_target_for_transaction(self, request, response, target_list, host_list):
         for target_id,Target in target_list:
             if request.url.startswith(Target):
@@ -61,19 +67,19 @@ class TransactionLogger(OWTFProcess):
                         return [target_id, self.get_scope_for_url(request.url, host_list)]
                 except KeyError:
                     pass
-        return [self.core.DB.Target.GetTargetID(), self.get_scope_for_url(request.url, host_list)]
+        return [self.target.GetTargetID(), self.get_scope_for_url(request.url, host_list)]
 
     def get_scope_for_url(self, url, host_list):
         return((urlparse(url).hostname in host_list))
 
     def get_owtf_transactions(self, hash_list):
         transactions_dict = None
-        target_list = self.core.DB.Target.GetIndexedTargets()
+        target_list = self.target.GetIndexedTargets()
         if target_list: # If there are no targets in db, where are we going to add. OMG
             transactions_dict = {}
             for target_id, target in target_list:
                 transactions_dict[target_id] = []
-            host_list = self.core.DB.Target.GetAllInScope('HOST_NAME')
+            host_list = self.target.GetAllInScope('HOST_NAME')
 
             for request_hash in hash_list:
                 request = request_from_cache(request_hash, self.cache_dir)
@@ -99,7 +105,7 @@ class TransactionLogger(OWTFProcess):
                     hash_list = self.get_hash_list(self.cache_dir)
                     transactions_dict = self.get_owtf_transactions(hash_list)
                     if transactions_dict: # Make sure you donot have None
-                        self.core.DB.Transaction.LogTransactionsFromLogger(transactions_dict)
+                        self.transaction.LogTransactionsFromLogger(transactions_dict)
                 else:
                     time.sleep(2)
         except KeyboardInterrupt:

@@ -110,10 +110,10 @@ class Requester(BaseComponent):
         self.Core = core
         self.db_config = self.get_component("db_config")
         self.target = self.get_component("target")
-        self.transaction = self.get_component("trasaction")
+        self.transaction = self.get_component("transaction")
         self.url_manager = self.get_component("url_manager")
         self.error_handler = self.get_component("error_handler")
-        self.plugin_handler = None
+        self.plugin_handler = self.get_component("plugin_handler")
         self.timer = self.get_component("timer")
         self.http_transaction = None
         self.Headers = {'User-Agent': self.db_config.Get('USER_AGENT')}
@@ -144,9 +144,6 @@ class Requester(BaseComponent):
                 # FIXME: Works except no raw request on https.
                 SmartRedirectHandler)
         urllib2.install_opener(self.Opener)
-
-    def init(self):
-        self.plugin_handler = self.get_component("plugin_handler")
 
     def log_transactions(self, log_transactions=True):
         backup = self.LogTransactions

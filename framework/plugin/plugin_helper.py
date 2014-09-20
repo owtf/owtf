@@ -46,9 +46,13 @@ PLUGIN_OUTPUT = {"type": None, "output": None}  # This will be json encoded and 
 
 
 class PluginHelper(BaseComponent):
+
+    COMPONENT_NAME = "plugin_helper"
+
     mNumLinesToShow = 25
 
     def __init__(self, CoreObj):
+        self.register_in_service_locator()
         self.Core = CoreObj
         self.config = self.get_component("config")
         self.target = self.get_component("target")

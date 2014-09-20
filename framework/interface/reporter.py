@@ -51,7 +51,7 @@ class Reporter(BaseComponent):
         self.config = self.get_component("config")
         self.resource = self.get_component("resource")
         self.transaction = self.get_component("transaction")
-        self.plugin_handler = None
+        self.plugin_handler = self.get_component("plugin_handler")
         self.requester = None
         self.Init = False
         #self.Render = renderer.HTMLRenderer(self.Core)
@@ -62,7 +62,6 @@ class Reporter(BaseComponent):
         self.CounterList = []
 
     def init(self):
-        self.plugin_handler = self.get_component("plugin_handler")
         self.requester = self.get_component("requester")
 
     def TransactionTableFromIDs(self, TransactionIDs, NumLinesReq=15, NumLinesRes=15):

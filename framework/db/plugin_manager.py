@@ -19,15 +19,12 @@ class PluginDB(BaseComponent):
         self.Core = Core
         self.config = self.get_component("config")
         self.db = self.get_component("db")
-        self.error_handler = None
+        self.error_handler = self.get_component("error_handler")
         self.PluginDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("PLUGIN_DB_PATH"), models.PluginBase)
         self.LoadWebTestGroups(self.config.FrameworkConfigGet("WEB_TEST_GROUPS"))
         self.LoadNetTestGroups(self.config.FrameworkConfigGet("NET_TEST_GROUPS"))
         # After loading the test groups then load the plugins, because of many-to-one relationship
         self.LoadFromFileSystem()  # Load plugins :P
-
-    def init(self):
-        self.error_handler = self.get_component("error_handler")
 
     def GetTestGroupsFromFile(self, file_path):  # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         TestGroups = []

@@ -38,7 +38,6 @@ import sys
 import cgi
 import json
 import urllib2
-from framework.core import Core
 from framework.dependency_management.dependency_resolver import BaseComponent
 
 from framework.lib.exceptions import FrameworkAbortException, \
@@ -52,14 +51,17 @@ class ErrorHandler(BaseComponent):
     PaddingLength = 100
     COMPONENT_NAME = "error_handler"
 
-    def __init__(self, Core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = Core
+        self.Core = None
         self.db = self.get_component("db")
         self.db_error = self.get_component("db_error")
         self.config = self.get_component("config")
         self.Padding = "\n" + "_" * self.PaddingLength + "\n\n"
         self.SubPadding = "\n" + "*" * self.PaddingLength + "\n"
+
+    def init(self):
+        self.Core = self.get_component("core")
 
     def SetCommand(self, command):
         self.Command = command
@@ -67,7 +69,7 @@ class ErrorHandler(BaseComponent):
     def FrameworkAbort(self, message, report=True):
         message = "Aborted by Framework: " + message
         cprint(message)
-        Core.current_instance.Finish(message, report)
+        self.Core.Finish(message, report)
         return message
 
     def get_option_from_user(self, options):
@@ -89,7 +91,7 @@ class ErrorHandler(BaseComponent):
             if 'e' == option:
                 if 'Command' == level:  # Try to save partial plugin results.
                     raise FrameworkAbortException(partial_output)
-                    Core.current_instance("Aborted by user")  # Interrupted.
+                    self.Core.FrameworkAbort("Aborted by user")  # Interrupted.
             elif 'p' == option:  # Move on to next plugin.
                 # Jump to next handler and pass partial output to avoid losing
                 # results.
