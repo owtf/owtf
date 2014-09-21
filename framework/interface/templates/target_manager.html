@@ -213,7 +213,7 @@ function addSessions(data, status, xhr){
         actionButtons += '<span class="btn btn-xs btn-danger"><i class="fa fa-times"></i></span></a>'
         jQuery('#sessionTable').dataTable().fnAddData([
             '<input type="radio" name="session_id" data-dismiss="modal" onclick="activateSession('+obj.id+');" value="'+obj.id+'" '+checked+'>',
-            obj.name,
+            $('<p>').text(obj.name)[0].outerHTML,
             actionButtons
         ]);
     });
@@ -300,7 +300,7 @@ function newTargets(targetUrlsString, button) {
             targetUrls.push("http://"+line);
             targetUrls.push("https://"+line);
         } else { // Not a valid url
-            alertFail(line+" is not a valid url");
+            alertFail($('<p>').text(line)[0].outerHTML+" is not a valid url");
         }
     });
 
