@@ -22,15 +22,6 @@
 </div>
 <!-- End Configuration tabs -->
 <script>
- var entityMap = {
-    "&": "&amp;","<": "&lt;",">": "&gt;",'"': '&quot;',"'": '&#39;',"/": '&#x2F;'};
-
-  function escapeHtml(string) {
-    return String(string).replace(/[&<>"'\/]/g, function (s) {
-      return entityMap[s];
-    });
-  }
-
 mySpace = {
             configuration_api_url:"{{ configuration_api_url }}"
         }

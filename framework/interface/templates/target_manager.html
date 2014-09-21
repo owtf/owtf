@@ -213,7 +213,7 @@ function addSessions(data, status, xhr){
         actionButtons += '<span class="btn btn-xs btn-danger"><i class="fa fa-times"></i></span></a>'
         jQuery('#sessionTable').dataTable().fnAddData([
             '<input type="radio" name="session_id" data-dismiss="modal" onclick="activateSession('+obj.id+');" value="'+obj.id+'" '+checked+'>',
-            $('<p>').text(obj.name)[0].outerHTML,
+            escapeHtml(obj.name),
             actionButtons
         ]);
     });
@@ -300,24 +300,27 @@ function newTargets(targetUrlsString, button) {
             targetUrls.push("http://"+line);
             targetUrls.push("https://"+line);
         } else { // Not a valid url
-            alertFail($('<p>').text(line)[0].outerHTML+" is not a valid url");
+            alertFail(escapeHtml(line)+" is not a valid url");
         }
     });
 
     // Since we only have valid urls now in targetUrls, add them using api
-    $.ajax({
-            url:mySpace.targets_api_url,
-            type:'POST',
-            data:$.param({'target_url':targetUrls}, true),
-            success: function() {
-                updateCurrentSessionInfo();
-                enableInput("#addTargetBtn");
-            },
-            error:function(xhr, textStatus, serverResponse) {
-                alertFail("Unable to add some targets");
-                enableInput("#addTargetBtn");
-            }
-    });
+    // Proceed only if there is atleast one valid url
+    if (targetUrls.length > 0) {
+        $.ajax({
+                url:mySpace.targets_api_url,
+                type:'POST',
+                data:$.param({'target_url':targetUrls}, true),
+                success: function() {
+                    updateCurrentSessionInfo();
+                    enableInput("#addTargetBtn");
+                },
+                error:function(xhr, textStatus, serverResponse) {
+                    alertFail("Unable to add some targets");
+                    enableInput("#addTargetBtn");
+                }
+        });
+    }
 }
 
 function getArray(data) {
