@@ -37,7 +37,7 @@ import cgi
 DESCRIPTION = "Searches transaction DB for Cross Origin Resource Sharing headers"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     Content = plugin_helper.HtmlString("This plugin looks for HTML 5 Cross Origin Resource Sharing (CORS) headers<br />")

@@ -32,6 +32,6 @@ This will perform a "low-hanging-fruit" pass on the web app for easy to find (to
 
 DESCRIPTION = "Active Vulnerability Scanning without credentials via w3af"
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
 	#ServiceLocator.get_component("config").Show()
 	return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', ServiceLocator.get_component("resource").GetResources('W3AF_Unauth'), PluginInfo, [])

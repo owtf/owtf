@@ -11,9 +11,8 @@ class POutputDB(BaseComponent, PluginOutputInterface):
 
     COMPONENT_NAME = "plugin_output"
 
-    def __init__(self, Core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = Core
         self.config = self.get_component("config")
         self.plugin_handler = self.get_component("plugin_handler")
         self.reporter = self.get_component("reporter")

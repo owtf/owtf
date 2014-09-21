@@ -32,6 +32,6 @@ https://www.owasp.org/index.php/Testing_for_Old,_Backup_and_Unreferenced_Files_(
 
 DESCRIPTION = "Google Hacking for juicy files"
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
 	#ServiceLocator.get_component("config").Show()
 	return ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', ServiceLocator.get_component("resource").GetResources('PassiveOldBackupUnreferencedFilesLnk'))

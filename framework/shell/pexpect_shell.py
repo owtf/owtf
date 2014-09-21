@@ -37,8 +37,8 @@ from collections import defaultdict
 
 
 class PExpectShell(blocking_shell.Shell):
-    def __init__(self, Core):
-        blocking_shell.Shell.__init__(self, Core)  # Calling parent class to do its init part
+    def __init__(self):
+        blocking_shell.Shell.__init__(self)  # Calling parent class to do its init part
         self.Connection = None
         self.Options = None
         self.CommandTimeOffset = 'PExpectCommand'

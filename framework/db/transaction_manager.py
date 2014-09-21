@@ -55,9 +55,8 @@ class TransactionManager(BaseComponent, TransactionInterface):
 
     COMPONENT_NAME = "transaction"
 
-    def __init__(self, Core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = Core
         self.config = self.get_component("config")
         self.target = self.get_component("target")
         self.url_manager = self.get_component("url_manager")

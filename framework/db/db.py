@@ -54,9 +54,8 @@ class DB(BaseComponent, DBInterface):
 
     COMPONENT_NAME = "db"
 
-    def __init__(self,CoreObj):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = CoreObj
         self.config = None
         self.ErrorDBSession = None
         self.Transaction = None

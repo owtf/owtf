@@ -43,10 +43,9 @@ class Shell(BaseComponent, ShellInterface):
 
     COMPONENT_NAME = "shell"
 
-    def __init__(self, Core):
+    def __init__(self):
         self.register_in_service_locator()
         self.DynamicReplacements = {}  # Some settings like the plugin output dir are dynamic, config is no place for those
-        self.Core = Core
         self.command_register = self.get_component("command_register")
         self.target = self.get_component("target")
         self.error_handler = self.get_component("error_handler")

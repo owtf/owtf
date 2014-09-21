@@ -34,7 +34,7 @@ This will perform a "low-hanging-fruit" pass on the web app for easy to find (to
 DESCRIPTION = "Active Vulnerability Scanning without credentials via nikto"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     resource = ServiceLocator.get_component("resource")

@@ -32,7 +32,7 @@ import cgi
 
 DESCRIPTION = "Active Probing for fingerprint analysis"
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
 	#ServiceLocator.get_component("config").Show()
 	Content = ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', ServiceLocator.get_component("resource").GetResources('ActiveInfrastructureConfigurationManagement'), PluginInfo, []) # No previous output
 	return Content

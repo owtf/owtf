@@ -37,7 +37,7 @@ import cgi
 DESCRIPTION = "Searches transaction DB for XSS protections"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     #Background: http://jeremiahgrossman.blogspot.com/2010/01/to-disable-ie8s-xss-filter-or-not.html
     plugin_helper = ServiceLocator.get_component("plugin_helper")

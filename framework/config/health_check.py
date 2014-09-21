@@ -48,8 +48,7 @@ class HealthCheck(BaseComponent):
 
     """
 
-    def __init__(self, core):
-        self.core = core
+    def __init__(self):
         self.config = self.get_component("config")
         self.error_handler = self.get_component("error_handler")
 
@@ -60,8 +59,8 @@ class HealthCheck(BaseComponent):
     def count_not_installed_tools(self):
         """Count the number of missing tools by checking their paths."""
         count = 0
-        for key, value in self.core.Config.GetConfig():
-            setting = self.core.Config.StripKey(key)
+        for key, value in self.config.GetConfig():
+            setting = self.config.StripKey(key)
             if self.is_tool(setting) and not self.is_installed(value):
                 cprint("WARNING: Tool path not found for: " + str(value))
                 count += 1

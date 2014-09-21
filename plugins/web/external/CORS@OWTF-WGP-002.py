@@ -34,7 +34,7 @@ import cgi
 
 DESCRIPTION = "CORS Plugin to assist manual testing"
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
 	#ServiceLocator.get_component("config").Show()
 	Content = ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', ServiceLocator.get_component("resource").GetResources('ExternalCORS'))
 	return Content

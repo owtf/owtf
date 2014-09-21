@@ -46,17 +46,14 @@ class Reporter(BaseComponent, ReporterInterface):
 
     COMPONENT_NAME = "reporter"
 
-    def __init__(self, CoreObj):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = CoreObj  # Keep Reference to Core Object
         self.config = self.get_component("config")
         self.resource = self.get_component("resource")
         self.transaction = self.get_component("transaction")
         self.plugin_handler = self.get_component("plugin_handler")
         self.requester = None
         self.Init = False
-        #self.Render = renderer.HTMLRenderer(self.Core)
-        #self.Summary = summary.Summary(self.Core)
         self.Sanitiser = sanitiser.HTMLSanitiser()
         self.Loader = Loader(self.config.FrameworkConfigGet('POUTPUT_TEMPLATES_DIR'))
         self.mNumLinesToShow = 15

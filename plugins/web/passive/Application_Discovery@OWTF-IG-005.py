@@ -31,7 +31,7 @@ PASSIVE Plugin for Testing for Application Discovery (OWASP-IG-005)
 
 DESCRIPTION = "Third party discovery resources"
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
         # ServiceLocator.get_component("config").Show()
         # Content = ServiceLocator.get_component("plugin_helper").DrawCommandDump('Test Command', 'Output', ServiceLocator.get_component("config").GetResources('PassiveApplicationDiscoveryCmd'), PluginInfo)
         # Content = ServiceLocator.get_component("plugin_helper").DrawResourceLinkList('Online Resources', ServiceLocator.get_component("config").GetResources('PassiveAppDiscovery'))

@@ -35,7 +35,7 @@ import cgi
 
 DESCRIPTION = "Searches transaction DB for Clickjacking protections"
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
 	#ServiceLocator.get_component("config").Show()
 	Content = ServiceLocator.get_component("plugin_helper").HtmlString("This plugin looks for server-side protection headers against Clickjacking (TODO: Add rudimentary search for frame busting)<br />")
 	Content += ServiceLocator.get_component("plugin_helper").FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_CLICKJACKING_PROTECTION')

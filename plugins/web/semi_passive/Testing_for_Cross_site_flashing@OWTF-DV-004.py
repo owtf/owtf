@@ -33,7 +33,7 @@ import re, cgi,logging
 
 DESCRIPTION = "Normal requests for XSF analysis"
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
 	#NotFoundMsg = "Not Found"
 	#Table = ServiceLocator.get_component("reporter").Render.CreateTable()
 	URLList = []

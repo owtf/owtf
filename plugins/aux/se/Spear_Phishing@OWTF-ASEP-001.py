@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 DESCRIPTION = "Spear Phishing Testing plugin"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     Content = DESCRIPTION + " Results:<br />"
     plugin_params = ServiceLocator.get_component("plugin_params")

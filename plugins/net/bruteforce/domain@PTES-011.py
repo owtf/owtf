@@ -33,7 +33,7 @@ Plugin for probing DNS
 DESCRIPTION = " DNS Probing "
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     return ServiceLocator.get_component("plugin_helper").CommandDump(
         'Test Command',
         'Output',

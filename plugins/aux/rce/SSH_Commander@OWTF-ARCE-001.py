@@ -36,8 +36,9 @@ DESCRIPTION = "Runs commands on an agent server via SSH -i.e. for IDS testing-"
 CHANNEL = 'SSH'
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
+    Core = ServiceLocator.get_component("core")
     Content = DESCRIPTION + " Results:<br />"
     plugin_params = ServiceLocator.get_component("plugin_params")
     config = ServiceLocator.get_component("config")

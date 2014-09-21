@@ -36,9 +36,8 @@ class DebugDB(BaseComponent):
 
     COMPONENT_NAME = "debug_db"
 
-    def __init__(self, Core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = Core
         self.db = self.get_component("db")
 
     def Add(self, Message):

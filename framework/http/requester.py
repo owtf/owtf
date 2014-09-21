@@ -106,9 +106,8 @@ class Requester(BaseComponent, RequesterInterface):
 
     COMPONENT_NAME = "requester"
 
-    def __init__(self, core, proxy):
+    def __init__(self, proxy):
         self.register_in_service_locator()
-        self.Core = core
         self.db_config = self.get_component("db_config")
         self.target = self.get_component("target")
         self.transaction = self.get_component("transaction")

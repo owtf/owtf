@@ -48,9 +48,8 @@ class Scanner(BaseComponent):
     
     COMPONENT_NAME = "scanner"
 
-    def __init__(self,CoreObj):
+    def __init__(self):
         self.register_in_service_locator()
-        self.core = CoreObj
         self.shell = self.get_component("shell")
         self.config = self.get_component("config")
         self.plugin_handler = self.get_component("plugin_handler")

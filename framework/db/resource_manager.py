@@ -11,9 +11,8 @@ class ResourceDB(BaseComponent, ResourceInterface):
 
     COMPONENT_NAME = "resource"
 
-    def __init__(self, Core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = Core
         self.config = self.get_component("config")
         self.db_config = self.get_component("db_config")
         self.target = self.get_component("target")

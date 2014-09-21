@@ -33,7 +33,7 @@ PASSIVE Plugin for Testing for Web Application Fingerprint (OWASP-IG-004)
 DESCRIPTION = "Third party resources and fingerprinting suggestions"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     #Vuln search box to be built in core and reused in different plugins:
     plugin_helper = ServiceLocator.get_component("plugin_helper")

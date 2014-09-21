@@ -51,9 +51,8 @@ class PluginHelper(BaseComponent):
 
     mNumLinesToShow = 25
 
-    def __init__(self, CoreObj):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = CoreObj
         self.config = self.get_component("config")
         self.target = self.get_component("target")
         self.url_manager = self.get_component("url_manager")

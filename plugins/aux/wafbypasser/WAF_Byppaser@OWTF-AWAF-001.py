@@ -57,7 +57,7 @@ def format_args(args):
 DESCRIPTION = "WAF byppaser module plugin"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     Content = DESCRIPTION + " Results:<br />"
     plugin_params = ServiceLocator.get_component("plugin_params")

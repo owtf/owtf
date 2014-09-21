@@ -38,7 +38,7 @@ CATEGORIES = ['HTTP_WIN', 'HTTP', 'DHCP', 'NTFS', 'HP', 'MDNS', 'PPTP', 'SAMBA',
               'WIN_SMB', 'WIN_SMTP', 'WIN_TFTP', 'WIRESHARK']
 
 
-def run(Core, PluginInfo):
+def run( PluginInfo):
     # ServiceLocator.get_component("config").Show()
     Content = DESCRIPTION + " Results:<br />"
     plugin_params = ServiceLocator.get_component("plugin_params")

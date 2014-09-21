@@ -37,7 +37,7 @@ import cgi
 DESCRIPTION = "Searches transaction DB for autocomplete protections"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     Content = plugin_helper.HtmlString("This plugin looks for password and form tags to review the autocomplete attribute<br />")

@@ -7,9 +7,8 @@ class ZAP_API(BaseComponent, ZapAPIInterface):
 
     COMPONENT_NAME = "zap_api"
 
-    def __init__(self, core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = core
         self.config = self.get_component("config")
         self.transaction = self.get_component("transaction")
         zap_proxy_address = "http://" + self.config.FrameworkConfigGet(

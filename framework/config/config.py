@@ -65,11 +65,10 @@ class Config(BaseComponent, ConfigInterface):
     Profiles = None
 
     Target = None
-    def __init__(self, root_dir, owtf_pid, core):
+    def __init__(self, root_dir, owtf_pid):
         self.register_in_service_locator()
         self.RootDir = root_dir
         self.OwtfPid = owtf_pid
-        self.Core = core
         self.resource = None
         self.error_handler = None
         self.target = None
@@ -98,7 +97,7 @@ class Config(BaseComponent, ConfigInterface):
             self.Config[type] = {}
 
     def Init(self):
-        self.HealthCheck = health_check.HealthCheck(self.Core)
+        self.HealthCheck = health_check.HealthCheck()
 
     def LoadFrameworkConfigFromFile(self, config_path):
         """Load the configuration from into a global dictionary."""

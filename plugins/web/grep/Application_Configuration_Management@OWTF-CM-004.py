@@ -36,7 +36,7 @@ import cgi
 
 DESCRIPTION = "Searches transaction DB for comments"
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
 	#ServiceLocator.get_component("config").Show()
 	Content = ServiceLocator.get_component("plugin_helper").FindResponseBodyMatchesForRegexpNames(['RESPONSE_REGEXP_FOR_HTML_COMMENTS','RESPONSE_REGEXP_FOR_CSS_JS_COMMENTS','RESPONSE_REGEXP_FOR_JS_COMMENTS', 'RESPONSE_REGEXP_FOR_PHP_SOURCE', 'RESPONSE_REGEXP_FOR_ASP_SOURCE'])
 	return Content

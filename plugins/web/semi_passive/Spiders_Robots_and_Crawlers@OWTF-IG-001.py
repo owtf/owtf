@@ -33,7 +33,7 @@ import re, cgi,logging
 
 DESCRIPTION = "Normal request for robots.txt analysis"
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
 
     TopURL = ServiceLocator.get_component("target").Get('TOP_URL')
     URL = TopURL+"/robots.txt"

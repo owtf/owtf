@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 DESCRIPTION = "Mounts and/or uploads/downloads files to an SMB share -i.e. for IDS testing-"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     Content = DESCRIPTION + " Results:<br />"
     Iteration = 1  # Iteration counter initialisation

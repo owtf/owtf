@@ -47,9 +47,8 @@ class TargetDB(BaseComponent, TargetInterface):
 
     COMPONENT_NAME = "target"
 
-    def __init__(self, Core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = Core
         self.config = self.get_component("config")
         self.command_register = self.get_component("command_register")
         self.db = self.get_component("db")

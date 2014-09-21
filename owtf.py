@@ -488,13 +488,13 @@ if __name__ == "__main__":
     if not "--update" in sys.argv[1:]:
         ComponentInitialiser.step_1(owtf_pid, root_dir)
         args = process_options(core, sys.argv[1:])
-        ComponentInitialiser.step_2(args, owtf_pid, root_dir)
+        ComponentInitialiser.step_2(args)
 
         core = core.Init(root_dir, owtf_pid, args)  # Initialise Framework.
         print(
             "OWTF Version: %s, Release: %s " % (
-                core.config.FrameworkConfigGet('VERSION'),
-                core.config.FrameworkConfigGet('RELEASE')),
+                ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
+                ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE')),
             end='\n'*2
             )
         run_owtf(core, args)

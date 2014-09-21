@@ -41,7 +41,7 @@ CATEGORIES = ['RDP', 'LDAP2', 'LDAP3', 'MSSQL', 'MYSQL', 'CISCO', 'CISCO-ENABLE'
               'TEAMSPEAK', 'TELNET', 'VMAUTHD', 'VNC', 'XMPP']
 
 
-def run(Core, PluginInfo):
+def run( PluginInfo):
     # ServiceLocator.get_component("config").Show()
     Content = DESCRIPTION + " Results:<br />"
     config = ServiceLocator.get_component("config")

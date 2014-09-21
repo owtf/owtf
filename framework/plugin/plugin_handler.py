@@ -84,7 +84,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     OnlyPluginsList = None
     OnlyPluginsSet = None
 
-    def __init__(self, CoreObj, Options):
+    def __init__(self, Options):
         self.register_in_service_locator()
         self.Core = None
         self.db = self.get_component("db")
@@ -123,7 +123,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.Core = self.get_component("core")
         self.plugin_output = self.get_component("plugin_output")
         self.reporter = self.get_component("reporter")
-        self.scanner = Scanner(self.Core)
+        self.scanner = Scanner()
 
     def ValidateAndFormatPluginList(self, PluginList):
         List = []  # Ensure there is always a list to iterate from! :)
@@ -282,7 +282,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         (Path, Name) = os.path.split(PluginPath)
         # (Name, Ext) = os.path.splitext(Name)
         #self.db.Debug.Add("Running Plugin -> Plugin="+str(Plugin)+", PluginDir="+str(PluginDir))
-        PluginOutput = self.GetModule("", Name, Path + "/").run(self.Core, Plugin)
+        PluginOutput = self.GetModule("", Name, Path + "/").run(Plugin)
         #if save_output:
         #print(PluginOutput)
         #self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here

@@ -36,7 +36,7 @@ from framework.lib.general import get_random_str
 DESCRIPTION = "Active probing for HTTP methods"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     #Transaction = ServiceLocator.get_component("requester").TRACE(ServiceLocator.get_component("config").Get('HOST_NAME'), '/')
     URL = ServiceLocator.get_component("target").Get('TOP_URL')

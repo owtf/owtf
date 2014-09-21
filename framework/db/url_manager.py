@@ -41,9 +41,8 @@ class URLManager(BaseComponent, URLManagerInterface):
 
     COMPONENT_NAME = "url_manager"
 
-    def __init__(self, Core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = Core
         self.config = self.get_component("config")
         self.target = self.get_component("target")
         # Compile regular expressions once at the beginning for speed purposes:
@@ -82,7 +81,6 @@ class URLManager(BaseComponent, URLManagerInterface):
         return self.IsRegexpURL(URL, self.IsURLRegexp)
 
     def GetNumURLs(self):
-        # return self.Core.DB.GetLength(DBPrefix+'ALL_URLS_DB')
         Session = self.target.GetUrlDBSession()
         session = Session()
         count = session.query(models.Url).count()

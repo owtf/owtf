@@ -32,7 +32,7 @@ https://www.owasp.org/index.php/Testing_for_Old,_Backup_and_Unreferenced_Files_(
 
 DESCRIPTION = "Active probing for juicy files (DirBuster)"
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
 	#ServiceLocator.get_component("config").Show()
 	# Define DirBuster Commands to use depending on Interaction Setting:
 	# DirBuster allows much more control when interactive

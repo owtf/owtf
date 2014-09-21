@@ -12,9 +12,8 @@ class VulnexpDB(BaseComponent, VulnexpDBInterface):
 
     COMPONENT_NAME = "vulnexp_db"
 
-    def __init__(self, Core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = Core
         self.config = self.get_component("config")
         self.db = self.get_component("db")
         self.VulnexpDBSession = self.db.CreateScopedSession(self.GetDBPath(), models.VulnexpBase)

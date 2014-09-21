@@ -36,6 +36,6 @@ import cgi
 
 DESCRIPTION = "Searches transaction DB for timing information"
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
 	#ServiceLocator.get_component("config").Show()
         return ServiceLocator.get_component("plugin_helper").FindTopTransactionsBySpeed()

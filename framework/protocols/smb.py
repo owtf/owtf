@@ -47,10 +47,10 @@ class SMB(pexpect_shell.PExpectShell):
 
     COMPONENT_NAME = "smb"
 
-    def __init__(self, core):
+    def __init__(self):
         self.register_in_service_locator()
         # Calling parent class to do its init part.
-        pexpect_shell.PExpectShell.__init__(self, core)
+        pexpect_shell.PExpectShell.__init__(self)
         self.CommandTimeOffset = 'SMBCommand'
         self.Mounted = False
 

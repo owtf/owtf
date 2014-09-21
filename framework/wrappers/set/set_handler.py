@@ -37,10 +37,10 @@ import time
 import pexpect
 
 class SETHandler(pexpect_shell.PExpectShell):
-	def __init__(self, Core):
-		pexpect_shell.PExpectShell.__init__(self, Core) # Calling parent class to do its init part
+	def __init__(self):
+		pexpect_shell.PExpectShell.__init__(self) # Calling parent class to do its init part
 		self.CommandTimeOffset = 'SETCommand'
-		self.SpearPhishing = spear_phishing.SpearPhishing(Core, self)
+		self.SpearPhishing = spear_phishing.SpearPhishing(self)
 		
 	def RunScript(self, ScriptPath, Args, Debug = False):
 		#TODO: Replacements

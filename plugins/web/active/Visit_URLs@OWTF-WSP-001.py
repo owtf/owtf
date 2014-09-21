@@ -33,7 +33,7 @@ NOTE: This is an active plugin because it may visit URLs retrieved by vulnerabil
 
 DESCRIPTION = "Visit URLs found by other tools, some could be sensitive: need permission"
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     #ServiceLocator.get_component("config").Show()
     urls = ServiceLocator.get_component("url_manager").GetURLsToVisit()
     for url in urls: # This will return only unvisited urls

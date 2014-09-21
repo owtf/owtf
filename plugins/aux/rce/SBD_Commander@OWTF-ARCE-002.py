@@ -35,8 +35,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 DESCRIPTION = "Runs commands on an agent server via SBD -i.e. for IDS testing-"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
+    Core = ServiceLocator.get_component("core")
     Content = DESCRIPTION + " Results:<br />"
     plugin_params = ServiceLocator.get_component("plugin_params")
     config = ServiceLocator.get_component("config")

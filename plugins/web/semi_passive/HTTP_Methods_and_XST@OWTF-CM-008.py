@@ -33,7 +33,7 @@ SEMI-PASSIVE Plugin for Testing for HTTP Methods and XST (OWASP-CM-008)
 DESCRIPTION = "Normal request for HTTP methods analysis"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     Content = plugin_helper.TransactionTableForURLList(True, ServiceLocator.get_component("target").GetAsList(

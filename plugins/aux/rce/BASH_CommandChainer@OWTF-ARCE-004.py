@@ -39,7 +39,7 @@ import logging
 DESCRIPTION = "Runs a chain of commands on an agent server via SBD -i.e. for IDS testing-"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     Content = DESCRIPTION + " Results:<br />"
     Iteration = 1  # Iteration counter initialisation
@@ -94,7 +94,6 @@ def run(Core, PluginInfo):
             Args['COMMAND_PREFIX'] + Args['TEST'] + Args['COMMAND_SUFIX'])
         OWTFLogger.log("Sleeping " + DELAY_BETWEEN_COMMANDS + " second(s) (increases reliability)..")
         time.sleep(int(DELAY_BETWEEN_COMMANDS))
-        #Core.RemoteShell.Run("sleep " + str(WAIT_SECONDS))
         if not REUSE_CONNECTION:
             ServiceLocator.get_component("interactive_shell").Close(PluginInfo)
         #Content += ServiceLocator.get_component("plugin_helper").DrawCommandDump('Test Command', 'Output', ServiceLocator.get_component("config").GetResources('LaunchExploit_'+Args['CATEGORY']+"_"+Args['SUBCATEGORY']), PluginInfo, "") # No previous output

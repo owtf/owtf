@@ -92,11 +92,11 @@ class Core(BaseComponent):
         self.shell = self.get_component("shell")
         self.enable_logging()
         self.reporter = self.get_component("reporter")
-        self.selenium = selenium_handler.Selenium(self)
-        self.interactive_shell = interactive_shell.InteractiveShell(self)
-        self.set = set_handler.SETHandler(self)
+        self.selenium = selenium_handler.Selenium()
+        self.interactive_shell = interactive_shell.InteractiveShell()
+        self.set = set_handler.SETHandler()
         self.smtp = self.get_component("smtp")
-        self.smb = smb.SMB(self)
+        self.smb = smb.SMB()
 
         # The following attributes will be initialised later
         self.plugin_helper = None
@@ -180,7 +180,7 @@ class Core(BaseComponent):
                     self.tor_process = self.tor_process.Run()
                 else:
                     tor_manager.TOR_manager.msg_start_tor(self)
-                    tor_manager.TOR_manager.msg_configure_tor(self)
+                    tor_manager.TOR_manager.msg_configure_tor()
                     self.error_handler.FrameworkAbort("TOR Daemon is not running")
             else:
                 tor_manager.TOR_manager.msg_configure_tor()

@@ -38,9 +38,8 @@ class ErrorDB(BaseComponent, DBErrorInterface):
 
     COMPONENT_NAME = "db_error"
 
-    def __init__(self, Core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = Core
         self.db = self.get_component("db")
         self.config = self.get_component("config")
         self.ErrorDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("ERROR_DB_PATH"), models.RegisterBase)

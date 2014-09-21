@@ -15,9 +15,8 @@ class PluginDB(BaseComponent, DBPluginInterface):
     
     COMPONENT_NAME = "db_plugin"
     
-    def __init__(self, Core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = Core
         self.config = self.get_component("config")
         self.db = self.get_component("db")
         self.error_handler = self.get_component("error_handler")

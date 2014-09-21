@@ -40,9 +40,8 @@ class Selenium(BaseComponent):
 
     COMPONENT_NAME = "selenium_handler"
 
-    def __init__(self, core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = core
         self.Init = False
 
     def SetDisplay(self):

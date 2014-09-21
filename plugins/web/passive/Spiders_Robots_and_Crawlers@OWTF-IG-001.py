@@ -34,7 +34,7 @@ import logging
 DESCRIPTION = "robots.txt analysis through third party sites"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     TestResult = ''
     Count = 1
     # TODO: Fix this plugin properly

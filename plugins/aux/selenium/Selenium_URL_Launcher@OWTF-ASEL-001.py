@@ -35,7 +35,7 @@ DESCRIPTION = "Sends a bunch of URLs through selenium"
 CATEGORIES = ['RCE', 'SQLI', 'XSS', 'CHARSET']
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
 
     config = ServiceLocator.get_component("config")

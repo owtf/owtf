@@ -47,9 +47,8 @@ class SMTP(BaseComponent):
 
     COMPONENT_NAME = "smtp"
 
-    def __init__(self, core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = core
         self.error_handler = self.get_component("error_handler")
         self.MsgPrefix = 'OWTF SMTP Client - '
 

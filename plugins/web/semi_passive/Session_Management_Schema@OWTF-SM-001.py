@@ -38,7 +38,7 @@ from framework.lib import general
 DESCRIPTION = "Normal requests to gather session managament info"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     # True = Use Transaction Cache if possible: Visit the start URLs if not already visited
     # Step 1 - Find transactions that set cookies

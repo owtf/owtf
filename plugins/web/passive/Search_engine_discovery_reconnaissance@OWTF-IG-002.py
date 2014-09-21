@@ -36,7 +36,7 @@ ATTR = {
 }
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     Content = plugin_helper.CommandDump('Test Command', 'Output',

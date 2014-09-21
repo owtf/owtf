@@ -36,7 +36,7 @@ import cgi
 DESCRIPTION = "Normal requests to gather fingerprint info"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # ServiceLocator.get_component("config").Show()
     # True = Use Transaction Cache if possible: Visit the start URLs if not already visited
     plugin_helper = ServiceLocator.get_component("plugin_helper")

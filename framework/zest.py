@@ -13,9 +13,8 @@ class Zest(BaseComponent, ZestInterface):
 
 #basic initialization of Root,Output,Zest Directories from target config
 
-    def __init__(self, core):
+    def __init__(self):
         self.register_in_service_locator()
-        self.Core = core
         self.config = self.get_component("config")
         self.db_config = self.get_component("db_config")
         self.target = self.get_component("target")
