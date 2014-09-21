@@ -1,3 +1,5 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -28,7 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 PASSIVE Plugin for Search engine discovery/reconnaissance (OWASP-IG-002)
 """
 
-
 DESCRIPTION = "General Google Hacking/Email harvesting, etc"
 ATTR = {
     'INTERNET_RESOURCES': True,
@@ -36,7 +37,15 @@ ATTR = {
 
 
 def run(Core, PluginInfo):
-    #Core.Config.Show()
-    Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('PassiveSearchEngineDiscoveryCmd'), PluginInfo, [])
-    Content += Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveSearchEngineDiscoveryLnk'))
+    # ServiceLocator.get_component("config").Show()
+    plugin_helper = ServiceLocator.get_component("plugin_helper")
+    Content = plugin_helper.CommandDump('Test Command', 'Output',
+                                                                        ServiceLocator.get_component(
+                                                                            "resource").GetResources(
+                                                                            'PassiveSearchEngineDiscoveryCmd'),
+                                                                        PluginInfo, [])
+    Content += plugin_helper.ResourceLinkList('Online Resources',
+                                                                              ServiceLocator.get_component(
+                                                                                  "resource").GetResources(
+                                                                                  'PassiveSearchEngineDiscoveryLnk'))
     return Content

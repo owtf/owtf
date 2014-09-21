@@ -44,7 +44,11 @@ from framework.utils import FileOperations
 
 
 class SMB(pexpect_shell.PExpectShell):
+
+    COMPONENT_NAME = "smb"
+
     def __init__(self, core):
+        self.register_in_service_locator()
         # Calling parent class to do its init part.
         pexpect_shell.PExpectShell.__init__(self, core)
         self.CommandTimeOffset = 'SMBCommand'

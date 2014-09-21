@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -31,8 +32,8 @@ import logging
 DESCRIPTION = "Third party resources"
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
+	#ServiceLocator.get_component("config").Show()
 	#Vuln search box to be built in core and resued in different plugins:
-	Content = Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveSSL'))
+	Content = ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', ServiceLocator.get_component("resource").GetResources('PassiveSSL'))
 	return Content
 

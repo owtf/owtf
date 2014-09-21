@@ -34,7 +34,8 @@ class ServiceLocator:
     def register_component(cls, name, component):
         if cls.component_should_implement_interface(name):
             assert isinstance(component, AbstractInterface)
-        cls.registry[name] = component
+        if name not in cls.registry:
+            cls.registry[name] = component
 
     @classmethod
     def component_should_implement_interface(cls, name):

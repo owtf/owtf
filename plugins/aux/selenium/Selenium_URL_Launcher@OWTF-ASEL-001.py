@@ -1,3 +1,6 @@
+from framework.utils import OWTFLogger
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -27,26 +30,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
 import logging
+
 DESCRIPTION = "Sends a bunch of URLs through selenium"
-CATEGORIES = [ 'RCE', 'SQLI', 'XSS', 'CHARSET' ] 
+CATEGORIES = ['RCE', 'SQLI', 'XSS', 'CHARSET']
+
+
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-    
-	Core.log("WARNING: This plugin requires a small selenium installation, please run '"+Core.Config.Get('INSTALL_SCRIPT')+"' if you have issues")
-	Content = DESCRIPTION + " Results:<br />"
-	for Args in Core.PluginParams.GetArgs( { 
-'Description' : DESCRIPTION,
-'Mandatory' : { 
-		'BASE_URL' : 'The URL to be pre-pended to the tests',
-		'CATEGORY' : 'Category to use (i.e. '+', '.join(sorted(CATEGORIES))+')'
-		},
-'Optional' : {
-		'REPEAT_DELIM' : Core.Config.Get('REPEAT_DELIM_DESCRIP')
-	     } }, PluginInfo):
-		Core.PluginParams.SetConfig(Args)
-		#print "Args="+str(Args)
-		InputFile = Core.Config.Get("SELENIUM_URL_VECTORS_"+Args['CATEGORY'])
-		URLLauncher = Core.Selenium.CreateURLLauncher( { 'BASE_URL' : Args['BASE_URL'], 'INPUT_FILE' : InputFile } )
-		URLLauncher.Run()
-	return Content
+    # ServiceLocator.get_component("config").Show()
+
+    config = ServiceLocator.get_component("config")
+    OWTFLogger.log("WARNING: This plugin requires a small selenium installation, please run '" + config.Get('INSTALL_SCRIPT') + "' if you have issues")
+    Content = DESCRIPTION + " Results:<br />"
+
+    plugin_params = ServiceLocator.get_component("plugin_params")
+    for Args in plugin_params.GetArgs({
+                                          'Description': DESCRIPTION,
+                                          'Mandatory': {
+                                              'BASE_URL': 'The URL to be pre-pended to the tests',
+                                              'CATEGORY': 'Category to use (i.e. ' + ', '.join(sorted(CATEGORIES)) + ')'
+                                          },
+                                          'Optional': {
+                                              'REPEAT_DELIM': config.Get(
+                                                      'REPEAT_DELIM_DESCRIP')
+                                          }}, PluginInfo):
+        plugin_params.SetConfig(Args)
+    # print "Args="+str(Args)
+    InputFile = config.Get("SELENIUM_URL_VECTORS_" + Args['CATEGORY'])
+    URLLauncher = ServiceLocator.get_component("selenium_handler").CreateURLLauncher(
+        {'BASE_URL': Args['BASE_URL'], 'INPUT_FILE': InputFile})
+    URLLauncher.Run()
+    return Content
 

@@ -2,6 +2,7 @@ import re
 import shutil
 import os
 import codecs
+import logging
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.general import WipeBadCharsForFilename
 
@@ -103,3 +104,10 @@ class FileOperations():
     @catch_io_errors
     def mkdir(cls, *args, **kwargs):
         return os.mkdir(*args, **kwargs)
+
+
+class OWTFLogger():
+
+    @staticmethod
+    def log(msg, *args, **kwargs):
+        logging.info(msg, *args, **kwargs)

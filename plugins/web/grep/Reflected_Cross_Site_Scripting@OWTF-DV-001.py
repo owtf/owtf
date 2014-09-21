@@ -1,3 +1,5 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -34,9 +36,11 @@ import cgi
 
 DESCRIPTION = "Searches transaction DB for XSS protections"
 
+
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-	#Background: http://jeremiahgrossman.blogspot.com/2010/01/to-disable-ie8s-xss-filter-or-not.html
-	Content = Core.PluginHelper.HtmlString("This plugin looks for server-side protection headers against XSS (TODO: Check vuln scanners' output!)<br />")
-	Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_XSS_PROTECTION')
-	return Content
+    # ServiceLocator.get_component("config").Show()
+    #Background: http://jeremiahgrossman.blogspot.com/2010/01/to-disable-ie8s-xss-filter-or-not.html
+    plugin_helper = ServiceLocator.get_component("plugin_helper")
+    Content = plugin_helper.HtmlString("This plugin looks for server-side protection headers against XSS (TODO: Check vuln scanners' output!)<br />")
+    Content += plugin_helper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_XSS_PROTECTION')
+    return Content

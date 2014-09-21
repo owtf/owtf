@@ -38,8 +38,12 @@ from collections import defaultdict
 
 
 class InteractiveShell(blocking_shell.Shell):
+
+    COMPONENT_NAME = "interactive_shell"
+
     def __init__(self, Core):
         blocking_shell.Shell.__init__(self, Core)  # Calling parent class to do its init part
+        self.register_in_service_locator()
         self.Connection = None
         self.Options = None
         self.CommandTimeOffset = 'InteractiveCommand'

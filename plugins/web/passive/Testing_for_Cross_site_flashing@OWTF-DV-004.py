@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -31,7 +32,7 @@ PASSIVE Plugin for Testing for Cross site flashing (OWASP-DV-004)
 DESCRIPTION = "Google Hacking for Cross Site Flashing"
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-	Content = Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveCrossSiteFlashingLnk'))
+	#ServiceLocator.get_component("config").Show()
+	Content = ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', ServiceLocator.get_component("resource").GetResources('PassiveCrossSiteFlashingLnk'))
 	return Content
 

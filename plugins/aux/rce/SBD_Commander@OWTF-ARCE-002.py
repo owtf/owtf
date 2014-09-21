@@ -1,3 +1,5 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -31,28 +33,32 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
 DESCRIPTION = "Runs commands on an agent server via SBD -i.e. for IDS testing-"
+
+
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-	Content = DESCRIPTION + " Results:<br />"
-	for Args in Core.PluginParams.GetArgs( { 
-'Description' : DESCRIPTION,
-'Mandatory' : { 
-		'RHOST' : Core.Config.Get('RHOST_DESCRIP'),
-		'SBD_PORT' : Core.Config.Get('SBD_PORT_DESCRIP'),
-		'SBD_PASSWORD' : Core.Config.Get('SBD_PASSWORD_DESCRIP'),
-		'COMMAND_FILE' : Core.Config.Get('COMMAND_FILE_DESCRIP')
-		}, 
-'Optional' : {
-		'REPEAT_DELIM' : Core.Config.Get('REPEAT_DELIM_DESCRIP')
-		} }, PluginInfo):
-		Core.PluginParams.SetConfig(Args) # Sets the aux plugin arguments as config
-		
-		#print "Args="+str(Args)
-		Core.RemoteShell.Open({
-			'ConnectVia' : Core.Config.GetResources('RCE_SBD_Connection')
-			, 'InitialCommands' : None
-							  }, PluginInfo)
-		Core.RemoteShell.RunCommandList(Core.GetFileAsList(Args['COMMAND_FILE']))
-		Core.RemoteShell.Close(PluginInfo)
-		#Content += Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('LaunchExploit_'+Args['CATEGORY']+"_"+Args['SUBCATEGORY']), PluginInfo, "") # No previous output
-	return Content
+    # ServiceLocator.get_component("config").Show()
+    Content = DESCRIPTION + " Results:<br />"
+    plugin_params = ServiceLocator.get_component("plugin_params")
+    config = ServiceLocator.get_component("config")
+    for Args in plugin_params.GetArgs({
+                                                                          'Description': DESCRIPTION,
+                                                                          'Mandatory': {
+                                                                          'RHOST': config.Get('RHOST_DESCRIP'),
+                                                                          'SBD_PORT': config.Get('SBD_PORT_DESCRIP'),
+                                                                          'SBD_PASSWORD': config.Get('SBD_PASSWORD_DESCRIP'),
+                                                                          'COMMAND_FILE': config.Get('COMMAND_FILE_DESCRIP')
+                                                                          },
+                                                                          'Optional': {
+                                                                          'REPEAT_DELIM': config.Get('REPEAT_DELIM_DESCRIP')
+                                                                          }}, PluginInfo):
+        plugin_params.SetConfig(Args)  # Sets the aux plugin arguments as config
+
+        #print "Args="+str(Args)
+        Core.RemoteShell.Open({
+                              'ConnectVia': config.GetResources('RCE_SBD_Connection')
+                              , 'InitialCommands': None
+                              }, PluginInfo)
+        Core.RemoteShell.RunCommandList(Core.GetFileAsList(Args['COMMAND_FILE']))
+        Core.RemoteShell.Close(PluginInfo)
+    #Content += ServiceLocator.get_component("plugin_helper").DrawCommandDump('Test Command', 'Output', ServiceLocator.get_component("config").GetResources('LaunchExploit_'+Args['CATEGORY']+"_"+Args['SUBCATEGORY']), PluginInfo, "") # No previous output
+    return Content

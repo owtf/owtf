@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -31,6 +32,6 @@ Plugin for probing vnc
 DESCRIPTION = " VNC Probing "
 
 def run(Core, PluginInfo):
-    #Core.Config.Show()
+    #ServiceLocator.get_component("config").Show()
     #print "Content="+Content
-    return Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('BruteVncProbeMethods'), PluginInfo, []) # No previous output
+    return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', ServiceLocator.get_component("resource").GetResources('BruteVncProbeMethods'), PluginInfo, []) # No previous output

@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -57,9 +58,10 @@ DESCRIPTION = "WAF byppaser module plugin"
 
 
 def run(Core, PluginInfo):
-    # Core.Config.Show()
+    # ServiceLocator.get_component("config").Show()
     Content = DESCRIPTION + " Results:<br />"
-    for Args in Core.PluginParams.GetArgs({
+    plugin_params = ServiceLocator.get_component("plugin_params")
+    for Args in plugin_params.GetArgs({
                                               'Description': DESCRIPTION,
                                               'Mandatory': {
                                               'TARGET': None,
@@ -84,7 +86,7 @@ def run(Core, PluginInfo):
 
                                               }}, PluginInfo):
 
-        ret = Core.PluginParams.SetConfig(
+        ret = plugin_params.SetConfig(
             Args)  # Only now, after modifying ATTACHMENT_NAME, update config
     wafbps = wafbypasser.WAFBypasser(Core)
     wafbps.start(format_args(Args))

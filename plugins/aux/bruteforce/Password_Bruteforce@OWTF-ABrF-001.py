@@ -1,3 +1,5 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -30,30 +32,49 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
+
 DESCRIPTION = "Password Bruteforce Testing plugin"
-BRUTEFORCER = [ 'hydra' ]
-CATEGORIES = [ 'RDP', 'LDAP2', 'LDAP3', 'MSSQL', 'MYSQL', 'CISCO', 'CISCO-ENABLE', 'CVS', 'Firebird', 'FTP', 'FTPS', 'HTTP-PROXY', 'ICQ', 'IMAP', 'IRC', 'NCP', 'NNTP', 'ORACLE-LISTENER', 'ORACLE-SID', 'PCANYWHERE', 'PCNFS', 'POP3', 'POSTGRES', 'REXEC', 'RLOGIN', 'RSH', 'SIP', 'SMB', 'SMTP', 'SNMP', 'SOCKS5', 'SSH', 'SVN', 'TEAMSPEAK', 'TELNET', 'VMAUTHD', 'VNC', 'XMPP' ]
+BRUTEFORCER = ['hydra']
+CATEGORIES = ['RDP', 'LDAP2', 'LDAP3', 'MSSQL', 'MYSQL', 'CISCO', 'CISCO-ENABLE', 'CVS', 'Firebird', 'FTP', 'FTPS',
+              'HTTP-PROXY', 'ICQ', 'IMAP', 'IRC', 'NCP', 'NNTP', 'ORACLE-LISTENER', 'ORACLE-SID', 'PCANYWHERE', 'PCNFS',
+              'POP3', 'POSTGRES', 'REXEC', 'RLOGIN', 'RSH', 'SIP', 'SMB', 'SMTP', 'SNMP', 'SOCKS5', 'SSH', 'SVN',
+              'TEAMSPEAK', 'TELNET', 'VMAUTHD', 'VNC', 'XMPP']
+
+
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-	Content = DESCRIPTION + " Results:<br />"
-	for Args in Core.PluginParams.GetArgs( { 
-'Description' : DESCRIPTION,
-'Mandatory' : { 
-		'RHOST' : Core.Config.Get('RHOST_DESCRIP'), 
-		'RPORT' : Core.Config.Get('RPORT_DESCRIP'), 
-		'CATEGORY' : 'Category to use (i.e. '+', '.join(sorted(CATEGORIES))+')'
-	      }, 
-'Optional' : {
-		'BRUTEFORCER' : 'Bruteforcer to use (i.e. '+', '.join(sorted(BRUTEFORCER))+')',
-		'ONLINE_USER_LIST' : Core.Config.Get('ONLINE_USER_LIST_DESCRIP'),
-		'ONLINE_PASSWORD_LIST' : Core.Config.Get('ONLINE_PASSWORD_LIST_DESCRIP'),
-		'THREADS' : Core.Config.Get('THREADS_DESCRIP'),
-		'RESPONSE_WAIT' : Core.Config.Get('RESPONSE_WAIT_DESCRIP'),
-		'CONNECT_WAIT' : Core.Config.Get('CONNECT_WAIT_DESCRIP'), 
-		'REPEAT_DELIM' : Core.Config.Get('REPEAT_DELIM_DESCRIP')
-	     } }, PluginInfo):
-		Core.PluginParams.SetConfig(Args)
-		#print "Args="+str(Args)
-		Content += Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('PassBruteForce_'+Args['BRUTEFORCER']+"_"+Args['CATEGORY']), PluginInfo, "") # No previous output
-	return Content
+    # ServiceLocator.get_component("config").Show()
+    Content = DESCRIPTION + " Results:<br />"
+    config = ServiceLocator.get_component("config")
+    for Args in ServiceLocator.get_component("plugin_params").GetArgs({
+                                                                          'Description': DESCRIPTION,
+                                                                          'Mandatory': {
+                                                                              'RHOST': config.Get('RHOST_DESCRIP'),
+                                                                              'RPORT': config.Get('RPORT_DESCRIP'),
+                                                                              'CATEGORY': 'Category to use (i.e. ' + ', '.join(
+                                                                                      sorted(CATEGORIES)) + ')'
+                                                                          },
+                                                                          'Optional': {
+                                                                              'BRUTEFORCER': 'Bruteforcer to use (i.e. ' + ', '.join(
+                                                                                      sorted(BRUTEFORCER)) + ')',
+                                                                              'ONLINE_USER_LIST': config.Get(
+                                                                                      'ONLINE_USER_LIST_DESCRIP'),
+                                                                              'ONLINE_PASSWORD_LIST': config.Get(
+                                                                                      'ONLINE_PASSWORD_LIST_DESCRIP'),
+                                                                              'THREADS': config.Get('THREADS_DESCRIP'),
+                                                                              'RESPONSE_WAIT': config.Get(
+                                                                                      'RESPONSE_WAIT_DESCRIP'),
+                                                                              'CONNECT_WAIT': config.Get(
+                                                                                      'CONNECT_WAIT_DESCRIP'),
+                                                                              'REPEAT_DELIM': config.Get(
+                                                                                      'REPEAT_DELIM_DESCRIP')
+                                                                          }}, PluginInfo):
+        ServiceLocator.get_component("plugin_params").SetConfig(Args)
+    # print "Args="+str(Args)
+    Content += ServiceLocator.get_component("plugin_helper").DrawCommandDump('Test Command', 'Output',
+                                                                             config.GetResources(
+                                                                                 'PassBruteForce_' + Args[
+                                                                                     'BRUTEFORCER'] + "_" + Args[
+                                                                                     'CATEGORY']), PluginInfo,
+                                                                             "")  # No previous output
+    return Content
 

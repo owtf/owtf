@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -36,5 +37,5 @@ import cgi
 DESCRIPTION = "Searches transaction DB for SSI directives"
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-	return Core.PluginHelper.FindResponseBodyMatchesForRegexpName('RESPONSE_REGEXP_FOR_SSI')
+	#ServiceLocator.get_component("config").Show()
+	return ServiceLocator.get_component("plugin_helper").FindResponseBodyMatchesForRegexpName('RESPONSE_REGEXP_FOR_SSI')

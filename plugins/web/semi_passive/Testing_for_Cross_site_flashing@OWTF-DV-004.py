@@ -1,3 +1,5 @@
+from framework.utils import OWTFLogger
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -33,19 +35,19 @@ DESCRIPTION = "Normal requests for XSF analysis"
 
 def run(Core, PluginInfo):
 	#NotFoundMsg = "Not Found"
-	#Table = Core.Reporter.Render.CreateTable()
+	#Table = ServiceLocator.get_component("reporter").Render.CreateTable()
 	URLList = []
 	for File in [ "crossdomain.xml", "clientaccesspolicy.xml" ]:
-		for URL in Core.DB.Target.GetAsList(['TARGET_URL', 'TOP_URL']):
+		for URL in ServiceLocator.get_component("target").GetAsList(['TARGET_URL', 'TOP_URL']):
 			URLList.append(URL+"/"+File) # Compute all URL + File combinations
-	TransactionList = Core.Requester.GetTransactions(True, URLList) # The requester framework component will unique the URLs
+	TransactionList = ServiceLocator.get_component("requester").GetTransactions(True, URLList) # The requester framework component will unique the URLs
         # TODO: Check the following piece of code
 	#for Transaction in TransactionList:
-	#	Table.CreateRow([Core.Reporter.Render.DrawButtonLink(Transaction.URL, Transaction.URL)], True)
+	#	Table.CreateRow([ServiceLocator.get_component("reporter").Render.DrawButtonLink(Transaction.URL, Transaction.URL)], True)
 	#	if Transaction.Found:
 	#		Table.CreateRow(["<br/><pre>"+cgi.escape(Transaction.GetRawResponseBody())+"</pre>"])
 	#	else:
 	#		Table.CreateRow([NotFoundMsg])
-	#		Core.log(NotFoundMsg)
-	#return Table.Render() + Core.Reporter.DrawHTTPTransactionTable(TransactionList)
-        return(Core.PluginHelper.TransactionTable(TransactionList))
+	#		OWTFLogger.log(NotFoundMsg)
+	#return Table.Render() + ServiceLocator.get_component("reporter").DrawHTTPTransactionTable(TransactionList)
+        return(ServiceLocator.get_component("plugin_helper").TransactionTable(TransactionList))

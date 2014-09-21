@@ -49,7 +49,7 @@ from framework.interface import server
 from framework.lib.formatters import ConsoleFormatter, FileFormatter
 from framework.selenium import selenium_handler
 from framework.shell import interactive_shell
-from framework.utils import FileOperations, catch_io_errors, OutputCleaner
+from framework.utils import FileOperations, catch_io_errors, OutputCleaner, OWTFLogger
 from framework.wrappers.set import set_handler
 from framework.lib.general import cprint
 from framework.dependency_management.dependency_resolver import BaseComponent
@@ -131,10 +131,6 @@ class Core(BaseComponent):
         if os.path.exists(curr_tmp_dir) and os.access(curr_tmp_dir, os.W_OK):
             os.rename(curr_tmp_dir, new_tmp_dir)
 
-    # wrapper to logging.info function
-    def log(self, msg, *args, **kwargs):
-        logging.info(msg, *args, **kwargs)
-
     def pnh_log_file(self):
         self.path = self.config.FrameworkConfigGet('PNH_EVENTS_FILE')
         self.mode = "w"
@@ -145,7 +141,7 @@ class Core(BaseComponent):
                 with FileOperations.open(self.path, self.mode, owtf_clean=False):
                     pass
         except IOError as e:
-            self.log("I/O error ({0}): {1}".format(e.errno, e.strerror))
+            OWTFLogger.log("I/O error ({0}): {1}".format(e.errno, e.strerror))
             raise
 
     def write_event(self, content, mode):

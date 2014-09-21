@@ -1,3 +1,5 @@
+from framework.utils import OWTFLogger
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -33,16 +35,17 @@ DESCRIPTION = "Normal request for robots.txt analysis"
 
 def run(Core, PluginInfo):
 
-    TopURL = Core.DB.Target.Get('TOP_URL')
+    TopURL = ServiceLocator.get_component("target").Get('TOP_URL')
     URL = TopURL+"/robots.txt"
     # TODO: Check the below line's necessity
-    #TestResult = Core.Reporter.Render.DrawButtonLink(URL, URL)
+    #TestResult = ServiceLocator.get_component("reporter").Render.DrawButtonLink(URL, URL)
     TestResult = []
-    HTTP_Transaction = Core.Requester.GetTransaction(True, URL) # Use transaction cache if possible for speed
+    HTTP_Transaction = ServiceLocator.get_component("requester").GetTransaction(True, URL) # Use transaction cache if possible for speed
+    plugin_helper = ServiceLocator.get_component("plugin_helper")
     if HTTP_Transaction.Found:
-        TestResult += Core.PluginHelper.ProcessRobots(PluginInfo, HTTP_Transaction.GetRawResponseBody(), TopURL, '')
+        TestResult += plugin_helper.ProcessRobots(PluginInfo, HTTP_Transaction.GetRawResponseBody(), TopURL, '')
     else: # robots.txt NOT found
-	Core.log("robots.txt was NOT found")
-    TestResult += Core.PluginHelper.TransactionTable([ HTTP_Transaction ])
+	OWTFLogger.log("robots.txt was NOT found")
+    TestResult += plugin_helper.TransactionTable([ HTTP_Transaction ])
     return TestResult
 

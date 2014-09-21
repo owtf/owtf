@@ -31,12 +31,17 @@ The random module allows the rest of the framework to have access to random
 functionality.
 
 """
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 from framework.lib.general import *
 
 
-class Selenium(object):
+class Selenium(BaseComponent):
+
+    COMPONENT_NAME = "selenium_handler"
+
     def __init__(self, core):
+        self.register_in_service_locator()
         self.Core = core
         self.Init = False
 

@@ -1,4 +1,6 @@
-""" 
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
+"""
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -35,16 +37,22 @@ DESCRIPTION = "Active probing for HTTP methods"
 
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-	#Transaction = Core.Requester.TRACE(Core.Config.Get('HOST_NAME'), '/')
-	URL = Core.DB.Target.Get('TOP_URL')
-	# TODO: PUT not working right yet
-	#PUT_URL = URL+"/_"+get_random_str(20)+".txt"
-	#print PUT_URL
-	#PUT_URL = URL+"/a.txt"
-	PUT_URL = URL
-	Content = Core.PluginHelper.TransactionTable( [ Core.Requester.GetTransaction(True, URL, 'TRACE'), Core.Requester.GetTransaction(True, URL, 'DEBUG'), Core.Requester.GetTransaction(True, PUT_URL, 'PUT', get_random_str(15)) ] ) 
-	Content += Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('ActiveHTTPMethods'), PluginInfo, Content)
-	# Deprecated: Content += Core.PluginHelper.LogURLs(PluginInfo, Core.Config.GetResources('ActiveHTTPMethodsExtractLinks'))
-	return Content
+    # ServiceLocator.get_component("config").Show()
+    #Transaction = ServiceLocator.get_component("requester").TRACE(ServiceLocator.get_component("config").Get('HOST_NAME'), '/')
+    URL = ServiceLocator.get_component("target").Get('TOP_URL')
+    # TODO: PUT not working right yet
+    #PUT_URL = URL+"/_"+get_random_str(20)+".txt"
+    #print PUT_URL
+    #PUT_URL = URL+"/a.txt"
+    PUT_URL = URL
+    plugin_helper = ServiceLocator.get_component("plugin_helper")
+    requester = ServiceLocator.get_component("requester")
+    Content = plugin_helper.TransactionTable(
+        [requester.GetTransaction(True, URL, 'TRACE'), requester.GetTransaction(True, URL, 'DEBUG'),
+         requester.GetTransaction(True, PUT_URL, 'PUT', get_random_str(15))])
+    Content += plugin_helper.CommandDump('Test Command', 'Output',
+                                         ServiceLocator.get_component("resource").GetResources('ActiveHTTPMethods'),
+                                         PluginInfo, Content)
+    # Deprecated: Content += ServiceLocator.get_component("plugin_helper").LogURLs(PluginInfo, ServiceLocator.get_component("config").GetResources('ActiveHTTPMethodsExtractLinks'))
+    return Content
 

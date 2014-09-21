@@ -1,3 +1,5 @@
+from framework.utils import OWTFLogger
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """ 
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -32,10 +34,10 @@ NOTE: This is an active plugin because it may visit URLs retrieved by vulnerabil
 DESCRIPTION = "Visit URLs found by other tools, some could be sensitive: need permission"
 
 def run(Core, PluginInfo):
-    #Core.Config.Show()
-    urls = Core.DB.URL.GetURLsToVisit()
+    #ServiceLocator.get_component("config").Show()
+    urls = ServiceLocator.get_component("url_manager").GetURLsToVisit()
     for url in urls: # This will return only unvisited urls
-        Core.Requester.GetTransaction(True, url) # Use cache if possible
+        ServiceLocator.get_component("requester").GetTransaction(True, url) # Use cache if possible
     Content = str(len(urls))+" URLs were visited"
-    Core.log(Content)
-    return(Core.PluginHelper.HtmlString(Content))
+    OWTFLogger.log(Content)
+    return ServiceLocator.get_component("plugin_helper").HtmlString(Content)

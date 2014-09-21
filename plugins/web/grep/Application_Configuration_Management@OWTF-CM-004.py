@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -36,6 +37,6 @@ import cgi
 DESCRIPTION = "Searches transaction DB for comments"
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-	Content = Core.PluginHelper.FindResponseBodyMatchesForRegexpNames(['RESPONSE_REGEXP_FOR_HTML_COMMENTS','RESPONSE_REGEXP_FOR_CSS_JS_COMMENTS','RESPONSE_REGEXP_FOR_JS_COMMENTS', 'RESPONSE_REGEXP_FOR_PHP_SOURCE', 'RESPONSE_REGEXP_FOR_ASP_SOURCE'])
+	#ServiceLocator.get_component("config").Show()
+	Content = ServiceLocator.get_component("plugin_helper").FindResponseBodyMatchesForRegexpNames(['RESPONSE_REGEXP_FOR_HTML_COMMENTS','RESPONSE_REGEXP_FOR_CSS_JS_COMMENTS','RESPONSE_REGEXP_FOR_JS_COMMENTS', 'RESPONSE_REGEXP_FOR_PHP_SOURCE', 'RESPONSE_REGEXP_FOR_ASP_SOURCE'])
 	return Content

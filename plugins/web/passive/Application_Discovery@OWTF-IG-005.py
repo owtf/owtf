@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -31,15 +32,16 @@ PASSIVE Plugin for Testing for Application Discovery (OWASP-IG-005)
 DESCRIPTION = "Third party discovery resources"
 
 def run(Core, PluginInfo):
-        # Core.Config.Show()
-        # Content = Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('PassiveApplicationDiscoveryCmd'), PluginInfo)
-        # Content = Core.PluginHelper.DrawResourceLinkList('Online Resources', Core.Config.GetResources('PassiveAppDiscovery'))
-        Content = Core.PluginHelper.TabbedResourceLinkList([
-                                                                ['DNS',Core.DB.Resource.GetResources('PassiveAppDiscoveryDNS')],
-                                                                ['WHOIS',Core.DB.Resource.GetResources('PassiveAppDiscoveryWHOIS')],
-                                                                ['DB Lookups',Core.DB.Resource.GetResources('PassiveAppDiscoveryDbLookup')],
-                                                                ['Ping',Core.DB.Resource.GetResources('PassiveAppDiscoveryPing')],
-                                                                ['Traceroute',Core.DB.Resource.GetResources('PassiveAppDiscoveryTraceroute')],
-                                                                ['Misc',Core.DB.Resource.GetResources('PassiveAppDiscoveryMisc')]
+        # ServiceLocator.get_component("config").Show()
+        # Content = ServiceLocator.get_component("plugin_helper").DrawCommandDump('Test Command', 'Output', ServiceLocator.get_component("config").GetResources('PassiveApplicationDiscoveryCmd'), PluginInfo)
+        # Content = ServiceLocator.get_component("plugin_helper").DrawResourceLinkList('Online Resources', ServiceLocator.get_component("config").GetResources('PassiveAppDiscovery'))
+        resource = ServiceLocator.get_component("resource")
+        Content = ServiceLocator.get_component("plugin_helper").TabbedResourceLinkList([
+                                                                ['DNS', resource.GetResources('PassiveAppDiscoveryDNS')],
+                                                                ['WHOIS', resource.GetResources('PassiveAppDiscoveryWHOIS')],
+                                                                ['DB Lookups', resource.GetResources('PassiveAppDiscoveryDbLookup')],
+                                                                ['Ping', resource.GetResources('PassiveAppDiscoveryPing')],
+                                                                ['Traceroute', resource.GetResources('PassiveAppDiscoveryTraceroute')],
+                                                                ['Misc', resource.GetResources('PassiveAppDiscoveryMisc')]
                                                                ])
         return Content

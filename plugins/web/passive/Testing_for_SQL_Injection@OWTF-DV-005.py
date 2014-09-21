@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -32,7 +33,7 @@ https://www.owasp.org/index.php/Testing_for_SQL_Injection_%28OWASP-DV-005%29
 DESCRIPTION = "Google Hacking for SQLi"
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
-	Content = Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveSQLInjectionLnk'))
+	#ServiceLocator.get_component("config").Show()
+	Content = ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', ServiceLocator.get_component("resource").GetResources('PassiveSQLInjectionLnk'))
 	return Content
 

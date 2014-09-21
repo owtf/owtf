@@ -1,3 +1,6 @@
+from framework.utils import OWTFLogger
+from framework.utils import OWTFLogger
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -33,27 +36,27 @@ import logging
 DESCRIPTION = "Searches transaction DB for credentials protections"
 
 def run(Core, PluginInfo):
-	#Core.Config.Show()
+	#ServiceLocator.get_component("config").Show()
         # TODO: Needs fixing
         """
 	Content = "This plugin looks for password fields and then checks the URL (i.e. http vs. https)<br />"
 	Content += "Uniqueness in this case is performed via URL + password field"
 	# This retrieves all hidden password fields found in the DB response bodies:
-	Command, RegexpName, Matches = Core.DB.Transaction.GrepMultiLineResponseRegexp(Core.Config.Get('RESPONSE_REGEXP_FOR_PASSWORDS'))
+	Command, RegexpName, Matches = ServiceLocator.get_component("transaction").GrepMultiLineResponseRegexp(ServiceLocator.get_component("config").Get('RESPONSE_REGEXP_FOR_PASSWORDS'))
 	# Now we need to check if the URL is https or not and count the insecure ones (i.e. not https)
 	IDs = []
 	InsecureMatches = []
 	for ID, FileMatch in Matches:
 		if ID not in IDs: # Retrieve Transaction from DB only once
 			IDs.append(ID) # Process each transaction only once
-			Transaction = Core.DB.Transaction.GetByID(ID)
+			Transaction = ServiceLocator.get_component("transaction").GetByID(ID)
 		if 'https' != Transaction.URL.split(":")[0]:
-			Core.log("Transaction: "+ID+" contains passwords fields with a URL different than https")
+			OWTFLogger.log("Transaction: "+ID+" contains passwords fields with a URL different than https")
 			InsecureMatches.append([ID, Transaction.URL+": "+FileMatch]) # Need to make the unique work by URL + password
 	Message = "<br /><u>Total insecure matches: "+str(len(InsecureMatches))+'</u>'
-	Core.log(Message)
+	OWTFLogger.log(Message)
 	Content += Message+"<br />"
-	Content += Core.PluginHelper.DrawResponseMatchesTables([Command, RegexpName, InsecureMatches], PluginInfo)
+	Content += ServiceLocator.get_component("plugin_helper").DrawResponseMatchesTables([Command, RegexpName, InsecureMatches], PluginInfo)
 	return Content
         """
         return []
