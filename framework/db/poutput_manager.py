@@ -209,9 +209,6 @@ class POutputDB(object):
                          target_id=None,
                          owtf_rank=None):
         """Save into the database the command output of the plugin `plugin."""
-        # Delete the previous output if any
-        self.Core.DB.session.query(models.PluginOutput).filter_by(
-            plugin_key=plugin["key"], target_id=target_id).delete()
         self.Core.DB.session.merge(models.PluginOutput(
             plugin_key=plugin["key"],
             plugin_code=plugin["code"],
@@ -237,9 +234,6 @@ class POutputDB(object):
             Output,
             Message,
             target_id=None):
-        # Delete previous output if any
-        self.Core.DB.session.query(models.PluginOutput).filter_by(
-            plugin_key=plugin["key"], target_id=target_id).delete()
         self.Core.DB.session.merge(models.PluginOutput(
             plugin_key=Plugin["key"],
             plugin_code=Plugin["code"],

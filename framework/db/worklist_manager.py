@@ -144,6 +144,13 @@ class WorklistManager(object):
                         (force_overwrite is False and
                             self.Core.DB.POutput.PluginAlreadyRun(
                                 plugin, target_id=target["id"]) is False)):
+                        # If force overwrite is true then plugin output has
+                        # to be deleted first
+                        if force_overwrite is True:
+                            self.Core.DB.POutput.DeleteAll({
+                                "target_id": target["id"],
+                                "plugin_key": plugin["key"]
+                            })
                         work_model = models.Work(
                             target_id=target["id"],
                             plugin_key=plugin["key"])
