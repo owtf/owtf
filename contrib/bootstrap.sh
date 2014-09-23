@@ -42,14 +42,6 @@ Install() {
   cd install/; python2 install.py
 }
 
-SetupDB() {
-    # This makes it easy to setup the Postgres config needed to make OWTF work
-    sh db_config_setup.sh
-    cd ..
-    sudo sh scripts/db_setup.sh "init"
-    cd ..
-}
-
 print_warning "[*] OWTF requires minimum of 60 MiB space for a minimal installation (only dictionaries), please make sure you have enough space on your partition."
 print_warning "[*] Make sure you have git installed"
 echo "[*] Select your OWTF version: "
@@ -77,7 +69,6 @@ do
             wget --no-check-certificate $dev; unzip $(basename $dev); rm -f $(basename $dev) 2> /dev/null
             mv owtf-lions_2014/ owtf/; cd owtf/
             Install
-            SetupDB
             ;;
         "Quit")
             break
