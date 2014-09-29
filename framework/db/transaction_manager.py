@@ -315,15 +315,19 @@ class TransactionManager(object):
         return self.NumTransactions(target_id=target_id)
 
     def GetByID(self, ID):
-        model_obj = self.Core.DB.session.query(models.Transaction).get(ID)
-        if model_obj:
-            return (self.DeriveTransaction(model_obj))
-        return (model_obj)  # None returned if no such transaction.
+        model_obj = None
+        try:
+            ID = int(ID)
+            model_obj = self.Core.DB.session.query(models.Transaction).get(ID)
+        except ValueError:
+            pass
+        finally:
+            return(model_obj)  # None returned if no such transaction.
 
     def GetByIDs(self, id_list):
         model_objs = []
         for ID in id_list:
-            model_obj = self.Core.DB.session.query(models.Transaction).get(ID)
+            model_obj = self.GetByID(ID)
             if model_obj:
                 model_objs.append(model_obj)
         return(self.DeriveTransactions(model_objs))

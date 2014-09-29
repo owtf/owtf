@@ -297,12 +297,41 @@ class PluginHelper:
             plugin_output["output"] = {"TransactionIDs":trans_ids}
             return([plugin_output])
 
-        def TransactionTableForURLList(self, UseCache, URLList, Method = '', Data = ''):
-            # Have to make sure that those urls are visited ;), so we perform get transactions but don't save the transaction ids etc..
+        def TransactionTableForURLList(
+                self,
+                UseCache,
+                URLList,
+                Method=None,
+                Data=None):
+            # Have to make sure that those urls are visited ;), so we
+            # perform get transactions but don't save the transaction ids etc..
             self.Core.Requester.GetTransactions(UseCache, URLList, Method, Data)
             plugin_output = dict(PLUGIN_OUTPUT)
             plugin_output["type"] = "TransactionTableForURLList"
             plugin_output["output"] = {"UseCache": UseCache, "URLList": URLList, "Method":Method, "Data":Data}
+            return([plugin_output])
+
+        def TransactionTableForURL(
+                self,
+                UseCache,
+                URL,
+                Method=None,
+                Data=None):
+            # Have to make sure that those urls are visited ;),
+            # so we perform get transactions but don't save the transaction ids
+            self.Core.Requester.GetTransaction(
+                UseCache,
+                URL,
+                method=Method,
+                data=Data)
+            plugin_output = dict(PLUGIN_OUTPUT)
+            plugin_output["type"] = "TransactionTableForURL"
+            plugin_output["output"] = {
+                "UseCache": UseCache,
+                "URL": URL,
+                "Method": Method,
+                "Data": Data
+            }
             return([plugin_output])
 
         def CreateMatchTables( self, Num ):

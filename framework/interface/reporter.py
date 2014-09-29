@@ -58,17 +58,22 @@ class Reporter:
         transactions = self.Core.DB.Transaction.GetByIDs(TransactionIDs)
         return self.TransactionTableForTransactions(transactions)
 
+    def TransactionTableForURL(self, UseCache, URL, Method=None, Data=None):
+        transaction = self.Core.Requester.GetTransaction(
+            UseCache, URL, method=Method, data=Data)
+        return self.TransactionTableForTransactions([transaction])
+
     def TransactionTableForURLList(
             self,
             UseCache,
             URLList,
-            Method='',
-            Data=''):
+            Method=None,
+            Data=None):
         transactions = self.Core.Requester.GetTransactions(
             UseCache,
             URLList,
-            Method,
-            Data)
+            method=Method,
+            data=Data)
         return self.TransactionTableForTransactions(transactions)
 
     def TransactionTableForTransactions(self, Transactions):
