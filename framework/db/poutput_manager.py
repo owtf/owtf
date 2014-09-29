@@ -48,6 +48,12 @@ class POutputDB(object):
         query = self.Core.DB.session.query(models.PluginOutput).filter_by(target_id=target_id)
         if filter_data.get("target_id", None):
             query.filter_by(target_id=filter_data["target_id"])
+        if filter_data.get("plugin_key", None):
+            if isinstance(filter_data.get("plugin_key"), (str, unicode)):
+                query = query.filter_by(plugin_key=filter_data["plugin_key"])
+            if isinstance(filter_data.get("plugin_key"), list):
+                query = query.filter(models.PluginOutput.plugin_key.in_(
+                    filter_data["plugin_key"]))
         if filter_data.get("plugin_type", None):
             if isinstance(filter_data.get("plugin_type"), (str, unicode)):
                 query = query.filter_by(plugin_type=filter_data["plugin_type"])
