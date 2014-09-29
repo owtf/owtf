@@ -46,7 +46,7 @@ print_warning "[*] OWTF requires minimum of 60 MiB space for a minimal installat
 print_warning "[*] Make sure you have git installed"
 echo "[*] Select your OWTF version: "
 
-OPTIONS=("OWTF 0.45.0 Winter Blizzard (stable)" "OWTF Winter Blizzard (git)" "OWTF GSoC'14-dev" "Quit")
+OPTIONS=("OWTF 0.45.0 Winter Blizzard (stable)" "OWTF Winter Blizzard (git)" "OWTF 1.0 Lionheart" "Quit")
 select opt in "${OPTIONS[@]}"
 do
     case $opt in
