@@ -27,18 +27,40 @@ Features
 - Easy to review trasaction log and plain text files with URLs, simple for scripting
 - Basic Google Hacking without (annoying) API Key requirements via "blanket searches", trying a bunch of operators at once, you can then narrow the search down if you find something interesting.
 - Easy to extract data from the database to parse or pass to other tools: They are all text files
+- Zest and ZAP integration: Zest is an experimental specialized scripting language developed by the Mozilla security team. ZAP is an easy to use integrated penetration-testing tool for finding vulnerabilities in web applications.
+- HTTP Sessions: Rendering according to the RFC 6265, URL-enconding to represent non-ASCII by default.
+- PlugnHack: A proposed standard from the Mozilla security team for defining how security tools can interact with browsers in a more useful and usable way.
 
 Requirements
 ------------
 - Linux (any Ubuntu derivative should work just fine) and python 2.6.5 or greater
 - Latest Kali version not required but helpful (almost 0 setup time)
-- You do NOT have to have all tools installed: owtf will move on with an error for the missing tools
+- Git client: sudo apt-get install git 
+- Python 2.7
+- Wget: sudo apt-get install wget
 
 Installation
 ------------
-- Clone owtf repo using git => git clone https://github.com/owtf/owtf
-- You may also want to run install/install.py
-- Check out Wiki for more help
+- Installation by script:
+  wget https://raw.githubusercontent.com/owtf/owtf/lions_2014/contrib/bootstrap.sh
+  chmod +x bootstrap.sh
+  ./bootstrap.sh
+
+- Mandatory: 
+  Postgresql
+
+- Optional packages: 
+  Tor (for Botnet mode)
+  Proxychains (for Botnet mode)
+
+- For a few more ways to install OWTF check out OWTF Documentation page
+
+Links
+-----------
+- OWASP OWTF project page: http://owtf.github.io/
+- OWASP OWTF Wiki: https://www.owasp.org/index.php/OWASP_OWTF
+- OWASP OWTF Documentation: http://docs.owtf.org/en/latest/
+- OWASP OWTF Youtube channel: https://www.youtube.com/user/owtfproject
 
 FAQ
 ---
