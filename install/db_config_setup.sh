@@ -63,9 +63,9 @@ DATABASE_NAME: $db_name
 DATABASE_USER: $db_user
 DATABASE_PASS: $db_pass" >> $db_config_file
 
-    echo "[*] Do you want us to create database and user as specified in $db_config_file [Y/n]?"
+    echo "[*] Do you want to create database and user as specified in $db_config_file [Y/n]?"
     read choice
     if [ choice != 'n' ]; then
-        $RootDir/scripts/db_setup.sh init
+        $RootDir/scripts/db_run.sh
     fi
 fi
