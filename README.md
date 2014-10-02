@@ -5,7 +5,7 @@ Intro
 
 **OWTF** aims to make pen testing:
 
-- Aligned with **OWASP Testing Guide** + **PTES** +** NIST**
+- Aligned with **OWASP Testing Guide** + **PTES** + **NIST**
 - More ***efficient***
 - More ***comprehensive***
 - More *creative and fun* (minimise un-creative work)
