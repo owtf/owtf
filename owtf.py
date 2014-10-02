@@ -34,6 +34,13 @@ In charge of processing arguments and call the framework.
 
 from __future__ import print_function
 
+import os
+import sys
+from framework.dependency_check import verify_dependencies
+
+verify_dependencies(os.path.dirname(os.path.abspath(sys.argv[0])) or '.')
+
+
 import argparse
 from framework import core
 from framework.lib.general import *
@@ -43,14 +50,13 @@ from framework.http.proxy import tor_manager # Is needed for printing configurat
 
 def banner():
     print("""
-                  __       ___  
-                 /\ \__  /'___\ 
-  ___   __  __  _\ \ ,_\/\ \__/ 
- / __`\/\ \/\ \/\ \\ \ \/\ \ ,__\ 
-/\ \_\ \ \ \_/ \_/ \\ \ \_\ \ \_/
-\ \____/\ \___x___/'\ \__\\\ \_\ 
- \/___/  \/__//__/   \/__/ \/_/ 
+ _____ _ _ _ _____ _____
+|     | | | |_   _|   __|
+|  |  | | | | | | |   __|
+|_____|_____| |_| |__|
 
+        @owtfp
+    http://owtf.org
     """)
 
 
