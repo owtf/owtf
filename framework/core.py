@@ -457,7 +457,7 @@ class Core(object):
             try:
                 self.PluginHandler.CleanUp()
             except AttributeError:  # DB not instantiated yet!
-                cprint("OWTF :P")
+                pass
             finally:
                 if getattr(self, "ProxyMode", None) is not None:
                     try:

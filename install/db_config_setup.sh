@@ -64,7 +64,6 @@ DATABASE_USER: $db_user
 DATABASE_PASS: $db_pass" >> $db_config_file
 
     echo "[*] Do you want us to create database and user as specified in $db_config_file [Y/n]?"
-    echo "[*] Ensure postgres server is running, if 'Y'"
     read choice
     if [ choice != 'n' ]; then
         $RootDir/scripts/db_setup.sh init

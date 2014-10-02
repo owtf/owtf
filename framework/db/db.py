@@ -116,7 +116,8 @@ class DB(object):
                 "Incomplete database configuration settings in "
                 "" + self.Core.Config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'))
         except exc.OperationalError as e:
-            self.Core.Error.FrameworkAbort("[DB] " + str(e))
+            self.Core.Error.FrameworkAbort(
+                "[DB] " + str(e) + "\nRun scripts/db_run.sh to start/setup db")
 
     def CreateScopedSession(self):
         # Not to be used apart from main process, use CreateSession instead

@@ -73,7 +73,6 @@ echo "------------------------- OWTF Database Helper Script --------------------
 echo "                    Helps in creation of user and database                     "
 echo "-------------------------------------------------------------------------------"
 echo
-echo "[+] Ensure that postgres is running!"
 echo "[+] Ensure that you have required values in $db_config_file"
 echo
 echo "Press Enter to continue"
