@@ -70,10 +70,20 @@ postgres_server_ip=$(get_postgres_server_ip)
 postgres_server_port=$(get_postgres_server_port)
 
 if [ -z "$postgres_server_ip" ]; then
-    echo "[+] PostgreSQL server is not running. Are you on Kali (We can start db server for you)? [Y/n]"
+    echo "[+] PostgreSQL server is not running."
+    echo "[+] Can I start db server for you? [Y/n]"
     read choice
     if [ "$choice" != "n" ]; then
-        service postgresql start
+        service_bin=$(which service | wc -l)
+        systemctl_bin=$(which systemctl | wc -l)
+        if [ "$service_bin" = "1" ]; then
+            service postgresql start
+        elif [ "$systemctl_bin" = "1" ]; then
+            systemctl start postgresql
+        else
+            echo "[+] We couldn't determine how to start the postgres server, please start it and rerun this script"
+            exit 1
+        fi
     else
         echo "[+] On DEBIAN based distro [i.e Kali, Ubuntu etc..]"
         echo "          sudo service postgresql start"
