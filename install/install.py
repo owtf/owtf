@@ -3,10 +3,10 @@
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 # Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# * Redistributions of source code must retain the above copyright 
+# * Redistributions of source code must retain the above copyright
 # notice, this list of conditions and the following disclaimer.
 # * Redistributions in binary form must reproduce the above copyright
 # notice, this list of conditions and the following disclaimer in the
@@ -14,7 +14,7 @@
 # * Neither the name of the <organization> nor the
 # names of its contributors may be used to endorse or promote products
 # derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -63,9 +63,7 @@ class Installer(object):
 
     def install_using_pip(self, requirements_file):
         # Instead of using file directly with pip which can crash because of single library
-        for line in open(requirements_file, 'r').readlines():
-            if line.strip()[0] != '#':
-                self.run_command("sudo -E pip install --upgrade %s"%(line))
+        self.run_command("sudo -E pip install --upgrade -r %s"%(requirements_file))
 
     def install_restricted_from_cfg(self, config_file):
         cp = ConfigParser.ConfigParser({"RootDir":self.RootDir, "Pid":self.pid})
