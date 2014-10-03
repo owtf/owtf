@@ -43,6 +43,9 @@ export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip i
 # psycopg2 dependency
 sudo -E apt-get install postgresql-server-dev-all
 
+# pycurl dependency
+sudo -E apt-get install libcurl4-openssl-dev
+
 ############ Tools missing in Kali
 #mkdir -p $RootDir/tools/restricted
 #cd $RootDir/tools/restricted
