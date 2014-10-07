@@ -8,10 +8,10 @@
 # owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 # Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# * Redistributions of source code must retain the above copyright 
+# * Redistributions of source code must retain the above copyright
 # notice, this list of conditions and the following disclaimer.
 # * Redistributions in binary form must reproduce the above copyright
 # notice, this list of conditions and the following disclaimer in the
@@ -19,7 +19,7 @@
 # * Neither the name of the copyright owner nor the
 # names of its contributors may be used to endorse or promote products
 # derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -38,19 +38,9 @@ sudo pip install clamd PyGithub GitPython pybloomfiltermmap esmre nltk pdfminer 
 sudo pip install git+git://github.com/ramen/phply.git\#egg=phply
 sudo pip install xdot
 
-if [ -f ~/.w3af/startup.conf ]
+if [ ! -f ~/.w3af/startup.conf ]
 then
-    if ! grep -i "^accepted-disclaimer = true$" ~/.w3af/startup.conf
-    then
-        echo "accepted-disclaimer = true" >> ~/.w3af/startup.conf
-    fi
-else
-    if [ ! -d ~/.w3af ]
-    then
-        mkdir ~/.w3af
-    fi
-    echo "[STARTUP_CONFIG]" >> ~/.w3af/startup.conf
-    echo "auto-update = true" >> ~/.w3af/startup.conf
-    echo "frequency = D" >> ~/.w3af/startup.conf
-    echo "accepted-disclaimer = true" >> ~/.w3af/startup.conf
+    # FIrst create a dummy profile because all we need is to show he disclaimer
+    echo "exit" > /tmp/w3af_disclaimer_check_owtf.profile
+    w3af_console -s /tmp/w3af_disclaimer_check_owtf.profile
 fi
