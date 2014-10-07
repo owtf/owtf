@@ -40,6 +40,11 @@ RootDir=$1
 sudo -E apt-get install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev
 export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip in kali
 
+# psycopg2 dependency
+sudo -E apt-get install postgresql-server-dev-all
+
+# pycurl dependency
+sudo -E apt-get install libcurl4-openssl-dev
 
 ############ Tools missing in Kali
 #mkdir -p $RootDir/tools/restricted
@@ -63,6 +68,7 @@ sudo -E apt-get install tor
 "$RootDir/install/kali/kali_patch_nikto.sh"
 "$RootDir/install/kali/kali_patch_tlssled.sh"
 ###### Dictionaries missing in Kali
+mkdir -p $RootDir/dictionaries/restricted
 cd $RootDir/dictionaries/restricted
 IsInstalled "dirbuster"
 if [ $? -eq 0 ]; then # Not installed

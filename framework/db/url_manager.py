@@ -31,6 +31,7 @@ The DB stores HTTP transactions, unique URLs and more.
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import URLManagerInterface
 from framework.lib.general import *
+from framework.db.target_manager import target_required
 from framework.db import models
 import re
 import logging
@@ -45,6 +46,7 @@ class URLManager(BaseComponent, URLManagerInterface):
         self.register_in_service_locator()
         self.config = self.get_component("config")
         self.target = self.get_component("target")
+        self.db = self.get_component("db")
         # Compile regular expressions once at the beginning for speed purposes:
         self.IsFileRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_FILE_URL'), re.IGNORECASE)
         self.IsSmallFileRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_SMALL_FILE_URL'), re.IGNORECASE)
@@ -68,6 +70,19 @@ class URLManager(BaseComponent, URLManagerInterface):
 
     def IsSSIURL(self, URL):
         return self.IsRegexpURL(URL, self.IsSSIRegexp)
+    @target_required
+    def AddURLToDB(self, url, visited, found=None, target_id=None):
+        if self.IsURL(url):  # New URL
+            # Make sure URL is clean prior to saving in DB, nasty bugs
+            # can happen without this
+            url = url.strip()
+            scope = self.target.IsInScopeURL(url)
+            self.db.session.merge(models.Url(
+                target_id=target_id,
+                url=url,
+                visited=visited,
+                scope=scope))
+            self.db.session.commit()
 
     def GetURLsToVisit(self, target=None):
         Session = self.target.GetUrlDBSession(target)
@@ -79,67 +94,42 @@ class URLManager(BaseComponent, URLManagerInterface):
 
     def IsURL(self, URL):
         return self.IsRegexpURL(URL, self.IsURLRegexp)
-
-    def GetNumURLs(self):
-        Session = self.target.GetUrlDBSession()
-        session = Session()
-        count = session.query(models.Url).count()
-        session.close()
-        return (count)
-
-    def AddURLToDB(self, url, visited, found=None, target=None):
-        Message = ''
-        if self.IsURL(url):  # New URL
-            url = url.strip()  # Make sure URL is clean prior to saving in DB, nasty bugs can happen without this
-            scope = self.target.IsInScopeURL(url)
-            Session = self.target.GetUrlDBSession()
-            session = Session()
-            session.merge(models.Url(url=url, visited=visited, scope=scope))
-            session.commit()
-            session.close()
-        return Message
-
-    def AddURL(self, url, found=None, target=None):  # Adds a URL to the relevant DBs if not already added
+    @target_required
+    def AddURL(self, url, found=None, target_id=None):
+        """
+        Adds a URL to the relevant DBs if not already added
+        """
         visited = False
-        if found != None:  # Visited URL -> Found in [ True, False ]
+        if found is not None:  # Visited URL -> Found in [ True, False ]
             visited = True
-        return self.AddURLToDB(url, visited, found=found, target=target)
+        return self.AddURLToDB(url, visited, found=found, target_id=target_id)
 
-    def AddURLsStart(self):
-        self.NumURLsBefore = self.GetNumURLs()
-
-    def AddURLsEnd(self):
-        NumURLsAfter = self.GetNumURLs()
-        Message = str(NumURLsAfter - self.NumURLsBefore) + " URLs have been added and classified"
-        logging.info(Message)
-        return (NumURLsAfter - self.NumURLsBefore)  # Message
-
+    @target_required
     def ImportProcessedURLs(self, urls_list, target_id=None):
-        Session = self.target.GetUrlDBSession(target_id)
-        session = Session()
         for url, visited, scope in urls_list:
-            session.merge(models.Url(url=url, visited=visited, scope=scope))
-            logging.info("Added " + url + " to URLs DB")
-        session.commit()
-        session.close()
+            self.db.session.merge(models.Url(
+                target_id=target_id,
+                url=url,
+                visited=visited,
+                scope=scope))
+        self.db.session.commit()
 
-    def ImportURLs(self, url_list,
-                   target=None):  # Extracts and classifies all URLs passed. Expects a newline separated URL list
+    @target_required
+    def ImportURLs(self, url_list, target_id=None):
+        """
+        Extracts and classifies all URLs passed. Expects a newline separated
+        URL list
+        """
         imported_urls = []
-        self.AddURLsStart()
-        Session = self.target.GetUrlDBSession(target)
-        session = Session()
+
         for url in url_list:
             if self.IsURL(url):
                 imported_urls.append(url)
-                session.merge(models.Url(url=url))
-        session.commit()
-        session.close()
-        count = self.AddURLsEnd()
-        Message = str(count) + " URLs have been added and classified"
-        return (imported_urls)  # Return imported urls
+                self.db.session.merge(models.Url(url=url, target_id=target_id))
+        self.db.session.commit()
+        return(imported_urls)  # Return imported urls
 
-    # -------------------------------------------------- API Methods --------------------------------------------------
+# ------------------------------- API Methods--------------------------------
     def DeriveUrlDict(self, url_obj):
         udict = dict(url_obj.__dict__)
         udict.pop("_sa_instance_state")
@@ -151,15 +141,19 @@ class URLManager(BaseComponent, URLManagerInterface):
             dict_list.append(self.DeriveUrlDict(url_obj))
         return dict_list
 
-    def GenerateQueryUsingSession(self, session, criteria, for_stats=False):
-        query = session.query(models.Url)
+    def GenerateQueryUsingSession(
+            self,
+            criteria,
+            target_id,
+            for_stats=False):
+        query = self.db.session.query(models.Url).filter_by(target_id=target_id)
         # Check if criteria is url search
         if criteria.get('search', None):
             if criteria.get('url', None):
                 if isinstance(criteria.get('url'), list):
                     criteria['url'] = criteria['url'][0]
                 query = query.filter(models.Url.url.like(
-                    '%' + criteria['url'] + '%'))
+                    '%'+criteria['url']+'%'))
         else:  # If not search
             if criteria.get('url', None):
                 if isinstance(criteria.get('url'), (str, unicode)):
@@ -194,31 +188,33 @@ class URLManager(BaseComponent, URLManagerInterface):
                     "Invalid parameter type for transaction db")
         return query
 
+    @target_required
     def GetAll(self, Criteria, target_id=None):
-        Session = self.target.GetUrlDBSession(target_id)
-        session = Session()
-        query = self.GenerateQueryUsingSession(session, Criteria)
+        query = self.GenerateQueryUsingSession(
+            Criteria,
+            target_id)
         results = query.all()
-        return (self.DeriveUrlDicts(results))
+        return(self.DeriveUrlDicts(results))
 
+    @target_required
     def SearchAll(self, Criteria, target_id=None):
-        Session = self.target.GetUrlDBSession(target_id)
-        session = Session()
+
         # Three things needed
         # + Total number of urls
         # + Filtered url
         # + Filtered number of url
-        total = session.query(models.Url).count()
+        total = self.db.session.query(
+            models.Url).filter_by(target_id=target_id).count()
         filtered_url_objs = self.GenerateQueryUsingSession(
-            session,
-            Criteria).all()
-        filtered_number = self.GenerateQueryUsingSession(
-            session,
             Criteria,
+            target_id).all()
+        filtered_number = self.GenerateQueryUsingSession(
+            Criteria,
+            target_id,
             for_stats=True).count()
-        return ({
-                    "records_total": total,
-                    "records_filtered": filtered_number,
-                    "data": self.DeriveUrlDicts(
-                        filtered_url_objs)
-                })
+        return({
+            "records_total": total,
+            "records_filtered": filtered_number,
+            "data": self.DeriveUrlDicts(
+                filtered_url_objs)
+        })

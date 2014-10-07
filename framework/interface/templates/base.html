@@ -13,6 +13,7 @@
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/css/bootstrap-responsive.min.css" rel="stylesheet">
     <link href="/static/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="/static/css/spinner.css" rel="stylesheet">
     <link id="skin_css" href="/static/css/stylesheet.css" rel="stylesheet"> <!-- All tweaks present in this file -->
     <!-- End Styles -->
 
@@ -61,6 +62,66 @@
     </div>');
         autoCloseAlert();
     }
+
+    var entityMap = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': '&quot;',
+        "'": '&#39;',
+        "/": '&#x2F;'
+    };
+
+    function escapeHtml(string) {
+        return String(string).replace(/[&<>"'\/]/g, function (s) {
+          return entityMap[s];
+        });
+    }
+
+    // Function to activate overlay and spinner
+    function addOverlay(selector) {
+        var div = $(selector);
+        // Get all the position related stuff
+        pos = $.extend({
+           width: div.outerWidth(true), // true to include margin
+           height: div.outerHeight(true)
+        }, div.position());
+        // Add overlay
+        var overlayDiv = $('<div>', {
+            class: 'overlay',
+            css: {
+                position: 'absolute',
+                top: pos.top,
+                left: pos.left,
+                width: pos.width,
+                height: pos.height,
+                backgroundColor: '#FFFFFF',
+                opacity: 0.50
+            }
+        });
+        var spinnerDiv = $('<div class="three-quarters"></div>');
+        overlayDiv.appendTo(div);
+        spinnerDiv.appendTo(overlayDiv);
+        spinnerDiv.css({
+            top: overlayDiv.height()/2 - spinnerDiv.height()/2 ,
+            left: overlayDiv.width()/2 - spinnerDiv.width()/2
+        });
+    }
+
+    // Function to remove overlay & spinner
+    function removeOverlay(selector) {
+        $(selector+'.overlay').remove();
+    }
+
+    // Function to enable any input i.e button, textarea etc..
+    function enableInput(selector) {
+        $(selector).removeAttr("disabled");
+    }
+
+    // Function to disable any input
+    function disableInput(selector) {
+        $(selector).prop("disabled", true);
+    }
     </script>
     <!-- End status box message -->
 
@@ -80,6 +141,7 @@
                 <ul class="nav navbar-nav pull-right">
                     <li><a href="{{ reverse_url('targets_ui_url', None) }}"><i class="fa fa-crosshairs"></i> Targets</a></li>
                     <li><a href="{{ reverse_url('workers_ui_url', None) }}"><i class="fa fa-th-large"></i> Workers</a></li>
+                    <li><a href="{{ reverse_url('worklist_ui_url') }}"><i class="fa fa-bars"></i> Worklist</a></li>
                     <li><a href="{{ reverse_url('configuration_ui_url') }}"><i class="fa fa-gears"></i> Settings</a></li>
 		    <li><a href="{{ reverse_url('plugnhack_ui_url') }}"><i class="fa fa-sign-in"></i> PlugnHack</a></li>
                     <li><a href="{{ reverse_url('help_ui_url') }}"><i class="fa fa-link"></i> Help</a></li>

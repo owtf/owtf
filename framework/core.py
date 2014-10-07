@@ -42,6 +42,10 @@ import multiprocessing
 import subprocess
 
 from framework.dependency_management.component_initialiser import ComponentInitialiser
+from framework import timer, error_handler
+from framework.config import config, health_check
+from framework.db import db
+from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
 from framework.plugin import worker_manager
 from framework.protocols import smb
@@ -103,6 +107,12 @@ class Core(BaseComponent):
         self.tor_process = None
         self.requester = None
 
+        # --------------------------- Init calls --------------------------- #
+        # Nothing as of now
+        self.health_check()
+
+    def health_check(self):
+        self.HealthCheck = health_check.HealthCheck()
 
     def create_dirs(self):
         """
@@ -190,7 +200,7 @@ class Core(BaseComponent):
         ComponentInitialiser.intialise_proxy_manager(options)
 
     def StartProxy(self, options):
-        ComponentInitialiser.step_3([self.db_config.Get('INBOUND_PROXY_IP'), self.db_config.Get('INBOUND_PROXY_PORT')])
+        ComponentInitialiser.initialisation_phase_3([self.db_config.Get('INBOUND_PROXY_IP'), self.db_config.Get('INBOUND_PROXY_PORT')])
         # The proxy along with supporting processes are started
         if True:
             # Check if port is in use
@@ -235,7 +245,7 @@ class Core(BaseComponent):
                 "Execution of OWTF is halted. You can browse through "
                 "OWTF proxy) Press Enter to continue with OWTF")
         else:
-            ComponentInitialiser.step_3(options['OutboundProxy'])
+            ComponentInitialiser.initialisation_phase_3(options['OutboundProxy'])
             self.requester = self.get_component("requester")
 
 
@@ -256,9 +266,11 @@ class Core(BaseComponent):
             self.config.FrameworkConfigGetLogPath(process_name),
             mode="w+"
         )
+        file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(FileFormatter())
 
         stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setLevel(logging.INFO)
         stream_handler.setFormatter(ConsoleFormatter())
 
         # Replace any old handlers
@@ -308,6 +320,8 @@ class Core(BaseComponent):
         """
         This method starts the interface server
         """
+        self.FileServer = server.FileServer()
+        self.FileServer.start()
         self.InterfaceServer = server.InterfaceServer()
         logging.info(
             "Interface Server started. Visit http://%s:%s",
@@ -332,8 +346,8 @@ class Core(BaseComponent):
             cprint("Unable to add github issue, but thanks for trying :D")
 
     def Finish(self, status='Complete', report=True):
-        if self.tor_process != None:
-            self.tor_process.terminate()
+        if getattr(self, "TOR_process", None) is not None:
+            self.TOR_process.terminate()
         # TODO: Fix this for lions_2014
         # if self.db_config.Get('SIMULATION'):
         #    exit()
@@ -341,9 +355,9 @@ class Core(BaseComponent):
             try:
                 self.PluginHandler.CleanUp()
             except AttributeError:  # DB not instantiated yet!
-                cprint("OWTF :P")
+                pass
             finally:
-                if self.ProxyMode:
+                if getattr(self, "ProxyMode", None) is not None:
                     try:
                         cprint(
                             "Stopping inbound proxy processes and "

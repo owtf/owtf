@@ -9,11 +9,11 @@
     <tbody>
         <tr>
                 <th>HTTP Transaction Stats</th>
-                <td> {{ MatchedPercent }}% matched </td>
+                <td> {{ match_percent }}% matched </td>
         </tr>
     </tbody>
 </table>
-{% if SortedMatches %} {# Check if matches exist, and then only draw the match table #}
+{% if matches %} {# Check if matches exist, and then only draw the match table #}
     <div class="alert alert-info"><strong>NOTE!</strong> Only <u>unique values per header</u> are shown with a link to an example transaction</div>
     <table class="table table-bordered table-striped">
         <thead>
@@ -28,12 +28,12 @@
                     <th> Header </th>
                     <th> Values </th>
             </tr>
-            {% for HeaderValue, Transaction in SortedMatches.items() %} {# HeaderValue is a typle (Header, Value) #}
+            {% for i in range(0, len(matches)) %}
                 <tr>
-                    <td> {{ HeaderValue[0] }} </td>
+                    <td> {{ matches[i][0] }} </td>
                     <td>
-                        <a class="label label-primary" onclick="navigateToTransaction('{{ Transaction.ID }}');return(false);" href="#" target="_blank">
-                            {{ HeaderValue[1] }}
+                        <a class="label label-primary" onclick="navigateToTransaction('{{ transaction_ids[i] }}');return(false);" href="#" target="_blank">
+                            {{ matches[i][1] }}
                         </a>
                     </td>
                 </tr>

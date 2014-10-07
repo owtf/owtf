@@ -1,0 +1,212 @@
+{% extends base.html %}
+
+{% block title %}Worklist Manager{% end %}
+
+{% block includes %}
+<script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/spin.min.js"></script>
+
+<link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
+{% end %}
+
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="btn-group pull-right">
+        <button class="btn btn-primary" href="#" onclick="pauseAllWork()"><i class="fa fa-pause"></i> Pause All</button>
+        <button class="btn btn-success" href="#" onclick="resumeAllWork()"><i class="fa fa-play"></i> Resume All</button>
+      </div>
+    </div>
+  </div>
+  <div class="row ">
+    <div class="col-md-12">
+       <table id="worklistTable" class="table table-hover">
+          <thead>
+              <tr>
+                  <th>Est. Time (min)</th>
+                  <th>Actions</th>
+                  <th class="textSearch">Target</th>
+                  <th class="textSearch">Plugin Group</th>
+                  <th class="textSearch">Plugin Type</th>
+                  <th class="textSearch">Plugin Name</th>
+              </tr>
+          </thead>
+          <tbody>
+          </tbody>
+      </table>
+    </div>
+ </div>
+</div>
+
+<script>
+
+var mySpace = {
+  worklist_api_url: "{{ worklist_api_url }}",
+  worklist_search_api_url:"{{ worklist_search_api_url }}",
+  targets_ui_url:"{{ targets_ui_url }}"
+};
+
+// Function to pause work using api
+function pauseAllWork() {
+    $.ajax({
+        url:mySpace.worklist_api_url+'0/pause',
+        type:'PATCH',
+        error:function(xhr, textStatus, serverResponse){
+            alertFail("Server replied: "+serverResponse);
+        }
+    });
+}
+
+// Function to resume work using api
+function resumeAllWork() {
+    $.ajax({
+        url:mySpace.worklist_api_url+'0/resume',
+        type:'PATCH',
+        error:function(xhr, textStatus, serverResponse){
+            alertFail("Server replied: "+serverResponse);
+        }
+    });
+}
+
+// Function to pause work using api
+function pauseWork(id) {
+    $.ajax({
+        url:mySpace.worklist_api_url+id+'/pause',
+        type:'PATCH',
+        error:function(xhr, textStatus, serverResponse){
+            alertFail("Server replied: "+serverResponse);
+        }
+    });
+}
+
+// Function to resume work using api
+function resumeWork(id) {
+    $.ajax({
+        url:mySpace.worklist_api_url+id+'/resume',
+        type:'PATCH',
+        error:function(xhr, textStatus, serverResponse){
+            alertFail("Server replied: "+serverResponse);
+        }
+    });
+}
+
+// Function to resume work using api
+function deleteWork(id) {
+    $.ajax({
+        url:mySpace.worklist_api_url+id,
+        type:'DELETE',
+        error:function(xhr, textStatus, serverResponse){
+            alertFail("Server replied: "+serverResponse);
+        }
+    });
+}
+
+// Function to get control buttons based on the present state of a worker i.e return pause button if worker is active & vice versa
+function getControlButtons(obj){
+    html = '<div class="btn-group">';
+    if (obj.active) {
+        html += '<button class="btn btn-primary btn-xs" href="#" onclick="pauseWork('+obj.id+');"><i class="fa fa-pause"></i></button>';
+    } else {
+        html += '<button class="btn btn-success btn-xs" href="#" onclick="resumeWork('+obj.id+');"><i class="fa fa-play-circle"></i></button>';
+    }
+    html += '<button class="btn btn-danger btn-xs" href="#" onclick="deleteWork('+obj.id+');"><i class="fa fa-times"></i></button>';
+    html += '</div>';
+    return(html);
+}
+
+
+function getArray(data) {
+    var table_array = [];
+    $.each(data, function(index, obj){
+      table_array.push([
+        obj.plugin.min_time,
+        getControlButtons(obj),
+        '<a href="'+mySpace.targets_ui_url+obj.target.ID+'" target="_blank">'+obj.target.target_url+'</a>',
+        obj.plugin.group,
+        (obj.plugin.type).replace(/_/g,' '),
+        (obj.plugin.name).replace(/_/g,' '),
+      ]);
+    });
+    return(table_array);
+}
+
+function dummyAjax(data, callback, settings) {
+  // This function takes care of converting dataTable data into owtf api
+  // and then the response back to dataTables type
+
+  // Add overlay spinner to transaction log while ajax requests
+  // addOverlaySpinner('worklistTable');
+  var get_parameters = {};
+  var draw = data.draw;
+  get_parameters['limit'] = data.length;
+  get_parameters['offset'] = data.start;
+
+  var columnMappings = {
+    2: 'target_url',
+    3: 'group',
+    4: 'type',
+    5: 'name',
+  };
+
+  // Iterate over mappings and add search parameters
+  for (var k in columnMappings) {
+    if (data.columns[k].search.value)
+      get_parameters[columnMappings[k]] = data.columns[k].search.value;
+  }
+  $.getJSON(mySpace.worklist_search_api_url+'?'+$.param(get_parameters, true), function (responseData) {
+    // Remove the spinner once we have the response, since dataTables takes very less time to populate
+    // removeOverlaySpinner('worklistTable');
+    callback({
+      "draw": draw,
+      "recordsTotal": responseData["records_total"],
+      "recordsFiltered": responseData["records_filtered"],
+      "data": getArray(responseData["data"]),
+      "error": null
+    });
+  });
+}
+
+function drawTable() {
+    $('#worklistTable').dataTable({
+      "bAutoWidth": false,
+      "bSort": false, // Not yet supported in API, can after shifting to postgres
+      "bServerSide": true,
+      "ajax": dummyAjax,
+      "sDom": "ltip", // Remove global search & processing message
+    });
+
+    var table = $("#worklistTable").DataTable();
+
+    $('#worklistTable thead th.textSearch').each(function () {
+        var title = $('#worklistTable thead th').eq( $(this).index() ).text();
+        $(this).html('<input type="text" style="width: 100%; box-sizing: border-box;" class="form-control" placeholder="'+title+'"/>' );
+    });
+
+    // Apply search to custom boxes, but since these searches take type, only respond on
+    // 'change' or 'return key press'
+    table.columns().eq(0).each(function ( colIdx ){
+        $(':text', table.column( colIdx ).header() ).on('keyup change', function (e) {
+          if (((e.type == "keyup") && (e.keyCode == 13)) || (e.type == "change")) {
+            table
+                .column( colIdx )
+                .search( this.value )
+                .draw();
+          }
+        });
+    });
+
+    var oTable = $('#worklistTable').dataTable();
+    // Draw after every 2 seconds
+    setInterval(function() {
+        oTable.fnDraw(true);
+    }, 2000);
+}
+
+$(document).ready(function() {
+    drawTable();
+});
+</script>
+{% end %}

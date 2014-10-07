@@ -21,7 +21,8 @@ class MappingDB(BaseComponent, MappingDBInterface):
         self.config = self.get_component("config")
         self.db = self.get_component("db")
         self.mapping_types = []
-        self.MappingDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("MAPPINGS_DB_PATH"), models.MappingBase)
+
+    def init(self):
         self.LoadMappingDBFromFile(self.config.FrameworkConfigGet("DEFAULT_MAPPING_PROFILE"))
 
     def LoadMappingDBFromFile(self, file_path):
@@ -34,7 +35,6 @@ class MappingDB(BaseComponent, MappingDBInterface):
         # Otherwise all the keys are converted to lowercase xD
         config_parser.optionxform = str
         config_parser.read(file_path)
-        session = self.MappingDBSession()
         for owtf_code in config_parser.sections():
             mappings = {}
             category = None
@@ -46,12 +46,11 @@ class MappingDB(BaseComponent, MappingDBInterface):
                     mappings[mapping_type] = [mapped_code, mapped_name]
                 else:
                     category = data
-            session.merge(models.Mapping(
+            self.db.session.merge(models.Mapping(
                 owtf_code=owtf_code,
                 mappings=json.dumps(mappings),
                 category=category))
-        session.commit()
-        session.close()
+        self.db.session.commit()
 
     def DeriveMappingDict(self, obj):
         if obj:
@@ -76,8 +75,7 @@ class MappingDB(BaseComponent, MappingDBInterface):
 
     def GetMappings(self, mapping_type):
         if mapping_type in self.mapping_types:
-            session = self.MappingDBSession()
-            mapping_objs = session.query(models.Mapping).all()
+            mapping_objs = self.db.session.query(models.Mapping).all()
             mappings = {}
             for mapping_dict in self.DeriveMappingDicts(mapping_objs):
                 if mapping_dict["mappings"].get(mapping_type, None):
@@ -87,8 +85,6 @@ class MappingDB(BaseComponent, MappingDBInterface):
             raise InvalidMappingReference("InvalidMappingReference " + mapping_type + " requested")
 
     def GetCategory(self, plugin_code):
-        session = self.MappingDBSession()
-        category = session.query(models.Mapping.category).get(plugin_code)
+        category = self.db.session.query(models.Mapping.category).get(plugin_code)
         # Getting the corresponding category back from db
-        session.close()
         return category

@@ -2,7 +2,8 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 
 
 class AbstractInterface():
-    __metaclass__ = ABCMeta
+    #__metaclass__ = ABCMeta
+    pass
 
 
 class CommandRegisterInterface(AbstractInterface):
@@ -12,9 +13,6 @@ class CommandRegisterInterface(AbstractInterface):
 
     @abstractmethod
     def CommandAlreadyRegistered(self): pass
-
-    @abstractmethod
-    def RemoveForTarget(self): pass
     
 
 class DBInterface(AbstractInterface):
@@ -22,14 +20,14 @@ class DBInterface(AbstractInterface):
     @abstractmethod
     def CreateScopedSession(self): pass
 
-    @abstractmethod
-    def CreateSession(self): pass
-
-    @abstractmethod
-    def EnsureDBWithBase(self): pass
-
-    @abstractmethod
-    def SaveDBs(self): pass
+    # @abstractmethod
+    # def CreateSession(self): pass
+    #
+    # @abstractmethod
+    # def EnsureDBWithBase(self): pass
+    #
+    # @abstractmethod
+    # def SaveDBs(self): pass
 
     @abstractmethod
     def get_category(self): pass
@@ -386,9 +384,6 @@ class TargetInterface(AbstractInterface):
     def GetIndexedTargets(self): pass
 
     @abstractmethod
-    def GetOutputDBSession(self): pass
-
-    @abstractmethod
     def GetPath(self): pass
 
     @abstractmethod
@@ -405,12 +400,6 @@ class TargetInterface(AbstractInterface):
 
     @abstractmethod
     def GetTargetURL(self): pass
-
-    @abstractmethod
-    def GetTransactionDBSession(self): pass
-
-    @abstractmethod
-    def GetUrlDBSession(self): pass
 
     @abstractmethod
     def IsInScopeURL(self): pass

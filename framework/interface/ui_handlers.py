@@ -118,13 +118,15 @@ class TargetManager(custom_handlers.UIRequestHandler):
     def get(self, target_id=None):
         if not target_id:
             self.render("target_manager.html",
+                        owtf_sessions_api_url=self.reverse_url('owtf_sessions_api_url', None, None),
                         targets_api_url=self.reverse_url('targets_api_url', None),
+                        targets_search_api_url=self.reverse_url('targets_search_api_url'),
                         targets_ui_url=self.reverse_url('targets_ui_url', None),
                         plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
-                        worklist_api_url=self.reverse_url('worklist_api_url')
+                        worklist_api_url=self.reverse_url('worklist_api_url', None, None)
                         )
         else:
-            adv_filter_data = self.get_component("plugin_output").GetUnique(target_id)
+            adv_filter_data = self.get_component("plugin_output").GetUnique(target_id=int(target_id))
             adv_filter_data["mapping"] = self.get_component("mapping_db").GetMappingTypes()
             self.render("target.html",
                         target_api_url=self.reverse_url('targets_api_url', target_id),
@@ -132,7 +134,7 @@ class TargetManager(custom_handlers.UIRequestHandler):
                         poutput_ui_url=self.reverse_url('poutput_ui_url', target_id),
                         adv_filter_data=adv_filter_data,
                         plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
-                        worklist_api_url=self.reverse_url('worklist_api_url'),
+                        worklist_api_url=self.reverse_url('worklist_api_url', None, None),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id),
                         sessions_ui_url=self.reverse_url('sessions_ui_url', target_id),
@@ -345,7 +347,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
             filter_data = dict(self.request.arguments)  # IMPORTANT!!
             plugin_outputs = self.get_component("plugin_output").GetAll(
                 filter_data,
-                target_id)
+                target_id=target_id)
             # Group the plugin outputs to make it easier in template
             grouped_plugin_outputs = {}
             for poutput in plugin_outputs:
@@ -384,7 +386,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
                             'poutput_api_url', target_id, None, None, None),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id),
-                        html=(self.get_component("vulnexp_db").GetExplanation(owtf_code))
+                        # html=(self.application.Core.DB.Vulnexp.GetExplanation(owtf_code))
                         )
         except InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)
@@ -398,7 +400,7 @@ class WorkerManager(custom_handlers.UIRequestHandler):
     def get(self, worker_id=None):
         if not worker_id:
             self.render("manager_interface.html",
-                        worklist_api_url=self.reverse_url('worklist_api_url'),
+                        worklist_api_url=self.reverse_url('worklist_api_url', None, None),
                         workers_api_url=self.reverse_url('workers_api_url', None, None),
                         targets_api_url=self.reverse_url('targets_api_url', None),
                         targets_ui_url=self.reverse_url('targets_ui_url', None),
@@ -411,18 +413,45 @@ class WorkerManager(custom_handlers.UIRequestHandler):
                         )
 
 
+class WorklistManager(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        self.render(
+            "worklist_manager.html",
+            worklist_api_url=self.reverse_url('worklist_api_url', None, None),
+            worklist_search_api_url=self.reverse_url('worklist_search_api_url'),
+            targets_ui_url=self.reverse_url('targets_ui_url', None),
+        )
+
+
 class Help(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
-    @tornado.web.asynchronous
+
     def get(self):
         self.render("help.html")
 
 
 class ConfigurationManager(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ('GET')
-    @tornado.web.asynchronous
+
     def get(self):
         self.render(
             "config_manager.html",
             configuration_api_url=self.reverse_url('configuration_api_url')
         )
+
+
+class FileRedirectHandler(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ('GET')
+
+    def get(self, file_url):
+        output_files_server = "%s://%s/" % (
+            self.request.protocol,
+            self.request.host.replace(
+                self.application.Core.Config.FrameworkConfigGet(
+                    "UI_SERVER_PORT"),
+                self.application.Core.Config.FrameworkConfigGet(
+                    "FILE_SERVER_PORT")))
+        redirect_file_url = output_files_server + file_url
+        self.redirect(redirect_file_url, permanent=True)

@@ -125,11 +125,13 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.reporter = self.get_component("reporter")
         self.scanner = Scanner()
 
+    def PluginAlreadyRun(self, PluginInfo):
+        return self.plugin_output.PluginAlreadyRun(PluginInfo)
+    
     def ValidateAndFormatPluginList(self, PluginList):
         List = []  # Ensure there is always a list to iterate from! :)
         if PluginList != None:
             List = PluginList
-
         ValidatedList = []
         # print "List to validate="+str(List)
         for Item in List:
@@ -189,11 +191,12 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                                      Plugin):  # Get all execution entries from log since last time the passed plugin executed
         return self.ExecutionRegistry[self.config.GetTarget()][self.GetLastPluginExecution(Plugin):]
 
-    def NormalRequestsAllowed(self):
-        # AllowedPluginTypes = self.config.GetAllowedPluginTypes('web')
-        #GetAllowedPluginTypes('web')
-        AllowedPluginTypes = self.config.Plugin.GetAllowedTypes('web')
-        return 'semi_passive' in AllowedPluginTypes or 'active' in AllowedPluginTypes
+    def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
+        #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('partial_url_output_path'))+", TARGET="+self.Core.Config.Get('TARGET')
+        if ((Plugin['group'] == 'web') or (Plugin['group'] == 'net')):
+            return os.path.join(self.Core.DB.Target.GetPath('partial_url_output_path'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
+        elif Plugin['group'] == 'aux':
+            return os.path.join(self.Core.Config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
 
     def RequestsPossible(self):
         # Even passive plugins will make requests to external resources
@@ -337,30 +340,28 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
     def ProcessPlugin(self, plugin_dir, plugin, status={}):
         # Save how long it takes for the plugin to run.
-        self.timer.StartTimer('Plugin')
-        plugin['start'] = self.timer.GetStartDateTimeAsStr(
+        self.timer.start_timer('Plugin')
+        plugin['start'] = self.timer.get_start_date_time(
             'Plugin')
         # Use relative path from targets folders while saving
         plugin['output_path'] = os.path.relpath(self.GetPluginOutputDir(plugin),
-                                                self.config.GetOutputDirForTargets())
-        if not self.CanPluginRun(plugin, True):
-            return None  # Skip.
+            self.Core.Config.GetOutputDirForTargets())
         status['AllSkipped'] = False  # A plugin is going to be run.
         plugin['status'] = 'Running'
         self.PluginCount += 1
         logging.info(
             '_' * 10 + ' ' + str(self.PluginCount) +
-            ' - Target: ' + self.target.GetTargetURL() +
+            ' - Target: ' + self.Core.DB.Target.GetTargetURL() +
             ' -> Plugin: ' + plugin['title'] + ' (' +
-            plugin['type'] + ') ' + '_' * 10)
-        # self.LogPluginExecution(Plugin)
+            plugin['type']+ ') ' + '_' * 10)
+        #self.LogPluginExecution(Plugin)
         # Skip processing in simulation mode, but show until line above
         # to illustrate what will run
         if self.Simulation:
             return None
         # DB empty => grep plugins will fail, skip!!
         if ('grep' == plugin['type'] and
-                    self.transaction.NumTransactions() == 0):
+                self.Core.DB.Transaction.NumTransactions() == 0):
             logging.info(
                 'Skipped - Cannot run grep plugins: '
                 'The Transaction DB is empty')
@@ -368,7 +369,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         try:
             output = self.RunPlugin(plugin_dir, plugin)
             plugin['status'] = 'Successful'
-            plugin['end'] = self.timer.GetEndDateTimeAsStr(
+            plugin['end'] = self.timer.get_end_date_time(
                 'Plugin')
             owtf_rank = self.rank_plugin(
                 output,
@@ -377,20 +378,18 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             self.plugin_output.SavePluginOutput(
                 plugin,
                 output,
-                self.timer.GetElapsedTimeAsStr('Plugin'),
                 owtf_rank=owtf_rank)
             return output
         except KeyboardInterrupt:
             # Just explain why crashed.
             plugin['status'] = 'Aborted'
-            plugin['end'] = self.timer.GetEndDateTimeAsStr(
+            plugin['end'] = self.timer.get_end_date_time(
                 'Plugin')
             self.plugin_output.SavePartialPluginOutput(
                 plugin,
                 [],
-                'Aborted by User',
-                self.timer.GetElapsedTimeAsStr('Plugin'))
-            self.error_handler.UserAbort('Plugin')
+                'Aborted by User')
+            self.Core.Error.UserAbort('Plugin')
             status['SomeAborted (Keyboard Interrupt)'] = True
         except SystemExit:
             # Abort plugin processing and get out to external exception
@@ -398,40 +397,35 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             raise SystemExit
         except PluginAbortException, PartialOutput:
             plugin['status'] = 'Aborted (by user)'
-            plugin['end'] = self.timer.GetEndDateTimeAsStr(
-                'Plugin')
+            plugin['end'] = self.timer.get_end_date_time('Plugin')
             self.plugin_output.SavePartialPluginOutput(
                 plugin,
                 PartialOutput.parameter,
-                'Aborted by User',
-                self.timer.GetElapsedTimeAsStr('Plugin'))
+                'Aborted by User')
             status['SomeAborted'] = True
         except UnreachableTargetException, PartialOutput:
             plugin['status'] = 'Unreachable Target'
-            plugin['end'] = self.timer.GetEndDateTimeAsStr(
-                'Plugin')
+            plugin['end'] = self.timer.get_end_date_time('Plugin')
             self.plugin_output.SavePartialPluginOutput(
-                plugin,
-                PartialOutput.parameter,
-                'Unreachable Target',
-                self.timer.GetElapsedTimeAsStr('Plugin'))
+             plugin,
+             PartialOutput.parameter,
+             'Unreachable Target')
             status['SomeAborted'] = True
         except FrameworkAbortException, PartialOutput:
             plugin['status'] = 'Aborted (Framework Exit)'
-            plugin['end'] = self.timer.GetEndDateTimeAsStr(
+            plugin['end'] = self.timer.get_end_date_time(
                 'Plugin')
             self.plugin_output.SavePartialPluginOutput(
                 plugin,
                 PartialOutput.parameter,
-                'Framework Aborted',
-                self.timer.GetElapsedTimeAsStr('Plugin'))
+                'Framework Aborted')
             self.Core.Finish("Aborted")
-            #TODO: Handle this gracefully
-            #except: # BUG
-            #        Plugin["status"] = "Crashed"
-            #        cprint("Crashed")
-            #self.SavePluginInfo(self.error_handler.Add("Plugin "+Plugin['Type']+"/"+Plugin['File']+" failed for target "+self.config.Get('TARGET')), Plugin) # Try to save something
-            #TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
+        #TODO: Handle this gracefully
+        #except: # BUG
+        #        Plugin["status"] = "Crashed"
+        #        cprint("Crashed")
+        #self.SavePluginInfo(self.error_handler.Add("Plugin "+Plugin['Type']+"/"+Plugin['File']+" failed for target "+self.config.Get('TARGET')), Plugin) # Try to save something
+        #TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
 
     def ProcessPlugins(self):
         status = {

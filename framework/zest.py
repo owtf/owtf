@@ -26,37 +26,37 @@ class Zest(BaseComponent, ZestInterface):
 # Script creation from single transaction
     def TargetScriptFromSingleTransaction(self, transaction_id, script_name, target_id):
         target_config = self.GetTargetConfig(target_id)
-        return self.GenerateZest(script_name, str(target_id), transaction_id, target_config, "False")
+        return self.GenerateZest(script_name, transaction_id, target_config, "False")
 
 #script creation from multiple requests
-    def TargetScriptFromMultipleTransactions(self, Target_id, Script_name, transactions):
-        target_config = self.GetTargetConfig(Target_id)
+    def TargetScriptFromMultipleTransactions(self, target_id, script_name, transactions):
+        target_config = self.GetTargetConfig(target_id)
         zest_args = self.ConvertToZestArgs(transactions)
-        return self.GenerateZest(Script_name, str(Target_id), zest_args, target_config, "False")
+        return self.GenerateZest(script_name, zest_args, target_config, "False")
 
 #script generation if file not already present
-    def GenerateZest(self, Script, tar_arg, trans_arg, config, record):
+    def GenerateZest(self, Script, trans_arg, config, record):
         op_script = self.GetOutputFile(Script, config['ZEST_DIR'])
+        db_settings = self.GetDBSettings()
         if not self.CheckifExists(op_script) or record == "True": # create a script only if its a record script or new target script
             subprocess.call(['sh', config['CREATE_SCRIPT_PATH'], config['ROOT_DIR'],
-                                     config['OUTPUT_DIR'], config['TARGET_DB'], op_script, tar_arg, trans_arg, record])
+                                      op_script, trans_arg, db_settings['URL'],
+                                      db_settings['USER_NAME'], db_settings['PASSWORD']])
             return True
         else:
             return False
 
     def CreateRecordScript(self):
-        target_list, transaction_list = self.GetArgumentsfromRecordedTransactions()
-        target_arg = self.ConvertToZestArgs(target_list)
-        trans_arg = self.ConvertToZestArgs(transaction_list)
+        trans_arg = self.ConvertToZestArgs(self.recordedTransactions)
         record_config = self.GetRecordConfig()
-        self.GenerateZest(self.GetRecordScript(), target_arg, trans_arg, record_config, "True")
+        self.GenerateZest(self.GetRecordScript(), trans_arg, record_config, "True")
 
     def GetTargetConfig(self, target_id):
         target_config = {}
         self.target.SetTarget(target_id)
         target_config['ROOT_DIR'] = self.config.RootDir
         target_config['OUTPUT_DIR'] = os.path.join(target_config['ROOT_DIR'], self.target.PathConfig['URL_OUTPUT'])
-        target_config['TARGET_DB'] = self.config.FrameworkConfigGet('TCONFIG_DB_PATH')
+        #target_config['TARGET_DB'] = self.config.FrameworkConfigGet('TCONFIG_DB_PATH')
         target_config['ZEST_DIR'] = os.path.join(target_config['OUTPUT_DIR'], "zest")
         target_config['CREATE_SCRIPT_PATH'] = os.path.join(target_config['ROOT_DIR'], "zest", "zest_create.sh")
         target_config['RUNNER_SCRIPT_PATH'] = os.path.join(target_config['ROOT_DIR'], "zest","zest_runner.sh")
@@ -68,8 +68,8 @@ class Zest(BaseComponent, ZestInterface):
     def GetRecordConfig(self):
         record_config = {}
         record_config['ROOT_DIR'] = self.config.RootDir
-        record_config['OUTPUT_DIR'] = os.path.join(record_config['ROOT_DIR'], self.config.GetOutputDirForTargets())
-        record_config['TARGET_DB'] = os.path.join(record_config['ROOT_DIR'], self.config.FrameworkConfigGetDBPath('TCONFIG_DB_PATH'))
+        #record_config['OUTPUT_DIR'] = os.path.join(record_config['ROOT_DIR'], self.config.GetOutputDirForTargets())
+        #record_config['TARGET_DB'] = os.path.join(record_config['ROOT_DIR'], self.config.FrameworkConfigGetDBPath('TCONFIG_DB_PATH'))
         record_config['CREATE_SCRIPT_PATH'] = os.path.join(record_config['ROOT_DIR'], "zest", "zest_create.sh")
         record_config['RUNNER_SCRIPT_PATH'] = os.path.join(record_config['ROOT_DIR'], "zest", "zest_runner.sh")
         record_config['ZEST_DIR'] = os.path.join(record_config['ROOT_DIR'], self.config.FrameworkConfigGet("OUTPUT_PATH"), "misc", "recorded_scripts")
@@ -169,3 +169,11 @@ class Zest(BaseComponent, ZestInterface):
     def RunTargetScript(self, target_id, script):
         target_config = self.GetTargetConfig(target_id)
         return self.RunZestScript(os.path.join(target_config['ZEST_DIR'], script), target_config)
+
+    def GetDBSettings(self):
+        settings = {}
+        settings['URL'] = self.Core.DB._db_settings['DATABASE_IP'] + ":" + self.Core.DB._db_settings['DATABASE_PORT'] + "/" + self.Core.DB._db_settings['DATABASE_NAME']
+        settings['USER_NAME'] = self.Core.DB._db_settings['DATABASE_USER']
+        settings['PASSWORD'] = self.Core.DB._db_settings['DATABASE_PASS']
+        return settings
+

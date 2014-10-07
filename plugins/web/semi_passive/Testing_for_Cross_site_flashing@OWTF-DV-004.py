@@ -1,5 +1,3 @@
-from framework.utils import OWTFLogger
-from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -27,27 +25,26 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Cross Site Flashing semi passive plugin: Tries to retrieve the crossdomain.xml file and display it for review
+Cross Site Flashing semi passive plugin: Tries to retrieve the crossdomain.xml
+file and display it for review
 """
-import re, cgi,logging
-
+import re
+import cgi
+import logging
+from framework.utils import OWTFLogger
+from framework.dependency_management.dependency_resolver import ServiceLocator
 DESCRIPTION = "Normal requests for XSF analysis"
 
+
 def run(PluginInfo):
-	#NotFoundMsg = "Not Found"
-	#Table = ServiceLocator.get_component("reporter").Render.CreateTable()
-	URLList = []
-	for File in [ "crossdomain.xml", "clientaccesspolicy.xml" ]:
-		for URL in ServiceLocator.get_component("target").GetAsList(['TARGET_URL', 'TOP_URL']):
-			URLList.append(URL+"/"+File) # Compute all URL + File combinations
-	TransactionList = ServiceLocator.get_component("requester").GetTransactions(True, URLList) # The requester framework component will unique the URLs
-        # TODO: Check the following piece of code
-	#for Transaction in TransactionList:
-	#	Table.CreateRow([ServiceLocator.get_component("reporter").Render.DrawButtonLink(Transaction.URL, Transaction.URL)], True)
-	#	if Transaction.Found:
-	#		Table.CreateRow(["<br/><pre>"+cgi.escape(Transaction.GetRawResponseBody())+"</pre>"])
-	#	else:
-	#		Table.CreateRow([NotFoundMsg])
-	#		OWTFLogger.log(NotFoundMsg)
-	#return Table.Render() + ServiceLocator.get_component("reporter").DrawHTTPTransactionTable(TransactionList)
-        return(ServiceLocator.get_component("plugin_helper").TransactionTable(TransactionList))
+    URLList = []
+    for File in ["crossdomain.xml", "clientaccesspolicy.xml"]:
+        for URL in ServiceLocator.get_component("target").GetAsList(['target_url', 'top_url']):
+            URLList.append(URL+"/"+File)  # Compute all URL + File combinations
+    # The requester framework component will unique the URLs
+    TransactionList = ServiceLocator.get_component("requester").GetTransactions(True, URLList)
+    # Even though we have transaction list, those transactions do not have id
+    # because our proxy stores the transactions and not the requester. So the
+    # best way is to use the url list to retrieve transactions while making the
+    # report
+    return(ServiceLocator.get_component("plugin_helper").TransactionTableForURLList(True, URLList))

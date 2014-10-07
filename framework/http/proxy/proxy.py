@@ -143,7 +143,9 @@ class ProxyHandler(tornado.web.RequestHandler):
         if self.request.uri.startswith(self.request.protocol,0): # Normal Proxy Request
             self.request.url = self.request.uri
         else:  # Transparent Proxy Request
-            self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
+            self.request.url = self.request.protocol + "://" + self.request.host
+            if self.request.uri != '/':  # Add uri only if needed
+                self.request.url += self.request.uri
 
         # This block here checks for already cached response and if present returns one
         self.cache_handler = CacheHandler(
@@ -628,14 +630,8 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             self.application.http_auth = False
 
     # "0" equals the number of cores present in a machine
-    def run(self):
-        """
-        Why not pseudo_run, aren't we supposed to do that? Actually NO!
-        Tornado has its own logging enabled so it is not worth overriding its
-        root loggers. This principle will work with any tornado process. But
-        then why use OWTFProcess at all for tornado servers ? So that the
-        process of restarting or terminating can be centralized
-        """
+    def pseudo_run(self):
+        self.application.Core.disable_console_logging()
         try:
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests

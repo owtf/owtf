@@ -47,8 +47,6 @@ class HTTP_Transaction(object):
     def __init__(self, Timer):
         self.Timer = Timer
         self.New = False
-        # If None, then get method will result in an error ;)
-        self.GrepOutput = {}
 
     def ScopeToStr(self):
         return str(self.IsInScope)[0]
@@ -78,12 +76,12 @@ class HTTP_Transaction(object):
             self.Data = ''
 
     def StartRequest(self):
-        self.Timer.StartTimer('Request')
+        self.Timer.start_timer('Request')
         self.Time = self.TimeHuman = ''
 
     def EndRequest(self):
-        self.Time = str(self.Timer.GetElapsedTime('Request'))
-        self.TimeHuman = self.Timer.GetTimeAsStr(self.Time)
+        self.Time = self.Timer.get_elapsed_time_as_str('Request')
+        self.TimeHuman = self.Time
 
     def SetTransaction(self, found, request, response):
         # Response can be "Response" for 200 OK or "Error" for everything else,
@@ -118,8 +116,7 @@ class HTTP_Transaction(object):
                              request_data,
                              raw_request,
                              response_headers,
-                             response_body,
-                             grep_output):
+                             response_body):
         self.ID = id
         self.New = False  # Flag NOT new transaction.
         self.URL = url
@@ -132,21 +129,11 @@ class HTTP_Transaction(object):
         self.RawRequest = raw_request
         self.ResponseHeaders = response_headers
         self.ResponseContents = response_body
-        self.GrepOutput = grep_output
         cookies_list = [
             header.split(':', 1)[-1].strip()
             for header in self.ResponseHeaders.split('\n')
             if header.split(':',1)[0].strip() == "Set-Cookie"]
         self.CookieString = ','.join(cookies_list)
-
-    def GetGrepOutput(self):
-        return (self.GrepOutput)
-
-    def GetGrepOutputFor(self, regex_name):
-        # Highly misleading name as grepping is already done when adding the
-        # transaction.
-        # To prevent python from going crazy when a key is missing.
-        return (self.GrepOutput.get(regex_name, None))
 
     def GetSessionTokens(self):
         """
@@ -247,7 +234,7 @@ class HTTP_Transaction(object):
         self.ResponseHeaders = response.header_string
         self.ResponseContents = response.body
         self.Time = str(response.request_time)
-        self.TimeHuman = self.Timer.GetTimeAsStr(self.Time)
+        self.TimeHuman = self.Timer.get_time_human(self.Time)
         self.Found = (self.Status == "200 OK")
         # Cookie string for GetCookies method
         cookies_list = [

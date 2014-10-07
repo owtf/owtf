@@ -34,10 +34,14 @@ In charge of processing arguments and call the framework.
 
 from __future__ import print_function
 
-import argparse
-import sys
 import os
+import sys
+from framework.dependency_check import verify_dependencies
 
+verify_dependencies(os.path.dirname(os.path.abspath(sys.argv[0])) or '.')
+
+
+import argparse
 from framework import core
 from framework.dependency_management.component_initialiser import ComponentInitialiser
 from framework.dependency_management.dependency_resolver import ServiceLocator
@@ -48,14 +52,13 @@ from framework.http.proxy import tor_manager # Is needed for printing configurat
 
 def banner():
     print("""
-                  __       ___  
-                 /\ \__  /'___\ 
-  ___   __  __  _\ \ ,_\/\ \__/ 
- / __`\/\ \/\ \/\ \\ \ \/\ \ ,__\ 
-/\ \_\ \ \ \_/ \_/ \\ \ \_\ \ \_/
-\ \____/\ \___x___/'\ \__\\\ \_\ 
- \/___/  \/__//__/   \/__/ \/_/ 
+ _____ _ _ _ _____ _____
+|     | | | |_   _|   __|
+|  |  | | | | | | |   __|
+|_____|_____| |_| |__|
 
+        @owtfp
+    http://owtf.org
     """)
 
 
@@ -339,7 +342,7 @@ def process_options(core, user_args):
         arg.TOR_mode = arg.TOR_mode.split(":")
         if(arg.TOR_mode[0] == "help"):
             tor_manager.TOR_manager.msg_configure_tor()
-            exit(0);
+            exit(0)
         if len(arg.TOR_mode) == 1:
             if arg.TOR_mode[0] != "help":
                 usage("Invalid argument for TOR-mode")
@@ -486,9 +489,9 @@ if __name__ == "__main__":
     root_dir = os.path.dirname(os.path.abspath(sys.argv[0])) or '.'
     owtf_pid = os.getpid()
     if not "--update" in sys.argv[1:]:
-        ComponentInitialiser.step_1(owtf_pid, root_dir)
+        ComponentInitialiser.initialisation_phase_1(owtf_pid, root_dir)
         args = process_options(core, sys.argv[1:])
-        ComponentInitialiser.step_2(args)
+        ComponentInitialiser.initialisation_phase_2(args)
 
         core = core.Init(root_dir, owtf_pid, args)  # Initialise Framework.
         print(

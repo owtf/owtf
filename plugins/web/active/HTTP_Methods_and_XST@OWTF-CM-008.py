@@ -37,22 +37,29 @@ DESCRIPTION = "Active probing for HTTP methods"
 
 
 def run(PluginInfo):
-    # ServiceLocator.get_component("config").Show()
-    #Transaction = ServiceLocator.get_component("requester").TRACE(ServiceLocator.get_component("config").Get('HOST_NAME'), '/')
-    URL = ServiceLocator.get_component("target").Get('TOP_URL')
+    # Transaction = Core.Requester.TRACE(Core.Config.Get('host_name'), '/')
+    target = ServiceLocator.get_component("target")
+    URL = target.Get('top_url')
     # TODO: PUT not working right yet
-    #PUT_URL = URL+"/_"+get_random_str(20)+".txt"
-    #print PUT_URL
-    #PUT_URL = URL+"/a.txt"
-    PUT_URL = URL
+    # PUT_URL = URL+"/_"+get_random_str(20)+".txt"
+    # print PUT_URL
+    # PUT_URL = URL+"/a.txt"
+    # PUT_URL = URL
     plugin_helper = ServiceLocator.get_component("plugin_helper")
-    requester = ServiceLocator.get_component("requester")
-    Content = plugin_helper.TransactionTable(
-        [requester.GetTransaction(True, URL, 'TRACE'), requester.GetTransaction(True, URL, 'DEBUG'),
-         requester.GetTransaction(True, PUT_URL, 'PUT', get_random_str(15))])
-    Content += plugin_helper.CommandDump('Test Command', 'Output',
-                                         ServiceLocator.get_component("resource").GetResources('ActiveHTTPMethods'),
-                                         PluginInfo, Content)
-    # Deprecated: Content += ServiceLocator.get_component("plugin_helper").LogURLs(PluginInfo, ServiceLocator.get_component("config").GetResources('ActiveHTTPMethodsExtractLinks'))
+    Content = plugin_helper.TransactionTableForURL(
+        True,
+        URL,
+        Method='TRACE')
+    # Content += Core.PluginHelper.TransactionTableForURL(
+    #    True,
+    #    PUT_URL,
+    #    Method='PUT',
+    #    Data=get_random_str(15))
+    resource = ServiceLocator.get_component("resource")
+    Content += plugin_helper.CommandDump(
+        'Test Command',
+        'Output',
+        resource.GetResources('ActiveHTTPMethods'),
+        PluginInfo,
+        Content)
     return Content
-

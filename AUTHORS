@@ -1,4 +1,4 @@
-OWASP OWTF was initially conceived and started from August 2011 by Abraham 
+OWASP OWTF was initially conceived and started from August 2011 by Abraham
 Aranguren, as a personal project. The project was first presented publicly at
 the BerlinSides conference in December 2011 and was released, as an open source
 project, one week later in January 2012. It was named as OWTF then became OWASP
@@ -29,9 +29,10 @@ OWASP OWTF much better:
  * Mennouchi Islam Azeddine @islamoc
  * Michael Kohl @citizen428
  * Nicolas Gégoire @Agarri_FR - http://www.agarri.com
- * @notracecc 
+ * @notracecc
  * Robert Hansen @RSNake
  * Sandro Gauci @sandrogauci - http://www.enablesecurity.com
+ * Viyat Bhalodia @viyat - http://delta24.github.io
  * Xavier Mertens @xme - http://blog.rootshell.be
 
 
@@ -39,9 +40,9 @@ A big THANK YOU goes to:
   * The fabolous OWASP community who took OWTF onboard, helped out in general
     and also provided the platform to further assist OWASP OWTF through the
     Google Summer of Code program - https://www.owasp.org
-    
+
   * Google for offering sponsoring for many opensource projects, such as OWASP OWTF,
     under the umbrella of the Google Summer of Code - https://google-melange.appspot.com
-  
+
   * Brucon for kindly giving away funds to support open-source initiatives such
     as OWASP OWTF - http://brucon.org http://blog.brucon.org/2013/02/the-5by5-race-is-on.html

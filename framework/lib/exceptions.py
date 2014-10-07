@@ -60,6 +60,10 @@ class InvalidTargetReference(FrameworkException):
     pass
 
 
+class InvalidSessionReference(FrameworkException):
+    pass
+
+
 class InvalidTransactionReference(FrameworkException):
     pass
 
@@ -69,6 +73,14 @@ class InvalidParameterType(FrameworkException):
 
 
 class InvalidWorkerReference(FrameworkException):
+    pass
+
+
+class InvalidErrorReference(FrameworkException):
+    pass
+
+
+class InvalidWorkReference(FrameworkException):
     pass
 
 

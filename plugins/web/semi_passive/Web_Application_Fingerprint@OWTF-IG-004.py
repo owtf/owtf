@@ -35,21 +35,12 @@ import cgi
 
 DESCRIPTION = "Normal requests to gather fingerprint info"
 
-
 def run(PluginInfo):
-    # ServiceLocator.get_component("config").Show()
+    #Core.Config.Show()
     # True = Use Transaction Cache if possible: Visit the start URLs if not already visited
     plugin_helper = ServiceLocator.get_component("plugin_helper")
-    TransactionTable = plugin_helper.TransactionTableForURLList(True,
-                                                                ServiceLocator.get_component(
-                                                                    "target").GetAsList(
-                                                                    ['TARGET_URL',
-                                                                     'TOP_URL']))
+    TransactionTable = plugin_helper.TransactionTableForURLList(True, ServiceLocator.get_component("target").GetAsList(['target_url', 'top_url'])) 
     Content = plugin_helper.ResearchFingerprintInlog() + TransactionTable
-    Content += plugin_helper.CommandDump('Test Command', 'Output',
-                                         ServiceLocator.get_component(
-                                             "resource").GetResources(
-                                             'SemiPassiveFingerPrint'), PluginInfo,
-                                         Content)
+    Content += plugin_helper.CommandDump('Test Command', 'Output', ServiceLocator.get_component("resource").GetResources('SemiPassiveFingerPrint'), PluginInfo, Content)
     return Content
 

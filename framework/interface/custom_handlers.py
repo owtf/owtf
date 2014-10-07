@@ -12,6 +12,7 @@ from framework.dependency_management.dependency_resolver import BaseComponent
 
 
 class APIRequestHandler(tornado.web.RequestHandler, BaseComponent):
+
     def write(self, chunk):
         if isinstance(chunk, list):
             super(APIRequestHandler, self).write(json.dumps(chunk))

@@ -54,15 +54,17 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
 
     def __init__(self):
         self.register_in_service_locator()
-        self.Core = None
-        self.db = self.get_component("db")
-        self.db_error = self.get_component("db_error")
         self.config = self.get_component("config")
+        self.Core = None
+        self.db = None
+        self.db_error = None
         self.Padding = "\n" + "_" * self.PaddingLength + "\n\n"
         self.SubPadding = "\n" + "*" * self.PaddingLength + "\n"
 
     def init(self):
         self.Core = self.get_component("core")
+        self.db = self.get_component("db")
+        self.db_error = self.get_component("db_error")
 
     def SetCommand(self, command):
         self.Command = command
@@ -70,7 +72,8 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
     def FrameworkAbort(self, message, report=True):
         message = "Aborted by Framework: " + message
         cprint(message)
-        self.Core.Finish(message, report)
+        if self.Core is not None:
+            self.Core.Finish(message, report)
         return message
 
     def get_option_from_user(self, options):

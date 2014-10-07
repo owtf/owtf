@@ -48,8 +48,8 @@ class ConfigTests(BaseTestCase):
         method_backup = self.config.Get
 
         def fake_get(key):
-            if key == "HOST_IP": return "127.0.0.1"
-            elif key == "PORT_NUMBER": return "80"
+            if key == "host_ip": return "127.0.0.1"
+            elif key == "port_number": return "80"
             elif key == "OUTPUT_PATH": return "some/path"
         self.config.Get = fake_get
 
@@ -106,25 +106,25 @@ class ConfigTests(BaseTestCase):
 
         self.config.DeriveURLSettings(target, options)
 
-        assert_that(config_property_is_defined("TARGET_URL"))
-        assert_that(config_property_is_defined("HOST_PATH"))
-        assert_that(config_property_is_defined("URL_SCHEME"))
-        assert_that(config_property_is_defined("PORT_NUMBER"))
-        assert_that(config_property_is_defined("HOST_NAME"))
-        assert_that(config_property_is_defined("HOST_IP"))
-        assert_that(config_property_is_defined("IP_URL"))
-        assert_that(config_property_is_defined("TOP_DOMAIN"))
+        assert_that(config_property_is_defined("target_url"))
+        assert_that(config_property_is_defined("host_path"))
+        assert_that(config_property_is_defined("url_scheme"))
+        assert_that(config_property_is_defined("port_number"))
+        assert_that(config_property_is_defined("host_name"))
+        assert_that(config_property_is_defined("host_ip"))
+        assert_that(config_property_is_defined("ip_url"))
+        assert_that(config_property_is_defined("top_domain"))
 
     def test_DeriveOutputSettingsFromURL_sets_output_settings(self):
-        self.config.Set("HOST_IP", "127.0.0.1")
-        self.config.Set("PORT_NUMBER", "80")
+        self.config.Set("host_ip", "127.0.0.1")
+        self.config.Set("port_number", "80")
 
         self.config.DeriveOutputSettingsFromURL("http://localhost")
 
-        assert_that(config_property_is_defined("HOST_OUTPUT"))
-        assert_that(config_property_is_defined("PORT_OUTPUT"))
-        assert_that(config_property_is_defined("URL_OUTPUT"))
-        assert_that(config_property_is_defined("PARTIAL_URL_OUTPUT_PATH"))
+        assert_that(config_property_is_defined("host_output"))
+        assert_that(config_property_is_defined("port_output"))
+        assert_that(config_property_is_defined("url_output"))
+        assert_that(config_property_is_defined("partial_url_output_path"))
         assert_that(config_property_is_defined("PARTIAL_REPORT_REGISTER"))
         assert_that(config_property_is_defined("HTML_DETAILED_REPORT_PATH"))
         assert_that(config_property_is_defined("URL_REPORT_LINK_PATH"))

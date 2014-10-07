@@ -33,6 +33,7 @@ from framework.dependency_management.interfaces import CommandRegisterInterface
 
 from framework.lib.general import cprint
 from framework.db import models
+from framework.db.target_manager import target_required
 
 class CommandRegister(BaseComponent, CommandRegisterInterface):
 
@@ -42,40 +43,42 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
         self.register_in_service_locator()
         self.config = self.get_component("config")
         self.db = self.get_component("db")
-        self.CommandRegisterSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("CREGISTER_DB_PATH"), models.RegisterBase)
+        self.plugin_output = None
+        self.target = None
+
+    def init(self):
+        self.target = self.get_component("target")
+        self.plugin_output = self.get_component("plugin_output")
 
     def AddCommand(self, Command):
-        session = self.CommandRegisterSession()
-        session.merge(models.Command(
-                                        start = Command['Start'],
-                                        end = Command['End'],
-                                        run_time = Command['RunTime'],
-                                        success = Command['Success'],
-                                        target = Command['Target'],
-                                        modified_command = Command['ModifiedCommand'].strip(),
-                                        original_command = Command['OriginalCommand'].strip()
-                                    ))
-        session.commit()
-        session.close()
+        self.db.session.merge(models.Command(
+            start_time=Command['Start'],
+            end_time=Command['End'],
+            success=Command['Success'],
+            target_id=Command['Target'],
+            plugin_key=Command['PluginKey'],
+            modified_command=Command['ModifiedCommand'].strip(),
+            original_command=Command['OriginalCommand'].strip()
+        ))
+        self.db.session.commit()
 
     def DeleteCommand(self, Command):
-        session = self.CommandRegisterSession()
-        command_obj = session.query(models.Command).get(Command)
-        session.delete(command_obj)
-        session.commit()
-        session.close()
+        command_obj = self.db.session.query(models.Command).get(Command)
+        self.db.session.delete(command_obj)
+        self.db.session.commit()
 
-    def CommandAlreadyRegistered(self, original_command, Target = None):
-        session = self.CommandRegisterSession()
-        register_entry = session.query(models.Command).get(original_command)
-        if register_entry and register_entry.success:
-            if register_entry.success:
+    @target_required
+    def CommandAlreadyRegistered(self, original_command, target_id=None):
+        register_entry = self.db.session.query(models.Command).get(original_command)
+        if register_entry:
+            # If the command was completed and the plugin output to which it
+            # is referring exists
+            if register_entry.success and \
+                    self.plugin_output.PluginOutputExists(
+                        register_entry.plugin_key, register_entry.target_id):
+                return self.target.GetTargetURLForID(
+                    register_entry.target_id)
+            else:  # Either command failed or plugin output doesn't exist
                 self.DeleteCommand(original_command)
-            return self.db.Target.GetTargetURLForID(register_entry.target)
+            return self.target.GetTargetURLForID(register_entry.target)
         return None
-
-    def RemoveForTarget(self, Target):
-        session = self.CommandRegisterSession()
-        session.query(models.Command).filter_by(target = Target).delete()
-        session.commit()
-        session.close()

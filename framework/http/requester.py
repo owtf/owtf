@@ -331,12 +331,13 @@ class Requester(BaseComponent, RequesterInterface):
     def RestoreHeaders(self):
         self.Headers = dict.copy(self.HeadersBackup)
 
-    def GetTransaction(self, use_cache, url, method='', data=''):
-        criteria = {
-            'url': url.strip(),
-            'method': method,
-            # Must clean-up data to ensure match is found.
-            'data': self.DerivePOSTToStr(data)}
+    def GetTransaction(self, use_cache, url, method=None, data=None):
+        criteria = {'url': url.strip()}
+        if method is not None:
+            criteria['method'] = method
+        # Must clean-up data to ensure match is found.
+        if data is not None:
+            criteria['data'] = self.DerivePOSTToStr(data)
         # Visit URL if not already visited.
         if (not use_cache or not
                 self.transaction.IsTransactionAlreadyAdded(criteria)):
@@ -354,8 +355,8 @@ class Requester(BaseComponent, RequesterInterface):
     def GetTransactions(self,
                         use_cache,
                         url_list,
-                        method='',
-                        data='',
+                        method=None,
+                        data=None,
                         unique=True):
         transactions = []
         if unique:
@@ -372,6 +373,6 @@ class Requester(BaseComponent, RequesterInterface):
             transactions.append(self.GetTransaction(
                 use_cache,
                 url,
-                method,
-                data))
+                method=method,
+                data=data))
         return transactions

@@ -34,8 +34,8 @@ checking that tool paths exist.
 
 import os
 from framework.dependency_management.dependency_resolver import BaseComponent
+import logging
 
-from framework.lib.general import cprint
 
 
 class HealthCheck(BaseComponent):
@@ -51,6 +51,8 @@ class HealthCheck(BaseComponent):
     def __init__(self):
         self.config = self.get_component("config")
         self.error_handler = self.get_component("error_handler")
+        self.db_config = self.get_component("db_config")
+        self.run()
 
     def run(self):
         count = self.count_not_installed_tools()
@@ -59,19 +61,19 @@ class HealthCheck(BaseComponent):
     def count_not_installed_tools(self):
         """Count the number of missing tools by checking their paths."""
         count = 0
-        for key, value in self.config.GetConfig():
-            setting = self.config.StripKey(key)
-            if self.is_tool(setting) and not self.is_installed(value):
-                cprint("WARNING: Tool path not found for: " + str(value))
+        tool_settings = self.db_config.GetAllTools()
+        for tool_setting in tool_settings:
+            if self.is_tool(tool_setting['key']) and not self.is_installed(tool_setting['value']):
+                logging.error("WARNING: Tool path not found for: " + str(tool_setting['value']))
                 count += 1
         return count
 
-    @classmethod
-    def is_tool(cls, setting):
+    @staticmethod
+    def is_tool(setting):
         return setting.startswith('TOOL_')
 
-    @classmethod
-    def is_installed(cls, value):
+    @staticmethod
+    def is_installed(value):
         return os.path.exists(value)
 
     def show_help(self, count):
@@ -81,19 +83,16 @@ class HealthCheck(BaseComponent):
             self.print_success()
 
     def print_warning(self, count):
-        cprint("")
-        cprint(
+        logging.info(
             "WARNING!!!: " +
             str(count) +
             " tools could not be found. Some suggestions:")
-        cprint(
-            " - Define where your tools are here: " +
-            str(self.config.Profiles['g']))
-        if (self.config.Get('INTERACTIVE') and
-                'n' == raw_input("Continue anyway? [Y/n]")):
+        logging.info(
+            " - You can define your tool paths from the interface as well ")
+        if ('n' == raw_input("Continue anyway? [Y/n]")):
             self.error_handler.FrameworkAbort("Aborted by user")
 
-    @classmethod
-    def print_success(cls):
-        return cprint(
+    @staticmethod
+    def print_success():
+        logging.info(
             "SUCCESS: Integrity Check successful -> All tools were found")

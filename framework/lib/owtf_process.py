@@ -45,6 +45,7 @@ class OWTFProcess(Process, BaseComponent):
         please give a call to super() and make sure you run this
         """
         self.core = self.get_component("core")  # Attach core
+        self.db = self.get_component("db")
         self.plugin_handler = self.get_component("plugin_handler")
         self.poison_q = Queue()
         self._process = None
@@ -70,6 +71,8 @@ class OWTFProcess(Process, BaseComponent):
         + Set proper logger with file handler and Formatter
         + Launch process specific code
         """
+        # ------ DB Reinitialization ------ #
+        self.db.create_session()
         # ------ Logging initialization ------ #
         self.core.enable_logging()
         # - Finally run process specific code - #

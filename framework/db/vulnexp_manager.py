@@ -16,7 +16,6 @@ class VulnexpDB(BaseComponent, VulnexpDBInterface):
         self.register_in_service_locator()
         self.config = self.get_component("config")
         self.db = self.get_component("db")
-        self.VulnexpDBSession = self.db.CreateScopedSession(self.GetDBPath(), models.VulnexpBase)
 
     def GetDBPath(self):
         path = self.config.FrameworkConfigGet("EXPLANATIONS_DATABASE_PATH")

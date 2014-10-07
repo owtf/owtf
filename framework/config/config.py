@@ -73,10 +73,12 @@ class Config(BaseComponent, ConfigInterface):
         self.error_handler = None
         self.target = None
         self.Config = None
+        self.db_plugin = None
+        self.worklist_manager = None
         self.initialize_attributes()
         # key can consist alphabets, numbers, hyphen & underscore.
         self.SearchRegex = re.compile(
-            REPLACEMENT_DELIMITER + '([A-Z0-9-_]*?)' + REPLACEMENT_DELIMITER)
+            REPLACEMENT_DELIMITER + '([a-zA-Z0-9-_]*?)' + REPLACEMENT_DELIMITER)
         # Available profiles = g -> General configuration, n -> Network plugin
         # order, w -> Web plugin order, r -> Resources file
         self.initialize_attributes()
@@ -90,6 +92,9 @@ class Config(BaseComponent, ConfigInterface):
         self.resource = self.get_component("resource")
         self.error_handler = self.get_component("error_handler")
         self.target = self.get_component("target")
+        self.db_plugin = self.get_component("db_plugin")
+        self.worklist_manager = self.get_component("worklist_manager")
+
 
     def initialize_attributes(self):
         self.Config = defaultdict(list)  # General configuration information.
@@ -129,7 +134,30 @@ class Config(BaseComponent, ConfigInterface):
 
     def ProcessOptions(self, options):
         self.LoadProfiles(options['Profiles'])
-        self.LoadTargets(options)
+        target_urls = self.LoadTargets(options)
+        self.LoadWork(options, target_urls)
+
+    def LoadWork(self, options, target_urls):
+        """
+        Add plugins and targets to worklist
+        """
+        if len(target_urls) != 0:
+            targets = self.target.GetTargetConfigs({
+                "target_url": target_urls})
+            if options["OnlyPlugins"] is None:
+                filter_data = {
+                    "type": options["PluginType"],
+                    "group": options["PluginGroup"],
+                }
+            else:
+                filter_data = {"code": options["OnlyPlugins"]}
+            plugins = self.db_plugin.GetAll(filter_data)
+            force_overwrite = options["Force_Overwrite"]
+            self.worklist_manager.add_work(
+                targets,
+                plugins,
+                force_overwrite=force_overwrite)
+
 
     def LoadProfiles(self, profiles):
         # This prevents python from blowing up when the Key does not exist :)
@@ -140,13 +168,16 @@ class Config(BaseComponent, ConfigInterface):
 
     def LoadTargets(self, options):
         scope = self.PrepareURLScope(options['Scope'], options['PluginGroup'])
+        added_targets = []
         for target in scope:
             try:
                 self.target.AddTarget(target)
+                added_targets.append(target)
             except DBIntegrityException:
                 cprint(target + " already exists in DB")
             except UnresolvableTargetException as e:
                 cprint(e.parameter)
+        return(added_targets)
 
     def PrepareURLScope(self, scope, group):
         """Convert all targets to URLs."""
@@ -214,7 +245,7 @@ class Config(BaseComponent, ConfigInterface):
     def DeriveConfigFromURL(self, target_URL):
         target_config = dict(target_manager.TARGET_CONFIG)
         # Set the target in the config.
-        target_config['TARGET_URL'] = target_URL
+        target_config['target_url'] = target_URL
         # TODO: Use urlparse here.
         parsed_URL = urlparse(target_URL)
         URL_scheme = parsed_URL.scheme
@@ -228,50 +259,50 @@ class Config(BaseComponent, ConfigInterface):
         host = parsed_URL.hostname
         host_path = parsed_URL.hostname + parsed_URL.path
         # Needed for google resource search.
-        target_config['HOST_PATH'] = host_path
+        target_config['host_path'] = host_path
         # Some tools need this!
-        target_config['URL_SCHEME'] = URL_scheme
+        target_config['url_scheme'] = URL_scheme
         # Some tools need this!
-        target_config['PORT_NUMBER'] = port
+        target_config['port_number'] = port
         # Set the top URL.
-        target_config['HOST_NAME'] = host
+        target_config['host_name'] = host
 
         host_IP = self.GetIPFromHostname(host)
         host_IPs = self.GetIPsFromHostname(host)
-        target_config['HOST_IP'] = host_IP
-        target_config['ALTERNATIVE_IPS'] = host_IPs
+        target_config['host_ip'] = host_IP
+        target_config['alternative_ips'] = host_IPs
 
-        IP_URL = target_config['TARGET_URL'].replace(host, host_IP)
-        target_config['IP_URL'] = IP_URL
-        target_config['TOP_DOMAIN'] = target_config['HOST_NAME']
+        ip_url = target_config['target_url'].replace(host, host_IP)
+        target_config['ip_url'] = ip_url
+        target_config['top_domain'] = target_config['host_name']
 
-        hostname_chunks = target_config['HOST_NAME'].split('.')
+        hostname_chunks = target_config['host_name'].split('.')
         if self.IsHostNameNOTIP(host, host_IP) and len(hostname_chunks) > 2:
             # Get "example.com" from "www.example.com"
-            target_config['TOP_DOMAIN'] = '.'.join(hostname_chunks[1:])
+            target_config['top_domain'] = '.'.join(hostname_chunks[1:])
         # Set the top URL.
-        target_config['TOP_URL'] = protocol + "://" + host + ":" + port
+        target_config['top_url'] = protocol + "://" + host + ":" + port
         return target_config
 
     def DeriveOutputSettingsFromURL(self, target_URL):
         # Set the output directory.
         self.Set(
-            'HOST_OUTPUT',
-            self.Get('OUTPUT_PATH') + "/" + self.Get('HOST_IP'))
+            'host_output',
+            self.Get('OUTPUT_PATH') + "/" + self.Get('host_ip'))
         # Set the output directory.
         self.Set(
-            'PORT_OUTPUT',
-            self.Get('HOST_OUTPUT') + "/" + self.Get('PORT_NUMBER'))
+            'port_output',
+            self.Get('host_output') + "/" + self.Get('port_number'))
         URL_info_ID = target_URL.replace('/','_').replace(':','')
         # Set the URL output directory (plugins will save their data here).
         self.Set(
-            'URL_OUTPUT',
-            self.Get('PORT_OUTPUT') + "/" + URL_info_ID + "/")
+            'url_output',
+            self.Get('port_output') + "/" + URL_info_ID + "/")
         # Set the partial results path.
-        self.Set('PARTIAL_URL_OUTPUT_PATH', self.Get('URL_OUTPUT')+'partial')
+        self.Set('partial_url_output_path', self.Get('url_output')+'partial')
         self.Set(
             'PARTIAL_REPORT_REGISTER',
-            self.Get('PARTIAL_URL_OUTPUT_PATH') + "/partial_report_register.txt")
+            self.Get('partial_url_output_path') + "/partial_report_register.txt")
 
         # Tested in FF 8: Different directory = Different localStorage!! -> All
         # localStorage-dependent reports must be on the same directory.
@@ -287,12 +318,12 @@ class Config(BaseComponent, ConfigInterface):
             self.Get('OUTPUT_PATH') + "/index.html")
 
         if not self.Get('SIMULATION'):
-            FileOperations.create_missing_dirs(self.Get('HOST_OUTPUT'))
+            FileOperations.create_missing_dirs(self.Get('host_output'))
 
         # URL Analysis DBs
         # URL DBs: Distintion between vetted, confirmed-to-exist, in
         # transaction DB URLs and potential URLs.
-        self.InitHTTPDBs(self.Get('URL_OUTPUT'))
+        self.InitHTTPDBs(self.Get('url_output'))
 
     def DeriveDBPathsFromURL(self, target_URL):
         targets_folder = os.path.expanduser(self.Get('TARGETS_DB_FOLDER'))
@@ -348,7 +379,7 @@ class Config(BaseComponent, ConfigInterface):
                 hostname + " has several IP addresses: (" +
                 ", ".join(ipchunks)[0:-3] + "). Choosing first: " + ip + "")
             alternative_IPs = ipchunks[1:]
-        self.Set('ALTERNATIVE_IPS', alternative_IPs)
+        self.Set('alternative_ips', alternative_IPs)
         ip = ip.strip()
         self.Set('INTERNAL_IP', NetworkOperations.is_ip_internal(ip))
         cprint("The IP address for " + hostname + " is: '" + ip + "'")
@@ -497,7 +528,7 @@ class Config(BaseComponent, ConfigInterface):
     def GetOutputDirForTarget(self, target_URL):
         return os.path.join(
             self.GetOutputDirForTargets(),
-            target_URL.replace("/", "_").replace(":", ""))
+            target_URL.replace("/", "_").replace(":", "").replace("#", ""))
 
     def CreateOutputDirForTarget(self, target_URL):
         FileOperations.create_missing_dirs(self.GetOutputDirForTarget(target_URL))

@@ -1,5 +1,3 @@
-from framework.utils import OWTFLogger
-from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -27,25 +25,35 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Robots.txt semi-passive plugin, parses robots.txt file to generate on-screen links and save them for later spidering and analysis
+Robots.txt semi-passive plugin, parses robots.txt file to generate on-screen
+links and save them for later spidering and analysis
 """
-import re, cgi,logging
+import re
+import cgi
+import logging
+
+from framework.utils import OWTFLogger
+from framework.dependency_management.dependency_resolver import ServiceLocator
 
 DESCRIPTION = "Normal request for robots.txt analysis"
 
+
 def run(PluginInfo):
-
-    TopURL = ServiceLocator.get_component("target").Get('TOP_URL')
-    URL = TopURL+"/robots.txt"
-    # TODO: Check the below line's necessity
-    #TestResult = ServiceLocator.get_component("reporter").Render.DrawButtonLink(URL, URL)
-    TestResult = []
-    HTTP_Transaction = ServiceLocator.get_component("requester").GetTransaction(True, URL) # Use transaction cache if possible for speed
     plugin_helper = ServiceLocator.get_component("plugin_helper")
+    target = ServiceLocator.get_component("target")
+    requester = ServiceLocator.get_component("requester")
+    TopURL = target.Get('top_url')
+    URL = TopURL+"/robots.txt"
+    TestResult = []
+    # Use transaction cache if possible for speed
+    HTTP_Transaction = requester.GetTransaction(True, URL)
     if HTTP_Transaction.Found:
-        TestResult += plugin_helper.ProcessRobots(PluginInfo, HTTP_Transaction.GetRawResponseBody(), TopURL, '')
-    else: # robots.txt NOT found
-	OWTFLogger.log("robots.txt was NOT found")
-    TestResult += plugin_helper.TransactionTable([ HTTP_Transaction ])
+        TestResult += plugin_helper.ProcessRobots(
+            PluginInfo,
+            HTTP_Transaction.GetRawResponseBody(),
+            TopURL,
+            '')
+    else:  # robots.txt NOT found
+        OWTFLogger.log("robots.txt was NOT found")
+        TestResult += plugin_helper.TransactionTableForURLList(True, [URL])
     return TestResult
-

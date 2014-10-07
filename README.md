@@ -1,50 +1,129 @@
-Intro
------
-The purpose of this tool is to automate the manual, uncreative part of pen testing: For example, spending time trying to remember how to call "tool X", parsing results of "tool X" manually to feed "tool Y", etc.
+[![Code Health](https://landscape.io/github/owtf/owtf/lions_2014/landscape.png)](https://landscape.io/github/owtf/owtf/lions_2014)
 
-By reducing this burden I hope pen testers will have more time to:
+Intro
+===
+
+**OWTF** aims to make pen testing:
+
+- Aligned with **OWASP Testing Guide** + **PTES** + **NIST**
+- More ***efficient***
+- More ***comprehensive***
+- More *creative and fun* (minimise un-creative work)
+
+so that pentesters will have more time to
+
 - See the big picture and think out of the box
-- More efficiently find, verify and combine vulnerabilities 
+- More efficiently find, verify and combine vulnerabilities
 - Have time to investigate complex vulnerabilities like business logic/architectural flaws or virtual hosting sessions
 - Perform more tactical/targeted fuzzing on seemingly risky areas
 - Demonstrate true impact despite the short timeframes we are typically given to test.
 
-Some features like the passive and semi_passive test separation may also assist pen testers wishing to go the extra mile to get a head start and maybe even legitimately start report writing or preparing attacks before they are given the green light to test.
 
-The tool is highly configurable and anybody can trivially create simple plugins or add new tests in the configuration files without having any development experience. Please share your tests with the community! :)
+The tool is highly configurable and anybody can trivially create simple plugins or add new tests in the configuration files without having any development experience.
 
-This tool is however not a silverbullet and will only be as good as the person using it: Understanding and experience will be required to correctly interpret tool output and decide what to investigate further in order to demonstrate impact.
+> Please share your plugins/tests with the community! :)
+
+> **Note**: This tool is however not a **silverbullet** and will only be as good as the   person using it: Understanding and experience will be required to correctly interpret tool output and decide what to investigate further in order to demonstrate impact.
+
 
 Features
---------
-- OWASP Testing Guide-oriented: owtf will try to classify the findings as closely as possible to the OWASP Testing Guide
-- Report updated on the fly: As soon as each plugin finishes or sometimes before (i.e. after each vulnerability scanner finishes)
-- "Scumbag spidering": Instead of implementing yet another spider (a hard job), owtf will scrub the output of all tools/plugins run to gather as many URLs as possible. This is somewhat "cheating" but tremendously effective since it combines the results of different tools, including several tools that perform brute forcing of files and directories.
-- Resilience: If one tool crashes owtf will move on to the next tool/test, saving the partial output of the tool until it crashed
-- Easy to configure: config files are easy to read and modify
-- Easy to run: No strange parameters, DB setup requirements, libraries, complex dependencies, etc
-- Full control of what tests to run, interactivity and hopefully easy to follow examples and help :)
-- Easy to review trasaction log and plain text files with URLs, simple for scripting
-- Basic Google Hacking without (annoying) API Key requirements via "blanket searches", trying a bunch of operators at once, you can then narrow the search down if you find something interesting.
-- Easy to extract data from the database to parse or pass to other tools: They are all text files
+===
+
+**OWTF** uses "*Scumbag spidering*", ie. instead of implementing yet another spider ([a hard job](http://w3af.org/dont-write-your-own-web-application-security-scanner)), **OWTF** will scrub the output of all tools/plugins run to gather as many URLs as possible.
+
+> This is somewhat "cheating" but tremendously effective since it combines the results of different tools, including several tools that perform brute forcing of files and directories.
+
+##### Resilience
+
+If one tool crashes **OWTF**,  will move on to the next tool/test, saving the partial output of the tool until it crashed. **OWTF** also allow you to monitor worker processes and estimated plugin runtimes.
+
+##### Flexibilty
+If your internet connectivity or the target host goes down during an assessment, you can ***pause*** the relevant worker processes and **resume** them later avoiding losing data to little as possible.
+
+----
+
+### Tests Separation
+
+**OWTF** separates its traffic to the target into mainly 3 types of plugins:
+
+- **Passive** : No traffic goes to the target
+
+- **Semi Passive** : Normal traffic to target
+
+- **Active**:  Direct vulnerability probing
+
+Some features like the *passive* and *semi_passive* **test separation** may also assist pen testers wishing to go the extra mile to get a head start and maybe even legitimately start report writing or preparing attacks before they are given the green light to test.
+
+-----
+
+### Easy to use APIs
+
+OWTF uses **PostgreSQL** as the database backend. All core **OWTF** functions and options are exposed through APIs making it easy to add new features with little overhead.
+
+----
+
+### Follows popular pen-testing standards
+
+**OWTF** will try to classify the findings as closely as possible to the **OWASP Testing Guide**. It also supports the **NIST** and the **PTES** standards.
+
+**PlugnHack v2 support** :  **PlugnHack** is a *proposed* standard from the **Mozilla** security team for defining how security tools can interact with browsers in a more useful and usable way.
+
+**Zest and OWASP-ZAP integration** : **Zest** is an experimental specialized *scripting language* (domain-specific ) developed by the **Mozilla** security team and is intended to be used in web oriented security tools.
+
+----
+### Responsive web interface
+
+**OWTF** now has a default web interface which integrates all core **OWTF** options and makes it possible to manage large pentests easily.
+
+- The web interface is built on **Twitter Bootstrap**, making it very easy to use and customize.
+
+- The default configuration can be changed easily from the browser.
+
+- Makes it easy to control worker processes and see the estimated run times for each plugin run.
+
+- Manage a large number of target URLs easily
+
+- **Searchable** transactions and URL *logs*.
+
+----
+### Interactive report updated on the fly:
+
+- As soon as each plugin finishes or sometimes before (i.e. after each vulnerability scanner finishes), the report is updated **asynchronously** through the *OWTF APIs*.
+
+- **Automated** plugin rankings from the tool output, fully configurable by the user.
+
+-  **Configurable** risk rankings
+
+- **In-line notes  editor** for each plugin.
 
 Requirements
-------------
-- Linux (any Ubuntu derivative should work just fine) and python 2.6.5 or greater
-- Latest Kali version not required but helpful (almost 0 setup time)
-- You do NOT have to have all tools installed: owtf will move on with an error for the missing tools
+===
+
+Currently, **OWTF** is developed and is supported on **Linux**, with out-of-box support for the **Kali Linux** and **Samurai-WTF**.
+
+**OWTF** has been developed for *Python 2.7*, and therefore it **may** not run <u>as intended</u> on older *Python* versions.
+
+For more information on third-party library requirements, please refer to the [requirements](https://github.com/owtf/owtf/blob/e8270f2b26e6846366dda9b622c694fa9342e1bf/install/owtf.pip).
 
 Installation
-------------
-- Clone owtf repo using git => git clone https://github.com/owtf/owtf
-- You may also want to run install/install.py
-- Check out Wiki for more help
+===
 
-FAQ
----
-Q - What are the OWASP Codes "OWASP-WU-..."
-A - Those are just fake OWASP Codes to uniquely identify owtf plugins that do not correspond to any OWASP test. For example:
-OWASP-WU-SPID - Only visits gathered links to feed other plugins
-OWASP-WU-VULN - This runs all configured vulnerability scanners, the findings will correspond to different OWASP Codes but they must be run from 1 plugin only performing all tests for efficiency and simplicity
+Recommended:
 
+```
+wget https://raw.githubusercontent.com/owtf/bootstrap-script/master/bootstrap.sh; chmod +x bootstrap.sh; ./bootstrap.sh
+```
 
+or simply clone the latest version of **OWTF**.
+
+Check out the [wiki](https://github.com/owtf/owtf/wiki/OWASP-OWTF-Installation) for more information.
+
+Links
+===
+
+- [Project homepage](http://owtf.github.io/)
+- [Wiki](https://www.owasp.org/index.php/OWASP_OWTF)
+- [User Documentation](http://docs.owtf.org/en/latest/)
+- [Youtube channel](https://www.youtube.com/user/owtfproject)
+- [Slideshare](http://www.slideshare.net/abrahamaranguren/presentations)
+- [Blog](http://blog.7-a.org/search/label/OWTF)

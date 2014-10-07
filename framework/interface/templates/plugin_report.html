@@ -20,7 +20,7 @@
                     <ul class="nav nav-tabs">
                         <li class="brand disabled"><a class="btn" disabled="disabled">Type:</a></li>
                         {% for poutput in poutput_list %}
-                        {% set pkey = poutput['key'].replace('@', '_') %}
+                        {% set pkey = poutput['plugin_type'] + '_' + poutput['plugin_code'] %}
                         <li>
                             <a id="tab_{{ pkey }}" href="#{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}" data-toggle="tab">
                                 {{ poutput['plugin_type'].replace('_',' ') }}
@@ -32,7 +32,7 @@
                     <br />
                     <div class="tab-content">
                         {% for poutput in poutput_list %}
-                        {% set pkey = poutput['key'].replace('@', '_') %}
+                        {% set pkey = poutput['plugin_type'] + '_' + poutput['plugin_code'] %}
                         <div class="tab-pane" id="{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}">
                             <div class="pull-left" data-toggle="buttons-checkbox">
                                 <blockquote><h4>{{ poutput['plugin_type'].replace('_',' ').capitalize() }}</h4><small>{{ poutput['plugin_code'] }}</small></blockquote>
@@ -41,12 +41,12 @@
                                 {# TODO: Update highlights when toggled/untoggled. #}
                                 {% set user_rank = poutput['user_rank'] %}
                                 {% if user_rank in [0, 1, 2, 3, 4, 5] %}
-                                <label id="{{ pkey }}_0" class="btn {% if user_rank == 0 %}active{% end %}" title="No risk"><input type="radio" id="0" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
-                                <label id="{{ pkey }}_1" class="btn {% if user_rank == 1 %}active btn-success{% end %}" title="Informational risk"><input type="radio" id="1" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-info-circle"></i></label>
-                                <label id="{{ pkey }}_2" class="btn {% if user_rank == 2 %}active btn-info{% end %}" title="Low risk"><input type="radio" id="2" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-exclamation-circle"></i></label>
-                                <label id="{{ pkey }}_3" class="btn {% if user_rank == 3 %}active btn-warning{% end %}" title="Medium risk"><input type="radio" id="3" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-warning"></i></label>
-                                <label id="{{ pkey }}_4" class="btn {% if user_rank == 4 %}active btn-danger{% end %}" title="High risk"><input type="radio" id="4" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '4');"/><i class="fa fa-bell"></i></label>
-                                <label id="{{ pkey }}_5" class="btn {% if user_rank == 5 %}active btn-critical{% end %}" title="Critical risk"><input type="radio" id="5" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '5');"/><i class="fa fa-bomb"></i></label>
+                                <label id="{{ pkey }}_0" class="btn {% if user_rank == 0 %}active{% end %}" title="No"><input type="radio" id="0" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
+                                <label id="{{ pkey }}_1" class="btn {% if user_rank == 1 %}active btn-success{% end %}" title="Informational"><input type="radio" id="1" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-info-circle"></i></label>
+                                <label id="{{ pkey }}_2" class="btn {% if user_rank == 2 %}active btn-info{% end %}" title="Low"><input type="radio" id="2" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-exclamation-circle"></i></label>
+                                <label id="{{ pkey }}_3" class="btn {% if user_rank == 3 %}active btn-warning{% end %}" title="Medium"><input type="radio" id="3" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-warning"></i></label>
+                                <label id="{{ pkey }}_4" class="btn {% if user_rank == 4 %}active btn-danger{% end %}" title="High"><input type="radio" id="4" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '4');"/><i class="fa fa-bell"></i></label>
+                                <label id="{{ pkey }}_5" class="btn {% if user_rank == 5 %}active btn-critical{% end %}" title="Critical"><input type="radio" id="5" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '5');"/><i class="fa fa-bomb"></i></label>
                                 {% else %}
                                 {% set owtf_rank = poutput['owtf_rank'] %}
                                 <label id="{{ pkey }}_0" class="btn {% if user_rank == 0 %}active{% end %}"><input type="radio" id="0" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
@@ -55,13 +55,13 @@
                                 <label id="{{ pkey }}_3" class="btn {% if owtf_rank == 3 %}active btn-warning" style="opacity: 0.7{% end %}"><input type="radio" id="3" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-warning"></i></label>
                                 <label id="{{ pkey }}_4" class="btn {% if owtf_rank == 4 %}active btn-danger" style="opacity: 0.7{% end %}"><input type="radio" id="4" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '4');"/><i class="fa fa-bell"></i></label>
                                 <label id="{{ pkey }}_5" class="btn {% if user_rank == 5 %}active btn-critical{% end %}"><input type="radio" id="5" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '5');"/><i class="fa fa-bomb"></i></label>
-			    	{% end %}
+			    	            {% end %}
                             </div>
                             <br />
                             <br />
-			    <br />
-		  	    <br />
-			    {% raw html[poutput["plugin_code"]] %}
+            			    <br />
+            		  	    <br />
+            			    {# raw html[poutput["plugin_code"]] #}
                             <table class="table table-bordered table-striped table-hover">
                                 <thead>
                                     <tr>
@@ -71,7 +71,7 @@
                                         {% if poutput['output_path'] %}
                                             <th> OUTPUT FILES </th>
                                         {% end %}
-                                        <th> DELETE </th>
+                                        <th> ACTIONS </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -90,16 +90,21 @@
                                         class=""
                                         {% end %}
                                     >
-                                        <td> {{ poutput['execution_time'] }} </td>
+                                        <td> {{ poutput['run_time'] }} </td>
                                         <td> {{ poutput['start_time'] }} <br />{{ poutput['end_time'] }} </td>
                                         <td> {{ poutput['status'] }} </td>
                                         {% if poutput['output_path'] %}
                                             <td><a href="/output_files/{{ poutput['output_path'] }}/" target="_blank" class="btn btn-primary">Browse</a></td>
                                         {% end %}
                                         <td>
-                                            <button onclick="deletePluginOutput('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}');" class="btn btn-danger">
-                                                <i class="fa fa-times"></i>
-                                            </button>
+                                            <div class="btn-group">
+                                                <button onclick="reRunPlugin('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}');" class="btn btn-success" data-toggle="tooltip" data-placement="bottom" title="Rerun plugin">
+                                                    <i class="fa fa-refresh"></i>
+                                                </button>
+                                                <button onclick="deletePluginOutput('{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}');" class="btn btn-danger" data-toggle="tooltip" data-placement="bottom" title="Delete plugin output">
+                                                    <i class="fa fa-times"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                     <tr>
@@ -155,7 +160,7 @@ var copyPOutputs = {};
             {% else %}
                 "user_rank": null,
             {% end %}
-            "key": "{{ poutput['key'] }}"
+            "key": "{{ poutput['plugin_type'] }}@{{ poutput['plugin_code'] }}"
         };
     {% end %}
 {% end %}
@@ -176,6 +181,11 @@ function patchUserRank(group, type, code, user_rank){
             });
     /* Update the user-local copy. */
     copyPOutputs[code][type].user_rank = user_rank;
+}
+
+function reRunPlugin(group, type, code) {
+    //postToWorkList & updatePluginReport are obtained from target.html
+    postToWorkList({"code":code, "group":group, "type":type}, true);
 }
 
 function deletePluginOutput(group, type, code){
@@ -247,15 +257,15 @@ function getAlertColor(level) {
 
 function getLabelColor(level) {
     if (level == 1)
-        return "<label class='alert alert-success' style='margin-bottom: 0px'>Info Risk</label>";
+        return "<label class='alert alert-success' style='margin-bottom: 0px'>Info</label>";
     else if (level == 2)
-        return "<label class='alert alert-info' style='margin-bottom: 0px'>Low Risk</label>";
+        return "<label class='alert alert-info' style='margin-bottom: 0px'>Low</label>";
     else if (level == 3)
-        return "<label class='alert alert-warning' style='margin-bottom: 0px'>Medium Risk</label>";
+        return "<label class='alert alert-warning' style='margin-bottom: 0px'>Medium</label>";
     else if (level == 4)
-        return "<label class='alert alert-danger' style='margin-bottom: 0px'>High Risk</label>";
+        return "<label class='alert alert-danger' style='margin-bottom: 0px'>High</label>";
     else if (level == 5)
-        return "<label class='alert alert-critical' style='margin-bottom: 0px'>Critical Risk</label>";
+        return "<label class='alert alert-critical' style='margin-bottom: 0px'>Critical</label>";
     return "";
 }
 
@@ -288,7 +298,7 @@ function updateTestCaseInfo(code) {
     var maxUserRank = -1;
     var maxOWTFRank = -1;
     $.each(copyPOutputs[code], function (type, poutput) {
-        if (poutput.user_rank != null) {
+        if (poutput.user_rank != -1) {
             updatePluginInfo(poutput.key.replace('@', '_'), poutput.user_rank);
             if (poutput.user_rank > maxUserRank)
                 maxUserRank = poutput.user_rank;
@@ -296,7 +306,7 @@ function updateTestCaseInfo(code) {
         else {
             if (poutput.owtf_rank > maxOWTFRank)
                 maxOWTFRank = poutput.owtf_rank;
-            if (poutput.owtf_rank != null) {
+            if (poutput.owtf_rank != -1) {
                 updatePluginInfo(poutput.key.replace('@', '_'), poutput.owtf_rank);
                 $("#tab_" + poutput.key.replace('@', '_')).css("opacity", "0.7");
             }
@@ -307,7 +317,7 @@ function updateTestCaseInfo(code) {
     $("#header_" + code).toggleClass("panel-" + getAlertColor(testCaseMax));
     $("#header_badge_" + code).css("opacity", "");
     $("#header_badge_" + code).html('<i><small>' + getLabelColor(testCaseMax) + '</small></i>');
-    if (testCaseMax > maxUserRank && testCaseMax != null)
+    if (testCaseMax > maxUserRank && testCaseMax != -1)
         $('#header_badge_' + code).css("opacity", "0.7");
 }
 
@@ -319,7 +329,7 @@ function updateAllTestCasesInfo() {
         var maxUserRank = -1;
         var maxOWTFRank = -1;
         $.each(types, function(type, poutput) {
-            if (poutput.user_rank != null) {
+            if (poutput.user_rank != -1) {
                 updatePluginInfo(poutput.key.replace('@', '_'), poutput.user_rank);
                 if (poutput.user_rank > maxUserRank)
                     maxUserRank = poutput.user_rank;
@@ -327,7 +337,7 @@ function updateAllTestCasesInfo() {
             else {
                 if (poutput.owtf_rank > maxOWTFRank)
                     maxOWTFRank = poutput.owtf_rank;
-                if (poutput.owtf_rank != null) {
+                if (poutput.owtf_rank != -1) {
                     updatePluginInfo(poutput.key.replace('@', '_'), poutput.owtf_rank);
                     $("#tab_" + poutput.key.replace('@', '_')).css("opacity", "0.7");
                 }
@@ -338,7 +348,7 @@ function updateAllTestCasesInfo() {
         $("#header_" + code).toggleClass("panel-" + getAlertColor(testCaseMax));
         $("#header_badge_" + code).css("opacity", "");
         $("#header_badge_" + code).html('<i><small>' + getLabelColor(testCaseMax) + '</small></i>');
-        if (testCaseMax > maxUserRank && testCaseMax != null)
+        if (testCaseMax > maxUserRank && testCaseMax != -1)
             $('#header_badge_' + code).css("opacity", "0.7");
     });
 }
@@ -352,7 +362,7 @@ function updateTargetInfo() {
     /* Find the current max for the target. */
     $.each(copyPOutputs, function(code, types) {
         $.each(types, function(type, poutput) {
-            if (poutput.user_rank != null) {
+            if (poutput.user_rank != -1) {
                 if (poutput.user_rank > maxUserRank)
                     maxUserRank = poutput.user_rank;
             }

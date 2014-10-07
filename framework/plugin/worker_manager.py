@@ -33,6 +33,7 @@ import os
 import sys
 import time
 import signal
+import subprocess
 import logging
 import multiprocessing
 from framework.dependency_management.dependency_resolver import BaseComponent
@@ -41,7 +42,7 @@ from framework.lib.owtf_process import OWTFProcess
 from framework.lib.exceptions import InvalidWorkerReference
 
 
-class Worker(OWTFProcess):
+class Worker(OWTFProcess, BaseComponent):
     def pseudo_run(self):
         """
         When run for the first time, put something into output queue ;)
@@ -56,7 +57,7 @@ class Worker(OWTFProcess):
                 target, plugin = work
                 pluginDir = self.plugin_handler.GetPluginGroupDir(
                     plugin['group'])
-                self.plugin_handler.SwitchToTarget(target)
+                self.plugin_handler.SwitchToTarget(target["id"])
                 self.plugin_handler.ProcessPlugin(pluginDir, plugin)
                 self.output_q.put('done')
             except KeyboardInterrupt:
@@ -65,10 +66,9 @@ class Worker(OWTFProcess):
                     self.pid)
                 exit(0)
             except Exception, e:
-                logging.error(
-                    "Exception while getting work",
-                    exc_info=True)
-                continue
+                self.get_component("error_handler").LogError(
+                    "Exception occured while running :",
+                    trace=str(e))
         logging.debug(
             "I am worker (%d) & my master gave me poison pill",
             self.pid)
@@ -84,6 +84,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         self.db_config = self.get_component("db_config")
         self.error_handler = self.get_component("error_handler")
         self.shell = self.get_component("shell")
+        self.db = self.get_component("db")
         self.worklist = []  # List of unprocessed (plugin*target)
         self.workers = []  # list of worker and work (worker, work)
         self.spawn_workers()
@@ -93,37 +94,15 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         cpu_count = multiprocessing.cpu_count()
         return(process_per_core*cpu_count)
 
-    def fill_work_list(self, targets, plugins):
-        # Targets are only target_ids and plugins are plugin_dicts
-        for plugin in plugins:
-            for target in targets:
-                # Only target_id, enough to switch target db context
-                self.worklist.append((target["ID"], plugin))
-
-    def filter_work_list(self, targets, plugins):
-        for target, plugin in self.worklist:
-            if (target in targets) or (plugin in plugins):
-                self.worklist.remove((target, plugin))
-
-    def get_work_list(self):
-        return(self.worklist)
-
     def get_task(self):
-        if len(self.worklist):
-            free_mem = self.shell.shell_exec(
-                "free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
-            if int(free_mem) > int(self.db_config.Get('MIN_RAM_NEEDED')):
-                for target, plugin in self.worklist:
-                    # Check if target is being used or not because we dont want
-                    # to run more than one plugin on one target at one time
-                    # Check if RAM can withstand this plugin(training data from
-                    # history of that plugin)
-                    if not self.is_target_in_use(target):
-                        self.worklist.remove((target, plugin))
-                        return (target, plugin)
-            else:
-                logging.warn("Not enough memory to execute a plugin")
-        return None
+        work = None
+        free_mem = self.shell.shell_exec(
+            "free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
+        if int(free_mem) > int(self.db_config.Get('MIN_RAM_NEEDED')):
+            work = self.db.Worklist.get_work(self.targets_in_use())
+        else:
+            logging.warn("Not enough memory to execute a plugin")
+        return work
 
     def spawn_workers(self):
         """
@@ -147,20 +126,22 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             "paused": False
         }
 
-        if index:
+        if index is not None:
+            logging.debug("Replacing worker at index %d" % (index))
             self.workers[index] = worker_dict
         else:
+            logging.debug("Adding a new worker")
             self.workers.append(worker_dict)
         w.start()
 
-    def is_target_in_use(self, target):
+    def targets_in_use(self):
+        target_ids = []
         for item in self.workers:
             try:
-                if target == item["work"][0]:
-                    return True
-            except IndexError:  # This happens at the spawning of processes
-                pass
-        return False
+                target_ids.append(item["work"][0]["id"])
+            except IndexError:
+                continue
+        return target_ids
 
     def manage_workers(self):
         """
@@ -176,9 +157,15 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                     self.workers[k]["work"] = ()
                     self.workers[k]["busy"] = False  # Worker is IDLE
                 else:
+                    logging.info("Worker with name %s and pid %s seems dead" % (
+                        self.workers[k]["worker"].name,
+                        self.workers[k]["worker"].pid))
                     self.spawn_worker(index=k)
                 work_to_assign = self.get_task()
                 if work_to_assign:
+                    logging.info("Work assigned to %s with pid %d" % (
+                        self.workers[k]["worker"].name,
+                        self.workers[k]["worker"].pid))
                     trash_can = self.workers[k]["worker"].output_q.get()
                     # Assign work ,set target to used,and process to busy
                     self.workers[k]["worker"].input_q.put(work_to_assign)
@@ -194,11 +181,11 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             # Check if process is doing some work
             if item["busy"]:
                 if item["paused"]:
-                    self.signal_process(item["worker"].pid, signal.SIGCONT)
+                    self._signal_process(item["worker"].pid, signal.SIGCONT)
                 trash = item["worker"].output_q.get()
                 item["busy"] = False
                 item["work"] = ()
-            item["worker"].input_q.put(())
+            item["worker"].poison_q.put("DIE")
 
     def join_workers(self):
         """
@@ -219,12 +206,10 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         # killing of workers
         self.worklist = []  # It is a list
         for item in self.workers:
-            work = item["work"]
-            if work == ():
-                continue
-            self.signal_process(item["worker"].pid, signal.SIGINT)
+            work = item["worker"].poison_q.put("DIE")
+            self._signal_process(item["worker"].pid, signal.SIGINT)
 
-    def signal_process(self, pid, psignal):
+    def _signal_process(self, pid, psignal):
         """
         This function kills all children of a process and abort that process
         """
@@ -240,15 +225,18 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                 "Error while trying to abort Worker process",
                 exc_info=True)
 
-    def stop_target(self, target_id):
-        """
-        This function itrates over pending list and removes the tuple
-        having target as selected one
-        """
-        for target, plugin in self.worklist:
-            if target == target1:
-                self.worklist.remove((target, plugin))
-        self.abort_worker(item["worker"].pid)
+    def _signal_children(self, parent_pid, psignal):
+        ps_command = subprocess.Popen(
+            "ps -o pid --ppid %d --noheaders" % parent_pid,
+            shell=True,
+            stdout=subprocess.PIPE)
+        ps_output = ps_command.stdout.read()
+        for pid_str in ps_output.split("\n")[:-1]:
+            self._signal_children(int(pid_str), psignal)
+            try:
+                os.kill(int(pid_str), psignal)
+            except Exception:
+                logging.error("Error while trying to signal", exc_info=True)
 
 # --------------------------- API Methods ---------------------------- #
 # PSEUDO_INDEX = INDEX + 1
@@ -294,7 +282,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         """
         worker_dict = self.get_worker_dict(pseudo_index)
         if not worker_dict["busy"]:
-            self.signal_process(worker_dict["worker"].pid, signal.SIGINT)
+            self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
             del self.workers[pseudo_index-1]
         else:
             raise InvalidWorkerReference(
@@ -306,7 +294,8 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         """
         worker_dict = self.get_worker_dict(pseudo_index)
         if not worker_dict["paused"]:
-            self.signal_process(worker_dict["worker"].pid, signal.SIGSTOP)
+            self._signal_children(worker_dict["worker"].pid, signal.SIGSTOP)
+            self._signal_process(worker_dict["worker"].pid, signal.SIGSTOP)
             worker_dict["paused"] = True
 
     def resume_worker(self, pseudo_index):
@@ -315,7 +304,8 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         """
         worker_dict = self.get_worker_dict(pseudo_index)
         if worker_dict["paused"]:
-            self.signal_process(worker_dict["worker"].pid, signal.SIGCONT)
+            self._signal_children(worker_dict["worker"].pid, signal.SIGCONT)
+            self._signal_process(worker_dict["worker"].pid, signal.SIGCONT)
             worker_dict["paused"] = False
 
     def abort_worker(self, pseudo_index):
@@ -324,4 +314,6 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         removed, so manager_cron will restart it
         """
         worker_dict = self.get_worker_dict(pseudo_index)
-        self.signal_process(worker_dict["worker"].pid, signal.SIGINT)
+        # You only send SIGINT to worker since it will handle it more
+        # gracefully and kick the command process's ***
+        self._signal_process(worker_dict["worker"].pid, signal.SIGINT)

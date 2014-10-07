@@ -19,23 +19,24 @@
 <script>
 var mySpace = {
                     workers_api_url:"{{ workers_api_url }}",
-                    targets_api_url:"{{ targets_api_url }}",
                     targets_ui_url:"{{ targets_ui_url }}",
-                    target_configs:{},
                 };
 
 // Abort worker with id using API
 function abortWorker(workerId){
+    addOverlay('#worker_'+workerId); // just add overlay the worker info refresh will auto. remove it
     $.get(mySpace.workers_api_url+workerId+'/abort');
 }
 
 // Pause worker with id using API
 function pauseWorker(workerId){
+    addOverlay('#worker_'+workerId); // just add overlay the worker info refresh will auto. remove it
     $.get(mySpace.workers_api_url+workerId+'/pause');
 }
 
 // Resume worker with id using API
 function resumeWorker(workerId){
+    addOverlay('#worker_'+workerId); // just add overlay the worker info refresh will auto. remove it
     $.get(mySpace.workers_api_url+workerId+'/resume');
 }
 
@@ -53,15 +54,6 @@ function deleteWorker(workerId){
 // Add new worker using API
 function addWorker(){
     $.post(mySpace.workers_api_url);
-}
-
-// Function to get all target configs using API
-function getTargetConfigs(){
-    $.getJSON(mySpace.targets_api_url+'?workers_page', function(data){  // '?workers_page' used to avoid browser returning cached results
-            $.each(data, function(index, obj){
-                mySpace.target_configs[obj.ID] = obj;
-            });
-        });
 }
 
 // Function to get control buttons based on the present state of a worker i.e return pause button if worker is active & vice versa
@@ -96,19 +88,19 @@ function displayWorkersInfo(){
                             $('#workersInfo').append('<div class="row-fluid">');
 
                         html = '<div class="span5 panel ';
-                        if (obj.busy){
+                        if (obj.busy && !obj.paused){
                             html += 'panel-primary"';
                         }else if (obj.paused){
                             html += 'panel-info"';
                         }else{
                             html += 'panel-default"';
                         }
-                        html += ' id="'+obj.id+'">';
+                        html += ' id="worker_'+obj.id+'">';
                         html += '<div class="panel-heading"><h3 class="panel-title">Worker '+obj.id+getControlButtons(obj)+'</h3></div>';
                         html += '<div class="panel-body">';
                         html += '<p><strong>PID:</strong> '+obj.worker+'</p>';
                         if (obj.work.length > 0){
-                            html += '<p><strong>Target:</strong> <a href="'+mySpace.targets_ui_url+obj.work[0]+'">'+mySpace.target_configs[obj.work[0]].TARGET_URL+'</a></p>';
+                            html += '<p><strong>Target:</strong> <a href="'+mySpace.targets_ui_url+obj.work[0]["id"]+'">'+obj.work[0].target_url+'</a></p>';
                             html += '<p><strong>Plugin:</strong> '+obj.work[1].title+'</p>';
                             html += '<p><strong>Type:</strong> '+obj.work[1].type.replace('_',' ')+'</p>';
                             html += '<p><strong>Group:</strong> '+obj.work[1].group+'</p>';
@@ -130,7 +122,6 @@ function displayWorkersInfo(){
 }
 
 $(document).ready(function() {
-        getTargetConfigs();  // Target configs are to be fetched first
         displayWorkersInfo();  // Then workers information can be displayed
 });
 </script>

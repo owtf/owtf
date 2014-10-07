@@ -19,7 +19,7 @@ You are not limited to python: You can write code in any language the Linux shel
 
 1st: Define the command on resources.cfg
 Example:
-ActiveHTTPMethods_____curl TRACE Check_____curl -i -A '@@@USER_AGENT@@@' -H 'Host: @@@HOST_NAME@@@' -X 'TRACE' -k @@@TARGET_URL@@@
+ActiveHTTPMethods_____curl TRACE Check_____curl -i -A '@@@USER_AGENT@@@' -H 'Host: @@@host_name@@@' -X 'TRACE' -k @@@target_url@@@
 
 2nd: Call it via DrawCommandDump: 
 create plugin file: active/HTTP_Methods_and_XST@OWASP-CM-008.py
@@ -40,12 +40,12 @@ Framework API
 This configuration file is at the core of the framework and defines how to build links or run commands.
 
 Example:
-ActiveHTTPMethods_____curl TRACE Check_____curl -i -A '@@@USER_AGENT@@@' -H 'Host: @@@HOST_NAME@@@' -X 'TRACE' -k @@@TARGET_URL@@@
+ActiveHTTPMethods_____curl TRACE Check_____curl -i -A '@@@USER_AGENT@@@' -H 'Host: @@@host_name@@@' -X 'TRACE' -k @@@target_url@@@
 
 From the example above the format breakdown is as follows:
 Resource Group: ActiveHTTPMethods
 Resource Name: curl TRACE Check
-Command or Link: curl -i -A '@@@USER_AGENT@@@' -H 'Host: @@@HOST_NAME@@@' -X 'TRACE' -k @@@TARGET_URL@@@
+Command or Link: curl -i -A '@@@USER_AGENT@@@' -H 'Host: @@@host_name@@@' -X 'TRACE' -k @@@target_url@@@
 
 + Core.mPluginHelper.DrawCommandDump
 

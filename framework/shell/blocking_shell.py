@@ -42,6 +42,7 @@ import logging
 class Shell(BaseComponent, ShellInterface):
 
     COMPONENT_NAME = "shell"
+    
 
     def __init__(self):
         self.register_in_service_locator()
@@ -56,29 +57,15 @@ class Shell(BaseComponent, ShellInterface):
         # Environment variables for shell
         self.ShellEnviron = os.environ.copy()
 
-    def ShellPathEscape(self, Text):
-        return MultipleReplace(Text, {' ': '\ ', '(': '\(', ')': '\)'}).strip()
-
     def RefreshReplacements(self):
-        self.DynamicReplacements['###PLUGIN_OUTPUT_DIR###'] = self.target.GetPath('PLUGIN_OUTPUT_DIR')
-
-    def GetModifiedShellCommand(self, Command, PluginOutputDir):
-        self.RefreshReplacements()
-        NewCommand = "cd " + self.ShellPathEscape(PluginOutputDir) + "; " + MultipleReplace(Command,
-                                                                                            self.DynamicReplacements)
-        self.OldCommands[NewCommand] = Command
-        #self.StartCommand(Command, NewCommand)
-        return NewCommand
+        self.DynamicReplacements['###plugin_output_dir###'] = self.target.GetPath('plugin_output_dir')
 
     def StartCommand(self, OriginalCommand, ModifiedCommand):
         #CommandInfo = defaultdict(list)
         if OriginalCommand == ModifiedCommand and ModifiedCommand in self.OldCommands:
-            OriginalCommand = self.OldCommands[ModifiedCommand]  # Restore original command saved at modification time
-        self.timer.StartTimer(self.CommandTimeOffset)
-        return {'OriginalCommand': OriginalCommand, 'ModifiedCommand': ModifiedCommand,
-                'Start': self.timer.GetStartDateTimeAsStr(self.CommandTimeOffset)}
-        #CommandInfo = { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.timer.GetStartDateTimeAsStr(self.CommandTimeOffset) }
-        #self.CommandInfo = CommandInfo
+            OriginalCommand = self.OldCommands[ModifiedCommand] # Restore original command saved at modification time
+            self.timer.start_timer(self.CommandTimeOffset)
+            return { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.timer.get_start_date_time(self.CommandTimeOffset) }
 
     def FinishCommand(self, CommandInfo, WasCancelled):
         CommandInfo['End'] = self.timer.GetEndDateTimeAsStr(self.CommandTimeOffset)
@@ -89,7 +76,14 @@ class Shell(BaseComponent, ShellInterface):
         CommandInfo['RunTime'] = self.timer.GetElapsedTimeAsStr(self.CommandTimeOffset)
         CommandInfo['Target'] = self.target.GetTargetID()
         self.command_register.AddCommand(CommandInfo)
-        #self.CommandInfo = defaultdict(list)
+
+    def GetModifiedShellCommand(self, Command, PluginOutputDir):
+        self.RefreshReplacements()
+        NewCommand = "cd " + self.ShellPathEscape(PluginOutputDir) + "; " + MultipleReplace(Command,
+                                                                                            self.DynamicReplacements)
+        self.OldCommands[NewCommand] = Command
+        #self.StartCommand(Command, NewCommand)
+        return NewCommand
 
     def CanRunCommand(self, Command):
         #Target = self.Core.DB.POutput.CommandAlreadyRegistered(Command['OriginalCommand'])

@@ -19,8 +19,8 @@ class PluginDB(BaseComponent, DBPluginInterface):
         self.register_in_service_locator()
         self.config = self.get_component("config")
         self.db = self.get_component("db")
+        self.timer = self.get_component("timer")
         self.error_handler = self.get_component("error_handler")
-        self.PluginDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("PLUGIN_DB_PATH"), models.PluginBase)
         self.LoadWebTestGroups(self.config.FrameworkConfigGet("WEB_TEST_GROUPS"))
         self.LoadNetTestGroups(self.config.FrameworkConfigGet("NET_TEST_GROUPS"))
         # After loading the test groups then load the plugins, because of many-to-one relationship
@@ -45,9 +45,8 @@ class PluginDB(BaseComponent, DBPluginInterface):
 
     def LoadWebTestGroups(self, test_groups_file):
         WebTestGroups = self.GetTestGroupsFromFile(test_groups_file)
-        session = self.PluginDBSession()
         for group in WebTestGroups:
-            session.merge(
+            self.db.session.merge(
                 models.TestGroup(
                     code=group['code'],
                     descrip=group['descrip'],
@@ -55,14 +54,12 @@ class PluginDB(BaseComponent, DBPluginInterface):
                     url=group['url'],
                     group="web")
                 )
-        session.commit()
-        session.close()
+        self.db.session.commit()
 
     def LoadNetTestGroups(self, test_groups_file):
         NetTestGroups = self.GetTestGroupsFromFile(test_groups_file)
-        session = self.PluginDBSession()
         for group in NetTestGroups:
-            session.merge(
+            self.db.session.merge(
                 models.TestGroup(
                     code=group['code'],
                     descrip=group['descrip'],
@@ -70,8 +67,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
                     url=group['url'],
                     group="net")
                 )
-        session.commit()
-        session.close()
+        self.db.session.commit()
 
     def LoadFromFileSystem(self):
         """Loads the plugins from the filesystem and updates their info.
@@ -91,7 +87,6 @@ class PluginDB(BaseComponent, DBPluginInterface):
         """
         # TODO: When the -t, -e or -o is given to OWTF command line, only load
         # the specific plugins (and not all of them like below).
-        session = self.PluginDBSession()
         # Retrieve the list of the plugins (sorted) from the directory given by
         # 'PLUGIN_DIR'.
         plugins = []
@@ -132,7 +127,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
             except AttributeError:  # The plugin didn't define an attr dict.
                 pass
             # Save the plugin into the database.
-            session.merge(
+            self.db.session.merge(
                 models.Plugin(
                     key=type + '@' + code,
                     group=group,
@@ -145,7 +140,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
                     attr=attr
                 )
             )
-        session.commit()
+        self.db.session.commit()
 
     def DeriveTestGroupDict(self, obj):
         if obj:
@@ -160,35 +155,25 @@ class PluginDB(BaseComponent, DBPluginInterface):
         return dict_list
 
     def GetTestGroup(self, code):
-        session = self.PluginDBSession()
-        group = session.query(models.TestGroup).get(code)
-        session.close()
+        group = self.db.session.query(models.TestGroup).get(code)
         return(self.DeriveTestGroupDict(group))
 
     def GetAllTestGroups(self):
-        session = self.PluginDBSession()
-        test_groups = session.query(models.TestGroup).all()
-        session.close()
+        test_groups = self.db.session.query(models.TestGroup).all()
         return(self.DeriveTestGroupDicts(test_groups))
 
     def GetAllGroups(self):
-        session = self.PluginDBSession()
-        groups = session.query(models.Plugin.group).distinct().all()
-        session.close()
+        groups = self.db.session.query(models.Plugin.group).distinct().all()
         groups = [i[0] for i in groups]
         return(groups)
 
     def GetAllTypes(self):
-        session = self.PluginDBSession()
-        plugin_types = session.query(models.Plugin.type).distinct().all()
-        session.close()
+        plugin_types = self.db.session.query(models.Plugin.type).distinct().all()
         plugin_types = [i[0] for i in plugin_types]  # Necessary because of sqlalchemy
         return(plugin_types)
 
     def GetTypesForGroup(self, PluginGroup):
-        session = self.PluginDBSession()
-        plugin_types = session.query(models.Plugin.type).filter_by(group=PluginGroup).distinct().all()
-        session.close()
+        plugin_types = self.db.session.query(models.Plugin.type).filter_by(group=PluginGroup).distinct().all()
         plugin_types = [i[0] for i in plugin_types]
         return(plugin_types)
 
@@ -196,6 +181,13 @@ class PluginDB(BaseComponent, DBPluginInterface):
         if obj:
             pdict = dict(obj.__dict__)
             pdict.pop("_sa_instance_state")
+            # REmove outputs array if present
+            if "outputs" in pdict.keys():
+                pdict.pop("outputs")
+            pdict["min_time"] = None
+            min_time = obj.min_time
+            if min_time is not None:
+                pdict["min_time"] = self.timer.get_time_as_str(min_time)
             return pdict
 
     def DerivePluginDicts(self, obj_list):
@@ -204,8 +196,8 @@ class PluginDB(BaseComponent, DBPluginInterface):
             plugin_dicts.append(self.DerivePluginDict(obj))
         return(plugin_dicts)
 
-    def GenerateQueryUsingSession(self, session, criteria):
-        query = session.query(models.Plugin)
+    def GenerateQueryUsingSession(self, criteria):
+        query = self.db.session.query(models.Plugin)
         if criteria.get("type", None):
             if isinstance(criteria["type"], (str, unicode)):
                 query = query.filter_by(type=criteria["type"])
@@ -229,8 +221,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
         return query
 
     def GetAll(self, Criteria={}):
-        session = self.PluginDBSession()
-        query = self.GenerateQueryUsingSession(session, Criteria)
+        query = self.GenerateQueryUsingSession(Criteria)
         plugin_obj_list = query.all()
         return(self.DerivePluginDicts(plugin_obj_list))
 
@@ -241,14 +232,10 @@ class PluginDB(BaseComponent, DBPluginInterface):
         return(self.GetAll({"plugin_group": PluginGroup}))
 
     def GetPluginsByGroupType(self, PluginGroup, PluginTypeList):
-        session = self.PluginDBSession()
-        plugins = session.query(models.Plugin).filter(models.Plugin.group == PluginGroup, models.Plugin.type.in_(PluginTypeList)).all()
-        session.close()
+        plugins = self.db.session.query(models.Plugin).filter(models.Plugin.group == PluginGroup, models.Plugin.type.in_(PluginTypeList)).all()
         return(self.DerivePluginDicts(plugins))
 
     def GetGroupsForPlugins(self, Plugins):
-        session = self.PluginDBSession()
-        groups = session.query(models.Plugin.plugin_group).filter(or_(models.Plugin.code.in_(Plugins), models.Plugin.name.in_(Plugins))).distinct().all()
-        session.close()
+        groups = self.db.session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(Plugins), models.Plugin.name.in_(Plugins))).distinct().all()
         groups = [i[0] for i in groups]
         return(groups)

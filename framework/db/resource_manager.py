@@ -17,20 +17,20 @@ class ResourceDB(BaseComponent, ResourceInterface):
         self.db_config = self.get_component("db_config")
         self.target = self.get_component("target")
         self.db = self.get_component("db")
-        self.ResourceDBSession = self.db.CreateScopedSession(self.config.FrameworkConfigGetDBPath("RESOURCE_DB_PATH"), models.ResourceBase)
         self.LoadResourceDBFromFile(self.config.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE"))
 
     def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         cprint("Loading Resources from: " + file_path + " ..")
         resources = self.GetResourcesFromFile(file_path)
+        # Delete all old resources which are not edited by user
+        # because we may have updated the resource
+        self.db.session.query(models.Resource).filter_by(dirty=False).delete()
         # resources = [(Type, Name, Resource), (Type, Name, Resource),]
-        session = self.ResourceDBSession()
         for Type, Name, Resource in resources:
             # Need more filtering to avoid duplicates
-            if not session.query(models.Resource).filter_by(resource_type = Type, resource_name = Name, resource = Resource).all():
-                session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
-        session.commit()
-        session.close()
+            if not self.db.session.query(models.Resource).filter_by(resource_type = Type, resource_name = Name, resource = Resource).all():
+                self.db.session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
+        self.db.session.commit()
 
     def GetResourcesFromFile(self, resource_file):
         resources = []
@@ -53,12 +53,10 @@ class ResourceDB(BaseComponent, ResourceInterface):
         return configuration
 
     def GetRawResources(self, ResourceType):
-        session = self.ResourceDBSession()
-        filter_query = session.query(models.Resource.resource_name, models.Resource.resource).filter_by(resource_type = ResourceType)
+        filter_query = self.db.session.query(models.Resource.resource_name, models.Resource.resource).filter_by(resource_type = ResourceType)
         # Sorting is necessary for working of ExtractURLs, since it must run after main command, so order is imp
         sort_query = filter_query.order_by(models.Resource.id)
         raw_resources = sort_query.all()
-        session.close()
         return raw_resources
 
     def GetResources(self, ResourceType):
@@ -70,9 +68,7 @@ class ResourceDB(BaseComponent, ResourceInterface):
         return resources
 
     def GetRawResourceList(self, ResourceList):
-        session = self.ResourceDBSession()
-        raw_resources = session.query(models.Resource.resource_name, models.Resource.resource).filter(models.Resource.resource_type.in_(ResourceList)).all()
-        session.close()
+        raw_resources = self.db.session.query(models.Resource.resource_name, models.Resource.resource).filter(models.Resource.resource_type.in_(ResourceList)).all()
         return raw_resources
 
     def GetResourceList(self, ResourceTypeList):
@@ -82,4 +78,3 @@ class ResourceDB(BaseComponent, ResourceInterface):
         for name, resource in raw_resources:
             resources.append([name, self.config.MultipleReplace(resource, replacement_dict)])
         return resources
-

@@ -7,16 +7,17 @@ from framework.config.config import Config
 from framework.db.command_register import CommandRegister
 from framework.db.config_manager import ConfigDB
 from framework.db.db import DB
-from framework.db.debug import DebugDB
 from framework.db.error_manager import ErrorDB
 from framework.db.mapping_manager import MappingDB
 from framework.db.plugin_manager import PluginDB
 from framework.db.poutput_manager import POutputDB
 from framework.db.resource_manager import ResourceDB
+from framework.db.session_manager import OWTFSessionDB
 from framework.db.target_manager import TargetDB
 from framework.db.transaction_manager import TransactionManager
 from framework.db.url_manager import URLManager
 from framework.db.vulnexp_manager import VulnexpDB
+from framework.db.worklist_manager import WorklistManager
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.error_handler import ErrorHandler
 from framework.http.proxy.outbound_proxyminer import Proxy_Miner
@@ -37,15 +38,17 @@ from framework.zest import Zest
 class ComponentInitialiser():
 
     @staticmethod
-    def step_1(owtf_pid, root_dir):
-        DB()
+    def initialisation_phase_1(owtf_pid, root_dir):
         config = Config(root_dir, owtf_pid)
+        ErrorHandler()
+        DB()
+        OWTFSessionDB()
+        WorklistManager()
         db_config = ConfigDB()
         CommandRegister()
         TargetDB()
         ResourceDB()
         ErrorDB()
-        ErrorHandler()
         MappingDB()
         VulnexpDB()
         Timer(db_config.Get('DATE_TIME_FORMAT'))
@@ -57,11 +60,11 @@ class ComponentInitialiser():
         zest.init()
 
     @staticmethod
-    def step_2(args):
+    def initialisation_phase_2(args):
         PluginHandler(args)
         Reporter()
         POutputDB()
-        ServiceLocator.get_component("db").Init()
+        ServiceLocator.get_component("worklist_manager").init()
         Shell()
         PluginParams(args)
         SMTP()
@@ -69,7 +72,8 @@ class ComponentInitialiser():
         ZAP_API()
 
     @staticmethod
-    def step_3(proxy):
+    def initialisation_phase_3(proxy):
+        ServiceLocator.get_component("db").Init()
         ServiceLocator.get_component("error_handler").init()
         Requester(proxy)
         PluginHelper()
