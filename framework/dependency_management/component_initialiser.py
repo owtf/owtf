@@ -36,9 +36,19 @@ from framework.zest import Zest
 
 
 class ComponentInitialiser():
+    """
+        Initialises all the components for the OWTF framework. The order is important as
+        there are dependencies between modules. Cyclic dependencies are solved using a
+        two-step initialization process through an init() method.
+    """
 
     @staticmethod
     def initialisation_phase_1(owtf_pid, root_dir):
+        """First phase of the initialization.
+
+        :param int owtf_pid: PID for the OWTF process
+        :param str root_dir: Absolute path to the OWTF root
+        """
         config = Config(root_dir, owtf_pid)
         ErrorHandler()
         DB()
@@ -61,6 +71,10 @@ class ComponentInitialiser():
 
     @staticmethod
     def initialisation_phase_2(args):
+        """ Second phase of the initialization process.
+
+        :param dict args: parsed arguments from the command line.
+        """
         PluginHandler(args)
         Reporter()
         POutputDB()
@@ -73,6 +87,10 @@ class ComponentInitialiser():
 
     @staticmethod
     def initialisation_phase_3(proxy):
+        """ Third phase of the initialization process.
+
+        :param dict proxy: Proxy configuration parameters
+        """
         ServiceLocator.get_component("db").Init()
         ServiceLocator.get_component("error_handler").init()
         Requester(proxy)
@@ -82,6 +100,10 @@ class ComponentInitialiser():
 
     @staticmethod
     def intialise_proxy_manager(options):
+        """ Proxy Manager initialization.
+
+        :param dict options: Proxy manager configuration parameters.
+        """
         proxy_manager = None
         if options['Botnet_mode'] is not None:
             proxy_manager = Proxy_manager()

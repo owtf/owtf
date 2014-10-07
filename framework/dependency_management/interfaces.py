@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 
 class AbstractInterface():
     #__metaclass__ = ABCMeta
-    pass
+    pass # TODO Recalculate the currently used methods and update the abstract interfaces
 
 
 class CommandRegisterInterface(AbstractInterface):
