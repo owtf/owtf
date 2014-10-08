@@ -18,6 +18,7 @@ class Zest(BaseComponent, ZestInterface):
         self.config = self.get_component("config")
         self.db_config = self.get_component("db_config")
         self.target = self.get_component("target")
+        self.db = self.get_component("db")
         self.recordedTransactions = []  # keeps track of recorded transactions
 
     def init(self):
@@ -55,13 +56,13 @@ class Zest(BaseComponent, ZestInterface):
         target_config = {}
         self.target.SetTarget(target_id)
         target_config['ROOT_DIR'] = self.config.RootDir
-        target_config['OUTPUT_DIR'] = os.path.join(target_config['ROOT_DIR'], self.target.PathConfig['URL_OUTPUT'])
+        target_config['OUTPUT_DIR'] = os.path.join(target_config['ROOT_DIR'], self.target.PathConfig['url_output'])
         #target_config['TARGET_DB'] = self.config.FrameworkConfigGet('TCONFIG_DB_PATH')
         target_config['ZEST_DIR'] = os.path.join(target_config['OUTPUT_DIR'], "zest")
         target_config['CREATE_SCRIPT_PATH'] = os.path.join(target_config['ROOT_DIR'], "zest", "zest_create.sh")
         target_config['RUNNER_SCRIPT_PATH'] = os.path.join(target_config['ROOT_DIR'], "zest","zest_runner.sh")
-        target_config['HOST_AND_PORT'] = ((self.target.GetTargetConfigForID(target_id))['HOST_NAME'] 
-                                              + ":" + (self.target.GetTargetConfigForID(target_id))['PORT_NUMBER'])
+        target_config['HOST_AND_PORT'] = ((self.target.GetTargetConfigForID(target_id))['host_name'] 
+                                              + ":" + (self.target.GetTargetConfigForID(target_id))['port_number'])
         FileOperations.create_missing_dirs(target_config['ZEST_DIR'])
         return target_config
 
@@ -172,8 +173,8 @@ class Zest(BaseComponent, ZestInterface):
 
     def GetDBSettings(self):
         settings = {}
-        settings['URL'] = self.Core.DB._db_settings['DATABASE_IP'] + ":" + self.Core.DB._db_settings['DATABASE_PORT'] + "/" + self.Core.DB._db_settings['DATABASE_NAME']
-        settings['USER_NAME'] = self.Core.DB._db_settings['DATABASE_USER']
-        settings['PASSWORD'] = self.Core.DB._db_settings['DATABASE_PASS']
+        settings['URL'] = self.db._db_settings['DATABASE_IP'] + ":" + self.db._db_settings['DATABASE_PORT'] + "/" + self.db._db_settings['DATABASE_NAME']
+        settings['USER_NAME'] = self.db._db_settings['DATABASE_USER']
+        settings['PASSWORD'] = self.db._db_settings['DATABASE_PASS']
         return settings
 
