@@ -1,3 +1,5 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -34,15 +36,17 @@ from framework.lib.general import get_random_str
 DESCRIPTION = "Active probing for HTTP methods"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     # Transaction = Core.Requester.TRACE(Core.Config.Get('host_name'), '/')
-    URL = Core.DB.Target.Get('top_url')
+    target = ServiceLocator.get_component("target")
+    URL = target.Get('top_url')
     # TODO: PUT not working right yet
     # PUT_URL = URL+"/_"+get_random_str(20)+".txt"
     # print PUT_URL
     # PUT_URL = URL+"/a.txt"
     # PUT_URL = URL
-    Content = Core.PluginHelper.TransactionTableForURL(
+    plugin_helper = ServiceLocator.get_component("plugin_helper")
+    Content = plugin_helper.TransactionTableForURL(
         True,
         URL,
         Method='TRACE')
@@ -51,10 +55,11 @@ def run(Core, PluginInfo):
     #    PUT_URL,
     #    Method='PUT',
     #    Data=get_random_str(15))
-    Content += Core.PluginHelper.CommandDump(
+    resource = ServiceLocator.get_component("resource")
+    Content += plugin_helper.CommandDump(
         'Test Command',
         'Output',
-        Core.DB.Resource.GetResources('ActiveHTTPMethods'),
+        resource.GetResources('ActiveHTTPMethods'),
         PluginInfo,
         Content)
     return Content

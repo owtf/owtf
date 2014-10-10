@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -31,6 +32,6 @@ NOTE: GREP plugins do NOT send traffic to the target and only grep the HTTP Tran
 
 DESCRIPTION = "Searches transaction DB for fingerprint traces"
 
-def run(Core, PluginInfo):
-	Content = Core.PluginHelper.ResearchFingerprintInlog()
+def run(PluginInfo):
+	Content = ServiceLocator.get_component("plugin_helper").ResearchFingerprintInlog()
 	return Content

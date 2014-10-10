@@ -1,3 +1,5 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2013, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -34,9 +36,11 @@ import cgi
 
 DESCRIPTION = "Searches transaction DB for Robots meta tag and X-Robots-Tag HTTP header"
 
-def run(Core, PluginInfo):
-    #Core.Config.Show()
-    Content = Core.PluginHelper.HtmlString("This plugin looks for Robots meta tag and X-Robots-Tag HTTP header<br />")
-    Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_ROBOTS')
-    Content += Core.PluginHelper.FindResponseBodyMatchesForRegexpName('RESPONSE_REGEXP_FOR_ROBOTS_META_TAG')
+
+def run(PluginInfo):
+    # ServiceLocator.get_component("config").Show()
+    plugin_helper = ServiceLocator.get_component("plugin_helper")
+    Content = plugin_helper.HtmlString("This plugin looks for Robots meta tag and X-Robots-Tag HTTP header<br />")
+    Content += plugin_helper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_ROBOTS')
+    Content += plugin_helper.FindResponseBodyMatchesForRegexpName('RESPONSE_REGEXP_FOR_ROBOTS_META_TAG')
     return Content

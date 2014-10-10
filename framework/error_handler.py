@@ -38,20 +38,33 @@ import sys
 import cgi
 import json
 import urllib2
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import ErrorHandlerInterface
 
 from framework.lib.exceptions import FrameworkAbortException, \
                                      PluginAbortException
 from framework.lib.general import cprint
+from framework.utils import OutputCleaner
 
 
-class ErrorHandler(object):
+class ErrorHandler(BaseComponent, ErrorHandlerInterface):
     Command = ''
     PaddingLength = 100
+    COMPONENT_NAME = "error_handler"
 
-    def __init__(self, Core):
-        self.Core = Core
+    def __init__(self):
+        self.register_in_service_locator()
+        self.config = self.get_component("config")
+        self.Core = None
+        self.db = None
+        self.db_error = None
         self.Padding = "\n" + "_" * self.PaddingLength + "\n\n"
         self.SubPadding = "\n" + "*" * self.PaddingLength + "\n"
+
+    def init(self):
+        self.Core = self.get_component("core")
+        self.db = self.get_component("db")
+        self.db_error = self.get_component("db_error")
 
     def SetCommand(self, command):
         self.Command = command
@@ -59,7 +72,8 @@ class ErrorHandler(object):
     def FrameworkAbort(self, message, report=True):
         message = "Aborted by Framework: " + message
         cprint(message)
-        self.Core.Finish(message, report)
+        if self.Core is not None:
+            self.Core.Finish(message, report)
         return message
 
     def get_option_from_user(self, options):
@@ -81,7 +95,7 @@ class ErrorHandler(object):
             if 'e' == option:
                 if 'Command' == level:  # Try to save partial plugin results.
                     raise FrameworkAbortException(partial_output)
-                    self.Core.Finish("Aborted by user")  # Interrupted.
+                    self.Core.FrameworkAbort("Aborted by user")  # Interrupted.
             elif 'p' == option:  # Move on to next plugin.
                 # Jump to next handler and pass partial output to avoid losing
                 # results.
@@ -90,7 +104,7 @@ class ErrorHandler(object):
 
     def LogError(self, message, trace=None):
         try:
-            self.Core.DB.Error.Add(message, trace)  # Log error in the DB.
+            self.db_error.Add(message, trace)  # Log error in the DB.
         except AttributeError:
             cprint("ERROR: DB is not setup yet: cannot log errors to file!")
 
@@ -99,8 +113,8 @@ class ErrorHandler(object):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         err_trace_list = traceback.format_exception(
             exc_type, exc_value, exc_traceback)
-        err_trace = self.Core.AnonymiseCommand("\n".join(err_trace_list))
-        message = self.Core.AnonymiseCommand(message)
+        err_trace = OutputCleaner.anonymise_command("\n".join(err_trace_list))
+        message = OutputCleaner.anonymise_command(message)
         output = self.Padding + "OWTF BUG: Please report the sanitised " \
                  "information below to help make this better. Thank you." + \
                  self.SubPadding
@@ -122,7 +136,7 @@ class ErrorHandler(object):
     def AddGithubIssue(self, title='Bug report from OWTF', info=None, user=None):
         # TODO: Has to be ported to use db and infact add to interface.
         # Once db is implemented, better verbosity will be easy.
-        error_data = self.Core.DB.ErrorData()
+        error_data = self.db.ErrorData()
         for item in error_data:
             if item.startswith('Message'):
                 title = item[len('Message:'):]
@@ -140,10 +154,10 @@ class ErrorHandler(object):
         headers = {
             "Content-Type": "application/json",
             "Authorization":
-                "token " + self.Core.Config.Get("GITHUB_BUG_REPORTER_TOKEN")
+                "token " + self.config.Get("GITHUB_BUG_REPORTER_TOKEN")
             }
         request = urllib2.Request(
-            self.Core.Config.Get("GITHUB_API_ISSUES_URL"),
+            self.config.Get("GITHUB_API_ISSUES_URL"),
             headers=headers,
             data=data)
         response = urllib2.urlopen(request)

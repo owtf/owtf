@@ -3,29 +3,39 @@ import imp
 import json
 from framework.db import models
 from sqlalchemy import or_
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import DBPluginInterface
+from framework.utils import FileOperations
 
 
 TEST_GROUPS = ['web', 'net', 'aux']
 
 
-class PluginDB(object):
-    def __init__(self, Core):
-        self.Core = Core
-        self.LoadWebTestGroups(self.Core.Config.FrameworkConfigGet("WEB_TEST_GROUPS"))
-        self.LoadNetTestGroups(self.Core.Config.FrameworkConfigGet("NET_TEST_GROUPS"))
+class PluginDB(BaseComponent, DBPluginInterface):
+    
+    COMPONENT_NAME = "db_plugin"
+    
+    def __init__(self):
+        self.register_in_service_locator()
+        self.config = self.get_component("config")
+        self.db = self.get_component("db")
+        self.timer = self.get_component("timer")
+        self.error_handler = self.get_component("error_handler")
+        self.LoadWebTestGroups(self.config.FrameworkConfigGet("WEB_TEST_GROUPS"))
+        self.LoadNetTestGroups(self.config.FrameworkConfigGet("NET_TEST_GROUPS"))
         # After loading the test groups then load the plugins, because of many-to-one relationship
         self.LoadFromFileSystem()  # Load plugins :P
 
     def GetTestGroupsFromFile(self, file_path):  # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         TestGroups = []
-        ConfigFile = self.Core.open(file_path, 'r').read().splitlines()
+        ConfigFile = FileOperations.open(file_path, 'r').read().splitlines()
         for line in ConfigFile:
             if '#' == line[0]:
                     continue  # Skip comments
             try:
                     Code, Descrip, Hint, URL = line.strip().split(' | ')
             except ValueError:
-                    self.Core.Error.FrameworkAbort("Problem in Test Groups file: '" + file_path + "' -> Cannot parse line: " + line)
+                    self.error_handler.FrameworkAbort("Problem in Test Groups file: '" + file_path + "' -> Cannot parse line: " + line)
             if len(Descrip) < 2:
                     Descrip = Hint
             if len(Hint) < 2:
@@ -36,7 +46,7 @@ class PluginDB(object):
     def LoadWebTestGroups(self, test_groups_file):
         WebTestGroups = self.GetTestGroupsFromFile(test_groups_file)
         for group in WebTestGroups:
-            self.Core.DB.session.merge(
+            self.db.session.merge(
                 models.TestGroup(
                     code=group['code'],
                     descrip=group['descrip'],
@@ -44,12 +54,12 @@ class PluginDB(object):
                     url=group['url'],
                     group="web")
                 )
-        self.Core.DB.session.commit()
+        self.db.session.commit()
 
     def LoadNetTestGroups(self, test_groups_file):
         NetTestGroups = self.GetTestGroupsFromFile(test_groups_file)
         for group in NetTestGroups:
-            self.Core.DB.session.merge(
+            self.db.session.merge(
                 models.TestGroup(
                     code=group['code'],
                     descrip=group['descrip'],
@@ -57,7 +67,7 @@ class PluginDB(object):
                     url=group['url'],
                     group="net")
                 )
-        self.Core.DB.session.commit()
+        self.db.session.commit()
 
     def LoadFromFileSystem(self):
         """Loads the plugins from the filesystem and updates their info.
@@ -80,7 +90,7 @@ class PluginDB(object):
         # Retrieve the list of the plugins (sorted) from the directory given by
         # 'PLUGIN_DIR'.
         plugins = []
-        for root, _, files in os.walk(self.Core.Config.FrameworkConfigGet('PLUGINS_DIR')):
+        for root, _, files in os.walk(self.config.FrameworkConfigGet('PLUGINS_DIR')):
             plugins.extend([
                 os.path.join(root, filename) for filename in files
                 if filename.endswith('py')])
@@ -89,7 +99,7 @@ class PluginDB(object):
         for plugin_path in plugins:
             # Only keep the relative path to the plugin
             plugin = plugin_path.replace(
-                self.Core.Config.FrameworkConfigGet('PLUGINS_DIR'), '')
+                self.config.FrameworkConfigGet('PLUGINS_DIR'), '')
             # TODO: Using os.path.sep might not be portable especially on
             # Windows platform since it allows '/' and '\' in the path.
             # Retrieve the group, the type and the file of the plugin.
@@ -117,7 +127,7 @@ class PluginDB(object):
             except AttributeError:  # The plugin didn't define an attr dict.
                 pass
             # Save the plugin into the database.
-            self.Core.DB.session.merge(
+            self.db.session.merge(
                 models.Plugin(
                     key=type + '@' + code,
                     group=group,
@@ -130,7 +140,7 @@ class PluginDB(object):
                     attr=attr
                 )
             )
-        self.Core.DB.session.commit()
+        self.db.session.commit()
 
     def DeriveTestGroupDict(self, obj):
         if obj:
@@ -145,25 +155,25 @@ class PluginDB(object):
         return dict_list
 
     def GetTestGroup(self, code):
-        group = self.Core.DB.session.query(models.TestGroup).get(code)
+        group = self.db.session.query(models.TestGroup).get(code)
         return(self.DeriveTestGroupDict(group))
 
     def GetAllTestGroups(self):
-        test_groups = self.Core.DB.session.query(models.TestGroup).all()
+        test_groups = self.db.session.query(models.TestGroup).all()
         return(self.DeriveTestGroupDicts(test_groups))
 
     def GetAllGroups(self):
-        groups = self.Core.DB.session.query(models.Plugin.group).distinct().all()
+        groups = self.db.session.query(models.Plugin.group).distinct().all()
         groups = [i[0] for i in groups]
         return(groups)
 
     def GetAllTypes(self):
-        plugin_types = self.Core.DB.session.query(models.Plugin.type).distinct().all()
+        plugin_types = self.db.session.query(models.Plugin.type).distinct().all()
         plugin_types = [i[0] for i in plugin_types]  # Necessary because of sqlalchemy
         return(plugin_types)
 
     def GetTypesForGroup(self, PluginGroup):
-        plugin_types = self.Core.DB.session.query(models.Plugin.type).filter_by(group=PluginGroup).distinct().all()
+        plugin_types = self.db.session.query(models.Plugin.type).filter_by(group=PluginGroup).distinct().all()
         plugin_types = [i[0] for i in plugin_types]
         return(plugin_types)
 
@@ -177,7 +187,7 @@ class PluginDB(object):
             pdict["min_time"] = None
             min_time = obj.min_time
             if min_time is not None:
-                pdict["min_time"] = self.Core.Timer.get_time_as_str(min_time)
+                pdict["min_time"] = self.timer.get_time_as_str(min_time)
             return pdict
 
     def DerivePluginDicts(self, obj_list):
@@ -187,7 +197,7 @@ class PluginDB(object):
         return(plugin_dicts)
 
     def GenerateQueryUsingSession(self, criteria):
-        query = self.Core.DB.session.query(models.Plugin)
+        query = self.db.session.query(models.Plugin)
         if criteria.get("type", None):
             if isinstance(criteria["type"], (str, unicode)):
                 query = query.filter_by(type=criteria["type"])
@@ -222,10 +232,10 @@ class PluginDB(object):
         return(self.GetAll({"plugin_group": PluginGroup}))
 
     def GetPluginsByGroupType(self, PluginGroup, PluginTypeList):
-        plugins = self.Core.DB.session.query(models.Plugin).filter(models.Plugin.group == PluginGroup, models.Plugin.type.in_(PluginTypeList)).all()
+        plugins = self.db.session.query(models.Plugin).filter(models.Plugin.group == PluginGroup, models.Plugin.type.in_(PluginTypeList)).all()
         return(self.DerivePluginDicts(plugins))
 
     def GetGroupsForPlugins(self, Plugins):
-        groups = self.Core.DB.session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(Plugins), models.Plugin.name.in_(Plugins))).distinct().all()
+        groups = self.db.session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(Plugins), models.Plugin.name.in_(Plugins))).distinct().all()
         groups = [i[0] for i in groups]
         return(groups)

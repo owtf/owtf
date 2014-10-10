@@ -39,6 +39,9 @@ import logging
 
 from sqlalchemy import desc, asc
 from collections import defaultdict
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import TransactionInterface
+
 from framework.db.target_manager import target_required
 from framework.lib.exceptions import InvalidTransactionReference, \
                                      InvalidParameterType
@@ -50,10 +53,17 @@ from framework.db import models
 REGEX_TYPES = ['HEADERS', 'BODY']
 
 
-class TransactionManager(object):
-    def __init__(self, core):
-        # Need access to reporter for pretty html trasaction log.
-        self.Core = core
+class TransactionManager(BaseComponent, TransactionInterface):
+
+    COMPONENT_NAME = "transaction"
+
+    def __init__(self):
+        self.register_in_service_locator()
+        self.config = self.get_component("config")
+        self.db = self.get_component("db")
+        self.target = self.get_component("target")
+        self.url_manager = self.get_component("url_manager")
+        self.zest = self.get_component("zest")
         self.regexs = defaultdict(list)
         for regex_type in REGEX_TYPES:
             self.regexs[regex_type] = {}
@@ -62,7 +72,7 @@ class TransactionManager(object):
     @target_required
     def NumTransactions(self, scope=True, target_id=None):
         """Return num transactions in scope by default."""
-        count = self.Core.DB.session.query(models.Transaction).filter_by(
+        count = self.db.session.query(models.Transaction).filter_by(
             scope=scope,
             target_id=target_id).count()
         return(count)
@@ -71,7 +81,7 @@ class TransactionManager(object):
         return(len(self.GetAll(criteria, target_id=target_id)) > 0)
 
     def GenerateQueryUsingSession(self, criteria, target_id, for_stats=False):
-        query = self.Core.DB.session.query(models.Transaction).filter_by(
+        query = self.db.session.query(models.Transaction).filter_by(
             target_id=target_id)
         # If transaction search is being done
         if criteria.get('search', None):
@@ -135,11 +145,11 @@ class TransactionManager(object):
         if criteria.get('scope', None):
             if isinstance(criteria.get('scope'), list):
                 criteria['scope'] = criteria['scope'][0]
-            query = query.filter_by(scope=self.Core.Config.ConvertStrToBool(criteria['scope']))
+            query = query.filter_by(scope=self.config.ConvertStrToBool(criteria['scope']))
         if criteria.get('binary_response', None):
             if isinstance(criteria.get('binary_response'), list):
                 criteria['binary_response'] = criteria['binary_response'][0]
-            query = query.filter_by(binary_response=self.Core.Config.ConvertStrToBool(criteria['binary_response']))
+            query = query.filter_by(binary_response=self.config.ConvertStrToBool(criteria['binary_response']))
         if not for_stats:  # query for stats shouldn't have limit and offset
             try:
                 if criteria.get('offset', None):
@@ -246,9 +256,9 @@ class TransactionManager(object):
             transaction_model = self.GetTransactionModel(transaction)
             transaction_model.target_id = target_id
             transaction_model_list.append(transaction_model)
-            self.Core.DB.session.add(transaction_model)
+            self.db.session.add(transaction_model)
             urls_list.append([transaction.URL, True, transaction.InScope()])
-        self.Core.DB.session.commit()
+        self.db.session.commit()
         # Now since we have the ids ready, we can process the grep output and
         # add accordingly. So iterate over transactions and their models.
         for i in range(0, len(transaction_list)):
@@ -273,7 +283,7 @@ class TransactionManager(object):
                             # Conver the match to json
                             match = json.dumps(match)
                             # Fetch if any existing entry
-                            existing_grep_output = self.Core.DB.session.query(
+                            existing_grep_output = self.db.session.query(
                                 models.GrepOutput).filter_by(
                                     target_id=target_id,
                                     name=regex_name,
@@ -281,21 +291,21 @@ class TransactionManager(object):
                             if existing_grep_output:
                                 existing_grep_output.transactions.append(
                                     transaction_model)
-                                self.Core.DB.session.merge(existing_grep_output)
+                                self.db.session.merge(existing_grep_output)
                             else:
-                                self.Core.DB.session.add(models.GrepOutput(
+                                self.db.session.add(models.GrepOutput(
                                     target_id=target_id,
                                     transactions=[transaction_model],
                                     name=regex_name,
                                     output=match))
-        self.Core.DB.session.commit()
+        self.db.session.commit()
         zest_trans_list = []
         # Append the transaction in the list if recording is set to on
-        if self.Core.zest.IsRecording():
+        if self.zest.IsRecording():
             for model in transaction_model_list:
                 zest_trans_list.append(model.id)
-            self.Core.zest.addtoRecordedTrans(zest_trans_list)
-        self.Core.DB.URL.ImportProcessedURLs(urls_list, target_id=target_id)
+            self.zest.addtoRecordedTrans(zest_trans_list)
+        self.url_manager.ImportProcessedURLs(urls_list, target_id=target_id)
 
     def LogTransactionsFromLogger(self, transactions_dict):
         # transaction_dict is a dictionary with target_id as key and list of owtf transactions
@@ -305,10 +315,10 @@ class TransactionManager(object):
 
     @target_required
     def DeleteTransaction(self, transaction_id, target_id=None):
-        self.Core.DB.session.query(models.Transaction).filter_by(
+        self.db.session.query(models.Transaction).filter_by(
             target_id=target_id,
             id=transaction_id).delete()
-        self.Core.DB.session.commit()
+        self.db.session.commit()
 
     @target_required
     def GetNumTransactionsInScope(self, target_id=None):
@@ -318,7 +328,7 @@ class TransactionManager(object):
         model_obj = None
         try:
             ID = int(ID)
-            model_obj = self.Core.DB.session.query(models.Transaction).get(ID)
+            model_obj = self.db.session.query(models.Transaction).get(ID)
         except ValueError:
             pass
         finally:
@@ -335,10 +345,10 @@ class TransactionManager(object):
     @target_required
     def GetTopTransactionsBySpeed(self, Order="Desc", Num=10, target_id=None):
         if Order == "Desc":
-            results = self.Core.DB.session.query(models.Transaction).filter_by(
+            results = self.db.session.query(models.Transaction).filter_by(
                 target_id=target_id).order_by(desc(models.Transaction.time)).limit(Num)
         else:
-            results = self.Core.DB.session.query(models.Transaction).filter_by(
+            results = self.db.session.query(models.Transaction).filter_by(
                 target_id=target_id).order_by(asc(models.Transaction.time)).limit(Num)
         return (self.DeriveTransactions(results))
 
@@ -349,13 +359,13 @@ class TransactionManager(object):
         return (re.compile(regexp, re.IGNORECASE | re.DOTALL))
 
     def CompileRegexs(self):
-        for key in self.Core.Config.GetFrameworkConfigDict().keys():
+        for key in self.config.GetFrameworkConfigDict().keys():
             key = key[3:-3]  # Remove "@@@"
             if key.startswith('HEADERS'):
-                header_list = self.Core.Config.GetHeaderList(key)
+                header_list = self.config.GetHeaderList(key)
                 self.regexs['HEADERS'][key] = self.CompileHeaderRegex(header_list)
             elif key.startswith('RESPONSE'):
-                RegexpName, GrepRegexp, PythonRegexp = self.Core.Config.FrameworkConfigGet(key).split('_____')
+                RegexpName, GrepRegexp, PythonRegexp = self.config.FrameworkConfigGet(key).split('_____')
                 self.regexs['BODY'][key] = self.CompileResponseRegex(PythonRegexp)
 
     def GrepTransaction(self, owtf_transaction):
@@ -392,7 +402,7 @@ class TransactionManager(object):
         + match_percent
         """
         # Get the grep outputs and only unique values
-        grep_outputs = self.Core.DB.session.query(
+        grep_outputs = self.db.session.query(
             models.GrepOutput.output).filter_by(
                 name=regex_name,
                 target_id=target_id).group_by(models.GrepOutput.output).all()
@@ -400,20 +410,20 @@ class TransactionManager(object):
         # Get one transaction per match
         transaction_ids = []
         for grep_output in grep_outputs:
-            transaction_ids.append(self.Core.DB.session.query(models.Transaction.id).join(
+            transaction_ids.append(self.db.session.query(models.Transaction.id).join(
                 models.Transaction.grep_outputs).filter(
                     models.GrepOutput.output == grep_output,
                     models.GrepOutput.target_id == target_id).limit(1).all()[0][0])
         # Calculate stats if needed
         if stats:
             # Calculate the total number of matches
-            num_matched_transactions = self.Core.DB.session.query(models.Transaction).join(
+            num_matched_transactions = self.db.session.query(models.Transaction).join(
                 models.Transaction.grep_outputs).filter(
                     models.GrepOutput.name == regex_name,
                     models.GrepOutput.target_id == target_id).group_by(
                         models.Transaction).count()
             # Calculate total number of transactions in scope
-            num_transactions_in_scope = self.Core.DB.session.query(models.Transaction).filter_by(
+            num_transactions_in_scope = self.db.session.query(models.Transaction).filter_by(
                 scope=True,
                 target_id=target_id).count()
             # Calculate matched percentage
@@ -470,7 +480,7 @@ class TransactionManager(object):
         # + Total number of transactions
         # + Filtered transaaction dicts
         # + Filtered number of transactions
-        total = self.Core.DB.session.query(
+        total = self.db.session.query(
             models.Transaction).filter_by(target_id=target_id).count()
         filtered_transaction_objs = self.GenerateQueryUsingSession(
             Criteria,
@@ -495,7 +505,7 @@ class TransactionManager(object):
 
     @target_required
     def GetByIDAsDict(self, trans_id, target_id=None):
-        transaction_obj = self.Core.DB.session.query(
+        transaction_obj = self.db.session.query(
             models.Transaction).filter_by(
                 target_id=target_id,
                 id=trans_id).first()
@@ -512,7 +522,7 @@ class TransactionManager(object):
         * A sample data: [{"attributes": {"Path": "/", "HttpOnly": true}, "name": "ASP.NET_SessionId", "value": "jx0ydsvwqtfgqcufazwigiih"},
                           {"attributes": {"Path": "/"}, "name": "amSessionId", "value": "618174515"}]
         """
-        session_data = self.Core.DB.session.query(
+        session_data = self.db.session.query(
             models.Transaction.session_tokens).filter_by(
                 target_id=target_id).all()
         results = [json.loads(el[0]) for el in session_data if el and el[0]]
@@ -523,7 +533,7 @@ class TransactionManager(object):
         """
         This returns the data in the form of [(url1), (url2), etc]
         """
-        session_urls = self.Core.DB.session.query(models.Transaction.url).filter(
+        session_urls = self.db.session.query(models.Transaction.url).filter(
             models.Transaction.target_id == target_id,
             group_by(models.Transaction.session_tokens)).getall()
         return session_urls

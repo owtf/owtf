@@ -24,7 +24,7 @@ ActiveHTTPMethods_____curl TRACE Check_____curl -i -A '@@@USER_AGENT@@@' -H 'Hos
 2nd: Call it via DrawCommandDump: 
 create plugin file: active/HTTP_Methods_and_XST@OWASP-CM-008.py
 Simplest plugin code to call your code example:
-def run(Core, PluginInfo):
+def run(PluginInfo):
         return Core.mPluginHelper.DrawCommandDump('Test Command', 'Output', Core.mConfig.GetResources('ActiveHTTPMethods'), PluginInfo, "Previous plugin content or whatever you would like to have displayed before your command is run in the report")
 
 Notes: 

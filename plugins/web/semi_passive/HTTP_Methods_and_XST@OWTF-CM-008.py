@@ -27,13 +27,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 SEMI-PASSIVE Plugin for Testing for HTTP Methods and XST (OWASP-CM-008)
 """
+from framework.dependency_management.dependency_resolver import ServiceLocator
 
 DESCRIPTION = "Normal request for HTTP methods analysis"
 
-def run(Core, PluginInfo):
-	#Core.Config.Show()
-	Content = Core.PluginHelper.TransactionTableForURLList(True, Core.DB.Target.GetAsList(['target_url', 'top_url']), 'OPTIONS')
-	#print "Content="+Content
-	Content += Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('SemiPassiveHTTPMethods'), PluginInfo, []) # No previous output
-	return Content
+def run(PluginInfo):
+    plugin_helper = ServiceLocator.get_component("plugin_helper")
+    Content = plugin_helper.TransactionTableForURLList(True, Core.DB.Target.GetAsList(['target_url', 'top_url']), 'OPTIONS')
+    Content += plugin_helper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('SemiPassiveHTTPMethods'), PluginInfo, []) # No previous output
+    return Content
 

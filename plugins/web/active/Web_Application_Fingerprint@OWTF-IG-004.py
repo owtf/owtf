@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -31,8 +32,8 @@ https://www.owasp.org/index.php/Testing_for_Web_Application_Fingerprint_%28OWASP
 
 DESCRIPTION = "Active probing for fingerprint analysis"
 
-def run(Core, PluginInfo):
-	#Core.Config.Show()
-	Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('ActiveFingerPrint'), PluginInfo, []) # No previous output
+def run(PluginInfo):
+	#ServiceLocator.get_component("config").Show()
+	Content = ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', ServiceLocator.get_component("resource").GetResources('ActiveFingerPrint'), PluginInfo, []) # No previous output
 	return Content
 

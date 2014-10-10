@@ -37,13 +37,19 @@ import base64
 import smtplib
 
 from email import MIMEMultipart, MIMEBase, MIMEText, Encoders
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 from framework.lib.general import *
+from framework.utils import FileOperations
 
 
-class SMTP(object):
-    def __init__(self, core):
-        self.Core = core
+class SMTP(BaseComponent):
+
+    COMPONENT_NAME = "smtp"
+
+    def __init__(self):
+        self.register_in_service_locator()
+        self.error_handler = self.get_component("error_handler")
         self.MsgPrefix = 'OWTF SMTP Client - '
 
     def Print(self, message):
@@ -99,7 +105,7 @@ class SMTP(object):
                     message.as_string())
                 self.Print("Email relay successful!")
             except Exception, e:
-                self.Core.Error.Add("Error delivering email: " + str(e))
+                self.error_handler.Add("Error delivering email: " + str(e))
                 num_errors += 1
         return (num_errors == 0)
 
@@ -129,7 +135,7 @@ class SMTP(object):
     def AddBody(self, message, text):
         # If a file has been specified as Body, then set Body to file contents.
         if os.path.isfile(text):
-            body = self.Core.open(text).read().strip()
+            body = FileOperations.open(text).read().strip()
         else:
             body = text
         message.attach(MIMEText.MIMEText(body, message))
@@ -138,7 +144,7 @@ class SMTP(object):
         if not attachment:
             return False
         binary_blob = MIMEBase.MIMEBase('application', 'octet-stream')
-        binary_blob.set_payload(self.Core.open(attachment, 'rb').read())
+        binary_blob.set_payload(FileOperations.open(attachment, 'rb').read())
         Encoders.encode_base64(binary_blob)  # base64 encode the Binary Blob.
         # Binary Blob headers.
         binary_blob.add_header(

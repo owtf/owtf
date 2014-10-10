@@ -1,13 +1,20 @@
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import DBConfigInterface
 from framework.lib.exceptions import InvalidConfigurationReference
 from framework.db import models
 from framework.lib.general import cprint
 import ConfigParser
 
 
-class ConfigDB(object):
-    def __init__(self, Core):
-        self.Core = Core
-        self.LoadConfigDBFromFile(self.Core.Config.FrameworkConfigGet('DEFAULT_GENERAL_PROFILE'))
+class ConfigDB(BaseComponent, DBConfigInterface):
+
+    COMPONENT_NAME = "db_config"
+
+    def __init__(self):
+        self.register_in_service_locator()
+        self.config = self.get_component("config")
+        self.db = self.get_component("db")
+        self.LoadConfigDBFromFile(self.config.FrameworkConfigGet('DEFAULT_GENERAL_PROFILE'))
 
     def IsConvertable(self, value, conv):
         try:
@@ -23,20 +30,20 @@ class ConfigDB(object):
         config_parser.read(file_path)
         for section in config_parser.sections():
             for key, value in config_parser.items(section):
-                old_config_obj = self.Core.DB.session.query(models.ConfigSetting).get(key)
+                old_config_obj = self.db.session.query(models.ConfigSetting).get(key)
                 if not old_config_obj or not old_config_obj.dirty:
                     if not key.endswith("_DESCRIP"):  # _DESCRIP are help values
                         config_obj = models.ConfigSetting(key=key, value=value, section=section)
                         # If _DESCRIP at the end, then use it as help text
                         if config_parser.has_option(section, key + "_DESCRIP"):
                             config_obj.descrip = config_parser.get(section, key + "_DESCRIP")
-                        self.Core.DB.session.merge(config_obj)
-        self.Core.DB.session.commit()
+                        self.db.session.merge(config_obj)
+        self.db.session.commit()
 
     def Get(self, Key):
-        obj = self.Core.DB.session.query(models.ConfigSetting).get(Key)
+        obj = self.db.session.query(models.ConfigSetting).get(Key)
         if obj:
-            return(self.Core.Config.MultipleReplace(obj.value, self.Core.Config.GetReplacementDict()))
+            return(self.config.MultipleReplace(obj.value, self.config.GetReplacementDict()))
         else:
             return(None)
 
@@ -56,7 +63,7 @@ class ConfigDB(object):
         return config_dict_list
 
     def GenerateQueryUsingSession(self, criteria):
-        query = self.Core.DB.session.query(models.ConfigSetting)
+        query = self.db.session.query(models.ConfigSetting)
         if criteria.get("key", None):
             if isinstance(criteria["key"], (str, unicode)):
                 query = query.filter_by(key=criteria["key"])
@@ -70,7 +77,7 @@ class ConfigDB(object):
         if criteria.get('dirty', None):
             if isinstance(criteria.get('dirty'), list):
                 criteria['dirty'] = criteria['dirty'][0]
-            query = query.filter_by(dirty=self.Core.Config.ConvertStrToBool(criteria['dirty']))
+            query = query.filter_by(dirty=self.config.ConvertStrToBool(criteria['dirty']))
         return query
 
     def GetAll(self, criteria=None):
@@ -80,32 +87,32 @@ class ConfigDB(object):
         return self.DeriveConfigDicts(query.all())
 
     def GetAllTools(self):
-        results = self.Core.DB.session.query(models.ConfigSetting).filter(
+        results = self.db.session.query(models.ConfigSetting).filter(
             models.ConfigSetting.key.like("%TOOL_%")).all()
         config_dicts = self.DeriveConfigDicts(results)
         for config_dict in config_dicts:
-            config_dict["value"] = self.Core.Config.MultipleReplace(
-                config_dict["value"], self.Core.Config.GetReplacementDict())
+            config_dict["value"] = self.config.MultipleReplace(
+                config_dict["value"], self.config.GetReplacementDict())
         return(config_dicts)
 
     def GetSections(self):
-        sections = self.Core.DB.session.query(models.ConfigSetting.section).distinct().all()
+        sections = self.db.session.query(models.ConfigSetting.section).distinct().all()
         sections = [i[0] for i in sections]
         return sections
 
     def Update(self, key, value):
-        config_obj = self.Core.DB.session.query(models.ConfigSetting).get(key)
+        config_obj = self.db.session.query(models.ConfigSetting).get(key)
         if config_obj:
             config_obj.value = value
             config_obj.dirty = True
-            self.Core.DB.session.merge(config_obj)
-            self.Core.DB.session.commit()
+            self.db.session.merge(config_obj)
+            self.db.session.commit()
         else:
             raise InvalidConfigurationReference("No setting exists with key: " + str(key))
 
     def GetReplacementDict(self):
         config_dict = {}
-        config_list = self.Core.DB.session.query(models.ConfigSetting.key, models.ConfigSetting.value).all()
+        config_list = self.db.session.query(models.ConfigSetting.key, models.ConfigSetting.value).all()
         for key, value in config_list:  # Need a dict
             config_dict[key] = value
         return config_dict

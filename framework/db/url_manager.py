@@ -28,6 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The DB stores HTTP transactions, unique URLs and more.
 '''
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import URLManagerInterface
 from framework.lib.general import *
 from framework.db.target_manager import target_required
 from framework.db import models
@@ -35,29 +37,26 @@ import re
 import logging
 
 
-class URLManager:
-    def __init__(self, Core):
-        self.Core = Core
+class URLManager(BaseComponent, URLManagerInterface):
+    NumURLsBefore = 0
+
+    COMPONENT_NAME = "url_manager"
+
+    def __init__(self):
+        self.register_in_service_locator()
+        self.config = self.get_component("config")
+        self.target = self.get_component("target")
+        self.db = self.get_component("db")
         # Compile regular expressions once at the beginning for speed purposes:
-        self.IsFileRegexp = re.compile(
-            Core.Config.FrameworkConfigGet('REGEXP_FILE_URL'),
-            re.IGNORECASE)
-        self.IsSmallFileRegexp = re.compile(
-            Core.Config.FrameworkConfigGet('REGEXP_SMALL_FILE_URL'),
-            re.IGNORECASE)
-        self.IsImageRegexp = re.compile(
-            Core.Config.FrameworkConfigGet('REGEXP_IMAGE_URL'),
-            re.IGNORECASE)
-        self.IsURLRegexp = re.compile(
-            Core.Config.FrameworkConfigGet('REGEXP_VALID_URL'),
-            re.IGNORECASE)
-        self.IsSSIRegexp = re.compile(
-            Core.Config.FrameworkConfigGet('REGEXP_SSI_URL'),
-            re.IGNORECASE)
+        self.IsFileRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_FILE_URL'), re.IGNORECASE)
+        self.IsSmallFileRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_SMALL_FILE_URL'), re.IGNORECASE)
+        self.IsImageRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_IMAGE_URL'), re.IGNORECASE)
+        self.IsURLRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_VALID_URL'), re.IGNORECASE)
+        self.IsSSIRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_SSI_URL'), re.IGNORECASE)
 
     def IsRegexpURL(self, URL, Regexp):
         if len(Regexp.findall(URL)) > 0:
-                return True
+            return True
         return False
 
     def IsSmallFileURL(self, URL):
@@ -71,34 +70,30 @@ class URLManager:
 
     def IsSSIURL(self, URL):
         return self.IsRegexpURL(URL, self.IsSSIRegexp)
-
-    def GetURLsToVisit(self, target_id=None):
-        if target_id is None:
-            target_id = self.Core.DB.Target.GetTargetID()
-        urls = self.Core.DB.session.query(models.Url.url).filter_by(
-            target_id=target_id,
-            visited=False).all()
-        urls = [i[0] for i in urls]
-        return(urls)
-
-    def IsURL(self, URL):
-        return self.IsRegexpURL(URL, self.IsURLRegexp)
-
     @target_required
     def AddURLToDB(self, url, visited, found=None, target_id=None):
         if self.IsURL(url):  # New URL
             # Make sure URL is clean prior to saving in DB, nasty bugs
             # can happen without this
             url = url.strip()
-            scope = self.Core.DB.Target.IsInScopeURL(url)
-
-            self.Core.DB.session.merge(models.Url(
+            scope = self.target.IsInScopeURL(url)
+            self.db.session.merge(models.Url(
                 target_id=target_id,
                 url=url,
                 visited=visited,
                 scope=scope))
-            self.Core.DB.session.commit()
+            self.db.session.commit()
 
+    def GetURLsToVisit(self, target=None):
+        Session = self.target.GetUrlDBSession(target)
+        session = Session()
+        urls = session.query(models.Url.url).filter_by(visited=False).all()
+        session.close()
+        urls = [i[0] for i in urls]
+        return (urls)
+
+    def IsURL(self, URL):
+        return self.IsRegexpURL(URL, self.IsURLRegexp)
     @target_required
     def AddURL(self, url, found=None, target_id=None):
         """
@@ -112,12 +107,12 @@ class URLManager:
     @target_required
     def ImportProcessedURLs(self, urls_list, target_id=None):
         for url, visited, scope in urls_list:
-            self.Core.DB.session.merge(models.Url(
+            self.db.session.merge(models.Url(
                 target_id=target_id,
                 url=url,
                 visited=visited,
                 scope=scope))
-        self.Core.DB.session.commit()
+        self.db.session.commit()
 
     @target_required
     def ImportURLs(self, url_list, target_id=None):
@@ -130,8 +125,8 @@ class URLManager:
         for url in url_list:
             if self.IsURL(url):
                 imported_urls.append(url)
-                self.Core.DB.session.merge(models.Url(url=url, target_id=target_id))
-        self.Core.DB.session.commit()
+                self.db.session.merge(models.Url(url=url, target_id=target_id))
+        self.db.session.commit()
         return(imported_urls)  # Return imported urls
 
 # ------------------------------- API Methods--------------------------------
@@ -151,7 +146,7 @@ class URLManager:
             criteria,
             target_id,
             for_stats=False):
-        query = self.Core.DB.session.query(models.Url).filter_by(target_id=target_id)
+        query = self.db.session.query(models.Url).filter_by(target_id=target_id)
         # Check if criteria is url search
         if criteria.get('search', None):
             if criteria.get('url', None):
@@ -172,12 +167,12 @@ class URLManager:
             if isinstance(criteria.get('visited'), list):
                 criteria['visited'] = criteria['visited'][0]
             query = query.filter_by(
-                visited=self.Core.Config.ConvertStrToBool(criteria['visited']))
+                visited=self.config.ConvertStrToBool(criteria['visited']))
         if criteria.get('scope', None):
             if isinstance(criteria.get('scope'), list):
                 criteria['scope'] = criteria['scope'][0]
             query = query.filter_by(
-                scope=self.Core.Config.ConvertStrToBool(criteria['scope']))
+                scope=self.config.ConvertStrToBool(criteria['scope']))
         if not for_stats:  # Query for stats can't have limit and offset
             try:
                 if criteria.get('offset', None):
@@ -208,7 +203,7 @@ class URLManager:
         # + Total number of urls
         # + Filtered url
         # + Filtered number of url
-        total = self.Core.DB.session.query(
+        total = self.db.session.query(
             models.Url).filter_by(target_id=target_id).count()
         filtered_url_objs = self.GenerateQueryUsingSession(
             Criteria,

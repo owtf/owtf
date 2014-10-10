@@ -1,3 +1,5 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -30,11 +32,20 @@ PASSIVE Plugin for Testing for Web Application Fingerprint (OWASP-IG-004)
 
 DESCRIPTION = "Third party resources and fingerprinting suggestions"
 
-def run(Core, PluginInfo):
-	#Core.Config.Show()
-	#Vuln search box to be built in core and reused in different plugins:
-	Content = Core.PluginHelper.VulnerabilitySearchBox('')
-	Content += Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('PassiveFingerPrint'))
-	Content += Core.PluginHelper.SuggestedCommandBox( PluginInfo, [ [ 'All', 'CMS_FingerPrint_All' ], [ 'WordPress', 'CMS_FingerPrint_WordPress' ] , [ 'Joomla', 'CMS_FingerPrint_Joomla' ], [ 'Drupal', 'CMS_FingerPrint_Drupal' ], [ 'Mambo', 'CMS_FingerPrint_Mambo' ]  ], 'CMS Fingerprint - Potentially useful commands' )
-	return Content
+
+def run(PluginInfo):
+    # ServiceLocator.get_component("config").Show()
+    #Vuln search box to be built in core and reused in different plugins:
+    plugin_helper = ServiceLocator.get_component("plugin_helper")
+    Content = plugin_helper.VulnerabilitySearchBox('')
+    Content += plugin_helper.ResourceLinkList('Online Resources', ServiceLocator.get_component("resource").GetResources('PassiveFingerPrint'))
+    Content += plugin_helper.SuggestedCommandBox(PluginInfo,
+                                                                                 [['All', 'CMS_FingerPrint_All'],
+                                                                                  ['WordPress',
+                                                                                   'CMS_FingerPrint_WordPress'],
+                                                                                  ['Joomla', 'CMS_FingerPrint_Joomla'],
+                                                                                  ['Drupal', 'CMS_FingerPrint_Drupal'],
+                                                                                  ['Mambo', 'CMS_FingerPrint_Mambo']],
+                                                                                 'CMS Fingerprint - Potentially useful commands')
+    return Content
 

@@ -40,12 +40,17 @@ from collections import defaultdict
 
 from framework.shell import pexpect_shell
 from framework.lib.general import *
+from framework.utils import FileOperations
 
 
 class SMB(pexpect_shell.PExpectShell):
-    def __init__(self, core):
+
+    COMPONENT_NAME = "smb"
+
+    def __init__(self):
+        self.register_in_service_locator()
         # Calling parent class to do its init part.
-        pexpect_shell.PExpectShell.__init__(self, core)
+        pexpect_shell.PExpectShell.__init__(self)
         self.CommandTimeOffset = 'SMBCommand'
         self.Mounted = False
 
@@ -57,7 +62,7 @@ class SMB(pexpect_shell.PExpectShell):
 
     def check_mount_point_existence(self, options):
         if not os.path.exists(options['SMB_MOUNT_POINT']):
-            self.Core.makedirs(options['SMB_MOUNT_POINT'])
+            FileOperations.make_dirs(options['SMB_MOUNT_POINT'])
 
     def Mount(self, options, plugin_info):
         if self.IsMounted():
@@ -98,17 +103,17 @@ class SMB(pexpect_shell.PExpectShell):
 
     def UnMount(self, plugin_info):
         if self.IsMounted():
-            self.Core.Shell.shell_exec_monitor(
+            self.shell_exec_monitor(
                 "umount " + self.Options['SMB_MOUNT_POINT'])
             self.SetMounted(False)
             self.Close(plugin_info)
 
     def Upload(self, file_path, mount_point):
         cprint("Copying '" + file_path + "' to '" + mount_point + "'")
-        self.Core.Shell.shell_exec_monitor(
+        self.shell_exec_monitor(
             "cp -r " + file_path + " " + mount_point)
 
     def Download(self, remote_file_path, target_dir):
         cprint("Copying '" + remote_file_path + "' to '" + target_dir + "'")
-        self.Core.Shell.shell_exec_monitor(
+        self.shell_exec_monitor(
             "cp -r " + remote_file_path + " " + target_dir)

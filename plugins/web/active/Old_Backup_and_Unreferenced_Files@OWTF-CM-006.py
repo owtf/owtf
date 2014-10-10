@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """ 
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -31,12 +32,12 @@ https://www.owasp.org/index.php/Testing_for_Old,_Backup_and_Unreferenced_Files_(
 
 DESCRIPTION = "Active probing for juicy files (DirBuster)"
 
-def run(Core, PluginInfo):
-	#Core.Config.Show()
+def run(PluginInfo):
+	#ServiceLocator.get_component("config").Show()
 	# Define DirBuster Commands to use depending on Interaction Setting:
 	# DirBuster allows much more control when interactive
 	# DirBuster can also be run non-interactively for scripting
 	DirBusterInteraction = { 'true' : 'DirBusterInteractive', 'false' : 'DirBusterNotInteractive' }
-	return Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResourceList([ DirBusterInteraction[Core.DB.Config.Get('INTERACTIVE')], 'DirBuster_Extract_URLs' ]), PluginInfo, [])
-	#return Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources(DirBusterInteraction[Core.Config.Get('Interactive')]), PluginInfo, Content)
+	return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', ServiceLocator.get_component("resource").GetResourceList([ DirBusterInteraction[ServiceLocator.get_component("db_config").Get('INTERACTIVE')], 'DirBuster_Extract_URLs' ]), PluginInfo, [])
+	#return ServiceLocator.get_component("plugin_helper").DrawCommandDump('Test Command', 'Output', ServiceLocator.get_component("config").GetResources(DirBusterInteraction[ServiceLocator.get_component("config").Get('Interactive')]), PluginInfo, Content)
 

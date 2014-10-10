@@ -2,14 +2,26 @@ import subprocess
 import os.path
 from os import listdir
 from os.path import isfile, join
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import ZestInterface
+from framework.utils import FileOperations
 
 
-class Zest(object):
+class Zest(BaseComponent, ZestInterface):
+
+    COMPONENT_NAME = "zest"
+
 #basic initialization of Root,Output,Zest Directories from target config
 
-    def __init__(self, core):
-        self.Core = core
+    def __init__(self):
+        self.register_in_service_locator()
+        self.config = self.get_component("config")
+        self.db_config = self.get_component("db_config")
+        self.target = self.get_component("target")
+        self.db = self.get_component("db")
         self.recordedTransactions = []  # keeps track of recorded transactions
+
+    def init(self):
         self.StopRecorder()  # recorded should be stopped when OWTF starts
 
 # Script creation from single transaction
@@ -42,27 +54,27 @@ class Zest(object):
 
     def GetTargetConfig(self, target_id):
         target_config = {}
-        self.Core.DB.Target.SetTarget(target_id)
-        target_config['ROOT_DIR'] = self.Core.Config.RootDir
-        target_config['OUTPUT_DIR'] = os.path.join(target_config['ROOT_DIR'], self.Core.DB.Target.PathConfig['url_output'])
-        #target_config['TARGET_DB'] = self.Core.Config.FrameworkConfigGet('TCONFIG_DB_PATH')
+        self.target.SetTarget(target_id)
+        target_config['ROOT_DIR'] = self.config.RootDir
+        target_config['OUTPUT_DIR'] = os.path.join(target_config['ROOT_DIR'], self.target.PathConfig['url_output'])
+        #target_config['TARGET_DB'] = self.config.FrameworkConfigGet('TCONFIG_DB_PATH')
         target_config['ZEST_DIR'] = os.path.join(target_config['OUTPUT_DIR'], "zest")
         target_config['CREATE_SCRIPT_PATH'] = os.path.join(target_config['ROOT_DIR'], "zest", "zest_create.sh")
         target_config['RUNNER_SCRIPT_PATH'] = os.path.join(target_config['ROOT_DIR'], "zest","zest_runner.sh")
-        target_config['HOST_AND_PORT'] = ((self.Core.DB.Target.GetTargetConfigForID(target_id))['host_name'] 
-                                              + ":" + (self.Core.DB.Target.GetTargetConfigForID(target_id))['port_number'])
-        self.Core.CreateMissingDirs(target_config['ZEST_DIR'])
+        target_config['HOST_AND_PORT'] = ((self.target.GetTargetConfigForID(target_id))['host_name'] 
+                                              + ":" + (self.target.GetTargetConfigForID(target_id))['port_number'])
+        FileOperations.create_missing_dirs(target_config['ZEST_DIR'])
         return target_config
 
     def GetRecordConfig(self):
         record_config = {}
-        record_config['ROOT_DIR'] = self.Core.Config.RootDir
-       #record_config['OUTPUT_DIR'] = os.path.join(record_config['ROOT_DIR'], self.Core.Config.GetOutputDirForTargets())
-       #record_config['TARGET_DB'] = os.path.join(record_config['ROOT_DIR'], self.Core.Config.FrameworkConfigGetDBPath('TCONFIG_DB_PATH'))
+        record_config['ROOT_DIR'] = self.config.RootDir
+        #record_config['OUTPUT_DIR'] = os.path.join(record_config['ROOT_DIR'], self.config.GetOutputDirForTargets())
+        #record_config['TARGET_DB'] = os.path.join(record_config['ROOT_DIR'], self.config.FrameworkConfigGetDBPath('TCONFIG_DB_PATH'))
         record_config['CREATE_SCRIPT_PATH'] = os.path.join(record_config['ROOT_DIR'], "zest", "zest_create.sh")
         record_config['RUNNER_SCRIPT_PATH'] = os.path.join(record_config['ROOT_DIR'], "zest", "zest_runner.sh")
-        record_config['ZEST_DIR'] = os.path.join(record_config['ROOT_DIR'], self.Core.Config.FrameworkConfigGet("OUTPUT_PATH"), "misc", "recorded_scripts")
-        self.Core.CreateMissingDirs(record_config['ZEST_DIR'])
+        record_config['ZEST_DIR'] = os.path.join(record_config['ROOT_DIR'], self.config.FrameworkConfigGet("OUTPUT_PATH"), "misc", "recorded_scripts")
+        FileOperations.create_missing_dirs(record_config['ZEST_DIR'])
         return record_config
 
     def CheckifExists(self, file_name):
@@ -122,23 +134,23 @@ class Zest(object):
         record_config = self.GetRecordConfig()
         zest_file = self.GetOutputFile(file_name, record_config['ZEST_DIR'])
         if not self.CheckifExists(zest_file):
-            self.Core.DB.Config.Update("ZEST_RECORDING", "True")
+            self.db_config.Update("ZEST_RECORDING", "True")
             self.UpadateRecordScript(file_name)
             return True
         else:
             return False
 
     def StopRecorder(self):
-        self.Core.DB.Config.Update("ZEST_RECORDING", "False")
+        self.db_config.Update("ZEST_RECORDING", "False")
 
     def UpadateRecordScript(self, record_script):  # saves name of record script in config db as web UI runs on different process and cant read value from here.
-        self.Core.DB.Config.Update("RECORD_SCRIPT", record_script)
+        self.db_config.Update("RECORD_SCRIPT", record_script)
 
     def GetRecordScript(self):
-        return self.Core.DB.Config.Get("RECORD_SCRIPT")
+        return self.db_config.Get("RECORD_SCRIPT")
 
     def IsRecording(self):
-        return True if (self.Core.DB.Config.Get("ZEST_RECORDING") == "True") else False
+        return True if (self.db_config.Get("ZEST_RECORDING") == "True") else False
 
     def ConvertToZestArgs(self, arguments):  # converts to string
         zest_args = ""
@@ -161,8 +173,8 @@ class Zest(object):
 
     def GetDBSettings(self):
         settings = {}
-        settings['URL'] = self.Core.DB._db_settings['DATABASE_IP'] + ":" + self.Core.DB._db_settings['DATABASE_PORT'] + "/" + self.Core.DB._db_settings['DATABASE_NAME']
-        settings['USER_NAME'] = self.Core.DB._db_settings['DATABASE_USER']
-        settings['PASSWORD'] = self.Core.DB._db_settings['DATABASE_PASS']
+        settings['URL'] = self.db._db_settings['DATABASE_IP'] + ":" + self.db._db_settings['DATABASE_PORT'] + "/" + self.db._db_settings['DATABASE_NAME']
+        settings['USER_NAME'] = self.db._db_settings['DATABASE_USER']
+        settings['PASSWORD'] = self.db._db_settings['DATABASE_PASS']
         return settings
 

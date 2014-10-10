@@ -1,5 +1,7 @@
 from framework.db import models
 from framework.config import config
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import MappingDBInterface
 from framework.lib.exceptions import InvalidMappingReference
 import os
 import json
@@ -7,14 +9,21 @@ import logging
 import ConfigParser
 
 
-class MappingDB(object):
-    def __init__(self, Core):
+class MappingDB(BaseComponent, MappingDBInterface):
+
+    COMPONENT_NAME = "mapping_db"
+
+    def __init__(self):
         """
         The mapping_types attributes contain the unique mappings in memory
         """
-        self.Core = Core
+        self.register_in_service_locator()
+        self.config = self.get_component("config")
+        self.db = self.get_component("db")
         self.mapping_types = []
-        self.LoadMappingDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_MAPPING_PROFILE"))
+
+    def init(self):
+        self.LoadMappingDBFromFile(self.config.FrameworkConfigGet("DEFAULT_MAPPING_PROFILE"))
 
     def LoadMappingDBFromFile(self, file_path):
         """
@@ -37,11 +46,11 @@ class MappingDB(object):
                     mappings[mapping_type] = [mapped_code, mapped_name]
                 else:
                     category = data
-            self.Core.DB.session.merge(models.Mapping(
+            self.db.session.merge(models.Mapping(
                 owtf_code=owtf_code,
                 mappings=json.dumps(mappings),
                 category=category))
-        self.Core.DB.session.commit()
+        self.db.session.commit()
 
     def DeriveMappingDict(self, obj):
         if obj:
@@ -66,7 +75,7 @@ class MappingDB(object):
 
     def GetMappings(self, mapping_type):
         if mapping_type in self.mapping_types:
-            mapping_objs = self.Core.DB.session.query(models.Mapping).all()
+            mapping_objs = self.db.session.query(models.Mapping).all()
             mappings = {}
             for mapping_dict in self.DeriveMappingDicts(mapping_objs):
                 if mapping_dict["mappings"].get(mapping_type, None):
@@ -76,6 +85,6 @@ class MappingDB(object):
             raise InvalidMappingReference("InvalidMappingReference " + mapping_type + " requested")
 
     def GetCategory(self, plugin_code):
-        category = self.Core.DB.session.query(models.Mapping.category).get(plugin_code)
+        category = self.db.session.query(models.Mapping.category).get(plugin_code)
         # Getting the corresponding category back from db
         return category

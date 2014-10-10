@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pentests
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com>
@@ -32,10 +33,10 @@ Plugin for probing DNS
 DESCRIPTION = " DNS Probing "
 
 
-def run(Core, PluginInfo):
-    return Core.PluginHelper.CommandDump(
+def run(PluginInfo):
+    return ServiceLocator.get_component("plugin_helper").CommandDump(
         'Test Command',
         'Output',
-        Core.DB.Resource.GetResources('DomainBruteForcing'),
+        ServiceLocator.get_component("resource").GetResources('DomainBruteForcing'),
         PluginInfo,
         "")  # No previous output

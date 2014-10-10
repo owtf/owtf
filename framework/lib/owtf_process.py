@@ -31,19 +31,22 @@ Consists of owtf process class and its manager
 """
 import logging
 from multiprocessing import Process, current_process, Queue
+from framework.dependency_management.dependency_resolver import BaseComponent
 
 
-class OWTFProcess(Process):
+class OWTFProcess(Process, BaseComponent):
     """
     Implementing own proxy of Process for better control of processes launched
     from OWTF both while creating and terminating the processes
     """
-    def __init__(self, core, **kwargs):
+    def __init__(self, **kwargs):
         """
         Ideally not to override this but can be done if needed. If overridden
         please give a call to super() and make sure you run this
         """
-        self.core = core  # Attach core
+        self.core = self.get_component("core")  # Attach core
+        self.db = self.get_component("db")
+        self.plugin_handler = self.get_component("plugin_handler")
         self.poison_q = Queue()
         self._process = None
         for key in kwargs.keys():  # Attach all kwargs to self
@@ -69,7 +72,7 @@ class OWTFProcess(Process):
         + Launch process specific code
         """
         # ------ DB Reinitialization ------ #
-        self.core.DB.create_session()
+        self.db.create_session()
         # ------ Logging initialization ------ #
         self.core.enable_logging()
         # - Finally run process specific code - #

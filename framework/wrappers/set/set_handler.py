@@ -37,10 +37,10 @@ import time
 import pexpect
 
 class SETHandler(pexpect_shell.PExpectShell):
-	def __init__(self, Core):
-		pexpect_shell.PExpectShell.__init__(self, Core) # Calling parent class to do its init part
+	def __init__(self):
+		pexpect_shell.PExpectShell.__init__(self) # Calling parent class to do its init part
 		self.CommandTimeOffset = 'SETCommand'
-		self.SpearPhishing = spear_phishing.SpearPhishing(Core)
+		self.SpearPhishing = spear_phishing.SpearPhishing(self)
 		
 	def RunScript(self, ScriptPath, Args, Debug = False):
 		#TODO: Replacements
@@ -67,7 +67,6 @@ class SETHandler(pexpect_shell.PExpectShell):
 				#Output += self.Read(5)
 		return Output
 			#print "Testing line=" + line 
-		#self.RunCommandList(self.Core.GetFileAsList(FilePath))
 """
 with open(Params['SET_TMP_SCRIPT'], 'w') as file: # Step 2 - Create temporary script with hard-coded values from parameters:
 	file.write(MultipleReplace(open(Params['SET_PARAMS_SCRIPT']).read(), Params))
