@@ -32,19 +32,23 @@ import commands
 import socket
 import time
 from multiprocessing import Process
+from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib.general import cprint
 
 
 
-class TOR_manager(object):
+class TOR_manager(BaseComponent):
     '''
     This class is responsible for TOR management.
     '''
 
+    COMPONENT_NAME = "tor_manager"
+
     #here is done the initialization of arguments and connections
-    def __init__(self, core, args): 
+    def __init__(self, args):
+        self.register_in_service_locator()
         #If the args are empty it will filled with the default values
-        self.core = core
+        self.error_handler = self.get_component("error_handler")
         if args[0] == '':
             self.ip = "127.0.0.1"
         else:
@@ -55,14 +59,14 @@ class TOR_manager(object):
             try:
                 self.port = int(args[1])
             except ValueError:
-                self.core.Error.FrameworkAbort("Invalid TOR port")
+                self.error_handler.FrameworkAbort("Invalid TOR port")
         if args[2] == '':
             self.TOR_control_port = 9051
         else:
             try:
                 self.TOR_control_port = int(args[2])
             except ValueError:
-                self.core.Error.FrameworkAbort("Invalid TOR Controlport")
+                self.error_handler.FrameworkAbort("Invalid TOR Controlport")
         if args[3] == '':
             self.password = "owtf"
         else:
@@ -73,9 +77,9 @@ class TOR_manager(object):
             try:
                 self.time = int(args[4])
             except ValueError:
-                self.core.Error.FrameworkAbort("Invalid TOR Time")
+                self.error_handler.FrameworkAbort("Invalid TOR Time")
             if self.time < 1:   
-                self.core.Error.FrameworkAbort("Invalid TOR Time")
+                self.error_handler.FrameworkAbort("Invalid TOR Time")
 
         self.TOR_Connection = self.Open_connection()
         self.Authenticate()
@@ -87,7 +91,7 @@ class TOR_manager(object):
         if responce.startswith('250'):  #250 is the success responce
             cprint("Successfully Authenticated to TOR control")
         else:
-            self.core.Error.FrameworkAbort("Authentication Error : " + responce)
+            self.error_handler.FrameworkAbort("Authentication Error : " + responce)
     
     #Opens a new connection to TOR control
     def Open_connection(self):
@@ -97,7 +101,7 @@ class TOR_manager(object):
             cprint("Connected to TOR control")
             return s
         except Exception as error:
-            self.core.Error.FrameworkAbort("Can't connect to the TOR daemon : " + error.strerror)
+            self.error_handler.FrameworkAbort("Can't connect to the TOR daemon : " + error.strerror)
 
     #Starts a new TOR_control_process which will renew the IP address.
     def Run(self):

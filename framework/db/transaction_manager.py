@@ -301,11 +301,11 @@ class TransactionManager(BaseComponent, TransactionInterface):
         self.db.session.commit()
         zest_trans_list = []
         # Append the transaction in the list if recording is set to on
-        if self.Core.zest.IsRecording():
+        if self.zest.IsRecording():
             for model in transaction_model_list:
                 zest_trans_list.append(model.id)
-            self.Core.zest.addtoRecordedTrans(zest_trans_list)
-        self.Core.DB.URL.ImportProcessedURLs(urls_list, target_id=target_id)
+            self.zest.addtoRecordedTrans(zest_trans_list)
+        self.url_manager.ImportProcessedURLs(urls_list, target_id=target_id)
 
     def LogTransactionsFromLogger(self, transactions_dict):
         # transaction_dict is a dictionary with target_id as key and list of owtf transactions

@@ -23,9 +23,6 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         self.db = self.get_component("db")
 
     def DeriveHTMLOutput(self, plugin_output):
-        # Following line only to prevent caching
-        # when modifying poutput templates
-        # self.Core.Reporter.Loader.reset()
         Content = ''
         for item in plugin_output:
             Content += getattr(
@@ -202,8 +199,8 @@ class POutputDB(BaseComponent, PluginOutputInterface):
                     if isinstance(patch_data["user_notes"], list):
                         patch_data["user_notes"] = patch_data["user_notes"][0]
                     obj.user_notes = patch_data["user_notes"]
-                self.Core.DB.session.merge(obj)
-                self.Core.DB.session.commit()
+                self.db.session.merge(obj)
+                self.db.session.commit()
             except ValueError:
                 raise InvalidParameterType(
                     "Integer has to be provided for integer fields")
@@ -223,7 +220,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
                      target_id=None,
                      owtf_rank=None):
         """Save into the database the command output of the plugin `plugin."""
-        self.Core.DB.session.merge(models.PluginOutput(
+        self.db.session.merge(models.PluginOutput(
             plugin_key=plugin["key"],
             plugin_code=plugin["code"],
             plugin_group=plugin["group"],
@@ -236,10 +233,10 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             # Save path only if path exists i.e if some files were to be stored
             # it will be there
             output_path=(plugin["output_path"] if os.path.exists(
-                self.Core.PluginHandler.GetPluginOutputDir(plugin)) else None),
+                self.plugin_handler.GetPluginOutputDir(plugin)) else None),
             owtf_rank=owtf_rank)
         )
-        self.Core.DB.session.commit()
+        self.db.session.commit()
 
     @target_required
     def SavePartialPluginOutput(

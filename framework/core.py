@@ -184,9 +184,7 @@ class Core(BaseComponent):
         if options['TOR_mode'] is not None:
             if options['TOR_mode'][0] != "help":
                 if tor_manager.TOR_manager.is_tor_running():
-                    self.tor_process = tor_manager.TOR_manager(
-                        self,
-                        options['TOR_mode'])
+                    self.tor_process = tor_manager.TOR_manager(options['TOR_mode'])
                     self.tor_process = self.tor_process.Run()
                 else:
                     tor_manager.TOR_manager.msg_start_tor(self)
@@ -327,7 +325,7 @@ class Core(BaseComponent):
             "Interface Server started. Visit http://%s:%s",
             self.config.FrameworkConfigGet("UI_SERVER_ADDR"),
             self.config.FrameworkConfigGet("UI_SERVER_PORT"))
-        #self.disable_console_logging()
+        self.disable_console_logging()
         logging.info("Press Ctrl+C when you spawned a shell ;)")
         self.InterfaceServer.start()
 

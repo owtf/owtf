@@ -52,8 +52,8 @@ from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import PluginHandlerInterface
 
 from framework.lib.exceptions import FrameworkAbortException, \
-    PluginAbortException, \
-    UnreachableTargetException
+                                     PluginAbortException, \
+                                     UnreachableTargetException
 from framework.lib.general import *
 from framework.plugin.scanner import Scanner
 from framework.utils import FileOperations
@@ -142,13 +142,11 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                     Found = True
                     break
             if not Found:
-                cprint(
-                    "ERROR: The code '" + Item + "' is not a valid plugin, please use the -l option to see available plugin names and codes")
+                cprint("ERROR: The code '" + Item + "' is not a valid plugin, please use the -l option to see available plugin names and codes")
                 exit()
         return ValidatedList  # Return list of Codes
 
-    def InitExecutionRegistry(
-            self):  # Initialises the Execution registry: As plugins execute they will be tracked here, useful to avoid calling plugins stupidly :)
+    def InitExecutionRegistry(self):  # Initialises the Execution registry: As plugins execute they will be tracked here, useful to avoid calling plugins stupidly :)
         self.ExecutionRegistry = defaultdict(list)
         for Target in self.Scope:
             self.ExecutionRegistry[Target] = []
@@ -167,8 +165,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             #print "Index="+str(Index)
             #print str(ExecLog[Index])
             Match = True
-            for Key, Value in ExecLog[
-                Index].items():  # Compare all execution log values against the passed Plugin, if all match, return index to log record
+            for Key, Value in ExecLog[Index].items():  # Compare all execution log values against the passed Plugin, if all match, return index to log record
                 if not Key in Plugin or Plugin[Key] != Value:
                     Match = False
             if Match:
@@ -177,26 +174,17 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         return -1
 
     def PluginAlreadyRun(self, PluginInfo):
-        # if self.Simulation:
-        #        return self.HasPluginExecuted(PluginInfo)
-        #SaveDir = self.GetPluginOutputDir(PluginInfo)
-        #if not self.exists(SaveDir): # At least one directory is missing
-        #        return False # This is the first time the plugin is going to run (i.e. some directory was missing)
-        #return True # The path already exists, therefore the plugin has been run before
-        if self.plugin_output.PluginAlreadyRun(PluginInfo):
-            return (True)
-        return (False)
+        return self.plugin_output.PluginAlreadyRun(PluginInfo)
 
-    def GetExecLogSinceLastExecution(self,
-                                     Plugin):  # Get all execution entries from log since last time the passed plugin executed
+    def GetExecLogSinceLastExecution(self, Plugin):  # Get all execution entries from log since last time the passed plugin executed
         return self.ExecutionRegistry[self.config.GetTarget()][self.GetLastPluginExecution(Plugin):]
 
     def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
         #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('partial_url_output_path'))+", TARGET="+self.Core.Config.Get('TARGET')
         if ((Plugin['group'] == 'web') or (Plugin['group'] == 'net')):
-            return os.path.join(self.Core.DB.Target.GetPath('partial_url_output_path'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
+            return os.path.join(self.target.GetPath('partial_url_output_path'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
         elif Plugin['group'] == 'aux':
-            return os.path.join(self.Core.Config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
+            return os.path.join(self.config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
 
     def RequestsPossible(self):
         # Even passive plugins will make requests to external resources
@@ -216,19 +204,15 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def GetPluginOutputDir(self, Plugin):  # Organise results by OWASP Test type and then active, passive, semi_passive
         # print "Plugin="+str(Plugin)+", Partial url ..="+str(self.config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.config.Get('TARGET')
         if ((Plugin['group'] == 'web') or (Plugin['group'] == 'net')):
-            return os.path.join(self.target.GetPath('PARTIAL_URL_OUTPUT_PATH'),
-                                WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
+            return os.path.join(self.target.GetPath('partial_url_output_path'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
         elif Plugin['group'] == 'aux':
-            return os.path.join(self.config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']),
-                                Plugin['type'])
+            return os.path.join(self.config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
 
     def exists(self, directory):
         return os.path.exists(directory)
 
-    def GetModule(self, ModuleName, ModuleFile,
-                  ModulePath):  # Python fiddling to load a module from a file, there is probably a better way...
-        f, Filename, desc = imp.find_module(ModuleFile.split('.')[0],
-                                            [ModulePath])  # ModulePath = os.path.abspath(ModuleFile)
+    def GetModule(self, ModuleName, ModuleFile, ModulePath):  # Python fiddling to load a module from a file, there is probably a better way...
+        f, Filename, desc = imp.find_module(ModuleFile.split('.')[0], [ModulePath])  # ModulePath = os.path.abspath(ModuleFile)
         return imp.load_module(ModuleName, f, Filename, desc)
 
     def IsChosenPlugin(self, Plugin):
@@ -263,11 +247,9 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             return False  # Skip not chosen plugins
         # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active):
         #if self.PluginAlreadyRun(Plugin) and not self.config.Get('FORCE_OVERWRITE'): #not Code == 'OWASP-WU-SPID': # For external plugin forced re-run (development)
-        if self.PluginAlreadyRun(Plugin) and ((not self.force_overwrite() and not ('grep' == Plugin['type'])) or Plugin[
-            'type'] == 'external'):  #not Code == 'OWASP-WU-SPID':
+        if self.PluginAlreadyRun(Plugin) and ((not self.force_overwrite() and not ('grep' == Plugin['type'])) or Plugin['type'] == 'external'): #not Code == 'OWASP-WU-SPID':
             if ShowMessages:
-                logging.info(
-                    "Plugin: " + Plugin['title'] + " (" + Plugin['type'] + ") has already been run, skipping ..")
+                logging.info("Plugin: " + Plugin['title'] + " (" + Plugin['type'] + ") has already been run, skipping ..")
             #if Plugin['Type'] == 'external':
             # External plugins are run only once per each run, so they are registered for all targets
             # that are targets in that run. This is an alternative to chaning the js filters etc..
@@ -283,12 +265,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def RunPlugin(self, PluginDir, Plugin, save_output=True):
         PluginPath = self.GetPluginFullPath(PluginDir, Plugin)
         (Path, Name) = os.path.split(PluginPath)
-        # (Name, Ext) = os.path.splitext(Name)
-        #self.db.Debug.Add("Running Plugin -> Plugin="+str(Plugin)+", PluginDir="+str(PluginDir))
         PluginOutput = self.GetModule("", Name, Path + "/").run(Plugin)
-        #if save_output:
-        #print(PluginOutput)
-        #self.SavePluginInfo(PluginOutput, Plugin) # Timer retrieved here
         return PluginOutput
 
 
@@ -341,17 +318,15 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def ProcessPlugin(self, plugin_dir, plugin, status={}):
         # Save how long it takes for the plugin to run.
         self.timer.start_timer('Plugin')
-        plugin['start'] = self.timer.get_start_date_time(
-            'Plugin')
+        plugin['start'] = self.timer.get_start_date_time('Plugin')
         # Use relative path from targets folders while saving
-        plugin['output_path'] = os.path.relpath(self.GetPluginOutputDir(plugin),
-            self.Core.Config.GetOutputDirForTargets())
+        plugin['output_path'] = os.path.relpath(self.GetPluginOutputDir(plugin), self.config.GetOutputDirForTargets())
         status['AllSkipped'] = False  # A plugin is going to be run.
         plugin['status'] = 'Running'
         self.PluginCount += 1
         logging.info(
             '_' * 10 + ' ' + str(self.PluginCount) +
-            ' - Target: ' + self.Core.DB.Target.GetTargetURL() +
+            ' - Target: ' + self.target.GetTargetURL() +
             ' -> Plugin: ' + plugin['title'] + ' (' +
             plugin['type']+ ') ' + '_' * 10)
         #self.LogPluginExecution(Plugin)
@@ -361,7 +336,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             return None
         # DB empty => grep plugins will fail, skip!!
         if ('grep' == plugin['type'] and
-                self.Core.DB.Transaction.NumTransactions() == 0):
+                self.transaction.NumTransactions() == 0):
             logging.info(
                 'Skipped - Cannot run grep plugins: '
                 'The Transaction DB is empty')
@@ -389,7 +364,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                 plugin,
                 [],
                 'Aborted by User')
-            self.Core.Error.UserAbort('Plugin')
+            self.error_handler.UserAbort('Plugin')
             status['SomeAborted (Keyboard Interrupt)'] = True
         except SystemExit:
             # Abort plugin processing and get out to external exception

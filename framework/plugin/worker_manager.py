@@ -55,8 +55,7 @@ class Worker(OWTFProcess, BaseComponent):
                 if work == ():
                     exit(0)
                 target, plugin = work
-                pluginDir = self.plugin_handler.GetPluginGroupDir(
-                    plugin['group'])
+                pluginDir = self.plugin_handler.GetPluginGroupDir(plugin['group'])
                 self.plugin_handler.SwitchToTarget(target["id"])
                 self.plugin_handler.ProcessPlugin(pluginDir, plugin)
                 self.output_q.put('done')

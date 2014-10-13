@@ -339,8 +339,7 @@ class Requester(BaseComponent, RequesterInterface):
         if data is not None:
             criteria['data'] = self.DerivePOSTToStr(data)
         # Visit URL if not already visited.
-        if (not use_cache or not
-                self.transaction.IsTransactionAlreadyAdded(criteria)):
+        if (not use_cache or not self.transaction.IsTransactionAlreadyAdded(criteria)):
             if method in ['', 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS']:
                 return self.Request(url, method, data)
             elif method == 'DEBUG':

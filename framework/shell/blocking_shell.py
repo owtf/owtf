@@ -67,15 +67,19 @@ class Shell(BaseComponent, ShellInterface):
             self.timer.start_timer(self.CommandTimeOffset)
             return { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.timer.get_start_date_time(self.CommandTimeOffset) }
 
-    def FinishCommand(self, CommandInfo, WasCancelled):
-        CommandInfo['End'] = self.timer.GetEndDateTimeAsStr(self.CommandTimeOffset)
+    def FinishCommand(self, CommandInfo, WasCancelled, PluginInfo):
+        CommandInfo['End'] = self.timer.get_end_date_time_as_str(self.CommandTimeOffset)
         Success = True
         if WasCancelled:
             Success = False
         CommandInfo['Success'] = Success
-        CommandInfo['RunTime'] = self.timer.GetElapsedTimeAsStr(self.CommandTimeOffset)
+        CommandInfo['RunTime'] = self.timer.get_elapsed_time_as_str(self.CommandTimeOffset)
         CommandInfo['Target'] = self.target.GetTargetID()
+        CommandInfo['PluginKey'] = PluginInfo["key"]
         self.command_register.AddCommand(CommandInfo)
+
+    def ShellPathEscape(self, Text):
+        return MultipleReplace(Text, {' ': '\ ', '(': '\(', ')': '\)'})
 
     def GetModifiedShellCommand(self, Command, PluginOutputDir):
         self.RefreshReplacements()
@@ -117,7 +121,7 @@ class Shell(BaseComponent, ShellInterface):
         )
         return proc
 
-    def shell_exec_monitor(self, Command):
+    def shell_exec_monitor(self, Command, PluginInfo):
         #if not self.CommandInfo:
         CommandInfo = self.StartCommand(Command, Command)
         #Target, CanRun = self.CanRunCommand(self.CommandInfo)
@@ -128,7 +132,7 @@ class Shell(BaseComponent, ShellInterface):
         logging.info("")
         logging.info("Executing :\n\n%s\n\n", Command)
         logging.info("")
-        logging.info("------> Execution Start Date/Time: " + self.timer.GetStartDateTimeAsStr('Command'))
+        logging.info("------> Execution Start Date/Time: " + self.timer.get_start_date_time_as_str('Command'))
         logging.info("")
         Output = ''
         Cancelled = False
@@ -153,7 +157,7 @@ class Shell(BaseComponent, ShellInterface):
             #self.FinishCommand(self.CommandInfo, Cancelled)
             Output += self.error_handler.UserAbort('Command', Output)  # Identify as Command Level abort
         finally:
-            self.FinishCommand(CommandInfo, Cancelled)
+            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
         return Output
 
     def shell_exec(self, Command, **kwds):  # Mostly used for internal framework commands
