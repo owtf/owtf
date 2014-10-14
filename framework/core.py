@@ -291,6 +291,10 @@ class Core(object):
                 )
                 cprint("Done")
 
+            if self.Proxy_manager.number_of_proxies is 0:
+                self.Error.FrameworkAbort("No Alive proxies.")
+
+
             proxy = self.Proxy_manager.get_next_available_proxy()
 
             # check proxy var... http:// sock://
