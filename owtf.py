@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """
 
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
