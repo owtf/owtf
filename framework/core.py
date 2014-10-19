@@ -329,27 +329,21 @@ class Core(object):
                 self,
                 cache_dir=self.DB.Config.Get('INBOUND_PROXY_CACHE_DIR')
             )
-            logging.info(
-                "Starting Inbound proxy at %s:%s",
+            logging.warn(
+                "%s:%s <-- HTTP(S) Proxy to which requests can be directed",
                 self.DB.Config.Get('INBOUND_PROXY_IP'),
                 self.DB.Config.Get("INBOUND_PROXY_PORT"))
             self.ProxyProcess.start()
-            logging.info("Starting Transaction logger process")
+            logging.debug("Starting Transaction logger process")
             self.TransactionLogger.start()
             self.Requester = requester.Requester(
                 self, [
                     self.DB.Config.Get('INBOUND_PROXY_IP'),
                     self.DB.Config.Get('INBOUND_PROXY_PORT')]
                 )
-            logging.info(
+            logging.debug(
                 "Proxy transaction's log file at %s",
                 self.DB.Config.Get("PROXY_LOG"))
-            logging.info(
-                "Interface server log file at %s",
-                self.DB.Config.Get("SERVER_LOG"))
-            logging.info(
-                "Execution of OWTF is halted. You can browse through "
-                "OWTF proxy) Press Enter to continue with OWTF")
         else:
             self.Requester = requester.Requester(
                 self,
@@ -398,7 +392,7 @@ class Core(object):
 
     def initialise_framework(self, options):
         self.ProxyMode = options["ProxyMode"]
-        cprint("Loading framework please wait..")
+        logging.info("Loading framework please wait..")
         # self.initlogger()
 
         # No processing required, just list available modules.
@@ -429,8 +423,8 @@ class Core(object):
         self.FileServer = server.FileServer(self)
         self.FileServer.start()
         self.InterfaceServer = server.InterfaceServer(self)
-        logging.info(
-            "Interface Server started. Visit http://%s:%s",
+        logging.warn(
+            "http://%s:%s <-- Web UI URL",
             self.Config.FrameworkConfigGet("SERVER_ADDR"),
             self.Config.FrameworkConfigGet("UI_SERVER_PORT"))
         self.disable_console_logging()

@@ -49,7 +49,7 @@ from framework.http.proxy import tor_manager # Is needed for printing configurat
 
 
 def banner():
-    print("""
+    print("""\033[92m
  _____ _ _ _ _____ _____
 |     | | | |_   _|   __|
 |  |  | | | | | | |   __|
@@ -57,7 +57,7 @@ def banner():
 
         @owtfp
     http://owtf.org
-    """)
+    \033[0m""")
 
 
 def get_args(core, args):
@@ -491,12 +491,6 @@ if __name__ == "__main__":
     owtf_pid = os.getpid()
     if not "--update" in sys.argv[1:]:
         core = core.Init(root_dir, owtf_pid)  # Initialise Framework.
-        print(
-            "OWTF Version: %s, Release: %s " % (
-                core.Config.FrameworkConfigGet('VERSION'),
-                core.Config.FrameworkConfigGet('RELEASE')),
-            end='\n'*2
-            )
         args = process_options(core, sys.argv[1:])
         run_owtf(core, args)
     else:

@@ -109,7 +109,7 @@ class Requester:
         self.LogTransactions = False
         self.Proxy = proxy
         if proxy is None:
-            cprint(
+            logging.debug(
                 "WARNING: No outbound proxy selected. It is recommended to "
                 "use an outbound proxy for tactical fuzzing later")
             self.Opener = urllib2.build_opener(
@@ -118,7 +118,7 @@ class Requester:
                 # FIXME: "Smart" redirect handler not really working.
                 SmartRedirectHandler)
         else:  # All requests must use the outbound proxy.
-            cprint("Setting up proxy(inbound) for OWTF requests..")
+            logging.debug("Setting up proxy(inbound) for OWTF requests..")
             ip, port = proxy
             proxy_conf = {
                 'http': 'http://' + ip + ":" + port,

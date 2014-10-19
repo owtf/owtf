@@ -2,6 +2,7 @@ from framework.lib.exceptions import InvalidConfigurationReference
 from framework.db import models
 from framework.lib.general import cprint
 import ConfigParser
+import logging
 
 
 class ConfigDB(object):
@@ -17,7 +18,7 @@ class ConfigDB(object):
 
     def LoadConfigDBFromFile(self, file_path):
         # TODO: Implementy user override mechanism
-        cprint("Loading Configuration from: " + file_path + " ..")
+        logging.info("Loading Configuration from: " + file_path + " ..")
         config_parser = ConfigParser.RawConfigParser()
         config_parser.optionxform = str  # Otherwise all the keys are converted to lowercase xD
         config_parser.read(file_path)

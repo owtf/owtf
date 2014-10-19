@@ -31,6 +31,7 @@ The shell module allows running arbitrary shell commands and is critical to the 
 #import shlex
 from collections import defaultdict
 from framework.lib.general import *
+from framework.lib.formatters import LOG_LEVEL_TOOL
 import signal
 import subprocess
 import os
@@ -132,12 +133,12 @@ class Shell(object):
                                 line = proc.stdout.readline()
                                 if not line: break
                                 # NOTE: Below MUST BE print instead of "cprint" to clearly distinguish between owtf output and tool output
-                                logging.warn(line.strip()) # Show progress on the screen too!
+                                logging.log(LOG_LEVEL_TOOL, line.strip())  # Show progress on the screen too!
                                 Output += line # Save as much output as possible before a tool crashes! :)
                 except KeyboardInterrupt:
                         os.killpg(proc.pid, signal.SIGINT)
                         outdata, errdata = proc.communicate()
-                        logging.warn(outdata)
+                        logging.log(LOG_LEVEL_TOOL, outdata)
                         Output += outdata
                         try:
                             os.kill(proc.pid, signal.SIGTERM) # Plugin KIA (Killed in Action)

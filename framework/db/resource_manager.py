@@ -2,6 +2,8 @@ from framework.db import models
 from framework.config import config
 from framework.lib.general import cprint
 import os
+import logging
+
 
 class ResourceDB(object):
     def __init__(self, Core):
@@ -9,7 +11,7 @@ class ResourceDB(object):
         self.LoadResourceDBFromFile(self.Core.Config.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE"))
 
     def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
-        cprint("Loading Resources from: " + file_path + " ..")
+        logging.info("Loading Resources from: " + file_path + " ..")
         resources = self.GetResourcesFromFile(file_path)
         # Delete all old resources which are not edited by user
         # because we may have updated the resource
