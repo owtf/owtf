@@ -43,7 +43,9 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
             # need to look at the request.path here for when path is empty
             # but there is some prefix to the path that was already
             # trimmed by the routing
-            items = os.listdir(abspath)
+            # Just loop once to get dirnames and filenames :P
+            for abspath, dirnames, filenames in os.walk(abspath):
+                break
             directory_listing_template = tornado.template.Template("""
                 <html>
                 <head>
@@ -54,17 +56,27 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
                     <hr>
                     <ul>
                         <li><a href="../">../</a></li>
-                    {% for item in items %}
-                        <li><a href="{{ item }}/">{{ item }}</a></li>
-                    {% end %}
+                        {% if len(dirnames) > 0 %}
+                            <h2>Directories</h2>
+                            {% for item in dirnames %}
+                                <li><a href="{{ item }}/">{{ item }}/</a></li>
+                            {% end %}
+                        {% end %}
+                        {% if len(filenames) > 0 %}
+                            <h2>Files</h2>
+                            {% for item in filenames %}
+                                <li><a href="{{ item }}">{{ item }}</a></li>
+                            {% end %}
+                        {% end %}
                     </ul>
                 </body>
                 </html>
                 """)
-            self.write(directory_listing_template.generate(items=items))
+            self.write(directory_listing_template.generate(
+                dirnames=dirnames, filenames=filenames))
             return
 
-        if os.path.isfile(abspath): # So file
+        if os.path.isfile(abspath):  # So file
             stat_result = os.stat(abspath)
             modified = datetime.datetime.fromtimestamp(stat_result[stat.ST_MTIME])
 
