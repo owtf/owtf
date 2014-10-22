@@ -491,6 +491,11 @@ if __name__ == "__main__":
     owtf_pid = os.getpid()
     if not "--update" in sys.argv[1:]:
         core = core.Init(root_dir, owtf_pid)  # Initialise Framework.
+        logging.warn(
+            "OWTF Version: %s, Release: %s " % (
+                core.Config.FrameworkConfigGet('VERSION'),
+                core.Config.FrameworkConfigGet('RELEASE'))
+            )
         args = process_options(core, sys.argv[1:])
         run_owtf(core, args)
     else:
