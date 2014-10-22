@@ -22,6 +22,10 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         self.timer = self.get_component("timer")
         self.db = self.get_component("db")
 
+    def PluginOutputExists(self, plugin_key, target_id):
+        count = self.db.session.query(models.PluginOutput).filter_by(target_id=target_id, plugin_key=plugin_key).count()
+        return (count > 0)
+
     def DeriveHTMLOutput(self, plugin_output):
         Content = ''
         for item in plugin_output:

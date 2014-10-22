@@ -30,6 +30,7 @@ The DB stores HTTP transactions, unique URLs and more.
 '''
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import URLManagerInterface
+from framework.lib.exceptions import InvalidParameterType
 from framework.lib.general import *
 from framework.db.target_manager import target_required
 from framework.db import models
@@ -55,9 +56,7 @@ class URLManager(BaseComponent, URLManagerInterface):
         self.IsSSIRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_SSI_URL'), re.IGNORECASE)
 
     def IsRegexpURL(self, URL, Regexp):
-        if len(Regexp.findall(URL)) > 0:
-            return True
-        return False
+        return len(Regexp.findall(URL)) > 0
 
     def IsSmallFileURL(self, URL):
         return self.IsRegexpURL(URL, self.IsSmallFileRegexp)
@@ -85,15 +84,13 @@ class URLManager(BaseComponent, URLManagerInterface):
             self.db.session.commit()
 
     def GetURLsToVisit(self, target=None):
-        Session = self.target.GetUrlDBSession(target)
-        session = Session()
-        urls = session.query(models.Url.url).filter_by(visited=False).all()
-        session.close()
+        urls = self.db.session.query(models.Url.url).filter_by(visited=False).all()
         urls = [i[0] for i in urls]
         return (urls)
 
     def IsURL(self, URL):
         return self.IsRegexpURL(URL, self.IsURLRegexp)
+
     @target_required
     def AddURL(self, url, found=None, target_id=None):
         """
@@ -184,8 +181,7 @@ class URLManager(BaseComponent, URLManagerInterface):
                         criteria['limit'] = criteria['limit'][0]
                     query = query.limit(int(criteria['limit']))
             except ValueError:
-                raise InvalidParameterType(
-                    "Invalid parameter type for transaction db")
+                raise InvalidParameterType("Invalid parameter type for transaction db")
         return query
 
     @target_required

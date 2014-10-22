@@ -218,8 +218,7 @@ class TargetDB(BaseComponent, TargetInterface):
         target_obj = self.db.session.query(models.Target).get(ID)
         if not target_obj:
             cprint("Failing with ID:" + str(ID))
-            raise InvalidTargetReference(
-                "Target doesn't exist with ID: " + str(ID))
+            raise InvalidTargetReference("Target doesn't exist with ID: " + str(ID))
         return(target_obj.target_url)
 
     def GetTargetConfigForID(self, ID):

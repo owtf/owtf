@@ -165,9 +165,7 @@ class PluginHelper(BaseComponent):
         self.timer.start_timer('FormatCommandAndOutput')
         ModifiedCommand = self.shell.GetModifiedShellCommand(Command, PluginOutputDir)
         try:
-            print ("About to execute through shell commands")
             RawOutput = self.shell.shell_exec_monitor(ModifiedCommand, PluginInfo)
-
         except PluginAbortException, PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             PluginAbort = True
@@ -215,7 +213,7 @@ class PluginHelper(BaseComponent):
             }
             plugin_output = [plugin_output]
             if Name == self.config.FrameworkConfigGet('EXTRACT_URLS_RESERVED_RESOURCE_NAME'):  # This command returns URLs for processing
-                # The plugin_output output dict will be remade if the resource is of this type
+                #  The plugin_output output dict will be remade if the resource is of this type
                 plugin_output = self.LogURLsFromStr(RawOutput)
             # TODO: Look below to handle streaming report
             # if self.config.Get( 'UPDATE_REPORT_AFTER_EACH_COMMAND' ) == 'Yes':
@@ -230,17 +228,15 @@ class PluginHelper(BaseComponent):
 
     def LogURLsFromStr(self, RawOutput):
         plugin_output = dict(PLUGIN_OUTPUT)
-        self.timer.StartTimer('LogURLsFromStr')
-        URLList = self.url_manager.ImportURLs(
-            RawOutput.strip().split("\n"))  # Extract and classify URLs and store in DB
+        self.timer.start_timer('LogURLsFromStr')
+        URLList = self.url_manager.ImportURLs(RawOutput.strip().split("\n"))  # Extract and classify URLs and store in DB
         NumFound = 0
         VisitURLs = False
         # if self.plugin_handler.IsActiveTestingPossible(): # Can visit new URLs found to feed DB straightaway
         if True:  # TODO: Whether or not active testing will depend on the user profile ;). Have cool ideas for profile names
             VisitURLs = True
-            for Transaction in self.requester.GetTransactions(True,
-                                                              self.url_manager.GetURLsToVisit()):  # Visit all URLs if not in Cache
-                if Transaction.Found:
+            for Transaction in self.requester.GetTransactions(True, self.url_manager.GetURLsToVisit()):  # Visit all URLs if not in Cache
+                if Transaction is not None and Transaction.Found:
                     NumFound += 1
         TimeStr = self.timer.get_elapsed_time_as_str('LogURLsFromStr')
         logging.info("Spider/URL scaper time=" + TimeStr)
@@ -248,38 +244,18 @@ class PluginHelper(BaseComponent):
         plugin_output["output"] = {"TimeStr": TimeStr, "VisitURLs": VisitURLs, "URLList": URLList, "NumFound": NumFound}
         return ([plugin_output])
 
-
-    def LogURLsFromStr(self, RawOutput):
-        plugin_output = dict(PLUGIN_OUTPUT)
-        self.timer.start_timer('LogURLsFromStr')
-        URLList = self.url_manager.ImportURLs(RawOutput.strip().split("\n"))  # Extract and classify URLs and store in DB
-        NumFound = 0
-        VisitURLs = False
-        # if self.Core.PluginHandler.IsActiveTestingPossible(): # Can visit new URLs found to feed DB straightaway
-        if True:  # TODO: Whether or not active testing will depend on the user profile ;). Have cool ideas for profile names
-            VisitURLs = True
-            for Transaction in self.requester.GetTransactions(True,
-                                                                   self.url_manager.GetURLsToVisit()):  # Visit all URLs if not in Cache
-                if Transaction.Found:
-                    NumFound += 1
-            TimeStr = self.timer.get_elapsed_time_as_str('LogURLsFromStr')
-            logging.info("Spider/URL scaper time=" + TimeStr)
-            plugin_output["type"] = "URLsFromStr"
-            plugin_output["output"] = {"TimeStr": TimeStr, "VisitURLs": VisitURLs, "URLList": URLList, "NumFound": NumFound}
-            return ([plugin_output])
-
-        def DumpFile(self, Filename, Contents, PluginInfo, LinkName=''):
-            save_path = self.plugin_handler.DumpOutputFile(Filename, Contents, PluginInfo)
-            if not LinkName:
-                LinkName = save_path
-            logging.info("File: " + Filename + " saved to: " + save_path)
-            template = Template("""
+    def DumpFile(self, Filename, Contents, PluginInfo, LinkName=''):
+        save_path = self.plugin_handler.DumpOutputFile(Filename, Contents, PluginInfo)
+        if not LinkName:
+            LinkName = save_path
+        logging.info("File: " + Filename + " saved to: " + save_path)
+        template = Template("""
                             <a href="{{ Link }}" target="_blank">
                                     {{ LinkName }}
                             </a>
                     """)
 
-            return [save_path, template.generate(LinkName=LinkName, Link="../../../" + save_path)]
+        return [save_path, template.generate(LinkName=LinkName, Link="../../../" + save_path)]
 
 
     def DumpFileGetLink(self, Filename, Contents, PluginInfo, LinkName=''):
@@ -337,7 +313,6 @@ class PluginHelper(BaseComponent):
                 }
                 return ([plugin_output])
 
-
     def TransactionTable(self, transactions_list):
         # Store transaction ids in the output, so that reporter can fetch transactions from db
         trans_ids = []
@@ -347,7 +322,6 @@ class PluginHelper(BaseComponent):
         plugin_output["type"] = "TransactionTableFromIDs"
         plugin_output["output"] = {"TransactionIDs": trans_ids}
         return ([plugin_output])
-
 
     def TransactionTableForURLList(
             self,
@@ -362,7 +336,6 @@ class PluginHelper(BaseComponent):
         plugin_output["type"] = "TransactionTableForURLList"
         plugin_output["output"] = {"UseCache": UseCache, "URLList": URLList, "Method": Method, "Data": Data}
         return ([plugin_output])
-
 
     def TransactionTableForURL(
             self,
@@ -387,13 +360,11 @@ class PluginHelper(BaseComponent):
         }
         return ([plugin_output])
 
-
     def CreateMatchTables(self, Num):
         TableList = []
         for x in range(0, Num):
             TableList.append(self.CreateMatchTable())
         return TableList
-
 
     def HtmlString(self, html_string):
         plugin_output = dict(PLUGIN_OUTPUT)
@@ -401,13 +372,11 @@ class PluginHelper(BaseComponent):
         plugin_output["output"] = {"String": html_string}
         return ([plugin_output])
 
-
     def FindResponseHeaderMatchesForRegexpName(self, HeaderRegexpName):
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "ResponseHeaderMatches"
         plugin_output["output"] = {"HeaderRegexpName": HeaderRegexpName}
         return ([plugin_output])
-
 
     def FindResponseHeaderMatchesForRegexpNames(self, HeaderRegexpNamesList):
         Results = []
@@ -415,13 +384,11 @@ class PluginHelper(BaseComponent):
             Results += self.FindResponseHeaderMatchesForRegexpName(HeaderRegexpName)
         return Results
 
-
     def FindResponseBodyMatchesForRegexpName(self, ResponseRegexpName):
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "ResponseBodyMatches"
         plugin_output["output"] = {"ResponseRegexpName": ResponseRegexpName}
         return ([plugin_output])
-
 
     def FindResponseBodyMatchesForRegexpNames(self, ResponseRegexpNamesList):
         Results = []
@@ -429,14 +396,12 @@ class PluginHelper(BaseComponent):
             Results += self.FindResponseBodyMatchesForRegexpName(ResponseRegexpName)
         return Results
 
-
     def ResearchFingerprintInlog(self):
         # log("Researching Fingerprint in Log ..")
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "FingerprintData"
         plugin_output["output"] = {}
         return ([plugin_output])
-
 
     def FindTopTransactionsBySpeed(self, Order="Desc"):
         plugin_output = dict(PLUGIN_OUTPUT)

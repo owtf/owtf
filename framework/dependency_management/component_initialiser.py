@@ -78,6 +78,7 @@ class ComponentInitialiser():
         PluginHandler(args)
         Reporter()
         POutputDB()
+        ServiceLocator.get_component("command_register").init()
         ServiceLocator.get_component("worklist_manager").init()
         Shell()
         PluginParams(args)

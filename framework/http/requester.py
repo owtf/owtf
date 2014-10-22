@@ -154,8 +154,7 @@ class Requester(BaseComponent, RequesterInterface):
         return not self.plugin_handler.NormalRequestsAllowed()
 
     def IsTransactionAlreadyAdded(self, url):
-        return self.transaction.IsTransactionAlreadyAdded(
-            {'url': url.strip()})
+        return self.transaction.IsTransactionAlreadyAdded({'url': url.strip()})
 
     def is_request_possible(self):
         return self.plugin_handler.RequestsPossible()
@@ -369,9 +368,5 @@ class Requester(BaseComponent, RequesterInterface):
                     "Minor issue: " + str(url) + " is not a valid URL and "
                     "has been ignored, processing continues")
                 continue  # Skip garbage URLs.
-            transactions.append(self.GetTransaction(
-                use_cache,
-                url,
-                method=method,
-                data=data))
+            transactions.append(self.GetTransaction(use_cache, url, method=method, data=data))
         return transactions

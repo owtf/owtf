@@ -73,12 +73,9 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
         if register_entry:
             # If the command was completed and the plugin output to which it
             # is referring exists
-            if register_entry.success and \
-                    self.plugin_output.PluginOutputExists(
-                        register_entry.plugin_key, register_entry.target_id):
-                return self.target.GetTargetURLForID(
-                    register_entry.target_id)
+            if register_entry.success and self.plugin_output.PluginOutputExists(register_entry.plugin_key, register_entry.target_id):
+                return self.target.GetTargetURLForID(register_entry.target_id)
             else:  # Either command failed or plugin output doesn't exist
                 self.DeleteCommand(original_command)
-            return self.target.GetTargetURLForID(register_entry.target)
+                return self.target.GetTargetURLForID(register_entry.target_id)
         return None

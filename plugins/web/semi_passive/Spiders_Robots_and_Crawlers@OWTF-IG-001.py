@@ -47,7 +47,7 @@ def run(PluginInfo):
     TestResult = []
     # Use transaction cache if possible for speed
     HTTP_Transaction = requester.GetTransaction(True, URL)
-    if HTTP_Transaction.Found:
+    if HTTP_Transaction is not None and HTTP_Transaction.Found:
         TestResult += plugin_helper.ProcessRobots(
             PluginInfo,
             HTTP_Transaction.GetRawResponseBody(),

@@ -361,8 +361,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
 
             # Get mappings
             if self.get_argument("mapping", None):
-                mappings = self.get_component("mapping_db").GetMappings(
-                    self.get_argument("mapping", None))
+                mappings = self.get_component("mapping_db").GetMappings(self.get_argument("mapping", None))
             else:
                 mappings = None
 
@@ -382,8 +381,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
             self.render("plugin_report.html",
                         grouped_plugin_outputs=grouped_plugin_outputs,
                         test_groups=test_groups,
-                        poutput_api_url=self.reverse_url(
-                            'poutput_api_url', target_id, None, None, None),
+                        poutput_api_url=self.reverse_url('poutput_api_url', target_id, None, None, None),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id),
                         # html=(self.application.Core.DB.Vulnexp.GetExplanation(owtf_code))

@@ -32,6 +32,7 @@ Component to handle data storage and search of all errors
 from framework.db import models
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import DBErrorInterface
+from framework.lib.exceptions import InvalidErrorReference
 
 
 class ErrorDB(BaseComponent, DBErrorInterface):
@@ -56,7 +57,7 @@ class ErrorDB(BaseComponent, DBErrorInterface):
             self.db.session.delete(error)
             self.db.session.commit()
         else:
-            raise exceptions.InvalidErrorReference(
+            raise InvalidErrorReference(
                 "No error with id " + str(error_id))
 
     def GenerateQueryUsingSession(self, criteria):
@@ -72,7 +73,7 @@ class ErrorDB(BaseComponent, DBErrorInterface):
     def Update(self, error_id, user_message):
         error = self.db.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
-            raise exceptions.InvalidErrorReference(
+            raise InvalidErrorReference(
                 "No error with id " + str(error_id))
         error.user_message = patch_data["user_message"]
         self.db.session.merge(error)
@@ -100,6 +101,6 @@ class ErrorDB(BaseComponent, DBErrorInterface):
     def Get(self, error_id):
         error = self.db.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
-            raise exceptions.InvalidErrorReference(
+            raise InvalidErrorReference(
                 "No error with id " + str(error_id))
         return(self.DeriveErrorDict(error))

@@ -68,7 +68,7 @@ class Shell(BaseComponent, ShellInterface):
             return { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.timer.get_start_date_time(self.CommandTimeOffset) }
 
     def FinishCommand(self, CommandInfo, WasCancelled, PluginInfo):
-        CommandInfo['End'] = self.timer.get_end_date_time_as_str(self.CommandTimeOffset)
+        CommandInfo['End'] = self.timer.get_end_date_time(self.CommandTimeOffset)
         Success = True
         if WasCancelled:
             Success = False
