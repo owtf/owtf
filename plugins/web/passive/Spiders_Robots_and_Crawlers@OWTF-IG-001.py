@@ -38,13 +38,8 @@ def run(PluginInfo):
     resource = ServiceLocator.get_component("resource")
     TestResult = ''
     Count = 1
-    Content = plugin_helper.RequestLinkList(
-        'Passive Analysis Results',
-        resource.GetResources('PassiveRobotsAnalysisHTTPRequests'),
-        PluginInfo)
-    Content += plugin_helper.ResourceLinkList(
-        'Online Resources',
-        resource.GetResources('PassiveRobotsAnalysisLinks'))
+    Content = plugin_helper.RequestLinkList('Passive Analysis Results', resource.GetResources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
+    Content += plugin_helper.ResourceLinkList('Online Resources', resource.GetResources('PassiveRobotsAnalysisLinks'))
     # Try to retrieve the robots.txt file from all defined resources
     for Name, Resource in resource.GetResources('PassiveRobots'):
         URL = Resource  # Just for clarity
@@ -53,14 +48,9 @@ def run(PluginInfo):
         LinkStart = LinkStart.strip()
         LinkFinish = LinkFinish.strip()
         # Use the cache if possible for speed
-        Transaction = Core.Requester.GetTransaction(True, URL)
-        if Transaction.Found:
-            Content += plugin_helper.ProcessRobots(
-                PluginInfo,
-                Transaction.GetRawResponseBody(),
-                LinkStart,
-                LinkFinish,
-                'robots'+str(Count)+'.txt')
+        Transaction = ServiceLocator.get_component("requester").GetTransaction(True, URL)
+        if Transaction is not None and Transaction.Found:
+            Content += plugin_helper.ProcessRobots(PluginInfo, Transaction.GetRawResponseBody(), LinkStart, LinkFinish, 'robots'+str(Count)+'.txt')
             Count += 1
         else:  # Not found or unknown request error
             Message = "Could not be retrieved using resource: " + Resource

@@ -84,8 +84,7 @@ class Reporter(BaseComponent, ReporterInterface):
         return self.TransactionTableForTransactions(transactions)
 
     def TransactionTableForTransactions(self, Transactions):
-        return self.Loader.load("transaction_table.html").generate(
-            TransactionList=Transactions)
+        return self.Loader.load("transaction_table.html").generate(TransactionList=Transactions)
 
     def unicode(self, *args):
         try:

@@ -368,5 +368,7 @@ class Requester(BaseComponent, RequesterInterface):
                     "Minor issue: " + str(url) + " is not a valid URL and "
                     "has been ignored, processing continues")
                 continue  # Skip garbage URLs.
-            transactions.append(self.GetTransaction(use_cache, url, method=method, data=data))
+            transaction = self.GetTransaction(use_cache, url, method=method, data=data)
+            if transaction is not None:
+                transactions.append(transaction)
         return transactions
