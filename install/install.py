@@ -63,7 +63,7 @@ class Installer(object):
 
     def install_using_pip(self, requirements_file):
         # Instead of using file directly with pip which can crash because of single library
-        self.run_command("sudo -E pip install --upgrade -r %s"%(requirements_file))
+        self.run_command("sudo -E pip2 install --upgrade -r %s"%(requirements_file))
 
     def install_restricted_from_cfg(self, config_file):
         cp = ConfigParser.ConfigParser({"RootDir":self.RootDir, "Pid":self.pid})

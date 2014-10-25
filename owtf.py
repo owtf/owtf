@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """
 
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
@@ -51,7 +51,7 @@ from framework.http.proxy import tor_manager # Is needed for printing configurat
 
 
 def banner():
-    print("""
+    print("""\033[92m
  _____ _ _ _ _____ _____
 |     | | | |_   _|   __|
 |  |  | | | | | | |   __|
@@ -59,7 +59,7 @@ def banner():
 
         @owtfp
     http://owtf.org
-    """)
+    \033[0m""")
 
 
 def get_args(core, args):
@@ -494,11 +494,10 @@ if __name__ == "__main__":
         ComponentInitialiser.initialisation_phase_2(args)
 
         core = core.Init(root_dir, owtf_pid, args)  # Initialise Framework.
-        print(
+        logging.warn(
             "OWTF Version: %s, Release: %s " % (
                 ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
-                ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE')),
-            end='\n'*2
+                ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
             )
         run_owtf(core, args)
     else:

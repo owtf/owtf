@@ -30,16 +30,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  Manager Process
 """
 import logging
 
+# CUSTOM LOG LEVELS
+LOG_LEVEL_TOOL = 25
+
+# Terminal colors
+TERMINAL_COLOR_BLUE = '\033[94m'
+TERMINAL_COLOR_GREEN = '\033[92m'
+TERMINAL_COLOR_YELLOW = '\033[93m'
+TERMINAL_COLOR_RED = '\033[91m'
+TERMINAL_COLOR_END = '\033[0m'
+
 
 class ConsoleFormatter(logging.Formatter):
     """
     Custom formatter to show logging messages differently on Console
     """
 
-    error_fmt = "[!] %(message)s"  # Error format
-    warn_fmt = "%(message)s"  # This format is kept for tool outputs :P
-    debug_fmt = "[+] %(message)s"  # Debug format
-    info_fmt = "[-] %(message)s"  # Info format
+    error_fmt = TERMINAL_COLOR_RED + "[!] %(message)s" + TERMINAL_COLOR_END
+    warn_fmt = TERMINAL_COLOR_YELLOW + "[*] %(message)s" + TERMINAL_COLOR_END
+    debug_fmt = TERMINAL_COLOR_GREEN + "[+] %(message)s" + TERMINAL_COLOR_END
+    info_fmt = TERMINAL_COLOR_BLUE + "[-] %(message)s" + TERMINAL_COLOR_END
 
     def format(self, record):
 

@@ -9,8 +9,10 @@ lxml==3.4.0
 Markdown==2.5.1
 pexpect==3.3
 psycopg2==2.5.4
-PTP==0.1.1
+PTP==0.2.0
 pycurl==7.19.5
+# We donot use six directly, but there is an error while trying to install pyOpenSSL. More details at https://github.com/owtf/owtf/issues/332
+six==1.8.0
 pyOpenSSL==0.14
 python-owasp-zap-v2==0.0.9
 PyVirtualDisplay==0.1.5

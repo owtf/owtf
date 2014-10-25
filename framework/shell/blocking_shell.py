@@ -33,6 +33,7 @@ from collections import defaultdict
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ShellInterface
 from framework.lib.general import *
+from framework.lib.formatters import LOG_LEVEL_TOOL
 import signal
 import subprocess
 import os

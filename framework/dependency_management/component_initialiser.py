@@ -150,6 +150,9 @@ class ComponentInitialiser():
                 )
                 cprint("Done")
 
+            if proxy_manager.number_of_proxies is 0:
+                ServiceLocator.get_component("error_handler").FrameworkAbort("No Alive proxies.")
+
             proxy = proxy_manager.get_next_available_proxy()
 
             # check proxy var... http:// sock://

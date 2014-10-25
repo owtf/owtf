@@ -36,7 +36,7 @@ import logging
 import StringIO
 import gzip,zlib
 from httplib import responses as response_messages
-import simplejson as json
+import json
 
 from framework import timer
 from framework.lib.general import *
