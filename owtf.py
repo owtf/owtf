@@ -43,7 +43,7 @@ verify_dependencies(os.path.dirname(os.path.abspath(sys.argv[0])) or '.')
 
 import argparse
 from framework import core
-from framework.dependency_management.component_initialiser import ComponentInitialiser
+from framework.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.general import *
 from framework import update
@@ -489,7 +489,11 @@ if __name__ == "__main__":
     root_dir = os.path.dirname(os.path.abspath(sys.argv[0])) or '.'
     owtf_pid = os.getpid()
     if not "--update" in sys.argv[1:]:
-        ComponentInitialiser.initialisation_phase_1(owtf_pid, root_dir)
+        try:
+            ComponentInitialiser.initialisation_phase_1(owtf_pid, root_dir)
+        except DatabaseNotRunningException, e:
+            exit()
+
         args = process_options(core, sys.argv[1:])
         ComponentInitialiser.initialisation_phase_2(args)
 

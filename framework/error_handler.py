@@ -95,7 +95,6 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             if 'e' == option:
                 if 'Command' == level:  # Try to save partial plugin results.
                     raise FrameworkAbortException(partial_output)
-                    self.Core.FrameworkAbort("Aborted by user")  # Interrupted.
             elif 'p' == option:  # Move on to next plugin.
                 # Jump to next handler and pass partial output to avoid losing
                 # results.

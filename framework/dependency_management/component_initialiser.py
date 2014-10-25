@@ -52,7 +52,10 @@ class ComponentInitialiser():
         config = Config(root_dir, owtf_pid)
         ErrorHandler()
         DB()
-        OWTFSessionDB()
+        try:
+            OWTFSessionDB()
+        except:
+            raise DatabaseNotRunningException()
         WorklistManager()
         db_config = ConfigDB()
         CommandRegister()
@@ -159,3 +162,7 @@ class ComponentInitialiser():
             options['OutboundProxy'] = []
             options['OutboundProxy'].append(proxy["proxy"][0])
             options['OutboundProxy'].append(proxy["proxy"][1])
+
+
+class DatabaseNotRunningException(Exception):
+    pass
