@@ -447,9 +447,9 @@ class FileRedirectHandler(custom_handlers.UIRequestHandler):
         output_files_server = "%s://%s/" % (
             self.request.protocol,
             self.request.host.replace(
-                self.application.Core.Config.FrameworkConfigGet(
+                self.application.config.FrameworkConfigGet(
                     "UI_SERVER_PORT"),
-                self.application.Core.Config.FrameworkConfigGet(
+                self.application.config.FrameworkConfigGet(
                     "FILE_SERVER_PORT")))
         redirect_file_url = output_files_server + file_url
         self.redirect(redirect_file_url, permanent=True)
