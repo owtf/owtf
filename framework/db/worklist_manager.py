@@ -63,7 +63,7 @@ class WorklistManager(object):
             if criteria.get('name', None):
                 if isinstance(criteria.get('name'), list):
                     criteria['name'] = criteria['name'][0]
-                query = query.filter(models.Plugin.name.like(
+                query = query.filter(models.Plugin.name.ilike(
                     '%'+criteria['name']+'%'))
         try:
             if criteria.get('id', None):
