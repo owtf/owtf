@@ -218,11 +218,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         return plugin_output_count > 0 # This is nothin but a "None" returned
 
     @target_required
-    def SavePluginOutput(self,
-                     plugin,
-                     output,
-                     target_id=None,
-                     owtf_rank=None):
+    def SavePluginOutput(self, plugin, output, target_id=None):
         """Save into the database the command output of the plugin `plugin."""
         self.db.session.merge(models.PluginOutput(
             plugin_key=plugin["key"],
@@ -238,31 +234,27 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             # it will be there
             output_path=(plugin["output_path"] if os.path.exists(
                 self.plugin_handler.GetPluginOutputDir(plugin)) else None),
-            owtf_rank=owtf_rank)
+            owtf_rank=plugin['owtf_rank'])
         )
         self.db.session.commit()
 
     @target_required
-    def SavePartialPluginOutput(
-            self,
-            Plugin,
-            Output,
-            Message,
-            target_id=None):
+    def SavePartialPluginOutput(self, plugin, output, message, target_id=None):
         self.db.session.merge(models.PluginOutput(
-            plugin_key=Plugin["key"],
-            plugin_code=Plugin["code"],
-            plugin_group=Plugin["group"],
-            plugin_type=Plugin["type"],
-            output=json.dumps(Output),
-            error=Message,
-            start_time=Plugin["start"],
-            end_time=Plugin["end"],
-            status=Plugin["status"],
+            plugin_key=plugin["key"],
+            plugin_code=plugin["code"],
+            plugin_group=plugin["group"],
+            plugin_type=plugin["type"],
+            output=json.dumps(output),
+            error=message,
+            start_time=plugin["start"],
+            end_time=plugin["end"],
+            status=plugin["status"],
             target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored
             # it will be there
-            output_path=(Plugin["output_path"] if os.path.exists(
-                self.plugin_handler.GetPluginOutputDir(Plugin)) else None)
-            ))
+            output_path=(plugin["output_path"] if os.path.exists(
+                self.plugin_handler.GetPluginOutputDir(plugin)) else None),
+            owtf_rank=plugin['owtf_rank'])
+        )
         self.db.session.commit()

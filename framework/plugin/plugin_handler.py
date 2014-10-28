@@ -314,13 +314,14 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             pass
         return owtf_rank
 
-
     def ProcessPlugin(self, plugin_dir, plugin, status={}):
         # Save how long it takes for the plugin to run.
         self.timer.start_timer('Plugin')
         plugin['start'] = self.timer.get_start_date_time('Plugin')
         # Use relative path from targets folders while saving
-        plugin['output_path'] = os.path.relpath(self.GetPluginOutputDir(plugin), self.config.GetOutputDirForTargets())
+        plugin['output_path'] = os.path.relpath(
+            self.GetPluginOutputDir(plugin),
+            self.config.GetOutputDirForTargets())
         status['AllSkipped'] = False  # A plugin is going to be run.
         plugin['status'] = 'Running'
         self.PluginCount += 1
@@ -328,79 +329,72 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             '_' * 10 + ' ' + str(self.PluginCount) +
             ' - Target: ' + self.target.GetTargetURL() +
             ' -> Plugin: ' + plugin['title'] + ' (' +
-            plugin['type']+ ') ' + '_' * 10)
-        #self.LogPluginExecution(Plugin)
+            plugin['type'] + ') ' + '_' * 10)
         # Skip processing in simulation mode, but show until line above
         # to illustrate what will run
         if self.Simulation:
             return None
         # DB empty => grep plugins will fail, skip!!
-        if ('grep' == plugin['type'] and
-                self.transaction.NumTransactions() == 0):
+        if ('grep' == plugin['type'] and self.transaction.NumTransactions() == 0):
             logging.info(
                 'Skipped - Cannot run grep plugins: '
                 'The Transaction DB is empty')
             return None
+        output = None
+        status_msg = ''
+        partial_output = []
+        abort_reason = ''
         try:
             output = self.RunPlugin(plugin_dir, plugin)
-            plugin['status'] = 'Successful'
-            plugin['end'] = self.timer.get_end_date_time(
-                'Plugin')
-            owtf_rank = self.rank_plugin(
-                output,
-                self.GetPluginOutputDir(plugin))
+            status_msg = 'Successful'
             status['SomeSuccessful'] = True
-            self.plugin_output.SavePluginOutput(
-                plugin,
-                output,
-                owtf_rank=owtf_rank)
-            return output
         except KeyboardInterrupt:
             # Just explain why crashed.
-            plugin['status'] = 'Aborted'
-            plugin['end'] = self.timer.get_end_date_time(
-                'Plugin')
-            self.plugin_output.SavePartialPluginOutput(
-                plugin,
-                [],
-                'Aborted by User')
-            self.error_handler.UserAbort('Plugin')
+            status_msg = 'Aborted'
+            abort_reason = 'Aborted by User'
             status['SomeAborted (Keyboard Interrupt)'] = True
         except SystemExit:
             # Abort plugin processing and get out to external exception
             # handling, information saved elsewhere.
             raise SystemExit
-        except PluginAbortException, PartialOutput:
-            plugin['status'] = 'Aborted (by user)'
-            plugin['end'] = self.timer.get_end_date_time('Plugin')
-            self.plugin_output.SavePartialPluginOutput(
-                plugin,
-                PartialOutput.parameter,
-                'Aborted by User')
+        except PluginAbortException as PartialOutput:
+            status_msg = 'Aborted (by user)'
+            partial_output = PartialOutput.parameter
+            abort_reason = 'Aborted by User'
             status['SomeAborted'] = True
-        except UnreachableTargetException, PartialOutput:
-            plugin['status'] = 'Unreachable Target'
-            plugin['end'] = self.timer.get_end_date_time('Plugin')
-            self.plugin_output.SavePartialPluginOutput(
-             plugin,
-             PartialOutput.parameter,
-             'Unreachable Target')
+        except UnreachableTargetException as PartialOutput:
+            status_msg = 'Unreachable Target'
+            partial_output = PartialOutput.parameter
+            abort_reason = 'Unreachable Target'
             status['SomeAborted'] = True
-        except FrameworkAbortException, PartialOutput:
-            plugin['status'] = 'Aborted (Framework Exit)'
-            plugin['end'] = self.timer.get_end_date_time(
-                'Plugin')
-            self.plugin_output.SavePartialPluginOutput(
-                plugin,
-                PartialOutput.parameter,
-                'Framework Aborted')
-            self.Core.Finish("Aborted")
-        #TODO: Handle this gracefully
-        #except: # BUG
-        #        Plugin["status"] = "Crashed"
-        #        cprint("Crashed")
-        #self.SavePluginInfo(self.error_handler.Add("Plugin "+Plugin['Type']+"/"+Plugin['File']+" failed for target "+self.config.Get('TARGET')), Plugin) # Try to save something
-        #TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
+        except FrameworkAbortException as PartialOutput:
+            status_msg = 'Aborted (Framework Exit)'
+            partial_output = PartialOutput.parameter
+            abort_reason = 'Framework Aborted'
+        # TODO: Handle this gracefully
+        # except:
+        # Plugin["status"] = "Crashed"
+        #     cprint("Crashed")
+        #     self.SavePluginInfo(self.Core.Error.Add("Plugin "+Plugin['Type']+"/"+Plugin['File']+" failed for target "+self.Core.Config.Get('TARGET')), Plugin) # Try to save something
+        #     TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
+        finally:
+            plugin['status'] = status_msg
+            plugin['end'] = self.timer.get_end_date_time('Plugin')
+            plugin['owtf_rank'] = self.rank_plugin(
+                output,
+                self.GetPluginOutputDir(plugin))
+            if status_msg == 'Successful':
+                self.plugin_output.SavePluginOutput(plugin, output)
+            else:
+                self.plugin_output.SavePartialPluginOutput(
+                    plugin,
+                    partial_output,
+                    abort_reason)
+            if status_msg == 'Aborted':
+                self.error_handler.UserAbort('Plugin')
+            if abort_reason == 'Framework Aborted':
+                self.Core.Finish('Aborted')
+        return output
 
     def ProcessPlugins(self):
         status = {
