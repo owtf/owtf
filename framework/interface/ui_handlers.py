@@ -2,6 +2,7 @@ import os
 import collections
 import tornado.web
 import uuid
+from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.exceptions import InvalidTargetReference, \
     InvalidParameterType
 from framework.lib.general import cprint
@@ -444,12 +445,11 @@ class FileRedirectHandler(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ('GET')
 
     def get(self, file_url):
+        config = ServiceLocator.get_component("config")
         output_files_server = "%s://%s/" % (
             self.request.protocol,
             self.request.host.replace(
-                self.application.config.FrameworkConfigGet(
-                    "UI_SERVER_PORT"),
-                self.application.config.FrameworkConfigGet(
-                    "FILE_SERVER_PORT")))
+                config.FrameworkConfigGet("UI_SERVER_PORT"),
+                config.FrameworkConfigGet("FILE_SERVER_PORT")))
         redirect_file_url = output_files_server + file_url
         self.redirect(redirect_file_url, permanent=True)

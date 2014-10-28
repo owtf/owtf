@@ -2,7 +2,7 @@ import os
 import sqlalchemy.exc
 
 from urlparse import urlparse
-from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
 from framework.dependency_management.interfaces import TargetInterface
 
 from framework.lib.exceptions import DBIntegrityException, \
@@ -52,9 +52,8 @@ def target_required(func):
 
     """
     def wrapped_function(*args, **kwargs):
-        if ((kwargs.get("target_id", "None") == "None") or
-                (kwargs.get("target_id", True) is None)):  # True if target_id doesnt exist.
-            kwargs["target_id"] = args[0].db.Target.GetTargetID()
+        if not "target_id" in kwargs:
+            kwargs["target_id"] = ServiceLocator.get_component("target").GetTargetID()
         return func(*args, **kwargs)
     return wrapped_function
 

@@ -3,6 +3,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 from StringIO import StringIO
 import json
 from framework.lib import exceptions
+from framework.lib.exceptions import InvalidTargetReference
 from framework.lib.general import cprint
 from framework.interface import custom_handlers
 
@@ -521,20 +522,20 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group: # First check if plugin_group is present in url
-                self.get_component("plugin_output").DeleteAll(filter_data, target_id)
+                self.get_component("plugin_output").DeleteAll(filter_data, target_id=int(target_id))
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group": plugin_group})
-                self.get_component("plugin_output").DeleteAll(filter_data, target_id)
+                self.get_component("plugin_output").DeleteAll(filter_data, target_id=int(target_id))
             if plugin_type and plugin_group and (not plugin_code):
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
-                self.get_component("plugin_output").DeleteAll(filter_data, target_id)
+                self.get_component("plugin_output").DeleteAll(filter_data, target_id=int(target_id))
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code})
-                self.get_component("plugin_output").DeleteAll(filter_data, target_id)
+                self.get_component("plugin_output").DeleteAll(filter_data, target_id=int(target_id))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
