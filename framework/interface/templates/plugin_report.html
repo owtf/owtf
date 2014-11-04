@@ -27,7 +27,7 @@
                             </a>
                         </li>
                         {% end %}
-                        <li class="pull-right"><a href="{{ test_groups[test_code]['url'] }}" target="_blank"><i class="fa fa-lightbulb-o"></i></a></li>
+                        <li class="pull-right"><a href="{{ test_groups[test_code]['url'] }}" target="_blank" title="More information"><i class="fa fa-lightbulb-o"></i></a></li>
                     </ul>
                     <br />
                     <div class="tab-content">
@@ -38,9 +38,10 @@
                                 <blockquote><h4>{{ poutput['plugin_type'].replace('_',' ').capitalize() }}</h4><small>{{ poutput['plugin_code'] }}</small></blockquote>
                             </div>
                             <div class="pull-right" data-toggle="buttons">
+                                {# TODO: Clean buttons code. #}
                                 {% set user_rank = poutput['user_rank'] %}
                                 {% if user_rank in [0, 1, 2, 3, 4, 5] %}
-                                <label id="{{ pkey }}_0" class="btn {% if user_rank == 0 %}active{% end %}" title="No"><input type="radio" id="0" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
+                                <label id="{{ pkey }}_0" class="btn {% if user_rank == 0 %}active{% end %}" title="No ranking"><input type="radio" id="0" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
                                 <label id="{{ pkey }}_1" class="btn {% if user_rank == 1 %}active btn-success{% end %}" title="Informational"><input type="radio" id="1" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-info-circle"></i></label>
                                 <label id="{{ pkey }}_2" class="btn {% if user_rank == 2 %}active btn-info{% end %}" title="Low"><input type="radio" id="2" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-exclamation-circle"></i></label>
                                 <label id="{{ pkey }}_3" class="btn {% if user_rank == 3 %}active btn-warning{% end %}" title="Medium"><input type="radio" id="3" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-warning"></i></label>
@@ -48,12 +49,12 @@
                                 <label id="{{ pkey }}_5" class="btn {% if user_rank == 5 %}active btn-critical{% end %}" title="Critical"><input type="radio" id="5" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '5');"/><i class="fa fa-bomb"></i></label>
                                 {% else %}
                                 {% set owtf_rank = poutput['owtf_rank'] %}
-                                <label id="{{ pkey }}_0" class="btn {% if user_rank == 0 %}active{% end %}"><input type="radio" id="0" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
-                                <label id="{{ pkey }}_1" class="btn {% if owtf_rank == 1 %}active btn-success" style="opacity: 0.7{% end %}"><input type="radio" id="1" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-info-circle"></i></label>
-                                <label id="{{ pkey }}_2" class="btn {% if owtf_rank == 2 %}active btn-info" style="opacity: 0.7{% end %}"><input type="radio" id="2" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-exclamation-circle"></i></label>
-                                <label id="{{ pkey }}_3" class="btn {% if owtf_rank == 3 %}active btn-warning" style="opacity: 0.7{% end %}"><input type="radio" id="3" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-warning"></i></label>
-                                <label id="{{ pkey }}_4" class="btn {% if owtf_rank == 4 %}active btn-danger" style="opacity: 0.7{% end %}"><input type="radio" id="4" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '4');"/><i class="fa fa-bell"></i></label>
-                                <label id="{{ pkey }}_5" class="btn {% if user_rank == 5 %}active btn-critical{% end %}"><input type="radio" id="5" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '5');"/><i class="fa fa-bomb"></i></label>
+                                <label id="{{ pkey }}_0" class="btn {% if user_rank == 0 %}active{% end %}" title="No ranking"><input type="radio" id="0" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
+                                <label id="{{ pkey }}_1" class="btn {% if owtf_rank == 1 %}active btn-success" style="opacity: 0.7{% end %}" title="Informational"><input type="radio" id="1" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-info-circle"></i></label>
+                                <label id="{{ pkey }}_2" class="btn {% if owtf_rank == 2 %}active btn-info" style="opacity: 0.7{% end %}" title="Low"><input type="radio" id="2" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-exclamation-circle"></i></label>
+                                <label id="{{ pkey }}_3" class="btn {% if owtf_rank == 3 %}active btn-warning" style="opacity: 0.7{% end %}" title="Medium"><input type="radio" id="3" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-warning"></i></label>
+                                <label id="{{ pkey }}_4" class="btn {% if owtf_rank == 4 %}active btn-danger" style="opacity: 0.7{% end %}" title="High"><input type="radio" id="4" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '4');"/><i class="fa fa-bell"></i></label>
+                                <label id="{{ pkey }}_5" class="btn {% if user_rank == 5 %}active btn-critical{% end %}" title="Critical"><input type="radio" id="5" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '5');"/><i class="fa fa-bomb"></i></label>
                                 {% end %}
                             </div>
                             <br />
