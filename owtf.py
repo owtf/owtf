@@ -62,7 +62,7 @@ def banner():
     \033[0m""")
 
 
-def get_args(core, args):
+def get_args(args):
     db_plugin = ServiceLocator.get_component("db_plugin")
     valid_plugin_groups = db_plugin.GetAllGroups()
     valid_plugin_types = db_plugin.GetAllTypes() + ['all', 'quiet']
@@ -305,9 +305,9 @@ def get_plugins_from_arg(arg):
     return [plugins, plugin_groups]
 
 
-def process_options(core, user_args):
+def process_options(user_args):
     try:
-        arg = get_args(core, user_args)
+        arg = get_args(user_args)
     except KeyboardInterrupt: #Exception as e:
         usage("Invalid OWTF option(s) " + e)
 
@@ -494,7 +494,7 @@ if __name__ == "__main__":
         except DatabaseNotRunningException, e:
             exit()
 
-        args = process_options(core, sys.argv[1:])
+        args = process_options(sys.argv[1:])
         ComponentInitialiser.initialisation_phase_2(args)
 
         core = core.Init(root_dir, owtf_pid, args)  # Initialise Framework.
