@@ -109,4 +109,4 @@ class TransactionLogger(OWTFProcess):
                 else:
                     time.sleep(2)
         except KeyboardInterrupt:
-            exit()
+            exit(-1)

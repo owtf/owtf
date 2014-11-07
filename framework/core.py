@@ -362,7 +362,7 @@ class Core(BaseComponent):
                         self.TransactionLogger.join()
                     except:  # It means the proxy was not started.
                         pass
-                exit()
+                exit(0)
 
     def KillChildProcesses(self, parent_pid, sig=signal.SIGINT):
         ps_command = subprocess.Popen(

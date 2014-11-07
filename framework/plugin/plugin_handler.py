@@ -143,7 +143,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                     break
             if not Found:
                 cprint("ERROR: The code '" + Item + "' is not a valid plugin, please use the -l option to see available plugin names and codes")
-                exit()
+                exit(-1)
         return ValidatedList  # Return list of Codes
 
     def InitExecutionRegistry(self):  # Initialises the Execution registry: As plugins execute they will be tracked here, useful to avoid calling plugins stupidly :)

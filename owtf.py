@@ -493,8 +493,8 @@ def main(args):
     if not "--update" in args[1:]:
         try:
             ComponentInitialiser.initialisation_phase_1(owtf_pid, root_dir)
-        except DatabaseNotRunningException, e:
-            exit()
+        except DatabaseNotRunningException:
+            exit(-1)
 
         args = process_options(sys.argv[1:])
         ComponentInitialiser.initialisation_phase_2(args)
