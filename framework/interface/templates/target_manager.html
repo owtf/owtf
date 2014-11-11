@@ -251,8 +251,9 @@ function getActionButtons(obj){
 }
 
 function getSeverityLabel(obj) {
-    max_rank = Math.max(obj.max_user_rank, obj.max_owtf_rank)
-    return getLabel(max_rank);
+  if (obj.max_user_rank != -1)
+    return getLabel(obj.max_user_rank);
+  return getLabel(obj.max_owtf_rank);
 }
 
 // Function used to update targets in the list, useful when new targets are added so that table can be updated
