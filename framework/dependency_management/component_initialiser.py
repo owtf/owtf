@@ -93,7 +93,7 @@ class ComponentInitialiser():
     def initialisation_phase_3(proxy):
         """ Third phase of the initialization process.
 
-        :param dict proxy: Proxy configuration parameters
+        :param list proxy: Proxy configuration parameters
         """
         ServiceLocator.get_component("db").Init()
         ServiceLocator.get_component("error_handler").init()

@@ -101,7 +101,8 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         #self.PluginTypes = [ 'passive', 'semi_passive', 'active', 'grep' ]
         #self.AllowedPluginTypes = self.GetAllowedPluginTypes(Options['PluginType'].split(','))
         #self.Simulation, self.Scope, self.PluginGroup, self.Algorithm, self.ListPlugins = [ Options['Simulation'], Options['Scope'], Options['PluginGroup'], Options['Algorithm'], Options['ListPlugins'] ]
-        self.Simulation, self.Scope, self.PluginGroup, self.ListPlugins = [Options['Simulation'], Options['Scope'],
+        self.Simulation, self.Scope, self.PluginGroup, self.ListPlugins = [Options['Simulation'],
+                                                                           Options['Scope'],
                                                                            Options['PluginGroup'],
                                                                            Options['ListPlugins']]
         self.OnlyPluginsList = self.ValidateAndFormatPluginList(Options['OnlyPlugins'])
@@ -229,8 +230,8 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def IsActiveTestingPossible(self):  # Checks if 1 active plugin is enabled = active testing possible:
         Possible = False
         # for PluginType, PluginFile, Title, Code, ReferenceURL in self.config.GetPlugins(): # Processing Loop
-        #for PluginType, PluginFile, Title, Code in self.config.Plugin.GetOrder(self.PluginGroup):
-        for Plugin in self.config.Plugin.GetOrder(self.PluginGroup):
+        #for PluginType, PluginFile, Title, Code in self.db_plugin.GetOrder(self.PluginGroup):
+        for Plugin in self.db_plugin.GetOrder(self.PluginGroup):
             if self.IsChosenPlugin(Plugin) and Plugin['type'] == 'active':
                 Possible = True
                 break
@@ -416,10 +417,10 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.target.SetTarget(Target)  # Tell Target DB that all Gets/Sets are now Target-specific
 
     def get_plugins_in_order_for_PluginGroup(self, PluginGroup):
-        return self.config.Plugin.GetOrder(PluginGroup)
+        return self.db_plugin.GetOrder(PluginGroup)
 
     def get_plugins_in_order(self, PluginGroup):
-        return self.config.Plugin.GetOrder(PluginGroup)
+        return self.db_plugin.GetOrder(PluginGroup)
 
     def ProcessPluginsForTargetList(self, PluginGroup, Status,
                                     TargetList):  # TargetList param will be useful for netsec stuff to call this
@@ -468,7 +469,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             #self.WorkerManager.poisonPillToWorkers()
             #Status = self.WorkerManager.joinWorker()
             #if 'breadth' == self.Algorithm: # Loop plugins, then targets
-            #       for Plugin in self.config.Plugin.GetOrder(PluginGroup):# For each Plugin
+            #       for Plugin in self.db_plugin.GetOrder(PluginGroup):# For each Plugin
             #               #print "Processing Plugin="+str(Plugin)
             #               for Target in TargetList: # For each Target
             #                       #print "Processing Target="+str(Target)
@@ -477,7 +478,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             #elif 'depth' == self.Algorithm: # Loop Targets, then plugins
             #       for Target in TargetList: # For each Target
             #               self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-            #               for Plugin in self.config.Plugin.GetOrder(PluginGroup):# For each Plugin
+            #               for Plugin in self.db_plugin.GetOrder(PluginGroup):# For each Plugin
             #                       self.ProcessPlugin( PluginDir, Plugin, Status )
 
     def CleanUp(self):
@@ -501,12 +502,12 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         print(INTRO_BANNER_GENERAL + INTRO_BANNER_WEB_PLUGIN_TYPE + "\n Available WEB plugins:""")
 
     def ShowPluginGroupPlugins(self, PluginGroup):
-        for PluginType in self.config.Plugin.GetTypesForGroup(PluginGroup):
+        for PluginType in self.db_plugin.GetTypesForGroup(PluginGroup):
             self.ShowPluginTypePlugins(PluginType, PluginGroup)
 
     def ShowPluginTypePlugins(self, PluginType, PluginGroup):
         cprint("\n" + '*' * 40 + " " + PluginType.title().replace('_', '-') + " plugins " + '*' * 40)
-        for Plugin in self.config.Plugin.GetAll(PluginGroup, PluginType):
+        for Plugin in self.db_plugin.GetPluginsByGroupType(PluginGroup, PluginType):
             # 'Name' : PluginName, 'Code': PluginCode, 'File' : PluginFile, 'Descrip' : PluginDescrip } )
             LineStart = " " + Plugin['type'] + ": " + Plugin['name']
             Pad1 = "_" * (60 - len(LineStart))

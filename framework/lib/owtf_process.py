@@ -72,11 +72,15 @@ class OWTFProcess(Process, BaseComponent):
         + Launch process specific code
         """
         # ------ DB Reinitialization ------ #
-        self.db.create_session()
-        # ------ Logging initialization ------ #
-        self.core.enable_logging()
-        # - Finally run process specific code - #
-        self.pseudo_run()
+        try:
+            self.db.create_session()
+            # ------ Logging initialization ------ #
+            self.core.enable_logging()
+            # - Finally run process specific code - #
+            self.pseudo_run()
+        except KeyboardInterrupt, e:
+            # In case of listing plugins
+            pass
 
     def pseudo_run(self):
         """

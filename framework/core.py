@@ -76,7 +76,7 @@ class Core(BaseComponent):
         + Required folders created
         + All other components are attached to core: shell, db etc... (using ServiceLocator)
         """
-
+        self.owtf_pid = owtf_pid
         # ------------------------ IO decoration ------------------------ #
         self.decorate_io()
 
@@ -198,7 +198,6 @@ class Core(BaseComponent):
         ComponentInitialiser.intialise_proxy_manager(options)
 
     def StartProxy(self, options):
-        ComponentInitialiser.initialisation_phase_3([self.db_config.Get('INBOUND_PROXY_IP'), self.db_config.Get('INBOUND_PROXY_PORT')])
         # The proxy along with supporting processes are started
         if True:
             # Check if port is in use
@@ -288,16 +287,17 @@ class Core(BaseComponent):
         # self.initlogger()
 
         # No processing required, just list available modules.
+        self.initialise_plugin_handler_and_params(options)
+        ComponentInitialiser.initialisation_phase_3([self.db_config.Get('INBOUND_PROXY_IP'), self.db_config.Get('INBOUND_PROXY_PORT')])
         if options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
-            self.exit_output()
-            return False
+            self.KillChildProcesses(self.owtf_pid)
+            exit(0)
         self.config.ProcessOptions(options)
         command = self.GetCommand(options['argv'])
 
         self.StartBotnetMode(options)
         self.StartProxy(options)  # Proxy mode is started in that function.
-        self.initialise_plugin_handler_and_params(options)
         # Set anonymised invoking command for error dump info.
         self.error_handler.SetCommand(OutputCleaner.anonymise_command(command))
         return True
