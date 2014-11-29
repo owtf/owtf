@@ -23,7 +23,7 @@ class MappingDB(BaseComponent, MappingDBInterface):
         self.mapping_types = []
 
     def init(self):
-        self.LoadMappingDBFromFile(self.config.FrameworkConfigGet("DEFAULT_MAPPING_PROFILE"))
+        self.LoadMappingDBFromFile(self.config.get_profile_path("MAPPING_PROFILE"))
 
     def LoadMappingDBFromFile(self, file_path):
         """

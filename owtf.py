@@ -139,9 +139,9 @@ def get_args(args):
         "-m", "--custom_profile",
         dest="CustomProfile",
         default=None,
-        help="<g:f,w:f,n:f,r:f> - Use my profile: 'f' = valid config file. " \
+        help="<g:f,w:f,n:f,r:f,m:f> - Use my profile: 'f' = valid config file. " \
              "g: general config, w: web plugin order, n: net plugin order, " \
-             "r: resources file")
+             "r: resources file, m: mappings file")
     parser.add_argument(
         "-g", "--plugin_group",
         dest="PluginGroup",
@@ -314,7 +314,7 @@ def process_options(user_args):
         usage("Invalid OWTF option(s) " + e)
 
     # Default settings:
-    profiles = []
+    profiles = {}
     plugin_group = arg.PluginGroup
     if arg.CustomProfile:  # Custom profiles specified
         # Quick pseudo-validation check
@@ -323,7 +323,7 @@ def process_options(user_args):
             if len(chunks) != 2 or not os.path.exists(chunks[1]):
                 usage("Invalid Profile")
             else:  # profile "ok" :)
-                profiles.append(chunks)
+                profiles[chunks[0]] = chunks[1]
 
     if arg.OnlyPlugins:
         arg.OnlyPlugins, plugin_groups = get_plugins_from_arg(arg.OnlyPlugins)

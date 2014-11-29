@@ -62,9 +62,16 @@ class Config(BaseComponent, ConfigInterface):
 
     RootDir = None
     OwtfPid = None
-    Profiles = None
+    Profiles = {
+        "GENERAL_PROFILE": None,
+        "RESOURCES_PROFILE": None,
+        "WEB_PLUGIN_ORDER_PROFILE": None,
+        "NET_PLUGIN_ORDER_PROFILE": None,
+        "MAPPING_PROFILE": None
+    }
 
     Target = None
+
     def __init__(self, root_dir, owtf_pid):
         self.register_in_service_locator()
         self.RootDir = root_dir
@@ -87,6 +94,8 @@ class Config(BaseComponent, ConfigInterface):
             'framework',
             'config',
             'framework_config.cfg'))
+        # The following line must be removed after fixing an issue
+        self.LoadProfiles({})
 
     def init(self):
         self.resource = self.get_component("resource")
@@ -158,13 +167,27 @@ class Config(BaseComponent, ConfigInterface):
                 plugins,
                 force_overwrite=force_overwrite)
 
+    def get_profile_path(self, profile_name):
+        return(self.Profiles.get(profile_name, None))
 
     def LoadProfiles(self, profiles):
         # This prevents python from blowing up when the Key does not exist :)
         self.Profiles = defaultdict(list)
         # Now override with User-provided profiles, if present.
-        for type, file in profiles:
-            self.Profiles[type] = file
+        self.Profiles["GENERAL_PROFILE"] = profiles.get('g', None) or \
+            self.FrameworkConfigGet("DEFAULT_GENERAL_PROFILE")
+        # Resources profile
+        self.Profiles["RESOURCES_PROFILE"] = profiles.get('r', None) or \
+            self.FrameworkConfigGet("DEFAULT_RESOURCES_PROFILE")
+        # web plugin order
+        self.Profiles["WEB_PLUGIN_ORDER_PROFILE"] = profiles.get('w', None) or \
+            self.FrameworkConfigGet("DEFAULT_WEB_PLUGIN_ORDER_PROFILE")
+        # net plugin order
+        self.Profiles["NET_PLUGIN_ORDER_PROFILE"] = profiles.get('n', None) or \
+            self.FrameworkConfigGet("DEFAULT_NET_PLUGIN_ORDER_PROFILE")
+        # mapping
+        self.Profiles["MAPPING_PROFILE"] = profiles.get('m', None) or \
+            self.FrameworkConfigGet("DEFAULT_MAPPING_PROFILE")
 
     def LoadTargets(self, options):
         scope = self.PrepareURLScope(options['Scope'], options['PluginGroup'])

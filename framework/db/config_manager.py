@@ -15,7 +15,7 @@ class ConfigDB(BaseComponent, DBConfigInterface):
         self.register_in_service_locator()
         self.config = self.get_component("config")
         self.db = self.get_component("db")
-        self.LoadConfigDBFromFile(self.config.FrameworkConfigGet('DEFAULT_GENERAL_PROFILE'))
+        self.LoadConfigDBFromFile(self.config.get_profile_path('GENERAL_PROFILE'))
 
     def IsConvertable(self, value, conv):
         try:
