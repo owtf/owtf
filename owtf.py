@@ -496,7 +496,7 @@ def main(args):
         except DatabaseNotRunningException:
             exit(-1)
 
-        args = process_options(sys.argv[1:])
+        args = process_options(args[1:])
         ComponentInitialiser.initialisation_phase_2(args)
 
         core = core_mod.Init(root_dir, owtf_pid, args)  # Initialise Framework.
