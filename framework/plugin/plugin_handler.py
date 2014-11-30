@@ -493,7 +493,12 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             self.ShowWebPluginsBanner()
         elif self.ListPlugins == 'aux':
             self.ShowAuxPluginsBanner()
+        elif self.ListPlugins == 'net':
+            self.ShowNetPluginsBanner()
         self.ShowPluginGroupPlugins(self.ListPlugins)
+
+    def ShowNetPluginsBanner(self):
+        logging.info("\nAvailable NET plugins")
 
     def ShowAuxPluginsBanner(self):
         logging.info(INTRO_BANNER_GENERAL + "\n Available AUXILIARY plugins:""")
