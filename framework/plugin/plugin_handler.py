@@ -496,21 +496,21 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.ShowPluginGroupPlugins(self.ListPlugins)
 
     def ShowAuxPluginsBanner(self):
-        print(INTRO_BANNER_GENERAL + "\n Available AUXILIARY plugins:""")
+        logging.info(INTRO_BANNER_GENERAL + "\n Available AUXILIARY plugins:""")
 
     def ShowWebPluginsBanner(self):
-        print(INTRO_BANNER_GENERAL + INTRO_BANNER_WEB_PLUGIN_TYPE + "\n Available WEB plugins:""")
+        logging.info(INTRO_BANNER_GENERAL + INTRO_BANNER_WEB_PLUGIN_TYPE + "\n Available WEB plugins:""")
 
     def ShowPluginGroupPlugins(self, PluginGroup):
         for PluginType in self.db_plugin.GetTypesForGroup(PluginGroup):
             self.ShowPluginTypePlugins(PluginType, PluginGroup)
 
     def ShowPluginTypePlugins(self, PluginType, PluginGroup):
-        cprint("\n" + '*' * 40 + " " + PluginType.title().replace('_', '-') + " plugins " + '*' * 40)
+        logging.info("\n" + '*' * 40 + " " + PluginType.title().replace('_', '-') + " plugins " + '*' * 40)
         for Plugin in self.db_plugin.GetPluginsByGroupType(PluginGroup, PluginType):
             # 'Name' : PluginName, 'Code': PluginCode, 'File' : PluginFile, 'Descrip' : PluginDescrip } )
             LineStart = " " + Plugin['type'] + ": " + Plugin['name']
             Pad1 = "_" * (60 - len(LineStart))
             Pad2 = "_" * (20 - len(Plugin['code']))
-            cprint(LineStart + Pad1 + "(" + Plugin['code'] + ")" + Pad2 + Plugin['descrip'])
+            logging.info(LineStart + Pad1 + "(" + Plugin['code'] + ")" + Pad2 + Plugin['descrip'])
 
