@@ -106,6 +106,10 @@ class WorklistManager(object):
                     self._derive_work_dict(work_model))
         return results
 
+    def get_total_work_count(self):
+        return self.Core.DB.session.query(models.Work).filter_by(
+            active=True).count()
+
     def get_work(self, in_use_target_list):
         query = self.Core.DB.session.query(models.Work).filter_by(
             active=True).order_by(models.Work.id)

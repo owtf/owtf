@@ -58,6 +58,7 @@ class Config(object):
     def __init__(self, root_dir, owtf_pid, core):
         self.RootDir = root_dir
         self.OwtfPid = owtf_pid
+        self.QuitOnCompletion = False
         self.Core = core
         self.initialize_attributes()
         # key can consist alphabets, numbers, hyphen & underscore.
@@ -108,6 +109,7 @@ class Config(object):
         return (not(string in ['False', 'false', 0, '0']))
 
     def ProcessOptions(self, options):
+        self.QuitOnCompletion = options["QuitOnCompletion"]
         self.LoadProfiles(options['Profiles'])
         target_urls = self.LoadTargets(options)
         self.LoadWork(options, target_urls)

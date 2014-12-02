@@ -451,26 +451,29 @@ class Core(object):
         # TODO: Fix this for lions_2014
         # if self.DB.Config.Get('SIMULATION'):
         #    exit()
-        else:
-            try:
-                self.PluginHandler.CleanUp()
-            except AttributeError:  # DB not instantiated yet!
-                pass
-            finally:
-                if getattr(self, "ProxyMode", None) is not None:
-                    try:
-                        cprint(
-                            "Stopping inbound proxy processes and "
-                            "cleaning up, Please wait!")
-                        self.KillChildProcesses(self.ProxyProcess.pid)
-                        self.ProxyProcess.terminate()
-                        # No signal is generated during closing process by
-                        # terminate()
-                        self.TransactionLogger.poison_q.put('done')
-                        self.TransactionLogger.join()
-                    except:  # It means the proxy was not started.
-                        pass
-                exit()
+        try:
+            self.KillChildProcesses(multiprocessing.current_process().pid)
+        except:
+            pass
+        try:
+            self.PluginHandler.CleanUp()
+        except AttributeError:  # DB not instantiated yet!
+            pass
+        finally:
+            if getattr(self, "ProxyMode", None) is not None:
+                try:
+                    cprint(
+                        "Stopping inbound proxy processes and "
+                        "cleaning up, Please wait!")
+                    self.KillChildProcesses(self.ProxyProcess.pid)
+                    self.ProxyProcess.terminate()
+                    # No signal is generated during closing process by
+                    # terminate()
+                    self.TransactionLogger.poison_q.put('done')
+                    self.TransactionLogger.join()
+                except:  # It means the proxy was not started.
+                    pass
+            exit()
 
     def IsIPInternal(self, IP):
         return len(self.IsIPInternalRegexp.findall(IP)) == 1

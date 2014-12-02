@@ -142,6 +142,7 @@ class WorkerManager(object):
         if there is one
         """
         # Loop while there is some work in worklist
+        work_in_progress = False
         for k in range(0, len(self.workers)):
             if (not self.workers[k]["worker"].output_q.empty()) or (not self.workers[k]["worker"].is_alive()):
                 if self.workers[k]["worker"].is_alive():
@@ -163,6 +164,10 @@ class WorkerManager(object):
                     self.workers[k]["worker"].input_q.put(work_to_assign)
                     self.workers[k]["work"] = work_to_assign
                     self.workers[k]["busy"] = True
+            work_in_progress = work_in_progress or self.workers[k]["busy"]
+        if (self.core.Config.QuitOnCompletion and not work_in_progress) and \
+                (self.core.DB.Worklist.get_total_work_count() == 0):
+            self.core.Finish()
 
     def poison_pill_to_workers(self):
         """

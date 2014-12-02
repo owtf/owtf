@@ -160,6 +160,11 @@ def get_args(core, args):
              "NOTE: grep plugins run automatically after semi_passive and " \
              "active in the default profile")
     parser.add_argument(
+        "-q", "--quit_on_completion",
+        dest="QuitOnCompletion",
+        action="store_true",
+        help="Use this flag to make OWTF quit after execution of plugins")
+    parser.add_argument(
         "-port", "--port",
         dest="RPort",
         default=None,
@@ -464,6 +469,7 @@ def process_options(core, user_args):
         'ProxyMode': arg.ProxyMode,
         'TOR_mode' : arg.TOR_mode,
         'Botnet_mode' : arg.Botnet_mode,
+        'QuitOnCompletion': arg.QuitOnCompletion,
         'Args': args}
 
 
