@@ -90,16 +90,17 @@ class ComponentInitialiser():
         ZAP_API()
 
     @staticmethod
-    def initialisation_phase_3(proxy):
+    def initialisation_phase_3(proxy, options):
         """ Third phase of the initialization process.
 
         :param list proxy: Proxy configuration parameters
+        :param dict options: Options from command line.
         """
         ServiceLocator.get_component("db").Init()
         ServiceLocator.get_component("error_handler").init()
         Requester(proxy)
         PluginHelper()
-        ServiceLocator.get_component("plugin_handler").init()
+        ServiceLocator.get_component("plugin_handler").init(options)
         ServiceLocator.get_component("reporter").init()
 
     @staticmethod

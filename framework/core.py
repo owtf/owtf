@@ -288,7 +288,8 @@ class Core(BaseComponent):
 
         # No processing required, just list available modules.
         self.initialise_plugin_handler_and_params(options)
-        ComponentInitialiser.initialisation_phase_3([self.db_config.Get('INBOUND_PROXY_IP'), self.db_config.Get('INBOUND_PROXY_PORT')])
+        proxy_infos = [self.db_config.Get('INBOUND_PROXY_IP'), self.db_config.Get('INBOUND_PROXY_PORT')]
+        ComponentInitialiser.initialisation_phase_3(proxy_infos, options)
         if options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
             self.KillChildProcesses(self.owtf_pid)

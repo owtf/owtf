@@ -96,15 +96,12 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.error_handler = self.get_component("error_handler")
         self.reporter = None
         self.timer = self.get_component("timer")
+        self.init_options(Options)
         # This should be dynamic from filesystem:
         #self.PluginGroups = [ 'web', 'net', 'aux' ]
         #self.PluginTypes = [ 'passive', 'semi_passive', 'active', 'grep' ]
         #self.AllowedPluginTypes = self.GetAllowedPluginTypes(Options['PluginType'].split(','))
         #self.Simulation, self.Scope, self.PluginGroup, self.Algorithm, self.ListPlugins = [ Options['Simulation'], Options['Scope'], Options['PluginGroup'], Options['Algorithm'], Options['ListPlugins'] ]
-        self.Simulation, self.Scope, self.PluginGroup, self.ListPlugins = [Options['Simulation'],
-                                                                           Options['Scope'],
-                                                                           Options['PluginGroup'],
-                                                                           Options['ListPlugins']]
         self.OnlyPluginsList = self.ValidateAndFormatPluginList(Options['OnlyPlugins'])
         self.ExceptPluginsList = self.ValidateAndFormatPluginList(Options['ExceptPlugins'])
         #print "OnlyPlugins="+str(self.OnlyPluginsList)
@@ -120,7 +117,15 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.InitExecutionRegistry()
         self.showOutput = True
 
-    def init(self):
+    def init_options(self, options):
+        """Initialize CLI options for each instance of PluginHandler."""
+        self.Simulation = options['Simulation']
+        self.Scope = options['Scope']
+        self.PluginGroup = options['PluginGroup']
+        self.ListPlugins = options['ListPlugins']
+
+    def init(self, options):
+        self.init_options(options)
         self.Core = self.get_component("core")
         self.plugin_output = self.get_component("plugin_output")
         self.reporter = self.get_component("reporter")
