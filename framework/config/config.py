@@ -35,6 +35,7 @@ repository to get info.
 
 import os
 import re
+import logging
 import socket
 
 from urlparse import urlparse
@@ -197,7 +198,7 @@ class Config(BaseComponent, ConfigInterface):
                 self.target.AddTarget(target)
                 added_targets.append(target)
             except DBIntegrityException:
-                cprint(target + " already exists in DB")
+                logging.info("%s already exists in DB" % (target))
             except UnresolvableTargetException as e:
                 cprint(e.parameter)
         return(added_targets)
@@ -405,7 +406,7 @@ class Config(BaseComponent, ConfigInterface):
         self.Set('alternative_ips', alternative_IPs)
         ip = ip.strip()
         self.Set('INTERNAL_IP', NetworkOperations.is_ip_internal(ip))
-        cprint("The IP address for " + hostname + " is: '" + ip + "'")
+        logging.info("The IP address for %s is: '%s'" % (hostname, ip))
         return ip
 
     def GetIPsFromHostname(self, hostname):
