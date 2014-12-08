@@ -229,7 +229,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             # so plugin is killed
             # Else, the worker dies :'(
             os.kill(pid, psignal)
-        except Exception, e:
+        except Exception as e:
             logging.error(
                 "Error while trying to abort Worker process",
                 exc_info=True)
