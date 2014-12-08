@@ -49,7 +49,7 @@ from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
 from framework.plugin import worker_manager
 from framework.protocols import smb
-from framework.interface import server
+from framework.interface import server, cli
 from framework.lib.formatters import ConsoleFormatter, FileFormatter
 from framework.selenium import selenium_handler
 from framework.shell import interactive_shell
@@ -279,7 +279,10 @@ class Core(BaseComponent):
 
     def Start(self, options):
         if self.initialise_framework(options):
-            return self.run_server()
+            if not options['nowebui']:
+                return self.run_server()
+            else:
+                return self.run_cli()
 
     def initialise_framework(self, options):
         self.ProxyMode = options["ProxyMode"]
@@ -307,7 +310,11 @@ class Core(BaseComponent):
         # The order is important here ;)
         self.PluginHandler = self.get_component("plugin_handler") #plugin_handler.PluginHandler(self, options)
         self.PluginParams = self.get_component("plugin_params")
-        self.WorkerManager = worker_manager.WorkerManager()
+        # If OWTF is run without the Web UI, the WorkerManager should exit as
+        # soon as all jobs have been completed. Otherwise, keep WorkerManager
+        # alive.
+        self.WorkerManager = worker_manager.WorkerManager(
+            keep_working=not options['nowebui'])
 
     def run_server(self):
         """
@@ -323,6 +330,11 @@ class Core(BaseComponent):
         self.disable_console_logging()
         logging.info("Press Ctrl+C when you spawned a shell ;)")
         self.InterfaceServer.start()
+
+    def run_cli(self):
+        """This method starts the CLI server."""
+        self.cli_server = cli.CliServer()
+        self.cli_server.start()
 
     def ReportErrorsToGithub(self):
         cprint(

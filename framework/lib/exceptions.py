@@ -49,8 +49,10 @@ class PluginAbortException(FrameworkException):
 class UnreachableTargetException(FrameworkException):
     pass
 
+
 class UnresolvableTargetException(FrameworkException):
     pass
+
 
 class DBIntegrityException(FrameworkException):
     pass
@@ -87,14 +89,18 @@ class InvalidWorkReference(FrameworkException):
 class InvalidConfigurationReference(FrameworkException):
     pass
 
+
 class InvalidUrlReference(FrameworkException):
     pass
+
 
 class InvalidActionReference(FrameworkException):
     pass
 
+
 class InvalidMessageReference(FrameworkException):
     pass
+
 
 class InvalidMappingReference(FrameworkException):
     pass

@@ -184,6 +184,12 @@ def get_args(args):
         action="store_true",
         help="Use this flag to update OWTF to stable version " \
              "(not bleeding edge)")
+    parser.add_argument(
+        '--nowebui',
+        dest='nowebui',
+        default=False,
+        action='store_true',
+        help='Run OWTF without its Web UI.')
     parser.add_argument('Targets', nargs='*', help='List of Targets')
     return parser.parse_args(args)
 
@@ -464,6 +470,7 @@ def process_options(user_args):
         'ProxyMode': arg.ProxyMode,
         'TOR_mode' : arg.TOR_mode,
         'Botnet_mode' : arg.Botnet_mode,
+        'nowebui': arg.nowebui,
         'Args': args}
 
 

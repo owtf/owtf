@@ -36,7 +36,7 @@ import signal
 import subprocess
 import logging
 import multiprocessing
-from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
 from framework.dependency_management.interfaces import WorkerManagerInterface
 from framework.lib.owtf_process import OWTFProcess
 from framework.lib.exceptions import InvalidWorkerReference
@@ -78,7 +78,8 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
 
     COMPONENT_NAME = "worker_manager"
 
-    def __init__(self):
+    def __init__(self, keep_working=True):
+        self.keep_working = keep_working
         self.register_in_service_locator()
         self.db_config = self.get_component("db_config")
         self.error_handler = self.get_component("error_handler")
@@ -170,6 +171,15 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                     self.workers[k]["worker"].input_q.put(work_to_assign)
                     self.workers[k]["work"] = work_to_assign
                     self.workers[k]["busy"] = True
+                if not self.keep_working:
+                    if not self.is_any_worker_busy():
+                        logging.info("All jobs have been done. Exiting.")
+                        self.exit()
+                        ServiceLocator.get_component('core').Finish()
+
+    def is_any_worker_busy(self):
+        """If a worker is still busy, return True. Return False otherwise."""
+        return True in [worker['busy'] for worker in self.workers]
 
     def poison_pill_to_workers(self):
         """
