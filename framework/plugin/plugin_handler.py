@@ -300,7 +300,9 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                 if ('output' in output and
                     'metasploit' in output['output'].get('ModifiedCommand', ''))]
 
-        msf_modules = extract_metasploit_modules(output)
+        msf_modules = None
+        if output:
+            msf_modules = extract_metasploit_modules(output)
         owtf_rank = -1  # Default ranking value set to Unknown.
         try:
             parser = PTP()
