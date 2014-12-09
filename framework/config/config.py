@@ -198,9 +198,9 @@ class Config(BaseComponent, ConfigInterface):
                 self.target.AddTarget(target)
                 added_targets.append(target)
             except DBIntegrityException:
-                logging.info("%s already exists in DB" % (target))
+                logging.warning("%s already exists in DB" % target)
             except UnresolvableTargetException as e:
-                cprint(e.parameter)
+                logging.error("%s" % e.parameter)
         return(added_targets)
 
     def PrepareURLScope(self, scope, group):
@@ -393,7 +393,7 @@ class Config(BaseComponent, ConfigInterface):
                 ip = socket.gethostbyname(hostname)
             except socket.gaierror:
                 raise UnresolvableTargetException(
-                    "Unable to resolve : " + hostname);
+                    "Unable to resolve: '%s'" % hostname)
 
         ipchunks = ip.strip().split("\n")
         alternative_IPs = []
@@ -424,7 +424,7 @@ class Config(BaseComponent, ConfigInterface):
                 ip = socket.gethostbyname(hostname)
             except socket.gaierror:
                 raise UnresolvableTargetException(
-                    "Unable to resolve : " + hostname);
+                    "Unable to resolve: '%s'" % hostname)
 
         ipchunks = ip.strip().split("\n")
         return ipchunks
