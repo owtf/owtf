@@ -191,7 +191,7 @@ class Config(BaseComponent, ConfigInterface):
             self.FrameworkConfigGet("DEFAULT_MAPPING_PROFILE")
 
     def LoadTargets(self, options):
-        scope = self.PrepareURLScope(options['Scope'], options['PluginGroup'])
+        scope = self.prepare_url_scope(options['Scope'], options['PluginGroup'])
         added_targets = []
         for target in scope:
             try:
@@ -203,23 +203,24 @@ class Config(BaseComponent, ConfigInterface):
                 logging.error("%s" % e.parameter)
         return(added_targets)
 
-    def PrepareURLScope(self, scope, group):
+    def prepare_url_scope(self, scope, group):
         """Convert all targets to URLs."""
         new_scope = []
-        for target_URL in scope:
-            if target_URL[-1] == "/":
-                target_URL = target_URL[0:-1]
-            if target_URL[0:4] != 'http':
+        for target_url in scope:
+            if target_url.endswith('/'):
+                target_url = target_url[:-1]
+            if target_url.startswith('http'):
+                new_scope.append(target_url)  # Append "as-is".
+            else:
                 # Add both "http" and "https" if not present:
                 # The connection check will then remove from the report if one
                 # does not exist.
-                if group == "net":
-                    new_scope.append('http://' + target_URL)
+                if group is "net":
+                    new_scope.append('http://%s' % target_url)
                 else:
-                    for prefix in ['http', 'https']:
-                        new_scope.append(prefix + '://' + target_URL)
-            else:
-                new_scope.append(target_URL)  # Append "as-is".
+                    new_scope.extend((
+                        '%s://%s' % (prefix, target_url)
+                        for prefix in ('http', 'https')))
         return new_scope
 
     def MultipleReplace(self, text, replace_dict):
