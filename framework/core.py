@@ -40,6 +40,7 @@ import socket
 import logging
 import multiprocessing
 import subprocess
+import tornado
 
 from framework.dependency_management.component_initialiser import ComponentInitialiser
 from framework import timer, error_handler
@@ -375,6 +376,8 @@ class Core(BaseComponent):
                         self.TransactionLogger.join()
                     except:  # It means the proxy was not started.
                         pass
+                # Stop any tornado instance.
+                tornado.ioloop.IOLoop.instance().stop()
                 exit(0)
 
     def KillChildProcesses(self, parent_pid, sig=signal.SIGINT):
