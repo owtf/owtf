@@ -50,7 +50,7 @@ class Worker(OWTFProcess, BaseComponent):
         self.output_q.put('Started')
         while self.poison_q.empty():
             try:
-                work = self.input_q.get()
+                work = self.input_q.get(True, 2)
                 # If work is empty this means no work is there
                 if work == ():
                     exit(0)
@@ -174,7 +174,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                 if not self.keep_working:
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
-                        self.exit()
+                        self.clean_up()
                         ServiceLocator.get_component('core').Finish()
 
     def is_any_worker_busy(self):
