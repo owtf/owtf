@@ -36,6 +36,7 @@ import signal
 import subprocess
 import logging
 import multiprocessing
+import Queue
 from framework.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
 from framework.dependency_management.interfaces import WorkerManagerInterface
 from framework.lib.owtf_process import OWTFProcess
@@ -59,12 +60,14 @@ class Worker(OWTFProcess, BaseComponent):
                 self.plugin_handler.SwitchToTarget(target["id"])
                 self.plugin_handler.ProcessPlugin(pluginDir, plugin)
                 self.output_q.put('done')
+            except Queue.Empty:
+                pass
             except KeyboardInterrupt:
                 logging.debug(
                     "I am worker (%d) & my master doesn't need me anymore",
                     self.pid)
                 exit(0)
-            except Exception, e:
+            except Exception as e:
                 self.get_component("error_handler").LogError(
                     "Exception occured while running :",
                     trace=str(e))
