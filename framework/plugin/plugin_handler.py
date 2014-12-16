@@ -334,10 +334,12 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         plugin['status'] = 'Running'
         self.PluginCount += 1
         logging.info(
-            '_' * 10 + ' ' + str(self.PluginCount) +
-            ' - Target: ' + self.target.GetTargetURL() +
-            ' -> Plugin: ' + plugin['title'] + ' (' +
-            plugin['type'] + ') ' + '_' * 10)
+            '_' * 10 + ' %d - Target: %s -> Plugin: %s (%s/%s) ' + '_' * 10,
+            self.PluginCount,
+            self.target.GetTargetURL(),
+            plugin['title'],
+            plugin['group'],
+            plugin['type'])
         # Skip processing in simulation mode, but show until line above
         # to illustrate what will run
         if self.Simulation:
