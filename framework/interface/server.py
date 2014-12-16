@@ -48,6 +48,10 @@ class InterfaceServer(BaseComponent):
         except KeyboardInterrupt:
             pass
 
+    def clean_up(self):
+        """Properly stop any tornado callbacks."""
+        self.manager_cron.stop()
+
 
 class FileServer(OWTFProcess, BaseComponent):
 

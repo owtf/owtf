@@ -98,6 +98,10 @@ class DB(BaseComponent, DBInterface):
         self.Session = self.CreateScopedSession()
         self.session = self.Session()
 
+    def clean_up(self):
+        """Close the sqlalchemy session opened by DB."""
+        self.session.close()
+
     def _get_db_settings(self):
         """
         Get database settings, must be used only here

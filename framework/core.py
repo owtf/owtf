@@ -323,14 +323,14 @@ class Core(BaseComponent):
         """
         self.FileServer = server.FileServer()
         self.FileServer.start()
-        self.InterfaceServer = server.InterfaceServer()
+        self.interface_server = server.InterfaceServer()
         logging.warn(
             "http://%s:%s <-- Web UI URL",
             self.config.FrameworkConfigGet("SERVER_ADDR"),
             self.config.FrameworkConfigGet("UI_SERVER_PORT"))
         self.disable_console_logging()
         logging.info("Press Ctrl+C when you spawned a shell ;)")
-        self.InterfaceServer.start()
+        self.interface_server.start()
 
     def run_cli(self):
         """This method starts the CLI server."""
@@ -376,7 +376,13 @@ class Core(BaseComponent):
                         self.TransactionLogger.join()
                     except:  # It means the proxy was not started.
                         pass
+                # Properly stop any DB instances.
+                self.db.clean_up()
                 # Stop any tornado instance.
+                if hasattr(self, 'cli_server'):
+                    self.cli_server.clean_up()
+                if hasattr(self, 'interface_server'):
+                    self.interface_server.clean_up()
                 tornado.ioloop.IOLoop.instance().stop()
                 exit(0)
 
