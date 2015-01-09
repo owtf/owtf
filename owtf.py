@@ -42,7 +42,7 @@ verify_dependencies(os.path.dirname(os.path.abspath(sys.argv[0])) or '.')
 
 
 import argparse
-from framework import core as core_mod
+from framework import core as core_mod, error_handler
 from framework.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.general import *
@@ -192,7 +192,6 @@ def get_args(args):
         help='Run OWTF without its Web UI.')
     parser.add_argument('Targets', nargs='*', help='List of Targets')
     return parser.parse_args(args)
-
 
 def get_args_for_update(args):
     parser = argparse.ArgumentParser(
@@ -512,6 +511,7 @@ def main(args):
                 ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
                 ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
             )
+        error_handler.ErrorHandler.cl_arg = args
         run_owtf(core, args)
     else:
         # First confirming that --update flag is present in args and then

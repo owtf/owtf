@@ -194,11 +194,13 @@ class Config(BaseComponent, ConfigInterface):
         scope = self.prepare_url_scope(options['Scope'], options['PluginGroup'])
         added_targets = []
         for target in scope:
+            added_targets.append(target)
             try:
                 self.target.AddTarget(target)
                 added_targets.append(target)
             except DBIntegrityException:
                 logging.warning("%s already exists in DB" % target)
+                added_targets.append(target)
             except UnresolvableTargetException as e:
                 logging.error("%s" % e.parameter)
         return(added_targets)
