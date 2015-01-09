@@ -96,7 +96,7 @@ class ComponentInitialiser():
         :param list proxy: Proxy configuration parameters
         :param dict options: Options from command line.
         """
-        ServiceLocator.get_component("db").Init()
+        ServiceLocator.get_component("db").init()
         ServiceLocator.get_component("error_handler").init()
         Requester(proxy)
         PluginHelper()

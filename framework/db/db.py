@@ -67,8 +67,7 @@ class DB(BaseComponent, DBInterface):
         self._db_settings = self._get_db_settings()
         self.create_session()
 
-
-    def Init(self):
+    def init(self):
         self.config = self.get_component("config")
         self.Transaction = self.get_component("transaction")
         self.URL = self.get_component("url_manager")
