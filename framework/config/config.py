@@ -111,8 +111,6 @@ class Config(BaseComponent, ConfigInterface):
         for type in CONFIG_TYPES:
             self.Config[type] = {}
 
-    def Init(self):
-        self.HealthCheck = health_check.HealthCheck()
 
     def LoadFrameworkConfigFromFile(self, config_path):
         """Load the configuration from into a global dictionary."""
