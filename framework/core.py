@@ -67,7 +67,7 @@ class Core(BaseComponent):
     """
     The glue which holds everything together
     """
-    def __init__(self, root_dir, owtf_pid, args):
+    def __init__(self, owtf_pid):
         self.register_in_service_locator()
         """
         [*] Tightly coupled, cohesive framework components
@@ -403,5 +403,13 @@ class Core(BaseComponent):
         self.FileHandler = catch_io_errors(logging.FileHandler)
 
 
-def Init(root_dir, owtf_pid, args):
-    return Core(root_dir, owtf_pid, args)
+def create_core_instance(owtf_pid):
+    """Create a instance of the :class:`framework.core.Core`.
+
+    :param int owtf_pid: PID of the OWTF process.
+
+    :return: an instance of the :class:`framework.core.Core`.
+    :rtype: :class:`framework.core.Core`.
+
+    """
+    return Core(owtf_pid)

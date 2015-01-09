@@ -506,7 +506,8 @@ def main(args):
         args = process_options(args[1:])
         ComponentInitialiser.initialisation_phase_2(args)
 
-        core = core_mod.Init(root_dir, owtf_pid, args)  # Initialise Framework.
+        # Initialise Framework.
+        core = core_mod.create_core_instance(owtf_pid)
         logging.warn(
             "OWTF Version: %s, Release: %s " % (
                 ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
