@@ -30,7 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This is the script for checking the owtf pip dependencies
 
 """
+
 import os
+import uuid
+
 
 try:
     # Is pip even there?
@@ -53,7 +56,8 @@ def verify_dependencies(root_dir):
     # Get all the libraries required by owtf
     # owtf_libraries = ["tornado", "lxml"...]
     owtf_reqs = pip.req.parse_requirements(
-        os.path.join(root_dir, "install", "owtf.pip"))
+        os.path.join(root_dir, "install", "owtf.pip"),
+        session=uuid.uuid1())
     owtf_libraries = [req.req.project_name for req in owtf_reqs]
 
     # Iterate over requirements and check if existed
