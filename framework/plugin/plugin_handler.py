@@ -403,7 +403,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             if status_msg == 'Aborted':
                 self.error_handler.UserAbort('Plugin')
             if abort_reason == 'Framework Aborted':
-                self.Core.Finish()
+                self.Core.finish()
         return output
 
     def ProcessPlugins(self):

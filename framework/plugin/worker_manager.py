@@ -178,7 +178,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
                         self.clean_up()
-                        ServiceLocator.get_component('core').Finish()
+                        ServiceLocator.get_component('core').finish()
 
     def is_any_worker_busy(self):
         """If a worker is still busy, return True. Return False otherwise."""

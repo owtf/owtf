@@ -89,7 +89,7 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             # Therefore, force a brutal exit and throw away the message.
             sys.exit(-1)
         else:
-            self.Core.Finish()
+            self.Core.finish()
         return message
 
     def get_option_from_user(self, options):

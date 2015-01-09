@@ -478,13 +478,13 @@ def run_owtf(core, args):
     try:
         if core.Start(args):
             # Only if Start is for real (i.e. not just listing plugins, etc)
-            core.Finish()  # Not Interrupted or Crashed.
+            core.finish()  # Not Interrupted or Crashed.
     except KeyboardInterrupt:
         # NOTE: The user chose to interact: interactivity check redundant here:
         cprint("\nowtf was aborted by the user:")
         cprint("Please check report/plugin output files for partial results")
         # Interrupted. Must save the DB to disk, finish report, etc.
-        core.Finish()
+        core.finish()
     except SystemExit:
         pass  # Report already saved, framework tries to exit.
     finally:  # Needed to rename the temp storage dirs to avoid confusion.

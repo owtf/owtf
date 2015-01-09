@@ -351,7 +351,7 @@ class Core(BaseComponent):
         else:
             cprint("Unable to add github issue, but thanks for trying :D")
 
-    def Finish(self):
+    def finish(self):
         """Finish OWTF framework after freeing resources.
 
         :return: None
