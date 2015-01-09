@@ -194,7 +194,6 @@ class Config(BaseComponent, ConfigInterface):
         scope = self.prepare_url_scope(options['Scope'], options['PluginGroup'])
         added_targets = []
         for target in scope:
-            added_targets.append(target)
             try:
                 self.target.AddTarget(target)
                 added_targets.append(target)
