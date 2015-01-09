@@ -38,8 +38,11 @@ import re
 import logging
 import socket
 
+from copy import deepcopy
+
 from urlparse import urlparse
 from collections import defaultdict
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ConfigInterface
 
@@ -54,7 +57,7 @@ from framework.utils import NetworkOperations, FileOperations
 
 REPLACEMENT_DELIMITER = "@@@"
 REPLACEMENT_DELIMITER_LENGTH = len(REPLACEMENT_DELIMITER)
-CONFIG_TYPES = [ 'string', 'other' ]
+CONFIG_TYPES = ['string', 'other']
 
 
 class Config(BaseComponent, ConfigInterface):
@@ -99,6 +102,7 @@ class Config(BaseComponent, ConfigInterface):
         self.LoadProfiles({})
 
     def init(self):
+        """Initialize the Option resources."""
         self.resource = self.get_component("resource")
         self.error_handler = self.get_component("error_handler")
         self.target = self.get_component("target")
@@ -139,6 +143,13 @@ class Config(BaseComponent, ConfigInterface):
         return (not(string in ['False', 'false', 0, '0']))
 
     def ProcessOptions(self, options):
+        """Process the options from the CLI.
+
+        :param dict options: Options coming from the CLI.
+
+        """
+        # Backup the raw CLI options in case they are needed later.
+        self.cli_options = deepcopy(options)
         self.LoadProfiles(options['Profiles'])
         target_urls = self.LoadTargets(options)
         self.LoadWork(options, target_urls)
