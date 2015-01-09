@@ -105,7 +105,6 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
 
         try:
             if not(ErrorHandler.cl_arg["Force_Overwrite"]):
-                cprint("This module is getting executed")
                 self.db_error.Add(message, trace)  # Log error in the DB.
         except AttributeError:
             cprint("ERROR: DB is not setup yet: cannot log errors to file!")
