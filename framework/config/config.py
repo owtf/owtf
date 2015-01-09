@@ -167,7 +167,9 @@ class Config(BaseComponent, ConfigInterface):
                     "group": options["PluginGroup"],
                 }
             else:
-                filter_data = {"code": options["OnlyPlugins"]}
+                filter_data = {
+                    "code": options.get("OnlyPlugins"),
+                    "type": options.get("PluginType")}
             plugins = self.db_plugin.GetAll(filter_data)
             force_overwrite = options["Force_Overwrite"]
             self.worklist_manager.add_work(
