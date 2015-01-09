@@ -499,7 +499,7 @@ def main(args):
     owtf_pid = os.getpid()
     if not "--update" in args[1:]:
         try:
-            ComponentInitialiser.initialisation_phase_1(owtf_pid, root_dir)
+            ComponentInitialiser.initialisation_phase_1(root_dir, owtf_pid)
         except DatabaseNotRunningException:
             exit(-1)
 
