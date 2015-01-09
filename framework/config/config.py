@@ -105,12 +105,10 @@ class Config(BaseComponent, ConfigInterface):
         self.db_plugin = self.get_component("db_plugin")
         self.worklist_manager = self.get_component("worklist_manager")
 
-
     def initialize_attributes(self):
         self.Config = defaultdict(list)  # General configuration information.
         for type in CONFIG_TYPES:
             self.Config[type] = {}
-
 
     def LoadFrameworkConfigFromFile(self, config_path):
         """Load the configuration from into a global dictionary."""

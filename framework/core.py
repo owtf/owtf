@@ -351,7 +351,13 @@ class Core(BaseComponent):
         else:
             cprint("Unable to add github issue, but thanks for trying :D")
 
-    def Finish(self, status='Complete', report=True):
+    def Finish(self):
+        """Finish OWTF framework after freeing resources.
+
+        :return: None
+        :rtype: None
+
+        """
         if getattr(self, "TOR_process", None) is not None:
             self.TOR_process.terminate()
         # TODO: Fix this for lions_2014
