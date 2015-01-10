@@ -296,8 +296,7 @@ class Core(BaseComponent):
         # No processing required, just list available modules.
         if options['ListPlugins']:
             self.PluginHandler.ShowPluginList()
-            self.KillChildProcesses(self.owtf_pid)
-            exit(0)
+            self.finish()
         self.config.ProcessOptions(options)
         command = self.GetCommand(options['argv'])
 
