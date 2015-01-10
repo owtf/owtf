@@ -234,8 +234,6 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
     def IsActiveTestingPossible(self):  # Checks if 1 active plugin is enabled = active testing possible:
         Possible = False
-        # for PluginType, PluginFile, Title, Code, ReferenceURL in self.config.GetPlugins(): # Processing Loop
-        #for PluginType, PluginFile, Title, Code in self.db_plugin.GetOrder(self.PluginGroup):
         for Plugin in self.db_plugin.GetOrder(self.PluginGroup):
             if self.IsChosenPlugin(Plugin) and Plugin['type'] == 'active':
                 Possible = True
@@ -246,23 +244,23 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         # return self.config.Get('FORCE_OVERWRITE')
         return False
 
-    def CanPluginRun(self, Plugin, ShowMessages=False):
-        # if self.Core.IsTargetUnreachable():
-        #        return False # Cannot run plugin if target is unreachable
-        if not self.IsChosenPlugin(Plugin):
+    def CanPluginRun(self, plugin, ShowMessages=False):
+        if not self.IsChosenPlugin(plugin):
             return False  # Skip not chosen plugins
-        # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active):
-        #if self.PluginAlreadyRun(Plugin) and not self.config.Get('FORCE_OVERWRITE'): #not Code == 'OWASP-WU-SPID': # For external plugin forced re-run (development)
-        if self.PluginAlreadyRun(Plugin) and ((not self.force_overwrite() and not ('grep' == Plugin['type'])) or Plugin['type'] == 'external'): #not Code == 'OWASP-WU-SPID':
+        # Grep plugins to be always run and overwritten (they run once after
+        # semi_passive and then again after active):
+        if self.PluginAlreadyRun(plugin) and ((not self.force_overwrite() and not ('grep' == plugin['type'])) or plugin['type'] == 'external'):
             if ShowMessages:
-                logging.info("Plugin: " + Plugin['title'] + " (" + Plugin['type'] + ") has already been run, skipping ..")
-            #if Plugin['Type'] == 'external':
-            # External plugins are run only once per each run, so they are registered for all targets
-            # that are targets in that run. This is an alternative to chaning the js filters etc..
-            #        self.register_plugin_for_all_targets(Plugin)
+                logging.info(
+                    "Plugin: %s (%s/%s) has already been run, skipping ...",
+                    plugin['title'],
+                    plugin['group'],
+                    plugin['type'])
             return False
-        if 'grep' == Plugin['type'] and self.PluginAlreadyRun(Plugin):
-            return False  # Grep plugins can only run if some active or semi_passive plugin was run since the last time
+        if 'grep' == plugin['type'] and self.PluginAlreadyRun(plugin):
+            # Grep plugins can only run if some active or semi_passive plugin
+            # was run since the last time
+            return False
         return True
 
     def GetPluginFullPath(self, PluginDir, Plugin):
