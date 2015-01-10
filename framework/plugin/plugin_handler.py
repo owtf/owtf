@@ -133,24 +133,31 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
     def PluginAlreadyRun(self, PluginInfo):
         return self.plugin_output.PluginAlreadyRun(PluginInfo)
-    
-    def ValidateAndFormatPluginList(self, PluginList):
-        List = []  # Ensure there is always a list to iterate from! :)
-        if PluginList != None:
-            List = PluginList
-        ValidatedList = []
-        # print "List to validate="+str(List)
-        for Item in List:
-            Found = False
-            for Plugin in self.db_plugin.GetPluginsByGroup(self.PluginGroup):  # Processing Loop
-                if Item in [Plugin['code'], Plugin['name']]:
-                    ValidatedList.append(Plugin['code'])
-                    Found = True
+
+    def ValidateAndFormatPluginList(self, plugin_codes):
+        """Validate the plugin codes by checking if they exist.
+
+        :param list plugin_codes: OWTF plugin codes to be validated.
+
+        :return: validated plugin codes.
+        :rtype: list
+
+        """
+        # Ensure there is always a list to iterate from! :)
+        plugin_codes = plugin_codes or []
+        valid_plugin_codes = []
+        plugins_by_group = self.db_plugin.GetPluginsByGroup(self.PluginGroup)
+        for code in plugin_codes:
+            found = False
+            for plugin in plugins_by_group:  # Processing Loop
+                if code in [plugin['code'], plugin['name']]:
+                    valid_plugin_codes.append(plugin['code'])
+                    found = True
                     break
-            if not Found:
-                cprint("ERROR: The code '" + Item + "' is not a valid plugin, please use the -l option to see available plugin names and codes")
-                exit(-1)
-        return ValidatedList  # Return list of Codes
+            if not found:
+                self.error_handler.FrameworkAbort(
+                    "The code '%s' is not a valid plugin, please use the -l option to see available plugin names and codes" % code),
+        return valid_plugin_codes  # Return list of Codes
 
     def InitExecutionRegistry(self):  # Initialises the Execution registry: As plugins execute they will be tracked here, useful to avoid calling plugins stupidly :)
         self.ExecutionRegistry = defaultdict(list)
