@@ -344,7 +344,6 @@ def process_options(user_args):
 
     if arg.ExceptPlugins:
         arg.ExceptPlugins, plugin_groups = get_plugins_from_arg(arg.ExceptPlugins)
-        print("ExceptPlugins=" + str(arg.ExceptPlugins))
 
     if arg.TOR_mode:
         arg.TOR_mode = arg.TOR_mode.split(":")
@@ -357,13 +356,13 @@ def process_options(user_args):
         elif len(arg.TOR_mode) != 5:
             usage("Invalid argument for TOR-mode")
         else:
-            #Enables OutboundProxy
+            # Enables OutboundProxy.
             if arg.TOR_mode[0] == '':
                 outbound_proxy_ip = "127.0.0.1"
             else:
                 outbound_proxy_ip = arg.TOR_mode[0]
             if arg.TOR_mode[1] == '':
-                outbound_proxy_port = "9050" #default TOR port
+                outbound_proxy_port = "9050"  # default TOR port
             else:
                 outbound_proxy_port = arg.TOR_mode[1]
             arg.OutboundProxy = "socks://" + outbound_proxy_ip + \
