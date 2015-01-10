@@ -77,12 +77,8 @@ WEB Plugin Types:
 
 
 class PluginHandler(BaseComponent, PluginHandlerInterface):
-    PluginCount = 0
 
     COMPONENT_NAME = "plugin_handler"
-
-    OnlyPluginsList = None
-    OnlyPluginsSet = None
 
     def __init__(self, Options):
         self.register_in_service_locator()
@@ -97,32 +93,21 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.reporter = None
         self.timer = self.get_component("timer")
         self.init_options(Options)
-        # This should be dynamic from filesystem:
-        #self.PluginGroups = [ 'web', 'net', 'aux' ]
-        #self.PluginTypes = [ 'passive', 'semi_passive', 'active', 'grep' ]
-        #self.AllowedPluginTypes = self.GetAllowedPluginTypes(Options['PluginType'].split(','))
-        #self.Simulation, self.Scope, self.PluginGroup, self.Algorithm, self.ListPlugins = [ Options['Simulation'], Options['Scope'], Options['PluginGroup'], Options['Algorithm'], Options['ListPlugins'] ]
-        self.OnlyPluginsList = self.ValidateAndFormatPluginList(Options['OnlyPlugins'])
-        self.ExceptPluginsList = self.ValidateAndFormatPluginList(Options['ExceptPlugins'])
-        #print "OnlyPlugins="+str(self.OnlyPluginsList)
-        #print "ExceptPlugins="+str(self.ExceptPluginsList)
-        #print "Options['PluginType']="+str(Options['PluginType'])
-        if isinstance(Options['PluginType'],
-                      str):  # For special plugin types like "quiet" -> "semi_passive" + "passive"
-            Options['PluginType'] = Options['PluginType'].split(',')
         self.AllowedPlugins = self.db_plugin.GetPluginsByGroupType(self.PluginGroup, Options['PluginType'])
-        self.OnlyPluginsSet = len(self.OnlyPluginsList) > 0
-        self.ExceptPluginsSet = len(self.ExceptPluginsList) > 0
-        self.scanner = None
-        self.InitExecutionRegistry()
-        self.showOutput = True
 
     def init_options(self, options):
         """Initialize CLI options for each instance of PluginHandler."""
+        self.PluginCount = 0
         self.Simulation = options['Simulation']
         self.Scope = options['Scope']
         self.PluginGroup = options['PluginGroup']
         self.ListPlugins = options['ListPlugins']
+        self.OnlyPluginsList = self.ValidateAndFormatPluginList(options.get('OnlyPlugins'))
+        self.ExceptPluginsList = self.ValidateAndFormatPluginList(options.get('ExceptPlugins'))
+        if isinstance(options.get('PluginType'), str):  # For special plugin types like "quiet" -> "semi_passive" + "passive"
+            options['PluginType'] = options['PluginType'].split(',')
+        self.scanner = None
+        self.InitExecutionRegistry()
 
     def init(self, options):
         self.init_options(options)
@@ -242,11 +227,11 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         reason = 'not-specified'
         if plugin['group'] == self.PluginGroup:
             # Skip plugins not present in the white-list defined by the user.
-            if self.OnlyPluginsSet and plugin['code'] not in self.OnlyPluginsList:
+            if self.OnlyPluginsList and plugin['code'] not in self.OnlyPluginsList:
                 chosen = False
                 reason = 'not in white-list'
             # Skip plugins present in the black-list defined by the user.
-            if self.ExceptPluginsSet and plugin['code'] in self.ExceptPluginsList:
+            if self.ExceptPluginsList and plugin['code'] in self.ExceptPluginsList:
                 chosen = False
                 reason = 'in black-list'
         if plugin['type'] not in self.db_plugin.GetTypesForGroup(plugin['group']):

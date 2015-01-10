@@ -113,12 +113,6 @@ class PluginHandlerInterface(AbstractInterface):
     @abstractmethod
     def NormalRequestsAllowed(self): pass
 
-    @abstractproperty
-    def OnlyPluginsList(self): pass
-
-    @abstractproperty
-    def OnlyPluginsSet(self): pass
-
     @abstractmethod
     def ProcessPlugin(self): pass
 

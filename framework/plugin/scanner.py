@@ -187,12 +187,8 @@ class Scanner(BaseComponent):
                     self.config.Set(service1.upper()+"_PORT_NUMBER",port)
                     if(service != 'http'):
                         plugin_list.append(plugin_to_invoke)
-                    else:
-                        self.plugin_handler.OnlyPluginsSet = 0;
                         http.append(port)
                     logging.info("we have to probe "+str(ip)+":"+str(port)+" for service "+plugin_to_invoke)
-        self.plugin_handler.OnlyPluginsList = self.plugin_handler.ValidateAndFormatPluginList(plugin_list)
-        self.plugin_handler.OnlyPluginsSet = max(1,len(plugin_list))
         return http
 
     def scan_network(self,target):
