@@ -363,33 +363,29 @@ class Core(BaseComponent):
         # if self.db_config.Get('SIMULATION'):
         #    exit()
         else:
-            try:
-                self.PluginHandler.CleanUp()
-            except AttributeError:  # DB not instantiated yet!
-                pass
-            finally:
-                if getattr(self, "ProxyMode", None) is not None:
-                    try:
-                        cprint(
-                            "Stopping inbound proxy processes and "
-                            "cleaning up, Please wait!")
-                        self.KillChildProcesses(self.ProxyProcess.pid)
-                        self.ProxyProcess.terminate()
-                        # No signal is generated during closing process by
-                        # terminate()
-                        self.TransactionLogger.poison_q.put('done')
-                        self.TransactionLogger.join()
-                    except:  # It means the proxy was not started.
-                        pass
+            if getattr(self, "PluginHandler", None) is not None:
+                self.PluginHandler.clean_up()
+            if getattr(self, "ProxyProcess", None) is not None:
+                logging.info(
+                    "Stopping inbound proxy processes and cleaning up. Please wait!")
+                self.ProxyProcess.clean_up()
+                self.KillChildProcesses(self.ProxyProcess.pid)
+                self.ProxyProcess.terminate()
+            if getattr(self, "TransactionLogger", None) is not None:
+                # No signal is generated during closing process by
+                # terminate()
+                self.TransactionLogger.poison_q.put('done')
+                self.TransactionLogger.join()
+            if getattr(self, "db", None) is not None:
                 # Properly stop any DB instances.
                 self.db.clean_up()
-                # Stop any tornado instance.
-                if hasattr(self, 'cli_server'):
-                    self.cli_server.clean_up()
-                if hasattr(self, 'interface_server'):
-                    self.interface_server.clean_up()
-                tornado.ioloop.IOLoop.instance().stop()
-                exit(0)
+            # Stop any tornado instance.
+            if getattr(self, "cli_server", None) is not None:
+                self.cli_server.clean_up()
+            if getattr(self, "interface_server", None) is not None:
+                self.interface_server.clean_up()
+            tornado.ioloop.IOLoop.instance().stop()
+            exit(0)
 
     def KillChildProcesses(self, parent_pid, sig=signal.SIGINT):
         ps_command = subprocess.Popen(

@@ -644,3 +644,12 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         except:
             # Cleanup code
             pass
+
+    def clean_up(self):
+        self.server.stop()
+        global server
+        del server
+        global restricted_response_headers
+        del restricted_response_headers
+        global restricted_request_headers
+        del restricted_request_headers

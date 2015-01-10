@@ -516,8 +516,9 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             #               for Plugin in self.db_plugin.GetOrder(PluginGroup):# For each Plugin
             #                       self.ProcessPlugin( PluginDir, Plugin, Status )
 
-    def CleanUp(self):
-        self.WorkerManager.clean_up()
+    def clean_up(self):
+        if getattr(self, "WorkerManager", None) is not None:
+            self.WorkerManager.clean_up()
 
     def SavePluginInfo(self, PluginOutput, Plugin):
         self.db.SaveDBs()  # Save new URLs to DB after each request
