@@ -232,13 +232,6 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             Chosen = False  # Skip plugin: Not matching selected type
         return Chosen
 
-    def IsActiveTestingPossible(self):  # Checks if 1 active plugin is enabled = active testing possible:
-        Possible = False
-        for Plugin in self.db_plugin.GetOrder(self.PluginGroup):
-            if self.IsChosenPlugin(Plugin) and Plugin['type'] == 'active':
-                Possible = True
-                break
-        return Possible
 
     def force_overwrite(self):
         # return self.config.Get('FORCE_OVERWRITE')
@@ -271,7 +264,6 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         (Path, Name) = os.path.split(PluginPath)
         PluginOutput = self.GetModule("", Name, Path + "/").run(Plugin)
         return PluginOutput
-
 
     @staticmethod
     def rank_plugin(output, pathname):

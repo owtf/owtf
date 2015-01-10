@@ -232,7 +232,6 @@ class PluginHelper(BaseComponent):
         URLList = self.url_manager.ImportURLs(RawOutput.strip().split("\n"))  # Extract and classify URLs and store in DB
         NumFound = 0
         VisitURLs = False
-        # if self.plugin_handler.IsActiveTestingPossible(): # Can visit new URLs found to feed DB straightaway
         if True:  # TODO: Whether or not active testing will depend on the user profile ;). Have cool ideas for profile names
             VisitURLs = True
             for Transaction in self.requester.GetTransactions(True, self.url_manager.GetURLsToVisit()):  # Visit all URLs if not in Cache
