@@ -46,11 +46,11 @@ from framework.lib.exceptions import FrameworkAbortException, \
 from framework.lib.general import cprint
 from framework.utils import OutputCleaner
 
-
 class ErrorHandler(BaseComponent, ErrorHandlerInterface):
     Command = ''
     PaddingLength = 100
     COMPONENT_NAME = "error_handler"
+    cl_arg = None
 
     def __init__(self):
         self.register_in_service_locator()
@@ -118,8 +118,10 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
         return message
 
     def LogError(self, message, trace=None):
+
         try:
-            self.db_error.Add(message, trace)  # Log error in the DB.
+            if not(ErrorHandler.cl_arg["Force_Overwrite"]):
+                self.db_error.Add(message, trace)  # Log error in the DB.
         except AttributeError:
             cprint("ERROR: DB is not setup yet: cannot log errors to file!")
 
@@ -139,6 +141,10 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
         output += "\n"+self.Padding
         cprint(output)
         self.LogError(message, err_trace)
+
+    @staticmethod
+    def set_args(args):
+        ErrorHandler.cl_arg = args
 
     def Add(self, message, bugType='owtf'):
         if 'owtf' == bugType:
