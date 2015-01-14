@@ -62,25 +62,32 @@ from framework.dependency_management.dependency_resolver import BaseComponent
 
 class Core(BaseComponent):
 
+    """Main entry point for OWTF that manages the OWTF components."""
+
     COMPONENT_NAME = "core"
 
-    """
-    The glue which holds everything together
-    """
     def __init__(self, owtf_pid):
-        self.register_in_service_locator()
-        """
-        [*] Tightly coupled, cohesive framework components
-        [*] Order is important
+        """Initialize a Core instance.
 
-        + IO decorated so as to abort on any permission errors
-        + Required folders created
-        + All other components are attached to core: shell, db etc... (using ServiceLocator)
+        :param int owtf_pid: PID of the current OWTF instance.
+
+        .. note::
+
+            [*] Tightly coupled, cohesive framework components
+            [*] Order is important
+
+            + IO decorated so as to abort on any permission errors
+            + Required folders created
+            + All other components are attached to core: shell, db etc... (using ServiceLocator)
+
+        :return: instance of :class:`framework.core.Core`
+        :rtype::class:`framework.core.Core`
+
         """
+        self.register_in_service_locator()
         self.owtf_pid = owtf_pid
         # ------------------------ IO decoration ------------------------ #
         self.decorate_io()
-
         # -------------------- Component attachment -------------------- #
         self.db = self.get_component("db")
         self.config = self.get_component("config")
@@ -88,11 +95,9 @@ class Core(BaseComponent):
         self.zest = self.get_component("zest")
         self.zap_api_handler = self.get_component("zap_api")
         self.error_handler = self.get_component("error_handler")
-
         # ----------------------- Directory creation ----------------------- #
         self.create_dirs()
         self.pnh_log_file()  # <-- This is not supposed to be here
-
         self.timer = self.get_component("timer")
         self.shell = self.get_component("shell")
         self.enable_logging()
@@ -102,12 +107,10 @@ class Core(BaseComponent):
         self.set = set_handler.SETHandler()
         self.smtp = self.get_component("smtp")
         self.smb = smb.SMB()
-
         # The following attributes will be initialised later
         self.plugin_helper = None
         self.tor_process = None
         self.requester = None
-
         # --------------------------- Init calls --------------------------- #
         # Nothing as of now
         self.health_check()
@@ -240,7 +243,6 @@ class Core(BaseComponent):
             ComponentInitialiser.initialisation_phase_3(options['OutboundProxy'])
             self.requester = self.get_component("requester")
 
-
     def enable_logging(self, **kwargs):
         """
         + process_name <-- can be specified in kwargs
@@ -308,7 +310,7 @@ class Core(BaseComponent):
 
     def initialise_plugin_handler_and_params(self, options):
         # The order is important here ;)
-        self.PluginHandler = self.get_component("plugin_handler") #plugin_handler.PluginHandler(self, options)
+        self.PluginHandler = self.get_component("plugin_handler")
         self.PluginParams = self.get_component("plugin_params")
         # If OWTF is run without the Web UI, the WorkerManager should exit as
         # soon as all jobs have been completed. Otherwise, keep WorkerManager
