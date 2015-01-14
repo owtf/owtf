@@ -42,7 +42,7 @@ verify_dependencies(os.path.dirname(os.path.abspath(sys.argv[0])) or '.')
 
 
 import argparse
-from framework import core as core_mod
+from framework.core import Core
 from framework.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.general import *
@@ -506,7 +506,7 @@ def main(args):
         ComponentInitialiser.initialisation_phase_2(args)
 
         # Initialise Framework.
-        core = core_mod.create_core_instance(owtf_pid)
+        core = Core()
         logging.warn(
             "OWTF Version: %s, Release: %s " % (
                 ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),

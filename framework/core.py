@@ -43,17 +43,14 @@ import subprocess
 import tornado
 
 from framework.dependency_management.component_initialiser import ComponentInitialiser
-from framework import timer, error_handler
-from framework.config import config, health_check
+from framework import error_handler
+from framework.config import config
 from framework.db import db
-from framework.http import requester
 from framework.http.proxy import proxy, transaction_logger, tor_manager
 from framework.plugin import worker_manager
 from framework.protocols import smb
 from framework.interface import server, cli
 from framework.lib.formatters import ConsoleFormatter, FileFormatter
-from framework.selenium import selenium_handler
-from framework.shell import interactive_shell
 from framework.utils import FileOperations, catch_io_errors, OutputCleaner, OWTFLogger
 from framework.wrappers.set import set_handler
 from framework.lib.general import cprint
@@ -66,10 +63,8 @@ class Core(BaseComponent):
 
     COMPONENT_NAME = "core"
 
-    def __init__(self, owtf_pid):
+    def __init__(self):
         """Initialize a Core instance.
-
-        :param int owtf_pid: PID of the current OWTF instance.
 
         .. note::
 
@@ -85,38 +80,19 @@ class Core(BaseComponent):
 
         """
         self.register_in_service_locator()
-        self.owtf_pid = owtf_pid
         # ------------------------ IO decoration ------------------------ #
-        self.decorate_io()
+        self.file_handler = catch_io_errors(logging.FileHandler)
         # -------------------- Component attachment -------------------- #
         self.db = self.get_component("db")
         self.config = self.get_component("config")
         self.db_config = self.get_component("db_config")
-        self.zest = self.get_component("zest")
-        self.zap_api_handler = self.get_component("zap_api")
         self.error_handler = self.get_component("error_handler")
         # ----------------------- Directory creation ----------------------- #
         self.create_dirs()
         self.pnh_log_file()  # <-- This is not supposed to be here
-        self.timer = self.get_component("timer")
-        self.shell = self.get_component("shell")
         self.enable_logging()
-        self.reporter = self.get_component("reporter")
-        self.selenium = selenium_handler.Selenium()
-        self.interactive_shell = interactive_shell.InteractiveShell()
-        self.set = set_handler.SETHandler()
-        self.smtp = self.get_component("smtp")
-        self.smb = smb.SMB()
         # The following attributes will be initialised later
-        self.plugin_helper = None
         self.tor_process = None
-        self.requester = None
-        # --------------------------- Init calls --------------------------- #
-        # Nothing as of now
-        self.health_check()
-
-    def health_check(self):
-        self.HealthCheck = health_check.HealthCheck()
 
     def create_dirs(self):
         """
@@ -234,14 +210,11 @@ class Core(BaseComponent):
             self.ProxyProcess.start()
             logging.debug("Starting Transaction logger process")
             self.TransactionLogger.start()
-            self.plugin_helper = self.get_component("plugin_helper")
-            self.requester = self.get_component("requester")
             logging.debug(
                 "Proxy transaction's log file at %s",
                 self.db_config.Get("PROXY_LOG"))
         else:
             ComponentInitialiser.initialisation_phase_3(options['OutboundProxy'])
-            self.requester = self.get_component("requester")
 
     def enable_logging(self, **kwargs):
         """
@@ -256,7 +229,7 @@ class Core(BaseComponent):
         )
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
-        file_handler = self.FileHandler(
+        file_handler = self.file_handler(
             self.config.FrameworkConfigGetLogPath(process_name),
             mode="w+"
         )
@@ -401,18 +374,3 @@ class Core(BaseComponent):
                 os.kill(int(pid_str), sig)
             except:
                 cprint("unable to kill it")
-
-    def decorate_io(self):
-        self.FileHandler = catch_io_errors(logging.FileHandler)
-
-
-def create_core_instance(owtf_pid):
-    """Create a instance of the :class:`framework.core.Core`.
-
-    :param int owtf_pid: PID of the OWTF process.
-
-    :return: an instance of the :class:`framework.core.Core`.
-    :rtype: :class:`framework.core.Core`.
-
-    """
-    return Core(owtf_pid)
