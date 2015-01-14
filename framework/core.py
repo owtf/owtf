@@ -53,7 +53,6 @@ from framework.interface import server, cli
 from framework.lib.formatters import ConsoleFormatter, FileFormatter
 from framework.utils import FileOperations, catch_io_errors, OutputCleaner, OWTFLogger
 from framework.wrappers.set import set_handler
-from framework.lib.general import cprint
 from framework.dependency_management.dependency_resolver import BaseComponent
 
 
@@ -349,4 +348,4 @@ class Core(BaseComponent):
             try:
                 os.kill(int(pid_str), sig)
             except:
-                cprint("unable to kill it")
+                logging.warning("Unable to kill the processus: '%s'", pid_str)
