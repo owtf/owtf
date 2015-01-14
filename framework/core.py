@@ -148,36 +148,21 @@ class Core(BaseComponent):
             except IOError:
                 return False
 
-    def get_child_pids(self, parent_pid):
-        ps_command = subprocess.Popen(
-            "ps -o pid --ppid %d --noheaders" % parent_pid,
-            shell=True,
-            stdout=subprocess.PIPE)
-        output, error = ps_command.communicate()
-        return [int(child_pid) for child_pid in output.readlines("\n")[:-1]]
+    def get_command(self, argv):
+        """Format command to remove directory and space-separated arguments.
 
-    def GetCommand(self, argv):
-        # Format command to remove directory and space-separate arguments.
+        :params list argv: Arguments for the CLI.
+
+        :return: Arguments without directory and space-separated arguments.
+        :rtype: list
+
+        """
         return " ".join(argv).replace(argv[0], os.path.basename(argv[0]))
 
-    def Start_TOR_Mode(self, options):
-        if options['TOR_mode'] is not None:
-            if options['TOR_mode'][0] != "help":
-                if tor_manager.TOR_manager.is_tor_running():
-                    self.tor_process = tor_manager.TOR_manager(options['TOR_mode'])
-                    self.tor_process = self.tor_process.Run()
-                else:
-                    tor_manager.TOR_manager.msg_start_tor(self)
-                    tor_manager.TOR_manager.msg_configure_tor()
-                    self.error_handler.FrameworkAbort("TOR Daemon is not running")
-            else:
-                tor_manager.TOR_manager.msg_configure_tor()
-                self.error_handler.FrameworkAbort("Configuration help is running")
-
-    def StartBotnetMode(self, options):
+    def start_botnet_mode(self, options):
         ComponentInitialiser.intialise_proxy_manager(options)
 
-    def StartProxy(self, options):
+    def start_proxy(self, options):
         # The proxy along with supporting processes are started
         if True:
             # Check if port is in use
@@ -253,7 +238,12 @@ class Core(BaseComponent):
         logger = logging.getLogger()
         logger.removeHandler(logger.handlers[-1])
 
-    def Start(self, options):
+    def start(self, options):
+        """Start OWTF.
+
+        :params list options: Options from the CLI.
+
+        """
         if self.initialise_framework(options):
             if not options['nowebui']:
                 return self.run_server()
@@ -273,10 +263,10 @@ class Core(BaseComponent):
             self.PluginHandler.ShowPluginList()
             self.finish()
         self.config.ProcessOptions(options)
-        command = self.GetCommand(options['argv'])
+        command = self.get_command(options['argv'])
 
-        self.StartBotnetMode(options)
-        self.StartProxy(options)  # Proxy mode is started in that function.
+        self.start_botnet_mode(options)
+        self.start_proxy(options)  # Proxy mode is started in that function.
         # Set anonymised invoking command for error dump info.
         self.error_handler.SetCommand(OutputCleaner.anonymise_command(command))
         return True
@@ -311,20 +301,6 @@ class Core(BaseComponent):
         self.cli_server = cli.CliServer()
         self.cli_server.start()
 
-    def ReportErrorsToGithub(self):
-        cprint(
-            "Do you want to add any extra info to the bug report? "
-            "[Just press Enter to skip]")
-        info = raw_input("> ")
-        cprint(
-            "Do you want to add your GitHub username to the report? "
-            "[Press Enter to skip]")
-        user = raw_input("Reported by @")
-        if self.error_handler.AddGithubIssue(Info=info, User=user):
-            cprint("Github issue added, Thanks for reporting!!")
-        else:
-            cprint("Unable to add github issue, but thanks for trying :D")
-
     def finish(self):
         """Finish OWTF framework after freeing resources.
 
@@ -344,7 +320,7 @@ class Core(BaseComponent):
                 logging.info(
                     "Stopping inbound proxy processes and cleaning up. Please wait!")
                 self.ProxyProcess.clean_up()
-                self.KillChildProcesses(self.ProxyProcess.pid)
+                self.kill_children(self.ProxyProcess.pid)
                 self.ProxyProcess.terminate()
             if getattr(self, "TransactionLogger", None) is not None:
                 # No signal is generated during closing process by
@@ -362,14 +338,14 @@ class Core(BaseComponent):
             tornado.ioloop.IOLoop.instance().stop()
             exit(0)
 
-    def KillChildProcesses(self, parent_pid, sig=signal.SIGINT):
+    def kill_children(self, parent_pid, sig=signal.SIGINT):
         ps_command = subprocess.Popen(
             "ps -o pid --ppid %d --noheaders" % parent_pid,
             shell=True,
             stdout=subprocess.PIPE)
         ps_output = ps_command.stdout.read()
         for pid_str in ps_output.split("\n")[:-1]:
-            self.KillChildProcesses(int(pid_str), sig)
+            self.kill_children(int(pid_str), sig)
             try:
                 os.kill(int(pid_str), sig)
             except:

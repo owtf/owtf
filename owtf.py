@@ -475,7 +475,7 @@ def process_options(user_args):
 
 def run_owtf(core, args):
     try:
-        if core.Start(args):
+        if core.start(args):
             # Only if Start is for real (i.e. not just listing plugins, etc)
             core.finish()  # Not Interrupted or Crashed.
     except KeyboardInterrupt:
