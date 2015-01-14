@@ -34,26 +34,21 @@ to communicate with each other
 
 import os
 import sys
-import time
 import signal
 import socket
 import logging
 import multiprocessing
 import subprocess
+
 import tornado
 
-from framework.dependency_management.component_initialiser import ComponentInitialiser
-from framework import error_handler
-from framework.config import config
-from framework.db import db
-from framework.http.proxy import proxy, transaction_logger, tor_manager
-from framework.plugin import worker_manager
-from framework.protocols import smb
-from framework.interface import server, cli
-from framework.lib.formatters import ConsoleFormatter, FileFormatter
-from framework.utils import FileOperations, catch_io_errors, OutputCleaner, OWTFLogger
-from framework.wrappers.set import set_handler
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.component_initialiser import ComponentInitialiser
+from framework.utils import FileOperations, catch_io_errors, OutputCleaner, OWTFLogger
+from framework.interface import server, cli
+from framework.http.proxy import proxy, transaction_logger
+from framework.plugin import worker_manager
+from framework.lib.formatters import ConsoleFormatter, FileFormatter
 
 
 class Core(BaseComponent):
