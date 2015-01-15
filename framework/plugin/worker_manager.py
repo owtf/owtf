@@ -56,9 +56,9 @@ class Worker(OWTFProcess, BaseComponent):
                 if work == ():
                     exit(0)
                 target, plugin = work
-                pluginDir = self.plugin_handler.get_plugin_group_dir(plugin['group'])
-                self.plugin_handler.switch_to_target(target["id"])
-                self.plugin_handler.process_plugin(pluginDir, plugin)
+                pluginDir = self.plugin_handler.GetPluginGroupDir(plugin['group'])
+                self.plugin_handler.SwitchToTarget(target["id"])
+                self.plugin_handler.ProcessPlugin(pluginDir, plugin)
                 self.output_q.put('done')
             except Queue.Empty:
                 pass

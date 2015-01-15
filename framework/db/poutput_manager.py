@@ -233,7 +233,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             # Save path only if path exists i.e if some files were to be stored
             # it will be there
             output_path=(plugin["output_path"] if os.path.exists(
-                self.plugin_handler.get_plugin_output_dir(plugin)) else None),
+                self.plugin_handler.GetPluginOutputDir(plugin)) else None),
             owtf_rank=plugin['owtf_rank'])
         )
         self.db.session.commit()
@@ -254,7 +254,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             # Save path only if path exists i.e if some files were to be stored
             # it will be there
             output_path=(plugin["output_path"] if os.path.exists(
-                self.plugin_handler.get_plugin_output_dir(plugin)) else None),
+                self.plugin_handler.GetPluginOutputDir(plugin)) else None),
             owtf_rank=plugin['owtf_rank'])
         )
         self.db.session.commit()

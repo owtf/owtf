@@ -174,6 +174,34 @@ class Reporter(BaseComponent, ReporterInterface):
             TitleList=TitleList,
             CommandList=CommandList)  # TODO: Fix up the plugin
 
+    def CommandDump(
+            self,
+            Name,
+            CommandIntro,
+            ModifiedCommand,
+            RelativeFilePath,
+            OutputIntro,
+            TimeStr):
+        AbsPath = self.plugin_handler.RetrieveAbsPath(RelativeFilePath)
+        OutputLines = open(AbsPath, "r").readlines()
+        longOutput = (len(OutputLines) > self.mNumLinesToShow)
+        if (len(OutputLines) > self.mNumLinesToShow):
+            OutputLines = ''.join(OutputLines[0:self.mNumLinesToShow])
+        else:
+            OutputLines = ''.join(OutputLines)
+        table_vars = {
+            "Name": Name,
+            "CommandIntro": CommandIntro,
+            "ModifiedCommand": ModifiedCommand,
+            "FilePath": RelativeFilePath,
+            "OutputIntro":  OutputIntro,
+            "OutputLines": OutputLines,
+            "TimeStr": TimeStr,
+            "mNumLinesToShow": self.mNumLinesToShow,
+            "longOutput": longOutput
+        }
+        return self.Loader.load("command_dump.html").generate(**table_vars)
+
     def URLsFromStr(self, TimeStr, VisitURLs, URLList, NumFound):
         html_content = self.Loader.load("urls_from_str.html").generate(
             TimeStr=TimeStr,

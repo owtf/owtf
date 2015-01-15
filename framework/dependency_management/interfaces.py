@@ -97,37 +97,36 @@ class MappingDBInterface(AbstractInterface):
 
     @abstractmethod
     def GetMappings(self): pass
-
+    
 
 class PluginHandlerInterface(AbstractInterface):
 
     @abstractmethod
-    def dump_output_file(self):
-        pass
+    def DumpOutputFile(self): pass
 
     @abstractmethod
-    def get_plugin_group_dir(self):
-        pass
+    def GetPluginGroupDir(self): pass
 
     @abstractmethod
-    def get_plugin_output_dir(self):
-        pass
+    def GetPluginOutputDir(self): pass
 
     @abstractmethod
-    def NormalRequestsAllowed(self):
-        pass
+    def NormalRequestsAllowed(self): pass
 
     @abstractmethod
-    def process_plugin(self):
-        pass
+    def ProcessPlugin(self): pass
 
     @abstractmethod
-    def requests_possible(self):
-        pass
+    def RequestsPossible(self): pass
 
     @abstractmethod
-    def switch_to_target(self):
-        pass
+    def RetrieveAbsPath(self): pass
+
+    @abstractmethod
+    def SwitchToTarget(self): pass
+
+    @abstractmethod
+    def ValidateAndFormatPluginList(self): pass
 
 
 class PluginOutputInterface(AbstractInterface):

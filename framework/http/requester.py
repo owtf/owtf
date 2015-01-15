@@ -157,7 +157,7 @@ class Requester(BaseComponent, RequesterInterface):
         return self.transaction.IsTransactionAlreadyAdded({'url': url.strip()})
 
     def is_request_possible(self):
-        return self.plugin_handler.requests_possible()
+        return self.plugin_handler.RequestsPossible()
 
     def ProxyCheck(self):
         # Verify proxy works! www.google.com might not work in a restricted
