@@ -254,7 +254,7 @@ class Core(BaseComponent):
         self.initialise_plugin_handler_and_params(options)
         # No processing required, just list available modules.
         if options['list_plugins']:
-            self.PluginHandler.ShowPluginList(options['list_plugins'])
+            self.PluginHandler.show_plugin_list(options['list_plugins'])
             self.finish()
         self.config.ProcessOptions(options)
         command = self.get_command(options['argv'])

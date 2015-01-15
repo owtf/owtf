@@ -523,31 +523,19 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.db.SaveDBs()  # Save new URLs to DB after each request
         self.reporter.SavePluginReport(PluginOutput, Plugin)  # Timer retrieved by Reporter
 
-    def ShowPluginList(self, group):
+    def show_plugin_list(self, group, msg=INTRO_BANNER_GENERAL):
         if group == 'web':
-            self.ShowWebPluginsBanner()
+            logging.info(msg + INTRO_BANNER_WEB_PLUGIN_TYPE + "\nAvailable WEB plugins:")
         elif group == 'aux':
-            self.ShowAuxPluginsBanner()
+            logging.info(msg + "\nAvailable AUXILIARY plugins:")
         elif group == 'net':
-            self.ShowNetPluginsBanner()
-        self.ShowPluginGroupPlugins(group)
+            logging.info(msg + "\nAvailable NET plugins:")
+        for plugin_type in self.db_plugin.GetTypesForGroup(group):
+            self.show_plugin_types(plugin_type, group)
 
-    def ShowNetPluginsBanner(self):
-        logging.info("\nAvailable NET plugins")
-
-    def ShowAuxPluginsBanner(self):
-        logging.info(INTRO_BANNER_GENERAL + "\n Available AUXILIARY plugins:""")
-
-    def ShowWebPluginsBanner(self):
-        logging.info(INTRO_BANNER_GENERAL + INTRO_BANNER_WEB_PLUGIN_TYPE + "\n Available WEB plugins:""")
-
-    def ShowPluginGroupPlugins(self, group):
-        for PluginType in self.db_plugin.GetTypesForGroup(group):
-            self.ShowPluginTypePlugins(PluginType, group)
-
-    def ShowPluginTypePlugins(self, PluginType, PluginGroup):
-        logging.info("\n" + '*' * 40 + " " + PluginType.title().replace('_', '-') + " plugins " + '*' * 40)
-        for Plugin in self.db_plugin.GetPluginsByGroupType(PluginGroup, PluginType):
+    def show_plugin_types(self, plugin_type, group):
+        logging.info("\n" + '*' * 40 + " " + plugin_type.title().replace('_', '-') + " plugins " + '*' * 40)
+        for Plugin in self.db_plugin.GetPluginsByGroupType(group, plugin_type):
             # 'Name' : PluginName, 'Code': PluginCode, 'File' : PluginFile, 'Descrip' : PluginDescrip } )
             LineStart = " " + Plugin['type'] + ": " + Plugin['name']
             Pad1 = "_" * (60 - len(LineStart))
