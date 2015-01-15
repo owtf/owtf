@@ -253,8 +253,8 @@ class Core(BaseComponent):
         ComponentInitialiser.initialisation_phase_3(proxy_infos, options)
         self.initialise_plugin_handler_and_params(options)
         # No processing required, just list available modules.
-        if options['ListPlugins']:
-            self.PluginHandler.ShowPluginList()
+        if options['list_plugins']:
+            self.PluginHandler.ShowPluginList(options['list_plugins'])
             self.finish()
         self.config.ProcessOptions(options)
         command = self.get_command(options['argv'])

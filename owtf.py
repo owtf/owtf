@@ -75,7 +75,7 @@ def get_args(args):
                     "http://7-a.org - Twitter: @7a_")
     parser.add_argument(
         "-l", "--list_plugins",
-        dest="ListPlugins",
+        dest="list_plugins",
         default=None,
         choices=valid_plugin_groups,
         help="List available plugins in the plugin group (web, net or aux)")
@@ -422,7 +422,7 @@ def process_options(user_args):
 
     scope = arg.Targets or []  # Arguments at the end are the URL target(s)
     num_targets = len(scope)
-    if plugin_group != 'aux' and num_targets == 0 and not arg.ListPlugins:
+    if plugin_group != 'aux' and num_targets == 0 and not arg.list_plugins:
         #usage("") OMG, #TODO: Fix this
         pass
     elif num_targets == 1:  # Check if this is a file
@@ -450,7 +450,7 @@ def process_options(user_args):
         # parameters.
         scope = ['aux']
     return {
-        'ListPlugins': arg.ListPlugins,
+        'list_plugins': arg.list_plugins,
         'Force_Overwrite': arg.ForceOverwrite,
         'Interactive': arg.Interactive == 'yes',
         'Simulation': arg.Simulation,

@@ -101,7 +101,6 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.Simulation = options['Simulation']
         self.Scope = options['Scope']
         self.PluginGroup = options['PluginGroup']
-        self.ListPlugins = options['ListPlugins']
         self.OnlyPluginsList = self.ValidateAndFormatPluginList(options.get('OnlyPlugins'))
         self.ExceptPluginsList = self.ValidateAndFormatPluginList(options.get('ExceptPlugins'))
         if isinstance(options.get('PluginType'), str):  # For special plugin types like "quiet" -> "semi_passive" + "passive"
@@ -524,14 +523,14 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.db.SaveDBs()  # Save new URLs to DB after each request
         self.reporter.SavePluginReport(PluginOutput, Plugin)  # Timer retrieved by Reporter
 
-    def ShowPluginList(self):
-        if self.ListPlugins == 'web':
+    def ShowPluginList(self, group):
+        if group == 'web':
             self.ShowWebPluginsBanner()
-        elif self.ListPlugins == 'aux':
+        elif group == 'aux':
             self.ShowAuxPluginsBanner()
-        elif self.ListPlugins == 'net':
+        elif group == 'net':
             self.ShowNetPluginsBanner()
-        self.ShowPluginGroupPlugins(self.ListPlugins)
+        self.ShowPluginGroupPlugins(group)
 
     def ShowNetPluginsBanner(self):
         logging.info("\nAvailable NET plugins")
@@ -542,9 +541,9 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def ShowWebPluginsBanner(self):
         logging.info(INTRO_BANNER_GENERAL + INTRO_BANNER_WEB_PLUGIN_TYPE + "\n Available WEB plugins:""")
 
-    def ShowPluginGroupPlugins(self, PluginGroup):
-        for PluginType in self.db_plugin.GetTypesForGroup(PluginGroup):
-            self.ShowPluginTypePlugins(PluginType, PluginGroup)
+    def ShowPluginGroupPlugins(self, group):
+        for PluginType in self.db_plugin.GetTypesForGroup(group):
+            self.ShowPluginTypePlugins(PluginType, group)
 
     def ShowPluginTypePlugins(self, PluginType, PluginGroup):
         logging.info("\n" + '*' * 40 + " " + PluginType.title().replace('_', '-') + " plugins " + '*' * 40)
