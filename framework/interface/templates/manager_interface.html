@@ -58,7 +58,7 @@ function addWorker(){
 
 // Function to get control buttons based on the present state of a worker i.e return pause button if worker is active & vice versa
 function getControlButtons(obj){
-    html = '<div class="btn-group pull-right">';
+    html = '<div class="btn-toolbar pull-right">';
     if (obj.busy){
         if(obj.paused){
             html += '<button class="btn btn-success btn-xs" href="#" onclick="resumeWorker('+obj.id+');"><i class="fa fa-play"></i></button>';
