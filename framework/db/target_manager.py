@@ -139,13 +139,13 @@ class TargetDB(BaseComponent, TargetInterface):
             self.SetTarget(target.id)
 
     @session_required
-    def AddTarget(self, TargetURL, session_id=None):
-        if TargetURL not in self.GetTargetURLs():
+    def AddTarget(self, target_url, session_id=None):
+        if target_url not in self.GetTargetURLs():
             # A try-except can be used here, but then ip-resolution takes time
             # even if target is present
-            target_config = self.config.DeriveConfigFromURL(TargetURL)
+            target_config = self.config.DeriveConfigFromURL(target_url)
             # ----------- Target model object creation -----------
-            config_obj = models.Target(target_url=TargetURL)
+            config_obj = models.Target(target_url=target_url)
             config_obj.host_name = target_config["host_name"]
             config_obj.host_path = target_config["host_path"]
             config_obj.url_scheme = target_config["url_scheme"]
@@ -161,16 +161,16 @@ class TargetDB(BaseComponent, TargetInterface):
                 self.db.session.query(models.Session).get(session_id))
             self.db.session.commit()
             target_id = config_obj.id
-            self.CreateMissingDBsForURL(TargetURL)
+            self.CreateMissingDBsForURL(target_url)
             self.SetTarget(target_id)
         else:
             session_obj = self.db.session.query(
                 models.Session).get(session_id)
             target_obj = self.db.session.query(
-                models.Target).filter_by(target_url=TargetURL).one()
+                models.Target).filter_by(target_url=target_url).one()
             if session_obj in target_obj.sessions:
                 raise DBIntegrityException(
-                    TargetURL + " already present in Target DB & session")
+                    target_url + " already present in Target DB & session")
             else:
                 self.db.OWTFSession.add_target_to_session(
                     target_obj.id,
