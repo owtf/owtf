@@ -73,7 +73,6 @@ class Config(BaseComponent, ConfigInterface):
         "NET_PLUGIN_ORDER_PROFILE": None,
         "MAPPING_PROFILE": None
     }
-
     Target = None
 
     def __init__(self, root_dir, owtf_pid):
@@ -311,7 +310,7 @@ class Config(BaseComponent, ConfigInterface):
         target_config['top_domain'] = target_config['host_name']
 
         hostname_chunks = target_config['host_name'].split('.')
-        if self.IsHostNameNOTIP(host, host_IP) and len(hostname_chunks) > 2:
+        if not self.hostname_is_ip(host, host_IP) and len(hostname_chunks) > 2:
             # Get "example.com" from "www.example.com"
             target_config['top_domain'] = '.'.join(hostname_chunks[1:])
         # Set the top URL.
@@ -385,8 +384,17 @@ class Config(BaseComponent, ConfigInterface):
     def GetTXTTransaclog(self, partial=False):
         return self.GetFileName('TRANSACTION_LOG_TXT', partial)
 
-    def IsHostNameNOTIP(self, host_name, host_ip):
-        return host_name != host_ip  # Host.
+    def hostname_is_ip(self, hostname, ip):
+        """Test if the hostname is an IP.
+
+        :param str hostname: the hostname of the target.
+        :param str ip: the IP (v4 or v6) of the target.
+
+        :return: ``True`` if the hostname is an IP, ``False`` otherwise.
+        :rtype: :class:`bool`
+
+        """
+        return hostname == ip
 
     def GetIPFromHostname(self, hostname):
         ip = ''
