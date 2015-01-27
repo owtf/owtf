@@ -145,7 +145,7 @@ def get_args(args):
     parser.add_argument(
         "-g", "--plugin_group",
         dest="PluginGroup",
-        default="web",
+        default=None,
         choices=valid_plugin_groups,
         help="<web/net/aux> - Initial plugin group: web (default) = " \
              "targets are interpreted as URLs = web assessment only\n" \
