@@ -27,13 +27,11 @@ class ResourceDB(BaseComponent, ResourceInterface):
         self.db.session.query(models.Resource).filter_by(dirty=False).delete()
         # resources = [(Type, Name, Resource), (Type, Name, Resource),]
         for Type, Name, Resource in resources:
-            # Need more filtering to avoid duplicates
-            if not self.db.session.query(models.Resource).filter_by(resource_type = Type, resource_name = Name, resource = Resource).all():
-                self.db.session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
+            self.db.session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
         self.db.session.commit()
 
     def GetResourcesFromFile(self, resource_file):
-        resources = []
+        resources = set()
         ConfigFile = FileOperations.open(resource_file, 'r').read().splitlines() # To remove stupid '\n' at the end
         for line in ConfigFile:
             if '#' == line[0]:
@@ -41,7 +39,7 @@ class ResourceDB(BaseComponent, ResourceInterface):
             try:
                 Type, Name, Resource = line.split('_____')
                 # Resource = Resource.strip()
-                resources.append((Type, Name, Resource))
+                resources.add((Type, Name, Resource))
             except ValueError:
                 cprint("ERROR: The delimiter is incorrect in this line at Resource File: "+str(line.split('_____')))
         return resources
