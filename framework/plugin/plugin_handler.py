@@ -80,7 +80,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
     COMPONENT_NAME = "plugin_handler"
 
-    def __init__(self, Options):
+    def __init__(self, options):
         self.register_in_service_locator()
         self.Core = None
         self.db = self.get_component("db")
@@ -92,8 +92,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.error_handler = self.get_component("error_handler")
         self.reporter = None
         self.timer = self.get_component("timer")
-        self.init_options(Options)
-        self.AllowedPlugins = self.db_plugin.GetPluginsByGroupType(self.PluginGroup, Options['PluginType'])
+        self.init_options(options)
 
     def init_options(self, options):
         """Initialize CLI options for each instance of PluginHandler."""
