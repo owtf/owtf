@@ -102,26 +102,23 @@ class DB(BaseComponent, DBInterface):
         self.session.close()
 
     def _get_db_settings(self):
-        """
-        Get database settings, must be used only here
-        """
-        config_path = os.path.expanduser(self.config.FrameworkConfigGet(
-            'DATABASE_SETTINGS_FILE'))
-        config_file = FileOperations.open(
-            config_path,
-            'r')
+        """Create DB settings according to the configuration file."""
+        config_path = os.path.expanduser(
+            self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'))
         settings = {}
-        for line in config_file:
-            try:
-                key = line.split(':')[0]
-                if key[0] == '#':  # Ignore comment lines.
+        with FileOperations.open(config_path, 'r') as f:
+            for line in f:
+                line = line.rstrip()
+                # Ignore empty/comment lines.
+                if not line or line.startswith('#'):
                     continue
-                value = line.replace(key + ": ", "").strip()
-                settings[key] = value
-            except ValueError:
-                self.error_handler.FrameworkAbort(
-                    "Problem in config file: '" + config_path +
-                    "' -> Cannot parse line: " + line)
+                try:
+                    key, value = line.split(':')
+                    settings[key.strip()] = value.strip()
+                except ValueError:
+                    self.error_handler.FrameworkAbort(
+                        "Problem in config file: '%s' -> Cannot parse line: %s"
+                        % (config_path, line))
         return settings
 
     def CreateEngine(self, BaseClass):
