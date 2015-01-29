@@ -47,7 +47,6 @@ from framework.core import Core
 from framework.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework import update
-from framework.http.proxy import tor_manager # Is needed for printing configuration help
 
 
 def banner():
@@ -348,7 +347,8 @@ def process_options(user_args):
     if arg.TOR_mode:
         arg.TOR_mode = arg.TOR_mode.split(":")
         if(arg.TOR_mode[0] == "help"):
-            tor_manager.TOR_manager.msg_configure_tor()
+            from framework.http.proxy.tor_manager import TOR_manager
+            TOR_manager.msg_configure_tor()
             exit(0)
         if len(arg.TOR_mode) == 1:
             if arg.TOR_mode[0] != "help":
