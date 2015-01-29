@@ -127,7 +127,8 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
         """
         # Ensure there is always a list to iterate from! :)
-        plugin_codes = plugin_codes or []
+        if not plugin_codes:
+            return []
         valid_plugin_codes = []
         plugins_by_group = self.db_plugin.GetPluginsByGroup(self.PluginGroup)
         for code in plugin_codes:
