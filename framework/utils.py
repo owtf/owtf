@@ -59,50 +59,50 @@ def catch_io_errors(func):
     return io_error
 
 
-class FileOperations():
+class FileOperations(object):
 
-    @classmethod
+    @staticmethod
     @catch_io_errors
-    def create_missing_dirs(cls, path):
-        if os.path.isfile(path):
-            dir = os.path.dirname(path)
-        else:
-            dir = path
-        if not os.path.exists(dir):
-            cls.make_dirs(dir)  # Create any missing directories.
+    def create_missing_dirs(path):
+        directory = path
+        if os.path.isfile(directory):
+            directory = os.path.dirname(directory)
+        if not os.path.exists(directory):
+            # Create any missing directories.
+            FileOperations.make_dirs(directory)
 
-    @classmethod
+    @staticmethod
     @catch_io_errors
-    def codecs_open(cls, *args, **kwargs):
+    def codecs_open(*args, **kwargs):
         return codecs.open(*args, **kwargs)
 
-    @classmethod
+    @staticmethod
     @catch_io_errors
-    def dump_file(cls, filename, contents, directory):
+    def dump_file(filename, contents, directory):
         save_path = os.path.join(directory, WipeBadCharsForFilename(filename))
-        cls.create_missing_dirs(directory)
-        with cls.codecs_open(save_path, 'wb', 'utf-8') as f:
+        FileOperations.create_missing_dirs(directory)
+        with FileOperations.codecs_open(save_path, 'wb', 'utf-8') as f:
             f.write(contents.decode('utf-8', 'replace'))
         return save_path
 
-    @classmethod
+    @staticmethod
     @catch_io_errors
-    def make_dirs(cls, *args, **kwargs):
+    def make_dirs(*args, **kwargs):
         return os.makedirs(*args, **kwargs)
 
-    @classmethod
+    @staticmethod
     @catch_io_errors
-    def open(cls, *args, **kwargs):
+    def open(*args, **kwargs):
         return open(*args, **kwargs)
 
-    @classmethod
+    @staticmethod
     @catch_io_errors
-    def rm_tree(cls, *args, **kwargs):
+    def rm_tree(*args, **kwargs):
         return shutil.rmtree(*args, **kwargs)
 
-    @classmethod
+    @staticmethod
     @catch_io_errors
-    def mkdir(cls, *args, **kwargs):
+    def mkdir(*args, **kwargs):
         return os.mkdir(*args, **kwargs)
 
 
