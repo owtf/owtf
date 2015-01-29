@@ -36,6 +36,7 @@ from __future__ import print_function
 
 import os
 import sys
+import logging
 from framework.dependency_check import verify_dependencies
 
 verify_dependencies(os.path.dirname(os.path.abspath(sys.argv[0])) or '.')
@@ -45,7 +46,6 @@ import argparse
 from framework.core import Core
 from framework.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
 from framework.dependency_management.dependency_resolver import ServiceLocator
-from framework.lib.general import *
 from framework import update
 from framework.http.proxy import tor_manager # Is needed for printing configuration help
 
@@ -338,7 +338,7 @@ def process_options(user_args):
             plugin_group = plugin_groups[0]
         except IndexError:
             usage("Please use either OWASP/OWTF codes or Plugin names")
-        cprint(
+        logging.info(
             "Defaulting Plugin Group to '" +
             plugin_group + "' based on list of plugins supplied")
 
@@ -427,7 +427,7 @@ def process_options(user_args):
         pass
     elif num_targets == 1:  # Check if this is a file
         if os.path.isfile(scope[0]):
-            cprint("Scope file: trying to load targets from it ..")
+            logging.info("Scope file: trying to load targets from it ..")
             new_scope = []
             for target in open(scope[0]).read().split("\n"):
                 CleanTarget = target.strip()
@@ -480,8 +480,8 @@ def run_owtf(core, args):
             core.finish()  # Not Interrupted or Crashed.
     except KeyboardInterrupt:
         # NOTE: The user chose to interact: interactivity check redundant here:
-        cprint("\nowtf was aborted by the user:")
-        cprint("Please check report/plugin output files for partial results")
+        logging.warning("OWTF was aborted by the user:")
+        logging.info("Please check report/plugin output files for partial results")
         # Interrupted. Must save the DB to disk, finish report, etc.
         core.finish()
     except SystemExit:
