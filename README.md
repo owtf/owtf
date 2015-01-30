@@ -111,7 +111,7 @@ Installation
 Recommended:
 
 ```
-wget https://raw.githubusercontent.com/owtf/bootstrap-script/master/bootstrap.sh; chmod +x bootstrap.sh; ./bootstrap.sh
+wget https://raw.githubusercontent.com/owtf/bootstrap-script/master/bootstrap.sh -O bootstrap.sh; chmod +x bootstrap.sh; ./bootstrap.sh
 ```
 
 or simply clone the latest version of **OWTF**.
