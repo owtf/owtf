@@ -61,17 +61,13 @@ def banner():
     \033[0m""")
 
 
-def validate_one_plugin_group(plugin_groups):
+def get_plugins_from_arg(arg):
+    plugins = arg.split(',')
+    plugin_groups = ServiceLocator.get_component("db_plugin").GetGroupsForPlugins(plugins)
     if len(plugin_groups) > 1:
         usage(
             "The plugins specified belong to several Plugin Groups: '" +
             str(plugin_groups) + "'")
-
-
-def get_plugins_from_arg(arg):
-    plugins = arg.split(',')
-    plugin_groups = ServiceLocator.get_component("db_plugin").GetGroupsForPlugins(plugins)
-    validate_one_plugin_group(plugin_groups)
     return [plugins, plugin_groups]
 
 
