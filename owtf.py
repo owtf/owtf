@@ -42,12 +42,11 @@ from framework.dependency_check import verify_dependencies
 verify_dependencies(os.path.dirname(os.path.abspath(sys.argv[0])) or '.')
 
 
-import argparse
 from framework.core import Core
 from framework.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework import update
-from framework.lib.cli_options import usage
+from framework.lib.cli_options import usage, parse_options, parse_update_options
 
 
 def banner():
@@ -60,165 +59,6 @@ def banner():
         @owtfp
     http://owtf.org
     \033[0m""")
-
-
-def get_args(args):
-    db_plugin = ServiceLocator.get_component("db_plugin")
-    valid_plugin_groups = db_plugin.GetAllGroups()
-    valid_plugin_types = db_plugin.GetAllTypes() + ['all', 'quiet']
-
-    parser = argparse.ArgumentParser(
-        description="OWASP OWTF, the Offensive (Web) Testing Framework, is " \
-                    "an OWASP+PTES-focused try to unite great tools and " \
-                    "make pentesting more efficient @owtfp http://owtf.org" \
-                    "\nAuthor: Abraham Aranguren <name.surname@owasp.org> - " \
-                    "http://7-a.org - Twitter: @7a_")
-    parser.add_argument(
-        "-l", "--list_plugins",
-        dest="list_plugins",
-        default=None,
-        choices=valid_plugin_groups,
-        help="List available plugins in the plugin group (web, net or aux)")
-    parser.add_argument(
-        "-f", "--force",
-        dest="ForceOverwrite",
-        action='store_true',
-        help="Force plugin result overwrite (default is avoid overwrite)")
-    parser.add_argument(
-        "-i", "--interactive",
-        dest="Interactive",
-        default="yes",
-        help="Interactive: yes (default, more control) / no (script-friendly)")
-    parser.add_argument(
-        "-e", "--except",
-        dest="ExceptPlugins",
-        default=None,
-        help="Comma separated list of plugins to be ignored in the test")
-    parser.add_argument(
-        "-o", "--only",
-        dest="OnlyPlugins",
-        default=None,
-        help="Comma separated list of the only plugins to be used in the test")
-    parser.add_argument(
-        "-p", "--inbound_proxy",
-        dest="InboundProxy",
-        default=None,
-        help="(ip:)port - Setup an inbound proxy for manual site analysis")
-    parser.add_argument(
-        "-x", "--outbound_proxy",
-        dest="OutboundProxy",
-        default=None,
-        help="type://ip:port - Send all OWTF requests using the proxy " \
-             "for the given ip and port. The 'type' can be 'http'(default) " \
-             "or 'socks'")
-    parser.add_argument(
-        "-xa", "--outbound_proxy_auth",
-        dest="OutboundProxyAuth",
-        default=None,
-        help="username:password - Credentials if any for outbound proxy")
-    parser.add_argument(
-        "-T", "--tor",
-        dest="TOR_mode",
-        default=None,
-        help="ip:port:tor_control_port:password:IP_renew_time - " \
-             "Sends all OWTF requests through the TOR network. " \
-             "For configuration help run -T help.")
-    parser.add_argument(
-        "-b", "--botnet-mode",
-        dest="Botnet_mode",
-        default=None,
-        help="miner or list:path_of_list - Sends all OWTF requests " \
-             "throw different proxies which can be mined or loaded " \
-             "by a list file.")
-    parser.add_argument(
-        "-s", "--simulation",
-        dest="Simulation",
-        action='store_true',
-        help="Do not do anything, simply simulate how plugins would run")
-    parser.add_argument(
-        "-m", "--custom_profile",
-        dest="CustomProfile",
-        default=None,
-        help="<g:f,w:f,n:f,r:f,m:f> - Use my profile: 'f' = valid config file. " \
-             "g: general config, w: web plugin order, n: net plugin order, " \
-             "r: resources file, m: mappings file")
-    parser.add_argument(
-        "-g", "--plugin_group",
-        dest="PluginGroup",
-        default=None,
-        choices=valid_plugin_groups,
-        help="<web/net/aux> - Initial plugin group: web (default) = " \
-             "targets are interpreted as URLs = web assessment only\n" \
-             "net = targets are interpreted as hosts/network ranges = " \
-             "traditional network discovery and probing\naux = targets " \
-             "are NOT interpreted, it is up to the plugin/resource " \
-             "definition to decide what to do with the target")
-    parser.add_argument(
-        "-t", "--plugin_type",
-        dest="PluginType",
-        default="all",
-        choices=valid_plugin_types,
-        help="<plugin type> - For web plugins: passive, semi_passive, " \
-             "quiet (passive + semi_passive), grep, active, all (default)\n" \
-             "NOTE: grep plugins run automatically after semi_passive and " \
-             "active in the default profile")
-    parser.add_argument(
-        "-port", "--port",
-        dest="RPort",
-        default=None,
-        help="<port> - Port to run probes")
-    parser.add_argument(
-        "-portwaves", "--portwaves",
-        dest="PortWaves",
-        default="10,100,1000",
-        help="<wave1,wave2,wave3> - Waves to run network scanning")
-    parser.add_argument(
-        "-proxy", "--proxy",
-        dest="ProxyMode",
-        default=True,
-        action="store_true",
-        help="Use this flag to run OWTF Inbound Proxy")
-    parser.add_argument(
-        "--update", "--update",
-        dest="Update",
-        action="store_true",
-        help="Use this flag to update OWTF to stable version " \
-             "(not bleeding edge)")
-    parser.add_argument(
-        '--nowebui',
-        dest='nowebui',
-        default=False,
-        action='store_true',
-        help='Run OWTF without its Web UI.')
-    parser.add_argument('Targets', nargs='*', help='List of Targets')
-    return parser.parse_args(args)
-
-
-def get_args_for_update(args):
-    parser = argparse.ArgumentParser(
-        description="OWASP OWTF, the Offensive (Web) Testing Framework, is " \
-                    "an OWASP+PTES-focused try to unite great tools and " \
-                    "make pentesting more efficient @owtfp http://owtf.org" \
-                    "\nAuthor: Abraham Aranguren <name.surname@owasp.org> - " \
-                    "http://7-a.org - Twitter: @7a_")
-    parser.add_argument(
-        "-x", "--outbound_proxy",
-        dest="OutboundProxy",
-        default=None,
-        help="type://ip:port - Send all OWTF requests using the proxy for " \
-             "the given ip and port. The 'type' can be 'http'(default) or " \
-             "'socks'")
-    parser.add_argument(
-        "-xa", "--outbound_proxy_auth",
-        dest="OutboundProxyAuth",
-        default=None,
-        help="username:password - Credentials if any for outbound proxy")
-    parser.add_argument(
-        "--update", "--update",
-        dest="Update",
-        action="store_true",
-        help="Use this flag to update OWTF")
-    return parser.parse_args(args)
 
 
 def validate_one_plugin_group(plugin_groups):
@@ -237,7 +77,10 @@ def get_plugins_from_arg(arg):
 
 def process_options(user_args):
     try:
-        arg = get_args(user_args)
+        db_plugin = ServiceLocator.get_component("db_plugin")
+        valid_groups = db_plugin.GetAllGroups()
+        valid_types = db_plugin.GetAllTypes() + ['all', 'quiet']
+        arg = parse_options(user_args, valid_groups, valid_types)
     except KeyboardInterrupt: #Exception as e:
         usage("Invalid OWTF option(s) " + e)
 
@@ -440,7 +283,7 @@ def main(args):
         # First confirming that --update flag is present in args and then
         # creating a different parser for parsing the args.
         try:
-            arg = get_args_for_update(args[1:])
+            arg = parse_update_options(args[1:])
         except Exception as e:
             usage("Invalid OWTF option(s) " + e)
         # Updater class is imported
