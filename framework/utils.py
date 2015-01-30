@@ -1,6 +1,7 @@
-import re
-import shutil
 import os
+import re
+import sys
+import shutil
 import codecs
 import logging
 from framework.dependency_management.dependency_resolver import ServiceLocator
@@ -32,13 +33,13 @@ class OutputCleaner():
                 command = command.replace(ip, 'xxx.xxx.xxx.xxx')
         return command
 
+
 def catch_io_errors(func):
     """Decorator on I/O functions.
 
-            If an error is detected, force OWTF to quit properly.
+    If an error is detected, force OWTF to quit properly.
 
-            """
-
+    """
     def io_error(*args, **kwargs):
         """Call the original function while checking for errors.
 
@@ -51,11 +52,10 @@ def catch_io_errors(func):
             return func(*args, **kwargs)
         except (OSError, IOError) as e:
             if owtf_clean:
-                ServiceLocator.get_component("error_handler").FrameworkAbort(
-                    "Error when calling '%s'! %s." %
-                    (func.__name__, str(e)))
+                error_handler = ServiceLocator.get_component("error_handler")
+                if error_handler:
+                    error_handler.FrameworkAbort( "Error when calling '%s'! %s." % (func.__name__, str(e)))
             raise e
-
     return io_error
 
 
