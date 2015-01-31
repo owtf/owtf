@@ -45,7 +45,8 @@ from framework.lib.exceptions import FrameworkAbortException, \
                                      PluginAbortException
 from framework.lib.general import cprint
 from framework.utils import OutputCleaner
-
+from sqlalchemy import exc
+from sqlalchemy.orm import sessionmaker
 
 class ErrorHandler(BaseComponent, ErrorHandlerInterface):
     Command = ''
@@ -122,6 +123,7 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             self.db_error.Add(message, trace)  # Log error in the DB.
         except AttributeError:
             cprint("ERROR: DB is not setup yet: cannot log errors to file!")
+        
 
     def AddOWTFBug(self, message):
         # TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/

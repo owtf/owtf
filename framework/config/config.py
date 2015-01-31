@@ -202,10 +202,15 @@ class Config(BaseComponent, ConfigInterface):
     def LoadTargets(self, options):
         scope = self.prepare_url_scope(options['Scope'], options['PluginGroup'])
         added_targets = []
+
         for target in scope:
+            added_targets.append(target)
+            force_option = False
+            if '-f' in options['argv']:
+                cprint("Test")
+                force_option = True
             try:
-                self.target.AddTarget(target)
-                added_targets.append(target)
+                self.target.AddTarget(target, force=force_option)
             except DBIntegrityException:
                 logging.warning("%s already exists in DB" % target)
             except UnresolvableTargetException as e:

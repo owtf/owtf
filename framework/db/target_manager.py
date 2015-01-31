@@ -139,7 +139,16 @@ class TargetDB(BaseComponent, TargetInterface):
             self.SetTarget(target.id)
 
     @session_required
-    def AddTarget(self, TargetURL, session_id=None):
+    def AddTarget(self, TargetURL, session_id=None, force=False):
+            
+        if force == True and TargetURL in self.GetTargetURLs():
+            session_obj = self.db.session.query(
+            models.Session).get(session_id)
+            target_obj = self.db.session.query(
+            models.Target).filter_by(target_url=TargetURL).one()
+            self.db.OWTFSession.remove_target_from_session(target_obj.id,
+            session_id=session_obj.id)
+            
         if TargetURL not in self.GetTargetURLs():
             # A try-except can be used here, but then ip-resolution takes time
             # even if target is present
@@ -163,11 +172,9 @@ class TargetDB(BaseComponent, TargetInterface):
             target_id = config_obj.id
             self.CreateMissingDBsForURL(TargetURL)
             self.SetTarget(target_id)
+
         else:
-            session_obj = self.db.session.query(
-                models.Session).get(session_id)
-            target_obj = self.db.session.query(
-                models.Target).filter_by(target_url=TargetURL).one()
+            
             if session_obj in target_obj.sessions:
                 raise DBIntegrityException(
                     TargetURL + " already present in Target DB & session")
