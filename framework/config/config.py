@@ -47,8 +47,8 @@ from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ConfigInterface
 
 from framework.lib.exceptions import PluginAbortException, \
-                                     DBIntegrityException, \
-                                     UnresolvableTargetException
+    DBIntegrityException, \
+    UnresolvableTargetException
 from framework.config import health_check
 from framework.lib.general import cprint
 from framework.db import models, target_manager
@@ -132,8 +132,8 @@ class Config(BaseComponent, ConfigInterface):
                         value, {
                             'FRAMEWORK_DIR': self.RootDir,
                             'OWTF_PID': str(self.OwtfPid)}
-                        )
                     )
+                )
             except ValueError:
                 self.error_handler.FrameworkAbort(
                     "Problem in config file: '" + config_path +
@@ -200,7 +200,8 @@ class Config(BaseComponent, ConfigInterface):
             self.FrameworkConfigGet("DEFAULT_MAPPING_PROFILE")
 
     def LoadTargets(self, options):
-        scope = self.prepare_url_scope(options['Scope'], options['PluginGroup'])
+        scope = self.prepare_url_scope(
+            options['Scope'], options['PluginGroup'])
         added_targets = []
 
         for target in scope:
@@ -331,13 +332,13 @@ class Config(BaseComponent, ConfigInterface):
         self.Set(
             'port_output',
             self.Get('host_output') + "/" + self.Get('port_number'))
-        URL_info_ID = target_URL.replace('/','_').replace(':','')
+        URL_info_ID = target_URL.replace('/', '_').replace(':', '')
         # Set the URL output directory (plugins will save their data here).
         self.Set(
             'url_output',
             self.Get('port_output') + "/" + URL_info_ID + "/")
         # Set the partial results path.
-        self.Set('partial_url_output_path', self.Get('url_output')+'partial')
+        self.Set('partial_url_output_path', self.Get('url_output') + 'partial')
         self.Set(
             'PARTIAL_REPORT_REGISTER',
             self.Get('partial_url_output_path') + "/partial_report_register.txt")
@@ -365,7 +366,7 @@ class Config(BaseComponent, ConfigInterface):
 
     def DeriveDBPathsFromURL(self, target_URL):
         targets_folder = os.path.expanduser(self.Get('TARGETS_DB_FOLDER'))
-        url_info_id = target_URL.replace('/','_').replace(':','')
+        url_info_id = target_URL.replace('/', '_').replace(':', '')
         transaction_db_path = os.path.join(
             targets_folder,
             url_info_id,
@@ -536,7 +537,7 @@ class Config(BaseComponent, ConfigInterface):
         return self.GetConfig()['string']
 
     def GetReplacementDict(self):
-        return({"FRAMEWORK_DIR":self.RootDir})
+        return({"FRAMEWORK_DIR": self.RootDir})
 
     def __getitem__(self, key):
         return self.Get(key)
@@ -569,7 +570,8 @@ class Config(BaseComponent, ConfigInterface):
             target_URL.replace("/", "_").replace(":", "").replace("#", ""))
 
     def CreateOutputDirForTarget(self, target_URL):
-        FileOperations.create_missing_dirs(self.GetOutputDirForTarget(target_URL))
+        FileOperations.create_missing_dirs(
+            self.GetOutputDirForTarget(target_URL))
 
     def GetTransactionDBPathForTarget(self, target_URL):
         return os.path.join(

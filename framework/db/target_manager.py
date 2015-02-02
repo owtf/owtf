@@ -6,8 +6,8 @@ from framework.dependency_management.dependency_resolver import BaseComponent, S
 from framework.dependency_management.interfaces import TargetInterface
 
 from framework.lib.exceptions import DBIntegrityException, \
-                                     InvalidTargetReference, \
-                                     InvalidParameterType
+    InvalidTargetReference, \
+    InvalidParameterType
 from framework.db import models
 from framework.db.session_manager import session_required
 from framework.lib import general
@@ -22,7 +22,8 @@ TARGET_CONFIG = {
     'url_scheme': '',
     'port_number': '',  # In str form
     'host_ip': '',
-    'alternative_ips': '',  # str(list), so it can easily reversed using list(str)
+    # str(list), so it can easily reversed using list(str)
+    'alternative_ips': '',
     'ip_url': '',
     'top_domain': '',
     'top_url': '',
@@ -53,13 +54,15 @@ def target_required(func):
     """
     def wrapped_function(*args, **kwargs):
         if not "target_id" in kwargs:
-            kwargs["target_id"] = ServiceLocator.get_component("target").GetTargetID()
+            kwargs["target_id"] = ServiceLocator.get_component(
+                "target").GetTargetID()
         return func(*args, **kwargs)
     return wrapped_function
 
 
 class TargetDB(BaseComponent, TargetInterface):
-    # All these variables reflect to current target which is referenced by a unique ID
+    # All these variables reflect to current target which is referenced by a
+    # unique ID
     TargetID = None
     TargetConfig = dict(TARGET_CONFIG)
     PathConfig = dict(PATH_CONFIG)
@@ -140,15 +143,15 @@ class TargetDB(BaseComponent, TargetInterface):
 
     @session_required
     def AddTarget(self, TargetURL, session_id=None, force=False):
-            
+
         if force == True and TargetURL in self.GetTargetURLs():
             session_obj = self.db.session.query(
-            models.Session).get(session_id)
+                models.Session).get(session_id)
             target_obj = self.db.session.query(
-            models.Target).filter_by(target_url=TargetURL).one()
+                models.Target).filter_by(target_url=TargetURL).one()
             self.db.OWTFSession.remove_target_from_session(target_obj.id,
-            session_id=session_obj.id)
-            
+                                                           session_id=session_obj.id)
+
         if TargetURL not in self.GetTargetURLs():
             # A try-except can be used here, but then ip-resolution takes time
             # even if target is present
@@ -174,7 +177,7 @@ class TargetDB(BaseComponent, TargetInterface):
             self.SetTarget(target_id)
 
         else:
-            
+
             if session_obj in target_obj.sessions:
                 raise DBIntegrityException(
                     TargetURL + " already present in Target DB & session")
@@ -224,7 +227,8 @@ class TargetDB(BaseComponent, TargetInterface):
         target_obj = self.db.session.query(models.Target).get(ID)
         if not target_obj:
             cprint("Failing with ID:" + str(ID))
-            raise InvalidTargetReference("Target doesn't exist with ID: " + str(ID))
+            raise InvalidTargetReference(
+                "Target doesn't exist with ID: " + str(ID))
         return(target_obj.target_url)
 
     def GetTargetConfigForID(self, ID):
@@ -245,7 +249,8 @@ class TargetDB(BaseComponent, TargetInterface):
         else:
             if filter_data.get("target_url", None):
                 if isinstance(filter_data["target_url"], (str, unicode)):
-                    query = query.filter_by(target_url=filter_data["target_url"])
+                    query = query.filter_by(
+                        target_url=filter_data["target_url"])
                 if isinstance(filter_data["target_url"], list):
                     query = query.filter(models.Target.target_url.in_(
                         filter_data.get("target_url")))
@@ -269,7 +274,8 @@ class TargetDB(BaseComponent, TargetInterface):
                 if isinstance(filter_data["id"], (str, unicode)):
                     query = query.filter_by(id=filter_data["id"])
                 if isinstance(filter_data["id"], list):
-                    query = query.filter(models.Target.id.in_(filter_data.get("id")))
+                    query = query.filter(
+                        models.Target.id.in_(filter_data.get("id")))
         if not for_stats:  # query for stats shouldn't have limit and offset
             try:
                 if filter_data.get('offset', None):
@@ -306,7 +312,6 @@ class TargetDB(BaseComponent, TargetInterface):
             "records_filtered": filtered_number,
             "data": self.DeriveTargetConfigs(
                 filtered_target_objs)})
-
 
     @session_required
     def GetTargetConfigs(self, filter_data=None, session_id=None):

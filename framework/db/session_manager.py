@@ -14,8 +14,10 @@ def session_required(func):
     if not get the target_id from target manager and pass it
     """
     def wrapped_function(*args, **kwargs):
-        if (kwargs.get("session_id", "None") == "None") or (kwargs.get("session_id", True) is None):  # True if target_id doesnt exist
-            kwargs["session_id"] = ServiceLocator.get_component("session_db").get_session_id()
+        # True if target_id doesnt exist
+        if (kwargs.get("session_id", "None") == "None") or (kwargs.get("session_id", True) is None):
+            kwargs["session_id"] = ServiceLocator.get_component(
+                "session_db").get_session_id()
         return func(*args, **kwargs)
     return wrapped_function
 

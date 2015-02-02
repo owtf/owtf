@@ -42,11 +42,12 @@ from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ErrorHandlerInterface
 
 from framework.lib.exceptions import FrameworkAbortException, \
-                                     PluginAbortException
+    PluginAbortException
 from framework.lib.general import cprint
 from framework.utils import OutputCleaner
 from sqlalchemy import exc
 from sqlalchemy.orm import sessionmaker
+
 
 class ErrorHandler(BaseComponent, ErrorHandlerInterface):
     Command = ''
@@ -97,7 +98,7 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
         return raw_input(
             "Options: 'e'+Enter= Exit" + options + ", Enter= Next test\n")
 
-    def UserAbort(self, level, partial_output = ''):
+    def UserAbort(self, level, partial_output=''):
         # Levels so far can be Command or Plugin
         message = logging.info(
             "\nThe " + level + " was aborted by the user: Please check the "
@@ -123,22 +124,22 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             self.db_error.Add(message, trace)  # Log error in the DB.
         except AttributeError:
             cprint("ERROR: DB is not setup yet: cannot log errors to file!")
-        
 
     def AddOWTFBug(self, message):
-        # TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
+        # TODO:
+        # http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
         exc_type, exc_value, exc_traceback = sys.exc_info()
         err_trace_list = traceback.format_exception(
             exc_type, exc_value, exc_traceback)
         err_trace = OutputCleaner.anonymise_command("\n".join(err_trace_list))
         message = OutputCleaner.anonymise_command(message)
         output = self.Padding + "OWTF BUG: Please report the sanitised " \
-                 "information below to help make this better. Thank you." + \
-                 self.SubPadding
+            "information below to help make this better. Thank you." + \
+            self.SubPadding
         output += "\nMessage: " + message + "\n"
         output += "\nError Trace:"
         output += "\n" + err_trace
-        output += "\n"+self.Padding
+        output += "\n" + self.Padding
         cprint(output)
         self.LogError(message, err_trace)
 
@@ -158,7 +159,7 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             if item.startswith('Message'):
                 title = item[len('Message:'):]
                 break
-        data = {'title':'[Auto-Generated] ' + title, 'body':''}
+        data = {'title': '[Auto-Generated] ' + title, 'body': ''}
         # For github markdown.
         data['body'] = '#### OWTF Bug Report\n\n```' + \
                        '\n'.join(error_data) + '```\n'
@@ -172,7 +173,7 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             "Content-Type": "application/json",
             "Authorization":
                 "token " + self.config.Get("GITHUB_BUG_REPORTER_TOKEN")
-            }
+        }
         request = urllib2.Request(
             self.config.Get("GITHUB_API_ISSUES_URL"),
             headers=headers,
