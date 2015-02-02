@@ -207,7 +207,6 @@ class Config(BaseComponent, ConfigInterface):
             added_targets.append(target)
             force_option = False
             if '-f' in options['argv']:
-                cprint("Test")
                 force_option = True
             try:
                 self.target.AddTarget(target, force=force_option)
