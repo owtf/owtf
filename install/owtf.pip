@@ -5,18 +5,18 @@
 # - The casing of names is critical for dependency checks, eg. pyOpenSSL and not pyopenssl
 
 beautifulsoup4==4.3.2
-lxml==3.4.0
-Markdown==2.5.1
+lxml==3.4.2
+Markdown==2.5.2
 pexpect==3.3
-psycopg2==2.5.4
+psycopg2==2.6
 PTP==0.2.0
-pycurl==7.19.5
+pycurl==7.19.5.1
 # We donot use six directly, but there is an error while trying to install pyOpenSSL. More details at https://github.com/owtf/owtf/issues/332
-six==1.8.0
+six==1.9.0
 pyOpenSSL==0.14
 python-owasp-zap-v2==0.0.9
 PyVirtualDisplay==0.1.5
 rdflib==4.1.2
-selenium==2.43.0
-SQLAlchemy==0.9.7
-tornado==4.0.2
+selenium==2.44.0
+SQLAlchemy==0.9.8
+tornado==4.1
