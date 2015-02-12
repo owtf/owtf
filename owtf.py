@@ -79,7 +79,7 @@ def process_options(user_args):
         arg = parse_options(user_args, valid_groups, valid_types)
     except KeyboardInterrupt: #Exception as e:
         usage("Invalid OWTF option(s) " + e)
-
+    is_aux = False
     # Default settings:
     profiles = {}
     plugin_group = arg.PluginGroup
@@ -210,7 +210,8 @@ def process_options(user_args):
         args = scope
         # aux plugins do not have targets, they have metasploit-like
         # parameters.
-        scope = ['aux']
+        is_aux = True
+
     return {
         'list_plugins': arg.list_plugins,
         'Force_Overwrite': arg.ForceOverwrite,
@@ -232,7 +233,8 @@ def process_options(user_args):
         'TOR_mode' : arg.TOR_mode,
         'Botnet_mode' : arg.Botnet_mode,
         'nowebui': arg.nowebui,
-        'Args': args}
+        'Args': args,
+        'IsAuxUsed': is_aux}
 
 
 def run_owtf(core, args):
