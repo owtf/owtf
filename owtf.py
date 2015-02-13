@@ -46,6 +46,7 @@ from framework.core import Core
 from framework.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework import update
+from framework.lib.general import cprint
 from framework.lib.cli_options import usage, parse_options, parse_update_options
 
 
@@ -211,6 +212,9 @@ def process_options(user_args):
         # aux plugins do not have targets, they have metasploit-like
         # parameters.
         is_aux = True
+        cprint("Sorry, AUX plugin is currently under development and \
+cannot be used.")
+        sys.exit(0)
 
     return {
         'list_plugins': arg.list_plugins,
