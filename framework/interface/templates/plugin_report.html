@@ -41,7 +41,7 @@
                                 {# TODO: Clean buttons code. #}
                                 {% set user_rank = poutput['user_rank'] %}
                                 {% if user_rank in [0, 1, 2, 3, 4, 5] %}
-                                <label id="{{ pkey }}_0" class="btn {% if user_rank == 0 %}active{% end %}" title="No ranking"><input type="radio" id="0" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
+                                <label id="{{ pkey }}_0" class="btn {% if user_rank == 0 %}active{% end %}" title="Passing"><input type="radio" id="0" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '0');"/><i class="fa fa-thumbs-up"></i></label>
                                 <label id="{{ pkey }}_1" class="btn {% if user_rank == 1 %}active btn-success{% end %}" title="Informational"><input type="radio" id="1" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '1');"/><i class="fa fa-info-circle"></i></label>
                                 <label id="{{ pkey }}_2" class="btn {% if user_rank == 2 %}active btn-info{% end %}" title="Low"><input type="radio" id="2" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '2');"/><i class="fa fa-exclamation-circle"></i></label>
                                 <label id="{{ pkey }}_3" class="btn {% if user_rank == 3 %}active btn-warning{% end %}" title="Medium"><input type="radio" id="3" onchange="updatePluginInfoAndPatch('{{ pkey }}', '{{ poutput["plugin_group"] }}','{{ poutput["plugin_type"] }}','{{ test_code }}', '3');"/><i class="fa fa-warning"></i></label>
@@ -150,12 +150,12 @@ var copyPOutputs = {};
     copyPOutputs['{{ test_code }}'] = {};
     {% for poutput in poutput_list %}
         copyPOutputs['{{ test_code }}']["{{ poutput['plugin_type'] }}"] = {
-            {% if poutput['owtf_rank'] %}
+            {% if poutput['owtf_rank'] >= 0 %}
                 "owtf_rank": {{ poutput['owtf_rank'] }},
             {% else %}
                 "owtf_rank": null,
             {% end %}
-            {% if poutput['user_rank'] %}
+            {% if poutput['user_rank'] >= 0 %}
                 "user_rank": {{ poutput['user_rank'] }},
             {% else %}
                 "user_rank": null,
@@ -229,20 +229,23 @@ function navigateToTransaction(id){
 }
 
 function resetPluginColors(id) {
+    $("#" + id + "_0").removeClass("btn-passing");
     $("#" + id + "_1").removeClass("btn-success");
     $("#" + id + "_2").removeClass("btn-info");
     $("#" + id + "_3").removeClass("btn-warning");
     $("#" + id + "_4").removeClass("btn-danger");
     $("#" + id + "_5").removeClass("btn-critical");
-    $("#tab_" + id).removeClass("alert-success alert-info alert-warning alert-danger alert-critical");
+    $("#tab_" + id).removeClass("alert-passing alert-success alert-info alert-warning alert-danger alert-critical");
 };
 
 function resetTestCaseColors(id) {
-    $("#header_" + id).removeClass("panel-success panel-info panel-warning panel-danger panel-critical");
+    $("#header_" + id).removeClass("panel-passing panel-success panel-info panel-warning panel-danger panel-critical");
 }
 
 function getAlertColor(level) {
-    if (level == 1)
+    if (level == 0)
+        return "passing";
+    else if (level == 1)
         return "success";
     else if (level == 2)
         return "info";
@@ -256,7 +259,9 @@ function getAlertColor(level) {
 }
 
 function getLabelColor(level) {
-    if (level == 1)
+    if (level == 0)
+        return "<label class='alert alert-passing' style='margin-bottom: 0px'>Passing</label>";
+    else if (level == 1)
         return "<label class='alert alert-success' style='margin-bottom: 0px'>Info</label>";
     else if (level == 2)
         return "<label class='alert alert-info' style='margin-bottom: 0px'>Low</label>";

@@ -226,7 +226,9 @@ function updateSessions() {
 
 // get label color for target rating
 function getLabel(level) {
-    if (level == 1)
+    if (level == 0)
+        return "<span class='label label-passing' style='text'>Passing</span>";
+    else if (level == 1)
         return "<span class='label label-success' style='text'>Info</span>";
     else if (level == 2)
         return "<span class='label label-info' style='margin-bottom: 0px'>Low</span>";

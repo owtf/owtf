@@ -178,19 +178,11 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         self.db.session.commit()
 
     @target_required
-    def Update(
-        self,
-        plugin_group,
-        plugin_type,
-        plugin_code,
-        patch_data,
-        target_id=None):
-        query = self.GenerateQueryUsingSession(
-            {
+    def Update(self, plugin_group, plugin_type, plugin_code, patch_data, target_id=None):
+        query = self.GenerateQueryUsingSession({
                 "plugin_group": plugin_group,
                 "plugin_type": plugin_type,
-                "plugin_code": plugin_code,
-            },
+                "plugin_code": plugin_code,},
             target_id)
         obj = query.first()
         if obj:
@@ -206,8 +198,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
                 self.db.session.merge(obj)
                 self.db.session.commit()
             except ValueError:
-                raise InvalidParameterType(
-                    "Integer has to be provided for integer fields")
+                raise InvalidParameterType("Integer has to be provided for integer fields")
 
     def PluginAlreadyRun(self, PluginInfo, target_id=None):
         plugin_output_count = self.db.session.query(models.PluginOutput).filter_by(
