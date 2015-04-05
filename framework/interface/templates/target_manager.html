@@ -323,6 +323,8 @@ function newTargets(targetUrlsString, button) {
                     enableInput("#addTargetBtn");
                 }
         });
+    } else {
+        enableInput("#addTargetBtn"); // If the valid targetUrls length is 0 then input remains disabled forever
     }
 }
 
