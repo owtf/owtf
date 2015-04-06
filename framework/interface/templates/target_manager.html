@@ -15,7 +15,7 @@
         <div class="row">
             <h3>Add Targets</h3>
             <div class="col-md-10">
-                    <textarea id="newTargetUrls" type="text" class="form-control" placeholder="Targets seperated by new line">
+                    <textarea id="newTargetUrls" type="text" class="form-control" placeholder="Targets seperated by new line" autofocus="">
                     </textarea>
             </div>
         </div>
@@ -299,9 +299,11 @@ function newTargets(targetUrlsString, button) {
     $.each(lines, function(index, line) {
         if (isUrl(line)) { // Check if a valid url
             targetUrls.push(line);
+            $("#newTargetUrls").val("");
         } else if (isUrl("http://"+line)) { // If not valid url and adding http:// makes it a valid url
             targetUrls.push("http://"+line);
             targetUrls.push("https://"+line);
+            $("#newTargetUrls").val("");
         } else { // Not a valid url
             alertFail(escapeHtml(line)+" is not a valid url");
         }
