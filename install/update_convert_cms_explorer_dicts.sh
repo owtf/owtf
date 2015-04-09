@@ -33,6 +33,7 @@ wget http://cms-explorer.googlecode.com/files/cms-explorer-1.0.tar.bz2; bunzip2 
 
 CMS_EXPLORER_DIR="$RootDir/tools/restricted/cms-explorer/cms-explorer-1.0"
 CMS_DICTIONARIES_DIR="$RootDir/dictionaries/restricted/cms" 
+DRUPAL_LATESTMODULE_FETCHER_DIR="$RootDir/dictionaries/"
 mkdir -p $CMS_DICTIONARIES_DIR
 
 DICTIONARIES="$CMS_EXPLORER_DIR/drupal_plugins.txt
@@ -47,6 +48,12 @@ cd $CMS_EXPLORER_DIR
 
 echo "[*] Updating cms-explorer.pl dictionaries.."
 ./cms-explorer.pl -update
+
+cd $DRUPAL_LATESTMODULE_FETCHER_DIR
+echo "[*] Updating drupalmodules .."
+python2 drupalmodulesextractor.py
+mv drupal_themes.txt $CMS_EXPLORER_DIR/drupal_themes.txt
+cd $CMS_EXPLORER_DIR
 
 # leaving the directory in order to copy the lists from dict_root
 cd ../../
