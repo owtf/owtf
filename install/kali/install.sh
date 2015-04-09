@@ -67,6 +67,7 @@ sudo -E apt-get install tor
 "$RootDir/install/kali/kali_patch_w3af.sh"
 "$RootDir/install/kali/kali_patch_nikto.sh"
 "$RootDir/install/kali/kali_patch_tlssled.sh"
+"$RootDir/install/kali/kali_patch_sslv2.sh"
 ###### Dictionaries missing in Kali
 mkdir -p $RootDir/dictionaries/restricted
 cd $RootDir/dictionaries/restricted
