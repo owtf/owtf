@@ -334,7 +334,7 @@ function updateAllTestCasesInfo() {
         var maxUserRank = -1;
         var maxOWTFRank = -1;
         $.each(types, function(type, poutput) {
-            if (poutput.user_rank != -1) {
+            if (poutput.user_rank != -1 && poutput.user_rank != null) {
                 updatePluginInfo(poutput.key.replace('@', '_'), poutput.user_rank);
                 if (poutput.user_rank > maxUserRank)
                     maxUserRank = poutput.user_rank;
@@ -348,7 +348,10 @@ function updateAllTestCasesInfo() {
                 }
             }
         });
-        testCaseMax = (maxUserRank > maxOWTFRank) ? maxUserRank : maxOWTFRank;
+        if (maxUserRank != null && maxUserRank > maxOWTFRank)
+            testCaseMax = maxUserRank;
+        else
+            testCaseMax = maxOWTFRank;
         resetTestCaseColors(code);
         $("#header_" + code).toggleClass("panel-" + getAlertColor(testCaseMax));
         $("#header_badge_" + code).css("opacity", "");
@@ -367,7 +370,7 @@ function updateTargetInfo() {
     /* Find the current max for the target. */
     $.each(copyPOutputs, function(code, types) {
         $.each(types, function(type, poutput) {
-            if (poutput.user_rank != -1) {
+            if (poutput.user_rank != -1 && poutput.user_rank != null) {
                 if (poutput.user_rank > maxUserRank)
                     maxUserRank = poutput.user_rank;
             }
@@ -379,7 +382,10 @@ function updateTargetInfo() {
         if (maxUserRank == 5 || maxOWTFRank == 4)
             return false;
     });
-    localMax = (maxUserRank > maxOWTFRank) ? maxUserRank : maxOWTFRank;
+    if (maxUserRank != null && maxUserRank > maxOWTFRank)
+        localMax = maxUserRank;
+    else
+        localMax = maxOWTFRank;
 
     $('#rankingTargetInfo').css("opacity", "");
     $('#rankingTargetInfo').html('<i><small>' + getLabelColor(localMax) + '</small></i>');

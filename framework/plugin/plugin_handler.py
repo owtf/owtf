@@ -415,9 +415,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         finally:
             plugin['status'] = status_msg
             plugin['end'] = self.timer.get_end_date_time('Plugin')
-            plugin['owtf_rank'] = self.rank_plugin(
-                output,
-                self.GetPluginOutputDir(plugin))
+            plugin['owtf_rank'] = self.rank_plugin(output, self.GetPluginOutputDir(plugin))
             if status_msg == 'Successful':
                 self.plugin_output.SavePluginOutput(plugin, output)
             else:
