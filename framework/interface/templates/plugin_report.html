@@ -303,18 +303,16 @@ function updateTestCaseInfo(code) {
     var maxUserRank = -1;
     var maxOWTFRank = -1;
     $.each(copyPOutputs[code], function (type, poutput) {
-        if (poutput.user_rank != -1) {
+        if (poutput.user_rank != null && poutput.user_rank != -1) {
             updatePluginInfo(poutput.key.replace('@', '_'), poutput.user_rank);
             if (poutput.user_rank > maxUserRank)
                 maxUserRank = poutput.user_rank;
         }
-        else {
+        else if (poutput.owtf_rank != null && poutput.owtf_rank != -1) {
+            updatePluginInfo(poutput.key.replace('@', '_'), poutput.owtf_rank);
+            $("#tab_" + poutput.key.replace('@', '_')).css("opacity", "0.7");
             if (poutput.owtf_rank > maxOWTFRank)
                 maxOWTFRank = poutput.owtf_rank;
-            if (poutput.owtf_rank != -1) {
-                updatePluginInfo(poutput.key.replace('@', '_'), poutput.owtf_rank);
-                $("#tab_" + poutput.key.replace('@', '_')).css("opacity", "0.7");
-            }
         }
     });
     testCaseMax = (maxUserRank > maxOWTFRank) ? maxUserRank : maxOWTFRank;
@@ -334,24 +332,19 @@ function updateAllTestCasesInfo() {
         var maxUserRank = -1;
         var maxOWTFRank = -1;
         $.each(types, function(type, poutput) {
-            if (poutput.user_rank != -1 && poutput.user_rank != null) {
+            if (poutput.user_rank != null && poutput.user_rank != -1) {
                 updatePluginInfo(poutput.key.replace('@', '_'), poutput.user_rank);
                 if (poutput.user_rank > maxUserRank)
                     maxUserRank = poutput.user_rank;
             }
-            else {
+            else if (poutput.owtf_rank != null && poutput.owtf_rank != -1) {
+                updatePluginInfo(poutput.key.replace('@', '_'), poutput.owtf_rank);
+                $("#tab_" + poutput.key.replace('@', '_')).css("opacity", "0.7");
                 if (poutput.owtf_rank > maxOWTFRank)
                     maxOWTFRank = poutput.owtf_rank;
-                if (poutput.owtf_rank != -1) {
-                    updatePluginInfo(poutput.key.replace('@', '_'), poutput.owtf_rank);
-                    $("#tab_" + poutput.key.replace('@', '_')).css("opacity", "0.7");
-                }
             }
         });
-        if (maxUserRank != null && maxUserRank > maxOWTFRank)
-            testCaseMax = maxUserRank;
-        else
-            testCaseMax = maxOWTFRank;
+        testCaseMax = (maxUserRank > maxOWTFRank) ? maxUserRank : maxOWTFRank;
         resetTestCaseColors(code);
         $("#header_" + code).toggleClass("panel-" + getAlertColor(testCaseMax));
         $("#header_badge_" + code).css("opacity", "");
@@ -370,11 +363,9 @@ function updateTargetInfo() {
     /* Find the current max for the target. */
     $.each(copyPOutputs, function(code, types) {
         $.each(types, function(type, poutput) {
-            if (poutput.user_rank != -1 && poutput.user_rank != null) {
-                if (poutput.user_rank > maxUserRank)
-                    maxUserRank = poutput.user_rank;
-            }
-            else if (poutput.owtf_rank > maxOWTFRank)
+            if (poutput.user_rank != null && poutput.user_rank > maxUserRank)
+                maxUserRank = poutput.user_rank;
+            else if (poutput.owtf_rank != null && poutput.owtf_rank > maxOWTFRank)
                 maxOWTFRank = poutput.owtf_rank;
             if (maxUserRank == 5 || maxOWTFRank == 4)
                 return false;
@@ -382,11 +373,7 @@ function updateTargetInfo() {
         if (maxUserRank == 5 || maxOWTFRank == 4)
             return false;
     });
-    if (maxUserRank != null && maxUserRank > maxOWTFRank)
-        localMax = maxUserRank;
-    else
-        localMax = maxOWTFRank;
-
+    localMax = (maxUserRank > maxOWTFRank) ? maxUserRank : maxOWTFRank;
     $('#rankingTargetInfo').css("opacity", "");
     $('#rankingTargetInfo').html('<i><small>' + getLabelColor(localMax) + '</small></i>');
     /* If the current max is given by OWTF, highlight it as such. */
