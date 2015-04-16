@@ -47,6 +47,7 @@ import multiprocessing
 from threading import Thread
 from collections import defaultdict
 from ptp import PTP
+from ptp.libptp.constants import UNKNOWN
 from ptp.libptp.exceptions import PTPError
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import PluginHandlerInterface
@@ -310,7 +311,6 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                 for output in cmd
                 if ('output' in output and
                     'metasploit' in output['output'].get('ModifiedCommand', ''))]
-
         msf_modules = None
         if output:
             msf_modules = extract_metasploit_modules(output)
@@ -323,14 +323,14 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                         pathname=pathname,
                         filename=module[1],  # Path to output file.
                         plugin=module[0])  # Metasploit module name.
-                    owtf_rank = max(
-                        owtf_rank,
-                        parser.get_highest_ranking())
+                    owtf_rank = max(owtf_rank, parser.get_highest_ranking())
             else:
                 parser.parse(pathname=pathname)
                 owtf_rank = parser.get_highest_ranking()
         except PTPError:  # Not supported tool or report not found.
             pass
+        if owtf_rank == UNKNOWN:  # Ugly truth... PTP gives 0 for unranked but OWTF uses -1 instead...
+            owtf_rank = -1
         return owtf_rank
 
     def ProcessPlugin(self, plugin_dir, plugin, status={}):
