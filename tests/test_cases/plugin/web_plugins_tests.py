@@ -141,16 +141,6 @@ class WebPluginsTests(WebPluginTestCase):
         self.assert_external_tool_started(times=2)
         tools = ["whatweb", "httprint"]
 
-    def test_Websecurify_Unauthenticated_active(self):
-        self._prepare_test_for_general_tool()
-
-        self.owtf("-g web -t active -o Websecurify_Unauthenticated")
-
-        self.assert_that_output_contains("Plugin: Websecurify Unauthenticated (active)")
-        self.assert_external_tool_started(times=1)
-        websecurify = ["websecurify", "runner"] 
-        self.assert_that_output_contains_lines(websecurify)
-
     #  Semi-passive plugins  #
 
     def test_HTTP_Methods_and_XST_semi_passive(self):
