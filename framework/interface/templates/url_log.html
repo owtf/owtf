@@ -87,6 +87,7 @@ function drawTable() {
     $('#urlLog').dataTable({
                                         "bAutoWidth": false,
                                         "bSort": false, // Not yet supported in API, can after shifting to postgres
+                                        "stateSave": true,
                                         "bServerSide": true,
                                         "ajax": dummyAjax,
                                         "sDom": "ltip", // Remove global search & processing message

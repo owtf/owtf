@@ -173,6 +173,7 @@ function initializePluginLauncher(){
 
     pluginLaunchTable = $('#pluginLaunchTable').dataTable({
         "bAutoWidth":false,
+	"stateSave": true,
         "columnDefs":[{ "targets": 0, "orderable": false }], // Disable sorting of fist column ;)
         "fnDrawCallback": function( settings ) {
             // Managing the "Select all" checkbox

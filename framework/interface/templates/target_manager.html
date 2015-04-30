@@ -367,6 +367,7 @@ function drawTargetTable() {
     $('#targetTable').dataTable({
         "bAutoWidth": false,
         "bSort": false, // Not yet supported in API, can after shifting to postgres
+	"stateSave": true,
         "bServerSide": true,
         "ajax": dummyAjax,
         "fnDrawCallback": function( settings ) {
@@ -402,6 +403,7 @@ $(document).ready(function() {
     // Initialize session table but donot populate until modal is opened
     $('#sessionTable').dataTable({
         "bAutoWidth": false,
+	"stateSave": true,
         "columnDefs": [{
           "targets": [0],
           "orderable": false
