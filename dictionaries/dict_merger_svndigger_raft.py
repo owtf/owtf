@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" 
+"""
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -58,17 +58,22 @@ output_path = os.path.join(abs_path,'restricted/combined')
 # Two files will be formed
 for case in ['lowercase','mixedcase']:
     f = codecs.open(os.path.join(output_path,'combined_'+case+'.txt'),'w','UTF-8')
-    merged_list = []
+    merged_list = {}
 
     # The svndigger list is added at the beginning
     for line in codecs.open(os.path.join(svndigger_path,'all.txt'),'r','UTF-8').readlines():
-        f.write(line.rstrip()+'\n')
-        merged_list.append(line.rstrip())
+        line = line.rstrip()
+        f.write(line+'\n')
+        merged_list[line] = 1
     # Non repeated entries from raft dicts are added
     for file_path in case_dict[case]:
         for line in codecs.open(os.path.join(raft_path,file_path),'r','ISO-8859-1').readlines():
-            if line.rstrip() not in merged_list:
-                f.write(line.rstrip()+'\n')
+            try:
+                line = line.rstrip()
+                a = merged_list[line]
+            except KeyError:  # Error happens if this line is not already added
+                merged_list[line] = 1
+                f.write(line+'\n')
 
     f.close()
     # Prepare filtered version for using with dirbuster
