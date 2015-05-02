@@ -28,23 +28,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Cross Site Flashing semi passive plugin: Tries to retrieve the crossdomain.xml
 file and display it for review
 """
-import re
-import cgi
-import logging
-from framework.utils import OWTFLogger
+
+
 from framework.dependency_management.dependency_resolver import ServiceLocator
+
 DESCRIPTION = "Normal requests for XSF analysis"
 
 
 def run(PluginInfo):
-    URLList = []
+    url_list = []
     for File in ["crossdomain.xml", "clientaccesspolicy.xml"]:
-        for URL in ServiceLocator.get_component("target").GetAsList(['target_url', 'top_url']):
-            URLList.append(URL+"/"+File)  # Compute all URL + File combinations
+        for url in ServiceLocator.get_component("target").GetAsList(['target_url', 'top_url']):
+            url_list.append(url + "/" + File)  # Compute all URL + File combinations
     # The requester framework component will unique the URLs
-    TransactionList = ServiceLocator.get_component("requester").GetTransactions(True, URLList)
+    TransactionList = ServiceLocator.get_component("requester").GetTransactions(True, url_list)
     # Even though we have transaction list, those transactions do not have id
     # because our proxy stores the transactions and not the requester. So the
     # best way is to use the url list to retrieve transactions while making the
     # report
-    return(ServiceLocator.get_component("plugin_helper").TransactionTableForURLList(True, URLList))
+    return ServiceLocator.get_component("plugin_helper").TransactionTableForURLList(True, url_list, "GET")
