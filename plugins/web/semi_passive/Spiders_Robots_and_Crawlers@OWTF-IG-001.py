@@ -28,9 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Robots.txt semi-passive plugin, parses robots.txt file to generate on-screen
 links and save them for later spidering and analysis
 """
-import re
-import cgi
-import logging
 
 from framework.utils import OWTFLogger
 from framework.dependency_management.dependency_resolver import ServiceLocator
@@ -42,18 +39,18 @@ def run(PluginInfo):
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     target = ServiceLocator.get_component("target")
     requester = ServiceLocator.get_component("requester")
-    TopURL = target.Get('top_url')
-    URL = TopURL+"/robots.txt"
-    TestResult = []
+    top_url = target.Get('top_url')
+    url = top_url + "/robots.txt"
+    test_result = []
     # Use transaction cache if possible for speed
-    HTTP_Transaction = requester.GetTransaction(True, URL)
-    if HTTP_Transaction is not None and HTTP_Transaction.Found:
-        TestResult += plugin_helper.ProcessRobots(
+    http_transaction = requester.GetTransaction(True, url, "GET")
+    if http_transaction is not None and http_transaction.Found:
+        test_result += plugin_helper.ProcessRobots(
             PluginInfo,
-            HTTP_Transaction.GetRawResponseBody(),
-            TopURL,
+            http_transaction.GetRawResponseBody(),
+            top_url,
             '')
     else:  # robots.txt NOT found
         OWTFLogger.log("robots.txt was NOT found")
-        TestResult += plugin_helper.TransactionTableForURLList(True, [URL])
-    return TestResult
+        test_result += plugin_helper.TransactionTableForURLList(True, [url])
+    return test_result
