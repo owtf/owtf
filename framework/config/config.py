@@ -154,11 +154,6 @@ class Config(object):
                 cprint(target + " already exists in DB")
             except UnresolvableTargetException as e:
                 cprint(e.parameter)
-        # When we are doing force overwrite the added_targets stays empty due to the
-        # raised exception, so we have to add it.
-	if added_targets == []:
-	    for target in scope:
-		added_targets.append(target)
         return(added_targets)
 
     def PrepareURLScope(self, scope, group):
