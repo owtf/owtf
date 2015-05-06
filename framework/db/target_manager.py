@@ -263,6 +263,8 @@ class TargetDB(BaseComponent, TargetInterface):
                     query = query.filter_by(id=filter_data["id"])
                 if isinstance(filter_data["id"], list):
                     query = query.filter(models.Target.id.in_(filter_data.get("id")))
+        # This will allow new targets to be at the start
+        query = query.order_by(models.Target.id.desc())
         if not for_stats:  # query for stats shouldn't have limit and offset
             try:
                 if filter_data.get('offset', None):
