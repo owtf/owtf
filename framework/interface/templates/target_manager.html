@@ -5,6 +5,7 @@
 {% block includes %}
 <script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/filesaver.min.js"></script>
 <link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
 {% end %}
 
@@ -12,15 +13,16 @@
 <div class="row">
     <!-- Input area to add new targets -->
     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-      <div class="row">
-	<h3>Add Targets</h3>
-      </div>
         <div class="row">
-          <textarea id="newTargetUrls" type="text" class="form-control" placeholder="Targets seperated by new line" autofocus="" style="max-width:100%"></textarea>
+            <h3>Add Targets</h3>
         </div>
-	<div class="row" align="left" style="margin-top:10px;">
-          <button class="btn btn-primary" id="addTargetBtn" type="button" onclick="newTargets($('#newTargetUrls').val(), this);">Add Targets!</button>
-	</div>
+        <div class="row">
+            <textarea id="newTargetUrls" type="text" class="form-control" placeholder="Targets seperated by new line" autofocus="" style="max-width:100%"></textarea>
+        </div>
+    <div class="row" align="left" style="margin-top:10px;">
+          <button class="btn btn-primary" id="addTargetBtn" type="button" onclick="newTargets($('#newTargetUrls').val(), this);">Add Targets</button>
+          <a class="btn btn-success" value="Export Targets" download="targets.txt" id="exportTargetsBtn" onclick="javascript:exportTargets()">Export Targets</a>
+    </div>
     </div>
     <!-- End Input area for new targets -->
     <!-- Target list -->
@@ -267,6 +269,23 @@ function updateCurrentSessionInfo(){
     $('#targetTable').dataTable().fnDraw(true);
 }
 
+function getTargets(){
+    //get targets for the current session
+    targetsArray = [];
+    $.getJSON('/api/targets/', function(data) {
+        $.each(data, function(index, obj) {
+            targetsArray.push(obj["target_url"] + '\n');
+        });
+    });
+    return(targetsArray);
+}
+
+//Export all targets for the current session to a text file
+function exportTargets() {
+    var blob = new Blob(targetsArray, {type: "text/plain;charset=utf-8"});
+    saveAs(blob, "targets.txt");
+}
+
 // Delete target with id using API
 function deleteTarget(target_id) {
     $.ajax({
@@ -367,7 +386,7 @@ function drawTargetTable() {
     $('#targetTable').dataTable({
         "bAutoWidth": false,
         "bSort": false, // Not yet supported in API, can after shifting to postgres
-	"stateSave": true,
+        "stateSave": true,
         "bServerSide": true,
         "ajax": dummyAjax,
         "fnDrawCallback": function( settings ) {
@@ -403,7 +422,7 @@ $(document).ready(function() {
     // Initialize session table but donot populate until modal is opened
     $('#sessionTable').dataTable({
         "bAutoWidth": false,
-	"stateSave": true,
+        "stateSave": true,
         "columnDefs": [{
           "targets": [0],
           "orderable": false
@@ -414,6 +433,7 @@ $(document).ready(function() {
         updateSessions();
     });
     updateCurrentSessionInfo()
+    getTargets()
 });
 </script>
 {% end %}
