@@ -151,13 +151,25 @@ function pluginLaunchSuccess(){
     alertSuccess("Selected plugins launched, please check worklist to manage :D");
 }
 
+
+function getTargets(){
+    //get targets for the current session
+    targetsArray = [];
+    $.getJSON('/api/targets/', function(data) {
+        $.each(data, function(index, obj) {
+            targetsArray.push(obj["target_url"] + '\n');
+        });
+    });
+    return(targetsArray);
+}
+
 // Remove target from current session
 function removeTargetFromCurrentSession(target_id) {
     session_id = $('#sessionId').val();
     $.ajax({url:mySpace.owtf_sessions_api_url+session_id+'/remove',
         type:'PATCH',
         data:{'target_id':target_id},
-        success: updateCurrentSessionInfo,
+        success: updateCurrentSessionInfo, getTargets,
         error:function(xhr, textStatus, serverResponse){
             alertFail("Server replied: "+serverResponse);
             }
@@ -171,7 +183,7 @@ function newSession(session_name) {
                 url:mySpace.owtf_sessions_api_url,
                 type:'POST',
                 data:{name:session_name},
-                success: function() { updateSessions(); updateCurrentSessionInfo(); },
+                success: function() { updateSessions(); updateCurrentSessionInfo(); getTargets()},
                 error:function(xhr, textStatus, serverResponse){
                     alertFail("Unable to add "+session_name);
                     }
@@ -184,7 +196,7 @@ function deleteSession(session_id) {
     $.ajax({
             url:mySpace.owtf_sessions_api_url+session_id,
             type:'DELETE',
-            success: function() { updateSessions(); updateCurrentSessionInfo(); },
+            success: function() { updateSessions(); updateCurrentSessionInfo(); getTargets();},
             error:function(xhr, textStatus, serverResponse){
                 alertFail("Server replied: "+serverResponse);
                 }
@@ -195,7 +207,7 @@ function deleteSession(session_id) {
 function activateSession(session_id) {
     $.ajax({url:mySpace.owtf_sessions_api_url+session_id+'/activate',
         type:'PATCH',
-        success: updateCurrentSessionInfo,
+        success: updateCurrentSessionInfo, getTargets,
         error:function(xhr, textStatus, serverResponse){
             alertFail("Server replied: "+serverResponse);
             }
@@ -219,7 +231,7 @@ function addSessions(data, status, xhr){
 
 // Function to update sessions in the list
 function updateSessions() {
-    $.getJSON( mySpace.owtf_sessions_api_url, addSessions);
+    $.getJSON( mySpace.owtf_sessions_api_url, addSessions, getTargets );
 }
 
 // get label color for target rating
@@ -267,17 +279,7 @@ function updateCurrentSessionInfo(){
     });
     // Update targets as well
     $('#targetTable').dataTable().fnDraw(true);
-}
-
-function getTargets(){
-    //get targets for the current session
-    targetsArray = [];
-    $.getJSON('/api/targets/', function(data) {
-        $.each(data, function(index, obj) {
-            targetsArray.push(obj["target_url"] + '\n');
-        });
-    });
-    return(targetsArray);
+    getTargets();
 }
 
 //Export all targets for the current session to a text file
@@ -433,7 +435,6 @@ $(document).ready(function() {
         updateSessions();
     });
     updateCurrentSessionInfo()
-    getTargets()
 });
 </script>
 {% end %}
