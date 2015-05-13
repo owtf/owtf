@@ -69,7 +69,7 @@
 
     </div>
 
-    <div class="row ">
+    <div class="container-fluid row">
       <div class="col-md-12">
          <table id="transactionLog" class="table table-striped table-bordered">
             <thead>
@@ -82,6 +82,7 @@
                     <th class="textSearch"> URL </th>
                     <th> Raw Request </th>
                     <th> Response Headers </th>
+                    <th> Response Size </th>
                     <th> Response Body </th>
                 </tr>
             </thead>
@@ -188,7 +189,6 @@ var oTable;
 
 //function to make checkboxes and footer visible
 function createZestBtn(){
-
         disableInput("#createZest");
         fnShowHide(0);
         makeFooterVisible();
@@ -361,7 +361,7 @@ function showTransactionWithOffset(offset) {
       if (mySpace.search_parameters["response_headers"] !== undefined)
         response_headers_highlight.push(mySpace.search_parameters["response_headers"]);
       $("#raw_response_headers_pre").highlight(response_headers_highlight);
-      // THen the response body
+      // Then the response body
       $("#raw_response_body_pre").text(obj.response_body);
       if (mySpace.search_parameters["response_body"] !== undefined) {
         $("#raw_response_body_pre").highlight(mySpace.search_parameters["response_body"]);
@@ -392,6 +392,7 @@ function getArray(data, starting_offset) {
         obj.url,
         null,
         null,
+        obj.response_size,
         null
       ]);
     });
@@ -402,7 +403,6 @@ function dummyAjax(data, callback, settings) {
   // This function takes care of converting dataTable data into owtf api
   // and then the response back to dataTables type
   // Disabling all inputs when processing
-  disableInput('input');
   var get_parameters = {};
   var draw = data.draw;
   get_parameters['limit'] = data.length;
@@ -414,7 +414,8 @@ function dummyAjax(data, callback, settings) {
     5: 'url',
     6: 'raw_request',
     7: 'response_headers',
-    8: 'response_body'
+    8: 'response_size',
+    9: 'response_body'
   };
 
   // Iterate over mappings and add search parameters
@@ -445,7 +446,7 @@ function drawTable() {
       "ajax": dummyAjax,
       "sDom": "ltip", // Remove global search & processing message
       "columnDefs": [{
-        "targets": [6, 7, 8],
+        "targets": [6, 7, 9],
         "visible": false,
         "searchable": true
       }],

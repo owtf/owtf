@@ -93,6 +93,7 @@ class Transaction(Base):
     raw_request = Column(Text)
     response_status = Column(String)
     response_headers = Column(Text)
+    response_size = Column(Integer, nullable=True)
     response_body = Column(Text, nullable=True)
     binary_response = Column(Boolean, nullable=True)
     session_tokens = Column(String, nullable=True)

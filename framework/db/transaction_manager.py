@@ -201,6 +201,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 trans.data,
                 trans.raw_request,
                 trans.response_headers,
+                len(response_body),
                 response_body)
             return owtf_transaction
         return (None)
@@ -230,6 +231,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 response_status=transaction.GetStatus(),
                 response_headers=transaction.GetResponseHeaders(),
                 response_body=response_body,
+                response_size=len(response_body),
                 binary_response=binary_response,
                 session_tokens=transaction.GetSessionTokens(),
                 login=None,
