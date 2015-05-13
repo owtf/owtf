@@ -42,7 +42,7 @@ a, a:active, a:focus {
 
 </style>
 
-<div class="container">
+<div class="container-fluid">
   <div style="text-align: center;">
     <div class="tabbable">
       <ul class="nav nav-tabs">
@@ -105,7 +105,7 @@ function getInitialRequest(){
 //callback function after successful response
 function afterGet(obj){
           var $tabs = $('.tabbable li');
-          $tabs.filter('.active').next('li').find('a[data-toggle="tab"]').tab('show'); //enables response tab 
+          $tabs.filter('.active').next('li').find('a[data-toggle="tab"]').tab('show'); //enables response tab
           $("#raw_response_headers").text(obj.STATUS+"\r\n"+obj.HEADERS);
           $("#raw_response_body").text(obj.BODY);
           //TODO : figure out what to do if binary response
@@ -116,7 +116,7 @@ function afterGet(obj){
             }*/
 }
 
-//this function posts the modified request 
+//this function posts the modified request
 function replayRequest(){
     var str=$('#request_area').val();
     $.ajax({
@@ -127,7 +127,7 @@ function replayRequest(){
             error:function(xhr, textStatus, serverResponse){
             alert("Server replied: "+serverResponse);
                 }
-                
+
             });
 }
 

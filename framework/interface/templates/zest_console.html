@@ -49,7 +49,7 @@ body {
 
 /* 2nd level */
 .tree > li > label {
-  padding:10px 15px;  
+  padding:10px 15px;
 }
 
 /* 3rd level */
@@ -74,7 +74,7 @@ body {
 {% block content %}
 
 <div class="container">
-  <div class="row">
+  <div class="row-fluid">
       <div class="col-md-3">
           <div class="well">
               <div>
@@ -89,7 +89,7 @@ body {
                         <ul id="tar_scripts" class="nav tree">
                         </ul>
                       </li>
-                
+
                   </ul>
               </div>
           </div>
@@ -105,7 +105,7 @@ body {
       <pre id="script_output"></pre>
        </div>
      </div>
-          <div class="row pull-right" style="text-align:center" >
+          <div class="row-fluid pull-right" style="text-align:center" >
 
   <button class="btn btn-primary" onclick="recordToggle()"
     id="recordZest">Record a Zest Script!</button>
@@ -135,7 +135,7 @@ body {
       <div class="modal-footer">
          <button type="button" class="btn-primary" id="startBtn" onclick="startRecording()">Start</button>
         <button type="button" class="btn-default"  data-dismiss="modal">Cancel</button>
-       
+
       </div>
     </div>
   </div>
@@ -164,7 +164,7 @@ function runZestScript(){
     runScript(script);
 }
 
-//actually runs the script by sending script name and type 
+//actually runs the script by sending script name and type
 function runScript(script){
    var id = script.parent().attr('id');
    if (id=="tar_scripts"){
@@ -269,13 +269,13 @@ function validateFilename(elem){
 
 // focuses/clears textbox in script modal window
 $('#ScriptModal').on('show.bs.modal', function (e) {
-   
+
         $('#textareaID').focus();
         ClearText("textareaID");
         $("#Filecheck").text('');
 });
 
-//clears text 
+//clears text
 function ClearText(id){
 
         id='#'+id;
@@ -287,7 +287,7 @@ function startRecording(){
      var file_name=$('#textareaID').val();
      //validates file name using regex
      if(validateFilename(file_name)){
-  
+
         $.ajax({
             url:mySpace.zest_console_api_url+"?record=true&file="+file_name,
             type:'GET',
@@ -295,8 +295,8 @@ function startRecording(){
             error:function(xhr, textStatus, serverResponse){
             alert("Server replied: "+serverResponse);
                 }
-                
-            });      
+
+            });
       }
 
 
@@ -316,7 +316,7 @@ function recordToggle(){
     }
 }
 
-//Checks whether file exists else success 
+//Checks whether file exists else success
 function checkIfFileExists(data, Status, xhr){
 
         if(data.exists!="true"){
