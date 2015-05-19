@@ -21,14 +21,13 @@
         </div>
     <div class="row-fluid" align="left" style="margin-top:10px;">
           <button class="btn btn-primary" id="addTargetBtn" type="button" onclick="newTargets($('#newTargetUrls').val(), this);">Add Targets</button>
-          <a class="btn btn-success" value="Export Targets" download="targets.txt" id="exportTargetsBtn" onclick="javascript:exportTargets()">Export Targets</a>
     </div>
     </div>
     <!-- End Input area for new targets -->
     <!-- Target list -->
     <div class="col-xs-12 col-sm-12 col-md-6 col-lg6">
         <div class="row-fluid">
-            <div class="col-md-8">
+            <div class="col-md-6">
                 <div class="input-group">
                     <div class="input-group">
                       <input type="text" id="sessionName" class="form-control" value="Session" readonly>
@@ -41,9 +40,12 @@
                     </div><!-- /input-group -->
                 </div>
             </div>
-            <div class="col-md-4">
-                <button class="btn btn-success pull-right" data-toggle="modal" data-target="#pluginLaunchModal">
-                    <i class="fa fa-flash"></i> Run Plugins
+            <div class="col-md-6 btn-group">
+                <button type="button" class="btn btn-default" download="targets.txt" id="exportTargetsBtn" onclick="exportTargets();">
+                    <i class="fa fa-list"></i> Export
+                </button>
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#pluginLaunchModal">
+                    <i class="fa fa-flash"></i> Run
                 </button>
             </div>
         </div>
@@ -331,22 +333,22 @@ function newTargets(targetUrlsString, button) {
     // Since we only have valid urls now in targetUrls, add them using api
     // Proceed only if there is atleast one valid url
     if (targetUrls.length > 0) {
-        $.ajax({
-                url:mySpace.targets_api_url,
-                type:'POST',
-                data:$.param({'target_url':targetUrls}, true),
-                success: function() {
-                    updateCurrentSessionInfo();
-                    enableInput("#addTargetBtn");
-                },
-                error:function(xhr, textStatus, serverResponse) {
-                    alertFail("Unable to add some targets");
-                    enableInput("#addTargetBtn");
-                }
-        });
-    } else {
-        enableInput("#addTargetBtn"); // If the valid targetUrls length is 0 then input remains disabled forever
+        for (var i=0; i < targetUrls.length; i++) {
+            $.ajax({
+                    url:mySpace.targets_api_url,
+                    type:'POST',
+                    data:{'target_url':targetUrls[i]},
+                    success: function() {
+                        updateCurrentSessionInfo();
+                    },
+                    error:function(xhr, textStatus, serverResponse) {
+                        alertFail("Unable add " + escapeHtml(unescape(this.data.split(/\=(.+)?/)[1])));
+                    }
+            });
+        }
+        alertInfo("Targets are being added in the background, and will appear in the table soon");
     }
+    enableInput("#addTargetBtn"); // If the valid targetUrls length is 0 then input remains disabled forever
 }
 
 function getArray(data) {
