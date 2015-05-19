@@ -7,56 +7,46 @@ import tornado.options
 from framework.lib.owtf_process import OWTFProcess
 
 
-class InterfaceServer(BaseComponent):
-    def __init__(self):
-        self.config = self.get_component("config")
-        self.db_config = self.get_component("db_config")
-        self.worker_manager = self.get_component("worker_manager")
-        self.application = tornado.web.Application(
+class InterfaceServer(OWTFProcess, BaseComponent):
+    def pseudo_run(self):
+        self.get_component("core").disable_console_logging()
+        config = self.get_component("config")
+        db_config = self.get_component("db_config")
+        db = self.get_component("db")
+        application = tornado.web.Application(
             handlers=urls.get_handlers(),
-            template_path=self.config.FrameworkConfigGet(
+            template_path=config.FrameworkConfigGet(
                 'INTERFACE_TEMPLATES_DIR'),
             debug=False,
             gzip=True,
             compiled_template_cache=False
             )
-        self.server = tornado.httpserver.HTTPServer(self.application)
-        # 'self.manage_cron' is an instance of class 'tornado.ioloop.PeriodicCallback',
-        # it schedules the given callback to be called periodically.
-        # The callback is called every 2000 milliseconds.
-        self.manager_cron = tornado.ioloop.PeriodicCallback(
-            self.worker_manager.manage_workers,
-            2000)
-
-    def start(self):
+        self.server = tornado.httpserver.HTTPServer(application)
         try:
             self.server.bind(
-                int(self.config.FrameworkConfigGet(
+                int(config.FrameworkConfigGet(
                     "UI_SERVER_PORT")),
-                address=self.config.FrameworkConfigGet(
+                address=config.FrameworkConfigGet(
                     "UI_SERVER_ADDR")
                 )
             tornado.options.parse_command_line(
                 args=[
                     'dummy_arg',
-                    '--log_file_prefix='+self.db_config.Get('UI_SERVER_LOG'),
+                    '--log_file_prefix='+db_config.Get('UI_SERVER_LOG'),
                     '--logging=info']
                 )
-            self.server.start(1)
-            self.manager_cron.start()
+            self.server.start(0)
+            db.create_session()
             tornado.ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:
             pass
 
-    def clean_up(self):
-        """Properly stop any tornado callbacks."""
-        self.manager_cron.stop()
 
+class FileServer(BaseComponent):
 
-class FileServer(OWTFProcess, BaseComponent):
-
-    def pseudo_run(self):
+    def start(self):
         try:
+            self.worker_manager = self.get_component("worker_manager")
             self.get_component("core").disable_console_logging()
             config = self.get_component("config")
             db = self.get_component("db")
@@ -81,6 +71,19 @@ class FileServer(OWTFProcess, BaseComponent):
                     '--logging=info']
                 )
             self.server.start(1)
+            # 'self.manage_cron' is an instance of class 'tornado.ioloop.PeriodicCallback',
+            # it schedules the given callback to be called periodically.
+            # The callback is called every 2000 milliseconds.
+            self.manager_cron = tornado.ioloop.PeriodicCallback(
+                self.worker_manager.manage_workers,
+                2000)
+            self.manager_cron.start()
             tornado.ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:
             pass
+        finally:
+            self.clean_up()
+
+    def clean_up(self):
+        """Properly stop any tornado callbacks."""
+        self.manager_cron.stop()

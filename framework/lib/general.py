@@ -59,6 +59,25 @@ def MultipleReplace(Text, ReplaceDict):
             NewText = NewText.replace(Search, str(Replace))
     return NewText
 
+def check_pid(pid):
+    """Check whether pid exists in the current process table.
+    UNIX only.
+    """
+    try:
+        os.kill(pid, 0)
+    except OSError as err:
+        if err.errno == errno.ESRCH:
+            # ESRCH == No such process
+            return False
+        elif err.errno == errno.EPERM:
+            # EPERM clearly means there's a process to deny access to
+            return True
+        else:
+            # According to "man 2 kill" possible error values are
+            # (EINVAL, EPERM, ESRCH)
+            raise
+    else:
+        return True
 
 def WipeBadCharsForFilename(Filename):
     return MultipleReplace(Filename, { '(':'', ' ':'_', ')':'', '/':'_' })

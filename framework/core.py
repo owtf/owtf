@@ -230,7 +230,8 @@ class Core(BaseComponent):
           the last handler to disable console logging
         """
         logger = logging.getLogger()
-        logger.removeHandler(logger.handlers[-1])
+        if isinstance(logger.handlers[-1], logging.StreamHandler):
+            logger.removeHandler(logger.handlers[-1])
 
     def start(self, options):
         """Start OWTF.
@@ -279,16 +280,16 @@ class Core(BaseComponent):
         """
         This method starts the interface server
         """
-        self.FileServer = server.FileServer()
-        self.FileServer.start()
         self.interface_server = server.InterfaceServer()
         logging.warn(
             "http://%s:%s <-- Web UI URL",
             self.config.FrameworkConfigGet("SERVER_ADDR"),
             self.config.FrameworkConfigGet("UI_SERVER_PORT"))
-        self.disable_console_logging()
         logging.info("Press Ctrl+C when you spawned a shell ;)")
+        self.disable_console_logging()
         self.interface_server.start()
+        self.FileServer = server.FileServer()
+        self.FileServer.start()
 
     def run_cli(self):
         """This method starts the CLI server."""
@@ -327,8 +328,6 @@ class Core(BaseComponent):
             # Stop any tornado instance.
             if getattr(self, "cli_server", None) is not None:
                 self.cli_server.clean_up()
-            if getattr(self, "interface_server", None) is not None:
-                self.interface_server.clean_up()
             tornado.ioloop.IOLoop.instance().stop()
             exit(0)
 

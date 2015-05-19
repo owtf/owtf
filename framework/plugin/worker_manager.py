@@ -39,6 +39,7 @@ import multiprocessing
 import Queue
 from framework.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
 from framework.dependency_management.interfaces import WorkerManagerInterface
+from framework.lib.general import check_pid
 from framework.lib.owtf_process import OWTFProcess
 from framework.lib.exceptions import InvalidWorkerReference
 
@@ -154,8 +155,8 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         """
         # Loop while there is some work in worklist
         for k in range(0, len(self.workers)):
-            if (not self.workers[k]["worker"].output_q.empty()) or (not self.workers[k]["worker"].is_alive()):
-                if self.workers[k]["worker"].is_alive():
+            if (not self.workers[k]["worker"].output_q.empty()) or (not check_pid(self.workers[k]["worker"].pid)):
+                if check_pid(self.workers[k]["worker"].pid):
                     # Assign target, plugin from tuple work and empty the tuple
                     self.workers[k]["work"] = ()
                     self.workers[k]["busy"] = False  # Worker is IDLE
