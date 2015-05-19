@@ -5,6 +5,7 @@
 {% block includes %}
 <script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/dataTables.responsive.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="/static/js/jquery.highlight.js"></script>
 
 <link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
@@ -40,7 +41,7 @@
 {% block content %}
 <div id="wrap">
   <div class="container">
-    <div class="row-fluid top-buffer">
+    <div class="row top-buffer">
       <div class="col-md-12">
         <div class="col-md-12">
           <div class="btn-group pull-right">
@@ -71,7 +72,7 @@
 
     <div class="container-fluid row-fluid">
       <div class="col-md-12">
-         <table id="transactionLog" class="table table-striped table-bordered">
+         <table id="transactionLog" class="table table-striped table-bordered dt-responsive">
             <thead>
                 <tr>
                     <th> Select </th>

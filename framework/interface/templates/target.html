@@ -6,6 +6,7 @@
 <!-- DataTable Requirements -->
 <script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/dataTables.responsive.min.js"></script>
 <link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
 <!-- End DataTable requirements -->
 
@@ -18,7 +19,7 @@
 {% block content %}
 <!-- Target INFO display, populated using JS and OWTF Sweet API -->
 <div class="page-header">
-    <div class="row-fluid">
+    <div class="row">
         <div class="col-md-8">
             <h2 id="TargetInfo"></h2>
         </div>
@@ -30,7 +31,7 @@
 <!-- End Target INFO -->
 
 <!-- Buttons for few actions and logs -->
-<div class="row-fluid">
+<div class="row">
     <div class="pull-right">
         <div class="btn-group">
             <!-- Modal content is present in plugin report -->
