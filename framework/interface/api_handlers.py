@@ -545,7 +545,11 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
 
 
 class WorkerHandler(custom_handlers.APIRequestHandler):
-    SUPPORTED_METHODS = ['GET', 'POST', 'DELETE']
+    SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'OPTIONS']
+
+    def set_default_headers(self):
+        self.add_header("Access-Control-Allow-Origin","*")
+        self.add_header("Access-Control-Allow-Methods","GET, POST, DELETE")
 
     def get(self, worker_id=None, action=None):
         if not worker_id:
@@ -564,6 +568,9 @@ class WorkerHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
         self.get_component("worker_manager").create_worker()
         self.set_status(201)  # Stands for "201 Created"
+
+    def options(self, worker_id=None, action=None):
+        self.set_status(200)
 
     def delete(self, worker_id=None, action=None):
         if (not worker_id) or action:

@@ -41,6 +41,7 @@ import sys
 import threading
 import time
 import base64
+import errno
 
 
 def cprint(Message):
