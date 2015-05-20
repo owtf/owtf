@@ -5,12 +5,13 @@
 {% block includes %}
 <script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/dataTables.responsive.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="/static/js/filesaver.min.js"></script>
 <link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
 {% end %}
 
 {% block content %}
-<div class="row-fluid">
+<div class="row">
     <!-- Input area to add new targets -->
     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <div class="row-fluid">
@@ -26,7 +27,7 @@
     <!-- End Input area for new targets -->
     <!-- Target list -->
     <div class="col-xs-12 col-sm-12 col-md-6 col-lg6">
-        <div class="row-fluid">
+        <div class="row">
             <div class="col-md-6">
                 <div class="input-group">
                     <div class="input-group">
@@ -52,7 +53,7 @@
         <br>
         <div class="row-fluid">
             <div class="col-md-12">
-                <table id='targetTable' class="table table-striped table-condensed">
+                <table id='targetTable' class="table table-striped table-condensed dt-responsive">
                     <thead>
                         <tr>
                             <th><input type="checkbox" id="targetTableSelectAllCheckbox" onclick="toggleAll(this);"/></th>
@@ -87,7 +88,7 @@
             </div><!-- /input-group -->
         </div>
         <div class="modal-body">
-            <table id='sessionTable' class="table table-striped table-condensed">
+            <table id='sessionTable' class="table table-striped table-condensed dt-responsive">
                 <thead>
                     <tr>
                         <td></td>

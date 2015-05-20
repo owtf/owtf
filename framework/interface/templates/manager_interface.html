@@ -3,17 +3,18 @@
 {% block title %}Manager Interface{% end %}
 
 {% block includes %}
+<link href="/static/css/span-fix.css" rel="stylesheet">
 {% end %}
 
 {% block content %}
 <!-- Workers Info Area -->
-<div class="row-fluid">
+<div class="row">
     <div class="col-md-2 col-md-offset-10">
         <button class="btn btn-md btn-success pull-right" onclick="addWorker();"><i class="fa fa-plus"></i> Add worker!</button>
     </div>
 </div>
 <br>
-<div class="row-fluid" id="workersInfo">
+<div class="row" id="workersInfo">
 </div>
 <!-- End Workers Info Area -->
 <script>
@@ -85,7 +86,7 @@ function displayWorkersInfo(){
                         // We add three span3 panels in a row, so we use index to add
                         // opening and closing tags for a row
                         if (index%2 === 0)
-                            $('#workersInfo').append('<div class="row-fluid">');
+                            $('#workersInfo').append('<div class="col col-md-4 row-fluid">');
 
                         html = '<div class="span5 panel ';
                         if (obj.busy && !obj.paused){
