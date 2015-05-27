@@ -1,5 +1,5 @@
-Intro
-===
+![](https://www.owasp.org/images/5/5c/Flagship_big.jpg)
+
 
 **OWTF** aims to make pen testing:
 
@@ -59,11 +59,11 @@ OWTF uses **PostgreSQL** as the database backend. All core **OWTF** functions an
 
 ### Follows popular pen-testing standards
 
-**OWTF** will try to classify the findings as closely as possible to the **OWASP Testing Guide**. It also supports the **NIST** and the **PTES** standards.
+- **OWTF** will try to classify the findings as closely as possible to the **OWASP Testing Guide**. It also supports the **NIST** and the **PTES** standards.
 
-**PlugnHack v2 support** :  **PlugnHack** is a *proposed* standard from the **Mozilla** security team for defining how security tools can interact with browsers in a more useful and usable way.
+- **PlugnHack v2 support** :  **PlugnHack** is a *proposed* standard from the **Mozilla** security team for defining how security tools can interact with browsers in a more useful and usable way.
 
-**Zest and OWASP-ZAP integration** : **Zest** is an experimental specialized *scripting language* (domain-specific ) developed by the **Mozilla** security team and is intended to be used in web oriented security tools.
+- **Zest and OWASP-ZAP integration** : **Zest** is an experimental specialized *scripting language* (domain-specific ) developed by the **Mozilla** security team and is intended to be used in web oriented security tools.
 
 
 ### Responsive web interface
@@ -108,8 +108,7 @@ Recommended:
 
 ```bash
 wget -N https://raw.githubusercontent.com/owtf/bootstrap-script/master/bootstrap.sh
-chmod +x bootstrap.sh
-./bootstrap.sh
+bash bootstrap.sh
 ```
 
 or simply clone the latest version of **OWTF**.
