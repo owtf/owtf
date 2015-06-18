@@ -5,7 +5,6 @@
 {% block includes %}
 <script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
-<script type="text/javascript" charset="utf-8" src="/static/js/dataTables.responsive.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="/static/js/jquery.highlight.js"></script>
 
 <link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
@@ -83,7 +82,6 @@
                     <th class="textSearch"> URL </th>
                     <th> Raw Request </th>
                     <th> Response Headers </th>
-                    <th> Response Size </th>
                     <th> Response Body </th>
                 </tr>
             </thead>
@@ -393,7 +391,6 @@ function getArray(data, starting_offset) {
         obj.url,
         null,
         null,
-        obj.response_size,
         null
       ]);
     });
@@ -415,8 +412,7 @@ function dummyAjax(data, callback, settings) {
     5: 'url',
     6: 'raw_request',
     7: 'response_headers',
-    8: 'response_size',
-    9: 'response_body'
+    8: 'response_body'
   };
 
   // Iterate over mappings and add search parameters
@@ -442,14 +438,13 @@ function drawTable() {
     $('#transactionLog').dataTable({
       "bAutoWidth": false,
       "bSort": false, // Not yet supported in API, can after shifting to postgres
-      "stateSave": true,
       "bServerSide": true,
       "ajax": dummyAjax,
       "sDom": "ltip", // Remove global search & processing message
       "columnDefs": [{
-        "targets": [6, 7, 9],
+        "targets": [6, 7, 8],
         "visible": false,
-        "searchable": true
+        "searchable": true,
       }],
     });
 
@@ -489,8 +484,8 @@ function drawTable() {
 
 $(document).ready(function() {
         drawTable();
-        fnShowHide(0);
         makeFooterInvisible();
+        fnShowHide(0);
 });
 </script>
 {% end %}
