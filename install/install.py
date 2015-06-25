@@ -99,6 +99,12 @@ class Installer(object):
         # First all distro independent stuff is installed
         self.install_restricted_from_cfg(self.restricted_cfg)
 
+        # Upgrade pip before install required libraries
+        self.run_command("sudo pip2 install --upgrade pip")
+
+        # Remove the setuptools.egg-info symlink
+        self.run_command("sudo rm -rf /usr/lib/python2.7/dist-packages/setuptools.egg-info")
+
         # Finally owtf python libraries installed using pip
         self.install_using_pip(self.owtf_pip)
 
