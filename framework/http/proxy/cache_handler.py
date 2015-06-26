@@ -34,6 +34,7 @@ import re
 import os
 import hashlib
 from framework.lib.filelock import FileLock
+import datetime
 
 class CacheHandler(object):
     """
@@ -103,6 +104,7 @@ class CacheHandler(object):
                             'request_url':self.request.url,
                             'request_version':self.request.version,
                             'request_headers':self.request.headers,
+                            'request_local_timestamp':self.request.local_timestamp,
                             'request_body':self.request.body,
                             'response_code':response.code,
                             'response_headers':response.headers,
@@ -155,6 +157,9 @@ class CacheHandler(object):
         reqTime_file = open(os.path.join(self.cache_dir, 'resp-time', self.request_hash), 'w')
         reqTime_file.write("%s"%(str(response.request_time)))
         
+        reqLocalTime_file = open(os.path.join(self.cache_dir, 'req-local_timestamp', self.request_hash), 'w')
+        reqLocalTime_file.write("%s"%(str(self.request.local_timestamp.isoformat())))
+
         # This approach can be used as an alternative for object sharing
         # This creates a file with hash as name and .rd as extension
         open(self.file_path + '.rd', 'w').close()
@@ -242,6 +247,11 @@ def request_from_cache(request_hash, cache_dir):
     # Extra attrs
     dummyRequest.raw_request = open(os.path.join(cache_dir, 'url', request_hash), 'r').read() + "\r\n"
     dummyRequest.raw_request += open(os.path.join(cache_dir, 'req-headers', request_hash), 'r').read() + "\r\n"
+
+    #converting to a datetime object from a string as in Model we have DateTime Column
+    local_s = open(os.path.join(cache_dir, 'req-local_timestamp', request_hash), 'r').read() + "\r\n"
+    dummyRequest.local_timestamp = datetime.datetime.strptime(local_s.strip("\r\n"), '%Y-%m-%dT%H:%M:%S.%f')
+
     if dummyRequest.body:
         dummyRequest.raw_request += open(os.path.join(cache_dir, 'req-body', request_hash), 'r').read() + "\r\n\r\n"
     # Temp object is created as an alternative to use lists (or) dictionaries for passing values

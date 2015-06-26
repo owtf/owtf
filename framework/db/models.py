@@ -90,6 +90,7 @@ class Transaction(Base):
     data = Column(String, nullable=True)  # Post DATA
     time = Column(Float(precision=10))
     time_human = Column(String)
+    local_timestamp = Column(DateTime)
     raw_request = Column(Text)
     response_status = Column(String)
     response_headers = Column(Text)

@@ -198,6 +198,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 trans.response_status,
                 str(trans.time),
                 trans.time_human,
+                trans.local_timestamp,
                 trans.data,
                 trans.raw_request,
                 trans.response_headers,
@@ -227,6 +228,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 data=transaction.Data,
                 time=float(transaction.Time),
                 time_human=transaction.TimeHuman,
+                local_timestamp=transaction.LocalTimeStamp,
                 raw_request=transaction.GetRawRequest(),
                 response_status=transaction.GetStatus(),
                 response_headers=transaction.GetResponseHeaders(),
@@ -462,6 +464,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
         # Create a new copy so no accidental changes
         tdict = dict(tdb_obj.__dict__)
         tdict.pop("_sa_instance_state")
+        tdict["local_timestamp"] = tdict["local_timestamp"].isoformat()        
         if not include_raw_data:
             tdict.pop("raw_request", None)
             tdict.pop("response_headers", None)

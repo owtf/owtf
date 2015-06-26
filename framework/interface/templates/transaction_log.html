@@ -77,6 +77,7 @@
                     <th> Select </th>
                     <th> Link </th>
                     <th> Time </th>
+                    <th> Time Started </th>
                     <th class="textSearch"> Method </th>
                     <th class="textSearch"> Status </th>
                     <th class="textSearch"> URL </th>
@@ -386,6 +387,7 @@ function getArray(data, starting_offset) {
         '<input  type="checkbox"  class="check" name="'+obj.id+'"/>',
         btns,
         obj.time_human,
+        obj.local_timestamp,
         obj.method,
         obj.response_status,
         obj.url,
@@ -407,12 +409,12 @@ function dummyAjax(data, callback, settings) {
   get_parameters['offset'] = data.start;
 
   var columnMappings = {
-    3: 'method',
-    4: 'response_status',
-    5: 'url',
-    6: 'raw_request',
-    7: 'response_headers',
-    8: 'response_body'
+    4: 'method',
+    5: 'response_status',
+    6: 'url',
+    7: 'raw_request',
+    8: 'response_headers',
+    9: 'response_body'
   };
 
   // Iterate over mappings and add search parameters
@@ -442,7 +444,7 @@ function drawTable() {
       "ajax": dummyAjax,
       "sDom": "ltip", // Remove global search & processing message
       "columnDefs": [{
-        "targets": [6, 7, 8],
+        "targets": [7, 8, 9],
         "visible": false,
         "searchable": true,
       }],
