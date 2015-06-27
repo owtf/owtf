@@ -27,7 +27,11 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 import os
+import time
+from datetime import datetime
+
 import ConfigParser
+
 
 class Installer(object):
     """
@@ -99,14 +103,31 @@ class Installer(object):
         # First all distro independent stuff is installed
         self.install_restricted_from_cfg(self.restricted_cfg)
 
+        print("Upgrading pip to the latest version ...")
         # Upgrade pip before install required libraries
         self.run_command("sudo pip2 install --upgrade pip")
 
-        # Remove the setuptools.egg-info symlink
-        self.run_command("sudo rm -rf /usr/lib/python2.7/dist-packages/setuptools.egg-info")
+        # ask the user if they really want to delete the symlink
+        fixsetuptools = raw_input("Delete /usr/lib/python2.7/dist-packages/setuptools.egg-info? (y/n)\n(recommended, solves some issues)")
 
-        # Finally owtf python libraries installed using pip
-        self.install_using_pip(self.owtf_pip)
+        if fixsetuptools == 'y':
+            # backup the original symlink
+            print("Backing up the original symlink...")
+            ts = time.time()
+            human_timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+
+            # backup the original symlink
+            self.run_command("mv /usr/lib/python2.7/dist-packages/setuptools.egg-info /usr/lib/python2.7/dist-packages/setuptools.egg-info" + "-BACKUP-" + human_timestamp)
+
+            print("The original symlink exists at /usr/lib/python2.7/dist-packages/setuptools.egg-info-BACKUP-" + human_timestamp)
+
+            # Finally owtf python libraries installed using pip
+            self.install_using_pip(self.owtf_pip)
+
+        else:
+            print("Moving on with the installation but you were warned: there may be some errors!")
+            # Finally owtf python libraries installed using pip
+            self.install_using_pip(self.owtf_pip)
 
 if __name__ == "__main__":
     print("[*] Great that your are installing OWTF :D")
