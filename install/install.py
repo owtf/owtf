@@ -114,7 +114,7 @@ class Installer(object):
             # backup the original symlink
             print("Backing up the original symlink...")
             ts = time.time()
-            human_timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+            human_timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H:%M:%S')
 
             # backup the original symlink
             self.run_command("mv /usr/lib/python2.7/dist-packages/setuptools.egg-info /usr/lib/python2.7/dist-packages/setuptools.egg-info" + "-BACKUP-" + human_timestamp)
