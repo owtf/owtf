@@ -30,9 +30,9 @@
 # extensively on Kali
 
 get_config_value(){
-
+    current_user=$(logname)
     parameter=$1
-    file=$2
+    file="/home/$current_user/.owtf/db.cfg"
 
     echo "$(grep -i $parameter $file | sed  "s|$parameter: ||g;s|~|$HOME|g")"
 }

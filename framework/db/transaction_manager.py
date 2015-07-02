@@ -36,7 +36,6 @@ import re
 import json
 import base64
 import logging
-import datetime
 
 from sqlalchemy import desc, asc
 from collections import defaultdict
@@ -45,7 +44,6 @@ from framework.lib.exceptions import InvalidTransactionReference, \
                                      InvalidParameterType
 from framework.http import transaction
 from framework.db import models
-from pkg_resources.tests.test_pkg_resources import timestamp
 
 
 # The regex find differs for these types :P
@@ -229,13 +227,12 @@ class TransactionManager(object):
             return transaction_model
 
     @target_required
-    def LogTransactions(self, transaction_list, target_id=None, timestamp):
+    def LogTransactions(self, transaction_list, target_id=None):
         """
         This function does the following things in order
         + Add all transactions to a session and commit
         + Add all the grepped results and commit
         + Add all urls to url db
-        + Add timestamp to all transactions
         """
         # Create a usable session
         # Initiate urls_list for holding urls and transaction_model_list
@@ -287,7 +284,6 @@ class TransactionManager(object):
                                 self.Core.DB.session.merge(existing_grep_output)
                             else:
                                 self.Core.DB.session.add(models.GrepOutput(
-                                    transaction_timestamp=timestamp,
                                     target_id=target_id,
                                     transactions=[transaction_model],
                                     name=regex_name,
@@ -301,12 +297,11 @@ class TransactionManager(object):
             self.Core.zest.addtoRecordedTrans(zest_trans_list)
         self.Core.DB.URL.ImportProcessedURLs(urls_list, target_id=target_id)
 
-    def LogTransactionsFromLogger(self, transactions_dict, timestamp):
+    def LogTransactionsFromLogger(self, transactions_dict):
         # transaction_dict is a dictionary with target_id as key and list of owtf transactions
         for target_id, transaction_list in transactions_dict.items():
             if transaction_list:
-                ts = datetime.datetime.now()
-                self.LogTransactions(transaction_list, target_id=target_id, timestamp=ts)
+                self.LogTransactions(transaction_list, target_id=target_id)
 
     @target_required
     def DeleteTransaction(self, transaction_id, target_id=None):
