@@ -1,3 +1,5 @@
+03/07/2015 - 1.0.1 "Lionheart", Wes Renshaw (@Wes_Renshaw).
++ New installation scripts: OWTF now has support for Debain installs, tested on Debian 3.16.7-ckt11-1
 14/01/2014 - 0.45.0 "Winter Blizzard" alpha release: Dedicated to Alessandro Fanio Gonzalez (@alessandrofg), Ankush Jindal (@ankushjindal278), Assem Chelli (@assem-ch), Bharadwaj Machiraju (@tunnelshade), Marios Kourtesis (@marioskourtesis) & their mentors:  Andrés Morales, Andrés Riancho,  Gareth Heyes,  Krzysztof Kotowicz, and their co-mentors: Abraham Aranguren, Azeddine Islam Mennouchi,  Hani Benhabiles, Javier Marcos de Prado,  Johanna Curiel,  Martin Johns.
 + New Feature: OWTF can now be updated using a command line flag <=> Bharadwaj Machiraju (@tunnelshade)
 + Added and fixed some tests for plugins <=> Alessandro Fanio Gonzalez (@alessandrofg)
