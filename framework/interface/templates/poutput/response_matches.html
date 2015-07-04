@@ -1,0 +1,36 @@
+<h4>{{ name }}</h4>
+<table class="table table-bordered">
+    <tr>
+        <td colspan="2">
+            <b>Stats</b>
+            <ul>
+                <li> {{ len(matches) }} Unique matches found</li>
+                <li> {{ match_percent }} transactions matched</li>
+            </ul>
+        </td>
+    </tr>
+    {% if matches %}
+        <tr>
+            <td>
+                <table class="table table-hover table-striped">
+                    <tr>
+                        <th>Match</th>
+                        <th>Found In</th>
+                    </tr>
+                    {% for i in range(0, len(matches)) %}
+                        <tr>
+                            <td>
+                                <pre class="wrappedPre">{{ matches[i] }}</pre>
+                            </td>
+                            <td>
+                                <a class="label label-primary" onclick="navigateToTransaction('{{ transaction_ids[i] }}');return(false);" target="_blank" href="#">
+                                    {{ transaction_ids[i] }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% end %}
+                </table>
+            </td>
+        </tr>
+    {% end %}
+</table>

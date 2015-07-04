@@ -1,0 +1,26 @@
+<h3>Cookie Attribute Analysis</h3>
+<table class="report_intro"> 
+        {% for Cookie in Cookies %}
+                <tr>
+                        <th colspan="2">
+                                Cookie: 
+                                <a href="{{ Cookie.Link }}" class="button" target="_blank">
+                                        <span> {{ Cookie.Name }} </span>
+                                </a>
+                        </th>
+                </tr>
+                <tr>
+                        <th>Attribute</th>
+                        <th>Value</th>
+                </tr>
+                <tr>
+                        <td>Value</td>
+                        <td>{% if CookieAttribs[0] %} 
+                                        {{ CookieAttribs[0] }}
+                                {% else %}
+                                        <b>Not Found</b>
+                                {% end %}
+                        </td>
+                </tr>
+        {% end %}
+</table>

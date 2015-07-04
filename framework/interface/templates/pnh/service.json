@@ -1,0 +1,69 @@
+{
+  "commands":[{
+    "description":"OWASP OWTF Commands"
+  },
+  {
+    "name":"version",
+    "description":"returns the OWTF version",
+    "returnType":"string",
+    "params":[
+    {
+      "name":"type",
+      "type": {"name":"selection", "data":["VERSION","RELEASE"]},
+      "description": "VERSION: Version Name, RELEASE: Version Number",
+      "defaultValue": "RELEASE"
+    }],
+    "execAction":{
+      "url":"{{ root_url }}api/configuration/?key=${$.args.type}",
+      "expression":"$.*"
+    }
+  },
+  {
+    "name":"add",
+    "description":"Add an action to an URL, for example inject probe, monitor a page, XSS oracle",
+    "returnType":"string",
+    "params": [
+    {
+      "name":"url",
+      "type":"string",
+      "description":"url parameter",
+      "defaultValue":""
+    },
+    {
+      "name":"action",
+      "type": {"name":"selection", "data":["probe","monitor","startMonitoring","stopMonitoring","oracle"]},
+      "description":"action parameter",
+      "defaultValue": ""
+    },
+    {
+      "name":"state",
+      "type": {"name":"selection", "data":["on","off"]},
+      "description":"state parameter",
+      "defaultValue":""
+    }
+    ],
+	"execAction": {
+	"url":"http://127.0.0.1:8009/api/plugnhack",
+	"method":"POST",
+	"requestBody":"url=${$.args.url}&action=${$.args.action}&state=${$.args.state}",
+	"contentType":"application/x-www-form-urlencoded"
+	}		       
+  },
+  {
+    "name":"cookie-policy",
+    "description":"Displays blacklisted (or) whitelisted cookies",
+    "returnType":"string",
+    "params":[
+    {
+      "name":"type",
+      "type": {"name":"selection", "data":["BLACKLIST_COOKIES","WHITELIST_COOKIES"]},
+      "description": "Type of cookies",
+      "defaultValue": "BLACKLIST_COOKIES"
+    }],
+    "execAction":{
+      "url":"{{ root_url }}api/configuration/?key=${$.args.type}",
+      "expression":"$.*"
+    }
+  }
+  ]
+}

@@ -1,0 +1,167 @@
+<title>New Robots.txt Syntax Checker: a validator for robots.txt files</title>
+<meta name="description" content="If you care about validation, this robots.txt validator is a tester that will check your robots.txt file searching for syntax errors">
+<meta name="keywords" content="robots.txt validator,analyzer,checker">
+<link rel="StyleSheet" href="robots-style.css" type="text/css">
+<script language="javascript" type="text/javascript">
+function swap() {
+	if (document.getElementsByTagName) { 
+		for (i=0; i < document.getElementsByTagName("TR").length; i++) {
+			if (document.getElementsByTagName("TR")[i].className == "off") { 
+				document.getElementsByTagName("TR")[i].className = "on";
+			} else {
+				if (document.getElementsByTagName("TR")[i].className == "on") {
+					document.getElementsByTagName("TR")[i].className = "off";
+				}
+			}
+		}
+	}
+}
+</script>
+
+
+
+
+
+<h3>Analyzing file http://hackademic1.teilar.gr/robots.txt</h3>
+<h3>No errors found in this robots.txt file</h3><p align="CENTER">Hide empty and comments lines:  <input name="hide" onclick="swap()" type="CHECKBOX">
+
+</p><p><table class="report" align="CENTER" width="80%">
+<tbody><tr>
+<td colspan="2">The following block of code  <span class="red">DISALLOWS</span> the crawling of the following files and directories: <b>  /administrator/ /cache/ /components/ /images/ /includes/ /installation/ /language/ /libraries/ /media/ /modules/ /plugins/ /templates/ /tmp/ /xmlrpc/ </b> to <b>all spiders/robots</b>. </td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 1</span></td>
+<td width="100%"><span class="code">User-agent: *</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 2</span></td>
+<td width="100%"><span class="code">Disallow: /administrator/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 3</span></td>
+<td width="100%"><span class="code">Disallow: /cache/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 4</span></td>
+<td width="100%"><span class="code">Disallow: /components/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 5</span></td>
+<td width="100%"><span class="code">Disallow: /images/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 6</span></td>
+<td width="100%"><span class="code">Disallow: /includes/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 7</span></td>
+<td width="100%"><span class="code">Disallow: /installation/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 8</span></td>
+<td width="100%"><span class="code">Disallow: /language/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 9</span></td>
+<td width="100%"><span class="code">Disallow: /libraries/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 10</span></td>
+<td width="100%"><span class="code">Disallow: /media/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 11</span></td>
+<td width="100%"><span class="code">Disallow: /modules/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 12</span></td>
+<td width="100%"><span class="code">Disallow: /plugins/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 13</span></td>
+<td width="100%"><span class="code">Disallow: /templates/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 14</span></td>
+<td width="100%"><span class="code">Disallow: /tmp/</span></td>
+</tr>
+<tr>
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 15</span></td>
+<td width="100%"><span class="code">Disallow: /xmlrpc/</span></td>
+</tr>
+<tr class="on">
+<td align="RIGHT" valign="TOP"><span class="nowrap">Line 16</span></td>
+<td width="100%"><span class="code"></span></td>
+</tr>
+</tbody></table>
+
+</p><p></p><div class="icon-advice">If you want to show your readers that your web site uses a correct robots.txt file, you can display the following icon on your main page: <img src="pic/valid-robots.png">.<br>
+Here is the HTML code you should insert into your web page in order to show the icon:
+<pre>&lt;p&gt;
+&lt;a href="http://tool.motoricerca.info/robots-checker.phtml?checkreferer=1"&gt;
+&lt;img src="http://tool.motoricerca.info/pic/valid-robots.png" border="0"
+alt="Valid Robots.txt" width="88" height="31"&gt;&lt;/a&gt;
+&lt;/p&gt;</pre><p>If you prefere, you can use this icon: <img src="pic/valid-robots-small.png">, copying the following HTML code:
+</p><pre>&lt;p&gt;
+&lt;a href="http://tool.motoricerca.info/robots-checker.phtml?checkreferer=1"&gt;
+&lt;img src="http://tool.motoricerca.info/pic/valid-robots-small.png" border="0"
+alt="Valid Robots.txt" width="80" height="15"&gt;&lt;/a&gt;
+&lt;/p&gt;</pre></div>
+
+<h1>Robots.txt Checker</h1>
+
+<p>Robots.txt files (often <strong>erroneously</strong> called robot.txt, 
+in singular) are created by webmasters to mark (disallow) files and 
+directories of a web site that search engine spiders (and other types of 
+robots) should not access.
+
+</p><p>This <i>robots.txt checker</i> is a "validator" that analyzes the syntax of a
+robots.txt file to see if its format is valid as established by
+<a href="http://www.robotstxt.org/wc/norobots.html">Robot Exclusion Standard</a> (please read the documentation
+and the tutorial to learn the basics) or if it contains errors.
+
+
+</p><p><table>
+<tbody><tr>
+	<td valign="TOP"><img class="bullet" src="pic/1.png" alt="1"></td>
+	<td><strong>Simple usage:</strong> How to check your robots.txt file format? Just insert the <b>full URL</b> (Example: http://www.yourdomain.com/robots.txt) of the robots.txt file you want to analyze and hit Enter</td>
+</tr>
+<tr>
+	<td valign="TOP"><img class="bullet" src="pic/2.png" alt="2"></td>
+	<td><strong>Powerful:</strong> The checker finds syntax errors, "logic" errors, mistyped words and it gives you useful optimization tips</td>
+</tr>
+<tr>
+	<td valign="TOP"><img class="bullet" src="pic/3.png" alt="3"></td>
+	<td><strong>Accurate:</strong> The validation process takes in account both Robots Exclusion Standard rules and spider-specific (Google, Inktomi, etc.) extensions (including the new "Sitemap" command).</td>
+</tr>
+</tbody></table>
+
+</p><p>This robots.txt analyzer is provided by <a href="http://www.motoricerca.info/">Motoricerca</a>,
+a non-profit italian guide to web site optimization and search engine positioning.
+
+
+</p><form method="post" action="robots-checker.phtml" onsubmit="formTracker._trackEvent('Submit','Robots.txt check')">
+<p><span class="features">Robots.txt <strong>full</strong> URL (Example: http://www.domain.com/<strong>robots.txt</strong>):</span><br>
+<input name="url" value="http://hackademic1.teilar.gr/robots.txt" size="45" type="text"><br>
+<input value="Check robots.txt" type="submit"><br>
+<span class="features">If you'll find the analysis of this robots.txt validator useful, please think about offering a link to this page from your web site.
+
+
+
+
+</span></p></form><ul>
+<li>  <a href="http://www.dhd24.com">dhd24</a>  (Classifieds)</li>
+<li>  <a href="http://news.feed-reader.net">News Reader</a>  </li>
+<li>  <a href="http://www.webmarketingpros.com">Web Marketing</a>  </li>
+<li>  <a href="http://testingbot.com">Cross Browser Testing</a>  </li>
+</ul>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script><script src="http://www.google-analytics.com/ga.js" type="text/javascript"></script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-2028837-2");
+pageTracker._initData();
+pageTracker._trackPageview();
+var formTracker = pageTracker._createEventTracker('Form');
+</script>

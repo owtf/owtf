@@ -1,0 +1,414 @@
+{% extends base.html %}
+
+{% block title %}Target Manager{% end %}
+
+{% block includes %}
+<script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
+<link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
+{% end %}
+
+{% block content %}
+<div class="row">
+    <!-- Input area to add new targets -->
+    <div class="col-md-6">
+        <div class="row">
+            <h3>Add Targets</h3>
+            <div class="col-md-10">
+                    <textarea id="newTargetUrls" type="text" class="form-control" placeholder="Targets seperated by new line">
+                    </textarea>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-2">
+                <button class="btn btn-primary" id="addTargetBtn" type="button" onclick="newTargets($('#newTargetUrls').val(), this);">Add Targets!</button>
+            </div>
+        </div>
+    </div>
+    <!-- End Input area for new targets -->
+    <!-- Target list -->
+    <div class="col-md-6">
+        <div class="row-fluid">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <div class="input-group">
+                      <input type="text" id="sessionName" class="form-control" value="Session" readonly>
+                      <input type="hidden" id="sessionId" class="form-control" value="Session">
+                      <span class="input-group-btn">
+                        <button class="btn btn-primary" data-toggle="modal" data-target="#sessionModal" type="button">
+                            <i class="fa fa-flag-checkered"></i>
+                        </button>
+                      </span>
+                    </div><!-- /input-group -->
+                </div>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-success pull-right" data-toggle="modal" data-target="#pluginLaunchModal">
+                    <i class="fa fa-flash"></i> Run Plugins
+                </button>
+            </div>
+        </div>
+        <br>
+        <div class="row-fluid">
+            <div class="col-md-12">
+                <table id='targetTable' class="table table-striped table-condensed">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="targetTableSelectAllCheckbox" onclick="toggleAll(this);"/></th>
+                            <th class="textSearch">Target</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- End Target list -->
+</div>
+
+{% module Template("plugin_launcher.html",
+    plugin_launch_modal_id="pluginLaunchModal",
+    plugins_api_url="mySpace.plugins_api_url",
+    worklist_post_func="postToWorkList") %}
+
+<!-- Small modal -->
+<div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="sessionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="input-group">
+                <input id="newSessionName" type="text" class="form-control" placeholder="New Session">
+                <span class="input-group-btn">
+                    <button class="btn btn-primary" onclick="newSession($('#newSessionName').val());" type="button">Add!</button>
+                </span>
+            </div><!-- /input-group -->
+        </div>
+        <div class="modal-body">
+            <table id='sessionTable' class="table table-striped table-condensed">
+                <thead>
+                    <tr>
+                        <td></td>
+                        <td>Session</td>
+                        <td></td>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var mySpace = {
+                    owtf_sessions_api_url:"{{ owtf_sessions_api_url }}",
+                    targets_api_url:"{{ targets_api_url }}",
+                    targets_search_api_url:"{{ targets_search_api_url }}",
+                    targets_ui_url:"{{ targets_ui_url }}",
+                    plugins_api_url:"{{ plugins_api_url }}?group=web&group=net",
+                    worklist_api_url:"{{ worklist_api_url }}"
+                  };
+
+// Toggle all checkboxes when select all is clicked
+function toggleAll(checkbox){
+    var table= $(checkbox).closest('table');
+    $('td input:checkbox',table).prop('checked',checkbox.checked);
+}
+
+function getSelectedTargets() {
+    var individualTargets = $('input:checkbox:checked', $('#targetTable').dataTable().fnGetNodes());
+    var targets = [];
+    $.each(individualTargets, function(index, checkbox) {
+        var checkbox = $(checkbox);
+        targets.push(checkbox.attr("target-id"));
+    });
+    return(targets);
+}
+
+// Main function that posts using API to launch plugins
+function postToWorkList(selectedPluginData, force_overwrite){
+    selectedPluginData["id"] = getSelectedTargets();
+    selectedPluginData["force_overwrite"] = force_overwrite;
+    if (selectedPluginData["id"].length < 1) {  // If no targets selected
+        alertFail("No targets selected to launch plugins");
+    }
+    $.ajax({
+            url:mySpace.worklist_api_url,
+            type:'POST',
+            data:$.param(selectedPluginData, true),
+            success:pluginLaunchSuccess,
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+            });
+}
+
+// Close the modal when plugins are launched successfully
+function pluginLaunchSuccess(){
+    $('#pluginLaunchModal').modal('hide');
+    alertSuccess("Selected plugins launched, please check worklist to manage :D");
+}
+
+// Remove target from current session
+function removeTargetFromCurrentSession(target_id) {
+    session_id = $('#sessionId').val();
+    $.ajax({url:mySpace.owtf_sessions_api_url+session_id+'/remove',
+        type:'PATCH',
+        data:{'target_id':target_id},
+        success: updateCurrentSessionInfo,
+        error:function(xhr, textStatus, serverResponse){
+            alertFail("Server replied: "+serverResponse);
+            }
+    });
+}
+
+// New session
+function newSession(session_name) {
+    if (session_name) {
+        $.ajax({
+                url:mySpace.owtf_sessions_api_url,
+                type:'POST',
+                data:{name:session_name},
+                success: function() { updateSessions(); updateCurrentSessionInfo(); },
+                error:function(xhr, textStatus, serverResponse){
+                    alertFail("Unable to add "+session_name);
+                    }
+        });
+    }
+}
+
+// Delete session
+function deleteSession(session_id) {
+    $.ajax({
+            url:mySpace.owtf_sessions_api_url+session_id,
+            type:'DELETE',
+            success: function() { updateSessions(); updateCurrentSessionInfo(); },
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+            });
+}
+
+// Active a session
+function activateSession(session_id) {
+    $.ajax({url:mySpace.owtf_sessions_api_url+session_id+'/activate',
+        type:'PATCH',
+        success: updateCurrentSessionInfo,
+        error:function(xhr, textStatus, serverResponse){
+            alertFail("Server replied: "+serverResponse);
+            }
+    });
+}
+
+// Function that adds targets to the target list(table infact)
+function addSessions(data, status, xhr){
+    jQuery('#sessionTable').dataTable().fnClearTable();
+    $.each(data, function(index, obj){
+        checked = (obj.active) ? 'checked' : '';
+        actionButtons = '<a href="#" onclick="deleteSession('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Delete session">';
+        actionButtons += '<span class="btn btn-xs btn-danger"><i class="fa fa-times"></i></span></a>'
+        jQuery('#sessionTable').dataTable().fnAddData([
+            '<input type="radio" name="session_id" data-dismiss="modal" onclick="activateSession('+obj.id+');" value="'+obj.id+'" '+checked+'>',
+            escapeHtml(obj.name),
+            actionButtons
+        ]);
+    });
+}
+
+// Function to update sessions in the list
+function updateSessions() {
+    $.getJSON( mySpace.owtf_sessions_api_url, addSessions);
+}
+
+// get label color for target rating
+function getLabel(level) {
+    if (level == 1)
+        return "<span class='label label-success' style='text'>Info</span>";
+    else if (level == 2)
+        return "<span class='label label-info' style='margin-bottom: 0px'>Low</span>";
+    else if (level == 3)
+        return "<span class='label label-warning' style='margin-bottom: 0px'>Medium</span>";
+    else if (level == 4)
+        return "<span class='label label-danger' style='margin-bottom: 0px'>High</span>";
+    else if (level == 5)
+        return "<span class='label label-danger' style='margin-bottom: 0px'>Critical</span>";
+    return "";
+}
+
+// Function that adds targets to the target list(table infact)
+function getActionButtons(obj){
+    var actionButtons = '<div class="btn-group">';
+    actionButtons += '<button class="btn btn-xs btn-warning" onclick="removeTargetFromCurrentSession('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Remove target from this session">';
+    actionButtons += '<i class="fa fa-minus"></i></button>';
+    actionButtons += '<button class="btn btn-xs btn-danger" onclick="deleteTarget('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Delete target from everywhere">';
+    actionButtons += '<i class="fa fa-times"></i></button>';
+    actionButtons += '</div>';
+    return(actionButtons);
+}
+
+function getSeverityLabel(obj) {
+    max_rank = Math.max(obj.max_user_rank, obj.max_owtf_rank)
+    return getLabel(max_rank);
+}
+
+// Function used to update targets in the list, useful when new targets are added so that table can be updated
+// First update session info and then targets
+function updateCurrentSessionInfo(){
+    $.getJSON(mySpace.owtf_sessions_api_url+'?active=true', function(data) {
+        $.each(data, function(index, obj) {
+            $('#sessionName').val(obj.name);
+            $('#sessionId').val(obj.id);
+        });
+    });
+    // Update targets as well
+    $('#targetTable').dataTable().fnDraw(true);
+}
+
+// Delete target with id using API
+function deleteTarget(target_id) {
+    $.ajax({
+            url:mySpace.targets_api_url+target_id,
+            type:'DELETE',
+            success:updateCurrentSessionInfo,
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+            });
+}
+
+function isUrl(str) {
+    // TODO: Add all url protocols to support net plugins
+    var urlPattern = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/;
+    return urlPattern.test(str);
+}
+
+// Add new targets using API
+function newTargets(targetUrlsString, button) {
+    disableInput("#addTargetBtn"); // Hide the button and show once the request is complete
+    var lines = targetUrlsString.split('\n');
+    var targetUrls = [];
+
+    // Check if each line is a valid url, and add protocols if only host name is provided
+    $.each(lines, function(index, line) {
+        if (isUrl(line)) { // Check if a valid url
+            targetUrls.push(line);
+        } else if (isUrl("http://"+line)) { // If not valid url and adding http:// makes it a valid url
+            targetUrls.push("http://"+line);
+            targetUrls.push("https://"+line);
+        } else { // Not a valid url
+            alertFail(escapeHtml(line)+" is not a valid url");
+        }
+    });
+
+    // Since we only have valid urls now in targetUrls, add them using api
+    // Proceed only if there is atleast one valid url
+    if (targetUrls.length > 0) {
+        $.ajax({
+                url:mySpace.targets_api_url,
+                type:'POST',
+                data:$.param({'target_url':targetUrls}, true),
+                success: function() {
+                    updateCurrentSessionInfo();
+                    enableInput("#addTargetBtn");
+                },
+                error:function(xhr, textStatus, serverResponse) {
+                    alertFail("Unable to add some targets");
+                    enableInput("#addTargetBtn");
+                }
+        });
+    }
+}
+
+function getArray(data) {
+    var table_array = [];
+    $.each(data, function(index, obj){
+      table_array.push([
+        '<input type="checkbox" target-id="'+obj.id+'"/>',
+        '<a href="'+mySpace.targets_ui_url+obj.id+'">'+obj.target_url+' ('+obj.host_ip+') </a> '+getSeverityLabel(obj),
+        getActionButtons(obj)
+      ]);
+    });
+    return(table_array);
+}
+
+function dummyAjax(data, callback, settings) {
+  // This function takes care of converting dataTable data into owtf api
+  // and then the response back to dataTables type
+  var get_parameters = {};
+  var draw = data.draw;
+  get_parameters['limit'] = data.length;
+  get_parameters['offset'] = data.start;
+  if (data.search.value) {
+    get_parameters['target_url'] = data.search.value;
+  }
+
+  $.getJSON(mySpace.targets_search_api_url+'?'+$.param(get_parameters, true), function (responseData) {
+    // Remove the spinner once we have the response, since dataTables takes very less time to populate
+    // removeOverlaySpinner('worklistTable');
+    callback({
+      "draw": draw,
+      "recordsTotal": responseData["records_total"],
+      "recordsFiltered": responseData["records_filtered"],
+      "data": getArray(responseData["data"]),
+      "error": null
+    });
+  });
+}
+
+function drawTargetTable() {
+    // Initialize target table
+    $('#targetTable').dataTable({
+        "bAutoWidth": false,
+        "bSort": false, // Not yet supported in API, can after shifting to postgres
+        "bServerSide": true,
+        "ajax": dummyAjax,
+        "fnDrawCallback": function( settings ) {
+            // Managing the "Select all" checkbox
+            // everytime the table is drawn, it checks if all the
+            // checkboxes are checked and if they are, then the select all
+            // checkbox in the table header is selected
+            var allChecked = true;
+            $('#targetTable tbody tr').each(function() {
+                $(this).find(':checkbox').each(function(){
+                    if (!$(this).is(':checked')) allChecked = false;
+                });
+            });
+            $('#targetTableSelectAllCheckbox').prop('checked', allChecked);
+        },
+    });
+
+    var table = $("#targetTable").dataTable();
+
+    // Override global search of data Tables
+    var search_box = $("div.dataTables_filter input[aria-controls='targetTable']");
+    search_box.unbind();
+    search_box.on("keyup change", function (e) {
+      if (((e.type == "keyup") && (e.keyCode == 13)) || (e.type == "change")) {
+        table.fnFilter(this.value);
+      }
+    });
+}
+
+// The target list table has to be initialized first
+$(document).ready(function() {
+    drawTargetTable();
+    // Initialize session table but donot populate until modal is opened
+    $('#sessionTable').dataTable({
+        "bAutoWidth": false,
+        "columnDefs": [{
+          "targets": [0],
+          "orderable": false
+        }]
+    });
+    // Bind the modal launch to populate sessions
+    $('#sessionModal').on('show.bs.modal', function (e) {
+        updateSessions();
+    });
+    updateCurrentSessionInfo()
+});
+</script>
+{% end %}

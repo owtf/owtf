@@ -1,0 +1,80 @@
+<html>
+<!--
+owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
+Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the copyright owner nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+<title>OWTF Help</title>
+<head>
+	<link rel="stylesheet" href="../stylesheet.css" type="text/css">
+</head>
+<body>
+	<h1>OWTF Help</h1>
+	<p>This file contains explanations and tips on how to configure and use OWTF</p>
+	<!-- Each anchor has a topic that will be linked to from the report -->
+	<h2><a href="#Configuration" name="Configuration">Configuration Intro</a></h2>
+		<p>OWTF's behaviour will depend on how it is called but also on how it was configured <br />
+		Configuration is performed via files called <a href="#Profiles">"profiles"</a><br />
+	<h2><a href="#Profiles" name="Profiles">Configuration Profiles</a></h2>
+		<p>The idea of the profiles is that the user should be able to define different profiles for different tests as they wish: <br />
+		There is an experimental option in the command line to load a profile from a specific file location.  <br />
+		So, depending of the kind of tests you are doing you can define a different way to run tools, set defaults, etc <br />
+		<br />
+		IMPORTANT: You should backup the file prior to modifying it + backup the profiles directory _always_, before upgrading OWTF.  <br />
+		NOTE: The configuration file defaults to Backtrack paths for the simple reason that most tools are already there (convenience) <br />
+		<br />
+		Regarding the use of Backtrack over other Linux options, that is personal preference: <br />
+		You will have a little bit less configuration changes to make on Backtrack (more convenience), that is all.  <p>
+		At the moment OWTF has the following configuration files:</p>
+		<ul>
+			<li><a href="#profilegeneraldefault">owtf_dir/profiles/general/default.cfg</a>: General configuration: Tool locations, Icons for review, Default settings, etc</li>
+			<li><a href="#profileresourcesdefault">owtf_dir/profiles/resources/default.cfg</a>: Defines how tools will be run + external links to useful resources and online tools</li>
+			<li><a href="#profilewebpluginorderdefault">owtf_dir/profiles/web_plugin_order/default.cfg</a>: Defines the order in which web plugins will be run</li>
+			<li><a href="#frameworkconfig">owtf_dir/framework/config/framework_config.cfg</a>: Internal framework configuration (you can break a lot here, backup first!!)</li>
+		</ul>
+		<h3><a href="#profilegeneraldefault" name="profilegeneraldefault">Config file: owtf_dir/profiles/general/default.cfg</a></h3>
+			<p>General configuration: Tool locations, Icons for review, Default settings, etc</p>
+		<h3><a href="#profileresourcesdefault" name="profileresourcesdefault">Config file: owtf_dir/profiles/resources/default.cfg</a></h3>
+			<p>Defines how tools will be run + external links to useful resources and online tools</p>
+		<h3><a href="#profilewebpluginorderdefault" name="profilewebpluginorderdefault">Config file: owtf_dir/profiles/web_plugin_order/default.cfg</a></h3>
+			<p>Defines the order in which web plugins will be run</p>
+		<h3><a href="#frameworkconfig" name="frameworkconfig">Config file: owtf_dir/framework/config/framework_config.cfg</a></h3>
+			<p>Internal framework configuration (you can break a lot here, backup first!!)</p>
+	<h2><a href="#ReviewSize" name="ReviewSize">Review Storage Size</a></h2>
+		<p>The review can be stored in two ways: <a href="#ReviewlocalStorage">HTML5 localStorage</a> (recommended and default) or <a href="#Reviewwindow.name">window.name</a> (for old browsers)<br />
+		Why should you care? <u>If you store screenshots in the review you probably want to increase the default HTML5 localStorage size in your browser!</u></p>
+		<h3><a href="#ReviewlocalStorage" name="ReviewlocalStorage">Review on HTML5 localStorage</a></h3>
+			<p><a href="#profilegeneraldefault">OWTF config setting</a>: JAVASCRIPT_STORAGE: owtf_localStorage.js<br />
+			Features: Most browsers have a default 5MB limit, Data persistence: screen refresh + closing browser, From FF 8.0 using file:// (before FF 8.0: only worked on http://)<br />
+			<b>In Firefox localStorage is configurable</b></p>
+			<ul>
+				<li>Modify size: Go to <a href="" target="_blank">about:config</a> and search for "dom.storage.default_quota" option. It's value is in KB. <a href="http://arty.name/localstorage.html" target="_blank">More info here</a></li>
+				<li>Review localStorage content: <a href="http://blog.opensecurityresearch.com/2012/01/exploring-your-browser-localstorage.html" target="_blank">Blog post</a> <a href="https://addons.mozilla.org/en-US/firefox/addon/foundstone-html5-local-storage/" target="_blank">Firefox plugin</a></li>
+			</ul> 
+		<h3><a href="#Reviewwindow.name" name="Reviewwindow.name">Review on window.name</a></h3>
+			<p><a href="#profilegeneraldefault">OWTF config setting</a>: JAVASCRIPT_STORAGE: sessvars.js,owtf_sessvars.js<br />
+			Features: Most browsers have a default 2MB limit, Data persistence: screen refresh only, cannot be configured (afaik) but works on old browsers</p>
+</body>
+</html>

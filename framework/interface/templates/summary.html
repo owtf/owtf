@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>OWASP OWTF Summary Report</title>
+	    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	    <meta charset="utf-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <meta name="description" content="OWASP OWTF Summary Report">
+	    <meta name="author" content="OWASP OWTF Team">
+	
+	
+	    <!-- styles -->
+	    <link id="skin_css" href="includes/css/skins/default.css" rel="stylesheet">
+	    <link id="skin_css" href="includes/css/stylesheet.css" rel="stylesheet">
+	    <link href="includes/css/font-awesome/css/font-awesome.min.css" rel="stylesheet"> 
+	    <link href="includes/css/bootstrap-responsive.css" rel="stylesheet" >
+	    <link href="includes/js/aloha/css/aloha.css" rel="stylesheet" >
+	    
+	    <style>
+	    .nav-tabs-container {
+	                            padding: 3px;
+	                            border: 1px solid @grayLight;
+	                            .border-radius(4px);
+	                        }
+	    </style>
+	</head>
+			<body class="container">
+		<!-- start page header -->
+	    <div class="page-header">
+	    	<h2>
+	    		<a href="http://www.owtf.org" >
+	    			<img src="includes/img/logo_dark.png" class="img-rounded" alt="OWASP_OWTF_LOGO">
+	    		</a> 
+	    		Summary Report 
+	    		<small>
+				Version <sup>{{ Version }}</sup>
+				, Release <sup>{{ Release }}</sup>
+				<span class="hidden">, Seed <sup><span id="seed"> {{ Seed }} </span></sup></span>
+				</small>
+				
+	    		<a class="btn btn-info pull-right filter disabled" href="#" rel="tooltip" data-original-title="Help!" data-placement="bottom"><i class="icon-question-sign icon-light"></i></a>
+	    	</h2>
+	    </div>
+		<!-- end page header -->
+
+			<div id="alert_browser" style="display:none;" class="alert alert-warning" >
+				<button type="button" class="close" data-dismiss="alert">&times;</button>
+				<strong>Warning!</strong> Seems that you are using <strong>Chrome</strong> or <strong>Chromium</strong> browser; You need to run the browser using the argument <strong><em>--allow-file-access-from-files</em></strong>
+			</div>
+
+			<!--  navbar row-->
+         <div class="row">
+         	 <div class="span12">
+         	   <div class="row-fluid">
+
+	   				 <div class="navbar navbar-inverse" >
+		    <div class="navbar-inner">
+		    <a class="brand" href="#">Summary</a>
+		    <ul id="mainmenu" class="nav">
+		    <li class="active"><a href="#main" data-toggle="tab">Home</a></li>
+		    <li class=""><a href="#filter" data-toggle="tab">Browse</a></li>
+            <li><a href="#review" data-toggle="tab">Review</a></li>
+            	<!--
+           <li class="divider-vertical"></li>
+           	  
+           		   <li class="dropdown">
+               				 <a class="dropdown-toggle"
+             					   data-toggle="dropdown"
+            				    href="#">
+            				    Targets (4)
+               				 <b class="caret"></b>
+              				  </a>
+              				  <ul class="dropdown-menu">
+              					<li><a> 193.168.77.199</a></li>
+              					</ul>
+              			</li>
+             <li class="dropdown">
+               				 <a class="dropdown-toggle"
+             					   data-toggle="dropdown"
+            				    href="#">
+            				    Plugins (23)
+               				 <b class="caret"></b>
+              				  </a>
+              				  <ul class="dropdown-menu">
+              					<li><a> OWASP-IG-005 <small>Application Discovery</small></a></li>
+              					</ul>
+              			</li>
+              -->
+              			
+      
+              <li class="divider-vertical"></li>
+             <li class="dropdown">
+                <a class="dropdown-toggle"
+                data-toggle="dropdown"
+                href="#">
+                Logs
+                <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">General</a>
+                         <ul class="dropdown-menu">
+									<li>
+										<a href="../{{ Logs.Errors.link }}" target="_blank">
+										 
+											
+											{% if Logs.Errors.nb %} 
+												<span class="text-error"> Errors found, please report!
+											{% else  %}
+												<span class="text-success"> No errors found
+											{% endif %}
+												
+									    </span>
+									    
+										</a>
+									</li>
+									<li>
+										<a href="../{{ Logs.Unreachables.link }}" target="_blank">
+										
+											
+											{% if Logs.Unreachables.nb %} 
+												<span class="text-warning"> Unreachable targets!
+											{% else  %}
+												<span class="text-success">  No unreachable targets
+											{% endif %}
+											</span>	
+									    
+										</a>
+									</li>
+						</ul>
+					</li>
+				</ul>
+            </li>
+             <li class="divider-vertical"></li>
+             <li class="dropdown">
+                <a class="dropdown-toggle"
+                data-toggle="dropdown"
+                href="#">
+                Links
+                <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Exploitation</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="http://hackvertor.co.uk/public" target="_blank"> Hackvertor </a></li>
+                             <!--  <li><a href="http://hackarmoury.com/" target="_blank"> Hackarmoury </a></li> -->
+                             <li><a href="http://www.exploit-db.com/" target="_blank"> ExploitDB </a></li>
+                             <li><a href="http://www.exploitsearch.net/" target="_blank"> ExploitSearch </a></li>
+                             <li><a href="http://www.hakipedia.com/index.php/Hakipedia" target="_blank"> Hackipedia </a></li>
+                        </ul>
+                        </li>
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Methodology</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="https://www.owasp.org/index.php/OWASP_Testing_Guide_v3_Table_of_Contents" target="_blank"> OWASP </a></li>
+                             <li><a href="http://www.pentest-standard.org/index.php/Main_Page" target="_blank"> Pentest Standard </a></li>
+                             <li><a href="http://www.isecom.org/osstmm/"> OSSTMM </a></li>
+              
+                        </ul>
+                    </li>
+                    <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Calculators</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="http://nvd.nist.gov/cvss.cfm?adv&calculator&version=2" target="_blank"> CVSS Advanced </a></li>
+                             <li><a href="http://nvd.nist.gov/cvss.cfm?calculator&version=2" target="_blank"> CVSS Normal </a></li>
+              
+                        </ul>
+                    </li>
+                     <li class="dropdown-submenu">
+                         <a tabindex="-1" href="#">Test/Learn</a>
+                         <ul class="dropdown-menu">
+                          <li><a href="http://www.owasp.org/index.php?title=OWASP_Vulnerable_Web_Applications_Directory_Project" target="_blank"> OWASP VWAD </a></li>
+                             <li><a href="http://securitythoughts.wordpress.com/2010/03/22/vulnerable-web-applications-for-learning/" target="_blank"> Securitythoughts </a></li>
+                             <li><a href="http://danielmiessler.com/projects/webappsec_testing_resources/" target="_blank"> Danielmiessler </a></li>
+              
+                        </ul>
+                    </li>
+                    
+                
+                </ul>
+                        
+            </li>
+			<li class="divider-vertical"></li>
+			<li class="dropdown ">
+	                <a class="dropdown-toggle"
+	                data-toggle="dropdown"
+	                href="#">
+	               Skins
+	                <b class="caret  text-info"></b>
+	                </a>
+	                <ul class="dropdown-menu">
+  	                    <li><a href="#" onclick="change_skin('default','light');" id="default_skin">Default</a></li>
+						<li><a href="#" onclick="change_skin('cerulean','light');" id="cerulean_skin">Cerulean</a></li>
+						<li><a href="#" onclick="change_skin('cyborg','dark');" id="cyborg_skin">Cyborg</a></li>
+						<li><a href="#" onclick="change_skin('slate','dark');" id="slate_skin">Slate</a></li>
+						<li><a href="#" onclick="change_skin('readable','light');" id="readable_skin">Readable</a></li>
+	                </ul>
+				</li>
+		    </ul>
+		    </div>
+    	</div>
+
+   	 </div>
+   
+         	
+         	        		</div>
+          </div>
+          <!--  end navbar row -->
+		
+		<!-- start Content -->
+		<div class="row">
+         	<div class="span12">
+        	  <div class="tab-content">
+       		   	<div class="tab-pane active" id="main">
+						
+				<div class="row-fluid">
+          		   <div class="span7">
+          		   		{% set CurrentCommand_Start, CurrentCommand_End, CurrentCommand_Runtime, CurrentCommand_Command, CurrentCommand_Status = RUN_DB|last %}
+		          		<h3>Status <small 
+		          				{% if CurrentCommand_Status == "Complete" %}	
+										class="text-success"
+								{% elif CurrentCommand_Status == "Skipped" %}	
+										class="muted"
+								{% elif CurrentCommand_Status == "Aborted" %}
+										class="text-warning"
+								{% elif CurrentCommand_Status == "Crashed" %}
+										class="text-error"
+								{% elif CurrentCommand_Status == "Running" %}
+										class="text-info"
+								{% else %}
+										class=""
+								{% endif %}		
+		          > {{  CurrentCommand_Status  }} {% if CurrentCommand_Status == "Running" %}...{% else %} {% endif %}</small></h3>
+		          		{% if CurrentCommand_Status == "Running" %} {% set prefix =  "Current" %} {% else %} {% set prefix =  "Last" %} {% endif %}
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-terminal icon-light"></i></span> <strong>{{ prefix }} Command: </strong>{{ CurrentCommand_Command }}</div>
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-time icon-light"></i></span> <strong>Running time: </strong> {{ CurrentCommand_Runtime }} </div>
+		          		<div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-screenshot icon-light"></i></span> <strong>{{ prefix }} Target: </strong>{{ HostIP }}:{{ PortNumber }} <a href="{{ TargetLink }}" target="_blank"><i class="icon-link"></i></a></div>
+		          		<!--  <div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-stethoscope icon-light"></i></span> <strong>{{ prefix }} plugin: </strong>{ current_plugin }</div>-->
+		          		<!--   <div><span class="icon-stack"><i class="icon-circle icon-stack-base"></i><i class="icon-spinner icon-light"></i></span> <strong>Completion rate: </strong>{ completed_targets_nb }/{ total_targets_nb } targets - {completed_plugins_nb}/{total_plugins_nb} plugins</div> -->
+		          			          		
+		          		<h3> History </h3>
+		          				    <table class="table table-bordered table-striped table-hover">
+					<thead>
+						<tr>
+							<th> N° </th>
+							<th> START </th>
+							<th> END </th>
+							<th> RUNTIME </th>
+							<th> COMMAND </th>
+							<th> STATUS </th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for Start, End, Runtime, Command, Status in RUN_DB  %}
+								<tr 
+								{% if Status == "Complete" %}	
+										class="text-success"
+								{% elif Status == "Skipped" %}	
+										class="muted"
+								{% elif Status == "Aborted" %}
+										class="text-warning"
+								{% elif Status == "Crashed" %}
+										class="text-error"
+								{% elif Status == "Running" %}
+										class="text-info"
+								{% else %}
+										class=""
+								{% endif %}		
+								> 
+									<td> {{ loop.index }} </td>
+									<td> {{ Start }} </td> 
+									<td> {{ End }} </td> 
+									<td> {{ Runtime }} </td> 
+									<td> {{ Command }} </td> 
+									<td> {{ Status }} </td> 
+								</tr>
+						{% endfor %}
+						<!-- 
+						<tr class="text-warning">
+							<td>3</td>
+							<td>owtf.py www.esi.dz</td>
+							<td> 16/06/2013-18:40 </td>
+							<td> 16/06/2013-18:42 </td>
+							<td>2m, 14s, 478ms</td>
+							<td>Aborted by user</td>
+						</tr>
+						<tr class="text-success">
+							<td>2</td>
+							<td>owtf.py www.esi.dz</td>
+							<td> 16/06/2013-18:40 </td>
+							<td> 16/06/2013-18:42 </td>
+							<td>2m, 14s, 478ms</td>
+							<td>Completed</td>
+						</tr>
+						<tr class="text-error">
+							<td>1</td>
+							<td>owtf.py www.esi.dz</td>
+							<td> 16/06/2013-18:40 </td>
+							<td> 16/06/2013-18:42 </td>
+							<td>2m, 14s, 478ms</td>
+							<td>Crashed</td>
+						</tr>
+						 -->
+					</tbody>
+   				 </table>
+		
+		          		<!--
+		          		#Not implemented yet
+		          		<h3> Stats </h3>
+		          		+analysin stats
+		          		+review stats
+		          		<hr/> -->
+		          
+		          		
+		          	</div>
+		          	<div class="span5">
+		          		<div class="well well-small"> 
+		          			<h3><i class="icon-screenshot"></i> Targets <small>({{ Stats.Targets }})</small> </h3>
+		          			<ul>
+		          			{% for IPInfo in IPs %}
+							 	{% for PortInfo in IPInfo.Ports %}
+							 		{% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
+							 		{% for Offset in PortInfo.Offsets %}
+		          						<li><a href="#" class="target_jumper" data-value="#iframe_{{ TargetID }}">{{ Offset.ReviewOffset }} ({{ IPInfo.IP|e }}:{{ PortInfo.Port|e }})</a></li>
+		          					{% endfor %}
+		          				{% endfor %}
+		          			{% endfor %}
+		          			</ul>
+		          		</div>
+		          		<!--  
+		          	    <div class="well well-small"> 
+			          		<h3><i class="icon-stethoscope"></i> Test Plugins <small>(25)</small></h3>
+			          		    <ul>
+				          		    <li><a href="link_to_plugin">OWASP-IG-01</a>  </li>
+			          				<li><a href="link_to_plugin">OWASP-IG-02</a></li>
+			          				<li><a href="link_to_plugin">OWASP-IG-03</a></li>
+			          				<li><a href="link_to_plugin">OWASP-IG-04</a></li>
+		          				</ul>
+			          	</div>
+			          	-->
+		          	</div>
+	            </div>
+				</div>
+				<div class="tab-pane" id="filter">
+						<!--  Filter Proto #4  -->
+                <div class="row-fluid">
+                  <div class="span12">
+                    <div class="btn-toolbar">
+                         <div class="btn-group" data-toggle="buttons-checkbox"> 
+                        	<button id="filterinfo" class="btn btn-info filter"  onclick="FilterResultsSummary('info', 'NetMap',this)" rel="tooltip" data-original-title="Completed" data-placement="bottom"><i class="icon-ok icon-white"></i> <span id="filterinfo_counter" class="counter"></span></button>
+                        </div>
+                         <div class="btn-group " data-toggle="buttons-checkbox">
+                        	<button class="btn filter" onclick="FilterResultsSummary('flag', 'NetMap',this)" rel="tooltip" data-original-title="Flagged" data-placement="bottom"><i class="icon-flag"></i>  <span id="filterflag_counter" class="counter"></span></button>
+                         	<button class="btn filter" onclick="FilterResultsSummary('no_flag', 'NetMap',this)" rel="tooltip" data-original-title="Not Flagged" data-placement="bottom"><i class="icon-flag-alt"></i>  <span id="filterno_flag_counter" class="counter"></span></button>
+                        </div>
+                         <div class="btn-group" data-toggle="buttons-checkbox">
+                   		     <button onclick="FilterResultsSummary('fav', 'NetMap',this)" class="btn filter" rel="tooltip" data-original-title="Favorated" data-placement="bottom"><i class="icon-heart icon-white"></i> <span id="filterfav_counter"></span></button>
+                       </div>
+                         <div class="btn-group" data-toggle="buttons-checkbox">
+                      		  <button  id="filternotes"  onclick="FilterResultsSummary('notes', 'NetMap',this)" class="btn  filter" rel="tooltip" data-original-title="Commented" data-placement="bottom"><i class="icon-comment icon-white"></i> <span id="filternotes_counter"></span></button>
+                      </div>
+                      
+	                      <div class="btn-group" data-toggle="buttons-checkbox">
+	                        <button  id="filterunseen" onclick="FilterResultsSummary('unseen', 'NetMap',this)" class="btn filter" rel="tooltip" data-original-title="Not seen" data-placement="bottom"><i class="icon-eye-close icon-white"></i> <span id="filterunseen_counter" class="counter"></span></button>
+	                        <button id="filterseen" onclick="FilterResultsSummary('seen', 'NetMap',this)" class="btn filter" rel="tooltip" data-original-title="Seen" data-placement="bottom"><i class="icon-eye-open icon-white"></i> <span id="filterseen_counter" class="counter"></span></button>
+	                      </div>
+
+	                      <div class="btn-group" data-toggle="buttons-checkbox">
+	                        <button id="filterstar_3" onclick="FilterResultsSummary('star_3', 'NetMap',this)" class="btn btn-inverse filter" rel="tooltip" data-original-title="Unknown" data-placement="bottom"><i class="icon-asterisk  icon-white"></i> <span  id="filterstar_3_counter"></span></button>
+	                        <button id="filterattention_orange" onclick="FilterResultsSummary('attention_orange', 'NetMap',this)" class="btn btn-warning filter" rel="tooltip" data-original-title="Warning" data-placement="bottom"><i class="icon-warning-sign icon-white"></i> <span id="filterattention_orange_counter"></span></button>
+	                        <button id="filterbonus_red" onclick="FilterResultsSummary('bonus_red', 'NetMap',this)" class="btn btn-danger filter" rel="tooltip" data-original-title="Exploitable" data-placement="bottom"><i class="icon-fire icon-white"></i> <span id="filterbonus_red_counter"></span></button>
+	                        <button id="filterbug" onclick="FilterResultsSummary('bug', 'NetMap',this)" class="btn btn-info  filter" rel="tooltip" data-original-title="Logic Bug" data-placement="bottom"><i class="icon-bug icon-white"></i> <span id="filterbug_counter"></span></button>
+		                    <button id="filtercheck_green" onclick="FilterResultsSummary('check_green', 'NetMap',this)" class="btn btn-success filter " rel="tooltip" data-original-title="Test passed" data-placement="bottom"><i class="icon-thumbs-up icon-white"></i> <span  id="filtercheck_green_counter"></span></button>
+	                      </div>
+
+	                      <div class="btn-group" data-toggle="buttons-checkbox">
+	                      	 <button id="filterflag_violet" onclick="FilterResultsSummary('flag_violet', 'NetMap',this)" class="btn sev-critic filter" rel="tooltip" data-original-title="Critical severity" data-placement="bottom"><i class="icon-exclamation-sign icon-white"></i> <span id="filterflag_violet_counter"></span></button>
+	                         <button id="filterflag_red" onclick="FilterResultsSummary('flag_red', 'NetMap',this)" class="btn sev-hi filter" rel="tooltip" data-original-title="High severity" data-placement="bottom"><i class="icon-arrow-up icon-white"></i> <span id="filterflag_red_counter"></span></button>
+	                     	 <button id="filterflag_yellow" onclick="FilterResultsSummary('flag_yellow', 'NetMap',this)" class="btn sev-med filter" rel="tooltip" data-original-title="Medium severity" data-placement="bottom"><i class="icon-arrow-right icon-white"></i> <span id="filterflag_yellow_counter"></span></button>
+	                         <button id="filterflag_blue"  onclick="FilterResultsSummary('flag_blue', 'NetMap',this)" class="btn sev-low filter" rel="tooltip" data-original-title="Low severity" data-placement="bottom"><i class="icon-arrow-down icon-white"></i> <span id="filterflag_blue_counter"></span></button>
+	                         <button id="filterflag_white" onclick="FilterResultsSummary('flag_white', 'NetMap',this)" class="btn sev-no filter" rel="tooltip" data-original-title="No severity" data-placement="bottom"><i class="icon-remove-circle icon-white"></i> <span id="filterflag_white_counter"></span></button>
+	                      </div>
+                    
+	                       <div class="btn-group">
+	                       		<a href="#more_filters_modal" role="button" class="btn filter" data-toggle="modal" rel="tooltip" data-original-title="More filters" data-placement="bottom"><i class="icon-filter icon-white"></i></a>
+		                        <button onclick="FilterResultsSummary('delete', 'NetMap',this)"  class="btn filter" rel="tooltip" data-original-title="Clear filters" data-placement="bottom"><i class="icon-ban-circle icon-white"></i></button>
+		                        <button onclick="FilterResultsSummary('refresh', 'NetMap',this)" id="refresh" class="btn" rel="tooltip" data-original-title="Refresh" data-placement="bottom"><i class="icon-refresh icon-white"></i></button> 
+		                   </div>
+		                       <span class="label label-success pull-right counter" rel="tooltip" data-original-title="Number of plugins that matched the search" data-placement="bottom"><strong> Matches:<span id="filtermatches_counter" >--</span></strong></span> 	
+                  </div>
+                
+                </div>
+                </div>
+                 <!--  End Filter Proto #4  -->
+
+					<!-- Modal more-filters -->
+						<div id="more_filters_modal" class="modal hide fade" style="width: 700px;" tabindex="-1" role="dialog" aria-labelledby="more_filters_modal_label" aria-hidden="true">
+							<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							<h3 id="more_filters_modal_label">More filters</h3>
+							</div>
+							<div class="modal-body" >
+								<table > 
+													<tr>
+														<th colspan="3">Plugin Groups</th>
+													</tr>
+													<tr >
+														<td colspan="3">
+																<select multiple='multiple'  id='SelectPluginGroup'  size='3' onchange='SetSelectFilterOptions(this)' style="width:100%;"> 
+																 	{% for Value in PluginTypes %}
+																		<option value="{{ Value }}"> 
+																			{{ Value|e }}
+																		 </option>
+																	{% endfor %}
+																</select>
+																
+														</td>
+													</tr>
+													<tr>
+														<th>Web Plugin Types</th>
+														<th>Aux Plugin Types</th>
+														<th>Net Plugin Types</th>
+													</tr>
+													<tr>
+														<td>
+																<select multiple='multiple'  id='SelectPluginTypesWeb' size='5' onchange='SetSelectFilterOptions(this)'> 
+																	{% for Value in WebPluginTypes %}
+																		<option value="{{ Value }}"> 
+																			{{ Value|e }}
+																		 </option>
+																	{% endfor %}
+																</select>
+														</td>
+														<td>
+															<select multiple='multiple'  id='SelectPluginTypesAux' size='5' onchange='SetSelectFilterOptions(this)'> 
+																	{% for Value in AuxPluginTypes %}
+																		<option value="{{ Value }}"> 
+																			{{ Value|e }}
+																		 </option>
+																	{% endfor %}
+																</select>
+														</td>
+														<td>
+															<select multiple='multiple'  id='SelectPluginTypesNet' size='5' onchange='SetSelectFilterOptions(this)'> 
+																	{% for Value in NetPluginTypes %}
+																		<option value="{{ Value }}"> 
+																			{{ Value|e }}
+																		 </option>
+																	{% endfor %}
+																</select>
+														</td>
+													</tr>
+													
+													<tr>
+								                	 <th colspan="3" >Web Test Groups</th>
+								                	 </tr>
+								                	 <tr>
+								                	 
+								               
+														<td colspan="3" >
+															<select multiple='multiple' style="width:100%;"  id='SelectWebTestGroups' size='5' onchange='SetSelectFilterOptions(this)'> 
+																	{% for Item in WebTestGroups %}
+																		<option value="{{ Item['Code'] }}"> 
+																			{{ Item["Code"] }} - {{ Item["Descrip"] }} ({{ Item["Hint"] }}) 
+																		 </option>
+																	{% endfor %}
+																</select>
+														</td>
+													</tr>
+													<tr>
+								                	 <th colspan="3" >Available Targets</th>
+								                	 </tr>
+								                	 <tr>
+								                	 	<td colspan="3"> 
+									                	 <select multiple="multiple" id="SelectTargets" size='5' style="width:100%;"  onchange='SetSelectFilterOptions(this)'>
+														       {% for IPInfo in IPs %}
+																	 {% for PortInfo in IPInfo.Ports %}
+																		{% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
+																		{% for Offset in PortInfo.Offsets %}
+																			<option value="{{ TargetID }}"> 
+																				{{ IPInfo.IP }}:{{ PortInfo.Port }} - {{ Offset.ReviewOffset }}
+																			 </option>
+																		{% endfor %}
+																	{% endfor %}
+																{% endfor %}
+														 </select>
+								                	 </td>
+								                	 </tr>
+													
+												</table>
+						
+							</div>
+						<div class="modal-footer">
+							<button class="btn btn-success" data-dismiss="modal" aria-hidden="true">Save</button>
+							<button class="btn btn-primary" data-dismiss="modal" onclick="FilterResultsSummary('info', 'NetMap',this)">Apply</button>
+						</div>
+							
+					</div>
+					
+						<!-- NetMap -->
+				<div class="row">
+                  <div class="span3 hidden-phone">
+						 <div  id="sidebar" class="bs-docs-sidebar">
+			          		<ul class="nav nav-pills nav-stacked bs-docs-sidenav affix ">
+			          		<li class="nav-header"><i class="icon-screenshot icon-white"> </i> Targets</li>
+			          				{% for IPInfo in IPs %}
+											{% set first = loop.first %}
+										 	{% for PortInfo in IPInfo.Ports %}
+										 		{% set first = loop.first and first %}
+											 	{% if not PortInfo.UnReachable %}
+											 		{% set first = loop.first and first %}
+											 			{% for Offset in PortInfo.Offsets %}
+											 			  {% set first = loop.first and first %}
+											 			  {% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
+			                      						 <li id="sb_target_{{ TargetID }}"><a href="#section_{{ TargetID }}"  class="tooltip_sidebar" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{ IPInfo.IP|e }}:{{ PortInfo.Port|e }}"><i class="icon-chevron-right"></i> {{ Offset.ReviewOffset|truncate(30, True) }} </a></li>
+										    			{% endfor %}
+												{% endif %}
+										    {% endfor %}
+										{% endfor %}	
+			                    </ul> 
+			          </div>
+		          </div>
+		          <div class="span9" id="content" data-spy="scroll" data-target="#sidebar">
+
+		          	{% for IPInfo in IPs %}
+										{% set first = loop.first %}
+									 	{% for PortInfo in IPInfo.Ports %}
+									 		{% set first = loop.first and first %}
+									 		{% for Offset in PortInfo.Offsets %}
+									 			{% set first = loop.first and first %}
+											 	{% set TargetID = "i" + IPInfo.IP|replace(".","_") + "p" + PortInfo.Port %}
+									 			{% set ReportID = TargetID %}
+							<section id="section_{{ TargetID }}" class="well well-small">
+		                      <div class="page-header">
+		                        <h3><span class="icon-screenshot icon-white"> </span><a id="offset_{{ TargetID }}" href="{{ Offset.ReviewOffset }}" target="_blank">{{ Offset.ReviewOffset }}</a>
+		                        <small class="">
+		                    		<span id="ip_{{ TargetID }}">{{ IPInfo.IP|e }}</span>:<span id="port_{{ TargetID }}">{{ PortInfo.Port|e }}</span>
+		                         </small>
+		                        <span class="btn-group">
+								    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+								        Logs <b class="caret"></b>
+								    </a>
+					                <ul class="dropdown-menu">
+					                     <li class="dropdown-submenu">
+					                        <a tabindex="-1" href="#">General</a>
+					                         <ul class="dropdown-menu">
+														<li>
+														<a href="../{{ Offset.Logs.Transaction_Log_HTML.link }}" target="_blank">
+															<span> 	Transaction Log (HTML) </span>
+														</a></li>
+														<li class="disabled">
+														<a href="../{{ Offset.Logs.All_Downloaded_Files.link }}" target="_blank">
+															<span> 	All Downloaded Files </span>
+														</a></li>
+														<li>
+														<a href="../{{ Offset.Logs.All_Transactions.link }}" target="_blank">
+															<span> All Transactions </span>
+														</a></li>
+														<li>
+														<a href="../{{ Offset.Logs.All_Requests.link }}"  target="_blank">
+															<span> 	All Requests </span>
+														</a></li>
+														<li>
+														<a href="../{{ Offset.Logs.All_Response_Headers.link }}"  target="_blank">
+															<span> 	All Response Headers </span>
+														</a></li>
+														<li>
+														<a href="../{{ Offset.Logs.All_Response_Bodies.link }}" target="_blank">
+															<span> 	All Response Bodies </span>
+														</a></li>
+					                         </ul>
+					                     </li>
+					                     <li class="dropdown-submenu">
+					                         <a tabindex="-1" href="#">Verified URLs</a>
+					                         <ul class="dropdown-menu">
+					                            <li>
+                                                                    <a href="../{{ Offset.Urls.All_URLs_link }}"  target="_blank">
+                                                                            <span> 	All URLs </span>
+                                                                    </a></li>
+                                                                    <li>
+                                                                    <a href="../{{ Offset.Urls.File_URLs_link }}"  target="_blank">
+                                                                            <span> File URLs </span>
+                                                                    </a></li>
+                                                                    <li>
+                                                                    <a href="../{{ Offset.Urls.Fuzzable_URLs_link }}"  target="_blank">
+                                                                            <span> Fuzzable URLs </span>
+                                                                    </a></li>
+                                                                    <li>
+                                                                    <a href="../{{ Offset.Urls.Image_URLs_link }}"  target="_blank">
+                                                                            <span> 	Image URLs </span>
+                                                                    </a></li>
+                                                                    <li>
+                                                                    <a href="../{{ Offset.Urls.Error_URLs_link }}"  target="_blank">
+                                                                            <span> 	Error URLs </span>
+                                                                    </a></li>
+                                                                    <li>
+                                                                    <a href="../{{ Offset.Urls.External_URLs_link }}"  target="_blank">
+                                                                            <span> 	External URLs </span>
+                                                                    </a></li>
+	                                                            <li>
+                                                                    <a href="../{{ Offset.Urls.SSI_URLs_link }}"  target="_blank">
+                                                                            <span> 	SSI URLs </span>
+                                                                    </a></li>
+                                                                </ul>
+					                    </li>
+					                     <li class="dropdown-submenu">
+					                         <a tabindex="-1" href="#">Potential URLs</a>
+					                         <ul class="dropdown-menu">
+                                                                    <li>
+                                                                    <a href="../{{ Offset.Urls_Potential.All_URLs_link }}"  target="_blank">
+                                                                            <span> 	All URLs </span>
+                                                                    </a></li>
+                                                                    <li>
+                                                                    <a href="../{{ Offset.Urls_Potential.File_URLs_link }}"  target="_blank">
+                                                                            <span> File URLs </span>
+                                                                    </a></li>
+                                                                    <li>
+                                                                    <a href="../{{ Offset.Urls_Potential.Fuzzable_URLs_link }}"  target="_blank">
+                                                                            <span> Fuzzable URLs </span>
+                                                                    </a></li>
+                                                                    <li>
+                                                                    <a href="../{{ Offset.Urls_Potential.Image_URLs_link }}" target="_blank">
+                                                                            <span> 	Image URLs </span>
+                                                                    </a></li>
+                                                                    <li>
+                                                                    <a href="../{{ Offset.Urls_Potential.Error_URLs_link }}"  target="_blank">
+                                                                            <span> 	Error URLs </span>
+                                                                    </a></li>
+                                                                    <li>
+                                                                    <a href="../{{ Offset.Urls_Potential.External_URLs_link }}"  target="_blank">
+                                                                            <span> 	External URLs </span>
+                                                                    </a>
+                                                                    </li>
+                                                                    <li>
+                                                                    <a href="../{{ Offset.Urls_Potential.SSI_URLs_link }}"  target="_blank">
+                                                                            <span> 	SSI URLs </span>
+                                                                    </a>
+                                                                    </li>
+					                        </ul>
+					                    </li>
+					                </ul>      
+								</span>
+		                        <span class="btn-group hidden">
+		                        	<a class="btn btn-info disabled" href="#review_modal" role="button" data-toggle="modal">Review</a>
+		                        	<a class="btn btn-info disabled" href="#export_subreport" role="button" data-toggle="modal" >Export</a>
+		                       	</span>
+		                       	<span class="btn-group">
+		                       		<a class="btn btn-primary subreport_expand target_button" href="#" role="button"  data-value="#subreport_{{ TargetID }}" data-toggle="tooltip" title="Expand all test groups of target"><i class="icon-expand-alt icon-large"></i></a>
+									<a class="btn btn-primary subreport_collapse target_button" href="#" role="button"  data-value="#subreport_{{ TargetID }}" data-toggle="tooltip" title="Collapse all test groups of target"><i class="icon-check-minus "></i></a>
+		                       	</span>
+		                       	 <a class="btn btn-warning subreport_refresh target_button" href="#" role="button"  data-value="#subreport_{{ TargetID }}" data-toggle="tooltip" title="Refresh target subreport"><i class="icon-refresh"></i></a>
+		                  		 <a class="btn btn-success subreport_generate target_button" href="#" role="button" onclick="ToggleReportMode('{{ TargetID }}')" data-value="#subreport_{{ TargetID }}" data-toggle="tooltip" title="Generate target review report"><i class="icon-magic"></i></a>
+		                        </h3>
+		                        
+				         		 </div>
+				         		 
+				         	<div id="generated_report_{{ TargetID }}" class="well" style="display:none">
+				      			<div id="{{ TargetID }}__rep__intro" class="muted"></div>
+				      			<h3> Statistics </h3>
+                  				<div id="{{ ReportID }}__rep__stats"></div>   	
+					         	<h3> Passed Tests </h3>
+                  				<div id="{{ ReportID }}__rep__passed"></div>   	
+					         	<h3> Findings </h3>
+                  				<div id="{{ ReportID }}__rep__findings"></div>   	
+					         	<h3> Unrated </h3>
+                  				<div id="{{ ReportID }}__rep__unrated">
+					      			<div class="alert"><strong>Alert!</strong> Unimplemented</div>
+					      		</div>
+				         </div>
+				         
+								 
+								 <div id="subreport_{{ TargetID }}" class="subreport" data-value="{{ Offset.ReviewPath }}">
+								 	<span class="alert alert-warning">
+								 		<i class="icon-spinner icon-spin icon-large"></i> 
+								 			Subreport is not loaded yet ... click <strong>Refresh <i class="icon-refresh"></i></strong> button!   
+								 	</span>
+								 </div>
+								<!-- 
+				         		 <iframe id="iframe_{{ Offset.ReviewOffset }}" src="{{ Offset.ReviewPath }}"   frameborder="0"  width="100%" height="100%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen>
+																Your browser does not support iframes
+															</iframe>
+									<div id="ip_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ IPInfo.IP }}</div>
+									<div id="port_{{ Offset.ReviewOffset }}" style = 'display: none'>{{ PortInfo.Port }}</div>
+								 -->
+				         	</section>
+		         			{% endfor %}
+						{% endfor %}
+					{% endfor %}	
+		        	
+		          </div>
+		       </div>
+		          
+					
+			<!-- end NetMap -->
+			<!-- start AUX -->
+			{% if AuxInfo.AuxSearch|count %}
+				<a href="{{ AuxInfo.AuxLink }}" class='report_index'>
+					<span> Auxiliary Plugins </span>
+				</a>
+			{% endif %}
+			<!-- end AUX -->
+				</div>
+				<div class="tab-pane" id="review">
+							&nbsp;
+								<div class="btn-toolbar">
+										<button class="btn" onclick="ImportReview();">
+											<span> Import </span>
+										</button>
+										<div class="btn-group">
+						    				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Export
+						    					<span class="caret"></span>
+											</a>
+											<ul class="dropdown-menu">
+											  <li><a href="#" onclick="ExportReviewAsText();">TEXT</a></li>
+											  <li class="disabled"><a class="disabled" href="#">HTML</a></li>
+											  <li class="disabled"><a class="disabled" href="#">PDF</a></li>
+											 
+											</ul>
+						    			</div>
+						    			<button class="btn btn-success disabled">Share</button>
+						    			<div class="btn-group">
+						    				<a class="btn btn-danger dropdown-toggle " data-toggle="dropdown" href="#">Delete
+						    					<span class="caret"></span>
+											</a>
+											<ul class="dropdown-menu">
+											  <li><a href="#" onclick="ClearReview();">This review!</a></li>
+											  <li><a href="#" onclick="DeleteStorage();">All reviews!</a></li>
+											</ul>
+						    			</div>
+						    			<div class="btn-group">
+		    				
+						    				<a class="btn btn-inverse dropdown-toggle " data-toggle="dropdown" href="#">Memory
+						    					<span class="caret"></span>
+											</a>
+											<ul class="dropdown-menu">
+											  <li><a href="#" onclick="ShowUsedMem();">Show Used Memory (KB)</a></li>
+											  <li><a href="#" onclick="ShowUsedMemPercentage();">Show Used Memory (%)</a></li>
+											</ul>
+						    			</div>
+						    			
+						    			
+						    			
+								</div>
+									<textarea rows="15" cols="100" id="import_export_box" class="span12"></textarea> 
+								
+					</div>
+			
+			  </div>
+			</div>
+		</div>
+		<!-- end Content -->
+
+		<!--  start footer -->
+			<div class="container">
+			<br>
+			<hr>
+			<p class="muted credit pull-right">
+			Generated by
+			<a href="http://owtf.org">OWASP OWTF</a>
+			- 
+			<a href="https://github.com/owtf/owtf/releases/tag/OWTF_{{ Version }}">Version {{ Version }} "{{ Release }}"</a>
+			-
+			<a href="http://github.com/owtf/owtf"> @github <i class="icon-github-alt"></i></a>
+			</p>
+			</div>
+		<!--  end footer -->
+
+		
+
+
+	    <!-- Placed at the end of the document so the pages load faster -->
+	    <script src="includes/js/jquery.js"></script>
+	    <script src="includes/js/bootstrap.js"></script>
+	    <script src="includes/js/style_switcher.js"></script>
+	    
+	        <script>
+	           // detect chrom(e|ium) browsers
+	          IsChrom = /chrom(e|ium)/.test(navigator.userAgent.toLowerCase()); 
+
+				if(IsChrom){
+					$("#alert_browser").show()
+				}
+	        
+			   $('.tooltip_sidebar').tooltip();
+			   // $('#myTab a:first').tab('show');
+			   // $('#myTab2 a:first').tab('show');
+			   $('#sidebar').affix();
+			   //$('body').scrollspy({ target: '#sidebar' });
+			   // $("#info").tooltip();
+			   $(".filter").tooltip();
+			   $(".counter").tooltip();
+			   $("#refresh").tooltip();
+			   $(".target_button").tooltip();
+			   $("#more_options").tooltip();
+
+			   
+			   	window.ReportsInfo = {} // init the variable that will contain subreports info
+			   	window.AllTargets = new Array()
+			   	var REPORT_PREFIX = '__rep__'
+				var AllCounters = new Array('filterinfo_counter','filterfav_counter','filterno_flag_counter','filterflag_counter','filterunseen_counter','filterseen_counter','filternotes_counter','filterattention_orange_counter','filterbonus_red_counter','filterstar_3_counter','filtercheck_green_counter','filterbug_counter','filterflag_white_counter','filterflag_blue_counter','filterflag_yellow_counter','filterflag_red_counter','filterflag_violet_counter')
+				var NetMap = {{ JsonNetMap }}
+				var PluginDelim = '{{ PLUGIN_DELIM }}'
+				var SeverityWeightOrder = new Array('flag_white', 'bonus_red','flag_violet','flag_red','flag_yellow','flag_blue','bug')
+				var PassedTestIcons = new Array('check_green')
+				var SeverityFlags = new Array('flag_white', 'flag_violet','flag_red','flag_yellow','flag_blue')
+				var TypeFlags = new Array("star_3","attention_orange","bonus_red","bug","check_green")
+				var FlagIcons = {
+					"N":"",
+					"fav":"icon-heart",
+					"star_3":"icon-asterisk",
+					"attention_orange":"icon-warning-sign",
+					"bonus_red": "icon-fire",
+					"bug":"icon-bug",
+					"check_green":"icon-thumbs-up",
+					"flag_white":"icon-remove-circle",
+					"flag_blue":"icon-arrow-down",
+					"flag_yellow":"icon-arrow-right",
+					"flag_red":"icon-arrow-up",
+					"flag_violet":"icon-exclamation-sign"
+				}
+		</script>
+		<script>
+		// load subreports 
+		$(".subreport").each(function(){
+								/*$.ajax({ 
+										url:$(this).data('value'),
+										async:true, 
+										success: function(result){
+											$(this).html(result);
+											}
+								});*/
+								$(this).load($(this).data('value')); 
+								
+							});	
+		
+					$(".subreport_refresh").click(function(){
+						target_subreport = $(this).data('value'); 
+						$(target_subreport).load($(target_subreport).data('value')); 
+						$('html, body').animate({
+					        scrollTop: $(this).offset().top - 40
+					    }, 500);
+					});
+					
+					$(".subreport_refresh").click(function(){
+						target_subreport = $(this).data('value'); 
+						$(target_subreport).load($(target_subreport).data('value')); 
+						$('html, body').animate({
+					        scrollTop: $(this).offset().top - 40
+					    }, 500);
+					});
+					
+					$(".subreport_collapse").click(function(){
+						target_subreport = $(this).data('value'); 
+						$(target_subreport + " .collapse").collapse('hide')
+					});
+					
+					$(".subreport_expand").click(function(){
+						target_subreport = $(this).data('value'); 
+						$(target_subreport + " .collapse").collapse('show')
+						//$(target_subreport + " .first_tab").tab('show')
+					});
+					
+					$('.target_jumper').click(function (e) {
+						  $("#mainmenu a[href='#filter']").tab('show');
+						  target_subreport = $(this).data("value");
+						  $('html, body').animate({
+						        scrollTop: $(target_subreport).offset().top - 40
+						    }, 500);
+						  
+						})
+
+		</script>
+					<script type="text/javascript" src="includes/owtf_general.js"></script>
+					<script type="text/javascript" src="includes/owtf_review.js"></script>
+					<script type="text/javascript" src="includes/owtf_filter.js"></script>
+					<script type="text/javascript" src="includes/owtf_reporting.js"></script>
+					<script type="text/javascript" src="includes/jsonStringify.js"></script>
+					<script type="text/javascript" src="includes/ckeditor/ckeditor.js"></script>
+					<script type="text/javascript" src="includes/ckeditor/adapters/jquery.js"></script>
+					<script type="text/javascript" src="includes/owtf_localStorage.js"></script>
+		
+		
+</body>
+</html>

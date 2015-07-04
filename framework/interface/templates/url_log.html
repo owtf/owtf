@@ -1,0 +1,119 @@
+{% extends base.html %}
+
+{% block title %}URL Log{% end %}
+
+{% block includes %}
+<script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
+<link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
+{% end %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10"></div>
+    <div class="col-md-2">
+        <a id="transactionLogLink"><span class="btn btn-primary"><i class="fa fa-chevron-circle-right"></i> Go To Transaction Log</span></a>
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="col-md-12">
+        <table id="urlLog" class="table table-condensed table-hover">
+            <thead>
+                <tr>
+                    <th> Visited </th>
+                    <th> Scope </th>
+                    <th> URL </th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+var mySpace = {
+                    transaction_log_url:"{{ transaction_log_url }}",
+                    urls_api_url:"{{ urls_api_url }}",
+                    urls_search_api_url:"{{ urls_search_api_url }}"
+                  };
+
+function getArray(data) {
+    var table_array = [];
+    $.each(data, function(index, obj){
+      // jQuery('#transactionLog').dataTable().fnAddData([
+      table_array.push([
+        obj.visited,
+        obj.scope,
+        obj.url,
+      ]);
+    });
+    return(table_array);
+}
+
+function dummyAjax(data, callback, settings) {
+  // This function takes care of converting dataTable data into owtf api
+  // and then the response back to dataTables type
+  var get_parameters = {};
+  var draw = data.draw;
+  get_parameters['limit'] = data.length;
+  get_parameters['offset'] = data.start;
+
+  var columnMappings = {
+    0: 'visited',
+    1: 'scope',
+    2: 'url',
+  };
+
+  // Iterate over mappings and add search parameters
+  for (var k in columnMappings) {
+    if (data.columns[k].search.value)
+      get_parameters[columnMappings[k]] = data.columns[k].search.value;
+  }
+
+  $.getJSON(mySpace.urls_search_api_url+'?'+$.param(get_parameters, true), function (responseData) {
+    callback({
+      "draw": draw,
+      "recordsTotal": responseData["records_total"],
+      "recordsFiltered": responseData["records_filtered"],
+      "data": getArray(responseData["data"]),
+      "error": null
+    });
+  });
+}
+
+function drawTable() {
+    $('#urlLog').dataTable({
+                                        "bAutoWidth": false,
+                                        "bSort": false, // Not yet supported in API, can after shifting to postgres
+                                        "bServerSide": true,
+                                        "ajax": dummyAjax,
+                                        "sDom": "ltip", // Remove global search & processing message
+                                    });
+
+    var table = $("#urlLog").DataTable();
+
+    $('#urlLog thead th').each(function () {
+        var title = $('#urlLog thead th').eq( $(this).index() ).text();
+        $(this).html('<input type="text" style="width: 100%; box-sizing: border-box;" class="form-control" placeholder="'+title+'"/>' );
+    });
+
+    // Apply the search
+    table.columns().eq(0).each(function ( colIdx ){
+        $(':text', table.column( colIdx ).header() ).on('keyup change', function () {
+            table
+                .column( colIdx )
+                .search( this.value )
+                .draw();
+        } );
+    });
+}
+
+$(document).ready(function() {
+    $('#transactionLogLink').attr("href", mySpace.transaction_log_url);
+    drawTable();
+});
+</script>
+
+{% end %}

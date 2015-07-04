@@ -1,0 +1,36 @@
++ add_exceptions in find_length
++ Update Readme file
+
+
+
+
+
+****TEMP*****
+
+
+
+        self.auth_username = None,
+        self.auth_password = None,
+        self.follow_redirects = True,
+        self.max_redirects = 10,
+        self.max_redirects = True,
+        self.headers = {},
+        self.proxy_host = None,
+        self.proxy_port = None,
+        self.proxy_username = None,
+        self.proxy_password = None,
+        self.user_agent = self.ua,
+        self.request_timeout = 30.0
+        self.init_request = HTTPRequest("",
+                                    auth_username=self.auth_username,
+                                    auth_password=self.auth_password,
+                                    follow_redirects=self.follow_redirects,
+                                    max_redirects=self.max_redirects,
+                                    allow_nonstandard_methods=self.max_redirects,
+                                    headers=self.headers,
+                                    proxy_host=self.proxy_host,
+                                    proxy_port=self.proxy_port,
+                                    proxy_username=self.proxy_username,
+                                    proxy_password=self.proxy_password,
+                                    user_agent=self.ua,
+                                    request_timeout=self.request_timeout)

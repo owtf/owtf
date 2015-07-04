@@ -1,0 +1,22 @@
+<table class='table table-bordered table-striped table-hover'>
+    <thead>
+        <tr><th colspan="2" align="center">HTTP Transactions</th></tr>
+        <tr><th> Request </th><th> Response </th></tr>
+    </thead>
+    <tbody>
+        {% for Transaction in TransactionList %}
+                <tr>
+                    <td>
+                        <pre class="wrappedPre">{{ escape(Transaction.GetRawRequest()) }}</pre>
+                    </td>
+                    <td>
+                        <pre class="wrappedPre">{{ escape(Transaction.GetRawResponseHeaders()) }} ...
+                        <a class="btn btn-default btn-xs" onclick="navigateToTransaction({{ Transaction.GetID() }})">
+                            <i class="fa fa-chevron-circle-right"></i> Full Transaction
+                        </a>
+                        </pre>
+                    </td>
+                </tr>
+        {% end %}
+    </tbody>
+</table>

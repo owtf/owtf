@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <title>{% block title %}OWASP OWTF User Interface{% end %}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OWASP OWTF Summary Report">
+    <meta name="author" content="OWASP OWTF Team">
+
+    <!-- Styles -->
+    <link href="/static/css/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="/static/css/spinner.css" rel="stylesheet">
+    <link id="skin_css" href="/static/css/stylesheet.css" rel="stylesheet"> <!-- All tweaks present in this file -->
+    <!-- End Styles -->
+
+    <!-- JS -->
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+    <!-- End JS -->
+    <!-- Set of functions that can be used in every page to display status messages -->
+    <script>
+    // Function to activate auto-close of any alert
+    function autoCloseAlert(){
+        setTimeout(function(){$(".alert").alert('close');}, 5000);
+    }
+
+    // Function to display a fail message in status box
+    function alertFail(info){
+        $('#statusBox').html('<div class="alert alert-danger">\
+        <a href="#" class="close" data-dismiss="alert">&times;</a>\
+        <strong>Oops!</strong> '+info+'\
+    </div>');
+    }
+
+    // Function to display a success message in status box
+    function alertSuccess(info){
+        $('#statusBox').html('<div class="alert alert-success">\
+        <a href="#" class="close" data-dismiss="alert">&times;</a>\
+        <strong>Yup!</strong> '+info+'\
+    </div>');
+        autoCloseAlert();
+    }
+
+    // Function to display a warning message in status box
+    function alertWarning(info){
+        $('#statusBox').html('<div class="alert alert-warning">\
+        <a href="#" class="close" data-dismiss="alert">&times;</a>\
+        <strong>Hey!</strong> '+info+'\
+    </div>');
+        autoCloseAlert();
+    }
+
+    // Function to display a info message in status box
+    function alertInfo(info){
+        $('#statusBox').html('<div class="alert alert-info">\
+        <a href="#" class="close" data-dismiss="alert">&times;</a>\
+        <strong>BTW!</strong> '+info+'\
+    </div>');
+        autoCloseAlert();
+    }
+
+    var entityMap = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': '&quot;',
+        "'": '&#39;',
+        "/": '&#x2F;'
+    };
+
+    function escapeHtml(string) {
+        return String(string).replace(/[&<>"'\/]/g, function (s) {
+          return entityMap[s];
+        });
+    }
+
+    // Function to activate overlay and spinner
+    function addOverlay(selector) {
+        var div = $(selector);
+        // Get all the position related stuff
+        pos = $.extend({
+           width: div.outerWidth(true), // true to include margin
+           height: div.outerHeight(true)
+        }, div.position());
+        // Add overlay
+        var overlayDiv = $('<div>', {
+            class: 'overlay',
+            css: {
+                position: 'absolute',
+                top: pos.top,
+                left: pos.left,
+                width: pos.width,
+                height: pos.height,
+                backgroundColor: '#FFFFFF',
+                opacity: 0.50
+            }
+        });
+        var spinnerDiv = $('<div class="three-quarters"></div>');
+        overlayDiv.appendTo(div);
+        spinnerDiv.appendTo(overlayDiv);
+        spinnerDiv.css({
+            top: overlayDiv.height()/2 - spinnerDiv.height()/2 ,
+            left: overlayDiv.width()/2 - spinnerDiv.width()/2
+        });
+    }
+
+    // Function to remove overlay & spinner
+    function removeOverlay(selector) {
+        $(selector+'.overlay').remove();
+    }
+
+    // Function to enable any input i.e button, textarea etc..
+    function enableInput(selector) {
+        $(selector).removeAttr("disabled");
+    }
+
+    // Function to disable any input
+    function disableInput(selector) {
+        $(selector).prop("disabled", true);
+    }
+    </script>
+    <!-- End status box message -->
+
+    <!-- Template specific includes, used by child templates to include something specific -->
+    {% block includes %}{% end %}
+    <!-- End Includes -->
+
+    </head>
+    <body>
+
+        <!-- Navigation Bar -->
+        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{{ reverse_url('home_ui_url') }}"><i class="fa fa-home"></i> OWASP OWTF</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav pull-right">
+                    <li><a href="{{ reverse_url('targets_ui_url', None) }}"><i class="fa fa-crosshairs"></i> Targets</a></li>
+                    <li><a href="{{ reverse_url('workers_ui_url', None) }}"><i class="fa fa-th-large"></i> Workers</a></li>
+                    <li><a href="{{ reverse_url('worklist_ui_url') }}"><i class="fa fa-bars"></i> Worklist</a></li>
+                    <li><a href="{{ reverse_url('configuration_ui_url') }}"><i class="fa fa-gears"></i> Settings</a></li>
+		    <li><a href="{{ reverse_url('plugnhack_ui_url') }}"><i class="fa fa-sign-in"></i> PlugnHack</a></li>
+                    <li><a href="{{ reverse_url('help_ui_url') }}"><i class="fa fa-link"></i> Help</a></li>
+                </ul> <!-- nav navbar-nav -->
+            </div>
+        </nav>
+        <!-- End Navigation Bar -->
+
+        <!-- Start container -->
+        <div class="container">
+            <!-- Status box, used to display status messages -->
+            <div class="row" id="statusBox">
+            </div>
+            <!-- End Status box -->
+            <!-- Child template content -->
+            <div class="row-fluid">
+                {% block content %}Content{% end %}
+            </div>
+            <!-- End Child template -->
+        </div>
+        <!-- End container -->
+    </body>
+</html>

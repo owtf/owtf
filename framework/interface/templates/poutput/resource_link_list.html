@@ -1,0 +1,14 @@
+<div class="well well-small">
+        {{ ResourceListName }} ( <a href="#" onclick="$(this).parent().find('a[target]').trigger('click');"> Open all </a> ): 
+
+        <ul class="icons-ul">
+        {% for Name, Resource in ResourceList %}
+                <li> 
+                        <i class="icon-li icon-chevron-sign-right"></i>
+                        <a href="{{ Resource }}" onclick="window.open(this.href); return false;" target="_blank">
+                         {{ Name }} 
+                                </a> 
+                        </li>
+        {% end %}
+        </ul>
+</div>

@@ -1,0 +1,22 @@
+# Before editing this file, read this or else XD
+# - The libraries are written in alphabetical order
+# - The version number is important, it is required that you test
+#   the latest version and add it here
+# - The casing of names is critical for dependency checks, eg. pyOpenSSL and not pyopenssl
+
+beautifulsoup4==4.3.2
+lxml==3.4.0
+Markdown==2.5.1
+pexpect==3.3
+psycopg2==2.5.4
+PTP==0.2.0
+pycurl==7.19.5
+# We donot use six directly, but there is an error while trying to install pyOpenSSL. More details at https://github.com/owtf/owtf/issues/332
+six==1.8.0
+pyOpenSSL==0.14
+python-owasp-zap-v2==0.0.9
+PyVirtualDisplay==0.1.5
+rdflib==4.1.2
+selenium==2.43.0
+SQLAlchemy==0.9.7
+tornado==4.0.2

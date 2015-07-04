@@ -1,0 +1,35 @@
+# Compiled source and other garbage #
+#####################################
+*.pyc
+*.swp
+
+# Directories with potential license restrictions that prevent re-distribution #
+################################################################################
+dictionaries/restricted/*
+tools/restricted/*
+
+# Tools with license restrictions that prevent re-distribution #
+################################################################
+*/sbd
+
+# Defined OWTF tests with potential proprietary information #
+################################################################
+tests/restricted/*
+
+# Directory with the output of OWTF
+###################################
+owtf_review/*
+scans/*
+
+# Unit Testing Framework files #
+################################
+tests/cover/*
+tests/.coverage
+tests/tests.log.html
+
+# Zest jars #
+#############
+zest/zest_lib/*
+zest/zest_runner_lib/*
+zest/zest.jar
+zest/zest_runner.jar

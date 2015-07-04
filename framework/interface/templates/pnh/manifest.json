@@ -1,0 +1,20 @@
+{
+  "toolName":"OWASP OWTF",
+  "protocolVersion":"0.2",
+  "features":{
+    "proxy":{
+      "PAC":"{{ pnh_url }}/proxy.pac",
+      "CACert":"{{ pnh_url }}/ca.crt"
+    },
+    "commands":{
+      "prefix":"owtf",
+      "manifest":"{{ pnh_url }}/service.json"
+    },
+    "probe":{
+      "transport":"HTTPMessageTransport",
+      "endpoint":"{{ probe_url }}/plugnhack/monitor/?apikey={{ api_key }}&",
+      "oracle":"{{ probe_url }}/plugnhack/oracle/?apikey={{ api_key }}&id=",
+      "endpointName":"OWTF"
+    }
+  }
+}

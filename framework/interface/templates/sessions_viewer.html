@@ -1,0 +1,58 @@
+{% extends base.html %}
+
+{% block title %}Session Viewer{% end %}
+
+{% block content %}
+<h2>Cookie-based user sessions data</h2>
+<hr/>
+<div class="row-fluid">
+    <div class="panel-group" id="accordion">
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+var mySpace = {
+    sessions_api_url:"{{ sessions_api_url }}"
+}
+
+function enterSessionData(data){
+    $("#accordion").empty();
+    $.each(data, function(ind, objects){
+      $.each(objects, function(index, obj){
+        html = '<div class="panel panel-default">';
+        html+= '<div class="panel-heading"><h4 id="token_head" data-toggle="collapse" data-parent=".panel-group" href="#token">'+obj.name+'</h4></div>';
+        html+='<div class="panel-body collapse-in" id="token"><ul class="nav nav-tabs"><li class="pull-right"><button class="btn btn-primary btn-sm"> View URL map</button></li><hr /></ul><table class="table table-bordered table-striped table-hover"><thead><tr><th> NAME </th><th> VALUE </th><th> ATTRIBUTES </th></tr></thead><tbody><tr></tr>';
+        html+='<td id="token_name">'+obj.name+'</td>';
+        html+='<td id="token_value">'+obj.value+'</td><td>';
+        if (obj.attributes.Domain){
+            html+='<ul id="token_attr_domain"><b>Domain</b>: '+obj.attributes.Domain+'</ul>';
+        }
+        if (obj.attributes.Path){
+            html+='<ul id="token_attr_path"><b>Path</b>: '+obj.attributes.Path+'</ul>';
+        }
+        if (obj.attributes.Secure){
+            html+='<ul id="token_attr_secure"><b>Secure</b>: '+obj.attributes.Secure+'</ul>';
+        }
+        if (obj.attributes.HttpOnly){
+            html+='<ul id="token_attr_httponly"><b>HttpOnly</b>: '+obj.attributes.HttpOnly+'</ul>';
+        }
+        if (obj.attributes.Expires){
+            html+='<ul id="token_attr_expires"><b>Expires</b>: '+obj.attributes.Expires+'</ul>';
+        }
+        html+='</td></tr></tbody></table></div></div></div></div></div>';
+        $("#accordion").append(html)
+    });
+});
+}
+
+function updateSessionsData(){
+    $.getJSON(mySpace.sessions_api_url, enterSessionData);
+    setTimeout(updateSessionsData, 5000);
+}
+
+$(document).ready(updateSessionsData);
+
+</script>
+{% end %}
