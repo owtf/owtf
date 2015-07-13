@@ -143,7 +143,7 @@ class Installer(object):
             self.install_using_pip(self.owtf_pip)
 
 if __name__ == "__main__":
-    print("[*] Great that your are installing OWTF :D")
+    print("[*] Great that you are installing OWTF :D")
     print("[!] There will be lot of output, please be patient")
     RootDir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     installer = Installer(RootDir)
