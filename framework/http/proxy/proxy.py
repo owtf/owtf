@@ -147,6 +147,9 @@ class ProxyHandler(tornado.web.RequestHandler):
             if self.request.uri != '/':  # Add uri only if needed
                 self.request.url += self.request.uri
 
+        #Setting timestamp here:
+        self.request.local_timestamp = datetime.datetime.now()
+
         # This block here checks for already cached response and if present returns one
         self.cache_handler = CacheHandler(
                                             self.application.cache_dir,
@@ -404,6 +407,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.handshake_request.response_buffer = "" # Needed for websocket data & compliance with cache_handler stuff
             self.handshake_request.version = "HTTP/1.1" # Tiny hack to protect caching (But according to websocket standards)
             self.handshake_request.body = self.handshake_request.body or "" # I dont know why a None is coming :P
+            self.handshake_request.local_timestamp = datetime.datetime.now()
             tornado.websocket.WebSocketHandler._execute(self, transforms, *args, **kwargs) # The regular procedures are to be done
 
         # We try to connect to provided URL & then we proceed with connection on client side.
@@ -541,7 +545,7 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         if os.path.exists(self.application.cache_dir):
             FileOperations.rm_tree(self.application.cache_dir)
         FileOperations.make_dirs(self.application.cache_dir)
-        for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body', 'resp-time']:
+        for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body', 'resp-time',  'req-local_timestamp' ]:
             folder_path = os.path.join(self.application.cache_dir, folder_name)
             if not os.path.exists(folder_path):
                 FileOperations.mkdir(folder_path)

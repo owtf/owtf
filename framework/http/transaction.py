@@ -79,6 +79,8 @@ class HTTP_Transaction(object):
     def StartRequest(self):
         self.Timer.start_timer('Request')
         self.Time = self.TimeHuman = ''
+        #Timestamp at the time when Request Started
+        self.LocalTimeStamp = self.Timer.get_current_date_time()
 
     def EndRequest(self):
         self.Time = self.Timer.get_elapsed_time_as_str('Request')
@@ -114,6 +116,7 @@ class HTTP_Transaction(object):
                              status,
                              time,
                              time_human,
+                             local_timestamp,
                              request_data,
                              raw_request,
                              response_headers,
@@ -127,6 +130,7 @@ class HTTP_Transaction(object):
         self.Found = (self.Status == "200 OK")
         self.Time = time
         self.TimeHuman = time_human
+        self.LocalTimeStamp = local_timestamp
         self.Data = request_data
         self.RawRequest = raw_request
         self.ResponseHeaders = response_headers
@@ -239,6 +243,7 @@ class HTTP_Transaction(object):
         self.ResponseSize = len(self.ResponseContents)
         self.Time = str(response.request_time)
         self.TimeHuman = self.Timer.get_time_human(self.Time)
+        self.LocalTimeStamp = request.local_timestamp
         self.Found = (self.Status == "200 OK")
         # Cookie string for GetCookies method
         cookies_list = [
