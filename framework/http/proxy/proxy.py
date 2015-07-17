@@ -541,10 +541,6 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         if os.path.exists(self.application.cache_dir):
             FileOperations.rm_tree(self.application.cache_dir)
         FileOperations.make_dirs(self.application.cache_dir)
-        for folder_name in ['url', 'req-headers', 'req-body', 'resp-code', 'resp-headers', 'resp-body', 'resp-time']:
-            folder_path = os.path.join(self.application.cache_dir, folder_name)
-            if not os.path.exists(folder_path):
-                FileOperations.mkdir(folder_path)
 
         # SSL MiTM
         # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory ~/.owtf/proxy )

@@ -214,7 +214,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
 
     def GetTransactionModel(self, transaction):
         try:
-            response_body = unicode(transaction.GetRawResponseBody(), "utf-8")
+            response_body = transaction.GetRawResponseBody().encode("utf-8")
             binary_response = False
         except UnicodeDecodeError:
             response_body = base64.b64encode(transaction.GetRawResponseBody())

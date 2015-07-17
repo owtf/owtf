@@ -37,6 +37,7 @@ from framework.lib.owtf_process import OWTFProcess
 from framework import timer
 from urlparse import urlparse
 import os
+import json
 import glob
 import time
 import logging
@@ -79,8 +80,8 @@ class TransactionLogger(OWTFProcess):
             host_list = self.target.GetAllInScope('host_name')
 
             for request_hash in hash_list:
-                request = request_from_cache(request_hash, self.cache_dir)
-                response = response_from_cache(request_hash, self.cache_dir)
+                request = request_from_cache(os.path.join(self.cache_dir, request_hash))
+                response = response_from_cache(os.path.join(self.cache_dir, request_hash))
                 target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list, host_list)
                 owtf_transaction = transaction.HTTP_Transaction(timer.Timer())
                 owtf_transaction.ImportProxyRequestResponse(request, response)
@@ -92,7 +93,7 @@ class TransactionLogger(OWTFProcess):
 
     def get_hash_list(self, cache_dir):
         hash_list = []
-        for file_path in glob.glob(os.path.join(cache_dir, "url", "*.rd")):
+        for file_path in glob.glob(os.path.join(cache_dir, "*.rd")):
             request_hash = os.path.basename(file_path)[:-3]
             hash_list.append(request_hash)
             os.remove(file_path)
@@ -101,7 +102,7 @@ class TransactionLogger(OWTFProcess):
     def pseudo_run(self):
         try:
             while self.poison_q.empty():
-                if glob.glob(os.path.join(self.cache_dir, "url", "*.rd")):
+                if glob.glob(os.path.join(self.cache_dir, "*.rd")):
                     hash_list = self.get_hash_list(self.cache_dir)
                     transactions_dict = self.get_owtf_transactions(hash_list)
                     if transactions_dict: # Make sure you donot have None
