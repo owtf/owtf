@@ -34,6 +34,7 @@ import os
 import json
 import base64
 import hashlib
+import datetime
 from framework.lib.filelock import FileLock
 
 class CacheHandler(object):
@@ -111,6 +112,7 @@ class CacheHandler(object):
                             'request_headers':self.request.headers,
                             'request_body':self.request.body,
                             'request_time':response.request_time,
+                            'request_local_timestamp':self.request.local_timestamp.isoformat(),
                             'response_code':response.code,
                             'response_headers':response.headers,
                             'response_body':response_body,
@@ -174,6 +176,7 @@ def request_from_cache(file_path):
     # A fake request object is created with necessary attributes
     dummyRequest = DummyObject()
     cache_dict = json.loads(open(file_path, 'r').read())
+    dummyRequest.local_timestamp = datetime.datetime.strptime(cache_dict["request_local_timestamp"].strip("\r\n"), '%Y-%m-%dT%H:%M:%S.%f')
     dummyRequest.method = cache_dict["request_method"]
     dummyRequest.url = cache_dict["request_url"]
     dummyRequest.headers = cache_dict["request_headers"]

@@ -135,6 +135,7 @@ class ProxyHandler(tornado.web.RequestHandler):
           then processed by this function
         """
         # The flow starts here
+        self.request.local_timestamp = datetime.datetime.now()
         self.request.response_buffer = ''
 
         # The requests that come through ssl streams are relative requests, so transparent
