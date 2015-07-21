@@ -46,6 +46,13 @@ except ImportError:
     print("           python2 install/install.py")
     exit(1)
 
+def is_present(module_name):
+    try:
+        __import__(module_name)
+    except ImportError:
+        return False
+    else:
+        return True
 
 def verify_dependencies(root_dir):
     # Get all the installed libraries
@@ -64,7 +71,9 @@ def verify_dependencies(root_dir):
     missing_libraries = []
     for library_name in owtf_libraries:
         if library_name not in installed_libraries.keys():
-            missing_libraries.append(library_name)
+            # Check if the module is installed via package manager
+            if not is_present(library_name):
+                missing_libraries.append(library_name)
 
     # If there are missing libraries bail out :P
     if len(missing_libraries) > 0:
