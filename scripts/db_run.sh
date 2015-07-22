@@ -37,6 +37,25 @@ get_config_value(){
     echo "$(grep -i $parameter $file | sed  "s|$parameter: ||g;s|~|$HOME|g")"
 }
 
+get_db_config_file(){
+
+    config_file=$1
+    db_config_file=$2
+
+    default_db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
+    if [ -f "$default_db_config_file" ]; then
+        echo "$default_db_config_file"
+        return 0
+    fi
+    if [ -f "$db_config_file" ]; then
+        echo "$db_config_file"
+        return 0
+    fi
+    echo "Default file "$default_db_config_file" does not exist" >&2
+    echo "Rerun script with path parameter. Usage : $0 [db_config_file_path]" >&2
+    return 1
+}
+
 get_postgres_server_ip() {
     echo "$(sudo netstat -lptn | grep "^tcp " | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f1)"
 }
@@ -53,10 +72,14 @@ fi
 
 FILE_PATH=$(readlink -f "$0")
 SCRIPTS_DIR=$(dirname "$FILE_PATH")
-RootDir=${2:-$(dirname "$SCRIPTS_DIR")}
+RootDir=$(dirname "$SCRIPTS_DIR")
 
 config_file="$RootDir/framework/config/framework_config.cfg"
-db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
+db_config_file="$(get_db_config_file $config_file $1)"
+
+if [ ! -f "$db_config_file" ]; then
+    exit 1
+fi
 
 # Saved postgres settings
 saved_server_ip="$(get_config_value DATABASE_IP $db_config_file)"
