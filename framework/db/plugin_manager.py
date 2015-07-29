@@ -228,7 +228,6 @@ class PluginDB(BaseComponent, DBPluginInterface):
     def GetAll(self, Criteria={}):
         query = self.GenerateQueryUsingSession(Criteria)
         plugin_obj_list = query.all()
-        print(plugin_obj_list[-1])
         return(self.DerivePluginDicts(plugin_obj_list))
 
     def GetPluginsByType(self, PluginType):
