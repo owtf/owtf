@@ -27,7 +27,7 @@ class InterfaceServer(OWTFProcess, BaseComponent):
                 int(config.FrameworkConfigGet(
                     "UI_SERVER_PORT")),
                 address=config.FrameworkConfigGet(
-                    "UI_SERVER_ADDR")
+                    "SERVER_ADDR")
                 )
             tornado.options.parse_command_line(
                 args=[
