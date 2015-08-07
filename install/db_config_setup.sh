@@ -28,6 +28,8 @@
 #
 # This script creates a default config file at user specified location if it
 # doesn't already exist
+# Usage : $0 [rootdir] [--cfg-only]
+# @param --cfg-only : Create the db.cfg file and skip postgres server setup and start
 
 get_config_value(){
 
@@ -37,9 +39,21 @@ get_config_value(){
     echo "$(grep -i $parameter $file | sed  "s|$parameter: ||g;s|~|$HOME|g")"
 }
 
+# Simple command line argument handler.
+cfg_only=false
+
+for arg in "$@"
+do
+    if [ "$arg" == "--cfg-only" ]; then
+        cfg_only=true
+    else
+        RootDir=$arg
+    fi
+done
+
 FILE_PATH=$(readlink -f "$0")
 INSTALL_DIR=$(dirname "$FILE_PATH")
-RootDir=${1:-$(dirname "$INSTALL_DIR")}
+RootDir=${RootDir:-$(dirname "$INSTALL_DIR")}
 
 config_file="$RootDir/framework/config/framework_config.cfg"
 db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
@@ -62,6 +76,10 @@ DATABASE_PORT: 5432
 DATABASE_NAME: $db_name
 DATABASE_USER: $db_user
 DATABASE_PASS: $db_pass" >> $db_config_file
+
+    if $cfg_only ; then
+        exit 0
+    fi
 
     echo "[*] Do you want to create database and user as specified in $db_config_file [Y/n]?"
     read choice
