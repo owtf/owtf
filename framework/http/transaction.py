@@ -63,6 +63,7 @@ class HTTP_Transaction(object):
         self.Found = None
         self.RawRequest = ''
         self.ResponseHeaders = []
+        self.ResponseSize = ''
         self.Status = ''
         self.ID = ''
         self.HTMLLinkToID = ''
@@ -82,6 +83,7 @@ class HTTP_Transaction(object):
     def EndRequest(self):
         self.Time = self.Timer.get_elapsed_time_as_str('Request')
         self.TimeHuman = self.Time
+        self.LocalTimestamp = self.Timer.get_current_date_time()
 
     def SetTransaction(self, found, request, response):
         # Response can be "Response" for 200 OK or "Error" for everything else,
@@ -113,9 +115,11 @@ class HTTP_Transaction(object):
                              status,
                              time,
                              time_human,
+                             local_timestamp,
                              request_data,
                              raw_request,
                              response_headers,
+                             response_size,
                              response_body):
         self.ID = id
         self.New = False  # Flag NOT new transaction.
@@ -125,9 +129,11 @@ class HTTP_Transaction(object):
         self.Found = (self.Status == "200 OK")
         self.Time = time
         self.TimeHuman = time_human
+        self.LocalTimestamp = local_timestamp
         self.Data = request_data
         self.RawRequest = raw_request
         self.ResponseHeaders = response_headers
+        self.ResponseSize = response_size
         self.ResponseContents = response_body
         cookies_list = [
             header.split(':', 1)[-1].strip()
@@ -233,8 +239,10 @@ class HTTP_Transaction(object):
         self.RawRequest = request.raw_request
         self.ResponseHeaders = response.header_string
         self.ResponseContents = response.body
+        self.ResponseSize = len(self.ResponseContents)
         self.Time = str(response.request_time)
         self.TimeHuman = self.Timer.get_time_human(self.Time)
+        self.LocalTimestamp = request.local_timestamp
         self.Found = (self.Status == "200 OK")
         # Cookie string for GetCookies method
         cookies_list = [

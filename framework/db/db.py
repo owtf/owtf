@@ -133,6 +133,11 @@ class DB(BaseComponent, DBInterface):
                 poolclass=NullPool)  # TODO: Fix for forking
             BaseClass.metadata.create_all(engine)
             return engine
+        except ValueError as e:  # Potentially corrupted DB config.
+            self.error_handler.FrameworkAbort(
+                'Database configuration file is potentially corrupted. '
+                'Please check ' + self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE') + '\n'
+                '[DB] ' + str(e))
         except KeyError:  # Indicates incomplete db config file
             self.error_handler.FrameworkAbort(
                 "Incomplete database configuration settings in "

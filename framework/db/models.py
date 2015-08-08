@@ -90,9 +90,11 @@ class Transaction(Base):
     data = Column(String, nullable=True)  # Post DATA
     time = Column(Float(precision=10))
     time_human = Column(String)
+    local_timestamp = Column(DateTime)
     raw_request = Column(Text)
     response_status = Column(String)
     response_headers = Column(Text)
+    response_size = Column(Integer, nullable=True)
     response_body = Column(Text, nullable=True)
     binary_response = Column(Boolean, nullable=True)
     session_tokens = Column(String, nullable=True)
@@ -223,6 +225,8 @@ class TestGroup(Base):
     descrip = Column(String)
     hint = Column(String, nullable=True)
     url = Column(String)
+    priority = Column(Integer)
+    plugins = relationship("Plugin")
 
 
 class Plugin(Base):
@@ -231,7 +235,7 @@ class Plugin(Base):
     key = Column(String, primary_key=True)  # key = type@code
     title = Column(String)
     name = Column(String)
-    code = Column(String)
+    code = Column(String, ForeignKey("test_groups.code"))
     group = Column(String)
     type = Column(String)
     descrip = Column(String, nullable=True)
@@ -239,6 +243,9 @@ class Plugin(Base):
     attr = Column(String, nullable=True)
     works = relationship("Work", backref="plugin", cascade="delete")
     outputs = relationship("PluginOutput", backref="plugin")
+
+    def __repr__(self):
+        return "<Plugin (code='%s', group='%s', type='%s')>" % (self.code, self.group, self.type)
 
     @hybrid_property
     def min_time(self):

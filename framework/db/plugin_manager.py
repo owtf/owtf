@@ -12,7 +12,7 @@ TEST_GROUPS = ['web', 'net', 'aux']
 
 
 class PluginDB(BaseComponent, DBPluginInterface):
-    
+
     COMPONENT_NAME = "db_plugin"
 
     def __init__(self):
@@ -33,14 +33,14 @@ class PluginDB(BaseComponent, DBPluginInterface):
             if '#' == line[0]:
                     continue  # Skip comments
             try:
-                    Code, Descrip, Hint, URL = line.strip().split(' | ')
+                    Code, Priority, Descrip, Hint, URL = line.strip().split(' | ')
             except ValueError:
                     self.error_handler.FrameworkAbort("Problem in Test Groups file: '" + file_path + "' -> Cannot parse line: " + line)
             if len(Descrip) < 2:
                     Descrip = Hint
             if len(Hint) < 2:
                     Hint = ""
-            TestGroups.append({'code': Code, 'descrip': Descrip, 'hint': Hint, 'url': URL})
+            TestGroups.append({'code': Code, 'priority': Priority, 'descrip': Descrip, 'hint': Hint, 'url': URL})
         return TestGroups
 
     def LoadWebTestGroups(self, test_groups_file):
@@ -49,6 +49,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
             self.db.session.merge(
                 models.TestGroup(
                     code=group['code'],
+                    priority=group['priority'],
                     descrip=group['descrip'],
                     hint=group['hint'],
                     url=group['url'],
@@ -62,6 +63,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
             self.db.session.merge(
                 models.TestGroup(
                     code=group['code'],
+                    priority=group['priority'],
                     descrip=group['descrip'],
                     hint=group['hint'],
                     url=group['url'],
@@ -108,6 +110,9 @@ class PluginDB(BaseComponent, DBPluginInterface):
             # the length of chunks is less than 3.
             if len(chunks) == 3:
                 group, type, file = chunks
+            # TODO: Add test groups for AUX and then remove the following two lines
+            if group == "aux":
+                continue
             # Retrieve the internal name and code of the plugin.
             name, code = os.path.splitext(file)[0].split('@')
             # Load the plugin as a module.
@@ -159,7 +164,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
         return(self.DeriveTestGroupDict(group))
 
     def GetAllTestGroups(self):
-        test_groups = self.db.session.query(models.TestGroup).all()
+        test_groups = self.db.session.query(models.TestGroup).order_by(models.TestGroup.priority.desc()).all()
         return(self.DeriveTestGroupDicts(test_groups))
 
     def GetAllGroups(self):
@@ -197,7 +202,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
         return(plugin_dicts)
 
     def GenerateQueryUsingSession(self, criteria):
-        query = self.db.session.query(models.Plugin)
+        query = self.db.session.query(models.Plugin).join(models.TestGroup)
         if criteria.get("type", None):
             if isinstance(criteria["type"], (str, unicode)):
                 query = query.filter_by(type=criteria["type"])
@@ -218,7 +223,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
                 query = query.filter_by(name=criteria["name"])
             if isinstance(criteria["name"], list):
                 query = query.filter(models.Plugin.name.in_(criteria["name"]))
-        return query
+        return query.order_by(models.TestGroup.priority.desc())
 
     def GetAll(self, Criteria={}):
         query = self.GenerateQueryUsingSession(Criteria)

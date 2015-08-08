@@ -392,8 +392,8 @@ class TestDefinitions(object):
         # ... that should turn out to be the same as Definitions.EXTENSION_AV
         match = re.compile("^([%s]+)\Z" % Definitions.EXTENSION_AV).match
         # Verify I didn't mess up on escaping here first
-        assert match(r']')
-        assert match(r'[')
+        assert match(r'\]')
+        assert match(r'\[')
         assert match(r"'")
         assert match(r'"')
         assert match("\\")
@@ -1483,6 +1483,31 @@ class TestCookies(object):
             {'expires': 'Sun Nov  6 08:49:37 1994', 'name': 'a', 'value': 'b'}
         assert Cookie.from_dict(response_dict) == \
                 Cookie('a', 'b', expires=parse_date(asctime))
+
+    def test_max_age_gets_prioritized(self):
+        """
+        Due to RFC6265 Section 5.3.3, the Max-Age attribute has to be
+        prioritized over the Expires attribute:
+
+        If the cookie-attribute-list contains an attribute with an
+        attribute-name of "Max-Age":
+
+           Set the cookie's persistent-flag to true.
+
+           Set the cookie's expiry-time to attribute-value of the last
+           attribute in the cookie-attribute-list with an attribute-name
+           of "Max-Age".
+        """
+        expires_rendered = 'Tue, 01 Jan 2013 00:00:00 GMT'
+        max_age = 3600
+        line = 'a=b; Expires=%s; Max-Age=%d' % (expires_rendered, max_age)
+        response_dict = parse_one_response(line)
+
+        assert response_dict.get('expires') != expires_rendered
+
+        now_ut = long(datetime.utcnow().strftime('%s'))
+        expires_ut = long(parse_date(response_dict['expires']).strftime('%s'))
+        assert (expires_ut - now_ut) in [max_age, max_age-1]  # might take a second
 
     def test_get_all(self):
         cookies = Cookies.from_request('a=b; a=c; b=x')

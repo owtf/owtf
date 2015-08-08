@@ -1,5 +1,5 @@
-Intro
-===
+![](https://www.owasp.org/images/5/5c/Flagship_big.jpg)
+
 
 **OWTF** aims to make pen testing:
 
@@ -38,7 +38,6 @@ If one tool crashes **OWTF**,  will move on to the next tool/test, saving the pa
 ##### Flexibilty
 If your internet connectivity or the target host goes down during an assessment, you can ***pause*** the relevant worker processes and **resume** them later avoiding losing data to little as possible.
 
-----
 
 ### Tests Separation
 
@@ -52,23 +51,21 @@ If your internet connectivity or the target host goes down during an assessment,
 
 Some features like the *passive* and *semi_passive* **test separation** may also assist pen testers wishing to go the extra mile to get a head start and maybe even legitimately start report writing or preparing attacks before they are given the green light to test.
 
------
 
 ### Easy to use APIs
 
 OWTF uses **PostgreSQL** as the database backend. All core **OWTF** functions and options are exposed through APIs making it easy to add new features with little overhead.
 
-----
 
 ### Follows popular pen-testing standards
 
-**OWTF** will try to classify the findings as closely as possible to the **OWASP Testing Guide**. It also supports the **NIST** and the **PTES** standards.
+- **OWTF** will try to classify the findings as closely as possible to the **OWASP Testing Guide**. It also supports the **NIST** and the **PTES** standards.
 
-**PlugnHack v2 support** :  **PlugnHack** is a *proposed* standard from the **Mozilla** security team for defining how security tools can interact with browsers in a more useful and usable way.
+- **PlugnHack v2 support** :  **PlugnHack** is a *proposed* standard from the **Mozilla** security team for defining how security tools can interact with browsers in a more useful and usable way.
 
-**Zest and OWASP-ZAP integration** : **Zest** is an experimental specialized *scripting language* (domain-specific ) developed by the **Mozilla** security team and is intended to be used in web oriented security tools.
+- **Zest and OWASP-ZAP integration** : **Zest** is an experimental specialized *scripting language* (domain-specific ) developed by the **Mozilla** security team and is intended to be used in web oriented security tools.
 
-----
+
 ### Responsive web interface
 
 **OWTF** now has a default web interface which integrates all core **OWTF** options and makes it possible to manage large pentests easily.
@@ -83,7 +80,7 @@ OWTF uses **PostgreSQL** as the database backend. All core **OWTF** functions an
 
 - **Searchable** transactions and URL *logs*.
 
-----
+
 ### Interactive report updated on the fly:
 
 - As soon as each plugin finishes or sometimes before (i.e. after each vulnerability scanner finishes), the report is updated **asynchronously** through the *OWTF APIs*.
@@ -93,6 +90,7 @@ OWTF uses **PostgreSQL** as the database backend. All core **OWTF** functions an
 -  **Configurable** risk rankings
 
 - **In-line notes  editor** for each plugin.
+
 
 Requirements
 ===
@@ -108,10 +106,9 @@ Installation
 
 Recommended:
 
-```
+```bash
 wget -N https://raw.githubusercontent.com/owtf/bootstrap-script/master/bootstrap.sh
-chmod +x bootstrap.sh
-./bootstrap.sh
+bash bootstrap.sh
 ```
 
 or simply clone the latest version of **OWTF**.

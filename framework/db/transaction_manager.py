@@ -152,6 +152,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
             query = query.filter_by(binary_response=self.config.ConvertStrToBool(criteria['binary_response']))
         if not for_stats:  # query for stats shouldn't have limit and offset
             try:
+                query.order_by(models.Transaction.local_timestamp)
                 if criteria.get('offset', None):
                     if isinstance(criteria.get('offset'), list):
                         criteria['offset'] = int(criteria['offset'][0])
@@ -198,9 +199,11 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 trans.response_status,
                 str(trans.time),
                 trans.time_human,
+                trans.local_timestamp,
                 trans.data,
                 trans.raw_request,
                 trans.response_headers,
+                len(response_body),
                 response_body)
             return owtf_transaction
         return (None)
@@ -213,7 +216,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
 
     def GetTransactionModel(self, transaction):
         try:
-            response_body = unicode(transaction.GetRawResponseBody(), "utf-8")
+            response_body = transaction.GetRawResponseBody().encode("utf-8")
             binary_response = False
         except UnicodeDecodeError:
             response_body = base64.b64encode(transaction.GetRawResponseBody())
@@ -226,10 +229,12 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 data=transaction.Data,
                 time=float(transaction.Time),
                 time_human=transaction.TimeHuman,
+                local_timestamp=transaction.LocalTimestamp,
                 raw_request=transaction.GetRawRequest(),
                 response_status=transaction.GetStatus(),
                 response_headers=transaction.GetResponseHeaders(),
                 response_body=response_body,
+                response_size=len(response_body),
                 binary_response=binary_response,
                 session_tokens=transaction.GetSessionTokens(),
                 login=None,
@@ -460,6 +465,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
         # Create a new copy so no accidental changes
         tdict = dict(tdb_obj.__dict__)
         tdict.pop("_sa_instance_state")
+        tdict["local_timestamp"] = tdict["local_timestamp"].strftime("%d-%m %H:%M:%S")
         if not include_raw_data:
             tdict.pop("raw_request", None)
             tdict.pop("response_headers", None)

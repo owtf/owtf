@@ -29,10 +29,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
 #                     as a part of Google Summer of Code 2013
 '''
-import json as pickle
 import re
 import os
+import json
+import base64
 import hashlib
+import datetime
 from framework.lib.filelock import FileLock
 
 class CacheHandler(object):
@@ -86,88 +88,48 @@ class CacheHandler(object):
         md5_hash.update(request_mod)
         self.request_hash = md5_hash.hexdigest()
         # This is the path to file inside url folder. This can be used for updating a html file
-        self.file_path = os.path.join(self.cache_dir, 'url', self.request_hash)
+        self.file_path = os.path.join(self.cache_dir, self.request_hash)
         if callback:
             callback(self.request_hash)
 
     def create_response_object(self):
-        return response_from_cache(self.request_hash, self.cache_dir)
-                
+        return response_from_cache(os.path.join(self.cache_dir, self.request_hash))
+
     def dump(self, response):
         # This function takes in a HTTPResponse object and dumps the request
         # and response data. It also creates a .rd file with same file name
-        # This is used by transaction logger 
-        """
+        # This is used by transaction logger
+        try:
+            response_body = unicode(self.request.response_buffer, "utf-8")
+            binary_response = False
+        except UnicodeDecodeError:
+            response_body = base64.b64encode(self.request.response_buffer)
+            binary_response = True
         cache_dict = {
                             'request_method':self.request.method,
                             'request_url':self.request.url,
                             'request_version':self.request.version,
                             'request_headers':self.request.headers,
                             'request_body':self.request.body,
+                            'request_time':response.request_time,
+                            'request_local_timestamp':self.request.local_timestamp.isoformat(),
                             'response_code':response.code,
                             'response_headers':response.headers,
-                            'response_body':self.request.response_buffer
+                            'response_body':response_body,
+                            'binary_response':binary_response
                      }
-        """
-        #cache_file = open(self.file_path, 'wb')
-        #pickle.dump(cache_dict, cache_file)
-        #cache_file.close()
-        
-        # The whole request and response is saved across 6 folder -
-        # url, req-headers, req-body, resp-code, resp-headers, resp-body
-        url_file = open(self.file_path, 'w')
-        url_file.write("%s %s %s"%(self.request.method, self.request.url, self.request.version))
-        url_file.close()
-        
-        reqHeaders_file = open(os.path.join(self.cache_dir, 'req-headers', self.request_hash), 'w')
-        #reqHeaders_string = ''
-        for name, value in self.request.headers.iteritems():
-            reqHeaders_file.write("%s: %s\r\n"%(name, value))
-            #reqHeaders_string += ("%s: %s\r\n"%(name, value))
-        #reqHeaders_file.write(reqHeaders_string)
-        reqHeaders_file.close()
+        with open(self.file_path, 'w') as outfile:
+            json.dump(cache_dict, outfile)
 
-        reqBody_file = open(os.path.join(self.cache_dir, 'req-body', self.request_hash), 'w')
-        reqBody_file.write(self.request.body)
-        reqBody_file.close()
-
-        resCode_file = open(os.path.join(self.cache_dir, 'resp-code', self.request_hash), 'w')
-        resCode_file.write(str(response.code))
-        resCode_file.close()
-                
-        resHeaders_file = open(os.path.join(self.cache_dir, 'resp-headers', self.request_hash), 'w')
-        #resHeaders_string = ''
-        for name, value in response.headers.iteritems():
-            resHeaders_file.write("%s: %s\r\n"%(name, value))
-            #resHeaders_string += "%s: %s\r\n"%(name, value)
-        #resHeaders_file.write(resHeaders_string)
-        resHeaders_file.close()
-        
-        resBody_file = open(os.path.join(self.cache_dir, 'resp-body', self.request_hash), 'w')
-        try:
-            resBody_file.write(self.request.response_buffer)
-        except:
-            resBody_file = open(os.path.join(self.cache_dir, 'resp-body', self.request_hash), 'wb')
-            resBody_file.write(self.request.response_buffer)
-        finally:
-            resBody_file.close()
-        
-        reqTime_file = open(os.path.join(self.cache_dir, 'resp-time', self.request_hash), 'w')
-        reqTime_file.write("%s"%(str(response.request_time)))
-        
         # This approach can be used as an alternative for object sharing
         # This creates a file with hash as name and .rd as extension
         open(self.file_path + '.rd', 'w').close()
         self.file_lock.release()
-    
+
     def load(self):
         # This is the function which is called for every request. If file is not
         # found in cache, then a file lock is created for that and a None is
         # returned.
-        """
-        self.file_lock = FileLock(self.file_path)
-        self.file_lock.acquire()
-        """
         try:
             dummy = self.file_path
         except Exception:
@@ -178,7 +140,7 @@ class CacheHandler(object):
             else:
                 self.file_lock = FileLock(self.file_path)
                 self.file_lock.acquire()
-                
+
                 # For handling race conditions
                 if os.path.isfile(self.file_path):
                     self.file_lock.release()
@@ -193,56 +155,35 @@ class DummyObject(object):
     def __init__(self):
         self.dummy_obj = True
 
-def response_from_cache(request_hash, cache_dir):
+def response_from_cache(file_path):
     # A fake response object is created with necessary attributes
     #cache_dict = pickle.load(open(self.file_path, 'rb'))
     dummyResponse = DummyObject()
-    # The request-response saved across 6 unique folders is retrieved in following snippet
-    # transactions/resp-code/
-    dummyResponse.code = int(open(os.path.join(cache_dir, 'resp-code', request_hash), 'r').read())
-    
-    # transactions/resp-headers/
-    response_headers = {}
-    resHeaders = open(os.path.join(cache_dir, 'resp-headers', request_hash), 'r').readlines()
-    for line in resHeaders:
-        name, value = line.split(":", 1)
-        response_headers[name] = value.strip()
-    dummyResponse.headers = response_headers
-    
-    # transactions/resp-body
-    dummyResponse.body = open(os.path.join(cache_dir, 'resp-body', request_hash), 'r').read()
-
-    # Time taken for getting the response
-    dummyResponse.request_time = float(open(os.path.join(cache_dir, 'resp-time', request_hash), 'r').read())
-
-    # Extra attrs
-    dummyResponse.header_string = open(os.path.join(cache_dir, 'resp-headers', request_hash), 'r').read()
+    cache_dict = json.loads(open(file_path, 'r').read())
+    dummyResponse.code = cache_dict["response_code"]
+    dummyResponse.headers = cache_dict["response_headers"]
+    dummyResponse.header_string = '\r\n'.join(["%s: %s" % (name, value) for name, value in cache_dict["response_headers"].iteritems()])
+    if cache_dict["binary_response"] == True:
+        dummyResponse.body = base64.b64decode(cache_dict["response_body"])
+    else:
+        dummyResponse.body = cache_dict["response_body"]
+    dummyResponse.request_time = cache_dict["request_time"]
 
     # Temp object is created as an alternative to use lists (or) dictionaries for passing values
     return dummyResponse
 
-def request_from_cache(request_hash, cache_dir):
+def request_from_cache(file_path):
     # A fake request object is created with necessary attributes
     dummyRequest = DummyObject()
-    # The request-response saved across 6 unique folders is retrieved in following snippet
-    # transactions/url/
-    dummyRequest.method, dummyRequest.url, dummyRequest.version = open(os.path.join(cache_dir, 'url', request_hash), 'r').read().split(' ')
-    
-    # transactions/req-headers/
-    request_headers = {}
-    reqHeaders = open(os.path.join(cache_dir, 'req-headers', request_hash), 'r').readlines()
-    for line in reqHeaders:
-        name, value = line.split(":", 1)
-        request_headers[name] = value.strip()
-    dummyRequest.headers = request_headers
-    
-    # transactions/resp-body
-    dummyRequest.body = open(os.path.join(cache_dir, 'req-body', request_hash), 'r').read()
-    
-    # Extra attrs
-    dummyRequest.raw_request = open(os.path.join(cache_dir, 'url', request_hash), 'r').read() + "\r\n"
-    dummyRequest.raw_request += open(os.path.join(cache_dir, 'req-headers', request_hash), 'r').read() + "\r\n"
-    if dummyRequest.body:
-        dummyRequest.raw_request += open(os.path.join(cache_dir, 'req-body', request_hash), 'r').read() + "\r\n\r\n"
-    # Temp object is created as an alternative to use lists (or) dictionaries for passing values
+    cache_dict = json.loads(open(file_path, 'r').read())
+    dummyRequest.local_timestamp = datetime.datetime.strptime(cache_dict["request_local_timestamp"].strip("\r\n"), '%Y-%m-%dT%H:%M:%S.%f')
+    dummyRequest.method = cache_dict["request_method"]
+    dummyRequest.url = cache_dict["request_url"]
+    dummyRequest.headers = cache_dict["request_headers"]
+    dummyRequest.body = cache_dict["request_body"]
+    dummyRequest.raw_request = "%s %s %s\r\n" % (cache_dict["request_method"], cache_dict["request_url"], cache_dict["request_version"])
+    for name, value in cache_dict["request_headers"].iteritems():
+        dummyRequest.raw_request += "%s: %s\r\n" % (name, value)
+    if cache_dict["request_body"]:
+        dummyRequest.raw_request += cache_dict["request_body"] + "\r\n\r\n"
     return dummyRequest

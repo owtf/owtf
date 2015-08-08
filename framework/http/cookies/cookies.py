@@ -20,7 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-__version__ = "2.1.0"
+__version__ = "2.2.1"
 import re
 import datetime
 import logging
@@ -652,7 +652,15 @@ def parse_one_response(line, ignore_bad_cookies=False,
         elif 'year2' in captured:
             for key in timekeys:
                 del captured[key + "2"]
-        cookie_dict.update(captured)
+        else:
+            pass
+
+        if 'max_age' in captured:
+            max_age = captured.get('max_age')
+            expires_derived_from_max_age = datetime.datetime.utcnow() + datetime.timedelta(seconds=long(max_age))
+            captured['expires'] = render_date(expires_derived_from_max_age)
+
+    cookie_dict.update(captured)
     return cookie_dict
 
 
@@ -698,8 +706,14 @@ class Cookie(object):
         try:
             self.name = name
         except InvalidCookieAttributeError:
-            raise InvalidCookieError(message="invalid name for new Cookie")
-        self.value = value or ''
+            raise InvalidCookieError(message="invalid name for new Cookie",
+                                     data=name)
+        value = value or ''
+        try:
+            self.value = value
+        except InvalidCookieAttributeError:
+            raise InvalidCookieError(message="invalid value for new Cookie",
+                                     data=value)
         if kwargs:
             self._set_attributes(kwargs, ignore_bad_attributes=False)
 
@@ -902,6 +916,7 @@ class Cookie(object):
     # Python, and it is mapped to the name you want in the output.
     # 'name' and 'value' should not be here.
     attribute_names = {
+        'Expires': 'Expires',
         'expires':  'Expires',
         'max_age':  'Max-Age',
         'domain':   'Domain',
@@ -1042,14 +1057,14 @@ class Cookies(dict):
                 cookie_dict = {'name': name, 'value': value}
                 try:
                     cookie = self.cookie_class.from_dict(cookie_dict)
-                except InvalidCookieError:
+                except CookieError:
                     if not ignore_bad_cookies:
                         raise
                 else:
                     cookie_objects.append(cookie)
         try:
             self.add(*cookie_objects)
-        except InvalidCookieError:
+        except CookieError:
             if not ignore_bad_cookies:
                 raise
             _report_invalid_cookie(header_data)

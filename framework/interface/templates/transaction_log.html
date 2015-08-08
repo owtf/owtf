@@ -56,27 +56,28 @@
       <div class="col-md-12">
         <form class="form-inline pull-right" role="form">
           <div class="form-group">
-            <input type="text" class="form-control customTextSearch" col-id="6" placeholder="Search Requests">
+            <input type="text" class="form-control customTextSearch" col-id="7" placeholder="Search Requests">
           </div>
           <div class="form-group">
-            <input type="text" class="form-control customTextSearch" col-id="7" placeholder="Search Response headers">
+            <input type="text" class="form-control customTextSearch" col-id="8" placeholder="Search Response headers">
           </div>
           <div class="form-group">
-            <input type="text" class="form-control customTextSearch" col-id="8" placeholder="Search Response bodies">
+            <input type="text" class="form-control customTextSearch" col-id="9" placeholder="Search Response bodies">
           </div>
         </form>
       </div>
 
     </div>
 
-    <div class="row ">
+    <div class="container-fluid row-fluid">
       <div class="col-md-12">
-         <table id="transactionLog" class="table table-striped table-bordered">
+         <table id="transactionLog" class="table table-striped table-bordered dt-responsive">
             <thead>
                 <tr>
                     <th> Select </th>
                     <th> Link </th>
                     <th> Time </th>
+                    <th> Duration </th>
                     <th class="textSearch"> Method </th>
                     <th class="textSearch"> Status </th>
                     <th class="textSearch"> URL </th>
@@ -188,7 +189,6 @@ var oTable;
 
 //function to make checkboxes and footer visible
 function createZestBtn(){
-
         disableInput("#createZest");
         fnShowHide(0);
         makeFooterVisible();
@@ -344,7 +344,8 @@ function showTransactionWithOffset(offset) {
       // First add the transaction info
       transactionInfo = '<div class="btn-group">';
       transactionInfo += '<button class="btn btn-primary btn-xs" onclick="window.open(\''+mySpace.transaction_log_url+obj.id+'\');">ID: '+obj.id+'</button>';
-      transactionInfo += '<button class="btn btn-default btn-xs" disabled>TIME: '+obj.time_human+'</button>';
+      transactionInfo += '<button class="btn btn-default btn-xs" disabled>TIME: '+obj.local_timestamp+'</button>';
+      transactionInfo += '<button class="btn btn-default btn-xs" disabled>DURATION: '+obj.time_human+'</button>';
       transactionInfo += '<button class="btn btn-default btn-xs" disabled>'+(offset+1)+' of '+records_filtered+' (filtered from '+records_total+')</button>';
       transactionInfo += '</div>';
       $("#transactionInfo").html(transactionInfo);
@@ -361,7 +362,7 @@ function showTransactionWithOffset(offset) {
       if (mySpace.search_parameters["response_headers"] !== undefined)
         response_headers_highlight.push(mySpace.search_parameters["response_headers"]);
       $("#raw_response_headers_pre").highlight(response_headers_highlight);
-      // THen the response body
+      // Then the response body
       $("#raw_response_body_pre").text(obj.response_body);
       if (mySpace.search_parameters["response_body"] !== undefined) {
         $("#raw_response_body_pre").highlight(mySpace.search_parameters["response_body"]);
@@ -386,6 +387,7 @@ function getArray(data, starting_offset) {
       table_array.push([
         '<input  type="checkbox"  class="check" name="'+obj.id+'"/>',
         btns,
+        obj.local_timestamp,
         obj.time_human,
         obj.method,
         obj.response_status,
@@ -402,19 +404,18 @@ function dummyAjax(data, callback, settings) {
   // This function takes care of converting dataTable data into owtf api
   // and then the response back to dataTables type
   // Disabling all inputs when processing
-  disableInput('input');
   var get_parameters = {};
   var draw = data.draw;
   get_parameters['limit'] = data.length;
   get_parameters['offset'] = data.start;
 
   var columnMappings = {
-    3: 'method',
-    4: 'response_status',
-    5: 'url',
-    6: 'raw_request',
-    7: 'response_headers',
-    8: 'response_body'
+    4: 'method',
+    5: 'response_status',
+    6: 'url',
+    7: 'raw_request',
+    8: 'response_headers',
+    9: 'response_body'
   };
 
   // Iterate over mappings and add search parameters
@@ -440,14 +441,13 @@ function drawTable() {
     $('#transactionLog').dataTable({
       "bAutoWidth": false,
       "bSort": false, // Not yet supported in API, can after shifting to postgres
-      "stateSave": true,
       "bServerSide": true,
       "ajax": dummyAjax,
       "sDom": "ltip", // Remove global search & processing message
       "columnDefs": [{
-        "targets": [6, 7, 8],
+        "targets": [7, 8, 9],
         "visible": false,
-        "searchable": true
+        "searchable": true,
       }],
     });
 
@@ -487,8 +487,8 @@ function drawTable() {
 
 $(document).ready(function() {
         drawTable();
-        fnShowHide(0);
         makeFooterInvisible();
+        fnShowHide(0);
 });
 </script>
 {% end %}

@@ -60,10 +60,15 @@ Action=$1
 
 FILE_PATH=$(readlink -f "$0")
 SCRIPTS_DIR=$(dirname "$FILE_PATH")
-RootDir=${2:-$(dirname "$SCRIPTS_DIR")}
+RootDir=$(dirname "$SCRIPTS_DIR")
 
-config_file="$RootDir/framework/config/framework_config.cfg"
-db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
+if [ "$2" = "" ]; then
+    config_file="$RootDir/framework/config/framework_config.cfg"
+    db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
+else
+    db_config_file="$2"
+fi
+
 db_name=$(get_config_value DATABASE_NAME $db_config_file)
 db_user=$(get_config_value DATABASE_USER $db_config_file)
 db_pass=$(get_config_value DATABASE_PASS $db_config_file)
