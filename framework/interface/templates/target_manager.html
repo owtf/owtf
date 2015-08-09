@@ -343,7 +343,7 @@ function newTargets(targetUrlsString, button) {
                         updateCurrentSessionInfo();
                     },
                     error:function(xhr, textStatus, serverResponse) {
-                        alertFail("Unable add " + escapeHtml(unescape(this.data.split(/\=(.+)?/)[1])));
+                        alertFail("Unable to add " + escapeHtml(unescape(this.data.split(/\=(.+)?/)[1])));
                     }
             });
         }
