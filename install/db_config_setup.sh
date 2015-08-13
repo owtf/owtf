@@ -44,7 +44,7 @@ cfg_only=false
 
 for arg in "$@"
 do
-    if [ "$arg" == "--cfg-only" ]; then
+    if [ "$arg" = "--cfg-only" ]; then
         cfg_only=true
     else
         RootDir=$arg
