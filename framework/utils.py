@@ -23,7 +23,7 @@ class OutputCleaner():
 
     @staticmethod
     def anonymise_command(command):
-        command = command.decode('utf-8')
+        command = command.decode('utf-8', 'ignore')
         target = ServiceLocator.get_component("target")
         # Host name setting value for all targets in scope.
         for host in target.GetAll('HOST_NAME'):

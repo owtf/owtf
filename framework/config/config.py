@@ -305,7 +305,12 @@ class Config(BaseComponent, ConfigInterface):
         # Set the target in the config.
         target_config['target_url'] = target_URL
         # TODO: Use urlparse here.
-        parsed_URL = urlparse(target_URL)
+        try:
+            parsed_URL = urlparse(target_URL)
+            if not parsed_URL.hostname or parsed_URL.path is None:
+                raise ValueError
+        except ValueError:  # Occurs when parsing invalid IPv6 host or when host is None
+            raise UnresolvableTargetException("Invalid hostname '%s'" % str(target_URL))
         URL_scheme = parsed_URL.scheme
         protocol = parsed_URL.scheme
         if parsed_URL.port == None:  # Port is blank: Derive from scheme.
