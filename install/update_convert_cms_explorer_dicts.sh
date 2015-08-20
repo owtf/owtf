@@ -28,8 +28,11 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 RootDir=$1
+SOURCE_DIR="$RootDir/tools/restricted/cms-explorer"
 
-wget http://cms-explorer.googlecode.com/files/cms-explorer-1.0.tar.bz2; bunzip2 *; tar xvf *; rm -f *.tar 2> /dev/null
+if [ ! -d "$SOURCE_DIR" ]; then
+  wget http://cms-explorer.googlecode.com/files/cms-explorer-1.0.tar.bz2; bunzip2 *; tar xvf *; rm -f *.tar 2> /dev/null
+fi
 
 CMS_EXPLORER_DIR="$RootDir/tools/restricted/cms-explorer/cms-explorer-1.0"
 CMS_DICTIONARIES_DIR="$RootDir/dictionaries/restricted/cms" 
