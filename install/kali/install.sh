@@ -37,14 +37,16 @@ IsInstalled() {
 RootDir=$1
 
 ########### Pip is the foremost thing that must be installed along with some needed dependencies for python libraries
-sudo -E apt-get install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev
+
+apt_wrapper_path="$RootDir/install/aptitude-wrapper.sh"
+sudo -E "$apt_wrapper_path" python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev
 export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip in kali
 
 # psycopg2 dependency
-sudo -E apt-get install postgresql-server-dev-all
+sudo -E "$apt_wrapper_path" postgresql-server-dev-all
 
 # pycurl dependency
-sudo -E apt-get install libcurl4-openssl-dev
+sudo -E "$apt_wrapper_path" libcurl4-openssl-dev
 
 ############ Tools missing in Kali
 #mkdir -p $RootDir/tools/restricted
@@ -55,13 +57,13 @@ sudo -E apt-get install libcurl4-openssl-dev
 #fi
 
 echo "[*] Installing LBD, arachni and gnutls-bin from Kali Repos"
-sudo -E apt-get install lbd gnutls-bin arachni
+sudo -E "$apt_wrapper_path" lbd gnutls-bin arachni
 
 echo "[*] Installing ProxyChains"
-sudo -E apt-get install proxychains
+sudo -E "$apt_wrapper_path" proxychains
 
 echo "[*] Installing Tor"
-sudo -E apt-get install tor
+sudo -E "$apt_wrapper_path" tor
 
 ########## Patch scripts
 "$RootDir/install/kali/kali_patch_w3af.sh"
