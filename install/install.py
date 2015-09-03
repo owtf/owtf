@@ -6,6 +6,7 @@ import time
 import platform
 import argparse
 from datetime import datetime
+from space_checker_utils import wget_wrapper
 
 import ConfigParser
 
@@ -35,6 +36,8 @@ class Installer(object):
     def run_command(self, command):
         print("[*] Running following command")
         print("%s"%(command))
+        if not wget_wrapper(command):
+            return
         os.system(command)
 
     def install_in_directory(self, directory, command):
