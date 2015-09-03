@@ -74,7 +74,7 @@ class Target(Base):
 transaction_association_table = Table(
     'transaction_grep_association',
     Base.metadata,
-    Column('transaction_id', Integer, ForeignKey('transactions.id')),
+    Column('transaction_id', Integer, ForeignKey('transactions.id'), index=True),
     Column('grep_output_id', Integer, ForeignKey('grep_outputs.id'))
 )
 
