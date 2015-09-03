@@ -74,10 +74,19 @@ if [ -z "$postgres_server_ip" ]; then
         systemctl_bin=$(which systemctl | wc -l)
         if [ "$service_bin" = "1" ]; then
             service postgresql start
+            service postgresql status | grep -q '^Running clusters: ..*$'
+            status_exitcode="$?"
         elif [ "$systemctl_bin" = "1" ]; then
             systemctl start postgresql
+            systemctl status postgresql | grep -q "active"
+            status_exitcode="$?"
         else
             echo "[+] We couldn't determine how to start the postgres server, please start it and rerun this script"
+            exit 1
+        fi
+        if [ "$status_exitcode" != "0" ]; then
+            echo "[+] Starting failed because postgreSQL service is not available!"
+            echo "[+] Run # sh scripts/start_postgres.sh and rerun this script"
             exit 1
         fi
     else
