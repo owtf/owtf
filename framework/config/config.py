@@ -24,7 +24,7 @@ from framework.lib.exceptions import PluginAbortException, \
 from framework.config import health_check
 from framework.lib.general import cprint
 from framework.db import models, target_manager
-from framework.utils import NetworkOperations, FileOperations
+from framework.utils import NetworkOperations, directory_access, FileOperations
 
 
 REPLACEMENT_DELIMITER = "@@@"
@@ -497,13 +497,11 @@ class Config(BaseComponent, ConfigInterface):
         config file
         """
         logs_dir = self.FrameworkConfigGet("LOGS_DIR")
-        if (os.path.isabs(logs_dir)):
+        # Check access for logsdir parent directory because logsdir may not be created.
+        if os.path.isabs(logs_dir) and directory_access(os.path.dirname(logs_dir), "w+"):
             return logs_dir
         else:
-            return os.path.join(
-                self.FrameworkConfigGet("OUTPUT_PATH"),
-                logs_dir
-            )
+            return os.path.join(self.GetOutputDir(), logs_dir)
 
     def FrameworkConfigGetLogPath(self, process_name):
         """
@@ -559,7 +557,14 @@ class Config(BaseComponent, ConfigInterface):
             cprint(str(k) + " => " + str(v))
 
     def GetOutputDir(self):
-        return os.path.expanduser(self.FrameworkConfigGet("OUTPUT_PATH"))
+        output_dir = os.path.expanduser(self.FrameworkConfigGet("OUTPUT_PATH"))
+        if not os.path.isabs(output_dir) and directory_access(os.getcwd(), "w+"):
+            return output_dir
+        else:
+            # The output_dir may not be created yet, so check its parent.
+            if directory_access(os.path.dirname(output_dir), "w+"):
+                return output_dir
+        return os.path.expanduser(os.path.join(self.FrameworkConfigGet("SETTINGS_DIR"), output_dir))
 
     def GetOutputDirForTargets(self):
         return os.path.join(

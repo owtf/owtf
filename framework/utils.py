@@ -4,6 +4,7 @@ import sys
 import shutil
 import codecs
 import logging
+import tempfile
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.general import WipeBadCharsForFilename
 
@@ -58,6 +59,23 @@ def catch_io_errors(func):
                     error_handler.FrameworkAbort( "Error when calling '%s'! %s." % (func.__name__, str(e)))
             raise e
     return io_error
+
+
+def directory_access(path, mode):
+    """Check if a directory can be accessed in the specified mode by the current user.
+
+    :param str path: Directory path.
+    :param str mode: Access type.
+
+    :return: Valid access rights
+    :rtype:`str`
+    """
+
+    try:
+        temp_file = tempfile.NamedTemporaryFile(mode=mode, dir=path, delete=True)
+    except (IOError, OSError):
+        return False
+    return True
 
 
 class FileOperations(object):
