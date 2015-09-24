@@ -54,7 +54,7 @@ def get_wget_download_size(command):
         try:
             response = urllib2.urlopen(url)
             size += int(response.info().getheader('Content-Length'))
-        except (urllib2.HTTPError, urllib2.URLError, ValueError):
+        except (urllib2.HTTPError, urllib2.URLError, ValueError, TypeError):
             pass
     return size
 
