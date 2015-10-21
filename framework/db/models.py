@@ -1,7 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import Table, Column, Integer, String, Boolean,\
-    Float, DateTime, ForeignKey, Text
+    Float, DateTime, ForeignKey, Text, Index
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship
 import datetime
@@ -74,9 +74,13 @@ class Target(Base):
 transaction_association_table = Table(
     'transaction_grep_association',
     Base.metadata,
-    Column('transaction_id', Integer, ForeignKey('transactions.id'), index=True),
+    Column('transaction_id', Integer, ForeignKey('transactions.id')),
     Column('grep_output_id', Integer, ForeignKey('grep_outputs.id'))
 )
+
+Index('transaction_id_idx', transaction_association_table.c.transaction_id,
+      unique=True,
+      postgresql_using='btree')
 
 
 class Transaction(Base):
