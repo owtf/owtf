@@ -79,7 +79,6 @@ transaction_association_table = Table(
 )
 
 Index('transaction_id_idx', transaction_association_table.c.transaction_id,
-      unique=True,
       postgresql_using='btree')
 
 
