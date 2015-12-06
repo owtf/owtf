@@ -17,7 +17,7 @@ import logging
 class Shell(BaseComponent, ShellInterface):
 
     COMPONENT_NAME = "shell"
-    
+
 
     def __init__(self):
         self.register_in_service_locator()
@@ -133,6 +133,10 @@ class Shell(BaseComponent, ShellInterface):
             Output += self.error_handler.UserAbort('Command', Output)  # Identify as Command Level abort
         finally:
             self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
+        # remove all ANSI control sequences from the command output
+        ansi_escape = re.compile(r'\x1b[^m]*m')
+        Output = ansi_escape.sub('', Output)
+
         return Output
 
     def shell_exec(self, Command, **kwds):  # Mostly used for internal framework commands
