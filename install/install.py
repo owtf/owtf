@@ -22,7 +22,7 @@ class Installer(object):
         self.restricted_cfg = os.path.join(RootDir, "install", "distro-independent.cfg") # Restricted tools and dictionaries which are distro independent
         self.distros_cfg = os.path.join(RootDir, "install", "linux-distributions.cfg") # Various distros and install scripts
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('--no-user-input', help='run script with default options for user input', action="store_true") 
+        self.parser.add_argument('--no-user-input', help='run script with default options for user input', action="store_true")
         self.parser.add_argument('--core-only', help='install only owtf dependencies, skip optional tools', action="store_true")
 
     def create_directory(self, directory):
@@ -144,4 +144,5 @@ if __name__ == "__main__":
     RootDir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     installer = Installer(RootDir)
     installer.install(sys.argv[1:])
-    print("[*] Finished")
+    print("[*] Finished!")
+    print("[*] Start OWTF by running \033[0;34m./owtf.py\033[0m in the parent directory")
