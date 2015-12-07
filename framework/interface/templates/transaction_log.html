@@ -439,6 +439,8 @@ function dummyAjax(data, callback, settings) {
 
 function drawTable() {
     $('#transactionLog').dataTable({
+      "pagingType": "full_numbers",
+      "iDisplayLength" : 100,
       "bAutoWidth": false,
       "bSort": false, // Not yet supported in API, can after shifting to postgres
       "bServerSide": true,

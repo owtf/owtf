@@ -391,6 +391,8 @@ function dummyAjax(data, callback, settings) {
 function drawTargetTable() {
     // Initialize target table
     $('#targetTable').dataTable({
+        "pagingType": "full_numbers",
+        "iDisplayLength" : 100,
         "bAutoWidth": false,
         "bSort": false, // Not yet supported in API, can after shifting to postgres
         "stateSave": true,
