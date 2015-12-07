@@ -106,7 +106,7 @@ class Installer(object):
         # First all distro independent stuff is installed
         self.install_restricted_from_cfg(self.restricted_cfg)
 
-        if args.core_only == True:
+        if args.core_only:
             return
 
         print("Upgrading pip to the latest version ...")
@@ -114,10 +114,10 @@ class Installer(object):
         self.run_command("sudo pip2 install --upgrade pip")
 
         if args.no_user_input:
-            fixsetuptools = 'y'
+            fixsetuptools = 'n'
         else:
             # ask the user if they really want to delete the symlink
-            fixsetuptools = raw_input("Delete /usr/lib/python2.7/dist-packages/setuptools.egg-info? (y/n)\n(recommended, solves some issues)")
+            fixsetuptools = raw_input("Delete /usr/lib/python2.7/dist-packages/setuptools.egg-info? (y/n)\n(recommended, solves some issues in Kali 1.xx)")
 
         if fixsetuptools == 'y':
             # backup the original symlink
