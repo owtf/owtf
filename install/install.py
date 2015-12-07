@@ -18,6 +18,7 @@ class Installer(object):
     def __init__(self, RootDir):
         self.RootDir = RootDir
         self.pid = os.getpid()
+        self.scripts_path = os.path.join(RootDir, "scripts") # custom scripts
         self.owtf_pip = os.path.join(RootDir, "install", "owtf.pip") # OWTF python libraries
         self.restricted_cfg = os.path.join(RootDir, "install", "distro-independent.cfg") # Restricted tools and dictionaries which are distro independent
         self.distros_cfg = os.path.join(RootDir, "install", "linux-distributions.cfg") # Various distros and install scripts
@@ -141,6 +142,11 @@ class Installer(object):
             print("Moving on with the installation but you were warned: there may be some errors!")
             # Finally owtf python libraries installed using pip
             self.install_using_pip(self.owtf_pip)
+
+        # db_setup script
+        self.run_command("sudo sh %s init" % (os.path.join(self.scripts_path, "db_setup.sh")))
+        # db_run script
+        self.run_command("sudo sh %s" % (os.path.join(self.scripts_path, "db_run.sh")))
 
 if __name__ == "__main__":
     print("[*] Great that you are installing OWTF :D")
