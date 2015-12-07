@@ -112,27 +112,31 @@ class Installer(object):
         print("Upgrading pip to the latest version ...")
         # Upgrade pip before install required libraries
         self.run_command("sudo pip2 install --upgrade pip")
+        # mitigate cffi errors by upgrading it first
+        self.run_command("sudo pip2 install --upgrade cffi")
 
-        if args.no_user_input:
-            fixsetuptools = 'n'
-        else:
-            # ask the user if they really want to delete the symlink
-            fixsetuptools = raw_input("Delete /usr/lib/python2.7/dist-packages/setuptools.egg-info? (y/n)\n(recommended, solves some issues in Kali 1.xx)")
+        # check kali major release number 0.x, 1.x, 2.x
+        kali_version = os.popen("cat /etc/issue", "r").read().split(" ")[2][0]
+        if kali_version == '1':
+            if args.no_user_input:
+                fixsetuptools = 'n'
+            else:
+                # ask the user if they really want to delete the symlink
+                fixsetuptools = raw_input("Delete /usr/lib/python2.7/dist-packages/setuptools.egg-info? (y/n)\n(recommended, solves some issues in Kali 1.xx)")
 
-        if fixsetuptools == 'y':
-            # backup the original symlink
-            print("Backing up the original symlink...")
-            ts = time.time()
-            human_timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H:%M:%S')
+            if fixsetuptools == 'y':
+                # backup the original symlink
+                print("Backing up the original symlink...")
+                ts = time.time()
+                human_timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H:%M:%S')
 
-            # backup the original symlink
-            self.run_command("mv /usr/lib/python2.7/dist-packages/setuptools.egg-info /usr/lib/python2.7/dist-packages/setuptools.egg-info" + "-BACKUP-" + human_timestamp)
+                # backup the original symlink
+                self.run_command("mv /usr/lib/python2.7/dist-packages/setuptools.egg-info /usr/lib/python2.7/dist-packages/setuptools.egg-info" + "-BACKUP-" + human_timestamp)
 
-            print("The original symlink exists at /usr/lib/python2.7/dist-packages/setuptools.egg-info-BACKUP-" + human_timestamp)
+                print("The original symlink exists at /usr/lib/python2.7/dist-packages/setuptools.egg-info-BACKUP-" + human_timestamp)
 
-            # Finally owtf python libraries installed using pip
-            self.install_using_pip(self.owtf_pip)
-
+                # Finally owtf python libraries installed using pip
+                self.install_using_pip(self.owtf_pip)
         else:
             print("Moving on with the installation but you were warned: there may be some errors!")
             # Finally owtf python libraries installed using pip
