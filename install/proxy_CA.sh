@@ -31,7 +31,7 @@ if [ ! -f $ca_cert ]; then
     fi
     echo $ca_key_pass >> $ca_pass_file
 
-    openssl genrsa -des3 -passout pass:$ca_key_pass -out "$ca_key" 1024
+    openssl genrsa -des3 -passout pass:$ca_key_pass -out "$ca_key" 4096
     openssl req -new -x509 -days 3650 -subj "/C=US/ST=Pwnland/L=OWASP/O=OWTF/CN=MiTMProxy" -passin pass:$ca_key_pass -key "$ca_key" -out "$ca_cert"
     echo "[*] Don't forget to add the $ca_cert as a trusted CA in your browser"
 fi
