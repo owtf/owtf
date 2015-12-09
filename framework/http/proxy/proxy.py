@@ -196,10 +196,11 @@ class ProxyHandler(tornado.web.RequestHandler):
                 try:
                     response = yield tornado.gen.Task(async_client.fetch, request)
                 except Exception:
+                    response = None
                     pass
                 # Request retries
                 for i in range(0, 3):
-                    if response.code in [408, 599]:
+                    if (response is None) or response.code in [408, 599]:
                         self.request.response_buffer = ''
                         response = yield tornado.gen.Task(async_client.fetch, request)
                     else:
