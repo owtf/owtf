@@ -3,7 +3,6 @@
 # - The version number is important, it is required that you test
 #   the latest version and add it here
 # - The casing of names is critical for dependency checks, eg. pyOpenSSL and not pyopenssl
-# required for cryptography package
 beautifulsoup4==4.3.2
 lxml==3.4.0
 Markdown==2.5.1
