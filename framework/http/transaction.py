@@ -112,13 +112,13 @@ class HTTP_Transaction(object):
 
     def GetSessionTokens(self):
         cookies = []
+        cookies_ls = Cookies() #init
         try: # parsing may sometimes fail
-            cookies_ls = Cookies() #init
             cookies_ls.parse_response('Set-Cookie:'+self.RawCookies)
+            for key, attr in cookies_ls.iteritems():
+                cookies.append({key: attr.to_dict()})
         except:
             pass
-        for key, attr in cookies_ls.iteritems():
-            cookies.append({key: attr.to_dict()})
         return json.dumps(cookies)
 
     def SetError(self, error_message):
