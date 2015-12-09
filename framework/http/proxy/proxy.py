@@ -70,19 +70,6 @@ class ProxyHandler(tornado.web.RequestHandler):
             except KeyError:
                 self._reason = tornado.escape.native_str("Server Not Found")
 
-    def extract_session(self, response):
-        """
-        # Watches the response for `Set-Cookie` header and extracts session tokens from it
-        """
-        # this solution should work for both cases; single session cookies and multiple ones
-        for header, value in list(response.headers.items()):
-            if header == 'Set-Cookie':
-                try:
-                    tokens = value.split(',')
-                except:
-                    tokens = value
-                return tokens
-
     # This function writes a new response & caches it
     def finish_response(self, response):
         self.set_status(response.code)
