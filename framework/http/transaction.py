@@ -108,34 +108,18 @@ class HTTP_Transaction(object):
         self.ResponseHeaders = response_headers
         self.ResponseSize = response_size
         self.ResponseContents = response_body
-        cookies_list = [
-            header.split(':', 1)[-1].strip()
-            for header in self.ResponseHeaders.split('\n')
-            if header.split(':',1)[0].strip() == "Set-Cookie"]
-        self.CookieString = ','.join(cookies_list)
+        self.RawCookies = response_headers.get("Set-Cookie", None)
 
     def GetSessionTokens(self):
-        """
-        * This forms a valid `Cookie` object (in form of a dict),
-          so that it can be parsed and reused.
-        * Takes an input a `CookieString` and parses the multiple cookies
-          into separate dict objects.
-        """
-        try:
-            cookie_ls = []
-            # returns a list of cookies and their attributes
-            for cookie in self.CookieString.split(","):
-                cookie_ls.append(Cookie.from_string("Set-Cookie: {}".format(cookie)))
-
-            cookies = []
-            for i in range(len(cookie_ls)):
-                cookies.append({"name": cookie_ls[i].name,
-                                "value": str(cookie_ls[i].value),
-                                "attributes": cookie_ls[i].attributes()
-                            })
-            return json.dumps(cookies)
+        cookies = []
+        try: # parsing may sometimes fail
+            cookies_ls = Cookies() #init
+            cookies_ls.parse_response('Set-Cookie:'+self.RawCookies)
         except:
             pass
+        for key, attr in cookies_ls.iteritems():
+            cookies.append({key: attr.to_dict()})
+        return json.dumps(cookies)
 
     def SetError(self, error_message):
         # Only called for unknown errors, 404 and other HTTP stuff handled on
@@ -217,12 +201,7 @@ class HTTP_Transaction(object):
         self.TimeHuman = self.Timer.get_time_human(self.Time)
         self.LocalTimestamp = request.local_timestamp
         self.Found = (self.Status == "200 OK")
-        # Cookie string for GetCookies method
-        cookies_list = [
-            value.strip()
-            for name, value in response.headers.iteritems()
-            if name == "Set-Cookie"]
-        self.CookieString = ','.join(cookies_list)
+        self.RawCookies = response.headers.get("Set-Cookie", None)
         self.New = True
         self.ID = ''
         self.HTMLLinkToID = ''

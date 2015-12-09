@@ -234,7 +234,7 @@ class Definitions(object):
     DATE = DATE.format(wdy=WEEKDAY_SHORT, weekday=WEEKDAY_LONG,
                        day=DAY_OF_MONTH, mon=MONTH_SHORT, month=MONTH_LONG)
 
-    EXPIRES_AV = "Expires=(?P<expires>%s)" % DATE
+    EXPIRES_AV = "expires=(?P<expires>%s)" % DATE
 
     # Now we're ready to define a regexp which can match any number of attrs
     # in the variable portion of the Set-Cookie header (like the unnamed latter
@@ -609,6 +609,7 @@ def _parse_request(header_data, ignore_bad_cookies=False):
             if not ignore_bad_cookies:
                 raise InvalidCookieError(data=line)
             _report_invalid_cookie(line)
+    
     return cookies_dict
 
 
