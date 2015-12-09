@@ -17,7 +17,7 @@ target_association_table = Table(
     Column('session_id', Integer, ForeignKey('sessions.id'))
 )
 
-Index('traget_id_idx', target_association_table.c.target_id,
+Index('target_id_idx', target_association_table.c.target_id,
       postgresql_using='btree')
 
 
