@@ -1,3 +1,5 @@
+import os
+import tornado.gen
 import tornado.web
 from BaseHTTPServer import BaseHTTPRequestHandler
 from StringIO import StringIO
@@ -771,3 +773,33 @@ class PlugnhackHandler(custom_handlers.APIRequestHandler):
             cprint("\n")
             cprint("I/O error at event writing: ({0}): {1}".format(e.errno, e.strerror))
             cprint("\n")
+
+
+class AutoUpdaterHandler(custom_handlers.APIRequestHandler):
+    """
+    * Notify on the home page if the repo is at its latest commit from upstream
+    """
+    SUPPORTED_METHODS = ['GET']
+
+    @tornado.gen.coroutine
+    def get(self):
+        client = tornado.httpclient.AsyncHTTPClient()
+        response = yield client.fetch("https://api.github.com/repos/owtf/owtf/commits/develop",
+                                  user_agent='OWTF')
+
+        info = json.loads(response.body)
+        root_dir = self.get_component("config").RootDir
+
+        # check if the root dir is a git repository
+        if os.path.exists(os.path.join(root_dir, '.git')):
+            command = ('git log -n 1 --pretty=format:"%H"')
+            commit_hash = os.popen(command).read()
+        else:
+            commit_hash = ''
+
+        # now compare the commit_hash with the latest tag
+        if commit_hash != info["sha"]:
+            self.write("Seems that your repository is older than the upstream. The lastest commit is \
+                from"+info["commit"]["messsage"]+". \nPlease update, it may resolve some issues!")
+        else:
+            self.write('Seems like you are running latest version. Happy Pwning!')

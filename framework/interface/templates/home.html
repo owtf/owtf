@@ -18,4 +18,22 @@
     </p>
     <p><a class="btn btn-primary btn-lg" role="button" href="http://owtf.org" target="_blank">Learn more</a></p>
 </div>
+
+<script>
+
+var mySpace = {
+    auto_updater_url:"{{ auto_updater_api_url }}",
+};
+
+$(document).ready(function(){
+    $.ajax({
+        'url': mySpace.auto_updater_url,
+        'headers': {'Access-Control-Allow-Origin': '*'},
+        'type' : 'GET',
+        'success' : function(data) {              
+            alertInfo(data);
+        },
+    });
+});
+</script>
 {% end %}

@@ -34,6 +34,7 @@ def get_handlers():
         tornado.web.url(r'/api/worklist/search/?$', api_handlers.WorklistSearchHandler, name='worklist_search_api_url'),
         tornado.web.url(r'/api/configuration/?$', api_handlers.ConfigurationHandler, name='configuration_api_url'),
         tornado.web.url(r'/api/plugnhack/?$', api_handlers.PlugnhackHandler, name='plugnhack_api_url'),
+        tornado.web.url(r'/api/update/?$', api_handlers.AutoUpdaterHandler, name='auto_updater_api_url'),
 
         (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': config.FrameworkConfigGet('STATICFILES_DIR')}),
         tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),

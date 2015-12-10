@@ -19,7 +19,9 @@ class Redirect(custom_handlers.UIRequestHandler):
 class Home(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     def get(self):
-        self.render('home.html')
+        self.render('home.html',
+                auto_updater_api_url=self.reverse_url('auto_updater_api_url'),
+                )
 
 
 class TransactionLog(custom_handlers.UIRequestHandler):
