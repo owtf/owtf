@@ -44,7 +44,6 @@ def get_handlers():
         tornado.web.url(r'/ui/targets/([0-9]+)/transactions/([0-9]+)/replay?$', ui_handlers.ReplayRequest, name='transaction_replay_url'),
         tornado.web.url(r'/ui/targets/([0-9]+)/transactions/?([0-9]+)?/?$', ui_handlers.TransactionLog, name='transaction_log_url'),
         tornado.web.url(r'/ui/targets/([0-9]+)/sessions/?$', ui_handlers.HTTPSessions, name='sessions_ui_url'),
-        tornado.web.url(r'/ui/targets/([0-9]+)/sessions_view/?$', ui_handlers.SessionsViewer, name='sessions_viewer_url'),
         tornado.web.url(r'/ui/targets/([0-9]+)/urls/?$', ui_handlers.UrlLog, name='url_log_url'),
         tornado.web.url(r'/ui/targets/([0-9]+)/poutput/?', ui_handlers.PluginOutput, name='poutput_ui_url'),
         tornado.web.url(r'/ui/workers/?([0-9])?/?', ui_handlers.WorkerManager, name='workers_ui_url'),
