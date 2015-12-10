@@ -24,7 +24,7 @@ class APIRequestHandler(tornado.web.RequestHandler, BaseComponent):
 class UIRequestHandler(tornado.web.RequestHandler, BaseComponent):
     def reverse_url(self, name, *args):
         url = super(UIRequestHandler, self).reverse_url(name, *args)
-        url = url.replace('?', '')
+        url = url.replace('?','')
         return url.split('None')[0]
 
 
@@ -49,7 +49,6 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
             for abspath, dirnames, filenames in os.walk(abspath):
                 break
             directory_listing_template = tornado.template.Template("""
-                {% from urllib import quote_plus %}
                 <html>
                 <head>
                     <title>Directory Listing</title>
@@ -62,13 +61,13 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
                         {% if len(dirnames) > 0 %}
                             <h2>Directories</h2>
                             {% for item in dirnames %}
-                                <li><a href="{{ quote_plus(item) }}/">{{ item }}/</a></li>
+                                <li><a href="{{ item }}/">{{ item }}/</a></li>
                             {% end %}
                         {% end %}
                         {% if len(filenames) > 0 %}
                             <h2>Files</h2>
                             {% for item in filenames %}
-                                <li><a href="{{ quote_plus(item) }}">{{ item }}</a></li>
+                                <li><a href="{{ item }}">{{ item }}</a></li>
                             {% end %}
                         {% end %}
                     </ul>

@@ -1,4 +1,3 @@
-{% from urllib import quote_plus  %}
 <div class="panel-group" id="pluginOutputs">
     {% for test_code, poutput_list in grouped_plugin_outputs.items() %}
         <div id="header_{{ test_code }}"class="panel panel-default">
@@ -95,7 +94,7 @@
                                         <td> {{ poutput['start_time'] }} <br />{{ poutput['end_time'] }} </td>
                                         <td> {{ poutput['status'] }} </td>
                                         {% if poutput['output_path'] %}
-                                            <td><a href="/output_files/{{ quote_plus(poutput['output_path']) }}/" target="_blank" class="btn btn-primary">Browse</a></td>
+                                            <td><a href="/output_files/{{ poutput['output_path'] }}/" target="_blank" class="btn btn-primary">Browse</a></td>
                                         {% end %}
                                         <td>
                                             <div class="btn-group">
@@ -145,7 +144,7 @@ api calls. Only needed attributes are extracted
     + owtf_rank
     + user_rank
     + key
-*/
+ */
 var copyPOutputs = {};
 {% for test_code, poutput_list in grouped_plugin_outputs.items() %}
     copyPOutputs['{{ test_code }}'] = {};
