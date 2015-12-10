@@ -234,7 +234,7 @@ class Definitions(object):
     DATE = DATE.format(wdy=WEEKDAY_SHORT, weekday=WEEKDAY_LONG,
                        day=DAY_OF_MONTH, mon=MONTH_SHORT, month=MONTH_LONG)
 
-    EXPIRES_AV = "expires=(?P<expires>%s)" % DATE
+    EXPIRES_AV = "Expires=(?P<expires>%s)" % DATE
 
     # Now we're ready to define a regexp which can match any number of attrs
     # in the variable portion of the Set-Cookie header (like the unnamed latter
@@ -609,7 +609,6 @@ def _parse_request(header_data, ignore_bad_cookies=False):
             if not ignore_bad_cookies:
                 raise InvalidCookieError(data=line)
             _report_invalid_cookie(line)
-    
     return cookies_dict
 
 
@@ -653,15 +652,7 @@ def parse_one_response(line, ignore_bad_cookies=False,
         elif 'year2' in captured:
             for key in timekeys:
                 del captured[key + "2"]
-        else:
-            pass
-
-        if 'max_age' in captured:
-            max_age = captured.get('max_age')
-            expires_derived_from_max_age = datetime.datetime.utcnow() + datetime.timedelta(seconds=long(max_age))
-            captured['expires'] = render_date(expires_derived_from_max_age)
-
-    cookie_dict.update(captured)
+        cookie_dict.update(captured)
     return cookie_dict
 
 
@@ -917,7 +908,6 @@ class Cookie(object):
     # Python, and it is mapped to the name you want in the output.
     # 'name' and 'value' should not be here.
     attribute_names = {
-        'Expires': 'Expires',
         'expires':  'Expires',
         'max_age':  'Max-Age',
         'domain':   'Domain',
@@ -1058,14 +1048,14 @@ class Cookies(dict):
                 cookie_dict = {'name': name, 'value': value}
                 try:
                     cookie = self.cookie_class.from_dict(cookie_dict)
-                except CookieError:
+                except InvalidCookieError:
                     if not ignore_bad_cookies:
                         raise
                 else:
                     cookie_objects.append(cookie)
         try:
             self.add(*cookie_objects)
-        except CookieError:
+        except InvalidCookieError:
             if not ignore_bad_cookies:
                 raise
             _report_invalid_cookie(header_data)

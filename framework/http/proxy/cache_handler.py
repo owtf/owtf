@@ -90,6 +90,7 @@ class CacheHandler(object):
                             'response_code':response.code,
                             'response_headers':response.headers,
                             'response_body':response_body,
+                            'response_cookies':response.headers.get_list("Set-Cookie"),
                             'binary_response':binary_response
                      }
         with open(self.file_path, 'w') as outfile:
@@ -142,6 +143,7 @@ def response_from_cache(file_path):
     else:
         dummyResponse.body = cache_dict["response_body"]
     dummyResponse.request_time = cache_dict["request_time"]
+    dummyResponse.cookies = cache_dict["response_cookies"]
 
     # Temp object is created as an alternative to use lists (or) dictionaries for passing values
     return dummyResponse

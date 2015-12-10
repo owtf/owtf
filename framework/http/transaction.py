@@ -7,13 +7,12 @@ simplify code both in the framework and the plugins.
 import cgi
 import logging
 import StringIO
-import gzip,zlib
+import gzip
+import zlib
 from httplib import responses as response_messages
 import json
-
-from framework import timer
 from framework.lib.general import *
-from framework.http.cookies.cookies import Cookies, Cookie
+from framework.http.cookies.cookies import Cookie
 
 
 class HTTP_Transaction(object):
@@ -93,7 +92,8 @@ class HTTP_Transaction(object):
                              raw_request,
                              response_headers,
                              response_size,
-                             response_body):
+                             response_body,
+                             session_tokens):
         self.ID = id
         self.New = False  # Flag NOT new transaction.
         self.URL = url
@@ -108,15 +108,13 @@ class HTTP_Transaction(object):
         self.ResponseHeaders = response_headers
         self.ResponseSize = response_size
         self.ResponseContents = response_body
-        self.RawCookies = response_headers.get("Set-Cookie", None)
+        self.RawCookies = session_tokens
 
     def GetSessionTokens(self):
         cookies = []
-        cookies_ls = Cookies() #init
         try: # parsing may sometimes fail
-            cookies_ls.parse_response('Set-Cookie:'+self.RawCookies)
-            for key, attr in cookies_ls.iteritems():
-                cookies.append({key: attr.to_dict()})
+            for cookie in self.Cookies_list:
+                cookies.append(Cookie.from_string(cookie).to_dict())
         except:
             pass
         return json.dumps(cookies)
@@ -201,7 +199,7 @@ class HTTP_Transaction(object):
         self.TimeHuman = self.Timer.get_time_human(self.Time)
         self.LocalTimestamp = request.local_timestamp
         self.Found = (self.Status == "200 OK")
-        self.RawCookies = response.headers.get("Set-Cookie", None)
+        self.Cookies_list = response.cookies
         self.New = True
         self.ID = ''
         self.HTMLLinkToID = ''
