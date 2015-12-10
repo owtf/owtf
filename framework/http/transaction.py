@@ -92,8 +92,7 @@ class HTTP_Transaction(object):
                              raw_request,
                              response_headers,
                              response_size,
-                             response_body,
-                             session_tokens):
+                             response_body):
         self.ID = id
         self.New = False  # Flag NOT new transaction.
         self.URL = url
@@ -108,7 +107,6 @@ class HTTP_Transaction(object):
         self.ResponseHeaders = response_headers
         self.ResponseSize = response_size
         self.ResponseContents = response_body
-        self.RawCookies = session_tokens
 
     def GetSessionTokens(self):
         cookies = []

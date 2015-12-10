@@ -176,8 +176,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 trans.raw_request,
                 trans.response_headers,
                 len(response_body),
-                response_body,
-                trans.session_tokens)
+                response_body)
             return owtf_transaction
         return (None)
 
