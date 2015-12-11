@@ -78,6 +78,26 @@ def directory_access(path, mode):
     return True
 
 
+def print_version(root_dir, commit_hash=False, version=False):
+    # check if the root dir is a git repository
+    if os.path.exists(os.path.join(root_dir, '.git')):
+        command = ('git log -n 1 --pretty=format:"%H"')
+        commit_hash = os.popen(command).read()
+
+    if commit_hash and version:
+        return "OWTF Version: %s, Release: %s  \n" % (
+                ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
+                ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))+ \
+                "Last commit hash: " + commit_hash
+    elif commit_hash:
+        return commit_hash
+    elif version:
+        return "OWTF Version: %s, Release: %s " % (
+                ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
+                ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
+    else:
+        pass
+
 class FileOperations(object):
 
     @staticmethod
