@@ -5,6 +5,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 from StringIO import StringIO
 import json
 from framework.lib import exceptions
+from framework.utils import print_version
 from framework.lib.exceptions import InvalidTargetReference
 from framework.lib.general import cprint
 from framework.interface import custom_handlers
@@ -790,15 +791,8 @@ class AutoUpdaterHandler(custom_handlers.APIRequestHandler):
         info = json.loads(response.body)
         root_dir = self.get_component("config").RootDir
 
-        # check if the root dir is a git repository
-        if os.path.exists(os.path.join(root_dir, '.git')):
-            command = ('git log -n 1 --pretty=format:"%H"')
-            commit_hash = os.popen(command).read()
-        else:
-            commit_hash = ''
-
         # now compare the commit_hash with the latest tag
-        if commit_hash != info["sha"]:
+        if print_version(root_dir, commit_hash=True) != info["sha"]:
             self.write("Seems that your repository is older than the upstream. The lastest commit is \
                 from"+info["commit"]["messsage"]+". \nPlease update, it may resolve some issues!")
         else:
