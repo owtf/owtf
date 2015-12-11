@@ -16,7 +16,7 @@ from framework.dependency_management.interfaces import ErrorHandlerInterface
 from framework.lib.exceptions import FrameworkAbortException, \
                                      PluginAbortException
 from framework.lib.general import cprint
-from framework.utils import OutputCleaner
+from framework.utils import OutputCleaner, print_version
 
 
 class ErrorHandler(BaseComponent, ErrorHandlerInterface):
@@ -104,6 +104,7 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
         message = OutputCleaner.anonymise_command(message)
         output = self.Padding + "OWTF BUG: Please report the sanitised " \
                  "information below to help make this better. Thank you." + \
+                 self.SubPadding + print_version(self.config.Rootdir, commit_hash=True, version=True) + \
                  self.SubPadding
         output += "\nMessage: " + message + "\n"
         output += "\nError Trace:"
