@@ -41,6 +41,17 @@ class Installer(object):
             return
         os.system(command)
 
+    @staticmethod
+    def version(root_dir):
+        """Prints the local git repo's last commit hash"""
+        # check if the root dir is a git repository
+        if os.path.exists(os.path.join(root_dir, '.git')):
+            command = ('git log -n 1 --pretty=format:"%H"')
+            commit_hash = os.popen(command).read()
+            return commit_hash
+        else:
+            return "*Not a git repository.*"
+
     def install_in_directory(self, directory, command):
         if self.create_directory(directory):
             print("[*] Switching to %s"%(directory))
@@ -153,6 +164,7 @@ if __name__ == "__main__":
     print("[!] There will be lot of output, please be patient")
     RootDir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     installer = Installer(RootDir)
+    print("[DEBUG] Last commit hash: %s" % installer.version(RootDir))
     installer.install(sys.argv[1:])
     print("[*] Finished!")
     print("[*] Start OWTF by running \033[0;34m./owtf.py\033[0m in the parent directory")
