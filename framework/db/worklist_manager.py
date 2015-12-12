@@ -153,6 +153,14 @@ class WorklistManager(BaseComponent):
         self.db.session.delete(work_obj)
         self.db.session.commit()
 
+    def delete_all(self):
+        query = self.db.session.query(models.Work)
+        if not query:
+            raise exceptions.InvalidWorkerReference("No workers!")
+        for work_obj in query:
+            self.db.session.delete(work_obj)
+            self.db.session.commit()
+
     def patch_work(self, work_id, active=True):
         work_obj = self.db.session.query(models.Work).get(work_id)
         if work_obj is None:

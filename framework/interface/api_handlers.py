@@ -268,7 +268,7 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
 
 
 class ReplayRequestHandler(custom_handlers.APIRequestHandler):
-    SUPPORTED_METHODS = {'POST'}
+    SUPPORTED_METHODS = ['POST']
 
     @tornado.web.asynchronous
     def get(self, target_id=None, transaction_id=None):
@@ -624,11 +624,17 @@ class WorklistHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
     def delete(self, work_id=None, action=None):
+        #print work_id, action, "delete"
         if work_id is None or action is not None:
             tornado.web.HTTPError(400)
         try:
-            self.get_component("worklist_manager").remove_work(int(work_id))
-            self.set_status(200)
+            work_id = int(work_id)
+            if work_id != 0:
+                self.get_component("worklist_manager").remove_work(int(work_id))
+                self.set_status(200)
+            else:
+                if action == 'delete':
+                    self.get_component("worklist_manager").delete_all()
         except exceptions.InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType as e:

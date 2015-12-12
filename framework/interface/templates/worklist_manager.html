@@ -17,8 +17,9 @@
   <div class="row-fluid">
     <div class="col-md-12">
       <div class="btn-group pull-right">
-        <button class="btn btn-primary" href="#" onclick="pauseAllWork()"><i class="fa fa-pause"></i> Pause All</button>
+        <button class="btn btn-warning" href="#" onclick="pauseAllWork()"><i class="fa fa-pause"></i> Pause All</button>
         <button class="btn btn-success" href="#" onclick="resumeAllWork()"><i class="fa fa-play"></i> Resume All</button>
+        <button class="btn btn-danger" href="#" onclick="deleteAll()"><i class="fa fa-times"></i> Delete All</button>
       </div>
     </div>
   </div>
@@ -70,6 +71,17 @@ function resumeAllWork() {
             alertFail("Server replied: "+serverResponse);
         }
     });
+}
+
+//function to delete all work using api
+function deleteAll() {
+    $.ajax({
+      url:mySpace.worklist_api_url+'0/delete',
+      type:'DELETE',
+      error:function(xhr, textStatus, serverResponse){
+          alertFail("Server replied: "+serverResponse);
+      }
+    })
 }
 
 // Function to pause work using api
