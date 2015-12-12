@@ -133,11 +133,8 @@ class Shell(BaseComponent, ShellInterface):
             Output += self.error_handler.UserAbort('Command', Output)  # Identify as Command Level abort
         finally:
             self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
-        # remove all ANSI control sequences from the command output
-        ansi_escape = re.compile(r'\x1b[^m]*m')
-        Output = ansi_escape.sub('', Output)
 
-        return Output
+        return scrub_output(Output)
 
     def shell_exec(self, Command, **kwds):  # Mostly used for internal framework commands
         #Stolen from (added shell=True tweak, necessary for easy piping straight via the command line, etc):

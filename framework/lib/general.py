@@ -23,7 +23,6 @@ def cprint(Message):
     print Pad+str(Message).replace("\n", "\n"+Pad)
     return Message
 
-
 def MultipleReplace(Text, ReplaceDict):
     """
     Perform multiple replacements in one go using the replace dictionary
@@ -57,17 +56,14 @@ def check_pid(pid):
 def WipeBadCharsForFilename(Filename):
     return MultipleReplace(Filename, { '(':'', ' ':'_', ')':'', '/':'_' })
 
-
 def RemoveListBlanks(src):
     return [el for el in src if el]
-
 
 def List2DictKeys(List):
     Dictionary = defaultdict(list)
     for Item in List:
             Dictionary[Item] = ''
     return Dictionary
-
 
 def AddToDict(FromDict, ToDict):
     for Key, Value in FromDict.items():
@@ -86,10 +82,8 @@ def MergeDicts(Dict1, Dict2):
     AddToDict(Dict2, NewDict)
     return NewDict
 
-
 def TruncLines(Str, NumLines, EOL="\n"):
     return EOL.join(Str.split(EOL)[0:NumLines])
-
 
 def DeriveHTTPMethod(Method, Data):  # Derives the HTTP method from Data, etc
     DMethod = Method
@@ -100,7 +94,11 @@ def DeriveHTTPMethod(Method, Data):  # Derives the HTTP method from Data, etc
             DMethod = 'POST'
     return DMethod
 
-
 def get_random_str(len):
     """function returns random strings of length len"""
     return base64.urlsafe_b64encode(os.urandom(len))[0:len]
+
+def scrub_output(output):
+    """remove all ANSI control sequences from the output"""
+    ansi_escape = re.compile(r'\x1b[^m]*m')
+    return ansi_escape.sub('', output)
