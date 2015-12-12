@@ -8,6 +8,7 @@ from framework.lib.filelock import FileLock
 import logging
 import multiprocessing
 import os
+import re
 import pprint
 import random
 import string
