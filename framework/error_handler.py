@@ -114,7 +114,7 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
         self.LogError(message, err_trace)
 
     def Add(self, message, bugType='owtf'):
-        if 'owtf' == bugType:
+        if bugType == 'owtf':
             return self.AddOWTFBug(message)
         else:
             output = self.Padding + message + self.SubPadding

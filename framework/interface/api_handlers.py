@@ -624,13 +624,12 @@ class WorklistHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
     def delete(self, work_id=None, action=None):
-        #print work_id, action, "delete"
         if work_id is None or action is not None:
             tornado.web.HTTPError(400)
         try:
             work_id = int(work_id)
             if work_id != 0:
-                self.get_component("worklist_manager").remove_work(int(work_id))
+                self.get_component("worklist_manager").remove_work(work_id)
                 self.set_status(200)
             else:
                 if action == 'delete':
