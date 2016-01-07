@@ -246,8 +246,7 @@ class PluginHelper(BaseComponent):
         RobotsFound = True
         if 0 == num_allow and 0 == num_disallow and 0 == num_sitemap:
             RobotsFound = False
-            return [num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap,
-                    RobotsFound]
+        return [num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, RobotsFound]
 
 
     def ProcessRobots(self, PluginInfo, Contents, LinkStart, LinkEnd, Filename='robots.txt'):
@@ -256,7 +255,7 @@ class PluginHelper(BaseComponent):
         num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = self.AnalyseRobotsEntries(
             Contents)
         SavePath = self.plugin_handler.DumpOutputFile(Filename, Contents, PluginInfo, True)
-        TopURL = self.target.Get('TOP_URL')
+        TopURL = self.target.Get('top_url')
         EntriesList = []
         if num_disallow > 0 or num_allow > 0 or num_sitemap > 0:  # robots.txt contains some entries, show browsable list! :)
             self.url_manager.AddURLsStart()
