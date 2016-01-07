@@ -7,6 +7,8 @@ if [ "$(id -u)" != "0" ]; then
   exit 1
 fi
 
+postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | sed 's/\./ /g' | awk '{print $1 "." $2}')"
+
 PGUSER=postgres
 PGVAR="/var/lib/postgres"
 if [ ! -d "$PGVAR" ]; then
@@ -18,12 +20,12 @@ PGLOG="$PGDATA/serverlog"
 
 INITDB="initdb"
 if [ "$(which $INITDB | wc -l)" != '1' ]; then
-  INITDB="/usr/lib/postgresql/9.1/bin/initdb"
+  INITDB="/usr/lib/postgresql/${postgres_version}/bin/initdb"
 fi
 
 POSTGRES="postgres"
 if [ "$(which $POSTGRES | wc -l)" != '1' ]; then
-  POSTGRES="/usr/lib/postgresql/9.1/bin/postgres"
+  POSTGRES="/usr/lib/postgresql/${postgres_version}/bin/postgres"
 fi
 
 if [ ! -d "$PGDATA" ]; then
@@ -36,7 +38,7 @@ fi
 
 echo "[+] Starting PostgreSQL ..." 1>&2
 START_COMMAND="$POSTGRES -D '$PGDATA' &"
-su $PGUSER -c "$START_COMMAND"  >>$PGLOG 2>$PGLOG
+su $PGUSER -c "$START_COMMAND"  >> $PGLOG 2>$PGLOG
 
 # Wait until the postgres server starts.
 while [ "$(cat $PGLOG | grep 'ready' | wc -l)" = "0" ]; do
