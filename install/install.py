@@ -107,7 +107,7 @@ class Installer(object):
                 break
             except ValueError:
                 print('')
-                print("Please enter a valid number")
+                print("Invalid Number specified")
                 continue
 
         # First all distro independent stuff is installed
@@ -128,33 +128,35 @@ class Installer(object):
         self.run_command("sudo pip2 install --upgrade pip")
         # mitigate cffi errors by upgrading it first
         self.run_command("sudo pip2 install --upgrade cffi")
+        # run next block only when distro_num == 1
+        if distro_num == '1':
+            # check kali major release number 0.x, 1.x, 2.x
+            kali_version = os.popen("cat /etc/issue", "r").read().split(" ")[2][0]
+            if kali_version == '1':
+                if args.no_user_input:
+                    fixsetuptools = 'n'
+                else:
+                    # ask the user if they really want to delete the symlink
+                    fixsetuptools = raw_input("Delete /usr/lib/python2.7/dist-packages/setuptools.egg-info? (y/n)\n(recommended, solves some issues in Kali 1.xx)")
 
-        # check kali major release number 0.x, 1.x, 2.x
-        kali_version = os.popen("cat /etc/issue", "r").read().split(" ")[2][0]
-        if kali_version == '1':
-            if args.no_user_input:
-                fixsetuptools = 'n'
+                if fixsetuptools == 'y':
+                    # backup the original symlink
+                    print("Backing up the original symlink...")
+                    ts = time.time()
+                    human_timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H:%M:%S')
+
+                    # backup the original symlink
+                    self.run_command("mv /usr/lib/python2.7/dist-packages/setuptools.egg-info /usr/lib/python2.7/dist-packages/setuptools.egg-info" + "-BACKUP-" + human_timestamp)
+
+                    print("The original symlink exists at /usr/lib/python2.7/dist-packages/setuptools.egg-info-BACKUP-" + human_timestamp)
+
+                    # Finally owtf python libraries installed using pip
+                    self.install_using_pip(self.owtf_pip)
             else:
-                # ask the user if they really want to delete the symlink
-                fixsetuptools = raw_input("Delete /usr/lib/python2.7/dist-packages/setuptools.egg-info? (y/n)\n(recommended, solves some issues in Kali 1.xx)")
+                print("Moving on with the installation but you were warned: there may be some errors!")
 
-            if fixsetuptools == 'y':
-                # backup the original symlink
-                print("Backing up the original symlink...")
-                ts = time.time()
-                human_timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H:%M:%S')
-
-                # backup the original symlink
-                self.run_command("mv /usr/lib/python2.7/dist-packages/setuptools.egg-info /usr/lib/python2.7/dist-packages/setuptools.egg-info" + "-BACKUP-" + human_timestamp)
-
-                print("The original symlink exists at /usr/lib/python2.7/dist-packages/setuptools.egg-info-BACKUP-" + human_timestamp)
-
-                # Finally owtf python libraries installed using pip
-                self.install_using_pip(self.owtf_pip)
-        else:
-            print("Moving on with the installation but you were warned: there may be some errors!")
-            # Finally owtf python libraries installed using pip
-            self.install_using_pip(self.owtf_pip)
+        # Finally owtf python libraries installed using pip
+        self.install_using_pip(self.owtf_pip)
 
         # db_setup script
         self.run_command("sudo sh %s init" % (os.path.join(self.scripts_path, "db_setup.sh")))
