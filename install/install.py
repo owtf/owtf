@@ -110,13 +110,15 @@ class Installer(object):
                 print("Please enter a valid number")
                 continue
 
+        # First all distro independent stuff is installed
+        self.install_restricted_from_cfg(self.restricted_cfg)
+
         if distro_num != 0:
             self.run_command(cp.get(cp.sections()[int(distro_num)-1], "install"))
         else:
             print("Skipping distro related installation :(")
 
-        # First all distro independent stuff is installed
-        self.install_restricted_from_cfg(self.restricted_cfg)
+
 
         if args.core_only:
             return
