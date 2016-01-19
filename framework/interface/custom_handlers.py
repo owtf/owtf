@@ -8,6 +8,7 @@ import mimetypes
 import email.utils
 import tornado.web
 import tornado.template
+from urllib import quote_plus
 from framework.dependency_management.dependency_resolver import BaseComponent
 
 
@@ -34,7 +35,7 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
         This is an edited method of original class so that we can show
         directory listing and set correct Content-Type
         """
-        path = self.parse_url_path(path)
+	path = self.parse_url_path(path)
         abspath = os.path.abspath(os.path.join(self.root, path))
         self.absolute_path = abspath
         if not os.path.exists(abspath):
@@ -49,6 +50,7 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
             for abspath, dirnames, filenames in os.walk(abspath):
                 break
             directory_listing_template = tornado.template.Template("""
+		{% from urllib import quote_plus %}
                 <html>
                 <head>
                     <title>Directory Listing</title>
@@ -61,13 +63,13 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
                         {% if len(dirnames) > 0 %}
                             <h2>Directories</h2>
                             {% for item in dirnames %}
-                                <li><a href="{{ item }}/">{{ item }}/</a></li>
+                                <li><a href="{{ quote_plus(item, safe='/') }}/">{{ item }}/</a></li>
                             {% end %}
                         {% end %}
                         {% if len(filenames) > 0 %}
                             <h2>Files</h2>
                             {% for item in filenames %}
-                                <li><a href="{{ item }}">{{ item }}</a></li>
+                                <li><a href="{{ quote_plus(item, safe='/') }}">{{ item }}</a></li>
                             {% end %}
                         {% end %}
                     </ul>
