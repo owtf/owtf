@@ -282,6 +282,16 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             self._signal_process(worker_dict["worker"].pid, signal.SIGSTOP)
             worker_dict["paused"] = True
 
+    def pause_all_workers(self):
+        """
+        Pause all workers by sending SIGSTOP after verifying they are running
+        """
+        for worker_dict in self.workers:
+            if not worker_dict["paused"]:
+                self._signal_children(worker_dict["worker"].pid, signal.SIGSTOP)
+                self._signal_process(worker_dict["worker"].pid, signal.SIGSTOP)
+                worker_dict["paused"] = True
+
     def resume_worker(self, pseudo_index):
         """
         Resume worker by sending SIGCONT after verfifying that process is paused
@@ -291,6 +301,17 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             self._signal_children(worker_dict["worker"].pid, signal.SIGCONT)
             self._signal_process(worker_dict["worker"].pid, signal.SIGCONT)
             worker_dict["paused"] = False
+
+    def resume_all_workers(self):
+        """
+        Resume all workers by sending SIGCONT to each one of them after verfication
+        that it is really paused
+        """
+        for worker_dict in self.workers:
+            if worker_dict["paused"]:
+                self._signal_children(worker_dict["worker"].pid, signal.SIGCONT)
+                self._signal_process(worker_dict["worker"].pid, signal.SIGCONT)
+                worker_dict["paused"] = False
 
     def abort_worker(self, pseudo_index):
         """

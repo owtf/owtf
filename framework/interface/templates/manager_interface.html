@@ -9,8 +9,12 @@
 {% block content %}
 <!-- Workers Info Area -->
 <div class="row">
-    <div class="col-md-2 col-md-offset-10">
-        <button class="btn btn-md btn-success pull-right" onclick="addWorker();"><i class="fa fa-plus"></i> Add worker!</button>
+    <div class="col col-md-12">
+        <div class="btn-group pull-right">
+            <button class="btn btn-md btn-success" onclick="addWorker();"><i class="fa fa-plus"></i> Add worker!</button>
+            <button class="btn btn-md btn-warning" onclick="pauseAllWorkers()"><i class="fa fa-pause"></i> Pause All</button>
+            <button class="btn btn-md btn-info" onclick="resumeAllWorkers()"><i class="fa fa-play"></i> Resume All</button>
+        </div>
     </div>
 </div>
 <br>
@@ -23,10 +27,13 @@ var mySpace = {
                     targets_ui_url:"{{ targets_ui_url }}",
                 };
 
+var num_workers;
+
 // Abort worker with id using API
 function abortWorker(workerId){
     addOverlay('#worker_'+workerId); // just add overlay the worker info refresh will auto. remove it
     $.get(mySpace.workers_api_url+workerId+'/abort');
+    num_workers -= 1;
 }
 
 // Pause worker with id using API
@@ -35,10 +42,28 @@ function pauseWorker(workerId){
     $.get(mySpace.workers_api_url+workerId+'/pause');
 }
 
+function pauseAllWorkers() {
+    var w = num_workers;
+    while (w > 0) {
+        addOverlay('#worker_'+w);
+        w--;
+    }
+    $.get(mySpace.workers_api_url+'0'+'/pause');
+}
+
 // Resume worker with id using API
 function resumeWorker(workerId){
     addOverlay('#worker_'+workerId); // just add overlay the worker info refresh will auto. remove it
     $.get(mySpace.workers_api_url+workerId+'/resume');
+}
+
+function resumeAllWorkers() {
+    var w = num_workers;
+    while (w > 0) {
+        addOverlay('#worker_'+w);
+        w--;
+    }
+    $.get(mySpace.workers_api_url+'0'+'/resume');
 }
 
 // Delete a worker process using API
@@ -50,11 +75,13 @@ function deleteWorker(workerId){
                 alertFail("Server replied: "+serverResponse);
                 }
             });
+    num_workers -= 1;
 }
 
 // Add new worker using API
 function addWorker(){
     $.post(mySpace.workers_api_url);
+    num_workers += 1;
 }
 
 // Function to get control buttons based on the present state of a worker i.e return pause button if worker is active & vice versa
@@ -82,6 +109,7 @@ function displayWorkersInfo(){
             success:function(data, textStatus, jqXHR){
                 if (304 != jqXHR.status){  // To do something only when some information has changed, i.e do nothing on 304 Not Modified
                     $('#workersInfo').html('');
+                    num_workers = data.length;
                     $.each(data, function(index, obj){
                         // We add three span3 panels in a row, so we use index to add
                         // opening and closing tags for a row

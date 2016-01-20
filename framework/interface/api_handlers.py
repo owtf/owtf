@@ -319,18 +319,6 @@ class HTTPRequest(BaseHTTPRequestHandler):
         self.error_code = code
         self.error_message = message
 
-"""
-    Remove this at the end
-    def print_all(self):
-        print self.error_code       # None  (check this first)
-        print self.command          # "GET"
-        print self.path             # "/who/ken/trust.html"
-        print self.request_version  # "HTTP/1.1"
-        print len(self.headers)     # 3
-        print self.headers   # ['accept-charset', 'host', 'accept']
-        print self.headers['host']
-"""
-
 
 class ForwardToZAPHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET']
@@ -561,6 +549,8 @@ class WorkerHandler(custom_handlers.APIRequestHandler):
             if worker_id and (not action):
                 self.write(self.get_component("worker_manager").get_worker_details(int(worker_id)))
             if worker_id and action:
+                if int(worker_id) == 0:
+                    getattr(self.get_component("worker_manager"), action + '_all_workers')()
                 getattr(self.get_component("worker_manager"), action + '_worker')(int(worker_id))
         except exceptions.InvalidWorkerReference as e:
             cprint(e.parameter)
