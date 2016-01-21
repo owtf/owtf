@@ -441,7 +441,6 @@ class FileRedirectHandler(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ('GET')
 
     def get(self, file_url):
-	file_url = file_url[1:]
         config = ServiceLocator.get_component("config")
         output_files_server = "%s://%s/" % (
             self.request.protocol,

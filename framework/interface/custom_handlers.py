@@ -35,7 +35,7 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
         This is an edited method of original class so that we can show
         directory listing and set correct Content-Type
         """
-	path = self.parse_url_path(path)
+        path = self.parse_url_path(path)
         abspath = os.path.abspath(os.path.join(self.root, path))
         self.absolute_path = abspath
         if not os.path.exists(abspath):
