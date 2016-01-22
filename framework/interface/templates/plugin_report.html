@@ -94,7 +94,7 @@
                                         <td> {{ poutput['start_time'] }} <br />{{ poutput['end_time'] }} </td>
                                         <td> {{ poutput['status'] }} </td>
                                         {% if poutput['output_path'] %}
-                                            <td><a href="/output_files/{{ url_escape(poutput['output_path'], plus=True) }}/" target="_blank" class="btn btn-primary">Browse</a></td>
+                                            <td><a href="/output_files/{{ url_escape(poutput['output_path'], plus=False) }}/" target="_blank" class="btn btn-primary">Browse</a></td>
                                         {% end %}
                                         <td>
                                             <div class="btn-group">
