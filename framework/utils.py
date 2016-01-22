@@ -103,7 +103,9 @@ class FileOperations(object):
     @staticmethod
     @catch_io_errors
     def create_missing_dirs(path):
-        directory = path
+        # truncate filepath to 255 char (*nix limit)
+        # See issue #521
+        directory = path[:255]
         if os.path.isfile(directory):
             directory = os.path.dirname(directory)
         if not os.path.exists(directory):
