@@ -61,13 +61,13 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
                         {% if len(dirnames) > 0 %}
                             <h2>Directories</h2>
                             {% for item in dirnames %}
-                                <li><a href="{{ item }}/">{{ item }}/</a></li>
+                                <li><a href="{{ url_escape(item, plus=False) }}/">{{ item }}/</a></li>
                             {% end %}
                         {% end %}
                         {% if len(filenames) > 0 %}
                             <h2>Files</h2>
                             {% for item in filenames %}
-                                <li><a href="{{ item }}">{{ item }}</a></li>
+                                <li><a href="{{ url_escape(item, plus=False) }}">{{ item }}</a></li>
                             {% end %}
                         {% end %}
                     </ul>

@@ -1,6 +1,7 @@
 import os
 import collections
 import tornado.web
+from tornado.escape import url_escape
 import uuid
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.exceptions import InvalidTargetReference, \
@@ -446,5 +447,5 @@ class FileRedirectHandler(custom_handlers.UIRequestHandler):
             self.request.host.replace(
                 config.FrameworkConfigGet("UI_SERVER_PORT"),
                 config.FrameworkConfigGet("FILE_SERVER_PORT")))
-        redirect_file_url = output_files_server + file_url
+        redirect_file_url = output_files_server + url_escape(file_url, plus=False)
         self.redirect(redirect_file_url, permanent=True)
