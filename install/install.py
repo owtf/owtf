@@ -52,6 +52,16 @@ class Installer(object):
         else:
             return "*Not a git repository.*"
 
+    @staticmethod
+    def check_sudo():
+        """Checks if the user has sudo access"""
+        sudo = os.system("sudo -v")
+        if sudo == "0":
+            return
+        else:
+            print("[WARNING] Your user does not have sudo priveleges. Some OWTF components require sudo permissions to install")
+            sys.exit()
+
     def install_in_directory(self, directory, command):
         if self.create_directory(directory):
             print("[*] Switching to %s"%(directory))
@@ -169,6 +179,7 @@ if __name__ == "__main__":
     RootDir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     installer = Installer(RootDir)
     print("[DEBUG] Last commit hash: %s" % installer.version(RootDir))
+
     installer.install(sys.argv[1:])
     print("[*] Finished!")
     print("[*] Start OWTF by running \033[0;34m./owtf.py\033[0m in the parent directory")
