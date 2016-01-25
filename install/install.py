@@ -60,6 +60,7 @@ class Installer(object):
             return
         else:
             print("[WARNING] Your user does not have sudo priveleges. Some OWTF components require sudo permissions to install")
+            # exit cleanly
             sys.exit()
 
     def install_in_directory(self, directory, command):
@@ -179,7 +180,7 @@ if __name__ == "__main__":
     RootDir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     installer = Installer(RootDir)
     print("[DEBUG] Last commit hash: %s" % installer.version(RootDir))
-
+    installer.check_sudo()
     installer.install(sys.argv[1:])
     print("[*] Finished!")
     print("[*] Start OWTF by running \033[0;34m./owtf.py\033[0m in the parent directory")
