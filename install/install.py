@@ -56,7 +56,7 @@ class Installer(object):
     def check_sudo():
         """Checks if the user has sudo access"""
         sudo = os.system("sudo -v")
-        if sudo == "0":
+        if sudo == 0:
             return
         else:
             print("[WARNING] Your user does not have sudo priveleges. Some OWTF components require sudo permissions to install")
