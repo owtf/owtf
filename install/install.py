@@ -32,6 +32,9 @@ class Installer(object):
             os.makedirs(directory)
             return True
         except OSError:
+            # Checks if the folder is empty
+            if not os.listdir(directory):
+                return True
             return False
 
     def run_command(self, command):
