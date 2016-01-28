@@ -18,7 +18,7 @@ fi
 echo "Local hash present, comparing with upstream.."
 
 if ! [ "$local_hash" = "$upstream_hash" ]; then
-	echo "Hashes do not match, updating jars"
+  echo "Hashes do not match, updating jars.."
   $install_command
 else
   echo "Hashes match. Continuing.."
