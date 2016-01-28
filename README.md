@@ -19,6 +19,8 @@ The tool is highly configurable and anybody can trivially create simple plugins 
 Features
 ===
 
+[![Join the chat at https://gitter.im/owtf/owtf](https://badges.gitter.im/owtf/owtf.svg)](https://gitter.im/owtf/owtf?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ##### Resilience
 
 If one tool crashes **OWTF**,  will move on to the next tool/test, saving the partial output of the tool until it crashed. **OWTF** also allow you to monitor worker processes and estimated plugin runtimes.
