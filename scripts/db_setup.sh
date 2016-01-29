@@ -67,3 +67,11 @@ then
     su postgres -c "psql -c \"DROP DATABASE $db_name\""
     su postgres -c "psql -c \"DROP USER $db_user\""
 fi
+
+# remove SSL=true from the postgresql main config
+postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | sed 's/\./ /g' | awk '{print $1 "." $2}')"
+
+postgres_conf="/etc/postgresql/$postgres_version/main/postgresql.conf"
+echo "Removing SSL=false from the main postgres config"
+sed -i -e '/ssl =/ s/= .*/= false/' $postgres_conf
+
