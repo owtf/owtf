@@ -19,6 +19,7 @@ class InterfaceServer(OWTFProcess, BaseComponent):
                 'INTERFACE_TEMPLATES_DIR'),
             debug=False,
             gzip=True,
+            static_path=config.FrameworkConfigGet('STATICFILES_DIR'),
             compiled_template_cache=False
             )
         self.server = tornado.httpserver.HTTPServer(application)

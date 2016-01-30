@@ -9,16 +9,16 @@
     <meta name="author" content="OWASP OWTF Team">
 
     <!-- Styles -->
-    <link href="/static/css/font-awesome/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-theme.min.css" rel="stylesheet">
-    <link href="/static/css/spinner.css" rel="stylesheet">
-    <link id="skin_css" href="/static/css/stylesheet.css" rel="stylesheet"> <!-- All tweaks present in this file -->
+    <link href="{{ static_url('css/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet">
+    <link href="{{ static_url('css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ static_url('css/bootstrap-theme.min.css') }}" rel="stylesheet">
+    <link href="{{ static_url('css/spinner.css') }}" rel="stylesheet">
+    <link id="skin_css" href="{{ static_url('css/stylesheet.css') }}" rel="stylesheet"> <!-- All tweaks present in this file -->
     <!-- End Styles -->
 
     <!-- JS -->
-    <script type="text/javascript" src="/static/js/jquery.js"></script>
-    <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="{{ static_url('js/jquery.js') }}"></script>
+    <script type="text/javascript" src="{{ static_url('js/bootstrap.min.js') }}"></script>
     <!-- End JS -->
     <!-- Set of functions that can be used in every page to display status messages -->
     <script>

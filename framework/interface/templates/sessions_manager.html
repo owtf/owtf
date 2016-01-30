@@ -3,10 +3,10 @@
 {% block title %}User Sessions{% end %}
 
 {% block includes %}
-<script type="text/javascript" charset="utf-8" src="/static/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" charset="utf-8" src="/static/js/dataTables.bootstrap.js"></script>
-<script type="text/javascript" charset="utf-8" src="/static/js/dataTables.responsive.min.js"></script>
-<link href="/static/css/dataTables.bootstrap.css" rel="stylesheet">
+<script type="text/javascript" charset="utf-8" src="{{ static_url('js/jquery.dataTables.min.js') }}"></script>
+<script type="text/javascript" charset="utf-8" src="{{ static_url('js/dataTables.bootstrap.js') }}"></script>
+<script type="text/javascript" charset="utf-8" src="{{ static_url('js/dataTables.responsive.min.js') }}"></script>
+<link href="{{ static_url('css/dataTables.bootstrap.css') }}" rel="stylesheet">
 <style type="text/css">
 
 .top-buffer { margin-bottom:30px; }
