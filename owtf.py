@@ -49,7 +49,7 @@ def process_options(user_args):
         valid_groups = db_plugin.GetAllGroups()
         valid_types = db_plugin.GetAllTypes() + ['all', 'quiet']
         arg = parse_options(user_args, valid_groups, valid_types)
-    except KeyboardInterrupt: #Exception as e:
+    except KeyboardInterrupt as e: #Exception as e:
         usage("Invalid OWTF option(s) " + e)
 
     # Default settings:
