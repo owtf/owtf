@@ -6,17 +6,50 @@ from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import DBInterface
 from framework.lib.general import cprint
 from sqlalchemy.orm import scoped_session, sessionmaker
+from multiprocessing.util import register_after_fork
 from sqlalchemy import create_engine, event, exc
 from sqlalchemy.engine import Engine
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import NullPool, QueuePool
+from sqlalchemy.orm import Session as BaseSession
 from framework.db import models, plugin_manager, target_manager, resource_manager, \
     config_manager, poutput_manager, transaction_manager, url_manager, \
     command_register, error_manager, mapping_manager, vulnexp_manager, \
     session_manager, worklist_manager
+from contextlib import contextmanager
 import logging
 import os
 import re
+import psycopg2
 from framework.utils import FileOperations
+
+
+class Session(BaseSession):
+    def __init__(self, *a, **kw):
+        super(Session, self).__init__(*a, **kw)
+        self._in_atomic = False
+
+    @contextmanager
+    def atomic(self):
+        #Transaction context manager.
+
+        #Will commit the transaction on successful completion
+        #of the block, or roll it back on error.
+
+        #Supports nested usage (via savepoints).
+        nested = self._in_atomic
+        self.begin(nested=nested)
+        self._in_atomic = True
+
+        try:
+            yield
+        except:
+            self.rollback()
+            raise
+        else:
+            self.commit()
+        finally:
+            if not nested:
+                self._in_atomic = False
 
 
 class DB(BaseComponent, DBInterface):
@@ -104,8 +137,14 @@ class DB(BaseComponent, DBInterface):
                     self._db_settings['DATABASE_IP'],
                     self._db_settings['DATABASE_PORT'],
                     self._db_settings['DATABASE_NAME']),
-                poolclass=NullPool)  # TODO: Fix for forking
+                poolclass=QueuePool,
+                pool_size=20,
+                max_overflow=0,
+                isolation_level='AUTOCOMMIT')  # TODO: Fix for forking
             BaseClass.metadata.create_all(engine)
+
+            register_after_fork(engine, engine.dispose)
+
             return engine
         except ValueError as e:  # Potentially corrupted DB config.
             self.error_handler.FrameworkAbort(
@@ -123,5 +162,9 @@ class DB(BaseComponent, DBInterface):
     def CreateScopedSession(self):
         # Not to be used apart from main process, use CreateSession instead
         self.engine = self.CreateEngine(models.Base)
-        session_factory = sessionmaker(bind=self.engine)
+        session_factory = sessionmaker(bind=self.engine,
+                                       autoflush=True,
+                                       autocommit=False,
+                                       class_=Session)
         return scoped_session(session_factory)
+
