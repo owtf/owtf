@@ -99,7 +99,7 @@ class ConfigTests(BaseTestCase):
         assert_that(config_property_is_defined("HTML_REPORT_PATH"))
 
     def test_DeriveURLSettings_sets_url_settings(self):
-        options = {"PluginGroup": "net",
+        options = {"PluginGroup": "network",
                    "RPort": "80",
                    "OnlyPlugins": None}
         target = "http://localhost"
@@ -160,7 +160,7 @@ class ConfigTests(BaseTestCase):
         profiles = self.config.Profiles
 
         assert_that(profiles, has_key("web"))
-        assert_that(profiles, has_key("net"))
+        assert_that(profiles, has_key("network"))
         assert_that(profiles, has_key("r"))  # r for Resources
         assert_that(profiles, has_key("g"))  # g for General
 

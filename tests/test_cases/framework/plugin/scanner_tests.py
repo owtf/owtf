@@ -77,7 +77,7 @@ class ScannerTests(BaseTestCase):
         net_order = [{"Name": "ftp"},
                      {"Name": "smtp"},
                      {"Name": "vnc"}]
-        self.core_mock.Config.Plugin.should_receive("GetOrder").with_args("net").and_return(net_order)
+        self.core_mock.Config.Plugin.should_receive("GetOrder").with_args("network").and_return(net_order)
 
         http_ports = self.scanner.probe_service_for_hosts("nmap_file", "target")
 

@@ -8,7 +8,7 @@ from framework.dependency_management.interfaces import DBPluginInterface
 from framework.utils import FileOperations
 
 
-TEST_GROUPS = ['web', 'net', 'auxillary']
+TEST_GROUPS = ['web', 'network', 'auxillary']
 
 
 class PluginDB(BaseComponent, DBPluginInterface):
@@ -67,7 +67,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
                     descrip=group['descrip'],
                     hint=group['hint'],
                     url=group['url'],
-                    group="net")
+                    group="network")
                 )
         self.db.session.commit()
 

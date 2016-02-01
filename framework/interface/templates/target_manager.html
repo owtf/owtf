@@ -110,7 +110,7 @@ var mySpace = {
                     targets_api_url:"{{ targets_api_url }}",
                     targets_search_api_url:"{{ targets_search_api_url }}",
                     targets_ui_url:"{{ targets_ui_url }}",
-                    plugins_api_url:"{{ plugins_api_url }}?group=web&group=net",
+                    plugins_api_url:"{{ plugins_api_url }}?group=web&group=network",
                     worklist_api_url:"{{ worklist_api_url }}"
                   };
 
@@ -306,7 +306,7 @@ function deleteTarget(target_id) {
 }
 
 function isUrl(str) {
-    // TODO: Add all url protocols to support net plugins
+    // TODO: Add all url protocols to support network plugins
     var urlPattern = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/;
     return urlPattern.test(str);
 }
