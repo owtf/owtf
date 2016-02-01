@@ -8,7 +8,7 @@ from framework.dependency_management.interfaces import DBPluginInterface
 from framework.utils import FileOperations
 
 
-TEST_GROUPS = ['web', 'net', 'aux']
+TEST_GROUPS = ['web', 'net', 'auxillary']
 
 
 class PluginDB(BaseComponent, DBPluginInterface):
@@ -111,7 +111,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
             if len(chunks) == 3:
                 group, type, file = chunks
             # TODO: Add test groups for AUX and then remove the following two lines
-            if group == "aux":
+            if group == "auxillary":
                 continue
             # Retrieve the internal name and code of the plugin.
             name, code = os.path.splitext(file)[0].split('@')

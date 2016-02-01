@@ -64,7 +64,7 @@ class ConfigTests(BaseTestCase):
     def test_DeriveFromTarget_with_aux_group_should_set_some_config_properties(self):
         options = self._get_options()
         options["Scope"] = ["http://localhost:8080"]
-        options["PluginGroup"] = "aux"
+        options["PluginGroup"] = "auxillary"
         self.config.Set("OUTPUT_PATH", "some/path")
 
         self.config.DeriveFromTarget(options)
@@ -75,7 +75,7 @@ class ConfigTests(BaseTestCase):
         assert_that(config_property_is_defined("SUMMARY_HOST_IP"))
         assert_that(config_property_is_defined("SUMMARY_PORT_NUMBER"))
         assert_that(config_property_is_defined("REPORT_TYPE"))
-        assert_that(target_is("aux"))
+        assert_that(target_is("auxillary"))
 
     def test_DeriveGlobalSettings_should_set_some_global_config_settings(self):
         self.config.Set("OUTPUT_PATH", "some/path")

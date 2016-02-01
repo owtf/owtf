@@ -22,7 +22,7 @@ def run(PluginInfo):
                                                                           'PASSPHRASE': config.Get('PASSPHRASE_DESCRIP'),
                                                                           'REPEAT_DELIM': config.Get('REPEAT_DELIM_DESCRIP')
                                                                           }}, PluginInfo):
-        plugin_params.SetConfig(Args)  # Sets the aux plugin arguments as config
+        plugin_params.SetConfig(Args)  # Sets the auxillary plugin arguments as config
 
         #print "Args="+str(Args)
         Core.RemoteShell.Open({

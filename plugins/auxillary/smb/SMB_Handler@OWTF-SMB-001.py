@@ -29,7 +29,7 @@ def run(PluginInfo):
                                                                               'REPEAT_DELIM': config.Get(
                                                                                       'REPEAT_DELIM_DESCRIP')
                                                                           }}, PluginInfo):
-        plugin_params.SetConfig(Args)  # Sets the aux plugin arguments as config
+        plugin_params.SetConfig(Args)  # Sets the auxillary plugin arguments as config
         smb.Mount(Args, PluginInfo)
         smb.Transfer()
     if not smb.IsClosed():  # Ensure clean exit if reusing connection

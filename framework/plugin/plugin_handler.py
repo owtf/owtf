@@ -38,7 +38,7 @@ Short Intro:
 Current Plugin Groups:
 - web: For web assessments or when net plugins find a port that "speaks HTTP"
 - net: For network assessments, discovery and port probing
-- aux: Auxiliary plugins, to automate miscelaneous tasks
+- auxillary: Auxiliary plugins, to automate miscelaneous tasks
 """
 
 INTRO_BANNER_WEB_PLUGIN_TYPE = """
@@ -154,7 +154,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('partial_url_output_path'))+", TARGET="+self.Core.Config.Get('TARGET')
         if ((Plugin['group'] == 'web') or (Plugin['group'] == 'net')):
             return os.path.join(self.target.GetPath('partial_url_output_path'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
-        elif Plugin['group'] == 'aux':
+        elif Plugin['group'] == 'auxillary':
             return os.path.join(self.config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
 
     def RequestsPossible(self):
@@ -176,7 +176,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         # print "Plugin="+str(Plugin)+", Partial url ..="+str(self.config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.config.Get('TARGET')
         if ((Plugin['group'] == 'web') or (Plugin['group'] == 'net')):
             return os.path.join(self.target.GetPath('partial_url_output_path'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
-        elif Plugin['group'] == 'aux':
+        elif Plugin['group'] == 'auxillary':
             return os.path.join(self.config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
 
     def exists(self, directory):
@@ -407,7 +407,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             'SomeAborted': False,
             'SomeSuccessful': False,
             'AllSkipped': True}
-        if self.PluginGroup in ['web', 'aux', 'net']:
+        if self.PluginGroup in ['web', 'auxillary', 'net']:
             self.ProcessPluginsForTargetList(
                 self.PluginGroup,
                 status,
@@ -497,7 +497,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def show_plugin_list(self, group, msg=INTRO_BANNER_GENERAL):
         if group == 'web':
             logging.info(msg + INTRO_BANNER_WEB_PLUGIN_TYPE + "\nAvailable WEB plugins:")
-        elif group == 'aux':
+        elif group == 'auxillary':
             logging.info(msg + "\nAvailable AUXILIARY plugins:")
         elif group == 'net':
             logging.info(msg + "\nAvailable NET plugins:")
