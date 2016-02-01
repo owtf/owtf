@@ -789,6 +789,6 @@ class AutoUpdaterHandler(custom_handlers.APIRequestHandler):
         # now compare the commit_hash with the latest tag
         if print_version(root_dir, commit_hash=True) != info["sha"]:
             self.write("Seems that your repository is older than the upstream. The lastest commit is \
-                from"+info["commit"]["messsage"]+". \nPlease update, it may resolve some issues!")
+                from"+info["commit"]["message"]+". \nPlease update, it may resolve some issues!")
         else:
             self.write('Seems like you are running latest version. Happy Pwning!')
