@@ -62,8 +62,11 @@ class Installer(object):
             print("[!] Directory %s already exists, so skipping installation for this"%(directory))
 
     def install_using_pip(self, requirements_file):
-        # Instead of using file directly with pip which can crash because of single library
-        self.run_command("sudo -E pip2 install --upgrade -r %s"%(requirements_file))
+         #Instead of using file directly with pip which can crash because of single library
+    	 if self.distro_num == 3:
+             self.run_command("sudo -H pip2 install --upgrade -r %s"%(requirements_file))
+         else:
+             self.run_command("sudo -E pip2 install --upgrade -r %s"%(requirements_file))
 
     def install_restricted_from_cfg(self, config_file):
         cp = ConfigParser.ConfigParser({"RootDir":self.RootDir, "Pid":self.pid})
@@ -85,8 +88,8 @@ class Installer(object):
             print("(0) %s"%("My distro is not listed :("))
             distro_num = raw_input("Select a number based on your distribution : ")
             try: # Cheking if valid input is received
-                distro_num = int(distro_num)
-                if distro_num != 0:
+                self.distro_num = int(distro_num)
+                if self.distro_num != 0:
                     self.run_command(cp.get(cp.sections()[int(distro_num)-1], "install"))
                 else:
                     print("Skipping distro related installation :(")
