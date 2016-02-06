@@ -100,6 +100,8 @@ class Installer(object):
             distro_num = 1
         elif "samurai" in distro.lower():
             distro_num = 2
+        elif "debian" in distro.lower():
+            distro_num = 3
 
         # Loop until proper input is received
         while True:
