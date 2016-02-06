@@ -27,12 +27,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 import os
-import time
-import platform
-from datetime import datetime
-
 import ConfigParser
-
 
 class Installer(object):
     """
@@ -67,8 +62,11 @@ class Installer(object):
             print("[!] Directory %s already exists, so skipping installation for this"%(directory))
 
     def install_using_pip(self, requirements_file):
-        # Instead of using file directly with pip which can crash because of single library
-        self.run_command("sudo -E pip2 install --upgrade -r %s"%(requirements_file))
+         #Instead of using file directly with pip which can crash because of single library
+    	 if self.distro_num == 3:
+             self.run_command("sudo -E pip2 install --upgrade -r %s"%(requirements_file))
+         else:
+             self.run_command("sudo -E pip2 install --upgrade -r %s"%(requirements_file))
 
     def install_restricted_from_cfg(self, config_file):
         cp = ConfigParser.ConfigParser({"RootDir":self.RootDir, "Pid":self.pid})
@@ -78,69 +76,34 @@ class Installer(object):
             self.install_in_directory(os.path.expanduser(cp.get(section, "directory")), cp.get(section, "command"))
 
     def install(self):
-        # User asked to select distro (in case it cannot be automatically detected) and distro related stuff is installed
+        # User asked to select distro and distro related stuff is installed
         cp = ConfigParser.ConfigParser({"RootDir":self.RootDir, "Pid":self.pid})
         cp.read(self.distros_cfg)
 
-        #Try get the distro automatically
-        distro, version, arch = platform.linux_distribution()
-        distro_num = 0
-        if "kali" in distro.lower():
-            distro_num = 1
-        elif "samurai" in distro.lower():
-            distro_num = 2
-
         # Loop until proper input is received
         while True:
-            if distro_num != 0:
-                print("[*] %s has been automatically detected... Continuing in auto-mode"%(distro))
-                break
             print("")
             for i in range(0, len(cp.sections())):
                 print("(%d) %s"%(i+1, cp.sections()[i]))
-            print("(0) %s (%s)"%("My distro is not listed :(", distro))
+            print("(0) %s"%("My distro is not listed :("))
             distro_num = raw_input("Select a number based on your distribution : ")
             try: # Cheking if valid input is received
-                distro_num = int(distro_num)
+                self.distro_num = int(distro_num)
+                if self.distro_num != 0:
+                    self.run_command(cp.get(cp.sections()[int(distro_num)-1], "install"))
+                else:
+                    print("Skipping distro related installation :(")
                 break
             except ValueError:
                 print('')
                 print("Please enter a valid number")
                 continue
 
-        if distro_num != 0:
-            self.run_command(cp.get(cp.sections()[int(distro_num)-1], "install"))
-        else:
-            print("Skipping distro related installation :(")
-
         # First all distro independent stuff is installed
         self.install_restricted_from_cfg(self.restricted_cfg)
 
-        print("Upgrading pip to the latest version ...")
-        # Upgrade pip before install required libraries
-        self.run_command("sudo pip2 install --upgrade pip")
-
-        # ask the user if they really want to delete the symlink
-        fixsetuptools = raw_input("Delete /usr/lib/python2.7/dist-packages/setuptools.egg-info? (y/n)\n(recommended, solves some issues)")
-
-        if fixsetuptools == 'y':
-            # backup the original symlink
-            print("Backing up the original symlink...")
-            ts = time.time()
-            human_timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H:%M:%S')
-
-            # backup the original symlink
-            self.run_command("mv /usr/lib/python2.7/dist-packages/setuptools.egg-info /usr/lib/python2.7/dist-packages/setuptools.egg-info" + "-BACKUP-" + human_timestamp)
-
-            print("The original symlink exists at /usr/lib/python2.7/dist-packages/setuptools.egg-info-BACKUP-" + human_timestamp)
-
-            # Finally owtf python libraries installed using pip
-            self.install_using_pip(self.owtf_pip)
-
-        else:
-            print("Moving on with the installation but you were warned: there may be some errors!")
-            # Finally owtf python libraries installed using pip
-            self.install_using_pip(self.owtf_pip)
+        # Finally owtf python libraries installed using pip
+        self.install_using_pip(self.owtf_pip)
 
 if __name__ == "__main__":
     print("[*] Great that your are installing OWTF :D")
