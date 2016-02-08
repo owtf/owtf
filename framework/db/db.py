@@ -163,7 +163,6 @@ class DB(BaseComponent, DBInterface):
         # Not to be used apart from main process, use CreateSession instead
         self.engine = self.CreateEngine(models.Base)
         session_factory = sessionmaker(bind=self.engine,
-                                       autoflush=True,
                                        autocommit=False,
                                        class_=Session)
         return scoped_session(session_factory)
