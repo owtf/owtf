@@ -187,15 +187,16 @@ class Reporter(BaseComponent, ReporterInterface):
 
     def Robots(
             self,
-            RobotsFound,
+            NotStr,
             NumLines,
             NumAllow,
             NumDisallow,
             NumSitemap,
             SavePath,
-            EntriesList):
+            EntriesList,
+	    NumAddedURLs):
         vars = {
-            "robots_found": RobotsFound,
+            "robots_found": NotStr,
             "num_lines": NumLines,
             "num_allow": NumAllow,
             "num_disallow": NumDisallow,
