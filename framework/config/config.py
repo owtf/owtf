@@ -24,7 +24,7 @@ from framework.lib.exceptions import PluginAbortException, \
 from framework.config import health_check
 from framework.lib.general import cprint
 from framework.db import models, target_manager
-from framework.utils import NetworkOperations, directory_access, FileOperations
+from framework.utils import is_internal_ip, directory_access, FileOperations
 
 
 REPLACEMENT_DELIMITER = "@@@"
@@ -425,7 +425,7 @@ class Config(BaseComponent, ConfigInterface):
             alternative_IPs = ipchunks[1:]
         self.Set('alternative_ips', alternative_IPs)
         ip = ip.strip()
-        self.Set('INTERNAL_IP', NetworkOperations.is_ip_internal(ip))
+        self.Set('INTERNAL_IP', is_ip_internal(ip))
         logging.info("The IP address for %s is: '%s'" % (hostname, ip))
         return ip
 

@@ -5,19 +5,16 @@ import shutil
 import codecs
 import logging
 import tempfile
+from ipaddr import IPAddress
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.general import WipeBadCharsForFilename
 
 
-class NetworkOperations():
-    internal_ip_regex = re.compile(
-        "^127.\d{123}.\d{123}.\d{123}$|^10.\d{123}.\d{123}.\d{123}$|"
-        "^192.168.\d{123}$|^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{123}.[0-9]{123}$"
-    )
 
-    @classmethod
-    def is_ip_internal(cls, ip):
-        return len(cls.internal_ip_regex.findall(ip)) == 1
+def is_ip_internal(ip):
+    # parses the input IP into IPv4 or IPv6
+    parsed_ip = IPAddress(ip)
+    return parsed_ip.is_private
 
 
 class OutputCleaner():

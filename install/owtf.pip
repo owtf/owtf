@@ -4,6 +4,7 @@
 #   the latest version and add it here
 # - The casing of names is critical for dependency checks, eg. pyOpenSSL and not pyopenssl
 beautifulsoup4==4.3.2
+ipaddr==2.1.11
 lxml==3.4.0
 Markdown==2.5.1
 pexpect==3.3
