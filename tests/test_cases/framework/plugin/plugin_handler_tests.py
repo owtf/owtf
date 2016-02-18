@@ -211,7 +211,7 @@ class PluginHandlerTests(BaseTestCase):
         self.plugin_handler.should_receive("get_plugins_in_order_for_PluginGroup").and_return(["plugin1"])
         self.plugin_handler.should_receive("ProcessPlugin").times(1)
 
-        self.plugin_handler.ProcessPluginsForTargetList("net", {}, ["target1"])
+        self.plugin_handler.ProcessPluginsForTargetList("network", {}, ["target1"])
 
     def test_all_Show_methods_should_print_output_to_stdout(self):
         output = []
@@ -222,9 +222,9 @@ class PluginHandlerTests(BaseTestCase):
         output.append(self.get_recorded_stdout(True))
         self.plugin_handler.ShowPluginGroupPlugins("web")
         output.append(self.get_recorded_stdout(True))
-        self.plugin_handler.ShowPluginGroupPlugins("aux")
+        self.plugin_handler.ShowPluginGroupPlugins("auxillary")
         output.append(self.get_recorded_stdout(True))
-        self.plugin_handler.ShowPluginGroupPlugins("net")
+        self.plugin_handler.ShowPluginGroupPlugins("network")
         output.append(self.get_recorded_stdout_and_close())
 
         for element in output:

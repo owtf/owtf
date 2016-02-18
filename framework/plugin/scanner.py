@@ -137,8 +137,8 @@ class Scanner(BaseComponent):
 
     def probe_service_for_hosts(self,nmap_file,target):
         services = []
-        #get all available plugins from net plugin order file
-        net_plugins= self.config.Plugin.GetOrder("net")
+        #get all available plugins from network plugin order file
+        net_plugins= self.config.Plugin.GetOrder("network")
         for plugin in net_plugins:
             services.append(plugin['Name'])
         services.append("http")

@@ -36,9 +36,9 @@ from framework.utils import FileOperations
 INTRO_BANNER_GENERAL = """
 Short Intro:
 Current Plugin Groups:
-- web: For web assessments or when net plugins find a port that "speaks HTTP"
-- net: For network assessments, discovery and port probing
-- aux: Auxiliary plugins, to automate miscelaneous tasks
+- web: For web assessments or when network plugins find a port that "speaks HTTP"
+- network: For network assessments, discovery and port probing
+- auxillary: Auxiliary plugins, to automate miscelaneous tasks
 """
 
 INTRO_BANNER_WEB_PLUGIN_TYPE = """
@@ -152,9 +152,9 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
     def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
         #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('partial_url_output_path'))+", TARGET="+self.Core.Config.Get('TARGET')
-        if ((Plugin['group'] == 'web') or (Plugin['group'] == 'net')):
+        if ((Plugin['group'] == 'web') or (Plugin['group'] == 'network')):
             return os.path.join(self.target.GetPath('partial_url_output_path'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
-        elif Plugin['group'] == 'aux':
+        elif Plugin['group'] == 'auxillary':
             return os.path.join(self.config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
 
     def RequestsPossible(self):
@@ -174,9 +174,9 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
     def GetPluginOutputDir(self, Plugin):  # Organise results by OWASP Test type and then active, passive, semi_passive
         # print "Plugin="+str(Plugin)+", Partial url ..="+str(self.config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.config.Get('TARGET')
-        if ((Plugin['group'] == 'web') or (Plugin['group'] == 'net')):
+        if ((Plugin['group'] == 'web') or (Plugin['group'] == 'network')):
             return os.path.join(self.target.GetPath('partial_url_output_path'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
-        elif Plugin['group'] == 'aux':
+        elif Plugin['group'] == 'auxillary':
             return os.path.join(self.config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
 
     def exists(self, directory):
@@ -407,7 +407,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             'SomeAborted': False,
             'SomeSuccessful': False,
             'AllSkipped': True}
-        if self.PluginGroup in ['web', 'aux', 'net']:
+        if self.PluginGroup in ['web', 'auxillary', 'network']:
             self.ProcessPluginsForTargetList(
                 self.PluginGroup,
                 status,
@@ -430,7 +430,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def ProcessPluginsForTargetList(self, PluginGroup, Status,
                                     TargetList):  # TargetList param will be useful for netsec stuff to call this
         PluginDir = self.GetPluginGroupDir(PluginGroup)
-        if PluginGroup == 'net':
+        if PluginGroup == 'network':
             portwaves = self.config.Get('PORTWAVES')
             waves = portwaves.split(',')
             waves.append('-1')
@@ -497,9 +497,9 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def show_plugin_list(self, group, msg=INTRO_BANNER_GENERAL):
         if group == 'web':
             logging.info(msg + INTRO_BANNER_WEB_PLUGIN_TYPE + "\nAvailable WEB plugins:")
-        elif group == 'aux':
+        elif group == 'auxillary':
             logging.info(msg + "\nAvailable AUXILIARY plugins:")
-        elif group == 'net':
+        elif group == 'network':
             logging.info(msg + "\nAvailable NET plugins:")
         for plugin_type in self.db_plugin.GetTypesForGroup(group):
             self.show_plugin_types(plugin_type, group)

@@ -93,7 +93,7 @@ def parse_options(cli_options, valid_groups, valid_types):
         dest="list_plugins",
         default=None,
         choices=valid_groups,
-        help="List available plugins in the plugin group (web, net or aux)")
+        help="List available plugins in the plugin group (web, network or auxillary)")
     parser.add_argument(
         "-f", "--force",
         dest="ForceOverwrite",
@@ -155,17 +155,17 @@ def parse_options(cli_options, valid_groups, valid_types):
         dest="CustomProfile",
         default=None,
         help="<g:f,w:f,n:f,r:f,m:f> - Use my profile: 'f' = valid config file. " \
-             "g: general config, w: web plugin order, n: net plugin order, " \
+             "g: general config, w: web plugin order, n: network plugin order, " \
              "r: resources file, m: mappings file")
     parser.add_argument(
         "-g", "--plugin_group",
         dest="PluginGroup",
         default=None,
         choices=valid_groups,
-        help="<web/net/aux> - Initial plugin group: web (default) = " \
+        help="<web/network/auxillary> - Initial plugin group: web (default) = " \
              "targets are interpreted as URLs = web assessment only\n" \
-             "net = targets are interpreted as hosts/network ranges = " \
-             "traditional network discovery and probing\naux = targets " \
+             "network = targets are interpreted as hosts/network ranges = " \
+             "traditional network discovery and probing\nauxillary = targets " \
              "are NOT interpreted, it is up to the plugin/resource " \
              "definition to decide what to do with the target")
     parser.add_argument(

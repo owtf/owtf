@@ -144,8 +144,8 @@ function CanUnFilterPlugin(Offset, PluginId) {
         if (!InArray(Plugin['Group'], GetFilterOption('SelectPluginGroup'))) return false
         if (Plugin['Group'] == 'web' &&
                 (!InArray(Plugin['Type'], GetFilterOption('SelectPluginTypesWeb')) || !InArray(Plugin['Code'], GetFilterOption('SelectWebTestGroups')))) return false
-        if (Plugin['Group'] == 'aux' && !InArray(Plugin['Type'], GetFilterOption('SelectPluginTypesAux'))) return false
-        if (Plugin['Group'] == 'net' && !InArray(Plugin['Type'], GetFilterOption('SelectPluginTypesNet'))) return false
+        if (Plugin['Group'] == 'auxillary' && !InArray(Plugin['Type'], GetFilterOption('SelectPluginTypesAux'))) return false
+        if (Plugin['Group'] == 'network' && !InArray(Plugin['Type'], GetFilterOption('SelectPluginTypesNet'))) return false
         return true //All filters passed
 }
 
