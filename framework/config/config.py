@@ -204,6 +204,7 @@ class Config(BaseComponent, ConfigInterface):
                 added_targets.append(target)
             except DBIntegrityException:
                 logging.warning("%s already exists in DB" % target)
+                added_targets.append(target)
             except UnresolvableTargetException as e:
                 logging.error("%s" % e.parameter)
         return(added_targets)
