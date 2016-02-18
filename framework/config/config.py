@@ -425,7 +425,7 @@ class Config(BaseComponent, ConfigInterface):
             alternative_IPs = ipchunks[1:]
         self.Set('alternative_ips', alternative_IPs)
         ip = ip.strip()
-        self.Set('INTERNAL_IP', is_ip_internal(ip))
+        self.Set('INTERNAL_IP', is_internal_ip(ip))
         logging.info("The IP address for %s is: '%s'" % (hostname, ip))
         return ip
 
