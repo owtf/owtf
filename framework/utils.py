@@ -11,7 +11,7 @@ from framework.lib.general import WipeBadCharsForFilename
 
 
 
-def is_ip_internal(ip):
+def is_internal_ip(ip):
     # parses the input IP into IPv4 or IPv6
     parsed_ip = IPAddress(ip)
     return parsed_ip.is_private
