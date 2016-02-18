@@ -135,9 +135,8 @@ class WorklistManager(BaseComponent):
                         # to be deleted first
                         if force_overwrite is True:
                             self.plugin_output.DeleteAll({
-                                "target_id": target["id"],
                                 "plugin_key": plugin["key"]
-                            })
+                            }, target_id=target["id"])
                         work_model = models.Work(
                             target_id=target["id"],
                             plugin_key=plugin["key"])
