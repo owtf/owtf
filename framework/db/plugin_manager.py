@@ -31,15 +31,15 @@ class PluginDB(BaseComponent, DBPluginInterface):
         ConfigFile = FileOperations.open(file_path, 'r').read().splitlines()
         for line in ConfigFile:
             if '#' == line[0]:
-                    continue  # Skip comments
+                continue  # Skip comments
             try:
-                    Code, Priority, Descrip, Hint, URL = line.strip().split(' | ')
+                Code, Priority, Descrip, Hint, URL = line.strip().split(' | ')
             except ValueError:
-                    self.error_handler.FrameworkAbort("Problem in Test Groups file: '" + file_path + "' -> Cannot parse line: " + line)
+                self.error_handler.FrameworkAbort("Problem in Test Groups file: '" + file_path + "' -> Cannot parse line: " + line)
             if len(Descrip) < 2:
-                    Descrip = Hint
+                Descrip = Hint
             if len(Hint) < 2:
-                    Hint = ""
+                Hint = ""
             TestGroups.append({'code': Code, 'priority': Priority, 'descrip': Descrip, 'hint': Hint, 'url': URL})
         return TestGroups
 
