@@ -17,7 +17,7 @@ class NetPluginsTests(PluginTestCase):
     def tearDownClass(cls):
         super(NetPluginsTests, cls).tearDownClass()
 
-    # Almost all net plugins are based on metasploit tools, so
+    # Almost all network plugins are based on metasploit tools, so
     # instead of testing if the tools work, we test that they
     # are invoked from OWTF, and ensure that there isn't any
     # OWTF bug.
@@ -41,7 +41,7 @@ class NetPluginsTests(PluginTestCase):
                                               resource_name)
 
     def test_smb_active(self):
-        self.owtf("-g net -t active -o smb")
+        self.owtf("-g network -t active -o smb")
 
         num_resources = self.get_number_of_resources("SmbProbeMethods")
         self.assert_external_tool_started(times=num_resources)
@@ -63,7 +63,7 @@ class NetPluginsTests(PluginTestCase):
     def _run_owtf_and_asserts_for_plugin(self, plugin_type, name, resource_name):
         # Runs the plugin and assert that Metasploit has been
         # called as many times as expected.
-        self.owtf("-g net -t " + plugin_type + " -o " + name)
+        self.owtf("-g network -t " + plugin_type + " -o " + name)
 
         num_resources = self.get_number_of_resources(resource_name)
         self.assert_external_tool_started(times=num_resources)

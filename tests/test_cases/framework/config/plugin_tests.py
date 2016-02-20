@@ -37,17 +37,17 @@ class PluginConfigTests(BaseTestCase):
     def test_GetAllGroups_should_return_a_list_with_all_groups(self):
         all_groups = self.plugin_config.GetAllGroups()
 
-        assert_that(all_groups, has_item('aux'))
-        assert_that(all_groups, has_item('net'))
+        assert_that(all_groups, has_item('auxillary'))
+        assert_that(all_groups, has_item('network'))
         assert_that(all_groups, has_item('web'))
 
     def test_GetTypesForGroup_aux_should_return_a_list_with_its_types(self):
-        aux_types = self.plugin_config.GetTypesForGroup("aux")
+        aux_types = self.plugin_config.GetTypesForGroup("auxillary")
 
         assert_that(aux_types, has_length(7))
 
     def test_GetTypesForGroup_net_should_return_a_list_with_its_types(self):
-        net_types = self.plugin_config.GetTypesForGroup("net")
+        net_types = self.plugin_config.GetTypesForGroup("network")
 
         assert_that(net_types, has_length(2))
 
@@ -85,7 +85,7 @@ class PluginConfigTests(BaseTestCase):
         assert_that(warning, contains_string("WARNING"))
 
     def test_GetAll_should_return_plugins_that_math_the_given_group_and_type(self):
-        plugin_group = "net"
+        plugin_group = "network"
         plugin_type = "bruteforce"
         plugins = self.plugin_config.GetAll(plugin_group, plugin_type)
 
@@ -123,16 +123,16 @@ class PluginConfigTests(BaseTestCase):
         assert_that(self.plugin_config.AllowedPluginTypes["web"], has_item("grep"))
 
     def test_DeriveAllowedTypes_for_net_should_include_all_types(self):
-        self.plugin_config.DeriveAllowedTypes("net", ["all"])
+        self.plugin_config.DeriveAllowedTypes("network", ["all"])
 
-        assert_that(self.plugin_config.AllowedPluginTypes["net"], has_item("active"))
-        assert_that(self.plugin_config.AllowedPluginTypes["net"], has_item("bruteforce"))
+        assert_that(self.plugin_config.AllowedPluginTypes["network"], has_item("active"))
+        assert_that(self.plugin_config.AllowedPluginTypes["network"], has_item("bruteforce"))
 
     def test_DeriveAllowedTypes_for_net_with_specific_filter_should_only_include_selected(self):
-        self.plugin_config.DeriveAllowedTypes("net", ["active"])
+        self.plugin_config.DeriveAllowedTypes("network", ["active"])
 
-        assert_that(self.plugin_config.AllowedPluginTypes["net"], has_length(1))
-        assert_that(self.plugin_config.AllowedPluginTypes["net"], has_item("active"))
+        assert_that(self.plugin_config.AllowedPluginTypes["network"], has_length(1))
+        assert_that(self.plugin_config.AllowedPluginTypes["network"], has_item("active"))
 
     def test_LoadPluginOrderFromFile_processing(self):
         self.plugin_config.LoadPluginOrderFromFile("web", PLUGIN_ORDER_EXAMPLE_FILE)

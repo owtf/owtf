@@ -156,7 +156,7 @@ def process_options(user_args):
 
     scope = arg.Targets or []  # Arguments at the end are the URL target(s)
     num_targets = len(scope)
-    if plugin_group != 'aux' and num_targets == 0 and not arg.list_plugins:
+    if plugin_group != 'auxillary' and num_targets == 0 and not arg.list_plugins:
         #usage("") OMG, #TODO: Fix this
         pass
     elif num_targets == 1:  # Check if this is a file
@@ -177,12 +177,12 @@ def process_options(user_args):
             usage("Invalid Target: " + target)
 
     args = ''
-    if plugin_group == 'aux':
-        # For aux plugins, the scope are the parameters.
+    if plugin_group == 'auxillary':
+        # For auxillary plugins, the scope are the parameters.
         args = scope
-        # aux plugins do not have targets, they have metasploit-like
+        # auxillary plugins do not have targets, they have metasploit-like
         # parameters.
-        scope = ['aux']
+        scope = ['auxillary']
     return {
         'list_plugins': arg.list_plugins,
         'Force_Overwrite': arg.ForceOverwrite,

@@ -227,7 +227,7 @@ class TestGroup(Base):
     __tablename__ = "test_groups"
 
     code = Column(String, primary_key=True)
-    group = Column(String)  # web, net
+    group = Column(String)  # web, network
     descrip = Column(String)
     hint = Column(String, nullable=True)
     url = Column(String)

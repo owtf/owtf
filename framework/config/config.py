@@ -157,11 +157,11 @@ class Config(BaseComponent, ConfigInterface):
             if group is None:
                 group = 'web'
                 # Test if the target is an IP and if so, force the group to
-                # 'net' (see #375).
+                # 'network' (see #375).
                 hostname = urlparse(target_url).hostname
                 ip = self.GetIPFromHostname(hostname)
                 if self.hostname_is_ip(hostname, ip):
-                    group = 'net'
+                    group = 'network'
             filter_data = {'type': options['PluginType'], 'group': group}
         else:
             filter_data = {
@@ -188,7 +188,7 @@ class Config(BaseComponent, ConfigInterface):
         # web plugin order
         self.Profiles["WEB_PLUGIN_ORDER_PROFILE"] = profiles.get('w', None) or \
             self.FrameworkConfigGet("DEFAULT_WEB_PLUGIN_ORDER_PROFILE")
-        # net plugin order
+        # network plugin order
         self.Profiles["NET_PLUGIN_ORDER_PROFILE"] = profiles.get('n', None) or \
             self.FrameworkConfigGet("DEFAULT_NET_PLUGIN_ORDER_PROFILE")
         # mapping
@@ -221,7 +221,7 @@ class Config(BaseComponent, ConfigInterface):
                 # Add both "http" and "https" if not present:
                 # The connection check will then remove from the report if one
                 # does not exist.
-                if group is "net":
+                if group is "network":
                     new_scope.append('http://%s' % target_url)
                 else:
                     new_scope.extend((

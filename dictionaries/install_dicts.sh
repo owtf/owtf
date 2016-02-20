@@ -74,9 +74,9 @@ mkdir -p $INSTALL_DIR
         # Copying raft dicts from shipped files in OWTF
         echo "[*] Linking RAFT dictionaries from Fuzz DB"
         mkdir -p $INSTALL_DIR/raft
-        for file in $(ls $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/ | grep raft); do
-            #cp $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/$file $DICTS_DIRECTORY/restricted/raft/
-            ln -s $DICTS_DIRECTORY/fuzzdb/fuzzdb-1.09/Discovery/PredictableRes/$file $DICTS_DIRECTORY/restricted/raft/$file
+        for file in $(ls $DICTS_DIRECTORY/fuzzdb/fuzzdb-master/discovery/predictable-filepaths/filename-dirname-bruteforce/ | grep raft); do
+            #cp $DICTS_DIRECTORY/fuzzdb/fuzzdb-master/discovery/predictable-filepaths/filename-dirname-bruteforce/$file $DICTS_DIRECTORY/restricted/raft/
+            ln -s $DICTS_DIRECTORY/fuzzdb/fuzzdb-master/discovery/predictable-filepaths/filename-dirname-bruteforce/$file $DICTS_DIRECTORY/restricted/raft/$file
         done
         echo "[*] Done"
     else
