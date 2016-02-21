@@ -773,7 +773,7 @@ class PlugnhackHandler(custom_handlers.APIRequestHandler):
 
 class AutoUpdaterHandler(custom_handlers.APIRequestHandler):
     """
-    * Notify on the home page if the repo is at its latest commit from upstream
+    Notify on the home page if the repo is at its latest commit from upstream
     """
     SUPPORTED_METHODS = ['GET']
 
