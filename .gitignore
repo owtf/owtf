@@ -7,6 +7,7 @@
 # Directories with potential license restrictions that prevent re-distribution #
 ################################################################################
 dictionaries/restricted/*
+dictionaries/fuzzdb
 tools/restricted/*
 
 # Tools with license restrictions that prevent re-distribution #
