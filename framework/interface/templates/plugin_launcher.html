@@ -188,6 +188,15 @@ function initializePluginLauncher(){
             });
             $('#pluginLauncherSelectAllCheckbox').prop('checked', allChecked);
         },
+        // To display the user input in the Search box
+        "fnInitComplete" : function(){
+            var oSettings = $('#pluginLaunchTable').dataTable().fnSettings();
+            for(var i = 0; i<oSettings.aoPreSearchCols.length; i++){
+                if(oSettings.aoPreSearchCols[i].sSearch.length>0){
+                    $('input[type=text]')[i].value = oSettings.aoPreSearchCols[i].sSearch;
+                }
+            }
+        }
   });
 
     // Just needed for column wise search
