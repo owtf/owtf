@@ -30,12 +30,14 @@ class Session(BaseSession):
 
     @contextmanager
     def atomic(self):
-        #Transaction context manager.
+        """
+        Transaction context manager.
 
-        #Will commit the transaction on successful completion
-        #of the block, or roll it back on error.
+        Will commit the transaction on successful completion
+        of the block, or roll it back on error.
 
-        #Supports nested usage (via savepoints).
+        Supports nested usage (via savepoints).
+        """
         nested = self._in_atomic
         self.begin(nested=nested)
         self._in_atomic = True
@@ -96,7 +98,7 @@ class DB(BaseComponent, DBInterface):
         return self.Mapping.GetCategory(plugin_code)
 
     def DBHealthCheck(self):
-        # TODO: Fix this for psotgres
+        # TODO: Fix this for postgresql
         return
         self.Target.DBHealthCheck()
 
@@ -139,10 +141,10 @@ class DB(BaseComponent, DBInterface):
                     self._db_settings['DATABASE_NAME']),
                 poolclass=QueuePool,
                 pool_size=20,
-                max_overflow=0,
-                isolation_level='AUTOCOMMIT')  # TODO: Fix for forking
+                max_overflow=0,)
             BaseClass.metadata.create_all(engine)
 
+            # Fix for forking
             register_after_fork(engine, engine.dispose)
 
             return engine
