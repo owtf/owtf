@@ -27,7 +27,7 @@ class ResourceDB(BaseComponent, ResourceInterface):
         self.db.session.query(models.Resource).filter_by(dirty=False).delete()
         # resources = [(Type, Name, Resource), (Type, Name, Resource),]
         for Type, Name, Resource in resources:
-            self.db.session.add(models.Resource(resource_type = Type, resource_name = Name, resource = Resource))
+            self.db.session.add(models.Resource(resource_type=Type, resource_name=Name, resource=Resource))
         self.db.session.commit()
 
     def GetResourcesFromFile(self, resource_file):

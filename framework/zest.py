@@ -24,18 +24,18 @@ class Zest(BaseComponent, ZestInterface):
     def init(self):
         self.StopRecorder()  # recorded should be stopped when OWTF starts
 
-# Script creation from single transaction
+    # Script creation from single transaction
     def TargetScriptFromSingleTransaction(self, transaction_id, script_name, target_id):
         target_config = self.GetTargetConfig(target_id)
         return self.GenerateZest(script_name, transaction_id, target_config, "False")
 
-#script creation from multiple requests
+    #script creation from multiple requests
     def TargetScriptFromMultipleTransactions(self, target_id, script_name, transactions):
         target_config = self.GetTargetConfig(target_id)
         zest_args = self.ConvertToZestArgs(transactions)
         return self.GenerateZest(script_name, zest_args, target_config, "False")
 
-#script generation if file not already present
+    #script generation if file not already present
     def GenerateZest(self, Script, trans_arg, config, record):
         op_script = self.GetOutputFile(Script, config['ZEST_DIR'])
         db_settings = self.GetDBSettings()

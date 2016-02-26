@@ -186,7 +186,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
         if obj:
             pdict = dict(obj.__dict__)
             pdict.pop("_sa_instance_state")
-            # REmove outputs array if present
+            # Remove outputs array if present
             if "outputs" in pdict.keys():
                 pdict.pop("outputs")
             pdict["min_time"] = None

@@ -112,10 +112,5 @@ class InteractiveShell(blocking_shell.Shell):
         #self.Read()
         self.Connection = None
 
-    #self.Connection.stdin = "exit\r"
-    #self.Connection.wait()
-    #self.Connection.kill()
-    #return Core.PluginHelper.DrawCommandDump('Init Channel Command', 'Output', Core.Config.GetResources(Resource), PluginInfo, "") # No previous output
-
     def IsClosed(self):
         return self.Connection == None

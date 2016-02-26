@@ -17,7 +17,6 @@ import logging
 import termios
 import multiprocessing
 
-from threading import Thread
 from collections import defaultdict
 from ptp import PTP
 from ptp.libptp.constants import UNKNOWN
@@ -117,7 +116,8 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                     "The code '%s' is not a valid plugin, please use the -l option to see available plugin names and codes" % code),
         return valid_plugin_codes  # Return list of Codes
 
-    def InitExecutionRegistry(self):  # Initialises the Execution registry: As plugins execute they will be tracked here, useful to avoid calling plugins stupidly :)
+    def InitExecutionRegistry(self):
+        # Initialises the Execution registry: As plugins execute they will be tracked here, useful to avoid calling plugins stupidly :)
         self.ExecutionRegistry = defaultdict(list)
         for Target in self.Scope:
             self.ExecutionRegistry[Target] = []
@@ -126,32 +126,27 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         ExecLog = self.ExecutionRegistry[
             self.config.GetTarget()]  # Get shorcut to relevant execution log for this target for readability below :)
         NumItems = len(ExecLog)
-        # print "NumItems="+str(NumItems)
         if NumItems == 0:
             return -1  # List is empty
-        #print "NumItems="+str(NumItems)
-        #print str(ExecLog)
-        #print str(range((NumItems -1), 0))
         for Index in range((NumItems - 1), -1, -1):
-            #print "Index="+str(Index)
-            #print str(ExecLog[Index])
             Match = True
-            for Key, Value in ExecLog[Index].items():  # Compare all execution log values against the passed Plugin, if all match, return index to log record
+            # Compare all execution log values against the passed Plugin, if all match, return index to log record
+            for Key, Value in ExecLog[Index].items():
                 if not Key in Plugin or Plugin[Key] != Value:
                     Match = False
             if Match:
-                #print str(PluginIprint "you have etered " + cnfo)+" was found!"
                 return Index
         return -1
 
     def PluginAlreadyRun(self, PluginInfo):
         return self.plugin_output.PluginAlreadyRun(PluginInfo)
 
-    def GetExecLogSinceLastExecution(self, Plugin):  # Get all execution entries from log since last time the passed plugin executed
+    def GetExecLogSinceLastExecution(self, Plugin):
+        # Get all execution entries from log since last time the passed plugin executed
         return self.ExecutionRegistry[self.config.GetTarget()][self.GetLastPluginExecution(Plugin):]
 
-    def GetPluginOutputDir(self, Plugin): # Organise results by OWASP Test type and then active, passive, semi_passive
-        #print "Plugin="+str(Plugin)+", Partial url ..="+str(self.Core.Config.Get('partial_url_output_path'))+", TARGET="+self.Core.Config.Get('TARGET')
+    def GetPluginOutputDir(self, Plugin):
+        # Organise results by OWASP Test type and then active, passive, semi_passive
         if ((Plugin['group'] == 'web') or (Plugin['group'] == 'network')):
             return os.path.join(self.target.GetPath('partial_url_output_path'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
         elif Plugin['group'] == 'auxillary':
@@ -159,7 +154,6 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
     def RequestsPossible(self):
         # Even passive plugins will make requests to external resources
-        # return [ 'grep' ] != self.config.GetAllowedPluginTypes('web')
         return ['grep'] != self.db_plugin.GetTypesForGroup('web')
 
     def DumpOutputFile(self, Filename, Contents, Plugin, RelativePath=False):
@@ -172,17 +166,11 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def RetrieveAbsPath(self, RelativePath):
         return (os.path.join(self.config.GetOutputDirForTargets(), RelativePath))
 
-    def GetPluginOutputDir(self, Plugin):  # Organise results by OWASP Test type and then active, passive, semi_passive
-        # print "Plugin="+str(Plugin)+", Partial url ..="+str(self.config.Get('PARTIAL_URL_OUTPUT_PATH'))+", TARGET="+self.config.Get('TARGET')
-        if ((Plugin['group'] == 'web') or (Plugin['group'] == 'network')):
-            return os.path.join(self.target.GetPath('partial_url_output_path'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
-        elif Plugin['group'] == 'auxillary':
-            return os.path.join(self.config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
-
     def exists(self, directory):
         return os.path.exists(directory)
 
-    def GetModule(self, ModuleName, ModuleFile, ModulePath):  # Python fiddling to load a module from a file, there is probably a better way...
+    def GetModule(self, ModuleName, ModuleFile, ModulePath):
+        # Python fiddling to load a module from a file, there is probably a better way...
         f, Filename, desc = imp.find_module(ModuleFile.split('.')[0], [ModulePath])  # ModulePath = os.path.abspath(ModuleFile)
         return imp.load_module(ModuleName, f, Filename, desc)
 
@@ -235,8 +223,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         """
         if not self.chosen_plugin(plugin, show_reason=show_reason):
             return False  # Skip not chosen plugins
-        # Grep plugins to be always run and overwritten (they run once after
-        # semi_passive and then again after active):
+        # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active):
         if self.PluginAlreadyRun(plugin) and ((not self.force_overwrite() and not ('grep' == plugin['type'])) or plugin['type'] == 'external'):
             if show_reason:
                 logging.warning(
@@ -246,8 +233,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                     plugin['type'])
             return False
         if 'grep' == plugin['type'] and self.PluginAlreadyRun(plugin):
-            # Grep plugins can only run if some active or semi_passive plugin
-            # was run since the last time
+            # Grep plugins can only run if some active or semi_passive plugin was run since the last time
             return False
         return True
 
@@ -427,8 +413,8 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def get_plugins_in_order(self, PluginGroup):
         return self.db_plugin.GetOrder(PluginGroup)
 
-    def ProcessPluginsForTargetList(self, PluginGroup, Status,
-                                    TargetList):  # TargetList param will be useful for netsec stuff to call this
+    def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList):
+        # TargetList param will be useful for netsec stuff to call this
         PluginDir = self.GetPluginGroupDir(PluginGroup)
         if PluginGroup == 'network':
             portwaves = self.config.Get('PORTWAVES')
@@ -467,24 +453,6 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                             )
         else:
             pass
-            # self.WorkerManager.startinput()
-            #self.WorkerManager.fillWorkList(PluginGroup,TargetList)
-            #self.WorkerManager.spawn_workers()
-            #self.WorkerManager.manage_workers()
-            #self.WorkerManager.poisonPillToWorkers()
-            #Status = self.WorkerManager.joinWorker()
-            #if 'breadth' == self.Algorithm: # Loop plugins, then targets
-            #       for Plugin in self.db_plugin.GetOrder(PluginGroup):# For each Plugin
-            #               #print "Processing Plugin="+str(Plugin)
-            #               for Target in TargetList: # For each Target
-            #                       #print "Processing Target="+str(Target)
-            #                       self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-            #                       self.ProcessPlugin( PluginDir, Plugin, Status )
-            #elif 'depth' == self.Algorithm: # Loop Targets, then plugins
-            #       for Target in TargetList: # For each Target
-            #               self.SwitchToTarget(Target) # Tell Config that all Gets/Sets are now Target-specific
-            #               for Plugin in self.db_plugin.GetOrder(PluginGroup):# For each Plugin
-            #                       self.ProcessPlugin( PluginDir, Plugin, Status )
 
     def clean_up(self):
         if getattr(self, "WorkerManager", None) is not None:
