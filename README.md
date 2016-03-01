@@ -1,4 +1,4 @@
-> For people who want to participate in the Google Summer of Code 2016, please see [here](https://github.com/owtf/owtf/wiki/Getting-started-with-Google-Summer-of-Code-2016) to get started! :=)
+> For people who want to participate in the Google Summer of Code 2016, please see [here](https://github.com/owtf/owtf/wiki/Google-Summer-of-Code-2016:-Getting-started) :=)
 
 [![](https://badges.gitter.im/owtf/owtf.svg)](https://gitter.im/owtf/owtf?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
