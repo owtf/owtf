@@ -1,6 +1,6 @@
 > For people who want to participate in the Google Summer of Code 2016, please see [here](https://github.com/owtf/owtf/wiki/Getting-started-with-Google-Summer-of-Code-2016) to get started! :=)
 
-[![Gitter chat](https://badges.gitter.im/owtf.png)](https://gitter.im/owtf "Gitter chat")
+[![](https://badges.gitter.im/owtf/owtf.svg)](https://gitter.im/owtf/owtf?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 <img src="https://www.owasp.org/images/7/73/OWTFLogo.png" height="150" width="120" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![](https://www.owasp.org/images/5/59/Project_Type_Files_TOOL.jpg)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![](https://www.owasp.org/images/d/dd/Mature_projects.png)
 
@@ -44,7 +44,7 @@ Some features like the *passive* and *semi_passive* **test separation** may also
 
 ##### Easy to use APIs
 
-OWTF uses **PostgreSQL** as the database backend. All core **OWTF** functions and options are exposed through APIs making it easy to add new features with little overhead.
+OWTF uses **PostgreSQL** as the database backend. All core **OWTF** functions and options are exposed through APIs making it easy to add new features with little effort.
 
 
 ##### Follows popular pen-testing standards
@@ -60,8 +60,6 @@ OWTF uses **PostgreSQL** as the database backend. All core **OWTF** functions an
 
 **OWTF** now has a default web interface which integrates all core **OWTF** options and makes it possible to manage large pentests easily.
 
-- The web interface is built on **Twitter Bootstrap**, making it very easy to use and customize.
-
 - The default configuration can be changed easily from the browser.
 
 - Makes it easy to control worker processes and see the estimated run times for each plugin run.
@@ -72,8 +70,6 @@ OWTF uses **PostgreSQL** as the database backend. All core **OWTF** functions an
 
 
 ##### Interactive report updated on the fly:
-
-- As soon as each plugin finishes or sometimes before (i.e. after each vulnerability scanner finishes), the report is updated **asynchronously** through the *OWTF APIs*.
 
 - **Automated** plugin rankings from the tool output, fully configurable by the user.
 
