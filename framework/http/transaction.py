@@ -12,7 +12,7 @@ import zlib
 from httplib import responses as response_messages
 import json
 from framework.lib.general import *
-from framework.http.cookies.cookies import Cookie
+from cookies import Cookie
 
 
 class HTTP_Transaction(object):
