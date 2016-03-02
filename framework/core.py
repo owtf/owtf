@@ -228,7 +228,6 @@ class Core(BaseComponent):
         # No processing required, just list available modules.
         if options['list_plugins']:
             self.PluginHandler.show_plugin_list(options['list_plugins'])
-            self.WorkerManager.clean_up()
             self.finish()
         self.config.ProcessOptions(options)
         command = self.get_command(options['argv'])
