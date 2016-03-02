@@ -2,7 +2,6 @@
 #####################################
 *.pyc
 *.swp
-.idea/
 
 # Directories with potential license restrictions that prevent re-distribution #
 ################################################################################
@@ -35,3 +34,24 @@ zest/zest_lib/*
 zest/zest_runner_lib/*
 zest/zest.jar
 zest/zest_runner.jar
+
+# Pycharm (Jetbrains) IDE Specific files #
+##########################################
+.idea/*
+ 
+# PyDev (Eclipse) IDE Specific Files #
+######################################
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+local.properties
+.settings/
+.loadpath
+*.project
+*.pydevproject
+
+# YouCompleteMe - VIM plugin Specific Files #
+#############################################
+.ycm_extra_conf.py
