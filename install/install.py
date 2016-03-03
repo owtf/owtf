@@ -39,7 +39,7 @@ class Installer(object):
 
     def run_command(self, command):
         Colorizer.normal("[*] Running following command")
-        Colorizer.info("%s"%(command))
+        Colorizer.info("%s" % command)
         if not wget_wrapper(command):
             return
         os.system(command)
@@ -49,7 +49,7 @@ class Installer(object):
         """Prints the local git repo's last commit hash"""
         # check if the root dir is a git repository
         if os.path.exists(os.path.join(root_dir, '.git')):
-            command = ('git log -n 1 --pretty=format:"%H"')
+            command = 'git log -n 1 --pretty=format:"%H"'
             commit_hash = os.popen(command).read()
             return commit_hash
         else:
@@ -62,28 +62,27 @@ class Installer(object):
         if sudo == 0:
             return
         else:
-            Colorizer.warning("[!] Your user does not have sudo privileges. "
-                              "Some OWTF components require sudo permissions to install")
+            Colorizer.warning("[!] Your user does not have sudo privileges. Some OWTF components require sudo permissions to install")
             # exit cleanly
             sys.exit()
 
     def install_in_directory(self, directory, command):
         if self.create_directory(directory):
-            print("[*] Switching to %s"%(directory))
+            print("[*] Switching to %s" % directory)
             os.chdir(directory)
             self.run_command(command)
         else:
-            print("[!] Directory %s already exists, so skipping installation for this"%(directory))
+            print("[!] Directory %s already exists, so skipping installation for this" % directory)
 
     def install_using_pip(self, requirements_file):
         # Instead of using file directly with pip which can crash because of single library
-        self.run_command("sudo -E pip2 install --upgrade -r %s"%(requirements_file))
+        self.run_command("sudo -E pip2 install --upgrade -r %s" % requirements_file)
 
     def install_restricted_from_cfg(self, config_file):
         cp = ConfigParser.ConfigParser({"RootDir":self.RootDir, "Pid":self.pid})
         cp.read(config_file)
         for section in cp.sections():
-            Colorizer.info("[*] Installing %s"%(section))
+            Colorizer.info("[*] Installing %s" % section)
             self.install_in_directory(os.path.expanduser(cp.get(section, "directory")), cp.get(section, "command"))
 
     def install(self, cmd_arguments):
@@ -107,7 +106,7 @@ class Installer(object):
         # Loop until proper input is received
         while True:
             if distro_num != 0:
-                Colorizer.info("[*] %s has been automatically detected... "%distro)
+                Colorizer.info("[*] %s has been automatically detected... " % distro)
                 Colorizer.normal("Continuing in auto-mode")
                 break
 
@@ -116,9 +115,9 @@ class Installer(object):
                 break
 
             print("")
-            for i in range(0, len(cp.sections())):
-                Colorizer.warning("(%d) %s"%(i+1, cp.sections()[i]))
-            Colorizer.warning("(0) %s (%s)"%("My distro is not listed :(", distro))
+            for i, item in enumerate(cp.sections()):
+                Colorizer.warning("(%d) %s" % (i + 1, item))
+            Colorizer.warning("(0) My distro is not listed :( %s" % distro)
 
             distro_num = raw_input(Colorizer.normal("Select a number based on your distribution : "))
             try: # Cheking if valid input is received
@@ -136,8 +135,6 @@ class Installer(object):
             self.run_command(cp.get(cp.sections()[int(distro_num)-1], "install"))
         else:
             Colorizer.normal("Skipping distro related installation :(")
-
-
 
         if args.core_only:
             return
@@ -165,17 +162,18 @@ class Installer(object):
                     human_timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H:%M:%S')
 
                     # backup the original symlink
-                    self.run_command("mv /usr/lib/python2.7/dist-packages/setuptools.egg-info /usr/lib/python2.7/dist-packages/setuptools.egg-info" + "-BACKUP-" + human_timestamp)
+                    self.run_command(
+                            "mv /usr/lib/python2.7/dist-packages/setuptools.egg-info /usr/lib/python2.7/dist-packages/setuptools.egg-info-BACKUP-" +
+                            human_timestamp)
 
-                    Colorizer.info("The original symlink exists at "
-                          "/usr/lib/python2.7/dist-packages/setuptools.egg-info-BACKUP-"
-                          + human_timestamp)
+                    Colorizer.info(
+                            "The original symlink exists at /usr/lib/python2.7/dist-packages/setuptools.egg-info-BACKUP-" +
+                            human_timestamp)
 
                     # Finally owtf python libraries installed using pip
                     self.install_using_pip(self.owtf_pip)
             else:
-                Colorizer.warning("Moving on with the installation but you "
-                                  "were warned: there may be some errors!")
+                Colorizer.warning("Moving on with the installation but you were warned: there may be some errors!")
 
         # Finally owtf python libraries installed using pip
         self.install_using_pip(self.owtf_pip)
@@ -187,6 +185,17 @@ class Installer(object):
 
 
 class Colorizer:
+
+    """Helper class for colorized strings.
+
+    Different statements will have different colors:
+
+        - `normal`, denoting ongoing procedure (WHITE)
+        - `info`, any file path, commit hash or any other info (BLUE)
+        - `warning`, any potential hindrance in installation (YELLOW)
+        - `danger`, abrupt failure, desired file/dir not found etc. (RED)
+    """
+
     BOLD = '\033[1m'
     RED = BOLD + '\033[91m'
     GREEN = BOLD + '\033[92m'
