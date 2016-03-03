@@ -205,7 +205,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
         query = self.db.session.query(models.Plugin).join(models.TestGroup)
         if criteria.get("type", None):
             if isinstance(criteria["type"], (str, unicode)):
-                query = query.filter_by(type=criteria["type"])
+                query = query.filter(models.Plugin.type == criteria["type"])
             if isinstance(criteria["type"], list):
                 query = query.filter(models.Plugin.type.in_(criteria["type"]))
         if criteria.get("group", None):
