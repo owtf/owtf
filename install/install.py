@@ -68,11 +68,11 @@ class Installer(object):
 
     def install_in_directory(self, directory, command):
         if self.create_directory(directory):
-            print("[*] Switching to %s" % directory)
+            Colorizer.info("[*] Switching to %s" % directory)
             os.chdir(directory)
             self.run_command(command)
         else:
-            print("[!] Directory %s already exists, so skipping installation for this" % directory)
+            Colorizer.warning("[!] Directory %s already exists, so skipping installation for this" % directory)
 
     def install_using_pip(self, requirements_file):
         # Instead of using file directly with pip which can crash because of single library
@@ -162,13 +162,10 @@ class Installer(object):
                     human_timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H:%M:%S')
 
                     # backup the original symlink
-                    self.run_command(
-                            "mv /usr/lib/python2.7/dist-packages/setuptools.egg-info /usr/lib/python2.7/dist-packages/setuptools.egg-info-BACKUP-" +
-                            human_timestamp)
+                    symlink_orig_path = "/usr/lib/python2.7/dist-packages/setuptools.egg-info"
+                    self.run_command("mv %s %s-BACKUP-%s" % (symlink_orig_path, symlink_orig_path, human_timestamp))
 
-                    Colorizer.info(
-                            "The original symlink exists at /usr/lib/python2.7/dist-packages/setuptools.egg-info-BACKUP-" +
-                            human_timestamp)
+                    Colorizer.info("The original symlink exists at %s-BACKUP-%s" % (symlink_orig_path, human_timestamp))
 
                     # Finally owtf python libraries installed using pip
                     self.install_using_pip(self.owtf_pip)
