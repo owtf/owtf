@@ -35,8 +35,17 @@ postgresql_fix() {
   postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | sed 's/\./ /g' | awk '{print $1 "." $2}')"
 
   postgres_conf="/etc/postgresql/$postgres_version/main/postgresql.conf"
-  echo "Removing SSL = true from the main postgres config"
-  sed -i -e '/ssl =/ s/= .*/= false/' $postgres_conf
+  echo "Having SSL=true in postgres config causes many errors (psycopg2 problem)"
+  read -r -p "Remove SSL=true from the PostgreSQL config?[Y/n]" response
+  remove_ssl=${response:-"y"}  # tolower
+  case $remove_ssl in
+    [yY][eE][sS]|[yY])
+      sed -i -e '/ssl =/ s/= .*/= false/' $postgres_conf
+      ;;
+    *)
+      # do nothing
+      ;;
+  esac
 
   echo "Restarting the postgresql service"
   service_bin=$(which service | wc -l)
@@ -94,5 +103,3 @@ then
     su postgres -c "psql -c \"DROP DATABASE $db_name\""
     su postgres -c "psql -c \"DROP USER $db_user\""
 fi
-
-
