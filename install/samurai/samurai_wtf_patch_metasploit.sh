@@ -3,6 +3,9 @@
 # Description:
 #       Script to fix the MetaSploit install on Samurai by removing default ruby-bundler
 
-echo "[*] Removing current package ruby-bundler to avoid conflict with MetaSploit-Framework.."
+# bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
+source "$( dirname "${0}" )/../colors.sh"
+
+echo "${info}[*] Removing current package ruby-bundler to avoid conflict with MetaSploit-Framework..${reset}"
 sudo -E apt-get remove ruby-bundler
-echo "[*] Done!"
+echo "${normal}[*] Done!${normal}"

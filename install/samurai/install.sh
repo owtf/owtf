@@ -1,8 +1,11 @@
 #!/usr/bin/env sh
 
+# bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
+source "$( dirname "${0}" )/../colors.sh"
+
 IsInstalled() {
 	directory=$1
-	if [ -d $directory ]; then
+	if [ -d ${directory} ]; then
 		return 1
 	else
 		return 0
@@ -17,13 +20,13 @@ export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip
 
 ############ Proposed clean solution instead of cloning by git
 # Added Kali bleeding-edge repo as some tools which are frequently updated are in this repo
-echo "[*] Adding Kali repos to install the missing tools"
+echo "${normal}[*] Adding Kali repos to install the missing tools${reset}"
 sudo sh -c "echo 'deb http://http.kali.org/kali  kali main contrib non-free' >> /etc/apt/sources.list"
 sudo sh -c "echo 'deb-src http://http.kali.org/kali kali main contrib non-free' >> /etc/apt/sources.list"
 sudo sh -c "echo 'deb http://repo.kali.org/kali kali-bleeding-edge main contrib non-free' >> /etc/apt/sources.list"
 
 sudo apt-get update
-echo "[*] Done"
+echo "${normal}[*] Done!${normal}"
 ############ Tools missing in Samurai-WTF
 
 ############ Install updated w3af from GitHub
@@ -35,13 +38,13 @@ echo "[*] Done"
 #fi
 
 ########## Remove default ruby-bundler to avoid with Metasploit later on
-"$RootDir/install/samurai/samurai_wtf_patch_metasploit.sh" $RootDir
+"$RootDir/install/samurai/samurai_wtf_patch_metasploit.sh" ${RootDir}
 
 ########## Installing missing tools
-echo "[*] Installing missing tools"
+echo "${normal}[*] Installing missing tools${reset}"
 sudo -E apt-get install lbd arachni tlssled set ua-tester wpscan theharvester whatweb dnsrecon metagoofil metasploit waffit
 
-echo "[*] Installting Tor"
+echo "${info}[*] Installing Tor${reset}"
 sudo -E apt-get install tor
 
 ########## Patch scripts
@@ -50,15 +53,15 @@ sudo -E apt-get install tor
 "$RootDir/install/samurai/samurai_wtf_patch_tlssled.sh"
 
 ###### Dictionaries missing in Samurai-WTF
-mkdir -p $RootDir/dictionaries/restricted
-cd $RootDir/dictionaries/restricted
+mkdir -p ${RootDir}/dictionaries/restricted
+cd ${RootDir}/dictionaries/restricted
 IsInstalled "dirbuster"
 if [ $? -eq 0 ]; then # Not installed
     # Copying dirbuster dicts
-    echo "\n[*] Copying Dirbuster dictionaries"
+    echo "${info}\n[*] Copying Dirbuster dictionaries${reset}"
     mkdir -p dirbuster
     cp -r /usr/share/dirbuster/wordlists/. dirbuster/.
-    echo "[*] Done"
+    echo "${normal}[*] Done${reset}"
 else
-    echo "WARNING: Dirbuster dictionaries are already installed, skipping"
+    echo "${warning}[!] Dirbuster dictionaries are already installed, skipping${reset}"
 fi
