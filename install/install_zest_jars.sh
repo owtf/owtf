@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 FILE_PATH=$(readlink -f "$0")
 INSTALL_DIR=$(dirname "$FILE_PATH")
@@ -21,7 +21,7 @@ install() {
 }
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-source "$( dirname "$BASH_SOURCE{[0]}" )/colors.sh"
+source "$INSTALL_DIR/colors.sh"
 
 # check if local hash present
 if [ -z ${local_hash} ]; then

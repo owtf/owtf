@@ -6,7 +6,7 @@
 # @param --cfg-only : Create the db.cfg file and skip postgres server setup and start
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-source "$( dirname "$BASH_SOURCE{[0]}" )/colors.sh"
+source "$(dirname "$(readlink -f "$0")")/colors.sh"
 
 get_config_value(){
 

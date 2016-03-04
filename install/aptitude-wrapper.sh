@@ -5,7 +5,7 @@
 # Usage $0 <package> [package] ..
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-source "$( dirname "$BASH_SOURCE{[0]}" )/colors.sh"
+source "$(dirname "$(readlink -f "$0")")/colors.sh"
 
 usage() {
     echo "${info}[*] Usage: sh $0 <package name> [package name]${reset}"

@@ -119,7 +119,7 @@ class Installer(object):
                 Colorizer.warning("(%d) %s" % (i + 1, item))
             Colorizer.warning("(0) My distro is not listed :( %s" % distro)
 
-            distro_num = raw_input(Colorizer.normal("Select a number based on your distribution : "))
+            distro_num = raw_input("Select a number based on your distribution : ")
             try: # Cheking if valid input is received
                 distro_num = int(distro_num)
                 break

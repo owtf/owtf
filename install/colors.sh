@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 # ======================================
 #  COLORS
@@ -6,8 +6,8 @@
 bold=$(tput bold)
 reset=$(tput sgr0)
 
-danger=${Bold}$(tput setaf 1)   # red
-warning=${Bold}$(tput setaf 3)  # yellow
-info=${Bold}$(tput setaf 6)     # cyan
-normal=${Bold}$(tput setaf 7)   # white
+danger=${bold}$(tput setaf 1)   # red
+warning=${bold}$(tput setaf 3)  # yellow
+info=${bold}$(tput setaf 6)     # cyan
+normal=${bold}$(tput setaf 7)   # white
 # =======================================

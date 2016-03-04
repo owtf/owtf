@@ -4,7 +4,7 @@
 #       Script to fix a bug in tlssled
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-source "$( dirname "${0}" )/../colors.sh"
+source "$(dirname "$(readlink -f "$0")")/../colors.sh"
 
 TLSSLED_FILE="/usr/bin/tlssled"
 TLSSLED_BACKUP="$TLSSLED_FILE.backup"
