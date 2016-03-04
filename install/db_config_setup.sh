@@ -5,12 +5,15 @@
 # Usage : $0 [rootdir] [--cfg-only]
 # @param --cfg-only : Create the db.cfg file and skip postgres server setup and start
 
+# bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
+source "$( dirname "$BASH_SOURCE{[0]}" )/colors.sh"
+
 get_config_value(){
 
     parameter=$1
     file=$2
 
-    echo "$(grep -i $parameter $file | sed  "s|$parameter: ||g;s|~|$HOME|g")"
+    echo "${info}$(grep -i ${parameter} ${file} | sed  "s|$parameter: ||g;s|~|$HOME|g")${reset}"
 }
 
 # Simple command line argument handler.
@@ -21,7 +24,7 @@ do
     if [ "$arg" = "--cfg-only" ]; then
         cfg_only=true
     else
-        RootDir=$arg
+        RootDir=${arg}
     fi
 done
 
@@ -38,8 +41,8 @@ db_pass=$(head /dev/random -c8 | od -tx1 -w16 | head -n1 | cut -d' ' -f2- | tr -
 
 if [ ! -f $db_config_file ]; then
     mkdir -p "$(dirname $db_config_file)"
-    echo "[*] Creating default config at $db_config_file"
-    echo "[*] Don't forget to edit $db_config_file"
+    echo "${info}[*] Creating default config at $db_config_file${reset}"
+    echo "${warning}[!] Don't forget to edit $db_config_file${reset}"
     echo "
 # Want to create a postgres role and db. Follow steps carefully:
 # + Edit this file with proper ip and port settings (No need to change if using defaults)
@@ -49,15 +52,15 @@ DATABASE_IP: 127.0.0.1
 DATABASE_PORT: 5432
 DATABASE_NAME: $db_name
 DATABASE_USER: $db_user
-DATABASE_PASS: $db_pass" >> $db_config_file
+DATABASE_PASS: $db_pass" >> ${db_config_file}
 
-    if $cfg_only ; then
+    if ${cfg_only} ; then
         exit 0
     fi
 
-    echo "[*] Do you want to create database and user as specified in $db_config_file [Y/n]?"
+    echo "${info}[*] Do you want to create database and user as specified in $db_config_file [Y/n]?"
     read choice
     if [ choice != 'n' ]; then
-        $RootDir/scripts/db_run.sh
+        ${RootDir}/scripts/db_run.sh
     fi
 fi
