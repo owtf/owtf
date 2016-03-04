@@ -382,7 +382,7 @@ function updateTargetInfo() {
 }
 
 /* On Ranking the plugin, it collapses the plugin */
-function rankcollapsesplugin() {
+function collapsePluginOnRank() {
     $('.btn.rank').click(function() {
         var id = $(this).attr('data-code');
         $('#' + id ).removeClass('in');
@@ -392,6 +392,6 @@ function rankcollapsesplugin() {
 $(function() {
     updateTargetInfo();
     updateAllTestCasesInfo();
-    rankcollapsesplugin();
+    collapsePluginOnRank();
 });
 </script>
