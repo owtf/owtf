@@ -21,7 +21,7 @@ install() {
 }
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-source "$INSTALL_DIR/colors.sh"
+. "$INSTALL_DIR/colors.sh"
 
 # check if local hash present
 if [ -z ${local_hash} ]; then

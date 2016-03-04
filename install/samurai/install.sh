@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-source "$(dirname "$(readlink -f "$0")")/../colors.sh"
+. "$(dirname "$(readlink -f "$0")")/../colors.sh"
 
 IsInstalled() {
 	directory=$1
