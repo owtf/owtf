@@ -46,9 +46,9 @@ echo "${info}[*] Installing Tor${reset}"
 sudo -E "$apt_wrapper_path" tor
 
 ########## Patch scripts
-"$RootDir/install/kali/kali_patch_w3af.sh"
-"$RootDir/install/kali/kali_patch_nikto.sh"
-"$RootDir/install/kali/kali_patch_tlssled.sh"
+sh "$RootDir/install/kali/kali_patch_w3af.sh"
+sh "$RootDir/install/kali/kali_patch_nikto.sh"
+sh "$RootDir/install/kali/kali_patch_tlssled.sh"
 ###### Dictionaries missing in Kali
 mkdir -p ${RootDir}/dictionaries/restricted
 cd ${RootDir}/dictionaries/restricted

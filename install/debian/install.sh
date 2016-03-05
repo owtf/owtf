@@ -50,7 +50,7 @@ sudo sh -c "echo 'deb http://repo.kali.org/kali kali-bleeding-edge main contrib 
 
 # Patch script for debian apt
 echo "${normal}[*] Adding apt preferences in order to keep Debian free from Kali garbage as much as possible :P${reset}"
-"$RootDir/install/debian/pref.sh"
+sh "$RootDir/install/debian/pref.sh"
 
 sudo "$apt_wrapper_path" update
 

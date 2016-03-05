@@ -38,7 +38,7 @@ echo "${normal}[*] Done!${reset}"
 #fi
 
 ########## Remove default ruby-bundler to avoid with Metasploit later on
-"$RootDir/install/samurai/samurai_wtf_patch_metasploit.sh" ${RootDir}
+sh "$RootDir/install/samurai/samurai_wtf_patch_metasploit.sh" ${RootDir}
 
 ########## Installing missing tools
 echo "${normal}[*] Installing missing tools${reset}"
@@ -48,9 +48,9 @@ echo "${info}[*] Installing Tor${reset}"
 sudo -E apt-get install tor
 
 ########## Patch scripts
-"$RootDir/install/kali/samurai_wtf_patch_w3af.sh"
-"$RootDir/install/samurai/samurai_wtf_patch_nikto.sh"
-"$RootDir/install/samurai/samurai_wtf_patch_tlssled.sh"
+sh "$RootDir/install/kali/samurai_wtf_patch_w3af.sh"
+sh "$RootDir/install/samurai/samurai_wtf_patch_nikto.sh"
+sh "$RootDir/install/samurai/samurai_wtf_patch_tlssled.sh"
 
 ###### Dictionaries missing in Samurai-WTF
 mkdir -p ${RootDir}/dictionaries/restricted
