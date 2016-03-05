@@ -1,8 +1,11 @@
 #!/usr/bin/env sh
 
+# bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
+. "$(dirname "$(readlink -f "$0")")/../colors.sh"
+
 IsInstalled() {
   directory=$1
-  if [ -d $directory ]; then
+  if [ -d ${directory} ]; then
     return 1
   else
     return 0
@@ -19,7 +22,7 @@ apt_wrapper_path="$RootDir/install/aptitude-wrapper.sh"
 sudo apt-get update
 
 # Grab and install pip
-echo "[*] Installing pip using get-pip.py"
+echo "${info}[*] Installing pip using get-pip.py${reset}"
 wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
 sudo -E python get-pip.py
 
@@ -27,14 +30,8 @@ sudo -E python get-pip.py
 sudo -E "$apt_wrapper_path" install python-dev libpython-dev libffi-dev
 
 # Install dependancies
-sudo -E "$apt_wrapper_path" install xvfb \
-                                    xserver-xephyr \
-                                    libxml2-dev \
-                                    libxslt-dev \
-                                    libcurl4-gnutls-dev \
-                                    libcurl4-nss-dev \
-                                    libcurl4-openssl-dev \
-                                    tor
+sudo -E "$apt_wrapper_path" install xvfb xserver-xephyr libxml2-dev libxslt-dev libcurl4-gnutls-dev \
+                                    libcurl4-nss-dev libcurl4-openssl-dev tor
 
 
 # psycopg2 dependency
@@ -43,42 +40,25 @@ sudo -E "$apt_wrapper_path" postgresql-server-dev-all postgresql-client postgres
 # pycurl dependency
 export PYCURL_SSL_LIBRARY=gnutls
 
-echo "[*] Adding Kali Public Key for repos"
+echo "${normal}[*] Adding Kali Public Key for repos${reset}"
 gpg --keyserver pgpkeys.mit.edu --recv-key ED444FF07D8D0BF6
-echo "[*] Adding Kali repos to install the missing tools"
+echo "${normal}[*] Adding Kali repos to install the missing tools${reset}"
 
 sudo sh -c "echo 'deb http://http.kali.org/kali  kali main contrib non-free' >> /etc/apt/sources.list"
 sudo sh -c "echo 'deb-src http://http.kali.org/kali kali main contrib non-free' >> /etc/apt/sources.list"
 sudo sh -c "echo 'deb http://repo.kali.org/kali kali-bleeding-edge main contrib non-free' >> /etc/apt/sources.list"
 
 # Patch script for debian apt
-echo "Adding apt preferences in order to keep Debian free from Kali garbage as much as possible :P"
+echo "${normal}[*] Adding apt preferences in order to keep Debian free from Kali garbage as much as possible :P${reset}"
 "$RootDir/install/debian/pref.sh"
 
 sudo "$apt_wrapper_path" update
 
-echo "[*] Installing missing tools"
-sudo -E "$apt_wrapper_path" install lbd \
-                                    arachni \
-                                    tlssled \
-                                    nmap \
-                                    nikto \
-                                    skipfish \
-                                    w3af-console \
-                                    dirbuster \
-                                    wapiti \
-                                    hydra \
-                                    ua-tester \
-                                    wpscan \
-                                    theharvester \
-                                    whatweb \
-                                    dnsrecon \
-                                    metagoofil \
-                                    metasploit-framework \
-                                    waffit \
-                                    o-saft
+echo "${normal}[*] Installing missing tools${reset}"
+sudo -E "$apt_wrapper_path" install lbd arachni tlssled nmap nikto skipfish w3af-console dirbuster wapiti hydra waffit \
+                                    ua-tester wpscan theharvester whatweb dnsrecon metagoofil metasploit-framework o-saft
 
-echo "[*] Cleaning up get-pip script"
+echo "${normal}[*] Cleaning up get-pip script${reset}"
 rm *get-pip*
 
-echo "[*] All done!"
+echo "${normal}[*] All done!${reset}"

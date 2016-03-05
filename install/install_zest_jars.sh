@@ -1,12 +1,12 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 FILE_PATH=$(readlink -f "$0")
 INSTALL_DIR=$(dirname "$FILE_PATH")
 RootDir=${RootDir:-$(dirname "$INSTALL_DIR")}
 local_hash_file="$RootDir/zest/release.hash"
 
-if [ -f $local_hash_file ]; then
-  local_hash="$(cat $local_hash_file)"
+if [ -f ${local_hash_file} ]; then
+  local_hash="$(cat ${local_hash_file})"
 else
   local_hash=""
 fi
@@ -17,20 +17,23 @@ install() {
   wget https://api.github.com/repos/owtf/owtf-zest-jars/tarball -O zest-jars.tar.gz
   tar zxf zest-jars.tar.gz
   cd */.
-  cp -r * $RootDir/zest
+  cp -r * ${RootDir}/zest
 }
 
+# bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
+. "$INSTALL_DIR/colors.sh"
+
 # check if local hash present
-if [ -z $local_hash ]; then
-  echo "Local hash not present"
+if [ -z ${local_hash} ]; then
+  echo "${warning}[!] Local hash not present${reset}"
   install
 else
-  echo "Local hash present, comparing with upstream.."
-  if ! [ "$local_hash" = "$upstream_hash" ]; then
-    echo "Hashes do not match, updating jars.."
+  echo "${normal}[*] Local hash present, comparing with upstream..${reset}"
+  if ! [ "${local_hash}" = "${upstream_hash}" ]; then
+    echo "${warning}[!] Hashes do not match, updating jars..${reset}"
     install
   else
-    echo "Hashes match. Continuing.."
+    echo "${normal}Hashes match. Continuing..${reset}"
   fi
 fi
 

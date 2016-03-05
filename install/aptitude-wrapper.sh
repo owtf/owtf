@@ -4,23 +4,26 @@
 #
 # Usage $0 <package> [package] ..
 
+# bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
+. "$(dirname "$(readlink -f "$0")")/colors.sh"
+
 usage() {
-    echo "[*] Usage: sh $0 <package name> [package name]"
+    echo "${info}[*] Usage: sh $0 <package name> [package name]${reset}"
 }
 
 available_disk_size() {
-    echo "$(($(stat -f --format="%a*%S" .)))"
+    echo "${info}$(($(stat -f --format="%a*%S" .)))${reset}"
 }
 
 # Bail out if not root privileges
 if [ "$(id -u)" != "0" ]; then
-   echo "This script must be run as root" 1>&2
+   echo "${warning}[!] This script must be run as root${reset}" 1>&2
    exit 1
 fi
 
 # Parse command line parameters.
 if [ $# -lt 1 ]; then
-    echo "[!] Specify the package(s) name(s)"
+    echo "${warning}[!] Specify the package(s) name(s)${reset}"
     usage
     exit 1
 fi
@@ -29,7 +32,7 @@ fi
 size=0
 for package in "$@"
 do
-    package_size=$(apt-cache --no-all-versions show $package | sed -n -e 's/^Size: //p')
+    package_size=$(apt-cache --no-all-versions show ${package} | sed -n -e 's/^Size: //p')
     if [ package_size ]; then
         size=$(( size + package_size))
     fi
@@ -37,8 +40,8 @@ done
 
 # Check if the current available disk size is enough.
 while [ "$(available_disk_size)" -lt "$size" ]; do
-    echo "[!] Not enough available space for downloading $@"
-    echo "[!] Please free the required size and proceed or skip this step (press \'n\') [Y/n]"
+    echo "${warning}[!] Not enough available space for downloading $@${reset}"
+    echo "${warning}[!] Please free the required size and proceed or skip this step (press \'n\') [Y/n]${reset}"
     read yn
     if [ "$yn" = 'n' ]; then
         exit 0
@@ -48,5 +51,5 @@ done
 # If all the checks passed, install the required packages.
 for package in "$@"
 do
-    apt-get install $package
+    apt-get install ${package}
 done

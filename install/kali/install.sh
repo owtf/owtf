@@ -1,8 +1,11 @@
 #!/usr/bin/env sh
 
+# bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
+. "$(dirname "$(readlink -f "$0")")/../colors.sh"
+
 IsInstalled() {
 	directory=$1
-	if [ -d $directory ]; then
+	if [ -d ${directory} ]; then
 		return 1
 	else
 		return 0
@@ -33,13 +36,13 @@ sudo -E "$apt_wrapper_path" libcurl4-openssl-dev
 #    git clone https://github.com/andresriancho/w3af.git
 #fi
 
-echo "[*] Installing LBD, arachni, gnutls-bin and metagoofil from Kali Repos"
+echo "${info}[*] Installing LBD, arachni, gnutls-bin and metagoofil from Kali Repos${reset}"
 sudo -E "$apt_wrapper_path" lbd gnutls-bin arachni metagoofil
 
-echo "[*] Installing ProxyChains"
+echo "${info}[*] Installing ProxyChains${reset}"
 sudo -E "$apt_wrapper_path" proxychains
 
-echo "[*] Installing Tor"
+echo "${info}[*] Installing Tor${reset}"
 sudo -E "$apt_wrapper_path" tor
 
 ########## Patch scripts
@@ -47,15 +50,15 @@ sudo -E "$apt_wrapper_path" tor
 "$RootDir/install/kali/kali_patch_nikto.sh"
 "$RootDir/install/kali/kali_patch_tlssled.sh"
 ###### Dictionaries missing in Kali
-mkdir -p $RootDir/dictionaries/restricted
-cd $RootDir/dictionaries/restricted
+mkdir -p ${RootDir}/dictionaries/restricted
+cd ${RootDir}/dictionaries/restricted
 IsInstalled "dirbuster"
 if [ $? -eq 0 ]; then # Not installed
     # Copying dirbuster dicts
-    echo "\n[*] Copying Dirbuster dictionaries"
+    echo "${info}\n[*] Copying Dirbuster dictionaries${info}"
     mkdir -p dirbuster
     cp -r /usr/share/dirbuster/wordlists/. dirbuster/.
-    echo "[*] Done"
+    echo "${normal}[*] Done!${reset}"
 else
-    echo "WARNING: Dirbuster dictionaries are already installed, skipping"
+    echo "${warning}[!] Dirbuster dictionaries are already installed, skipping${reset}"
 fi
