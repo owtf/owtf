@@ -8,4 +8,4 @@
 
 echo "${info}[*] Removing current package ruby-bundler to avoid conflict with MetaSploit-Framework..${reset}"
 sudo -E apt-get remove ruby-bundler
-echo "${normal}[*] Done!${normal}"
+echo "${normal}[*] Done!${reset}"

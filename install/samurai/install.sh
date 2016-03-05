@@ -26,7 +26,7 @@ sudo sh -c "echo 'deb-src http://http.kali.org/kali kali main contrib non-free' 
 sudo sh -c "echo 'deb http://repo.kali.org/kali kali-bleeding-edge main contrib non-free' >> /etc/apt/sources.list"
 
 sudo apt-get update
-echo "${normal}[*] Done!${normal}"
+echo "${normal}[*] Done!${reset}"
 ############ Tools missing in Samurai-WTF
 
 ############ Install updated w3af from GitHub

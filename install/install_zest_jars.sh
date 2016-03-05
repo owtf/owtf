@@ -29,7 +29,7 @@ if [ -z ${local_hash} ]; then
   install
 else
   echo "${normal}[*] Local hash present, comparing with upstream..${reset}"
-  if ! [ "${local_hash}" = "{$upstream_hash}" ]; then
+  if ! [ "${local_hash}" = "${upstream_hash}" ]; then
     echo "${warning}[!] Hashes do not match, updating jars..${reset}"
     install
   else
