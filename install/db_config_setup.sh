@@ -39,8 +39,8 @@ db_name="owtfdb"
 db_user="owtf_db_user"
 db_pass=$(head /dev/random -c8 | od -tx1 -w16 | head -n1 | cut -d' ' -f2- | tr -d ' ')
 
-if [ ! -f $db_config_file ]; then
-    mkdir -p "$(dirname $db_config_file)"
+if [ ! -f ${db_config_file} ]; then
+    mkdir -p "$(dirname ${db_config_file})"
     echo "${info}[*] Creating default config at $db_config_file${reset}"
     echo "${warning}[!] Don't forget to edit $db_config_file${reset}"
     echo "
