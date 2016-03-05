@@ -57,10 +57,25 @@
                         <tr>
                             <th><input type="checkbox" id="targetTableSelectAllCheckbox" onclick="toggleAll(this);"/></th>
                             <th class="textSearch">Target</th>
+                            <th>Severity</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="searchable">
+                      <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                          Filter By Severity <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" id="severity_filter">
+                          <li id="passing"><a href="#">Passing</a></li>
+                          <li id="info"><a href="#">Info</a></li>
+                          <li id="low"><a href="#">Low</a></li>
+                          <li id="middle"><a href="#">Medium</a></li>
+                          <li id="high"><a href="#">High</a></li>
+                          <li id="critical"><a href="#">Critical</a></li>
+                        </ul>
+                      </div>
+                      <br>
                     </tbody>
                 </table>
             </div>
@@ -356,7 +371,8 @@ function getArray(data) {
     $.each(data, function(index, obj){
       table_array.push([
         '<input type="checkbox" target-id="'+obj.id+'"/>',
-        '<a href="'+mySpace.targets_ui_url+obj.id+'">'+obj.target_url+' ('+obj.host_ip+') </a> '+getSeverityLabel(obj),
+        '<a href="'+mySpace.targets_ui_url+obj.id+'">'+obj.target_url+' ('+obj.host_ip+') </a>',
+        getSeverityLabel(obj),
         getActionButtons(obj)
       ]);
     });
@@ -421,6 +437,14 @@ function drawTargetTable() {
       if (((e.type == "keyup") && (e.keyCode == 13)) || (e.type == "change")) {
         table.fnFilter(this.value);
       }
+    });
+    // Severity Filter Implementation
+    $('#severity_filter li a').on('click', function(){
+      var rex = new RegExp($(this).text(), 'i');
+      $('.searchable tr').hide();
+      $('.searchable tr').filter(function () {
+          return rex.test($(this).text());
+      }).show();
     });
 }
 
