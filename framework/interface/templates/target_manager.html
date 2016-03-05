@@ -62,18 +62,14 @@
                         </tr>
                     </thead>
                     <tbody class="searchable">
-                      <div class="dropdown">
-                        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
-                          Filter By Severity <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu" id="severity_filter">
-                          <li id="passing"><a href="#">Passing</a></li>
-                          <li id="info"><a href="#">Info</a></li>
-                          <li id="low"><a href="#">Low</a></li>
-                          <li id="middle"><a href="#">Medium</a></li>
-                          <li id="high"><a href="#">High</a></li>
-                          <li id="critical"><a href="#">Critical</a></li>
-                        </ul>
+                      <div id="severity_list">
+                        <h5><strong>Filter by Severity:</strong></h5>
+                        <label class="checkbox-inline"><input type="checkbox" name="severity" value="passing">Passing</label>
+                        <label class="checkbox-inline"><input type="checkbox" name="severity" value="info">Info</label>
+                        <label class="checkbox-inline"><input type="checkbox" name="severity" value="low">Low</label>
+                        <label class="checkbox-inline"><input type="checkbox" name="severity" value="medium">Medium</label>
+                        <label class="checkbox-inline"><input type="checkbox" name="severity" value="high">High</label>
+                        <label class="checkbox-inline"><input type="checkbox" name="severity" value="critical">Critical</label>
                       </div>
                       <br>
                     </tbody>
@@ -439,12 +435,20 @@ function drawTargetTable() {
       }
     });
     // Severity Filter Implementation
-    $('#severity_filter li a').on('click', function(){
-      var rex = new RegExp($(this).text(), 'i');
+    $("input[name='severity']").change(function() {
+      var count=0;
       $('.searchable tr').hide();
-      $('.searchable tr').filter(function () {
-          return rex.test($(this).text());
-      }).show();
+      $.each($("input[name='severity']:checked"), function(){
+          var rex = new RegExp($(this).val(), 'i');
+          $('.searchable tr').filter(function () {
+              return rex.test($(this).text());
+          }).show();
+          count++;
+      });
+      if (count==0)
+      {
+        $('.searchable tr').show();
+      }
     });
 }
 
