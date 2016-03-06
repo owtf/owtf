@@ -57,10 +57,21 @@
                         <tr>
                             <th><input type="checkbox" id="targetTableSelectAllCheckbox" onclick="toggleAll(this);"/></th>
                             <th class="textSearch">Target</th>
+                            <th>Severity</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="searchable">
+                      <div id="severity_list">
+                        <h5><strong>Filter by Severity:</strong></h5>
+                        <label class="checkbox-inline"><input type="checkbox" name="severity" value="passing">Passing</label>
+                        <label class="checkbox-inline"><input type="checkbox" name="severity" value="info">Info</label>
+                        <label class="checkbox-inline"><input type="checkbox" name="severity" value="low">Low</label>
+                        <label class="checkbox-inline"><input type="checkbox" name="severity" value="medium">Medium</label>
+                        <label class="checkbox-inline"><input type="checkbox" name="severity" value="high">High</label>
+                        <label class="checkbox-inline"><input type="checkbox" name="severity" value="critical">Critical</label>
+                      </div>
+                      <br>
                     </tbody>
                 </table>
             </div>
@@ -356,7 +367,8 @@ function getArray(data) {
     $.each(data, function(index, obj){
       table_array.push([
         '<input type="checkbox" target-id="'+obj.id+'"/>',
-        '<a href="'+mySpace.targets_ui_url+obj.id+'">'+obj.target_url+' ('+obj.host_ip+') </a> '+getSeverityLabel(obj),
+        '<a href="'+mySpace.targets_ui_url+obj.id+'">'+obj.target_url+' ('+obj.host_ip+') </a>',
+        getSeverityLabel(obj),
         getActionButtons(obj)
       ]);
     });
@@ -420,6 +432,22 @@ function drawTargetTable() {
     search_box.on("keyup change", function (e) {
       if (((e.type == "keyup") && (e.keyCode == 13)) || (e.type == "change")) {
         table.fnFilter(this.value);
+      }
+    });
+    // Severity Filter Implementation
+    $("input[name='severity']").change(function() {
+      var count=0;
+      $('.searchable tr').hide();
+      $.each($("input[name='severity']:checked"), function(){
+          var rex = new RegExp($(this).val(), 'i');
+          $('.searchable tr').filter(function () {
+              return rex.test($(this).text());
+          }).show();
+          count++;
+      });
+      if (count==0)
+      {
+        $('.searchable tr').show();
       }
     });
 }
