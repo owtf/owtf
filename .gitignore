@@ -6,8 +6,12 @@
 # Directories with potential license restrictions that prevent re-distribution #
 ################################################################################
 dictionaries/restricted/*
-dictionaries/fuzzdb
 tools/restricted/*
+
+# Dictionaries pulled from Github #
+###################################
+dictionaries/fuzzdb
+
 
 # Tools with license restrictions that prevent re-distribution #
 ################################################################
@@ -34,11 +38,13 @@ zest/zest_lib/*
 zest/zest_runner_lib/*
 zest/zest.jar
 zest/zest_runner.jar
+zest/release.hash
+zest/README.md
 
 # Pycharm (Jetbrains) IDE Specific files #
 ##########################################
 .idea/*
- 
+
 # PyDev (Eclipse) IDE Specific Files #
 ######################################
 .metadata
