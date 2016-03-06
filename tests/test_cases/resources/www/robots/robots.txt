@@ -2,6 +2,6 @@ User-agent: *
 Allow: /public
 Disallow: /private
 Disallow: /	malformed
-Disallow: /misspelled
+Diallow: /misspelled
 Disallow: /repeated
 Disallow: /repeated
