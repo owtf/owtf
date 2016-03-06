@@ -58,8 +58,7 @@ class WorklistManager(BaseComponent):
                     query = query.filter(
                         models.Work.target_id.in_(criteria.get('id')))
                 if isinstance(criteria.get('id'), (str, unicode)):
-                    query = query.filter_by(
-                        target_id == int(criteria.get('id')))
+                    query = query.filter_by(target_id = int(criteria.get('id')))
             if not for_stats:
                 if criteria.get('offset', None):
                     if isinstance(criteria.get('offset'), list):
@@ -70,8 +69,7 @@ class WorklistManager(BaseComponent):
                         criteria['limit'] = criteria['limit'][0]
                     query = query.limit(int(criteria['limit']))
         except ValueError:
-            raise InvalidParameterType(
-                "Invalid parameter type for transaction db")
+            raise exceptions.InvalidParameterType("Invalid parameter type for transaction db")
         return(query)
 
     def _derive_work_dict(self, work_model):
