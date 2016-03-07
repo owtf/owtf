@@ -1,5 +1,5 @@
 from framework.dependency_management.dependency_resolver import BaseComponent
-import tornado
+import tornado.ioloop
 
 
 class CliServer(BaseComponent):

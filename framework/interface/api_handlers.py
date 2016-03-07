@@ -1,6 +1,7 @@
 import os
 import tornado.gen
 import tornado.web
+import tornado.httpclient
 from BaseHTTPServer import BaseHTTPRequestHandler
 from StringIO import StringIO
 import json
