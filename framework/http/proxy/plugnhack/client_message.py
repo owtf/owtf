@@ -4,7 +4,7 @@ import json
 
 
 def enum(**named_values):
-     """
+    """
     enum represents a simulation of 'enum' data type in programming languages as 
     C, C++, Java etc.
     enum type is available as a built-in type in Python 3.4, not in Python 2.7, 
