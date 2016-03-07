@@ -220,7 +220,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
                 query = query.filter(models.Plugin.code.in_(criteria["code"]))
         if criteria.get("name", None):
             if isinstance(criteria["name"], (str, unicode)):
-                query = query.filter_by(name=criteria["name"])
+                query = query.filter(models.Plugin.name == criteria["name"])
             if isinstance(criteria["name"], list):
                 query = query.filter(models.Plugin.name.in_(criteria["name"]))
         return query.order_by(models.TestGroup.priority.desc())
