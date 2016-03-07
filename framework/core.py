@@ -294,6 +294,9 @@ class Core(BaseComponent):
                 # terminate()
                 self.TransactionLogger.poison_q.put('done')
                 self.TransactionLogger.join()
+            if getattr(self, "WorkerManager", None) is not None:
+                # Properly stop the workers.
+                self.WorkerManager.clean_up()
             if getattr(self, "db", None) is not None:
                 # Properly stop any DB instances.
                 self.db.clean_up()
