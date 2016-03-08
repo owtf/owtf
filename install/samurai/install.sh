@@ -25,7 +25,7 @@ sudo sh -c "echo 'deb http://http.kali.org/kali  kali main contrib non-free' >> 
 sudo sh -c "echo 'deb-src http://http.kali.org/kali kali main contrib non-free' >> /etc/apt/sources.list"
 sudo sh -c "echo 'deb http://repo.kali.org/kali kali-bleeding-edge main contrib non-free' >> /etc/apt/sources.list"
 
-sudo apt-get -y update
+sudo apt-get update
 echo "${normal}[*] Done!${reset}"
 ############ Tools missing in Samurai-WTF
 

@@ -17,8 +17,8 @@ RootDir=$1
 ########### Pip is the foremost thing that must be installed along with some needed dependencies for python libraries
 
 apt_wrapper_path="$RootDir/install/aptitude-wrapper.sh"
-# Perform apt-get  update before starting to install all packages, so we can get the latests manifests and packages versions
-sudo apt-get -y update
+# Perform apt-get update before starting to install all packages, so we can get the latests manifests and packages versions
+sudo apt-get update
 sudo -E "$apt_wrapper_path" python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev
 export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip in kali
 
