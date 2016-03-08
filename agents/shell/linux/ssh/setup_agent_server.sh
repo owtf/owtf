@@ -10,7 +10,7 @@ fi
 echo "Install sshd? (not in Ubuntu by default) [y/n]"
 read c
 if [ "$c" == "y" ]; then
-	cmd="apt-get install openssh-server"
+	cmd="apt-get -y install openssh-server"
 	echo "[*] Running: $cmd"
 	$cmd
 fi

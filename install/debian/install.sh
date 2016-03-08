@@ -18,8 +18,8 @@ RootDir=$1
 
 apt_wrapper_path="$RootDir/install/aptitude-wrapper.sh"
 
-# Perform apt-get update before starting to install all packages, so we can get the latests manifests and packages versions
-sudo apt-get update
+# Perform apt-get  update before starting to install all packages, so we can get the latests manifests and packages versions
+sudo apt-get -y update
 
 # Grab and install pip
 echo "${info}[*] Installing pip using get-pip.py${reset}"

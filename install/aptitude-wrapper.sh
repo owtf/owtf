@@ -51,5 +51,5 @@ done
 # If all the checks passed, install the required packages.
 for package in "$@"
 do
-    apt-get install ${package}
+    apt-get -y install ${package}
 done
