@@ -11,10 +11,10 @@ else
   local_hash=""
 fi
 
-upstream_hash="$(wget -O- -q https://raw.githubusercontent.com/owtf/owtf-zest-jars/master/release.hash)"
+upstream_hash="$(wget --user-agent="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0" --tries=3 -O- -q https://raw.githubusercontent.com/owtf/owtf-zest-jars/master/release.hash)"
 
 install() {
-  wget https://api.github.com/repos/owtf/owtf-zest-jars/tarball -O zest-jars.tar.gz
+  wget --user-agent="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0" --tries=3 https://api.github.com/repos/owtf/owtf-zest-jars/tarball -O zest-jars.tar.gz
   tar zxf zest-jars.tar.gz
   cd */.
   cp -r * ${RootDir}/zest
