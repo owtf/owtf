@@ -15,7 +15,7 @@ IsInstalled() {
 RootDir=$1
 
 ########### Pip is the foremost thing that must be installed along with some needed dependencies for python libraries
-sudo -E apt-get install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev libcurl4-gnutls-dev libcurl4-nss-dev libcurl4-openssl-dev
+sudo -E apt-get -y install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev libcurl4-gnutls-dev libcurl4-nss-dev libcurl4-openssl-dev
 export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip
 
 ############ Proposed clean solution instead of cloning by git
@@ -42,10 +42,10 @@ sh "$RootDir/install/samurai/samurai_wtf_patch_metasploit.sh" ${RootDir}
 
 ########## Installing missing tools
 echo "${normal}[*] Installing missing tools${reset}"
-sudo -E apt-get install lbd arachni tlssled set ua-tester wpscan theharvester whatweb dnsrecon metagoofil metasploit waffit
+sudo -E apt-get -y install lbd arachni tlssled set ua-tester wpscan theharvester whatweb dnsrecon metagoofil metasploit waffit
 
 echo "${info}[*] Installing Tor${reset}"
-sudo -E apt-get install tor
+sudo -E apt-get -y install tor
 
 ########## Patch scripts
 sh "$RootDir/install/kali/samurai_wtf_patch_w3af.sh"

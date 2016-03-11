@@ -4,7 +4,7 @@
 #       Script to fix the license request made by w3af when run for first time
 
 # Install missing stuff needed for w3af in kali
-sudo apt-get install python2.7-dev libsqlite3-dev
+sudo apt-get -y install python2.7-dev libsqlite3-dev
 sudo pip install clamd PyGithub GitPython pybloomfiltermmap esmre nltk pdfminer futures guess-language cluster msgpack-python python-ntlm
 sudo pip install git+git://github.com/ramen/phply.git\#egg=phply
 sudo pip install xdot
