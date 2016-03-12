@@ -12,7 +12,7 @@ usage() {
 }
 
 available_disk_size() {
-    echo "${info}$(($(stat -f --format="%a*%S" .)))${reset}"
+    echo "$(($(stat -f --format="%a*%S" .)))"
 }
 
 # Bail out if not root privileges
