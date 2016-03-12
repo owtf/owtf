@@ -129,8 +129,11 @@ function displayWorkersInfo(){
                         html += '<div class="panel-heading"><h3 class="panel-title">Worker '+obj.id+getControlButtons(obj)+'</h3></div>';
                         html += '<div class="panel-body">';
                         html += '<p><strong>PID:</strong> '+obj.worker+'</p>';
-                        if ( obj.start_time.localeCompare("NA") == -1 ){
-                            html += '<p><strong>Start Time:</strong> '+obj.start_time+' (~ ' + getElapsedTime(obj.start_time)+')'+'</p>';
+                        if (obj.start_time.localeCompare("NA") == -1){
+                            html += '<p><strong>Start Time: </strong> '+obj.start_time+' (~ ' + getElapsedTime(obj.start_time)+')'+'</p>';
+                        }
+                        else{
+                            html += '<p><strong>Start Time: </strong>N/A</p>';
                         }
                         if (obj.work.length > 0){
                             html += '<p><strong>Target:</strong> <a href="'+mySpace.targets_ui_url+obj.work[0]["id"]+'">'+obj.work[0].target_url+'</a></p>';
