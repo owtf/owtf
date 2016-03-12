@@ -4,6 +4,7 @@
 
 {% block includes %}
 <link href="{{ static_url('css/span-fix.css') }}" rel="stylesheet">
+<script type="text/javascript" src="{{ static_url('js/moment.js') }}"></script>
 {% end %}
 
 {% block content %}
@@ -128,6 +129,9 @@ function displayWorkersInfo(){
                         html += '<div class="panel-heading"><h3 class="panel-title">Worker '+obj.id+getControlButtons(obj)+'</h3></div>';
                         html += '<div class="panel-body">';
                         html += '<p><strong>PID:</strong> '+obj.worker+'</p>';
+                        if ( obj.start_time.localeCompare("NA") == -1 ){
+                            html += '<p><strong>Start Time:</strong> '+obj.start_time+' (~ ' + getElapsedTime(obj.start_time)+')'+'</p>';
+                        }
                         if (obj.work.length > 0){
                             html += '<p><strong>Target:</strong> <a href="'+mySpace.targets_ui_url+obj.work[0]["id"]+'">'+obj.work[0].target_url+'</a></p>';
                             html += '<p><strong>Plugin:</strong> '+obj.work[1].title+'</p>';
@@ -148,6 +152,14 @@ function displayWorkersInfo(){
             }
     });
     setTimeout(displayWorkersInfo, 2000);
+}
+
+//Function which give elapsed time by calculting difference between two given times in string. Function uses moment.js
+function getElapsedTime(start_time){
+    var ms = moment(moment()).diff(moment(start_time,"YYYY/MM/DD HH:mm:ss"));
+    var d = moment.duration(ms);
+    var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm:ss");
+    return s;
 }
 
 $(document).ready(function() {

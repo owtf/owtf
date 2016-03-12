@@ -8,6 +8,7 @@ import subprocess
 import logging
 import multiprocessing
 import Queue
+from time import strftime
 from framework.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
 from framework.dependency_management.interfaces import WorkerManagerInterface
 from framework.lib.general import check_pid
@@ -131,6 +132,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                     # Assign target, plugin from tuple work and empty the tuple
                     self.workers[k]["work"] = ()
                     self.workers[k]["busy"] = False  # Worker is IDLE
+                    self.workers[k]["start_time"] = "NA"
                 else:
                     logging.info("Worker with name %s and pid %s seems dead" % (
                         self.workers[k]["worker"].name,
@@ -146,6 +148,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                     self.workers[k]["worker"].input_q.put(work_to_assign)
                     self.workers[k]["work"] = work_to_assign
                     self.workers[k]["busy"] = True
+                    self.workers[k]["start_time"] = strftime("%Y/%m/%d %H:%M:%S")
                 if not self.keep_working:
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
