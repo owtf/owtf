@@ -13,7 +13,7 @@ get_config_value(){
     parameter=$1
     file=$2
 
-    echo "${info}$(grep -i ${parameter} ${file} | sed  "s|$parameter: ||g;s|~|$HOME|g")${reset}"
+    echo "$(grep -i ${parameter} ${file} | sed  "s|$parameter: ||g;s|~|$HOME|g")"
 }
 
 # Simple command line argument handler.
