@@ -1,11 +1,5 @@
 #!/usr/bin/env sh
 
-
-usage="Usage:./install.sh OWTF_PROJECT_FOLDER"
-if [ $# -ne 1 ]; then
-    echo $usage
-    exit 1
-fi    
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
 . "$(dirname "$(readlink -f "$0")")/../colors.sh"
 
