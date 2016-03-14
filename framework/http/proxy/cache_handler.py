@@ -10,6 +10,8 @@ import base64
 import hashlib
 import datetime
 from framework.lib.filelock import FileLock
+import tornado.httputil
+
 
 class CacheHandler(object):
     """
@@ -136,7 +138,7 @@ def response_from_cache(file_path):
     dummyResponse = DummyObject()
     cache_dict = json.loads(open(file_path, 'r').read())
     dummyResponse.code = cache_dict["response_code"]
-    dummyResponse.headers = cache_dict["response_headers"]
+    dummyResponse.headers = tornado.httputil.HTTPHeaders(cache_dict["response_headers"])
     dummyResponse.header_string = '\r\n'.join(["%s: %s" % (name, value) for name, value in cache_dict["response_headers"].iteritems()])
     if cache_dict["binary_response"] == True:
         dummyResponse.body = base64.b64decode(cache_dict["response_body"])

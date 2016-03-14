@@ -73,7 +73,7 @@ class ProxyHandler(tornado.web.RequestHandler):
     # This function writes a new response & caches it
     def finish_response(self, response):
         self.set_status(response.code)
-        for header, value in list(response.headers.items()):
+        for header, value in response.headers.get_all():
             if header == "Set-Cookie":
                 self.add_header(header, value)
             else:
