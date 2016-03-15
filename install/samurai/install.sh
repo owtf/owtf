@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-# bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
+# bring in the variables: `normal`, `info`, `warning`, `danger`, `reset`, `user_agent`
 . "$(dirname "$(readlink -f "$0")")/../utils.sh"
 
 IsInstalled() {

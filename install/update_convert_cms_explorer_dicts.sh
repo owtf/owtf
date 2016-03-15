@@ -2,14 +2,14 @@
 # Description: This script grabs all the excellent CMS Explorer dictionaries, updates them and converts them into DirBuster format (much faster than CMS Explorer)
 
 
-# bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
+# bring in the variables: `normal`, `info`, `warning`, `danger`, `reset`, `user-agent`
 . "$(dirname "$(readlink -f "$0")")/utils.sh"
 
 RootDir=$1
 SOURCE_DIR="$RootDir/tools/restricted/cms-explorer"
 
 if [ ! -d "$SOURCE_DIR" ]; then
-  wget --user-agent="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0" --tries=3 http://cms-explorer.googlecode.com/files/cms-explorer-1.0.tar.bz2; bunzip2 *; tar xvf *; rm -f *.tar 2> /dev/null
+  wget --user-agent="${user_agent}" --tries=3 http://cms-explorer.googlecode.com/files/cms-explorer-1.0.tar.bz2; bunzip2 *; tar xvf *; rm -f *.tar 2> /dev/null
 fi
 
 CMS_EXPLORER_DIR="$RootDir/tools/restricted/cms-explorer/cms-explorer-1.0"
