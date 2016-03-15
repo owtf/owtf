@@ -3,7 +3,7 @@
 
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-. "$(dirname "$(readlink -f "$0")")/colors.sh"
+. "$(dirname "$(readlink -f "$0")")/utils.sh"
 
 RootDir=$1
 SOURCE_DIR="$RootDir/tools/restricted/cms-explorer"
