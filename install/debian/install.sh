@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
-# bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-. "$(dirname "$(readlink -f "$0")")/../colors.sh"
+# bring in the variables: `normal`, `info`, `warning`, `danger`, `reset`, `user_agent`
+. "$(dirname "$(readlink -f "$0")")/../utils.sh"
 
 IsInstalled() {
   directory=$1
@@ -23,7 +23,7 @@ sudo apt-get update
 
 # Grab and install pip
 echo "${info}[*] Installing pip using get-pip.py${reset}"
-wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+wget --user-agent="${user_agent}" --tries=3 https://raw.github.com/pypa/pip/master/contrib/get-pip.py
 sudo -E python get-pip.py
 
 # Install headers for x86_64-linux-gnu-gcc
