@@ -23,7 +23,6 @@ def session_required(func):
 class OWTFSessionDB(BaseComponent):
 
     COMPONENT_NAME = "session_db"
-    DEFAULT_SESSION_NAME = "Default Session"
 
     def __init__(self):
         self.register_in_service_locator()
@@ -37,7 +36,7 @@ class OWTFSessionDB(BaseComponent):
         number of sessions is zero then add a default session
         """
         if self.db.session.query(models.Session).count() == 0:
-            self.add_session(DEFAULT_SESSION_NAME)
+            self.add_session("default session")
 
     def set_session(self, session_id):
         query = self.db.session.query(models.Session)
@@ -57,7 +56,7 @@ class OWTFSessionDB(BaseComponent):
     # returns the id of the default session
     def get_default_id(self):
         session_obj = self.db.session.query(
-            models.Session).filter_by(name=DEFAULT_SESSION_NAME).first()
+            models.Session).filter_by(name="default session").first()
         return session_obj.id
 
     def add_session(self, session_name):
