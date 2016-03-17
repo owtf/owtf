@@ -166,6 +166,11 @@ class OWTFSessionHandler(custom_handlers.APIRequestHandler):
         try:
             self.get_component("session_db").delete_session(
                 int(session_id))
+            # gets the id of the default session. 
+            default_session = self.get_component("session_db").get_default_id()
+            # sets the session id as the default session's one
+            self.get_component("session_db").set_session(
+                    int(default_session))
         except exceptions.InvalidSessionReference:
             raise tornado.web.HTTPError(400)
 
