@@ -113,7 +113,26 @@
     </div>
   </div>
 </div>
-
+<h5><strong>Progress of Running Plugins</strong></h5>
+<div class="progress">
+  <div id="pluginprogress" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+  </div>
+</div>
+<div class="container-fluid">
+    <div class="row">
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <h4 class="text-center"><strong>Current Running Plugins</strong></h4>
+        <table class="table table-hover">
+          <tr>
+            <th>Worker Name</td>
+            <th>Current Working Plugin</td>
+          </tr>
+          <tbody id="workersInfo">
+          </tbody>
+        </table>
+      </div>
+  </div>
+</div>
 <script>
 var mySpace = {
                     owtf_sessions_api_url:"{{ owtf_sessions_api_url }}",
@@ -121,6 +140,8 @@ var mySpace = {
                     targets_search_api_url:"{{ targets_search_api_url }}",
                     targets_ui_url:"{{ targets_ui_url }}",
                     plugins_api_url:"{{ plugins_api_url }}?group=web&group=network",
+                    workers_api_url:"{{ workers_api_url }}",
+                    plugins_api_url_for_progress_bar:"{{ plugins_api_url_for_progress_bar }}",
                     worklist_api_url:"{{ worklist_api_url }}"
                   };
 
@@ -452,6 +473,50 @@ function drawTargetTable() {
     });
 }
 
+// Function which responsible for progress bar width increment
+function moveProgressBar() {
+    var elem = $("#pluginprogress");
+    var progressbar = setInterval(function() {
+        $.getJSON(mySpace.plugins_api_url_for_progress_bar + 'progress/', function(data) {
+            var left_count = data[0].left_count;
+            var complete_count = data[0].complete_count;
+            percentage_done = (complete_count / (left_count + complete_count)) * 100;
+            elem.css("width", percentage_done + '%');
+            if (percentage_done == 100) {
+                elem.removeClass('active');
+                clearInterval(progressbar);
+            }
+        });
+    }, 1000);
+}
+
+// Function to show table of currently running plugins with corresponding worker
+function displayWorkersTask(){
+    $.ajax({url: mySpace.workers_api_url,
+            ifModified: true,
+            dataType:'json',
+            success:function(data, textStatus, jqXHR){
+                if (304 != jqXHR.status){  // To do something only when some information has changed, i.e do nothing on 304 Not Modified
+                    $('#workersInfo').html('');
+                    num_workers = data.length;
+                    $.each(data, function(index, obj){
+                        html = '';
+                        html += '<tr id="worker_'+obj.id+'">';
+                        html += '<td><i class="fa fa-pencil-square-o"></i> Worker '+obj.id+'</td>';
+                        if (obj.work.length > 0) {
+                            html += '<td><img src="{{ static_url("img/running.gif") }}"/> '+obj.work[1].title+'</td>';
+                        } else {
+                            html += '<td>Not Running</td>';
+                        }
+                        html += '</tr>';
+                        $('#workersInfo').append(html);
+                    });
+                }
+            }
+    });
+    setTimeout(displayWorkersTask, 2000);
+}
+
 // The target list table has to be initialized first
 $(document).ready(function() {
     drawTargetTable();
@@ -468,7 +533,9 @@ $(document).ready(function() {
     $('#sessionModal').on('show.bs.modal', function (e) {
         updateSessions();
     });
-    updateCurrentSessionInfo()
+    updateCurrentSessionInfo();
+    moveProgressBar();
+    displayWorkersTask();
 });
 </script>
 {% end %}

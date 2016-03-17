@@ -107,6 +107,12 @@ class TargetManager(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
     @tornado.web.asynchronous
     def get(self, target_id=None):
+        config = ServiceLocator.get_component("config")
+        output_files_server = "%s://%s" % (
+            self.request.protocol,
+            self.request.host.replace(
+                config.FrameworkConfigGet("UI_SERVER_PORT"),
+                config.FrameworkConfigGet("FILE_SERVER_PORT")))
         if not target_id:
             self.render("target_manager.html",
                         owtf_sessions_api_url=self.reverse_url('owtf_sessions_api_url', None, None),
@@ -114,6 +120,8 @@ class TargetManager(custom_handlers.UIRequestHandler):
                         targets_search_api_url=self.reverse_url('targets_search_api_url'),
                         targets_ui_url=self.reverse_url('targets_ui_url', None),
                         plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
+                        workers_api_url=output_files_server+self.reverse_url('workers_api_url', None, None),
+                        plugins_api_url_for_progress_bar=self.reverse_url('plugins_api_url', None, None, None),
                         worklist_api_url=self.reverse_url('worklist_api_url', None, None)
                         )
         else:
