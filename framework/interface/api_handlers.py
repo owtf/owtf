@@ -166,6 +166,11 @@ class OWTFSessionHandler(custom_handlers.APIRequestHandler):
         try:
             self.get_component("session_db").delete_session(
                 int(session_id))
+            # gets the id of the default session. 
+            default_session = self.get_component("session_db").get_default_id()
+            # sets the session id as the default session's one
+            self.get_component("session_db").set_session(
+                    int(default_session))
         except exceptions.InvalidSessionReference:
             raise tornado.web.HTTPError(400)
 
@@ -535,6 +540,27 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
+class ProgressBarHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+
+    def get(self):
+        try:
+            self.write(self.get_component("plugin_output").PluginCountOutput())
+        except exceptions.InvalidParameterType as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+
+    def post(self):
+        raise tornado.web.HTTPError(405)
+
+    def put(self):
+        raise tornado.web.HTTPError(405)
+
+    def patch(self):
+        raise tornado.web.HTTPError(405)
+
+    def delete(self):
+        raise tornado.web.HTTPError(405)
 
 class WorkerHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'OPTIONS']
