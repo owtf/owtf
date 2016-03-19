@@ -96,21 +96,21 @@ mkdir -p $INSTALL_DIR
     else
         echo "WARNING: CMS dictionaries are already installed, skipping"
     fi
-    
+
 	cd $INSTALL_DIR
 
     IsInstalled "svndigger" # Not using $INSTALL_DIR because we did a cd into $INSTALL_DIR
     if [ $? -eq 0 ]; then # Not installed
         #Fetching svndigger dicts
         echo "\n[*] Fetching SVNDigger dictionaries"
-        WgetInstall "http://www.mavitunasecurity.com/s/research/SVNDigger.zip" "svndigger" "zip"
+        WgetInstall "https://www.netsparker.com/s/research/SVNDigger.zip" "svndigger" "zip"
         echo "[*] Done"
     else
         echo "WARNING: SVNDIGGER dictionaries are already installed, skipping"
     fi
 
     IsInstalled "dirbuster"
-    if [ $? -eq 0 ]; then # Not installed    
+    if [ $? -eq 0 ]; then # Not installed
         # Copying dirbuster dicts
         echo "\n[*] Copying Dirbuster dictionaries"
         mkdir -p dirbuster
