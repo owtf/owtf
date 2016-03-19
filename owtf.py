@@ -49,7 +49,7 @@ def process_options(user_args):
         valid_groups = db_plugin.GetAllGroups()
         valid_types = db_plugin.GetAllTypes() + ['all', 'quiet']
         arg = parse_options(user_args, valid_groups, valid_types)
-    except KeyboardInterrupt as e: #Exception as e:
+    except KeyboardInterrupt as e:  # Exception as e:
         usage("Invalid OWTF option(s) " + e)
 
     # Default settings:
@@ -116,7 +116,7 @@ def process_options(user_args):
         arg.OutboundProxy = arg.OutboundProxy.split('://')
         if len(arg.OutboundProxy) == 2:
             arg.OutboundProxy = arg.OutboundProxy + \
-                                arg.OutboundProxy.pop().split(':')
+                arg.OutboundProxy.pop().split(':')
             if arg.OutboundProxy[0] not in ["socks", "http"]:
                 usage("Invalid argument for Outbound Proxy")
         else:
@@ -157,7 +157,7 @@ def process_options(user_args):
     scope = arg.Targets or []  # Arguments at the end are the URL target(s)
     num_targets = len(scope)
     if plugin_group != 'auxillary' and num_targets == 0 and not arg.list_plugins:
-        #usage("") OMG, #TODO: Fix this
+        # usage("") OMG, #TODO: Fix this
         pass
     elif num_targets == 1:  # Check if this is a file
         if os.path.isfile(scope[0]):
@@ -199,10 +199,10 @@ def process_options(user_args):
         'Profiles': profiles,
         'PluginGroup': plugin_group,
         'RPort': arg.RPort,
-        'PortWaves' : arg.PortWaves,
+        'PortWaves': arg.PortWaves,
         'ProxyMode': arg.ProxyMode,
-        'TOR_mode' : arg.TOR_mode,
-        'Botnet_mode' : arg.Botnet_mode,
+        'TOR_mode': arg.TOR_mode,
+        'Botnet_mode': arg.Botnet_mode,
         'nowebui': arg.nowebui,
         'Args': args}
 
@@ -230,7 +230,7 @@ def main(args):
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
     owtf_pid = os.getpid()
-    if not "--update" in args[1:]:
+    if "--update" not in args[1:]:
         try:
             ComponentInitialiser.initialisation_phase_1(root_dir, owtf_pid)
         except DatabaseNotRunningException:
