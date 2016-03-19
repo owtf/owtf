@@ -186,7 +186,7 @@ function newSession(session_name) {
                 data:{name:session_name},
                 success: function() { updateSessions(); updateCurrentSessionInfo();},
                 error:function(xhr, textStatus, serverResponse){
-                    alertFail("Unable to add "+session_name);
+                    alertFail("Unable to add "+escapeHtml(session_name)); // sanitized session_name parameter
                     }
         });
     }
