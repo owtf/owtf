@@ -103,7 +103,7 @@ mkdir -p $INSTALL_DIR
     if [ $? -eq 0 ]; then # Not installed
         #Fetching svndigger dicts
         echo "\n[*] Fetching SVNDigger dictionaries"
-        WgetInstall "http://www.netsparker.com/s/research/SVNDigger.zip" "svndigger" "zip"
+        WgetInstall "https://www.netsparker.com/s/research/SVNDigger.zip" "svndigger" "zip"
         echo "[*] Done"
     else
         echo "WARNING: SVNDIGGER dictionaries are already installed, skipping"
