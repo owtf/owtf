@@ -1,6 +1,6 @@
 from framework.dependency_management.dependency_resolver import ServiceLocator
 """ 
-ACTIVE Plugin for Generic Unauthenticated Web App Fuzzing via Arachni
+ACTIVE Plugin for Generic Unauthenticated Web App Fuzzing via Skipfish
 This will perform a "low-hanging-fruit" pass on the web app for easy to find (tool-findable) vulns
 """
 
