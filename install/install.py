@@ -142,6 +142,10 @@ class Installer(object):
         Colorizer.normal("Upgrading pip to the latest version ...")
         # Upgrade pip before install required libraries
         self.run_command("sudo pip2 install --upgrade pip")
+        Colorizer.normal("Upgrading setuptools to the latest version ...")
+        # Upgrade setuptools
+        self.run_command("sudo pip2 install --upgrade setuptools")
+        Colorizer.normal("Upgrading cffi to the latest version ...")
         # mitigate cffi errors by upgrading it first
         self.run_command("sudo pip2 install --upgrade cffi")
         # run next block only when distro_num == 1
