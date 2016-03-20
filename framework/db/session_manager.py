@@ -48,6 +48,11 @@ class OWTFSessionDB(BaseComponent):
         session_obj.active = True
         self.db.session.commit()
 
+    # returns session id of the default session 
+    def get_default_id(self):
+        session_obj = self.db.session.query(models.Session).filter_by(name="default session").first()
+        return session_obj.id
+
     def get_session_id(self):
         session_id = self.db.session.query(
             models.Session.id).filter_by(active=True).first()
