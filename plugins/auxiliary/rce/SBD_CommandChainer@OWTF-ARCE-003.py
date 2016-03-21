@@ -36,7 +36,7 @@ def run(PluginInfo):
                                                                                   'ISHELL_COMMANDS_BEFORE_EXIT_DELIM_DESCRIP'),
                                                                           'REPEAT_DELIM': config.Get('REPEAT_DELIM_DESCRIP')
                                                                           }}, PluginInfo):
-        plugin_params.SetConfig(Args)  # Sets the auxillary plugin arguments as config
+        plugin_params.SetConfig(Args)  # Sets the auxiliary plugin arguments as config
         REUSE_CONNECTION = (Args['ISHELL_REUSE_CONNECTION'] == 'yes')
         #print "REUSE_CONNECTION=" + str(REUSE_CONNECTION)
         DELAY_BETWEEN_COMMANDS = Args['ISHELL_DELAY_BETWEEN_COMMANDS']

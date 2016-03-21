@@ -222,7 +222,7 @@ class PluginHandlerTests(BaseTestCase):
         output.append(self.get_recorded_stdout(True))
         self.plugin_handler.ShowPluginGroupPlugins("web")
         output.append(self.get_recorded_stdout(True))
-        self.plugin_handler.ShowPluginGroupPlugins("auxillary")
+        self.plugin_handler.ShowPluginGroupPlugins("auxiliary")
         output.append(self.get_recorded_stdout(True))
         self.plugin_handler.ShowPluginGroupPlugins("network")
         output.append(self.get_recorded_stdout_and_close())
