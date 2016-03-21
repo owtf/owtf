@@ -39,7 +39,7 @@ do
 done
 
 # Check if the current available disk size is enough.
-while [ "${reset}$(available_disk_size)" -lt "$size" ]; do
+while [ "$(available_disk_size)" -lt "$size" ]; do
     echo "${warning}[!] Not enough available space for downloading $@${reset}"
     echo "${warning}[!] Please free the required size and proceed or skip this step (press \'n\') [Y/n]${reset}"
     read yn
