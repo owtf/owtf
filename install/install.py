@@ -103,6 +103,22 @@ def install_restricted_from_cfg(config_file):
         install_in_directory(os.path.expanduser(cp.get(section, "directory")), cp.get(section, "command"))
 
 
+def is_compatible():
+        compatible_value = os.system("which apt-get >> /dev/null 2>&1")
+        if compatible_value>>8 == 1:
+            return False
+        else:
+            return True
+
+def finish(error_code):
+        if error_code == 1:
+            Colorizer.danger("\n[!] The installation was not successful.")
+            Colorizer.normal("[*] Visit https://github.com/owtf/owtf for help ")
+        else:
+            Colorizer.success("[*] Finished!")
+            Colorizer.info("[*] Start OWTF by running './owtf.py' in parent directory")
+
+
 def install(cmd_arguments):
     """Perform installation of OWTF Framework. Wraps around all helper methods made in this module.
 
@@ -120,8 +136,8 @@ def install(cmd_arguments):
         distro_num = 1
     elif "samurai" in distro.lower():
         distro_num = 2
-    elif "debian" in distro.lower():
-        distro_num = 3
+    elif is_compatible():
+    	distro_num = 3
 
     # Loop until proper input is received
     while True:
@@ -269,7 +285,6 @@ if __name__ == "__main__":
 
     Colorizer.info("[*] Last commit hash: %s" % owtf_last_commit())
     check_sudo()
-    install(sys.argv[1:])
+    installer_status_code = install(sys.argv[1:])
 
-    Colorizer.success("[*] Finished!")
-    Colorizer.info("[*] Start OWTF by running './owtf.py' in parent directory")
+    finish(installer_status_code)
