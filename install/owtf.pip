@@ -19,6 +19,5 @@ python-owasp-zap-v2==0.0.9
 PyVirtualDisplay==0.1.5
 rdflib==4.1.2
 selenium==2.43.0
-setuptools==18.7.1
 SQLAlchemy==1.0.11
 tornado==4.0.2
