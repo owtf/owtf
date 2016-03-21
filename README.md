@@ -109,6 +109,7 @@ Links
 ===
 
 - [Project homepage](http://owtf.github.io/)
+- [IRC](http://webchat.freenode.net/?randomnick=1&channels=%23owtf&prompt=1&uio=MTE9MjM20f)
 - [Wiki](https://www.owasp.org/index.php/OWASP_OWTF)
 - [User Documentation](http://docs.owtf.org/en/latest/)
 - [Youtube channel](https://www.youtube.com/user/owtfproject)
