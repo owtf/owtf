@@ -26,6 +26,21 @@ class Installer(object):
         self.parser.add_argument('--no-user-input', help='run script with default options for user input', action="store_true")
         self.parser.add_argument('--core-only', help='install only owtf dependencies, skip optional tools', action="store_true")
 
+    def print_finish(self, error_code):
+        if error_code == 1:
+            Colorizer.danger("\n[!] The installation was not successful.")
+            Colorizer.normal("[*] Visit https://github.com/owtf/owtf for help ")
+        else:
+            Colorizer.success("[*] Finished!")
+            Colorizer.info("[*] Start OWTF by running './owtf.py' in parent directory")
+
+    def is_compatible(self):
+        compatible_value = os.system("which apt-get >> /dev/null")
+        if compatible_value>>8 == 1:
+            return False
+        else:
+            return True
+
     def create_directory(self, directory):
         # Create parent directories as necessary
         try:
@@ -93,16 +108,25 @@ class Installer(object):
         cp = ConfigParser.ConfigParser({"RootDir":self.RootDir, "Pid":self.pid})
         cp.read(self.distros_cfg)
 
-        #Try get the distro automatically
+        # Check if the current distribution is compatible 
+        if not self.is_compatible():
+            Colorizer.danger("\n[!] You don't seem to have the apt package manager installed. "
+                "This means that your distribution is not fully supported (yet).")
+
+            # yes is assumed for any other input
+            response = raw_input("\nContinue installation anyway? [Y/N] : ")
+            if(response.lower() == 'n'):
+                return 1
+
+        # Try detecting the distro automatically
         distro, version, arch = platform.linux_distribution()
         distro_num = 0
         if "kali" in distro.lower():
             distro_num = 1
         elif "samurai" in distro.lower():
             distro_num = 2
-        elif "debian" in distro.lower():
+        elif self.is_compatible():
             distro_num = 3
-
         # Loop until proper input is received
         while True:
             if distro_num != 0:
@@ -235,7 +259,7 @@ if __name__ == "__main__":
     installer = Installer(RootDir)
     Colorizer.info("[DEBUG] Last commit hash: %s" % installer.version(RootDir))
     installer.check_sudo()
-    installer.install(sys.argv[1:])
+    installer_status_code = installer.install(sys.argv[1:]) 
+    installer.print_finish(installer_status_code)
+    
 
-    Colorizer.success("[*] Finished!")
-    Colorizer.info("[*] Start OWTF by running './owtf.py' in parent directory")
