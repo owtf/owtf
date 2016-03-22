@@ -128,7 +128,7 @@ class Shell(BaseComponent, ShellInterface):
             logging.warn(outdata)
             Output += outdata
             try:
-                os.kill(proc.pid, signal.SIGTERM)  # Plugin KIA (Killed in Action)
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # Plugin KIA (Killed in Action)
             except OSError:
                 pass  # Plugin RIP (Rested In Peace)
             Cancelled = True
