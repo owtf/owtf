@@ -59,7 +59,8 @@ def check_sudo():
     if not sudo:
         return
     else:
-        Colorizer.warning("[!] Your user does not have sudo privileges. Some OWTF components require sudo permissions to install")
+        Colorizer.warning("[!] Your user does not have sudo privileges."
+                " Some OWTF components require sudo permissions to install")
         sys.exit()
 
 
@@ -67,6 +68,7 @@ def install_in_directory(directory, command):
     """Execute a certain command while staying inside one directory.
 
     :param directory: (~str) Path of directory in which installation command has to be executed.
+
     :param command: (~str) Linux shell command (most likely `wget` here)
 
     :return: True - if installation successful or directory already exists, and False if not.
@@ -105,10 +107,11 @@ def install_restricted_from_cfg(config_file):
 
 def is_compatible():
         compatible_value = os.system("which apt-get >> /dev/null 2>&1")
-        if compatible_value>>8 == 1:
+        if (compatible_value >> 8) == 1:
             return False
         else:
             return True
+
 
 def finish(error_code):
         if error_code == 1:
@@ -137,7 +140,7 @@ def install(cmd_arguments):
     elif "samurai" in distro.lower():
         distro_num = 2
     elif is_compatible():
-    	distro_num = 3
+        distro_num = 3
 
     # Loop until proper input is received
     while True:
@@ -219,7 +222,7 @@ class Colorizer:
     """Helper class for colorized strings.
 
     Different statements will have different colors:
-
+    
         - `normal`, denoting ongoing procedure (WHITE)
         - `info`, any file path, commit hash or any other info (BLUE)
         - `warning`, any potential hindrance in installation (YELLOW)

@@ -1,7 +1,6 @@
 from __future__ import division
 import re
 import os
-import subprocess
 import urllib2
 
 
@@ -18,10 +17,10 @@ def byte_to_human(size):
     except ValueError:
         return (0, "B")
     um = "B"
-    if size < pow(2,20):
-        size = size / pow(2,10)
+    if size < pow(2, 20):
+        size = size / pow(2, 10)
         um = "KB"
-    elif size < pow(2,30):
+    elif size < pow(2, 30):
         size = size / pow(2, 20)
         um = "MB"
     else:
@@ -68,7 +67,7 @@ def get_fs_free_space():
     try:
         stat = os.statvfs('.')
         return (stat.f_bavail * stat.f_frsize) / 1024
-    except  OSError:
+    except OSError:
         print("[!] Failed to get the filesystem disk space usage")
         return 0
 
@@ -88,7 +87,7 @@ def wget_wrapper(command):
         print("[!] Not enough space to proceed with the download.")
         human_size, um = byte_to_human(size)
         answer = raw_input("[!] Please free %s %s and proceed, or type \'n\' to skip the download. [Y/n] "
-                %('{0:.3g}'.format(human_size), um))
+                           % ('{0:.3g}'.format(human_size), um))
         if answer == 'n':
             return False
     return True
