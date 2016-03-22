@@ -27,7 +27,7 @@ else:
     nose_arguments = NoseArgumentBuilder(args).build()
     runner = Runner(nose_arguments)
     print "[+] Running tests..."
-    if (args.coverage is not None) and (args.all == True):
+    if (args.coverage is not None) and (args.all is True):
         # Coverage reports only have sense with all test
         runner.run_nose_with_coverage()
     else:

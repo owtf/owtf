@@ -48,9 +48,12 @@ class ConfigTests(BaseTestCase):
         method_backup = self.config.Get
 
         def fake_get(key):
-            if key == "host_ip": return "127.0.0.1"
-            elif key == "port_number": return "80"
-            elif key == "OUTPUT_PATH": return "some/path"
+            if key == "host_ip":
+                return "127.0.0.1"
+            elif key == "port_number":
+                return "80"
+            elif key == "OUTPUT_PATH":
+                return "some/path"
         self.config.Get = fake_get
 
         self.config.DeriveFromTarget(options)
@@ -190,7 +193,7 @@ class ConfigTests(BaseTestCase):
                 "Interactive": False,
                 "Simulation": True,
                 "PluginGroup": "web",
-                "PortWaves": [10,100],
+                "PortWaves": [10, 100],
                 'Scope': [],
                 "Profiles": {}}
 

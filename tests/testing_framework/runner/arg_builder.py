@@ -47,7 +47,7 @@ class NoseArgumentBuilder():
             self.nose_arguments = self.args.only.replace(",", " ") + " "
 
     def process_all_option(self):
-        if (self.args.all == True):
+        if (self.args.all is True):
             self.nose_arguments = TEST_CASES_FOLDER + "/ "
 
     def add_predefined_arguments(self):
@@ -55,7 +55,7 @@ class NoseArgumentBuilder():
 
     def find_files_matching(self, module_name):
         self.check_input(module_name)
-        command = "grep " + module_name + " " + TEST_CASES_FOLDER +"/ -l -r"
+        command = "grep %s %s/ -l -r" % (module_name, TEST_CASES_FOLDER)
         return subprocess.check_output(shlex.split(command), shell=False).split("\n")
 
     def check_input(self, input):

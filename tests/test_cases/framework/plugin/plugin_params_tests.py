@@ -113,4 +113,12 @@ class PluginParamsTests(BaseTestCase):
         assert_that(result[0]["arg2"], is_("val2"))
 
     def _get_plugin_example(self):
-        return {'Args': '', 'Code': 'OWASP-IG-005', 'Group': 'web', 'Name': 'Application_Discovery', 'File': 'Application_Discovery@OWASP-IG-005.py', 'Title': 'Application Discovery', 'Descrip': '', 'Type': 'passive'}
+        return {
+            'Args': '',
+            'Code': 'OWASP-IG-005',
+            'Group': 'web',
+            'Name': 'Application_Discovery',
+            'File': 'Application_Discovery@OWASP-IG-005.py',
+            'Title': 'Application Discovery',
+            'Descrip': '',
+            'Type': 'passive'}

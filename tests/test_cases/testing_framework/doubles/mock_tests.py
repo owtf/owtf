@@ -15,6 +15,7 @@ class ClassToTest():
     def methodC(self, *args):
         pass
 
+
 class OrderedExecutionMockTests(BaseTestCase):
 
     def before(self):

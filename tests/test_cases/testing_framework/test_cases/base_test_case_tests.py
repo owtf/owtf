@@ -63,4 +63,3 @@ class BaseTestCaseTests(BaseTestCase):
         abs_path = self.get_abs_path(relative_path)
 
         assert_that(abs_path, matches_regexp("/(.+/)*" + relative_path + "/?"))
-

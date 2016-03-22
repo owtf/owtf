@@ -37,6 +37,7 @@ class BlockingShellTests(BaseTestCase):
         subprocess.stdout.should_receive("readline").and_raise(KeyboardInterrupt).once()
         flexmock(self.shell)
         self.shell.should_receive("create_subprocess").and_return(subprocess)
+
         def fake_finish_command(arg1, cancelled):
             assert_that(cancelled, is_(True))
         self.shell.FinishCommand = fake_finish_command

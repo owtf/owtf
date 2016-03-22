@@ -29,7 +29,6 @@ class NetPluginsTests(PluginTestCase):
         ("msrpc", "MsRpcProbeMethods"),
         ("ms-sql", "MsSqlProbeMethods"),
         ("ppp", "EmcProbeMethods"),
-      #  ("smb", "SmbProbeMethods"),  this is different
         ("smtp", "SmtpProbeMethods"),
         ("snmp", "SnmpProbeMethods"),
         ("vnc", "VncProbeMethods"),

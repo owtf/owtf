@@ -108,7 +108,6 @@ class PluginConfigTests(BaseTestCase):
         for plugin_type in expected_types:
             assert_that(self.plugin_config.AllowedPluginTypes["web"], has_item(plugin_type))
 
-
     def test_DeriveAllowedTypes_for_web_with_quiet_TypeFilter_should_include_passive_and_semi_passive(self):
         self.plugin_config.DeriveAllowedTypes("web", ["quiet"])
 

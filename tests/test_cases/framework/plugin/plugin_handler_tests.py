@@ -6,8 +6,7 @@ from tests.testing_framework.utils import ExpensiveResourceProxy
 from tests.testing_framework.config.environments import PluginConfigEnvironmentBuilder
 from tests.testing_framework.plugin.environments import PluginHandlerEnvironmentBuilder
 from os import path
-from framework.lib.exceptions import PluginAbortException,\
-                                     UnreachableTargetException
+from framework.lib.exceptions import PluginAbortException, UnreachableTargetException
 from tests.testing_framework.doubles.mock import OrderedExecutionMock
 import multiprocessing
 import time
@@ -177,18 +176,22 @@ class PluginHandlerTests(BaseTestCase):
         flexmock(self.plugin_handler)
         self.plugin_handler.should_receive("GetPluginGroupDir").and_return(plugins_path)
         self.plugin_handler.should_receive("get_plugins_in_order").and_return(["plugin1", "plugin2", "plugin3", "plugin4", "plugin5", "plugin6", "plugin7", "plugin8"])
-        def fake_worker(work,queue,start,status):
+
+        def fake_worker(work, queue, start, status):
             # I has to consume the items from the queue not to get a deadlock
             while True:
                 try:
                     work = queue.get()
-                    if work == (): sys.exit()
+                    if work == ():
+                        sys.exit()
                 except Queue.Empty:
                     pass
                 finally:
                     time.sleep(0.5)
         self.plugin_handler.worker = fake_worker
-        def fake_output(q): pass  #  In this test we are not taking care of the commands output
+
+        def fake_output(q):
+            pass  # In this test we are not taking care of the commands output
         self.plugin_handler.output = fake_output
 
         self.init_stdout_recording()

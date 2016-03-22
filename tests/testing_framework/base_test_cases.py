@@ -368,4 +368,3 @@ class WebPluginTestCase(PluginTestCase):
         for name in header_names:
             headers[name] = self.generate_random_token()
         return headers
-

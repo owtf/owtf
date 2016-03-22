@@ -43,8 +43,7 @@ class WebPluginsTests(WebPluginTestCase):
 
         self.owtf("-g web -t active -o Arachni_Unauthenticated")
 
-        arachni_banner = ["Arachni - Web Application Security Scanner Framework",
-                         "Author: Tasos \"Zapotek\" Laskos"]
+        arachni_banner = ["Arachni - Web Application Security Scanner Framework", "Author: Tasos \"Zapotek\" Laskos"]
 
         # Checking for plugin banner
         self.assert_that_output_contains("Plugin: Arachni Unauthenticated (active)")
@@ -160,7 +159,7 @@ class WebPluginsTests(WebPluginTestCase):
         self.assert_that_output_contains_lines(metagoofil_banner)
 
     def test_Spiders_Robots_and_Crawlers_semi_passive(self):
-        robots_path = self.get_resource_path("www/robots") # Only 1 file in this folder
+        robots_path = self.get_resource_path("www/robots")  # Only 1 file in this folder
         self.set_custom_handler("/(.*)", tornado.web.StaticFileHandler, {"path": robots_path})
         self.start_server()
 
@@ -171,7 +170,7 @@ class WebPluginsTests(WebPluginTestCase):
         # Check disallow entries
         self.assert_that_output_contains(self.ANCHOR_PATTERN % self.get_url("/public"))
         # Check special urls, contains a space
-        self.assert_that_output_contains(self.ANCHOR_PATTERN % self.get_url("/\tmalformed")) # With a tab
+        self.assert_that_output_contains(self.ANCHOR_PATTERN % self.get_url("/\tmalformed"))  # With a tab
         # Check that other urls with misspelled key words are included (Diallow)
         self.assert_that_output_contains(self.ANCHOR_PATTERN % self.get_url("/misspelled"))
         # Check that repeated urls are showed only once
@@ -214,18 +213,18 @@ class WebPluginsTests(WebPluginTestCase):
     # the testing for this kind of plugin is always the same.
 
     @parameterized.expand([
-    ("Application_Discovery", "PassiveAppDiscovery"),
-    ("HTTP_Methods_and_XST", "PassiveMethods"),
-    ("Old_Backup_and_Unreferenced_Files", "PassiveOldBackupUnreferencedFilesLnk"),
-    ("Spiders_Robots_and_Crawlers", ["PassiveRobotsAnalysisHTTPRequests", "PassiveRobotsAnalysisLinks"]),
-    ("Testing_for_Admin_Interfaces", "PassiveAdminInterfaceLnk"),
-    ("Testing_for_Captcha", "PassiveCAPTCHALnk"),
-    ("Testing_for_Cross_site_flashing", "PassiveCrossSiteFlashingLnk"),
-    ("Testing_for_Error_Code", "PassiveErrorMessagesLnk"),
-    ("Testing_for_SQL_Injection", "PassiveSQLInjectionLnk"),
-    ("Testing_for_SSL-TLS", "PassiveSSL"),
-    ("Web_Application_Fingerprint", "PassiveFingerPrint"),
-    ("WS_Information_Gathering", "WSPassiveSearchEngineDiscoveryLnk")
+        ("Application_Discovery", "PassiveAppDiscovery"),
+        ("HTTP_Methods_and_XST", "PassiveMethods"),
+        ("Old_Backup_and_Unreferenced_Files", "PassiveOldBackupUnreferencedFilesLnk"),
+        ("Spiders_Robots_and_Crawlers", ["PassiveRobotsAnalysisHTTPRequests", "PassiveRobotsAnalysisLinks"]),
+        ("Testing_for_Admin_Interfaces", "PassiveAdminInterfaceLnk"),
+        ("Testing_for_Captcha", "PassiveCAPTCHALnk"),
+        ("Testing_for_Cross_site_flashing", "PassiveCrossSiteFlashingLnk"),
+        ("Testing_for_Error_Code", "PassiveErrorMessagesLnk"),
+        ("Testing_for_SQL_Injection", "PassiveSQLInjectionLnk"),
+        ("Testing_for_SSL-TLS", "PassiveSSL"),
+        ("Web_Application_Fingerprint", "PassiveFingerPrint"),
+        ("WS_Information_Gathering", "WSPassiveSearchEngineDiscoveryLnk")
     ])
     def test_passive(self, plugin_name, resource_name):
         self.owtf("-g web -t passive -o " + plugin_name)
@@ -360,7 +359,8 @@ class WebPluginsTests(WebPluginTestCase):
 
     def test_for_SSI_Injection_grep(self):
         # Looks for SSI directives in the source code of the page
-        content = "<html><body><!--#echo var=\"DATE_LOCAL\" --></body></html>" # Directive taken from the OWASP Testing Guide v3
+        content = "<html><body><!--#echo var=\"DATE_LOCAL\" --></body></html>"
+        # Directive taken from the OWASP Testing Guide v3
         self.set_get_response("/ssi-in-html", content)
         self.start_server()
         self.visit_url(self.get_url("/ssi-in-html"))
