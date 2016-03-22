@@ -26,14 +26,14 @@ echo "DATE=$DATE"
 OUTFILE="arachni_report$DATE"
 DIR=$(pwd)
 #COMMAND="$TOOL_BIN --only-positives --user-agent=\"$USER_AGENT\" --http-req-limit=30 --report=\"html:outfile=$OUTFILE.html\" --report=\"txt:outfile=$OUTFILE.txt\" --report=\"metareport:outfile=$OUTFILE.msf\" --report=\"ap:outfile=$OUTFILE.ap\" --report=\"xml:outfile=$OUTFILE.xml\" --report=\"afr:outfile=$OUTFILE.afr\" $URL"
-COMMAND="./$TOOL_BIN --http-user-agent=\"$USER_AGENT\" --http-request-concurrency=20 --report-save-path=\"$OUTFILE.afr\" --http-proxy=$PROXY $URL"
+COMMAND="$TOOL_BIN --http-user-agent=\"$USER_AGENT\" --http-request-concurrency=20 --report-save-path=\"$OUTFILE.afr\" --http-proxy=$PROXY $URL"
 echo
 echo "[*] Running: $COMMAND"
 # IMPORTANT: Running as "$COMMAND" fails totally, avoid!!!
 $TOOL_BIN --http-user-agent="$USER_AGENT" --http-request-concurrency=20 --report-save-path="$DIR/$OUTFILE.afr" --http-proxy=$PROXY $URL
 #./arachni --only-positives --user-agent="$USER_AGENT" --http-req-limit=30 --report="html:outfile=$OUTFILE.html" --report="txt:outfile=$OUTFILE.txt" --report="metareport:outfile=$OUTFILE.msf" --report="ap:outfile=$OUTFILE.ap" --report="xml:outfile=$OUTFILE.xml" --report="afr:outfile=$OUTFILE.afr" $URL
 
-COMMAND="./$REPORTER_BIN --reporter=\"html:outfile=$OUTFILE.html.zip\" --reporter=\"txt:outfile=$OUTFILE.txt\" --reporter=\"json:outfile=$OUTFILE.json\" --reporter=\"ap:outfile=$OUTFILE.ap\" --reporter=\"xml:outfile=$OUTFILE.xml\" \"$DIR/$OUTFILE.afr\""
+COMMAND="$REPORTER_BIN --reporter=\"html:outfile=$OUTFILE.html.zip\" --reporter=\"txt:outfile=$OUTFILE.txt\" --reporter=\"json:outfile=$OUTFILE.json\" --reporter=\"ap:outfile=$OUTFILE.ap\" --reporter=\"xml:outfile=$OUTFILE.xml\" \"$DIR/$OUTFILE.afr\""
 echo
 echo "[*] Running: $COMMAND"
 $REPORTER_BIN --reporter="html:outfile=$OUTFILE.html.zip" --reporter="txt:outfile=$OUTFILE.txt" --reporter="json:outfile=$OUTFILE.json" --reporter="ap:outfile=$OUTFILE.ap" --reporter="xml:outfile=$OUTFILE.xml" "$DIR/$OUTFILE.afr"
