@@ -1,7 +1,6 @@
 from framework.dependency_management.dependency_resolver import ServiceLocator
 
-DESCRIPTION = "Runs commands on an agent server via SSH -i.e. for IDS testing-"
-CHANNEL = 'SSH'
+DESCRIPTION = "Runs commands on an agent server via SBD -i.e. for IDS testing-"
 
 
 def run(PluginInfo):
@@ -14,21 +13,21 @@ def run(PluginInfo):
                                                                           'Description': DESCRIPTION,
                                                                           'Mandatory': {
                                                                           'RHOST': config.Get('RHOST_DESCRIP'),
-                                                                          'RUSER': config.Get('RUSER_DESCRIP'),
+                                                                          'SBD_PORT': config.Get('SBD_PORT_DESCRIP'),
+                                                                          'SBD_PASSWORD': config.Get('SBD_PASSWORD_DESCRIP'),
                                                                           'COMMAND_FILE': config.Get('COMMAND_FILE_DESCRIP')
                                                                           },
                                                                           'Optional': {
-                                                                          'RPORT': config.Get('RPORT_DESCRIP'),
-                                                                          'PASSPHRASE': config.Get('PASSPHRASE_DESCRIP'),
                                                                           'REPEAT_DELIM': config.Get('REPEAT_DELIM_DESCRIP')
                                                                           }}, PluginInfo):
-        plugin_params.SetConfig(Args)  # Sets the auxillary plugin arguments as config
+        plugin_params.SetConfig(Args)  # Sets the auxiliary plugin arguments as config
 
         #print "Args="+str(Args)
         Core.RemoteShell.Open({
-                              'ConnectVia': config.GetResources('RCE_SSH_Connection')
-                              , 'InitialCommands': Args['PASSPHRASE']
+                              'ConnectVia': config.GetResources('RCE_SBD_Connection')
+                              , 'InitialCommands': None
                               }, PluginInfo)
+        Core.RemoteShell.RunCommandList(Core.GetFileAsList(Args['COMMAND_FILE']))
         Core.RemoteShell.Close(PluginInfo)
     #Content += ServiceLocator.get_component("plugin_helper").DrawCommandDump('Test Command', 'Output', ServiceLocator.get_component("config").GetResources('LaunchExploit_'+Args['CATEGORY']+"_"+Args['SUBCATEGORY']), PluginInfo, "") # No previous output
     return Content

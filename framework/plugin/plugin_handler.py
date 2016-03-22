@@ -37,7 +37,7 @@ Short Intro:
 Current Plugin Groups:
 - web: For web assessments or when network plugins find a port that "speaks HTTP"
 - network: For network assessments, discovery and port probing
-- auxillary: Auxiliary plugins, to automate miscelaneous tasks
+- auxiliary: Auxiliary plugins, to automate miscelaneous tasks
 """
 
 INTRO_BANNER_WEB_PLUGIN_TYPE = """
@@ -149,7 +149,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         # Organise results by OWASP Test type and then active, passive, semi_passive
         if ((Plugin['group'] == 'web') or (Plugin['group'] == 'network')):
             return os.path.join(self.target.GetPath('partial_url_output_path'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
-        elif Plugin['group'] == 'auxillary':
+        elif Plugin['group'] == 'auxiliary':
             return os.path.join(self.config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
 
     def RequestsPossible(self):
@@ -393,7 +393,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             'SomeAborted': False,
             'SomeSuccessful': False,
             'AllSkipped': True}
-        if self.PluginGroup in ['web', 'auxillary', 'network']:
+        if self.PluginGroup in ['web', 'auxiliary', 'network']:
             self.ProcessPluginsForTargetList(
                 self.PluginGroup,
                 status,
@@ -465,7 +465,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def show_plugin_list(self, group, msg=INTRO_BANNER_GENERAL):
         if group == 'web':
             logging.info(msg + INTRO_BANNER_WEB_PLUGIN_TYPE + "\nAvailable WEB plugins:")
-        elif group == 'auxillary':
+        elif group == 'auxiliary':
             logging.info(msg + "\nAvailable AUXILIARY plugins:")
         elif group == 'network':
             logging.info(msg + "\nAvailable NET plugins:")
@@ -480,4 +480,3 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             Pad1 = "_" * (60 - len(LineStart))
             Pad2 = "_" * (20 - len(Plugin['code']))
             logging.info(LineStart + Pad1 + "(" + Plugin['code'] + ")" + Pad2 + Plugin['descrip'])
-

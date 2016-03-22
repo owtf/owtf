@@ -37,12 +37,12 @@ class PluginConfigTests(BaseTestCase):
     def test_GetAllGroups_should_return_a_list_with_all_groups(self):
         all_groups = self.plugin_config.GetAllGroups()
 
-        assert_that(all_groups, has_item('auxillary'))
+        assert_that(all_groups, has_item('auxiliary'))
         assert_that(all_groups, has_item('network'))
         assert_that(all_groups, has_item('web'))
 
     def test_GetTypesForGroup_aux_should_return_a_list_with_its_types(self):
-        aux_types = self.plugin_config.GetTypesForGroup("auxillary")
+        aux_types = self.plugin_config.GetTypesForGroup("auxiliary")
 
         assert_that(aux_types, has_length(7))
 
@@ -145,6 +145,3 @@ class PluginConfigTests(BaseTestCase):
 
         for i, plugin in enumerate(web_order):
             assert_that(plugin["Name"], equal_to_ignoring_case(web_plugin_names[i]))
-
-
-
