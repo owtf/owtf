@@ -13,7 +13,7 @@ from sqlalchemy.pool import NullPool, QueuePool
 from sqlalchemy.orm import Session as BaseSession
 from framework.db import models, plugin_manager, target_manager, resource_manager, \
     config_manager, poutput_manager, transaction_manager, url_manager, \
-    command_register, error_manager, mapping_manager, vulnexp_manager, \
+    command_register, error_manager, mapping_manager, \
     session_manager, worklist_manager
 from contextlib import contextmanager
 import logging
@@ -72,7 +72,6 @@ class DB(BaseComponent, DBInterface):
         self.Error = None
         self.CommandRegister = None
         self.Mapping = None
-        self.Vulnexp = None
         self._db_settings = self._get_db_settings()
         self.create_session()
 
@@ -91,7 +90,6 @@ class DB(BaseComponent, DBInterface):
         self.error_handler = self.get_component("error_handler")
         self.OWTFSession = self.get_component("session_db")
         self.Worklist = self.get_component("worklist_manager")
-        #self.Vulnexp = self.get_component("vulnexp_db")
         self.DBHealthCheck()
 
     def get_category(self, plugin_code):
@@ -168,4 +166,3 @@ class DB(BaseComponent, DBInterface):
                                        autocommit=False,
                                        class_=Session)
         return scoped_session(session_factory)
-

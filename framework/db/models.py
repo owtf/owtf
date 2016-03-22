@@ -308,12 +308,3 @@ class Mapping(Base):
     owtf_code = Column(String, primary_key=True)
     mappings = Column(String)
     category = Column(String, nullable=True)
-
-
-VulnexpBase = declarative_base()
-
-class Vulnexp(VulnexpBase):
-    __tablename__ = 'vulnexp'
-    title = Column(String, primary_key=True)
-    desc = Column(String)
-    category = Column(String)

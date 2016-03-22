@@ -16,7 +16,6 @@ from framework.db.session_manager import OWTFSessionDB
 from framework.db.target_manager import TargetDB
 from framework.db.transaction_manager import TransactionManager
 from framework.db.url_manager import URLManager
-from framework.db.vulnexp_manager import VulnexpDB
 from framework.db.worklist_manager import WorklistManager
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.error_handler import ErrorHandler
@@ -64,7 +63,6 @@ class ComponentInitialiser():
         ResourceDB()
         ErrorDB()
         MappingDB()
-        VulnexpDB()
         Timer(db_config.Get('DATE_TIME_FORMAT'))
         PluginDB()
         zest = Zest()

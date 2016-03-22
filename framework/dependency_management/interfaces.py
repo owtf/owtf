@@ -13,7 +13,7 @@ class CommandRegisterInterface(AbstractInterface):
 
     @abstractmethod
     def CommandAlreadyRegistered(self): pass
-    
+
 
 class DBInterface(AbstractInterface):
 
@@ -73,19 +73,19 @@ class DBPluginInterface(AbstractInterface):
 
 
 class ErrorHandlerInterface(AbstractInterface):
-    
+
     @abstractmethod
     def Add(self): pass
-    
+
     @abstractmethod
     def AddGithubIssue(self): pass
-    
+
     @abstractmethod
     def FrameworkAbort(self): pass
-    
+
     @abstractmethod
     def SetCommand(self): pass
-    
+
     @abstractmethod
     def UserAbort(self): pass
 
@@ -97,7 +97,7 @@ class MappingDBInterface(AbstractInterface):
 
     @abstractmethod
     def GetMappings(self): pass
-    
+
 
 class PluginHandlerInterface(AbstractInterface):
 
@@ -151,205 +151,199 @@ class PluginOutputInterface(AbstractInterface):
 
     @abstractmethod
     def Update(self): pass
-    
+
 
 class RequesterInterface(AbstractInterface):
-    
+
     @abstractmethod
     def GetTransaction(self): pass
-    
+
     @abstractmethod
     def GetTransactions(self): pass
-    
+
     @abstractmethod
     def Request(self): pass
-    
+
     @abstractmethod
     def SetHeaders(self): pass
 
 
 class ResourceInterface(AbstractInterface):
-    
+
     @abstractmethod
     def GetResourceList(self): pass
-    
+
     @abstractmethod
     def GetResources(self): pass
-    
+
 
 class ShellInterface(AbstractInterface):
-    
+
     @abstractmethod
     def GetModifiedShellCommand(self): pass
-    
+
     @abstractmethod
     def RefreshReplacements(self): pass
-    
+
     @abstractmethod
     def shell_exec(self): pass
-    
+
     @abstractmethod
     def shell_exec_monitor(self): pass
 
 
 class TimerInterface(AbstractInterface):
-    
+
     @abstractmethod
     def GetElapsedTimeAsStr(self): pass
-    
+
     @abstractmethod
     def GetEndDateTimeAsStr(self): pass
-    
+
     @abstractmethod
     def GetStartDateTimeAsStr(self): pass
-    
+
     @abstractmethod
     def StartTimer(self): pass
-    
-    
+
+
 class TransactionInterface(AbstractInterface):
-    
+
     @abstractmethod
     def DeleteTransaction(self): pass
-    
+
     @abstractmethod
     def GetAllAsDicts(self): pass
-    
+
     @abstractmethod
     def GetByIDAsDict(self): pass
-    
+
     @abstractmethod
     def GetByIDs(self): pass
-    
+
     @abstractmethod
     def GetFirst(self): pass
-    
+
     @abstractmethod
     def GetSessionData(self): pass
-    
+
     @abstractmethod
     def GetTopTransactionsBySpeed(self): pass
-    
+
     @abstractmethod
     def IsTransactionAlreadyAdded(self): pass
-    
+
     @abstractmethod
     def LogTransaction(self): pass
-    
+
     @abstractmethod
     def LogTransactionsFromLogger(self): pass
-    
+
     @abstractmethod
     def NumTransactions(self): pass
-    
+
     @abstractmethod
     def SearchAll(self): pass
-    
+
     @abstractmethod
     def SearchByRegexName(self): pass
-    
+
 
 class URLManagerInterface(AbstractInterface):
-    
+
     @abstractmethod
     def AddURL(self): pass
-    
+
     @abstractmethod
     def AddURLsEnd(self): pass
-    
+
     @abstractmethod
     def AddURLsStart(self): pass
-    
+
     @abstractmethod
     def GetAll(self): pass
-    
+
     @abstractmethod
     def GetURLsToVisit(self): pass
-    
+
     @abstractmethod
     def ImportProcessedURLs(self): pass
-    
+
     @abstractmethod
     def ImportURLs(self): pass
-    
+
     @abstractmethod
     def IsURL(self): pass
-    
+
     @abstractmethod
     def SearchAll(self): pass
-    
 
-class VulnexpDBInterface(AbstractInterface):
-    
-    @abstractmethod
-    def GetExplanation(self): pass
-    
-    
+
 class WorkerManagerInterface(AbstractInterface):
-    
+
     @abstractmethod
     def create_worker(self): pass
-    
+
     @abstractmethod
     def delete_worker(self): pass
-    
+
     @abstractmethod
     def fill_work_list(self): pass
-    
+
     @abstractmethod
     def filter_work_list(self): pass
-    
+
     @abstractmethod
     def get_work_list(self): pass
-    
+
     @abstractmethod
     def get_worker_details(self): pass
-    
+
     @abstractmethod
     def manage_workers(self): pass
-    
+
 
 class ZapAPIInterface(AbstractInterface):
-    
+
     @abstractmethod
     def ForwardRequest(self): pass
 
 
 class ZestInterface(AbstractInterface):
-    
+
     @abstractmethod
     def GetAllScripts(self): pass
-    
+
     @abstractmethod
     def GetRecordScriptContent(self): pass
-    
+
     @abstractmethod
     def GetTargetConfig(self): pass
-    
+
     @abstractmethod
     def GetTargetScriptContent(self): pass
-    
+
     @abstractmethod
     def IsRecording(self): pass
-    
+
     @abstractmethod
     def RunRecordScript(self): pass
-    
+
     @abstractmethod
     def RunTargetScript(self): pass
-    
+
     @abstractmethod
     def StartRecorder(self): pass
-    
+
     @abstractmethod
     def StopRecorder(self): pass
-    
+
     @abstractmethod
     def TargetScriptFromMultipleTransactions(self): pass
-    
+
     @abstractmethod
     def TargetScriptFromSingleTransaction(self): pass
-    
+
     @abstractmethod
     def addtoRecordedTrans(self): pass
 

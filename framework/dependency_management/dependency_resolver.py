@@ -25,7 +25,6 @@ class ServiceLocator:
         "timer",
         "transaction",
         "url_manager",
-        "vulnexp_db",
         "worker_manager",
         "zap_api",
         "zest",

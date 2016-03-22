@@ -375,7 +375,6 @@ class PluginOutput(custom_handlers.UIRequestHandler):
                         poutput_api_url=self.reverse_url('poutput_api_url', target_id, None, None, None),
                         transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                         url_log_url=self.reverse_url('url_log_url', target_id),
-                        # html=(self.application.Core.DB.Vulnexp.GetExplanation(owtf_code))
                         )
         except InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)
