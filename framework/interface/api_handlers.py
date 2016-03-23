@@ -536,6 +536,29 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
 
+class ProgressBarHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+
+    def get(self):
+        try:
+            self.write(self.get_component("plugin_output").PluginCountOutput())
+        except exceptions.InvalidParameterType as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+
+    def post(self):
+        raise tornado.web.HTTPError(405)
+
+    def put(self):
+        raise tornado.web.HTTPError(405)
+
+    def patch(self):
+        raise tornado.web.HTTPError(405)
+
+    def delete(self):
+        raise tornado.web.HTTPError(405)
+
+
 class WorkerHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'OPTIONS']
 

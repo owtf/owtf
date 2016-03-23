@@ -26,6 +26,12 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         count = self.db.session.query(models.PluginOutput).filter_by(target_id=target_id, plugin_key=plugin_key).count()
         return (count > 0)
 
+    def PluginCountOutput(self):
+        complete_count = self.db.session.query(models.PluginOutput).count()
+        left_count = self.db.session.query(models.Work).count()
+        results = {'complete_count': complete_count, 'left_count': left_count}
+        return results
+
     def DeriveHTMLOutput(self, plugin_output):
         Content = ''
         for item in plugin_output:

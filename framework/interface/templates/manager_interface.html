@@ -19,6 +19,11 @@
     </div>
 </div>
 <br>
+<h5><strong>Progress of Running Plugins</strong></h5>
+<div class="progress">
+  <div id="pluginprogress" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+  </div>
+</div>
 <div class="row" id="workersInfo">
 </div>
 <!-- End Workers Info Area -->
@@ -26,6 +31,7 @@
 var mySpace = {
                     workers_api_url:"{{ workers_api_url }}",
                     targets_ui_url:"{{ targets_ui_url }}",
+                    plugins_api_url:"{{ plugins_api_url }}",
                 };
 
 var num_workers;
@@ -164,8 +170,26 @@ function getElapsedTime(start_time){
     return s;
 }
 
+//Function which updates progress bar
+function moveProgressBar() {
+    var elem = $("#pluginprogress");
+    var progressbar = setInterval(function() {
+        $.getJSON(mySpace.plugins_api_url + 'progress/', function(data) {
+            var left_count = data.left_count;
+            var complete_count = data.complete_count;
+            percentage_done = (complete_count / (left_count + complete_count)) * 100;
+            elem.css("width", percentage_done + '%');
+            if (percentage_done == 100) {
+                elem.removeClass('active');
+                clearInterval(progressbar);
+            }
+        });
+    }, 1000);
+}
+
 $(document).ready(function() {
         displayWorkersInfo();  // Then workers information can be displayed
+        moveProgressBar();
 });
 </script>
 {% end %}
