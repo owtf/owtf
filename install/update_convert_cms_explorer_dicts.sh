@@ -13,7 +13,8 @@ if [ ! -d "$SOURCE_DIR" ]; then
 fi
 
 CMS_EXPLORER_DIR="$RootDir/tools/restricted/cms-explorer/cms-explorer-1.0"
-CMS_DICTIONARIES_DIR="$RootDir/dictionaries/restricted/cms" 
+CMS_EXPLORER_UPDATE_SCRIPT="$RootDir/scripts/update_cms_explorer_lists.py"
+CMS_DICTIONARIES_DIR="$RootDir/dictionaries/restricted/cms"
 mkdir -p ${CMS_DICTIONARIES_DIR}
 
 DICTIONARIES="$CMS_EXPLORER_DIR/drupal_plugins.txt
@@ -26,8 +27,17 @@ $CMS_EXPLORER_DIR/joomla_plugins.txt"
 echo "${info}[*] Going into directory: $CMS_EXPLORER_DIR${reset}"
 cd ${CMS_EXPLORER_DIR}
 
-echo "${normal}[*] Updating cms-explorer.pl dictionaries..${reset}"
+echo "${normal}[*] Updating cms-explorer dictionaries..${reset}"
 ./cms-explorer.pl -update
+python $CMS_EXPLORER_UPDATE_SCRIPT
+
+echo "${info}[*] Merging old and new lists...${reset}"
+for list in $(echo ${DICTIONARIES}); do
+    cat "$list.new" >> $list 2> /dev/null;
+    rm "$list.new" 2> /dev/null;
+    cat $list | sort -u > "$list.tmp" # Remove duplicates, just in case;
+    mv "$list.tmp" $list;
+done
 
 # leaving the directory in order to copy the lists from dict_root
 cd ../../
