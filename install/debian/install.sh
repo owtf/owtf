@@ -23,7 +23,7 @@ sudo apt-get update
 
 # Grab and install pip
 echo "${info}[*] Installing pip using get-pip.py${reset}"
-wget --user-agent="${user_agent}" --tries=3 https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+wget --user-agent="${user_agent}" --tries=3 https://raw.githubusercontent.com/pypa/pip/master/contrib/get-pip.py
 sudo -E python get-pip.py
 
 # Install headers for x86_64-linux-gnu-gcc
