@@ -6,27 +6,22 @@ CATEGORIES = ['HTTP_WIN', 'HTTP', 'DHCP', 'NTFS', 'HP', 'MDNS', 'PPTP', 'SAMBA',
               'WIN_SMB', 'WIN_SMTP', 'WIN_TFTP', 'WIRESHARK']
 
 
-def run( PluginInfo):
-    # ServiceLocator.get_component("config").Show()
-    Content = DESCRIPTION + " Results:<br />"
+def run(PluginInfo):
+    Content = "%s Results:<br />" % DESCRIPTION
     plugin_params = ServiceLocator.get_component("plugin_params")
     config = ServiceLocator.get_component("config")
     for Args in plugin_params.GetArgs({
-                                                                          'Description': DESCRIPTION,
-                                                                          'Mandatory': {
-                                                                          'RHOST': config.Get('RHOST_DESCRIP'),
-                                                                          'RPORT': config.Get('RPORT_DESCRIP'),
-                                                                          },
-                                                                          'Optional': {
-                                                                          'CATEGORY': 'Category to use (i.e. ' + ', '.join(
-                                                                                  sorted(CATEGORIES)) + ')',
-                                                                          'REPEAT_DELIM': config.Get('REPEAT_DELIM_DESCRIP')
-                                                                          }}, PluginInfo):
-        plugin_params.SetConfig(Args)
-        #print "Args="+str(Args)
-        Content += ServiceLocator.get_component("plugin_helper").DrawCommandDump('Test Command', 'Output',
-                                                                                 config.GetResources(
-                                                                                     'DoS_' + Args['CATEGORY']),
-                                                                                 PluginInfo, "")  # No previous output
-    return Content
+        'Description': DESCRIPTION,
+        'Mandatory': {
+            'RHOST': config.Get('RHOST_DESCRIP'),
+            'RPORT': config.Get('RPORT_DESCRIP'),
+        },
+        'Optional': {
+            'CATEGORY': 'Category to use (i.e. %s)' % ', '.join(sorted(CATEGORIES)),
+            'REPEAT_DELIM': config.Get('REPEAT_DELIM_DESCRIP')}}, PluginInfo):
 
+        plugin_params.SetConfig(Args)
+        Content += ServiceLocator.get_component("plugin_helper").DrawCommandDump(
+            'Test Command', 'Output',
+            config.GetResources('DoS_%s' % Args['CATEGORY']), PluginInfo, "")  # No previous output
+    return Content

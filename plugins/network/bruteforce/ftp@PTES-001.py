@@ -1,11 +1,15 @@
-from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 Plugin for probing ftp
 """
 
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
 DESCRIPTION = " FTP Probing "
 
+
 def run(PluginInfo):
-    #ServiceLocator.get_component("config").Show()
-    #print "Content="+Content
-    return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', ServiceLocator.get_component("resource").GetResources('BruteFtpProbeMethods'), PluginInfo, []) # No previous output
+    return ServiceLocator.get_component("plugin_helper").CommandDump(
+        'Test Command',
+        'Output',
+        ServiceLocator.get_component("resource").GetResources('BruteFtpProbeMethods'),
+        PluginInfo, [])  # No previous output
