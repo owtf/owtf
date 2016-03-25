@@ -19,9 +19,10 @@
                 <div class="panel-body">
                     <ul class="nav nav-tabs">
                         <li class="brand disabled"><a class="btn" disabled="disabled">Type:</a></li>
+                        {% set pactive = 'active' if len(poutput_list) == 1 else '' %}
                         {% for poutput in poutput_list %}
                         {% set pkey = poutput['plugin_type'] + '_' + poutput['plugin_code'] %}
-                        <li>
+                        <li class="{{ pactive }}">
                             <a id="tab_{{ pkey }}" href="#{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}" data-toggle="tab">
                                 {{ poutput['plugin_type'].replace('_',' ') }}
                             </a>
@@ -33,7 +34,7 @@
                     <div class="tab-content">
                         {% for poutput in poutput_list %}
                         {% set pkey = poutput['plugin_type'] + '_' + poutput['plugin_code'] %}
-                        <div class="tab-pane" id="{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}">
+                        <div class="tab-pane {{ pactive }}" id="{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}">
                             <div class="pull-left" data-toggle="buttons-checkbox">
                                 <blockquote><h4>{{ poutput['plugin_type'].replace('_',' ').capitalize() }}</h4><small>{{ poutput['plugin_code'] }}</small></blockquote>
                             </div>
