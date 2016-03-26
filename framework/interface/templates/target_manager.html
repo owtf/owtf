@@ -93,7 +93,7 @@
             <div class="input-group">
                 <input id="newSessionName" type="text" class="form-control" placeholder="New Session">
                 <span class="input-group-btn">
-                    <button class="btn btn-primary" onclick="newSession($('#newSessionName').val().substring(0, 50));" type="button">Add!</button>
+                    <button class="btn btn-primary" onclick="newSession($('#newSessionName').val());" type="button">Add!</button>
                 </span>
             </div><!-- /input-group -->
         </div>
@@ -202,12 +202,14 @@ function newSession(session_name) {
 
 // Delete session
 function deleteSession(session_id) {
+    var tempvalue;
     $.ajax({
         url: mySpace.owtf_sessions_api_url + session_id,
         type: 'DELETE',
         success: function () {
             updateSessions();
             updateCurrentSessionInfo();
+            checkForActiveSession(1);
         },
         error: function (xhr, textStatus, serverResponse) {
             alertFail("Server replied: " + serverResponse);
@@ -220,7 +222,9 @@ function activateSession(session_id) {
     $.ajax({
         url: mySpace.owtf_sessions_api_url + session_id + '/activate',
         type: 'PATCH',
-        success: updateCurrentSessionInfo,
+        success: function () {
+            updateCurrentSessionInfo();
+        },
         error: function (xhr, textStatus, serverResponse) {
             alertFail("Server replied: " + serverResponse);
         }
@@ -233,7 +237,7 @@ function addSessions(data, status, xhr) {
     $.each(data, function (index, obj) {
         checked = (obj.active) ? 'checked' : '';
         actionButtons = '<a href="#" onclick="deleteSession(' + obj.id + ');" data-toggle="tooltip" data-placement="bottom" title="Delete session">';
-        actionButtons += '<span class="btn btn-xs btn-danger"><i class="fa fa-times"></i></span></a>'
+        actionButtons += '<span class="btn btn-xs btn-danger"><i class="fa fa-times"></i></span></a>';
         jQuery('#sessionTable').dataTable().fnAddData([
             '<input type="radio" name="session_id" data-dismiss="modal" onclick="activateSession(' + obj.id + ');" value="' + obj.id + '" ' + checked + '>',
             escapeHtml(obj.name),
@@ -247,6 +251,35 @@ function updateSessions() {
     $.getJSON(mySpace.owtf_sessions_api_url, addSessions);
 }
 
+// Function to check if an active session exists, alertLevel : 1 -> Info ; 2 -> Warning
+function checkForActiveSession(alertLevel) {
+    updateSessions();
+    updateCurrentSessionInfo();
+    $.ajax({
+        url: '/api/sessions/',
+        type: 'GET',
+        cache: false,
+        success: function (data) {
+            var active_session_exists = false
+            for (var i = 0; i < data.length; i++) {
+                if (data[i]["active"]) {
+                    active_session_exists = true;
+                    break;
+                }
+            }
+            if (! active_session_exists)
+                if (alertLevel == 1)
+                    alertInfo("Please select a session!");
+                else {
+                    alertFail("Target addition failed! Please select a session to add target(s)");
+                    return false;
+                }
+        },
+        error: function (xhr, textStatus, serverResponse) {
+            alertFail("Unable to get sessions");
+        }
+    });
+}
 // get label color for target rating
 function getLabel(level) {
     if (level == 0)
@@ -340,7 +373,6 @@ function newTargets(targetUrlsString, button) {
     disableInput("#addTargetBtn"); // Hide the button and show once the request is complete
     var lines = targetUrlsString.split('\n');
     var targetUrls = [];
-
     // Check if each line is a valid url, and add protocols if only host name is provided
     $.each(lines, function (index, line) {
         if (isUrl(line)) { // Check if a valid url
@@ -365,10 +397,12 @@ function newTargets(targetUrlsString, button) {
                 data: {
                     'target_url': targetUrls[i]
                 },
-                success: function () {
-                    updateCurrentSessionInfo();
-                },
+                success: updateCurrentSessionInfo,
                 error: function (xhr, textStatus, serverResponse) {
+                    if (!checkForActiveSession(2)) {
+                        enableInput("#addTargetBtn");
+                        return 0;
+                    }
                     alertFail("Unable to add " + escapeHtml(unescape(this.data.split(/\=(.+)?/)[1])));
                 }
             });
@@ -483,7 +517,7 @@ $(document).ready(function () {
     $('#sessionModal').on('show.bs.modal', function (e) {
         updateSessions();
     });
-    updateCurrentSessionInfo()
+    updateCurrentSessionInfo();
 });
 </script>
 {% end %}
