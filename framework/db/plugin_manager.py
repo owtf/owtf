@@ -21,8 +21,9 @@ class PluginDB(BaseComponent, DBPluginInterface):
         self.db = self.get_component("db")
         self.timer = self.get_component("timer")
         self.error_handler = self.get_component("error_handler")
-        self.LoadWebTestGroups(self.config.FrameworkConfigGet("WEB_TEST_GROUPS"))
-        self.LoadNetTestGroups(self.config.FrameworkConfigGet("NET_TEST_GROUPS"))
+        self.LoadTestGroups(self.config.FrameworkConfigGet("WEB_TEST_GROUPS"), "web")
+        self.LoadTestGroups(self.config.FrameworkConfigGet("NET_TEST_GROUPS"), "network")
+        self.LoadTestGroups(self.config.FrameworkConfigGet("AUX_TEST_GROUPS"), "auxiliary")
         # After loading the test groups then load the plugins, because of many-to-one relationship
         self.LoadFromFileSystem()  # Load plugins :P
 
@@ -43,9 +44,9 @@ class PluginDB(BaseComponent, DBPluginInterface):
             TestGroups.append({'code': Code, 'priority': Priority, 'descrip': Descrip, 'hint': Hint, 'url': URL})
         return TestGroups
 
-    def LoadWebTestGroups(self, test_groups_file):
-        WebTestGroups = self.GetTestGroupsFromFile(test_groups_file)
-        for group in WebTestGroups:
+    def LoadTestGroups(self, test_groups_file, plugin_group):
+        TestGroups = self.GetTestGroupsFromFile(test_groups_file)
+        for group in TestGroups:
             self.db.session.merge(
                 models.TestGroup(
                     code=group['code'],
@@ -53,21 +54,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
                     descrip=group['descrip'],
                     hint=group['hint'],
                     url=group['url'],
-                    group="web")
-                )
-        self.db.session.commit()
-
-    def LoadNetTestGroups(self, test_groups_file):
-        NetTestGroups = self.GetTestGroupsFromFile(test_groups_file)
-        for group in NetTestGroups:
-            self.db.session.merge(
-                models.TestGroup(
-                    code=group['code'],
-                    priority=group['priority'],
-                    descrip=group['descrip'],
-                    hint=group['hint'],
-                    url=group['url'],
-                    group="network")
+                    group=plugin_group)
                 )
         self.db.session.commit()
 
@@ -110,9 +97,6 @@ class PluginDB(BaseComponent, DBPluginInterface):
             # the length of chunks is less than 3.
             if len(chunks) == 3:
                 group, type, file = chunks
-            # TODO: Add test groups for AUX and then remove the following two lines
-            if group == "auxiliary":
-                continue
             # Retrieve the internal name and code of the plugin.
             name, code = os.path.splitext(file)[0].split('@')
             # Load the plugin as a module.
