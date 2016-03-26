@@ -57,7 +57,7 @@ class OWTFSessionDB(BaseComponent):
         existing_obj = self.db.session.query(
             models.Session).filter_by(name=session_name).first()
         if existing_obj is None:
-            session_obj = models.Session(name=session_name)
+            session_obj = models.Session(name=session_name[:50])
             self.db.session.add(session_obj)
             self.db.session.commit()
             self.set_session(session_obj.id)

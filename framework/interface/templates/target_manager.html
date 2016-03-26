@@ -180,6 +180,7 @@ function removeTargetFromCurrentSession(target_id) {
 // New session
 function newSession(session_name) {
     if (session_name) {
+        session_name = session_name.substring(0, 50);
         $.ajax({
                 url:mySpace.owtf_sessions_api_url,
                 type:'POST',
