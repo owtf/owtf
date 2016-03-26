@@ -1,4 +1,3 @@
-
 import logging
 import multiprocessing
 from datetime import time
@@ -85,7 +84,6 @@ class ComponentInitialiser():
         Shell()
         PluginParams(args)
         SMTP()
-        #DebugDB()
         ZAP_API()
 
     @staticmethod
@@ -118,19 +116,12 @@ class ComponentInitialiser():
                 proxies = miner.start_miner()
 
             if options['Botnet_mode'][0] == "list":  # load proxies from list
-                proxies = proxy_manager.load_proxy_list(
-                    options['Botnet_mode'][1]
-                )
-                answer = raw_input(
-                    "[#] Do you want to check the proxy list? [Yes/no] : "
-                )
+                proxies = proxy_manager.load_proxy_list(options['Botnet_mode'][1])
+                answer = raw_input("[#] Do you want to check the proxy list? [Yes/no] : ")
 
             if answer.upper() in ["", "YES", "Y"]:
                 proxy_q = multiprocessing.Queue()
-                proxy_checker = multiprocessing.Process(
-                    target=Proxy_Checker.check_proxies,
-                    args=(proxy_q, proxies,)
-                )
+                proxy_checker = multiprocessing.Process(target=Proxy_Checker.check_proxies, args=(proxy_q, proxies,))
                 logging.info("Checking Proxies...")
                 start_time = time.time()
                 proxy_checker.start()
@@ -144,13 +135,8 @@ class ComponentInitialiser():
                 logging.info("Writing proxies to disk(~/.owtf/proxy_miner/proxies.txt)")
                 miner.export_proxies_to_file("proxies.txt", proxies)
             if answer.upper() in ["", "YES", "Y"]:
-                logging.info(
-                    "Proxy Check Time: %s",
-                    time.strftime(
-                        '%H:%M:%S',
-                        time.localtime(time.time() - start_time - 3600)
-                    )
-                )
+                logging.info("Proxy Check Time: %s" %
+                             time.strftime('%H:%M:%S', time.localtime(time.time()-start_time-3600)))
                 cprint("Done")
 
             if proxy_manager.number_of_proxies is 0:
