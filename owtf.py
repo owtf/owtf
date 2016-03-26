@@ -144,7 +144,7 @@ def process_options(user_args):
             usage("The quiet plugin type is only for the web plugin group")
     elif arg.PluginType not in plugin_types_for_group:
         usage("Invalid Plugin Type '%s' for Plugin Group '%s'. Valid Types: %s" %
-              (str(arg.PluginType), str(plugin_group), ', '.join(plugin_types_for_group))
+              (str(arg.PluginType), str(plugin_group), ', '.join(plugin_types_for_group)))
 
     scope = arg.Targets or []  # Arguments at the end are the URL target(s)
     num_targets = len(scope)
