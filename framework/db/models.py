@@ -1,10 +1,10 @@
+import datetime
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy import Table, Column, Integer, String, Boolean,\
-    Float, DateTime, ForeignKey, Text, Index
+from sqlalchemy import Table, Column, Integer, String, Boolean, Float, DateTime, ForeignKey, Text, Index
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship
-import datetime
 
 Base = declarative_base()
 
@@ -17,8 +17,7 @@ target_association_table = Table(
     Column('session_id', Integer, ForeignKey('sessions.id'))
 )
 
-Index('target_id_idx', target_association_table.c.target_id,
-      postgresql_using='btree')
+Index('target_id_idx', target_association_table.c.target_id, postgresql_using='btree')
 
 
 class Session(Base):
@@ -27,10 +26,7 @@ class Session(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, unique=True)
     active = Column(Boolean, default=False)
-    targets = relationship(
-        "Target",
-        secondary=target_association_table,
-        backref="sessions")
+    targets = relationship("Target", secondary=target_association_table, backref="sessions")
 
 
 class Target(Base):
@@ -81,8 +77,7 @@ transaction_association_table = Table(
     Column('grep_output_id', Integer, ForeignKey('grep_outputs.id'))
 )
 
-Index('transaction_id_idx', transaction_association_table.c.transaction_id,
-      postgresql_using='btree')
+Index('transaction_id_idx', transaction_association_table.c.transaction_id, postgresql_using='btree')
 
 
 class Transaction(Base):
@@ -298,8 +293,7 @@ class Work(Base):
     __table_args__ = (UniqueConstraint('target_id', 'plugin_key'),)
 
     def __repr__(self):
-        return "<Work (target='%s', plugin='%s')>" % (
-            self.target_id, self.plugin_key)
+        return "<Work (target='%s', plugin='%s')>" % (self.target_id, self.plugin_key)
 
 
 class Mapping(Base):

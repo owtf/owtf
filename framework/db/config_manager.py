@@ -1,10 +1,11 @@
+import ConfigParser
+import logging
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import DBConfigInterface
 from framework.lib.exceptions import InvalidConfigurationReference
 from framework.db import models
 from framework.lib.general import cprint
-import ConfigParser
-import logging
 
 
 class ConfigDB(BaseComponent, DBConfigInterface):
@@ -25,7 +26,7 @@ class ConfigDB(BaseComponent, DBConfigInterface):
 
     def LoadConfigDBFromFile(self, file_path):
         # TODO: Implementy user override mechanism
-        logging.info("Loading Configuration from: " + file_path + " ..")
+        logging.info("Loading Configuration from: %s .." % file_path)
         config_parser = ConfigParser.RawConfigParser()
         config_parser.optionxform = str  # Otherwise all the keys are converted to lowercase xD
         config_parser.read(file_path)
@@ -36,8 +37,8 @@ class ConfigDB(BaseComponent, DBConfigInterface):
                     if not key.endswith("_DESCRIP"):  # _DESCRIP are help values
                         config_obj = models.ConfigSetting(key=key, value=value, section=section)
                         # If _DESCRIP at the end, then use it as help text
-                        if config_parser.has_option(section, key + "_DESCRIP"):
-                            config_obj.descrip = config_parser.get(section, key + "_DESCRIP")
+                        if config_parser.has_option(section, "%s_DESCRIP" % key):
+                            config_obj.descrip = config_parser.get(section, "%s_DESCRIP" % key)
                         self.db.session.merge(config_obj)
         self.db.session.commit()
 
@@ -88,12 +89,10 @@ class ConfigDB(BaseComponent, DBConfigInterface):
         return self.DeriveConfigDicts(query.all())
 
     def GetAllTools(self):
-        results = self.db.session.query(models.ConfigSetting).filter(
-            models.ConfigSetting.key.like("%TOOL_%")).all()
+        results = self.db.session.query(models.ConfigSetting).filter(models.ConfigSetting.key.like("%TOOL_%")).all()
         config_dicts = self.DeriveConfigDicts(results)
         for config_dict in config_dicts:
-            config_dict["value"] = self.config.MultipleReplace(
-                config_dict["value"], self.config.GetReplacementDict())
+            config_dict["value"] = self.config.MultipleReplace(config_dict["value"], self.config.GetReplacementDict())
         return(config_dicts)
 
     def GetSections(self):
@@ -109,7 +108,7 @@ class ConfigDB(BaseComponent, DBConfigInterface):
             self.db.session.merge(config_obj)
             self.db.session.commit()
         else:
-            raise InvalidConfigurationReference("No setting exists with key: " + str(key))
+            raise InvalidConfigurationReference("No setting exists with key: %s" % str(key))
 
     def GetReplacementDict(self):
         config_dict = {}

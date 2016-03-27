@@ -11,15 +11,13 @@ import logging
 
 from sqlalchemy import desc, asc
 from collections import defaultdict
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import TransactionInterface
-
 from framework.db.target_manager import target_required
-from framework.lib.exceptions import InvalidTransactionReference, \
-                                     InvalidParameterType
+from framework.lib.exceptions import InvalidTransactionReference, InvalidParameterType
 from framework.http import transaction
 from framework.db import models
-
 
 # The regex find differs for these types :P
 REGEX_TYPES = ['HEADERS', 'BODY']
@@ -44,69 +42,57 @@ class TransactionManager(BaseComponent, TransactionInterface):
     @target_required
     def NumTransactions(self, scope=True, target_id=None):
         """Return num transactions in scope by default."""
-        count = self.db.session.query(models.Transaction).filter_by(
-            scope=scope,
-            target_id=target_id).count()
+        count = self.db.session.query(models.Transaction).filter_by(scope=scope, target_id=target_id).count()
         return(count)
 
     def IsTransactionAlreadyAdded(self, criteria, target_id=None):
         return(len(self.GetAll(criteria, target_id=target_id)) > 0)
 
     def GenerateQueryUsingSession(self, criteria, target_id, for_stats=False):
-        query = self.db.session.query(models.Transaction).filter_by(
-            target_id=target_id)
+        query = self.db.session.query(models.Transaction).filter_by(target_id=target_id)
         # If transaction search is being done
         if criteria.get('search', None):
             if criteria.get('url', None):
                 if isinstance(criteria.get('url'), list):
                     criteria['url'] = criteria['url'][0]
-                query = query.filter(models.Transaction.url.like(
-                    '%' + criteria['url'] + '%'))
+                query = query.filter(models.Transaction.url.like('%%s%' % criteria['url']))
             if criteria.get('method', None):
                 if isinstance(criteria.get('method'), list):
                     criteria['method'] = criteria['method'][0]
-                query = query.filter(models.Transaction.method.like(
-                    '%' + criteria.get('method') + '%'))
+                query = query.filter(models.Transaction.method.like('%%s%' % criteria.get('method')))
             if criteria.get('data', None):
                 if isinstance(criteria.get('data'), list):
                     criteria['data'] = criteria['data'][0]
-                query = query.filter(models.Transaction.data.like(
-                    '%' + criteria.get('data') + '%'))
+                query = query.filter(models.Transaction.data.like('%%s%' % criteria.get('data')))
             if criteria.get('raw_request', None):
                 if isinstance(criteria.get('raw_request'), list):
                     criteria['raw_request'] = criteria['raw_request'][0]
-                query = query.filter(models.Transaction.raw_request.like(
-                    '%' + criteria.get('raw_request') + '%'))
+                query = query.filter(models.Transaction.raw_request.like('%%s%' % criteria.get('raw_request')))
             if criteria.get('response_status', None):
                 if isinstance(criteria.get('response_status'), list):
                     criteria['response_status'] = criteria['response_status'][0]
-                query = query.filter(models.Transaction.response_status.like(
-                    '%' + criteria.get('response_status') + '%'))
+                query = query.filter(models.Transaction.response_status.like('%%s%' % criteria.get('response_status')))
             if criteria.get('response_headers', None):
                 if isinstance(criteria.get('response_headers'), list):
                     criteria['response_headers'] = criteria['response_headers'][0]
-                query = query.filter(models.Transaction.response_headers.like(
-                    '%' + criteria.get('response_headers') + '%'))
+                query = query.filter(models.Transaction.response_headers.like('%%s%' % criteria.get('response_headers')))
             if criteria.get('response_body', None):
                 if isinstance(criteria.get('response_body'), list):
                     criteria['response_body'] = criteria['response_body'][0]
                 query = query.filter(
-                    models.Transaction.binary_response == False,
-                    models.Transaction.response_body.like(
-                        '%' + criteria.get('response_body') + '%'))
+                    models.Transaction.binary_response is False,
+                    models.Transaction.response_body.like('%%s%' % criteria.get('response_body')))
         else:  # If transaction filter is being done
             if criteria.get('url', None):
                 if isinstance(criteria.get('url'), (str, unicode)):
                     query = query.filter_by(url=criteria['url'])
                 if isinstance(criteria.get('url'), list):
-                    query = query.filter(
-                        models.Transaction.url.in_(criteria.get('url')))
+                    query = query.filter(models.Transaction.url.in_(criteria.get('url')))
             if criteria.get('method', None):
                 if isinstance(criteria.get('method'), (str, unicode)):
                     query = query.filter_by(method=criteria['method'])
                 if isinstance(criteria.get('method'), list):
-                    query = query.filter(
-                        models.Transaction.method.in_(criteria.get('method')))
+                    query = query.filter(models.Transaction.method.in_(criteria.get('method')))
             if criteria.get('data', None):
                 if isinstance(criteria.get('data'), (str, unicode)):
                     query = query.filter_by(data=criteria['data'])
@@ -138,8 +124,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 else:  # It is too dangerous without a limit argument
                     query.limit(10)  # Default limit value is 10
             except ValueError:
-                raise InvalidParameterType(
-                    "Invalid parameter type for transaction db")
+                raise InvalidParameterType("Invalid parameter type for transaction db")
         return(query)
 
     @target_required
@@ -238,10 +223,10 @@ class TransactionManager(BaseComponent, TransactionInterface):
         self.db.session.commit()
         # Now since we have the ids ready, we can process the grep output and
         # add accordingly. So iterate over transactions and their models.
-        for i in range(0, len(transaction_list)):
+        for idx, transaction in enumerate(transaction_list):
             # Get the transaction and transaction model from their lists
-            owtf_transaction = transaction_list[i]
-            transaction_model = transaction_model_list[i]
+            owtf_transaction = transaction
+            transaction_model = transaction_model_list[idx]
             # Check if grepping is valid for this transaction
             # For grepping to be valid
             # + Transaction must not have a binary response
@@ -260,14 +245,12 @@ class TransactionManager(BaseComponent, TransactionInterface):
                             # Conver the match to json
                             match = json.dumps(match)
                             # Fetch if any existing entry
-                            existing_grep_output = self.db.session.query(
-                                models.GrepOutput).filter_by(
-                                    target_id=target_id,
-                                    name=regex_name,
-                                    output=match).first()
+                            existing_grep_output = self.db.session.query(models.GrepOutput).filter_by(
+                                target_id=target_id,
+                                name=regex_name,
+                                output=match).first()
                             if existing_grep_output:
-                                existing_grep_output.transactions.append(
-                                    transaction_model)
+                                existing_grep_output.transactions.append(transaction_model)
                                 self.db.session.merge(existing_grep_output)
                             else:
                                 self.db.session.add(models.GrepOutput(
@@ -292,9 +275,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
 
     @target_required
     def DeleteTransaction(self, transaction_id, target_id=None):
-        self.db.session.query(models.Transaction).filter_by(
-            target_id=target_id,
-            id=transaction_id).delete()
+        self.db.session.query(models.Transaction).filter_by(target_id=target_id, id=transaction_id).delete()
         self.db.session.commit()
 
     @target_required
@@ -348,11 +329,9 @@ class TransactionManager(BaseComponent, TransactionInterface):
     def GrepTransaction(self, owtf_transaction):
         grep_output = {}
         for regex_name, regex in self.regexs['HEADERS'].items():
-            grep_output.update(
-                self.GrepResponseHeaders(regex_name, regex, owtf_transaction))
+            grep_output.update(self.GrepResponseHeaders(regex_name, regex, owtf_transaction))
         for regex_name, regex in self.regexs['BODY'].items():
-            grep_output.update(
-                self.GrepResponseBody(regex_name, regex, owtf_transaction))
+            grep_output.update(self.GrepResponseBody(regex_name, regex, owtf_transaction))
         return (grep_output)
 
     def GrepResponseBody(self, regex_name, regex, owtf_transaction):
@@ -379,43 +358,34 @@ class TransactionManager(BaseComponent, TransactionInterface):
         + match_percent
         """
         # Get the grep outputs and only unique values
-        grep_outputs = self.db.session.query(
-            models.GrepOutput.output).filter_by(
-                name=regex_name,
-                target_id=target_id).group_by(models.GrepOutput.output).all()
+        grep_outputs = self.db.session.query(models.GrepOutput.output).filter_by(
+            name=regex_name, target_id=target_id).group_by(models.GrepOutput.output).all()
         grep_outputs = [i[0] for i in grep_outputs]
         # Get one transaction per match
         transaction_ids = []
         for grep_output in grep_outputs:
             transaction_ids.append(self.db.session.query(models.Transaction.id).join(
                 models.Transaction.grep_outputs).filter(
-                    models.GrepOutput.output == grep_output,
-                    models.GrepOutput.target_id == target_id).limit(1).all()[0][0])
+                models.GrepOutput.output == grep_output,
+                models.GrepOutput.target_id == target_id).limit(1).all()[0][0])
         # Calculate stats if needed
         if stats:
             # Calculate the total number of matches
             num_matched_transactions = self.db.session.query(models.Transaction).join(
                 models.Transaction.grep_outputs).filter(
-                    models.GrepOutput.name == regex_name,
-                    models.GrepOutput.target_id == target_id).group_by(
-                        models.Transaction).count()
+                models.GrepOutput.name == regex_name,
+                models.GrepOutput.target_id == target_id).group_by(models.Transaction).count()
             # Calculate total number of transactions in scope
             num_transactions_in_scope = self.db.session.query(models.Transaction).filter_by(
-                scope=True,
-                target_id=target_id).count()
+                scope=True, target_id=target_id).count()
             # Calculate matched percentage
             if int(num_transactions_in_scope):
-                match_percent = int(
-                    (num_matched_transactions / float(num_transactions_in_scope)) * 100)
+                match_percent = int((num_matched_transactions / float(num_transactions_in_scope)) * 100)
             else:
                 match_percent = 0
         else:
             match_percent = None
-        return ([
-            regex_name,
-            [json.loads(i) for i in grep_outputs],
-            transaction_ids,
-            match_percent])
+        return ([regex_name, [json.loads(i) for i in grep_outputs], transaction_ids, match_percent])
 
     @target_required
     def SearchByRegexNames(self, name_list, stats=False, target_id=None):
@@ -427,9 +397,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
         + transaction_ids - list of one transaction id per unique match
         + match_percent
         """
-        results = [
-            self.SearchByRegexName(regex_name, stats=stats, target_id=target_id)
-            for regex_name in name_list]
+        results = [self.SearchByRegexName(regex_name, stats=stats, target_id=target_id) for regex_name in name_list]
         return (results)
 
 # ----------------------------- API Methods -----------------------------
@@ -448,9 +416,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
         return tdict
 
     def DeriveTransactionDicts(self, tdb_obj_list, include_raw_data=False):
-        return [
-            self.DeriveTransactionDict(tdb_obj, include_raw_data)
-            for tdb_obj in tdb_obj_list]
+        return [self.DeriveTransactionDict(tdb_obj, include_raw_data) for tdb_obj in tdb_obj_list]
 
     @target_required
     def SearchAll(self, Criteria, target_id=None, include_raw_data=True):
@@ -458,21 +424,14 @@ class TransactionManager(BaseComponent, TransactionInterface):
         # + Total number of transactions
         # + Filtered transaaction dicts
         # + Filtered number of transactions
-        total = self.db.session.query(
-            models.Transaction).filter_by(target_id=target_id).count()
-        filtered_transaction_objs = self.GenerateQueryUsingSession(
-            Criteria,
-            target_id).all()
-        filtered_number = self.GenerateQueryUsingSession(
-            Criteria,
-            target_id,
-            for_stats=True).count()
+        total = self.db.session.query(models.Transaction).filter_by(target_id=target_id).count()
+        filtered_transaction_objs = self.GenerateQueryUsingSession(Criteria, target_id).all()
+        filtered_number = self.GenerateQueryUsingSession(Criteria, target_id, for_stats=True).count()
         return ({
             "records_total": total,
             "records_filtered": filtered_number,
-            "data": self.DeriveTransactionDicts(
-                filtered_transaction_objs,
-                include_raw_data)})
+            "data": self.DeriveTransactionDicts(filtered_transaction_objs, include_raw_data)
+        })
 
     @target_required
     def GetAllAsDicts(self, Criteria, target_id=None, include_raw_data=False):
@@ -483,13 +442,9 @@ class TransactionManager(BaseComponent, TransactionInterface):
 
     @target_required
     def GetByIDAsDict(self, trans_id, target_id=None):
-        transaction_obj = self.db.session.query(
-            models.Transaction).filter_by(
-                target_id=target_id,
-                id=trans_id).first()
+        transaction_obj = self.db.session.query(models.Transaction).filter_by(target_id=target_id, id=trans_id).first()
         if not transaction_obj:
-            raise InvalidTransactionReference(
-                "No transaction with " + str(trans_id) + " exists")
+            raise InvalidTransactionReference("No transaction with %s exists" % str(trans_id))
         return self.DeriveTransactionDict(transaction_obj, include_raw_data=True)
 
     @target_required
@@ -500,9 +455,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
         * A sample data: [{"attributes": {"Path": "/", "HttpOnly": true}, "name": "ASP.NET_SessionId", "value": "jx0ydsvwqtfgqcufazwigiih"},
                           {"attributes": {"Path": "/"}, "name": "amSessionId", "value": "618174515"}]
         """
-        session_data = self.db.session.query(
-            models.Transaction.session_tokens).filter_by(
-                target_id=target_id).all()
+        session_data = self.db.session.query(models.Transaction.session_tokens).filter_by(target_id=target_id).all()
         results = [json.loads(el[0]) for el in session_data if el and el[0]]
         return (results)
 
@@ -512,6 +465,5 @@ class TransactionManager(BaseComponent, TransactionInterface):
         This returns the data in the form of [(url1), (url2), etc]
         """
         session_urls = self.db.session.query(models.Transaction.url).filter(
-            models.Transaction.target_id == target_id,
-            group_by(models.Transaction.session_tokens)).getall()
+            models.Transaction.target_id == target_id, group_by(models.Transaction.session_tokens)).getall()
         return session_urls

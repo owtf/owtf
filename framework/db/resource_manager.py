@@ -1,11 +1,13 @@
+import os
+import logging
+
 from framework.db import models
 from framework.config import config
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ResourceInterface
 from framework.lib.general import cprint
-import os
-import logging
 from framework.utils import FileOperations
+
 
 class ResourceDB(BaseComponent, ResourceInterface):
 
@@ -19,29 +21,28 @@ class ResourceDB(BaseComponent, ResourceInterface):
         self.db = self.get_component("db")
         self.LoadResourceDBFromFile(self.config.get_profile_path("RESOURCES_PROFILE"))
 
-    def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
-        logging.info("Loading Resources from: " + file_path + " ..")
+    def LoadResourceDBFromFile(self, file_path):  # This needs to be a list instead of a dictionary to preserve order in python < 2.7
+        logging.info("Loading Resources from: %s .." % file_path)
         resources = self.GetResourcesFromFile(file_path)
         # Delete all old resources which are not edited by user
         # because we may have updated the resource
         self.db.session.query(models.Resource).filter_by(dirty=False).delete()
-        # resources = [(Type, Name, Resource), (Type, Name, Resource),]
         for Type, Name, Resource in resources:
             self.db.session.add(models.Resource(resource_type=Type, resource_name=Name, resource=Resource))
         self.db.session.commit()
 
     def GetResourcesFromFile(self, resource_file):
         resources = set()
-        ConfigFile = FileOperations.open(resource_file, 'r').read().splitlines() # To remove stupid '\n' at the end
+        ConfigFile = FileOperations.open(resource_file, 'r').read().splitlines()  # To remove stupid '\n' at the end
         for line in ConfigFile:
             if '#' == line[0]:
-                continue # Skip comment lines
+                continue  # Skip comment lines
             try:
                 Type, Name, Resource = line.split('_____')
-                # Resource = Resource.strip()
                 resources.add((Type, Name, Resource))
             except ValueError:
-                cprint("ERROR: The delimiter is incorrect in this line at Resource File: "+str(line.split('_____')))
+                cprint("ERROR: The delimiter is incorrect in this line at Resource File: %s" %
+                       str(line.split('_____')))
         return resources
 
     def GetReplacementDict(self):
@@ -51,7 +52,8 @@ class ResourceDB(BaseComponent, ResourceInterface):
         return configuration
 
     def GetRawResources(self, ResourceType):
-        filter_query = self.db.session.query(models.Resource.resource_name, models.Resource.resource).filter_by(resource_type = ResourceType)
+        filter_query = self.db.session.query(models.Resource.resource_name, models.Resource.resource).filter_by(
+            resource_type=ResourceType)
         # Sorting is necessary for working of ExtractURLs, since it must run after main command, so order is imp
         sort_query = filter_query.order_by(models.Resource.id)
         raw_resources = sort_query.all()
