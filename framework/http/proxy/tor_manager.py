@@ -5,9 +5,9 @@ import commands
 import socket
 import time
 from multiprocessing import Process
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib.general import cprint
-
 
 
 class TOR_manager(BaseComponent):
@@ -17,10 +17,10 @@ class TOR_manager(BaseComponent):
 
     COMPONENT_NAME = "tor_manager"
 
-    #here is done the initialization of arguments and connections
+    # here is done the initialization of arguments and connections
     def __init__(self, args):
         self.register_in_service_locator()
-        #If the args are empty it will filled with the default values
+        # If the args are empty it will filled with the default values
         self.error_handler = self.get_component("error_handler")
         if args[0] == '':
             self.ip = "127.0.0.1"
@@ -51,22 +51,22 @@ class TOR_manager(BaseComponent):
                 self.time = int(args[4])
             except ValueError:
                 self.error_handler.FrameworkAbort("Invalid TOR Time")
-            if self.time < 1:   
+            if self.time < 1:
                 self.error_handler.FrameworkAbort("Invalid TOR Time")
 
         self.TOR_Connection = self.Open_connection()
         self.Authenticate()
 
-    #This function is handling the authentication process to TOR control connection.
+    # This function is handling the authentication process to TOR control connection.
     def Authenticate(self):
         self.TOR_Connection.send('AUTHENTICATE "{0}"\r\n'.format(self.password))
         responce = self.TOR_Connection.recv(1024)
-        if responce.startswith('250'):  #250 is the success responce
+        if responce.startswith('250'):  # 250 is the success responce
             cprint("Successfully Authenticated to TOR control")
         else:
-            self.error_handler.FrameworkAbort("Authentication Error : " + responce)
-    
-    #Opens a new connection to TOR control
+            self.error_handler.FrameworkAbort("Authentication Error : %s" % responce)
+
+    # Opens a new connection to TOR control
     def Open_connection(self):
         try:
             s = socket.socket()
@@ -74,7 +74,7 @@ class TOR_manager(BaseComponent):
             cprint("Connected to TOR control")
             return s
         except Exception as error:
-            self.error_handler.FrameworkAbort("Can't connect to the TOR daemon : " + error.strerror)
+            self.error_handler.FrameworkAbort("Can't connect to the TOR daemon : %s" % error.strerror)
 
     #Starts a new TOR_control_process which will renew the IP address.
     def Run(self):
@@ -90,19 +90,18 @@ class TOR_manager(BaseComponent):
             return True
         elif output == "0":
             return False
-    
+
     @staticmethod
     def msg_start_tor(self):
-        cprint ("""Error : TOR daemon is not running
-                (Tips: service tor start)""")
-        
-    #TOR configuration Info
+        cprint("""Error : TOR daemon is not running(Tips: service tor start)""")
+
+    # TOR configuration Info
     @staticmethod
     def msg_configure_tor():
         cprint("""
         1)Open torrc file usually located at '/etc/tor/torrc'
           if you can't find torrc file visit https://www.torproject.org/docs/faq.html.en#torrc
-        2)Enable the TOR control port by uncommenting(removing the hash(#) symbol) 
+        2)Enable the TOR control port by uncommenting(removing the hash(#) symbol)
           or adding the following line
           should look like this  "ControlPort 9051".
         3)Generate a new hashed password by running the following command
@@ -110,7 +109,7 @@ class TOR_manager(BaseComponent):
         4)Uncomment "HashedControlPassword" and add the previously generated hash
           should look like the following but with you hash
           HashedControlPassword 16:52B319480CED2E0860BAEA7565ECCF628A59FEE59B6E0592CD3F01C710
- 
+
         Recommended Setting:
              ControlPort 9051
              HashedControlPassword 16:52B319480CED2E0860BAEA7565ECCF628A59FEE59B6E0592CD3F01C710
@@ -120,9 +119,8 @@ class TOR_manager(BaseComponent):
                ex.  ./owtf.py -o OWTF-WVS-001 http:my.website.com --tor ::::
                  which is the same with 127.0.0.1:9050:9051:owtf:5
         """)
-        
-        
-    #Sends an NEWNYM message to TOR control in order to renew the IP address
+
+    # Sends an NEWNYM message to TOR control in order to renew the IP address
     def renew_ip(self):
         self.TOR_Connection.send("signal NEWNYM\r\n")
         responce = self.TOR_Connection.recv(1024)
@@ -133,11 +131,11 @@ class TOR_manager(BaseComponent):
             cprint("[TOR]Warning: IP can't renewed")
             return False
 
-#This will run in a new process in order to renew the IP address after certain time.
+
+# This will run in a new process in order to renew the IP address after certain time.
 def TOR_control_process(self):
     while 1:
-        while self.renew_ip() == True:
-            time.sleep(self.time * 60)  # time converted in minutes
+        while self.renew_ip() is True:
+            time.sleep(self.time*60)  # time converted in minutes
         else:
             time.sleep(10)  # will try again to renew IP in 10 seconds
-

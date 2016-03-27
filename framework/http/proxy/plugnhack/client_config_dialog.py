@@ -22,7 +22,6 @@ class ClientConfigDialog(object):
         self._monitor_events = monitor_events or None
         self._intercept_events = intercept_events or None
 
-
     def save(self):
         """
         This method compares configuration variables of a monitored page with
@@ -40,7 +39,7 @@ class ClientConfigDialog(object):
             # updated heartbeat value. Heartbeat value is multiplied by 1000
             # because value sent to probe must be in miliseconds. 1 s = 1000 ms
             self._extension.client_config(_monitored_page, "heartbeartInterval", _monitored_page.hearbeat() * 1000)
-        
+
         # Compare monitorPostMessage of monitored page with monitorPostMessage
         # value from browser configuration page
         if _monitored_page.monitor_post_msg() != self._monitor_post:
@@ -52,7 +51,6 @@ class ClientConfigDialog(object):
             # updated monitorPostMessage value, monitorPostMessage value
             # is a boolean
             self._extension.client_config(_monitored_page, "monitorPostMessage", _monitored_page.monitor_post_msg())
-            
 
         # Compare interceptPostMessage of monitored page with interceptPostMessage
         # value from browser configuration page
@@ -65,7 +63,6 @@ class ClientConfigDialog(object):
             # updated interceptPostMessage value, interceptPostMessage value
             # is a boolean
             self._extension.client_config(_monitored_page, "interceptPostMessage", _monitored_page.intercept_post_msg())
-            
 
         # Compare monitorEvents of monitored page with monitorEvents
         # value from browser configuration page
@@ -78,7 +75,6 @@ class ClientConfigDialog(object):
             # updated monitorEvents value, monitorEvents value
             # is a boolean
             self._extension.client_config(_monitored_page, "monitorEvents", _monitored_page.monitor_events())
-
 
         # Compare interceptEvents of monitored page with interceptEvents
         # value from browser configuration page

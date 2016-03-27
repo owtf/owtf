@@ -2,7 +2,7 @@ class MonitoredPage(object):
     """
     MonitoredPage saves information about monitored page, if it is
     active/inactive, heartbeat interval, last message received,
-    performed actions as monitor/intercept post messages, 
+    performed actions as monitor/intercept post messages,
     monitor/intercept events.
     """
     def __init__(self, page_id=None, message=None, last_message=None, index=None):
@@ -27,25 +27,22 @@ class MonitoredPage(object):
         # intercept events of monitored page
         self._intercept_events = True
 
-    
     # Respond with page id
     @property
     def page_id(self):
         return self._page_id
-
 
     # Update page id
     @page_id.setter
     def page_id(self, param_id):
         self._page_id = param_id
 
-    
     # Respond with message instance variable
     @property
     def message(self):
         return self._message
 
-    # Update the value of message instance variable 
+    # Update the value of message instance variable
     @message.setter
     def message(self, message):
         self._message = message
@@ -70,7 +67,6 @@ class MonitoredPage(object):
     def active(self, value):
         self._active = value
 
-    
     # Respond with 'url' from message
     def get_uri(self):
         return self._message.get_argument('url')
@@ -119,7 +115,7 @@ class MonitoredPage(object):
     @property
     def intercept_events(self):
         return self._intercept_events
-    
+
     # Update the value of intercept_events
     @intercept_events.setter
     def intercept_events(self, intercept_value):
