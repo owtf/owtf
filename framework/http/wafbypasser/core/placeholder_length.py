@@ -1,11 +1,11 @@
 import ast
 
 from tornado.httpclient import HTTPClient, HTTPError
+
 from framework.http.wafbypasser.core.helper import Error
 
 
-def find_length(owtf, http_helper, lsig, url, method, detection_struct, ch, headers,
-                body=None):
+def find_length(owtf, http_helper, lsig, url, method, detection_struct, ch, headers, body=None):
     """This function finds the length of the fuzzing placeholder"""
     size = 8192
     minv = 0
@@ -27,11 +27,8 @@ def find_length(owtf, http_helper, lsig, url, method, detection_struct, ch, head
         else:
             Error(owtf, "Length signature not found!")
 
+        request = http_helper.create_http_request(method, new_url, new_body, new_headers)
 
-        request = http_helper.create_http_request(method,
-                                                  new_url,
-                                                  new_body,
-                                                  new_headers)
         try:
             response = http_client.fetch(request)
         except HTTPError as e:
@@ -41,28 +38,16 @@ def find_length(owtf, http_helper, lsig, url, method, detection_struct, ch, head
         for struct in detection_struct:
             if struct["method"](response, struct["arguments"]):
                 http_client.close()
-                return binary_search(
-                    http_helper,
-                    lsig,
-                    minv,
-                    size,
-                    url,
-                    method,
-                    detection_struct,
-                    ch,
-                    headers,
-                    body)
+                return binary_search(http_helper, lsig, minv, size, url, method, detection_struct, ch, headers, body)
         minv = size
         size *= 2
 
 
 def mid_value(minv, maxv):
-    return int((minv + maxv) / 2)
+    return int((minv+maxv)/2)
 
 
-def binary_search(http_helper, lsig, minv, maxv, url, method, detection_struct,
-                  ch,
-                  headers, body=None):
+def binary_search(http_helper, lsig, minv, maxv, url, method, detection_struct, ch, headers, body=None):
     mid = mid_value(minv, maxv)
     new_url = url
     new_body = body
@@ -82,10 +67,7 @@ def binary_search(http_helper, lsig, minv, maxv, url, method, detection_struct,
         raw_val = str(headers)
         raw_val = raw_val.replace(lsig, payload)
         new_headers = ast.literal_eval(str(raw_val))
-    request = http_helper.create_http_request(method,
-                                              new_url,
-                                              new_body,
-                                              new_headers)
+    request = http_helper.create_http_request(method, new_url, new_body, new_headers)
     try:
         response = http_client.fetch(request)
     except HTTPError as e:
@@ -94,24 +76,6 @@ def binary_search(http_helper, lsig, minv, maxv, url, method, detection_struct,
     for struct in detection_struct:
         if struct["method"](response, struct["arguments"]):
             http_client.close()
-            return binary_search(http_helper,
-                                 lsig,
-                                 minv,
-                                 mid - 1,
-                                 url,
-                                 method,
-                                 detection_struct,
-                                 ch,
-                                 headers,
-                                 body)
+            return binary_search(http_helper, lsig, minv, mid-1, url, method, detection_struct, ch, headers, body)
     http_client.close()
-    return binary_search(http_helper,
-                         lsig,
-                         mid + 1,
-                         maxv,
-                         url,
-                         method,
-                         detection_struct,
-                         ch,
-                         headers,
-                         body)
+    return binary_search(http_helper, lsig, mid+1, maxv, url, method, detection_struct, ch, headers, body)

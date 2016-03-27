@@ -1,4 +1,5 @@
 from lxml import etree
+
 from framework.http.wafbypasser.core import obfuscation_lib
 
 
@@ -23,7 +24,6 @@ class XMLAnalyzer(object):
         self.stack = []
         self.encoded_string = ""
         self.linking_table = linking_table
-        #print "Parser Info: Parsing Started"
 
     def start(self, tag, attrib):
         try:
@@ -42,8 +42,7 @@ class XMLAnalyzer(object):
         arglist = []
 
         if tag not in[key for key in self.linking_table]:
-            print "Parser Warning: Unknown ending tag found (" + tag + \
-                  "). Ignoring..."
+            print "Parser Warning: Unknown ending tag found (%s). Ignoring..." % tag
             return
 
         while True:
@@ -72,10 +71,9 @@ class XMLAnalyzer(object):
         self.stack.append(['D', data])
 
     def comment(self, text):
-        print("Parser Info: Comment Found: (%s). Ignoring ..." % text)
+        print "Parser Info: Comment Found: (%s). Ignoring ..." % text
 
     def close(self):
-        #print("Parser Info: Parsing Complete")
         return self.stack.pop()[1]
 
 
@@ -86,8 +84,7 @@ class TemplateParser(object):
         self.payload_data = None
         self.linking_table = obfuscation_lib.get_transformations()
         self.linking_table.update({"payload": self.payload})
-        self.linking_table.update(
-            {"transform_payload": self.transform_payload})
+        self.linking_table.update({"transform_payload": self.transform_payload})
 
     def transform_payload(self, string):
         """Return the output.

@@ -1,6 +1,8 @@
 from time import sleep
+
 from tornado import ioloop
 from tornado.httpclient import AsyncHTTPClient, HTTPClient, HTTPError
+
 from framework.http.wafbypasser.core.http_helper import HTTPHelper
 
 
@@ -24,7 +26,6 @@ class Fuzzer:
         self.resp_num = 0  # this is used for counting the responses
         for request in requests:
             http_client.fetch(request, self.handle_response)
-        # print "Status: Asynchronous Fuzzing Started"
         ioloop.IOLoop.instance().start()
         return self.responses
 
@@ -45,10 +46,7 @@ class Fuzzer:
         for request in requests:
             try:
                 if follow_cookies and cookie:
-                    request.headers = HTTPHelper.add_header_param(
-                        request.header,
-                        "Cookie",
-                        cookie)
+                    request.headers = HTTPHelper.add_header_param(request.header, "Cookie", cookie)
                 response = http_client.fetch(request)
             except HTTPError as e:
                 if e.response:
