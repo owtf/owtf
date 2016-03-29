@@ -4,7 +4,7 @@ python:
 # Commands to install dependencies
 before_install:
     - sudo apt-get install -qq libssl-dev python-twisted python2.7-dev
-install: 
+install:
     # OWTF dependencies
     - pip install lxml argparse jinja2 tornado pycurl pyopenssl pexpect beautifulsoup4
     # Test dependencies (nose is already installed in the Travis environment)
@@ -13,5 +13,3 @@ install:
 script:
     - cd tests
     - ./run_tests.py --all
-notifications:
-    irc: "irc.freenode.net#owtf"
