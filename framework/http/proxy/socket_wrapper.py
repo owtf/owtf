@@ -3,8 +3,9 @@
 # Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
 #                     as a part of Google Summer of Code 2013
 '''
-from tornado import ioloop
 import ssl
+
+from tornado import ioloop
 
 from gen_cert import gen_signed_cert
 
@@ -19,7 +20,7 @@ def wrap_socket(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=N
 
     # The idea is to handle domains with greater than 3 dots using wildcard certs
     if domain.count(".") >= 3:
-        key, cert = gen_signed_cert("*." + ".".join(domain.split(".")[-3:]), ca_crt, ca_key, ca_pass, certs_folder)
+        key, cert = gen_signed_cert("*.%s" % ".".join(domain.split(".")[-3:]), ca_crt, ca_key, ca_pass, certs_folder)
     else:
         key, cert = gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder)
     options.setdefault('certfile', cert)
@@ -38,7 +39,7 @@ def wrap_socket(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=N
 
         if failure:
             return failure(wrapped)
-        # # By default, just close the socket.
+        # By default, just close the socket.
         io.remove_handler(wrapped.fileno())
         wrapped.close()
 
@@ -67,16 +68,16 @@ def wrap_socket(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=N
             state[0] = new_state
             io.update_handler(fd, new_state)
 
-    # # set up handshake state; use a list as a mutable cell.
+    # set up handshake state; use a list as a mutable cell.
     io = io or ioloop.IOLoop.instance()
     state = [io.ERROR]
 
-    # # Wrap the socket; swap out handlers.
+    # Wrap the socket; swap out handlers.
     io.remove_handler(socket.fileno())
     wrapped = ssl.SSLSocket(socket, **options)
     wrapped.setblocking(0)
     io.add_handler(wrapped.fileno(), handshake, state[0])
 
-    # # Begin the handshake.
+    # Begin the handshake.
     handshake(wrapped.fileno(), 0)
     return wrapped

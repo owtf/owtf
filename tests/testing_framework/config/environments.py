@@ -61,4 +61,3 @@ class ConfigEnvironmentBuilder():
         plugin_config_builder = PluginConfigEnvironmentBuilder()
         plugin_config = plugin_config_builder()
         return plugin_config
-

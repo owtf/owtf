@@ -25,7 +25,7 @@ class InteractiveShellEnvironmentBuilder():
     def _mock_config(self):
         self.core_mock.Config = flexmock()
         self.core_mock.Config.should_receive("Get").with_args("TARGET").and_return("localhost")
-        self.core_mock.Config.Get = lambda arg:"localhost" if arg == "TARGET" else ""
+        self.core_mock.Config.Get = lambda arg: "localhost" if arg == "TARGET" else ""
 
     def _mock_error_handler(self):
         self.core_mock.Error = flexmock()
@@ -35,7 +35,7 @@ class InteractiveShellEnvironmentBuilder():
         self.core_mock.DB = flexmock()
         self.core_mock.DB.CommandRegister = flexmock()
         self.core_mock.DB.CommandRegister.should_receive("AlreadyRegistered").and_return(False)
-        self.core_mock.DB.CommandRegister.Add = lambda arg: True # Due to some flexmock bug with nested objects
+        self.core_mock.DB.CommandRegister.Add = lambda arg: True  # Due to some flexmock bug with nested objects
 
     def _get_options_example(self):
         return {"ConnectVia": [['', 'bash']],

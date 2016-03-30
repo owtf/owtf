@@ -1,8 +1,7 @@
 import os
 
 
-def load_payload_file(payload_path, valid_size=100000,
-                      exclude_chars=[]):
+def load_payload_file(payload_path, valid_size=100000, exclude_chars=[]):
     """This Function loads a list with payloads"""
     payloads = []
     try:
@@ -17,13 +16,11 @@ def load_payload_file(payload_path, valid_size=100000,
                 payloads.append(line)
     except Exception as e:
         Error(str(e))
-    print 'Payload: ' + payload_path + ' loaded.'
-    print '\t' + str(len(payloads)) + ' payload(s) found.'
+    print 'Payload: %s loaded' % payload_path
+    print '\t%s payload(s) found.' % str(len(payloads))
     return payloads
 
 
 def Error(owtf, message):
     print "Error: " + message
     owtf.Error.FrameworkAbort(message)
-    #print "Error: " + message
-    #exit(-1)

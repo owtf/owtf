@@ -26,7 +26,7 @@ class DBEnvironmentBuilder():
         self.core_mock.Config = flexmock()
         self.core_mock.Config.should_receive("GetAll").and_return(["path"])
 
-        def fake_get(key):  #  Faster than loading the real config object
+        def fake_get(key):  # Faster than loading the real config object
             values = {"REGEXP_FILE_URL": "^[^\?]+\.(xml|exe|pdf|cs|log|inc|dat|bak|conf|cnf|old|zip|7z|rar|tar|gz|bz2|txt|xls|xlsx|doc|docx|ppt|pptx)$",
                       "REGEXP_SMALL_FILE_URL": "^[^\?]+\.(xml|cs|inc|dat|bak|conf|cnf|old|txt)$",
                       "REGEXP_IMAGE_URL": "^[^\?]+\.(jpg|jpeg|png|gif|bmp)$",

@@ -1,19 +1,15 @@
-from framework.dependency_management.dependency_resolver import ServiceLocator
-
 """
 SEMI-PASSIVE Plugin for Testing for Session Management Schema (OWASP-SM-001)
 https://www.owasp.org/index.php/Testing_for_Session_Management_Schema_%28OWASP-SM-001%29
 """
 
-import string, re
-import cgi, logging
+from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib import general
 
 DESCRIPTION = "Normal requests to gather session managament info"
 
 
 def run(PluginInfo):
-    # ServiceLocator.get_component("config").Show()
     # True = Use Transaction Cache if possible: Visit the start URLs if not already visited
     # Step 1 - Find transactions that set cookies
     # Step 2 - Request 10 times per URL that sets cookies
@@ -23,7 +19,6 @@ def run(PluginInfo):
     Result = ""
     return ([])
     # TODO: Try to keep up Abe's promise ;)
-    #return "Some refactoring required, maybe for BSides Vienna 2012 but no promises :)"
     transaction = ServiceLocator.get_component("transaction")
     for ID in transaction.GrepTransactionIDsForHeaders(
             [ServiceLocator.get_component("config").Get('HEADERS_FOR_COOKIES')]):  # Transactions with cookies

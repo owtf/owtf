@@ -3,10 +3,13 @@
 # Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
 #                     as a part of Google Summer of Code 2013
 '''
-from OpenSSL import crypto
+
 import os
 import hashlib
 import re
+
+from OpenSSL import crypto
+
 from framework.lib.filelock import FileLock
 
 
@@ -16,8 +19,8 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
     domain name(replacing dots by underscores), finally signing the certificate using specified CA and
     returns the path of key and cert files. If you are yet to generate a CA then check the top comments
     """
-    key_path = os.path.join(certs_folder, re.sub('[^-0-9a-zA-Z_]', '_', domain) + ".key")
-    cert_path = os.path.join(certs_folder, re.sub('[^-0-9a-zA-Z_]', '_', domain) + ".crt")
+    key_path = os.path.join(certs_folder, "%s.key" % re.sub('[^-0-9a-zA-Z_]', '_', domain))
+    cert_path = os.path.join(certs_folder, "%s.crt" % re.sub('[^-0-9a-zA-Z_]', '_', domain))
 
     # The first conditions checks if file exists, and does nothing if true
     # If file doenst exist lock is obtained for writing (Other processes in race must wait)
@@ -52,7 +55,7 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                 cert.get_subject().OU = "Inbound-Proxy"
                 cert.get_subject().CN = domain
                 cert.gmtime_adj_notBefore(0)
-                cert.gmtime_adj_notAfter(365 * 24 * 60 * 60)
+                cert.gmtime_adj_notAfter(365*24*60*60)
                 cert.set_serial_number(serial)
                 cert.set_issuer(ca_cert.get_subject())
                 cert.set_pubkey(key)
@@ -64,5 +67,4 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
 
                 domain_cert = open(cert_path, "w")
                 domain_cert.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
-                # print(("[*] Generated signed certificate for %s" % (domain)))
     return key_path, cert_path

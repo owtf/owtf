@@ -19,9 +19,7 @@ class ErrorDB(BaseComponent, DBErrorInterface):
         self.config = self.get_component("config")
 
     def Add(self, Message, Trace):
-        error = models.Error(
-            owtf_message=Message,
-            traceback=Trace)
+        error = models.Error(owtf_message=Message, traceback=Trace)
         self.db.session.add(error)
         self.db.session.commit()
 
@@ -31,24 +29,20 @@ class ErrorDB(BaseComponent, DBErrorInterface):
             self.db.session.delete(error)
             self.db.session.commit()
         else:
-            raise InvalidErrorReference(
-                "No error with id " + str(error_id))
+            raise InvalidErrorReference("No error with id %s" % str(error_id))
 
     def GenerateQueryUsingSession(self, criteria):
         query = self.db.session.query(models.Error)
         if criteria.get('reported', None):
             if isinstance(criteria.get('reported'), list):
                 criteria['reported'] = criteria['reported'][0]
-            query = query.filter_by(
-                reported=self.config.ConvertStrToBool(
-                    criteria['reported']))
+            query = query.filter_by(reported=self.config.ConvertStrToBool(criteria['reported']))
         return(query)
 
     def Update(self, error_id, user_message):
         error = self.db.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
-            raise InvalidErrorReference(
-                "No error with id " + str(error_id))
+            raise InvalidErrorReference("No error with id %s" % str(error_id))
         error.user_message = patch_data["user_message"]
         self.db.session.merge(error)
         self.db.session.commit()
@@ -75,6 +69,5 @@ class ErrorDB(BaseComponent, DBErrorInterface):
     def Get(self, error_id):
         error = self.db.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
-            raise InvalidErrorReference(
-                "No error with id " + str(error_id))
+            raise InvalidErrorReference("No error with id %s" % str(error_id))
         return(self.DeriveErrorDict(error))

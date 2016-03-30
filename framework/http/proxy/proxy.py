@@ -3,6 +3,16 @@
 # Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
 #                     as a part of Google Summer of Code 2013
 '''
+
+import socket
+import ssl
+import os
+import datetime
+import uuid
+import re
+import pycurl
+from multiprocessing import Process, Value, Lock
+
 import tornado.httpserver
 import tornado.ioloop
 import tornado.iostream
@@ -15,19 +25,12 @@ import tornado.options
 import tornado.template
 import tornado.websocket
 import tornado.gen
-import socket
-import ssl
-import os
-import datetime
-import uuid
-import re
-from multiprocessing import Process, Value, Lock
+
 from framework.dependency_management.dependency_resolver import BaseComponent, ComponentNotFoundException
 from framework.utils import FileOperations
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
 from framework.lib.owtf_process import OWTFProcess
-import pycurl
 
 
 def prepare_curl_callback(curl):
@@ -102,20 +105,20 @@ class ProxyHandler(tornado.web.RequestHandler):
         # The requests that come through ssl streams are relative requests, so transparent
         # proxying is required. The following snippet decides the url that should be passed
         # to the async client
-        if self.request.uri.startswith(self.request.protocol,0): # Normal Proxy Request
+        if self.request.uri.startswith(self.request.protocol, 0):  # Normal Proxy Request
             self.request.url = self.request.uri
         else:  # Transparent Proxy Request
-            self.request.url = self.request.protocol + "://" + self.request.host
+            self.request.url = "%s://%s" % (self.request.protocol, self.request.host)
             if self.request.uri != '/':  # Add uri only if needed
                 self.request.url += self.request.uri
 
         # This block here checks for already cached response and if present returns one
         self.cache_handler = CacheHandler(
-                                            self.application.cache_dir,
-                                            self.request,
-                                            self.application.cookie_regex,
-                                            self.application.cookie_blacklist
-                                          )
+            self.application.cache_dir,
+            self.request,
+            self.application.cookie_regex,
+            self.application.cookie_blacklist
+        )
         request_hash = yield tornado.gen.Task(self.cache_handler.calculate_hash)
         self.cached_response = self.cache_handler.load()
 
@@ -145,9 +148,9 @@ class ProxyHandler(tornado.web.RequestHandler):
                 try:
                     test = self.request.host.index(':')
                 except ValueError:
-                    default_ports = {'http':'80', 'https':'443'}
+                    default_ports = {'http': '80', 'https': '443'}
                     try:
-                        host = self.request.host + ':' + default_ports[self.request.protocol]
+                        host = '%s:%s' % (self.request.host, default_ports[self.request.protocol])
                     except KeyError:
                         pass
                 # Check if auth is provided for that host
@@ -168,31 +171,30 @@ class ProxyHandler(tornado.web.RequestHandler):
                 #Proxy Switching (botnet_mode) code
                 if self.application.proxy_manager:
                     proxy = self.application.proxy_manager.get_next_available_proxy()
-                    #print proxy
                     self.application.outbound_ip = proxy["proxy"][0]
                     self.application.outbound_port = int(proxy["proxy"][1])
 
                 #  httprequest object is created and then passed to async client with a callback
                 request = tornado.httpclient.HTTPRequest(
-                        url=self.request.url,
-                        method=self.request.method,
-                        body=self.request.body if self.request.body else None,
-                        headers=self.request.headers,
-                        auth_username=http_auth_username,
-                        auth_password=http_auth_password,
-                        auth_mode=http_auth_mode,
-                        follow_redirects=False,
-                        use_gzip=True,
-                        streaming_callback=self.handle_data_chunk,
-                        header_callback=None,
-                        proxy_host=self.application.outbound_ip,
-                        proxy_port=self.application.outbound_port,
-                        proxy_username=self.application.outbound_username,
-                        proxy_password=self.application.outbound_password,
-                        allow_nonstandard_methods=True,
-                        prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
-                                                                    else None, # socks callback function
-                        validate_cert=False)
+                    url=self.request.url,
+                    method=self.request.method,
+                    body=self.request.body if self.request.body else None,
+                    headers=self.request.headers,
+                    auth_username=http_auth_username,
+                    auth_password=http_auth_password,
+                    auth_mode=http_auth_mode,
+                    follow_redirects=False,
+                    use_gzip=True,
+                    streaming_callback=self.handle_data_chunk,
+                    header_callback=None,
+                    proxy_host=self.application.outbound_ip,
+                    proxy_port=self.application.outbound_port,
+                    proxy_username=self.application.outbound_username,
+                    proxy_password=self.application.outbound_password,
+                    allow_nonstandard_methods=True,
+                    prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"
+                    else None,  # socks callback function
+                    validate_cert=False)
                 try:
                     response = yield tornado.gen.Task(async_client.fetch, request)
                 except Exception:
@@ -211,14 +213,14 @@ class ProxyHandler(tornado.web.RequestHandler):
                 #checking the status of the proxy (asynchronous)
                 if self.application.proxy_manager and not success_response:
                     proxy_check_req = tornado.httpclient.HTTPRequest(
-                    url=self.application.proxy_manager.testing_url, #testing url is google.com
+                        url=self.application.proxy_manager.testing_url,  # testing url is google.com
                         use_gzip=True,
                         proxy_host=self.application.outbound_ip,
                         proxy_port=self.application.outbound_port,
                         proxy_username=self.application.outbound_username,
                         proxy_password=self.application.outbound_password,
-                        prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"\
-                        else None, # socks callback function
+                        prepare_curl_callback=prepare_curl_callback if self.application.outbound_proxy_type == "socks"
+                        else None,  # socks callback function
                         validate_cert=False)
                     try:
                         proxy_check_resp = yield tornado.gen.Task(async_client.fetch, proxy_check_req)
@@ -226,7 +228,6 @@ class ProxyHandler(tornado.web.RequestHandler):
                         pass
 
                     if proxy_check_resp.code != 200:
-                        #self.application.proxy_manager.remove_proxy(proxy)
                         self.application.proxy_manager.remove_proxy(proxy["index"])
                     else:
                         success_response = True
@@ -276,18 +277,19 @@ class ProxyHandler(tornado.web.RequestHandler):
         * The stream is added back to the server for monitoring
         """
         host, port = self.request.uri.split(':')
+
         def start_tunnel():
             try:
                 self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
                 wrap_socket(
-                            self.request.connection.stream.socket,
-                            host,
-                            self.application.ca_cert,
-                            self.application.ca_key,
-                            self.application.ca_key_pass,
-                            self.application.certs_folder,
-                            success=ssl_success
-                           )
+                    self.request.connection.stream.socket,
+                    host,
+                    self.application.ca_cert,
+                    self.application.ca_key,
+                    self.application.ca_key_pass,
+                    self.application.certs_folder,
+                    success=ssl_success
+                )
             except tornado.iostream.StreamClosedError:
                 pass
 
@@ -308,11 +310,11 @@ class ProxyHandler(tornado.web.RequestHandler):
         try:
             s = ssl.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0))
             upstream = tornado.iostream.SSLIOStream(s)
-            #start_tunnel()
             upstream.set_close_callback(ssl_fail)
             upstream.connect((host, int(port)), start_tunnel)
         except Exception:
             self.finish()
+
 
 class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
     """
@@ -331,10 +333,10 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             io_loop = tornado.ioloop.IOLoop.current()
 
         # During secure communication, we get relative URI, so make them absolute
-        if self.request.uri.startswith(self.request.protocol,0): # Normal Proxy Request
+        if self.request.uri.startswith(self.request.protocol, 0):  # Normal Proxy Request
             self.request.url = self.request.uri
         else:  # Transparent Proxy Request
-            self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
+            self.request.url = "%s://%s%s" % (self.request.protocol, self.request.host, self.request.uri)
         # WebSocketClientConnection expects ws:// & wss://
         self.request.url = self.request.url.replace("http", "ws", 1)
 
@@ -345,17 +347,17 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
                 request_headers.add(name, value)
         # Build a custom request
         request = tornado.httpclient.HTTPRequest(
-                                                    url=self.request.url,
-                                                    headers=request_headers,
-                                                    proxy_host=self.application.outbound_ip,
-                                                    proxy_port=self.application.outbound_port,
-                                                    proxy_username=self.application.outbound_username,
-                                                    proxy_password=self.application.outbound_password
-                                                )
+            url=self.request.url,
+            headers=request_headers,
+            proxy_host=self.application.outbound_ip,
+            proxy_port=self.application.outbound_port,
+            proxy_username=self.application.outbound_username,
+            proxy_password=self.application.outbound_password
+        )
         self.upstream_connection = CustomWebSocketClientConnection(io_loop, request)
         if callback is not None:
             io_loop.add_future(self.upstream_connection.connect_future, callback)
-        return self.upstream_connection.connect_future # This returns a future
+        return self.upstream_connection.connect_future  # This returns a future
 
     def _execute(self, transforms, *args, **kwargs):
         """
@@ -365,12 +367,12 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             """
             A callback which is called when connection to url is successful
             """
-            self.upstream = future.result() # We need upstream to write further messages
-            self.handshake_request = self.upstream_connection.request # HTTPRequest needed for caching :P
-            self.handshake_request.response_buffer = "" # Needed for websocket data & compliance with cache_handler stuff
-            self.handshake_request.version = "HTTP/1.1" # Tiny hack to protect caching (But according to websocket standards)
-            self.handshake_request.body = self.handshake_request.body or "" # I dont know why a None is coming :P
-            tornado.websocket.WebSocketHandler._execute(self, transforms, *args, **kwargs) # The regular procedures are to be done
+            self.upstream = future.result()  # We need upstream to write further messages
+            self.handshake_request = self.upstream_connection.request  # HTTPRequest needed for caching :P
+            self.handshake_request.response_buffer = ""  # Needed for websocket data & compliance with cache_handler stuff
+            self.handshake_request.version = "HTTP/1.1"  # Tiny hack to protect caching (But according to websocket standards)
+            self.handshake_request.body = self.handshake_request.body or ""  # I dont know why a None is coming :P
+            tornado.websocket.WebSocketHandler._execute(self, transforms, *args, **kwargs)  # The regular procedures are to be done
 
         # We try to connect to provided URL & then we proceed with connection on client side.
         self.upstream = self.upstream_connect(callback=start_tunnel)
@@ -379,8 +381,8 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         """
         Save websocket data sent from client to server, i.e add it to HTTPRequest.response_buffer with direction (>>)
         """
-        try: # Cannot write binary content as a string, so catch it
-            self.handshake_request.response_buffer += (">>> %s\r\n"%(message))
+        try:  # Cannot write binary content as a string, so catch it
+            self.handshake_request.response_buffer += (">>> %s\r\n" % (message))
         except TypeError:
             self.handshake_request.response_buffer += (">>> May be binary\r\n")
 
@@ -388,8 +390,8 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         """
         Save websocket data sent from client to server, i.e add it to HTTPRequest.response_buffer with direction (<<)
         """
-        try: # Cannot write binary content as a string, so catch it
-            self.handshake_request.response_buffer += ("<<< %s\r\n"%(message))
+        try:  # Cannot write binary content as a string, so catch it
+            self.handshake_request.response_buffer += ("<<< %s\r\n" % (message))
         except TypeError:
             self.handshake_request.response_buffer += ("<<< May be binary\r\n")
 
@@ -397,12 +399,12 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         """
         Everytime a message is received from client side, this instance method is called
         """
-        self.upstream.write_message(message) # The obtained message is written to upstream
+        self.upstream.write_message(message)  # The obtained message is written to upstream
         self.store_upstream_data(message)
 
         # The following check ensures that if a callback is added for reading message from upstream, another one is not added
         if not self.upstream.read_future:
-            self.upstream.read_message(callback=self.on_response) # A callback is added to read the data when upstream responds
+            self.upstream.read_message(callback=self.on_response)  # A callback is added to read the data when upstream responds
 
     def on_response(self, message):
         """
@@ -412,9 +414,9 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         # The following check ensures that if a callback is added for reading message from upstream, another one is not added
         if not self.upstream.read_future:
             self.upstream.read_message(callback=self.on_response)
-        if self.ws_connection: # Check if connection still exists
-            if message.result(): # Check if it is not NULL ( Indirect checking of upstream connection )
-                self.write_message(message.result()) # Write obtained message to client
+        if self.ws_connection:  # Check if connection still exists
+            if message.result():  # Check if it is not NULL ( Indirect checking of upstream connection )
+                self.write_message(message.result())  # Write obtained message to client
                 self.store_downstream_data(message.result())
             else:
                 self.close()
@@ -425,20 +427,21 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         """
         # Required for cache_handler
         self.handshake_response = tornado.httpclient.HTTPResponse(
-                                                                    self.handshake_request,
-                                                                    self.upstream_connection.code,
-                                                                    headers=self.upstream_connection.headers,
-                                                                    request_time=0
-                                                                 )
+            self.handshake_request,
+            self.upstream_connection.code,
+            headers=self.upstream_connection.headers,
+            request_time=0
+        )
         # Procedure for dumping a tornado request-response
         self.cache_handler = CacheHandler(
-                                            self.application.cache_dir,
-                                            self.handshake_request,
-                                            self.application.cookie_regex,
-                                            self.application.cookie_blacklist
-                                          )
+            self.application.cache_dir,
+            self.handshake_request,
+            self.application.cookie_regex,
+            self.application.cookie_blacklist
+        )
         self.cached_response = self.cache_handler.load()
         self.cache_handler.dump(self.handshake_response)
+
 
 class CustomWebSocketClientConnection(tornado.websocket.WebSocketClientConnection):
     # Had to extract response code, so it is necessary to override
@@ -459,7 +462,7 @@ class CommandHandler(tornado.web.RequestHandler):
         info = {}
         for command in command_list:
             if command.startswith("Core"):
-                command = "self.application." + command
+                command = "self.application.%s" % command
                 info[command] = eval(command)
             if command.startswith("setattr"):
                 info[command] = eval(command)
@@ -471,12 +474,7 @@ class ProxyProcess(OWTFProcess, BaseComponent):
 
     def initialize(self, outbound_options=[], outbound_auth=""):
         # The tornado application, which is used to pass variables to request handler
-        self.application = tornado.web.Application(handlers=[
-                                                            (r'.*', ProxyHandler)
-                                                            ],
-                                                    debug=False,
-                                                    gzip=True,
-                                                   )
+        self.application = tornado.web.Application(handlers=[(r'.*', ProxyHandler)], debug=False, gzip=True)
         self.config = self.get_component("config")
         self.db_config = self.get_component("db_config")
         # All required variables in request handler
@@ -491,11 +489,11 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         # 'i' means ctypes type is integer, initialization value is 0
         # if lock is True then a new recursive lock object is created to
         # synchronize access to the value
-        self.application.Core.pnh_inject = Value('i',0,lock=True)
+        self.application.Core.pnh_inject = Value('i', 0, lock=True)
         self.application.inbound_ip = self.db_config.Get('INBOUND_PROXY_IP')
         self.application.inbound_port = int(self.db_config.Get('INBOUND_PROXY_PORT'))
 
-        if self.proxy_manager: #Botnet mode needs only one proxy process
+        if self.proxy_manager:  # Botnet mode needs only one proxy process
             self.instances = "1"
         else:
             self.instances = self.db_config.Get("INBOUND_PROXY_PROCESSES")
@@ -512,23 +510,23 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory ~/.owtf/proxy )
         self.application.ca_cert = os.path.expanduser(self.db_config.Get('CA_CERT'))
         self.application.ca_key = os.path.expanduser(self.db_config.Get('CA_KEY'))
-        try: # To stop owtf from breaking for our beloved users :P
+        try:  # To stop owtf from breaking for our beloved users :P
             self.application.ca_key_pass = FileOperations.open(
                 os.path.expanduser(self.db_config.Get('CA_PASS_FILE')),
-                'r',
-                owtf_clean=False).read().strip()
+                'r', owtf_clean=False).read().strip()
         except IOError:
             self.application.ca_key_pass = "owtf"
         self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
         self.application.certs_folder = os.path.expanduser(self.db_config.Get('CERTS_FOLDER'))
 
-        try: # Ensure CA.crt and Key exist
+        try:  # Ensure CA.crt and Key exist
             assert os.path.exists(self.application.ca_cert)
             assert os.path.exists(self.application.ca_key)
         except AssertionError:
-            self.get_component("error_handler").FrameworkAbort("Files required for SSL MiTM are missing. Please run the install script")
+            self.get_component("error_handler").FrameworkAbort(
+                "Files required for SSL MiTM are missing. Please run the install script")
 
-        try: # If certs folder missing, create that
+        try:  # If certs folder missing, create that
             assert os.path.exists(self.application.certs_folder)
         except AssertionError:
             FileOperations.make_dirs(self.application.certs_folder)
@@ -542,9 +540,9 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             cookies_list = self.db_config.Get('WHITELIST_COOKIES').split(',')
             self.application.cookie_blacklist = False
         if self.application.cookie_blacklist:
-            regex_cookies_list = [ cookie + "=([^;]+;?)" for cookie in cookies_list ]
+            regex_cookies_list = ["%s=([^;]+;?)" % cookie for cookie in cookies_list]
         else:
-            regex_cookies_list = [ "(" + cookie + "=[^;]+;?)" for cookie in self.db_config.Get('COOKIES_LIST') ]
+            regex_cookies_list = ["(%s=[^;]+;?)" % cookie for cookie in self.db_config.Get('COOKIES_LIST')]
         regex_string = '|'.join(regex_cookies_list)
         self.application.cookie_regex = re.compile(regex_string)
 
@@ -598,8 +596,8 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
-            tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix="+self.db_config.Get("PROXY_LOG"),"--logging=info"])
-            # tornado.options.parse_command_line(args=["dummy_arg","--log_file_prefix=/tmp/proxy.log","--logging=info"])
+            tornado.options.parse_command_line(args=["dummy_arg", "--log_file_prefix=%s" %
+                                                     self.db_config.Get("PROXY_LOG"), "--logging=info"])
             # To run any number of instances
             self.server.start(int(self.instances))
             tornado.ioloop.IOLoop.instance().start()

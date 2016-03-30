@@ -3,14 +3,17 @@
 # Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
 #                     as a part of Google Summer of Code 2013
 '''
+
 import re
 import os
 import json
 import base64
 import hashlib
 import datetime
-from framework.lib.filelock import FileLock
+
 import tornado.httputil
+
+from framework.lib.filelock import FileLock
 
 
 class CacheHandler(object):
@@ -45,18 +48,18 @@ class CacheHandler(object):
                             cookie_string += item.strip()
         except KeyError:
             pass
-        request_mod = self.request.method + self.request.url + self.request.version
-        request_mod = request_mod + self.request.body + cookie_string
+        request_mod = "%s%s%s" % (self.request.method, self.request.url, self.request.version)
+        request_mod = "%s%s%s" % (request_mod, self.request.body, cookie_string)
 
         # To support proxying of ua-tester
         try:
-            request_mod = request_mod + self.request.headers["User-Agent"]
+            request_mod = "%s%s" % (request_mod, self.request.headers["User-Agent"])
         except KeyError:
             pass
 
         # Websocket caching technique
         try:
-            request_mod = request_mod + self.request.headers["Sec-Websocket-Key"]
+            request_mod = "%s%s" % (request_mod, self.request.headers["Sec-Websocket-Key"])
         except KeyError:
             pass
 
@@ -82,25 +85,25 @@ class CacheHandler(object):
             response_body = base64.b64encode(self.request.response_buffer)
             binary_response = True
         cache_dict = {
-                            'request_method':self.request.method,
-                            'request_url':self.request.url,
-                            'request_version':self.request.version,
-                            'request_headers':dict(self.request.headers),
-                            'request_body':self.request.body,
-                            'request_time':response.request_time,
-                            'request_local_timestamp':self.request.local_timestamp.isoformat(),
-                            'response_code':response.code,
-                            'response_headers':dict(response.headers),
-                            'response_body':response_body,
-                            'response_cookies':response.headers.get_list("Set-Cookie"),
-                            'binary_response':binary_response
-                     }
+            'request_method': self.request.method,
+            'request_url': self.request.url,
+            'request_version': self.request.version,
+            'request_headers': dict(self.request.headers),
+            'request_body': self.request.body,
+            'request_time': response.request_time,
+            'request_local_timestamp': self.request.local_timestamp.isoformat(),
+            'response_code': response.code,
+            'response_headers': dict(response.headers),
+            'response_body': response_body,
+            'response_cookies': response.headers.get_list("Set-Cookie"),
+            'binary_response': binary_response
+        }
         with open(self.file_path, 'w') as outfile:
             json.dump(cache_dict, outfile)
 
         # This approach can be used as an alternative for object sharing
         # This creates a file with hash as name and .rd as extension
-        open(self.file_path + '.rd', 'w').close()
+        open('%s.rd' % self.file_path, 'w').close()
         self.file_lock.release()
 
     def load(self):
@@ -125,6 +128,7 @@ class CacheHandler(object):
                 else:
                     return None
 
+
 class DummyObject(object):
     """
     This class is just used to create a fake response objects
@@ -132,15 +136,16 @@ class DummyObject(object):
     def __init__(self):
         self.dummy_obj = True
 
+
 def response_from_cache(file_path):
     # A fake response object is created with necessary attributes
-    #cache_dict = pickle.load(open(self.file_path, 'rb'))
     dummyResponse = DummyObject()
     cache_dict = json.loads(open(file_path, 'r').read())
     dummyResponse.code = cache_dict["response_code"]
     dummyResponse.headers = tornado.httputil.HTTPHeaders(cache_dict["response_headers"])
-    dummyResponse.header_string = '\r\n'.join(["%s: %s" % (name, value) for name, value in cache_dict["response_headers"].iteritems()])
-    if cache_dict["binary_response"] == True:
+    dummyResponse.header_string = '\r\n'.join(
+        ["%s: %s" % (name, value) for name, value in cache_dict["response_headers"].iteritems()])
+    if cache_dict["binary_response"] is True:
         dummyResponse.body = base64.b64decode(cache_dict["response_body"])
     else:
         dummyResponse.body = cache_dict["response_body"]
@@ -150,18 +155,21 @@ def response_from_cache(file_path):
     # Temp object is created as an alternative to use lists (or) dictionaries for passing values
     return dummyResponse
 
+
 def request_from_cache(file_path):
     # A fake request object is created with necessary attributes
     dummyRequest = DummyObject()
     cache_dict = json.loads(open(file_path, 'r').read())
-    dummyRequest.local_timestamp = datetime.datetime.strptime(cache_dict["request_local_timestamp"].strip("\r\n"), '%Y-%m-%dT%H:%M:%S.%f')
+    dummyRequest.local_timestamp = datetime.datetime.strptime(
+        cache_dict["request_local_timestamp"].strip("\r\n"), '%Y-%m-%dT%H:%M:%S.%f')
     dummyRequest.method = cache_dict["request_method"]
     dummyRequest.url = cache_dict["request_url"]
     dummyRequest.headers = cache_dict["request_headers"]
     dummyRequest.body = cache_dict["request_body"]
-    dummyRequest.raw_request = "%s %s %s\r\n" % (cache_dict["request_method"], cache_dict["request_url"], cache_dict["request_version"])
+    dummyRequest.raw_request = "%s %s %s\r\n" % (
+        cache_dict["request_method"], cache_dict["request_url"], cache_dict["request_version"])
     for name, value in cache_dict["request_headers"].iteritems():
         dummyRequest.raw_request += "%s: %s\r\n" % (name, value)
     if cache_dict["request_body"]:
-        dummyRequest.raw_request += cache_dict["request_body"] + "\r\n\r\n"
+        dummyRequest.raw_request += "%s\r\n\r\n" % cache_dict["request_body"]
     return dummyRequest

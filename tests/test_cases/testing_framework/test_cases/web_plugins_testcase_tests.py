@@ -21,7 +21,7 @@ class CustomHandler(tornado.web.RequestHandler):
 
 class WebPluginTestCaseTests(WebPluginTestCase):
 
-    HOST = "localhost"  
+    HOST = "localhost"
 
     def test_that_defined_responses_are_set_correctly(self):
         path_response = {"/first": "first",
@@ -90,9 +90,9 @@ class WebPluginTestCaseTests(WebPluginTestCase):
     def test_that_running_owtf_the_output_of_the_plugin_is_stored(self):
         flexmock(self)
         self.should_receive("run_plugin").and_return(["some_output"]).once()
- 
+
         self.owtf("-g web -t semi_passive -o Spiders_Robots_and_Crawlers")
- 
+
         assert_that(self.owtf_output, contains_string("some_output"))
 
     def test_that_it_is_possible_to_define_a_custom_handler(self):

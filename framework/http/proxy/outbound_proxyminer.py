@@ -8,12 +8,12 @@ B)Helper Functions
 C)Proxy Mining Functions
 
 '''
-
-import urllib2
-from bs4 import BeautifulSoup
 import re
 import itertools
 import os
+import urllib2
+
+from bs4 import BeautifulSoup
 from tornado.httpclient import HTTPRequest, HTTPClient
 from tornado.httputil import HTTPHeaders
 from tornado.httpclient import HTTPError
@@ -29,24 +29,22 @@ class Proxy_Miner:
         #Websites List contains as first element a "pointer" to the mining
         #function and as second element the site name.
         Websites = [
-                    [self.proxylisty, "www.proxylisty.com"],
-                    [self.samair, "http://samair.ru"],
-                    [self.sites_google_site_proxyfree4u, "https://sites.google.com/site/proxyfree4u"],
-                    [self.idcloak, "http://www.idcloak.com"],
-                   ]
+            [self.proxylisty, "www.proxylisty.com"],
+            [self.samair, "http://samair.ru"],
+            [self.sites_google_site_proxyfree4u, "https://sites.google.com/site/proxyfree4u"],
+            [self.idcloak, "http://www.idcloak.com"],
+        ]
         #Fetching Data by calling the mining functions
         print "[#] Proxy Miner has started"
-        for i in range(0, len(Websites)):
-            print "[#] Fetching data from : " + Websites[i][1]
+        for idx, website in enumerate(Websites):
+            print "[#] Fetching data from : %s" % website[1]
             try:
-                Proxies += Websites[i][0]()
+                Proxies += website[0]()
             except Exception as error:
-                print "Please Report this information to OWTF community!!!\n" + \
-                      "Mining Proxies Data from : " + Websites[i][1] + " Failed!\n" + \
-                      "*****************************************************\n" + \
-                      "                     Exception                     \n" + \
-                      str(error) + "\nFetching data from " + Websites[i][1] + " Skipped\n" + \
-                      "*****************************************************\n"
+                print "Please Report this information to OWTF community!!!\nMining Proxies Data from : %s Failed!\n" \
+                      "*****************************************************\n" \
+                      "                     Exception                     \n%s\nFetching data from %s Skipped\n" \
+                      "*****************************************************\n" % (website[1], str(error), website[1])
 
         print "[#] Fetching Done"
 
@@ -56,7 +54,7 @@ class Proxy_Miner:
             Proxies += previous_proxies
         Proxies = self.remove_double_entries(Proxies)
 
-        print "Total Proxies : " + str(len(Proxies))
+        print "Total Proxies : %s" % str(len(Proxies))
 
         return Proxies
 
@@ -70,7 +68,7 @@ class Proxy_Miner:
             return False
         if port < 0 or port > 65536:
             return False
-        if re.match(ValidIpAddressRegex, proxy[0]) == None:
+        if re.match(ValidIpAddressRegex, proxy[0]) is None:
             return False
         return True
 
@@ -89,12 +87,10 @@ class Proxy_Miner:
         path = os.path.expanduser("~/.owtf/proxy_miner/")
         print path
         if not os.path.exists(path):
-            #print "Creating path"
             os.makedirs(path)
         fh = open(os.path.join(path, filename), 'w+')
-        for i in range(0, len(proxies)):
-            fh.write(proxies[i][0] + ":" + proxies[i][1] + "\n")
-            # fh.write(str(proxies[i]) + "\n")
+        for idx, proxy in enumerate(proxies):
+            fh.write("%s:%s\n" % (proxy[0], proxy[1]))
         fh.close()
 
     def getpage(self, url):
@@ -110,13 +106,12 @@ class Proxy_Miner:
     #  removes double entries and sort's the proxy list
     def remove_double_entries(self, proxies):
         proxies.sort(key=lambda x: (
-                                    int(x[0].split(".")[0]),
-                                    int(x[0].split(".")[1]),
-                                    int(x[0].split(".")[2]),
-                                    int(x[0].split(".")[3]),
-                                    int(x[1])
-                                    )
-                     )
+            int(x[0].split(".")[0]),
+            int(x[0].split(".")[1]),
+            int(x[0].split(".")[2]),
+            int(x[0].split(".")[3]),
+            int(x[1]))
+        )
         return list(proxies for proxies, _ in itertools.groupby(proxies))
 
 #----------------------------PROXY-MINING-FUNCTIONS-------------------------
@@ -125,23 +120,20 @@ class Proxy_Miner:
     # http://samair.ru/proxy/proxy-84.htm
     def samair(self):
         proxies = []
-        for counter in range(1, 31): # fetch 30 pages
+        for counter in range(1, 31):  # fetch 30 pages
             if counter < 10:
-                pn = "0" + str(counter)
+                pn = "0%s" % str(counter)
             else:
                 pn = str(counter)
             # extracting proxies
-            page = BeautifulSoup(self.getpage("http://samair.ru/proxy/proxy-" + pn + ".htm"))
-            link = "http://samair.ru" + page.find("a", text="these proxies in IP:Port format only").get("href")
-            # print(link)
+            page = BeautifulSoup(self.getpage("http://samair.ru/proxy/proxy-%s.htm" % pn))
+            link = "http://samair.ru%s" % page.find("a", text="these proxies in IP:Port format only").get("href")
             proxy_page = BeautifulSoup(self.getpage(link))
             ip_addrs = proxy_page.find("div", id="content").text
-            # print ip_addrs
             d_list = ip_addrs.split("\n")
             for row in d_list:
                 proxy = str(row).split(":")
                 if len(proxy) == 2:  # number of elements
-                    # row.append("http")
                     if(self.check_proxy(proxy)):
                         proxies.append(proxy)
             counter = counter + 1
@@ -152,7 +144,6 @@ class Proxy_Miner:
         proxies = []
         for i in range(1, 14):  # Fetch 13 pages
             page = BeautifulSoup(self.getpage_with_user_agent("http://www.proxylisty.com/ip-proxylist-" + str(i)))
-            # print i
 
             d_list = page.find_all("tr")
             d_list = d_list[2:-2]
@@ -160,7 +151,6 @@ class Proxy_Miner:
                 text = raw_data.get_text()
                 tmp = text.split("\n")
                 p = []
-                # for i in range(1, 4): #append proxy type
                 for i in range(1, 3):
                     p.append(str(tmp[i]))
                     if self.check_proxy(p):
@@ -173,12 +163,10 @@ class Proxy_Miner:
         url = "http://www.idcloak.com/proxylist/free-proxy-ip-list.html"
         #getting live updated proxies
         page = BeautifulSoup(self.getpage(url))
-        # print page.find("div",id="torefresh")
         page = page.find("div", id="torefresh")
         data_list = page.find_all("tr")
         data_list = data_list[1:]
         for raw_data in data_list:
-            # print raw_data
 
             # parsing the data
             soup = BeautifulSoup(str(raw_data))
@@ -190,43 +178,41 @@ class Proxy_Miner:
         page_num = 1
         http_client = HTTPClient()
         while True:  # loop until last page
-            post_data = "port%5B%5D=all&protocol-http=true" + \
-            "&protocol-https=true&anonymity-low=true&anonymity-medium=true" + \
-            "&anonymity-high=true&connection-low=true&connection-medium=true" + \
-            "&connection-high=true&speed-low=true&speed-medium=true" + \
-            "&speed-high=true&order=desc&by=updated&page=" + str(page_num)
+            post_data = "port%5B%5D=all&protocol-http=true" \
+                "&protocol-https=true&anonymity-low=true&anonymity-medium=true" \
+                "&anonymity-high=true&connection-low=true&connection-medium=true" \
+                "&connection-high=true&speed-low=true&speed-medium=true" \
+                "&speed-high=true&order=desc&by=updated&page=%s" % str(page_num)
 
             request = HTTPRequest(
-                                  url=url,
-                                  connect_timeout=30,
-                                  request_timeout=30,
-                                  follow_redirects=False,
-                                  use_gzip=True,
-                                  user_agent=Proxy_Miner.User_agent,
-                                  method="POST",
-                                  body=post_data
-                                  )
+                url=url,
+                connect_timeout=30,
+                request_timeout=30,
+                follow_redirects=False,
+                use_gzip=True,
+                user_agent=Proxy_Miner.User_agent,
+                method="POST",
+                body=post_data
+            )
 
             try:
                 response = http_client.fetch(request)
             except Exception as e:
                 print e
                 pass
-            #print response
             #parsing the data
             page = BeautifulSoup(response.body)
             page = page.find("table", id="sort")
             data_list = page.find_all("tr")
             data_list = data_list[1:]
             for raw_data in data_list:
-                # print raw_data
                 soup = BeautifulSoup(str(raw_data))
                 raw_proxy = soup.findAll("td")
                 proxy = [str(raw_proxy[-1])[4:-5], str(raw_proxy[-2])[4:-5]]
                 if self.check_proxy(proxy):
                     proxies.append(proxy)
             # if the following pattern don't exists you are in the last page
-            if response.body.find(" name=\"page\" value=\"" + str(page_num + 1)) == -1:
+            if response.body.find(" name=\"page\" value=\"%s" % str(page_num+1)) == -1:
                 break
             page_num += 1
         return proxies
@@ -237,23 +223,22 @@ class Proxy_Miner:
         url = "https://sites.google.com/site/proxyfree4u/proxy-list?offset="
         # fetch the latest 10 pages
         for i in range(0, 100, 10):
-            # print url + str(i)
-            soup = BeautifulSoup(self.getpage(url + str(i)))
+            soup = BeautifulSoup(self.getpage(url+str(i)))
             http_client = HTTPClient()
             for link in soup.find_all('a'):
                 fetch_url = link.get('href')
                 #get the correct URL
-                if fetch_url == None:
+                if fetch_url is None:
                     continue
                 if fetch_url.find("&single=true&gid=0&output=txt") != -1:
                     request = HTTPRequest(
-                                          url=fetch_url,
-                                          connect_timeout=30,
-                                          request_timeout=30,
-                                          follow_redirects=False,
-                                          use_gzip=True,
-                                          user_agent=Proxy_Miner.User_agent
-                                          )
+                        url=fetch_url,
+                        connect_timeout=30,
+                        request_timeout=30,
+                        follow_redirects=False,
+                        use_gzip=True,
+                        user_agent=Proxy_Miner.User_agent
+                    )
                     #  sometime during tests the response was 599.
                     #  re-sending the packet 4 times
                     for times in range(0, 4):
@@ -268,14 +253,14 @@ class Proxy_Miner:
                         cookie_headers = HTTPHeaders()
                         cookie_headers.add("Cookie", cookie.split(";")[0])
                         req2 = HTTPRequest(
-                                           url=first_redirect,
-                                           connect_timeout=30.0,
-                                           request_timeout=30.0,
-                                           follow_redirects=False,
-                                           use_gzip=True,
-                                           headers=cookie_headers,
-                                           user_agent=Proxy_Miner.User_agent
-                                           )
+                            url=first_redirect,
+                            connect_timeout=30.0,
+                            request_timeout=30.0,
+                            follow_redirects=False,
+                            use_gzip=True,
+                            headers=cookie_headers,
+                            user_agent=Proxy_Miner.User_agent
+                        )
                         try:
                             http_client.fetch(req2)
                         except HTTPError as e2:
@@ -284,16 +269,15 @@ class Proxy_Miner:
                             cookie2 = e2.response.headers['Set-Cookie']
                             cookie_headers.add("Cookie", cookie2.split(";")[0])
                             req3 = HTTPRequest(
-                                               url=second_redirect,
-                                               connect_timeout=30.0,
-                                               request_timeout=30.0,
-                                               follow_redirects=True,
-                                               use_gzip=True,
-                                               headers=cookie_headers,
-                                               user_agent=Proxy_Miner.User_agent
-                                               )
+                                url=second_redirect,
+                                connect_timeout=30.0,
+                                request_timeout=30.0,
+                                follow_redirects=True,
+                                use_gzip=True,
+                                headers=cookie_headers,
+                                user_agent=Proxy_Miner.User_agent
+                            )
                             resp3 = http_client.fetch(req3)
-                            # print resp3.body
                             lines = resp3.body.split("\n")
                             counter = 0
                             for j in range(1, len(lines)):

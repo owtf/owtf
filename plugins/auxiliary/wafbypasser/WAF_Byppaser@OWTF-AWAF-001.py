@@ -30,36 +30,33 @@ DESCRIPTION = "WAF byppaser module plugin"
 
 
 def run(PluginInfo):
-    # ServiceLocator.get_component("config").Show()
-    Content = DESCRIPTION + " Results:<br />"
+    Content = "%s Results:<br />" % DESCRIPTION
     plugin_params = ServiceLocator.get_component("plugin_params")
     for Args in plugin_params.GetArgs({
-                                              'Description': DESCRIPTION,
-                                              'Mandatory': {
-                                              'TARGET': None,
-                                              'MODE': None,
-                                              },
-                                              'Optional': {
-                                              'METHODS': None,
-                                              'COOKIE': None,
-                                              'HEADERS': None,
-                                              'LENGTH': None,
-                                              'DATA': None,
-                                              'CONTAINS': None,
-                                              'RESP_CODE_DET': None,
-                                              'RESPONSE_TIME': None,
-                                              'REVERSE': None,
-                                              'PAYLOADS': None,
-                                              'ACCEPTED_VALUE': None,
-                                              'PARAM_NAME': None,
-                                              'PARAM_SOURCE': None,
-                                              'DELAY': None,
-                                              'FOLLOW-COOKIES': None,
+        'Description': DESCRIPTION,
+        'Mandatory': {
+            'TARGET': None,
+            'MODE': None,
+        },
+        'Optional': {
+            'METHODS': None,
+            'COOKIE': None,
+            'HEADERS': None,
+            'LENGTH': None,
+            'DATA': None,
+            'CONTAINS': None,
+            'RESP_CODE_DET': None,
+            'RESPONSE_TIME': None,
+            'REVERSE': None,
+            'PAYLOADS': None,
+            'ACCEPTED_VALUE': None,
+            'PARAM_NAME': None,
+            'PARAM_SOURCE': None,
+            'DELAY': None,
+            'FOLLOW-COOKIES': None}}, PluginInfo):
 
-                                              }}, PluginInfo):
+        ret = plugin_params.SetConfig(Args)  # Only now, after modifying ATTACHMENT_NAME, update config
 
-        ret = plugin_params.SetConfig(
-            Args)  # Only now, after modifying ATTACHMENT_NAME, update config
     wafbps = wafbypasser.WAFBypasser(Core)
     wafbps.start(format_args(Args))
     return Content

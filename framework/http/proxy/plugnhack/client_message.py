@@ -1,22 +1,24 @@
-import plugnhack_extension
 import datetime
 import json
+
+import plugnhack_extension
 
 
 def enum(**named_values):
     """
-    enum represents a simulation of 'enum' data type in programming languages as 
+    enum represents a simulation of 'enum' data type in programming languages as
     C, C++, Java etc.
-    enum type is available as a built-in type in Python 3.4, not in Python 2.7, 
+    enum type is available as a built-in type in Python 3.4, not in Python 2.7,
     enum data type was backported to 2.7 through pypi.
     For installing it run: pip install enum34
     """
     return type('Enum', (), named_values)
 
+
 class ClientMessage(object):
     """
     ClientMessage represents information about a client message (state of a message
-    , receiving time, if its content was changed), methods to modify a message 
+    , receiving time, if its content was changed), methods to modify a message
     (change 'type', 'data', 'name' etc.), organize message content in a human
     readable format and appropriate for computers.
     """
@@ -28,21 +30,21 @@ class ClientMessage(object):
         # save at which time message was received
         self._received = datetime.datetime.now()
         # state that a message pass
-        self.State = enum(pending="pending",received="received",resent="resent",dropped="dropped",oraclehit="oraclehit")
+        self.State = enum(pending="pending", received="received", resent="resent",
+                          dropped="dropped", oraclehit="oraclehit")
         # first state for a message
         self._state = self.State.received
         # a new message haven't been modified
         self._changed = False
         self._index = -1
         self._extra_fields = dict()
-        self._reflect_fields = ["eventData","originalEventTarget"]
-        
+        self._reflect_fields = ["eventData", "originalEventTarget"]
 
     # Respond with the self._index current value
     @property
     def index(self):
         return self._index
-    
+
     # Change value of self._index to a new value
     @index.setter
     def index(self, index):
@@ -75,7 +77,7 @@ class ClientMessage(object):
             return value
         else:
             return None
-    
+
     # Update/add the value for key 'from'
     def set_from(self, msg_from):
         self._json_obj["from"] = msg_from
@@ -91,7 +93,7 @@ class ClientMessage(object):
     # Update/add the value of key 'to'
     def set_to(self, msg_to):
         self._json_obj["to"] = msg_to
-        
+
     # Respond with the value of key 'type', if it is present in self._json_obj
     # An example of type: "type":"setConfig"
     def get_type(self):
@@ -105,7 +107,7 @@ class ClientMessage(object):
     def set_type(self, type_p):
         self._json_obj["type"] = type_p
 
-    # Respond with the value of key 'data', if it is present in self._json_obj 
+    # Respond with the value of key 'data', if it is present in self._json_obj
     def get_data(self):
         value = self._json_obj.get("data")
         if value:
@@ -124,7 +126,7 @@ class ClientMessage(object):
             return value
         else:
             return None
-        
+
     # Update/add the value of key 'endpointId'
     def set_endpoint_id(self, endpoint_id):
         self._json_obj["endpointId"] = endpoint_id
@@ -160,10 +162,10 @@ class ClientMessage(object):
 
         for key, value in self._extra_fields.iteritems():
             h_map[key] = value
-        
+
         if self._changed:
             h_map["changed"] = True
-        
+
         return h_map
 
     # Respond with the value of key 'target', if it is present in self._json_obj
@@ -173,7 +175,7 @@ class ClientMessage(object):
             return value
         else:
             return None
-        
+
     # Update/add the value of key 'target'
     def set_target(self, target):
         self._json_obj["target"] = target
@@ -200,18 +202,17 @@ class ClientMessage(object):
     def client_id(self, client_id):
         self._client_id = client_id
 
-    
     def is_in_scope(self):
         return False
 
     def is_force_intercept(self):
         return False
-    
+
     # Respond with the value of self._changed
     @property
     def changed(self):
         return self._changed
-    
+
     # Update the value of self._changed
     @changed.setter
     def changed(self, changed):
@@ -240,14 +241,14 @@ class ClientMessage(object):
     def get_json(self, key):
         return json.dumps(self._json_obj.get(key))
 
-    # Respond with a boolean if self._json_obj contains 'key' or not 
+    # Respond with a boolean if self._json_obj contains 'key' or not
     def get_bool(self, key):
-        if self._json_obj.has_key(key):
+        if key in self._json_obj:
             return True
         else:
             return False
-        
-    # Respond with self._extra_fields list DS 
+
+    # Respond with self._extra_fields list DS
     @property
     def extra_fields(self):
         return self._extra_fields

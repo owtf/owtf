@@ -11,16 +11,12 @@ import logging
 import socket
 
 from copy import deepcopy
-
 from urlparse import urlparse
 from collections import defaultdict
 
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ConfigInterface
-
-from framework.lib.exceptions import PluginAbortException, \
-                                     DBIntegrityException, \
-                                     UnresolvableTargetException
+from framework.lib.exceptions import PluginAbortException, DBIntegrityException, UnresolvableTargetException
 from framework.config import health_check
 from framework.lib.general import cprint
 from framework.db import models, target_manager
@@ -59,8 +55,7 @@ class Config(BaseComponent, ConfigInterface):
         self.worklist_manager = None
         self.initialize_attributes()
         # key can consist alphabets, numbers, hyphen & underscore.
-        self.SearchRegex = re.compile(
-            REPLACEMENT_DELIMITER + '([a-zA-Z0-9-_]*?)' + REPLACEMENT_DELIMITER)
+        self.SearchRegex = re.compile('%s([a-zA-Z0-9-_]*?)%s' % (REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER))
         # Available profiles = g -> General configuration, n -> Network plugin
         # order, w -> Web plugin order, r -> Resources file
         self.initialize_attributes()
@@ -88,7 +83,7 @@ class Config(BaseComponent, ConfigInterface):
     def LoadFrameworkConfigFromFile(self, config_path):
         """Load the configuration from into a global dictionary."""
         if 'framework_config' not in config_path:
-            cprint("Loading Config from: " + config_path + " ..")
+            cprint("Loading Config from: %s .." % config_path)
         config_file = FileOperations.open(config_path, 'r')
         self.Set('FRAMEWORK_DIR', self.RootDir)  # Needed Later.
         for line in config_file:
@@ -96,19 +91,13 @@ class Config(BaseComponent, ConfigInterface):
                 key = line.split(':')[0]
                 if key[0] == '#':  # Ignore comment lines.
                     continue
-                value = line.replace(key + ": ", "").strip()
+                value = line.replace("%s: " % key, "").strip()
                 self.Set(
                     key,
-                    self.MultipleReplace(
-                        value, {
-                            'FRAMEWORK_DIR': self.RootDir,
-                            'OWTF_PID': str(self.OwtfPid)}
-                        )
-                    )
+                    self.MultipleReplace(value, {'FRAMEWORK_DIR': self.RootDir, 'OWTF_PID': str(self.OwtfPid)})
+                )
             except ValueError:
-                self.error_handler.FrameworkAbort(
-                    "Problem in config file: '" + config_path +
-                    "' -> Cannot parse line: " + line)
+                self.error_handler.FrameworkAbort("Problem in config file: '%s' -> Cannot parse line: %s" % (config_path, line))
 
     def ConvertStrToBool(self, string):
         return (not(string in ['False', 'false', 0, '0']))
@@ -164,14 +153,9 @@ class Config(BaseComponent, ConfigInterface):
                     group = 'network'
             filter_data = {'type': options['PluginType'], 'group': group}
         else:
-            filter_data = {
-                "code": options.get("OnlyPlugins"),
-                "type": options.get("PluginType")}
+            filter_data = {"code": options.get("OnlyPlugins"), "type": options.get("PluginType")}
         plugins = self.db_plugin.GetAll(filter_data)
-        self.worklist_manager.add_work(
-            target,
-            plugins,
-            force_overwrite=options["Force_Overwrite"])
+        self.worklist_manager.add_work(target, plugins, force_overwrite=options["Force_Overwrite"])
 
     def get_profile_path(self, profile_name):
         return(self.Profiles.get(profile_name, None))
@@ -206,7 +190,7 @@ class Config(BaseComponent, ConfigInterface):
                 logging.warning("%s already exists in DB" % target)
                 added_targets.append(target)
             except UnresolvableTargetException as e:
-                logging.error("%s" % e.parameter)
+                logging.error(e.parameter)
         return(added_targets)
 
     def prepare_url_scope(self, scope, group):
@@ -224,9 +208,7 @@ class Config(BaseComponent, ConfigInterface):
                 if group is "network":
                     new_scope.append('http://%s' % target_url)
                 else:
-                    new_scope.extend((
-                        '%s://%s' % (prefix, target_url)
-                        for prefix in ('http', 'https')))
+                    new_scope.extend(('%s://%s' % (prefix, target_url) for prefix in ('http', 'https')))
         return new_scope
 
     def MultipleReplace(self, text, replace_dict):
@@ -244,13 +226,9 @@ class Config(BaseComponent, ConfigInterface):
     def LoadProxyConfigurations(self, options):
         if options['InboundProxy']:
             if len(options['InboundProxy']) == 1:
-                options['InboundProxy'] = [
-                    self.Get('INBOUND_PROXY_IP'),
-                    options['InboundProxy'][0]]
+                options['InboundProxy'] = [self.Get('INBOUND_PROXY_IP'), options['InboundProxy'][0]]
         else:
-            options['InboundProxy'] = [
-                self.Get('INBOUND_PROXY_IP'),
-                self.Get('INBOUND_PROXY_PORT')]
+            options['InboundProxy'] = [self.Get('INBOUND_PROXY_IP'), self.Get('INBOUND_PROXY_PORT')]
         self.Set('INBOUND_PROXY_IP', options['InboundProxy'][0])
         self.Set('INBOUND_PROXY_PORT', options['InboundProxy'][1])
         self.Set('INBOUND_PROXY', ':'.join(options['InboundProxy']))
@@ -286,7 +264,7 @@ class Config(BaseComponent, ConfigInterface):
             raise UnresolvableTargetException("Invalid hostname '%s'" % str(target_URL))
         URL_scheme = parsed_URL.scheme
         protocol = parsed_URL.scheme
-        if parsed_URL.port == None:  # Port is blank: Derive from scheme.
+        if parsed_URL.port is None:  # Port is blank: Derive from scheme.
             port = '80'
             if 'https' == URL_scheme:
                 port = '443'
@@ -317,41 +295,29 @@ class Config(BaseComponent, ConfigInterface):
             # Get "example.com" from "www.example.com"
             target_config['top_domain'] = '.'.join(hostname_chunks[1:])
         # Set the top URL.
-        target_config['top_url'] = protocol + "://" + host + ":" + port
+        target_config['top_url'] = "%s://%s:%s" % (protocol, host, port)
         return target_config
 
     def DeriveOutputSettingsFromURL(self, target_URL):
         # Set the output directory.
-        self.Set(
-            'host_output',
-            self.Get('OUTPUT_PATH') + "/" + self.Get('host_ip'))
+        self.Set('host_output', "%s/%s" % (self.Get('OUTPUT_PATH'), self.Get('host_ip')))
         # Set the output directory.
-        self.Set(
-            'port_output',
-            self.Get('host_output') + "/" + self.Get('port_number'))
-        URL_info_ID = target_URL.replace('/','_').replace(':','')
+        self.Set('port_output', "%s/%s" % (self.Get('host_output'), self.Get('port_number')))
+        URL_info_ID = target_URL.replace('/', '_').replace(':', '')
         # Set the URL output directory (plugins will save their data here).
-        self.Set(
-            'url_output',
-            self.Get('port_output') + "/" + URL_info_ID + "/")
+        self.Set('url_output', "%s/%s/" % (self.Get('port_output'), URL_info_ID))
         # Set the partial results path.
-        self.Set('partial_url_output_path', self.Get('url_output')+'partial')
-        self.Set(
-            'PARTIAL_REPORT_REGISTER',
-            self.Get('partial_url_output_path') + "/partial_report_register.txt")
+        self.Set('partial_url_output_path', '%spartial' % self.Get('url_output'))
+        self.Set('PARTIAL_REPORT_REGISTER', "%s/partial_report_register.txt" % self.Get('partial_url_output_path'))
 
         # Tested in FF 8: Different directory = Different localStorage!! -> All
         # localStorage-dependent reports must be on the same directory.
         # IMPORTANT: For localStorage to work Url reports must be on the same
         # directory.
-        self.Set(
-            'HTML_DETAILED_REPORT_PATH',
-            self.Get('OUTPUT_PATH') + "/" + URL_info_ID + ".html")
+        self.Set('HTML_DETAILED_REPORT_PATH', "%s/%s.html" % (self.Get('OUTPUT_PATH'), URL_info_ID))
         # IMPORTANT: For localStorage to work Url reports must be on the same
         # directory.
-        self.Set(
-            'URL_REPORT_LINK_PATH',
-            self.Get('OUTPUT_PATH') + "/index.html")
+        self.Set('URL_REPORT_LINK_PATH', "%s/index.html" % self.Get('OUTPUT_PATH'))
 
         if not self.Get('SIMULATION'):
             FileOperations.create_missing_dirs(self.Get('host_output'))
@@ -363,16 +329,10 @@ class Config(BaseComponent, ConfigInterface):
 
     def DeriveDBPathsFromURL(self, target_URL):
         targets_folder = os.path.expanduser(self.Get('TARGETS_DB_FOLDER'))
-        url_info_id = target_URL.replace('/','_').replace(':','')
-        transaction_db_path = os.path.join(
-            targets_folder,
-            url_info_id,
-            "transactions.db")
+        url_info_id = target_URL.replace('/', '_').replace(':', '')
+        transaction_db_path = os.path.join(targets_folder, url_info_id, "transactions.db")
         url_db_path = os.path.join(targets_folder, url_info_id, "urls.db")
-        plugins_db_path = os.path.join(
-            targets_folder,
-            url_info_id,
-            "plugins.db")
+        plugins_db_path = os.path.join(targets_folder, url_info_id, "plugins.db")
         return [transaction_db_path, url_db_path, plugins_db_path]
 
     def GetFileName(self, setting, partial=False):
@@ -413,16 +373,13 @@ class Config(BaseComponent, ConfigInterface):
             try:
                 ip = socket.gethostbyname(hostname)
             except socket.gaierror:
-                raise UnresolvableTargetException(
-                    "Unable to resolve: '%s'" % hostname)
+                raise UnresolvableTargetException("Unable to resolve: '%s'" % hostname)
 
         ipchunks = ip.strip().split("\n")
         alternative_IPs = []
         if len(ipchunks) > 1:
             ip = ipchunks[0]
-            cprint(
-                hostname + " has several IP addresses: (" +
-                ", ".join(ipchunks)[0:-3] + "). Choosing first: " + ip + "")
+            cprint("%s has several IP addresses: (%s). Choosing first: %s" % (hostname, ", ".join(ipchunks)[0:-3], ip))
             alternative_IPs = ipchunks[1:]
         self.Set('alternative_ips', alternative_IPs)
         ip = ip.strip()
@@ -444,8 +401,7 @@ class Config(BaseComponent, ConfigInterface):
             try:
                 ip = socket.gethostbyname(hostname)
             except socket.gaierror:
-                raise UnresolvableTargetException(
-                    "Unable to resolve: '%s'" % hostname)
+                raise UnresolvableTargetException("Unable to resolve: '%s'" % hostname)
 
         ipchunks = ip.strip().split("\n")
         return ipchunks
@@ -478,7 +434,7 @@ class Config(BaseComponent, ConfigInterface):
             key = self.PadKey(key)
             return self.GetKeyValue(key)
         except KeyError:
-            message = "The configuration item: '" + key + "' does not exist!"
+            message = "The configuration item: '%s' does not exist!" % key
             self.error_handler.Add(message)
             # Raise plugin-level exception to move on to next plugin.
             raise PluginAbortException(message)
@@ -487,10 +443,7 @@ class Config(BaseComponent, ConfigInterface):
         # Only for main/common dbs, for target specific dbs, there are other
         # methods.
         relative_path = self.FrameworkConfigGet(key)
-        return os.path.join(
-            self.FrameworkConfigGet("OUTPUT_PATH"),
-            self.FrameworkConfigGet("DB_DIR"),
-            relative_path)
+        return os.path.join(self.FrameworkConfigGet("OUTPUT_PATH"), self.FrameworkConfigGet("DB_DIR"), relative_path)
 
     def FrameworkConfigGetLogsDir(self):
         """
@@ -509,10 +462,7 @@ class Config(BaseComponent, ConfigInterface):
         Get the log file path based on the process name
         """
         log_file_name = process_name + ".log"
-        return os.path.join(
-            self.FrameworkConfigGetLogsDir(),
-            log_file_name
-        )
+        return os.path.join(self.FrameworkConfigGetLogsDir(), log_file_name)
 
     def GetAsList(self, key_list):
         value_list = []
@@ -541,7 +491,7 @@ class Config(BaseComponent, ConfigInterface):
         return self.GetConfig()['string']
 
     def GetReplacementDict(self):
-        return({"FRAMEWORK_DIR":self.RootDir})
+        return({"FRAMEWORK_DIR": self.RootDir})
 
     def __getitem__(self, key):
         return self.Get(key)
@@ -555,7 +505,7 @@ class Config(BaseComponent, ConfigInterface):
     def Show(self):
         cprint("Configuration settings")
         for k, v in self.GetConfig().items():
-            cprint(str(k) + " => " + str(v))
+            cprint("%s => %s" % (str(k), str(v)))
 
     def GetOutputDir(self):
         output_dir = os.path.expanduser(self.FrameworkConfigGet("OUTPUT_PATH"))
@@ -568,9 +518,7 @@ class Config(BaseComponent, ConfigInterface):
         return os.path.expanduser(os.path.join(self.FrameworkConfigGet("SETTINGS_DIR"), output_dir))
 
     def GetOutputDirForTargets(self):
-        return os.path.join(
-            self.GetOutputDir(),
-            self.FrameworkConfigGet("TARGETS_DIR"))
+        return os.path.join(self.GetOutputDir(), self.FrameworkConfigGet("TARGETS_DIR"))
 
     def CleanUpForTarget(self, target_URL):
         return FileOperations.rm_tree(self.GetOutputDirForTarget(target_URL))
@@ -584,16 +532,10 @@ class Config(BaseComponent, ConfigInterface):
         FileOperations.create_missing_dirs(self.GetOutputDirForTarget(target_URL))
 
     def GetTransactionDBPathForTarget(self, target_URL):
-        return os.path.join(
-            self.GetOutputDirForTarget(target_URL),
-            self.FrameworkConfigGet("TRANSACTION_DB_NAME"))
+        return os.path.join(self.GetOutputDirForTarget(target_URL), self.FrameworkConfigGet("TRANSACTION_DB_NAME"))
 
     def GetUrlDBPathForTarget(self, target_URL):
-        return os.path.join(
-            self.GetOutputDirForTarget(target_URL),
-            self.FrameworkConfigGet("URL_DB_NAME"))
+        return os.path.join(self.GetOutputDirForTarget(target_URL), self.FrameworkConfigGet("URL_DB_NAME"))
 
     def GetOutputDBPathForTarget(self, target_URL):
-        return os.path.join(
-            self.GetOutputDirForTarget(target_URL),
-            self.FrameworkConfigGet("OUTPUT_DB_NAME"))
+        return os.path.join(self.GetOutputDirForTarget(target_URL), self.FrameworkConfigGet("OUTPUT_DB_NAME"))

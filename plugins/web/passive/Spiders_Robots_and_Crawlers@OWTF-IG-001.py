@@ -10,7 +10,10 @@ def run(PluginInfo):
     resource = ServiceLocator.get_component("resource")
     TestResult = ''
     Count = 1
-    Content = plugin_helper.RequestLinkList('Passive Analysis Results', resource.GetResources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
+    Content = plugin_helper.RequestLinkList(
+        'Passive Analysis Results',
+        resource.GetResources('PassiveRobotsAnalysisHTTPRequests'),
+        PluginInfo)
     Content += plugin_helper.ResourceLinkList('Online Resources', resource.GetResources('PassiveRobotsAnalysisLinks'))
     # Try to retrieve the robots.txt file from all defined resources
     for Name, Resource in resource.GetResources('PassiveRobots'):
@@ -22,10 +25,15 @@ def run(PluginInfo):
         # Use the cache if possible for speed
         Transaction = ServiceLocator.get_component("requester").GetTransaction(True, URL)
         if Transaction is not None and Transaction.Found:
-            Content += plugin_helper.ProcessRobots(PluginInfo, Transaction.GetRawResponseBody(), LinkStart, LinkFinish, 'robots'+str(Count)+'.txt')
+            Content += plugin_helper.ProcessRobots(
+                PluginInfo,
+                Transaction.GetRawResponseBody(),
+                LinkStart,
+                LinkFinish,
+                'robots%s.txt' % str(Count))
             Count += 1
         else:  # Not found or unknown request error
-            Message = "Could not be retrieved using resource: " + Resource
+            Message = "Could not be retrieved using resource: %s" % Resource
             OWTFLogger.log(Message)
         Content += plugin_helper.TransactionTableForURLList(True, [URL])
     return Content

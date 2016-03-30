@@ -1,8 +1,10 @@
 import os
 import imp
 import json
-from framework.db import models
+
 from sqlalchemy import or_
+
+from framework.db import models
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import DBPluginInterface
 from framework.utils import FileOperations
@@ -35,7 +37,8 @@ class PluginDB(BaseComponent, DBPluginInterface):
             try:
                 Code, Priority, Descrip, Hint, URL = line.strip().split(' | ')
             except ValueError:
-                self.error_handler.FrameworkAbort("Problem in Test Groups file: '" + file_path + "' -> Cannot parse line: " + line)
+                self.error_handler.FrameworkAbort("Problem in Test Groups file: '%s' -> Cannot parse line: " %
+                                                  (file_path, line))
             if len(Descrip) < 2:
                 Descrip = Hint
             if len(Hint) < 2:
@@ -54,7 +57,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
                     hint=group['hint'],
                     url=group['url'],
                     group="web")
-                )
+            )
         self.db.session.commit()
 
     def LoadNetTestGroups(self, test_groups_file):
@@ -68,7 +71,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
                     hint=group['hint'],
                     url=group['url'],
                     group="network")
-                )
+            )
         self.db.session.commit()
 
     def LoadFromFileSystem(self):
@@ -93,15 +96,12 @@ class PluginDB(BaseComponent, DBPluginInterface):
         # 'PLUGIN_DIR'.
         plugins = []
         for root, _, files in os.walk(self.config.FrameworkConfigGet('PLUGINS_DIR')):
-            plugins.extend([
-                os.path.join(root, filename) for filename in files
-                if filename.endswith('py')])
+            plugins.extend([os.path.join(root, filename) for filename in files if filename.endswith('py')])
         plugins = sorted(plugins)
         # Retrieve the information of the plugin.
         for plugin_path in plugins:
             # Only keep the relative path to the plugin
-            plugin = plugin_path.replace(
-                self.config.FrameworkConfigGet('PLUGINS_DIR'), '')
+            plugin = plugin_path.replace(self.config.FrameworkConfigGet('PLUGINS_DIR'), '')
             # TODO: Using os.path.sep might not be portable especially on
             # Windows platform since it allows '/' and '\' in the path.
             # Retrieve the group, the type and the file of the plugin.
@@ -119,11 +119,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
             filename, pathname, desc = imp.find_module(
                 os.path.splitext(os.path.basename(plugin_path))[0],
                 [os.path.dirname(plugin_path)])
-            plugin_module = imp.load_module(
-                os.path.splitext(file)[0],
-                filename,
-                pathname,
-                desc)
+            plugin_module = imp.load_module(os.path.splitext(file)[0], filename, pathname, desc)
             # Try te retrieve the `attr` dictionary from the module and convert
             # it to json in order to save it into the database.
             attr = None

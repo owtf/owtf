@@ -1,7 +1,8 @@
-from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 Plugin for probing DNS
 """
+
+from framework.dependency_management.dependency_resolver import ServiceLocator
 
 DESCRIPTION = " DNS Probing "
 

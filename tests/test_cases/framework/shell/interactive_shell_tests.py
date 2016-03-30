@@ -36,7 +36,7 @@ class InteractiveShellTests(BaseTestCase):
     def test_Close_should_kill_the_connection(self):
         #  As we are using the same instance for all the tests, it's necessary to make a backup
         #  of some methods and attributes, to make this test independent from the others.
-        shell_backup = self._get_backup(self.interactive_shell, "Run", "Connection") 
+        shell_backup = self._get_backup(self.interactive_shell, "Run", "Connection")
         #{"Run": self.interactive_shell.Run,"Connection": self.interactive_shell.Connection}
         self.interactive_shell.Run = MethodMock(1, "exit")
         self.interactive_shell.Connection = flexmock()

@@ -1,6 +1,7 @@
 from collections import defaultdict
 import copy
 
+
 class ConfigState():
     """
     Makes a deep copy of the configuration object in order to preserve
