@@ -10,9 +10,9 @@ import httplib
 import logging
 import urllib
 import urllib2
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import RequesterInterface
-
 from framework.http import transaction
 from framework.lib.general import *
 
@@ -63,14 +63,12 @@ class MyHTTPSHandler(urllib2.HTTPSHandler):
 # http://www.diveintopython.net/http_web_services/redirects.html
 class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
     def http_error_301(self, req, fp, code, msg, headers):
-        result = urllib2.HTTPRedirectHandler.http_error_301(
-            self, req, fp, code, msg, headers)
+        result = urllib2.HTTPRedirectHandler.http_error_301(self, req, fp, code, msg, headers)
         result.status = code
         return result
 
     def http_error_302(self, req, fp, code, msg, headers):
-        result = urllib2.HTTPRedirectHandler.http_error_302(
-            self, req, fp, code, msg, headers)
+        result = urllib2.HTTPRedirectHandler.http_error_302(self, req, fp, code, msg, headers)
         result.status = code
         return result
 
@@ -95,27 +93,17 @@ class Requester(BaseComponent, RequesterInterface):
         self.LogTransactions = False
         self.Proxy = proxy
         if proxy is None:
-            logging.debug(
-                "WARNING: No outbound proxy selected. It is recommended to "
-                "use an outbound proxy for tactical fuzzing later")
-            self.Opener = urllib2.build_opener(
-                MyHTTPHandler,
-                MyHTTPSHandler,
-                # FIXME: "Smart" redirect handler not really working.
-                SmartRedirectHandler)
+            logging.debug("WARNING: No outbound proxy selected. It is recommended to "
+                          "use an outbound proxy for tactical fuzzing later")
+            # FIXME: "Smart" redirect handler not really working.
+            self.Opener = urllib2.build_opener(MyHTTPHandler, MyHTTPSHandler, SmartRedirectHandler)
         else:  # All requests must use the outbound proxy.
             logging.debug("Setting up proxy(inbound) for OWTF requests..")
             ip, port = proxy
-            proxy_conf = {
-                'http': 'http://' + ip + ":" + port,
-                'https': 'http://' + ip + ":" + port}
+            proxy_conf = {'http': 'http://%s:%s' % (ip, port), 'https': 'http://%s:%s' % (ip, port)}
             proxy_handler = urllib2.ProxyHandler(proxy_conf)
-            self.Opener = urllib2.build_opener(
-                proxy_handler,
-                MyHTTPHandler,
-                MyHTTPSHandler,
-                # FIXME: Works except no raw request on https.
-                SmartRedirectHandler)
+            # FIXME: Works except no raw request on https.
+            self.Opener = urllib2.build_opener(proxy_handler, MyHTTPHandler, MyHTTPSHandler, SmartRedirectHandler)
         urllib2.install_opener(self.Opener)
 
     def log_transactions(self, log_transactions=True):
@@ -138,8 +126,7 @@ class Requester(BaseComponent, RequesterInterface):
         if self.Proxy is not None and self.is_request_possible():
             url = self.db_config.Get('PROXY_CHECK_URL')
             refused_before = self.RequestCountRefused
-            cprint(
-                "Proxy Check: Avoid logging request again if already in DB..")
+            cprint("Proxy Check: Avoid logging request again if already in DB..")
             log_setting_backup = False
             if self.IsTransactionAlreadyAdded(url):
                 log_setting_backup = self.log_transactions(False)
@@ -147,18 +134,10 @@ class Requester(BaseComponent, RequesterInterface):
                 self.log_transactions(log_setting_backup)
             refused_after = self.RequestCountRefused
             if refused_before < refused_after:  # Proxy is refusing connections.
-                return [
-                    False,
-                    "ERROR: Proxy Check error: The proxy is not listening " \
-                    "or is refusing connections"]
+                return [False, "ERROR: Proxy Check error: The proxy is not listening or is refusing connections"]
             else:
-                return [
-                    True,
-                    "Proxy Check OK: The proxy appears to be working"]
-        return [
-            True,
-            "Proxy Check OK: No proxy is setup or no HTTP requests will " \
-            "be made"]
+                return [True, "Proxy Check OK: The proxy appears to be working"]
+        return [True, "Proxy Check OK: No proxy is setup or no HTTP requests will be made"]
 
     def GetHeaders(self):
         return self.Headers
@@ -221,16 +200,12 @@ class Requester(BaseComponent, RequesterInterface):
         if method is not None:
             # kludge: necessary to do anything other that GET or POST with
             # urllib2
-            request.get_method = lambda : method
+            request.get_method = lambda: method
         # MUST create a new Transaction object each time so that lists of
         # transactions can be created and process at plugin-level
         # Pass the timer object to avoid instantiating each time.
         self.http_transaction = transaction.HTTP_Transaction(self.timer)
-        self.http_transaction.Start(
-            url,
-            post,
-            method,
-            self.target.IsInScopeURL(url))
+        self.http_transaction.Start(url, post, method, self.target.IsInScopeURL(url))
         self.RequestCountTotal += 1
         try:
             response = self.perform_request(request)
@@ -243,8 +218,7 @@ class Requester(BaseComponent, RequesterInterface):
             err_message = self.ProcessHTTPErrorCode(Error, url)
             self.http_transaction.SetError(err_message)
         except IOError:
-            err_message = "ERROR: Requester Object -> Unknown HTTP " \
-                           "Request error: " + url + "\n" + str(sys.exc_info())
+            err_message = "ERROR: Requester Object -> Unknown HTTP Request error: %s\n%s" % (url, str(sys.exc_info()))
             self.http_transaction.SetError(err_message)
         if self.LogTransactions:
             # Log transaction in DB for analysis later and return modified
@@ -255,17 +229,15 @@ class Requester(BaseComponent, RequesterInterface):
     def ProcessHTTPErrorCode(self, error, url):
         message = ""
         if str(error.reason).startswith("[Errno 111]"):
-            message = "ERROR: The connection was refused!: " +  str(error)
+            message = "ERROR: The connection was refused!: %s" % str(error)
             self.RequestCountRefused += 1
         elif str(error.reason).startswith("[Errno -2]"):
-            self.error_handler.FrameworkAbort(
-                "ERROR: cannot resolve hostname!: " + str(error))
+            self.error_handler.FrameworkAbort("ERROR: cannot resolve hostname!: %s" % str(error))
         else:
             message = "ERROR: The connection was not refused, unknown error!"
         log = logging.getLogger('general')
         log.info(message)
-        return message + " (Requester Object): " + url + \
-               "\n" + str(sys.exc_info())
+        return "%s (Requester Object): %s\n%s" % (message, url, str(sys.exc_info()))
 
     def GET(self, url):
         return self.Request(url)
@@ -323,12 +295,7 @@ class Requester(BaseComponent, RequesterInterface):
             # objects created by Requester.
             return self.transaction.GetFirst(criteria)
 
-    def GetTransactions(self,
-                        use_cache,
-                        url_list,
-                        method=None,
-                        data=None,
-                        unique=True):
+    def GetTransactions(self, use_cache, url_list, method=None, data=None, unique=True):
         transactions = []
         if unique:
             url_list = set(url_list)
@@ -337,9 +304,8 @@ class Requester(BaseComponent, RequesterInterface):
             if not url:
                 continue  # Skip blank lines.
             if not self.url_manager.IsURL(url):
-                self.error_handler.Add(
-                    "Minor issue: " + str(url) + " is not a valid URL and "
-                    "has been ignored, processing continues")
+                self.error_handler.Add("Minor issue: %s is not a valid URL and has been ignored, processing"
+                                       " continues" % str(url))
                 continue  # Skip garbage URLs.
             transaction = self.GetTransaction(use_cache, url, method=method, data=data)
             if transaction is not None:

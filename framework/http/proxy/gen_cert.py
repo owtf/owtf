@@ -55,7 +55,7 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                 cert.get_subject().OU = "Inbound-Proxy"
                 cert.get_subject().CN = domain
                 cert.gmtime_adj_notBefore(0)
-                cert.gmtime_adj_notAfter(365*24*60 *60)
+                cert.gmtime_adj_notAfter(365*24*60*60)
                 cert.set_serial_number(serial)
                 cert.set_issuer(ca_cert.get_subject())
                 cert.set_pubkey(key)
