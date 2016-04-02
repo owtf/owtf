@@ -130,6 +130,7 @@
                                     </tr>
                                 </tbody>
                             </table>
+                            <a style="cursor:pointer" data-code="{{ test_code }}" class="lessbtn">Collapse</p>
                         </div>
                         {% end %}
                     </div>
@@ -390,9 +391,21 @@ function collapsePluginOnRank() {
     });
 }
 
+// Show less Functionality
+function collapseOnShowLess() {
+    $('.lessbtn').click(function() {
+        var id = $(this).attr('data-code');
+        $('#' + id).removeClass('in');
+        $('html, body').animate({
+            scrollTop: $("#header_" + id).offset().top
+        }, 1000);
+    });
+}
+
 $(function() {
     updateTargetInfo();
     updateAllTestCasesInfo();
     collapsePluginOnRank();
+    collapseOnShowLess();
 });
 </script>
