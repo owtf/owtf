@@ -4,7 +4,6 @@ Declare the helper functions for the framework.
 """
 
 from collections import defaultdict
-from framework.lib.filelock import FileLock
 import logging
 import multiprocessing
 import os
@@ -18,11 +17,14 @@ import time
 import base64
 import errno
 
+from framework.lib.filelock import FileLock
+
 
 def cprint(Message):
     Pad = "[-] "
-    print Pad+str(Message).replace("\n", "\n"+Pad)
+    print "%s%s" % (Pad, str(Message).replace("\n", "\n%s" % Pad))
     return Message
+
 
 def MultipleReplace(Text, ReplaceDict):
     """
@@ -30,9 +32,10 @@ def MultipleReplace(Text, ReplaceDict):
     in format: { 'search' : 'replace' }
     """
     NewText = Text
-    for Search,Replace in ReplaceDict.items():
-            NewText = NewText.replace(Search, str(Replace))
+    for Search, Replace in ReplaceDict.items():
+        NewText = NewText.replace(Search, str(Replace))
     return NewText
+
 
 def check_pid(pid):
     """Check whether pid exists in the current process table.
@@ -54,24 +57,29 @@ def check_pid(pid):
     else:
         return True
 
+
 def WipeBadCharsForFilename(Filename):
-    return MultipleReplace(Filename, { '(':'', ' ':'_', ')':'', '/':'_' })
+    return MultipleReplace(Filename, {'(': '', ' ': '_', ')': '', '/': '_'})
+
 
 def RemoveListBlanks(src):
     return [el for el in src if el]
 
+
 def List2DictKeys(List):
     Dictionary = defaultdict(list)
     for Item in List:
-            Dictionary[Item] = ''
+        Dictionary[Item] = ''
     return Dictionary
+
 
 def AddToDict(FromDict, ToDict):
     for Key, Value in FromDict.items():
-            if hasattr(Value, 'copy') and callable(getattr(Value, 'copy')):
-                    ToDict[Key] = Value.copy()
-            else:
-                    ToDict[Key] = Value
+        if hasattr(Value, 'copy') and callable(getattr(Value, 'copy')):
+            ToDict[Key] = Value.copy()
+        else:
+            ToDict[Key] = Value
+
 
 def MergeDicts(Dict1, Dict2):
     """
@@ -83,8 +91,10 @@ def MergeDicts(Dict1, Dict2):
     AddToDict(Dict2, NewDict)
     return NewDict
 
+
 def TruncLines(Str, NumLines, EOL="\n"):
     return EOL.join(Str.split(EOL)[0:NumLines])
+
 
 def DeriveHTTPMethod(Method, Data):  # Derives the HTTP method from Data, etc
     DMethod = Method
@@ -95,9 +105,11 @@ def DeriveHTTPMethod(Method, Data):  # Derives the HTTP method from Data, etc
             DMethod = 'POST'
     return DMethod
 
+
 def get_random_str(len):
     """function returns random strings of length len"""
     return base64.urlsafe_b64encode(os.urandom(len))[0:len]
+
 
 def scrub_output(output):
     """remove all ANSI control sequences from the output"""

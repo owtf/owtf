@@ -2,8 +2,10 @@
 """
 Consists of owtf process class and its manager
 """
+
 import logging
 from multiprocessing import Process, current_process, Queue
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 
 
