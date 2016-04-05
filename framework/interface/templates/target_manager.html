@@ -60,6 +60,15 @@
                             <th>Severity</th>
                             <th>Actions</th>
                         </tr>
+                        <tr style="display:none;">
+                            <th colspan="3" style="text-align:center;"><span class="selected-target-count">0</span> targets currently selected.</th>
+                            <th>
+                                <span class="btn-group" state="bulk">
+                                    <button action="bulk-remove" class="btn btn-xs btn-warning" data-toggle="tooltip" data-placement="bottom" title="Remove selected targets from this session"><i class="fa fa-minus"></i></button>
+                                    <button action="bulk-delete" class="btn btn-xs btn-danger" data-toggle="tooltip" data-placement="bottom" title="Delete selected targets from everywhere"><i class="fa fa-times"></i></button>
+                                </span>
+                            </th>
+                        </tr>
                     </thead>
                     <tbody class="searchable">
                       <div id="severity_list">
@@ -124,24 +133,39 @@ var mySpace = {
                     worklist_api_url:"{{ worklist_api_url }}"
                   };
 
-// Toggle all checkboxes when select all is clicked
-function toggleAll(checkbox){
-    var table= $(checkbox).closest('table');
-    $('td input:checkbox',table).prop('checked',checkbox.checked);
+var checked_rows = []; // Track checked rows for bulk operations
+function updateSelectionCount() {
+    $('#targetTable .selected-target-count').closest('tr').css('display', checked_rows.length ? 'table-row' : 'none');
+    $('#targetTable .selected-target-count').html(checked_rows.length);
+}
+
+// Ensure an element is (state=true) or is not (state=false) in array 
+function setArrayElement(array, element, state) {
+    var index = array.indexOf(element);
+    if (index === -1 && state) {
+        array.push(element);
+    } else if (index !== -1 && !state) {
+        array.splice(index,1);
+    }
+}
+
+// Toggle all visible checkboxes when select all is clicked
+function toggleAll(checkbox) {
+    var table = $(checkbox).closest('table');
+    $visible_checkboxes = $('td input:checkbox',table).filter(':visible');
+    $visible_checkboxes.prop('checked',checkbox.checked);
+    $visible_checkboxes.each(function() {
+        setArrayElement(checked_rows, parseInt($(this).attr('target-id')), checkbox.checked);
+    });
+    updateSelectionCount();
 }
 
 function getSelectedTargets() {
-    var individualTargets = $('input:checkbox:checked', $('#targetTable').dataTable().fnGetNodes());
-    var targets = [];
-    $.each(individualTargets, function(index, checkbox) {
-        var checkbox = $(checkbox);
-        targets.push(checkbox.attr("target-id"));
-    });
-    return(targets);
+    return checked_rows;
 }
 
 // Main function that posts using API to launch plugins
-function postToWorkList(selectedPluginData, force_overwrite){
+function postToWorkList(selectedPluginData, force_overwrite) {
     selectedPluginData["id"] = getSelectedTargets();
     selectedPluginData["force_overwrite"] = force_overwrite;
     if (selectedPluginData["id"].length < 1) {  // If no targets selected
@@ -152,29 +176,69 @@ function postToWorkList(selectedPluginData, force_overwrite){
             type:'POST',
             data:$.param(selectedPluginData, true),
             success:pluginLaunchSuccess,
-            error:function(xhr, textStatus, serverResponse){
+            error:function(xhr, textStatus, serverResponse) {
                 alertFail("Server replied: "+serverResponse);
                 }
             });
 }
 
 // Close the modal when plugins are launched successfully
-function pluginLaunchSuccess(){
+function pluginLaunchSuccess() {
     $('#pluginLaunchModal').modal('hide');
     alertSuccess("Selected plugins launched, please check worklist to manage :D");
 }
 
-// Remove target from current session
-function removeTargetFromCurrentSession(target_id) {
-    session_id = $('#sessionId').val();
+function removeTargetFromCurrentSessionRequest(target_id, success_callback, error_callback) {
+    var session_id = $('#sessionId').val();
     $.ajax({url:mySpace.owtf_sessions_api_url+session_id+'/remove',
         type:'PATCH',
         data:{'target_id':target_id},
-        success: updateCurrentSessionInfo,
-        error:function(xhr, textStatus, serverResponse){
-            alertFail("Server replied: "+serverResponse);
+        success: function() {
+            var checked_index = checked_rows.indexOf(target_id);
+            if(checked_index > -1) {
+                checked_rows.splice(checked_index, 1);
             }
+            success_callback.apply(this, arguments);
+        },
+        error: error_callback
     });
+}
+
+// Remove target from current session
+function removeTargetFromCurrentSession(target_id) {
+    removeTargetFromCurrentSessionRequest(target_id, updateCurrentSessionInfo, function(xhr, textStatus, serverResponse) {
+        alertFail("Server replied: "+serverResponse);
+    });
+}
+
+function removeTargetsFromCurrentSession(target_ids) {
+    var target_count = target_ids.length;
+    var status = {
+        complete:[],
+        failed:[]
+    };
+    while(checked_rows.length) {
+        var id = checked_rows.pop();
+        $('td input[target-id='+id+']', $('#targetTable')).closest('tr').addClass('processing');
+        removeTargetFromCurrentSessionRequest(id, function() {
+            status.complete.push(id);
+            summarise();
+        }, function(xhr, textStatus, serverResponse) {
+            status.failed.push({id: id, response: serverResponse});
+            summarise();
+        });
+    }
+    function summarise() {
+        if(status.complete.length + status.failed.length == target_count) {
+            var base_message = status.complete.length + " targets removed."
+            if(status.failed.length) {
+                alertWarning(base_message + status.failed.length + " attempts failed.");
+            } else {
+                alertSuccess(base_message);
+            }
+            updateCurrentSessionInfo();
+        }
+    }
 }
 
 // New session
@@ -185,7 +249,7 @@ function newSession(session_name) {
                 type:'POST',
                 data:{name:session_name},
                 success: function() { updateSessions(); updateCurrentSessionInfo();},
-                error:function(xhr, textStatus, serverResponse){
+                error:function(xhr, textStatus, serverResponse) {
                     alertFail("Unable to add "+escapeHtml(session_name)); // sanitized session_name parameter
                     }
         });
@@ -198,7 +262,7 @@ function deleteSession(session_id) {
             url:mySpace.owtf_sessions_api_url+session_id,
             type:'DELETE',
             success: function() { updateSessions(); updateCurrentSessionInfo();},
-            error:function(xhr, textStatus, serverResponse){
+            error:function(xhr, textStatus, serverResponse) {
                 alertFail("Server replied: "+serverResponse);
                 }
             });
@@ -209,16 +273,16 @@ function activateSession(session_id) {
     $.ajax({url:mySpace.owtf_sessions_api_url+session_id+'/activate',
         type:'PATCH',
         success: updateCurrentSessionInfo,
-        error:function(xhr, textStatus, serverResponse){
+        error:function(xhr, textStatus, serverResponse) {
             alertFail("Server replied: "+serverResponse);
             }
     });
 }
 
 // Function that adds targets to the target list(table infact)
-function addSessions(data, status, xhr){
+function addSessions(data, status, xhr) {
     jQuery('#sessionTable').dataTable().fnClearTable();
-    $.each(data, function(index, obj){
+    $.each(data, function(index, obj) {
         checked = (obj.active) ? 'checked' : '';
         actionButtons = '<a href="#" onclick="deleteSession('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Delete session">';
         actionButtons += '<span class="btn btn-xs btn-danger"><i class="fa fa-times"></i></span></a>'
@@ -253,7 +317,7 @@ function getLabel(level) {
 }
 
 // Function that adds targets to the target list(table infact)
-function getActionButtons(obj){
+function getActionButtons(obj) {
     var actionButtons = '<div class="btn-group">';
     actionButtons += '<button class="btn btn-xs btn-warning" onclick="removeTargetFromCurrentSession('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Remove target from this session">';
     actionButtons += '<i class="fa fa-minus"></i></button>';
@@ -271,7 +335,7 @@ function getSeverityLabel(obj) {
 
 // Function used to update targets in the list, useful when new targets are added so that table can be updated
 // First update session info and then targets
-function updateCurrentSessionInfo(){
+function updateCurrentSessionInfo() {
     $.getJSON(mySpace.owtf_sessions_api_url+'?active=true', function(data) {
         $.each(data, function(index, obj) {
             $('#sessionName').val(obj.name);
@@ -280,9 +344,10 @@ function updateCurrentSessionInfo(){
     });
     // Update targets as well
     $('#targetTable').dataTable().fnDraw(true);
+    updateSelectionCount();
 }
 
-//Export all targets for the current session to a text file
+// Export all targets for the current session to a text file
 function exportTargets() {
     $.ajax({
         url:'/api/targets/',
@@ -303,16 +368,56 @@ function exportTargets() {
 
 }
 
+function deleteTargetRequest(target_id, success_callback, error_callback) {
+    $.ajax({
+        url:mySpace.targets_api_url+target_id,
+        type:'DELETE',
+        success:function() {
+            var checked_index = checked_rows.indexOf(target_id);
+            if(checked_index > -1) {
+                checked_rows.splice(checked_index, 1);
+            }
+            success_callback.apply(this, arguments);
+        },
+        error: error_callback
+    });
+}
+
 // Delete target with id using API
 function deleteTarget(target_id) {
-    $.ajax({
-            url:mySpace.targets_api_url+target_id,
-            type:'DELETE',
-            success:updateCurrentSessionInfo,
-            error:function(xhr, textStatus, serverResponse){
-                alertFail("Server replied: "+serverResponse);
-                }
-            });
+    deleteTargetRequest(target_id, updateCurrentSessionInfo, function(xhr, textStatus, serverResponse) {
+        alertFail("Server replied: "+serverResponse);
+    });
+}
+
+function deleteTargets(target_ids) {
+    var target_count = target_ids.length;
+    var status = {
+        complete:[],
+        failed:[]
+    };
+    while(checked_rows.length) {
+        var id = checked_rows.pop();
+        $('td input[target-id='+id+']', $('#targetTable')).closest('tr').addClass('processing');
+        deleteTargetRequest(id, function() {
+            status.complete.push(id);
+            summarise();
+        }, function(xhr, textStatus, serverResponse) {
+            status.failed.push({id: id, response: serverResponse});
+            summarise();
+        });
+    }
+    function summarise() {
+        if(status.complete.length + status.failed.length == target_count) {
+            var base_message = status.complete.length + " targets deleted."
+            if(status.failed.length) {
+                alertWarning(base_message + status.failed.length + " attempts failed.");
+            } else {
+                alertSuccess(base_message);
+            }
+            updateCurrentSessionInfo();
+        }
+    }
 }
 
 function isUrl(str) {
@@ -364,7 +469,7 @@ function newTargets(targetUrlsString, button) {
 
 function getArray(data) {
     var table_array = [];
-    $.each(data, function(index, obj){
+    $.each(data, function(index, obj) {
       table_array.push([
         '<input type="checkbox" target-id="'+obj.id+'"/>',
         '<a href="'+mySpace.targets_ui_url+obj.id+'">'+obj.target_url+' ('+obj.host_ip+') </a>',
@@ -414,9 +519,16 @@ function drawTargetTable() {
             // everytime the table is drawn, it checks if all the
             // checkboxes are checked and if they are, then the select all
             // checkbox in the table header is selected
+            
+            //ensure 'checked_rows' are redrawn properly
+            for(var i = 0; i < checked_rows.length; i++) {
+                var target_id = checked_rows[i];
+                $('td input[target-id='+target_id+']').prop('checked', true);
+            }
+
             var allChecked = true;
             $('#targetTable tbody tr').each(function() {
-                $(this).find(':checkbox').each(function(){
+                $(this).find(':checkbox').each(function() {
                     if (!$(this).is(':checked')) allChecked = false;
                 });
             });
@@ -438,7 +550,7 @@ function drawTargetTable() {
     $("input[name='severity']").change(function() {
       var count=0;
       $('.searchable tr').hide();
-      $.each($("input[name='severity']:checked"), function(){
+      $.each($("input[name='severity']:checked"), function() {
           var rex = new RegExp($(this).val(), 'i');
           $('.searchable tr').filter(function () {
               return rex.test($(this).text());
@@ -449,6 +561,24 @@ function drawTargetTable() {
       {
         $('.searchable tr').show();
       }
+    });
+
+    //Update record of checked checkboxes on individual change
+    $('#targetTable').on('click', 'td input:checkbox', function() {
+        var target_id = $(this).attr('target-id');
+        setArrayElement(checked_rows, parseInt(target_id), $(this)[0].checked);
+        updateSelectionCount();
+    });
+
+    //These operations are very fast locally, spinner unnecessary
+    $('#targetTable tr button[action=bulk-delete]').on('click', function() {
+        deleteTargets(checked_rows);
+        updateSelectionCount();
+    });
+
+    $('#targetTable tr button[action=bulk-remove]').on('click', function() {
+        removeTargetsFromCurrentSession(checked_rows);
+        updateSelectionCount();
     });
 }
 
@@ -468,7 +598,7 @@ $(document).ready(function() {
     $('#sessionModal').on('show.bs.modal', function (e) {
         updateSessions();
     });
-    updateCurrentSessionInfo()
+    updateCurrentSessionInfo();
 });
 </script>
 {% end %}
