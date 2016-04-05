@@ -182,17 +182,17 @@ class TargetDB(BaseComponent, TargetInterface):
             self.AddTarget(target_url, session_id=session_id)
 
     def UpdateTarget(self, data_dict, TargetURL=None, ID=None):
+        target_obj = None
         if ID:
             target_obj = self.db.session.query(models.Target).get(ID)
         if TargetURL:
-            target_obj = self.db.session.query(models.Target).filter_by(
-                target_url=TargetURL).one()
+            target_obj = self.db.session.query(models.Target).filter_by(target_url=TargetURL).one()
         if not target_obj:
             raise InvalidTargetReference(
                 "Target doesn't exist: " + str(ID) if ID else str(TargetURL))
         # TODO: Updating all related attributes when one attribute is changed
         if data_dict.get("scope", None) is not None:
-            target_obj.scope = self.config.ConvertStrToBool(value)
+            target_obj.scope = self.config.ConvertStrToBool(data_dict.get("scope", None))
         self.db.session.commit()
 
     def DeleteTarget(self, TargetURL=None, ID=None):
@@ -205,7 +205,6 @@ class TargetDB(BaseComponent, TargetInterface):
             raise InvalidTargetReference(
                 "Target doesn't exist: " + str(ID) if ID else str(TargetURL))
         target_url = target_obj.target_url
-        target_id = target_obj.id
         self.db.session.delete(target_obj)
         self.db.session.commit()
         self.config.CleanUpForTarget(target_url)
