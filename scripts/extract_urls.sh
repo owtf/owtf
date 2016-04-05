@@ -25,6 +25,9 @@ case $TYPE in
     grep '^[File found|Dir found]' $FILE | grep ":" | sed "s|^File found: ||g;s|^Dir found: ||g;s| *||g;s|-||g;s|[0-90-90-9]||g;s|^/|$BASE_URL/|g" | uniq
 
 	;;
+  "svn_extractor")
+    grep "^$BASE_URL" $FILE | grep -v ".*doesn't contain.*" | uniq
+    ;;
   "nikto")
 	#grep ": /" Nikto.txt | grep -v "^+ SSL Info:"| tr ":" "\n"|grep "^ /" |sed "s|^ /|$BASE_URL/|g"
 	grep ": /" $FILE | grep -v "^+ SSL Info:"| tr ":" "\n"|grep "^ /" |sed "s|^ /|$BASE_URL/|g" | uniq
