@@ -74,8 +74,6 @@ class Shell(BaseComponent, ShellInterface):
         #return [ None, True ] # Command was not run before
         Target = self.command_register.CommandAlreadyRegistered(Command['OriginalCommand'])
         if Target:  # target_config will be None for a not found match
-            if '-f' in sys.argv:
-                return [Target, True]
             return [Target, False]
         return [None, True]
 
