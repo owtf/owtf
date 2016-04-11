@@ -192,6 +192,25 @@ function checkForLastTaskCompletion() {
     return flag;
 }
 
+// Function which returns the number of busy workers
+function getBusyWorkers() {
+    var count = 0;
+    $.ajax({
+        url: mySpace.workers_api_url,
+        ifModified: true,
+        dataType: 'json',
+        async: false,
+        success: function(data) {
+            $.each(data, function(index, obj) {
+                if (obj.busy) {
+                    count++;
+                }
+            });
+        }
+    });
+    return count;
+}
+
 //Function which updates progress bar
 function moveProgressBar() {
     var elem = $("#pluginprogress");
@@ -199,7 +218,7 @@ function moveProgressBar() {
         $.getJSON(mySpace.plugins_api_url + 'progress/', function(data) {
             var left_count = data.left_count;
             var complete_count = data.complete_count;
-            left_count++;
+            left_count += getBusyWorkers();
             if (left_count == 1) {
                 if (checkForLastTaskCompletion()) {
                     left_count--;
