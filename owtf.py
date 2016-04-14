@@ -55,6 +55,7 @@ def process_options(user_args):
     # Default settings:
     profiles = {}
     plugin_group = arg.PluginGroup
+
     if arg.CustomProfile:  # Custom profiles specified
         # Quick pseudo-validation check
         for profile in arg.CustomProfile.split(','):
@@ -140,19 +141,20 @@ def process_options(user_args):
                 int(arg.InboundProxy[-1])
             except ValueError:
                 usage("Invalid port for Inbound Proxy")
-
-    plugin_types_for_group = ServiceLocator.get_component("db_plugin").GetTypesForGroup(plugin_group)
-    if arg.PluginType == 'all':
-        arg.PluginType = plugin_types_for_group
-    elif arg.PluginType == 'quiet':
-        arg.PluginType = ['passive', 'semi_passive']
-        if plugin_group != 'web':
-            usage("The quiet plugin type is only for the web plugin group")
-    elif arg.PluginType not in plugin_types_for_group:
-        usage(
-            "Invalid Plugin Type '" + str(arg.PluginType) +
-            "' for Plugin Group '" + str(plugin_group) +
-            "'. Valid Types: " + ', '.join(plugin_types_for_group))
+    if arg.PluginType:
+        plugin_group = plugin_group or 'web'
+        plugin_types_for_group = ServiceLocator.get_component("db_plugin").GetTypesForGroup(plugin_group)
+        if arg.PluginType == 'all':
+            arg.PluginType = plugin_types_for_group
+        elif arg.PluginType == 'quiet':
+            arg.PluginType = ['passive', 'semi_passive']
+            if plugin_group != 'web':
+                usage("The quiet plugin type is only for the web plugin group")
+        elif arg.PluginType not in plugin_types_for_group:
+            usage(
+                "Invalid Plugin Type '" + str(arg.PluginType) +
+                "' for Plugin Group '" + str(plugin_group) +
+                "'. Valid Types: " + ', '.join(plugin_types_for_group))
 
     scope = arg.Targets or []  # Arguments at the end are the URL target(s)
     num_targets = len(scope)
