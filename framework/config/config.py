@@ -150,8 +150,8 @@ class Config(BaseComponent, ConfigInterface):
 
         """
         target = self.target.GetTargetConfigs({'target_url': target_url})
+        group = options['PluginGroup']
         if options['OnlyPlugins'] is None:
-            group = options['PluginGroup']
             # If the plugin group option is the default one (not specified by
             # the user).
             if group is None:
@@ -168,6 +168,9 @@ class Config(BaseComponent, ConfigInterface):
                 "code": options.get("OnlyPlugins"),
                 "type": options.get("PluginType")}
         plugins = self.db_plugin.GetAll(filter_data)
+        if not plugins:
+            logging.error("No plugin found matching type %s and group '%s' for %s target"
+                          % (options['PluginType'], group, target[0]['top_url']))
         self.worklist_manager.add_work(
             target,
             plugins,
