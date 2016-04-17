@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 '''
-Description:
-General purpose functions to assist OWTF Agents
+Description: General purpose functions to assist OWTF Agents
 '''
 
 import imp
@@ -11,13 +10,15 @@ from collections import defaultdict
 
 
 class Plugin:
-    # Python fiddling to load a module from a file, there is probably a better way...
+    '''
+    Python fiddling to load a module from a file, there is probably a better way...
+    '''
     def Get(self, ModuleName, ModuleFile, ModulePath):
-        f, Filename, desc = imp.find_module(ModuleFile.split('.')[0], [ModulePath])
-        return imp.load_module(ModuleName, f, Filename, desc)
+        f, FileName, desc = imp.find_module(ModuleFile.split('.')[0], [ModulePath])
+        return imp.load_module(ModuleName, f, FileName, desc)
 
-    def Run(self, Name, Path, Params):
-        return self.Get("", Name, "%s/" % Path).Run(Params)
+    def Run(self, name, path, params):
+        return self.Get("", name, "%s/" % path).Run(params)
 
 
 class Storage:
@@ -32,8 +33,8 @@ class Storage:
     def Get(self):
         return self.Content
 
-    def Set(self, Content):
-        self.Content = Content
+    def Set(self, content):
+        self.Content = content
 
     def Load(self):
         if not os.path.isfile(self.FileName):
@@ -48,20 +49,20 @@ class Storage:
 class File:
     def GetAsList(self, FileName):
         try:
-            Output = open(FileName, 'r').read().split("\n")
+            output = open(FileName, 'r').read().split("\n")
             print "Loaded file: '%s'" % FileName
         except IOError:
             print "Cannot open file: '%s' (%s)" % (FileName, str(sys.exc_info()))
-            Output = []
-        return Output
+            output = []
+        return output
 
-    def Save(self, FileName, Data):
-        Data = str(Data)
+    def Save(self, FileName, data):
+        data = str(data)
         try:
-            print "FileName=%s, Data=%s" % (FileName, str(Data))
-            print "Saving to File '%s' %s.." % (FileName, str(Data))
-            File = open(FileName, 'w')
-            File.write(Data)
+            print "FileName=%s, Data=%s" % (FileName, str(data))
+            print "Saving to File '%s' %s.." % (FileName, str(data))
+            file = open(FileName, 'w')
+            file.write(data)
         except IOError:
             print "Cannot write to: '%s' (%s)" % (FileName, str(sys.exc_info()))
 
@@ -72,16 +73,16 @@ class Config:
         self.Load(FileName)
 
     def Load(self, FileName):
-        for Line in File().GetAsList(FileName):
+        for line in File().GetAsList(FileName):
             try:
-                Name = Line.split(":")[0]
-                Value = Line.replace("%s:" % Name, "").strip()
-                self.Config[Name] = Value
-            except:
-                print "Cannot parse line: %s" % Line
+                name = line.split(":")[0]
+                value = line.replace("%s:" % name, "").strip()
+                self.Config[name] = value
+            except ValueError:
+                print "Cannot parse line: %s" % line
 
-    def Get(self, Setting):
-        return self.Config[Setting]
+    def Get(self, setting):
+        return self.Config[setting]
 
-    def Set(self, Setting, Value):
-        self.Config[Setting] = Value
+    def Set(self, setting, value):
+        self.Config[setting] = value

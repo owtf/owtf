@@ -12,9 +12,9 @@ URL_REGEX = 'http[:0-9a-zA-Z\.\/]+'
 # http://daringfireball.net/2009/11/liberal_regex_for_matching_urls
 
 
-def Run(Params):
-    LogStr = " >> %s 2>> %s" % (Params['Log'], Params['ErrorLog'])
-    for URL in re.findall(URL_REGEX, str(Params['Message'])):
+def Run(params):
+    LogStr = " >> %s 2>> %s" % (params['Log'], params['ErrorLog'])
+    for URL in re.findall(URL_REGEX, str(params['Message'])):
         print "Found URL=%s" % URL
         VisitURLCmd = "curl %s" % URL
         subprocess.Popen(VisitURLCmd, shell=True)  # Visit URL
