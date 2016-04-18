@@ -48,18 +48,22 @@ postgresql_fix() {
   esac
 
   echo "Restarting the postgresql service"
-  service_bin=$(which service | wc -l)
-  systemctl_bin=$(which systemctl | wc -l)
-  if [ "$service_bin" = "1" ]; then
+
+  #get the return values of which commands to determine the service controller
+  which service  >> /dev/null 2>&1
+  service_bin=$?
+  which systemctl  >> /dev/null 2>&1
+  systemctl_bin=$?
+  if [ "$service_bin" != "1" ]; then
       service postgresql restart
       service postgresql status | grep -q '^Running clusters: ..*$'
       status_exitcode="$?"
-  elif [ "$systemctl_bin" = "1" ]; then
+  elif [ "$systemctl_bin" != "1" ]; then
       systemctl restart postgresql
       systemctl status postgresql | grep -q "active"
       status_exitcode="$?"
   else
-      echo "[+] It seems postgres server is not running or responding, please restart it manually!"
+      echo "[+] It seems postgres server is not running or responding, please start/restart it manually!"
       exit 1
   fi
 }
