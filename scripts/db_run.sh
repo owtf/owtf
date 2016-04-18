@@ -70,13 +70,15 @@ if [ -z "$postgres_server_ip" ]; then
     echo "[+] Can I start db server for you? [Y/n]"
     read choice
     if [ "$choice" != "n" ]; then
-        service_bin=$(which service | wc -l)
-        systemctl_bin=$(which systemctl | wc -l)
-        if [ "$service_bin" = "1" ]; then
+        which service  >> /dev/null 2>&1
+        service_bin=$?
+        which systemctl  >> /dev/null 2>&1
+        systemctl_bin=$?
+        if [ "$service_bin" != "1" ]; then
             service postgresql start
             service postgresql status | grep -q '^Running clusters: ..*$'
             status_exitcode="$?"
-        elif [ "$systemctl_bin" = "1" ]; then
+        elif [ "$systemctl_bin" != "1" ]; then
             systemctl start postgresql
             systemctl status postgresql | grep -q "active"
             status_exitcode="$?"
