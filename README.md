@@ -2,6 +2,8 @@
 
 [![](https://badges.gitter.im/owtf/owtf.svg)](https://gitter.im/owtf/owtf?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
+[![Build Status](https://travis-ci.org/DePierre/owtf.svg?branch=master)](https://travis-ci.org/DePierre/owtf)
+
 <img src="https://www.owasp.org/images/7/73/OWTFLogo.png" height="150" width="120" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![](https://www.owasp.org/images/5/59/Project_Type_Files_TOOL.jpg)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![](https://www.owasp.org/images/d/dd/Mature_projects.png)
 
 **OWASP OWTF** is a project focused on penetration testing efficiency and alignment of security tests to security standards like the OWASP Testing Guide (v3 and v4), the OWASP Top 10, PTES and NIST so that pentesters will have more time to
