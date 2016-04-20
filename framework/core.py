@@ -288,7 +288,7 @@ class Core(BaseComponent):
                     "Stopping inbound proxy processes and cleaning up. Please wait!")
                 self.ProxyProcess.clean_up()
                 self.kill_children(self.ProxyProcess.pid)
-                self.ProxyProcess.terminate()
+                self.ProxyProcess.join()
             if getattr(self, "TransactionLogger", None) is not None:
                 # No signal is generated during closing process by
                 # terminate()
