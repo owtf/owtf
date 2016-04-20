@@ -468,7 +468,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         elif group == 'auxiliary':
             logging.info(msg + "\nAvailable AUXILIARY plugins:")
         elif group == 'network':
-            logging.info(msg + "\nAvailable NET plugins:")
+            logging.info(msg + "\nAvailable NETWORK plugins:")
         for plugin_type in self.db_plugin.GetTypesForGroup(group):
             self.show_plugin_types(plugin_type, group)
 

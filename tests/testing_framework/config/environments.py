@@ -5,8 +5,8 @@ from framework.shell.blocking_shell import Shell
 from os import path
 
 PLUGINS_DIR = path.abspath("test_cases/resources/plugins_dir") + "/"   # Relative to the owtf/tests directory
-WEB_TEST_GROUPS = path.abspath("../framework/config/web_testgroups.cfg")
-NET_TEST_GROUPS = path.abspath("../framework/config/net_testgroups.cfg")
+WEB_TEST_GROUPS = path.abspath("../profile/plugin_web/groups.cfg")
+NET_TEST_GROUPS = path.abspath("../profile/plugin_net/groups.cfg")
 ROOT_DIR = path.abspath("..")
 
 
