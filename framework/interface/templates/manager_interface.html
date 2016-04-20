@@ -232,6 +232,7 @@ function moveProgressBar() {
                 elem.css("width", percentage_done + '%');
                 if (percentage_done == 100) {
                     elem.removeClass('active');
+                    $('#progressbar').html('<p>Worklist is empty</p>');
                     clearInterval(progressbar);
                 }
             }
