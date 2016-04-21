@@ -41,27 +41,26 @@ postgresql_fix() {
   case $remove_ssl in
     [yY][eE][sS]|[yY])
       sed -i -e '/ssl =/ s/= .*/= false/' $postgres_conf
+      echo "Restarting the postgresql service"
+      service_bin=$(which service | wc -l)
+      systemctl_bin=$(which systemctl | wc -l)
+      if [ "$service_bin" = "1" ]; then
+        service postgresql restart
+        service postgresql status | grep -q '^Running clusters: ..*$'
+        status_exitcode="$?"
+      elif [ "$systemctl_bin" = "1" ]; then
+        systemctl restart postgresql
+        systemctl status postgresql | grep -q "active"
+        status_exitcode="$?"
+      else
+        echo "[+] It seems postgres server is not running or responding, please restart it manually!"
+        exit 1
+      fi
       ;;
     *)
       # do nothing
       ;;
   esac
-
-  echo "Restarting the postgresql service"
-  service_bin=$(which service | wc -l)
-  systemctl_bin=$(which systemctl | wc -l)
-  if [ "$service_bin" = "1" ]; then
-      service postgresql restart
-      service postgresql status | grep -q '^Running clusters: ..*$'
-      status_exitcode="$?"
-  elif [ "$systemctl_bin" = "1" ]; then
-      systemctl restart postgresql
-      systemctl status postgresql | grep -q "active"
-      status_exitcode="$?"
-  else
-      echo "[+] It seems postgres server is not running or responding, please restart it manually!"
-      exit 1
-  fi
 }
 
 
