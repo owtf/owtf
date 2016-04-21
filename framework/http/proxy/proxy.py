@@ -605,7 +605,7 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             tornado.ioloop.IOLoop.instance().start()
         except:
             # Cleanup code
-            pass
+            tornado.ioloop.IOLoop.instance().close()
 
     def clean_up(self):
         self.server.stop()
