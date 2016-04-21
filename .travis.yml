@@ -78,3 +78,9 @@ after_script:
 
 notifications:
     email: false
+    irc:
+        channels:
+            - "irc.freenode.net#owtf"
+        on_success: change
+        on_failure: always
+        use_notice: true
