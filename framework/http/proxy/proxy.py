@@ -45,6 +45,9 @@ class ProxyHandler(tornado.web.RequestHandler):
     """This RequestHandler processes all the requests that the application received."""
 
     SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE']
+    server = None
+    restricted_request_headers = None
+    restricted_response_headers = None
 
     def __new__(cls, application, request, **kwargs):
         # http://stackoverflow.com/questions/3209233/how-to-replace-an-instance-in-init-with-a-different-object
@@ -82,7 +85,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             if header == "Set-Cookie":
                 self.add_header(header, value)
             else:
-                if header not in restricted_response_headers:
+                if header not in ProxyHandler.restricted_response_headers:
                     self.set_header(header, value)
         self.finish()
 
@@ -127,7 +130,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             self.finish_response(self.cached_response)
         else:
             # Request header cleaning
-            for header in restricted_request_headers:
+            for header in ProxyHandler.restricted_request_headers:
                 try:
                     del self.request.headers[header]
                 except:
@@ -287,7 +290,7 @@ class ProxyHandler(tornado.web.RequestHandler):
 
         def ssl_success(client_socket):
             client = tornado.iostream.SSLIOStream(client_socket)
-            server.handle_stream(client, self.application.inbound_ip)
+            ProxyHandler.server.handle_stream(client, self.application.inbound_ip)
 
         # Tiny Hack to satisfy proxychains CONNECT request to HTTP port.
         # HTTPS fail check has to be improvised
@@ -296,7 +299,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                 self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
             except tornado.iostream.StreamClosedError:
                 pass
-            server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
+            ProxyHandler.server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
 
         # Hacking to be done here, so as to check for ssl using proxy and auth
         try:
@@ -336,7 +339,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         # Have to add cookies and stuff
         request_headers = tornado.httputil.HTTPHeaders()
         for name, value in self.request.headers.items():
-            if name not in restricted_request_headers:
+            if name not in ProxyHandler.restricted_request_headers:
                 request_headers.add(name, value)
         # Build a custom request
         request = tornado.httpclient.HTTPRequest(
@@ -566,19 +569,18 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             self.application.outbound_username = None
             self.application.outbound_password = None
 
-        # Server has to be global, because it is used inside request handler to attach sockets for monitoring
-        global server
-        server = tornado.httpserver.HTTPServer(self.application)
-        self.server = server
+        self.server = tornado.httpserver.HTTPServer(self.application)
+        # server has to be a class variable, because it is used inside request handler to attach sockets for monitoring
+        ProxyHandler.server = self.server
 
         # Header filters
         # Restricted headers are picked from framework/config/framework_config.cfg
         # These headers are removed from the response obtained from webserver, before sending it to browser
-        global restricted_response_headers
         restricted_response_headers = self.config.FrameworkConfigGet("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
+        ProxyHandler.restricted_response_headers = restricted_response_headers
         # These headers are removed from request obtained from browser, before sending it to webserver
-        global restricted_request_headers
         restricted_request_headers = self.config.FrameworkConfigGet("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
+        ProxyHandler.restricted_request_headers = restricted_request_headers
 
         # HTTP Auth options
         if self.db_config.Get("HTTP_AUTH_HOST") != "None":
@@ -605,13 +607,8 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             tornado.ioloop.IOLoop.instance().start()
         except:
             # Cleanup code
-            tornado.ioloop.IOLoop.instance().close()
+            self.clean_up()
 
     def clean_up(self):
         self.server.stop()
-        global server
-        del server
-        global restricted_response_headers
-        del restricted_response_headers
-        global restricted_request_headers
-        del restricted_request_headers
+        tornado.ioloop.IOLoop.instance().stop()
