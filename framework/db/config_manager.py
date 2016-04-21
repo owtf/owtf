@@ -5,6 +5,7 @@ from framework.db import models
 from framework.lib.general import cprint
 import ConfigParser
 import logging
+import os
 
 
 class ConfigDB(BaseComponent, DBConfigInterface):
@@ -15,6 +16,7 @@ class ConfigDB(BaseComponent, DBConfigInterface):
         self.register_in_service_locator()
         self.config = self.get_component("config")
         self.db = self.get_component("db")
+        self.error_handler = self.get_component("error_handler")
         self.LoadConfigDBFromFile(self.config.get_profile_path('GENERAL_PROFILE'))
 
     def IsConvertable(self, value, conv):
@@ -28,6 +30,8 @@ class ConfigDB(BaseComponent, DBConfigInterface):
         logging.info("Loading Configuration from: " + file_path + " ..")
         config_parser = ConfigParser.RawConfigParser()
         config_parser.optionxform = str  # Otherwise all the keys are converted to lowercase xD
+        if not os.path.isfile(file_path):  # check if the config file exists
+            self.error_handler.FrameworkAbort("Config file not found at: %s" % file_path)
         config_parser.read(file_path)
         for section in config_parser.sections():
             for key, value in config_parser.items(section):

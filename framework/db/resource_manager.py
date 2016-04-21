@@ -17,10 +17,13 @@ class ResourceDB(BaseComponent, ResourceInterface):
         self.db_config = self.get_component("db_config")
         self.target = self.get_component("target")
         self.db = self.get_component("db")
+        self.error_handler = self.get_component("error_handler")
         self.LoadResourceDBFromFile(self.config.get_profile_path("RESOURCES_PROFILE"))
 
     def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         logging.info("Loading Resources from: " + file_path + " ..")
+        if not os.path.isfile(file_path):  # check if the resource file exists
+            self.error_handler.FrameworkAbort("Resource file not found at: %s" % file_path)
         resources = self.GetResourcesFromFile(file_path)
         # Delete all old resources which are not edited by user
         # because we may have updated the resource

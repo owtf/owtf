@@ -21,6 +21,7 @@ class MappingDB(BaseComponent, MappingDBInterface):
         self.config = self.get_component("config")
         self.db = self.get_component("db")
         self.mapping_types = []
+        self.error_handler = self.get_component("error_handler")
 
     def init(self):
         self.LoadMappingDBFromFile(self.config.get_profile_path("MAPPING_PROFILE"))
@@ -34,6 +35,8 @@ class MappingDB(BaseComponent, MappingDBInterface):
         config_parser = ConfigParser.RawConfigParser()
         # Otherwise all the keys are converted to lowercase xD
         config_parser.optionxform = str
+        if not os.path.isfile(file_path):  # check if the mapping file exists
+            self.error_handler.FrameworkAbort("Mapping file not found at: %s" % file_path)
         config_parser.read(file_path)
         for owtf_code in config_parser.sections():
             mappings = {}
