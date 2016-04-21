@@ -2,8 +2,8 @@
 """
 Consists of owtf process class and its manager
 """
-import logging
-from multiprocessing import Process, current_process, Queue
+from multiprocessing import Process, Queue
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 
 
@@ -51,8 +51,8 @@ class OWTFProcess(Process, BaseComponent):
             self.core.enable_logging()
             # - Finally run process specific code - #
             self.pseudo_run()
-        except KeyboardInterrupt, e:
-            # In case of listing plugins
+        except KeyboardInterrupt:
+            # In case of interrupt while listing plugins
             pass
 
     def pseudo_run(self):
