@@ -19,9 +19,11 @@
     </div>
 </div>
 <br>
-<h5><strong>Progress of Running Plugins</strong></h5>
-<div class="progress">
-  <div id="pluginprogress" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+<h5><strong>Total scan progress</strong></h5>
+<div id="progressbar">
+  <div class="progress">
+    <div id="pluginprogress" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+    </div>
   </div>
 </div>
 <div class="row" id="workersInfo">
@@ -170,6 +172,45 @@ function getElapsedTime(start_time){
     return s;
 }
 
+// Function which checks for last task completion
+function checkForLastTaskCompletion() {
+    var flag = true;
+    $.ajax({
+        url: mySpace.workers_api_url,
+        ifModified: true,
+        dataType: 'json',
+        async: false,
+        success: function(data) {
+            $.each(data, function(index, obj) {
+                if (obj.busy) {
+                    flag = false;
+                    return false;
+                }
+            });
+        }
+    });
+    return flag;
+}
+
+// Function which returns the number of busy workers
+function getBusyWorkers() {
+    var count = 0;
+    $.ajax({
+        url: mySpace.workers_api_url,
+        ifModified: true,
+        dataType: 'json',
+        async: false,
+        success: function(data) {
+            $.each(data, function(index, obj) {
+                if (obj.busy) {
+                    count++;
+                }
+            });
+        }
+    });
+    return count;
+}
+
 //Function which updates progress bar
 function moveProgressBar() {
     var elem = $("#pluginprogress");
@@ -177,11 +218,23 @@ function moveProgressBar() {
         $.getJSON(mySpace.plugins_api_url + 'progress/', function(data) {
             var left_count = data.left_count;
             var complete_count = data.complete_count;
-            percentage_done = (complete_count / (left_count + complete_count)) * 100;
-            elem.css("width", percentage_done + '%');
-            if (percentage_done == 100) {
-                elem.removeClass('active');
+            left_count += getBusyWorkers();
+            if (left_count == 1) {
+                if (checkForLastTaskCompletion()) {
+                    left_count--;
+                }
+            }
+            if (left_count == 0 && complete_count == 0) {
+                $('#progressbar').html('<p>You have not added anything to worklist yet</p>');
                 clearInterval(progressbar);
+            } else {
+                percentage_done = (complete_count / (left_count + complete_count)) * 100;
+                elem.css("width", percentage_done + '%');
+                if (percentage_done == 100) {
+                    elem.removeClass('active');
+                    $('#progressbar').html('<p>Worklist is empty</p>');
+                    clearInterval(progressbar);
+                }
             }
         });
     }, 1000);
