@@ -53,11 +53,8 @@ script:
     - sudo python -m unittest owtf_testing.tests_functional.cli.test_scope.OWTFCliScopeTest.test_cli_target_are_mixed_but_web_specified
     - sudo python -m unittest owtf_testing.tests_functional.cli.test_scope.OWTFCliScopeTest.test_cli_target_are_mixed_but_net_specified
 
-    # TODO: Deactivated for now. Reactivate when #390 is fixed.
-    #- sudo python -m unittest owtf_testing.tests_functional.cli.test_type.OWTFCliTypeTest.test_cli_type_web_default_active
-    #- sudo python -m unittest owtf_testing.tests_functional.cli.test_type.OWTFCliTypeTest.test_cli_type_web_default_passive
-    #- sudo python -m unittest owtf_testing.tests_functional.cli.test_type.OWTFCliTypeTest.test_cli_type_web_default_semi_passive
-    #- sudo python -m unittest owtf_testing.tests_functional.cli.test_type.OWTFCliTypeTest.test_cli_type_net_default_bruteforce
+    - sudo python -m unittest owtf_testing.tests_functional.cli.test_type.OWTFCliTypeTest.test_cli_type_no_group_and_type_when_host
+    - sudo python -m unittest owtf_testing.tests_functional.cli.test_type.OWTFCliTypeTest.test_cli_type_no_group_and_type_when_ip
 
     - sudo python -m unittest owtf_testing.tests_functional.plugins.web.test_web.OWTFCliWebPluginTest.test_web_active
     - sudo python -m unittest owtf_testing.tests_functional.plugins.web.test_web.OWTFCliWebPluginTest.test_web_passive
