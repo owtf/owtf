@@ -156,12 +156,12 @@ class Config(BaseComponent, ConfigInterface):
             # the user).
             if group is None:
                 group = 'web'
-                # Test if the target is an IP and if so, force the group to
-                # 'network' (see #375).
-                hostname = urlparse(target_url).hostname
-                ip = self.GetIPFromHostname(hostname)
-                if self.hostname_is_ip(hostname, ip):
-                    group = 'network'
+                if not target_url.startswith('http://', 'https://'):
+                    # Test if the target is an IP and if so, force the group to 'network' (see #375).
+                    hostname = urlparse(target_url).hostname
+                    ip = self.GetIPFromHostname(hostname)
+                    if self.hostname_is_ip(hostname, ip):
+                        group = 'network'
             filter_data = {'type': options['PluginType'], 'group': group}
         else:
             filter_data = {
