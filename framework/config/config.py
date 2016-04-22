@@ -152,16 +152,12 @@ class Config(BaseComponent, ConfigInterface):
         target = self.target.GetTargetConfigs({'target_url': target_url})
         if options['OnlyPlugins'] is None:
             group = options['PluginGroup']
-            # If the plugin group option is the default one (not specified by
-            # the user).
+            # If the plugin group option is the default one (not specified by the user).
             if group is None:
-                group = 'web'
+                group = 'web'  # Default to web plugins.
+                # Run net plugins if target does not start with http (see #375).
                 if not target_url.startswith(('http://', 'https://')):
-                    # Test if the target is an IP and if so, force the group to 'network' (see #375).
-                    hostname = urlparse(target_url).hostname
-                    ip = self.GetIPFromHostname(hostname)
-                    if self.hostname_is_ip(hostname, ip):
-                        group = 'network'
+                    group = 'network'
             filter_data = {'type': options['PluginType'], 'group': group}
         else:
             filter_data = {
@@ -196,7 +192,7 @@ class Config(BaseComponent, ConfigInterface):
             self.FrameworkConfigGet("DEFAULT_MAPPING_PROFILE")
 
     def LoadTargets(self, options):
-        scope = self.prepare_url_scope(options['Scope'], options['PluginGroup'])
+        scope = options['Scope']
         added_targets = []
         for target in scope:
             try:
@@ -208,26 +204,6 @@ class Config(BaseComponent, ConfigInterface):
             except UnresolvableTargetException as e:
                 logging.error("%s" % e.parameter)
         return(added_targets)
-
-    def prepare_url_scope(self, scope, group):
-        """Convert all targets to URLs."""
-        new_scope = []
-        for target_url in scope:
-            if target_url.endswith('/'):
-                target_url = target_url[:-1]
-            if target_url.startswith('http'):
-                new_scope.append(target_url)  # Append "as-is".
-            else:
-                # Add both "http" and "https" if not present:
-                # The connection check will then remove from the report if one
-                # does not exist.
-                if group is "network":
-                    new_scope.append('http://%s' % target_url)
-                else:
-                    new_scope.extend((
-                        '%s://%s' % (prefix, target_url)
-                        for prefix in ('http', 'https')))
-        return new_scope
 
     def MultipleReplace(self, text, replace_dict):
         new_text = text
@@ -274,26 +250,43 @@ class Config(BaseComponent, ConfigInterface):
         return self.Resources[resource_type]
 
     def DeriveConfigFromURL(self, target_URL):
+        """Automatically find target information based on target name.
+
+        If target does not start with 'http' or 'https', then it is considered as a network target.
+
+        + target host
+        + target port
+        + target url
+        + target path
+        + etc.
+        """
         target_config = dict(target_manager.TARGET_CONFIG)
-        # Set the target in the config.
         target_config['target_url'] = target_URL
-        # TODO: Use urlparse here.
         try:
             parsed_URL = urlparse(target_URL)
-            if not parsed_URL.hostname or parsed_URL.path is None:
+            if not parsed_URL.hostname and not parsed_URL.path:  # No hostname and no path, urlparse failed.
                 raise ValueError
-        except ValueError:  # Occurs when parsing invalid IPv6 host or when host is None
+        except ValueError:  # Occurs sometimes when parsing invalid IPv6 host for instance
             raise UnresolvableTargetException("Invalid hostname '%s'" % str(target_URL))
+
+        host = parsed_URL.hostname
+        if not host:  # Happens when target is an IP (e.g. 127.0.0.1)
+            host = parsed_URL.path  # Use the path as host (e.g. 127.0.0.1 => host = '' and path = '127.0.0.1')
+            host_path = host
+        else:
+            host_path = parsed_URL.hostname + parsed_URL.path
+
         URL_scheme = parsed_URL.scheme
         protocol = parsed_URL.scheme
-        if parsed_URL.port == None:  # Port is blank: Derive from scheme.
-            port = '80'
-            if 'https' == URL_scheme:
-                port = '443'
+        if parsed_URL.port is None:  # Port is blank: Derive from scheme (default port set to 80).
+            host, port = host.rsplit(':')
+            if not port:
+                port = '80'
+                if 'https' == URL_scheme:
+                    port = '443'
         else:  # Port found by urlparse.
             port = str(parsed_URL.port)
-        host = parsed_URL.hostname
-        host_path = parsed_URL.hostname + parsed_URL.path
+
         # Needed for google resource search.
         target_config['host_path'] = host_path
         # Some tools need this!
@@ -313,11 +306,14 @@ class Config(BaseComponent, ConfigInterface):
         target_config['top_domain'] = target_config['host_name']
 
         hostname_chunks = target_config['host_name'].split('.')
-        if not self.hostname_is_ip(host, host_IP) and len(hostname_chunks) > 2:
-            # Get "example.com" from "www.example.com"
-            target_config['top_domain'] = '.'.join(hostname_chunks[1:])
-        # Set the top URL.
-        target_config['top_url'] = protocol + "://" + host + ":" + port
+        if target_config['target_url'].startswith(('http', 'https')):  # Target considered as hostname (web plugins)
+            if not target_config['host_name'] in target_config['alternative_ips']:
+                target_config['top_domain'] = '.'.join(hostname_chunks[1:])
+            # Set the top URL (get "example.com" from "www.example.com").
+            target_config['top_url'] = protocol + "://" + host + ":" + port
+        else:  # Target considered as IP (net plugins)
+            target_config['top_domain'] = ''
+            target_config['top_url'] = ''
         return target_config
 
     def DeriveOutputSettingsFromURL(self, target_URL):
