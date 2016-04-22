@@ -283,8 +283,9 @@ class Config(BaseComponent, ConfigInterface):
         URL_scheme = parsed_URL.scheme
         protocol = parsed_URL.scheme
         if parsed_URL.port is None:  # Port is blank: Derive from scheme (default port set to 80).
-            host, port = host.rsplit(':')
-            if not port:
+            try:
+                host, port = host.rsplit(':')
+            except ValueError:  # Raised when target doesn't contain the port (e.g. google.fr)
                 port = '80'
                 if 'https' == URL_scheme:
                     port = '443'
