@@ -156,7 +156,7 @@ class Config(BaseComponent, ConfigInterface):
             # the user).
             if group is None:
                 group = 'web'
-                if not target_url.startswith('http://', 'https://'):
+                if not target_url.startswith(('http://', 'https://')):
                     # Test if the target is an IP and if so, force the group to 'network' (see #375).
                     hostname = urlparse(target_url).hostname
                     ip = self.GetIPFromHostname(hostname)
