@@ -21,12 +21,9 @@ install:
     - sudo pip install --upgrade --force-reinstall -r ./owtf_testing/owtf_testing.pip
 
 before_script:
-    - cp -f ./framework/config/web_testgroups.cfg ./framework/config/web_testgroups.cfg.backup
-    - cp -f ./framework/config/net_testgroups.cfg ./framework/config/net_testgroups.cfg.backup
-    - cp -f ./framework/config/aux_testgroups.cfg ./framework/config/aux_testgroups.cfg.backup
-    - cp -f ./owtf_testing/framework/config/web_testgroups.cfg ./framework/config/web_testgroups.cfg
-    - cp -f ./owtf_testing/framework/config/net_testgroups.cfg ./framework/config/net_testgroups.cfg
-    - cp -f ./owtf_testing/framework/config/aux_testgroups.cfg ./framework/config/aux_testgroups.cfg
+    - cp -f ./owtf_testing/profiles/plugin_web/groups.cfg ./profiles/plugin_web/groups.cfg
+    - cp -f ./owtf_testing/profiles/plugin_net/groups.cfg ./profiles/plugin_net/groups.cfg
+    - cp -f ./owtf_testing/profiles/plugin_aux/groups.cfg ./profiles/plugin_aux/groups.cfg
     - git config --global user.email "tasty@mac.test"
     - git config --global user.name "Tasty Test"
     - git am < ./owtf_testing/patch/0001-unittest-Patch-to-reuse-proxy-address.patch
@@ -70,11 +67,6 @@ script:
 
     - sudo python -m unittest owtf_testing.tests_functional.plugins.web.active.test_web_active.OWTFCliWebActivePluginTest.test_web_active_wvs_001
     - sudo python -m unittest owtf_testing.tests_functional.plugins.web.active.test_web_active.OWTFCliWebActivePluginTest.test_web_active_wvs_006
-
-after_script:
-    - mv -f ./framework/config/web_testgroups.cfg.backup ./framework/config/web_testgroups.cfg
-    - mv -f ./framework/config/net_testgroups.cfg.backup ./framework/config/net_testgroups.cfg
-    - mv -f ./framework/config/aux_testgroups.cfg.backup ./framework/config/aux_testgroups.cfg
 
 notifications:
     email: false
