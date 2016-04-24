@@ -49,7 +49,7 @@ class ComponentInitialiser():
         :param int owtf_pid: PID for the OWTF process.
 
         """
-        config = Config(root_dir, owtf_pid)
+        Config(root_dir, owtf_pid)
         ErrorHandler()
         DB()
         try:
@@ -57,19 +57,16 @@ class ComponentInitialiser():
         except:
             raise DatabaseNotRunningException()
         WorklistManager()
-        db_config = ConfigDB()
+        ConfigDB()
         CommandRegister()
         TargetDB()
         ResourceDB()
         ErrorDB()
         MappingDB()
-        Timer(db_config.Get('DATE_TIME_FORMAT'))
         PluginDB()
-        zest = Zest()
+        Zest()
         URLManager()
         TransactionManager()
-        config.init()
-        zest.init()
 
     @staticmethod
     def initialisation_phase_2(args):
@@ -77,6 +74,12 @@ class ComponentInitialiser():
 
         :param dict args: parsed arguments from the command line.
         """
+        db_config = ServiceLocator.get_component("db_config")
+        db_config.init()
+        Timer(db_config.Get('DATE_TIME_FORMAT'))
+        ServiceLocator.get_component("db_plugin").init()
+        ServiceLocator.get_component("config").init()
+        ServiceLocator.get_component("zest").init()
         PluginHandler(args)
         Reporter()
         POutputDB()
@@ -89,14 +92,18 @@ class ComponentInitialiser():
         ZAP_API()
 
     @staticmethod
-    def initialisation_phase_3(proxy, options):
+    def initialisation_phase_3(options):
         """ Third phase of the initialization process.
 
         :param list proxy: Proxy configuration parameters
         :param dict options: Options from command line.
         """
+        ServiceLocator.get_component("resource").init()
+        ServiceLocator.get_component("mapping_db").init()
         ServiceLocator.get_component("db").init()
+        db_config = ServiceLocator.get_component("db_config")
         ServiceLocator.get_component("error_handler").init()
+        proxy = [db_config.Get('INBOUND_PROXY_IP'), db_config.Get('INBOUND_PROXY_PORT')]
         Requester(proxy)
         PluginHelper()
         ServiceLocator.get_component("plugin_handler").init(options)

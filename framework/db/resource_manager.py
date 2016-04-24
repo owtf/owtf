@@ -18,6 +18,8 @@ class ResourceDB(BaseComponent, ResourceInterface):
         self.target = self.get_component("target")
         self.db = self.get_component("db")
         self.error_handler = self.get_component("error_handler")
+
+    def init(self):
         self.LoadResourceDBFromFile(self.config.get_profile_path("RESOURCES_PROFILE"))
 
     def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7

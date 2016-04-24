@@ -19,13 +19,15 @@ class PluginDB(BaseComponent, DBPluginInterface):
         self.register_in_service_locator()
         self.config = self.get_component("config")
         self.db = self.get_component("db")
-        self.timer = self.get_component("timer")
         self.error_handler = self.get_component("error_handler")
         self.LoadTestGroups(self.config.FrameworkConfigGet("WEB_TEST_GROUPS"), "web")
         self.LoadTestGroups(self.config.FrameworkConfigGet("NET_TEST_GROUPS"), "network")
         self.LoadTestGroups(self.config.FrameworkConfigGet("AUX_TEST_GROUPS"), "auxiliary")
         # After loading the test groups then load the plugins, because of many-to-one relationship
         self.LoadFromFileSystem()  # Load plugins :P
+
+    def init(self):
+        self.timer = self.get_component("timer")
 
     def GetTestGroupsFromFile(self, file_path):  # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         TestGroups = []
