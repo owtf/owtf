@@ -49,7 +49,7 @@ class ErrorDB(BaseComponent, DBErrorInterface):
         if not error:  # If invalid error id, bail out
             raise InvalidErrorReference(
                 "No error with id " + str(error_id))
-        error.user_message = patch_data["user_message"]
+        error.user_message = user_message
         self.db.session.merge(error)
         self.db.session.commit()
 
