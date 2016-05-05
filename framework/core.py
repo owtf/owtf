@@ -221,15 +221,13 @@ class Core(BaseComponent):
         self.ProxyMode = options["ProxyMode"]
         logging.info("Loading framework please wait..")
         # self.initlogger()
-
-        proxy_infos = [self.db_config.Get('INBOUND_PROXY_IP'), self.db_config.Get('INBOUND_PROXY_PORT')]
-        ComponentInitialiser.initialisation_phase_3(proxy_infos, options)
+        ComponentInitialiser.initialisation_phase_3(options)
         self.initialise_plugin_handler_and_params(options)
         # No processing required, just list available modules.
         if options['list_plugins']:
             self.PluginHandler.show_plugin_list(options['list_plugins'])
             self.finish()
-        self.config.ProcessOptions(options)
+        self.config.ProcessOptionsPhase2(options)
         command = self.get_command(options['argv'])
 
         self.start_botnet_mode(options)

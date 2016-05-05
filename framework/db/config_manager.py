@@ -17,6 +17,8 @@ class ConfigDB(BaseComponent, DBConfigInterface):
         self.config = self.get_component("config")
         self.db = self.get_component("db")
         self.error_handler = self.get_component("error_handler")
+
+    def init(self):
         self.LoadConfigDBFromFile(self.config.get_profile_path('GENERAL_PROFILE'))
 
     def IsConvertable(self, value, conv):
