@@ -212,7 +212,17 @@ class PluginDB(BaseComponent, DBPluginInterface):
                 query = query.filter(models.Plugin.name.in_(criteria["name"]))
         return query.order_by(models.TestGroup.priority.desc())
 
+    def PluginNametoCode(self, codes):
+        query = self.db.session.query(models.Plugin.code)
+        for count, name in enumerate(codes):
+            if "OWTF-" not in name:
+                code = query.filter(models.Plugin.name == name).first()
+                codes[count] = str(code[0])
+        return(codes)
+
     def GetAll(self, Criteria={}):
+        if Criteria.has_key("code"):
+            Criteria["code"] = self.PluginNametoCode(Criteria["code"])
         query = self.GenerateQueryUsingSession(Criteria)
         plugin_obj_list = query.all()
         return(self.DerivePluginDicts(plugin_obj_list))
