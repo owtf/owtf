@@ -197,6 +197,8 @@ class Config(BaseComponent, ConfigInterface):
 
     def LoadTargets(self, options):
         scope = options['Scope']
+        if options['PluginGroup'] == 'auxiliary':
+            scope = self.GetAuxTarget(options)
         added_targets = []
         for target in scope:
             try:
@@ -208,6 +210,30 @@ class Config(BaseComponent, ConfigInterface):
             except UnresolvableTargetException as e:
                 logging.error("%s" % e.parameter)
         return(added_targets)
+
+    def GetAuxTarget(self, options):
+        """
+        This function returns the target for auxiliary plugins from the parameters provided
+        """
+        # targets can be given by different params depending on the aux plugin we are running
+        # so "target_params" is a list of possible parameters by which user can give target
+        target_params = ['RHOST', 'TARGET', 'SMB_HOST', 'BASE_URL', 'EMAIL_TARGET']
+        PluginParams = self.get_component("plugin_params")
+        targets = None
+        if PluginParams.ProcessArgs():
+            for param in target_params:
+                if PluginParams.Args.has_key(param):
+                    targets = PluginParams.Args[param]
+                    break # it will capture only the first one matched
+            repeat_delim = ','
+            if targets is None:
+                logging.error("Aux target not found! Try it in NAME=VALUE format ")
+                return []
+            if PluginParams.Args.has_key('REPEAT_DELIM'):
+                repeat_delim = PluginParams.Args['REPEAT_DELIM']
+            return targets.split(repeat_delim)
+        else:
+            return []
 
     def MultipleReplace(self, text, replace_dict):
         new_text = text
