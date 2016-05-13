@@ -64,13 +64,13 @@ class PluginParams(BaseComponent):
         self.error_handler.FrameworkAbort("User is only viewing options, exiting", False)
 
     def ShowPlugin(self, Plugin):
-        return "Plugin: " + Plugin['Type'] + "/" + Plugin['File']
+        return "Plugin: " + Plugin['type'] + "/" + Plugin['file']
 
     def DefaultArgFromConfig(self, Args, ArgName, SettingList):
         DefaultOrderStr = " (Default order is: " + str(SettingList) + ")"
         for Setting in SettingList:
             if self.config.IsSet(Setting):  # Argument is set in config
-                Args[ArgName] = self.config.Get(Setting)
+                Args[ArgName] = self.config.FrameworkConfigGet(Setting)
                 cprint("Defaulted not passed '" + ArgName + "' to '" + str(Args[ArgName]) + "'" + DefaultOrderStr)
                 return True
         cprint("Could not default not passed: '" + ArgName + "'" + DefaultOrderStr)
@@ -84,8 +84,8 @@ class PluginParams(BaseComponent):
         Args = {}
         for ArgName in ArgList:
             if ArgName not in self.Args:
-                ConfigDefaultOrder = [Plugin['Code'] + '_' + Plugin['Type'] + "_" + ArgName,
-                                      Plugin['Code'] + '_' + ArgName, ArgName]
+                ConfigDefaultOrder = [Plugin['code'] + '_' + Plugin['type'] + "_" + ArgName,
+                                      Plugin['code'] + '_' + ArgName, ArgName]
                 Defaulted = self.DefaultArgFromConfig(Args, ArgName, ConfigDefaultOrder)
                 Value = ""
                 if Defaulted or Mandatory == False:
