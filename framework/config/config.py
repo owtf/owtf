@@ -227,7 +227,7 @@ class Config(BaseComponent, ConfigInterface):
                     break # it will capture only the first one matched
             repeat_delim = ','
             if targets is None:
-                logging.error("Aux target not found! Try it in NAME=VALUE format ")
+                logging.error("Aux target not found! See your plugin accepted parameters in ./plugins/ folder")
                 return []
             if PluginParams.Args.has_key('REPEAT_DELIM'):
                 repeat_delim = PluginParams.Args['REPEAT_DELIM']

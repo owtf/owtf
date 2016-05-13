@@ -133,7 +133,7 @@ class PluginParams(BaseComponent):
     def SetConfig(self, Args):
         for ArgName, ArgValue in Args.items():
             cprint("Overriding configuration setting '_" + ArgName + "' with value " + str(ArgValue) + "..")
-            self.config.Set('_' + ArgName, ArgValue)  # Pre-pend "_" to avoid naming collisions
+            self.config.SetGeneral('string', '_' + ArgName, ArgValue)  # Pre-pend "_" to avoid naming collisions
 
     def GetPermutations(self, Args):
         #print "Args="+str(Args)

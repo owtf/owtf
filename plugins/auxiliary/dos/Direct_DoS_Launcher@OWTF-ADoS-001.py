@@ -8,25 +8,22 @@ CATEGORIES = ['HTTP_WIN', 'HTTP', 'DHCP', 'NTFS', 'HP', 'MDNS', 'PPTP', 'SAMBA',
 
 def run( PluginInfo):
     # ServiceLocator.get_component("config").Show()
-    Content = DESCRIPTION + " Results:<br />"
+    Content = []
     plugin_params = ServiceLocator.get_component("plugin_params")
     config = ServiceLocator.get_component("config")
     for Args in plugin_params.GetArgs({
                                                                           'Description': DESCRIPTION,
                                                                           'Mandatory': {
-                                                                          'RHOST': config.Get('RHOST_DESCRIP'),
-                                                                          'RPORT': config.Get('RPORT_DESCRIP'),
+                                                                          'RHOST': config.FrameworkConfigGet('RHOST_DESCRIP'),
+                                                                          'RPORT': config.FrameworkConfigGet('RPORT_DESCRIP'),
                                                                           },
                                                                           'Optional': {
                                                                           'CATEGORY': 'Category to use (i.e. ' + ', '.join(
                                                                                   sorted(CATEGORIES)) + ')',
-                                                                          'REPEAT_DELIM': config.Get('REPEAT_DELIM_DESCRIP')
+                                                                          'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
                                                                           }}, PluginInfo):
         plugin_params.SetConfig(Args)
-        #print "Args="+str(Args)
-        Content += ServiceLocator.get_component("plugin_helper").DrawCommandDump('Test Command', 'Output',
-                                                                                 config.GetResources(
-                                                                                     'DoS_' + Args['CATEGORY']),
-                                                                                 PluginInfo, "")  # No previous output
+        Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', ServiceLocator.get_component("resource").GetResources('DoS_' + Args['CATEGORY']), PluginInfo, [])  # No previous output
+
     return Content
 
