@@ -37,7 +37,7 @@ def verify_dependencies(root_dir):
     owtf_reqs = pip.req.parse_requirements(
         os.path.join(root_dir, "install", "owtf.pip"),
         session=uuid.uuid1())
-    owtf_libraries = [req.req.project_name for req in owtf_reqs]
+    owtf_libraries = [req.req.name for req in owtf_reqs]
 
     # Iterate over requirements and check if existed
     missing_libraries = []
