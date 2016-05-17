@@ -147,7 +147,7 @@ function modifyFilter(checkbox, filter_type, data){
 
 function modifyMapping(radio, filter_type, data){
     if (typeof mySpace.filter_data[filter_type] === 'undefined') {
-	mySpace.filter_data[filter_type] = [];
+       mySpace.filter_data[filter_type] = [];
     }
     if (radio.checked) {
         mySpace.filter_data[filter_type] = [data];
@@ -205,7 +205,7 @@ $(document).ready(function() {
     updatePluginReport();  // Plugin report is updated using JS
     $('#pluginOutputFilterModal').on('hidden.bs.modal', function () {
       updatePluginReport();
-    })
+    });
 });
 </script>
 {% end %}
