@@ -105,7 +105,7 @@ def install_restricted_from_cfg(config_file):
 
 def is_compatible():
         compatible_value = os.system("which apt-get >> /dev/null 2>&1")
-        if compatible_value>>8 == 1:
+        if (compatible_value>>8) == 1:
             return False
         else:
             return True
@@ -211,9 +211,6 @@ def install(cmd_arguments):
             Colorizer.warning("[!] Moving on with the installation but you were warned: there may be some errors!")
 
     install_using_pip(owtf_pip)
-
-    #run_command("sudo sh %s init" % (os.path.join(scripts_path, "db_setup.sh")))
-    #run_command("sudo sh %s" % (os.path.join(scripts_path, "db_run.sh")))
 
 
 class Colorizer:
