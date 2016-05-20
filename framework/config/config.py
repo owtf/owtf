@@ -217,7 +217,7 @@ class Config(BaseComponent, ConfigInterface):
         """
         # targets can be given by different params depending on the aux plugin we are running
         # so "target_params" is a list of possible parameters by which user can give target
-        target_params = ['RHOST', 'TARGET', 'SMB_HOST', 'BASE_URL', 'EMAIL_TARGET']
+        target_params = ['RHOST', 'TARGET', 'SMB_HOST', 'BASE_URL', 'SMTP_HOST']
         PluginParams = self.get_component("plugin_params")
         targets = None
         if PluginParams.ProcessArgs():
