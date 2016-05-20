@@ -139,31 +139,33 @@ def install(cmd_arguments):
     elif is_compatible():
     	distro_num = 3
 
-    # Loop until proper input is received
-    while True:
-        if distro_num != 0:
-            Colorizer.info("[*] %s has been automatically detected... " % distro)
-            Colorizer.normal("[*] Continuing in auto-mode")
-            break
+    if distro_num != 0:
+        Colorizer.info("[*] %s has been automatically detected... " % distro)
+        Colorizer.normal("[*] Continuing in auto-mode")
+    elif (distro_num == 0) and args.no_user_input:
+        Colorizer.info("[*] Cannot auto-detect a supported distro...")
+        Colorizer.normal("[*] Continuing in auto-mode with the core installation...")
+    else:
+        # Loop until proper input is received
+        while True:
+            print("")
+            for i, item in enumerate(cp.sections()):
+                Colorizer.warning("(%d) %s" % (i + 1, item))
+            Colorizer.warning("(0) My distro is not listed :( %s" % distro)
 
-        if args.no_user_input:
-            distro_num = 0
-            break
-
-        print("")
-        for i, item in enumerate(cp.sections()):
-            Colorizer.warning("(%d) %s" % (i + 1, item))
-        Colorizer.warning("(0) My distro is not listed :( %s" % distro)
-
-        distro_num = raw_input("Select a number based on your distribution : ")
-        try:
-            # Checking if valid input is received
-            distro_num = int(distro_num)
-            break
-        except ValueError:
-            print('')
-            Colorizer.warning("[!] Invalid Number specified")
-            continue
+            num_input = raw_input("Select a number based on your distribution : ")
+            try:
+                if int(num_input) <= len(cp.sections()):
+                    distro_num = int(num_input)
+                    break
+                else:
+                    print("")
+                    Colorizer.warning("[!] Invalid number - not a supported distro")
+                    continue
+            except ValueError:
+                print("")
+                Colorizer.warning("[!] Invalid Number specified")
+                continue
 
     # First all distro independent stuff is installed
     install_restricted_from_cfg(restricted_cfg)
@@ -210,8 +212,8 @@ def install(cmd_arguments):
 
     install_using_pip(owtf_pip)
 
-    run_command("sudo sh %s init" % (os.path.join(scripts_path, "db_setup.sh")))
-    run_command("sudo sh %s" % (os.path.join(scripts_path, "db_run.sh")))
+    #run_command("sudo sh %s init" % (os.path.join(scripts_path, "db_setup.sh")))
+    #run_command("sudo sh %s" % (os.path.join(scripts_path, "db_run.sh")))
 
 
 class Colorizer:
@@ -286,5 +288,4 @@ if __name__ == "__main__":
     Colorizer.info("[*] Last commit hash: %s" % owtf_last_commit())
     check_sudo()
     installer_status_code = install(sys.argv[1:])
-
     finish(installer_status_code)

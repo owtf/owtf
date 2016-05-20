@@ -121,6 +121,6 @@ if [ "$check_owtf_db" = "0" ]; then
     echo "[+] The problem seems to be the user role and db mentioned in $db_config_file. Do you want us to create them? [Y/n]"
     read choice
     if [ "$choice" != "n" ]; then
-        $RootDir/scripts/db_setup.sh init
+        sudo sh $RootDir/scripts/db_setup.sh init
     fi
 fi
