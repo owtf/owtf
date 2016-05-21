@@ -10,13 +10,6 @@ from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.general import WipeBadCharsForFilename
 
 
-
-def is_internal_ip(ip):
-    # parses the input IP into IPv4 or IPv6
-    parsed_ip = IPAddress(ip)
-    return parsed_ip.is_private
-
-
 class OutputCleaner():
 
     @staticmethod
@@ -31,6 +24,12 @@ class OutputCleaner():
             if ip:
                 command = command.replace(ip, 'xxx.xxx.xxx.xxx')
         return command
+
+
+def is_internal_ip(ip):
+    # parses the input IP into IPv4 or IPv6
+    parsed_ip = IPAddress(ip)
+    return parsed_ip.is_private
 
 
 def catch_io_errors(func):
@@ -94,6 +93,7 @@ def print_version(root_dir, commit_hash=False, version=False):
                 ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
     else:
         pass
+
 
 class FileOperations(object):
 
