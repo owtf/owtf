@@ -14,25 +14,25 @@ if [ $# -ne 3 -a $# -ne 4 -a $# -ne 5 ]; then
 fi
 
 PORT=80
-if [ $4 ]; then
+if [ "$4" ]; then
         PORT=$4
 fi
 
 TOOL_DIR=$1
 IP=$2
 PROXY=$3
-PROXY_IP=$(echo $PROXY | cut -d ":" -f 1)
-PROXY_PORT=$(echo $PROXY | cut -d ":" -f 2)
+PROXY_IP=$(echo "$PROXY" | cut -d ":" -f 1)
+PROXY_PORT=$(echo "$PROXY" | cut -d ":" -f 2)
 HOST_NAME=$IP
 NIKTO_NOLOOKUP="-nolookup"
-if [ $5 ] && [ "$5" != "$ip" ]; then
+if [ "$5" ] && [ "$5" != "$ip" ]; then
         HOST_NAME=$5
         NIKTO_NOLOOKUP="" #Host name passed: must look up
 fi
 
 NIKTO_SSL=""
-SSL_HANDSHAKE_LINES=$((sleep 5 ; echo -e "^C" 2> /dev/null) |  openssl s_client -connect $HOST_NAME:$PORT 2> /dev/null | wc -l)
-if [ $SSL_HANDSHAKE_LINES -gt 15 ]; then # SSL Handshake successful, proceed with nikto -ssl switch
+SSL_HANDSHAKE_LINES=$(sleep 5 ; echo -e "^C" 2> /dev/null | openssl s_client -connect "$HOST_NAME":"$PORT" 2> /dev/null | wc -l)
+if [ "$SSL_HANDSHAKE_LINES" -gt 15 ]; then # SSL Handshake successful, proceed with nikto -ssl switch
         NIKTO_SSL="-ssl"
 fi
 
@@ -41,11 +41,10 @@ NIKTO_CONF_FILE="/etc/nikto.conf"
 # Abe: Adding pid to temporary config to avoid potential concurrent process issues
 PID=$$
 TEMP_NIKTO_CONF_FILE="/tmp/temp_owtf.$PID.nikto.conf"
-if [ -f $TEMP_NIKTO_CONF_FILE ]; then
+if [ -f "$TEMP_NIKTO_CONF_FILE" ]; then
     rm $TEMP_NIKTO_CONF_FILE
 fi
 cp $NIKTO_CONF_FILE $TEMP_NIKTO_CONF_FILE
-#echo "PROXYHOST=$PROXY_IP" >> $TEMP_NIKTO_CONF_FILE
 echo "PROXYPORT=$PROXY_PORT" >> $TEMP_NIKTO_CONF_FILE
 
 DATE=$(date +%F_%R:%S | sed 's/:/_/g')
@@ -65,4 +64,4 @@ echo "[*] Running: $COMMAND"
 $COMMAND
 
 echo
-echo "[*] Done!]"
+echo "[*] Done!"
