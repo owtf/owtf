@@ -120,6 +120,31 @@
     function disableInput(selector) {
         $(selector).prop("disabled", true);
     }
+
+    // Function that fills the recently completed targets
+    function RecentlyFinisedTargets() {
+        $('#target_dropdown').empty();
+        $('#target_dropdown').append(
+            $('<li>').append($('<a>').attr('href',"{{ reverse_url('targets_ui_url', None) }}").append("New"))
+        );
+        $('#target_dropdown').append(
+            $('<li>').attr('role','separator').attr('class','divider')
+        );
+        $('#target_dropdown').append(
+            $('<li>').attr('class','dropdown-header').append("Recently Finished")
+        );
+        $.getJSON('/api/targets/recent/', function(json){
+            data = json.data
+            for(var i = 0; i < data.length; i++) {
+                var obj = data[i];
+                $('#target_dropdown').append(
+                    $('<li>').append($('<a>').attr('href','/ui/targets/' + obj.target_id).append(obj.target_url))
+                );
+            }
+        });
+        setTimeout(RecentlyFinisedTargets, 3000);
+    }
+
     </script>
     <!-- End status box message -->
 
@@ -143,7 +168,12 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav navbar-right">
-                    <li><a href="{{ reverse_url('targets_ui_url', None) }}"><i class="fa fa-crosshairs"></i> Targets</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <i class="fa fa-crosshairs"></i> Targets <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu" id="target_dropdown"></ul>
+                    </li>
                     <li><a href="{{ reverse_url('workers_ui_url', None) }}"><i class="fa fa-th-large"></i> Workers</a></li>
                     <li><a href="{{ reverse_url('worklist_ui_url') }}"><i class="fa fa-bars"></i> Worklist</a></li>
                     <li><a href="{{ reverse_url('configuration_ui_url') }}"><i class="fa fa-gears"></i> Settings</a></li>
@@ -167,6 +197,11 @@
             </div>
             <!-- End Child template -->
         </div>
+        <script>
+            $(document).ready(function() {
+                RecentlyFinisedTargets();
+            });
+        </script>
         <!-- End container -->
     </body>
 </html>
