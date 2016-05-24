@@ -362,10 +362,9 @@ class TargetDB(BaseComponent, TargetInterface):
         list_running_targets = [target[0] for target in running_targets]
         recently_finished_targets = [x for x in list_completed_targets if x not in list_running_targets]
         for target in recently_finished_targets:
-            dict = {}
+            values = {}
             target_obj = self.db.session.query(models.Target).filter_by(id=target)
-            dict['target_id'] = target_obj[0].id
-            dict['target_url'] = target_obj[0].target_url
-            results.append(dict)
-        return ({
-            "data": results})
+            values['target_id'] = target_obj[0].id
+            values['target_url'] = target_obj[0].target_url
+            results.append(values)
+        return ({"data": results})

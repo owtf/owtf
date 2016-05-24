@@ -122,27 +122,33 @@
     }
 
     // Function that fills the recently completed targets
-    function RecentlyFinisedTargets() {
-        $('#target_dropdown').empty();
-        $('#target_dropdown').append(
-            $('<li>').append($('<a>').attr('href',"{{ reverse_url('targets_ui_url', None) }}").append("New"))
-        );
-        $('#target_dropdown').append(
-            $('<li>').attr('role','separator').attr('class','divider')
-        );
-        $('#target_dropdown').append(
-            $('<li>').attr('class','dropdown-header').append("Recently Finished")
-        );
-        $.getJSON('/api/targets/recent/', function(json){
-            data = json.data
-            for(var i = 0; i < data.length; i++) {
-                var obj = data[i];
-                $('#target_dropdown').append(
-                    $('<li>').append($('<a>').attr('href','/ui/targets/' + obj.target_id).append(obj.target_url))
-                );
-            }
+    function recentlyFinishedTargets() {
+        $.ajax({url: '/api/targets/recent/',
+                ifModified: true,
+                dataType:'json',
+                success:function(json, textStatus, jqXHR){
+                    if (304 != jqXHR.status){
+                        $('#target_dropdown').empty();
+                        $('#target_dropdown').append(
+                          $('<li>').append($('<a>').attr('href',"{{ reverse_url('targets_ui_url', None) }}").append("New"))
+                        );
+                        $('#target_dropdown').append(
+                          $('<li>').attr('role','separator').attr('class','divider')
+                        );
+                        $('#target_dropdown').append(
+                          $('<li>').attr('class','dropdown-header').append("Recently Finished")
+                        );
+                        data = json.data
+                        for(var i = 0; i < data.length; i++) {
+                            var obj = data[i];
+                            $('#target_dropdown').append(
+                                $('<li>').append($('<a>').attr('href','/ui/targets/' + obj.target_id).append(obj.target_url))
+                            );
+                          }
+                        };
+                    }
         });
-        setTimeout(RecentlyFinisedTargets, 3000);
+        setTimeout(recentlyFinishedTargets, 3000);
     }
 
     </script>
@@ -177,7 +183,7 @@
                     <li><a href="{{ reverse_url('workers_ui_url', None) }}"><i class="fa fa-th-large"></i> Workers</a></li>
                     <li><a href="{{ reverse_url('worklist_ui_url') }}"><i class="fa fa-bars"></i> Worklist</a></li>
                     <li><a href="{{ reverse_url('configuration_ui_url') }}"><i class="fa fa-gears"></i> Settings</a></li>
-		    <li><a href="{{ reverse_url('plugnhack_ui_url') }}"><i class="fa fa-sign-in"></i> PlugnHack</a></li>
+                    <li><a href="{{ reverse_url('plugnhack_ui_url') }}"><i class="fa fa-sign-in"></i> PlugnHack</a></li>
                     <li><a href="{{ reverse_url('help_ui_url') }}"><i class="fa fa-link"></i> Help</a></li>
                 </ul> <!-- nav navbar-nav -->
             </div>
@@ -199,7 +205,7 @@
         </div>
         <script>
             $(document).ready(function() {
-                RecentlyFinisedTargets();
+                recentlyFinishedTargets();
             });
         </script>
         <!-- End container -->
