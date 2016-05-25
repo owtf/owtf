@@ -16,8 +16,8 @@ REPORTER_BIN=$2
 URL=$3
 PROXY=$4
 USER_AGENT="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/6.0" # Default to something less obvious
-if [[ -z "$5" ]]; then
-	USER_AGENT=$(echo $4 | sed 's/#/ /g') # Expand to real User Agent
+if [ -z "$5" ]; then
+	USER_AGENT=$(echo "$4" | sed 's/#/ /g') # Expand to real User Agent
 fi
 
 
@@ -30,7 +30,7 @@ COMMAND="$TOOL_BIN --http-user-agent=\"$USER_AGENT\" --http-request-concurrency=
 echo
 echo "[*] Running: $COMMAND"
 # IMPORTANT: Running as "$COMMAND" fails totally, avoid!!!
-$TOOL_BIN --http-user-agent="$USER_AGENT" --http-request-concurrency=20 --report-save-path="$DIR/$OUTFILE.afr" --http-proxy=$PROXY $URL
+$TOOL_BIN --http-user-agent="$USER_AGENT" --http-request-concurrency=20 --report-save-path="$DIR/$OUTFILE.afr" --http-proxy="$PROXY" "$URL"
 #./arachni --only-positives --user-agent="$USER_AGENT" --http-req-limit=30 --report="html:outfile=$OUTFILE.html" --report="txt:outfile=$OUTFILE.txt" --report="metareport:outfile=$OUTFILE.msf" --report="ap:outfile=$OUTFILE.ap" --report="xml:outfile=$OUTFILE.xml" --report="afr:outfile=$OUTFILE.afr" $URL
 
 COMMAND="$REPORTER_BIN --reporter=\"html:outfile=$OUTFILE.html.zip\" --reporter=\"txt:outfile=$OUTFILE.txt\" --reporter=\"json:outfile=$OUTFILE.json\" --reporter=\"ap:outfile=$OUTFILE.ap\" --reporter=\"xml:outfile=$OUTFILE.xml\" \"$DIR/$OUTFILE.afr\""
@@ -43,7 +43,7 @@ unzip "$OUTFILE.html.zip" -d "html_report"
 
 # Get rid of binary garbage to extract urls correctly afterwards:
 echo "[*] Removing potential binary garbage from text report .."
-strings $OUTFILE.txt > arachni_report.txt
+strings "$OUTFILE".txt > arachni_report.txt
 
 echo
 echo "[*] Done!"

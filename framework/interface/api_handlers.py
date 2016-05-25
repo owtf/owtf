@@ -558,6 +558,15 @@ class ProgressBarHandler(custom_handlers.APIRequestHandler):
     def delete(self):
         raise tornado.web.HTTPError(405)
 
+class RecentlyFinishedTargetHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        try:
+            self.write(self.get_component("target").GetRecentlyFinishedTargets())
+        except exceptions.InvalidParameterType as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
 
 class WorkerHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'OPTIONS']

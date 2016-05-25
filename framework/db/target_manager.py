@@ -1,4 +1,5 @@
 import os
+import datetime
 import sqlalchemy.exc
 
 from urlparse import urlparse
@@ -351,3 +352,19 @@ class TargetDB(BaseComponent, TargetInterface):
             if ParsedURL.hostname == HostName:
                 return True
         return False
+
+    def GetRecentlyFinishedTargets(self):
+        results = []
+        time15min = datetime.datetime.now() - datetime.timedelta(minutes=15)
+        completed_targets = self.db.session.query(models.PluginOutput.target_id).filter(models.PluginOutput.end_time>=time15min).distinct(models.PluginOutput.target_id)
+        running_targets = self.db.session.query(models.Work.target_id).distinct(models.Work.target_id)
+        list_completed_targets = [target[0] for target in completed_targets]
+        list_running_targets = [target[0] for target in running_targets]
+        recently_finished_targets = [x for x in list_completed_targets if x not in list_running_targets]
+        for target in recently_finished_targets:
+            values = {}
+            target_obj = self.db.session.query(models.Target).filter_by(id=target)
+            values['target_id'] = target_obj[0].id
+            values['target_url'] = target_obj[0].target_url
+            results.append(values)
+        return ({"data": results})
