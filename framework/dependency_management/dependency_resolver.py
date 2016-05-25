@@ -88,7 +88,7 @@ class BaseComponent():
         if ServiceLocator.already_registered(component_name):
             return ServiceLocator.get_component(component_name)
         else:
-            raise ComponentNotFoundException("Component not found in ServiceLocator: " + component_name)
+            raise ComponentNotFoundException("Component not found in ServiceLocator: %s" % component_name)
 
 
 class ComponentNotFoundException(Exception):
