@@ -130,7 +130,7 @@
                     if (304 != jqXHR.status){
                         $('#target_dropdown').empty();
                         $('#target_dropdown').append(
-                          $('<li>').append($('<a>').attr('href',"{{ reverse_url('targets_ui_url', None) }}").append("New"))
+                          $('<li>').append($('<a>').attr('href',"{{ reverse_url('targets_ui_url', None) }}").append("All"))
                         );
                         $('#target_dropdown').append(
                           $('<li>').attr('role','separator').attr('class','divider')
