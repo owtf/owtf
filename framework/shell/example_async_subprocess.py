@@ -1,11 +1,13 @@
+#!/usr/bin/env python
+"""
 # Courtesy of: http://code.activestate.com/recipes/440554-module-to-allow-asynchronous-subprocess-use-on-win/
+"""
+
 import os
 import subprocess
 import errno
 import time
 import sys
-
-PIPE = subprocess.PIPE
 
 if subprocess.mswindows:
     from win32file import ReadFile, WriteFile
@@ -14,6 +16,10 @@ if subprocess.mswindows:
 else:
     import select
     import fcntl
+
+
+PIPE = subprocess.PIPE
+
 
 class Popen(subprocess.Popen):
     def recv(self, maxsize=None):
@@ -40,7 +46,6 @@ class Popen(subprocess.Popen):
         def send(self, input):
             if not self.stdin:
                 return None
-
             try:
                 x = msvcrt.get_osfhandle(self.stdin.fileno())
                 (errCode, written) = WriteFile(x, input)
@@ -50,14 +55,12 @@ class Popen(subprocess.Popen):
                 if why[0] in (109, errno.ESHUTDOWN):
                     return self._close('stdin')
                 raise
-
             return written
 
         def _recv(self, which, maxsize):
             conn, maxsize = self.get_conn_maxsize(which, maxsize)
             if conn is None:
                 return None
-            
             try:
                 x = msvcrt.get_osfhandle(conn.fileno())
                 (read, nAvail, nMessage) = PeekNamedPipe(x, 0)
@@ -71,7 +74,6 @@ class Popen(subprocess.Popen):
                 if why[0] in (109, errno.ESHUTDOWN):
                     return self._close(which)
                 raise
-            
             if self.universal_newlines:
                 read = self._translate_newlines(read)
             return read
@@ -80,36 +82,29 @@ class Popen(subprocess.Popen):
         def send(self, input):
             if not self.stdin:
                 return None
-
             if not select.select([], [self.stdin], [], 0)[1]:
                 return 0
-
             try:
                 written = os.write(self.stdin.fileno(), input)
             except OSError, why:
                 if why[0] == errno.EPIPE: #broken pipe
                     return self._close('stdin')
                 raise
-
             return written
 
         def _recv(self, which, maxsize):
             conn, maxsize = self.get_conn_maxsize(which, maxsize)
             if conn is None:
                 return None
-            
             flags = fcntl.fcntl(conn, fcntl.F_GETFL)
             if not conn.closed:
                 fcntl.fcntl(conn, fcntl.F_SETFL, flags| os.O_NONBLOCK)
-            
             try:
                 if not select.select([conn], [], [], 0)[0]:
                     return ''
-                
                 r = conn.read(maxsize)
                 if not r:
                     return self._close(which)
-    
                 if self.universal_newlines:
                     r = self._translate_newlines(r)
                 return r
@@ -147,6 +142,7 @@ def send_all(p, data):
         if sent is None:
             raise Exception(message)
         data = buffer(data, sent)
+
 
 if __name__ == '__main__':
     if sys.platform == 'win32':
