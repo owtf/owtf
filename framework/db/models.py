@@ -1,12 +1,14 @@
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy import Table, Column, Integer, String, Boolean,\
-    Float, DateTime, ForeignKey, Text, Index
-from sqlalchemy import UniqueConstraint
-from sqlalchemy.orm import relationship
 import datetime
 
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import Table, Column, Integer, String, Boolean, Float, DateTime, ForeignKey, Text, Index
+from sqlalchemy import UniqueConstraint
+from sqlalchemy.orm import relationship
+
+
 Base = declarative_base()
+
 
 # This table actually allows us to make a many to many relationship
 # between transactions table and grep_outputs table
@@ -17,8 +19,7 @@ target_association_table = Table(
     Column('session_id', Integer, ForeignKey('sessions.id'))
 )
 
-Index('target_id_idx', target_association_table.c.target_id,
-      postgresql_using='btree')
+Index('target_id_idx', target_association_table.c.target_id, postgresql_using='btree')
 
 
 class Session(Base):
@@ -27,10 +28,7 @@ class Session(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, unique=True)
     active = Column(Boolean, default=False)
-    targets = relationship(
-        "Target",
-        secondary=target_association_table,
-        backref="sessions")
+    targets = relationship("Target", secondary=target_association_table, backref="sessions")
 
 
 class Target(Base):
@@ -81,8 +79,7 @@ transaction_association_table = Table(
     Column('grep_output_id', Integer, ForeignKey('grep_outputs.id'))
 )
 
-Index('transaction_id_idx', transaction_association_table.c.transaction_id,
-      postgresql_using='btree')
+Index('transaction_id_idx', transaction_association_table.c.transaction_id, postgresql_using='btree')
 
 
 class Transaction(Base):
@@ -110,10 +107,12 @@ class Transaction(Base):
         "GrepOutput",
         secondary=transaction_association_table,
         cascade="delete",
-        backref="transactions")
+        backref="transactions"
+    )
 
     def __repr__(self):
-        return "<HTTP Transaction (url='%s' method='%s' response_status='%s')>" % (self.url, self.method, self.response_status)
+        return "<HTTP Transaction (url='%s' method='%s' response_status='%s')>" % (self.url, self.method, 
+            self.response_status)
 
 
 class GrepOutput(Base):
@@ -146,8 +145,7 @@ class PluginOutput(Base):
 
     target_id = Column(Integer, ForeignKey("targets.id"))
     plugin_key = Column(String, ForeignKey("plugins.key"))
-    # There is a column named plugin which is caused by backref
-    # from the plugin class
+    # There is a column named plugin which is caused by backref from the plugin class
     id = Column(Integer, primary_key=True)
     plugin_code = Column(String)  # OWTF Code
     plugin_group = Column(String)
@@ -165,7 +163,7 @@ class PluginOutput(Base):
 
     @hybrid_property
     def run_time(self):
-        return(self.end_time - self.start_time)
+        return self.end_time - self.start_time
 
     __table_args__ = (UniqueConstraint('plugin_key', 'target_id'),)
 
@@ -183,7 +181,7 @@ class Command(Base):
 
     @hybrid_property
     def run_time(self):
-        return(self.end_time - self.start_time)
+        return self.end_time - self.start_time
 
 
 class Error(Base):
@@ -264,7 +262,7 @@ class Plugin(Base):
                 run_times = [poutput.run_time for poutput in self.outputs]
             else:
                 run_times = [poutput.run_time for poutput in self.outputs[-5:]]
-            return(min(run_times))
+            return min(run_times)
         else:
             return None
 
@@ -279,7 +277,7 @@ class Plugin(Base):
                 run_times = [poutput.run_time for poutput in self.outputs]
             else:
                 run_times = [poutput.run_time for poutput in self.outputs[-5:]]
-            return(max(run_times))
+            return max(run_times)
         else:
             return None
 
@@ -298,8 +296,7 @@ class Work(Base):
     __table_args__ = (UniqueConstraint('target_id', 'plugin_key'),)
 
     def __repr__(self):
-        return "<Work (target='%s', plugin='%s')>" % (
-            self.target_id, self.plugin_key)
+        return "<Work (target='%s', plugin='%s')>" % (self.target_id, self.plugin_key)
 
 
 class Mapping(Base):
