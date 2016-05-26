@@ -6,11 +6,14 @@ The reporter module is in charge of producing the HTML Report as well as
 
 import cgi
 import codecs
+
 from tornado.template import Template, Loader
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ReporterInterface
 from framework.lib.general import *
 from framework.interface.html.filter import sanitiser
+
 
 class Reporter(BaseComponent, ReporterInterface):
 
@@ -39,21 +42,11 @@ class Reporter(BaseComponent, ReporterInterface):
         return self.TransactionTableForTransactions(transactions)
 
     def TransactionTableForURL(self, UseCache, URL, Method=None, Data=None):
-        transaction = self.requester.GetTransaction(
-            UseCache, URL, method=Method, data=Data)
+        transaction = self.requester.GetTransaction(UseCache, URL, method=Method, data=Data)
         return self.TransactionTableForTransactions([transaction])
 
-    def TransactionTableForURLList(
-            self,
-            UseCache,
-            URLList,
-            Method=None,
-            Data=None):
-        transactions = self.requester.GetTransactions(
-            UseCache,
-            URLList,
-            method=Method,
-            data=Data)
+    def TransactionTableForURLList(self, UseCache, URLList, Method=None, Data=None):
+        transactions = self.requester.GetTransactions(UseCache, URLList, method=Method, data=Data)
         return self.TransactionTableForTransactions(transactions)
 
     def TransactionTableForTransactions(self, Transactions):
@@ -81,16 +74,13 @@ class Reporter(BaseComponent, ReporterInterface):
         Wrapper to allow rendering a bunch of links -without name- as resource
         links with name = link
         """
-        return self.Loader.load("link_list.html").generate(
-            LinkListName=LinkListName,
-            Links=Links)
+        return self.Loader.load("link_list.html").generate(LinkListName=LinkListName, Links=Links)
 
     def ResourceLinkList(self, ResourceListName, ResourceList):
         """
         Draws an HTML Search box for defined Vuln Search resources
         """
-        return self.Loader.load("resource_link_list.html").generate(
-            ResourceListName=ResourceListName,
+        return self.Loader.load("resource_link_list.html").generate(ResourceListName=ResourceListName, 
             ResourceList=ResourceList)
 
     def TabbedResourceLinkList(self, ResourcesList):
@@ -105,35 +95,24 @@ class Reporter(BaseComponent, ReporterInterface):
             TabID = ResourceListName.replace(' ', '_')
             TabData.append([ResourceListName, TabID])
             Resources.append([TabID, ResourceList])
-        return self.Loader.load("tabbed_resource_link_list.html").generate(
-            TabData=TabData,
-            Resources=Resources)
+        return self.Loader.load("tabbed_resource_link_list.html").generate(TabData=TabData, Resources=Resources)
 
     def ListPostProcessing(self, ResourceListName, LinkList, HTMLLinkList):
-        return self.Loader.load("list_post_processing.html").generate(
-            ResourceListName=ResourceListName,
-            LinkList=LinkList,
-            HTMLLinkList=HTMLLinkList)
+        return self.Loader.load("list_post_processing.html").generate(ResourceListName=ResourceListName,
+            LinkList=LinkList, HTMLLinkList=HTMLLinkList)
 
     def RequestLinkList(self, ResourceListName, LinkList):
-        return self.Loader.load("request_link_list.html").generate(
-            ResourceListName=ResourceListName,
-            LinkList=LinkList)
+        return self.Loader.load("request_link_list.html").generate(ResourceListName=ResourceListName, LinkList=LinkList)
 
     def VulnerabilitySearchBox(self, SearchStr):
         """
         Draws an HTML Search box for defined Vuln Search resources
         """
         VulnSearchResources = self.resource.GetResources('VulnSearch')
-        return self.Loader.load("vulnerability_search_box.html").generate(
-            SearchStr=SearchStr,
+        return self.Loader.load("vulnerability_search_box.html").generate(SearchStr=SearchStr, 
             VulnSearchResources=VulnSearchResources)
 
-    def SuggestedCommandBox(
-            self,
-            PluginOutputDir,
-            CommandCategoryList,
-            Header=''):
+    def SuggestedCommandBox(self, PluginOutputDir, CommandCategoryList, Header=''):
         """
         Draws HTML tabs for a list of TabName => Resource Group (i.e. how to run hydra, etc)
         """
@@ -142,19 +121,11 @@ class Reporter(BaseComponent, ReporterInterface):
         for item in CommandCategoryList:
             TitleList.append(item[0])
             CommandList.append(self.resource.GetResources(item[1]))
-        return self.Loader.load("suggested_command_box.html").generate(
-            Header=Header,
-            TitleList=TitleList,
-            CommandList=CommandList)  # TODO: Fix up the plugin
+        # TODO: Fix up the plugin
+        return self.Loader.load("suggested_command_box.html").generate(Header=Header, TitleList=TitleList, 
+            CommandList=CommandList)
 
-    def CommandDump(
-            self,
-            Name,
-            CommandIntro,
-            ModifiedCommand,
-            RelativeFilePath,
-            OutputIntro,
-            TimeStr):
+    def CommandDump(self, Name, CommandIntro, ModifiedCommand, RelativeFilePath, OutputIntro, TimeStr):
         AbsPath = self.plugin_handler.RetrieveAbsPath(RelativeFilePath)
         OutputLines = open(AbsPath, "r").readlines()
         longOutput = (len(OutputLines) > self.mNumLinesToShow)
@@ -176,32 +147,20 @@ class Reporter(BaseComponent, ReporterInterface):
         return self.Loader.load("command_dump.html").generate(**table_vars)
 
     def URLsFromStr(self, TimeStr, VisitURLs, URLList, NumFound):
-        html_content = self.Loader.load("urls_from_str.html").generate(
-            TimeStr=TimeStr,
-            VisitURLs=VisitURLs,
-            NumURLs=len(URLList),
-            NumFound=NumFound)
+        html_content = self.Loader.load("urls_from_str.html").generate(TimeStr=TimeStr, VisitURLs=VisitURLs, 
+            NumURLs=len(URLList), NumFound=NumFound)
         if URLList:
             html_content += self.LinkList("URLs Scraped", URLList)
         return html_content
 
-    def Robots(
-            self,
-            NotStr,
-            NumLines,
-            NumAllow,
-            NumDisallow,
-            NumSitemap,
-            SavePath,
-            EntriesList,
-	    NumAddedURLs):
+    def Robots(self, NotStr, NumLines, NumAllow, NumDisallow, NumSitemap, SavePath, EntriesList, NumAddedURLs):
         vars = {
             "robots_found": NotStr,
             "num_lines": NumLines,
             "num_allow": NumAllow,
             "num_disallow": NumDisallow,
             "num_sitemap": NumSitemap,
-            "save_path": SavePath,
+            "save_path": SavePath
         }
         TestResult = self.Loader.load("robots.html").generate(**vars)
         # robots.txt contains some entries, show browsable list! :)
@@ -216,10 +175,10 @@ class Reporter(BaseComponent, ReporterInterface):
 
 # ---------------------- Grep Plugin Outputs -------------------- #
     def ResponseBodyMatches(self, ResponseRegexpName):
-        RegexpName, GrepOutputs, TransactionIDS, match_percent = self.transaction.SearchByRegexName(ResponseRegexpName, stats=True)
+        RegexpName, GrepOutputs, TransactionIDS, match_percent = self.transaction.SearchByRegexName(ResponseRegexpName, 
+            stats=True)
         variables = {
-            "name": RegexpName.replace("RESPONSE_REGEXP_FOR_", "").replace(
-                '_', ' '),
+            "name": RegexpName.replace("RESPONSE_REGEXP_FOR_", "").replace('_', ' '),
             "matches": GrepOutputs,
             "transaction_ids": TransactionIDS,
             "match_percent": match_percent
@@ -230,12 +189,12 @@ class Reporter(BaseComponent, ReporterInterface):
         return self.ResearchHeaders(HeaderRegexpName)[0]
 
     def ResearchHeaders(self, RegexName):
-        regex_name, grep_outputs, transaction_ids, match_percent = self.transaction.SearchByRegexName(RegexName, stats=True)
+        regex_name, grep_outputs, transaction_ids, match_percent = self.transaction.SearchByRegexName(RegexName, 
+            stats=True)
         # [[unique_matches, matched_transactions, matched_percentage]]
-        return [self.Loader.load("header_searches.html").generate(
-            match_percent=match_percent,
-            matches=grep_outputs,
-            transaction_ids=transaction_ids), grep_outputs]
+        searches = self.Loader.load("header_searches.html").generate(match_percent=match_percent, matches=grep_outputs, 
+            transaction_ids=transaction_ids)
+        return [searches, grep_outputs]
 
     def FingerprintData(self):
         HeaderTable, matches = self.ResearchHeaders('HEADERS_FOR_FINGERPRINT')
@@ -258,34 +217,27 @@ class Reporter(BaseComponent, ReporterInterface):
         }
         Table = self.Render.CreateTable({'class': 'report_intro'})
         SetCookie = self.config.Get('HEADERS_FOR_COOKIES').lower()
-        PossibleCookieAttributes = self.config.Get(
-            'COOKIE_ATTRIBUTES').split(',')
+        PossibleCookieAttributes = self.config.Get('COOKIE_ATTRIBUTES').split(',')
         for Cookie in CookieValueList:
-                CookieName = Cookie.split('=')[0]
-                CookieLink = self.Render.DrawButtonLink(cgi.escape( CookieName ), Header2TransacDict[SetCookie + Cookie] )
-                CookieAttribs = Cookie.replace(CookieName + "=", "").replace("; ", ";" ).split( ";" )
-                #Table.CreateRow(["Cookie: "+CookieLink], True, { 'colspan' : '2' })
-                Table.CreateCustomRow( '<tr><th colspan="2">' + "Cookie: " + CookieLink + '</th></tr>' )
-                Table.CreateRow( ['Attribute', 'Value'], True )
-                #Table += "<th colspan='2'>Cookie: "+CookieLink+"</th>"
-                #Table += self..DrawTableRow(['Attribute', 'Value'], True)
-                NotFoundStr = "<b>Not Found</b>"
-                if CookieAttribs[0]:
-                        CookieValue = CookieAttribs[0]
-                else:
-                        CookieValue = NotFoundStr
-                Table.CreateRow( ['Value', CookieValue] )
-                #Table += self..DrawTableRow(['Value', ])
-                for Attrib in PossibleCookieAttributes:
-                        DisplayAttribute = NotFoundStr
-                        for PresentAttrib in CookieAttribs:
-                                if PresentAttrib.lower().startswith( Attrib.lower() ): # Avoid false positives due to cookie contents
-                                        DisplayAttribute = PresentAttrib
-                                        break
-                        Table.CreateRow( [Attrib, DisplayAttribute] )
-                        #Table += self..DrawTableRow([Attrib, DisplayAttribute])
+            CookieName = Cookie.split('=')[0]
+            CookieLink = self.Render.DrawButtonLink(cgi.escape(CookieName), Header2TransacDict[SetCookie+Cookie])
+            CookieAttribs = Cookie.replace(CookieName+"=", "").replace("; ", ";").split(";")
+            Table.CreateCustomRow('<tr><th colspan="2">Cookie: %s</th></tr>' % CookieLink)
+            Table.CreateRow(['Attribute', 'Value'], True)
+            NotFoundStr = "<b>Not Found</b>"
+            if CookieAttribs[0]:
+                CookieValue = CookieAttribs[0]
+            else:
+                CookieValue = NotFoundStr
+            Table.CreateRow(['Value', CookieValue])
+            for Attrib in PossibleCookieAttributes:
+                DisplayAttribute = NotFoundStr
+                for PresentAttrib in CookieAttribs:
+                    # Avoid false positives due to cookie contents
+                    if PresentAttrib.lower().startswith(Attrib.lower()):
+                        DisplayAttribute = PresentAttrib
+                        break
+                Table.CreateRow([Attrib, DisplayAttribute])
         if Table.GetNumRows() == 0:
                 return "" # No Attributes found
-        return "<h3>Cookie Attribute Analysis</h3>" + Table.Render()
-        #Table = "<h3>Cookie Attribute Analysis</h3><table class='report_intro'>"+Table+"</table>"
-        #return Table
+        return "<h3>Cookie Attribute Analysis</h3>%s" % Table.Render()
