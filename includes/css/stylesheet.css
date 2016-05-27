@@ -60,3 +60,30 @@ body {
     border-color: #5E5D57;
     color: #fff;
 }
+
+.severity-legend {
+    list-style-type: none;
+}
+
+.legend-color-box {
+    float: left;
+    width: 50%;
+    margin-bottom: 10px;
+    max-width: 20px;
+}
+
+.legend-color-box:before {
+    content: "";
+    display: block;
+    padding-top: 100%;
+}
+
+.severity-label {
+    margin: 0px;
+    padding: 0px;
+}
+
+.nopadding {
+   padding: 0 !important;
+   margin: 0 !important;
+}
