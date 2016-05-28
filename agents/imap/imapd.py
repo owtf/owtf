@@ -3,41 +3,44 @@
 Description:
 OWTF imap agent daemon, to periodically check email and launch actions
 '''
-import imaplib, time, sys, os
-from general import *
 
-def RunDaemon(Config, Storage):
-	print "Starting Daemon.."
-	try:
-		while True:
-			print "Checking Email.."
-			Connection = imaplib.IMAP4_SSL(Config.Get('IMAP_HOST'))
-			Connection.login(Config.Get('IMAP_USER'), Config.Get('IMAP_PASS'))
-			Connection.select()
-			Typ, Data = Connection.search(None, 'ALL')
-			for ID in Data[0].split():
-				StoredID = 0
-				if Storage.Get():
-					StoredID = int(Storage.Get())
-				if int(ID) > StoredID:
-					print "Processing Message Number=" + ID
-					Typ, Data = Connection.fetch(ID, '(RFC822)')
-					# Run the Plugin specified in the config file (i.e. link_clicker, whatever) to process the message:
-					Plugin().Run(Config.Get('PROCESS_PLUGIN'), 'payloads', { 
-									'Message' : Data
-									, 'Log' : Config.Get('LOG_FILE')
-									, 'ErrorLog' : Config.Get('ERROR_LOG_FILE') })
-					#print 'Message %s\n%s\n' % (Num, Data[0][1])
-					Storage.Set(ID) # Store last processed ID in the counter
-			Connection.close()
-			Connection.logout()
-			Storage.Save()
-			print "Sleeping " + Config.Get('WAIT_SECS') + " seconds..(Control+C to stop agent)"
-			time.sleep(int(Config.Get('WAIT_SECS')))
-	except KeyboardInterrupt:
-		print "Stopping daemon.."
-		Storage.Save()
+import imaplib
+import time
 
-Config = Config('config.cfg')
-Storage = Storage(Config.Get('TRACK_FILE'))
-RunDaemon(Config, Storage)
+from general import Config, Storage, Plugin
+
+
+def RunDaemon(config, storage):
+    print "Starting Daemon.."
+    try:
+        while True:
+            print "Checking Email.."
+            connection = imaplib.IMAP4_SSL(config.Get('IMAP_HOST'))
+            connection.login(config.Get('IMAP_USER'), config.Get('IMAP_PASS'))
+            connection.select()
+            typ, data = connection.search(None, 'ALL')
+            for ID in data[0].split():
+                StoredID = 0
+                if storage.Get():
+                    StoredID = int(storage.Get())
+                if int(ID) > StoredID:
+                    print "Processing Message Number=%s" % ID
+                    typ, data = connection.fetch(ID, '(RFC822)')
+                    # Run the Plugin specified in the config file (i.e. link_clicker, whatever) to process the message:
+                    Plugin().Run(config.Get('PROCESS_PLUGIN'), 'payloads', {
+                        'Message': data,
+                        'Log': config.Get('LOG_FILE'),
+                        'ErrorLog': config.Get('ERROR_LOG_FILE')})
+                    storage.Set(ID)  # Store last processed ID in the counter
+            connection.close()
+            connection.logout()
+            storage.Save()
+            print "Sleeping %s seconds..(Control+C to stop agent)" % config.Get('WAIT_SECS')
+            time.sleep(int(config.Get('WAIT_SECS')))
+    except KeyboardInterrupt:
+        print "Stopping daemon.."
+        storage.Save()
+
+config = Config('config.cfg')
+storage = Storage(config.Get('TRACK_FILE'))
+RunDaemon(config, storage)
