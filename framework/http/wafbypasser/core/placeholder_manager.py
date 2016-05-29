@@ -3,17 +3,18 @@ import urllib
 import ast
 
 from tornado.httputil import HTTPHeaders
+
 from framework.http.wafbypasser.core.template_parser import TemplateParser
 
 
 class PlaceholderManager:
     def __init__(self, fuzzing_signature):
         self.sig = fuzzing_signature
-        self.lsig = self.sig + "length" + self.sig  # Length Signature
-        self.fsig = self.sig + "fuzzhere" + self.sig  # fuzzing signature
+        self.lsig = "%slength%s" % (self.sig, self.sig)  # Length Signature
+        self.fsig = "%sfuzzhere%s" % (self.sig, self.sig)  # fuzzing signature
         # template signature regular expression
         self.template_signature_re = self.sig
-        self.template_signature_re += "[^" + self.sig + "]+" + self.sig
+        self.template_signature_re += "[^%s]+%s" % (self.sig, self.sig)
 
     def template_signature(self, string):
         ret = re.search(self.template_signature_re, string)
@@ -36,8 +37,7 @@ class PlaceholderManager:
             tp = TemplateParser()
             tp.set_payload(payload)
             new_payload = repr(
-                tp.transform(self.template_signature(url),
-                             self.sig))[1:-1]  # removing extra " "
+                tp.transform(self.template_signature(url), self.sig))[1:-1]  # removing extra " "
             return url.replace(template_sig, new_payload)
         return url
 
@@ -52,8 +52,7 @@ class PlaceholderManager:
             tp.set_payload(payload)
             header_template = self.template_signature(raw_headers)
             new_payload = repr(
-                tp.transform(header_template,
-                             self.sig))[1:-1]  # removing extra " "
+                tp.transform(header_template, self.sig))[1:-1]  # removing extra " "
             raw_headers = raw_headers.replace(header_template, new_payload)
             new_headers = HTTPHeaders(ast.literal_eval(raw_headers))
             return new_headers
@@ -69,25 +68,18 @@ class PlaceholderManager:
             tp = TemplateParser()
             tp.set_payload(payload)
             new_payload = repr(
-                tp.transform(self.template_signature(body),
-                             self.sig))[1:-1]  # removing extra " "
+                tp.transform(self.template_signature(body), self.sig))[1:-1]  # removing extra " "
             return body.replace(template_sig, new_payload)
         return body
 
-    def transformed_http_requests(self, http_helper, methods, url, payloads,
-                                  headers=None, body=None):
-        """This constructs a list of HTTP transformed requests which contain
-        the payloads"""
+    def transformed_http_requests(self, http_helper, methods, url, payloads, headers=None, body=None):
+        """This constructs a list of HTTP transformed requests which contain the payloads"""
         requests = []
         for method in methods:
             for payload in payloads:
                 new_url = self.replace_url(url, payload)
                 new_headers = self.replace_header(headers, payload)
                 new_body = self.replace_body(body, payload)
-                request = http_helper.create_http_request(method,
-                                                          new_url,
-                                                          new_body,
-                                                          new_headers,
-                                                          payload)
+                request = http_helper.create_http_request(method, new_url, new_body, new_headers, payload)
                 requests.append(request)
         return requests

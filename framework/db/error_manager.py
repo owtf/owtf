@@ -19,9 +19,7 @@ class ErrorDB(BaseComponent, DBErrorInterface):
         self.config = self.get_component("config")
 
     def Add(self, Message, Trace):
-        error = models.Error(
-            owtf_message=Message,
-            traceback=Trace)
+        error = models.Error(owtf_message=Message, traceback=Trace)
         self.db.session.add(error)
         self.db.session.commit()
 
@@ -31,24 +29,20 @@ class ErrorDB(BaseComponent, DBErrorInterface):
             self.db.session.delete(error)
             self.db.session.commit()
         else:
-            raise InvalidErrorReference(
-                "No error with id " + str(error_id))
+            raise InvalidErrorReference("No error with id %s" % str(error_id))
 
     def GenerateQueryUsingSession(self, criteria):
         query = self.db.session.query(models.Error)
         if criteria.get('reported', None):
             if isinstance(criteria.get('reported'), list):
                 criteria['reported'] = criteria['reported'][0]
-            query = query.filter_by(
-                reported=self.config.ConvertStrToBool(
-                    criteria['reported']))
-        return(query)
+            query = query.filter_by(reported=self.config.ConvertStrToBool(criteria['reported']))
+        return query
 
     def Update(self, error_id, user_message):
         error = self.db.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
-            raise InvalidErrorReference(
-                "No error with id " + str(error_id))
+            raise InvalidErrorReference("No error with id %s" % str(error_id))
         error.user_message = user_message
         self.db.session.merge(error)
         self.db.session.commit()
@@ -56,7 +50,7 @@ class ErrorDB(BaseComponent, DBErrorInterface):
     def DeriveErrorDict(self, error_obj):
         tdict = dict(error_obj.__dict__)
         tdict.pop("_sa_instance_state", None)
-        return(tdict)
+        return tdict
 
     def DeriveErrorDicts(self, error_obj_list):
         results = []
@@ -70,11 +64,10 @@ class ErrorDB(BaseComponent, DBErrorInterface):
             criteria = {}
         query = self.GenerateQueryUsingSession(criteria)
         results = query.all()
-        return(self.DeriveErrorDicts(results))
+        return self.DeriveErrorDicts(results)
 
     def Get(self, error_id):
         error = self.db.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
-            raise InvalidErrorReference(
-                "No error with id " + str(error_id))
-        return(self.DeriveErrorDict(error))
+            raise InvalidErrorReference("No error with id %s" % str(error_id))
+        return self.DeriveErrorDict(error)
