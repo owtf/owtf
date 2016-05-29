@@ -108,6 +108,14 @@ class TargetConfigSearchHandler(custom_handlers.APIRequestHandler):
         except exceptions.InvalidParameterType as e:
             raise tornado.web.HTTPError(400)
 
+class TargetSeverityChartHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        try:
+            self.write(self.get_component("target").GetTargetsSeverityCount())
+        except exceptions.InvalidParameterType as e:
+            raise tornado.web.HTTPError(400)
 
 class OWTFSessionHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']

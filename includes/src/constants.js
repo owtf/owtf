@@ -1,0 +1,1 @@
+export const SEVERITY_CHART_URL = '/api/targets/severitychart/'

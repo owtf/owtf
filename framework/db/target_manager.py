@@ -368,3 +368,29 @@ class TargetDB(BaseComponent, TargetInterface):
             values['target_url'] = target_obj[0].target_url
             results.append(values)
         return ({"data": results})
+
+    def GetTargetsSeverityCount(self):
+        filtered_severity_objs = []
+        severity_frequency = [
+            {"id":0, "label": "Not Ranked", "value": 0, "color": "#008000"},
+            {"id":1, "label": "Passing", "value": 0, "color": "#5E5D57"},
+            {"id":2, "label": "Info", "value": 0, "color": "#d6e9c6"},
+            {"id":3, "label": "Low", "value": 0, "color": "#bce8f1"},
+            {"id":4, "label": "Medium", "value": 0, "color": "#f0ad4e"},
+            {"id":5, "label": "High", "value": 0, "color": "#ebccd1"},
+            {"id":6, "label": "Critical", "value": 0, "color": "#b92c28"}
+        ]
+        total = self.db.session.query(models.Target).count()
+        target_objs = self.db.session.query(models.Target).all()
+
+        for target_obj in target_objs:
+            if target_obj.max_user_rank != -1:
+                severity_frequency[target_obj.max_user_rank + 1]["value"] += 100 / total
+            else:
+                severity_frequency[target_obj.max_owtf_rank + 1]["value"] += 100 / total
+
+        for severity in severity_frequency:
+            if severity["value"] != 0:
+                filtered_severity_objs.append(severity)
+
+        return {"data": filtered_severity_objs}
