@@ -216,7 +216,6 @@ class TransactionManager(BaseComponent, TransactionInterface):
         self.db.session.commit()
         # Now since we have the ids ready, we can process the grep output and
         # add accordingly. So iterate over transactions and their models.
-        print transaction_list
         for i, obj in enumerate(transaction_list):
             # Get the transaction and transaction model from their lists
             owtf_transaction = transaction_list[i]
