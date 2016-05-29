@@ -29,7 +29,10 @@ class ServiceLocator:
         "zap_api",
         "zest",
         "target",
-        "reporter"
+        "reporter",
+        "smb",
+        "interactive_shell",
+        "selenium_handler"
     ]
 
     @classmethod
