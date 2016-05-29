@@ -1,9 +1,8 @@
-[![](https://badges.gitter.im/owtf/owtf.svg)](https://gitter.im/owtf/owtf?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Build Status](https://travis-ci.org/DePierre/owtf.svg?branch=master)](https://travis-ci.org/DePierre/owtf)
+[![Gitter](https://badges.gitter.im/owtf/owtf.svg)](https://gitter.im/owtf/owtf)
+[![Build Status](https://travis-ci.org/owtf/owtf.svg?branch=develop)](https://travis-ci.org/owtf/owtf)
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
-[![Platform (GNU/Linux)](https://img.shields.io/badge/platform-GNU/Linux-red.svg?style=flat-square)](http://www.kernel.org/)
+[![Platform (GNU/Linux)](https://img.shields.io/badge/platform-GNU/Linux-red.svg?style=flat-square)](http://www.kernel.org)
 [![python](https://img.shields.io/badge/python-2.7-blue.svg)](https://www.python.org/downloads/)
-
 
 <img src="https://www.owasp.org/images/7/73/OWTFLogo.png" height="150" width="120" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![](https://www.owasp.org/images/5/59/Project_Type_Files_TOOL.jpg)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![](https://www.owasp.org/images/d/dd/Mature_projects.png)
 

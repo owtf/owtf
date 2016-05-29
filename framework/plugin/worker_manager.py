@@ -9,6 +9,7 @@ import logging
 import multiprocessing
 import Queue
 from time import strftime
+
 from framework.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
 from framework.dependency_management.interfaces import WorkerManagerInterface
 from framework.lib.general import check_pid
@@ -36,17 +37,11 @@ class Worker(OWTFProcess, BaseComponent):
             except Queue.Empty:
                 pass
             except KeyboardInterrupt:
-                logging.debug(
-                    "I am worker (%d) & my master doesn't need me anymore",
-                    self.pid)
+                logging.debug("I am worker (%d) & my master doesn't need me anymore", self.pid)
                 exit(0)
             except Exception as e:
-                self.get_component("error_handler").LogError(
-                    "Exception occured while running :",
-                    trace=str(e))
-        logging.debug(
-            "I am worker (%d) & my master gave me poison pill",
-            self.pid)
+                self.get_component("error_handler").LogError("Exception occured while running :", trace=str(e))
+        logging.debug("I am worker (%d) & my master gave me poison pill", self.pid)
         exit(0)
 
 
@@ -72,8 +67,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
 
     def get_task(self):
         work = None
-        free_mem = self.shell.shell_exec(
-            "free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
+        free_mem = self.shell.shell_exec("free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
         if int(free_mem) > int(self.db_config.Get('MIN_RAM_NEEDED')):
             work = self.db.Worklist.get_work(self.targets_in_use())
         else:
@@ -88,22 +82,14 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         while (len(self.workers) < self.get_allowed_process_count()):
             self.spawn_worker()
         if not len(self.workers):
-            self.error_handler.FrameworkAbort(
-                "Zero worker processes created because of lack of memory")
+            self.error_handler.FrameworkAbort("Zero worker processes created because of lack of memory")
 
     def spawn_worker(self, index=None):
-        w = Worker(
-            input_q=multiprocessing.Queue(),
-            output_q=multiprocessing.Queue())
-        worker_dict = {
-            "worker": w,
-            "work": (),
-            "busy": False,
-            "paused": False
-        }
+        w = Worker(input_q=multiprocessing.Queue(), output_q=multiprocessing.Queue())
+        worker_dict = {"worker": w, "work": (), "busy": False, "paused": False}
 
         if index is not None:
-            logging.debug("Replacing worker at index %d" % (index))
+            logging.debug("Replacing worker at index %d" % index)
             self.workers[index] = worker_dict
         else:
             logging.debug("Adding a new worker")
@@ -134,14 +120,12 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                     self.workers[k]["busy"] = False  # Worker is IDLE
                     self.workers[k]["start_time"] = "NA"
                 else:
-                    logging.info("Worker with name %s and pid %s seems dead" % (
-                        self.workers[k]["worker"].name,
+                    logging.info("Worker with name %s and pid %s seems dead" % (self.workers[k]["worker"].name, 
                         self.workers[k]["worker"].pid))
                     self.spawn_worker(index=k)
                 work_to_assign = self.get_task()
                 if work_to_assign:
-                    logging.info("Work assigned to %s with pid %d" % (
-                        self.workers[k]["worker"].name,
+                    logging.info("Work assigned to %s with pid %d" % (self.workers[k]["worker"].name, 
                         self.workers[k]["worker"].pid))
                     trash_can = self.workers[k]["worker"].output_q.get()
                     # Assign work ,set target to used,and process to busy
@@ -207,9 +191,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             # Else, the worker dies :'(
             os.kill(pid, psignal)
         except Exception as e:
-            logging.error(
-                "Error while trying to abort Worker process",
-                exc_info=True)
+            logging.error("Error while trying to abort Worker process", exc_info=True)
 
     def _signal_children(self, parent_pid, psignal):
         ps_command = subprocess.Popen(
@@ -235,8 +217,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                 temp_dict["id"] = pseudo_index
                 return(temp_dict)
             except IndexError:
-                raise InvalidWorkerReference(
-                    "No worker process with id: " + str(pseudo_index))
+                raise InvalidWorkerReference("No worker process with id: %s" % str(pseudo_index))
         else:
             worker_temp_list = []
             for i in range(0, len(self.workers)):
@@ -250,8 +231,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         try:
             return(self.workers[pseudo_index-1])
         except IndexError:
-            raise InvalidWorkerReference(
-                "No worker process with id: " + str(pseudo_index))
+            raise InvalidWorkerReference("No worker process with id: %s" % str(pseudo_index))
 
     def create_worker(self):
         """
@@ -271,8 +251,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
             del self.workers[pseudo_index-1]
         else:
-            raise InvalidWorkerReference(
-                "Worker with id " + str(pseudo_index) + " is busy")
+            raise InvalidWorkerReference("Worker with id %s is busy" % str(pseudo_index))
 
     def pause_worker(self, pseudo_index):
         """

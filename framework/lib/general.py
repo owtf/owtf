@@ -4,7 +4,6 @@ Declare the helper functions for the framework.
 """
 
 from collections import defaultdict
-from framework.lib.filelock import FileLock
 import logging
 import multiprocessing
 import os
@@ -17,6 +16,8 @@ import threading
 import time
 import base64
 import errno
+
+from framework.lib.filelock import FileLock
 
 
 def cprint(Message):
@@ -31,7 +32,7 @@ def MultipleReplace(Text, ReplaceDict):
     """
     NewText = Text
     for Search,Replace in ReplaceDict.items():
-            NewText = NewText.replace(Search, str(Replace))
+        NewText = NewText.replace(Search, str(Replace))
     return NewText
 
 def check_pid(pid):
@@ -63,15 +64,15 @@ def RemoveListBlanks(src):
 def List2DictKeys(List):
     Dictionary = defaultdict(list)
     for Item in List:
-            Dictionary[Item] = ''
+        Dictionary[Item] = ''
     return Dictionary
 
 def AddToDict(FromDict, ToDict):
     for Key, Value in FromDict.items():
-            if hasattr(Value, 'copy') and callable(getattr(Value, 'copy')):
-                    ToDict[Key] = Value.copy()
-            else:
-                    ToDict[Key] = Value
+        if hasattr(Value, 'copy') and callable(getattr(Value, 'copy')):
+            ToDict[Key] = Value.copy()
+        else:
+            ToDict[Key] = Value
 
 def MergeDicts(Dict1, Dict2):
     """

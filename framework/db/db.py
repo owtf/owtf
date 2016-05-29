@@ -2,25 +2,27 @@
 '''
 This file handles all the database transactions.
 '''
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import DBInterface
-from framework.lib.general import cprint
-from sqlalchemy.orm import scoped_session, sessionmaker
+
+import os
+import re
+import logging
+import psycopg2
+from contextlib import contextmanager
 from multiprocessing.util import register_after_fork
+
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine, event, exc
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool, QueuePool
 from sqlalchemy.orm import Session as BaseSession
-from framework.db import models, plugin_manager, target_manager, resource_manager, \
-    config_manager, poutput_manager, transaction_manager, url_manager, \
-    command_register, error_manager, mapping_manager, \
-    session_manager, worklist_manager
-from contextlib import contextmanager
-import logging
-import os
-import re
-import psycopg2
+
 from framework.utils import FileOperations
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import DBInterface
+from framework.lib.general import cprint
+from framework.db import models, plugin_manager, target_manager, resource_manager, config_manager, poutput_manager, \
+    transaction_manager, url_manager, command_register, error_manager, mapping_manager, session_manager, \
+    worklist_manager
 
 
 class Session(BaseSession):
@@ -41,7 +43,6 @@ class Session(BaseSession):
         nested = self._in_atomic
         self.begin(nested=nested)
         self._in_atomic = True
-
         try:
             yield
         except:
@@ -96,9 +97,8 @@ class DB(BaseComponent, DBInterface):
         return self.Mapping.GetCategory(plugin_code)
 
     def DBHealthCheck(self):
-        # TODO: Fix this for postgresql
+        # TODO: Fix this for postgresql: self.Target.DBHealthCheck()
         return
-        self.Target.DBHealthCheck()
 
     def create_session(self):
         self.Session = self.CreateScopedSession()
@@ -110,8 +110,7 @@ class DB(BaseComponent, DBInterface):
 
     def _get_db_settings(self):
         """Create DB settings according to the configuration file."""
-        config_path = os.path.expanduser(
-            self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'))
+        config_path = os.path.expanduser(self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'))
         settings = {}
         with FileOperations.open(config_path, 'r') as f:
             for line in f:
@@ -123,15 +122,14 @@ class DB(BaseComponent, DBInterface):
                     key, value = line.split(':')
                     settings[key.strip()] = value.strip()
                 except ValueError:
-                    self.error_handler.FrameworkAbort(
-                        "Problem in config file: '%s' -> Cannot parse line: %s"
-                        % (config_path, line))
+                    self.error_handler.FrameworkAbort("Problem in config file: '%s' -> Cannot parse line: %s" % 
+                        (config_path, line))
         return settings
 
     def CreateEngine(self, BaseClass):
         try:
             engine = create_engine(
-                "postgresql+psycopg2://{0}:{1}@{2}:{3}/{4}".format(
+                "postgresql+psycopg2://%s:%s@%s:%s/%s" % (
                     self._db_settings['DATABASE_USER'],
                     self._db_settings['DATABASE_PASS'],
                     self._db_settings['DATABASE_IP'],
@@ -141,28 +139,21 @@ class DB(BaseComponent, DBInterface):
                 pool_size=5,
                 max_overflow=10,)
             BaseClass.metadata.create_all(engine)
-
             # Fix for forking
             register_after_fork(engine, engine.dispose)
-
             return engine
         except ValueError as e:  # Potentially corrupted DB config.
-            self.error_handler.FrameworkAbort(
-                'Database configuration file is potentially corrupted. '
-                'Please check ' + self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE') + '\n'
-                '[DB] ' + str(e))
+            self.error_handler.FrameworkAbort("""
+                Database configuration file is potentially corrupted. Please check %s\n[DB] %s""" % 
+                (self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'), str(e)))
         except KeyError:  # Indicates incomplete db config file
-            self.error_handler.FrameworkAbort(
-                "Incomplete database configuration settings in "
-                "" + self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'))
+            self.error_handler.FrameworkAbort("Incomplete database configuration settings in %s" % 
+                self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'))
         except exc.OperationalError as e:
-            self.error_handler.FrameworkAbort(
-                "[DB] " + str(e) + "\nRun scripts/db_run.sh to start/setup db")
+            self.error_handler.FrameworkAbort("[DB] %s\nRun scripts/db_run.sh to start/setup db" % str(e))
 
     def CreateScopedSession(self):
         # Not to be used apart from main process, use CreateSession instead
         self.engine = self.CreateEngine(models.Base)
-        session_factory = sessionmaker(bind=self.engine,
-                                       autocommit=False,
-                                       class_=Session)
+        session_factory = sessionmaker(bind=self.engine, autocommit=False, class_=Session)
         return scoped_session(session_factory)
