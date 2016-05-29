@@ -1,10 +1,8 @@
 import os
 import imp
 import json
-
-from sqlalchemy import or_
-
 from framework.db import models
+from sqlalchemy import or_
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import DBPluginInterface
 from framework.utils import FileOperations
@@ -31,8 +29,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
     def init(self):
         self.timer = self.get_component("timer")
 
-    def GetTestGroupsFromFile(self, file_path):
-        # This needs to be a list instead of a dictionary to preserve order in python < 2.7
+    def GetTestGroupsFromFile(self, file_path):  # This needs to be a list instead of a dictionary to preserve order in python < 2.7
         TestGroups = []
         ConfigFile = FileOperations.open(file_path, 'r').read().splitlines()
         for line in ConfigFile:
@@ -41,8 +38,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
             try:
                 Code, Priority, Descrip, Hint, URL = line.strip().split(' | ')
             except ValueError:
-                self.error_handler.FrameworkAbort("Problem in Test Groups file: '%s' -> Cannot parse line: %s" % 
-                    (file_path, line))
+                self.error_handler.FrameworkAbort("Problem in Test Groups file: '" + file_path + "' -> Cannot parse line: " + line)
             if len(Descrip) < 2:
                 Descrip = Hint
             if len(Hint) < 2:
@@ -86,12 +82,15 @@ class PluginDB(BaseComponent, DBPluginInterface):
         # 'PLUGIN_DIR'.
         plugins = []
         for root, _, files in os.walk(self.config.FrameworkConfigGet('PLUGINS_DIR')):
-            plugins.extend([os.path.join(root, filename) for filename in files if filename.endswith('py')])
+            plugins.extend([
+                os.path.join(root, filename) for filename in files
+                if filename.endswith('py')])
         plugins = sorted(plugins)
         # Retrieve the information of the plugin.
         for plugin_path in plugins:
             # Only keep the relative path to the plugin
-            plugin = plugin_path.replace(self.config.FrameworkConfigGet('PLUGINS_DIR'), '')
+            plugin = plugin_path.replace(
+                self.config.FrameworkConfigGet('PLUGINS_DIR'), '')
             # TODO: Using os.path.sep might not be portable especially on
             # Windows platform since it allows '/' and '\' in the path.
             # Retrieve the group, the type and the file of the plugin.
@@ -106,9 +105,14 @@ class PluginDB(BaseComponent, DBPluginInterface):
             if self.db.session.query(models.TestGroup).get(code) is None:
                 continue
             # Load the plugin as a module.
-            filename, pathname, desc = imp.find_module(os.path.splitext(os.path.basename(plugin_path))[0], 
+            filename, pathname, desc = imp.find_module(
+                os.path.splitext(os.path.basename(plugin_path))[0],
                 [os.path.dirname(plugin_path)])
-            plugin_module = imp.load_module(os.path.splitext(file)[0], filename, pathname, desc)
+            plugin_module = imp.load_module(
+                os.path.splitext(file)[0],
+                filename,
+                pathname,
+                desc)
             # Try te retrieve the `attr` dictionary from the module and convert
             # it to json in order to save it into the database.
             attr = None
@@ -119,7 +123,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
             # Save the plugin into the database.
             self.db.session.merge(
                 models.Plugin(
-                    key='%s@%s' % (type, code),
+                    key=type + '@' + code,
                     group=group,
                     type=type,
                     title=name.title().replace('_', ' '),
@@ -146,26 +150,26 @@ class PluginDB(BaseComponent, DBPluginInterface):
 
     def GetTestGroup(self, code):
         group = self.db.session.query(models.TestGroup).get(code)
-        return self.DeriveTestGroupDict(group)
+        return(self.DeriveTestGroupDict(group))
 
     def GetAllTestGroups(self):
         test_groups = self.db.session.query(models.TestGroup).order_by(models.TestGroup.priority.desc()).all()
-        return self.DeriveTestGroupDicts(test_groups)
+        return(self.DeriveTestGroupDicts(test_groups))
 
     def GetAllGroups(self):
         groups = self.db.session.query(models.Plugin.group).distinct().all()
         groups = [i[0] for i in groups]
-        return groups
+        return(groups)
 
     def GetAllTypes(self):
         plugin_types = self.db.session.query(models.Plugin.type).distinct().all()
         plugin_types = [i[0] for i in plugin_types]  # Necessary because of sqlalchemy
-        return plugin_types
+        return(plugin_types)
 
     def GetTypesForGroup(self, PluginGroup):
         plugin_types = self.db.session.query(models.Plugin.type).filter_by(group=PluginGroup).distinct().all()
         plugin_types = [i[0] for i in plugin_types]
-        return plugin_types
+        return(plugin_types)
 
     def DerivePluginDict(self, obj):
         if obj:
@@ -184,7 +188,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
         plugin_dicts = []
         for obj in obj_list:
             plugin_dicts.append(self.DerivePluginDict(obj))
-        return plugin_dicts
+        return(plugin_dicts)
 
     def GenerateQueryUsingSession(self, criteria):
         query = self.db.session.query(models.Plugin).join(models.TestGroup)
@@ -217,26 +221,25 @@ class PluginDB(BaseComponent, DBPluginInterface):
             if all(check not in name for check in checklist):
                 code = query.filter(models.Plugin.name == name).first()
                 codes[count] = str(code[0])
-        return codes
+        return(codes)
 
     def GetAll(self, Criteria={}):
         if Criteria.has_key("code"):
             Criteria["code"] = self.PluginNametoCode(Criteria["code"])
         query = self.GenerateQueryUsingSession(Criteria)
         plugin_obj_list = query.all()
-        return self.DerivePluginDicts(plugin_obj_list)
+        return(self.DerivePluginDicts(plugin_obj_list))
 
     def GetPluginsByType(self, PluginType):
-        return self.GetAll({"type": PluginType})
+        return(self.GetAll({"type": PluginType}))
 
     def GetPluginsByGroup(self, PluginGroup):
-        return self.GetAll({"group": PluginGroup})
+        return(self.GetAll({"group": PluginGroup}))
 
     def GetPluginsByGroupType(self, PluginGroup, PluginType):
         return self.GetAll({"type": PluginType, "group": PluginGroup})
 
     def GetGroupsForPlugins(self, Plugins):
-        groups = self.db.session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(Plugins), 
-            models.Plugin.name.in_(Plugins))).distinct().all()
+        groups = self.db.session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(Plugins), models.Plugin.name.in_(Plugins))).distinct().all()
         groups = [i[0] for i in groups]
-        return groups
+        return(groups)

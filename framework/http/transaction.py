@@ -11,7 +11,6 @@ import gzip
 import zlib
 from httplib import responses as response_messages
 import json
-
 from framework.lib.general import *
 from cookies import Cookie
 
@@ -45,7 +44,8 @@ class HTTP_Transaction(object):
     def InitData(self, data):
         self.Data = data
         if self.Data is None:
-            # This simplifies other code later, no need to cast to str if None, etc.
+            # This simplifies other code later, no need to cast to str if None,
+            # etc.
             self.Data = ''
 
     def StartRequest(self):
@@ -58,29 +58,41 @@ class HTTP_Transaction(object):
         self.LocalTimestamp = self.Timer.get_current_date_time()
 
     def SetTransaction(self, found, request, response):
-        # Response can be "Response" for 200 OK or "Error" for everything else, we don't care here.
+        # Response can be "Response" for 200 OK or "Error" for everything else,
+        # we don't care here.
         if self.URL != response.url:
             if response.code not in [302, 301]:  # No way, error in hook.
                 # Mark as a redirect, dirty but more accurate than 200 :P
-                self.Status =  "%s Found" % str(302)
-                self.Status += " --Redirect--> %s " % str(response.code)
+                self.Status = str(302) + " Found"
+                self.Status += " --Redirect--> " + str(response.code) + " "
                 self.Status += response.msg
             # Redirect differs in schema (i.e. https instead of http).
             if self.URL.split(':')[0] != response.url.split(':')[0]:
                 pass
             self.URL = response.url
         else:
-            self.Status = "%s %s" % (str(response.code), response.msg)
+            self.Status = str(response.code)+" "+response.msg
         self.RawRequest = request
         self.Found = found
         self.ResponseHeaders = response.headers
         self.ResponseContents = response.read()
-        # a new self.Decodedcontent is added if the received response is in compressed format
-        self.checkIfCompressed(response, self.ResponseContents)
+        self.checkIfCompressed(response, self.ResponseContents) # a new self.Decodedcontent is added if the received response is in compressed format
+
         self.EndRequest()
 
-    def SetTransactionFromDB(self, id, url, method, status, time, time_human, local_timestamp, request_data,
-            raw_request, response_headers, response_size, response_body):
+    def SetTransactionFromDB(self,
+                             id,
+                             url,
+                             method,
+                             status,
+                             time,
+                             time_human,
+                             local_timestamp,
+                             request_data,
+                             raw_request,
+                             response_headers,
+                             response_size,
+                             response_body):
         self.ID = id
         self.New = False  # Flag NOT new transaction.
         self.URL = url
@@ -106,7 +118,8 @@ class HTTP_Transaction(object):
         return json.dumps(cookies)
 
     def SetError(self, error_message):
-        # Only called for unknown errors, 404 and other HTTP stuff handled on self.SetResponse.
+        # Only called for unknown errors, 404 and other HTTP stuff handled on
+        # self.SetResponse.
         self.ResponseContents = error_message
         self.EndRequest()
 
@@ -119,22 +132,29 @@ class HTTP_Transaction(object):
         # Only for new transactions, not when retrieved from DB, etc.
         if self.New:
             log = logging.getLogger('general')
-            log.info("New owtf HTTP Transaction: %s", 
-                " - ".join([self.ID, self.TimeHuman, self.Status, self.Method,self.URL]))
+            log.info(
+                "New owtf HTTP Transaction: " +
+                " - ".join([
+                    self.ID,
+                    self.TimeHuman,
+                    self.Status,
+                    self.Method,
+                    self.URL])
+                )
 
     def GetHTMLLink(self, link_name=''):
         if '' == link_name:
-            link_name = "Transaction %s" % self.ID
+            link_name = "Transaction " + self.ID
         return self.HTMLLinkToID.replace('@@@PLACE_HOLDER@@@', link_name)
 
     def GetHTMLLinkWithTime(self, link_name=''):
-        return "%s (%s)" % (self.GetHTMLLink(link_name), self.TimeHuman)
+        return self.GetHTMLLink(link_name) + " (" + self.TimeHuman + ")"
 
     def GetRawEscaped(self):
-        return "<pre>%s</pre>" % cgi.escape(self.GetRaw())
+        return "<pre>" + cgi.escape(self.GetRaw()) +"</pre>"
 
     def GetRaw(self):
-        return "%s\n\n%s" % (self.GetRawRequest(), self.GetRawResponse())
+        return self.GetRawRequest() + "\n\n" + self.GetRawResponse()
 
     def GetRawRequest(self):
         return self.RawRequest
@@ -147,12 +167,14 @@ class HTTP_Transaction(object):
 
     def GetRawResponse(self, with_status=True):
         try:
-            return "%s\r\n%s\n\n%s" % (self.GetStatus(), str(self.ResponseHeaders), self.ResponseContents)
+            return self.GetStatus() + "\r\n" + str(self.ResponseHeaders) + \
+                   "\n\n" + self.ResponseContents
         except UnicodeDecodeError:
-            return "%s\r\n%s\n\n[Binary Content]" % (self.GetStatus(), str(self.ResponseHeaders))
+            return self.GetStatus() + "\r\n" + str(self.ResponseHeaders) + \
+                   "\n\n" + "[Binary Content]"
 
     def GetRawResponseHeaders(self, with_status=True):
-        return "%s\r\n%s" % (self.GetStatus(), str(self.ResponseHeaders))
+        return self.GetStatus() + "\r\n" + str(self.ResponseHeaders)
 
     def GetRawResponseBody(self):
         return self.ResponseContents
@@ -163,9 +185,10 @@ class HTTP_Transaction(object):
         self.InitData(request.body)
         self.Method = request.method
         try:
-            self.Status = "%s %s" % (str(response.code), response_messages[int(response.code)])
+            self.Status = str(response.code) + " " + \
+                          response_messages[int(response.code)]
         except KeyError:
-            self.Status = "%s Unknown Error" % str(response.code)
+            self.Status = str(response.code) + " " + "Unknown Error"
         self.RawRequest = request.raw_request
         self.ResponseHeaders = response.header_string
         self.ResponseContents = response.body

@@ -1,88 +1,80 @@
 #!/usr/bin/env python
 '''
-Description: General purpose functions to assist OWTF Agents
+Description:
+General purpose functions to assist OWTF Agents
 '''
-
-import imp
-import os
+import imp, os
 from collections import defaultdict
 
-
 class Plugin:
-    def get(self, nodule_name, module_file, module_path):
-        '''
-        Python fiddling to load a module from a file, there is probably a better way...
-        Like: ModulePath = os.path.abspath(ModuleFile)
-        '''
-        f, filename, desc = imp.find_module(module_file.split('.')[0], [module_path])
-        return imp.load_module(module_name, f, filename, desc)
+	def Get(self, ModuleName, ModuleFile, ModulePath):# Python fiddling to load a module from a file, there is probably a better way...
+		f, Filename, desc = imp.find_module(ModuleFile.split('.')[0], [ModulePath]) #ModulePath = os.path.abspath(ModuleFile)
+		return imp.load_module(ModuleName, f, Filename, desc)
 
-    def run(self, name, path, params):
-        return self.get("", name, "%s/" % path).run(params)
-
+	def Run(self, Name, Path, Params):
+		return self.Get("", Name, Path+"/").Run(Params)
 
 class Storage:
-    def __init__(self, file_name):
-        self.filename = file_name
-        self.init()
-        self.load()
-    
-    def init(self):
-        self.content = ""
-        
-    def get(self):
-        return self.content
-    
-    def set(self, content):
-        self.content = content
-        
-    def load(self):
-        if not os.path.isfile(self.filename):
-            self.init()
-        else:
-            self.set(File().get_as_list(self.filename)[0].strip())
-    
-    def save(self):
-        File().save(self.filename, self.content)
-
+	def __init__(self, FileName):
+		self.FileName = FileName
+		self.Init()
+		self.Load()
+	
+	def Init(self):
+		self.Content = ""
+		
+	def Get(self):
+		return self.Content
+	
+	def Set(self, Content):
+		self.Content = Content
+		
+	def Load(self):
+		if not os.path.isfile(self.FileName):
+			self.Init()
+		else:
+			self.Set(File().GetAsList(self.FileName)[0].strip())
+	
+	def Save(self):
+		#print "Saving Storage " + str(self.Content) + ".."
+		File().Save(self.FileName, self.Content)
 
 class File:
-    def get_as_list(self, file_name):
-        try:
-            output = open(file_name, 'r').read().split("\n")
-            print "Loaded file: '%s'" % file_name
-        except IOError, error:
-            print "Cannot open file: '%s' (%s)" % (file_name, str(sys.exc_info()))
-            output = []
-        return output
-    
-    def save(self, file_name, data):
-        data = str(data)
-        try:
-            print "Filename=%s, Data=%s" % (str(file_name), str(data))
-            print "Saving to file '%s' %s.." % (str(file_name), str(data))
-            f = open(file_name, 'w')
-            f.write(data)
-        except IOError, error:
-            print "Cannot write to: '%s' (%s)" % (file_name, str(sys.exc_info()))
-
+	def GetAsList(self, FileName):
+		try:
+			Output = open(FileName, 'r').read().split("\n")
+			print "Loaded file: '"+FileName+"'"
+		except IOError, error:
+			print "Cannot open file: '"+FileName+"' ("+str(sys.exc_info())+")"
+			Output = []
+		return Output
+	
+	def Save(self, FileName, Data):
+		Data = str(Data)
+		try:
+			print "FileName=" + str(FileName) + ", Data=" + str(Data)
+			print "Saving to File '" + str(FileName) + "' " + str(Data) + ".."
+			File = open(FileName, 'w')
+			File.write(Data)
+		except IOError, error:
+			print "Cannot write to: '" + FileName +"' ("+str(sys.exc_info())+")"
 
 class Config:
-    def __init__(self, file_name):
-        self.config = defaultdict(list)
-        self.load(file_name)
-        
-    def load(self, file_name):
-        for line in File().get_as_list(file_name):
-            try:
-                name = line.split(":")[0]
-                value = line.replace("%s:" % name, "").strip()
-                self.config[name] = value
-            except:
-                print "Cannot parse line: %s" % line
-                
-    def get(self, setting):
-        return self.config[setting]
-    
-    def set(self, setting, value):
-        self.config[setting] = value
+	def __init__(self, FileName):
+		self.Config = defaultdict(list)
+		self.Load(FileName)
+		
+	def Load(self, FileName):
+		for Line in File().GetAsList(FileName):
+			try:
+				Name = Line.split(":")[0]
+				Value = Line.replace(Name + ":", "").strip()
+				self.Config[Name] = Value
+			except:
+				print "Cannot parse line: " + Line
+				
+	def Get(self, Setting):
+		return self.Config[Setting]
+	
+	def Set(self, Setting, Value):
+		self.Config[Setting] = Value

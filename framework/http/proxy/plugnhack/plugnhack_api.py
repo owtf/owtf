@@ -1,6 +1,5 @@
 import plugnhack_extension
 
-
 class PlugnhackAPI(object):              
     """
     PlugnhackAPI handles commands from user.
@@ -18,7 +17,9 @@ class PlugnhackAPI(object):
         self.param_url = "url"
         self.extension = plugnhack_extension.PlugnhackExtension()
     
-    def handle_api_action(self, command_name, message):        
+    def handle_api_action(self, command_name, message):
+        response = tuple()
+        
         if command_name == self.action_monitor:
             # Extract 'message:[]' from message parameter
             monitor_message = message.get(self.param_message)
@@ -42,11 +43,12 @@ class PlugnhackAPI(object):
         elif command_name == self.action_start_monitoring:
             # extract url sent by user 
             monitor_url = message.get(self.param_url)
+            
             try:
                 # Register monitor_url for monitoring
                 page_id = self.extension.start_monitoring(monitor_url)
                 # Response to probe is the id for monitor_url
-                response = (self.param_id, page_id)
+                response = self.param_id, page_id
             except:
                 self.Core.write_event("Illegal url\n", 'a');
         
@@ -54,4 +56,5 @@ class PlugnhackAPI(object):
             # stop monitoring a page, based on its id
             page_id = message.get(self.param_id)
             self.extension.stop_monitoring(page_id)
+
         return response

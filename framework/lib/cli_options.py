@@ -8,7 +8,7 @@ def usage(error_message):
     full_path = sys.argv[0].strip()
     main = full_path.split('/')[-1]
 
-    print("Current Path: %s" % full_path)
+    print("Current Path: " + full_path)
     print(
         "Syntax: " + main +
         " [ options ] <target1 target2 target3 ..> where target can be:"

@@ -1,15 +1,13 @@
+import monitor_manager, oracle_manager
 import tornado.web
-
-import monitor_manager
-import oracle_manager
-
 
 class PlugnhackExtension(object):
     def __init__(self):
         self._mpm = monitor_manager.MonitoredPage()
         self._oracle = oracle_manager.OracleManager()
         self._id_count = 0
-        self._known_types = []
+        self._known_types = list()
+    
 
     def inject_probe(self, data):
         # Path to probe code
@@ -20,13 +18,12 @@ class PlugnhackExtension(object):
         # url of manifest.json, there is specified endpointName etc.
         root = self.get_proxy_info()
         self._id_count = self._id_count + 1
-        id_token = "OWTF_ID-%s" % str(self._id_count)
-        script_start = "<!-- OWASP OWTF Start of injected code -->\n<script>\n"
+        id_token = "OWTF_ID-" + str(self._id_count)
+        script_start = "<!-- OWASP OWTF Start of injected code -->\n" + "<script>\n"
         # JS code for probe initialisation
-        script_end = """
-            \nvar probe = new Probe('%s', '%s');\nOWASP OWTF End of injected code -->\n</script>\n
-            """ % (root, id_token)
-    
+        script_end = "\nvar probe = new Probe('" + root + "','" + id_token + "');\n" + \
+            "OWASP OWTF End of injected code -->\n" + \
+            "<script>\n"
         # Inject probe code only into a monitored page
         if self._mpm.is_monitored(message, data):
             try:
@@ -63,8 +60,10 @@ class PlugnhackExtension(object):
                             raise tornado.web.HTTPError(412)
             except:
                 raise tornado.web.HTTPError(412)
+            
             return True
 
+        
     def message_received(self, message):
         # If type of message is not in known_types, add it to known_types
         if not message.get_type() in self._known_types:
@@ -73,6 +72,7 @@ class PlugnhackExtension(object):
             page = self._mpm.client(message.client_id())
             self.persist(msg)
             return self._mpm.message_received(msg)
+        
         
     def persist(self, client_message):
         try:
@@ -90,22 +90,28 @@ class PlugnhackExtension(object):
             self.Core.write_event(e.parameter, 'a')
             raise tornado.web.HTTPError(400)
 
+
     # Check if page is monitored
     def is_monitored(self, client_id):
         return self._mpm.is_monitored(client_id)
+        
 
     def register_oracle(self, data):
         return self._oracle.register_oracle(data)
+    
 
-    def add_oracle_listener(self, listener):
-        return self._oracle.add_listener(listener)
+    def add_oracle_listener(self, listenner):
+        return self._oracle.add_listener(listenner)
+    
 
-    def remove_oracle_listener(self, listener):
-        return self._oracle.remove_listener(listener)
+    def remove_oracle_listener(self, listenner):
+        return self._oracle.remove_listener(listenner)
+        
 
     def oracle_invoked(self, id_orc):
-        self.Core.write_event("Oracle invoked for %s" % id_orc, 'a')
+        self.Core.write_event("Oracle invoked for " + id_orc, 'a')
         self._oracle.oracle_invoked(id_orc)
+        
 
     def start_monitoring(self, uri):
         page = self._mpm.start_monitoring(uri)
@@ -114,41 +120,52 @@ class PlugnhackExtension(object):
             # Insert this page into a table (DB) like in ZAP
             pass
         except:
-            self.Core.write_event("%s is not monitored" % uri)
+            self.Core.write_event(uri + "is not monitored")
             return page.page_id()
+        
 
     def stop_monitoring(self, id_page):
-        return self._mpm.stop_monitoring(id_page)    
+        return self._mpm.stop_monitoring(id_page)
+    
 
     # mpm -> monitored page manager
-    def add_mpm_listener(self, listener):
-        self._mpm.add_listener(listener)
+    def add_mpm_listener(self, listenner):
+        self._mpm.add_listener(listenner)
 
-    def remove_mpm_listener(self, listener):
-        self._mpm.remove_listener(listener)
+
+    def remove_mpm_listener(self, listenner):
+        self._mpm.remove_listener(listenner)
+        
 
     def get_proxy_info(self):
-       return "http://127.0.0.1:8009/ui/plugnhack/manifest.json"
+        proxy_address = "http://127.0.0.1:8009/ui/plugnhack/manifest.json"
+        return proxy_address
+    
 
     # Sort known_types and return to caller
     def get_known_types(self):
         return sorted(self._known_types)
+    
 
     # Sort active clients and return to caller
     def get_active_clients(self):
         return sorted(self._mpm.get_active_clients())
 
+
     # Sort active ids and return to caller
     def get_active_ids(self):
         return sorted(self._mpm.get_active_ids())
+
 
     # Sort inactive clients and return to caller
     def get_inactive_clients(self):
         return sorted(self._mpm.get_inactive_clnts())
 
+
     # Sort inactive ids and return to caller
     def get_inactive_ids(self):
         return sorted(self._mpm.get_inactice_ids())
+    
 
     # Create message that will be sent to client (probe)
     def set_client_config(self, page, key, value):

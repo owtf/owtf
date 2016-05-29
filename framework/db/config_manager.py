@@ -1,12 +1,11 @@
-import os
-import logging
-import ConfigParser
-
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import DBConfigInterface
 from framework.lib.exceptions import InvalidConfigurationReference
 from framework.db import models
 from framework.lib.general import cprint
+import ConfigParser
+import logging
+import os
 
 
 class ConfigDB(BaseComponent, DBConfigInterface):
@@ -24,13 +23,13 @@ class ConfigDB(BaseComponent, DBConfigInterface):
 
     def IsConvertable(self, value, conv):
         try:
-            return conv(value)
+            return(conv(value))
         except ValueError:
             return None
 
     def LoadConfigDBFromFile(self, file_path):
         # TODO: Implementy user override mechanism
-        logging.info("Loading Configuration from: %s.." % file_path)
+        logging.info("Loading Configuration from: " + file_path + " ..")
         config_parser = ConfigParser.RawConfigParser()
         config_parser.optionxform = str  # Otherwise all the keys are converted to lowercase xD
         if not os.path.isfile(file_path):  # check if the config file exists
@@ -43,17 +42,17 @@ class ConfigDB(BaseComponent, DBConfigInterface):
                     if not key.endswith("_DESCRIP"):  # _DESCRIP are help values
                         config_obj = models.ConfigSetting(key=key, value=value, section=section)
                         # If _DESCRIP at the end, then use it as help text
-                        if config_parser.has_option(section, "%s_DESCRIP" % key):
-                            config_obj.descrip = config_parser.get(section, "%s_DESCRIP" % key)
+                        if config_parser.has_option(section, key + "_DESCRIP"):
+                            config_obj.descrip = config_parser.get(section, key + "_DESCRIP")
                         self.db.session.merge(config_obj)
         self.db.session.commit()
 
     def Get(self, Key):
         obj = self.db.session.query(models.ConfigSetting).get(Key)
         if obj:
-            return self.config.MultipleReplace(obj.value, self.config.GetReplacementDict())
+            return(self.config.MultipleReplace(obj.value, self.config.GetReplacementDict()))
         else:
-            return None
+            return(None)
 
     def DeriveConfigDict(self, config_obj):
         if config_obj:
@@ -101,7 +100,7 @@ class ConfigDB(BaseComponent, DBConfigInterface):
         for config_dict in config_dicts:
             config_dict["value"] = self.config.MultipleReplace(
                 config_dict["value"], self.config.GetReplacementDict())
-        return config_dicts
+        return(config_dicts)
 
     def GetSections(self):
         sections = self.db.session.query(models.ConfigSetting.section).distinct().all()
@@ -116,7 +115,7 @@ class ConfigDB(BaseComponent, DBConfigInterface):
             self.db.session.merge(config_obj)
             self.db.session.commit()
         else:
-            raise InvalidConfigurationReference("No setting exists with key: %s" % str(key))
+            raise InvalidConfigurationReference("No setting exists with key: " + str(key))
 
     def GetReplacementDict(self):
         config_dict = {}

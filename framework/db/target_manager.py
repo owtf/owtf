@@ -1,12 +1,14 @@
 import os
 import datetime
-from urlparse import urlparse
-
 import sqlalchemy.exc
 
+from urlparse import urlparse
 from framework.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
 from framework.dependency_management.interfaces import TargetInterface
-from framework.lib.exceptions import DBIntegrityException, InvalidTargetReference, InvalidParameterType
+
+from framework.lib.exceptions import DBIntegrityException, \
+                                     InvalidTargetReference, \
+                                     InvalidParameterType
 from framework.db import models
 from framework.db.session_manager import session_required
 from framework.lib import general
@@ -82,13 +84,19 @@ class TargetDB(BaseComponent, TargetInterface):
     def DerivePathConfig(self, target_config):
         path_config = {}
         # Set the output directory.
-        path_config['host_output'] = os.path.join(self.config.FrameworkConfigGet('OUTPUT_PATH'), 
+        path_config['host_output'] = os.path.join(
+            self.config.FrameworkConfigGet('OUTPUT_PATH'),
             target_config['host_ip'])
-        path_config['port_output'] = os.path.join(path_config['host_output'], target_config['port_number'])
+        path_config['port_output'] = os.path.join(
+            path_config['host_output'],
+            target_config['port_number'])
         # Set the URL output directory (plugins will save their data here).
-        path_config['url_output'] = os.path.join(self.config.GetOutputDirForTarget(target_config['target_url']))
+        path_config['url_output'] = os.path.join(
+            self.config.GetOutputDirForTarget(target_config['target_url']))
         # Set the partial results path.
-        path_config['partial_url_output_path'] = os.path.join(path_config['url_output'], 'partial')
+        path_config['partial_url_output_path'] = os.path.join(
+            path_config['url_output'],
+            'partial')
         return path_config
 
     def GetTargetID(self):
@@ -101,7 +109,9 @@ class TargetDB(BaseComponent, TargetInterface):
         return self.GetAll("target_url")
 
     def GetIndexedTargets(self):
-        results = self.db.session.query(models.Target.id, models.Target.target_url).all()
+        results = self.db.session.query(
+            models.Target.id,
+            models.Target.target_url).all()
         return results
 
     def GetTargetConfig(self):
@@ -148,18 +158,24 @@ class TargetDB(BaseComponent, TargetInterface):
             config_obj.top_url = target_config["top_url"]
             # ----------------------------------------------------
             self.db.session.add(config_obj)
-            config_obj.sessions.append(self.db.session.query(models.Session).get(session_id))
+            config_obj.sessions.append(
+                self.db.session.query(models.Session).get(session_id))
             self.db.session.commit()
             target_id = config_obj.id
             self.CreateMissingDBsForURL(target_url)
             self.SetTarget(target_id)
         else:
-            session_obj = self.db.session.query(models.Session).get(session_id)
-            target_obj = self.db.session.query(models.Target).filter_by(target_url=target_url).one()
+            session_obj = self.db.session.query(
+                models.Session).get(session_id)
+            target_obj = self.db.session.query(
+                models.Target).filter_by(target_url=target_url).one()
             if session_obj in target_obj.sessions:
-                raise DBIntegrityException("%s already present in Target DB & session" % target_url)
+                raise DBIntegrityException(
+                    target_url + " already present in Target DB & session")
             else:
-                self.db.OWTFSession.add_target_to_session(target_obj.id, session_id=session_obj.id)
+                self.db.OWTFSession.add_target_to_session(
+                    target_obj.id,
+                    session_id=session_obj.id)
 
     @session_required
     def AddTargets(self, target_urls, session_id=None):
@@ -173,7 +189,8 @@ class TargetDB(BaseComponent, TargetInterface):
         if TargetURL:
             target_obj = self.db.session.query(models.Target).filter_by(target_url=TargetURL).one()
         if not target_obj:
-            raise InvalidTargetReference("Target doesn't exist: %s" % str(ID) if ID else str(TargetURL))
+            raise InvalidTargetReference(
+                "Target doesn't exist: " + str(ID) if ID else str(TargetURL))
         # TODO: Updating all related attributes when one attribute is changed
         if data_dict.get("scope", None) is not None:
             target_obj.scope = self.config.ConvertStrToBool(data_dict.get("scope", None))
@@ -183,9 +200,11 @@ class TargetDB(BaseComponent, TargetInterface):
         if ID:
             target_obj = self.db.session.query(models.Target).get(ID)
         if TargetURL:
-            target_obj = self.db.session.query(models.Target).filter_by(target_url=TargetURL).one()
+            target_obj = self.db.session.query(models.Target).filter_by(
+                target_url=TargetURL).one()
         if not target_obj:
-            raise InvalidTargetReference("Target doesn't exist: %s" % str(ID) if ID else str(TargetURL))
+            raise InvalidTargetReference(
+                "Target doesn't exist: " + str(ID) if ID else str(TargetURL))
         target_url = target_obj.target_url
         self.db.session.delete(target_obj)
         self.db.session.commit()
@@ -197,42 +216,48 @@ class TargetDB(BaseComponent, TargetInterface):
     def GetTargetURLForID(self, ID):
         target_obj = self.db.session.query(models.Target).get(ID)
         if not target_obj:
-            cprint("Failing with ID: %s" % str(ID))
-            raise InvalidTargetReference("Target doesn't exist with ID: %s" % str(ID))
-        return target_obj.target_url
+            cprint("Failing with ID:" + str(ID))
+            raise InvalidTargetReference("Target doesn't exist with ID: " + str(ID))
+        return(target_obj.target_url)
 
     def GetTargetConfigForID(self, ID):
         target_obj = self.db.session.query(models.Target).get(ID)
         if not target_obj:
-            raise InvalidTargetReference("Target doesn't exist: %s" % str(ID))
-        return self.DeriveTargetConfig(target_obj)
+            raise InvalidTargetReference("Target doesn't exist: " + str(ID))
+        return(self.DeriveTargetConfig(target_obj))
 
     def _generate_query(self, filter_data, session_id, for_stats=False):
-        query = self.db.session.query(models.Target).filter(models.Target.sessions.any(id=session_id))
+        query = self.db.session.query(models.Target).filter(
+            models.Target.sessions.any(id=session_id))
         if filter_data.get("search") is not None:
             if filter_data.get('target_url', None):
                 if isinstance(filter_data.get('target_url'), list):
                     filter_data['target_url'] = filter_data['target_url'][0]
-                query = query.filter(models.Target.target_url.like("%%%s%%" % filter_data['target_url']))
+                query = query.filter(models.Target.target_url.like(
+                    '%' + filter_data['target_url'] + '%'))
         else:
             if filter_data.get("target_url", None):
                 if isinstance(filter_data["target_url"], (str, unicode)):
                     query = query.filter_by(target_url=filter_data["target_url"])
                 if isinstance(filter_data["target_url"], list):
-                    query = query.filter(models.Target.target_url.in_(filter_data.get("target_url")))
+                    query = query.filter(models.Target.target_url.in_(
+                        filter_data.get("target_url")))
             if filter_data.get("host_ip", None):
                 if isinstance(filter_data["host_ip"], (str, unicode)):
                     query = query.filter_by(host_ip=filter_data["host_ip"])
                 if isinstance(filter_data["host_ip"], list):
-                    query = query.filter(models.Target.host_ip.in_(filter_data.get("host_ip")))
+                    query = query.filter(models.Target.host_ip.in_(
+                        filter_data.get("host_ip")))
             if filter_data.get("scope", None):
                 filter_data["scope"] = filter_data["scope"][0]
-                query = query.filter_by(scope=self.config.ConvertStrToBool(filter_data.get("scope")))
+                query = query.filter_by(
+                    scope=self.config.ConvertStrToBool(filter_data.get("scope")))
             if filter_data.get("host_name", None):
                 if isinstance(filter_data["host_name"], (str, unicode)):
                     query = query.filter_by(host_name=filter_data["host_name"])
                 if isinstance(filter_data["host_name"], list):
-                    query = query.filter(models.Target.host_name.in_(filter_data.get("host_name")))
+                    query = query.filter(models.Target.host_name.in_(
+                        filter_data.get("host_name")))
             if filter_data.get("id", None):
                 if isinstance(filter_data["id"], (str, unicode)):
                     query = query.filter_by(id=filter_data["id"])
@@ -251,8 +276,10 @@ class TargetDB(BaseComponent, TargetInterface):
                         filter_data['limit'] = filter_data['limit'][0]
                     query = query.limit(int(filter_data['limit']))
             except ValueError:
-                raise InvalidParameterType("Invalid parameter type for target db for id[lt] or id[gt]")
-        return query 
+                raise InvalidParameterType(
+                    "Invalid parameter type for target db for "
+                    "id[lt] or id[gt]")
+        return(query)
 
     @session_required
     def SearchTargetConfigs(self, filter_data=None, session_id=None):
@@ -260,22 +287,28 @@ class TargetDB(BaseComponent, TargetInterface):
         # + Total number of targets
         # + Filtered target dicts
         # + Filtered number of targets
-        total = self.db.session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).count()
-        filtered_target_objs = self._generate_query(filter_data, session_id).all()
-        filtered_number = self._generate_query(filter_data, session_id,for_stats=True).count()
-        results = {
+        total = self.db.session.query(models.Target).filter(
+            models.Target.sessions.any(id=session_id)).count()
+        filtered_target_objs = self._generate_query(
+            filter_data,
+            session_id).all()
+        filtered_number = self._generate_query(
+            filter_data,
+            session_id,
+            for_stats=True).count()
+        return ({
             "records_total": total,
             "records_filtered": filtered_number,
-            "data": self.DeriveTargetConfigs(filtered_target_objs)
-        }
-        return results
+            "data": self.DeriveTargetConfigs(
+                filtered_target_objs)})
+
 
     @session_required
     def GetTargetConfigs(self, filter_data=None, session_id=None):
         if filter_data is None:
             filter_data = {}
         target_obj_list = self._generate_query(filter_data, session_id).all()
-        return self.DeriveTargetConfigs(target_obj_list)
+        return(self.DeriveTargetConfigs(target_obj_list))
 
     def DeriveTargetConfig(self, target_obj):
         target_config = dict(TARGET_CONFIG)
@@ -283,30 +316,32 @@ class TargetDB(BaseComponent, TargetInterface):
             for key in TARGET_CONFIG.keys():
                 target_config[key] = getattr(target_obj, key)
             return target_config
-        return None
+        return(None)
 
     def DeriveTargetConfigs(self, target_obj_list):
         target_configs = []
         for target_obj in target_obj_list:
             target_configs.append(self.DeriveTargetConfig(target_obj))
-        return target_configs
+        return(target_configs)
 
     def Get(self, Key):
-        return self.TargetConfig[Key]
+        return(self.TargetConfig[Key])
 
     def GetAsList(self, key_list):
         values = []
         for key in key_list:
             values.append(self.Get(key))
-        return values
+        return(values)
 
     def GetAll(self, Key):
-        results = self.db.session.query(getattr(models.Target, Key.lower())).all()
+        results = self.db.session.query(
+            getattr(models.Target, Key.lower())).all()
         results = [result[0] for result in results]
         return results
 
     def GetAllInScope(self, Key):
-        results = self.db.session.query(getattr(models.Target, Key.lower())).filter_by(scope=True).all()
+        results = self.db.session.query(
+            getattr(models.Target, Key.lower())).filter_by(scope=True).all()
         results = [result[0] for result in results]
         return results
 

@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+The random module allows the rest of the framework to have access to random
+functionality.
+"""
 
 import unittest
 
@@ -24,7 +28,7 @@ class URLLauncher(unittest.TestCase):
 
     def TestURLs(self):
         for url in self.URLList:
-            cprint("Launching URL: %s" % url)
+            cprint("Launching URL: " + url)
             self.Selenium.Driver.get(url)
 
     def is_element_present(self, how, what):

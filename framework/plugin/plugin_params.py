@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-
-from collections import defaultdict
-
+'''
+The random module allows the rest of the framework to have access to random functionality
+'''
+# import random, string
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib.general import *
+from collections import defaultdict
 
 
 class PluginParams(BaseComponent):
@@ -23,13 +25,13 @@ class PluginParams(BaseComponent):
         for Arg in self.RawArgs:
             Chunks = Arg.split('=')
             if len(Chunks) < 2:
-                self.error_handler.Add("USER ERROR: %s arguments should be in NAME=VALUE format" % str(Chunks), 'user')
+                self.error_handler.Add("USER ERROR: " + str(Chunks) + " arguments should be in NAME=VALUE format", 'user')
                 return False
             ArgName = Chunks[0]
             try:
                 ArgValue = Arg.replace(ArgName, '')[1:]
             except ValueError:
-                self.error_handler.Add("USER ERROR: %s arguments should be in NAME=VALUE format" % str(ArgName), 'user')
+                self.error_handler.Add("USER ERROR: " + str(ArgName) + " arguments should be in NAME=VALUE format", 'user')
                 return False
             self.Args[ArgName] = ArgValue
         return True
@@ -43,7 +45,7 @@ class PluginParams(BaseComponent):
         for ArgName, ArgDescrip in Args.items():
             if ArgDescrip == None:
                 ArgDescrip = ""
-            cprint("- %s%s%s" % (ArgName, (30 - len(ArgName))*'_', ArgDescrip.replace('\n', "\n")))
+            cprint("- " + ArgName + (30 - len(ArgName)) * '_' + ArgDescrip.replace('\n', "\n"))
 
     def GetArgsExample(self, FullArgList, Plugin):
         ArgsStr = []
@@ -53,25 +55,25 @@ class PluginParams(BaseComponent):
         return Pad.join(ArgsStr) + Pad
 
     def ShowParamInfo(self, FullArgList, Plugin):
-        cprint("\nInformation for %s" % self.ShowPlugin(Plugin))
-        cprint("\nDescription: %s" % str(FullArgList['Description']))
+        cprint("\nInformation for " + self.ShowPlugin(Plugin))
+        cprint("\nDescription: " + str(FullArgList['Description']))
         self.ListArgs(FullArgList['Mandatory'], True)
         if len(FullArgList['Optional']) > 0:
             self.ListArgs(FullArgList['Optional'], False)
-        cprint("\nUsage: %s\n" % self.GetArgsExample(FullArgList, Plugin))
+        cprint("\nUsage: " + self.GetArgsExample(FullArgList, Plugin) + "\n")
         self.error_handler.FrameworkAbort("User is only viewing options, exiting", False)
 
     def ShowPlugin(self, Plugin):
-        return "Plugin: %s/%s" % (Plugin['Type'], Plugin['File'])
+        return "Plugin: " + Plugin['Type'] + "/" + Plugin['File']
 
     def DefaultArgFromConfig(self, Args, ArgName, SettingList):
-        DefaultOrderStr = " (Default order is: %s)" % str(SettingList)
+        DefaultOrderStr = " (Default order is: " + str(SettingList) + ")"
         for Setting in SettingList:
             if self.config.IsSet(Setting):  # Argument is set in config
                 Args[ArgName] = self.config.Get(Setting)
-                cprint("Defaulted not passed '%s' to '%s'%s" % (ArgName, str(Args[ArgName]), DefaultOrderStr))
+                cprint("Defaulted not passed '" + ArgName + "' to '" + str(Args[ArgName]) + "'" + DefaultOrderStr)
                 return True
-        cprint("Could not default not passed: '%s'%s" % (ArgName, DefaultOrderStr))
+        cprint("Could not default not passed: '" + ArgName + "'" + DefaultOrderStr)
         return False
 
     def GetArgList(self, ArgList, Plugin, Mandatory=True):
@@ -82,18 +84,17 @@ class PluginParams(BaseComponent):
         Args = {}
         for ArgName in ArgList:
             if ArgName not in self.Args:
-                ConfigDefaultOrder = ["%s_%s_%s" % (Plugin['Code'], Plugin['Type'], ArgName), 
-                    '%s_%s' % (Plugin['Code'], ArgName), ArgName]
+                ConfigDefaultOrder = [Plugin['Code'] + '_' + Plugin['Type'] + "_" + ArgName,
+                                      Plugin['Code'] + '_' + ArgName, ArgName]
                 Defaulted = self.DefaultArgFromConfig(Args, ArgName, ConfigDefaultOrder)
                 Value = ""
                 if Defaulted or Mandatory == False:
-                    # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or 
-                    # Argument is optional = ok to skip
-                    continue
-                self.error_handler.Add("USER ERROR: %s requires argument: '%s'" % (self.ShowPlugin(Plugin), ArgName), 
-                    'user')
+                    continue  # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or Argument is optional = ok to skip
+                self.error_handler.Add("USER ERROR: " + self.ShowPlugin(Plugin) + " requires argument: '" + ArgName + "'",
+                                    'user')
                 return self.RetArgError({}, Plugin)  # Abort processing (invalid data)
             Args[ArgName] = self.Args[ArgName]
+        #print "Args before return="+str(Args)
         return Args
 
     def GetArgError(self, Plugin):
@@ -108,11 +109,11 @@ class PluginParams(BaseComponent):
 
     def CheckArgList(self, FullArgList, Plugin):
         if not 'Mandatory' in FullArgList or not 'Optional' in FullArgList:
-            self.error_handler.Add("OWTF PLUGIN BUG: %s requires declared Mandatory and Optional arguments" % 
-                self.ShowPlugin(Plugin))
+            self.error_handler.Add(
+                "OWTF PLUGIN BUG: " + self.ShowPlugin(Plugin) + " requires declared Mandatory and Optional arguments")
             return self.RetArgError(True, Plugin)
         if not 'Description' in FullArgList:
-            self.error_handler.Add("OWTF PLUGIN BUG: %s  requires a Description" % self.ShowPlugin(Plugin))
+            self.error_handler.Add("OWTF PLUGIN BUG: " + self.ShowPlugin(Plugin) + " requires a Description")
             return self.RetArgError(False, Plugin)
         return True
 
@@ -120,18 +121,22 @@ class PluginParams(BaseComponent):
         if not AllArgs:
             return self.NoArgs
         ArgsStr = []
+        #print "self.Args="+str(self.Args)
         for ArgName, ArgValue in AllArgs.items():
+            #print "Setting ArgName="+ArgName
             ArgsStr.append(ArgName + "=" + str(self.Args[ArgName]))
             AllArgs[ArgName] = ArgValue
         Plugin['Args'] = ' '.join(ArgsStr)  # Record arguments in Plugin dictionary
+        #print "AllArgs="+str(AllArgs)
         return [AllArgs]
 
     def SetConfig(self, Args):
         for ArgName, ArgValue in Args.items():
-            cprint("Overriding configuration setting '_%s' with value %s.." % (ArgName, str(ArgValue)))
-            self.config.Set('%s_' % ArgName, ArgValue)  # Pre-pend "_" to avoid naming collisions
+            cprint("Overriding configuration setting '_" + ArgName + "' with value " + str(ArgValue) + "..")
+            self.config.Set('_' + ArgName, ArgValue)  # Pre-pend "_" to avoid naming collisions
 
     def GetPermutations(self, Args):
+        #print "Args="+str(Args)
         Permutations = defaultdict(list)
         if not 'REPEAT_DELIM' in Args:
             return Permutations  # No permutations
@@ -139,6 +144,7 @@ class PluginParams(BaseComponent):
         for ArgName, ArgValue in Args.items():
             if ArgName == 'REPEAT_DELIM':
                 continue  # The repeat delimiter is not considered a permutation: It's the permutation delimiter :)
+            #print "ArgName="+ArgName+", ArgValue="+str(ArgValue)
             Chunks = ArgValue.split(Separator)
             if len(Chunks) > 1:
                 Permutations[ArgName] = Chunks
@@ -184,5 +190,6 @@ class PluginParams(BaseComponent):
             cprint("")
             return self.NoArgs  # Error processing arguments, must abort processing	
         AllArgs = MergeDicts(Mandatory, Optional)
+        #print "AllArgs="+str(AllArgs)
         return self.SetArgs(AllArgs, Plugin)
 

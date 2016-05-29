@@ -1,8 +1,6 @@
-
-"""
 # ****************Detection-Methods*********************
 # These methods are detecting if a request is blocked by a WAF
-"""
+
 
 def contains(response, args):
     """This function detects if the body of an http response contains a
@@ -48,7 +46,7 @@ def resp_time_detection(response, args):
     timed out or takes more time than the user defined"""
     time = float(args["time"])
     detected = False
-    if (response.request_time > time) or (response.code == 599):
+    if response.request_time > time or response.code == 599:
         detected = True
     if args["reverse"]:
         return not detected
