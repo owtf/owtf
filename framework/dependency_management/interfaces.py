@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 
 
 class AbstractInterface():
+    #__metaclass__ = ABCMeta
     pass # TODO Recalculate the currently used methods and update the abstract interfaces
 
 
@@ -18,6 +19,15 @@ class DBInterface(AbstractInterface):
 
     @abstractmethod
     def CreateScopedSession(self): pass
+
+    # @abstractmethod
+    # def CreateSession(self): pass
+    #
+    # @abstractmethod
+    # def EnsureDBWithBase(self): pass
+    #
+    # @abstractmethod
+    # def SaveDBs(self): pass
 
     @abstractmethod
     def get_category(self): pass

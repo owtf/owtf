@@ -11,9 +11,11 @@ class HTTPHelper:
         self.payload_table = {}
         self.init_request = init_request
 
-    def create_http_request(self, method, url, body=None, headers={}, payload=None):
+    def create_http_request(self, method, url, body=None, headers={},
+                            payload=None):
         """This function creates an HTTP request with some additional
          initializations"""
+
         request = copy(self.init_request)
         request.method = method
         request.url = url
@@ -21,10 +23,12 @@ class HTTPHelper:
         if body:
             request.body = body
             if headers and not "Content-Length" in request.headers:
+                #request.headers["Content-Length"] = len(body)
                 pass
             if method.upper() not in "POST":
                 if "Content-Length" in headers:
                     headers.pop("Content-Length")
+
         request.start_time = time()
         if payload:
             self.payload_table[id(request)] = payload
@@ -45,7 +49,7 @@ class HTTPHelper:
             sep = "?"
         else:
             sep = '&'
-        url += "%s%s=%s" % (sep, param_name, param_value)
+        url += sep + param_name + "=" + param_value
         return url
 
     @staticmethod
@@ -54,7 +58,7 @@ class HTTPHelper:
             sep = ""
         else:
             sep = '&'
-        body += "%s%s=%s" % (sep, param_name, param_value)
+        body += sep + param_name + "=" + param_value
         return body
 
     @staticmethod
@@ -66,7 +70,7 @@ class HTTPHelper:
         except KeyError:
             cookie_value = ""
             sep = ""
-        cookie_value += "%s%s=%s" % (sep, param_name, param_value)
+        cookie_value += sep + param_name + "=" + param_value
         new_headers.add("Cookie", cookie_value)
         return new_headers
 

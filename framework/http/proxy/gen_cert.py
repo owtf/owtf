@@ -3,12 +3,10 @@
 # Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
 #                     as a part of Google Summer of Code 2013
 '''
-
+from OpenSSL import crypto
 import os
 import hashlib
 import re
-from OpenSSL import crypto
-
 from framework.lib.filelock import FileLock
 
 
@@ -66,4 +64,5 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
 
                 domain_cert = open(cert_path, "w")
                 domain_cert.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+                # print(("[*] Generated signed certificate for %s" % (domain)))
     return key_path, cert_path

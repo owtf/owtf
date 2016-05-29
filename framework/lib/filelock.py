@@ -1,10 +1,8 @@
-"""
-# Based on http://www.evanfosmark.com/2009/01/cross-platform-file-locking-support-in-python/
-"""
-
 import os
 import time
 import errno
+
+# Based on http://www.evanfosmark.com/2009/01/cross-platform-file-locking-support-in-python/
 
 
 class FileLockTimeoutException(Exception):
@@ -51,7 +49,7 @@ class FileLock(object):
             except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise
-                if (time.time()-start_time) >= self.timeout:
+                if (time.time() - start_time) >= self.timeout:
                     raise FileLockTimeoutException("%d seconds passed." % self.timeout)
                 time.sleep(self.delay)
         self.is_locked = True

@@ -27,15 +27,18 @@ class MonitoredPage(object):
         # intercept events of monitored page
         self._intercept_events = True
 
+    
     # Respond with page id
     @property
     def page_id(self):
         return self._page_id
 
+
     # Update page id
     @page_id.setter
     def page_id(self, param_id):
         self._page_id = param_id
+
     
     # Respond with message instance variable
     @property
@@ -67,6 +70,7 @@ class MonitoredPage(object):
     def active(self, value):
         self._active = value
 
+    
     # Respond with 'url' from message
     def get_uri(self):
         return self._message.get_argument('url')

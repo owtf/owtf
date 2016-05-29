@@ -6,10 +6,8 @@ import hashlib
 import datetime
 import mimetypes
 import email.utils
-
 import tornado.web
 import tornado.template
-
 from framework.dependency_management.dependency_resolver import BaseComponent
 
 
@@ -76,7 +74,8 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
                 </body>
                 </html>
                 """)
-            self.write(directory_listing_template.generate(dirnames=dirnames, filenames=filenames))
+            self.write(directory_listing_template.generate(
+                dirnames=dirnames, filenames=filenames))
             return
 
         if os.path.isfile(abspath):  # So file
@@ -92,8 +91,9 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
             cache_time = self.get_cache_time(path, modified, mime_type)
 
             if cache_time > 0:
-                self.set_header("Expires", datetime.datetime.utcnow() + datetime.timedelta(seconds=cache_time))
-                self.set_header("Cache-Control", "max-age=%s" % str(cache_time))
+                self.set_header("Expires", datetime.datetime.utcnow() + \
+                                           datetime.timedelta(seconds=cache_time))
+                self.set_header("Cache-Control", "max-age=" + str(cache_time))
             else:
                 self.set_header("Cache-Control", "public")
 

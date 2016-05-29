@@ -1,7 +1,6 @@
+import plugnhack_extension
 import datetime
 import json
-
-import plugnhack_extension
 
 
 def enum(**named_values):
@@ -13,7 +12,6 @@ def enum(**named_values):
     For installing it run: pip install enum34
     """
     return type('Enum', (), named_values)
-
 
 class ClientMessage(object):
     """
@@ -30,15 +28,15 @@ class ClientMessage(object):
         # save at which time message was received
         self._received = datetime.datetime.now()
         # state that a message pass
-        self.State = enum(pending="pending", received="received", resent="resent", dropped="dropped", 
-            oraclehit="oraclehit")
+        self.State = enum(pending="pending",received="received",resent="resent",dropped="dropped",oraclehit="oraclehit")
         # first state for a message
         self._state = self.State.received
         # a new message haven't been modified
         self._changed = False
         self._index = -1
-        self._extra_fields = {}
+        self._extra_fields = dict()
         self._reflect_fields = ["eventData","originalEventTarget"]
+        
 
     # Respond with the self._index current value
     @property
@@ -133,7 +131,7 @@ class ClientMessage(object):
 
     # Respond with a dictionary containing key-value pairs of a message
     def to_map(self):
-        h_map = {}
+        h_map = dict()
         if self.get_to() is not None:
             h_map["to"] = self.get_to()
 
@@ -201,6 +199,7 @@ class ClientMessage(object):
     @client_id.setter
     def client_id(self, client_id):
         self._client_id = client_id
+
     
     def is_in_scope(self):
         return False

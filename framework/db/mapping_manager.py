@@ -1,13 +1,12 @@
-import os
-import json
-import logging
-import ConfigParser
-
 from framework.db import models
 from framework.config import config
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import MappingDBInterface
 from framework.lib.exceptions import InvalidMappingReference
+import os
+import json
+import logging
+import ConfigParser
 
 
 class MappingDB(BaseComponent, MappingDBInterface):
@@ -32,7 +31,7 @@ class MappingDB(BaseComponent, MappingDBInterface):
         This needs to be a list instead of a dictionary to preserve order in
         python < 2.7
         """
-        logging.info("Loading Mapping from: %s..", file_path)
+        logging.info("Loading Mapping from: %s", file_path)
         config_parser = ConfigParser.RawConfigParser()
         # Otherwise all the keys are converted to lowercase xD
         config_parser.optionxform = str
@@ -50,7 +49,10 @@ class MappingDB(BaseComponent, MappingDBInterface):
                     mappings[mapping_type] = [mapped_code, mapped_name]
                 else:
                     category = data
-            self.db.session.merge(models.Mapping(owtf_code=owtf_code, mappings=json.dumps(mappings), category=category))
+            self.db.session.merge(models.Mapping(
+                owtf_code=owtf_code,
+                mappings=json.dumps(mappings),
+                category=category))
         self.db.session.commit()
 
     def DeriveMappingDict(self, obj):
@@ -66,7 +68,7 @@ class MappingDB(BaseComponent, MappingDBInterface):
         dict_list = []
         for obj in obj_list:
             dict_list.append(self.DeriveMappingDict(obj))
-        return dict_list
+        return(dict_list)
 
     def GetMappingTypes(self):
         """
@@ -83,7 +85,7 @@ class MappingDB(BaseComponent, MappingDBInterface):
                     mappings[mapping_dict["owtf_code"]] = mapping_dict["mappings"][mapping_type]
             return mappings
         else:
-            raise InvalidMappingReference("InvalidMappingReference %s requested" % mapping_type)
+            raise InvalidMappingReference("InvalidMappingReference " + mapping_type + " requested")
 
     def GetCategory(self, plugin_code):
         category = self.db.session.query(models.Mapping.category).get(plugin_code)

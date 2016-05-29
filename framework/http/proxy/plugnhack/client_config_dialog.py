@@ -8,8 +8,7 @@ class ClientConfigDialog(object):
     or intercept actions. If default configuration is modified, probe must be
     notified about so it can act as user wants.
     """
-    def __init__(self, ext, page, heartbeat=None, monitor_post=None, intercept_post=None, monitor_events=None, 
-        intercept_events=None):
+    def __init__(self, ext, page, heartbeat=None, monitor_post=None, intercept_post=None, monitor_events=None, intercept_events=None):
         # self._extension instance variable offers message configuration methods.
         # It is a PlugnhackExtension object
         self._extension = ext
@@ -22,6 +21,7 @@ class ClientConfigDialog(object):
         self._intercept_post = intercept_post or None
         self._monitor_events = monitor_events or None
         self._intercept_events = intercept_events or None
+
 
     def save(self):
         """
@@ -52,6 +52,7 @@ class ClientConfigDialog(object):
             # updated monitorPostMessage value, monitorPostMessage value
             # is a boolean
             self._extension.client_config(_monitored_page, "monitorPostMessage", _monitored_page.monitor_post_msg())
+            
 
         # Compare interceptPostMessage of monitored page with interceptPostMessage
         # value from browser configuration page
@@ -64,6 +65,7 @@ class ClientConfigDialog(object):
             # updated interceptPostMessage value, interceptPostMessage value
             # is a boolean
             self._extension.client_config(_monitored_page, "interceptPostMessage", _monitored_page.intercept_post_msg())
+            
 
         # Compare monitorEvents of monitored page with monitorEvents
         # value from browser configuration page
@@ -76,6 +78,7 @@ class ClientConfigDialog(object):
             # updated monitorEvents value, monitorEvents value
             # is a boolean
             self._extension.client_config(_monitored_page, "monitorEvents", _monitored_page.monitor_events())
+
 
         # Compare interceptEvents of monitored page with interceptEvents
         # value from browser configuration page

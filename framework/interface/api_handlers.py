@@ -1,17 +1,15 @@
 import os
-import json
-from StringIO import StringIO
-from BaseHTTPServer import BaseHTTPRequestHandler
-
 import tornado.gen
 import tornado.web
 import tornado.httpclient
-
+from BaseHTTPServer import BaseHTTPRequestHandler
+from StringIO import StringIO
+import json
 from framework.lib import exceptions
 from framework.utils import print_version
+from framework.lib.exceptions import InvalidTargetReference
 from framework.lib.general import cprint
 from framework.interface import custom_handlers
-from framework.lib.exceptions import InvalidTargetReference
 
 
 class PluginDataHandler(custom_handlers.APIRequestHandler):
@@ -35,8 +33,7 @@ class PluginDataHandler(custom_handlers.APIRequestHandler):
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"type": plugin_type, "group": plugin_group, "code": plugin_code})
-                # This combination will be unique, so have to return a dict
-                results = self.get_component("db_plugin").GetAll(filter_data)
+                results = self.get_component("db_plugin").GetAll(filter_data)  # This combination will be unique, so have to return a dict
                 if results:
                     self.write(results[0])
                 else:
@@ -66,7 +63,8 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
         if (target_id) or (not self.get_argument("target_url", default=None)):  # How can one post using an id xD
             raise tornado.web.HTTPError(400)
         try:
-            self.get_component("target").AddTargets(dict(self.request.arguments)["target_url"])
+            self.get_component("target").AddTargets(
+                dict(self.request.arguments)["target_url"])
             self.set_status(201)  # Stands for "201 Created"
         except exceptions.DBIntegrityException as e:
             cprint(e.parameter)
@@ -105,7 +103,8 @@ class TargetConfigSearchHandler(custom_handlers.APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
-            self.write(self.get_component("target").SearchTargetConfigs(filter_data=filter_data))
+            self.write(self.get_component("target").SearchTargetConfigs(
+                filter_data=filter_data))
         except exceptions.InvalidParameterType as e:
             raise tornado.web.HTTPError(400)
 
@@ -126,38 +125,47 @@ class OWTFSessionHandler(custom_handlers.APIRequestHandler):
                 raise tornado.web.HTTPError(400)
 
     def post(self, session_id=None, action=None):
-        if (session_id is not None) or (self.get_argument("name", None) is None) or (action is not None):
+        if session_id is not None or \
+           self.get_argument("name", None) is None or \
+           action is not None:
             # Not supposed to post on specific session
             raise tornado.web.HTTPError(400)
         try:
-            self.get_component("session_db").add_session(self.get_argument("name"))
+            self.get_component("session_db").add_session(
+                self.get_argument("name"))
             self.set_status(201)  # Stands for "201 Created"
         except exceptions.DBIntegrityException:
             raise tornado.web.HTTPError(409)
 
     def patch(self, session_id=None, action=None):
         target_id = self.get_argument("target_id", None)
-        if (session_id is None) or (target_id is None and action in ["add", "remove"]):
+        if session_id is None or \
+           (target_id is None and action in ["add", "remove"]):
             raise tornado.web.HTTPError(400)
         try:
             if action == "add":
-                self.get_component("session_db").add_target_to_session(int(self.get_argument("target_id")), 
+                self.get_component("session_db").add_target_to_session(
+                    int(self.get_argument("target_id")),
                     session_id=int(session_id))
             elif action == "remove":
-                self.get_component("session_db").remove_target_from_session(int(self.get_argument("target_id")),
+                self.get_component("session_db").remove_target_from_session(
+                    int(self.get_argument("target_id")),
                     session_id=int(session_id))
             elif action == "activate":
-                self.get_component("session_db").set_session(int(session_id))
+                self.get_component("session_db").set_session(
+                    int(session_id))
         except exceptions.InvalidTargetReference:
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidSessionReference:
             raise tornado.web.HTTPError(400)
 
     def delete(self, session_id=None, action=None):
-        if (session_id is None) or action is not None:
+        if session_id is None or \
+           action is not None:
             raise tornado.web.HTTPError(400)
         try:
-            self.get_component("session_db").delete_session(int(session_id))
+            self.get_component("session_db").delete_session(
+                int(session_id))
         except exceptions.InvalidSessionReference:
             raise tornado.web.HTTPError(400)
 
@@ -217,8 +225,8 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
                         result = self.get_component("zest").RunTargetScript(target_id, args['script'][0])
                     self.write({"result": result})
             else:
-                if ('script' not in args) and ('record' in args):  # Recorder handling
-                    if (args['record'][0] == "true") and ('file' in args):
+                if 'script' not in args and 'record' in args:  # Recorder handling
+                    if args['record'][0] == "true" and 'file' in args:
                         if not self.get_component("zest").StartRecorder(args['file'][0]):
                             self.write({"exists": "true"})
                     else:
@@ -227,25 +235,21 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
                 cprint(e.parameter)
                 raise tornado.web.HTTPError(400)
 
-    # All script creation requests are post methods, Zest class instance then handles the script creation part
+# all script creation requests are post methods, Zest class instance then handles the script creation part
+
     def post(self, target_id=None, transaction_id=None):  # handles actual zest script creation
             if not target_id:  # does not make sense if no target id provided
                 raise tornado.web.HTTPError(400)
             try:
                 if transaction_id:
                     Scr_Name = self.get_argument('name', '')
-                    # Zest script creation from single transaction
-                    if not self.get_component("zest").TargetScriptFromSingleTransaction(transaction_id, Scr_Name, 
-                        target_id):
+                    if not self.get_component("zest").TargetScriptFromSingleTransaction(transaction_id,Scr_Name,target_id): #zest script creation from single transaction
                         self.write({"exists": "true"})
-                # multiple transactions
-                else:
+                else:  # multiple transactions
                     trans_list = self.get_argument('trans', '')   # get transaction ids
                     Scr_Name = self.get_argument('name', '')  # get script name
                     transactions = json.loads(trans_list)  # convert to string from json
-                    # Zest script creation from multiple transactions
-                    if not self.get_component("zest").TargetScriptFromMultipleTransactions(target_id, Scr_Name, 
-                        transactions):
+                    if not self.get_component("zest").TargetScriptFromMultipleTransactions(target_id, Scr_Name, transactions): #zest script creation from multiple transactions
                         self.write({"exists": "true"})
             except exceptions.InvalidTargetReference as e:
                 cprint(e.parameter)
@@ -274,19 +278,18 @@ class ReplayRequestHandler(custom_handlers.APIRequestHandler):
     def post(self, target_id=None, transaction_id=None):
         rw_request = self.get_argument("get_req", '')  # get particular request
         parsed_req = HTTPRequest(rw_request)  # parse if its a valid HTTP request
-        if parsed_req.error_code is None:
+        if(parsed_req.error_code == None):
             replay_headers = self.RemoveIfNoneMatch(parsed_req.headers)
             self.get_component("requester").SetHeaders(replay_headers)  #Set the headers
-            # make the actual request using requester module
-            trans_obj = self.get_component("requester").Request(parsed_req.path, parsed_req.command)
+            trans_obj = self.get_component("requester").Request(parsed_req.path, parsed_req.command)  # make the actual request using requester module
             res_data = {}  # received response body and headers will be saved here
             res_data['STATUS'] = trans_obj.Status
             res_data['HEADERS'] = str(trans_obj.ResponseHeaders)
             res_data['BODY'] = trans_obj.DecodedContent
             self.write(res_data)
         else:
-            # Send something back to interface to let the user know
             print "Cannot send the given HTTP Request"
+            #send something back to interface to let the user know
 
     @tornado.web.asynchronous
     def put(self):
@@ -338,12 +341,17 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
     def get(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.write(self.get_component("transaction").GetByIDAsDict(int(transaction_id), 
-                    target_id=int(target_id)))
+                self.write(
+                    self.get_component("transaction").GetByIDAsDict(
+                        int(transaction_id),
+                        target_id=int(target_id)))
             else:
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
-                self.write(self.get_component("transaction").GetAllAsDicts(filter_data, target_id=int(target_id)))
+                self.write(
+                    self.get_component("transaction").GetAllAsDicts(
+                        filter_data,
+                        target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -384,7 +392,9 @@ class TransactionSearchHandler(custom_handlers.APIRequestHandler):
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
-            self.write(self.get_component("transaction").SearchAll(filter_data, target_id=int(target_id)))
+            self.write(self.get_component("transaction").SearchAll(
+                filter_data,
+                target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -437,7 +447,9 @@ class URLSearchHandler(custom_handlers.APIRequestHandler):
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
-            self.write(self.get_component("url_manager").SearchAll(filter_data, target_id=int(target_id)))
+            self.write(self.get_component("url_manager").SearchAll(
+                filter_data,
+                target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -465,11 +477,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
-                filter_data.update({
-                    "plugin_type": plugin_type, 
-                    "plugin_group": plugin_group, 
-                    "plugin_code": plugin_code
-                })
+                filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code})
                 results = self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id))
                 if results:
                     self.write(results[0])
@@ -494,8 +502,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                 raise tornado.web.HTTPError(400)
             else:
                 patch_data = dict(self.request.arguments)
-                self.get_component("plugin_output").Update(plugin_group, plugin_type, plugin_code, patch_data, 
-                    target_id=target_id)
+                self.get_component("plugin_output").Update(plugin_group, plugin_type, plugin_code, patch_data, target_id=target_id)
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -519,11 +526,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
-                filter_data.update({
-                    "plugin_type": plugin_type, 
-                    "plugin_group": plugin_group, 
-                    "plugin_code": plugin_code
-                })
+                filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code})
                 self.get_component("plugin_output").DeleteAll(filter_data, target_id=int(target_id))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
@@ -580,8 +583,8 @@ class WorkerHandler(custom_handlers.APIRequestHandler):
                 self.write(self.get_component("worker_manager").get_worker_details(int(worker_id)))
             if worker_id and action:
                 if int(worker_id) == 0:
-                    getattr(self.get_component("worker_manager"), '%s_all_workers' % action)()
-                getattr(self.get_component("worker_manager"), '%s_worker' % action)(int(worker_id))
+                    getattr(self.get_component("worker_manager"), action + '_all_workers')()
+                getattr(self.get_component("worker_manager"), action + '_worker')(int(worker_id))
         except exceptions.InvalidWorkerReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -631,9 +634,12 @@ class WorklistHandler(custom_handlers.APIRequestHandler):
             target_list = self.get_component("target").GetTargetConfigs(filter_data)
             if (not plugin_list) or (not target_list):
                 raise tornado.web.HTTPError(400)
-            self.get_component("worklist_manager").add_work(target_list, plugin_list, 
-                force_overwrite=self.get_component("config").ConvertStrToBool(self.get_argument("force_overwrite", 
-                    "False")))
+            self.get_component("worklist_manager").add_work(
+                target_list,
+                plugin_list,
+                force_overwrite=self.get_component("config").ConvertStrToBool(
+                    self.get_argument("force_overwrite", "False"))
+            )
             self.set_status(201)
         except exceptions.InvalidTargetReference as e:
             raise tornado.web.HTTPError(400)
@@ -665,9 +671,11 @@ class WorklistHandler(custom_handlers.APIRequestHandler):
             work_id = int(work_id)
             if work_id != 0:  # 0 is like broadcast address
                 if action == 'resume':
-                    self.get_component("db").Worklist.patch_work(work_id, active=True)
+                    self.get_component("db").Worklist.patch_work(
+                        work_id, active=True)
                 elif action == 'pause':
-                    self.get_component("db").Worklist.patch_work(work_id, active=False)
+                    self.get_component("db").Worklist.patch_work(
+                        work_id, active=False)
             else:
                 if action == 'pause':
                     self.get_component("worklist_manager").pause_all()
@@ -722,7 +730,9 @@ class ErrorDataHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
         if self.request.arguments.get_argument("user_message", default=None):
             raise tornado.web.HTTPError(400)
-        self.get_component("db_error").Update(error_id, self.request.arguments.get_argument("user_message"))
+        self.get_component("db_error").Update(
+            error_id,
+            self.request.arguments.get_argument("user_message"))
 
     def delete(self, error_id=None):
         if error_id is None:
@@ -790,7 +800,7 @@ class PlugnhackHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(412, "Empty message")
         except IOError as e:
             cprint("\n")
-            cprint("I/O error at event writing: (%s): %s" % (e.errno, e.strerror))
+            cprint("I/O error at event writing: ({0}): {1}".format(e.errno, e.strerror))
             cprint("\n")
 
 
@@ -803,16 +813,15 @@ class AutoUpdaterHandler(custom_handlers.APIRequestHandler):
     @tornado.gen.coroutine
     def get(self):
         client = tornado.httpclient.AsyncHTTPClient()
-        response = yield client.fetch("https://api.github.com/repos/owtf/owtf/commits/develop", user_agent='OWTF')
+        response = yield client.fetch("https://api.github.com/repos/owtf/owtf/commits/develop",
+                                  user_agent='OWTF')
 
         info = json.loads(response.body)
         root_dir = self.get_component("config").RootDir
 
         # now compare the commit_hash with the latest tag
         if print_version(root_dir, commit_hash=True) != info["sha"]:
-            self.write("""
-                Seems that your repository is older than the upstream. The latest commit is from %s.\n
-                Please update, it may resolve some issues!
-                """ % (info["commit"]["message"]))
+            self.write("Seems that your repository is older than the upstream. The lastest commit is \
+                from"+info["commit"]["message"]+". \nPlease update, it may resolve some issues!")
         else:
             self.write('Seems like you are running latest version. Happy Pwning!')

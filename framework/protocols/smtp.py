@@ -7,9 +7,10 @@ This is the OWTF SMTP handler, to simplify sending emails.
 import os
 import base64
 import smtplib
-from email import MIMEMultipart, MIMEBase, MIMEText, Encoders
 
+from email import MIMEMultipart, MIMEBase, MIMEText, Encoders
 from framework.dependency_management.dependency_resolver import BaseComponent
+
 from framework.lib.general import *
 from framework.utils import FileOperations
 
@@ -35,11 +36,15 @@ class SMTP(BaseComponent):
         try:
             mail_server.starttls() # Give start TLS a shot
         except Exception, e:
-            self.Print("%s - Assuming TLS unsupported and trying to continue.." % str(e))
+            self.Print(
+                str(e) +
+                " - Assuming TLS unsupported and trying to continue..")
         try:
             mail_server.login(options['SMTP_LOGIN'], options['SMTP_PASS'])
         except Exception, e:
-            self.Print("ERROR: %s - Assuming open-relay and trying to continue.." % str(e))
+            self.Print(
+                'ERROR: ' + str(e) +
+                " - Assuming open-relay and trying to continue..")
         return mail_server
 
     def is_file(self, target):
@@ -66,10 +71,13 @@ class SMTP(BaseComponent):
             try:
                 message = self.BuildMessage(options, target)
                 mail_server = self.Connect(options)
-                mail_server.sendmail(options['SMTP_LOGIN'], target, message.as_string())
+                mail_server.sendmail(
+                    options['SMTP_LOGIN'],
+                    target,
+                    message.as_string())
                 self.Print("Email relay successful!")
             except Exception, e:
-                self.error_handler.Add("Error delivering email: %s" % str(e))
+                self.error_handler.Add("Error delivering email: " + str(e))
                 num_errors += 1
         return (num_errors == 0)
 
@@ -111,6 +119,8 @@ class SMTP(BaseComponent):
         binary_blob.set_payload(FileOperations.open(attachment, 'rb').read())
         Encoders.encode_base64(binary_blob)  # base64 encode the Binary Blob.
         # Binary Blob headers.
-        binary_blob.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(attachment))
+        binary_blob.add_header(
+            'Content-Disposition',
+            'attachment; filename="%s"' % os.path.basename(attachment))
         message.attach(binary_blob)
         return True
