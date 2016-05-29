@@ -2,12 +2,13 @@
 '''
 Component to handle data storage and search of all commands run
 '''
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import CommandRegisterInterface
-
 from framework.lib.general import cprint
 from framework.db import models
 from framework.db.target_manager import target_required
+
 
 class CommandRegister(BaseComponent, CommandRegisterInterface):
 

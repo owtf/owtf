@@ -1,4 +1,7 @@
-#This module analyze and format the results
+"""
+# This module analyze and format the results
+"""
+
 import string
 
 
@@ -20,7 +23,6 @@ def analyze_responses(responses, http_helper, detection_struct):
     for resp in det_resp:
         print
         payload = http_helper.get_payload(resp)
-
         print_request(resp, payload)
         det_payloads.append(payload)
     print
@@ -39,41 +41,39 @@ def analyze_responses(responses, http_helper, detection_struct):
     for payload in sorted(undet_payloads):
         print payload
     print
-    print "Number 0f HTTP requests: " + str(len(responses))
-    print "Number 0f Detected HTTP requests: " + str(len(det_resp))
-    print "Number 0f UnDetected HTTP requests: " + str(len(undet_resp))
+    print "Number 0f HTTP requests: %s" % str(len(responses))
+    print "Number 0f Detected HTTP requests: %s" % str(len(det_resp))
+    print "Number 0f UnDetected HTTP requests: %s" % str(len(undet_resp))
     print
-    return {"detected": det_payloads,
-            "undetected": undet_payloads}
+    return {"detected": det_payloads, "undetected": undet_payloads}
 
 
 def print_request(response, payload=None):
-    #print "Detected with: " + detection_method
-    print "URL: " + response.request.url
-    print "Method: " + response.request.method
+    print "URL: %s" % response.request.url
+    print "Method: %s" % response.request.method
     if response.request.body is not None:
-        print "Post Data: " + response.request.body
+        print "Post Data: %s" % response.request.body
     if response.request.headers:
-        print "Request Headers: " + format_headers(response.request.headers)
+        print "Request Headers: %s" % format_headers(response.request.headers)
     if payload is not None:
-        print "Payload: " + payload
+        print "Payload: %s" % payload
 
 
 def print_response(response):
-    print "Code: " + str(response.code)
+    print "Code: %s" % str(response.code)
     if response.headers:
-        print "Headers: " + format_headers(response.headers)
+        print "Headers: %s" % format_headers(response.headers)
     body = response.body
     if len(body) > 140:
-        print "Body (140 chars): " + body[:70] + " ... " + body[-70:]
+        print "Body (140 chars): %s ... %s" % (body[:70], body[-70:])
     else:
-        print "Body: " + body
+        print "Body: %s" % body
 
 
 def format_headers(headers):
     formatted_headers = ""
     for header_name, header_value in headers.iteritems():
-        formatted_headers += header_name + ": " + header_value + ", "
+        formatted_headers += "%s: %s, " % (header_name, header_value)
     if formatted_headers is "":
         return format_headers
     return formatted_headers[:-2]
@@ -104,30 +104,29 @@ def analyze_chars(responses, http_helper, detection_struct):
     counter = 0
     for payload in sorted(det_payloads):
         if payload in string.printable and payload not in problematic_chars:
-            print "Char: " + payload + " ascii(" + str(ord(payload)) + ")",
+            print "Char: %s ascii(%s)" % (payload, str(ord(payload)))
         else:
-            print "Special char" + " ascii(" + str(ord(payload)) + ")",
+            print "Special char ascii(%s)" % str(ord(payload))
         counter += 1
         if counter % 4 == 0:
-            print "    "
+            print "\t"
     print
     print "List of UnDetected Characters"
     counter = 0
     for payload in sorted(undet_payloads):
         if payload in string.printable and payload not in problematic_chars:
-            print "char: " + payload + " ascii(" + str(ord(payload)) + ")",
+            print "Char: %s ascii(%s)" % (payload, str(ord(payload)))
         else:
-            print "Special char" + " ascii(" + str(ord(payload)) + ")",
+            print "Special char ascii(%s)" % str(ord(payload))
         counter += 1
         if counter % 4 == 0:
-            print "    "
+            print "\t"
     print
-    print "Number 0f HTTP requests: " + str(len(responses))
-    print "Number 0f Detected HTTP requests: " + str(len(det_resp))
-    print "Number 0f UnDetected HTTP requests: " + str(len(undet_resp))
+    print "Number 0f HTTP requests: %s" % str(len(responses))
+    print "Number 0f Detected HTTP requests: %s" % str(len(det_resp))
+    print "Number 0f UnDetected HTTP requests: %s" % str(len(undet_resp))
     print
-    return {"detected": det_payloads,
-            "undetected": undet_payloads}
+    return {"detected": det_payloads, "undetected": undet_payloads}
 
 
 def analyze_encoded_chars(responses, http_helper, detection_struct):
@@ -153,25 +152,24 @@ def analyze_encoded_chars(responses, http_helper, detection_struct):
     print "List of Detected Characters"
     counter = 0
     for payload in sorted(det_payloads):
-        print "URL encoded char: " + payload,
+        print "URL encoded char: %s" % payload,
         counter += 1
         if counter % 4 == 0:
-            print "    "
+            print "\t"
     print
     print "List of UnDetected Characters"
     counter = 0
     for payload in sorted(undet_payloads):
-        print "char: " + payload,
+        print "Char: %s" % payload,
         counter += 1
         if counter % 4 == 0:
-            print "    "
+            print "\t"
     print
-    print "Number 0f HTTP requests: " + str(len(responses))
-    print "Number 0f Detected HTTP requests: " + str(len(det_resp))
-    print "Number 0f UnDetected HTTP requests: " + str(len(undet_resp))
+    print "Number 0f HTTP requests: %s" % str(len(responses))
+    print "Number 0f Detected HTTP requests: %s" % str(len(det_resp))
+    print "Number 0f UnDetected HTTP requests: %s" % str(len(undet_resp))
     print
-    return {"detected": det_payloads,
-            "undetected": undet_payloads}
+    return {"detected": det_payloads, "undetected": undet_payloads}
 
 
 def analyze_accepted_sources(responses, detection_struct):
@@ -194,5 +192,4 @@ def analyze_accepted_sources(responses, detection_struct):
         print_request(resp)
         print "[<-]Response: "
         print_response(resp)
-        print
-        print
+        print ""

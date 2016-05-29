@@ -53,6 +53,5 @@ class FileFormatter(logging.Formatter):
     """
     def __init__(self, *args, **kwargs):
         super(FileFormatter, self).__init__()
-        self._fmt = "[%(levelname)s] [%(asctime)s] " + \
-            "[File '%(filename)s', line %(lineno)s, in %(funcName)s] -" + \
+        self._fmt = "[%(levelname)s] [%(asctime)s] " + "[File '%(filename)s', line %(lineno)s, in %(funcName)s] -" + \
             " %(message)s"
