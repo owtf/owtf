@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 '''
-The DB stores HTTP transactions, unique URLs and more. 
+Debug DB stores debug messages xD
 '''
-# Run DB field order:
 from framework.dependency_management.dependency_resolver import BaseComponent
 
 
@@ -16,4 +15,3 @@ class DebugDB(BaseComponent):
 
     def Add(self, Message):
         self.db.Add('DEBUG_DB', Message)
-

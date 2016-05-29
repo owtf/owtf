@@ -3,18 +3,19 @@
 # Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
 #                     as a part of Google Summer of Code 2013
 '''
-from multiprocessing import Process, current_process
-from framework.http import transaction
-from framework.http.proxy.cache_handler import response_from_cache, \
-    request_from_cache
-from framework.lib.owtf_process import OWTFProcess
-from framework import timer
-from urlparse import urlparse
+
 import os
 import json
 import glob
 import time
 import logging
+from urlparse import urlparse
+from multiprocessing import Process, current_process
+
+from framework.http import transaction
+from framework.http.proxy.cache_handler import response_from_cache, request_from_cache
+from framework.lib.owtf_process import OWTFProcess
+from framework import timer
 
 
 class TransactionLogger(OWTFProcess):
@@ -56,7 +57,8 @@ class TransactionLogger(OWTFProcess):
             for request_hash in hash_list:
                 request = request_from_cache(os.path.join(self.cache_dir, request_hash))
                 response = response_from_cache(os.path.join(self.cache_dir, request_hash))
-                target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list, host_list)
+                target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list, 
+                    host_list)
                 owtf_transaction = transaction.HTTP_Transaction(timer.Timer())
                 owtf_transaction.ImportProxyRequestResponse(request, response)
                 try:

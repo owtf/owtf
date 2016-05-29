@@ -2,6 +2,7 @@
 """
 Consists of owtf process class and its manager
 """
+
 from multiprocessing import Process, Queue
 
 from framework.dependency_management.dependency_resolver import BaseComponent
@@ -44,8 +45,8 @@ class OWTFProcess(Process, BaseComponent):
         + Set proper logger with file handler and Formatter
         + Launch process specific code
         """
-        # ------ DB Reinitialization ------ #
         try:
+            # ------ DB Reinitialization ------ #
             self.db.create_session()
             # ------ Logging initialization ------ #
             self.core.enable_logging()

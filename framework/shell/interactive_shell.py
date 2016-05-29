@@ -3,12 +3,13 @@
 The shell module allows running arbitrary shell commands and is critical to the framework in order to run third party tools
 The interactive shell module allows non-blocking interaction with subprocesses running tools or remote connections (i.e. shells)
 '''
-# import shlex
+
+from collections import defaultdict
 import subprocess
+
 from framework.lib.general import *
 from framework.shell import blocking_shell
 from framework.shell.async_subprocess import *
-from collections import defaultdict
 
 
 class InteractiveShell(blocking_shell.Shell):
@@ -24,7 +25,7 @@ class InteractiveShell(blocking_shell.Shell):
 
     def CheckConnection(self, AbortMessage):
         if not self.Connection:
-            cprint("ERROR - Communication channel closed - " + AbortMessage)
+            cprint("ERROR - Communication channel closed - %s" % AbortMessage)
             return False
         return True
 
@@ -41,22 +42,21 @@ class InteractiveShell(blocking_shell.Shell):
         return Output
 
     def FormatCommand(self, Command):
-        #print "self.Options['RHOST']=" + str(self.Options['RHOST']) + "self.Options['RPORT']=" + str(self.Options['RPORT']) + "Command=" + str(Command)
         if "RHOST" in self.Options and 'RPORT' in self.Options:  # Interactive shell on remote connection
-            return self.Options['RHOST'] + ':' + self.Options['RPORT'] + ' - ' + Command
+            return "%s:%s-%s" % (self.Options['RHOST'], self.Options['RPORT'], Command)
         else:
-            return "Interactive - " + Command
+            return "Interactive - %s" % Command
 
     def Run(self, Command):
         Output = ''
         Cancelled = False
-        if not self.CheckConnection("NOT RUNNING Interactive command: " + Command):
+        if not self.CheckConnection("NOT RUNNING Interactive command: %s" % Command):
             return Output
         # TODO: tail to be configurable: \n for *nix, \r\n for win32
         LogCommand = self.FormatCommand(Command)
         CommandInfo = self.StartCommand(LogCommand, LogCommand)
         try:
-            cprint("Running Interactive command: " + Command)
+            cprint("Running Interactive command: %s" % Command)
             SendAll(self.Connection, Command + "\n")
             Output += self.Read()
             self.FinishCommand(CommandInfo, Cancelled)
@@ -95,11 +95,10 @@ class InteractiveShell(blocking_shell.Shell):
         return Output
 
     def Close(self, PluginInfo):
-        print "wtf Close: " + str(self.Options)
+        print "wtf Close: %s" % str(self.Options)
         if self.Options['CommandsBeforeExit']:
             cprint("Running commands before closing Communication Channel..")
             self.RunCommandList(self.Options['CommandsBeforeExit'].split(self.Options['CommandsBeforeExitDelim']))
-        #self.RunCommandList(self.Options['CommandsBeforeExit'].split('#'))
         cprint("Trying to close Communication Channel..")
         self.Run("exit")
 
@@ -109,7 +108,6 @@ class InteractiveShell(blocking_shell.Shell):
         else:  # By default wait
             cprint("Waiting for Communication Channel to close..")
             self.Connection.wait()
-        #self.Read()
         self.Connection = None
 
     def IsClosed(self):
