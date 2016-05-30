@@ -4,11 +4,11 @@ The random module allows the rest of the framework to have access to random
 functionality.
 """
 from framework.dependency_management.dependency_resolver import BaseComponent
-
+from framework.dependency_management.interfaces import AbstractInterface
 from framework.lib.general import *
 
 
-class Selenium(BaseComponent):
+class Selenium(BaseComponent, AbstractInterface):
 
     COMPONENT_NAME = "selenium_handler"
 
@@ -33,11 +33,15 @@ class Selenium(BaseComponent):
             self.Init = True
             cprint("Initialising Selenium please wait ..")
             self.SetDisplay()
-            self.SetDriver()
+            try:
+                self.SetDriver()
+            except Exception as e:
+                print(e)
 
     def CreateURLLauncher(self, args):
         self.InitSelenium()
         from framework.selenium import url_launcher
+
         return url_launcher.URLLauncher(
             self,
             args['BASE_URL'],

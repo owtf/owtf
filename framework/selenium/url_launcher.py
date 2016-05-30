@@ -21,7 +21,10 @@ class URLLauncher(unittest.TestCase):
 
     def Run(self):
         self.SetUp()
-        self.TestURLs()
+        try:
+            self.TestURLs()
+        except Exception as e:
+            print(e)
 
     def SetUp(self):
         self.verificationErrors = []

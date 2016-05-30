@@ -103,3 +103,12 @@ def scrub_output(output):
     """remove all ANSI control sequences from the output"""
     ansi_escape = re.compile(r'\x1b[^m]*m')
     return ansi_escape.sub('', output)
+
+def GetFileAsList(Filename):
+    try:
+        Output = open(Filename, 'r').read().split("\n")
+        cprint("Loaded file: '"+Filename+"'")
+    except IOError, error:
+        log("Cannot open file: '"+Filename+"' ("+str(sys.exc_info())+")")
+        Output = []
+    return Output
