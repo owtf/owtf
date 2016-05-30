@@ -27,7 +27,10 @@ from framework.plugin.plugin_handler import PluginHandler
 from framework.plugin.plugin_helper import PluginHelper
 from framework.plugin.plugin_params import PluginParams
 from framework.protocols.smtp import SMTP
+from framework.protocols.smb import SMB
+from framework.selenium.selenium_handler import Selenium
 from framework.shell.blocking_shell import Shell
+from framework.shell.interactive_shell import InteractiveShell
 from framework.timer import Timer
 from framework.zap import ZAP_API
 from framework.zest import Zest
@@ -86,6 +89,9 @@ class ComponentInitialiser():
         ServiceLocator.get_component("worklist_manager").init()
         Shell()
         PluginParams(args)
+        SMB()
+        InteractiveShell()
+        Selenium()
         SMTP()
         ZAP_API()
 
