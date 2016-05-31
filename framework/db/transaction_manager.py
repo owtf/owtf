@@ -211,7 +211,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
             transaction_model.target_id = target_id
             transaction_model_list.append(transaction_model)
             self.db.session.add(transaction_model)
-            urls_list.append([transaction.URL, True, transaction.InScope()])
+            urls_list.append([transaction_obj.URL, True, transaction_obj.InScope()])
         self.db.session.commit()
         # Now since we have the ids ready, we can process the grep output and
         # add accordingly. So iterate over transactions and their models.

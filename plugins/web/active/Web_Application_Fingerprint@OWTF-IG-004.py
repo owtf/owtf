@@ -10,7 +10,7 @@ DESCRIPTION = "Active probing for fingerprint analysis"
 
 
 def run(PluginInfo):
-    Content = ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', 
-        ServiceLocator.get_component("resource").GetResources('ActiveFingerPrint'), PluginInfo, []) # No previous output
+    resource = ServiceLocator.get_component("resource").GetResources('ActiveFingerPrint')
+    Content = ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output',
+                                                                        resource, PluginInfo, [])  # No previous output
     return Content
-
