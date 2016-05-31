@@ -3,8 +3,8 @@ Cross Site Flashing semi passive plugin: Tries to retrieve the crossdomain.xml
 file and display it for review
 """
 
-
 from framework.dependency_management.dependency_resolver import ServiceLocator
+
 
 DESCRIPTION = "Normal requests for XSF analysis"
 
