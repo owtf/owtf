@@ -1,5 +1,4 @@
 from framework.utils import OWTFLogger
-from framework.utils import OWTFLogger
 from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 GREP Plugin for Credentials transport over an encrypted channel (OWASP-AT-001)
