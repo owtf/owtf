@@ -37,17 +37,15 @@ class InteractiveShell(blocking_shell.Shell):
         except DisconnectException:
             cprint("ERROR: Read - The Communication channel is down!")
             return Output  # End of communication channel
-        print Output  # Show progress on screen
         return Output
 
     def FormatCommand(self, Command):
-        #print "self.Options['RHOST']=" + str(self.Options['RHOST']) + "self.Options['RPORT']=" + str(self.Options['RPORT']) + "Command=" + str(Command)
         if "RHOST" in self.Options and 'RPORT' in self.Options:  # Interactive shell on remote connection
             return self.Options['RHOST'] + ':' + self.Options['RPORT'] + ' - ' + Command
         else:
             return "Interactive - " + Command
 
-    def Run(self, Command):
+    def Run(self, Command, PluginInfo):
         Output = ''
         Cancelled = False
         if not self.CheckConnection("NOT RUNNING Interactive command: " + Command):
@@ -59,23 +57,24 @@ class InteractiveShell(blocking_shell.Shell):
             cprint("Running Interactive command: " + Command)
             SendAll(self.Connection, Command + "\n")
             Output += self.Read()
-            self.FinishCommand(CommandInfo, Cancelled)
+            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
         except DisconnectException:
             Cancelled = True
             cprint("ERROR: Run - The Communication Channel is down!")
-            self.FinishCommand(CommandInfo, Cancelled)
+            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
         except KeyboardInterrupt:
             Cancelled = True
-            self.FinishCommand(CommandInfo, Cancelled)
+            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
             Output += self.error_handler.UserAbort('Command', Output)  # Identify as Command Level abort
         if not Cancelled:
-            self.FinishCommand(CommandInfo, Cancelled)
+            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
         return Output
 
-    def RunCommandList(self, CommandList):
+    def RunCommandList(self, CommandList, PluginInfo):
         Output = ""
         for Command in CommandList:
-            Output += self.Run(Command)
+            if Command != 'None':
+                Output += self.Run(Command, PluginInfo)
         return Output
 
     def Open(self, Options, PluginInfo):
@@ -87,21 +86,20 @@ class InteractiveShell(blocking_shell.Shell):
                                          stderr=subprocess.STDOUT,
                                          stdin=subprocess.PIPE,
                                          bufsize=1)
+            self.Options = Options  # Store Options for Closing processing and if initial Commands are given
             if Options['InitialCommands']:
-                Output += self.RunCommandList(Options['InitialCommands'])
-            self.Options = Options  # Store Options for Closing processing
+                Output += self.RunCommandList([Options['InitialCommands']], PluginInfo)
             Output += self.Read()
         Output += self.Read()
         return Output
 
     def Close(self, PluginInfo):
-        print "wtf Close: " + str(self.Options)
         if self.Options['CommandsBeforeExit']:
             cprint("Running commands before closing Communication Channel..")
-            self.RunCommandList(self.Options['CommandsBeforeExit'].split(self.Options['CommandsBeforeExitDelim']))
+            self.RunCommandList(self.Options['CommandsBeforeExit'].split(self.Options['CommandsBeforeExitDelim']), PluginInfo)
         #self.RunCommandList(self.Options['CommandsBeforeExit'].split('#'))
         cprint("Trying to close Communication Channel..")
-        self.Run("exit")
+        self.Run("exit", PluginInfo)
 
         if self.Options['ExitMethod'] == 'kill':
             cprint("Killing Communication Channel..")

@@ -40,8 +40,8 @@ class Shell(BaseComponent, ShellInterface):
         #CommandInfo = defaultdict(list)
         if OriginalCommand == ModifiedCommand and ModifiedCommand in self.OldCommands:
             OriginalCommand = self.OldCommands[ModifiedCommand] # Restore original command saved at modification time
-            self.timer.start_timer(self.CommandTimeOffset)
-            return { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.timer.get_start_date_time(self.CommandTimeOffset) }
+        self.timer.start_timer(self.CommandTimeOffset)
+        return { 'OriginalCommand' : OriginalCommand, 'ModifiedCommand' : ModifiedCommand, 'Start' : self.timer.get_start_date_time(self.CommandTimeOffset) }
 
     def FinishCommand(self, CommandInfo, WasCancelled, PluginInfo):
         CommandInfo['End'] = self.timer.get_end_date_time(self.CommandTimeOffset)
