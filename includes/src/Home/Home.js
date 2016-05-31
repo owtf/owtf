@@ -1,25 +1,23 @@
 import React from 'react';
-import Chart from './Chart'
-import { SEVERITY_CHART_URL } from '../constants'
 
 class Home extends React.Component {
    render() {
       return (
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-xs-12 col-md-6 nopadding">
-              <h1>Welcome to OWTF</h1>
-            </div>
-          </div>
-          <div className="row">
-            <div className="col-xs-12 col-md-6">
-              <h3>Previous Targets Analytics</h3><br/>
-            </div>
-          </div>
-          <div className="row">
-            <Chart source={SEVERITY_CHART_URL}/>
-          </div>
-        </div>
+        <div className="container-fluid jumbotron">
+          <h1>Offensive Web Testing Framework!</h1>
+          <p>
+              OWASP OWTF is a project that aims to make security assessments as efficient as possible.
+              Some of the ways in which this is achieved are:
+          </p>
+          <ul>
+              <li>Separating the tests that require no permission from the ones that require permission (i.e. active/ bruteforce).</li>
+              <li>Launching a number of tools automatically.</li>
+              <li>Running tests not found in other tools.</li>
+              <li>Providing an interactive interface/report.</li>
+              <li>More info: <a href="https://www.owasp.org/index.php/OWASP_OWTF" target="__blank__">https://www.owasp.org/index.php/OWASP_OWTF</a></li>
+          </ul>
+          <p><a className="btn btn-primary btn-lg" role="button" href="http://owtf.org" target="_blank">Learn more</a></p>
+      </div>
       );
    }
 }

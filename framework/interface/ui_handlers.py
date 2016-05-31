@@ -25,6 +25,13 @@ class Home(custom_handlers.UIRequestHandler):
         self.render('home.html', auto_updater_api_url=self.reverse_url('auto_updater_api_url'),)
 
 
+class Dashboard(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        self.render("dashboard.html")
+
+
 class TransactionLog(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
