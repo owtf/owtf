@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 '''
-The shell module allows running arbitrary shell commands and is critical to the framework in order to run third party tools
-The interactive shell module allows non-blocking interaction with subprocesses running tools or remote connections (i.e. shells)
+The shell module allows running arbitrary shell commands and is critical
+to the framework in order to run third party tools. The interactive shell module allows non-blocking
+interaction with subprocesses running tools or remote connections (i.e. shells)
 '''
 
-from collections import defaultdict
 import subprocess
 
 from framework.lib.general import *
@@ -111,4 +111,4 @@ class InteractiveShell(blocking_shell.Shell):
         self.Connection = None
 
     def IsClosed(self):
-        return self.Connection == None
+        return self.Connection is None

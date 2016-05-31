@@ -20,7 +20,7 @@ class HTTPHelper:
         request.headers = headers
         if body:
             request.body = body
-            if headers and not "Content-Length" in request.headers:
+            if headers and ("Content-Length" not in request.headers):
                 pass
             if method.upper() not in "POST":
                 if "Content-Length" in headers:

@@ -59,7 +59,7 @@ class Updater(object):
         """
         if not os.path.exists(os.path.join(self.root_dir, '.git')):
             cprint("Not a git repository. Please checkout OWTF repo from GitHub "
-                "(eg:- git clone https://github.com/owtf/owtf owtf)")
+                   "(eg:- git clone https://github.com/owtf/owtf owtf)")
             return False
         else:
             self.prepare()

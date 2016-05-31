@@ -17,6 +17,6 @@ def run(params):
     for url in re.findall(URL_REGEX, str(params['message'])):
         print "Found URL=%s" % url
         visit_url_cmd = "curl %s" % url
-        subprocess.Popen(visit_url_cmd, shell=True) # Visit URL
+        subprocess.Popen(visit_url_cmd, shell=True)  # Visit URL
         # Log visit
-        subprocess.Popen('echo "$(date)" - %s' % (VisitURLCmd+LogStr), shell=True)
+        subprocess.Popen('echo "$(date)" - %s' % (visit_url_cmd + log_str), shell=True)

@@ -5,10 +5,7 @@ This is the handler for the Social Engineering Toolkit (SET) trying to overcome
 the limitations of set-automate.
 """
 
-import time
-import pexpect
 import os
-from collections import defaultdict
 
 from framework.shell import pexpect_shell
 from framework.lib.general import *

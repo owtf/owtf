@@ -5,7 +5,6 @@ This is the OWTF SMTP handler, to simplify sending emails.
 """
 
 import os
-import base64
 import smtplib
 from email import MIMEMultipart, MIMEBase, MIMEText, Encoders
 
@@ -33,7 +32,7 @@ class SMTP(BaseComponent):
         mail_server = self.create_connection_with_mail_server(options)
         mail_server.ehlo()
         try:
-            mail_server.starttls() # Give start TLS a shot
+            mail_server.starttls()  # Give start TLS a shot
         except Exception, e:
             self.Print("%s - Assuming TLS unsupported and trying to continue.." % str(e))
         try:

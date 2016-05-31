@@ -16,9 +16,8 @@ from collections import defaultdict
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ConfigInterface
 from framework.lib.exceptions import PluginAbortException, DBIntegrityException, UnresolvableTargetException
-from framework.config import health_check
 from framework.lib.general import cprint
-from framework.db import models, target_manager
+from framework.db import target_manager
 from framework.utils import is_internal_ip, directory_access, FileOperations
 
 
@@ -86,10 +85,10 @@ class Config(BaseComponent, ConfigInterface):
                     continue
                 value = line.replace("%s: " % key, "").strip()
                 self.Set(key,
-                    self.MultipleReplace(value, {'FRAMEWORK_DIR': self.RootDir, 'OWTF_PID': str(self.OwtfPid)}))
+                         self.MultipleReplace(value, {'FRAMEWORK_DIR': self.RootDir, 'OWTF_PID': str(self.OwtfPid)}))
             except ValueError:
-                self.error_handler.FrameworkAbort("Problem in config file: %s -> Cannot parse line: %s" % (config_path, 
-                    line))
+                self.error_handler.FrameworkAbort("Problem in config file: %s -> Cannot parse line: %s" % (config_path,
+                                                                                                           line))
 
     def ConvertStrToBool(self, string):
         return (not(string in ['False', 'false', 0, '0']))
@@ -147,11 +146,11 @@ class Config(BaseComponent, ConfigInterface):
         plugins = self.db_plugin.GetAll(filter_data)
         if not plugins:
             logging.error("No plugin found matching type '%s' and group '%s' for target '%s'!" %
-                (options['PluginType'], group, target))
+                          (options['PluginType'], group, target))
         self.worklist_manager.add_work(target, plugins, force_overwrite=options["Force_Overwrite"])
 
     def get_profile_path(self, profile_name):
-        return(self.Profiles.get(profile_name, None))
+        return self.Profiles.get(profile_name, None)
 
     def LoadProfiles(self, profiles):
         # This prevents python from blowing up when the Key does not exist :)
@@ -182,7 +181,7 @@ class Config(BaseComponent, ConfigInterface):
                 added_targets.append(target)
             except UnresolvableTargetException as e:
                 logging.error("%s" % e.parameter)
-        return(added_targets)
+        return added_targets
 
     def MultipleReplace(self, text, replace_dict):
         new_text = text
@@ -192,7 +191,7 @@ class Config(BaseComponent, ConfigInterface):
                 # A recursive call to remove all level occurences of place
                 # holders.
                 new_text = new_text.replace(REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER,
-                    self.MultipleReplace(replace_dict[key], replace_dict))
+                                            self.MultipleReplace(replace_dict[key], replace_dict))
         return new_text
 
     def LoadProxyConfigurations(self, options):
@@ -296,7 +295,7 @@ class Config(BaseComponent, ConfigInterface):
         self.Set('host_output', "%s/%s" % (self.Get('OUTPUT_PATH'), self.Get('host_ip')))
         # Set the output directory.
         self.Set('port_output', "%s/%s" % (self.Get('host_output'), self.Get('port_number')))
-        URL_info_ID = target_URL.replace('/','_').replace(':','')
+        URL_info_ID = target_URL.replace('/', '_').replace(':', '')
         # Set the URL output directory (plugins will save their data here).
         self.Set('url_output', "%s/%s/" % (self.Get('port_output'), URL_info_ID))
         # Set the partial results path.
@@ -322,7 +321,7 @@ class Config(BaseComponent, ConfigInterface):
 
     def DeriveDBPathsFromURL(self, target_URL):
         targets_folder = os.path.expanduser(self.Get('TARGETS_DB_FOLDER'))
-        url_info_id = target_URL.replace('/','_').replace(':','')
+        url_info_id = target_URL.replace('/', '_').replace(':', '')
         transaction_db_path = os.path.join(targets_folder, url_info_id, "transactions.db")
         url_db_path = os.path.join(targets_folder, url_info_id, "urls.db")
         plugins_db_path = os.path.join(targets_folder, url_info_id, "plugins.db")
@@ -454,7 +453,7 @@ class Config(BaseComponent, ConfigInterface):
         """
         Get the log file path based on the process name
         """
-        log_file_name = process_name + ".log"
+        log_file_name = "%s.log" % process_name
         return os.path.join(self.FrameworkConfigGetLogsDir(), log_file_name)
 
     def GetAsList(self, key_list):
@@ -484,7 +483,7 @@ class Config(BaseComponent, ConfigInterface):
         return self.GetConfig()['string']
 
     def GetReplacementDict(self):
-        return({"FRAMEWORK_DIR":self.RootDir})
+        return {"FRAMEWORK_DIR": self.RootDir}
 
     def __getitem__(self, key):
         return self.Get(key)

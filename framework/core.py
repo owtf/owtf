@@ -138,8 +138,8 @@ class Core(BaseComponent):
                 temp_socket.close()
             except socket.error:
                 self.error_handler.FrameworkAbort("Inbound proxy address %s:%s already in use" %
-                    (self.db_config.Get('INBOUND_PROXY_IP'), self.db_config.Get("INBOUND_PROXY_PORT")))
-
+                                                  (self.db_config.Get('INBOUND_PROXY_IP'),
+                                                   self.db_config.Get("INBOUND_PROXY_PORT")))
             # If everything is fine.
             self.ProxyProcess = proxy.ProxyProcess()
             self.ProxyProcess.initialize(options['OutboundProxy'], options['OutboundProxyAuth'])
@@ -222,7 +222,7 @@ class Core(BaseComponent):
         # The order is important here ;)
         self.PluginHandler = self.get_component("plugin_handler")
         self.PluginParams = self.get_component("plugin_params")
-        # If OWTF is run without the Web UI, the WorkerManager should exit as soon as all jobs have been completed. 
+        # If OWTF is run without the Web UI, the WorkerManager should exit as soon as all jobs have been completed.
         # Otherwise, keep WorkerManager alive.
         self.WorkerManager = worker_manager.WorkerManager(keep_working=not options['nowebui'])
 

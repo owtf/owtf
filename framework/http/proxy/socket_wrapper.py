@@ -65,10 +65,10 @@ def wrap_socket(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=N
             state[0] = new_state
             io.update_handler(fd, new_state)
 
-    # # set up handshake state; use a list as a mutable cell.
+    # set up handshake state; use a list as a mutable cell.
     io = io or ioloop.IOLoop.instance()
     state = [io.ERROR]
-    # # Wrap the socket; swap out handlers.
+    # Wrap the socket; swap out handlers.
     io.remove_handler(socket.fileno())
     wrapped = ssl.SSLSocket(socket, **options)
     wrapped.setblocking(0)

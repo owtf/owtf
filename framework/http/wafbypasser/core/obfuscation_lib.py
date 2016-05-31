@@ -34,11 +34,11 @@ def transformations_info():
             UTF-8 encoding. Usage <utf8>...</utf8>\n
             UTF-16 encoding. Usage <utf16>...</utf16>\n
             UTF-32 encoding. Usage <utf32>...</utf32>\n
-            Replace tranformation. Usage <replace string1=\"A\" string2=\"B\" >...</replace>\n. This will replace A 
+            Replace tranformation. Usage <replace string1=\"A\" string2=\"B\" >...</replace>\n. This will replace A
             with B. It is important to have the attribute in the correct order.\n
             Remove new lines transformation. Usage <remove_newlines>...</remove_newlines>\n
             Unicode urlencode encoding. Usage <unicode_urlencode>...</unicode_urlencode>\n
-            loading payloads from file <payload/>. You need to specify the file with the payloads. 
+            loading payloads from file <payload/>. You need to specify the file with the payloads.
             Example, encoding payloads to base64 <base64><payload/></base64>""")
         return info
 

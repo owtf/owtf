@@ -1,8 +1,8 @@
-
 """
 # ****************Detection-Methods*********************
 # These methods are detecting if a request is blocked by a WAF
 """
+
 
 def contains(response, args):
     """This function detects if the body of an http response contains a

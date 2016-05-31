@@ -2,10 +2,8 @@
 
 import os
 import sys
-import time
 import platform
 import argparse
-from datetime import datetime
 from space_checker_utils import wget_wrapper
 
 import ConfigParser
@@ -59,7 +57,8 @@ def check_sudo():
     if not sudo:
         return
     else:
-        Colorizer.warning("[!] Your user does not have sudo privileges. Some OWTF components require sudo permissions to install")
+        Colorizer.warning("[!] Your user does not have sudo privileges. Some OWTF components require"
+                          "sudo permissions to install")
         sys.exit()
 
 
@@ -105,10 +104,11 @@ def install_restricted_from_cfg(config_file):
 
 def is_compatible():
         compatible_value = os.system("which apt-get >> /dev/null 2>&1")
-        if (compatible_value>>8) == 1:
+        if (compatible_value >> 8) == 1:
             return False
         else:
             return True
+
 
 def finish(error_code):
         if error_code == 1:
@@ -137,7 +137,7 @@ def install(cmd_arguments):
     elif "samurai" in distro.lower():
         distro_num = 2
     elif is_compatible():
-    	distro_num = 3
+        distro_num = 3
 
     if distro_num != 0:
         Colorizer.info("[*] %s has been automatically detected... " % distro)
@@ -167,10 +167,11 @@ def install(cmd_arguments):
                 Colorizer.warning("[!] Invalid Number specified")
                 continue
 
-    # First all distro independent stuff is installed
+    # Now install distro independent stuff - optional
     install_restricted_from_cfg(restricted_cfg)
+    # Install distro specific libraries needed for OWTF to work
     if distro_num != 0:
-        run_command(cp.get(cp.sections()[int(distro_num)-1], "install"))
+        run_command(cp.get(cp.sections()[int(distro_num) - 1], "install"))
     else:
         Colorizer.normal("[*] Skipping distro related installation :(")
 
@@ -187,28 +188,6 @@ def install(cmd_arguments):
     Colorizer.normal("Upgrading cffi to the latest version ...")
     # Mitigate cffi errors by upgrading it first
     run_command("sudo pip2 install --upgrade cffi")
-
-    if distro_num == '1':
-        # check kali major release number 0.x, 1.x, 2.x
-        kali_version = os.popen("cat /etc/issue", "r").read().split(" ")[2][0]
-        if kali_version == '1':
-            if args.no_user_input:
-                fixsetuptools = 'n'
-            else:
-                fixsetuptools = raw_input("Delete /usr/lib/python2.7/dist-packages/setuptools.egg-info? (y/n)\n(recommended, solves some issues in Kali 1.xx)")
-
-            if fixsetuptools == 'y':
-                Colorizer.normal("[*] Backing up the original symlink...")
-                ts = time.time()
-                human_timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H:%M:%S')
-
-                symlink_orig_path = "/usr/lib/python2.7/dist-packages/setuptools.egg-info"
-                run_command("mv %s %s-BACKUP-%s" % (symlink_orig_path, symlink_orig_path, human_timestamp))
-                Colorizer.info("[*] The original symlink exists at %s-BACKUP-%s" % (symlink_orig_path, human_timestamp))
-
-                install_using_pip(owtf_pip)
-        else:
-            Colorizer.warning("[!] Moving on with the installation but you were warned: there may be some errors!")
 
     install_using_pip(owtf_pip)
 

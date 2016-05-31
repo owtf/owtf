@@ -107,13 +107,13 @@ class ProxyHandler(tornado.web.RequestHandler):
         if self.request.uri.startswith(self.request.protocol, 0):  # Normal Proxy Request.
             self.request.url = self.request.uri
         else:  # Transparent Proxy Request.
-            self.request.url =  "%s://%s" % (self.request.protocol, self.request.host)
+            self.request.url = "%s://%s" % (self.request.protocol, self.request.host)
             if self.request.uri != '/':  # Add uri only if needed.
                 self.request.url += self.request.uri
 
         # This block here checks for already cached response and if present returns one
-        self.cache_handler = CacheHandler(self.application.cache_dir, self.request, self.application.cookie_regex, 
-            self.application.cookie_blacklist)
+        self.cache_handler = CacheHandler(self.application.cache_dir, self.request, self.application.cookie_regex,
+                                          self.application.cookie_blacklist)
         request_hash = yield tornado.gen.Task(self.cache_handler.calculate_hash)
         self.cached_response = self.cache_handler.load()
 
@@ -510,7 +510,7 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         # To stop OWTF from breaking for our beloved users :P
         try:
             self.application.ca_key_pass = FileOperations.open(os.path.expanduser(self.db_config.Get('CA_PASS_FILE')),
-                'r', owtf_clean=False).read().strip()
+                                                               'r', owtf_clean=False).read().strip()
         except IOError:
             self.application.ca_key_pass = "owtf"  # XXX: Legacy CA key pass for older versions.
         self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
@@ -521,7 +521,7 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             assert os.path.exists(self.application.ca_key)
         except AssertionError:
             self.get_component("error_handler").FrameworkAbort("Files required for SSL MiTM are missing."
-                " Please run the install script")
+                                                               " Please run the install script")
 
         try:  # If certs folder missing, create that.
             assert os.path.exists(self.application.certs_folder)

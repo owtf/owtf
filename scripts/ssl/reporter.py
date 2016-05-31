@@ -50,7 +50,7 @@ try:
         f.write('<h2> Weak certificate: </h2>' + weakSignature )
     f.write('<h2> Forward secrecy support: </h2>'+str(data[0]['endpoints'][0]['details']['forwardSecrecy'])+'(1:et if at least one browser from our simulations negotiated a Forward Secrecy suite,2:et based on Simulator results if FS is achieved with modern clients. For example, the server supports ECDHE suites, but not DHE,4:set if all simulated clients achieve FS. In other words, this requires an ECDHE + DHE combination to be supported.')
     secureRenegotiationSuported = 'true' if data[0]['endpoints'][0]['details']['renegSupport'] == 2 else 'false'
-    f.write('<h2> Secure renegotiation support: </h2>' + secureRenegotiationSuported )
+    f.write('<h2> Secure renegotiation support: </h2>' + secureRenegotiationSuported)
     f.write('</body>')
     f.write('</html>')
     f.close()

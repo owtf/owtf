@@ -33,7 +33,7 @@ svndigger_path = os.path.join(abs_path, 'restricted', 'svndigger')
 output_path = os.path.join(abs_path, 'restricted', 'combined')
 
 # Two files will be formed
-for case in ['lowercase','mixedcase']:
+for case in ['lowercase', 'mixedcase']:
     f = codecs.open(os.path.join(output_path, 'combined_%s.txt' % case), 'w', 'UTF-8')
     merged_list = {}
 

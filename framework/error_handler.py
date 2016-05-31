@@ -7,7 +7,6 @@ and logging errors for debugging later.
 import logging
 import traceback
 import sys
-import cgi
 import json
 import urllib2
 from framework.dependency_management.dependency_resolver import BaseComponent
@@ -91,14 +90,13 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             cprint("ERROR: DB is not setup yet: cannot log errors to file!")
 
     def AddOWTFBug(self, message):
-        # TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
         exc_type, exc_value, exc_traceback = sys.exc_info()
         err_trace_list = traceback.format_exception(exc_type, exc_value, exc_traceback)
         err_trace = OutputCleaner.anonymise_command("\n".join(err_trace_list))
         message = OutputCleaner.anonymise_command(message)
         output = "%sOWTF BUG: Please report the sanitised information below to help make this better.Thank you.%s" % \
-                    (self.Padding+self.SubPadding+print_version(self.config.Rootdir, commit_hash=True, version=True)+
-                    self.SubPadding)
+            (self.Padding + self.SubPadding + print_version(self.config.Rootdir, commit_hash=True, version=True) +
+             self.SubPadding)
         output += "\nMessage: %s\n" % message
         output += "\nError Trace:"
         output += "\n%s" % err_trace
@@ -122,7 +120,7 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             if item.startswith('Message'):
                 title = item[len('Message:'):]
                 break
-        data = {'title':'[Auto-Generated] %s' % title, 'body':''}
+        data = {'title': '[Auto-Generated] %s' % title, 'body': ''}
         # For github markdown.
         data['body'] = '#### OWTF Bug Report\n\n```\n%s```\n' % error_data
         if info:
@@ -135,7 +133,7 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             "Content-Type": "application/json",
             "Authorization":
                 "token " + self.config.Get("GITHUB_BUG_REPORTER_TOKEN")
-            }
+        }
         request = urllib2.Request(self.config.Get("GITHUB_API_ISSUES_URL"),
                                   headers=headers,
                                   data=data)

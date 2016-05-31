@@ -7,20 +7,19 @@ from tornado.escape import url_escape
 
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.exceptions import InvalidTargetReference, InvalidParameterType
-from framework.lib.general import cprint
 from framework.interface import custom_handlers
 
 
 class Redirect(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
-    
+
     def get(self):
         self.redirect(self.reverse_url('home_ui_url'))
 
 
 class Home(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
-    
+
     def get(self):
         self.render('home.html', auto_updater_api_url=self.reverse_url('auto_updater_api_url'),)
 
@@ -37,8 +36,8 @@ class TransactionLog(custom_handlers.UIRequestHandler):
                 "transaction.html",
                 transaction_api_url=self.reverse_url('transactions_api_url', target_id, transaction_id),
                 transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
-                transaction_replay_url=self.reverse_url('transaction_replay_url',target_id, transaction_id),
-                forward_zap_url=self.reverse_url('forward_zap_url',target_id, transaction_id)
+                transaction_replay_url=self.reverse_url('transaction_replay_url', target_id, transaction_id),
+                forward_zap_url=self.reverse_url('forward_zap_url', target_id, transaction_id)
             )
         else:
             self.render(
@@ -71,7 +70,7 @@ class ReplayRequest(custom_handlers.UIRequestHandler):
         else:
             self.render(
                 "replay_request.html",
-                transaction_api_url=self.reverse_url('transactions_api_url',target_id, transaction_id),
+                transaction_api_url=self.reverse_url('transactions_api_url', target_id, transaction_id),
                 transaction_replay_api_url=self.reverse_url('transaction_replay_api_url', target_id, transaction_id)
             )
 
@@ -170,17 +169,17 @@ class PlugnHack(custom_handlers.UIRequestHandler):
         |  CA Cert        |   /ui/plugnhack/ca.crt        |
         ---------------------------------------------------
         """
-        root_url = self.request.protocol + "://" + self.request.host # URL of UI SERVER, http://127.0.0.1:8009
-        command_url = os.path.join(root_url,"") # URL for use in service.json, http://127.0.0.1:8009/
+        root_url = "%s://%s" % (self.request.protocol, self.request.host)  # URL of UI SERVER, http://127.0.0.1:8009
+        command_url = os.path.join(root_url, "")  # URL for use in service.json, http://127.0.0.1:8009/
         # URL for use in manifest.json, http://127.0.0.1:8009/ui/plugnhack
-        pnh_url = os.path.join(root_url,"ui/plugnhack")
+        pnh_url = os.path.join(root_url, "ui", "plugnhack")
         # URL for use in manifest.json, Plug-n-Hack probe will send messages to http://127.0.0.1:8008/plugnhack
-        probe_url = "http://%s:%s" % (self.get_component("db_config").Get('INBOUND_PROXY_IP'), 
-            self.get_component("db_config").Get('INBOUND_PROXY_PORT'))
+        probe_url = "http://%s:%s" % (self.get_component("db_config").Get('INBOUND_PROXY_IP'),
+                                      self.get_component("db_config").Get('INBOUND_PROXY_PORT'))
         # Obtain path to PlugnHack template files
         # PLUGNHACK_TEMPLATES_DIR is defined in /framework/config/framework_config.cfg
-        pnh_folder = os.path.join(self.get_component("config").FrameworkConfigGet('PLUGNHACK_TEMPLATES_DIR'),"")
-        self.application.ca_cert = os.path.expanduser(self.get_component("db_config").Get('CA_CERT')) # CA certificate
+        pnh_folder = os.path.join(self.get_component("config").FrameworkConfigGet('PLUGNHACK_TEMPLATES_DIR'), "")
+        self.application.ca_cert = os.path.expanduser(self.get_component("db_config").Get('CA_CERT'))  # CA certificate
         # Using UUID system generate a key for substitution of 'api_key' in 'manifest.json', 'probe' descriptor section
         # Its use is temporary, till Bhadarwaj implements 'API key generation'
         api_key = uuid.uuid4().hex
@@ -217,7 +216,8 @@ class PlugnHack(custom_handlers.UIRequestHandler):
                 plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
             )
 
-        elif extension == "manifest.json": # In this case {{ pnh_url }} in manifest.json are replaced with 'pnh_url' value
+        # In this case {{ pnh_url }} in manifest.json are replaced with 'pnh_url' value
+        elif extension == "manifest.json":
             # Set response status code to 200 'OK'
             self.set_status(200)
             # Set response header 'Content-Type'
@@ -251,7 +251,8 @@ class PlugnHack(custom_handlers.UIRequestHandler):
                 api_key=api_key,
                 plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
             )
-        elif extension == "service.json": # In this case {{ root_url }} in service.json are replaced with 'root_url' value
+        # In this case {{ root_url }} in service.json are replaced with 'root_url' value
+        elif extension == "service.json":
             # Set response status code to 200 'OK'
             self.set_status(200)
             # Set response header 'Content-Type'
@@ -283,8 +284,8 @@ class PlugnHack(custom_handlers.UIRequestHandler):
             )
         # In this case {{ proxy_details }} in proxy.pac is replaced with 'proxy_details' value
         elif extension == "proxy.pac":
-            proxy_details = "%s:%s" %  (self.get_component("db_config").Get('INBOUND_PROXY_IP'), 
-                self.get_component("db_config").Get('INBOUND_PROXY_PORT'))
+            proxy_details = "%s:%s" % (self.get_component("db_config").Get('INBOUND_PROXY_IP'),
+                                       self.get_component("db_config").Get('INBOUND_PROXY_PORT'))
             # Set response status code to 200 'OK'
             self.set_status(200)
             # Set response header 'Content-Type'
@@ -387,9 +388,9 @@ class PluginOutput(custom_handlers.UIRequestHandler):
                 transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                 url_log_url=self.reverse_url('url_log_url', target_id),
             )
-        except InvalidTargetReference as e:
+        except InvalidTargetReference:
             raise tornado.web.HTTPError(400)
-        except InvalidParameterType as e:
+        except InvalidParameterType:
             raise tornado.web.HTTPError(400)
 
 
@@ -406,7 +407,7 @@ class WorkerManager(custom_handlers.UIRequestHandler):
             self.render(
                 "manager_interface.html",
                 worklist_api_url=self.reverse_url('worklist_api_url', None, None),
-                workers_api_url=output_files_server+self.reverse_url('workers_api_url', None, None),
+                workers_api_url=output_files_server + self.reverse_url('workers_api_url', None, None),
                 targets_api_url=self.reverse_url('targets_api_url', None),
                 targets_ui_url=self.reverse_url('targets_ui_url', None),
                 plugins_api_url=self.reverse_url('plugins_api_url', None, None, None)

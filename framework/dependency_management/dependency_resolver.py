@@ -65,7 +65,7 @@ class ServiceLocator:
 
     @classmethod
     def already_registered(cls, name):
-        return cls.registry.has_key(name)
+        return name in cls.registry
 
 
 class BaseComponent():
