@@ -44,7 +44,7 @@ class PExpectShell(blocking_shell.Shell):
         else:
             return "Interactive - " + Command
 
-    def Run(self, Command):
+    def Run(self, Command, PluginInfo):
         Output = ''
         Cancelled = False
         if not self.CheckConnection("NOT RUNNING Interactive command: " + Command):
@@ -57,17 +57,17 @@ class PExpectShell(blocking_shell.Shell):
             #SendAll(self.Connection, Command + "\n")
             self.Connection.sendline(Command)
             #Output += self.Read()
-            self.FinishCommand(CommandInfo, Cancelled)
+            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
         except pexpect.EOF:
             Cancelled = True
             cprint("ERROR: Run - The Communication Channel is down!")
-            self.FinishCommand(CommandInfo, Cancelled)
+            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
         except KeyboardInterrupt:
             Cancelled = True
-            self.FinishCommand(CommandInfo, Cancelled)
+            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
             Output += self.error_handler.UserAbort('Command', Output)  # Identify as Command Level abort
         if not Cancelled:
-            self.FinishCommand(CommandInfo, Cancelled)
+            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
         return Output
 
     def Expect(self, Pattern, TimeOut=-1):
@@ -85,10 +85,10 @@ class PExpectShell(blocking_shell.Shell):
             print self.Connection.after
         return True
 
-    def RunCommandList(self, CommandList):
+    def RunCommandList(self, CommandList, PluginInfo):
         Output = ""
         for Command in CommandList:
-            Output += self.Run(Command)
+            Output += self.Run(Command, PluginInfo)
         return Output
 
     def Open(self, Options, PluginInfo):
@@ -102,13 +102,16 @@ class PExpectShell(blocking_shell.Shell):
             CmdCount = 1
             for Cmd in CommandList:
                 if CmdCount == 1:
-                    self.Connection = pexpect.spawn(Cmd)
-                    self.Connection.logfile = sys.stdout  # Ensure screen feedback
+                    try:
+                        self.Connection = pexpect.spawn(Cmd)
+                        self.Connection.logfile = sys.stdout  # Ensure screen feedback
+                    except ValueError as e:
+                        cprint(e.message)
                 else:
-                    self.Run(Cmd)
+                    self.Run(Cmd, PluginInfo)
                 CmdCount += 1
             if 'InitialCommands' in Options and Options['InitialCommands']:
-                Output += self.RunCommandList(Options['InitialCommands'])
+                Output += self.RunCommandList(Options['InitialCommands'], PluginInfo)
             #Output += self.Read()
         #Output += self.Read()
         return Output
@@ -129,10 +132,10 @@ class PExpectShell(blocking_shell.Shell):
             return False
         if 'CommandsBeforeExit' in self.Options and self.Options['CommandsBeforeExit']:
             cprint("Running commands before closing Communication Channel..")
-            self.RunCommandList(self.Options['CommandsBeforeExit'].split(self.Options['CommandsBeforeExitDelim']))
+            self.RunCommandList(self.Options['CommandsBeforeExit'].split(self.Options['CommandsBeforeExitDelim']), PluginInfo)
         #self.RunCommandList(self.Options['CommandsBeforeExit'].split('#'))
         cprint("Trying to close Communication Channel..")
-        self.Run("exit")
+        self.Run("exit", PluginInfo)
 
         if 'ExitMethod' in self.Options and self.Options['ExitMethod'] == 'kill':
             self.Kill()
