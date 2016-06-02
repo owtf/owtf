@@ -114,7 +114,7 @@ body {
     }
 }
 
-@media (max-width: 890px) {
+@media (max-width: 912px) {
     .navbar-header {
         float: none;
     }
@@ -150,4 +150,30 @@ body {
     .collapsing {
         overflow: hidden!important;
     }
+}
+
+.btn-target {
+  background-color: #2f4050;
+  border-color: #2f4050;
+  color: #9d9d9d;
+}
+
+.btn-target:hover {
+  color: #fff;
+}
+
+.btn-target:focus {
+  color: #fff;
+}
+
+@media (min-width: 914px){
+  .btn-target {
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+}
+
+.target-tab {
+  position: relative;
+  float: left;
 }
