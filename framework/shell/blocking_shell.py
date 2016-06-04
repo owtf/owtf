@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 '''
-The shell module allows running arbitrary shell commands and is critical to the framework in order to run third party tools
+The shell module allows running arbitrary shell commands and is critical to the framework
+in order to run third party tools
 '''
 
 from collections import defaultdict
 import signal
 import subprocess
 import os
-import sys
 import logging
 
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ShellInterface
 from framework.lib.general import *
-from framework.lib.formatters import LOG_LEVEL_TOOL
 
 
 class Shell(BaseComponent, ShellInterface):
@@ -23,7 +22,7 @@ class Shell(BaseComponent, ShellInterface):
     def __init__(self):
         self.register_in_service_locator()
         # Some settings like the plugin output dir are dynamic, config is no place for those
-        self.DynamicReplacements = {}  
+        self.DynamicReplacements = {}
         self.command_register = self.get_component("command_register")
         self.target = self.get_component("target")
         self.error_handler = self.get_component("error_handler")
@@ -39,10 +38,10 @@ class Shell(BaseComponent, ShellInterface):
     def StartCommand(self, OriginalCommand, ModifiedCommand):
         if OriginalCommand == ModifiedCommand and ModifiedCommand in self.OldCommands:
             # Restore original command saved at modification time
-            OriginalCommand = self.OldCommands[ModifiedCommand] 
+            OriginalCommand = self.OldCommands[ModifiedCommand]
             self.timer.start_timer(self.CommandTimeOffset)
-            return {'OriginalCommand': OriginalCommand, 
-                    'ModifiedCommand': ModifiedCommand, 
+            return {'OriginalCommand': OriginalCommand,
+                    'ModifiedCommand': ModifiedCommand,
                     'Start': self.timer.get_start_date_time(self.CommandTimeOffset)}
 
     def FinishCommand(self, CommandInfo, WasCancelled, PluginInfo):
@@ -61,8 +60,8 @@ class Shell(BaseComponent, ShellInterface):
 
     def GetModifiedShellCommand(self, Command, PluginOutputDir):
         self.RefreshReplacements()
-        NewCommand = "cd %s;%s" % (self.ShellPathEscape(PluginOutputDir), 
-            MultipleReplace(Command, self.DynamicReplacements))
+        NewCommand = "cd %s;%s" % (self.ShellPathEscape(PluginOutputDir),
+                                   MultipleReplace(Command, self.DynamicReplacements))
         self.OldCommands[NewCommand] = Command
         return NewCommand
 
@@ -74,7 +73,7 @@ class Shell(BaseComponent, ShellInterface):
 
     def create_subprocess(self, Command):
         # Add proxy settings to environment variables so that tools can pick it up
-        # TODO: Uncomment the following lines, when testing has been ensured for using environment variables for 
+        # TODO: Uncomment the following lines, when testing has been ensured for using environment variables for
         # proxification, because these variables are set for every command that is run
         # http://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612)
         proc = subprocess.Popen(
@@ -104,13 +103,14 @@ class Shell(BaseComponent, ShellInterface):
 
         # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-
         # in-a-separate-process-in-a-wxpyt
-        try:  
+        try:
             proc = self.create_subprocess(Command)
             while True:
                 line = proc.stdout.readline()
-                if not line: 
+                if not line:
                     break
-                # NOTE: Below MUST BE print instead of "cprint" to clearly distinguish between owtf output and tool output
+                # NOTE: Below MUST BE print instead of "cprint" to clearly distinguish between owtf
+                # output and tool output
                 logging.warn(line.strip())  # Show progress on the screen too!
                 Output += line  # Save as much output as possible before a tool crashes! :)
         except KeyboardInterrupt:

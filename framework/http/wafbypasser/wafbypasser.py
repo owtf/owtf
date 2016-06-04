@@ -54,8 +54,9 @@ class WAFBypasser:
     def __init__(self, owtf):
         self.ua = "Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 /Firefox/15.0"
         self.init_request = HTTPRequest("", auth_username=None, auth_password=None, follow_redirects=True,
-            max_redirects=10, allow_nonstandard_methods=True, headers=None, proxy_host=None, proxy_port=None,
-            proxy_username=None, proxy_password=None, user_agent=self.ua, request_timeout=40.0)
+                                        max_redirects=10, allow_nonstandard_methods=True, headers=None, proxy_host=None,
+                                        proxy_port=None, proxy_username=None, proxy_password=None, user_agent=self.ua,
+                                        request_timeout=40.0)
         self.sig = "@@@"
         self.length_signature = "%slength%s" % (self.sig, self.sig)
         self.fsig = "%sfuzzhere%s" % (self.sig, self.sig)  # fuzzing signature
@@ -113,7 +114,7 @@ class WAFBypasser:
             if args["reverse"]:
                 detection_args["reverse"] = True
             self.detection_struct.append({
-                "method": resp_code_detection, 
+                "method": resp_code_detection,
                 "arguments": detection_args,
                 "info": "Response code detection"
             })
@@ -151,7 +152,7 @@ class WAFBypasser:
             print "Scanning mode: Length Detection"
             ch = args["accepted_value"][0]
             length = find_length(self.owtf, self.http_helper, self.length_signature, target, methods[0],
-                self.detection_struct, ch, headers, data)
+                                 self.detection_struct, ch, headers, data)
             print "Placeholder Allowed Length = %s" % str(length)
         # Detecting Allowed Sources
         elif args["mode"] == "detect_accepted_sources":
@@ -168,7 +169,7 @@ class WAFBypasser:
             param_source = args["param_source"]
 
             requests = detect_accepted_sources(self.http_helper, target, data, headers, param_name, param_source,
-                accepted_value, accepted_method)
+                                               accepted_value, accepted_method)
             responses = self.fuzz(args, requests)
             analyze_accepted_sources(responses, self.detection_struct)
 
@@ -178,8 +179,8 @@ class WAFBypasser:
             new_headers = self.http_helper.add_header_param(headers, "Content-Type", self.fsig)
             self.pm = PlaceholderManager(self.sig)
             # cnt_types = Payloads
-            requests = self.pm.transformed_http_requests(self.http_helper, methods, target, cnt_types, new_headers, 
-                data)
+            requests = self.pm.transformed_http_requests(self.http_helper, methods, target, cnt_types, new_headers,
+                                                         data)
             responses = self.fuzz(args, requests)
             for response in responses:
                 print "[->]Request"
@@ -201,8 +202,8 @@ class WAFBypasser:
                 requests = asp_hpp(self.http_helper, methods, payloads, param_name, param_source, target, headers, data)
                 responses = self.fuzz(args, requests)
             elif args["mode"] == "param_overwriting":
-                requests = param_overwrite(self.http_helper, param_name, param_source, payloads[0], target, data, 
-                    headers)
+                requests = param_overwrite(self.http_helper, param_name, param_source, payloads[0], target, data,
+                                           headers)
                 responses = self.fuzz(args, requests)
             analyze_responses(responses, self.http_helper, self.detection_struct)
 
@@ -284,7 +285,7 @@ class WAFBypasser:
         # Fuzzing mode
         elif args["mode"] == "fuzz":
             fuzzing_placeholders = PlaceholderManager.get_placeholder_number(self.template_signature_re, str(args))
-            if fuzzing_placeholders> 1:
+            if fuzzing_placeholders > 1:
                 Error(self.owtf, "Multiple fuzzing placeholder signatures found. "
                       "Only one fuzzing placeholder is supported.")
             elif fuzzing_placeholders == 0:

@@ -19,7 +19,7 @@ from tornado.httputil import HTTPHeaders
 from tornado.httpclient import HTTPError
 
 
-#---------------------------------MINER-ENGINE---------------------------------
+# ---------------------------------MINER-ENGINE---------------------------------
 class Proxy_Miner:
 
     User_agent = "Mozilla/5.0 (X11; Linux i686; rv:22.0) Gecko/20100101 Firefox/22.0"
@@ -60,7 +60,7 @@ class Proxy_Miner:
         print "Total Proxies : %s" % str(len(Proxies))
         return Proxies
 
-#----------------------------------HELPER-FUNCTIONS----------------------------
+# ----------------------------------HELPER-FUNCTIONS----------------------------
     # Check's if the proxy data(ip:port) are valid
     def check_proxy(self, proxy):
         ValidIpAddressRegex = """
@@ -73,7 +73,7 @@ class Proxy_Miner:
             return False
         if port < 0 or port > 65536:
             return False
-        if re.match(ValidIpAddressRegex, proxy[0]) == None:
+        if re.match(ValidIpAddressRegex, proxy[0]) is None:
             return False
         return True
 
@@ -110,16 +110,16 @@ class Proxy_Miner:
     # Removes double entries and sort's the proxy list
     def remove_double_entries(self, proxies):
         proxies.sort(key=lambda x: (int(x[0].split(".")[0]), int(x[0].split(".")[1]), int(x[0].split(".")[2]),
-            int(x[0].split(".")[3]), int(x[1])))
+                                    int(x[0].split(".")[3]), int(x[1])))
         return list(proxies for proxies, _ in itertools.groupby(proxies))
 
-#----------------------------PROXY-MINING-FUNCTIONS-------------------------
+# ----------------------------PROXY-MINING-FUNCTIONS-------------------------
 # Mining Function returns list of proxies.
 
     # http://samair.ru/proxy/proxy-84.htm
     def samair(self):
         proxies = []
-        for counter in range(1, 31): # fetch 30 pages
+        for counter in range(1, 31):  # fetch 30 pages
             if counter < 10:
                 pn = "0%s" % str(counter)
             else:
@@ -183,8 +183,8 @@ class Proxy_Miner:
                 speed-medium=true&speed-high=true&order=desc&by=updated&page=%s
                 """ % str(page_num)
 
-            request = HTTPRequest(url=url, connect_timeout=30, request_timeout=30, follow_redirects=False, 
-                use_gzip=True, user_agent=Proxy_Miner.User_agent, method="POST", body=post_data)
+            request = HTTPRequest(url=url, connect_timeout=30, request_timeout=30, follow_redirects=False,
+                                  use_gzip=True, user_agent=Proxy_Miner.User_agent, method="POST", body=post_data)
 
             try:
                 response = http_client.fetch(request)
@@ -219,11 +219,11 @@ class Proxy_Miner:
             for link in soup.find_all('a'):
                 fetch_url = link.get('href')
                 # Get the correct URL
-                if fetch_url == None:
+                if fetch_url is None:
                     continue
                 if fetch_url.find("&single=true&gid=0&output=txt") != -1:
                     request = HTTPRequest(url=fetch_url, connect_timeout=30, request_timeout=30, follow_redirects=False,
-                        use_gzip=True, user_agent=Proxy_Miner.User_agent)
+                                          use_gzip=True, user_agent=Proxy_Miner.User_agent)
                     #  sometime during tests the response was 599.
                     #  re-sending the packet 4 times
                     for times in range(0, 4):
@@ -238,8 +238,8 @@ class Proxy_Miner:
                         cookie_headers = HTTPHeaders()
                         cookie_headers.add("Cookie", cookie.split(";")[0])
                         req2 = HTTPRequest(url=first_redirect, connect_timeout=30.0, request_timeout=30.0,
-                            follow_redirects=False, use_gzip=True, headers=cookie_headers, 
-                            user_agent=Proxy_Miner.User_agent)
+                                           follow_redirects=False, use_gzip=True, headers=cookie_headers,
+                                           user_agent=Proxy_Miner.User_agent)
                         try:
                             http_client.fetch(req2)
                         except HTTPError as e2:
@@ -248,8 +248,8 @@ class Proxy_Miner:
                             cookie2 = e2.response.headers['Set-Cookie']
                             cookie_headers.add("Cookie", cookie2.split(";")[0])
                             req3 = HTTPRequest(url=second_redirect, connect_timeout=30.0, request_timeout=30.0,
-                                follow_redirects=True, use_gzip=True, headers=cookie_headers, 
-                                user_agent=Proxy_Miner.User_agent)
+                                               follow_redirects=True, use_gzip=True, headers=cookie_headers,
+                                               user_agent=Proxy_Miner.User_agent)
                             resp3 = http_client.fetch(req3)
                             lines = resp3.body.split("\n")
                             counter = 0

@@ -4,7 +4,6 @@ import logging
 import ConfigParser
 
 from framework.db import models
-from framework.config import config
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import MappingDBInterface
 from framework.lib.exceptions import InvalidMappingReference

@@ -146,7 +146,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         """
         Here keeping filter_data optional is very risky
         """
-         # for_delete = True: empty dict will match all results
+        # for_delete = True: empty dict will match all results
         query = self.GenerateQueryUsingSession(filter_data, target_id, for_delete=True)
         # Delete the folders created for these plugins
         for plugin in query.all():
@@ -185,7 +185,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             plugin_code=PluginInfo["code"],
             plugin_type=PluginInfo["type"],
             plugin_group=PluginInfo["group"]).count()
-        return plugin_output_count > 0 # This is nothing but a "None" returned
+        return plugin_output_count > 0  # This is nothing but a "None" returned
 
     @target_required
     def SavePluginOutput(self, plugin, output, target_id=None):

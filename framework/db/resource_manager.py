@@ -3,7 +3,6 @@ import logging
 
 from framework.utils import FileOperations
 from framework.db import models
-from framework.config import config
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ResourceInterface
 from framework.lib.general import cprint
@@ -24,7 +23,8 @@ class ResourceDB(BaseComponent, ResourceInterface):
     def init(self):
         self.LoadResourceDBFromFile(self.config.get_profile_path("RESOURCES_PROFILE"))
 
-    def LoadResourceDBFromFile(self, file_path): # This needs to be a list instead of a dictionary to preserve order in python < 2.7
+    # This needs to be a list instead of a dictionary to preserve order in python < 2.7
+    def LoadResourceDBFromFile(self, file_path):
         logging.info("Loading Resources from: %s..", file_path)
         if not os.path.isfile(file_path):  # check if the resource file exists
             self.error_handler.FrameworkAbort("Resource file not found at: %s" % file_path)
@@ -38,10 +38,10 @@ class ResourceDB(BaseComponent, ResourceInterface):
 
     def GetResourcesFromFile(self, resource_file):
         resources = set()
-        ConfigFile = FileOperations.open(resource_file, 'r').read().splitlines() # To remove stupid '\n' at the end
+        ConfigFile = FileOperations.open(resource_file, 'r').read().splitlines()  # To remove stupid '\n' at the end
         for line in ConfigFile:
             if '#' == line[0]:
-                continue # Skip comment lines
+                continue  # Skip comment lines
             try:
                 Type, Name, Resource = line.split('_____')
                 resources.add((Type, Name, Resource))
@@ -57,7 +57,7 @@ class ResourceDB(BaseComponent, ResourceInterface):
 
     def GetRawResources(self, ResourceType):
         filter_query = self.db.session.query(models.Resource.resource_name, models.Resource.resource).filter_by(
-            resource_type = ResourceType)
+            resource_type=ResourceType)
         # Sorting is necessary for working of ExtractURLs, since it must run after main command, so order is imp
         sort_query = filter_query.order_by(models.Resource.id)
         raw_resources = sort_query.all()

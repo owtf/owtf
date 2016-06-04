@@ -7,6 +7,7 @@ from lxml import html
 import os
 import urllib2
 
+
 abs_path = os.path.dirname(os.path.abspath(__file__))
 CMS_EXPLORER_DIR = os.path.join(abs_path, "../tools/restricted/cms-explorer/cms-explorer-1.0")
 
@@ -24,7 +25,7 @@ def get_plugins_wp():
 
     with open("%s/wp_plugins.txt.new" % CMS_EXPLORER_DIR, "w+") as file:
         for plugin in plugins:
-            file.write("wp-content/plugins/%s\n" % plugin.encode('ascii','ignore'))
+            file.write("wp-content/plugins/%s\n" % plugin.encode('ascii', 'ignore'))
     print("WP plugins list updated!")
 
 
@@ -40,7 +41,7 @@ def get_themes_wp():
 
     with open("%s/wp_themes.txt.new" % CMS_EXPLORER_DIR, "w+") as file:
         for theme in themes:
-            file.write("wp-content/themes/%s\n" % theme.encode('ascii','ignore'))
+            file.write("wp-content/themes/%s\n" % theme.encode('ascii', 'ignore'))
     print("WP themes list updated!")
 
 
@@ -60,7 +61,7 @@ def get_drupal_plugins():
 
     with open("%s/drupal_plugins.txt.new" % CMS_EXPLORER_DIR, "w+") as file:
         for module in modules:
-            file.write("%s\n" % module.encode('ascii','ignore'))
+            file.write("%s\n" % module.encode('ascii', 'ignore'))
     print("Drupal plugins list updated!")
 
 
@@ -79,7 +80,7 @@ def get_drupal_themes():
 
     with open("%s/drupal_themes.txt.new" % CMS_EXPLORER_DIR, "w+") as file:
         for theme in themes:
-            file.write('%s\n' % theme.encode('ascii','ignore'))
+            file.write('%s\n' % theme.encode('ascii', 'ignore'))
     print("Drupal themes list updated!")
 
 if __name__ == '__main__':

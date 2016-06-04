@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 '''
-This module contains helper functions to make plugins simpler to read and write, centralising common functionality easy to reuse
+This module contains helper functions to make plugins simpler to read and write,
+centralising common functionality easy to reuse
 '''
 
 import os
 import re
 import cgi
 import logging
-from collections import defaultdict
 from tornado.template import Template
 
 from framework.dependency_management.dependency_resolver import BaseComponent
@@ -70,8 +70,8 @@ class PluginHelper(BaseComponent):
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "ListPostProcessing"
         plugin_output["output"] = {
-            "ResourceListName": ResourceListName, 
-            "LinkList": LinkList, 
+            "ResourceListName": ResourceListName,
+            "LinkList": LinkList,
             "HTMLLinkList": HTMLLinkList
         }
         return ([plugin_output])
@@ -90,11 +90,11 @@ class PluginHelper(BaseComponent):
             if Transaction.Found:
                 RawHTML = Transaction.GetRawResponseBody()
                 FilteredHTML = self.reporter.sanitize_html(RawHTML)
-                NotSandboxedPath = self.plugin_handler.DumpOutputFile("NOT_SANDBOXED_%s.html" % Name, FilteredHTML, 
-                    PluginInfo)
+                NotSandboxedPath = self.plugin_handler.DumpOutputFile("NOT_SANDBOXED_%s.html" % Name, FilteredHTML,
+                                                                      PluginInfo)
                 logging.info("File: NOT_SANDBOXED_%s.html saved to: %s", Name, NotSandboxedPath)
                 iframe_template = Template("""
-                    <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder='0' 
+                    <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder='0'
                     style="overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
                     Your browser does not support iframes
                     </iframe>
@@ -164,12 +164,10 @@ class PluginHelper(BaseComponent):
             OutputExtension = "html"
         return [OutputName, OutputExtension]
 
-
     def EscapeSnippet(self, Snippet, Extension):
         if Extension == "html":  # HTML
             return str(Snippet)
         return cgi.escape(str(Snippet))  # Escape snippet to avoid breaking HTML
-
 
     def CommandDump(self, CommandIntro, OutputIntro, ResourceList, PluginInfo, PreviousOutput):
         output_list = []
@@ -185,7 +183,7 @@ class PluginHelper(BaseComponent):
                 "CommandIntro": CommandIntro,
                 "ModifiedCommand": ModifiedCommand,
                 "RelativeFilePath": self.plugin_handler.DumpOutputFile(dump_file_name, RawOutput, PluginInfo,
-                    RelativePath=True),
+                                                                       RelativePath=True),
                 "OutputIntro": OutputIntro,
                 "TimeStr": TimeStr
             }
@@ -235,10 +233,8 @@ class PluginHelper(BaseComponent):
 
         return [save_path, template.generate(LinkName=LinkName, Link="../../../%s" % save_path)]
 
-
     def DumpFileGetLink(self, Filename, Contents, PluginInfo, LinkName=''):
         return self.DumpFile(Filename, Contents, PluginInfo, LinkName)[1]
-
 
     def AnalyseRobotsEntries(self, Contents):  # Find the entries of each kind and count them
         num_lines = len(Contents.split("\n"))  # Total number of robots.txt entries
@@ -251,9 +247,8 @@ class PluginHelper(BaseComponent):
         RobotsFound = True
         if 0 == num_allow and 0 == num_disallow and 0 == num_sitemap:
             RobotsFound = False
-        return [num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, 
-            RobotsFound]
-
+        return [num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap,
+                RobotsFound]
 
     def ProcessRobots(self, PluginInfo, Contents, LinkStart, LinkEnd, Filename='robots.txt'):
         plugin_output = dict(PLUGIN_OUTPUT)
@@ -267,7 +262,7 @@ class PluginHelper(BaseComponent):
         if num_disallow > 0 or num_allow > 0 or num_sitemap > 0:
             self.url_manager.AddURLsStart()
             for Display, Entries in [['Disallowed Entries', DisallowedEntries], ['Allowed Entries', AllowedEntries],
-                ['Sitemap Entries', SitemapEntries]]:
+                                     ['Sitemap Entries', SitemapEntries]]:
                 Links = []  # Initialise category-specific link list
                 for Entry in Entries:
                     if 'Sitemap Entries' == Display:

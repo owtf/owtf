@@ -1,4 +1,3 @@
-import os
 import json
 from StringIO import StringIO
 from BaseHTTPServer import BaseHTTPRequestHandler
@@ -16,7 +15,7 @@ from framework.lib.exceptions import InvalidTargetReference
 
 class PluginDataHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET']
-    #TODO: Creation of user plugins
+    # TODO: Creation of user plugins
 
     def get(self, plugin_group=None, plugin_type=None, plugin_code=None):
         try:
@@ -106,7 +105,7 @@ class TargetConfigSearchHandler(custom_handlers.APIRequestHandler):
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
             self.write(self.get_component("target").SearchTargetConfigs(filter_data=filter_data))
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise tornado.web.HTTPError(400)
 
 class TargetSeverityChartHandler(custom_handlers.APIRequestHandler):
@@ -149,11 +148,11 @@ class OWTFSessionHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
         try:
             if action == "add":
-                self.get_component("session_db").add_target_to_session(int(self.get_argument("target_id")), 
-                    session_id=int(session_id))
+                self.get_component("session_db").add_target_to_session(int(self.get_argument("target_id")),
+                                                                       session_id=int(session_id))
             elif action == "remove":
                 self.get_component("session_db").remove_target_from_session(int(self.get_argument("target_id")),
-                    session_id=int(session_id))
+                                                                            session_id=int(session_id))
             elif action == "activate":
                 self.get_component("session_db").set_session(int(session_id))
         except exceptions.InvalidTargetReference:
@@ -243,8 +242,8 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
                 if transaction_id:
                     Scr_Name = self.get_argument('name', '')
                     # Zest script creation from single transaction
-                    if not self.get_component("zest").TargetScriptFromSingleTransaction(transaction_id, Scr_Name, 
-                        target_id):
+                    if not self.get_component("zest").TargetScriptFromSingleTransaction(transaction_id, Scr_Name,
+                                                                                        target_id):
                         self.write({"exists": "true"})
                 # multiple transactions
                 else:
@@ -252,8 +251,8 @@ class ZestScriptHandler(custom_handlers.APIRequestHandler):
                     Scr_Name = self.get_argument('name', '')  # get script name
                     transactions = json.loads(trans_list)  # convert to string from json
                     # Zest script creation from multiple transactions
-                    if not self.get_component("zest").TargetScriptFromMultipleTransactions(target_id, Scr_Name, 
-                        transactions):
+                    if not self.get_component("zest").TargetScriptFromMultipleTransactions(target_id, Scr_Name,
+                                                                                           transactions):
                         self.write({"exists": "true"})
             except exceptions.InvalidTargetReference as e:
                 cprint(e.parameter)
@@ -284,7 +283,7 @@ class ReplayRequestHandler(custom_handlers.APIRequestHandler):
         parsed_req = HTTPRequest(rw_request)  # parse if its a valid HTTP request
         if parsed_req.error_code is None:
             replay_headers = self.RemoveIfNoneMatch(parsed_req.headers)
-            self.get_component("requester").SetHeaders(replay_headers)  #Set the headers
+            self.get_component("requester").SetHeaders(replay_headers)  # Set the headers
             # make the actual request using requester module
             trans_obj = self.get_component("requester").Request(parsed_req.path, parsed_req.command)
             res_data = {}  # received response body and headers will be saved here
@@ -346,8 +345,8 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
     def get(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.write(self.get_component("transaction").GetByIDAsDict(int(transaction_id), 
-                    target_id=int(target_id)))
+                self.write(self.get_component("transaction").GetByIDAsDict(int(transaction_id),
+                                                                           target_id=int(target_id)))
             else:
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
@@ -426,12 +425,13 @@ class URLDataHandler(custom_handlers.APIRequestHandler):
 
     @tornado.web.asynchronous
     def patch(self):
-        #TODO: allow modification of urls from the ui, may be adjusting scope etc.. but i don't understand it's use yet ;)
+        # TODO: allow modification of urls from the ui, may be adjusting scope etc.. but i don't understand
+        # it's use yet ;)
         raise tornado.web.HTTPError(405)  # @UndefinedVariable
 
     @tornado.web.asynchronous
     def delete(self, target_id=None):
-        #TODO: allow deleting of urls from the ui
+        # TODO: allow deleting of urls from the ui
         raise tornado.web.HTTPError(405)  # @UndefinedVariable
 
 
@@ -460,7 +460,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
     def get(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
         try:
             filter_data = dict(self.request.arguments)
-            if not plugin_group: # First check if plugin_group is present in url
+            if not plugin_group:  # First check if plugin_group is present in url
                 self.write(self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id)))
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group": plugin_group})
@@ -474,8 +474,8 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({
-                    "plugin_type": plugin_type, 
-                    "plugin_group": plugin_group, 
+                    "plugin_type": plugin_type,
+                    "plugin_group": plugin_group,
                     "plugin_code": plugin_code
                 })
                 results = self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id))
@@ -502,8 +502,8 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                 raise tornado.web.HTTPError(400)
             else:
                 patch_data = dict(self.request.arguments)
-                self.get_component("plugin_output").Update(plugin_group, plugin_type, plugin_code, patch_data, 
-                    target_id=target_id)
+                self.get_component("plugin_output").Update(plugin_group, plugin_type, plugin_code, patch_data,
+                                                           target_id=target_id)
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -514,7 +514,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
     def delete(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
         try:
             filter_data = dict(self.request.arguments)
-            if not plugin_group: # First check if plugin_group is present in url
+            if not plugin_group:  # First check if plugin_group is present in url
                 self.get_component("plugin_output").DeleteAll(filter_data, target_id=int(target_id))
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group": plugin_group})
@@ -528,8 +528,8 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({
-                    "plugin_type": plugin_type, 
-                    "plugin_group": plugin_group, 
+                    "plugin_type": plugin_type,
+                    "plugin_group": plugin_group,
                     "plugin_code": plugin_code
                 })
                 self.get_component("plugin_output").DeleteAll(filter_data, target_id=int(target_id))
@@ -577,8 +577,8 @@ class WorkerHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'OPTIONS']
 
     def set_default_headers(self):
-        self.add_header("Access-Control-Allow-Origin","*")
-        self.add_header("Access-Control-Allow-Methods","GET, POST, DELETE")
+        self.add_header("Access-Control-Allow-Origin", "*")
+        self.add_header("Access-Control-Allow-Methods", "GET, POST, DELETE")
 
     def get(self, worker_id=None, action=None):
         if not worker_id:
@@ -639,13 +639,13 @@ class WorklistHandler(custom_handlers.APIRequestHandler):
             target_list = self.get_component("target").GetTargetConfigs(filter_data)
             if (not plugin_list) or (not target_list):
                 raise tornado.web.HTTPError(400)
-            self.get_component("worklist_manager").add_work(target_list, plugin_list, 
-                force_overwrite=self.get_component("config").ConvertStrToBool(self.get_argument("force_overwrite", 
-                    "False")))
+            self.get_component("worklist_manager").add_work(target_list, plugin_list,
+                force_overwrite=self.get_component("config").ConvertStrToBool(self.get_argument("force_overwrite",
+                                                                                                "False")))
             self.set_status(201)
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise tornado.web.HTTPError(400)
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise tornado.web.HTTPError(400)
 
     def delete(self, work_id=None, action=None):
@@ -659,11 +659,11 @@ class WorklistHandler(custom_handlers.APIRequestHandler):
             else:
                 if action == 'delete':
                     self.get_component("worklist_manager").delete_all()
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise tornado.web.HTTPError(400)
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise tornado.web.HTTPError(400)
-        except exceptions.InvalidWorkReference as e:
+        except exceptions.InvalidWorkReference:
             raise tornado.web.HTTPError(400)
 
     def patch(self, work_id=None, action=None):
@@ -681,7 +681,7 @@ class WorklistHandler(custom_handlers.APIRequestHandler):
                     self.get_component("worklist_manager").pause_all()
                 elif action == 'resume':
                     self.get_component("worklist_manager").resume_all()
-        except exceptions.InvalidWorkReference as e:
+        except exceptions.InvalidWorkReference:
             raise tornado.web.HTTPError(400)
 
 
@@ -746,11 +746,12 @@ class PlugnhackHandler(custom_handlers.APIRequestHandler):
     API handler for Plug-n-Hack. Purpose of this handler is to catch
     parameters defining actions (or/and) state that were sent from Plug-n-Hack
     commands invoked in browser, validate them, then send to proxy Plug-n-Hack
-    Handler that will process received information and take action corresponding to received information (i.e inject probe into a target, start/stop monitor a target)
+    Handler that will process received information and take action corresponding to received
+    information (i.e inject probe into a target, start/stop monitor a target)
     """
     SUPPORTED_METHODS = ['POST']
     # PnH API Handler must accept and send only an action that is a member of VALID_ACTIONS group
-    VALID_ACTIONS = ["probe","monitor","oracle","startMonitoring","stopMonitoring"]
+    VALID_ACTIONS = ["probe", "monitor", "oracle", "startMonitoring", "stopMonitoring"]
 
     def post(self):
         # Extract useful information from POST request and store it as a dictionary data structure

@@ -4,7 +4,6 @@ The DB stores HTTP transactions, unique URLs and more.
 '''
 
 import re
-import logging
 
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import URLManagerInterface

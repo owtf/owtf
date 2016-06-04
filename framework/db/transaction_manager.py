@@ -3,11 +3,9 @@
 The DB stores HTTP transactions, unique URLs and more.
 """
 
-import os
 import re
 import json
 import base64
-import logging
 from collections import defaultdict
 
 from sqlalchemy import desc, asc
@@ -72,18 +70,18 @@ class TransactionManager(BaseComponent, TransactionInterface):
             if criteria.get('response_status', None):
                 if isinstance(criteria.get('response_status'), list):
                     criteria['response_status'] = criteria['response_status'][0]
-                query = query.filter(models.Transaction.response_status.like('%%%s%%' % 
-                    criteria.get('response_status')))
+                query = query.filter(models.Transaction.response_status.like('%%%s%%' %
+                                                                             criteria.get('response_status')))
             if criteria.get('response_headers', None):
                 if isinstance(criteria.get('response_headers'), list):
                     criteria['response_headers'] = criteria['response_headers'][0]
-                query = query.filter(models.Transaction.response_headers.like('%%%s%%' % 
-                    criteria.get('response_headers')))
+                query = query.filter(models.Transaction.response_headers.like('%%%s%%' %
+                                                                              criteria.get('response_headers')))
             if criteria.get('response_body', None):
                 if isinstance(criteria.get('response_body'), list):
                     criteria['response_body'] = criteria['response_body'][0]
-                query = query.filter(models.Transaction.binary_response == False,
-                    models.Transaction.response_body.like('%%%s%%' % criteria.get('response_body')))
+                query = query.filter(models.Transaction.binary_response is False,
+                                     models.Transaction.response_body.like('%%%s%%' % criteria.get('response_body')))
         else:  # If transaction filter is being done
             if criteria.get('url', None):
                 if isinstance(criteria.get('url'), (str, unicode)):
@@ -152,15 +150,16 @@ class TransactionManager(BaseComponent, TransactionInterface):
             if trans.binary_response:
                 response_body = base64.b64decode(response_body)
             owtf_transaction.SetTransactionFromDB(trans.id, trans.url, trans.method, trans.response_status,
-                str(trans.time), trans.time_human, trans.local_timestamp, trans.data, trans.raw_request, 
-                trans.response_headers, len(response_body), response_body)
+                                                  str(trans.time), trans.time_human, trans.local_timestamp, trans.data,
+                                                  trans.raw_request, trans.response_headers, len(response_body),
+                                                  response_body)
             return owtf_transaction
         return None
 
     def DeriveTransactions(self, transactions):
         owtf_tlist = []
-        for transaction in transactions:
-            owtf_tlist.append(self.DeriveTransaction(transaction))
+        for transaction_obj in transactions:
+            owtf_tlist.append(self.DeriveTransaction(transaction_obj))
         return owtf_tlist
 
     def GetTransactionModel(self, transaction):
@@ -206,13 +205,13 @@ class TransactionManager(BaseComponent, TransactionInterface):
         transaction_model_list = []
         # Add transactions and commit so that we can have access to
         # transaction ids etc..
-        for transaction in transaction_list:
+        for transaction_obj in transaction_list:
             # TODO: This shit will go crazy on non-ascii characters
-            transaction_model = self.GetTransactionModel(transaction)
+            transaction_model = self.GetTransactionModel(transaction_obj)
             transaction_model.target_id = target_id
             transaction_model_list.append(transaction_model)
             self.db.session.add(transaction_model)
-            urls_list.append([transaction.URL, True, transaction.InScope()])
+            urls_list.append([transaction_obj.URL, True, transaction_obj.InScope()])
         self.db.session.commit()
         # Now since we have the ids ready, we can process the grep output and
         # add accordingly. So iterate over transactions and their models.
@@ -244,8 +243,9 @@ class TransactionManager(BaseComponent, TransactionInterface):
                                 existing_grep_output.transactions.append(transaction_model)
                                 self.db.session.merge(existing_grep_output)
                             else:
-                                self.db.session.add(models.GrepOutput(target_id=target_id, 
-                                    transactions=[transaction_model], name=regex_name, output=match))
+                                self.db.session.add(models.GrepOutput(target_id=target_id,
+                                                                      transactions=[transaction_model], name=regex_name,
+                                                                      output=match))
         self.db.session.commit()
         zest_trans_list = []
         # Append the transaction in the list if recording is set to on
@@ -346,8 +346,8 @@ class TransactionManager(BaseComponent, TransactionInterface):
         + match_percent
         """
         # Get the grep outputs and only unique values
-        grep_outputs = self.db.session.query(models.GrepOutput.output).filter_by(name=regex_name, 
-            target_id=target_id).group_by(models.GrepOutput.output).all()
+        grep_outputs = self.db.session.query(models.GrepOutput.output).filter_by(
+            name=regex_name, target_id=target_id).group_by(models.GrepOutput.output).all()
         grep_outputs = [i[0] for i in grep_outputs]
         # Get one transaction per match
         transaction_ids = []
@@ -364,8 +364,8 @@ class TransactionManager(BaseComponent, TransactionInterface):
                     models.GrepOutput.name == regex_name,
                     models.GrepOutput.target_id == target_id).group_by(models.Transaction).count()
             # Calculate total number of transactions in scope
-            num_transactions_in_scope = self.db.session.query(models.Transaction).filter_by(scope=True, 
-                target_id=target_id).count()
+            num_transactions_in_scope = self.db.session.query(models.Transaction).filter_by(
+                scope=True, target_id=target_id).count()
             # Calculate matched percentage
             if int(num_transactions_in_scope):
                 match_percent = int((num_matched_transactions / float(num_transactions_in_scope)) * 100)
@@ -441,19 +441,10 @@ class TransactionManager(BaseComponent, TransactionInterface):
         """
         * This will return the data from the `session_tokens` column in the form of a list,
           having no `null` values
-        * A sample data: [{"attributes": {"Path": "/", "HttpOnly": true}, "name": "ASP.NET_SessionId", 
-                          "value": "jx0ydsvwqtfgqcufazwigiih"}, {"attributes": {"Path": "/"}, "name": "amSessionId", 
+        * A sample data: [{"attributes": {"Path": "/", "HttpOnly": true}, "name": "ASP.NET_SessionId",
+                          "value": "jx0ydsvwqtfgqcufazwigiih"}, {"attributes": {"Path": "/"}, "name": "amSessionId",
                           "value": "618174515"}]
         """
         session_data = self.db.session.query(models.Transaction.session_tokens).filter_by(target_id=target_id).all()
         results = [json.loads(el[0]) for el in session_data if el and el[0]]
         return results
-
-    @target_required
-    def GetSessionURLs(self, target_id=None):
-        """
-        This returns the data in the form of [(url1), (url2), etc]
-        """
-        session_urls = self.db.session.query(models.Transaction.url).filter(models.Transaction.target_id == target_id,
-            group_by(models.Transaction.session_tokens)).getall()
-        return session_urls

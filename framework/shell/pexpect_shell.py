@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 '''
-The shell module allows running arbitrary shell commands and is critical to the framework in order to run third party tools
-The interactive shell module allows non-blocking interaction with subprocesses running tools or remote connections (i.e. shells)
+The shell module allows running arbitrary shell commands and is critical to the framework
+in order to run third party tools. The interactive shell module allows non-blocking
+interaction with subprocesses running tools or remote connections (i.e. shells)
 '''
 
-from collections import defaultdict
-import pexpect, sys
+import pexpect
+import sys
 
 from framework.lib.general import *
 from framework.shell import blocking_shell
@@ -30,7 +31,7 @@ class PExpectShell(blocking_shell.Shell):
             return Output
         try:
             Output = self.Connection.after
-            if Output == None:
+            if Output is None:
                 Output = ''
             print Output  # Show progress on screen
         except pexpect.EOF:
@@ -69,7 +70,7 @@ class PExpectShell(blocking_shell.Shell):
         return Output
 
     def Expect(self, Pattern, TimeOut=-1):
-        if self.Connection == None:
+        if self.Connection is None:
             return False
         try:
             self.Connection.expect(Pattern, TimeOut)
@@ -120,7 +121,7 @@ class PExpectShell(blocking_shell.Shell):
         self.Connection = None
 
     def Close(self, PluginInfo):
-        if self.Connection == None:
+        if self.Connection is None:
             cprint("Close: Connection already closed")
             return False
         if 'CommandsBeforeExit' in self.Options and self.Options['CommandsBeforeExit']:
@@ -134,4 +135,4 @@ class PExpectShell(blocking_shell.Shell):
             self.Wait()
 
     def IsClosed(self):
-        return self.Connection == None
+        return self.Connection is None

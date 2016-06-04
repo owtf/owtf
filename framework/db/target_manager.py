@@ -2,14 +2,11 @@ import os
 import datetime
 from urlparse import urlparse
 
-import sqlalchemy.exc
-
 from framework.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
 from framework.dependency_management.interfaces import TargetInterface
 from framework.lib.exceptions import DBIntegrityException, InvalidTargetReference, InvalidParameterType
 from framework.db import models
 from framework.db.session_manager import session_required
-from framework.lib import general
 from framework.lib.general import cprint  # TODO: Shift to logging
 
 
@@ -51,7 +48,7 @@ def target_required(func):
 
     """
     def wrapped_function(*args, **kwargs):
-        if not "target_id" in kwargs:
+        if "target_id" not in kwargs:
             kwargs["target_id"] = ServiceLocator.get_component("target").GetTargetID()
         return func(*args, **kwargs)
     return wrapped_function
@@ -82,8 +79,8 @@ class TargetDB(BaseComponent, TargetInterface):
     def DerivePathConfig(self, target_config):
         path_config = {}
         # Set the output directory.
-        path_config['host_output'] = os.path.join(self.config.FrameworkConfigGet('OUTPUT_PATH'), 
-            target_config['host_ip'])
+        path_config['host_output'] = os.path.join(self.config.FrameworkConfigGet('OUTPUT_PATH'),
+                                                  target_config['host_ip'])
         path_config['port_output'] = os.path.join(path_config['host_output'], target_config['port_number'])
         # Set the URL output directory (plugins will save their data here).
         path_config['url_output'] = os.path.join(self.config.GetOutputDirForTarget(target_config['target_url']))
@@ -252,7 +249,7 @@ class TargetDB(BaseComponent, TargetInterface):
                     query = query.limit(int(filter_data['limit']))
             except ValueError:
                 raise InvalidParameterType("Invalid parameter type for target db for id[lt] or id[gt]")
-        return query 
+        return query
 
     @session_required
     def SearchTargetConfigs(self, filter_data=None, session_id=None):
@@ -262,7 +259,7 @@ class TargetDB(BaseComponent, TargetInterface):
         # + Filtered number of targets
         total = self.db.session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).count()
         filtered_target_objs = self._generate_query(filter_data, session_id).all()
-        filtered_number = self._generate_query(filter_data, session_id,for_stats=True).count()
+        filtered_number = self._generate_query(filter_data, session_id, for_stats=True).count()
         results = {
             "records_total": total,
             "records_filtered": filtered_number,

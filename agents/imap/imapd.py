@@ -5,8 +5,6 @@ Description: OWTF imap agent daemon, to periodically check email and launch acti
 
 import imaplib
 import time
-import sys
-import os
 
 from general import *
 
@@ -28,13 +26,13 @@ def run_daemon(config, storage):
                     print "Processing message number=%s" % id
                     typ, data = connection.fetch(id, '(RFC822)')
                     # Run the Plugin specified in the config file (i.e. link_clicker, whatever) to process the message
-                    log_config = { 
-                        'message' : data,
-                        'log' : config.get('LOG_FILE'),
-                        'error_log' : config.get('ERROR_LOG_FILE')
+                    log_config = {
+                        'message': data,
+                        'log': config.get('LOG_FILE'),
+                        'error_log': config.get('ERROR_LOG_FILE')
                     }
                     Plugin().run(config.Get('PROCESS_PLUGIN'), 'payloads', log_config)
-                    storage.set(id) # Store last processed ID in the counter
+                    storage.set(id)  # Store last processed ID in the counter
             connection.close()
             connection.logout()
             storage.save()

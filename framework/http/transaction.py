@@ -62,7 +62,7 @@ class HTTP_Transaction(object):
         if self.URL != response.url:
             if response.code not in [302, 301]:  # No way, error in hook.
                 # Mark as a redirect, dirty but more accurate than 200 :P
-                self.Status =  "%s Found" % str(302)
+                self.Status = "%s Found" % str(302)
                 self.Status += " --Redirect--> %s " % str(response.code)
                 self.Status += response.msg
             # Redirect differs in schema (i.e. https instead of http).
@@ -80,7 +80,7 @@ class HTTP_Transaction(object):
         self.EndRequest()
 
     def SetTransactionFromDB(self, id, url, method, status, time, time_human, local_timestamp, request_data,
-            raw_request, response_headers, response_size, response_body):
+                             raw_request, response_headers, response_size, response_body):
         self.ID = id
         self.New = False  # Flag NOT new transaction.
         self.URL = url
@@ -98,7 +98,7 @@ class HTTP_Transaction(object):
 
     def GetSessionTokens(self):
         cookies = []
-        try: # parsing may sometimes fail
+        try:  # parsing may sometimes fail
             for cookie in self.Cookies_list:
                 cookies.append(Cookie.from_string(cookie).to_dict())
         except:
@@ -119,8 +119,8 @@ class HTTP_Transaction(object):
         # Only for new transactions, not when retrieved from DB, etc.
         if self.New:
             log = logging.getLogger('general')
-            log.info("New owtf HTTP Transaction: %s", 
-                " - ".join([self.ID, self.TimeHuman, self.Status, self.Method,self.URL]))
+            log.info("New owtf HTTP Transaction: %s",
+                     " - ".join([self.ID, self.TimeHuman, self.Status, self.Method, self.URL]))
 
     def GetHTMLLink(self, link_name=''):
         if '' == link_name:

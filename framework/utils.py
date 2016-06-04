@@ -1,6 +1,4 @@
 import os
-import re
-import sys
 import shutil
 import codecs
 import logging
@@ -52,7 +50,7 @@ def catch_io_errors(func):
             if owtf_clean:
                 error_handler = ServiceLocator.get_component("error_handler")
                 if error_handler:
-                    error_handler.FrameworkAbort( "Error when calling '%s'! %s." % (func.__name__, str(e)))
+                    error_handler.FrameworkAbort("Error when calling '%s'! %s." % (func.__name__, str(e)))
             raise e
     return io_error
 
@@ -81,16 +79,15 @@ def print_version(root_dir, commit_hash=False, version=False):
         commit_hash = os.popen(command).read()
 
     if commit_hash and version:
-        return "OWTF Version: %s, Release: %s  \n" % (
-                ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
-                ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))+ \
-                "Last commit hash: " + commit_hash
+        return "OWTF Version: %s, Release: %s  \nLast commit hash: %s" % (
+            ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
+            ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE')), commit_hash
     elif commit_hash:
         return commit_hash
     elif version:
         return "OWTF Version: %s, Release: %s " % (
-                ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
-                ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
+            ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
+            ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
     else:
         pass
 

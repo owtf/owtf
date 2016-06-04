@@ -8,8 +8,8 @@ class ClientConfigDialog(object):
     or intercept actions. If default configuration is modified, probe must be
     notified about so it can act as user wants.
     """
-    def __init__(self, ext, page, heartbeat=None, monitor_post=None, intercept_post=None, monitor_events=None, 
-        intercept_events=None):
+    def __init__(self, ext, page, heartbeat=None, monitor_post=None, intercept_post=None, monitor_events=None,
+                 intercept_events=None):
         # self._extension instance variable offers message configuration methods.
         # It is a PlugnhackExtension object
         self._extension = ext
@@ -40,7 +40,7 @@ class ClientConfigDialog(object):
             # updated heartbeat value. Heartbeat value is multiplied by 1000
             # because value sent to probe must be in miliseconds. 1 s = 1000 ms
             self._extension.client_config(_monitored_page, "heartbeartInterval", _monitored_page.hearbeat() * 1000)
-        
+
         # Compare monitorPostMessage of monitored page with monitorPostMessage
         # value from browser configuration page
         if _monitored_page.monitor_post_msg() != self._monitor_post:

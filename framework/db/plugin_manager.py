@@ -41,8 +41,8 @@ class PluginDB(BaseComponent, DBPluginInterface):
             try:
                 Code, Priority, Descrip, Hint, URL = line.strip().split(' | ')
             except ValueError:
-                self.error_handler.FrameworkAbort("Problem in Test Groups file: '%s' -> Cannot parse line: %s" % 
-                    (file_path, line))
+                self.error_handler.FrameworkAbort("Problem in Test Groups file: '%s' -> Cannot parse line: %s" %
+                                                  (file_path, line))
             if len(Descrip) < 2:
                 Descrip = Hint
             if len(Hint) < 2:
@@ -61,7 +61,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
                     hint=group['hint'],
                     url=group['url'],
                     group=plugin_group)
-                )
+            )
         self.db.session.commit()
 
     def LoadFromFileSystem(self):
@@ -106,8 +106,8 @@ class PluginDB(BaseComponent, DBPluginInterface):
             if self.db.session.query(models.TestGroup).get(code) is None:
                 continue
             # Load the plugin as a module.
-            filename, pathname, desc = imp.find_module(os.path.splitext(os.path.basename(plugin_path))[0], 
-                [os.path.dirname(plugin_path)])
+            filename, pathname, desc = imp.find_module(os.path.splitext(os.path.basename(plugin_path))[0],
+                                                       [os.path.dirname(plugin_path)])
             plugin_module = imp.load_module(os.path.splitext(file)[0], filename, pathname, desc)
             # Try te retrieve the `attr` dictionary from the module and convert
             # it to json in order to save it into the database.
@@ -220,7 +220,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
         return codes
 
     def GetAll(self, Criteria={}):
-        if Criteria.has_key("code"):
+        if "code" in Criteria:
             Criteria["code"] = self.PluginNametoCode(Criteria["code"])
         query = self.GenerateQueryUsingSession(Criteria)
         plugin_obj_list = query.all()
@@ -236,7 +236,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
         return self.GetAll({"type": PluginType, "group": PluginGroup})
 
     def GetGroupsForPlugins(self, Plugins):
-        groups = self.db.session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(Plugins), 
-            models.Plugin.name.in_(Plugins))).distinct().all()
+        groups = self.db.session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(Plugins),
+                                                                   models.Plugin.name.in_(Plugins))).distinct().all()
         groups = [i[0] for i in groups]
         return groups

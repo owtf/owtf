@@ -24,7 +24,7 @@ PIPE = subprocess.PIPE
 class Popen(subprocess.Popen):
     def recv(self, maxsize=None):
         return self._recv('stdout', maxsize)
-    
+
     def recv_err(self, maxsize=None):
         return self._recv('stderr', maxsize)
 
@@ -37,11 +37,11 @@ class Popen(subprocess.Popen):
         elif maxsize < 1:
             maxsize = 1
         return getattr(self, which), maxsize
-    
+
     def _close(self, which):
         getattr(self, which).close()
         setattr(self, which, None)
-    
+
     if subprocess.mswindows:
         def send(self, input):
             if not self.stdin:
@@ -87,7 +87,7 @@ class Popen(subprocess.Popen):
             try:
                 written = os.write(self.stdin.fileno(), input)
             except OSError, why:
-                if why[0] == errno.EPIPE: #broken pipe
+                if why[0] == errno.EPIPE:  # broken pipe
                     return self._close('stdin')
                 raise
             return written
@@ -98,7 +98,7 @@ class Popen(subprocess.Popen):
                 return None
             flags = fcntl.fcntl(conn, fcntl.F_GETFL)
             if not conn.closed:
-                fcntl.fcntl(conn, fcntl.F_SETFL, flags| os.O_NONBLOCK)
+                fcntl.fcntl(conn, fcntl.F_SETFL, flags | os.O_NONBLOCK)
             try:
                 if not select.select([conn], [], [], 0)[0]:
                     return ''
@@ -114,10 +114,11 @@ class Popen(subprocess.Popen):
 
 message = "Other end disconnected!"
 
+
 def recv_some(p, t=.1, e=1, tr=5, stderr=0):
     if tr < 1:
         tr = 1
-    x = time.time()+t
+    x = time.time() + t
     y = []
     r = ''
     pr = p.recv
@@ -133,9 +134,10 @@ def recv_some(p, t=.1, e=1, tr=5, stderr=0):
         elif r:
             y.append(r)
         else:
-            time.sleep(max((x-time.time())/tr, 0))
+            time.sleep(max((x - time.time()) / tr, 0))
     return ''.join(y)
-    
+
+
 def send_all(p, data):
     while len(data):
         sent = p.send(data)
@@ -149,7 +151,7 @@ if __name__ == '__main__':
         shell, commands, tail = ('cmd', ('dir /w', 'echo HELLO WORLD'), '\r\n')
     else:
         shell, commands, tail = ('sh', ('ls', 'echo HELLO WORLD'), '\n')
-    
+
     a = Popen(shell, stdin=PIPE, stdout=PIPE)
     print recv_some(a),
     for cmd in commands:

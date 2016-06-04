@@ -5,9 +5,8 @@ The reporter module is in charge of producing the HTML Report as well as
 '''
 
 import cgi
-import codecs
 
-from tornado.template import Template, Loader
+from tornado.template import Loader
 
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ReporterInterface
@@ -64,7 +63,7 @@ class Reporter(BaseComponent, ReporterInterface):
     def reset_loader(self):
         return self.Loader.reset()
 
-#----------------------------------- Methods exported from plugin_helper.py ---------------------------------
+# ----------------------------------- Methods exported from plugin_helper.py ---------------------------------
 
     def CommandTable(self, Command):
         return self.Loader.load("command_table.html").generate(Command=Command)
@@ -80,8 +79,8 @@ class Reporter(BaseComponent, ReporterInterface):
         """
         Draws an HTML Search box for defined Vuln Search resources
         """
-        return self.Loader.load("resource_link_list.html").generate(ResourceListName=ResourceListName, 
-            ResourceList=ResourceList)
+        return self.Loader.load("resource_link_list.html").generate(ResourceListName=ResourceListName,
+                                                                    ResourceList=ResourceList)
 
     def TabbedResourceLinkList(self, ResourcesList):
         """
@@ -99,7 +98,7 @@ class Reporter(BaseComponent, ReporterInterface):
 
     def ListPostProcessing(self, ResourceListName, LinkList, HTMLLinkList):
         return self.Loader.load("list_post_processing.html").generate(ResourceListName=ResourceListName,
-            LinkList=LinkList, HTMLLinkList=HTMLLinkList)
+                                                                      LinkList=LinkList, HTMLLinkList=HTMLLinkList)
 
     def RequestLinkList(self, ResourceListName, LinkList):
         return self.Loader.load("request_link_list.html").generate(ResourceListName=ResourceListName, LinkList=LinkList)
@@ -109,8 +108,8 @@ class Reporter(BaseComponent, ReporterInterface):
         Draws an HTML Search box for defined Vuln Search resources
         """
         VulnSearchResources = self.resource.GetResources('VulnSearch')
-        return self.Loader.load("vulnerability_search_box.html").generate(SearchStr=SearchStr, 
-            VulnSearchResources=VulnSearchResources)
+        return self.Loader.load("vulnerability_search_box.html").generate(SearchStr=SearchStr,
+                                                                          VulnSearchResources=VulnSearchResources)
 
     def SuggestedCommandBox(self, PluginOutputDir, CommandCategoryList, Header=''):
         """
@@ -122,8 +121,8 @@ class Reporter(BaseComponent, ReporterInterface):
             TitleList.append(item[0])
             CommandList.append(self.resource.GetResources(item[1]))
         # TODO: Fix up the plugin
-        return self.Loader.load("suggested_command_box.html").generate(Header=Header, TitleList=TitleList, 
-            CommandList=CommandList)
+        return self.Loader.load("suggested_command_box.html").generate(Header=Header, TitleList=TitleList,
+                                                                       CommandList=CommandList)
 
     def CommandDump(self, Name, CommandIntro, ModifiedCommand, RelativeFilePath, OutputIntro, TimeStr):
         AbsPath = self.plugin_handler.RetrieveAbsPath(RelativeFilePath)
@@ -138,7 +137,7 @@ class Reporter(BaseComponent, ReporterInterface):
             "CommandIntro": CommandIntro,
             "ModifiedCommand": ModifiedCommand,
             "FilePath": RelativeFilePath,
-            "OutputIntro":  OutputIntro,
+            "OutputIntro": OutputIntro,
             "OutputLines": OutputLines,
             "TimeStr": TimeStr,
             "mNumLinesToShow": self.mNumLinesToShow,
@@ -147,8 +146,8 @@ class Reporter(BaseComponent, ReporterInterface):
         return self.Loader.load("command_dump.html").generate(**table_vars)
 
     def URLsFromStr(self, TimeStr, VisitURLs, URLList, NumFound):
-        html_content = self.Loader.load("urls_from_str.html").generate(TimeStr=TimeStr, VisitURLs=VisitURLs, 
-            NumURLs=len(URLList), NumFound=NumFound)
+        html_content = self.Loader.load("urls_from_str.html").generate(TimeStr=TimeStr, VisitURLs=VisitURLs,
+                                                                       NumURLs=len(URLList), NumFound=NumFound)
         if URLList:
             html_content += self.LinkList("URLs Scraped", URLList)
         return html_content
@@ -171,12 +170,12 @@ class Reporter(BaseComponent, ReporterInterface):
         return TestResult
 
     def HtmlString(self, String):
-        return(String)
+        return String
 
 # ---------------------- Grep Plugin Outputs -------------------- #
     def ResponseBodyMatches(self, ResponseRegexpName):
-        RegexpName, GrepOutputs, TransactionIDS, match_percent = self.transaction.SearchByRegexName(ResponseRegexpName, 
-            stats=True)
+        RegexpName, GrepOutputs, TransactionIDS, match_percent = self.transaction.SearchByRegexName(ResponseRegexpName,
+                                                                                                    stats=True)
         variables = {
             "name": RegexpName.replace("RESPONSE_REGEXP_FOR_", "").replace('_', ' '),
             "matches": GrepOutputs,
@@ -189,11 +188,11 @@ class Reporter(BaseComponent, ReporterInterface):
         return self.ResearchHeaders(HeaderRegexpName)[0]
 
     def ResearchHeaders(self, RegexName):
-        regex_name, grep_outputs, transaction_ids, match_percent = self.transaction.SearchByRegexName(RegexName, 
-            stats=True)
+        regex_name, grep_outputs, transaction_ids, match_percent = self.transaction.SearchByRegexName(RegexName,
+                                                                                                      stats=True)
         # [[unique_matches, matched_transactions, matched_percentage]]
-        searches = self.Loader.load("header_searches.html").generate(match_percent=match_percent, matches=grep_outputs, 
-            transaction_ids=transaction_ids)
+        searches = self.Loader.load("header_searches.html").generate(match_percent=match_percent, matches=grep_outputs,
+                                                                     transaction_ids=transaction_ids)
         return [searches, grep_outputs]
 
     def FingerprintData(self):
@@ -211,7 +210,7 @@ class Reporter(BaseComponent, ReporterInterface):
         vars = {
             "Cookies": [{
                 "Name": Cookie.split('=')[0],
-                "Link":  Header2TransacDict[self.config.Get('HEADERS_FOR_COOKIES').lower() + Cookie],
+                "Link": Header2TransacDict[self.config.Get('HEADERS_FOR_COOKIES').lower() + Cookie],
                 "Attribs": Cookie.replace(Cookie.split('=')[0] + "=", "").replace("; ", ";").split(";"),
             } for Cookie in CookieValueList],
         }
@@ -220,8 +219,8 @@ class Reporter(BaseComponent, ReporterInterface):
         PossibleCookieAttributes = self.config.Get('COOKIE_ATTRIBUTES').split(',')
         for Cookie in CookieValueList:
             CookieName = Cookie.split('=')[0]
-            CookieLink = self.Render.DrawButtonLink(cgi.escape(CookieName), Header2TransacDict[SetCookie+Cookie])
-            CookieAttribs = Cookie.replace(CookieName+"=", "").replace("; ", ";").split(";")
+            CookieLink = self.Render.DrawButtonLink(cgi.escape(CookieName), Header2TransacDict[SetCookie + Cookie])
+            CookieAttribs = Cookie.replace(CookieName + "=", "").replace("; ", ";").split(";")
             Table.CreateCustomRow('<tr><th colspan="2">Cookie: %s</th></tr>' % CookieLink)
             Table.CreateRow(['Attribute', 'Value'], True)
             NotFoundStr = "<b>Not Found</b>"
@@ -239,5 +238,5 @@ class Reporter(BaseComponent, ReporterInterface):
                         break
                 Table.CreateRow([Attrib, DisplayAttribute])
         if Table.GetNumRows() == 0:
-                return "" # No Attributes found
+                return ""  # No Attributes found
         return "<h3>Cookie Attribute Analysis</h3>%s" % Table.Render()

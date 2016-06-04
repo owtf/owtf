@@ -53,7 +53,7 @@ class TOR_manager(BaseComponent):
                 self.time = int(args[4])
             except ValueError:
                 self.error_handler.FrameworkAbort("Invalid TOR Time")
-            if self.time < 1:   
+            if self.time < 1:
                 self.error_handler.FrameworkAbort("Invalid TOR Time")
 
         self.TOR_Connection = self.Open_connection()
@@ -63,11 +63,11 @@ class TOR_manager(BaseComponent):
     def Authenticate(self):
         self.TOR_Connection.send('AUTHENTICATE "%s"\r\n' % self.password)
         response = self.TOR_Connection.recv(1024)
-        if response.startswith('250'):  #250 is the success response
+        if response.startswith('250'):  # 250 is the success response
             cprint("Successfully Authenticated to TOR control")
         else:
             self.error_handler.FrameworkAbort("Authentication Error : %s" % response)
-    
+
     # Opens a new connection to TOR control
     def Open_connection(self):
         try:
@@ -92,18 +92,18 @@ class TOR_manager(BaseComponent):
             return True
         elif output == "0":
             return False
-    
+
     @staticmethod
     def msg_start_tor(self):
         cprint("Error : TOR daemon is not running (Tips: service tor start)")
-        
+
     # TOR configuration Info
     @staticmethod
     def msg_configure_tor():
         cprint("""
         1)Open torrc file usually located at '/etc/tor/torrc'
           if you can't find torrc file visit https://www.torproject.org/docs/faq.html.en#torrc
-        2)Enable the TOR control port by uncommenting(removing the hash(#) symbol) 
+        2)Enable the TOR control port by uncommenting(removing the hash(#) symbol)
           or adding the following line
           should look like this  "ControlPort 9051".
         3)Generate a new hashed password by running the following command
@@ -111,7 +111,7 @@ class TOR_manager(BaseComponent):
         4)Uncomment "HashedControlPassword" and add the previously generated hash
           should look like the following but with you hash
           HashedControlPassword 16:52B319480CED2E0860BAEA7565ECCF628A59FEE59B6E0592CD3F01C710
- 
+
         Recommended Setting:
              ControlPort 9051
              HashedControlPassword 16:52B319480CED2E0860BAEA7565ECCF628A59FEE59B6E0592CD3F01C710
@@ -137,7 +137,7 @@ class TOR_manager(BaseComponent):
 # This will run in a new process in order to renew the IP address after certain time.
 def TOR_control_process(self):
     while 1:
-        while self.renew_ip() == True:
+        while self.renew_ip() is True:
             time.sleep(self.time * 60)  # time converted in minutes
         else:
             time.sleep(10)  # will try again to renew IP in 10 seconds

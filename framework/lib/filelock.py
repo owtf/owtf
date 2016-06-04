@@ -46,12 +46,12 @@ class FileLock(object):
         start_time = time.time()
         while True:
             try:
-                self.fd = os.open(self.lockfile, os.O_CREAT|os.O_EXCL|os.O_RDWR)
+                self.fd = os.open(self.lockfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
                 break
             except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise
-                if (time.time()-start_time) >= self.timeout:
+                if (time.time() - start_time) >= self.timeout:
                     raise FileLockTimeoutException("%d seconds passed." % self.timeout)
                 time.sleep(self.delay)
         self.is_locked = True
@@ -74,7 +74,7 @@ class FileLock(object):
             self.acquire()
         return self
 
-    def __exit__(self, type, value, traceback): #@UnusedVariable
+    def __exit__(self, type, value, traceback):  # @UnusedVariable
         """ Activated at the end of the with statement.
             It automatically releases the lock if it isn't locked.
         """

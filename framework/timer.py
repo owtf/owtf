@@ -5,11 +5,11 @@ certain actions to execute and present this information in both seconds and
 human-readable form.
 """
 
-import time
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import TimerInterface
 import math
 import datetime
+
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import TimerInterface
 
 
 class Timer(BaseComponent, TimerInterface):
@@ -42,11 +42,11 @@ class Timer(BaseComponent, TimerInterface):
     def get_time_as_str(self, timedelta):
         microseconds, seconds = math.modf(timedelta.total_seconds())
         seconds = int(seconds)
-        miliseconds = int(microseconds*1000)
+        miliseconds = int(microseconds * 1000)
         hours = seconds / 3600
-        seconds -= 3600*hours
+        seconds -= 3600 * hours
         minutes = seconds / 60
-        seconds -= 60*minutes
+        seconds -= 60 * minutes
         TimeStr = ''
         if hours > 0:
             TimeStr += "%2dh, " % hours
@@ -61,9 +61,9 @@ class Timer(BaseComponent, TimerInterface):
         seconds = int(seconds)
         miliseconds = int(miliseconds[0:3])
         hours = seconds / 3600
-        seconds -= 3600*hours
+        seconds -= 3600 * hours
         minutes = seconds / 60
-        seconds -= 60*minutes
+        seconds -= 60 * minutes
         TimeStr = ''
         if hours > 0:
             TimeStr += "%2dh, " % hours

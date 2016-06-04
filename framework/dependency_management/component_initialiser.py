@@ -27,7 +27,10 @@ from framework.plugin.plugin_handler import PluginHandler
 from framework.plugin.plugin_helper import PluginHelper
 from framework.plugin.plugin_params import PluginParams
 from framework.protocols.smtp import SMTP
+from framework.protocols.smb import SMB
+from framework.selenium.selenium_handler import Selenium
 from framework.shell.blocking_shell import Shell
+from framework.shell.interactive_shell import InteractiveShell
 from framework.timer import Timer
 from framework.zap import ZAP_API
 from framework.zest import Zest
@@ -86,6 +89,9 @@ class ComponentInitialiser():
         ServiceLocator.get_component("worklist_manager").init()
         Shell()
         PluginParams(args)
+        SMB()
+        InteractiveShell()
+        Selenium()
         SMTP()
         ZAP_API()
 
@@ -128,7 +134,7 @@ class ComponentInitialiser():
 
             if answer.upper() in ["", "YES", "Y"]:
                 proxy_q = multiprocessing.Queue()
-                proxy_checker = multiprocessing.Process(target=Proxy_Checker.check_proxies,args=(proxy_q, proxies,))
+                proxy_checker = multiprocessing.Process(target=Proxy_Checker.check_proxies, args=(proxy_q, proxies,))
                 logging.info("Checking Proxies...")
                 start_time = time.time()
                 proxy_checker.start()
@@ -142,8 +148,8 @@ class ComponentInitialiser():
                 logging.info("Writing proxies to disk(~/.owtf/proxy_miner/proxies.txt)")
                 miner.export_proxies_to_file("proxies.txt", proxies)
             if answer.upper() in ["", "YES", "Y"]:
-                logging.info("Proxy Check Time: %s" % time.strftime('%H:%M:%S', 
-                    time.localtime(time.time()-start_time-3600)))
+                logging.info("Proxy Check Time: %s" % time.strftime('%H:%M:%S',
+                             time.localtime(time.time() - start_time - 3600)))
                 cprint("Done")
 
             if proxy_manager.number_of_proxies is 0:
