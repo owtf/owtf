@@ -111,8 +111,8 @@ class Transaction(Base):
     )
 
     def __repr__(self):
-        return "<HTTP Transaction (url='%s' method='%s' response_status='%s')>" % (self.url, self.method, 
-            self.response_status)
+        return "<HTTP Transaction (url='%s' method='%s' response_status='%s')>" % (self.url, self.method,
+                                                                                   self.response_status)
 
 
 class GrepOutput(Base):

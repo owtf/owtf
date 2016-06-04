@@ -5,7 +5,6 @@ automatically log HTTP transactions by calling the DB module.
 """
 
 import sys
-import cgi
 import httplib
 import logging
 import urllib
@@ -33,7 +32,7 @@ class MyHTTPHandler(urllib2.HTTPHandler):
             return self.do_open(MyHTTPConnection, req)
         except KeyboardInterrupt:
             raise KeyboardInterrupt  # Not handled here.
-        except Exception, e:
+        except Exception:
             # Can't have OWTF crash due to a library exception -i.e. raise BadStatusLine(line)-
             return ''
 
@@ -52,7 +51,7 @@ class MyHTTPSHandler(urllib2.HTTPSHandler):
             return self.do_open(MyHTTPSConnection, req)
         except KeyboardInterrupt:
             raise KeyboardInterrupt  # Not handled here.
-        except Exception, e:
+        except Exception:
             # Can't have OWTF crash due to a library exception -i.e. raise BadStatusLine(line)-.
             return ''
 
@@ -196,7 +195,7 @@ class Requester(BaseComponent, RequesterInterface):
         request = urllib2.Request(url, post, self.Headers)  # GET request.
         if method is not None:
             # kludge: necessary to do anything other that GET or POST with urllib2
-            request.get_method = lambda : method
+            request.get_method = lambda: method
         # MUST create a new Transaction object each time so that lists of
         # transactions can be created and process at plugin-level
         # Pass the timer object to avoid instantiating each time.
@@ -223,7 +222,7 @@ class Requester(BaseComponent, RequesterInterface):
     def ProcessHTTPErrorCode(self, error, url):
         message = ""
         if str(error.reason).startswith("[Errno 111]"):
-            message = "ERROR: The connection was refused!: %s" %  str(error)
+            message = "ERROR: The connection was refused!: %s" % str(error)
             self.RequestCountRefused += 1
         elif str(error.reason).startswith("[Errno -2]"):
             self.error_handler.FrameworkAbort("ERROR: cannot resolve hostname!: %s" % str(error))
@@ -298,7 +297,7 @@ class Requester(BaseComponent, RequesterInterface):
                 continue  # Skip blank lines.
             if not self.url_manager.IsURL(url):
                 self.error_handler.Add("Minor issue: %s is not a valid URL and has been ignored, processing continues" %
-                    str(url))
+                                       str(url))
                 continue  # Skip garbage URLs.
             transaction = self.GetTransaction(use_cache, url, method=method, data=data)
             if transaction is not None:

@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import sys
-import time
 import signal
 import subprocess
 import logging
@@ -63,7 +61,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
     def get_allowed_process_count(self):
         process_per_core = int(self.db_config.Get('PROCESS_PER_CORE'))
         cpu_count = multiprocessing.cpu_count()
-        return(process_per_core*cpu_count)
+        return process_per_core * cpu_count
 
     def get_task(self):
         work = None
@@ -120,13 +118,13 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                     self.workers[k]["busy"] = False  # Worker is IDLE
                     self.workers[k]["start_time"] = "NA"
                 else:
-                    logging.info("Worker with name %s and pid %s seems dead" % (self.workers[k]["worker"].name, 
-                        self.workers[k]["worker"].pid))
+                    logging.info("Worker with name %s and pid %s seems dead" % (self.workers[k]["worker"].name,
+                                                                                self.workers[k]["worker"].pid))
                     self.spawn_worker(index=k)
                 work_to_assign = self.get_task()
                 if work_to_assign:
-                    logging.info("Work assigned to %s with pid %d" % (self.workers[k]["worker"].name, 
-                        self.workers[k]["worker"].pid))
+                    logging.info("Work assigned to %s with pid %d" % (self.workers[k]["worker"].name,
+                                                                      self.workers[k]["worker"].pid))
                     trash_can = self.workers[k]["worker"].output_q.get()
                     # Assign work ,set target to used,and process to busy
                     self.workers[k]["worker"].input_q.put(work_to_assign)
@@ -190,7 +188,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             # so plugin is killed
             # Else, the worker dies :'(
             os.kill(pid, psignal)
-        except Exception as e:
+        except:
             logging.error("Error while trying to abort Worker process", exc_info=True)
 
     def _signal_children(self, parent_pid, psignal):
@@ -212,24 +210,24 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
     def get_worker_details(self, pseudo_index=None):
         if pseudo_index:
             try:
-                temp_dict = dict(self.workers[pseudo_index-1])
+                temp_dict = dict(self.workers[pseudo_index - 1])
                 temp_dict["worker"] = temp_dict["worker"].pid
                 temp_dict["id"] = pseudo_index
-                return(temp_dict)
+                return temp_dict
             except IndexError:
                 raise InvalidWorkerReference("No worker process with id: %s" % str(pseudo_index))
         else:
             worker_temp_list = []
-            for i in range(0, len(self.workers)):
+            for i, obj in enumerate(self.workers):
                 temp_dict = dict(self.workers[i])
                 temp_dict["worker"] = temp_dict["worker"].pid
-                temp_dict["id"] = i+1  # Zero-Index is not human friendly
+                temp_dict["id"] = i + 1  # Zero-Index is not human friendly
                 worker_temp_list.append(temp_dict)
-            return(worker_temp_list)
+            return worker_temp_list
 
     def get_worker_dict(self, pseudo_index):
         try:
-            return(self.workers[pseudo_index-1])
+            return self.workers[pseudo_index - 1]
         except IndexError:
             raise InvalidWorkerReference("No worker process with id: %s" % str(pseudo_index))
 
@@ -249,7 +247,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         worker_dict = self.get_worker_dict(pseudo_index)
         if not worker_dict["busy"]:
             self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
-            del self.workers[pseudo_index-1]
+            del self.workers[pseudo_index - 1]
         else:
             raise InvalidWorkerReference("Worker with id %s is busy" % str(pseudo_index))
 

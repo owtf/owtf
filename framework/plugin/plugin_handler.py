@@ -5,17 +5,8 @@ chosen settings.
 """
 
 import os
-import sys
 import imp
-import time
-import json
-import fcntl
-import curses
-import select
-import signal
 import logging
-import termios
-import multiprocessing
 from collections import defaultdict
 
 from ptp import PTP
@@ -43,7 +34,8 @@ WEB Plugin Types:
 - Passive Plugins: NO requests sent to target
 - Semi Passive Plugins: SOME "normal/legitimate" requests sent to target
 - Active Plugins: A LOT OF "bad" requests sent to target (You better have permission!)
-- Grep Plugins: NO requests sent to target. 100% based on transaction searches and plugin output parsing. Automatically run after semi_passive and active in default profile.
+- Grep Plugins: NO requests sent to target. 100% based on transaction searches and plugin output parsing.
+  Automatically run after semi_passive and active in default profile.
 """
 
 
@@ -112,7 +104,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                     break
             if not found:
                 self.error_handler.FrameworkAbort("The code '%s' is not a valid plugin, please use the -l option to see"
-                    "available plugin names and codes" % code)
+                                                  "available plugin names and codes" % code)
         return valid_plugin_codes  # Return list of Codes
 
     def InitExecutionRegistry(self):
@@ -132,14 +124,11 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             Match = True
             # Compare all execution log values against the passed Plugin, if all match, return index to log record
             for Key, Value in ExecLog[Index].items():
-                if not Key in Plugin or Plugin[Key] != Value:
+                if Key not in Plugin or Plugin[Key] != Value:
                     Match = False
             if Match:
                 return Index
         return -1
-
-    def PluginAlreadyRun(self, PluginInfo):
-        return self.plugin_output.PluginAlreadyRun(PluginInfo)
 
     def GetExecLogSinceLastExecution(self, Plugin):
         # Get all execution entries from log since last time the passed plugin executed
@@ -148,11 +137,11 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def GetPluginOutputDir(self, Plugin):
         # Organise results by OWASP Test type and then active, passive, semi_passive
         if ((Plugin['group'] == 'web') or (Plugin['group'] == 'network')):
-            return os.path.join(self.target.GetPath('partial_url_output_path'), 
-                WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
+            return os.path.join(self.target.GetPath('partial_url_output_path'),
+                                WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
         elif Plugin['group'] == 'auxiliary':
-            return os.path.join(self.config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']), 
-                Plugin['type'])
+            return os.path.join(self.config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']),
+                                Plugin['type'])
 
     def RequestsPossible(self):
         # Even passive plugins will make requests to external resources
@@ -174,7 +163,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def GetModule(self, ModuleName, ModuleFile, ModulePath):
         # Python fiddling to load a module from a file, there is probably a better way...
         # ModulePath = os.path.abspath(ModuleFile)
-        f, Filename, desc = imp.find_module(ModuleFile.split('.')[0], [ModulePath])  
+        f, Filename, desc = imp.find_module(ModuleFile.split('.')[0], [ModulePath])
         return imp.load_module(ModuleName, f, Filename, desc)
 
     def chosen_plugin(self, plugin, show_reason=False):
@@ -226,12 +215,12 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         if not self.chosen_plugin(plugin, show_reason=show_reason):
             return False  # Skip not chosen plugins
         # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active)
-        if self.PluginAlreadyRun(plugin) and ((not self.force_overwrite() and not ('grep' == plugin['type'])) or \
-            plugin['type'] == 'external'):
+        if self.PluginAlreadyRun(plugin) and ((not self.force_overwrite() and not ('grep' == plugin['type'])) or
+                                              plugin['type'] == 'external'):
             if show_reason:
                 logging.warning(
                     "Plugin: %s (%s/%s) has already been run, skipping...",
-                    plugin['title'], 
+                    plugin['title'],
                     plugin['group'],
                     plugin['type']
                 )
@@ -266,8 +255,8 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
             """
             return [
-                (   
-                    output['output'].get('ModifiedCommand', '').split(' ')[3], 
+                (
+                    output['output'].get('ModifiedCommand', '').split(' ')[3],
                     os.path.basename(output['output'].get('RelativeFilePath', ''))
                 )
                 for output in cmd
@@ -283,7 +272,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                 for module in msf_modules:
                     # filename - Path to output file.
                     # plugin - Metasploit module name.
-                    parser.parse(pathname=pathname, filename=module[1], plugin=module[0]) 
+                    parser.parse(pathname=pathname, filename=module[1], plugin=module[0])
                     owtf_rank = max(owtf_rank, parser.get_highest_ranking())
             else:
                 parser.parse(pathname=pathname)
@@ -422,13 +411,13 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                     for http_ports in http:
                         if http_ports == '443':
                             self.ProcessPluginsForTargetList(
-                                'web', 
+                                'web',
                                 {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True},
                                 {'https://%s' % Target.split('//')[1]})
                         else:
                             self.ProcessPluginsForTargetList(
-                                'web', 
-                                {'SomeAborted': False, 'SomeSuccessful': False,'AllSkipped': True},
+                                'web',
+                                {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True},
                                 {Target})
         else:
             pass
@@ -452,7 +441,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             self.show_plugin_types(plugin_type, group)
 
     def show_plugin_types(self, plugin_type, group):
-        logging.info("\n%s %s plugins %s", '*'*40, plugin_type.title().replace('_', '-'),'*'*40)
+        logging.info("\n%s %s plugins %s", '*' * 40, plugin_type.title().replace('_', '-'), '*' * 40)
         for Plugin in self.db_plugin.GetPluginsByGroupType(group, plugin_type):
             LineStart = " %s:%s" % (Plugin['type'], Plugin['name'])
             Pad1 = "_" * (60 - len(LineStart))

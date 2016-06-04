@@ -10,7 +10,7 @@ def get_args():
                             nargs="+",
                             help=("""
                                 Specify Method . (Ex: -X GET . The option @@@all@@@ loads all the HTTP methods \
-                                which are listed in ./payload/HTTP/methods.txt). Custom methods can be defined in 
+                                which are listed in ./payload/HTTP/methods.txt). Custom methods can be defined in
                                 this file.
                                 """))
 
@@ -48,7 +48,7 @@ def get_args():
                             action='store',
                             nargs='+',
                             help=("""
-                                DETECTION METHOD(ex1 -cnt 'signature'  \n) Optional Arguments:\n Case sensitive :\n 
+                                DETECTION METHOD(ex1 -cnt 'signature'  \n) Optional Arguments:\n Case sensitive :\n
                                 (ex2)-cnt 'signature' cs
                                 """))
 
@@ -105,7 +105,7 @@ def get_args():
                             action='store',
                             type=int,
                             help=("""
-                                Changes the Fuzzing method from asynchronous to synchronous(slower). This allows you 
+                                Changes the Fuzzing method from asynchronous to synchronous(slower). This allows you
                                 to follow cookies and specify a delay time in seconds before sending a request.
                                 """))
 
@@ -117,17 +117,18 @@ def get_args():
         parser.add_argument("-m", "--mode",
                             dest="MODE",
                             required=True,
-                            choices=['fuzz', 'detect_chars','asp_hpp', 'param_overwriting', "length", "overchar",
-                                "detect_accepted_sources", "content_type_tamper", "show_transform_functions"],
+                            choices=['fuzz', 'detect_chars', 'asp_hpp', 'param_overwriting', "length", "overchar",
+                                     "detect_accepted_sources", "content_type_tamper", "show_transform_functions"],
                             action='store',
                             help=("""
-                                Select mode: (fuzz)Fuzzing mode.\n(detect_chars)Detects the available characters and attempts to find 
-                                bypasses.\n (asp_hpp)Splits the payload to comma (,) character and sends using HPP\n
-                                (param_overwriting)Overwrites a parameter by using HPP\n (length)Detects the length 
-                                of a content placeholder\n (detect_accepted_sources)Detected the  accepted sources of 
-                                a parameter\n (content_type_tamper)Content type tampering is changing the Content-Type 
-                                header and tries to detect anomalies.\n(show_tranform_function) Showstransformation 
-                                functions\n(overchar)Sends the payloads after a stream of whitelisted characters\n
+                                Select mode: (fuzz)Fuzzing mode.\n(detect_chars)Detects the available characters and
+                                attempts to find bypasses.\n (asp_hpp)Splits the payload to comma (,) character and
+                                sends using HPP\n(param_overwriting)Overwrites a parameter by using HPP\n (length)
+                                Detects the length of a content placeholder\n (detect_accepted_sources)
+                                Detected the accepted sources of a parameter\n (content_type_tamper)Content type
+                                tampering is changing the Content-Type header and tries to detect anomalies.\n
+                                (show_tranform_function) Showstransformation functions\n(overchar)
+                                Sends the payloads after a stream of whitelisted characters\n
                                 """))
 
         args = parser.parse_args()

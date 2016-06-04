@@ -84,18 +84,18 @@ class CacheHandler(object):
             response_body = base64.b64encode(self.request.response_buffer)
             binary_response = True
         cache_dict = {
-            'request_method':self.request.method,
-            'request_url':self.request.url,
-            'request_version':self.request.version,
-            'request_headers':dict(self.request.headers),
-            'request_body':self.request.body,
-            'request_time':response.request_time,
-            'request_local_timestamp':self.request.local_timestamp.isoformat(),
-            'response_code':response.code,
-            'response_headers':dict(response.headers),
-            'response_body':response_body,
-            'response_cookies':response.headers.get_list("Set-Cookie"),
-            'binary_response':binary_response
+            'request_method': self.request.method,
+            'request_url': self.request.url,
+            'request_version': self.request.version,
+            'request_headers': dict(self.request.headers),
+            'request_body': self.request.body,
+            'request_time': response.request_time,
+            'request_local_timestamp': self.request.local_timestamp.isoformat(),
+            'response_code': response.code,
+            'response_headers': dict(response.headers),
+            'response_body': response_body,
+            'response_cookies': response.headers.get_list("Set-Cookie"),
+            'binary_response': binary_response
         }
         with open(self.file_path, 'w') as outfile:
             json.dump(cache_dict, outfile)
@@ -144,7 +144,7 @@ def response_from_cache(file_path):
     dummyResponse.headers = tornado.httputil.HTTPHeaders(cache_dict["response_headers"])
     dummyResponse.header_string = '\r\n'.join(
         ["%s: %s" % (name, value) for name, value in cache_dict["response_headers"].iteritems()])
-    if cache_dict["binary_response"] == True:
+    if cache_dict["binary_response"] is True:
         dummyResponse.body = base64.b64decode(cache_dict["response_body"])
     else:
         dummyResponse.body = cache_dict["response_body"]
@@ -159,14 +159,14 @@ def request_from_cache(file_path):
     # A fake request object is created with necessary attributes
     dummyRequest = DummyObject()
     cache_dict = json.loads(open(file_path, 'r').read())
-    dummyRequest.local_timestamp = datetime.datetime.strptime(cache_dict["request_local_timestamp"].strip("\r\n"), 
-        '%Y-%m-%dT%H:%M:%S.%f')
+    dummyRequest.local_timestamp = datetime.datetime.strptime(cache_dict["request_local_timestamp"].strip("\r\n"),
+                                                              '%Y-%m-%dT%H:%M:%S.%f')
     dummyRequest.method = cache_dict["request_method"]
     dummyRequest.url = cache_dict["request_url"]
     dummyRequest.headers = cache_dict["request_headers"]
     dummyRequest.body = cache_dict["request_body"]
-    dummyRequest.raw_request = "%s %s %s\r\n" % (cache_dict["request_method"], cache_dict["request_url"], 
-        cache_dict["request_version"])
+    dummyRequest.raw_request = "%s %s %s\r\n" % (cache_dict["request_method"], cache_dict["request_url"],
+                                                 cache_dict["request_version"])
     for name, value in cache_dict["request_headers"].iteritems():
         dummyRequest.raw_request += "%s: %s\r\n" % (name, value)
     if cache_dict["request_body"]:

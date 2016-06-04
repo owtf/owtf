@@ -42,8 +42,8 @@ class Proxy_manager(BaseComponent):
         logging.info("ProxyList loaded")
         return proxies
 
-    def get_next_available_proxy(self):  #  returns the next proxy 
-        if self.proxy_pointer == (self.number_of_proxies-1):
+    def get_next_available_proxy(self):  # returns the next proxy
+        if self.proxy_pointer == (self.number_of_proxies - 1):
             self.proxy_pointer = 0
         else:
             self.proxy_pointer = self.proxy_pointer + 1
@@ -75,8 +75,8 @@ class Proxy_Checker():  # This class is responsible for proxy checking
     def handle_proxy_status(proxy, i):
         # The callback function is called by check_proxies
 
-        request = HTTPRequest(url=Proxy_manager.testing_url, proxy_host=proxy[0], proxy_port=int(proxy[1]), 
-            validate_cert=False)
+        request = HTTPRequest(url=Proxy_manager.testing_url, proxy_host=proxy[0], proxy_port=int(proxy[1]),
+                              validate_cert=False)
         http_client = tornado.curl_httpclient.CurlAsyncHTTPClient()
         response = yield gen.Task(http_client.fetch, request)
         if (response.code == 200) and (response.body.find(Proxy_manager.testing_url_patern) != -1):  # if proxy is alive
@@ -85,9 +85,9 @@ class Proxy_Checker():  # This class is responsible for proxy checking
 
         Proxy_Checker.number_of_responses += 1
         logging.info(
-            "Checking [ %s/%s ] Working Proxies: [ %s ]", 
-            str(Proxy_Checker.number_of_responses), 
-            str(Proxy_Checker.number_of_unchecked_proxies), 
+            "Checking [ %s/%s ] Working Proxies: [ %s ]",
+            str(Proxy_Checker.number_of_responses),
+            str(Proxy_Checker.number_of_unchecked_proxies),
             str(Proxy_Checker.working_proxies))
         # if all proxies has been checked stop IOLoop
         if Proxy_Checker.number_of_responses == Proxy_Checker.number_of_unchecked_proxies:

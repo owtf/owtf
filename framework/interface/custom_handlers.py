@@ -26,7 +26,7 @@ class APIRequestHandler(tornado.web.RequestHandler, BaseComponent):
 class UIRequestHandler(tornado.web.RequestHandler, BaseComponent):
     def reverse_url(self, name, *args):
         url = super(UIRequestHandler, self).reverse_url(name, *args)
-        url = url.replace('?','')
+        url = url.replace('?', '')
         return url.split('None')[0]
 
 
