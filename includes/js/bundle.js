@@ -20271,7 +20271,7 @@
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	    value: true
 	});
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -20284,7 +20284,11 @@
 
 	var _Chart2 = _interopRequireDefault(_Chart);
 
-	var _constants = __webpack_require__(181);
+	var _Panel = __webpack_require__(181);
+
+	var _Panel2 = _interopRequireDefault(_Panel);
+
+	var _constants = __webpack_require__(182);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -20294,63 +20298,66 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+	/* Class resposible for making whole dashboard page content */
+
 	var Dashboard = function (_React$Component) {
-	  _inherits(Dashboard, _React$Component);
+	    _inherits(Dashboard, _React$Component);
 
-	  function Dashboard() {
-	    _classCallCheck(this, Dashboard);
+	    function Dashboard() {
+	        _classCallCheck(this, Dashboard);
 
-	    return _possibleConstructorReturn(this, Object.getPrototypeOf(Dashboard).apply(this, arguments));
-	  }
-
-	  _createClass(Dashboard, [{
-	    key: 'render',
-	    value: function render() {
-	      return _react2.default.createElement(
-	        'div',
-	        { className: 'container-fluid' },
-	        _react2.default.createElement(
-	          'div',
-	          { className: 'row' },
-	          _react2.default.createElement(
-	            'div',
-	            { className: 'col-xs-12 col-md-6 nopadding' },
-	            _react2.default.createElement(
-	              'h1',
-	              null,
-	              'Welcome to OWTF',
-	              _react2.default.createElement(
-	                'small',
-	                null,
-	                ', this is your dashboard'
-	              )
-	            )
-	          )
-	        ),
-	        _react2.default.createElement(
-	          'div',
-	          { className: 'row' },
-	          _react2.default.createElement(
-	            'div',
-	            { className: 'col-xs-12 col-md-6' },
-	            _react2.default.createElement(
-	              'h3',
-	              null,
-	              'Previous Targets Analytics'
-	            ),
-	            _react2.default.createElement('br', null)
-	          )
-	        ),
-	        _react2.default.createElement(
-	          'div',
-	          { className: 'row' },
-	          _react2.default.createElement(_Chart2.default, { source: _constants.SEVERITY_CHART_URL })
-	        )
-	      );
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(Dashboard).apply(this, arguments));
 	    }
-	  }]);
 
-	  return Dashboard;
+	    _createClass(Dashboard, [{
+	        key: 'render',
+	        value: function render() {
+	            return _react2.default.createElement(
+	                'div',
+	                { className: 'container-fluid' },
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'row' },
+	                    _react2.default.createElement(
+	                        'div',
+	                        { className: 'col-xs-12 col-md-12 col-lg-12 nopadding' },
+	                        _react2.default.createElement(
+	                            'h1',
+	                            null,
+	                            'Welcome to OWTF',
+	                            _react2.default.createElement(
+	                                'small',
+	                                null,
+	                                ', this is your dashboard'
+	                            )
+	                        )
+	                    )
+	                ),
+	                _react2.default.createElement(_Panel2.default, { source: _constants.SEVERITY_PANEL_URL }),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'row' },
+	                    _react2.default.createElement(
+	                        'div',
+	                        { className: 'col-xs-12 col-md-6' },
+	                        _react2.default.createElement(
+	                            'h3',
+	                            { className: 'dashboard-subheading' },
+	                            'Previous Targets Analytics'
+	                        ),
+	                        _react2.default.createElement('hr', null)
+	                    )
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'row' },
+	                    _react2.default.createElement(_Chart2.default, { source: _constants.SEVERITY_CHART_URL })
+	                )
+	            );
+	        }
+	    }]);
+
+	    return Dashboard;
 	}(_react2.default.Component);
 
 	exports.default = Dashboard;
@@ -24458,6 +24465,147 @@
 
 /***/ },
 /* 181 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Severity = function (_React$Component) {
+	    _inherits(Severity, _React$Component);
+
+	    function Severity() {
+	        _classCallCheck(this, Severity);
+
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(Severity).apply(this, arguments));
+	    }
+
+	    _createClass(Severity, [{
+	        key: "render",
+
+
+	        /* Each severity in vulnerability panel will be rendered */
+	        value: function render() {
+	            return _react2.default.createElement(
+	                "div",
+	                { className: "col-lg-2 col-md-4 col-sm-4 col-xs-6 panel-div" },
+	                _react2.default.createElement(
+	                    "div",
+	                    { className: "panel sevpanel-" + this.props.data.label.toLowerCase() },
+	                    _react2.default.createElement(
+	                        "div",
+	                        { className: "panel-heading" },
+	                        _react2.default.createElement(
+	                            "div",
+	                            { className: "row" },
+	                            _react2.default.createElement(
+	                                "div",
+	                                { className: "col-xs-12 text-center" },
+	                                _react2.default.createElement(
+	                                    "div",
+	                                    { className: "count" },
+	                                    this.props.data.value
+	                                ),
+	                                _react2.default.createElement(
+	                                    "div",
+	                                    { className: "severity text-uppercase" },
+	                                    this.props.data.label
+	                                )
+	                            )
+	                        )
+	                    )
+	                )
+	            );
+	        }
+	    }]);
+
+	    return Severity;
+	}(_react2.default.Component);
+
+	var VulnerabilityPanel = function (_React$Component2) {
+	    _inherits(VulnerabilityPanel, _React$Component2);
+
+	    function VulnerabilityPanel(props) {
+	        _classCallCheck(this, VulnerabilityPanel);
+
+	        var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(VulnerabilityPanel).call(this, props));
+
+	        _this2.state = {
+	            paneldata: []
+	        };
+	        return _this2;
+	    }
+
+	    _createClass(VulnerabilityPanel, [{
+	        key: "componentDidMount",
+
+
+	        /* Making an AJAX request on source property */
+	        value: function componentDidMount() {
+	            this.serverRequest = $.get(this.props.source, function (result) {
+	                var panelData = result.data;
+	                this.setState({ paneldata: panelData });
+	            }.bind(this));
+	        }
+	    }, {
+	        key: "componentWillUnmount",
+	        value: function componentWillUnmount() {
+	            this.serverRequest.abort();
+	        }
+	    }, {
+	        key: "render",
+	        value: function render() {
+	            return _react2.default.createElement(
+	                "div",
+	                null,
+	                _react2.default.createElement(
+	                    "div",
+	                    { className: "row" },
+	                    _react2.default.createElement(
+	                        "div",
+	                        { className: "col-xs-12 col-md-6" },
+	                        _react2.default.createElement(
+	                            "h3",
+	                            { className: "dashboard-subheading" },
+	                            "Current Vulnerabilities"
+	                        ),
+	                        _react2.default.createElement("hr", null)
+	                    )
+	                ),
+	                _react2.default.createElement(
+	                    "div",
+	                    { className: "row" },
+	                    this.state.paneldata.map(function (severity) {
+	                        return _react2.default.createElement(Severity, { key: severity.id, data: severity });
+	                    })
+	                )
+	            );
+	        }
+	    }]);
+
+	    return VulnerabilityPanel;
+	}(_react2.default.Component);
+
+	exports.default = VulnerabilityPanel;
+
+/***/ },
+/* 182 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -24466,6 +24614,7 @@
 	  value: true
 	});
 	var SEVERITY_CHART_URL = exports.SEVERITY_CHART_URL = '/api/targets/severitychart/';
+	var SEVERITY_PANEL_URL = exports.SEVERITY_PANEL_URL = '/api/dashboard/severitypanel/';
 
 /***/ }
 /******/ ]);

@@ -177,3 +177,57 @@ body {
   position: relative;
   float: left;
 }
+
+/* CSS Belongs to Vulnerability Panel */
+.sevpanel-critical {
+  background-color: #c12e2a;
+}
+
+.sevpanel-high {
+  background-color: #FF9900;
+}
+
+.sevpanel-medium {
+  background-color: #ffcc00;
+}
+
+.sevpanel-low {
+  background-color: green;
+}
+
+.sevpanel-info {
+  background-color: #337ab7;
+}
+
+.sevpanel-passing {
+  background-color: #808080;
+}
+
+.panel-heading {
+  color: #fff;
+  margin-left: 10%;
+  margin-right: 10%;
+  margin-bottom: 5%;
+}
+
+.panel-heading .count {
+  font-size: 2.5em;
+  font-weight: 200;
+}
+
+.dashboard-subheading {
+  color: #808080;
+}
+
+.panel-heading .severity {
+  font-size: 1.2em;
+}
+
+.panel-div {
+  padding: 0px;
+}
+
+.panel {
+  border-radius: 0px;
+}
+/* --- End of CSS Vulnerability Panel ---- */
