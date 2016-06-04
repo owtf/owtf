@@ -58,9 +58,19 @@
 
 	var _Home2 = _interopRequireDefault(_Home);
 
+	var _Dashboard = __webpack_require__(169);
+
+	var _Dashboard2 = _interopRequireDefault(_Dashboard);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	_reactDom2.default.render(_react2.default.createElement(_Home2.default, null), document.getElementById('home'));
+	var pageID = document.getElementById('app').childNodes[1].id;
+
+	if (pageID == 'home') {
+	  _reactDom2.default.render(_react2.default.createElement(_Home2.default, null), document.getElementById('home'));
+	} else if (pageID == 'dashboard') {
+	  _reactDom2.default.render(_react2.default.createElement(_Dashboard2.default, null), document.getElementById('dashboard'));
+	}
 
 /***/ },
 /* 1 */
@@ -20157,6 +20167,107 @@
 /* 168 */
 /***/ function(module, exports, __webpack_require__) {
 
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Home = function (_React$Component) {
+	    _inherits(Home, _React$Component);
+
+	    function Home() {
+	        _classCallCheck(this, Home);
+
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(Home).apply(this, arguments));
+	    }
+
+	    _createClass(Home, [{
+	        key: "render",
+	        value: function render() {
+	            return _react2.default.createElement(
+	                "div",
+	                { className: "container-fluid jumbotron" },
+	                _react2.default.createElement(
+	                    "h1",
+	                    null,
+	                    "Offensive Web Testing Framework!"
+	                ),
+	                _react2.default.createElement(
+	                    "p",
+	                    null,
+	                    "OWASP OWTF is a project that aims to make security assessments as efficient as possible. Some of the ways in which this is achieved are:"
+	                ),
+	                _react2.default.createElement(
+	                    "ul",
+	                    null,
+	                    _react2.default.createElement(
+	                        "li",
+	                        null,
+	                        "Separating the tests that require no permission from the ones that require permission (i.e. active/ bruteforce)."
+	                    ),
+	                    _react2.default.createElement(
+	                        "li",
+	                        null,
+	                        "Launching a number of tools automatically."
+	                    ),
+	                    _react2.default.createElement(
+	                        "li",
+	                        null,
+	                        "Running tests not found in other tools."
+	                    ),
+	                    _react2.default.createElement(
+	                        "li",
+	                        null,
+	                        "Providing an interactive interface/report."
+	                    ),
+	                    _react2.default.createElement(
+	                        "li",
+	                        null,
+	                        "More info: ",
+	                        _react2.default.createElement(
+	                            "a",
+	                            { href: "https://www.owasp.org/index.php/OWASP_OWTF", target: "__blank__" },
+	                            "https://www.owasp.org/index.php/OWASP_OWTF"
+	                        )
+	                    )
+	                ),
+	                _react2.default.createElement(
+	                    "p",
+	                    null,
+	                    _react2.default.createElement(
+	                        "a",
+	                        { className: "btn btn-primary btn-lg", role: "button", href: "http://owtf.org", target: "_blank" },
+	                        "Learn more"
+	                    )
+	                )
+	            );
+	        }
+	    }]);
+
+	    return Home;
+	}(_react2.default.Component);
+
+	exports.default = Home;
+
+/***/ },
+/* 169 */
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
@@ -20169,11 +20280,11 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _Chart = __webpack_require__(169);
+	var _Chart = __webpack_require__(170);
 
 	var _Chart2 = _interopRequireDefault(_Chart);
 
-	var _constants = __webpack_require__(180);
+	var _constants = __webpack_require__(181);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -20183,16 +20294,16 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Home = function (_React$Component) {
-	  _inherits(Home, _React$Component);
+	var Dashboard = function (_React$Component) {
+	  _inherits(Dashboard, _React$Component);
 
-	  function Home() {
-	    _classCallCheck(this, Home);
+	  function Dashboard() {
+	    _classCallCheck(this, Dashboard);
 
-	    return _possibleConstructorReturn(this, Object.getPrototypeOf(Home).apply(this, arguments));
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(Dashboard).apply(this, arguments));
 	  }
 
-	  _createClass(Home, [{
+	  _createClass(Dashboard, [{
 	    key: 'render',
 	    value: function render() {
 	      return _react2.default.createElement(
@@ -20207,7 +20318,12 @@
 	            _react2.default.createElement(
 	              'h1',
 	              null,
-	              'Welcome to OWTF'
+	              'Welcome to OWTF',
+	              _react2.default.createElement(
+	                'small',
+	                null,
+	                ', this is your dashboard'
+	              )
 	            )
 	          )
 	        ),
@@ -20234,13 +20350,13 @@
 	    }
 	  }]);
 
-	  return Home;
+	  return Dashboard;
 	}(_react2.default.Component);
 
-	exports.default = Home;
+	exports.default = Dashboard;
 
 /***/ },
-/* 169 */
+/* 170 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -20255,7 +20371,7 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _reactChartjs = __webpack_require__(170);
+	var _reactChartjs = __webpack_require__(171);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -20387,31 +20503,31 @@
 	exports.default = Chart;
 
 /***/ },
-/* 170 */
+/* 171 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = {
-	  Bar: __webpack_require__(171),
-	  Doughnut: __webpack_require__(175),
-	  Line: __webpack_require__(176),
-	  Pie: __webpack_require__(177),
-	  PolarArea: __webpack_require__(178),
-	  Radar: __webpack_require__(179),
-	  createClass: __webpack_require__(172).createClass
+	  Bar: __webpack_require__(172),
+	  Doughnut: __webpack_require__(176),
+	  Line: __webpack_require__(177),
+	  Pie: __webpack_require__(178),
+	  PolarArea: __webpack_require__(179),
+	  Radar: __webpack_require__(180),
+	  createClass: __webpack_require__(173).createClass
 	};
 
 
 /***/ },
-/* 171 */
+/* 172 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(172);
+	var vars = __webpack_require__(173);
 
 	module.exports = vars.createClass('Bar', ['getBarsAtEvent']);
 
 
 /***/ },
-/* 172 */
+/* 173 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React = __webpack_require__(1);
@@ -20470,7 +20586,7 @@
 	    };
 
 	    classData.initializeChart = function(nextProps) {
-	      var Chart = __webpack_require__(173);
+	      var Chart = __webpack_require__(174);
 	      var el = ReactDOM.findDOMNode(this);
 	      var ctx = el.getContext("2d");
 	      var chart = new Chart(ctx)[chartType](nextProps.data, nextProps.options || {});
@@ -20546,7 +20662,7 @@
 
 
 /***/ },
-/* 173 */
+/* 174 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -20860,7 +20976,7 @@
 				//Method for warning of errors
 				if (window.console && typeof window.console.warn === "function") console.warn(str);
 			},
-			amd = helpers.amd = ("function" === 'function' && __webpack_require__(174)),
+			amd = helpers.amd = ("function" === 'function' && __webpack_require__(175)),
 			//-- Math methods
 			isNumber = helpers.isNumber = function(n){
 				return !isNaN(parseFloat(n)) && isFinite(n);
@@ -24288,7 +24404,7 @@
 
 
 /***/ },
-/* 174 */
+/* 175 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -24296,52 +24412,52 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 175 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var vars = __webpack_require__(172);
-
-	module.exports = vars.createClass('Doughnut', ['getSegmentsAtEvent']);
-
-
-/***/ },
 /* 176 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(172);
+	var vars = __webpack_require__(173);
 
-	module.exports = vars.createClass('Line', ['getPointsAtEvent']);
+	module.exports = vars.createClass('Doughnut', ['getSegmentsAtEvent']);
 
 
 /***/ },
 /* 177 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(172);
+	var vars = __webpack_require__(173);
 
-	module.exports = vars.createClass('Pie', ['getSegmentsAtEvent']);
+	module.exports = vars.createClass('Line', ['getPointsAtEvent']);
 
 
 /***/ },
 /* 178 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(172);
+	var vars = __webpack_require__(173);
 
-	module.exports = vars.createClass('PolarArea', ['getSegmentsAtEvent']);
+	module.exports = vars.createClass('Pie', ['getSegmentsAtEvent']);
 
 
 /***/ },
 /* 179 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var vars = __webpack_require__(172);
+	var vars = __webpack_require__(173);
+
+	module.exports = vars.createClass('PolarArea', ['getSegmentsAtEvent']);
+
+
+/***/ },
+/* 180 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var vars = __webpack_require__(173);
 
 	module.exports = vars.createClass('Radar', ['getPointsAtEvent']);
 
 
 /***/ },
-/* 180 */
+/* 181 */
 /***/ function(module, exports) {
 
 	'use strict';

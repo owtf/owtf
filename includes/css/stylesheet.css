@@ -1,3 +1,13 @@
+/* Attaching fonts with CSS */
+@font-face {
+    font-family: OpenSans;
+    src: url(../fonts/OpenSans-Regular.ttf);
+}
+
+@font-face {
+    font-family: JosefinSans;
+    src: url(../fonts/JosefinSans-SemiBold.ttf);
+}
 
 /* severity buttons style */
 .sev-no {
@@ -18,6 +28,7 @@
 
 body {
         padding-top: 70px;
+				font-family: 'OpenSans', sans-serif;
 }
 
 /* Used in plugin reports */
@@ -86,4 +97,83 @@ body {
 .nopadding {
    padding: 0 !important;
    margin: 0 !important;
+}
+
+.navbar-inverse {
+    background-color: #2f4050;
+    border-color: #2f4050;
+}
+
+.navbar-inverse .navbar-brand {
+    color: #fff;
+}
+
+@media screen and (min-width: 768px) {
+    .jumbotron .h1, .jumbotron h1 {
+      font-size: 61px;
+    }
+}
+
+@media (max-width: 912px) {
+    .navbar-header {
+        float: none;
+    }
+    .navbar-toggle {
+        display: block;
+    }
+    .navbar-collapse {
+        border-top: 1px solid transparent;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .navbar-collapse.collapse {
+        display: none!important;
+    }
+    .navbar-nav {
+        float: none!important;
+        margin: 7.5px -15px;
+    }
+    .navbar-nav>li {
+        float: none;
+    }
+    .navbar-nav>li>a {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .navbar-text {
+        float: none;
+        margin: 15px 0;
+    }
+    /* since 3.1.0 */
+    .navbar-collapse.collapse.in {
+        display: block!important;
+    }
+    .collapsing {
+        overflow: hidden!important;
+    }
+}
+
+.btn-target {
+  background-color: #2f4050;
+  border-color: #2f4050;
+  color: #9d9d9d;
+}
+
+.btn-target:hover {
+  color: #fff;
+}
+
+.btn-target:focus {
+  color: #fff;
+}
+
+@media (min-width: 914px){
+  .btn-target {
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+}
+
+.target-tab {
+  position: relative;
+  float: left;
 }

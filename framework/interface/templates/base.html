@@ -128,17 +128,11 @@
                 dataType:'json',
                 success:function(json, textStatus, jqXHR){
                     if (304 != jqXHR.status){
+                        data = json.data
                         $('#target_dropdown').empty();
                         $('#target_dropdown').append(
-                          $('<li>').append($('<a>').attr('href',"{{ reverse_url('targets_ui_url', None) }}").append("All"))
+                          $('<li>').attr('class','dropdown-header').append("Recently Finished(" + data.length.toString() + ")" )
                         );
-                        $('#target_dropdown').append(
-                          $('<li>').attr('role','separator').attr('class','divider')
-                        );
-                        $('#target_dropdown').append(
-                          $('<li>').attr('class','dropdown-header').append("Recently Finished")
-                        );
-                        data = json.data
                         for(var i = 0; i < data.length; i++) {
                             var obj = data[i];
                             $('#target_dropdown').append(
@@ -174,10 +168,13 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav navbar-right">
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            <i class="fa fa-crosshairs"></i> Targets <span class="caret"></span>
-                        </a>
+                    <li><a href="{{ reverse_url('dashboard_ui_url') }}"><i class="fa fa-tachometer"></i> Dashboard</a></li>
+                    <li>
+                        <a href="{{ reverse_url('targets_ui_url', None) }}" class="target-tab"><i class="fa fa-crosshairs"></i> Targets</a>
+                        <button type="button" class="btn btn-target dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <span class="caret"></span>
+                          <span class="sr-only">Toggle Dropdown</span>
+                        </button>
                         <ul class="dropdown-menu" id="target_dropdown"></ul>
                     </li>
                     <li><a href="{{ reverse_url('workers_ui_url', None) }}"><i class="fa fa-th-large"></i> Workers</a></li>
@@ -198,7 +195,7 @@
             </div>
             <!-- End Status box -->
             <!-- Child template content -->
-            <div class="row-fluid">
+            <div class="row-fluid" id="app">
                 {% block content %}Content{% end %}
             </div>
             <!-- End Child template -->
