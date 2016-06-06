@@ -123,9 +123,9 @@ class DashboardPanelHandler(custom_handlers.APIRequestHandler):
     def get(self):
         try:
             self.write(self.get_component("plugin_output").GetSeverityFrequency())
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise tornado.web.HTTPError(400)
-            
+
 class OWTFSessionHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
