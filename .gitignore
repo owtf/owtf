@@ -68,3 +68,4 @@ local.properties
 # Front End(ReactJS) development Dependencies#
 ################################################################
 node_modules/*
+includes/js/bundle.js
