@@ -14,6 +14,7 @@ def get_handlers():
     URLS = [
         tornado.web.url(r'/api/errors/?([0-9]+)?/?$', api_handlers.ErrorDataHandler, name='errors_api_url'),
         tornado.web.url(r'/api/sessions/?([0-9]+)?/?(activate|add|remove)?/?$', api_handlers.OWTFSessionHandler, name='owtf_sessions_api_url'),
+        tornado.web.url(r'/api/dashboard/severitypanel/?$', api_handlers.DashboardPanelHandler, name='targets_search_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/transactions/([0-9]+)/forward?$', api_handlers.ForwardToZAPHandler, name='forward_zap_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/transactions/([0-9]+)/replay?$', api_handlers.ReplayRequestHandler, name='transaction_replay_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/transactions/zest/?$', api_handlers.ZestScriptHandler, name='zest_log_url'),
