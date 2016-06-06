@@ -1,4 +1,3 @@
-
 import logging
 import multiprocessing
 from datetime import time
@@ -28,7 +27,10 @@ from framework.plugin.plugin_handler import PluginHandler
 from framework.plugin.plugin_helper import PluginHelper
 from framework.plugin.plugin_params import PluginParams
 from framework.protocols.smtp import SMTP
+from framework.protocols.smb import SMB
+from framework.selenium.selenium_handler import Selenium
 from framework.shell.blocking_shell import Shell
+from framework.shell.interactive_shell import InteractiveShell
 from framework.timer import Timer
 from framework.zap import ZAP_API
 from framework.zest import Zest
@@ -49,7 +51,7 @@ class ComponentInitialiser():
         :param int owtf_pid: PID for the OWTF process.
 
         """
-        config = Config(root_dir, owtf_pid)
+        Config(root_dir, owtf_pid)
         ErrorHandler()
         DB()
         try:
@@ -57,19 +59,16 @@ class ComponentInitialiser():
         except:
             raise DatabaseNotRunningException()
         WorklistManager()
-        db_config = ConfigDB()
+        ConfigDB()
         CommandRegister()
         TargetDB()
         ResourceDB()
         ErrorDB()
         MappingDB()
-        Timer(db_config.Get('DATE_TIME_FORMAT'))
         PluginDB()
-        zest = Zest()
+        Zest()
         URLManager()
         TransactionManager()
-        config.init()
-        zest.init()
 
     @staticmethod
     def initialisation_phase_2(args):
@@ -77,6 +76,12 @@ class ComponentInitialiser():
 
         :param dict args: parsed arguments from the command line.
         """
+        db_config = ServiceLocator.get_component("db_config")
+        db_config.init()
+        Timer(db_config.Get('DATE_TIME_FORMAT'))
+        ServiceLocator.get_component("db_plugin").init()
+        ServiceLocator.get_component("config").init()
+        ServiceLocator.get_component("zest").init()
         PluginHandler(args)
         Reporter()
         POutputDB()
@@ -84,19 +89,25 @@ class ComponentInitialiser():
         ServiceLocator.get_component("worklist_manager").init()
         Shell()
         PluginParams(args)
+        SMB()
+        InteractiveShell()
+        Selenium()
         SMTP()
-        #DebugDB()
         ZAP_API()
 
     @staticmethod
-    def initialisation_phase_3(proxy, options):
+    def initialisation_phase_3(options):
         """ Third phase of the initialization process.
 
         :param list proxy: Proxy configuration parameters
         :param dict options: Options from command line.
         """
+        ServiceLocator.get_component("resource").init()
+        ServiceLocator.get_component("mapping_db").init()
         ServiceLocator.get_component("db").init()
+        db_config = ServiceLocator.get_component("db_config")
         ServiceLocator.get_component("error_handler").init()
+        proxy = [db_config.Get('INBOUND_PROXY_IP'), db_config.Get('INBOUND_PROXY_PORT')]
         Requester(proxy)
         PluginHelper()
         ServiceLocator.get_component("plugin_handler").init(options)
@@ -118,19 +129,12 @@ class ComponentInitialiser():
                 proxies = miner.start_miner()
 
             if options['Botnet_mode'][0] == "list":  # load proxies from list
-                proxies = proxy_manager.load_proxy_list(
-                    options['Botnet_mode'][1]
-                )
-                answer = raw_input(
-                    "[#] Do you want to check the proxy list? [Yes/no] : "
-                )
+                proxies = proxy_manager.load_proxy_list(options['Botnet_mode'][1])
+                answer = raw_input("[#] Do you want to check the proxy list? [Yes/no] : ")
 
             if answer.upper() in ["", "YES", "Y"]:
                 proxy_q = multiprocessing.Queue()
-                proxy_checker = multiprocessing.Process(
-                    target=Proxy_Checker.check_proxies,
-                    args=(proxy_q, proxies,)
-                )
+                proxy_checker = multiprocessing.Process(target=Proxy_Checker.check_proxies, args=(proxy_q, proxies,))
                 logging.info("Checking Proxies...")
                 start_time = time.time()
                 proxy_checker.start()
@@ -144,13 +148,8 @@ class ComponentInitialiser():
                 logging.info("Writing proxies to disk(~/.owtf/proxy_miner/proxies.txt)")
                 miner.export_proxies_to_file("proxies.txt", proxies)
             if answer.upper() in ["", "YES", "Y"]:
-                logging.info(
-                    "Proxy Check Time: %s",
-                    time.strftime(
-                        '%H:%M:%S',
-                        time.localtime(time.time() - start_time - 3600)
-                    )
-                )
+                logging.info("Proxy Check Time: %s" % time.strftime('%H:%M:%S',
+                             time.localtime(time.time() - start_time - 3600)))
                 cprint("Done")
 
             if proxy_manager.number_of_proxies is 0:

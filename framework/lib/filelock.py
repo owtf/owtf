@@ -1,8 +1,10 @@
+"""
+# Based on http://www.evanfosmark.com/2009/01/cross-platform-file-locking-support-in-python/
+"""
+
 import os
 import time
 import errno
-
-# Based on http://www.evanfosmark.com/2009/01/cross-platform-file-locking-support-in-python/
 
 
 class FileLockTimeoutException(Exception):
@@ -44,7 +46,7 @@ class FileLock(object):
         start_time = time.time()
         while True:
             try:
-                self.fd = os.open(self.lockfile, os.O_CREAT|os.O_EXCL|os.O_RDWR)
+                self.fd = os.open(self.lockfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
                 break
             except OSError as e:
                 if e.errno != errno.EEXIST:
@@ -72,7 +74,7 @@ class FileLock(object):
             self.acquire()
         return self
 
-    def __exit__(self, type, value, traceback): #@UnusedVariable
+    def __exit__(self, type, value, traceback):  # @UnusedVariable
         """ Activated at the end of the with statement.
             It automatically releases the lock if it isn't locked.
         """

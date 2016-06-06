@@ -1,9 +1,0 @@
-[run]
-branch = True
-omit = 
-	*__init__.py
-	test_cases/*
-	run_tests.py
-
-[report]
-precision = 2

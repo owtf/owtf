@@ -11,7 +11,6 @@ import socket
 import logging
 import multiprocessing
 import subprocess
-
 import tornado
 
 from framework.dependency_management.dependency_resolver import BaseComponent
@@ -82,8 +81,7 @@ class Core(BaseComponent):
     def clean_temp_storage_dirs(self):
         """Rename older temporary directory to avoid any further confusions."""
         curr_tmp_dir = os.path.join('/tmp', 'owtf', str(self.config.OwtfPid))
-        new_tmp_dir = os.path.join(
-            '/tmp', 'owtf', 'old-%d' % self.config.OwtfPid)
+        new_tmp_dir = os.path.join('/tmp', 'owtf', 'old-%d' % self.config.OwtfPid)
         if os.path.exists(curr_tmp_dir) and os.access(curr_tmp_dir, os.W_OK):
             os.rename(curr_tmp_dir, new_tmp_dir)
 
@@ -139,21 +137,14 @@ class Core(BaseComponent):
                     int(self.db_config.Get('INBOUND_PROXY_PORT'))))
                 temp_socket.close()
             except socket.error:
-                self.error_handler.FrameworkAbort(
-                    "Inbound proxy address " +
-                    self.db_config.Get('INBOUND_PROXY_IP') + ":" +
-                    self.db_config.Get("INBOUND_PROXY_PORT") +
-                    " already in use")
-
+                self.error_handler.FrameworkAbort("Inbound proxy address %s:%s already in use" %
+                                                  (self.db_config.Get('INBOUND_PROXY_IP'),
+                                                   self.db_config.Get("INBOUND_PROXY_PORT")))
             # If everything is fine.
             self.ProxyProcess = proxy.ProxyProcess()
-            self.ProxyProcess.initialize(
-                options['OutboundProxy'],
-                options['OutboundProxyAuth']
-            )
+            self.ProxyProcess.initialize(options['OutboundProxy'], options['OutboundProxyAuth'])
             self.TransactionLogger = transaction_logger.TransactionLogger(
-                cache_dir=self.db_config.Get('INBOUND_PROXY_CACHE_DIR')
-            )
+                cache_dir=self.db_config.Get('INBOUND_PROXY_CACHE_DIR'))
             logging.warn(
                 "%s:%s <-- HTTP(S) Proxy to which requests can be directed",
                 self.db_config.Get('INBOUND_PROXY_IP'),
@@ -161,9 +152,7 @@ class Core(BaseComponent):
             self.ProxyProcess.start()
             logging.debug("Starting Transaction logger process")
             self.TransactionLogger.start()
-            logging.debug(
-                "Proxy transaction's log file at %s",
-                self.db_config.Get("PROXY_LOG"))
+            logging.debug("Proxy transaction's log file at %s", self.db_config.Get("PROXY_LOG"))
         else:
             ComponentInitialiser.initialisation_phase_3(options['OutboundProxy'])
 
@@ -174,16 +163,10 @@ class Core(BaseComponent):
           overriding the root logger
         + Enables both file and console logging
         """
-        process_name = kwargs.get(
-            "process_name",
-            multiprocessing.current_process().name
-        )
+        process_name = kwargs.get("process_name", multiprocessing.current_process().name)
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
-        file_handler = self.file_handler(
-            self.config.FrameworkConfigGetLogPath(process_name),
-            mode="w+"
-        )
+        file_handler = self.file_handler(self.config.FrameworkConfigGetLogPath(process_name), mode="w+")
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(FileFormatter())
 
@@ -220,16 +203,13 @@ class Core(BaseComponent):
     def initialise_framework(self, options):
         self.ProxyMode = options["ProxyMode"]
         logging.info("Loading framework please wait..")
-        # self.initlogger()
-
-        proxy_infos = [self.db_config.Get('INBOUND_PROXY_IP'), self.db_config.Get('INBOUND_PROXY_PORT')]
-        ComponentInitialiser.initialisation_phase_3(proxy_infos, options)
+        ComponentInitialiser.initialisation_phase_3(options)
         self.initialise_plugin_handler_and_params(options)
         # No processing required, just list available modules.
         if options['list_plugins']:
             self.PluginHandler.show_plugin_list(options['list_plugins'])
             self.finish()
-        self.config.ProcessOptions(options)
+        self.config.ProcessOptionsPhase2(options)
         command = self.get_command(options['argv'])
 
         self.start_botnet_mode(options)
@@ -242,11 +222,9 @@ class Core(BaseComponent):
         # The order is important here ;)
         self.PluginHandler = self.get_component("plugin_handler")
         self.PluginParams = self.get_component("plugin_params")
-        # If OWTF is run without the Web UI, the WorkerManager should exit as
-        # soon as all jobs have been completed. Otherwise, keep WorkerManager
-        # alive.
-        self.WorkerManager = worker_manager.WorkerManager(
-            keep_working=not options['nowebui'])
+        # If OWTF is run without the Web UI, the WorkerManager should exit as soon as all jobs have been completed.
+        # Otherwise, keep WorkerManager alive.
+        self.WorkerManager = worker_manager.WorkerManager(keep_working=not options['nowebui'])
 
     def run_server(self):
         """
@@ -277,21 +255,16 @@ class Core(BaseComponent):
         """
         if getattr(self, "TOR_process", None) is not None:
             self.TOR_process.terminate()
-        # TODO: Fix this for lions_2014
-        # if self.db_config.Get('SIMULATION'):
-        #    exit()
         else:
             if getattr(self, "PluginHandler", None) is not None:
                 self.PluginHandler.clean_up()
             if getattr(self, "ProxyProcess", None) is not None:
-                logging.info(
-                    "Stopping inbound proxy processes and cleaning up. Please wait!")
+                logging.info("Stopping inbound proxy processes and cleaning up. Please wait!")
                 self.ProxyProcess.clean_up()
                 self.kill_children(self.ProxyProcess.pid)
                 self.ProxyProcess.join()
             if getattr(self, "TransactionLogger", None) is not None:
-                # No signal is generated during closing process by
-                # terminate()
+                # No signal is generated during closing process by terminate()
                 self.TransactionLogger.poison_q.put('done')
                 self.TransactionLogger.join()
             if getattr(self, "WorkerManager", None) is not None:

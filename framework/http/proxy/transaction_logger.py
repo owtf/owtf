@@ -3,18 +3,16 @@
 # Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
 #                     as a part of Google Summer of Code 2013
 '''
-from multiprocessing import Process, current_process
-from framework.http import transaction
-from framework.http.proxy.cache_handler import response_from_cache, \
-    request_from_cache
-from framework.lib.owtf_process import OWTFProcess
-from framework import timer
-from urlparse import urlparse
+
 import os
-import json
 import glob
 import time
-import logging
+from urlparse import urlparse
+
+from framework.http import transaction
+from framework.http.proxy.cache_handler import response_from_cache, request_from_cache
+from framework.lib.owtf_process import OWTFProcess
+from framework import timer
 
 
 class TransactionLogger(OWTFProcess):
@@ -31,7 +29,7 @@ class TransactionLogger(OWTFProcess):
         self.transaction = self.get_component("transaction")
 
     def derive_target_for_transaction(self, request, response, target_list, host_list):
-        for target_id,Target in target_list:
+        for target_id, Target in target_list:
             if request.url.startswith(Target):
                 return [target_id, True]
             elif Target in request.url:
@@ -49,14 +47,15 @@ class TransactionLogger(OWTFProcess):
     def get_owtf_transactions(self, hash_list):
         transactions_dict = None
         target_list = self.target.GetIndexedTargets()
-        if target_list: # If there are no targets in db, where are we going to add. OMG
+        if target_list:  # If there are no targets in db, where are we going to add. OMG
             transactions_dict = {}
             host_list = self.target.GetAllInScope('host_name')
 
             for request_hash in hash_list:
                 request = request_from_cache(os.path.join(self.cache_dir, request_hash))
                 response = response_from_cache(os.path.join(self.cache_dir, request_hash))
-                target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list, host_list)
+                target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list,
+                                                                                 host_list)
                 owtf_transaction = transaction.HTTP_Transaction(timer.Timer())
                 owtf_transaction.ImportProxyRequestResponse(request, response)
                 try:
@@ -79,7 +78,7 @@ class TransactionLogger(OWTFProcess):
                 if glob.glob(os.path.join(self.cache_dir, "*.rd")):
                     hash_list = self.get_hash_list(self.cache_dir)
                     transactions_dict = self.get_owtf_transactions(hash_list)
-                    if transactions_dict: # Make sure you donot have None
+                    if transactions_dict:  # Make sure you do not have None
                         self.transaction.LogTransactionsFromLogger(transactions_dict)
                 else:
                     time.sleep(2)

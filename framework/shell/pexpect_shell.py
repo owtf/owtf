@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 '''
-The shell module allows running arbitrary shell commands and is critical to the framework in order to run third party tools
-The interactive shell module allows non-blocking interaction with subprocesses running tools or remote connections (i.e. shells)
+The shell module allows running arbitrary shell commands and is critical to the framework
+in order to run third party tools. The interactive shell module allows non-blocking
+interaction with subprocesses running tools or remote connections (i.e. shells)
 '''
-# import shlex
-import pexpect, sys
+
+import pexpect
+import sys
+
 from framework.lib.general import *
 from framework.shell import blocking_shell
-from collections import defaultdict
 
 
 class PExpectShell(blocking_shell.Shell):
@@ -19,7 +21,7 @@ class PExpectShell(blocking_shell.Shell):
 
     def CheckConnection(self, AbortMessage):
         if not self.Connection:
-            cprint("ERROR - Communication channel closed - " + AbortMessage)
+            cprint("ERROR - Communication channel closed - %s" % AbortMessage)
             return False
         return True
 
@@ -29,7 +31,7 @@ class PExpectShell(blocking_shell.Shell):
             return Output
         try:
             Output = self.Connection.after
-            if Output == None:
+            if Output is None:
                 Output = ''
             print Output  # Show progress on screen
         except pexpect.EOF:
@@ -38,25 +40,22 @@ class PExpectShell(blocking_shell.Shell):
         return Output
 
     def FormatCommand(self, Command):
-        #print "self.Options['RHOST']=" + str(self.Options['RHOST']) + "self.Options['RPORT']=" + str(self.Options['RPORT']) + "Command=" + str(Command)
         if "RHOST" in self.Options and 'RPORT' in self.Options:  # Interactive shell on remote connection
-            return self.Options['RHOST'] + ':' + self.Options['RPORT'] + ' - ' + Command
+            return "%s:%s-%s" % (self.Options['RHOST'], self.Options['RPORT'], Command)
         else:
-            return "Interactive - " + Command
+            return "Interactive - %s" % Command
 
     def Run(self, Command, PluginInfo):
         Output = ''
         Cancelled = False
-        if not self.CheckConnection("NOT RUNNING Interactive command: " + Command):
+        if not self.CheckConnection("NOT RUNNING Interactive command: %s" % Command):
             return Output
         # TODO: tail to be configurable: \n for *nix, \r\n for win32
         LogCommand = self.FormatCommand(Command)
         CommandInfo = self.StartCommand(LogCommand, LogCommand)
         try:
-            cprint("Running Interactive command: " + Command)
-            #SendAll(self.Connection, Command + "\n")
+            cprint("Running Interactive command: %s" % Command)
             self.Connection.sendline(Command)
-            #Output += self.Read()
             self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
         except pexpect.EOF:
             Cancelled = True
@@ -71,14 +70,14 @@ class PExpectShell(blocking_shell.Shell):
         return Output
 
     def Expect(self, Pattern, TimeOut=-1):
-        if self.Connection == None:
+        if self.Connection is None:
             return False
         try:
             self.Connection.expect(Pattern, TimeOut)
         except pexpect.EOF:
             cprint("ERROR: Expect - The Communication Channel is down!")
         except pexpect.TIMEOUT:
-            cprint("ERROR: Expect timeout threshold exceeded for pattern '" + Pattern + "'!")
+            cprint("ERROR: Expect timeout threshold exceeded for pattern %s!" % Pattern)
             cprint("Before:")
             print self.Connection.after
             cprint("After:")
@@ -112,8 +111,6 @@ class PExpectShell(blocking_shell.Shell):
                 CmdCount += 1
             if 'InitialCommands' in Options and Options['InitialCommands']:
                 Output += self.RunCommandList(Options['InitialCommands'], PluginInfo)
-            #Output += self.Read()
-        #Output += self.Read()
         return Output
 
     def Kill(self):
@@ -127,13 +124,12 @@ class PExpectShell(blocking_shell.Shell):
         self.Connection = None
 
     def Close(self, PluginInfo):
-        if self.Connection == None:
+        if self.Connection is None:
             cprint("Close: Connection already closed")
             return False
         if 'CommandsBeforeExit' in self.Options and self.Options['CommandsBeforeExit']:
             cprint("Running commands before closing Communication Channel..")
             self.RunCommandList(self.Options['CommandsBeforeExit'].split(self.Options['CommandsBeforeExitDelim']), PluginInfo)
-        #self.RunCommandList(self.Options['CommandsBeforeExit'].split('#'))
         cprint("Trying to close Communication Channel..")
         self.Run("exit", PluginInfo)
 
@@ -141,12 +137,6 @@ class PExpectShell(blocking_shell.Shell):
             self.Kill()
         else:  # By default wait
             self.Wait()
-        #self.Read()
-        #self.Connection = None
-        #self.Connection.stdin = "exit\r"
-        #self.Connection.wait()
-        #self.Connection.kill()
-        #return Core.PluginHelper.DrawCommandDump('Init Channel Command', 'Output', Core.Config.GetResources(Resource), PluginInfo, "") # No previous output
 
     def IsClosed(self):
-        return self.Connection == None
+        return self.Connection is None

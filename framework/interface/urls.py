@@ -1,14 +1,14 @@
+import tornado.web
+
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.interface import api_handlers, ui_handlers, custom_handlers
-import tornado.web
 
 
 def get_handlers():
-
     db_plugin = ServiceLocator.get_component("db_plugin")
     config = ServiceLocator.get_component("config")
-    plugin_group_re = '(' + '|'.join(db_plugin.GetAllGroups()) + ')?'
-    plugin_type_re = '(' + '|'.join(db_plugin.GetAllTypes()) + ')?'
+    plugin_group_re = '(%s)?' % '|'.join(db_plugin.GetAllGroups())
+    plugin_type_re = '(%s)?' % '|'.join(db_plugin.GetAllTypes())
     plugin_code_re = '([0-9A-Z\-]+)?'
 
     URLS = [
@@ -54,7 +54,7 @@ def get_handlers():
         tornado.web.url(r'/ui/plugnhack/?', ui_handlers.PlugnHack, name='plugnhack_ui_url'),
         tornado.web.url(r'/ui/plugnhack/?(.*)', ui_handlers.PlugnHack, name='plugnhack_ui_manifest_url'),
         tornado.web.url(r'/ui/help/?', ui_handlers.Help, name='help_ui_url')]
-    return (URLS)
+    return URLS
 
 
 def get_file_server_handlers():
@@ -63,4 +63,4 @@ def get_file_server_handlers():
         tornado.web.url(r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', api_handlers.WorkerHandler, name='workers_api_url'),
         tornado.web.url(r'/(.*)', custom_handlers.StaticFileHandler, {'path': config.GetOutputDirForTargets()}, name="output_files_url"),
     ]
-    return(URLS)
+    return URLS

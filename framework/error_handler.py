@@ -7,14 +7,11 @@ and logging errors for debugging later.
 import logging
 import traceback
 import sys
-import cgi
 import json
 import urllib2
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ErrorHandlerInterface
-
-from framework.lib.exceptions import FrameworkAbortException, \
-                                     PluginAbortException
+from framework.lib.exceptions import FrameworkAbortException, PluginAbortException
 from framework.lib.general import cprint
 from framework.utils import OutputCleaner, print_version
 
@@ -30,8 +27,8 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
         self.Core = None
         self.db = None
         self.db_error = None
-        self.Padding = "\n" + "_" * self.PaddingLength + "\n\n"
-        self.SubPadding = "\n" + "*" * self.PaddingLength + "\n"
+        self.Padding = "\n%s\n\n" % ("_" * self.PaddingLength)
+        self.SubPadding = "\n%s\n" % ("*" * self.PaddingLength)
 
     def init(self):
         self.Core = self.get_component("core")
@@ -65,17 +62,14 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
         return message
 
     def get_option_from_user(self, options):
-        return raw_input(
-            "Options: 'e'+Enter= Exit" + options + ", Enter= Next test\n")
+        return raw_input("Options: 'e'+Enter= Exit" + options + ", Enter= Next test\n")
 
-    def UserAbort(self, level, partial_output = ''):
+    def UserAbort(self, level, partial_output=''):
         # Levels so far can be Command or Plugin
         message = logging.info(
-            "\nThe " + level + " was aborted by the user: Please check the "
-            "report and plugin output files")
+            "\nThe %s was aborted by the user: Please check the report and plugin output files" % level)
         message = (
-            "\nThe " + level + " was aborted by the user: Please check the "
-            "report and plugin output files")
+            "\nThe %s was aborted by the user: Please check the report and plugin output files" % level)
         options = ""
         if 'Command' == level:
             options = ", 'p'+Enter= Move on to next plugin"
@@ -96,20 +90,17 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             cprint("ERROR: DB is not setup yet: cannot log errors to file!")
 
     def AddOWTFBug(self, message):
-        # TODO: http://blog.tplus1.com/index.php/2007/09/28/the-python-logging-module-is-much-better-than-print-statements/
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        err_trace_list = traceback.format_exception(
-            exc_type, exc_value, exc_traceback)
+        err_trace_list = traceback.format_exception(exc_type, exc_value, exc_traceback)
         err_trace = OutputCleaner.anonymise_command("\n".join(err_trace_list))
         message = OutputCleaner.anonymise_command(message)
-        output = self.Padding + "OWTF BUG: Please report the sanitised " \
-                 "information below to help make this better. Thank you." + \
-                 self.SubPadding + print_version(self.config.Rootdir, commit_hash=True, version=True) + \
-                 self.SubPadding
-        output += "\nMessage: " + message + "\n"
+        output = "%sOWTF BUG: Please report the sanitised information below to help make this better.Thank you.%s" % \
+            (self.Padding + self.SubPadding + print_version(self.config.Rootdir, commit_hash=True, version=True) +
+             self.SubPadding)
+        output += "\nMessage: %s\n" % message
         output += "\nError Trace:"
-        output += "\n" + err_trace
-        output += "\n"+self.Padding
+        output += "\n%s" % err_trace
+        output += "\n%s" % self.Padding
         cprint(output)
         self.LogError(message, err_trace)
 
@@ -129,10 +120,9 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             if item.startswith('Message'):
                 title = item[len('Message:'):]
                 break
-        data = {'title':'[Auto-Generated] ' + title, 'body':''}
+        data = {'title': '[Auto-Generated] %s' % title, 'body': ''}
         # For github markdown.
-        data['body'] = '#### OWTF Bug Report\n\n```' + \
-                       '\n'.join(error_data) + '```\n'
+        data['body'] = '#### OWTF Bug Report\n\n```\n%s```\n' % error_data
         if info:
             data['body'] += "\n#### User Report\n\n"
             data['body'] += info
@@ -143,15 +133,14 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             "Content-Type": "application/json",
             "Authorization":
                 "token " + self.config.Get("GITHUB_BUG_REPORTER_TOKEN")
-            }
-        request = urllib2.Request(
-            self.config.Get("GITHUB_API_ISSUES_URL"),
-            headers=headers,
-            data=data)
+        }
+        request = urllib2.Request(self.config.Get("GITHUB_API_ISSUES_URL"),
+                                  headers=headers,
+                                  data=data)
         response = urllib2.urlopen(request)
         decoded_resp = json.loads(response.read())
         if response.code == 201:
-            cprint("Issue URL: " + decoded_resp["url"])
+            cprint("Issue URL: %s" % decoded_resp["url"])
             return True
         else:
             return False

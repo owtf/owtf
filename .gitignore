@@ -12,7 +12,6 @@ tools/restricted/*
 ###################################
 dictionaries/fuzzdb
 
-
 # Tools with license restrictions that prevent re-distribution #
 ################################################################
 */sbd

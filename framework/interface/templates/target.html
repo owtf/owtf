@@ -79,15 +79,30 @@
       <div class="modal-body" id="pluginOutputFilterModalBody">
             {% for filter_type in adv_filter_data.keys() %}
                 <label for="name">{{ filter_type.replace("_", " ").capitalize() }}</label>
-                <div>
-                    {% for data in sorted(adv_filter_data[filter_type]) %}
-                        {% if data %}
-                           <label class="checkbox-inline">
-                              <input type="checkbox" class="filterCheckbox" onchange="modifyFilter(this, '{{ filter_type }}', '{{ data }}');"> {{ data }}
-                           </label>
+                {% if filter_type == 'mapping'  %}
+                    <div>
+                        {% for data in sorted(adv_filter_data[filter_type]) %}
+                            {% if data %}
+                               <label class="radio-inline">
+                                  <input type="radio" class="filterCheckbox" name="mapping" onchange="modifyMapping(this, '{{ filter_type }}', '{{ data }}');"> {{ data }}
+                               </label>
+                            {% end %}
                         {% end %}
-                    {% end %}
-                </div>
+                        <label class="radio-inline">
+                            <input type="radio" class="filterCheckbox" name="mapping" onchange="modifyMapping(this, '{{ filter_type }}', '{{ "" }}');" checked> OWTF
+                        </label>
+                    </div>
+                {% else %}
+                    <div>
+                        {% for data in sorted(adv_filter_data[filter_type]) %}
+                            {% if data %}
+                               <label class="checkbox-inline">
+                                  <input type="checkbox" class="filterCheckbox" onchange="modifyFilter(this, '{{ filter_type }}', '{{ data }}');"> {{ data }}
+                               </label>
+                            {% end %}
+                        {% end %}
+                    </div>
+                {% end %}
                 <hr>
             {% end %}
       </div>
@@ -120,11 +135,22 @@ function clearFilters() {
 }
 
 function modifyFilter(checkbox, filter_type, data){
-    if (typeof mySpace.filter_data[filter_type] === 'undefined') mySpace.filter_data[filter_type] = [];
+    if (typeof mySpace.filter_data[filter_type] === 'undefined') {
+        mySpace.filter_data[filter_type] = [];
+    }
     if (checkbox.checked && (mySpace.filter_data[filter_type].indexOf(data) == -1)) {
         mySpace.filter_data[filter_type].push(data);
     } else if ((!checkbox.checked) && (mySpace.filter_data[filter_type].indexOf(data) > -1)) {
         mySpace.filter_data[filter_type].splice(mySpace.filter_data[filter_type].indexOf(data), 1);
+    }
+}
+
+function modifyMapping(radio, filter_type, data){
+    if (typeof mySpace.filter_data[filter_type] === 'undefined') {
+       mySpace.filter_data[filter_type] = [];
+    }
+    if (radio.checked) {
+        mySpace.filter_data[filter_type] = [data];
     }
 }
 
@@ -179,7 +205,7 @@ $(document).ready(function() {
     updatePluginReport();  // Plugin report is updated using JS
     $('#pluginOutputFilterModal').on('hidden.bs.modal', function () {
       updatePluginReport();
-    })
+    });
 });
 </script>
 {% end %}

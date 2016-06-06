@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-"""
-The random module allows the rest of the framework to have access to random
-functionality.
-"""
+
+from pyvirtualdisplay import Display
+from selenium import webdriver
+
+from framework.selenium import url_launcher
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import AbstractInterface
 from framework.lib.general import *
@@ -18,13 +19,11 @@ class Selenium(BaseComponent, AbstractInterface):
 
     def SetDisplay(self):
         cprint("Setting Selenium's display ..")
-        from pyvirtualdisplay import Display
         self.Display = Display(visible=0, size=(800, 600))
         self.Display.start()
 
     def SetDriver(self):
         cprint("Setting Selenium's driver ..")
-        from selenium import webdriver
         self.Driver = webdriver.Firefox()
         self.Driver.implicitly_wait(30)
 
@@ -40,9 +39,4 @@ class Selenium(BaseComponent, AbstractInterface):
 
     def CreateURLLauncher(self, args):
         self.InitSelenium()
-        from framework.selenium import url_launcher
-
-        return url_launcher.URLLauncher(
-            self,
-            args['BASE_URL'],
-            args['INPUT_FILE'])
+        return url_launcher.URLLauncher(self, args['BASE_URL'], args['INPUT_FILE'])

@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-'''
-The random module allows the rest of the framework to have access to random functionality
-'''
-# import random, string
+
+from collections import defaultdict
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib.general import *
-from collections import defaultdict
 
 
 class PluginParams(BaseComponent):
@@ -25,13 +23,13 @@ class PluginParams(BaseComponent):
         for Arg in self.RawArgs:
             Chunks = Arg.split('=')
             if len(Chunks) < 2:
-                self.error_handler.Add("USER ERROR: " + str(Chunks) + " arguments should be in NAME=VALUE format", 'user')
+                self.error_handler.Add("USER ERROR: %s arguments should be in NAME=VALUE format" % str(Chunks), 'user')
                 return False
             ArgName = Chunks[0]
             try:
                 ArgValue = Arg.replace(ArgName, '')[1:]
             except ValueError:
-                self.error_handler.Add("USER ERROR: " + str(ArgName) + " arguments should be in NAME=VALUE format", 'user')
+                self.error_handler.Add("USER ERROR: %s arguments should be in NAME=VALUE format" % str(ArgName), 'user')
                 return False
             self.Args[ArgName] = ArgValue
         return True
@@ -43,9 +41,9 @@ class PluginParams(BaseComponent):
         else:
             cprint("Optional parameters:")
         for ArgName, ArgDescrip in Args.items():
-            if ArgDescrip == None:
+            if ArgDescrip is None:
                 ArgDescrip = ""
-            cprint("- " + ArgName + (30 - len(ArgName)) * '_' + ArgDescrip.replace('\n', "\n"))
+            cprint("- %s%s%s" % (ArgName, (30 - len(ArgName)) * '_', ArgDescrip.replace('\n', "\n")))
 
     def GetArgsExample(self, FullArgList, Plugin):
         ArgsStr = []
@@ -55,25 +53,25 @@ class PluginParams(BaseComponent):
         return Pad.join(ArgsStr) + Pad
 
     def ShowParamInfo(self, FullArgList, Plugin):
-        cprint("\nInformation for " + self.ShowPlugin(Plugin))
-        cprint("\nDescription: " + str(FullArgList['Description']))
+        cprint("\nInformation for %s" % self.ShowPlugin(Plugin))
+        cprint("\nDescription: %s" % str(FullArgList['Description']))
         self.ListArgs(FullArgList['Mandatory'], True)
         if len(FullArgList['Optional']) > 0:
             self.ListArgs(FullArgList['Optional'], False)
-        cprint("\nUsage: " + self.GetArgsExample(FullArgList, Plugin) + "\n")
+        cprint("\nUsage: %s\n" % self.GetArgsExample(FullArgList, Plugin))
         self.error_handler.FrameworkAbort("User is only viewing options, exiting", False)
 
     def ShowPlugin(self, Plugin):
         return "Plugin: " + Plugin['type'] + "/" + Plugin['file']
 
     def DefaultArgFromConfig(self, Args, ArgName, SettingList):
-        DefaultOrderStr = " (Default order is: " + str(SettingList) + ")"
+        DefaultOrderStr = " (Default order is: %s)" % str(SettingList)
         for Setting in SettingList:
             if self.config.IsSet(Setting):  # Argument is set in config
                 Args[ArgName] = self.config.FrameworkConfigGet(Setting)
                 cprint("Defaulted not passed '" + ArgName + "' to '" + str(Args[ArgName]) + "'" + DefaultOrderStr)
                 return True
-        cprint("Could not default not passed: '" + ArgName + "'" + DefaultOrderStr)
+        cprint("Could not default not passed: '%s'%s" % (ArgName, DefaultOrderStr))
         return False
 
     def GetArgList(self, ArgList, Plugin, Mandatory=True):
@@ -87,14 +85,14 @@ class PluginParams(BaseComponent):
                 ConfigDefaultOrder = [Plugin['code'] + '_' + Plugin['type'] + "_" + ArgName,
                                       Plugin['code'] + '_' + ArgName, ArgName]
                 Defaulted = self.DefaultArgFromConfig(Args, ArgName, ConfigDefaultOrder)
-                Value = ""
-                if Defaulted or Mandatory == False:
-                    continue  # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or Argument is optional = ok to skip
-                self.error_handler.Add("USER ERROR: " + self.ShowPlugin(Plugin) + " requires argument: '" + ArgName + "'",
-                                    'user')
+                if Defaulted or Mandatory is False:
+                    # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or
+                    # Argument is optional = ok to skip
+                    continue
+                self.error_handler.Add("USER ERROR: %s requires argument: '%s'" % (self.ShowPlugin(Plugin), ArgName),
+                                       'user')
                 return self.RetArgError({}, Plugin)  # Abort processing (invalid data)
             Args[ArgName] = self.Args[ArgName]
-        #print "Args before return="+str(Args)
         return Args
 
     def GetArgError(self, Plugin):
@@ -108,12 +106,12 @@ class PluginParams(BaseComponent):
         return ReturnValue
 
     def CheckArgList(self, FullArgList, Plugin):
-        if not 'Mandatory' in FullArgList or not 'Optional' in FullArgList:
-            self.error_handler.Add(
-                "OWTF PLUGIN BUG: " + self.ShowPlugin(Plugin) + " requires declared Mandatory and Optional arguments")
+        if ('Mandatory' not in FullArgList) or ('Optional' not in FullArgList):
+            self.error_handler.Add("OWTF PLUGIN BUG: %s requires declared Mandatory and Optional arguments" %
+                                   self.ShowPlugin(Plugin))
             return self.RetArgError(True, Plugin)
-        if not 'Description' in FullArgList:
-            self.error_handler.Add("OWTF PLUGIN BUG: " + self.ShowPlugin(Plugin) + " requires a Description")
+        if 'Description' not in FullArgList:
+            self.error_handler.Add("OWTF PLUGIN BUG: %s  requires a Description" % self.ShowPlugin(Plugin))
             return self.RetArgError(False, Plugin)
         return True
 
@@ -121,13 +119,10 @@ class PluginParams(BaseComponent):
         if not AllArgs:
             return self.NoArgs
         ArgsStr = []
-        #print "self.Args="+str(self.Args)
         for ArgName, ArgValue in AllArgs.items():
-            #print "Setting ArgName="+ArgName
             ArgsStr.append(ArgName + "=" + str(self.Args[ArgName]))
             AllArgs[ArgName] = ArgValue
         Plugin['Args'] = ' '.join(ArgsStr)  # Record arguments in Plugin dictionary
-        #print "AllArgs="+str(AllArgs)
         return [AllArgs]
 
     def SetConfig(self, Args):
@@ -136,15 +131,13 @@ class PluginParams(BaseComponent):
             self.config.SetGeneral('string', '_' + ArgName, ArgValue)  # Pre-pend "_" to avoid naming collisions
 
     def GetPermutations(self, Args):
-        #print "Args="+str(Args)
         Permutations = defaultdict(list)
-        if not 'REPEAT_DELIM' in Args:
+        if 'REPEAT_DELIM' not in Args:
             return Permutations  # No permutations
         Separator = Args['REPEAT_DELIM']
         for ArgName, ArgValue in Args.items():
             if ArgName == 'REPEAT_DELIM':
                 continue  # The repeat delimiter is not considered a permutation: It's the permutation delimiter :)
-            #print "ArgName="+ArgName+", ArgValue="+str(ArgValue)
             Chunks = ArgValue.split(Separator)
             if len(Chunks) > 1:
                 Permutations[ArgName] = Chunks
@@ -182,14 +175,11 @@ class PluginParams(BaseComponent):
             self.ShowParamInfo(FullArgList, Plugin)
             return self.NoArgs  # Abort processing, just showing options
         Mandatory = self.GetArgList(FullArgList['Mandatory'], Plugin, True)
-        #print "Mandatory="+str(Mandatory)
         Optional = self.GetArgList(FullArgList['Optional'], Plugin, False)
         if self.GetArgError(Plugin):
             cprint("")
             cprint("ERROR: Aborting argument processing, please correct the errors above and try again")
             cprint("")
-            return self.NoArgs  # Error processing arguments, must abort processing	
+            return self.NoArgs  # Error processing arguments, must abort processing
         AllArgs = MergeDicts(Mandatory, Optional)
-        #print "AllArgs="+str(AllArgs)
         return self.SetArgs(AllArgs, Plugin)
-

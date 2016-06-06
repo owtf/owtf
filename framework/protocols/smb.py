@@ -5,11 +5,7 @@ This is the handler for the Social Engineering Toolkit (SET) trying to overcome
 the limitations of set-automate.
 """
 
-import time
-import pexpect
 import os
-
-from collections import defaultdict
 
 from framework.shell import pexpect_shell
 from framework.lib.general import *
@@ -42,13 +38,11 @@ class SMB(pexpect_shell.PExpectShell):
             return True
         cprint("Initialising shell..")
         self.Open(options, plugin_info)
-        cprint(
-            "Ensuring Mount Point " + options['SMB_MOUNT_POINT'] + " exists..")
+        cprint("Ensuring Mount Point %s exists..." % options['SMB_MOUNT_POINT'])
         self.check_mount_point_existence(options)
-        mount_cmd = "smbmount //" + options['SMB_HOST'] + "/" + \
-                    options['SMB_SHARE'] + " " + options['SMB_MOUNT_POINT']
+        mount_cmd = "smbmount //%s/%s %s" % (options['SMB_HOST'], options['SMB_SHARE'], options['SMB_MOUNT_POINT'])
         if options['SMB_USER']:  # Pass user if specified.
-            mount_cmd += " -o user=" + options['SMB_USER']
+            mount_cmd += " -o user=%s" % options['SMB_USER']
         cprint("Mounting share..")
         self.Run(mount_cmd, plugin_info)
         self.Expect("Password:")
@@ -62,9 +56,7 @@ class SMB(pexpect_shell.PExpectShell):
     def Transfer(self):
         operation = False
         if self.Options['SMB_DOWNLOAD']:
-            self.Download(
-                self.Options['SMB_MOUNT_POINT'] + "/" + self.Options['SMB_DOWNLOAD'],
-                ".")
+            self.Download("%s/%s" % (self.Options['SMB_MOUNT_POINT'], self.Options['SMB_DOWNLOAD']), ".")
             operation = True
         if self.Options['SMB_UPLOAD']:
             self.Upload(
@@ -76,17 +68,14 @@ class SMB(pexpect_shell.PExpectShell):
 
     def UnMount(self, plugin_info):
         if self.IsMounted():
-            self.shell_exec_monitor(
-                "umount " + self.Options['SMB_MOUNT_POINT'])
+            self.shell_exec_monitor("umount %s" % self.Options['SMB_MOUNT_POINT'])
             self.SetMounted(False)
             self.Close(plugin_info)
 
     def Upload(self, file_path, mount_point):
-        cprint("Copying '" + file_path + "' to '" + mount_point + "'")
-        self.shell_exec_monitor(
-            "cp -r " + file_path + " " + mount_point)
+        cprint("Copying %s to %s" % (file_path, mount_point))
+        self.shell_exec_monitor("cp -r %s %s" % (file_path, mount_point))
 
     def Download(self, remote_file_path, target_dir):
-        cprint("Copying '" + remote_file_path + "' to '" + target_dir + "'")
-        self.shell_exec_monitor(
-            "cp -r " + remote_file_path + " " + target_dir)
+        cprint("Copying %s to %s" % (remote_file_path, target_dir))
+        self.shell_exec_monitor("cp -r %s %s" % (remote_file_path, target_dir))

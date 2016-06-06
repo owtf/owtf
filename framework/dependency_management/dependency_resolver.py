@@ -29,7 +29,10 @@ class ServiceLocator:
         "zap_api",
         "zest",
         "target",
-        "reporter"
+        "reporter",
+        "smb",
+        "interactive_shell",
+        "selenium_handler"
     ]
 
     @classmethod
@@ -62,7 +65,7 @@ class ServiceLocator:
 
     @classmethod
     def already_registered(cls, name):
-        return cls.registry.has_key(name)
+        return name in cls.registry
 
 
 class BaseComponent():
@@ -88,7 +91,7 @@ class BaseComponent():
         if ServiceLocator.already_registered(component_name):
             return ServiceLocator.get_component(component_name)
         else:
-            raise ComponentNotFoundException("Component not found in ServiceLocator: " + component_name)
+            raise ComponentNotFoundException("Component not found in ServiceLocator: %s" % component_name)
 
 
 class ComponentNotFoundException(Exception):

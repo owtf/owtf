@@ -1,8 +1,6 @@
+#!/usr/bin/env python
 """
-
-    Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
-    as a part of Google Summer of Code 2013.
-
+# Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013.
 """
 
 import os
@@ -10,8 +8,9 @@ import re
 import ssl
 import socket
 import datetime
-
 from multiprocessing import Value
+
+import pycurl
 
 import tornado.httpserver
 import tornado.ioloop
@@ -26,11 +25,8 @@ import tornado.template
 import tornado.websocket
 import tornado.gen
 
-import pycurl
-
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
-
 from framework.dependency_management.dependency_resolver import BaseComponent, ComponentNotFoundException
 from framework.utils import FileOperations
 from framework.lib.owtf_process import OWTFProcess
@@ -111,16 +107,13 @@ class ProxyHandler(tornado.web.RequestHandler):
         if self.request.uri.startswith(self.request.protocol, 0):  # Normal Proxy Request.
             self.request.url = self.request.uri
         else:  # Transparent Proxy Request.
-            self.request.url = self.request.protocol + "://" + self.request.host
+            self.request.url = "%s://%s" % (self.request.protocol, self.request.host)
             if self.request.uri != '/':  # Add uri only if needed.
                 self.request.url += self.request.uri
 
         # This block here checks for already cached response and if present returns one
-        self.cache_handler = CacheHandler(
-            self.application.cache_dir,
-            self.request,
-            self.application.cookie_regex,
-            self.application.cookie_blacklist)
+        self.cache_handler = CacheHandler(self.application.cache_dir, self.request, self.application.cookie_regex,
+                                          self.application.cookie_blacklist)
         request_hash = yield tornado.gen.Task(self.cache_handler.calculate_hash)
         self.cached_response = self.cache_handler.load()
 
@@ -145,7 +138,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                 if ':' not in self.request.host:
                     default_ports = {'http': '80', 'https': '443'}
                     if self.request.protocol in default_ports:
-                        host = self.request.host + ':' + default_ports[self.request.protocol]
+                        host = '%s:%s' % (self.request.host, default_ports[self.request.protocol])
                 # Check if auth is provided for that host
                 try:
                     index = self.application.http_auth_hosts.index(host)
@@ -189,7 +182,8 @@ class ProxyHandler(tornado.web.RequestHandler):
                     proxy_password=self.application.outbound_password,
                     allow_nonstandard_methods=True,
                     prepare_curl_callback=callback,
-                    validate_cert=False)
+                    validate_cert=False
+                )
                 try:
                     response = yield tornado.gen.Task(async_client.fetch, request)
                 except Exception:
@@ -215,7 +209,8 @@ class ProxyHandler(tornado.web.RequestHandler):
                         proxy_username=self.application.outbound_username,
                         proxy_password=self.application.outbound_password,
                         prepare_curl_callback=callback,  # socks callback function.
-                        validate_cert=False)
+                        validate_cert=False
+                    )
                     try:
                         proxy_check_resp = yield tornado.gen.Task(async_client.fetch, proxy_check_req)
                     except Exception:
@@ -232,9 +227,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             # Cache the response after finishing the response, so caching time is not included in response time
             self.cache_handler.dump(response)
 
-    ###
     # The following 5 methods can be handled through the above implementation.
-    ###
     @tornado.web.asynchronous
     def post(self):
         return self.get()
@@ -284,7 +277,8 @@ class ProxyHandler(tornado.web.RequestHandler):
                     self.application.ca_key,
                     self.application.ca_key_pass,
                     self.application.certs_folder,
-                    success=ssl_success)
+                    success=ssl_success
+                )
             except tornado.iostream.StreamClosedError:
                 pass
 
@@ -333,7 +327,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.request.url = self.request.uri
         # Transparent Proxy Request
         else:
-            self.request.url = self.request.protocol + "://" + self.request.host + self.request.uri
+            self.request.url = "%s://%s%s" % (self.request.protocol, self.request.host, self.request.uri)
         self.request.url = self.request.url.replace("http", "ws", 1)
 
         # Have to add cookies and stuff
@@ -348,7 +342,8 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             proxy_host=self.application.outbound_ip,
             proxy_port=self.application.outbound_port,
             proxy_username=self.application.outbound_username,
-            proxy_password=self.application.outbound_password)
+            proxy_password=self.application.outbound_password
+        )
         self.upstream_connection = CustomWebSocketClientConnection(io_loop, request)
         if callback is not None:
             io_loop.add_future(self.upstream_connection.connect_future, callback)
@@ -429,13 +424,15 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.handshake_request,
             self.upstream_connection.code,
             headers=self.upstream_connection.headers,
-            request_time=0)
+            request_time=0
+        )
         # Procedure for dumping a tornado request-response
         self.cache_handler = CacheHandler(
             self.application.cache_dir,
             self.handshake_request,
             self.application.cookie_regex,
-            self.application.cookie_blacklist)
+            self.application.cookie_blacklist
+        )
         self.cached_response = self.cache_handler.load()
         self.cache_handler.dump(self.handshake_response)
 
@@ -461,7 +458,7 @@ class CommandHandler(tornado.web.RequestHandler):
         info = {}
         for command in command_list:
             if command.startswith("Core"):
-                command = "self.application." + command
+                command = "self.application.%s" % command
                 info[command] = eval(command)
             if command.startswith("setattr"):
                 info[command] = eval(command)
@@ -512,10 +509,8 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         self.application.ca_key = os.path.expanduser(self.db_config.Get('CA_KEY'))
         # To stop OWTF from breaking for our beloved users :P
         try:
-            self.application.ca_key_pass = FileOperations.open(
-                os.path.expanduser(self.db_config.Get('CA_PASS_FILE')),
-                'r',
-                owtf_clean=False).read().strip()
+            self.application.ca_key_pass = FileOperations.open(os.path.expanduser(self.db_config.Get('CA_PASS_FILE')),
+                                                               'r', owtf_clean=False).read().strip()
         except IOError:
             self.application.ca_key_pass = "owtf"  # XXX: Legacy CA key pass for older versions.
         self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
@@ -525,8 +520,8 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             assert os.path.exists(self.application.ca_cert)
             assert os.path.exists(self.application.ca_key)
         except AssertionError:
-            self.get_component("error_handler").FrameworkAbort(
-                "Files required for SSL MiTM are missing. Please run the install script")
+            self.get_component("error_handler").FrameworkAbort("Files required for SSL MiTM are missing."
+                                                               " Please run the install script")
 
         try:  # If certs folder missing, create that.
             assert os.path.exists(self.application.certs_folder)
@@ -600,7 +595,7 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
             tornado.options.parse_command_line(
-                args=["dummy_arg", "--log_file_prefix=" + self.db_config.Get("PROXY_LOG"), "--logging=info"])
+                args=["dummy_arg", "--log_file_prefix=%s" % self.db_config.Get("PROXY_LOG"), "--logging=info"])
             # To run any number of instances
             # "0" equals the number of cores present in a machine
             self.server.start(int(self.instances))

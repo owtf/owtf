@@ -2,10 +2,8 @@
 
 import os
 import sys
-import time
 import platform
 import argparse
-from datetime import datetime
 from space_checker_utils import wget_wrapper
 
 import ConfigParser
@@ -59,7 +57,8 @@ def check_sudo():
     if not sudo:
         return
     else:
-        Colorizer.warning("[!] Your user does not have sudo privileges. Some OWTF components require sudo permissions to install")
+        Colorizer.warning("[!] Your user does not have sudo privileges. Some OWTF components require"
+                          "sudo permissions to install")
         sys.exit()
 
 
@@ -105,10 +104,11 @@ def install_restricted_from_cfg(config_file):
 
 def is_compatible():
         compatible_value = os.system("which apt-get >> /dev/null 2>&1")
-        if compatible_value>>8 == 1:
+        if (compatible_value >> 8) == 1:
             return False
         else:
             return True
+
 
 def finish(error_code):
         if error_code == 1:
@@ -137,38 +137,41 @@ def install(cmd_arguments):
     elif "samurai" in distro.lower():
         distro_num = 2
     elif is_compatible():
-    	distro_num = 3
+        distro_num = 3
 
-    # Loop until proper input is received
-    while True:
-        if distro_num != 0:
-            Colorizer.info("[*] %s has been automatically detected... " % distro)
-            Colorizer.normal("[*] Continuing in auto-mode")
-            break
-
-        if args.no_user_input:
-            distro_num = 0
-            break
-
-        print("")
-        for i, item in enumerate(cp.sections()):
-            Colorizer.warning("(%d) %s" % (i + 1, item))
-        Colorizer.warning("(0) My distro is not listed :( %s" % distro)
-
-        distro_num = raw_input("Select a number based on your distribution : ")
-        try:
-            # Checking if valid input is received
-            distro_num = int(distro_num)
-            break
-        except ValueError:
-            print('')
-            Colorizer.warning("[!] Invalid Number specified")
-            continue
-
-    # First all distro independent stuff is installed
-    install_restricted_from_cfg(restricted_cfg)
     if distro_num != 0:
-        run_command(cp.get(cp.sections()[int(distro_num)-1], "install"))
+        Colorizer.info("[*] %s has been automatically detected... " % distro)
+        Colorizer.normal("[*] Continuing in auto-mode")
+    elif (distro_num == 0) and args.no_user_input:
+        Colorizer.info("[*] Cannot auto-detect a supported distro...")
+        Colorizer.normal("[*] Continuing in auto-mode with the core installation...")
+    else:
+        # Loop until proper input is received
+        while True:
+            print("")
+            for i, item in enumerate(cp.sections()):
+                Colorizer.warning("(%d) %s" % (i + 1, item))
+            Colorizer.warning("(0) My distro is not listed :( %s" % distro)
+
+            num_input = raw_input("Select a number based on your distribution : ")
+            try:
+                if int(num_input) <= len(cp.sections()):
+                    distro_num = int(num_input)
+                    break
+                else:
+                    print("")
+                    Colorizer.warning("[!] Invalid number - not a supported distro")
+                    continue
+            except ValueError:
+                print("")
+                Colorizer.warning("[!] Invalid Number specified")
+                continue
+
+    # Now install distro independent stuff - optional
+    install_restricted_from_cfg(restricted_cfg)
+    # Install distro specific libraries needed for OWTF to work
+    if distro_num != 0:
+        run_command(cp.get(cp.sections()[int(distro_num) - 1], "install"))
     else:
         Colorizer.normal("[*] Skipping distro related installation :(")
 
@@ -186,32 +189,7 @@ def install(cmd_arguments):
     # Mitigate cffi errors by upgrading it first
     run_command("sudo pip2 install --upgrade cffi")
 
-    if distro_num == '1':
-        # check kali major release number 0.x, 1.x, 2.x
-        kali_version = os.popen("cat /etc/issue", "r").read().split(" ")[2][0]
-        if kali_version == '1':
-            if args.no_user_input:
-                fixsetuptools = 'n'
-            else:
-                fixsetuptools = raw_input("Delete /usr/lib/python2.7/dist-packages/setuptools.egg-info? (y/n)\n(recommended, solves some issues in Kali 1.xx)")
-
-            if fixsetuptools == 'y':
-                Colorizer.normal("[*] Backing up the original symlink...")
-                ts = time.time()
-                human_timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H:%M:%S')
-
-                symlink_orig_path = "/usr/lib/python2.7/dist-packages/setuptools.egg-info"
-                run_command("mv %s %s-BACKUP-%s" % (symlink_orig_path, symlink_orig_path, human_timestamp))
-                Colorizer.info("[*] The original symlink exists at %s-BACKUP-%s" % (symlink_orig_path, human_timestamp))
-
-                install_using_pip(owtf_pip)
-        else:
-            Colorizer.warning("[!] Moving on with the installation but you were warned: there may be some errors!")
-
     install_using_pip(owtf_pip)
-
-    run_command("sudo sh %s init" % (os.path.join(scripts_path, "db_setup.sh")))
-    run_command("sudo sh %s" % (os.path.join(scripts_path, "db_run.sh")))
 
 
 class Colorizer:
@@ -286,5 +264,4 @@ if __name__ == "__main__":
     Colorizer.info("[*] Last commit hash: %s" % owtf_last_commit())
     check_sudo()
     installer_status_code = install(sys.argv[1:])
-
     finish(installer_status_code)

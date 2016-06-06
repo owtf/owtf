@@ -6,10 +6,8 @@ This script helps in updating OWTF.
 import os
 import json
 import urllib2
-
 from subprocess import PIPE
 from subprocess import Popen as execute
-
 from framework.lib.general import cprint
 
 
@@ -41,14 +39,14 @@ class Updater(object):
         if self.proxy:
             proxy_support = self.proxy
             if self.proxy_auth:
-                proxy_support = self.proxy_auth + '@' + proxy_support
+                proxy_support = "%s@%s" % (self.proxy_auth, proxy_support)
             proxy_handler = urllib2.ProxyHandler({
-                'http': 'http://' + proxy_support,
-                'https': 'https://' + proxy_support})
+                'http': 'http://%s' % proxy_support,
+                'https': 'https://%s' % proxy_support})
             opener = urllib2.build_opener(proxy_handler)
             urllib2.install_opener(opener)
-            self.process_environ['http_proxy'] = 'http://' + proxy_support
-            self.process_environ['https_proxy'] = 'https://' + proxy_support
+            self.process_environ['http_proxy'] = 'http://%s' % proxy_support
+            self.process_environ['https_proxy'] = 'https://%s' % proxy_support
         # GITHUB API is used to fetch all the tags
         response = urllib2.urlopen(self.remote_tags_url)
         self.remote_tags = json.loads(response.read())
@@ -60,9 +58,8 @@ class Updater(object):
 
         """
         if not os.path.exists(os.path.join(self.root_dir, '.git')):
-            cprint(
-                "Not a git repository. Please checkout OWTF repo from GitHub "
-                "(eg:- git clone https://github.com/owtf/owtf owtf)")
+            cprint("Not a git repository. Please checkout OWTF repo from GitHub "
+                   "(eg:- git clone https://github.com/owtf/owtf owtf)")
             return False
         else:
             self.prepare()
@@ -70,13 +67,13 @@ class Updater(object):
 
     def last_commit_hash(self):
         """Returns the last commit hash in the local repo."""
-        command = ("git --git-dir=%s log -n 1 "%(self.git_dir))
+        command = ("git --git-dir=%s log -n 1 " % (self.git_dir))
         command += "--pretty=format:%H"
-        process = execute(
-            command,
-            shell=True,
-            env=self.process_environ,
-            stdout=PIPE, stderr=PIPE)
+        process = execute(command,
+                          shell=True,
+                          env=self.process_environ,
+                          stdout=PIPE,
+                          stderr=PIPE)
         stdout, stderr = process.communicate()
         commit_hash = stdout.strip()
         return commit_hash
@@ -86,30 +83,21 @@ class Updater(object):
             # Instead of checking tag names, commit hashes is checked for
             # foolproof method.
             if self.last_commit_hash() != self.remote_tags[0]["commit"]["sha"]:
-                cprint(
-                    "Trying to update OWTF to %s" %
-                    self.remote_tags[0]["name"])
-                command = (
-                    "git pull; git reset --soft %s" %
-                    self.remote_tags[0]["name"])
-                process = execute(
-                    command,
-                    shell=True,
-                    env=self.process_environ,
-                    stdout=PIPE, stderr=PIPE)
+                cprint("Trying to update OWTF to %s" % self.remote_tags[0]["name"])
+                command = ("git pull; git reset --soft %s" % self.remote_tags[0]["name"])
+                process = execute(command,
+                                  shell=True,
+                                  env=self.process_environ,
+                                  stdout=PIPE,
+                                  stderr=PIPE)
                 stdout, stderr = process.communicate()
                 success = not process.returncode
                 if success:
-                    cprint(
-                        "OWTF Successfully Updated to Latest Stable Version!!")
+                    cprint("OWTF Successfully Updated to Latest Stable Version!!")
                     cprint("Version Tag: %s" % self.remote_tags[0]["name"])
-                    cprint(
-                        "Please run install script if you face any errors "
-                        "after updating")
+                    cprint("Please run install script if you face any errors after updating")
                 else:
                     cprint("Unable to update :(")
             else:
-                cprint(
-                    "Seems like you are running latest version => %s" %
-                    self.remote_tags[0]["name"])
+                cprint("Seems like you are running latest version => %s" % self.remote_tags[0]["name"])
                 cprint("Happy pwning!! :D")
