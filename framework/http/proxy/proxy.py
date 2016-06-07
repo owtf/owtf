@@ -297,8 +297,14 @@ class ProxyHandler(tornado.web.RequestHandler):
 
         # Hacking to be done here, so as to check for ssl using proxy and auth
         try:
-            s = ssl.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0))
-            upstream = tornado.iostream.SSLIOStream(s)
+            # Adds a fix for check_hostname errors in Tornado 4.3.0
+            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+            context.check_hostname = False
+            context.load_default_certs()
+            # When connecting through a new socket, no need to wrap the socket before passing
+            # to SSIOStream
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+            upstream = tornado.iostream.SSLIOStream(s, ssl_options=context)
             upstream.set_close_callback(ssl_fail)
             upstream.connect((host, int(port)), start_tunnel)
         except Exception:

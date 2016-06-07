@@ -39,9 +39,9 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                 serial = int(md5_hash.hexdigest(), 36)
 
                 # The CA stuff is loaded from the same folder as this script
-                ca_cert = crypto.load_certificate(crypto.FILETYPE_PEM, open(ca_crt).read())
+                ca_cert = crypto.load_certificate(crypto.FILETYPE_PEM, open(ca_crt, 'rb').read())
                 # The last parameter is the password for your CA key file
-                ca_key = crypto.load_privatekey(crypto.FILETYPE_PEM, open(ca_key).read(), ca_pass)
+                ca_key = crypto.load_privatekey(crypto.FILETYPE_PEM, open(ca_key, 'rb').read(), passphrase=ca_pass)
 
                 key = crypto.PKey()
                 key.generate_key(crypto.TYPE_RSA, 2048)
