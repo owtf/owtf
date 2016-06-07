@@ -27,12 +27,6 @@ class OWTFProcess(Process, BaseComponent):
             setattr(self, key, kwargs.get(key, None))
         super(OWTFProcess, self).__init__()
 
-    def make_daemon(self):
-        """
-        Method used to set daemon value to true
-        """
-        self.daemon = True
-
     def initialize(self, **kwargs):
         """
         Supposed to be overridden if user wants to initialize something
