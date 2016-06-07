@@ -4,6 +4,7 @@ import os
 import sys
 import platform
 import argparse
+import subprocess
 from space_checker_utils import wget_wrapper
 
 import ConfigParser
