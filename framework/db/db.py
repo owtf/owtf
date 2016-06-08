@@ -130,7 +130,7 @@ class DB(BaseComponent, DBInterface):
                     self._db_settings['DATABASE_NAME']),
                 poolclass=QueuePool,
                 pool_size=5,
-                max_overflow=10,)
+                max_overflow=10)
             BaseClass.metadata.create_all(engine)
             # Fix for forking
             register_after_fork(engine, engine.dispose)
