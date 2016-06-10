@@ -44,7 +44,7 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                 ca_key = crypto.load_privatekey(crypto.FILETYPE_PEM, open(ca_key, 'rb').read(), passphrase=ca_pass)
 
                 key = crypto.PKey()
-                key.generate_key(crypto.TYPE_RSA, 2048)
+                key.generate_key(crypto.TYPE_RSA, 4096)
 
                 cert = crypto.X509()
                 cert.get_subject().C = "IN"

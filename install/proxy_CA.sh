@@ -7,10 +7,10 @@ RootDir=$1
 . "$(dirname "$(readlink -f "$0")")/utils.sh"
 
 get_config_value(){
-    
+
     parameter=$1
     file=$2
-    
+
     echo "$(grep -i ${parameter} ${file} | sed  "s|$parameter: ||g;s|~|$HOME|g")"
 }
 
@@ -33,8 +33,7 @@ if [ ! -f ${ca_cert} ]; then
     if [ -f ${ca_pass_file} ]; then
         rm ${ca_pass_file}
     fi
-    echo "${info}$ca_key_pass >> $ca_pass_file ${reset}"
-
+    echo $ca_key_pass >> $ca_pass_file
     openssl genrsa -des3 -passout pass:${ca_key_pass} -out "$ca_key" 4096
     openssl req -new -x509 -days 3650 -subj "/C=US/ST=Pwnland/L=OWASP/O=OWTF/CN=MiTMProxy" -passin pass:${ca_key_pass} -key "$ca_key" -out "$ca_cert"
     echo "${warning}[!] Don't forget to add the $ca_cert as a trusted CA in your browser${reset}"
