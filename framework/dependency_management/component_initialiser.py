@@ -32,6 +32,7 @@ from framework.selenium.selenium_handler import Selenium
 from framework.shell.blocking_shell import Shell
 from framework.shell.interactive_shell import InteractiveShell
 from framework.timer import Timer
+from framework.wrappers.set.set_handler import SETHandler
 from framework.zap import ZAP_API
 from framework.zest import Zest
 
@@ -93,6 +94,7 @@ class ComponentInitialiser():
         InteractiveShell()
         Selenium()
         SMTP()
+        SETHandler()
         ZAP_API()
 
     @staticmethod

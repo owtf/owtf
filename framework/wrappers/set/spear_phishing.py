@@ -7,13 +7,14 @@ This is the handler for the Social Engineering Toolkit (SET) trying to overcome 
 import time
 
 from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import AbstractInterface
 from framework.lib.general import *
 
 
 SCRIPT_DELAY = 2
 
 
-class SpearPhishing(BaseComponent):
+class SpearPhishing(BaseComponent, AbstractInterface):
 
     COMPONENT_NAME = "spear_phishing"
 
