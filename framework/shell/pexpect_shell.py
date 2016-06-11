@@ -115,8 +115,9 @@ class PExpectShell(blocking_shell.Shell):
 
     def Kill(self):
         cprint("Killing Communication Channel..")
-        self.Connection.kill(0)
-        self.Connection = None
+        if self.Connection is not None:
+            self.Connection.kill(0)
+            self.Connection = None
 
     def Wait(self):
         cprint("Waiting for Communication Channel to close..")

@@ -114,3 +114,11 @@ def GetFileAsList(Filename):
         log("Cannot open file: '"+Filename+"' ("+str(sys.exc_info())+")")
         Output = []
     return Output
+
+def PathsExist(PathList):
+    ValidPaths = True
+    for Path in PathList:
+        if Path and not os.path.exists(Path):
+            log("WARNING: The path '" + Path + "' does not exist!")
+            ValidPaths = False
+    return ValidPaths
