@@ -34,8 +34,7 @@ def run(PluginInfo):
                               'RHOST': Args['RHOST'],
                               'RPORT': Args['RPORT']
                               }, PluginInfo)
-        ServiceLocator.get_component("interactive_shell").RunCommandList(GetFileAsList(Args['COMMAND_FILE']), PluginInfo)
+        Content += ServiceLocator.get_component("interactive_shell").RunCommandList(GetFileAsList(Args['COMMAND_FILE']), PluginInfo)
     if not ServiceLocator.get_component("interactive_shell").IsClosed():  # Ensure clean exit if reusing connection
         ServiceLocator.get_component("interactive_shell").Close(PluginInfo)
-    # TODO: Content is empty here so need to handle that
     return Content

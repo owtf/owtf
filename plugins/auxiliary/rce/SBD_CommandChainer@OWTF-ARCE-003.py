@@ -48,7 +48,7 @@ def run(PluginInfo):
             }, PluginInfo)
         else:
             OWTFLogger.log("Reusing initial connection..")
-        ServiceLocator.get_component("interactive_shell").Run(
+        Content += ServiceLocator.get_component("interactive_shell").Run(
             Args['COMMAND_PREFIX'] + Args['TEST'] + Args['COMMAND_SUFFIX'], PluginInfo)
         OWTFLogger.log("Sleeping " + DELAY_BETWEEN_COMMANDS + " second(s) (increases reliability)..")
         time.sleep(int(DELAY_BETWEEN_COMMANDS))
@@ -58,5 +58,4 @@ def run(PluginInfo):
         Iteration += 1  # Increase Iteration counter
     if not ServiceLocator.get_component("interactive_shell").IsClosed():  # Ensure clean exit if reusing connection
         ServiceLocator.get_component("interactive_shell").Close(PluginInfo)
-    # TODO: Content is empty here so need to handle that
     return Content

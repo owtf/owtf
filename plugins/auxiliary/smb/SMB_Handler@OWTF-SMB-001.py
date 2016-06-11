@@ -19,7 +19,6 @@ def run(PluginInfo):
             'SMB_MOUNT_POINT': config.FrameworkConfigGet('SMB_MOUNT_POINT_DESCRIP'),
         },
         'Optional': {
-            # TODO: Default arguments are not available for following arguments
             'SMB_USER': config.FrameworkConfigGet('SMB_USER_DESCRIP'),
             'SMB_PASS': config.FrameworkConfigGet('SMB_PASS_DESCRIP'),
             'SMB_DOWNLOAD': config.FrameworkConfigGet('SMB_DOWNLOAD_DESCRIP'),
@@ -34,5 +33,4 @@ def run(PluginInfo):
         smb.Transfer()
     if not smb.IsClosed():  # Ensure clean exit if reusing connection
         smb.UnMount(PluginInfo)
-    # TODO: Content is empty here so need to handle that
     return Content

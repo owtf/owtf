@@ -28,6 +28,5 @@ def run(PluginInfo):
         URLLauncher = ServiceLocator.get_component("selenium_handler").CreateURLLauncher(
             {'BASE_URL': Args['BASE_URL'], 'INPUT_FILE': InputFile})
         URLLauncher.Run()
-    # TODO: Content is empty here so need to handle that
     return Content
 
