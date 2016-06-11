@@ -29,8 +29,12 @@ class SMTP(BaseComponent):
         return smtplib.SMTP(options['SMTP_HOST'], int(options['SMTP_PORT']))
 
     def Connect(self, options):
-        mail_server = self.create_connection_with_mail_server(options)
-        mail_server.ehlo()
+        try:
+            mail_server = self.create_connection_with_mail_server(options)
+            mail_server.ehlo()
+        except Exception, e:
+            print("Error connecting to %s on port %s" % (options['SMTP_HOST'], options['SMTP_PORT']))
+            return None
         try:
             mail_server.starttls()  # Give start TLS a shot
         except Exception, e:
@@ -65,10 +69,12 @@ class SMTP(BaseComponent):
             try:
                 message = self.BuildMessage(options, target)
                 mail_server = self.Connect(options)
+                if mail_server is None:
+                    raise Exception('error connecting to '+str(target))
                 mail_server.sendmail(options['SMTP_LOGIN'], target, message.as_string())
                 self.Print("Email relay successful!")
             except Exception, e:
-                self.error_handler.Add("Error delivering email: %s" % str(e))
+                self.error_handler.Add("Error delivering email: %s" % str(e), '')
                 num_errors += 1
         return (num_errors == 0)
 
