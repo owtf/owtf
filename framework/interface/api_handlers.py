@@ -622,9 +622,9 @@ class WorklistHandler(custom_handlers.APIRequestHandler):
             target_list = self.get_component("target").GetTargetConfigs(filter_data)
             if (not plugin_list) or (not target_list):
                 raise tornado.web.HTTPError(400)
-            self.get_component("worklist_manager").add_work(target_list, plugin_list,
-                force_overwrite=self.get_component("config").ConvertStrToBool(self.get_argument("force_overwrite",
-                                                                                                "False")))
+            force_overwrite = self.get_component("config").ConvertStrToBool(self.get_argument("force_overwrite",
+                                                                                              "False"))
+            self.get_component("worklist_manager").add_work(target_list, plugin_list, force_overwrite=force_overwrite)
             self.set_status(201)
         except exceptions.InvalidTargetReference:
             raise tornado.web.HTTPError(400)

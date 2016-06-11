@@ -139,7 +139,7 @@ function updateSelectionCount() {
     $('#targetTable .selected-target-count').html(checked_rows.length);
 }
 
-// Ensure an element is (state=true) or is not (state=false) in array 
+// Ensure an element is (state=true) or is not (state=false) in array
 function setArrayElement(array, element, state) {
     var index = array.indexOf(element);
     if (index === -1 && state) {
@@ -520,7 +520,7 @@ function drawTargetTable() {
             // everytime the table is drawn, it checks if all the
             // checkboxes are checked and if they are, then the select all
             // checkbox in the table header is selected
-            
+
             //ensure 'checked_rows' are redrawn properly
             for(var i = 0; i < checked_rows.length; i++) {
                 var target_id = checked_rows[i];

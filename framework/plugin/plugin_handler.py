@@ -381,12 +381,6 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def SwitchToTarget(self, Target):
         self.target.SetTarget(Target)  # Tell Target DB that all Gets/Sets are now Target-specific
 
-    def get_plugins_in_order_for_PluginGroup(self, PluginGroup):
-        return self.db_plugin.GetOrder(PluginGroup)
-
-    def get_plugins_in_order(self, PluginGroup):
-        return self.db_plugin.GetOrder(PluginGroup)
-
     def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList):
         # TargetList param will be useful for netsec stuff to call this
         PluginDir = self.GetPluginGroupDir(PluginGroup)
@@ -405,7 +399,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                     # Tell Config that all Gets/Sets are now
                     # Target-specific.
                     self.SwitchToTarget(Target)
-                    for Plugin in self.get_plugins_in_order_for_PluginGroup(PluginGroup):
+                    for Plugin in PluginGroup:
                         self.ProcessPlugin(PluginDir, Plugin, Status)
                     lastwave = waves[i]
                     for http_ports in http:

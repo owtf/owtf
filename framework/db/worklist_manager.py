@@ -105,9 +105,20 @@ class WorklistManager(BaseComponent):
             raise exceptions.InvalidWorkReference("No work with id %s" % str(work_id))
         return self._derive_work_dict(work)
 
+    def group_sort_order(self, plugin_list):
+        # TODO: Fix for individual plugins
+        # Right now only for plugin groups launched not individual plugins
+        # Giving priority to plugin type based on type
+        # Higher priority == run first!
+        priority = {"grep": -1, "bruteforce": 0, "active": 1, "semi_passive": 2, "passive": 3, "external": 4}
+        # reverse = True so that descending order is maintained
+        sorted_plugin_list = sorted(plugin_list, key=lambda k: priority[k['type']], reverse=True)
+        return sorted_plugin_list
+
     def add_work(self, target_list, plugin_list, force_overwrite=False):
+        sorted_plugin_list = self.group_sort_order(plugin_list)
         for target in target_list:
-            for plugin in plugin_list:
+            for plugin in sorted_plugin_list:
                 # Check if it already in worklist
                 if self.db.session.query(models.Work).filter_by(target_id=target["id"],
                                                                 plugin_key=plugin["key"]).count() == 0:
