@@ -172,7 +172,7 @@ class Config(BaseComponent, ConfigInterface):
     def LoadTargets(self, options):
         scope = options['Scope']
         if options['PluginGroup'] == 'auxiliary':
-            scope = self.GetAuxTarget(options)
+            scope = self.get_aux_target(options)
         added_targets = []
         for target in scope:
             try:
@@ -185,7 +185,7 @@ class Config(BaseComponent, ConfigInterface):
                 logging.error("%s" % e.parameter)
         return added_targets
 
-    def GetAuxTarget(self, options):
+    def get_aux_target(self, options):
         """
         This function returns the target for auxiliary plugins from the parameters provided
         """

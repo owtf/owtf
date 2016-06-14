@@ -3,7 +3,6 @@ from framework.dependency_management.dependency_resolver import ServiceLocator
 
 DESCRIPTION = "Spear Phishing Testing plugin"
 
-
 def run(PluginInfo):
     Content = []
     plugin_params = ServiceLocator.get_component("plugin_params")
@@ -37,7 +36,8 @@ def run(PluginInfo):
             'ISHELL_DELAY_BETWEEN_COMMANDS': config.FrameworkConfigGet('ISHELL_DELAY_BETWEEN_COMMANDS_DESCRIP'),
             'ISHELL_COMMANDS_BEFORE_EXIT': config.FrameworkConfigGet('ISHELL_COMMANDS_BEFORE_EXIT_DESCRIP'),
             'ISHELL_COMMANDS_BEFORE_EXIT_DELIM': config.FrameworkConfigGet('ISHELL_COMMANDS_BEFORE_EXIT_DELIM_DESCRIP'),
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')}
+            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+        }
     }
 
     for Args in plugin_params.GetArgs(args, PluginInfo):

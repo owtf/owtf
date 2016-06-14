@@ -6,7 +6,6 @@ from framework.dependency_management.dependency_resolver import ServiceLocator
 
 DESCRIPTION = "Runs a chain of commands on an agent server via SBD -i.e. for IDS testing-"
 
-
 def run(PluginInfo):
     Content = []
     Iteration = 1  # Iteration counter initialisation
@@ -29,7 +28,8 @@ def run(PluginInfo):
             'ISHELL_DELAY_BETWEEN_COMMANDS': config.FrameworkConfigGet('ISHELL_DELAY_BETWEEN_COMMANDS_DESCRIP'),
             'ISHELL_COMMANDS_BEFORE_EXIT': config.FrameworkConfigGet('ISHELL_COMMANDS_BEFORE_EXIT_DESCRIP'),
             'ISHELL_COMMANDS_BEFORE_EXIT_DELIM': config.FrameworkConfigGet('ISHELL_COMMANDS_BEFORE_EXIT_DELIM_DESCRIP'),
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')}
+            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+        }
     }
 
     for Args in plugin_params.GetArgs(args, PluginInfo):
@@ -44,7 +44,8 @@ def run(PluginInfo):
                 'CommandsBeforeExit': Args['ISHELL_COMMANDS_BEFORE_EXIT'],
                 'CommandsBeforeExitDelim': Args['ISHELL_COMMANDS_BEFORE_EXIT_DELIM'],
                 'RHOST': Args['RHOST'],
-                'RPORT': Args['SBD_PORT']}, PluginInfo)
+                'RPORT': Args['SBD_PORT']
+            }, PluginInfo)
         else:
             OWTFLogger.log("Reusing initial connection..")
         Content += ServiceLocator.get_component("interactive_shell").Run(

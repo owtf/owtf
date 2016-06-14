@@ -11,7 +11,7 @@ class URLLauncher(unittest.TestCase):
     def __init__(self, selenium, base_url, vector_file):
         self.Selenium = selenium
         self.URLList = []
-        for vector in GetFileAsList(vector_file):
+        for vector in get_file_as_list(vector_file):
             self.URLList.append(base_url + vector)
 
     def Run(self):

@@ -1,8 +1,7 @@
 from framework.dependency_management.dependency_resolver import ServiceLocator
-
+from framework.lib.general import cprint
 
 DESCRIPTION = "Targeted Phishing Testing plugin"
-
 
 def run(PluginInfo):
     Content = []
@@ -24,15 +23,16 @@ def run(PluginInfo):
         },
         'Optional': {
             'EMAIL_ATTACHMENT': config.FrameworkConfigGet('EMAIL_ATTACHMENT_DESCRIP'),
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')}
+            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+        }
     }
 
     for Args in plugin_params.GetArgs(args, PluginInfo):
         plugin_params.SetConfig(Args)  # Update config
         if ServiceLocator.get_component("smtp").Send(Args):
-            print "Email delivered succcessfully"
+            cprint("Email delivered succcessfully")
         else:
-            print "Email delivery failed"
+            cprint("Email delivery failed")
     resource = ServiceLocator.get_component("config").GetResources('SendPhishingAttackviaSET')
     Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
                                                                                  PluginInfo, Content)

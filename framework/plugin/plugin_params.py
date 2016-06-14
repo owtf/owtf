@@ -62,14 +62,14 @@ class PluginParams(BaseComponent):
         self.error_handler.FrameworkAbort("User is only viewing options, exiting", False)
 
     def ShowPlugin(self, Plugin):
-        return "Plugin: " + Plugin['type'] + "/" + Plugin['file']
+        return "Plugin: %s/%s" % (Plugin['type'], Plugin['file'])
 
     def DefaultArgFromConfig(self, Args, ArgName, SettingList):
         DefaultOrderStr = " (Default order is: %s)" % str(SettingList)
         for Setting in SettingList:
             if self.config.IsSet(Setting):  # Argument is set in config
                 Args[ArgName] = self.config.FrameworkConfigGet(Setting)
-                cprint("Defaulted not passed '" + ArgName + "' to '" + str(Args[ArgName]) + "'" + DefaultOrderStr)
+                cprint("Defaulted not passed '%s' to '%s'%s" % (ArgName, str(Args[ArgName]), DefaultOrderStr))
                 return True
         cprint("Could not default not passed: '%s'%s" % (ArgName, DefaultOrderStr))
         return False
@@ -82,8 +82,8 @@ class PluginParams(BaseComponent):
         Args = {}
         for ArgName in ArgList:
             if ArgName not in self.Args:
-                ConfigDefaultOrder = [Plugin['code'] + '_' + Plugin['type'] + "_" + ArgName,
-                                      Plugin['code'] + '_' + ArgName, ArgName]
+                ConfigDefaultOrder = ["%s_%s_%s" % (Plugin['code'], Plugin['type'], ArgName),
+                                      '%s_%s' % (Plugin['code'], ArgName), ArgName]
                 Defaulted = self.DefaultArgFromConfig(Args, ArgName, ConfigDefaultOrder)
                 if Defaulted or Mandatory is False:
                     # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or
@@ -127,8 +127,8 @@ class PluginParams(BaseComponent):
 
     def SetConfig(self, Args):
         for ArgName, ArgValue in Args.items():
-            cprint("Overriding configuration setting '_" + ArgName + "' with value " + str(ArgValue) + "..")
-            self.config.SetGeneral('string', '_' + ArgName, ArgValue)  # Pre-pend "_" to avoid naming collisions
+            cprint("Overriding configuration setting '_%s' with value %s.." % (ArgName, str(ArgValue)))
+            self.config.SetGeneral('string', '%s_' % ArgName, ArgValue)  # Pre-pend "_" to avoid naming collisions
 
     def GetPermutations(self, Args):
         Permutations = defaultdict(list)

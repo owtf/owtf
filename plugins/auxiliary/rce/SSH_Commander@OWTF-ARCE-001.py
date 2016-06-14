@@ -1,9 +1,8 @@
 from framework.dependency_management.dependency_resolver import ServiceLocator
-from framework.lib.general import GetFileAsList
+from framework.lib.general import get_file_as_list
 
 DESCRIPTION = "Runs commands on an agent server via SSH -i.e. for IDS testing-"
 CHANNEL = 'SSH'
-
 
 def run(PluginInfo):
     Content = []
@@ -20,7 +19,8 @@ def run(PluginInfo):
         'Optional': {
             'RPORT': config.FrameworkConfigGet('RPORT_DESCRIP'),
             'PASSPHRASE': config.FrameworkConfigGet('PASSPHRASE_DESCRIP'),
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')}
+            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+        }
     }
 
     for Args in plugin_params.GetArgs(args, PluginInfo):
@@ -33,8 +33,8 @@ def run(PluginInfo):
                               'CommandsBeforeExitDelim': Args['ISHELL_COMMANDS_BEFORE_EXIT_DELIM'],
                               'RHOST': Args['RHOST'],
                               'RPORT': Args['RPORT']
-                              }, PluginInfo)
-        Content += ServiceLocator.get_component("interactive_shell").RunCommandList(GetFileAsList(Args['COMMAND_FILE']), PluginInfo)
+                          }, PluginInfo)
+        Content += ServiceLocator.get_component("interactive_shell").RunCommandList(get_file_as_list(Args['COMMAND_FILE']), PluginInfo)
     if not ServiceLocator.get_component("interactive_shell").IsClosed():  # Ensure clean exit if reusing connection
         ServiceLocator.get_component("interactive_shell").Close(PluginInfo)
     return Content

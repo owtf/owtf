@@ -8,7 +8,6 @@ CATEGORIES = ['RDP', 'LDAP2', 'LDAP3', 'MSSQL', 'MYSQL', 'CISCO', 'CISCO-ENABLE'
               'POP3', 'POSTGRES', 'REXEC', 'RLOGIN', 'RSH', 'SIP', 'SMB', 'SMTP', 'SNMP', 'SOCKS5', 'SSH', 'SVN',
               'TEAMSPEAK', 'TELNET', 'VMAUTHD', 'VNC', 'XMPP']
 
-
 def run( PluginInfo):
     Content = []
     plugin_params = ServiceLocator.get_component("plugin_params")
@@ -28,7 +27,8 @@ def run( PluginInfo):
             'THREADS': config.FrameworkConfigGet('THREADS_DESCRIP'),
             '_RESPONSE_WAIT': config.FrameworkConfigGet('_RESPONSE_WAIT_DESCRIP'),
             'CONNECT_WAIT': config.FrameworkConfigGet('CONNECT_WAIT_DESCRIP'),
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')}
+            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+        }
     }
 
     for Args in plugin_params.GetArgs(args, PluginInfo):

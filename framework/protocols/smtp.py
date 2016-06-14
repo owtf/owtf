@@ -49,7 +49,7 @@ class SMTP(BaseComponent):
         return os.path.isfile(target)
 
     def get_file_content_as_list(self, options):
-        return GetFileAsList(options['EMAIL_TARGET'])
+        return get_file_as_list(options['EMAIL_TARGET'])
 
     def BuildTargetList(self, options):
         """Build a list of targets for simplification purposes."""
@@ -70,7 +70,7 @@ class SMTP(BaseComponent):
                 message = self.BuildMessage(options, target)
                 mail_server = self.Connect(options)
                 if mail_server is None:
-                    raise Exception('error connecting to '+str(target))
+                    raise Exception('error connecting to %s' % str(target))
                 mail_server.sendmail(options['SMTP_LOGIN'], target, message.as_string())
                 self.Print("Email relay successful!")
             except Exception, e:
