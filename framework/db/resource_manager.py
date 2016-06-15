@@ -53,6 +53,7 @@ class ResourceDB(BaseComponent, ResourceInterface):
         configuration = self.db_config.GetReplacementDict()
         configuration.update(self.target.GetTargetConfig())
         configuration.update(self.config.GetReplacementDict())
+        configuration.update(self.config.GetFrameworkConfigDict()) # for aux plugins
         return configuration
 
     def GetRawResources(self, ResourceType):

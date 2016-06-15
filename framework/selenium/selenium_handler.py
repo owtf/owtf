@@ -32,7 +32,10 @@ class Selenium(BaseComponent, AbstractInterface):
             self.Init = True
             cprint("Initialising Selenium please wait ..")
             self.SetDisplay()
-            self.SetDriver()
+            try:
+                self.SetDriver()
+            except Exception as e:
+                print(e)
 
     def CreateURLLauncher(self, args):
         self.InitSelenium()

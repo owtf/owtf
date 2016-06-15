@@ -44,12 +44,12 @@ class SMB(pexpect_shell.PExpectShell):
         if options['SMB_USER']:  # Pass user if specified.
             mount_cmd += " -o user=%s" % options['SMB_USER']
         cprint("Mounting share..")
-        self.Run(mount_cmd)
+        self.Run(mount_cmd, plugin_info)
         self.Expect("Password:")
         if options['SMB_PASS']:  # Pass password if specified.
-            self.Run(options['SMB_PASS'])
+            self.Run(options['SMB_PASS'], plugin_info)
         else:
-            self.Run("")  # Send blank line.
+            self.Run("", plugin_info)  # Send blank line.
         self.Expect("#")
         self.SetMounted(True)
 

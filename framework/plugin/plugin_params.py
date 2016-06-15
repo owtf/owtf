@@ -62,13 +62,13 @@ class PluginParams(BaseComponent):
         self.error_handler.FrameworkAbort("User is only viewing options, exiting", False)
 
     def ShowPlugin(self, Plugin):
-        return "Plugin: %s/%s" % (Plugin['Type'], Plugin['File'])
+        return "Plugin: %s/%s" % (Plugin['type'], Plugin['file'])
 
     def DefaultArgFromConfig(self, Args, ArgName, SettingList):
         DefaultOrderStr = " (Default order is: %s)" % str(SettingList)
         for Setting in SettingList:
             if self.config.IsSet(Setting):  # Argument is set in config
-                Args[ArgName] = self.config.Get(Setting)
+                Args[ArgName] = self.config.FrameworkConfigGet(Setting)
                 cprint("Defaulted not passed '%s' to '%s'%s" % (ArgName, str(Args[ArgName]), DefaultOrderStr))
                 return True
         cprint("Could not default not passed: '%s'%s" % (ArgName, DefaultOrderStr))
@@ -82,8 +82,8 @@ class PluginParams(BaseComponent):
         Args = {}
         for ArgName in ArgList:
             if ArgName not in self.Args:
-                ConfigDefaultOrder = ["%s_%s_%s" % (Plugin['Code'], Plugin['Type'], ArgName),
-                                      '%s_%s' % (Plugin['Code'], ArgName), ArgName]
+                ConfigDefaultOrder = ["%s_%s_%s" % (Plugin['code'], Plugin['type'], ArgName),
+                                      '%s_%s' % (Plugin['code'], ArgName), ArgName]
                 Defaulted = self.DefaultArgFromConfig(Args, ArgName, ConfigDefaultOrder)
                 if Defaulted or Mandatory is False:
                     # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or
@@ -128,7 +128,7 @@ class PluginParams(BaseComponent):
     def SetConfig(self, Args):
         for ArgName, ArgValue in Args.items():
             cprint("Overriding configuration setting '_%s' with value %s.." % (ArgName, str(ArgValue)))
-            self.config.Set('%s_' % ArgName, ArgValue)  # Pre-pend "_" to avoid naming collisions
+            self.config.SetGeneral('string', '%s_' % ArgName, ArgValue)  # Pre-pend "_" to avoid naming collisions
 
     def GetPermutations(self, Args):
         Permutations = defaultdict(list)

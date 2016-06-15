@@ -116,7 +116,11 @@ class WorklistManager(BaseComponent):
         return sorted_plugin_list
 
     def add_work(self, target_list, plugin_list, force_overwrite=False):
-        sorted_plugin_list = self.group_sort_order(plugin_list)
+        if any(plugin['group'] == 'auxiliary' for plugin in plugin_list):
+            # No sorting if aux plugins are run
+            sorted_plugin_list = plugin_list
+        else:
+            sorted_plugin_list = self.group_sort_order(plugin_list)
         for target in target_list:
             for plugin in sorted_plugin_list:
                 # Check if it already in worklist

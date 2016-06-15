@@ -105,3 +105,21 @@ def scrub_output(output):
     """remove all ANSI control sequences from the output"""
     ansi_escape = re.compile(r'\x1b[^m]*m')
     return ansi_escape.sub('', output)
+
+def get_file_as_list(filename):
+    try:
+        with open(filename, 'r') as File:
+            Output = File.read().split("\n")
+            cprint("Loaded file: %s" % filename)
+    except IOError, error:
+        log("Cannot open file: %s (%s)" % (filename, str(sys.exc_info())))
+        Output = []
+    return Output
+
+def paths_exist(PathList):
+    ValidPaths = True
+    for Path in PathList:
+        if Path and not os.path.exists(Path):
+            log("WARNING: The path %s does not exist!" % Path)
+            ValidPaths = False
+    return ValidPaths

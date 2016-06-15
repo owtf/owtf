@@ -17,7 +17,7 @@ class SETHandler(pexpect_shell.PExpectShell):
         self.CommandTimeOffset = 'SETCommand'
         self.SpearPhishing = spear_phishing.SpearPhishing(self)
 
-    def RunScript(self, ScriptPath, Args, Debug=False):
+    def RunScript(self, ScriptPath, Args, PluginInfo, Debug=False):
         # TODO: Replacements
         Output = ""
         for Step in MultipleReplace(open(ScriptPath).read(), Args).split("\n"):
@@ -26,7 +26,7 @@ class SETHandler(pexpect_shell.PExpectShell):
             if Debug:
                 print("Step: %s" % str(Step))
             else:
-                Output += self.Run(Step)
+                Output += self.Run(Step, PluginInfo)
                 if Step == 'exit':
                     self.Kill()
                 cprint("Waiting %s  seconds for SET to process step.. - %s" % (Args['ISHELL_DELAY_BETWEEN_COMMANDS'],
