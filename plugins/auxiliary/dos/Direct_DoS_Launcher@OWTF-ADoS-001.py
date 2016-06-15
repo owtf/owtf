@@ -6,7 +6,8 @@ CATEGORIES = ['HTTP_WIN', 'HTTP', 'DHCP', 'NTFS', 'HP', 'MDNS', 'PPTP', 'SAMBA',
               'SYSLOG', 'TCP', 'WIFI', 'WIN_APPIAN', 'WIN_BROWSER', 'WIN_FTP', 'KAILLERA', 'WIN_LLMNR', 'WIN_NAT',
               'WIN_SMB', 'WIN_SMTP', 'WIN_TFTP', 'WIRESHARK']
 
-def run( PluginInfo):
+
+def run(PluginInfo):
     Content = []
     plugin_params = ServiceLocator.get_component("plugin_params")
     config = ServiceLocator.get_component("config")
@@ -25,6 +26,5 @@ def run( PluginInfo):
         plugin_params.SetConfig(Args)
         resource = config.GetResources('DoS_' + Args['CATEGORY'])
         Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
-                                                                                 PluginInfo, "")  # No previous output
+                                                                             PluginInfo, "")  # No previous output
     return Content
-

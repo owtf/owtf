@@ -3,9 +3,9 @@ from framework.dependency_management.dependency_resolver import ServiceLocator
 
 DESCRIPTION = "Mounts and/or uploads/downloads files to an SMB share -i.e. for IDS testing-"
 
+
 def run(PluginInfo):
     Content = []
-    Iteration = 1  # Iteration counter initialisation
     plugin_params = ServiceLocator.get_component("plugin_params")
     config = ServiceLocator.get_component("config")
     smb = ServiceLocator.get_component("smb")

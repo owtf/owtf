@@ -1,7 +1,9 @@
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.general import get_file_as_list
 
+
 DESCRIPTION = "Runs commands on an agent server via SBD -i.e. for IDS testing-"
+
 
 def run(PluginInfo):
     Content = []
@@ -30,7 +32,8 @@ def run(PluginInfo):
             'RHOST': Args['RHOST'],
             'RPORT': Args['SBD_PORT']
         }, PluginInfo)
-        Content += ServiceLocator.get_component("interactive_shell").RunCommandList(get_file_as_list(Args['COMMAND_FILE']), PluginInfo)
+        Content += ServiceLocator.get_component("interactive_shell").RunCommandList(get_file_as_list(
+            Args['COMMAND_FILE']), PluginInfo)
     if not ServiceLocator.get_component("interactive_shell").IsClosed():  # Ensure clean exit if reusing connection
         ServiceLocator.get_component("interactive_shell").Close(PluginInfo)
     return Content

@@ -1,7 +1,9 @@
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.general import cprint
 
+
 DESCRIPTION = "Targeted Phishing Testing plugin"
+
 
 def run(PluginInfo):
     Content = []
@@ -35,5 +37,5 @@ def run(PluginInfo):
             cprint("Email delivery failed")
     resource = ServiceLocator.get_component("config").GetResources('SendPhishingAttackviaSET')
     Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
-                                                                                 PluginInfo, Content)
+                                                                         PluginInfo, Content)
     return Content

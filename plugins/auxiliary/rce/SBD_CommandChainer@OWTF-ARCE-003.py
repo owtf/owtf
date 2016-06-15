@@ -6,6 +6,7 @@ from framework.dependency_management.dependency_resolver import ServiceLocator
 
 DESCRIPTION = "Runs a chain of commands on an agent server via SBD -i.e. for IDS testing-"
 
+
 def run(PluginInfo):
     Content = []
     Iteration = 1  # Iteration counter initialisation

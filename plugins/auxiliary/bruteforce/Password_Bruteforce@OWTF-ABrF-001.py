@@ -8,7 +8,8 @@ CATEGORIES = ['RDP', 'LDAP2', 'LDAP3', 'MSSQL', 'MYSQL', 'CISCO', 'CISCO-ENABLE'
               'POP3', 'POSTGRES', 'REXEC', 'RLOGIN', 'RSH', 'SIP', 'SMB', 'SMTP', 'SNMP', 'SOCKS5', 'SSH', 'SVN',
               'TEAMSPEAK', 'TELNET', 'VMAUTHD', 'VNC', 'XMPP']
 
-def run( PluginInfo):
+
+def run(PluginInfo):
     Content = []
     plugin_params = ServiceLocator.get_component("plugin_params")
     config = ServiceLocator.get_component("config")
@@ -37,4 +38,3 @@ def run( PluginInfo):
         Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
                                                                              PluginInfo, "")  # No previous output
     return Content
-

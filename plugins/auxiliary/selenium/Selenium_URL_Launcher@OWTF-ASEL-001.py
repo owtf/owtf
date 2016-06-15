@@ -5,6 +5,7 @@ from framework.dependency_management.dependency_resolver import ServiceLocator
 DESCRIPTION = "Sends a bunch of URLs through selenium"
 CATEGORIES = ['RCE', 'SQLI', 'XSS', 'CHARSET']
 
+
 def run(PluginInfo):
     Content = []
     config = ServiceLocator.get_component("config")
@@ -25,9 +26,8 @@ def run(PluginInfo):
         plugin_params.SetConfig(Args)
         InputFile = config.FrameworkConfigGet("SELENIUM_URL_VECTORS_" + Args['CATEGORY'])
         URLLauncher = ServiceLocator.get_component("selenium_handler").CreateURLLauncher({
-                                                                            'BASE_URL': Args['BASE_URL'],
-                                                                            'INPUT_FILE': InputFile
-                                                                        })
+            'BASE_URL': Args['BASE_URL'],
+            'INPUT_FILE': InputFile
+        })
         URLLauncher.Run()
     return Content
-

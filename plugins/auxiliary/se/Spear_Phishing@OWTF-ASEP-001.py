@@ -3,6 +3,7 @@ from framework.dependency_management.dependency_resolver import ServiceLocator
 
 DESCRIPTION = "Spear Phishing Testing plugin"
 
+
 def run(PluginInfo):
     Content = []
     plugin_params = ServiceLocator.get_component("plugin_params")
@@ -48,5 +49,5 @@ def run(PluginInfo):
         Content += ServiceLocator.get_component("spear_phishing").Run(Args, PluginInfo)
     resource = ServiceLocator.get_component("config").GetResources('SendPhishingAttackviaSET')
     Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
-                                                                             PluginInfo, Content)
+                                                                         PluginInfo, Content)
     return Content
