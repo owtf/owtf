@@ -72,7 +72,20 @@ body {
     color: #fff;
 }
 
-.severity-legend {
+/* Media Query resposible for shifting chart and its legend in center when screen is mobile size */
+@media (max-width: 768px) {
+    .vulchart {
+      position: relative;
+      left: 22%;
+      top: 50%;
+    }
+    .vulchart-legend {
+      position: relative;
+      padding-left: 25%;
+    }
+}
+
+.severity-legend, .workerpanel-legend {
     list-style-type: none;
 }
 
@@ -80,6 +93,7 @@ body {
     float: left;
     width: 50%;
     margin-bottom: 10px;
+    margin-right: 10px;
     max-width: 20px;
 }
 
@@ -149,6 +163,14 @@ body {
     }
     .collapsing {
         overflow: hidden!important;
+    }
+
+    .dashboard-subheading {
+      text-align: center;
+    }
+
+    .welcome-heading > h1 {
+      text-align: center;
     }
 }
 
@@ -231,3 +253,38 @@ body {
   border-radius: 0px;
 }
 /* --- End of CSS Vulnerability Panel ---- */
+
+/* --- Start of Worker Panel CSS ----- */
+.workerpanel-label {
+  padding-top: 5px;
+}
+
+.workerpanel-labelimg {
+  float: left;
+  margin-right: 5px;
+}
+
+@media (max-width: 768px) {
+    .workerpanel-progress-bar > svg {
+      position: relative;
+      left: 30%;
+      top: 50%;
+    }
+    .workerpanel-legend {
+      padding-left: 22%;
+    }
+}
+
+/* End of CSS for Worker Panel */
+
+/* Modal related twiks */
+
+.modal-body {
+    max-height: calc(100vh - 210px);
+    overflow-y: auto;
+}
+
+.modal-title {
+    color: #e94e38;
+    text-align: center;
+}
