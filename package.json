@@ -14,9 +14,11 @@
   "license": "",
   "dependencies": {
     "chart.js": "^1.1.1",
+    "rc-progress": "^1.0.4",
     "react": "^15.0.2",
     "react-chartjs": "^0.7.3",
-    "react-dom": "^15.0.2"
+    "react-dom": "^15.0.2",
+    "react-timeago": "^3.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.0.20",
