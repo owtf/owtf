@@ -417,7 +417,8 @@ class WorkerManager(custom_handlers.UIRequestHandler):
                 workers_api_url=output_files_server + self.reverse_url('workers_api_url', None, None),
                 targets_api_url=self.reverse_url('targets_api_url', None),
                 targets_ui_url=self.reverse_url('targets_ui_url', None),
-                plugins_api_url=self.reverse_url('plugins_api_url', None, None, None)
+                plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
+                progress_api_url=output_files_server + self.reverse_url('poutput_count')
             )
         else:
             self.render(

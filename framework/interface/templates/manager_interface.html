@@ -34,6 +34,7 @@ var mySpace = {
                     workers_api_url:"{{ workers_api_url }}",
                     targets_ui_url:"{{ targets_ui_url }}",
                     plugins_api_url:"{{ plugins_api_url }}",
+                    progress_api_url:"{{ progress_api_url }}",
                 };
 
 var num_workers;
@@ -172,58 +173,13 @@ function getElapsedTime(start_time){
     return s;
 }
 
-// Function which checks for last task completion
-function checkForLastTaskCompletion() {
-    var flag = true;
-    $.ajax({
-        url: mySpace.workers_api_url,
-        ifModified: true,
-        dataType: 'json',
-        async: false,
-        success: function(data) {
-            $.each(data, function(index, obj) {
-                if (obj.busy) {
-                    flag = false;
-                    return false;
-                }
-            });
-        }
-    });
-    return flag;
-}
-
-// Function which returns the number of busy workers
-function getBusyWorkers() {
-    var count = 0;
-    $.ajax({
-        url: mySpace.workers_api_url,
-        ifModified: true,
-        dataType: 'json',
-        async: false,
-        success: function(data) {
-            $.each(data, function(index, obj) {
-                if (obj.busy) {
-                    count++;
-                }
-            });
-        }
-    });
-    return count;
-}
-
 //Function which updates progress bar
 function moveProgressBar() {
     var elem = $("#pluginprogress");
     var progressbar = setInterval(function() {
-        $.getJSON(mySpace.plugins_api_url + 'progress/', function(data) {
+        $.getJSON(mySpace.progress_api_url, function(data) {
             var left_count = data.left_count;
             var complete_count = data.complete_count;
-            left_count += getBusyWorkers();
-            if (left_count == 1) {
-                if (checkForLastTaskCompletion()) {
-                    left_count--;
-                }
-            }
             if (left_count == 0 && complete_count == 0) {
                 $('#progressbar').html('<p>You have not added anything to worklist yet</p>');
                 clearInterval(progressbar);
