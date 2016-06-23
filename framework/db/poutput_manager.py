@@ -30,6 +30,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
     def PluginCountOutput(self):
         complete_count = self.db.session.query(models.PluginOutput).count()
         left_count = self.db.session.query(models.Work).count()
+        left_count += self.get_component("worker_manager").get_busy_workers()
         results = {'complete_count': complete_count, 'left_count': left_count}
         return results
 

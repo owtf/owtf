@@ -553,6 +553,10 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
 class ProgressBarHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
+    def set_default_headers(self):
+        self.add_header("Access-Control-Allow-Origin", "*")
+        self.add_header("Access-Control-Allow-Methods", "GET, POST, DELETE")
+
     def get(self):
         try:
             self.write(self.get_component("plugin_output").PluginCountOutput())
