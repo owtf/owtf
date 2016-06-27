@@ -10,7 +10,7 @@ class Severity extends React.Component {
                     <div className="legend-color-box" style={{
                         "backgroundColor": this.props.data.color
                     }}></div>
-                    <p className="severity-label">{this.props.data.label}</p>
+                    <p>{this.props.data.label}</p>
                 </li>
             </div>
         );
@@ -21,7 +21,7 @@ class ChartLegend extends React.Component {
 
     render() {
         return (
-            <ul className="severity-legend">
+            <ul className="severity-legend center-block">
                 {this.props.datasets.map(function(severity) {
                     return <Severity key={severity.id} data={severity}/>;
                 })}
@@ -61,11 +61,12 @@ class Chart extends React.Component {
                     </div>
                 </div>
                 <div className="row">
-                    <div className="col-xs-12 col-sm-6 col-md-6 col-lg-6 vulchart">
-                        <Pie data={this.state.piedata} width="175%" height="175%"/>
+                    <div className="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                        <div className="center-block vulchart">
+                            <Pie data={this.state.piedata} width="175%" height="175%"/>
+                        </div>
                     </div>
-                    <div className="col-xs-12 col-sm-6 col-md-6 col-lg-6 vulchart-legend">
-                        <br/><br/>
+                    <div className="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                         <ChartLegend datasets={this.state.piedata}/>
                     </div>
                 </div>

@@ -115,7 +115,7 @@ class WorkerLegend extends React.Component {
     render() {
         return (
             <div>
-                <ul className="workerpanel-legend">
+                <ul className="workerpanel-legend center-block">
                     {this.state.workerData.map(function(worker) {
                         return <Worker key={worker.id} data={worker}/>;
                     })}
@@ -204,10 +204,12 @@ class WorkerPanel extends React.Component {
                     </div>
                 </div>
                 <div className="row">
-                    <div className="col-xs-8 col-sm-4 col-md-4 col-lg-4 workerpanel-progress-bar">
-                        <Circle percent={this.state.percent} strokeWidth="6" strokeColor={this.state.color}/>
+                    <div className="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+                        <div className="center-block workerpanel-progress-bar">
+                            <Circle percent={this.state.percent} strokeWidth="6" strokeColor={this.state.color}/>
+                        </div>
                     </div>
-                    <div className="col-xs-12 col-sm-8 col-md-8 col-lg-8 workerpanel-progress-bar-legend">
+                    <div className="col-xs-12 col-sm-8 col-md-8 col-lg-8">
                         <WorkerLegend source={HOST + FILE_SERVER_PORT + WORKER_DETAIL_URL} pollInterval={2000}/>
                     </div>
                 </div>

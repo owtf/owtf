@@ -72,21 +72,14 @@ body {
     color: #fff;
 }
 
-/* Media Query resposible for shifting chart and its legend in center when screen is mobile size */
-@media (max-width: 768px) {
-    .vulchart {
-      position: relative;
-      left: 22%;
-      top: 50%;
-    }
-    .vulchart-legend {
-      position: relative;
-      padding-left: 25%;
-    }
+.severity-legend {
+    list-style-type: none;
+    width: 150px;
 }
 
-.severity-legend, .workerpanel-legend {
+.workerpanel-legend {
     list-style-type: none;
+    width: 300px;
 }
 
 .legend-color-box {
@@ -101,11 +94,6 @@ body {
     content: "";
     display: block;
     padding-top: 100%;
-}
-
-.severity-label {
-    margin: 0px;
-    padding: 0px;
 }
 
 .nopadding {
@@ -265,13 +253,9 @@ body {
 }
 
 @media (max-width: 768px) {
-    .workerpanel-progress-bar > svg {
-      position: relative;
-      left: 30%;
-      top: 50%;
-    }
-    .workerpanel-legend {
-      padding-left: 22%;
+    .workerpanel-progress-bar, .vulchart {
+      height: 200px;
+      width: 200px;
     }
 }
 
