@@ -229,7 +229,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         count = 0
         workers = self.get_worker_details()
         for worker in workers:
-            if worker["busy"] == True:
+            if worker["busy"] is True:
                 count += 1
 
         return count
