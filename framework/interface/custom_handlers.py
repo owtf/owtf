@@ -31,6 +31,11 @@ class UIRequestHandler(tornado.web.RequestHandler, BaseComponent):
 
 
 class StaticFileHandler(tornado.web.StaticFileHandler):
+
+    def set_default_headers(self):
+        self.add_header("Access-Control-Allow-Origin", "*")
+        self.add_header("Access-Control-Allow-Methods", "GET, POST, DELETE")
+
     def get(self, path, include_body=True):
         """
         This is an edited method of original class so that we can show

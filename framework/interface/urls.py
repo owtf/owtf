@@ -65,6 +65,8 @@ def get_file_server_handlers():
     config = ServiceLocator.get_component("config")
     URLS = [
         tornado.web.url(r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', api_handlers.WorkerHandler, name='workers_api_url'),
+        tornado.web.url(r'/api/plugins/progress/?$', api_handlers.ProgressBarHandler, name='poutput_count'),
+        tornado.web.url(r'/logs/(.*)', custom_handlers.StaticFileHandler, {'path': config.GetOutputDirForWorkersLogs()}, name="logs_files_url"),
         tornado.web.url(r'/(.*)', custom_handlers.StaticFileHandler, {'path': config.GetOutputDirForTargets()}, name="output_files_url"),
     ]
     return URLS

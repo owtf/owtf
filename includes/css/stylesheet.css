@@ -74,12 +74,19 @@ body {
 
 .severity-legend {
     list-style-type: none;
+    width: 150px;
+}
+
+.workerpanel-legend {
+    list-style-type: none;
+    width: 300px;
 }
 
 .legend-color-box {
     float: left;
     width: 50%;
     margin-bottom: 10px;
+    margin-right: 10px;
     max-width: 20px;
 }
 
@@ -87,11 +94,6 @@ body {
     content: "";
     display: block;
     padding-top: 100%;
-}
-
-.severity-label {
-    margin: 0px;
-    padding: 0px;
 }
 
 .nopadding {
@@ -150,6 +152,14 @@ body {
     .collapsing {
         overflow: hidden!important;
     }
+
+    .dashboard-subheading {
+      text-align: center;
+    }
+
+    .welcome-heading > h1 {
+      text-align: center;
+    }
 }
 
 .btn-target {
@@ -203,7 +213,7 @@ body {
   background-color: #808080;
 }
 
-.panel-heading {
+.sevpanel {
   color: #fff;
   margin-left: 10%;
   margin-right: 10%;
@@ -231,3 +241,34 @@ body {
   border-radius: 0px;
 }
 /* --- End of CSS Vulnerability Panel ---- */
+
+/* --- Start of Worker Panel CSS ----- */
+.workerpanel-label {
+  padding-top: 5px;
+}
+
+.workerpanel-labelimg {
+  float: left;
+  margin-right: 5px;
+}
+
+@media (max-width: 768px) {
+    .workerpanel-progress-bar, .vulchart {
+      height: 200px;
+      width: 200px;
+    }
+}
+
+/* End of CSS for Worker Panel */
+
+/* Modal related twiks */
+
+.modal-body {
+    max-height: calc(100vh - 210px);
+    overflow-y: auto;
+}
+
+.modal-title {
+    color: #e94e38;
+    text-align: center;
+}

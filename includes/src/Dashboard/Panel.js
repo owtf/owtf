@@ -7,7 +7,7 @@ class Severity extends React.Component {
         return (
             <div className="col-lg-2 col-md-4 col-sm-4 col-xs-6 panel-div">
                 <div className={"panel sevpanel-" + this.props.data.label.toLowerCase()}>
-                    <div className="panel-heading">
+                    <div className="panel-heading sevpanel">
                         <div className="row">
                             <div className="col-xs-12 text-center">
                                 <div className="count">{this.props.data.value}</div>
