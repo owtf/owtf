@@ -15,8 +15,9 @@ nvm alias default node
 source ~/.bashrc
 echo "${normal}[*] npm successfully Installed.${reset}"
 
-# Installing webpack globally so that it can used by command line to build the bundle.
+# Installing webpack and gulp globally so that it can used by command line to build the bundle.
 npm install -g webpack
+npm install --global gulp-cli
 
 # Installing node dependencies
 echo "${normal}[*] Installing node dependencies.${reset}"
@@ -25,5 +26,5 @@ echo "${normal}[*] Dependencies successfully Installed.${reset}"
 
 # Bulding the ReactJS project
 echo "${normal}[*] Building using webpack.${reset}"
-webpack
+npm run build
 echo "${normal}[*] Buld successful${reset}"
