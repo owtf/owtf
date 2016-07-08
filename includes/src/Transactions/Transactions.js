@@ -180,10 +180,14 @@ class Transactions extends React.Component {
                 <Header/>
                 <div className="row">
                     <div className="col-md-8">
-                        <TransactionTable/>
+                      {this.state.target_id !== 0
+                          ? <TransactionTable/>
+                          : null}
                     </div>
                     <div className="col-md-4">
-                        <TransactionHeaders/>
+                      {this.state.target_id !== 0
+                          ? <TransactionHeaders/>
+                          : null}
                     </div>
                 </div>
                 {this.state.zestActive
