@@ -276,3 +276,9 @@ body {
 label {
     font-weight: 400;
 }
+
+#drag {
+    background-color: rgb(224, 224, 224);
+    height: 3px;
+    cursor: n-resize;
+}

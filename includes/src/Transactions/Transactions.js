@@ -6,6 +6,7 @@ import Header from './Header';
 import Footer from './Footer';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import Snackbar from 'material-ui/Snackbar';
+import TargetList from './Targetlist';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 // Needed for onTouchTap
 // http://stackoverflow.com/a/34015469/988941
@@ -34,6 +35,7 @@ class Transactions extends React.Component {
             selectedTransactionRows: [],
             zestActive: false,
             snackbarOpen: false,
+            headerHeight: 0,
             alertMessage: ""
         };
 
@@ -45,6 +47,8 @@ class Transactions extends React.Component {
         this.getTransactionsHeaders = this.getTransactionsHeaders.bind(this);
         this.updateZestState = this.updateZestState.bind(this);
         this.closeZestState = this.closeZestState.bind(this);
+        this.getElementTopPosition = this.getElementTopPosition.bind(this);
+        this.handleHeaderContainerHeight = this.handleHeaderContainerHeight.bind(this);
         this.updateSelectedRowsInZest = this.updateSelectedRowsInZest.bind(this);
     };
 
@@ -65,6 +69,7 @@ class Transactions extends React.Component {
             selectedTransactionRows: this.state.selectedTransactionRows,
             zestActive: this.state.zestActive,
             snackbarOpen: this.state.snackarOpen,
+            headerHeight: this.state.headerHeight,
             alertMessage: this.state.alertMessage,
             getTransactions: this.getTransactions,
             handleLimitChange: this.handleLimitChange,
@@ -74,6 +79,8 @@ class Transactions extends React.Component {
             getTransactionsHeaders: this.getTransactionsHeaders,
             updateZestState: this.updateZestState,
             closeZestState: this.closeZestState,
+            getElementTopPosition: this.getElementTopPosition,
+            handleHeaderContainerHeight: this.handleHeaderContainerHeight,
             updateSelectedRowsInZest: this.updateSelectedRowsInZest
         };
 
@@ -173,21 +180,40 @@ class Transactions extends React.Component {
         this.serverRequest.abort();
     };
 
+    getElementTopPosition(element) {
+        var top = 0;
+        do {
+            top += element.offsetTop || 0;
+            element = element.offsetParent;
+        } while (element);
+
+        return top;
+    };
+
+    handleHeaderContainerHeight(changedValue) {
+        this.setState({headerHeight: changedValue});
+    };
+
     render() {
         this.replaceContainer.bind(this)();
         return (
             <div className="container-fluid">
-                <Header/>
                 <div className="row">
-                    <div className="col-md-8">
-                      {this.state.target_id !== 0
-                          ? <TransactionTable/>
-                          : null}
+                    <div className="col-md-2">
+                        <TargetList/>
                     </div>
-                    <div className="col-md-4">
-                      {this.state.target_id !== 0
-                          ? <TransactionHeaders/>
-                          : null}
+                    <div className="col-md-10">
+                        <Header/>
+                        <div className="row">
+                            {this.state.target_id !== 0
+                                ? <TransactionTable/>
+                                : null}
+                        </div>
+                        <div className="row">
+                            {this.state.target_id !== 0
+                                ? <TransactionHeaders/>
+                                : null}
+                        </div>
                     </div>
                 </div>
                 {this.state.zestActive
@@ -211,6 +237,7 @@ Transactions.childContextTypes = {
     selectedTransactionRows: React.PropTypes.array,
     zestActive: React.PropTypes.bool,
     snackbarOpen: React.PropTypes.bool,
+    headerHeight: React.PropTypes.number,
     alertMessage: React.PropTypes.string,
     getTransactions: React.PropTypes.func,
     handleLimitChange: React.PropTypes.func,
@@ -220,6 +247,8 @@ Transactions.childContextTypes = {
     getTransactionsHeaders: React.PropTypes.func,
     updateZestState: React.PropTypes.func,
     closeZestState: React.PropTypes.func,
+    getElementTopPosition: React.PropTypes.func,
+    handleHeaderContainerHeight: React.PropTypes.func,
     updateSelectedRowsInZest: React.PropTypes.func
 };
 

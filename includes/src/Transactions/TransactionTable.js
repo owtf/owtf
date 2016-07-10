@@ -44,8 +44,12 @@ export class TransactionTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            selectedRowsArray: []
+            selectedRowsArray: [],
+            resizeTableActive: false,
+            tableHeight: 0
         };
+
+        this.handleMouseMove = this.handleMouseMove.bind(this);
     };
 
     /* Function responsible for
@@ -72,12 +76,45 @@ export class TransactionTable extends React.Component {
         }
     };
 
+    componentDidMount() {
+        document.addEventListener('mousemove', this.handleMouseMove);
+        var tableBody = document.getElementsByTagName("tbody")[0];
+        this.setState({
+            tableHeight: (window.innerHeight - this.context.getElementTopPosition(tableBody)) / 2
+        });
+    };
+
+    componentWillUnmount() {
+        document.removeEventListener('mousemove', this.handleMouseMove);
+    };
+
+    handleMouseDown(e) {
+        this.setState({resizeTableActive: true});
+    };
+
+    handleMouseUp(e) {
+        this.setState({resizeTableActive: false});
+    };
+
+    handleMouseMove(e) {
+        if (!this.state.resizeTableActive) {
+            return;
+        }
+
+        var tableBody = document.getElementsByTagName("tbody")[0];
+        this.setState({
+            tableHeight: e.clientY - this.context.getElementTopPosition(tableBody)
+        });
+
+        this.context.handleHeaderContainerHeight(window.innerHeight - e.clientY);
+    };
+
     render() {
         var selectedRowsArray = this.state.selectedRowsArray;
         var zestActive = this.context.zestActive;
         return (
             <div>
-                <p style={{
+                {/*<p style={{
                     display: "inline"
                 }}>Show</p>
                 <DropDownMenu value={this.context.limitValue} onChange={this.context.handleLimitChange} disabled={this.context.target_id === 0}>
@@ -88,9 +125,9 @@ export class TransactionTable extends React.Component {
                 </DropDownMenu>
                 <p style={{
                     display: "inline"
-                }}>entries</p>
+                }}>entries</p>*/}
                 <Subheader>Transactions</Subheader>
-                <Table onRowSelection={this.handleClick.bind(this)} multiSelectable={this.context.zestActive}>
+                <Table height={this.state.tableHeight} onRowSelection={this.handleClick.bind(this)} multiSelectable={this.context.zestActive}>
                     <TableHeader adjustForCheckbox={this.context.zestActive} displaySelectAll={this.context.zestActive}>
                         <TableRow>
                             <TableHeaderColumn>URL</TableHeaderColumn>
@@ -130,6 +167,7 @@ export class TransactionTable extends React.Component {
                         })}
                     </TableBody>
                 </Table>
+                <div id="drag" onMouseDown={e => this.handleMouseDown(e)} onMouseUp={e => this.handleMouseUp(e)}></div>
                 {/* Imp: Interesting logical operators are used to determine when to show pagination and when not :)
                     If A = this.context.transactionsData.length !== 0
                     If B = this.context.offsetValue == 0, then
@@ -143,11 +181,12 @@ export class TransactionTable extends React.Component {
                     |  F  | F  |   T    |
                     ---------------------
                     General Answer should be = ((true AND NOT(B)) OR A)
-                */}
+
 
                 {(true && !(this.context.offsetValue == 0)) || (this.context.transactionsData.length !== 0)
                     ? <Pagination nextDisabled={this.context.transactionsData.length === 0} previousDisabled={this.context.offsetValue == 0}/>
                     : null}
+                */}
             </div>
         );
     }
@@ -163,6 +202,8 @@ TransactionTable.contextTypes = {
     getTransactionsHeaders: React.PropTypes.func,
     handleLimitChange: React.PropTypes.func,
     handleOffsetChange: React.PropTypes.func,
+    getElementTopPosition: React.PropTypes.func,
+    handleHeaderContainerHeight: React.PropTypes.func,
     updateSelectedRowsInZest: React.PropTypes.func
 };
 

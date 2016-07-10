@@ -1,6 +1,5 @@
 import React from 'react';
 import RaisedButton from 'material-ui/RaisedButton';
-import TargetList from './Targetlist';
 import {TRANSACTION_ZCONSOLE_URL} from './constants';
 
 const style = {
@@ -29,7 +28,6 @@ export class Header extends React.Component {
                     <div className="col-md-12">
                         <div className="col-md-12">
                             <div className="btn-group pull-right">
-                                <TargetList />
                                 <RaisedButton backgroundColor="#d9534f" label="Create Zest Script!" labelColor="#fff" style={style} onTouchTap={this.context.updateZestState} disabled={this.context.zestActive || this.context.target_id === 0}/>
                                 <RaisedButton backgroundColor="#a4c639" label="Zest Script Console" labelColor="#fff" style={style} onTouchTap={this.openZestConsole} disabled={this.context.target_id === 0}/>
                             </div>
