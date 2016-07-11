@@ -146,7 +146,7 @@ export class TransactionTable extends React.Component {
                     <TableBody displayRowCheckbox={this.context.zestActive} deselectOnClickaway={false}>
                         {this.context.transactionsData.map(function(transaction, index) {
                             return (
-                                <TableRow key={index} selected={(selectedRowsArray.indexOf(index) !== -1)}>
+                                <TableRow key={index} selected={(selectedRowsArray.indexOf(index) !== -1)} style={{cursor: "pointer"}}>
                                     <TableRowColumn>{transaction.url}</TableRowColumn>
                                     <TableRowColumn style={{
                                         width: 100
