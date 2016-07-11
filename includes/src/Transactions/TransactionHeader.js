@@ -1,18 +1,13 @@
 import React from 'react';
 import Subheader from 'material-ui/Subheader';
-import {Tabs, Tab} from 'material-ui/Tabs';
 import SwipeableViews from 'react-swipeable-views';
 import {muiTheme} from './constants';
 
 const styles = {
     tab: {
-        fontSize: 24,
         paddingTop: 16,
         marginBottom: 12,
         fontWeight: 400
-    },
-    slide: {
-        padding: 10
     }
 };
 
@@ -39,10 +34,18 @@ export class TransactionHeaders extends React.Component {
         var height = this.context.headerHeight;
         return (
             <div>
-                <Tabs onChange={this.handleChange} value={this.state.slideIndex} style={styles.tab}>
-                    <Tab label="Request Header" value={0}/>
-                    <Tab label="Response Header" value={1}/>
-                </Tabs>
+                <ul className="nav nav-tabs" style={styles.tab}>
+                    <li role="presentation" className={this.state.slideIndex === 0
+                        ? "active"
+                        : ""}>
+                        <a href="#" onTouchTap={this.handleChange.bind(this, 0)}>Request</a>
+                    </li>
+                    <li role="presentation" className={this.state.slideIndex === 1
+                        ? "active"
+                        : ""}>
+                        <a href="#" onTouchTap={this.handleChange.bind(this, 1)}>Response</a>
+                    </li>
+                </ul>
                 <SwipeableViews index={this.state.slideIndex} onChangeIndex={this.handleChange}>
                     <div style={{
                         height: height
