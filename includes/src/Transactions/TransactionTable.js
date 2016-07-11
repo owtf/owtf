@@ -4,6 +4,7 @@ import MenuItem from 'material-ui/MenuItem';
 import FloatingActionButton from 'material-ui/FloatingActionButton';
 import NavigationArrowForward from 'material-ui/svg-icons/navigation/arrow-forward';
 import NavigationArrowBack from 'material-ui/svg-icons/navigation/arrow-back';
+import TextField from 'material-ui/TextField';
 
 import {
     Table,
@@ -128,13 +129,13 @@ export class TransactionTable extends React.Component {
                 <Table height={this.state.tableHeight} onRowSelection={this.handleClick.bind(this)} multiSelectable={this.context.zestActive}>
                     <TableHeader adjustForCheckbox={this.context.zestActive} displaySelectAll={this.context.zestActive}>
                         <TableRow>
-                            <TableHeaderColumn>URL</TableHeaderColumn>
+                            <TableHeaderColumn><TextField hintText="URL" fullWidth={true} onChange={e => this.context.tableSearch(e, "url")}/></TableHeaderColumn>
                             <TableHeaderColumn style={{
-                                width: 100
-                            }}>Method</TableHeaderColumn>
+                                width: 120
+                            }}><TextField hintText="Method" fullWidth={true} onChange={e => this.context.tableSearch(e, "method")}/></TableHeaderColumn>
                             <TableHeaderColumn style={{
                                 width: 200
-                            }}>Status</TableHeaderColumn>
+                            }}><TextField hintText="Status" fullWidth={true} onChange={e => this.context.tableSearch(e, "status")}/></TableHeaderColumn>
                             <TableHeaderColumn style={{
                                 width: 120
                             }}>Duration</TableHeaderColumn>
@@ -146,10 +147,12 @@ export class TransactionTable extends React.Component {
                     <TableBody displayRowCheckbox={this.context.zestActive} deselectOnClickaway={false}>
                         {this.context.transactionsData.map(function(transaction, index) {
                             return (
-                                <TableRow key={index} selected={(selectedRowsArray.indexOf(index) !== -1)} style={{cursor: "pointer"}}>
+                                <TableRow key={index} selected={(selectedRowsArray.indexOf(index) !== -1)} style={{
+                                    cursor: "pointer"
+                                }}>
                                     <TableRowColumn>{transaction.url}</TableRowColumn>
                                     <TableRowColumn style={{
-                                        width: 100
+                                        width: 120
                                     }}>{transaction.method}</TableRowColumn>
                                     <TableRowColumn style={{
                                         width: 200
@@ -202,7 +205,8 @@ TransactionTable.contextTypes = {
     handleOffsetChange: React.PropTypes.func,
     getElementTopPosition: React.PropTypes.func,
     handleHeaderContainerHeight: React.PropTypes.func,
-    updateSelectedRowsInZest: React.PropTypes.func
+    updateSelectedRowsInZest: React.PropTypes.func,
+    tableSearch: React.PropTypes.func
 };
 
 export default TransactionTable;

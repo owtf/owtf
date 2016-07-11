@@ -50,6 +50,7 @@ class Transactions extends React.Component {
         this.getElementTopPosition = this.getElementTopPosition.bind(this);
         this.handleHeaderContainerHeight = this.handleHeaderContainerHeight.bind(this);
         this.updateSelectedRowsInZest = this.updateSelectedRowsInZest.bind(this);
+        this.tableSearch = this.tableSearch.bind(this);
     };
 
     /*Defining all the context variables: Context variables are very usefull method to pass data from parent to its children, grand childern directly
@@ -81,7 +82,8 @@ class Transactions extends React.Component {
             closeZestState: this.closeZestState,
             getElementTopPosition: this.getElementTopPosition,
             handleHeaderContainerHeight: this.handleHeaderContainerHeight,
-            updateSelectedRowsInZest: this.updateSelectedRowsInZest
+            updateSelectedRowsInZest: this.updateSelectedRowsInZest,
+            tableSearch: this.tableSearch
         };
 
         return context_obj;
@@ -194,6 +196,38 @@ class Transactions extends React.Component {
         this.setState({headerHeight: changedValue});
     };
 
+    tableSearch(e, field) {
+        var filteredData = [];
+        for (var i = 0; i < this.state.transactionsData.length; i++) {
+            if (field === "url") {
+                if (this.state.transactionsData[i].url.includes(e.target.value)) {
+                    filteredData.push(this.state.transactionsData[i])
+                }
+            } else if (field === "method") {
+                if (this.state.transactionsData[i].method.includes(e.target.value)) {
+                    filteredData.push(this.state.transactionsData[i])
+                }
+
+            } else if (field === "status") {
+                if (this.state.transactionsData[i].response_status.includes(e.target.value)) {
+                    filteredData.push(this.state.transactionsData[i])
+                }
+            }
+        };
+        if (e.target.value === '') {
+            this.getTransactions.bind(this, this.state.target_id).call();
+        } else {
+            this.setState({
+                transactionsData: filteredData,
+                transactionHeaderData: {
+                    requestHeader: '',
+                    responseHeader: '',
+                    responseBody: ''
+                }
+            });
+        };
+    };
+
     render() {
         this.replaceContainer.bind(this)();
         return (
@@ -249,7 +283,8 @@ Transactions.childContextTypes = {
     closeZestState: React.PropTypes.func,
     getElementTopPosition: React.PropTypes.func,
     handleHeaderContainerHeight: React.PropTypes.func,
-    updateSelectedRowsInZest: React.PropTypes.func
+    updateSelectedRowsInZest: React.PropTypes.func,
+    tableSearch: React.PropTypes.func
 };
 
 export default Transactions;
