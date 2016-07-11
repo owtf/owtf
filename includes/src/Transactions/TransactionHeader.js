@@ -39,7 +39,6 @@ export class TransactionHeaders extends React.Component {
         var height = this.context.headerHeight;
         return (
             <div>
-                <Subheader>Headers and Body</Subheader>
                 <Tabs onChange={this.handleChange} value={this.state.slideIndex} style={styles.tab}>
                     <Tab label="Request Header" value={0}/>
                     <Tab label="Response Header" value={1}/>

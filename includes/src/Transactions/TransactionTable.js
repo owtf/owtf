@@ -1,5 +1,4 @@
 import React from 'react';
-import Subheader from 'material-ui/Subheader';
 import DropDownMenu from 'material-ui/DropDownMenu';
 import MenuItem from 'material-ui/MenuItem';
 import FloatingActionButton from 'material-ui/FloatingActionButton';
@@ -126,7 +125,6 @@ export class TransactionTable extends React.Component {
                 <p style={{
                     display: "inline"
                 }}>entries</p>*/}
-                <Subheader>Transactions</Subheader>
                 <Table height={this.state.tableHeight} onRowSelection={this.handleClick.bind(this)} multiSelectable={this.context.zestActive}>
                     <TableHeader adjustForCheckbox={this.context.zestActive} displaySelectAll={this.context.zestActive}>
                         <TableRow>
