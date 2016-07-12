@@ -1,0 +1,15 @@
+@import "~react-toolbox/lib/colors";
+
+$color-primary: $palette-blue-500;
+$color-primary-dark: $palette-blue-700;
+
+//-- Rank colors
+$color-passing: $palette-grey-500;
+$color-info: $palette-blue-500;
+$color-low: $palette-teal-500;
+$color-medium: $palette-yellow-500;
+$color-high: $palette-orange-500;
+$color-critical: $palette-red-700;
+
+// -- Custom made colors inspired from bootstrap
+$color-success: $palette-green-500;
