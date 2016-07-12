@@ -36,6 +36,9 @@ class Transactions extends React.Component {
             zestActive: false,
             snackbarOpen: false,
             headerHeight: 0,
+            resizeTableActiveLeft: false,
+            widthTargetList: 16.66666667,
+            widthTable: 80,
             alertMessage: ""
         };
 
@@ -176,10 +179,14 @@ class Transactions extends React.Component {
             var targetsData = result.data;
             this.setState({targetsData: targetsData});
         }.bind(this));
+        document.addEventListener('mousemove', e => this.handleMouseDragLeft(e));
+        document.addEventListener('mouseup', e => this.handleMouseUp(e));
     };
 
     componentWillUnmount() {
         this.serverRequest.abort();
+        document.removeEventListener('mousemove', e => this.handleMouseDragLeft(e));
+        document.removeEventListener('mouseup', e => this.handleMouseUp(e));
     };
 
     getElementTopPosition(element) {
@@ -228,15 +235,38 @@ class Transactions extends React.Component {
         };
     };
 
+    handleMouseDown(e) {
+        this.setState({resizeTableActiveLeft: true});
+    };
+
+    handleMouseUp(e) {
+        this.setState({resizeTableActiveLeft: false});
+    };
+
+    handleMouseDragLeft(e) {
+        if (!this.state.resizeTableActiveLeft) {
+            return;
+        }
+        this.setState({
+            widthTargetList: (e.clientX / window.innerWidth) * 100,
+            widthTable: 96 - (e.clientX / window.innerWidth) * 100
+        });
+    };
+
     render() {
         this.replaceContainer.bind(this)();
         return (
             <div className="container-fluid">
                 <div className="row">
-                    <div className="col-md-2">
+                    <div id="left_panel" style={{
+                        width: this.state.widthTargetList.toString() + "%"
+                    }}>
                         <TargetList/>
                     </div>
-                    <div className="col-md-10">
+                    <div id="drag-left" onMouseDown={e => this.handleMouseDown(e)} onMouseUp={e => this.handleMouseUp(e)}></div>
+                    <div id="right_panel" style={{
+                        width: this.state.widthTable.toString() + "%"
+                    }}>
                         <Header/>
                         <div className="row">
                             {this.state.target_id !== 0
