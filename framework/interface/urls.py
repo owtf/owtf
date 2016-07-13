@@ -57,6 +57,7 @@ def get_handlers():
         tornado.web.url(r'/ui/configuration/?$', ui_handlers.ConfigurationManager, name='configuration_ui_url'),
         tornado.web.url(r'/ui/plugnhack/?', ui_handlers.PlugnHack, name='plugnhack_ui_url'),
         tornado.web.url(r'/ui/plugnhack/?(.*)', ui_handlers.PlugnHack, name='plugnhack_ui_manifest_url'),
+        tornado.web.url(r'/ui/transactions/?', ui_handlers.Transactions, name='transactions_ui_url'),
         tornado.web.url(r'/ui/help/?', ui_handlers.Help, name='help_ui_url')]
     return URLS
 

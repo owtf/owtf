@@ -116,7 +116,7 @@ body {
     }
 }
 
-@media (max-width: 912px) {
+@media (max-width: 1040px) {
     .navbar-header {
         float: none;
     }
@@ -271,4 +271,40 @@ body {
 .modal-title {
     color: #e94e38;
     text-align: center;
+}
+
+label {
+    font-weight: 400;
+}
+
+#drag {
+    background-color: rgb(224, 224, 224);
+    height: 3px;
+    cursor: n-resize;
+}
+
+#left_panel {
+    float: left;
+    position: relative;
+    min-height: 1px;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+#right_panel {
+    float: left;
+    position: relative;
+    min-height: 1px;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+#drag-left {
+    background-color: rgb(224, 224, 224);
+    width: 3px;
+    float: left;
+    position: relative;
+    height: 100vh;
+    margin-right: 15px;
+    cursor: w-resize;
 }
