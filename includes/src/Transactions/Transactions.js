@@ -5,7 +5,7 @@ import TransactionHeaders from './TransactionHeader';
 import Header from './Header';
 import Footer from './Footer';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import Snackbar from 'material-ui/Snackbar';
+import { Snackbar } from 'react-toolbox';
 import TargetList from './Targetlist';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 // Needed for onTouchTap
@@ -94,7 +94,7 @@ class Transactions extends React.Component {
 
     /* Function responsible for filling transaction table */
     getTransactions(target_id) {
-        var URL = TRANSACTIONS_URL.replace("target_id", target_id.toString()) + '?limit=' + this.state.limitValue.toString() + '&offset=' + this.state.offsetValue.toString();
+        var URL = TRANSACTIONS_URL.replace("target_id", target_id.toString());
         $.get(URL, function(result) {
             var transactions = result.data;
             this.setState({
@@ -207,21 +207,21 @@ class Transactions extends React.Component {
         var filteredData = [];
         for (var i = 0; i < this.state.transactionsData.length; i++) {
             if (field === "url") {
-                if (this.state.transactionsData[i].url.includes(e.target.value)) {
+                if (this.state.transactionsData[i].url.includes(e.toString())) {
                     filteredData.push(this.state.transactionsData[i])
                 }
             } else if (field === "method") {
-                if (this.state.transactionsData[i].method.includes(e.target.value)) {
+                if (this.state.transactionsData[i].method.includes(e.toString())) {
                     filteredData.push(this.state.transactionsData[i])
                 }
 
             } else if (field === "status") {
-                if (this.state.transactionsData[i].response_status.includes(e.target.value)) {
+                if (this.state.transactionsData[i].response_status.includes(e.toString())) {
                     filteredData.push(this.state.transactionsData[i])
                 }
             }
         };
-        if (e.target.value === '') {
+        if (e.toString() === '') {
             this.getTransactions.bind(this, this.state.target_id).call();
         } else {
             this.setState({
@@ -284,7 +284,7 @@ class Transactions extends React.Component {
                 {this.state.zestActive
                     ? <Footer/>
                     : null}
-                <Snackbar open={this.state.snackbarOpen} message={this.state.alertMessage} autoHideDuration={5000} onRequestClose={this.handleSnackBarRequestClose}/>
+                <Snackbar action='Dismiss' active={this.state.snackbarOpen} label={this.state.alertMessage} timeout={5000} onTimeout={this.handleSnackBarRequestClose} type='cancel'/>
             </div>
 
         );

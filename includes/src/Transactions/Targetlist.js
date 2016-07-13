@@ -1,8 +1,5 @@
 import React from 'react';
-import Subheader from 'material-ui/Subheader';
-import MenuItem from 'material-ui/MenuItem';
-import Divider from 'material-ui/Divider';
-import {List, ListItem} from 'material-ui/List';
+import {List, ListItem, ListSubHeader, ListDivider} from 'react-toolbox/lib/list';
 
 export class TargetList extends React.Component {
 
@@ -10,10 +7,10 @@ export class TargetList extends React.Component {
         var getTransactions = this.context.getTransactions;
         return (
             <div>
-                <List>
-                    <Subheader>Targets</Subheader>
+                <List selectable={true}>
+                    <ListSubHeader caption="Targets"/>
                     {this.context.targetsData.map(function(target) {
-                        return <div><ListItem onTouchTap={getTransactions.bind(this, target.id)} key={target.id} primaryText={target.target_url}/><Divider/></div>;
+                        return <div><ListItem onClick={getTransactions.bind(this, target.id)} key={target.id} caption={target.target_url} selectable={true}/><ListDivider/></div>;
                     })}
                 </List>
             </div>
@@ -22,7 +19,6 @@ export class TargetList extends React.Component {
 }
 
 TargetList.contextTypes = {
-    muiTheme: React.PropTypes.object.isRequired,
     targetsData: React.PropTypes.array,
     getTransactions: React.PropTypes.func
 };

@@ -1,5 +1,4 @@
 import React from 'react';
-import Subheader from 'material-ui/Subheader';
 
 const styles = {
     tab: {
@@ -32,15 +31,15 @@ export class TransactionHeaders extends React.Component {
                     <div style={{
                         height: height
                     }} className="tab-pane active" id="request">
-                        <Subheader>Request Header</Subheader>
+                        <p>Request Header</p>
                         <pre>{this.context.transactionHeaderData.requestHeader}</pre>
                     </div>
                     <div style={{
                         height: height
                     }} className="tab-pane" id="response">
-                        <Subheader>Response Header</Subheader>
+                        <p>Response Header</p>
                         <pre>{this.context.transactionHeaderData.responseHeader}</pre>
-                        <Subheader>Response Body</Subheader>
+                        <p>Response Body</p>
                         <pre>{this.context.transactionHeaderData.responseBody}</pre>
                     </div>
                 </div>

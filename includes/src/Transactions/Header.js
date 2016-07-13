@@ -1,6 +1,7 @@
 import React from 'react';
-import RaisedButton from 'material-ui/RaisedButton';
 import {TRANSACTION_ZCONSOLE_URL} from './constants';
+import CriticalButton from '../theme/buttons/Critical';
+import SuccessButton from '../theme/buttons/Success';
 
 const style = {
     margin: 12
@@ -28,8 +29,8 @@ export class Header extends React.Component {
                     <div className="col-md-12">
                         <div className="col-md-12">
                             <div className="btn-group pull-right">
-                                <RaisedButton backgroundColor="#d9534f" label="Create Zest Script!" labelColor="#fff" style={style} onTouchTap={this.context.updateZestState} disabled={this.context.zestActive || this.context.target_id === 0}/>
-                                <RaisedButton backgroundColor="#a4c639" label="Zest Script Console" labelColor="#fff" style={style} onTouchTap={this.openZestConsole} disabled={this.context.target_id === 0}/>
+                                <CriticalButton label="Create Zest Script!" onTouchTap={this.context.updateZestState} disabled={this.context.zestActive || this.context.target_id === 0} style={style} raised primary/>
+                                <SuccessButton label="Zest Script Console" onTouchTap={this.openZestConsole} disabled={this.context.target_id === 0} style={style} raised primary/>
                             </div>
                         </div>
                     </div>
@@ -40,7 +41,6 @@ export class Header extends React.Component {
 }
 
 Header.contextTypes = {
-    muiTheme: React.PropTypes.object.isRequired,
     target_id: React.PropTypes.number,
     zestActive: React.PropTypes.bool,
     updateZestState: React.PropTypes.func

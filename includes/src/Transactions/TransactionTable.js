@@ -1,10 +1,5 @@
 import React from 'react';
-import DropDownMenu from 'material-ui/DropDownMenu';
-import MenuItem from 'material-ui/MenuItem';
-import FloatingActionButton from 'material-ui/FloatingActionButton';
-import NavigationArrowForward from 'material-ui/svg-icons/navigation/arrow-forward';
-import NavigationArrowBack from 'material-ui/svg-icons/navigation/arrow-back';
-import TextField from 'material-ui/TextField';
+import Input from 'react-toolbox/lib/input';
 
 import {
     Table,
@@ -14,30 +9,6 @@ import {
     TableRow,
     TableRowColumn
 } from 'material-ui/Table';
-
-export class Pagination extends React.Component {
-
-    render() {
-        return (
-            <div className="pagination center-block" style={{
-                width: "100px"
-            }}>
-                <FloatingActionButton className="center-block" style={{
-                    marginRight: 20
-                }} mini={true} onTouchTap={this.context.handleOffsetChange.bind(this, -1)} disabled={this.props.previousDisabled}>
-                    <NavigationArrowBack/>
-                </FloatingActionButton>
-                <FloatingActionButton mini={true} onTouchTap={this.context.handleOffsetChange.bind(this, 1)} disabled={this.props.nextDisabled}>
-                    <NavigationArrowForward/>
-                </FloatingActionButton>
-            </div>
-        );
-    }
-}
-
-Pagination.contextTypes = {
-    handleOffsetChange: React.PropTypes.func
-};
 
 export class TransactionTable extends React.Component {
 
@@ -129,13 +100,19 @@ export class TransactionTable extends React.Component {
                 <Table height={this.state.tableHeight} onRowSelection={this.handleClick.bind(this)} multiSelectable={this.context.zestActive}>
                     <TableHeader adjustForCheckbox={this.context.zestActive} displaySelectAll={this.context.zestActive}>
                         <TableRow>
-                            <TableHeaderColumn><TextField hintText="URL" fullWidth={true} onChange={e => this.context.tableSearch(e, "url")}/></TableHeaderColumn>
+                            <TableHeaderColumn>
+                                <Input type='text' label='URL' onChange={e => this.context.tableSearch(e, "url")}/>
+                            </TableHeaderColumn>
                             <TableHeaderColumn style={{
                                 width: 120
-                            }}><TextField hintText="Method" fullWidth={true} onChange={e => this.context.tableSearch(e, "method")}/></TableHeaderColumn>
+                            }}>
+                                <Input type='text' label='Method' onChange={e => this.context.tableSearch(e, "method")}/>
+                            </TableHeaderColumn>
                             <TableHeaderColumn style={{
                                 width: 200
-                            }}><TextField hintText="Status" fullWidth={true} onChange={e => this.context.tableSearch(e, "status")}/></TableHeaderColumn>
+                            }}>
+                                <Input type='text' label='Status' onChange={e => this.context.tableSearch(e, "status")}/>
+                            </TableHeaderColumn>
                             <TableHeaderColumn style={{
                                 width: 120
                             }}>Duration</TableHeaderColumn>
