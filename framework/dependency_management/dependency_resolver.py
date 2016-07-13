@@ -32,7 +32,8 @@ class ServiceLocator:
         "reporter",
         "smb",
         "interactive_shell",
-        "selenium_handler"
+        "selenium_handler",
+        "spear_phishing"
     ]
 
     @classmethod

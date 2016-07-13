@@ -78,7 +78,7 @@ class CacheHandler(object):
         # and response data. It also creates a .rd file with same file name
         # This is used by transaction logger
         try:
-            response_body = unicode(self.request.response_buffer, "utf-8")
+            response_body = self.request.response_buffer.decode("utf-8")
             binary_response = False
         except UnicodeDecodeError:
             response_body = base64.b64encode(self.request.response_buffer)
@@ -88,7 +88,7 @@ class CacheHandler(object):
             'request_url': self.request.url,
             'request_version': self.request.version,
             'request_headers': dict(self.request.headers),
-            'request_body': self.request.body,
+            'request_body': self.request.body.decode('utf-8'),
             'request_time': response.request_time,
             'request_local_timestamp': self.request.local_timestamp.isoformat(),
             'response_code': response.code,

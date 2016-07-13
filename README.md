@@ -1,4 +1,5 @@
 [![Gitter](https://badges.gitter.im/owtf/owtf.svg)](https://gitter.im/owtf/owtf)
+[![Requirements Status](https://requires.io/github/owtf/owtf/requirements.svg?branch=develop)](https://requires.io/github/owtf/owtf/requirements/?branch=develop)
 [![Build Status](https://travis-ci.org/owtf/owtf.svg?branch=develop)](https://travis-ci.org/owtf/owtf)
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
 [![Platform (GNU/Linux)](https://img.shields.io/badge/platform-GNU/Linux-red.svg?style=flat-square)](http://www.kernel.org)

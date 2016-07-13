@@ -140,7 +140,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             return os.path.join(self.target.GetPath('partial_url_output_path'),
                                 WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
         elif Plugin['group'] == 'auxiliary':
-            return os.path.join(self.config.Get('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']),
+            return os.path.join(self.config.FrameworkConfigGet('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']),
                                 Plugin['type'])
 
     def RequestsPossible(self):
