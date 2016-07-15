@@ -3,7 +3,6 @@
 # - The version number is important, it is required that you test
 #   the latest version and add it here
 # - The casing of names is critical for dependency checks, eg. pyOpenSSL and not pyopenssl
-beautifulsoup4==4.4.1
 cookies==2.2.1
 ipaddr==2.1.11
 lxml==3.6.0
