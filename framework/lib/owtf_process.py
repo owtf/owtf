@@ -13,6 +13,7 @@ class OWTFProcess(Process, BaseComponent):
     Implementing own proxy of Process for better control of processes launched
     from OWTF both while creating and terminating the processes
     """
+
     def __init__(self, **kwargs):
         """
         Ideally not to override this but can be done if needed. If overridden

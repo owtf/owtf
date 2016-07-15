@@ -196,14 +196,14 @@ class Config(BaseComponent, ConfigInterface):
         targets = None
         if PluginParams.ProcessArgs():
             for param in target_params:
-                if PluginParams.Args.has_key(param):
+                if param in PluginParams.Args:
                     targets = PluginParams.Args[param]
-                    break # it will capture only the first one matched
+                    break  # it will capture only the first one matched
             repeat_delim = ','
             if targets is None:
                 logging.error("Aux target not found! See your plugin accepted parameters in ./plugins/ folder")
                 return []
-            if PluginParams.Args.has_key('REPEAT_DELIM'):
+            if 'REPEAT_DELIM' in PluginParams.Args:
                 repeat_delim = PluginParams.Args['REPEAT_DELIM']
             return targets.split(repeat_delim)
         else:
