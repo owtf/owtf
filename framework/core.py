@@ -20,6 +20,7 @@ from framework.interface import server, cli
 from framework.http.proxy import proxy, transaction_logger
 from framework.plugin import worker_manager
 from framework.lib.formatters import ConsoleFormatter, FileFormatter
+from framework.db.plugin_uploader import PluginUploader
 
 
 class Core(BaseComponent):
@@ -216,6 +217,12 @@ class Core(BaseComponent):
         self.start_proxy(options)  # Proxy mode is started in that function.
         # Set anonymised invoking command for error dump info.
         self.error_handler.SetCommand(OutputCleaner.anonymise_command(command))
+        # upload tool report
+        if options['UploadTool']:
+            pUploader = PluginUploader(options['UploadTool'])
+            pUploader.init_uploader(options['ReportUploadPath'])
+            pUploader.OWTFDBUpload()
+            self.finish()
         return True
 
     def initialise_plugin_handler_and_params(self, options):
