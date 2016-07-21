@@ -280,6 +280,22 @@ function activateSession(session_id) {
     });
 }
 
+// This function will be called when the session modal closes
+$('#sessionModal').on('hidden.bs.modal', function () {
+    if ($('input[name=session_id]:checked').length > 0){
+        // The session is selected. Nothing to do in this case
+        return;
+    }
+    if($('input[name=session_id]').length == 1){
+        // If only one session is found in the db, then choose that by default.
+        activateSession($('input[name=session_id]').val());
+    } else{
+        // Alert the user for not selecting any session
+        $("#sessionName").val("No session selected :(");
+        alertFail(" No active action session found. Please select a session");
+    }
+});
+
 // Function that adds targets to the target list(table infact)
 function addSessions(data, status, xhr) {
     jQuery('#sessionTable').dataTable().fnClearTable();
