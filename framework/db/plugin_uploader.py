@@ -38,17 +38,17 @@ class PluginUploader():
 		self.upload_checks()
 		for data in self.parsed_data:
 			transaction_model = models.Transaction(
-				url='Test',
-				scope=None,
+				url='Tool ' + self.tool_name,
+				scope=None, # Writing tool name to distinguish between th reports
 				method=None,
 				data=None,
 				time=None,
 				time_human=None,
 				local_timestamp=None,
-				raw_request=data['request'],
-				response_status=data['response_status_code'],
-				response_headers=data['response_header'],
-				response_body=data['response_body'],
+				raw_request=data['request'].decode('utf-8', 'ignore'),
+				response_status=data['response_status_code'].decode('utf-8', 'ignore'),
+				response_headers=data['response_header'].decode('utf-8', 'ignore'),
+				response_body=data['response_body'].decode('utf-8', 'ignore'),
 				response_size=len(data['response_body']),
 				binary_response=None,
 				session_tokens=None,
