@@ -275,7 +275,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                     parser.parse(pathname=pathname, filename=module[1], plugin=module[0])
                     owtf_rank = max(owtf_rank, parser.get_highest_ranking())
             else:
-                parser.parse(pathname=pathname)
+                parser.parse(pathname=pathname, full_parse=False)
                 owtf_rank = parser.get_highest_ranking()
         except PTPError:  # Not supported tool or report not found.
             pass
