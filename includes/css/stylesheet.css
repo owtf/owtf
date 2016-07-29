@@ -72,6 +72,25 @@ body {
     color: #fff;
 }
 
+.back-to-top {
+    background: none;
+    margin: 0;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 55px;
+    height: 55px;
+    z-index: 100;
+    display: none;
+    text-decoration: none;
+    color: #ffffff;
+}
+
+.back-to-top i {
+    color: black;
+    font-size: 40px;
+}
+
 .severity-legend {
     list-style-type: none;
     width: 150px;

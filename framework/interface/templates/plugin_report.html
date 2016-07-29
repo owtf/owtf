@@ -1,3 +1,6 @@
+<a href="#" class="back-to-top" style="display: inline;">
+  <i class="fa fa-arrow-circle-up"></i>
+</a>
 <div class="panel-group" id="pluginOutputs">
     {% for test_code, poutput_list in grouped_plugin_outputs.items() %}
         <div id="header_{{ test_code }}"class="panel panel-default">
@@ -402,10 +405,18 @@ function collapseOnShowLess() {
     });
 }
 
+// Handling scroll to top button
+function scrollToTop() {
+    $('.back-to-top').click(function() {
+      $('html, body').animate({ scrollTop: 0 }, 1000);
+    });
+}
+
 $(function() {
     updateTargetInfo();
     updateAllTestCasesInfo();
     collapsePluginOnRank();
     collapseOnShowLess();
+    scrollToTop();
 });
 </script>
