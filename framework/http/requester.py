@@ -205,10 +205,10 @@ class Requester(BaseComponent, RequesterInterface):
         try:
             response = self.perform_request(request)
             self.set_succesful_transaction(raw_request, response)
-        except urllib2.HTTPError, Error:  # page NOT found.
+        except urllib2.HTTPError as Error:  # page NOT found.
             # Error is really a response for anything other than 200 OK in urllib2 :)
             self.http_transaction.SetTransaction(False, raw_request[0], Error)
-        except urllib2.URLError, Error:  # Connection refused?
+        except urllib2.URLError as Error:  # Connection refused?
             err_message = self.ProcessHTTPErrorCode(Error, url)
             self.http_transaction.SetError(err_message)
         except IOError:
