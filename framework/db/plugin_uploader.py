@@ -35,6 +35,9 @@ class PluginUploader():
 
 	@target_required
 	def OWTFDBUpload(self, target_id=None):
+		if(target_id is None):
+			print("Target id is None, aborting uploader!!")
+			return;
 		self.upload_checks()
 		for data in self.parsed_data:
 			transaction_model = models.Transaction(
