@@ -273,10 +273,6 @@ body {
     text-align: center;
 }
 
-label {
-    font-weight: 400;
-}
-
 #drag {
     background-color: rgb(224, 224, 224);
     height: 3px;
@@ -307,4 +303,10 @@ label {
     height: 100vh;
     margin-right: 15px;
     cursor: w-resize;
+}
+
+.error-modal-body-title {
+    color: #e94e38;
+    text-align: center;
+    font-weight: 600;
 }

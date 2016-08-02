@@ -9,7 +9,7 @@ import traceback
 import sys
 import json
 import urllib2
-
+import requests
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ErrorHandlerInterface
 from framework.lib.exceptions import FrameworkAbortException, PluginAbortException
@@ -24,7 +24,7 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
 
     def __init__(self):
         self.register_in_service_locator()
-        self.config = self.get_component("config")
+        self.config = None
         self.Core = None
         self.db = None
         self.db_error = None
@@ -35,6 +35,7 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
         self.Core = self.get_component("core")
         self.db = self.get_component("db")
         self.db_error = self.get_component("db_error")
+        self.config = self.get_component("config")
 
     def SetCommand(self, command):
         self.Command = command
@@ -113,35 +114,23 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
             cprint(output)
             self.LogError(message)
 
-    def AddGithubIssue(self, title='Bug report from OWTF', info=None, user=None):
-        # TODO: Has to be ported to use db and infact add to interface.
-        # Once db is implemented, better verbosity will be easy.
-        error_data = self.db.ErrorData()
-        for item in error_data:
-            if item.startswith('Message'):
-                title = item[len('Message:'):]
-                break
-        data = {'title': '[Auto-Generated] %s' % title, 'body': ''}
-        # For github markdown.
-        data['body'] = '#### OWTF Bug Report\n\n```\n%s```\n' % error_data
-        if info:
-            data['body'] += "\n#### User Report\n\n"
-            data['body'] += info
-        if user:
-            data['body'] += "\n\n#### %s" % user
+    def AddGithubIssue(self, username=None, title=None, body=None, id=None):
+        if id is None or username is None:
+            return False
+        body += "\n\nSubmitted By - @"
+        body += username
+        data = {'title': title, 'body': body}
         data = json.dumps(data)  # Converted to string.
         headers = {
             "Content-Type": "application/json",
             "Authorization":
-                "token " + self.config.Get("GITHUB_BUG_REPORTER_TOKEN")
+                "token " + self.config.FrameworkConfigGet("GITHUB_BUG_REPORTER_TOKEN")
         }
-        request = urllib2.Request(self.config.Get("GITHUB_API_ISSUES_URL"),
+        request = requests.post(self.config.FrameworkConfigGet("GITHUB_API_ISSUES_URL"),
                                   headers=headers,
                                   data=data)
-        response = urllib2.urlopen(request)
-        decoded_resp = json.loads(response.read())
-        if response.code == 201:
-            cprint("Issue URL: %s" % decoded_resp["url"])
-            return True
-        else:
-            return False
+        response = request.json()
+        if request.status_code == 201:
+            self.db_error.UpdateAfterGitHubReport(id, body, True, response["html_url"])
+
+        return response

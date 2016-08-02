@@ -2,7 +2,8 @@ import React from 'react';
 import Chart from './Chart';
 import WorkerPanel from './WorkerPanel';
 import VulnerabilityPanel from './Panel';
-import {SEVERITY_CHART_URL, SEVERITY_PANEL_URL, WORKER_PANEL_URL} from './constants';
+import GitHubReport from './GitHubReport';
+import {SEVERITY_CHART_URL, SEVERITY_PANEL_URL, WORKER_PANEL_URL, ERROR_URL} from './constants';
 import {FILE_SERVER_PORT} from '../constants';
 
 /* Class resposible for making dashboard page content */
@@ -12,9 +13,12 @@ class Dashboard extends React.Component {
         return (
             <div className="container-fluid">
                 <div className="row">
-                    <div className="col-xs-12 col-md-12 col-lg-12 nopadding welcome-heading">
+                    <div className="col-xs-12 col-md-10 col-lg-10 nopadding welcome-heading">
                         <h1>Welcome to OWTF<small>, this is your dashboard</small>
                         </h1>
+                    </div>
+                    <div className="col-xs-12 col-md-2 col-lg-2 nopadding">
+                        <GitHubReport source={ERROR_URL}/>
                     </div>
                 </div>
                 <VulnerabilityPanel source={SEVERITY_PANEL_URL}/>
