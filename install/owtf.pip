@@ -21,3 +21,4 @@ rdflib==4.2.1
 selenium==2.53.6
 SQLAlchemy==1.0.13
 tornado==4.3.0
+requests==2.10.0

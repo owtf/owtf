@@ -726,7 +726,7 @@ class ConfigurationHandler(custom_handlers.APIRequestHandler):
 
 
 class ErrorDataHandler(custom_handlers.APIRequestHandler):
-    SUPPORTED_METHODS = ('GET', 'PATCH', 'DELETE')
+    SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'PATCH']
 
     def get(self, error_id=None):
         if error_id is None:
@@ -737,6 +737,20 @@ class ErrorDataHandler(custom_handlers.APIRequestHandler):
                 self.write(self.get_component("db_error").Get(error_id))
             except exceptions.InvalidErrorReference:
                 raise tornado.web.HTTPError(400)
+
+    def post(self, error_id=None):
+        if error_id is None:
+            try:
+                filter_data = dict(self.request.arguments)
+                username = filter_data['username'][0]
+                title = filter_data['title'][0]
+                body = filter_data['body'][0]
+                id = int(filter_data['id'][0])
+                self.write(self.get_component("error_handler").AddGithubIssue(username, title, body, id))
+            except:
+                raise tornado.web.HTTPError(400)
+        else:
+            raise tornado.web.HTTPError(400)
 
     def patch(self, error_id=None):
         if error_id is None:

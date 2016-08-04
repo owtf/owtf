@@ -47,6 +47,18 @@ class ErrorDB(BaseComponent, DBErrorInterface):
         self.db.session.merge(error)
         self.db.session.commit()
 
+    def UpdateAfterGitHubReport(self, error_id, traceback, reported, github_issue_url):
+        error = self.db.session.query(models.Error).get(error_id)
+        if not error:  # If invalid error id, bail out
+            raise InvalidErrorReference("No error with id %s" % str(error_id))
+
+        # Save the reported issue in database
+        error.traceback = traceback
+        error.reported = reported
+        error.github_issue_url = github_issue_url
+        self.db.session.merge(error)
+        self.db.session.commit()
+
     def DeriveErrorDict(self, error_obj):
         tdict = dict(error_obj.__dict__)
         tdict.pop("_sa_instance_state", None)
