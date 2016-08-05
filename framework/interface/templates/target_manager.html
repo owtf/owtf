@@ -278,7 +278,25 @@ function activateSession(session_id) {
             alertFail("Server replied: "+serverResponse);
             }
     });
+    $('#sessionModal').modal('hide');
 }
+
+// This function will be called when the session modal closes
+$('#sessionModal').on('hidden.bs.modal', function () {
+    var radio_session = $('input:radio[name="session_id"]');
+    if (radio_session.is(':checked') > 0){
+        // The session is selected. Nothing to do in this case
+        return;
+    }
+    if(radio_session.length == 1){
+        // If only one session is found in the db, then choose that by default.
+        activateSession(radio_session.val());
+    } else{
+        // Alert the user for not selecting any session
+        $("#sessionName").val("No session selected :(");
+        alertFail(" No active action session found. Please select a session");
+    }
+});
 
 // Function that adds targets to the target list(table infact)
 function addSessions(data, status, xhr) {
@@ -288,7 +306,7 @@ function addSessions(data, status, xhr) {
         actionButtons = '<a href="#" onclick="deleteSession('+obj.id+');" data-toggle="tooltip" data-placement="bottom" title="Delete session">';
         actionButtons += '<span class="btn btn-xs btn-danger"><i class="fa fa-times"></i></span></a>'
         jQuery('#sessionTable').dataTable().fnAddData([
-            '<input type="radio" name="session_id" data-dismiss="modal" onclick="activateSession('+obj.id+');" value="'+obj.id+'" '+checked+'>',
+            '<input type="radio" name="session_id" onclick="activateSession('+obj.id+');" value="'+obj.id+'" '+checked+'>',
             escapeHtml(obj.name),
             actionButtons
         ]);

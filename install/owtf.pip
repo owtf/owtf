@@ -3,13 +3,12 @@
 # - The version number is important, it is required that you test
 #   the latest version and add it here
 # - The casing of names is critical for dependency checks, eg. pyOpenSSL and not pyopenssl
-beautifulsoup4==4.4.1
 cookies==2.2.1
 ipaddr==2.1.11
 lxml==3.6.0
 Markdown==2.6.6
 pexpect==4.2.0
-psycopg2==2.6.1
+psycopg2==2.6.2
 PTP==0.3.0
 pycurl==7.43.0
 # We donot use six directly, but there is an error while trying to install pyOpenSSL. More details at https://github.com/owtf/owtf/issues/332
@@ -19,6 +18,6 @@ python-owasp-zap-v2==0.0.9
 PyVirtualDisplay==0.2
 rdflib==4.2.1
 selenium==2.53.6
-SQLAlchemy==1.0.13
+SQLAlchemy==1.0.14
 tornado==4.3.0
 requests==2.10.0

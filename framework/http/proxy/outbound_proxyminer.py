@@ -12,8 +12,7 @@ import urllib2
 import re
 import itertools
 import os
-from bs4 import BeautifulSoup
-
+import lxml
 from tornado.httpclient import HTTPRequest, HTTPClient
 from tornado.httputil import HTTPHeaders
 from tornado.httpclient import HTTPError
@@ -113,6 +112,7 @@ class Proxy_Miner:
                                     int(x[0].split(".")[3]), int(x[1])))
         return list(proxies for proxies, _ in itertools.groupby(proxies))
 
+"""
 # ----------------------------PROXY-MINING-FUNCTIONS-------------------------
 # Mining Function returns list of proxies.
 
@@ -177,11 +177,9 @@ class Proxy_Miner:
         page_num = 1
         http_client = HTTPClient()
         while True:  # loop until last page
-            post_data = """
-                port%5B%5D=all&protocol-http=true&protocol-https=true&anonymity-low=true&anonymity-medium=true
-                &anonymity-high=true&connection-low=true&connection-medium=true&connection-high=true&speed-low=true&
-                speed-medium=true&speed-high=true&order=desc&by=updated&page=%s
-                """ % str(page_num)
+            post_data = "port%5B%5D=all&protocol-http=true&protocol-https=true&anonymity-low=true&anonymity-medium=true"
+            "&anonymity-high=true&connection-low=true&connection-medium=true&connection-high=true&speed-low=true&"
+            "speed-medium=true&speed-high=true&order=desc&by=updated&page=%s" % str(page_num)
 
             request = HTTPRequest(url=url, connect_timeout=30, request_timeout=30, follow_redirects=False,
                                   use_gzip=True, user_agent=Proxy_Miner.User_agent, method="POST", body=post_data)
@@ -265,3 +263,4 @@ class Proxy_Miner:
                         break
 
         return proxies
+"""
