@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -31,7 +32,7 @@ import cgi
 
 DESCRIPTION = "Cookie Attributes Plugin to assist manual testing"
 
-def run(Core, PluginInfo):
-  #Core.Config.Show()
-  Content = Core.PluginHelper.ResourceLinkList('Online Hash Cracking Resources', Core.DB.Resource.GetResources('ExternalCookiesAttributes'))
+def run(PluginInfo):
+  #ServiceLocator.get_component("config").Show()
+  Content = ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Hash Cracking Resources', ServiceLocator.get_component("resource").GetResources('ExternalCookiesAttributes'))
   return Content

@@ -37,14 +37,19 @@ from tornado.httpclient import HTTPRequest
 import os
 from tornado.ioloop import IOLoop
 from tornado import gen
+from framework.dependency_management.dependency_resolver import BaseComponent
 import logging
 
-class Proxy_manager():
+
+class Proxy_manager(BaseComponent):
+
+    COMPONENT_NAME = "proxy_manager"
 
     testing_url = "http://google.com"  # with this url is tested the proxy
     testing_url_patern = "<title>Google</title>"
 
     def __init__(self):
+        self.register_in_service_locator()
         self.testing_url = "http://google.com"
         self.proxies = []
         self.number_of_proxies = 0

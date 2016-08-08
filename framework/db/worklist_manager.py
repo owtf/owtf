@@ -29,20 +29,33 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The DB stores worklist
 '''
 from framework.db import models
+from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.lib import exceptions
 from sqlalchemy import exc
 from sqlalchemy.sql import not_
 import logging
 
 
-class WorklistManager(object):
-    def __init__(self, Core):
-        self.Core = Core
+class WorklistManager(BaseComponent):
+    
+    COMPONENT_NAME = "worklist_manager"
+    
+    def __init__(self):
+        self.register_in_service_locator()
+        self.db = self.get_component("db")
+        self.plugin_output = None
+        self.target = None
+        self.db_plugin = None
+
+    def init(self):
+        self.target = self.get_component("target")
+        self.plugin_output = self.get_component("plugin_output")
+        self.db_plugin = self.get_component("db_plugin")
 
     def _generate_query(self, criteria=None, for_stats=False):
         if criteria is None:
             criteria = {}
-        query = self.Core.DB.session.query(models.Work).join(
+        query = self.db.session.query(models.Work).join(
             models.Target).join(models.Plugin).order_by(models.Work.id)
         if criteria.get('search', None):
             if criteria.get('target_url', None):
@@ -90,9 +103,9 @@ class WorklistManager(object):
     def _derive_work_dict(self, work_model):
         if work_model is not None:
             wdict = {}
-            wdict["target"] = self.Core.DB.Target.DeriveTargetConfig(
+            wdict["target"] = self.target.DeriveTargetConfig(
                 work_model.target)
-            wdict["plugin"] = self.Core.DB.Plugin.DerivePluginDict(
+            wdict["plugin"] = self.db_plugin.DerivePluginDict(
                 work_model.plugin)
             wdict["id"] = work_model.id
             wdict["active"] = work_model.active
@@ -107,7 +120,7 @@ class WorklistManager(object):
         return results
 
     def get_work(self, in_use_target_list):
-        query = self.Core.DB.session.query(models.Work).filter_by(
+        query = self.db.session.query(models.Work).filter_by(
             active=True).order_by(models.Work.id)
         if len(in_use_target_list) > 0:
             query = query.filter(
@@ -116,8 +129,8 @@ class WorklistManager(object):
         if work_obj:
             # First get the worker dict and then delete
             work_dict = self._derive_work_dict(work_obj)
-            self.Core.DB.session.delete(work_obj)
-            self.Core.DB.session.commit()
+            self.db.session.delete(work_obj)
+            self.db.session.commit()
             return((work_dict["target"], work_dict["plugin"]))
 
     def get_all(self, criteria=None):
@@ -126,7 +139,7 @@ class WorklistManager(object):
         return(self._derive_work_dicts(works))
 
     def get(self, work_id):
-        work = self.Core.DB.session.query(models.Work).get(work_id)
+        work = self.db.session.query(models.Work).get(work_id)
         if work is None:
             raise exceptions.InvalidWorkReference(
                 "No work with id " + str(work_id))
@@ -136,76 +149,76 @@ class WorklistManager(object):
         for target in target_list:
             for plugin in plugin_list:
                 # Check if it already in worklist
-                if self.Core.DB.session.query(models.Work).filter_by(
+                if self.db.session.query(models.Work).filter_by(
                         target_id=target["id"],
                         plugin_key=plugin["key"]).count() == 0:
                     # Check if it is already run ;) before adding
                     if ((force_overwrite is True) or
                         (force_overwrite is False and
-                            self.Core.DB.POutput.PluginAlreadyRun(
+                            self.plugin_output.PluginAlreadyRun(
                                 plugin, target_id=target["id"]) is False)):
                         # If force overwrite is true then plugin output has
                         # to be deleted first
                         if force_overwrite is True:
-                            self.Core.DB.POutput.DeleteAll({
+                            self.plugin_output.DeleteAll({
                                 "target_id": target["id"],
                                 "plugin_key": plugin["key"]
                             })
                         work_model = models.Work(
                             target_id=target["id"],
                             plugin_key=plugin["key"])
-                        self.Core.DB.session.add(
+                        self.db.session.add(
                             work_model)
-        self.Core.DB.session.commit()
+        self.db.session.commit()
 
     def remove_work(self, work_id):
-        work_obj = self.Core.DB.session.query(models.Work).get(work_id)
+        work_obj = self.db.session.query(models.Work).get(work_id)
         if work_obj is None:
             raise exceptions.InvalidWorkReference(
                 "No work with id " + str(work_id))
-        self.Core.DB.session.delete(work_obj)
-        self.Core.DB.session.commit()
+        self.db.session.delete(work_obj)
+        self.db.session.commit()
 
     def patch_work(self, work_id, active=True):
-        work_obj = self.Core.DB.session.query(models.Work).get(work_id)
+        work_obj = self.db.session.query(models.Work).get(work_id)
         if work_obj is None:
             raise exceptions.InvalidWorkReference(
                 "No work with id " + str(work_id))
         if active != work_obj.active:
             work_obj.active = active
-            self.Core.DB.session.merge(work_obj)
-            self.Core.DB.session.commit()
+            self.db.session.merge(work_obj)
+            self.db.session.commit()
 
     def pause_all(self):
-        query = self.Core.DB.session.query(models.Work)
+        query = self.db.session.query(models.Work)
         query.update({"active": False})
-        self.Core.DB.session.commit()
+        self.db.session.commit()
 
     def resume_all(self):
-        query = self.Core.DB.session.query(models.Work)
+        query = self.db.session.query(models.Work)
         query.update({"active": True})
-        self.Core.DB.session.commit()
+        self.db.session.commit()
 
     def stop_plugins(self, plugin_list):
-        query = self.Core.DB.session.query(models.Work)
+        query = self.db.session.query(models.Work)
         for plugin in plugin_list:
             query.filter_by(plugin_key=plugin["key"]).update(
                 {"active": False})
-        self.Core.DB.session.commit()
+        self.db.session.commit()
 
     def stop_targets(self, target_list):
-        query = self.Core.DB.session.query(models.Work)
+        query = self.db.session.query(models.Work)
         for target in target_list:
             query.filter_by(target_id=target["id"]).update(
                 {"active": False})
-        self.Core.DB.session.commit()
+        self.db.session.commit()
 
     def search_all(self, criteria):
         # Three things needed
         # + Total number of work
         # + Filtered work dicts
         # + Filtered number of works
-        total = self.Core.DB.session.query(
+        total = self.db.session.query(
             models.Work).count()
         filtered_work_objs = self._generate_query(criteria).all()
         filtered_number = self._generate_query(criteria, for_stats=True).count()

@@ -39,6 +39,8 @@ import socket
 
 from urlparse import urlparse
 from collections import defaultdict
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import ConfigInterface
 
 from framework.lib.exceptions import PluginAbortException, \
                                      DBIntegrityException, \
@@ -46,6 +48,7 @@ from framework.lib.exceptions import PluginAbortException, \
 from framework.config import health_check
 from framework.lib.general import cprint
 from framework.db import models, target_manager
+from framework.utils import NetworkOperations, FileOperations
 
 
 REPLACEMENT_DELIMITER = "@@@"
@@ -53,23 +56,45 @@ REPLACEMENT_DELIMITER_LENGTH = len(REPLACEMENT_DELIMITER)
 CONFIG_TYPES = [ 'string', 'other' ]
 
 
-class Config(object):
+class Config(BaseComponent, ConfigInterface):
+
+    COMPONENT_NAME = "config"
+
+    RootDir = None
+    OwtfPid = None
+    Profiles = None
+
     Target = None
-    def __init__(self, root_dir, owtf_pid, core):
+    def __init__(self, root_dir, owtf_pid):
+        self.register_in_service_locator()
         self.RootDir = root_dir
         self.OwtfPid = owtf_pid
-        self.Core = core
+        self.resource = None
+        self.error_handler = None
+        self.target = None
+        self.Config = None
+        self.db_plugin = None
+        self.worklist_manager = None
         self.initialize_attributes()
         # key can consist alphabets, numbers, hyphen & underscore.
         self.SearchRegex = re.compile(
             REPLACEMENT_DELIMITER + '([a-zA-Z0-9-_]*?)' + REPLACEMENT_DELIMITER)
         # Available profiles = g -> General configuration, n -> Network plugin
         # order, w -> Web plugin order, r -> Resources file
+        self.initialize_attributes()
         self.LoadFrameworkConfigFromFile(os.path.join(
             self.RootDir,
             'framework',
             'config',
             'framework_config.cfg'))
+
+    def init(self):
+        self.resource = self.get_component("resource")
+        self.error_handler = self.get_component("error_handler")
+        self.target = self.get_component("target")
+        self.db_plugin = self.get_component("db_plugin")
+        self.worklist_manager = self.get_component("worklist_manager")
+
 
     def initialize_attributes(self):
         self.Config = defaultdict(list)  # General configuration information.
@@ -77,13 +102,13 @@ class Config(object):
             self.Config[type] = {}
 
     def Init(self):
-        self.HealthCheck = health_check.HealthCheck(self.Core)
+        self.HealthCheck = health_check.HealthCheck()
 
     def LoadFrameworkConfigFromFile(self, config_path):
         """Load the configuration from into a global dictionary."""
         if 'framework_config' not in config_path:
             cprint("Loading Config from: " + config_path + " ..")
-        config_file = self.Core.open(config_path, 'r')
+        config_file = FileOperations.open(config_path, 'r')
         self.Set('FRAMEWORK_DIR', self.RootDir)  # Needed Later.
         for line in config_file:
             try:
@@ -100,7 +125,7 @@ class Config(object):
                         )
                     )
             except ValueError:
-                self.Core.Error.FrameworkAbort(
+                self.error_handler.FrameworkAbort(
                     "Problem in config file: '" + config_path +
                     "' -> Cannot parse line: " + line)
 
@@ -117,7 +142,7 @@ class Config(object):
         Add plugins and targets to worklist
         """
         if len(target_urls) != 0:
-            targets = self.Core.DB.Target.GetTargetConfigs({
+            targets = self.target.GetTargetConfigs({
                 "target_url": target_urls})
             if options["OnlyPlugins"] is None:
                 filter_data = {
@@ -126,9 +151,9 @@ class Config(object):
                 }
             else:
                 filter_data = {"code": options["OnlyPlugins"]}
-            plugins = self.Core.DB.Plugin.GetAll(filter_data)
+            plugins = self.db_plugin.GetAll(filter_data)
             force_overwrite = options["Force_Overwrite"]
-            self.Core.DB.Worklist.add_work(
+            self.worklist_manager.add_work(
                 targets,
                 plugins,
                 force_overwrite=force_overwrite)
@@ -146,7 +171,7 @@ class Config(object):
         added_targets = []
         for target in scope:
             try:
-                self.Core.DB.Target.AddTarget(target)
+                self.target.AddTarget(target)
                 added_targets.append(target)
             except DBIntegrityException:
                 cprint(target + " already exists in DB")
@@ -209,10 +234,10 @@ class Config(object):
 
     def GetResources(self, resource_type):
         """Replace the resources placeholders with the relevant config."""
-        return self.Core.DB.Resource.GetResources(resource_type)
+        return self.resource.GetResources(resource_type)
 
     def GetResourceList(self, resource_type_list):
-        return self.Core.DB.Resource.GetResourceList(resource_type_list)
+        return self.resource.GetResourceList(resource_type_list)
 
     def GetRawResources(self, resource_type):
         return self.Resources[resource_type]
@@ -293,7 +318,7 @@ class Config(object):
             self.Get('OUTPUT_PATH') + "/index.html")
 
         if not self.Get('SIMULATION'):
-            self.Core.CreateMissingDirs(self.Get('host_output'))
+            FileOperations.create_missing_dirs(self.Get('host_output'))
 
         # URL Analysis DBs
         # URL DBs: Distintion between vetted, confirmed-to-exist, in
@@ -356,7 +381,7 @@ class Config(object):
             alternative_IPs = ipchunks[1:]
         self.Set('alternative_ips', alternative_IPs)
         ip = ip.strip()
-        self.Set('INTERNAL_IP', self.Core.IsIPInternal(ip))
+        self.Set('INTERNAL_IP', NetworkOperations.is_ip_internal(ip))
         cprint("The IP address for " + hostname + " is: '" + ip + "'")
         return ip
 
@@ -409,7 +434,7 @@ class Config(object):
             return self.GetKeyValue(key)
         except KeyError:
             message = "The configuration item: '" + key + "' does not exist!"
-            self.Core.Error.Add(message)
+            self.error_handler.Add(message)
             # Raise plugin-level exception to move on to next plugin.
             raise PluginAbortException(message)
 
@@ -445,10 +470,6 @@ class Config(object):
             self.FrameworkConfigGetLogsDir(),
             log_file_name
         )
-
-    def GetAsPartialPath(self, key):
-        """Convenience wrapper."""
-        return self.Core.GetPartialPath(self.Get(key))
 
     def GetAsList(self, key_list):
         value_list = []
@@ -502,7 +523,7 @@ class Config(object):
             self.FrameworkConfigGet("TARGETS_DIR"))
 
     def CleanUpForTarget(self, target_URL):
-        return self.Core.rmtree(self.GetOutputDirForTarget(target_URL))
+        return FileOperations.rm_tree(self.GetOutputDirForTarget(target_URL))
 
     def GetOutputDirForTarget(self, target_URL):
         return os.path.join(
@@ -510,7 +531,7 @@ class Config(object):
             target_URL.replace("/", "_").replace(":", "").replace("#", ""))
 
     def CreateOutputDirForTarget(self, target_URL):
-        self.Core.CreateMissingDirs(self.GetOutputDirForTarget(target_URL))
+        FileOperations.create_missing_dirs(self.GetOutputDirForTarget(target_URL))
 
     def GetTransactionDBPathForTarget(self, target_URL):
         return os.path.join(

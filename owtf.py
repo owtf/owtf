@@ -43,6 +43,8 @@ verify_dependencies(os.path.dirname(os.path.abspath(sys.argv[0])) or '.')
 
 import argparse
 from framework import core
+from framework.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
+from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.general import *
 from framework import update
 from framework.http.proxy import tor_manager # Is needed for printing configuration help
@@ -61,8 +63,9 @@ def banner():
 
 
 def get_args(core, args):
-    valid_plugin_groups = core.DB.Plugin.GetAllGroups()
-    valid_plugin_types = core.DB.Plugin.GetAllTypes() + ['all', 'quiet']
+    db_plugin = ServiceLocator.get_component("db_plugin")
+    valid_plugin_groups = db_plugin.GetAllGroups()
+    valid_plugin_types = db_plugin.GetAllTypes() + ['all', 'quiet']
 
     parser = argparse.ArgumentParser(
         description="OWASP OWTF, the Offensive (Web) Testing Framework, is " \
@@ -295,9 +298,9 @@ def validate_one_plugin_group(plugin_groups):
             str(plugin_groups) + "'")
 
 
-def get_plugins_from_arg(core, arg):
+def get_plugins_from_arg(arg):
     plugins = arg.split(',')
-    plugin_groups = core.DB.Plugin.GetGroupsForPlugins(plugins)
+    plugin_groups = ServiceLocator.get_component("db_plugin").GetGroupsForPlugins(plugins)
     validate_one_plugin_group(plugin_groups)
     return [plugins, plugin_groups]
 
@@ -321,9 +324,7 @@ def process_options(core, user_args):
                 profiles.append(chunks)
 
     if arg.OnlyPlugins:
-        arg.OnlyPlugins, plugin_groups = get_plugins_from_arg(
-            core,
-            arg.OnlyPlugins)
+        arg.OnlyPlugins, plugin_groups = get_plugins_from_arg(arg.OnlyPlugins)
         try:
             # Set Plugin Group according to plugin list specified
             plugin_group = plugin_groups[0]
@@ -334,9 +335,7 @@ def process_options(core, user_args):
             plugin_group + "' based on list of plugins supplied")
 
     if arg.ExceptPlugins:
-        arg.ExceptPlugins, plugin_groups = get_plugins_from_arg(
-            core,
-            arg.ExceptPlugins)
+        arg.ExceptPlugins, plugin_groups = get_plugins_from_arg(arg.ExceptPlugins)
         print("ExceptPlugins=" + str(arg.ExceptPlugins))
 
     if arg.TOR_mode:
@@ -402,7 +401,7 @@ def process_options(core, user_args):
                 usage("Invalid port for Inbound Proxy")
 
 
-    plugin_types_for_group = core.DB.Plugin.GetTypesForGroup(plugin_group)
+    plugin_types_for_group = ServiceLocator.get_component("db_plugin").GetTypesForGroup(plugin_group)
     if arg.PluginType == 'all':
         arg.PluginType = plugin_types_for_group
     elif arg.PluginType == 'quiet':
@@ -490,13 +489,20 @@ if __name__ == "__main__":
     root_dir = os.path.dirname(os.path.abspath(sys.argv[0])) or '.'
     owtf_pid = os.getpid()
     if not "--update" in sys.argv[1:]:
-        core = core.Init(root_dir, owtf_pid)  # Initialise Framework.
+        try:
+            ComponentInitialiser.initialisation_phase_1(owtf_pid, root_dir)
+        except DatabaseNotRunningException, e:
+            exit()
+
+        args = process_options(core, sys.argv[1:])
+        ComponentInitialiser.initialisation_phase_2(args)
+
+        core = core.Init(root_dir, owtf_pid, args)  # Initialise Framework.
         logging.warn(
             "OWTF Version: %s, Release: %s " % (
-                core.Config.FrameworkConfigGet('VERSION'),
-                core.Config.FrameworkConfigGet('RELEASE'))
+                ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
+                ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
             )
-        args = process_options(core, sys.argv[1:])
         run_owtf(core, args)
     else:
         # First confirming that --update flag is present in args and then

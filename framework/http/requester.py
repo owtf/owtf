@@ -37,6 +37,8 @@ import httplib
 import logging
 import urllib
 import urllib2
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import RequesterInterface
 
 from framework.http import transaction
 from framework.lib.general import *
@@ -100,10 +102,21 @@ class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
         return result
 
 
-class Requester:
-    def __init__(self, core, proxy):
-        self.Core = core
-        self.Headers = {'User-Agent': self.Core.DB.Config.Get('USER_AGENT')}
+class Requester(BaseComponent, RequesterInterface):
+
+    COMPONENT_NAME = "requester"
+
+    def __init__(self, proxy):
+        self.register_in_service_locator()
+        self.db_config = self.get_component("db_config")
+        self.target = self.get_component("target")
+        self.transaction = self.get_component("transaction")
+        self.url_manager = self.get_component("url_manager")
+        self.error_handler = self.get_component("error_handler")
+        self.plugin_handler = self.get_component("plugin_handler")
+        self.timer = self.get_component("timer")
+        self.http_transaction = None
+        self.Headers = {'User-Agent': self.db_config.Get('USER_AGENT')}
         self.RequestCountRefused = 0
         self.RequestCountTotal = 0
         self.LogTransactions = False
@@ -138,20 +151,19 @@ class Requester:
         return backup
 
     def NeedToAskBeforeRequest(self):
-        return not self.Core.PluginHandler.NormalRequestsAllowed()
+        return not self.plugin_handler.NormalRequestsAllowed()
 
     def IsTransactionAlreadyAdded(self, url):
-        return self.Core.DB.Transaction.IsTransactionAlreadyAdded(
-            {'url': url.strip()})
+        return self.transaction.IsTransactionAlreadyAdded({'url': url.strip()})
 
     def is_request_possible(self):
-        return self.Core.PluginHandler.RequestsPossible()
+        return self.plugin_handler.RequestsPossible()
 
     def ProxyCheck(self):
         # Verify proxy works! www.google.com might not work in a restricted
         # network, try target URL :)
         if self.Proxy is not None and self.is_request_possible():
-            url = self.Core.DB.Config.Get('PROXY_CHECK_URL')
+            url = self.db_config.Get('PROXY_CHECK_URL')
             refused_before = self.RequestCountRefused
             cprint(
                 "Proxy Check: Avoid logging request again if already in DB..")
@@ -217,10 +229,10 @@ class Requester:
         return urllib2.urlopen(request)
 
     def set_succesful_transaction(self, raw_request, response):
-        return self.Transaction.SetTransaction(True, raw_request[0], response)
+        return self.http_transaction.SetTransaction(True, raw_request[0], response)
 
     def log_transaction(self):
-        self.Core.DB.Transaction.LogTransactions([self.Transaction])
+        self.transaction.LogTransaction(self.http_transaction)
 
     def Request(self, url, method=None, post=None):
         # kludge: necessary to get around urllib2 limitations: Need this to get
@@ -240,12 +252,12 @@ class Requester:
         # MUST create a new Transaction object each time so that lists of
         # transactions can be created and process at plugin-level
         # Pass the timer object to avoid instantiating each time.
-        self.Transaction = transaction.HTTP_Transaction(self.Core.Timer)
-        self.Transaction.Start(
+        self.http_transaction = transaction.HTTP_Transaction(self.timer)
+        self.http_transaction.Start(
             url,
             post,
             method,
-            self.Core.DB.Target.IsInScopeURL(url))
+            self.target.IsInScopeURL(url))
         self.RequestCountTotal += 1
         try:
             response = self.perform_request(request)
@@ -253,19 +265,19 @@ class Requester:
         except urllib2.HTTPError, Error:  # page NOT found.
             # Error is really a response for anything other than 200 OK in
             # urllib2 :)
-            self.Transaction.SetTransaction(False, raw_request[0], Error)
+            self.http_transaction.SetTransaction(False, raw_request[0], Error)
         except urllib2.URLError, Error:  # Connection refused?
             err_message = self.ProcessHTTPErrorCode(Error, url)
-            self.Transaction.SetError(err_message)
+            self.http_transaction.SetError(err_message)
         except IOError:
             err_message = "ERROR: Requester Object -> Unknown HTTP " \
                            "Request error: " + url + "\n" + str(sys.exc_info())
-            self.Transaction.SetError(err_message)
+            self.http_transaction.SetError(err_message)
         if self.LogTransactions:
             # Log transaction in DB for analysis later and return modified
             # Transaction with ID.
             self.log_transaction()
-        return self.Transaction
+        return self.http_transaction
 
     def ProcessHTTPErrorCode(self, error, url):
         message = ""
@@ -273,7 +285,7 @@ class Requester:
             message = "ERROR: The connection was refused!: " +  str(error)
             self.RequestCountRefused += 1
         elif str(error.reason).startswith("[Errno -2]"):
-            self.Core.Error.FrameworkAbort(
+            self.error_handler.FrameworkAbort(
                 "ERROR: cannot resolve hostname!: " + str(error))
         else:
             message = "ERROR: The connection was not refused, unknown error!"
@@ -326,9 +338,8 @@ class Requester:
         if data is not None:
             criteria['data'] = self.DerivePOSTToStr(data)
         # Visit URL if not already visited.
-        if (not use_cache or not
-                self.Core.DB.Transaction.IsTransactionAlreadyAdded(criteria)):
-            if method in [None, 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS']:
+        if (not use_cache or not self.transaction.IsTransactionAlreadyAdded(criteria)):
+            if method in ['', 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS']:
                 return self.Request(url, method, data)
             elif method == 'DEBUG':
                 return self.DEBUG(url)
@@ -337,7 +348,7 @@ class Requester:
         else:  # Retrieve from DB = faster.
             # Important since there is no transaction ID with transactions
             # objects created by Requester.
-            return self.Core.DB.Transaction.GetFirst(criteria)
+            return self.transaction.GetFirst(criteria)
 
     def GetTransactions(self,
                         use_cache,
@@ -352,14 +363,12 @@ class Requester:
             url = url.strip()  # Clean up the URL first.
             if not url:
                 continue  # Skip blank lines.
-            if not self.Core.DB.URL.IsURL(url):
-                self.Core.Error.Add(
+            if not self.url_manager.IsURL(url):
+                self.error_handler.Add(
                     "Minor issue: " + str(url) + " is not a valid URL and "
                     "has been ignored, processing continues")
                 continue  # Skip garbage URLs.
-            transactions.append(self.GetTransaction(
-                use_cache,
-                url,
-                method=method,
-                data=data))
+            transaction = self.GetTransaction(use_cache, url, method=method, data=data)
+            if transaction is not None:
+                transactions.append(transaction)
         return transactions

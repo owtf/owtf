@@ -1,4 +1,6 @@
-""" 
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
+"""
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
@@ -31,10 +33,13 @@ This will perform a "low-hanging-fruit" pass on the web app for easy to find (to
 
 DESCRIPTION = "Active Vulnerability Scanning without credentials via nikto"
 
-def run(Core, PluginInfo):
-	#Core.Config.Show()
-	NiktoOutput = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('Nikto_Unauth'), PluginInfo, [])
-	Content = Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('Nikto_Verify_Unauth'), PluginInfo, NiktoOutput)
-	return Content+NiktoOutput # Show Nikto Verify FIRST (more useful, with links to findings, etc)
-	
+
+def run(PluginInfo):
+    # ServiceLocator.get_component("config").Show()
+    plugin_helper = ServiceLocator.get_component("plugin_helper")
+    resource = ServiceLocator.get_component("resource")
+    NiktoOutput = plugin_helper.CommandDump('Test Command', 'Output', resource.GetResources('Nikto_Unauth'), PluginInfo, [])
+    Content = plugin_helper.CommandDump('Test Command', 'Output', resource.GetResources('Nikto_Verify_Unauth'), PluginInfo, NiktoOutput)
+    return Content + NiktoOutput  # Show Nikto Verify FIRST (more useful, with links to findings, etc)
+
 

@@ -34,32 +34,39 @@ The reporter module is in charge of producing the HTML Report as well as
 import cgi
 import codecs
 from tornado.template import Template, Loader
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import ReporterInterface
 from framework.lib.general import *
 from framework.interface.html.filter import sanitiser
 
+class Reporter(BaseComponent, ReporterInterface):
 
-class Reporter:
-    def __init__(self, CoreObj):
-        self.Core = CoreObj  # Keep Reference to Core Object
+    COMPONENT_NAME = "reporter"
+
+    def __init__(self):
+        self.register_in_service_locator()
+        self.config = self.get_component("config")
+        self.resource = self.get_component("resource")
+        self.transaction = self.get_component("transaction")
+        self.plugin_handler = self.get_component("plugin_handler")
+        self.requester = None
         self.Init = False
         self.Sanitiser = sanitiser.HTMLSanitiser()
-        self.Loader = Loader(
-            self.Core.Config.FrameworkConfigGet('POUTPUT_TEMPLATES_DIR'))
+        self.Loader = Loader(self.config.FrameworkConfigGet('POUTPUT_TEMPLATES_DIR'))
         self.mNumLinesToShow = 15
         self.CounterList = []
 
-    def TransactionTableFromIDs(
-            self,
-            TransactionIDs,
-            NumLinesReq=15,
-            NumLinesRes=15):
+    def init(self):
+        self.requester = self.get_component("requester")
+
+    def TransactionTableFromIDs(self, TransactionIDs, NumLinesReq=15, NumLinesRes=15):
         """ Draws a table of HTTP Transactions """
         # functions to get the first lines of a long string
-        transactions = self.Core.DB.Transaction.GetByIDs(TransactionIDs)
+        transactions = self.transaction.GetByIDs(TransactionIDs)
         return self.TransactionTableForTransactions(transactions)
 
     def TransactionTableForURL(self, UseCache, URL, Method=None, Data=None):
-        transaction = self.Core.Requester.GetTransaction(
+        transaction = self.requester.GetTransaction(
             UseCache, URL, method=Method, data=Data)
         return self.TransactionTableForTransactions([transaction])
 
@@ -69,7 +76,7 @@ class Reporter:
             URLList,
             Method=None,
             Data=None):
-        transactions = self.Core.Requester.GetTransactions(
+        transactions = self.requester.GetTransactions(
             UseCache,
             URLList,
             method=Method,
@@ -77,8 +84,7 @@ class Reporter:
         return self.TransactionTableForTransactions(transactions)
 
     def TransactionTableForTransactions(self, Transactions):
-        return self.Loader.load("transaction_table.html").generate(
-            TransactionList=Transactions)
+        return self.Loader.load("transaction_table.html").generate(TransactionList=Transactions)
 
     def unicode(self, *args):
         try:
@@ -86,7 +92,13 @@ class Reporter:
         except TypeError:
             return args[0]  # Input is already Unicode
 
-# ----------------- Methods exported from plugin_helper.py ----------------- #
+    def sanitize_html(self, RawHTML):
+        return self.Sanitiser.CleanThirdPartyHTML(RawHTML)
+
+    def reset_loader(self):
+        return self.Loader.reset()
+
+#----------------------------------- Methods exported from plugin_helper.py ---------------------------------
 
     def CommandTable(self, Command):
         return self.Loader.load("command_table.html").generate(Command=Command)
@@ -139,7 +151,7 @@ class Reporter:
         """
         Draws an HTML Search box for defined Vuln Search resources
         """
-        VulnSearchResources = self.Core.DB.Resource.GetResources('VulnSearch')
+        VulnSearchResources = self.resource.GetResources('VulnSearch')
         return self.Loader.load("vulnerability_search_box.html").generate(
             SearchStr=SearchStr,
             VulnSearchResources=VulnSearchResources)
@@ -156,7 +168,7 @@ class Reporter:
         CommandList = []
         for item in CommandCategoryList:
             TitleList.append(item[0])
-            CommandList.append(self.Core.DB.Resource.GetResources(item[1]))
+            CommandList.append(self.resource.GetResources(item[1]))
         return self.Loader.load("suggested_command_box.html").generate(
             Header=Header,
             TitleList=TitleList,
@@ -170,7 +182,7 @@ class Reporter:
             RelativeFilePath,
             OutputIntro,
             TimeStr):
-        AbsPath = self.Core.PluginHandler.RetrieveAbsPath(RelativeFilePath)
+        AbsPath = self.plugin_handler.RetrieveAbsPath(RelativeFilePath)
         OutputLines = open(AbsPath, "r").readlines()
         longOutput = (len(OutputLines) > self.mNumLinesToShow)
         if (len(OutputLines) > self.mNumLinesToShow):
@@ -230,8 +242,7 @@ class Reporter:
 
 # ---------------------- Grep Plugin Outputs -------------------- #
     def ResponseBodyMatches(self, ResponseRegexpName):
-        RegexpName, GrepOutputs, TransactionIDS, match_percent = self.Core.DB.Transaction.\
-            SearchByRegexName(ResponseRegexpName, stats=True)
+        RegexpName, GrepOutputs, TransactionIDS, match_percent = self.transaction.SearchByRegexName(ResponseRegexpName, stats=True)
         variables = {
             "name": RegexpName.replace("RESPONSE_REGEXP_FOR_", "").replace(
                 '_', ' '),
@@ -245,8 +256,7 @@ class Reporter:
         return self.ResearchHeaders(HeaderRegexpName)[0]
 
     def ResearchHeaders(self, RegexName):
-        regex_name, grep_outputs, transaction_ids, match_percent = self.Core.DB.Transaction.\
-            SearchByRegexName(RegexName, stats=True)
+        regex_name, grep_outputs, transaction_ids, match_percent = self.transaction.SearchByRegexName(RegexName, stats=True)
         # [[unique_matches, matched_transactions, matched_percentage]]
         return [self.Loader.load("header_searches.html").generate(
             match_percent=match_percent,
@@ -261,37 +271,37 @@ class Reporter:
         return HeaderTable
 
     def TopTransactionsBySpeed(self, Order):
-        transactions = self.Core.DB.Transaction.GetTopTransactionsBySpeed(Order)
+        transactions = self.transaction.GetTopTransactionsBySpeed(Order)
         return self.TransactionTableForTransactions(transactions)
 
     def CookieAttributeAnalysis(self, CookieValueList, Header2TransacDict):
         vars = {
             "Cookies": [{
                 "Name": Cookie.split('=')[0],
-                "Link":  Header2TransacDict[self.Core.Config.Get('HEADERS_FOR_COOKIES').lower() + Cookie],
+                "Link":  Header2TransacDict[self.config.Get('HEADERS_FOR_COOKIES').lower() + Cookie],
                 "Attribs": Cookie.replace(Cookie.split('=')[0] + "=", "").replace("; ", ";").split(";"),
             } for Cookie in CookieValueList],
         }
-        Table = self.Core.Reporter.Render.CreateTable({'class': 'report_intro'})
-        SetCookie = self.Core.Config.Get('HEADERS_FOR_COOKIES').lower()
-        PossibleCookieAttributes = self.Core.Config.Get(
+        Table = self.Render.CreateTable({'class': 'report_intro'})
+        SetCookie = self.config.Get('HEADERS_FOR_COOKIES').lower()
+        PossibleCookieAttributes = self.config.Get(
             'COOKIE_ATTRIBUTES').split(',')
         for Cookie in CookieValueList:
                 CookieName = Cookie.split('=')[0]
-                CookieLink = self.Core.Reporter.Render.DrawButtonLink(cgi.escape( CookieName ), Header2TransacDict[SetCookie + Cookie] )
+                CookieLink = self.Render.DrawButtonLink(cgi.escape( CookieName ), Header2TransacDict[SetCookie + Cookie] )
                 CookieAttribs = Cookie.replace(CookieName + "=", "").replace("; ", ";" ).split( ";" )
                 #Table.CreateRow(["Cookie: "+CookieLink], True, { 'colspan' : '2' })
                 Table.CreateCustomRow( '<tr><th colspan="2">' + "Cookie: " + CookieLink + '</th></tr>' )
                 Table.CreateRow( ['Attribute', 'Value'], True )
                 #Table += "<th colspan='2'>Cookie: "+CookieLink+"</th>"
-                #Table += self.Core.Reporter.DrawTableRow(['Attribute', 'Value'], True)
+                #Table += self..DrawTableRow(['Attribute', 'Value'], True)
                 NotFoundStr = "<b>Not Found</b>"
                 if CookieAttribs[0]:
                         CookieValue = CookieAttribs[0]
                 else:
                         CookieValue = NotFoundStr
                 Table.CreateRow( ['Value', CookieValue] )
-                #Table += self.Core.Reporter.DrawTableRow(['Value', ])
+                #Table += self..DrawTableRow(['Value', ])
                 for Attrib in PossibleCookieAttributes:
                         DisplayAttribute = NotFoundStr
                         for PresentAttrib in CookieAttribs:
@@ -299,7 +309,7 @@ class Reporter:
                                         DisplayAttribute = PresentAttrib
                                         break
                         Table.CreateRow( [Attrib, DisplayAttribute] )
-                        #Table += self.Core.Reporter.DrawTableRow([Attrib, DisplayAttribute])
+                        #Table += self..DrawTableRow([Attrib, DisplayAttribute])
         if Table.GetNumRows() == 0:
                 return "" # No Attributes found
         return "<h3>Cookie Attribute Analysis</h3>" + Table.Render()

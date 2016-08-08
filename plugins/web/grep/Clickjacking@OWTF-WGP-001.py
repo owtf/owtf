@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -34,9 +35,9 @@ import cgi
 
 DESCRIPTION = "Searches transaction DB for Clickjacking protections"
 
-def run(Core, PluginInfo):
-	#Core.Config.Show()
-	Content = Core.PluginHelper.HtmlString("This plugin looks for server-side protection headers against Clickjacking (TODO: Add rudimentary search for frame busting)<br />")
-	Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_CLICKJACKING_PROTECTION')
+def run(PluginInfo):
+	#ServiceLocator.get_component("config").Show()
+	Content = ServiceLocator.get_component("plugin_helper").HtmlString("This plugin looks for server-side protection headers against Clickjacking (TODO: Add rudimentary search for frame busting)<br />")
+	Content += ServiceLocator.get_component("plugin_helper").FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_CLICKJACKING_PROTECTION')
 	return Content
 

@@ -30,47 +30,54 @@ Component to handle data storage and search of all errors
 '''
 
 from framework.db import models
-from framework.lib import exceptions
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import DBErrorInterface
+from framework.lib.exceptions import InvalidErrorReference
 
 
-class ErrorDB(object):
-    def __init__(self, Core):
-        self.Core = Core
+class ErrorDB(BaseComponent, DBErrorInterface):
+
+    COMPONENT_NAME = "db_error"
+
+    def __init__(self):
+        self.register_in_service_locator()
+        self.db = self.get_component("db")
+        self.config = self.get_component("config")
 
     def Add(self, Message, Trace):
         error = models.Error(
             owtf_message=Message,
             traceback=Trace)
-        self.Core.DB.session.add(error)
-        self.Core.DB.session.commit()
+        self.db.session.add(error)
+        self.db.session.commit()
 
     def Delete(self, error_id):
-        error = self.Core.DB.session.query(models.Error).get(error_id)
+        error = self.db.session.query(models.Error).get(error_id)
         if error:
-            self.Core.DB.session.delete(error)
-            self.Core.DB.session.commit()
+            self.db.session.delete(error)
+            self.db.session.commit()
         else:
-            raise exceptions.InvalidErrorReference(
+            raise InvalidErrorReference(
                 "No error with id " + str(error_id))
 
     def GenerateQueryUsingSession(self, criteria):
-        query = self.Core.DB.session.query(models.Error)
+        query = self.db.session.query(models.Error)
         if criteria.get('reported', None):
             if isinstance(criteria.get('reported'), list):
                 criteria['reported'] = criteria['reported'][0]
             query = query.filter_by(
-                reported=self.Core.Config.ConvertStrToBool(
+                reported=self.config.ConvertStrToBool(
                     criteria['reported']))
         return(query)
 
     def Update(self, error_id, user_message):
-        error = self.Core.DB.session.query(models.Error).get(error_id)
+        error = self.db.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
-            raise exceptions.InvalidErrorReference(
+            raise InvalidErrorReference(
                 "No error with id " + str(error_id))
         error.user_message = patch_data["user_message"]
-        self.Core.DB.session.merge(error)
-        self.Core.DB.session.commit()
+        self.db.session.merge(error)
+        self.db.session.commit()
 
     def DeriveErrorDict(self, error_obj):
         tdict = dict(error_obj.__dict__)
@@ -92,8 +99,8 @@ class ErrorDB(object):
         return(self.DeriveErrorDicts(results))
 
     def Get(self, error_id):
-        error = self.Core.DB.session.query(models.Error).get(error_id)
+        error = self.db.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
-            raise exceptions.InvalidErrorReference(
+            raise InvalidErrorReference(
                 "No error with id " + str(error_id))
         return(self.DeriveErrorDict(error))

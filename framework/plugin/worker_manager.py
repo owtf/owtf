@@ -36,11 +36,13 @@ import signal
 import subprocess
 import logging
 import multiprocessing
+from framework.dependency_management.dependency_resolver import BaseComponent
+from framework.dependency_management.interfaces import WorkerManagerInterface
 from framework.lib.owtf_process import OWTFProcess
 from framework.lib.exceptions import InvalidWorkerReference
 
 
-class Worker(OWTFProcess):
+class Worker(OWTFProcess, BaseComponent):
     def pseudo_run(self):
         """
         When run for the first time, put something into output queue ;)
@@ -53,10 +55,9 @@ class Worker(OWTFProcess):
                 if work == ():
                     exit(0)
                 target, plugin = work
-                pluginDir = self.core.PluginHandler.GetPluginGroupDir(
-                    plugin['group'])
-                self.core.PluginHandler.SwitchToTarget(target["id"])
-                self.core.PluginHandler.ProcessPlugin(pluginDir, plugin)
+                pluginDir = self.plugin_handler.GetPluginGroupDir(plugin['group'])
+                self.plugin_handler.SwitchToTarget(target["id"])
+                self.plugin_handler.ProcessPlugin(pluginDir, plugin)
                 self.output_q.put('done')
             except KeyboardInterrupt:
                 logging.debug(
@@ -64,7 +65,7 @@ class Worker(OWTFProcess):
                     self.pid)
                 exit(0)
             except Exception, e:
-                self.core.Error.LogError(
+                self.get_component("error_handler").LogError(
                     "Exception occured while running :",
                     trace=str(e))
         logging.debug(
@@ -73,24 +74,31 @@ class Worker(OWTFProcess):
         exit(0)
 
 
-class WorkerManager(object):
-    def __init__(self, CoreObj):
-        self.core = CoreObj
+class WorkerManager(BaseComponent, WorkerManagerInterface):
+
+    COMPONENT_NAME = "worker_manager"
+
+    def __init__(self):
+        self.register_in_service_locator()
+        self.db_config = self.get_component("db_config")
+        self.error_handler = self.get_component("error_handler")
+        self.shell = self.get_component("shell")
+        self.db = self.get_component("db")
         self.worklist = []  # List of unprocessed (plugin*target)
         self.workers = []  # list of worker and work (worker, work)
         self.spawn_workers()
 
     def get_allowed_process_count(self):
-        process_per_core = int(self.core.DB.Config.Get('PROCESS_PER_CORE'))
+        process_per_core = int(self.db_config.Get('PROCESS_PER_CORE'))
         cpu_count = multiprocessing.cpu_count()
         return(process_per_core*cpu_count)
 
     def get_task(self):
         work = None
-        free_mem = self.core.Shell.shell_exec(
+        free_mem = self.shell.shell_exec(
             "free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
-        if int(free_mem) > int(self.core.DB.Config.Get('MIN_RAM_NEEDED')):
-            work = self.core.DB.Worklist.get_work(self.targets_in_use())
+        if int(free_mem) > int(self.db_config.Get('MIN_RAM_NEEDED')):
+            work = self.db.Worklist.get_work(self.targets_in_use())
         else:
             logging.warn("Not enough memory to execute a plugin")
         return work
@@ -103,12 +111,11 @@ class WorkerManager(object):
         while (len(self.workers) < self.get_allowed_process_count()):
             self.spawn_worker()
         if not len(self.workers):
-            self.core.Error.FrameworkAbort(
+            self.error_handler.FrameworkAbort(
                 "Zero worker processes created because of lack of memory")
 
     def spawn_worker(self, index=None):
         w = Worker(
-            self.core,
             input_q=multiprocessing.Queue(),
             output_q=multiprocessing.Queue())
         worker_dict = {

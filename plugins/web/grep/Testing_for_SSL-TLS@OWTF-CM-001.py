@@ -1,3 +1,5 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -34,8 +36,10 @@ import cgi
 
 DESCRIPTION = "Searches transaction DB for SSL protections"
 
-def run(Core, PluginInfo):
-	#Core.Config.Show()
-	Content = Core.PluginHelper.HtmlString("This plugin looks for server-side protection headers to enforce SSL<br />")
-	Content += Core.PluginHelper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_SSL_PROTECTION')
-	return Content
+
+def run(PluginInfo):
+    # ServiceLocator.get_component("config").Show()
+    plugin_helper = ServiceLocator.get_component("plugin_helper")
+    Content = plugin_helper.HtmlString("This plugin looks for server-side protection headers to enforce SSL<br />")
+    Content += plugin_helper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_SSL_PROTECTION')
+    return Content

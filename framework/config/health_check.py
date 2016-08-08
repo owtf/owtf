@@ -33,10 +33,12 @@ checking that tool paths exist.
 """
 
 import os
+from framework.dependency_management.dependency_resolver import BaseComponent
 import logging
 
 
-class HealthCheck(object):
+
+class HealthCheck(BaseComponent):
 
     """Verifies the integrity of the configuration.
 
@@ -46,8 +48,10 @@ class HealthCheck(object):
 
     """
 
-    def __init__(self, core):
-        self.core = core
+    def __init__(self):
+        self.config = self.get_component("config")
+        self.error_handler = self.get_component("error_handler")
+        self.db_config = self.get_component("db_config")
         self.run()
 
     def run(self):
@@ -57,7 +61,7 @@ class HealthCheck(object):
     def count_not_installed_tools(self):
         """Count the number of missing tools by checking their paths."""
         count = 0
-        tool_settings = self.core.DB.Config.GetAllTools()
+        tool_settings = self.db_config.GetAllTools()
         for tool_setting in tool_settings:
             if self.is_tool(tool_setting['key']) and not self.is_installed(tool_setting['value']):
                 logging.error("WARNING: Tool path not found for: " + str(tool_setting['value']))
@@ -86,7 +90,7 @@ class HealthCheck(object):
         logging.info(
             " - You can define your tool paths from the interface as well ")
         if ('n' == raw_input("Continue anyway? [Y/n]")):
-            self.core.Error.FrameworkAbort("Aborted by user")
+            self.error_handler.FrameworkAbort("Aborted by user")
 
     @staticmethod
     def print_success():

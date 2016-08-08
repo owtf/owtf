@@ -31,19 +31,20 @@ file and display it for review
 import re
 import cgi
 import logging
-
+from framework.utils import OWTFLogger
+from framework.dependency_management.dependency_resolver import ServiceLocator
 DESCRIPTION = "Normal requests for XSF analysis"
 
 
-def run(Core, PluginInfo):
+def run(PluginInfo):
     URLList = []
     for File in ["crossdomain.xml", "clientaccesspolicy.xml"]:
-        for URL in Core.DB.Target.GetAsList(['target_url', 'top_url']):
+        for URL in ServiceLocator.get_component("target").GetAsList(['target_url', 'top_url']):
             URLList.append(URL+"/"+File)  # Compute all URL + File combinations
     # The requester framework component will unique the URLs
-    TransactionList = Core.Requester.GetTransactions(True, URLList)
+    TransactionList = ServiceLocator.get_component("requester").GetTransactions(True, URLList)
     # Even though we have transaction list, those transactions do not have id
     # because our proxy stores the transactions and not the requester. So the
     # best way is to use the url list to retrieve transactions while making the
     # report
-    return(Core.PluginHelper.TransactionTableForURLList(True, URLList))
+    return(ServiceLocator.get_component("plugin_helper").TransactionTableForURLList(True, URLList))

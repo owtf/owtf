@@ -1,3 +1,4 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
 """ 
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -31,6 +32,6 @@ This will perform a "low-hanging-fruit" pass on the web app for easy to find (to
 
 DESCRIPTION = "Active Vulnerability Scanning without credentials via Websecurify"
 
-def run(Core, PluginInfo):
-	#Core.Config.Show()
-	return Core.PluginHelper.CommandDump('Test Command', 'Output', Core.DB.Resource.GetResources('WebSecurify_Unauth'), PluginInfo, [])
+def run(PluginInfo):
+	#ServiceLocator.get_component("config").Show()
+	return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', ServiceLocator.get_component("resource").GetResources('WebSecurify_Unauth'), PluginInfo, [])

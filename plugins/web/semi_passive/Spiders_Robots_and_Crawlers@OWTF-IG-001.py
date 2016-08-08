@@ -32,22 +32,28 @@ import re
 import cgi
 import logging
 
+from framework.utils import OWTFLogger
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
 DESCRIPTION = "Normal request for robots.txt analysis"
 
 
-def run(Core, PluginInfo):
-    TopURL = Core.DB.Target.Get('top_url')
+def run(PluginInfo):
+    plugin_helper = ServiceLocator.get_component("plugin_helper")
+    target = ServiceLocator.get_component("target")
+    requester = ServiceLocator.get_component("requester")
+    TopURL = target.Get('top_url')
     URL = TopURL+"/robots.txt"
     TestResult = []
     # Use transaction cache if possible for speed
-    HTTP_Transaction = Core.Requester.GetTransaction(True, URL)
-    if HTTP_Transaction.Found:
-        TestResult += Core.PluginHelper.ProcessRobots(
+    HTTP_Transaction = requester.GetTransaction(True, URL)
+    if HTTP_Transaction is not None and HTTP_Transaction.Found:
+        TestResult += plugin_helper.ProcessRobots(
             PluginInfo,
             HTTP_Transaction.GetRawResponseBody(),
             TopURL,
             '')
     else:  # robots.txt NOT found
-        Core.log("robots.txt was NOT found")
-        TestResult += Core.PluginHelper.TransactionTableForURLList(True, [URL])
+        OWTFLogger.log("robots.txt was NOT found")
+        TestResult += plugin_helper.TransactionTableForURLList(True, [URL])
     return TestResult

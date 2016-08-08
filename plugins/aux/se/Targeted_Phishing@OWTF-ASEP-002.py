@@ -1,3 +1,5 @@
+from framework.dependency_management.dependency_resolver import ServiceLocator
+
 """
 owtf is an OWASP+PTES-focused try to unite great tools and facilitate pen testing
 Copyright (c) 2011, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
@@ -27,31 +29,38 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
 DESCRIPTION = "Targeted Phishing Testing plugin"
-def run(Core, PluginInfo):
-	#Core.Config.Show()
-	Content = DESCRIPTION + " Results:<br />"
-	for Args in Core.PluginParams.GetArgs( { 
-'Description' : DESCRIPTION,
-'Mandatory' : { 
-		'EMAIL_TARGET' : Core.Config.Get('EMAIL_TARGET_DESCRIP'),
-		'EMAIL_FROM' : Core.Config.Get('EMAIL_FROM_DESCRIP'),
-		'SMTP_LOGIN' : Core.Config.Get('SMTP_LOGIN_DESCRIP'),
-		'SMTP_PASS' : Core.Config.Get('SMTP_PASS_DESCRIP'),
-		'SMTP_HOST' : Core.Config.Get('SMTP_HOST_DESCRIP'),
-		'SMTP_PORT' : Core.Config.Get('SMTP_PORT_DESCRIP'),
-		'EMAIL_PRIORITY' : Core.Config.Get('EMAIL_PRIORITY_DESCRIP'),
-		'EMAIL_SUBJECT' : Core.Config.Get('EMAIL_SUBJECT_DESCRIP'),
-		'EMAIL_BODY' : Core.Config.Get('EMAIL_BODY_DESCRIP'), 
-	      },
-'Optional' : {
-		'EMAIL_ATTACHMENT' : Core.Config.Get('EMAIL_ATTACHMENT_DESCRIP'),
-		'REPEAT_DELIM' : Core.Config.Get('REPEAT_DELIM_DESCRIP')
-	     } }, PluginInfo):
-		Core.PluginParams.SetConfig(Args) # Update config
-		#print "Args="+str(Args)
-		if Core.SMTP.Send(Args):
-			Content += "Email delivered succcessfully"
-		else:
-			Content += "Email delivery failed"
-		#Content += Core.PluginHelper.DrawCommandDump('Test Command', 'Output', Core.Config.GetResources('SendPhishingAttackviaSET'), PluginInfo, Content)
-	return Content
+
+
+def run(PluginInfo):
+    # ServiceLocator.get_component("config").Show()
+    Content = DESCRIPTION + " Results:<br />"
+    plugin_params = ServiceLocator.get_component("plugin_params")
+    config = ServiceLocator.get_component("config")
+    for Args in plugin_params.GetArgs({
+                                                                          'Description': DESCRIPTION,
+                                                                          'Mandatory': {
+                                                                          'EMAIL_TARGET': config.Get('EMAIL_TARGET_DESCRIP'),
+                                                                          'EMAIL_FROM': config.Get('EMAIL_FROM_DESCRIP'),
+                                                                          'SMTP_LOGIN': config.Get('SMTP_LOGIN_DESCRIP'),
+                                                                          'SMTP_PASS': config.Get('SMTP_PASS_DESCRIP'),
+                                                                          'SMTP_HOST': config.Get('SMTP_HOST_DESCRIP'),
+                                                                          'SMTP_PORT': config.Get('SMTP_PORT_DESCRIP'),
+                                                                          'EMAIL_PRIORITY': config.Get(
+                                                                                  'EMAIL_PRIORITY_DESCRIP'),
+                                                                          'EMAIL_SUBJECT': config.Get(
+                                                                                  'EMAIL_SUBJECT_DESCRIP'),
+                                                                          'EMAIL_BODY': config.Get('EMAIL_BODY_DESCRIP'),
+                                                                          },
+                                                                          'Optional': {
+                                                                          'EMAIL_ATTACHMENT': config.Get(
+                                                                                  'EMAIL_ATTACHMENT_DESCRIP'),
+                                                                          'REPEAT_DELIM': config.Get('REPEAT_DELIM_DESCRIP')
+                                                                          }}, PluginInfo):
+        plugin_params.SetConfig(Args)  # Update config
+        #print "Args="+str(Args)
+        if ServiceLocator.get_component("smtp").Send(Args):
+            Content += "Email delivered succcessfully"
+        else:
+            Content += "Email delivery failed"
+        #Content += ServiceLocator.get_component("plugin_helper").DrawCommandDump('Test Command', 'Output', ServiceLocator.get_component("config").GetResources('SendPhishingAttackviaSET'), PluginInfo, Content)
+    return Content
