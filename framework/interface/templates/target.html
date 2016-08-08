@@ -234,7 +234,7 @@ function pluginFilterHandler() {
             var plugin_type = $(this).attr('data-type');
             var plugin_group = $("#plugin_group_nav > .active").first().attr('data-group')
         }
-        var url = pluginReportSpace.poutput_api_url.replace("api", "ui");
+        var url = mySpace.poutput_ui_url;
         if (plugin_group !== "all") {
             url = url + "?plugin_group=" + plugin_group + "&";
         } else {
