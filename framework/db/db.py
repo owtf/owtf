@@ -111,6 +111,10 @@ class DB(object):
                 poolclass=NullPool)  # TODO: Fix for forking
             BaseClass.metadata.create_all(engine)
             return engine
+	except ValueError: #Indicates incomplete db config file
+	    self.Core.Error.FrameworkAbort(
+                "Incomplete database configuration settings in "
+                "" + self.Core.Config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'))
         except KeyError:  # Indicates incomplete db config file
             self.Core.Error.FrameworkAbort(
                 "Incomplete database configuration settings in "
