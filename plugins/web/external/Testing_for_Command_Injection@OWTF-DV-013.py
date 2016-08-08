@@ -37,6 +37,6 @@ DESCRIPTION = "Plugin to assist manual testing"
 
 def run(Core, PluginInfo):
 	#Core.Config.Show()
-	Content = Core.PluginHelper.HtmlString("Intended to show helpful info in the future")
+	Content = Core.PluginHelper.ResourceLinkList('Online Resources', Core.DB.Resource.GetResources('ExternalCommand_Injection'))
 	return Content
 
