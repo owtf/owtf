@@ -16,7 +16,7 @@ fi
 
 upstream_hash="$(wget --user-agent="${user_agent}" --tries=3 -O- -q https://raw.githubusercontent.com/owtf/owtf-zest-jars/master/release.hash)"
 install() {
-  wget --user-agent="${user_agent}" --tries=3 https://api.github.com/repos/owtf/owtf-zest-jars/tarball -O zest-jars.tar.gz
+  wget --user-agent="${user_agent}" --tries=3 https://codeload.github.com/owtf/owtf-zest-jars/legacy.tar.gz/master -O zest-jars.tar.gz
   tar zxf zest-jars.tar.gz
   cd */.
   cp -r * ${RootDir}/zest
@@ -37,4 +37,3 @@ else
     echo "${normal}Hashes match. Continuing..${reset}"
   fi
 fi
-
