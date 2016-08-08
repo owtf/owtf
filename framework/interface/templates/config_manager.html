@@ -53,6 +53,26 @@ function displayConfiguration(){
                 if (!groupedConfigurations.hasOwnProperty(obj.section)) { groupedConfigurations[obj.section] = new Array(); }
                 groupedConfigurations[obj.section].push(obj);
             });
+            tempobj = groupedConfigurations.TOOLS 
+            sortedtools = {}
+            tempkeys = []      
+            for(var spam1 in tempobj){      
+            var obj1 = groupedConfigurations.TOOLS[spam1]
+                tempkeys.push(obj1.key)
+            }
+            tempkeys.sort()        
+            var i=0;
+            for(var keytemp of tempkeys){      
+                for( temp1obj in tempobj)
+                    {var spaobj = tempobj[temp1obj]
+                        if (spaobj.key == keytemp)
+                            { 
+                            sortedtools[i]=spaobj}
+                                i=i+1
+                    }      
+            }     
+        delete groupedConfigurations.TOOLS ;
+        groupedConfigurations.TOOLS = sortedtools;
             $.each(Object.keys(groupedConfigurations).sort(), function(index, section){
                 $('#configurationTabsNav').append('<li><a data-toggle="tab" href="#'+section+'">'+section.replace(/_/g,' ')+'</a></li>');
                 $('#configurationTabsContent').append('<div class="tab-pane" id="'+section+'"/></div>');
