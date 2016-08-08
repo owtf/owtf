@@ -16,6 +16,10 @@
 {% end %}
 
 {% block content %}
+<!-- Scroll to top -->
+<a href="javascript:" id="return-to-top"><i class="fa fa-chevron-up"></i></a>
+<!-- End of ccroll to top -->
+
 <!-- Target INFO display, populated using JS and OWTF Sweet API -->
 <div class="col-md-10 col-md-offset-2">
     <div class="page-header">
@@ -248,7 +252,16 @@ function pluginFilterHandler() {
     });
 }
 
-// Keep moving the plugin group nav with scroll to make it in sync with report
+// Function Handling return  to top button at bottom
+function returnToTopHandler() {
+    $('#return-to-top').click(function() {      // When arrow is clicked
+        $('body,html').animate({
+            scrollTop : 0                       // Scroll to top of body
+        }, 500);
+    });
+}
+
+// Keep moving the plugin group nav with scroll to make it in sync with report and handling visibility of scroll to top button
 $(window).scroll(function(){
     // Do not do in mobile phones
     if(!(/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
@@ -259,6 +272,13 @@ $(window).scroll(function(){
             $("#plugin_nav").css({"marginTop": "0px"});
         }
     }
+
+    if ($(this).scrollTop() >= 50) {        // If page is scrolled more than 50px
+        $('#return-to-top').fadeIn(200);    // Fade in the arrow
+    } else {
+        $('#return-to-top').fadeOut(200);   // Else fade out the arrow
+    }
+
 });
 
 // Initialize everything
@@ -270,6 +290,7 @@ $(document).ready(function() {
       updatePluginReport();
     });
     pluginFilterHandler();
+    returnToTopHandler();
 });
 </script>
 {% end %}
