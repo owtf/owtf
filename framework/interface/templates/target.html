@@ -16,6 +16,13 @@
 {% end %}
 
 {% block content %}
+<!-- BreadCrumb -->
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="{{ targets_ui_url }}">Target</a></li>
+    <li class="active" id="breadCrumbTarget"></li>
+</ul>
+
 <!-- Scroll to top -->
 <a href="javascript:" id="return-to-top"><i class="fa fa-chevron-up"></i></a>
 <!-- End of ccroll to top -->
@@ -195,11 +202,12 @@ function updatePluginReport(){
 }
 
 // Target info loaded using API, target_api_url is helpful for that
-function updateTargetInfo(){
+function updateTargetAndBreadCrumbInfo(){
     $.getJSON(mySpace.target_api_url, function(obj){
             mySpace.target_config = obj;
             $('#TargetInfo').html(obj.target_url+'<small> ('+obj.host_ip+')</small>');
-            });
+            $('#breadCrumbTarget').html(obj.target_url);
+    });
 }
 
 // Close the modal when plugins are launched successfully
@@ -284,7 +292,7 @@ $(window).scroll(function(){
 // Initialize everything
 $(document).ready(function() {
     $("#app").parent().attr('class', 'container-fluid'); // Making it full width container
-    updateTargetInfo()  // The target info is updated using API, kindof crazy but stable way since api is our main maintainance burden
+    updateTargetAndBreadCrumbInfo();  // The target and breadcrumb info is updated using API, kindof crazy but stable way since api is our main maintainance burden
     updatePluginReport();  // Plugin report is updated using JS
     $('#pluginOutputFilterModal').on('hidden.bs.modal', function () {
       updatePluginReport();
