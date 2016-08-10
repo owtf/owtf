@@ -16,14 +16,27 @@
 {% end %}
 
 {% block content %}
+<!-- BreadCrumb -->
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="{{ targets_ui_url }}">Target</a></li>
+    <li class="active" id="breadCrumbTarget"></li>
+</ul>
+
+<!-- Scroll to top -->
+<a href="javascript:" id="return-to-top"><i class="fa fa-chevron-up"></i></a>
+<!-- End of ccroll to top -->
+
 <!-- Target INFO display, populated using JS and OWTF Sweet API -->
-<div class="page-header">
-    <div class="row">
-        <div class="col-md-8">
-            <h2 style="word-wrap: break-word;" id="TargetInfo"></h2>
-        </div>
-        <div class="col-md-4">
-            <h3 id="rankingTargetInfo"></h3>
+<div class="col-md-10 col-md-offset-2">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-md-8">
+                <h2 style="word-wrap: break-word;" id="TargetInfo"></h2>
+            </div>
+            <div class="col-md-4">
+                <h3 id="rankingTargetInfo"></h3>
+            </div>
         </div>
     </div>
 </div>
@@ -31,13 +44,36 @@
 
 <!-- Buttons for few actions and logs -->
 <div class="row">
-    <div class="pull-right">
-        <div class="btn-group">
-            <!-- Modal content is present in plugin report -->
-            <button class="btn btn-primary" data-toggle="modal" data-target="#pluginOutputFilterModal"><i class="fa fa-filter"></i> Filter </button>
-            <button class="btn btn-success" onclick="updatePluginReport();" href="#"><i class="fa fa-refresh"></i> Refresh </button>
-            <button class="btn btn-danger" data-toggle="modal" data-target="#pluginLaunchModal"><i class="fa fa-flash"></i> Run Plugins </button>
-            <button class="btn btn-info" onclick="loadSessionManager();" href="#"><i class="fa fa-flag"></i> User Sessions</button>
+    <div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-2 col-xs-12">
+        <div class="target-toolbar">
+            <ul class="target-tools">
+                <li class="tool">
+                    <a href="#" data-toggle="modal" data-target="#pluginOutputFilterModal">
+                        <i class="fa fa-filter" aria-hidden="true"></i> Filter
+                    </a>
+                </li>
+                <li class="tool">
+                    <a onclick="updatePluginReport();" href="#">
+                        <i class="fa fa-refresh" aria-hidden="true"></i> Refresh
+                    </a>
+                </li>
+                <li class="tool">
+                    <a href="#" data-toggle="modal" data-target="#pluginLaunchModal">
+                        <i class="fa fa-bolt" aria-hidden="true"></i> Run Plugins
+                    </a>
+                </li>
+                <li class="tool">
+                    <a href="#" onclick="loadSessionManager();">
+                        <i class="fa fa-flag" aria-hidden="true"></i> User Sessions
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="tool-colorbar">
+            <span class="tool-color" style="background-color:#3572A5;"></span>
+            <span class="tool-color" style="background-color:#e44b23;"></span>
+            <span class="tool-color" style="background-color:#89e051;"></span>
+            <span class="tool-color" style="background-color:#f1e05a;"></span>
         </div>
     </div>
 </div>
@@ -46,7 +82,33 @@
 <br />
 
 <!-- Plugin outputs loaded by JS and refreshed automatically -->
-<div class="row-fluid" id="pluginReport">
+<div class="row">
+    <div class="col-sm-2 col-md-2 col-lg-2" id="plugin_nav">
+        <strong>Plugin Group</strong><br/><br/>
+        <ul class="nav nav-pills nav-stacked" id="plugin_group_nav">
+            <li role="presentation" class="plugin_filter_tab active" data-group="all" data-tab="group"><a href="#" data-toggle="tab">All</a></li>
+            <li role="presentation" class="plugin_filter_tab" data-group="web" data-tab="group"><a href="#" data-toggle="tab">Web</a></li>
+            <li role="presentation" class="plugin_filter_tab" data-group="network" data-tab="group"><a href="#" data-toggle="tab">Network</a></li>
+            <li role="presentation" class="plugin_filter_tab" data-group="auxilary" data-tab="group"><a href="#" data-toggle="tab">Auxilary</a></li>
+        </ul>
+        <br>
+        <strong>Plugin Types</strong><br/><br/>
+        <ul class="nav nav-pills nav-stacked" id="plugin_type_nav">
+            <li role="presentation" class="plugin_filter_tab active" data-type="all" data-tab="type"><a href="#" data-toggle="tab">All</a></li>
+            <li role="presentation" class="plugin_filter_tab" data-type="semi_passive" data-tab="type"><a href="#" data-toggle="tab">Semi Passive</a></li>
+            <li role="presentation" class="plugin_filter_tab" data-type="active" data-tab="type"><a href="#" data-toggle="tab">Active</a></li>
+            <li role="presentation" class="plugin_filter_tab" data-type="bruteforce" data-tab="type"><a href="#" data-toggle="tab">Bruteforce</a></li>
+            <li role="presentation" class="plugin_filter_tab" data-type="external" data-tab="type"><a href="#" data-toggle="tab">External</a></li>
+            <li role="presentation" class="plugin_filter_tab" data-type="grep" data-tab="type"><a href="#" data-toggle="tab">Grep</a></li>
+            <li role="presentation" class="plugin_filter_tab" data-type="passive" data-tab="type"><a href="#" data-toggle="tab">Passive</a></li>
+        </ul>
+    </div>
+    <div class="col-sm-10 col-md-8 col-lg-8">
+        <div class="row-fluid" id="pluginReport">
+    </div>
+</div>
+
+
     <!-- Plugin outputs grouped by test code -->
 </div>
 <!-- End Plugin Outputs -->
@@ -161,11 +223,12 @@ function updatePluginReport(){
 }
 
 // Target info loaded using API, target_api_url is helpful for that
-function updateTargetInfo(){
+function updateTargetAndBreadCrumbInfo(){
     $.getJSON(mySpace.target_api_url, function(obj){
             mySpace.target_config = obj;
             $('#TargetInfo').html(obj.target_url+'<small> ('+obj.host_ip+')</small>');
-            });
+            $('#breadCrumbTarget').html(obj.target_url);
+    });
 }
 
 // Close the modal when plugins are launched successfully
@@ -189,13 +252,74 @@ function postToWorkList(selectedPluginData, force_overwrite){
             });
 }
 
+// Handling report update when plugin group nav is used
+function pluginFilterHandler() {
+    $('.plugin_filter_tab').click(function() {
+        var tab = $(this).attr('data-tab');
+        if (tab === "group") {
+            var plugin_group = $(this).attr('data-group');
+            var plugin_type = $("#plugin_type_nav > .active").first().attr('data-type')
+        } else {
+            var plugin_type = $(this).attr('data-type');
+            var plugin_group = $("#plugin_group_nav > .active").first().attr('data-group')
+        }
+        var url = mySpace.poutput_ui_url;
+        if (plugin_group !== "all") {
+            url = url + "?plugin_group=" + plugin_group + "&";
+        } else {
+            url = url + "?";
+        }
+
+        if (plugin_type !== "all") {
+            url = url + "plugin_type=" + plugin_type;
+        }
+        addOverlay('#pluginReport');
+        $.get(url, function(data) {
+            removeOverlay('#pluginReport');
+            $('#pluginReport').html(data);
+        });
+    });
+}
+
+// Function Handling return  to top button at bottom
+function returnToTopHandler() {
+    $('#return-to-top').click(function() {      // When arrow is clicked
+        $('body,html').animate({
+            scrollTop : 0                       // Scroll to top of body
+        }, 500);
+    });
+}
+
+// Keep moving the plugin group nav with scroll to make it in sync with report and handling visibility of scroll to top button
+$(window).scroll(function(){
+    // Do not do in mobile phones
+    if(!(/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
+        var y = 200;
+        if (y <= $(window).scrollTop()) {
+            $("#plugin_nav").css({"marginTop": ($(window).scrollTop())-200 + "px"});
+        } else {
+            $("#plugin_nav").css({"marginTop": "0px"});
+        }
+    }
+
+    if ($(this).scrollTop() >= 50) {        // If page is scrolled more than 50px
+        $('#return-to-top').fadeIn(200);    // Fade in the arrow
+    } else {
+        $('#return-to-top').fadeOut(200);   // Else fade out the arrow
+    }
+
+});
+
 // Initialize everything
 $(document).ready(function() {
-    updateTargetInfo()  // The target info is updated using API, kindof crazy but stable way since api is our main maintainance burden
+    $("#app").parent().attr('class', 'container-fluid'); // Making it full width container
+    updateTargetAndBreadCrumbInfo();  // The target and breadcrumb info is updated using API, kindof crazy but stable way since api is our main maintainance burden
     updatePluginReport();  // Plugin report is updated using JS
     $('#pluginOutputFilterModal').on('hidden.bs.modal', function () {
       updatePluginReport();
     });
+    pluginFilterHandler();
+    returnToTopHandler();
 });
 </script>
 {% end %}
