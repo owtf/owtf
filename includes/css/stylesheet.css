@@ -432,3 +432,7 @@ body {
     width: 25%;
 }
 /* End of target page toolbar*/
+
+.tab-content {
+    overflow-x: scroll;
+}
