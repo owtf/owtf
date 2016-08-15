@@ -13,6 +13,14 @@ class Dashboard extends React.Component {
         return (
             <div className="container-fluid">
                 <div className="row">
+                    <ul className="breadcrumb">
+                        <li>
+                            <a href="/">Home</a>
+                        </li>
+                        <li className="active">Dashboard</li>
+                    </ul>
+                </div>
+                <div className="row">
                     <div className="col-xs-12 col-md-10 col-lg-10 nopadding welcome-heading">
                         <h1>Welcome to OWTF<small>, this is your dashboard</small>
                         </h1>

@@ -258,6 +258,14 @@ class Transactions extends React.Component {
         return (
             <div className="container-fluid">
                 <div className="row">
+                    <ul className="breadcrumb">
+                        <li>
+                            <a href="/">Home</a>
+                        </li>
+                        <li className="active">Transactions</li>
+                    </ul>
+                </div>
+                <div className="row">
                     <div id="left_panel" style={{
                         width: this.state.widthTargetList.toString() + "%",
                         overflow: "hidden"

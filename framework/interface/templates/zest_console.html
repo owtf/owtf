@@ -72,7 +72,18 @@ body {
 {% end %}
 
 {% block content %}
-
+<br/>
+<div class="row">
+    <ul class="breadcrumb">
+        <li>
+            <a href="/">Home</a>
+        </li>
+        <li>
+            <a href="/ui/transactions/">Transactions</a>
+        </li>
+        <li class="active">Zest Console</li>
+    </ul>
+</div>
 <div class="container">
   <div class="row-fluid">
       <div class="col-md-3">
@@ -380,6 +391,7 @@ $(document).ready(function() {
   getScriptNames();
   setRecordButton();
   $("#script_result").hide();
+  updateBreadCrumb();
 });
 
 </script>
