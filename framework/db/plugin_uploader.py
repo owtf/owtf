@@ -4,6 +4,7 @@ from itertools import chain
 from collections import deque
 import os
 from datetime import datetime
+import re
 
 from ptp import PTP
 from framework.dependency_management.dependency_resolver import ServiceLocator
@@ -19,6 +20,7 @@ class PluginUploader():
 		self.full_parse_tools = ['w3af', 'skipfish', 'arachni']
 		self.db = ServiceLocator.get_component("db")
 		self.transaction = ServiceLocator.get_component("transaction")
+		self.re_extras = re.compile(r"^(\w+) (\/.*?) HT.*?")
 		if tool_name in self.supported_tools:
 			self.tool_name = tool_name
 			self.ptp = PTP(tool_name)
@@ -40,14 +42,18 @@ class PluginUploader():
 			print("Target id is None, aborting uploader!!")
 			return;
 		self.upload_checks()
+		target_url = ServiceLocator.get_component("target").GetTargetURLForID(target_id)
 		for data in self.parsed_data:
+			extras = self.re_extras.findall(data['request'])[0]
+			Method = extras[0]
+			Url = target_url + extras[1]
 			transaction_model = models.Transaction(
-				url='Tool ' + self.tool_name, # Writing tool name to distinguish between the reports
+				url=Url,
 				scope=None,
-				method=None,
+				method=Method,
 				data=None,
 				time=None,
-				time_human=None,
+				time_human="Uploaded by " + self.tool_name, # to distinguish uploader reports in transaction table
 				local_timestamp=datetime.now(),
 				raw_request=data['request'].decode('utf-8', 'ignore'),
 				response_status=data['response_status_code'],
