@@ -3,6 +3,7 @@ from sys import getsizeof, stderr
 from itertools import chain
 from collections import deque
 import os
+from datetime import datetime
 
 from ptp import PTP
 from framework.dependency_management.dependency_resolver import ServiceLocator
@@ -41,15 +42,15 @@ class PluginUploader():
 		self.upload_checks()
 		for data in self.parsed_data:
 			transaction_model = models.Transaction(
-				url='Tool ' + self.tool_name,
-				scope=None, # Writing tool name to distinguish between th reports
+				url='Tool ' + self.tool_name, # Writing tool name to distinguish between the reports
+				scope=None,
 				method=None,
 				data=None,
 				time=None,
 				time_human=None,
-				local_timestamp=None,
+				local_timestamp=datetime.now(),
 				raw_request=data['request'].decode('utf-8', 'ignore'),
-				response_status=data['response_status_code'].decode('utf-8', 'ignore'),
+				response_status=data['response_status_code'],
 				response_headers=data['response_header'].decode('utf-8', 'ignore'),
 				response_body=data['response_body'].decode('utf-8', 'ignore'),
 				response_size=len(data['response_body']),
