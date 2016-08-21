@@ -27,4 +27,4 @@ echo "${normal}[*] Dependencies successfully Installed.${reset}"
 # Bulding the ReactJS project
 echo "${normal}[*] Building using webpack.${reset}"
 npm run build
-echo "${normal}[*] Buld successful${reset}"
+echo "${normal}[*] Build successful${reset}"
