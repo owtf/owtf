@@ -15,7 +15,7 @@ def run(PluginInfo):
     resource = ServiceLocator.get_component("resource").GetResources('Skipfish_Unauth')
     Content = ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output',
                                                                      resource, PluginInfo, [])
-    plugin_output_dir = target.GetPath('plugin_output_dir')
+    plugin_output_dir = target.GetPath('plugin_output_dir') + '/skipfish_report'
     pUploader = PluginUploader('skipfish')
     pUploader.init_uploader(plugin_output_dir)
     pUploader.OWTFDBUpload()

@@ -20,7 +20,7 @@ class PluginUploader():
 		self.full_parse_tools = ['w3af', 'skipfish', 'arachni']
 		self.db = ServiceLocator.get_component("db")
 		self.transaction = ServiceLocator.get_component("transaction")
-		self.re_extras = re.compile(r"^(\w+) (\/.*?) HT.*?")
+		self.re_extras = re.compile(r"(.*?) (\/.*?||\w+.*?) HT.*?")
 		if tool_name in self.supported_tools:
 			self.tool_name = tool_name
 			self.ptp = PTP(tool_name)
@@ -40,7 +40,10 @@ class PluginUploader():
 	def OWTFDBUpload(self, target_id=None):
 		if(target_id is None):
 			print("Target id is None, aborting uploader!!")
-			return;
+			return
+		if self.parsed_data is None:
+			print("Nothing found in the file, aborting uploader!!")
+			return
 		self.upload_checks()
 		target_url = ServiceLocator.get_component("target").GetTargetURLForID(target_id)
 		for data in self.parsed_data:
