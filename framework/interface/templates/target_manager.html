@@ -609,6 +609,16 @@ function drawTargetTable() {
     });
 }
 
+// Function handling keyboard navigation
+function keyBoardNav() {
+    $(document).bind('keydown', function(event) {
+        // Submit the targets with Shift + Enter
+        if( event.which === 13 && event.shiftKey ) {
+            newTargets($('#newTargetUrls').val(), this);
+        }
+    });
+}
+
 // The target list table has to be initialized first
 $(document).ready(function() {
     drawTargetTable();
@@ -626,6 +636,7 @@ $(document).ready(function() {
         updateSessions();
     });
     updateCurrentSessionInfo();
+    keyBoardNav();
 });
 </script>
 {% end %}

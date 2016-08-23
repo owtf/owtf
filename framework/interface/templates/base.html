@@ -206,8 +206,23 @@
             <!-- End Child template -->
         </div>
         <script>
+            // Function Handling keyboard navigation(Global)
+            function baseKeyBoardNav() {
+                $(document).bind('keydown', function(event) {
+                    // Shift + leftKey to move to previous tab
+                    if( event.which === 37 && event.shiftKey ) {
+                        var prevTab = $(".breadcrumb .active").prev();
+                        if (prevTab.length !== 0) {
+                            var prevTabLink = $("a",prevTab).attr('href');
+                            window.location = prevTabLink;
+                        }
+                    }
+                });
+            }
+
             $(document).ready(function() {
                 recentlyFinishedTargets();
+                baseKeyBoardNav();
             });
         </script>
         <!-- Bundle File generated using webpack -->
