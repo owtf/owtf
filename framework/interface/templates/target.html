@@ -290,6 +290,33 @@ function returnToTopHandler() {
     });
 }
 
+// Function handling keyboard navigation
+function keyBoardNav() {
+    $(document).bind('keydown', function(event) {
+        // Toggle between plugin type using Ctrl + right, Ctrl + left
+        if( event.which === 39 && event.ctrlKey) {
+            var activeTab = $('.panel-collapse.collapse.in > .panel-body > ul > li.active');
+            if (activeTab.next().attr("class") === "") {
+                activeTab.removeClass( "active" );
+                activeTab.next().addClass( "active" );
+                var activeContentDiv = $('.panel-collapse.collapse.in > .panel-body > div.tab-content > div.tab-pane.active');
+                activeContentDiv.removeClass( "active" );
+                activeContentDiv.next().addClass( "active" );
+
+            }
+        } else if (event.which === 37 && event.ctrlKey) {
+            var activeTab = $('.panel-collapse.collapse.in > .panel-body > ul > li.active');
+            if (activeTab.prev().attr("class") === "") {
+                activeTab.removeClass( "active" );
+                activeTab.prev().addClass( "active" );
+                var activeContentDiv = $('.panel-collapse.collapse.in > .panel-body > div.tab-content > div.tab-pane.active');
+                activeContentDiv.removeClass( "active" );
+                activeContentDiv.prev().addClass( "active" );
+            }
+        }
+    });
+}
+
 // Keep moving the plugin group nav with scroll to make it in sync with report and handling visibility of scroll to top button
 $(window).scroll(function(){
     // Do not do in mobile phones
@@ -320,6 +347,7 @@ $(document).ready(function() {
     });
     pluginFilterHandler();
     returnToTopHandler();
+    keyBoardNav();
 });
 </script>
 {% end %}
