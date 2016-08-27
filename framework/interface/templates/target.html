@@ -75,6 +75,19 @@
             <span class="tool-color" style="background-color:#89e051;"></span>
             <span class="tool-color" style="background-color:#f1e05a;"></span>
         </div>
+        <div class="severity-filter">
+            <br/>
+            <ul class="nav nav-pills" id="plugin_severity_nav">
+                <li role="presentation" class="plugin_filter_tab active" data-tab="severity" data-severity="-2"><a href="#" data-toggle="tab">All</a></li>
+                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="-1"><a href="#" data-toggle="tab">Unranked</a></li>
+                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="0"><a href="#" data-toggle="tab">Passing</a></li>
+                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="1"><a href="#" data-toggle="tab">Info</a></li>
+                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="2"><a href="#" data-toggle="tab">Low</a></li>
+                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="3"><a href="#" data-toggle="tab">Medium</a></li>
+                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="4"><a href="#" data-toggle="tab">High</a></li>
+                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="5"><a href="#" data-toggle="tab">Critical</a></li>
+            </ul>
+        </div>
     </div>
 </div>
 <!-- End Buttons -->
@@ -213,6 +226,13 @@ function loadSessionManager(){
 
 // For loading plugin report, JS fetches the html and places it at designated place
 function updatePluginReport(){
+    // Resetting all the filters
+    $("#plugin_type_nav > .active").first().removeClass('active');
+    $("#plugin_group_nav > .active").first().removeClass('active');
+    $("#plugin_severity_nav > .active").first().removeClass('active');
+    $("#plugin_severity_nav > li").first().addClass('active');
+    $("#plugin_group_nav > li").first().addClass('active');
+    $("#plugin_type_nav > li").first().addClass('active');
     // Add the spinner, and when plugin report is fetched it is automatically removed
     // since pluginReport is added as the html of the div
     addOverlay('#pluginReport');
@@ -258,10 +278,16 @@ function pluginFilterHandler() {
         var tab = $(this).attr('data-tab');
         if (tab === "group") {
             var plugin_group = $(this).attr('data-group');
-            var plugin_type = $("#plugin_type_nav > .active").first().attr('data-type')
-        } else {
+            var plugin_type = $("#plugin_type_nav > .active").first().attr('data-type');
+            var plugin_severity = $("#plugin_severity_nav > .active").first().attr('data-severity');
+        } else if (tab === "type"){
             var plugin_type = $(this).attr('data-type');
-            var plugin_group = $("#plugin_group_nav > .active").first().attr('data-group')
+            var plugin_group = $("#plugin_group_nav > .active").first().attr('data-group');
+            var plugin_severity = $("#plugin_severity_nav > .active").first().attr('data-severity');
+        } else if (tab === "severity"){
+            var plugin_severity = $(this).attr('data-severity');
+            var plugin_group = $("#plugin_group_nav > .active").first().attr('data-group');
+            var plugin_type = $("#plugin_type_nav > .active").first().attr('data-type');
         }
         var url = mySpace.poutput_ui_url;
         if (plugin_group !== "all") {
@@ -271,8 +297,13 @@ function pluginFilterHandler() {
         }
 
         if (plugin_type !== "all") {
-            url = url + "plugin_type=" + plugin_type;
+            url = url + "plugin_type=" + plugin_type + "&";
         }
+
+        if (plugin_severity !== "-2") {
+            url = url + "user_rank=" + plugin_severity;
+        }
+
         addOverlay('#pluginReport');
         $.get(url, function(data) {
             removeOverlay('#pluginReport');
