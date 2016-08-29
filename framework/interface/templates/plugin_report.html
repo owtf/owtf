@@ -386,8 +386,17 @@ function updateTargetInfo() {
 /* On Ranking the plugin, it collapses the plugin */
 function collapsePluginOnRank() {
     $('.btn.rank').click(function() {
-        var id = $(this).attr('data-code');
-        $('#' + id).removeClass('in');
+        var activeTab = $('.panel-collapse.collapse.in > .panel-body > ul > li.active');
+        if (activeTab.next().attr("class") === "") {
+            activeTab.removeClass( "active" );
+            activeTab.next().addClass( "active" );
+            var activeContentDiv = $('.panel-collapse.collapse.in > .panel-body > div.tab-content > div.tab-pane.active');
+            activeContentDiv.removeClass( "active" );
+            activeContentDiv.next().addClass( "active" );
+        } else {
+            var id = $(this).attr('data-code');
+            $('#' + id).removeClass('in');
+        }
     });
 }
 
