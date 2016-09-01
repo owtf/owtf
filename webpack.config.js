@@ -35,9 +35,6 @@ var config = merge(common, {
         './includes/src/main'
     ],
     plugins: [
-        new ExtractTextPlugin('react-toolbox.css', {
-            allChunks: true
-        }),
         new webpack.optimize.UglifyJsPlugin({
             compress: true,
             mangle: true
@@ -49,16 +46,8 @@ var config = merge(common, {
             exclude: /node_modules/,
             loaders: ['babel', 'babel?presets[]=react,presets[]=es2015,presets[]=stage-0'],
             include: path.join(__dirname, 'includes/src')
-        }, {
-            test: /(\.scss|\.css)$/,
-            loader: ExtractTextPlugin.extract('style', 'css?sourceMap&modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!postcss!sass')
         }]
-    },
-    postcss: [autoprefixer],
-    sassLoader: {
-        data: '@import "theme/_config.scss";',
-        includePaths: [path.resolve(__dirname, 'includes/src')]
-    },
+    }
 
 });
 

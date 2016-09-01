@@ -1,5 +1,4 @@
 import React from 'react';
-import {List, ListItem, ListSubHeader, ListDivider} from 'react-toolbox/lib/list';
 
 export class TargetList extends React.Component {
 
@@ -7,12 +6,16 @@ export class TargetList extends React.Component {
         var getTransactions = this.context.getTransactions;
         return (
             <div>
-                <List selectable={true}>
-                    <ListSubHeader caption="Targets"/>
+                <h5>Targets</h5><br/>
+                <ul className="nav nav-pills nav-stacked">
                     {this.context.targetsData.map(function(target) {
-                        return <div><ListItem onClick={getTransactions.bind(this, target.id)} key={target.id} caption={target.target_url} selectable={true}/><ListDivider/></div>;
+                        return (
+                            <li role="presentation" className="" onClick={getTransactions.bind(this, target.id)} key={target.id}>
+                                <a href="#" data-toggle="tab">{target.target_url}</a>
+                            </li>
+                        );
                     })}
-                </List>
+                </ul>
             </div>
         );
     }

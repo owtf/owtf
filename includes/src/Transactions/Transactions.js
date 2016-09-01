@@ -1,11 +1,10 @@
 import React from 'react';
-import {TARGET_URL, TRANSACTIONS_URL, TRANSACTION_HEADER_URL, muiTheme} from './constants';
+import {TARGET_URL, TRANSACTIONS_URL, TRANSACTION_HEADER_URL} from './constants';
 import TransactionTable from './TransactionTable';
 import TransactionHeaders from './TransactionHeader';
 import Header from './Header';
 import Footer from './Footer';
-import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import { Snackbar } from 'react-toolbox';
+import { Notification } from 'react-notification';
 import TargetList from './Targetlist';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 // Needed for onTouchTap
@@ -63,7 +62,6 @@ class Transactions extends React.Component {
     */
     getChildContext() {
         var context_obj = {
-            muiTheme: getMuiTheme(muiTheme),
             target_id: this.state.target_id,
             transactionHeaderData: this.state.transactionHeaderData,
             transactionsData: this.state.transactionsData,
@@ -207,21 +205,21 @@ class Transactions extends React.Component {
         var filteredData = [];
         for (var i = 0; i < this.state.transactionsData.length; i++) {
             if (field === "url") {
-                if (this.state.transactionsData[i].url.includes(e.toString())) {
+                if (this.state.transactionsData[i].url.includes(e.target.value.toString())) {
                     filteredData.push(this.state.transactionsData[i])
                 }
             } else if (field === "method") {
-                if (this.state.transactionsData[i].method.includes(e.toString())) {
+                if (this.state.transactionsData[i].method.includes(e.target.value.toString())) {
                     filteredData.push(this.state.transactionsData[i])
                 }
 
             } else if (field === "status") {
-                if (this.state.transactionsData[i].response_status.includes(e.toString())) {
+                if (this.state.transactionsData[i].response_status.includes(e.target.value.toString())) {
                     filteredData.push(this.state.transactionsData[i])
                 }
             }
         };
-        if (e.toString() === '') {
+        if (e.target.value.toString() === '') {
             this.getTransactions.bind(this, this.state.target_id).call();
         } else {
             this.setState({
@@ -292,7 +290,7 @@ class Transactions extends React.Component {
                 {this.state.zestActive
                     ? <Footer/>
                     : null}
-                <Snackbar action='Dismiss' active={this.state.snackbarOpen} label={this.state.alertMessage} timeout={5000} onTimeout={this.handleSnackBarRequestClose} type='cancel'/>
+                <Notification isActive={this.state.snackbarOpen} message={this.state.alertMessage} action="close" dismissAfter={5000} onClick={this.handleSnackBarRequestClose}/>
             </div>
 
         );
@@ -300,7 +298,6 @@ class Transactions extends React.Component {
 }
 
 Transactions.childContextTypes = {
-    muiTheme: React.PropTypes.object.isRequired,
     target_id: React.PropTypes.number,
     transactionHeaderData: React.PropTypes.object,
     transactionsData: React.PropTypes.array,
