@@ -1,10 +1,5 @@
 import React from 'react';
 import {TRANSACTION_API_URL} from './constants';
-import Dialog from 'react-toolbox/lib/dialog';
-import Input from 'react-toolbox/lib/input';
-import {Button} from 'react-toolbox/lib/button';
-import CriticalButton from '../theme/buttons/Critical';
-import LowButton from '../theme/buttons/Low';
 
 const style = {
     margin: 12
@@ -16,27 +11,16 @@ export class Footer extends React.Component {
         super(props);
 
         this.state = {
-            scriptName: '',
-            open: false,
             modalMessages: ""
         };
 
         this.handleClose = this.handleClose.bind(this);
-        this.handleOpen = this.handleOpen.bind(this);
         this.requestSender = this.requestSender.bind(this);
         this.checkIfFileExists = this.checkIfFileExists.bind(this);
     };
 
-    handleChange(value) {
-        this.setState({scriptName: value});
-    };
-
-    handleOpen() {
-        this.setState({open: true, modalMessages: ""});
-    };
-
     handleClose() {
-        this.setState({open: false, modalMessages: ""});
+        $('#ScriptModal').modal('toggle');
     };
 
     verifyFileName(elem) {
@@ -59,7 +43,7 @@ export class Footer extends React.Component {
     };
 
     requestSender() {
-        var file_name = this.state.scriptName;
+        var file_name = this.refs.zestscriptname.value;
         var checkIfFileExists = this.checkIfFileExists.bind(this);
         var validateFilename = this.verifyFileName.bind(this, file_name);
         if (validateFilename.call()) {
@@ -84,15 +68,6 @@ export class Footer extends React.Component {
     };
 
     render() {
-        const actions = [
-            {
-                label: "Cancel",
-                onClick: this.handleClose
-            }, {
-                label: "Generate!",
-                onClick: this.requestSender
-            }
-        ];
         return (
             <div>
                 <div className="navbar navbar-default navbar-fixed-bottom" id="#fixed_bar">
@@ -100,14 +75,32 @@ export class Footer extends React.Component {
                         <div style={{
                             textAlign: "center"
                         }}>
-                            <LowButton label="Send" onTouchTap={this.handleOpen} disabled={this.context.selectedTransactionRows.length === 0} style={style} raised primary/>
-                            <CriticalButton label="Close" onTouchTap={this.context.closeZestState} style={style} raised primary/>
+                            <button style={style} type="button" className={this.context.selectedTransactionRows.length === 0
+                                ? "btn btn-primary btn-lg disabled"
+                                : "btn btn-primary btn-lg"} data-toggle="modal" data-target="#ScriptModal">Send</button>
+                            <button style={style} type="button" className="btn btn-danger btn-lg" onTouchTap={this.context.closeZestState}>Close</button>
                         </div>
                     </div>
                 </div>
-                <Dialog actions={actions} active={this.state.open} title='Enter Script Name :'>
-                    <Input type='text' ref="zestscriptname" error={this.state.modalMessages} label='Type name here' value={this.state.scriptName} onChange={this.handleChange.bind(this)} hint="e.g helloWorld" required/>
-                </Dialog>
+                <div className="modal fade" id="ScriptModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div className="modal-dialog-center">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <button type="button" className="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 className="modal-title" id="myModalLabel">Enter Script Name :</h4>
+                                <h6 className="modal-title" id="name_tip">(only alphanumeric characters)</h6>
+                            </div>
+                            <div className="modal-body">
+                                <p id="Filecheck">{this.state.modalMessages}</p>
+                                <input type="text" ref="zestscriptname" id="textareaID" className="form-control"></input>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-primary" id="saveBtn" onClick={this.requestSender.bind(this)}>Generate!</button>
+                                <button type="button" className="btn btn-default" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }

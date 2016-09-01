@@ -1,11 +1,5 @@
 import React from 'react';
 import {TRANSACTION_ZCONSOLE_URL} from './constants';
-import CriticalButton from '../theme/buttons/Critical';
-import SuccessButton from '../theme/buttons/Success';
-
-const style = {
-    margin: 12
-};
 
 export class Header extends React.Component {
 
@@ -29,8 +23,8 @@ export class Header extends React.Component {
                     <div className="col-md-12">
                         <div className="col-md-12">
                             <div className="btn-group pull-right">
-                                <CriticalButton label="Create Zest Script!" onTouchTap={this.context.updateZestState} disabled={this.context.zestActive || this.context.target_id === 0} style={style} raised primary/>
-                                <SuccessButton label="Zest Script Console" onTouchTap={this.openZestConsole} disabled={this.context.target_id === 0} style={style} raised primary/>
+                                <button type="button" className={this.context.zestActive || this.context.target_id === 0 ? "btn btn-danger disabled":"btn btn-danger" } onTouchTap={this.context.updateZestState}>Create Zest Script!</button>
+                                <button type="button" className={this.context.target_id === 0 ? "btn btn-success disabled":"btn btn-success"} onTouchTap={this.openZestConsole}>Zest Script Console</button>
                             </div>
                         </div>
                     </div>

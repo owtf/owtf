@@ -49,7 +49,6 @@ export class TransactionHeaders extends React.Component {
 }
 
 TransactionHeaders.contextTypes = {
-    muiTheme: React.PropTypes.object.isRequired,
     transactionHeaderData: React.PropTypes.object,
     headerHeight: React.PropTypes.number,
     getElementTopPosition: React.PropTypes.func,

@@ -436,3 +436,11 @@ body {
 .tab-content {
     overflow-x: scroll;
 }
+
+.modal-dialog-center{
+  width: 320px;
+  margin: 0;
+  position: absolute;
+  top: 35%;
+  left: 42%;
+}
