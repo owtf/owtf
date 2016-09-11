@@ -46,23 +46,24 @@ body {
 }
 
 .panel-critical > .panel-heading, .alert-critical {
-    background-image: linear-gradient(to bottom, #d9534f 0px, #c12e2a 100%);
+    background-image: linear-gradient(to bottom, #E6E6FA 0px, #E6E6FA 100%);
     background-repeat: repeat-x;
-    border-color: #b92c28;
-    color: #fff;
+    border-color: #BDA0CB;
+    color: #800080;
 }
 
 .btn-critical {
-    background-image: linear-gradient(to bottom, #d9534f 0px, #c12e2a 100%);
-    background-repeat: repeat-x;
-    border-color: #b92c28;
+    color: #fff;
+    background-color: #800080;
+    border-color: #551A8B;
+    text-decoration: none;
 }
 
-.btn-critical:active, .btn-critical.active {
-    background-color: #c12e2a;
-    border-color: #b92c28;
+.btn-critical:active, .btn-critical:hover {
     color: #fff;
-    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.125) inset;
+    background-color: #800080;
+    border-color: #551A8B;
+    text-decoration: none;
 }
 
 .panel-passing > .panel-heading, .alert-passing, .label-passing, .btn-passive:active, .btn-passing.active {
