@@ -333,14 +333,15 @@ class TargetDB(BaseComponent, TargetInterface):
 
     def GetTargetsSeverityCount(self):
         filtered_severity_objs = []
+        # "not ranked" = gray, "passing" = light green?, "info" = dark green?, "low" = blue, medium = yellow, high = red, critical = dark purple
         severity_frequency = [
-            {"id":0, "label": "Not Ranked", "value": 0, "color": "#008000"},
-            {"id":1, "label": "Passing", "value": 0, "color": "#5E5D57"},
-            {"id":2, "label": "Info", "value": 0, "color": "#d6e9c6"},
-            {"id":3, "label": "Low", "value": 0, "color": "#bce8f1"},
-            {"id":4, "label": "Medium", "value": 0, "color": "#f0ad4e"},
-            {"id":5, "label": "High", "value": 0, "color": "#ebccd1"},
-            {"id":6, "label": "Critical", "value": 0, "color": "#b92c28"}
+            {"id":0, "label": "Not Ranked", "value": 0, "color": "#A9A9A9"},
+            {"id":1, "label": "Passing", "value": 0, "color": "#32CD32"},
+            {"id":2, "label": "Info", "value": 0, "color": "#006400"},
+            {"id":3, "label": "Low", "value": 0, "color": "#337ab7"},
+            {"id":4, "label": "Medium", "value": 0, "color": "#ffcc00"},
+            {"id":5, "label": "High", "value": 0, "color": "#c12e2a"},
+            {"id":6, "label": "Critical", "value": 0, "color": "#800080"}
         ]
         total = self.db.session.query(models.Target).count()
         target_objs = self.db.session.query(models.Target).all()
