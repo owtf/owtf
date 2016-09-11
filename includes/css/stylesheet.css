@@ -189,12 +189,13 @@ body {
 }
 
 /* CSS Belongs to Vulnerability Panel */
+/* "not ranked" = gray, "passing" = light green?, "info" = dark green?, "low" = blue, medium = yellow, high = red, critical = dark purple */
 .sevpanel-critical {
-  background-color: #c12e2a;
+  background-color: #800080;
 }
 
 .sevpanel-high {
-  background-color: #FF9900;
+  background-color: #c12e2a;
 }
 
 .sevpanel-medium {
@@ -202,15 +203,15 @@ body {
 }
 
 .sevpanel-low {
-  background-color: green;
-}
-
-.sevpanel-info {
   background-color: #337ab7;
 }
 
+.sevpanel-info {
+  background-color: #006400;
+}
+
 .sevpanel-passing {
-  background-color: #808080;
+  background-color: #32CD32;
 }
 
 .sevpanel {
