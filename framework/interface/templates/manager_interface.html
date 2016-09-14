@@ -36,6 +36,22 @@
 </div>
 <div class="row" id="workersInfo">
 </div>
+<div id="logModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Worker Log</h4>
+      </div>
+      <div class="modal-body">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- End Workers Info Area -->
 <script>
 var mySpace = {
@@ -43,6 +59,7 @@ var mySpace = {
                     targets_ui_url:"{{ targets_ui_url }}",
                     plugins_api_url:"{{ plugins_api_url }}",
                     progress_api_url:"{{ progress_api_url }}",
+                    log_url_port:"{{ log_url_port }}"
                 };
 
 var num_workers;
@@ -102,6 +119,29 @@ function addWorker(){
     num_workers += 1;
 }
 
+// Function handling log lines
+function getWorkerLog(id, lines){
+    var log;
+    if (lines === "all"){
+        var URL = mySpace.log_url_port + "/logs/Worker-" + id.toString() + ".log";
+    } else {
+        var URL = mySpace.log_url_port + "/logs/Worker-" + id.toString() + ".log?lines=" + lines.toString();
+    }
+    $.ajax({
+        async: false,
+        url: URL,
+        success: function(data) {
+            log = data;
+            if (log) {
+                log = '<p style="word-wrap: break-word">'.concat(log.split('\n').join('<br/>')).concat('<p>');
+            } else {
+                log = " Nothing to show here!";
+            }
+        }
+    });
+    return log;
+}
+
 // Function to get control buttons based on the present state of a worker i.e return pause button if worker is active & vice versa
 function getControlButtons(obj){
     html = '<div class="btn-toolbar pull-right">';
@@ -157,6 +197,18 @@ function displayWorkersInfo(){
                             html += '<p><strong>Type:</strong> '+obj.work[1].type.replace('_',' ')+'</p>';
                             html += '<p><strong>Group:</strong> '+obj.work[1].group+'</p>';
                         }
+                        html += '<p style="display:inline"><strong>Logs: </strong>';
+                        var lines = getWorkerLog(obj.id,"all").split("<br/>").length - 1;
+                        if (lines>0) {
+
+                            html += '<div class="btn-group"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Lines <span class="caret"></span></button><ul class="dropdown-menu scrollable-menu" role="menu">'
+                            html += '<li><a class="logTab href="#" onclick=openLogModal(' + obj.id.toString() + ',' + '-1' + ')>' + "All" + '</a></li>';
+                            for(i=1;i < lines+1;i++){
+                                html += '<li><a class="logTab href="#" onclick=openLogModal(' + obj.id.toString() + ',' + i.toString() + ')>' + i + '</a></li>';
+                            }
+                            html += '</ul></div>'
+                        }
+                        html += getWorkerLog(obj.id,2) + '</p>';
                         html += '</div>';
                         html += '</div>';
 
@@ -179,6 +231,12 @@ function getElapsedTime(start_time){
     var d = moment.duration(ms);
     var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm:ss");
     return s;
+}
+
+function openLogModal(worker, lines){
+    var log = getWorkerLog(worker, lines);
+    $('#logModal').find('.modal-body').html(log);
+    $('#logModal').modal("show");
 }
 
 //Function which updates progress bar

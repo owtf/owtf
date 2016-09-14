@@ -446,3 +446,9 @@ body {
   top: 35%;
   left: 42%;
 }
+
+.scrollable-menu {
+    height: auto;
+    max-height: 200px;
+    overflow-x: hidden;
+}
