@@ -7,8 +7,8 @@ DESCRIPTION = "robots.txt analysis through third party sites"
 
 def run(PluginInfo):
     plugin_helper = ServiceLocator.get_component("plugin_helper")
-    resource = ServiceLocator.get_component("resource").GetResources('PassiveRobotsAnalysisHTTPRequests')
-    Content = plugin_helper.RequestLinkList('Passive Analysis Results', resource, PluginInfo)
+    resource = ServiceLocator.get_component("resource")
+    Content = plugin_helper.RequestLinkList('Passive Analysis Results', resource.GetResources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
     Content += plugin_helper.ResourceLinkList('Online Resources', resource.GetResources('PassiveRobotsAnalysisLinks'))
     # Try to retrieve the robots.txt file from all defined resources
     Count = 0
