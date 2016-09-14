@@ -10,9 +10,10 @@ echo "${normal}[*] Installing npm using nvm.${reset}"
 wget https://raw.githubusercontent.com/creationix/nvm/v0.31.1/install.sh -O /tmp/install_nvm.sh
 bash /tmp/install_nvm.sh
 rm -rf /tmp/install_nvm.sh
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
 nvm install node
 nvm alias default node
-source ~/.bashrc
 echo "${normal}[*] npm successfully Installed.${reset}"
 
 # Installing webpack and gulp globally so that it can used by command line to build the bundle.
