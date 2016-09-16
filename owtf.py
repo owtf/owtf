@@ -193,6 +193,9 @@ def process_options(user_args):
         'Args': args
     }
 
+def build_react_bundle():
+    print("\033[93m[*] Building the react bundle. Plese wait..")
+    os.system("npm run build > /dev/null")
 
 def run_owtf(core, args):
     try:
@@ -234,6 +237,7 @@ def main(args):
                 ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
                 ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
         )
+        build_react_bundle()
         run_owtf(core, args)
     else:
         # First confirming that --update flag is present in args and then
