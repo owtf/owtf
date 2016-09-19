@@ -347,7 +347,7 @@ function getActionButtons(obj) {
 }
 
 function getSeverityLabel(obj) {
-  if (obj.max_user_rank != -1)
+  if (obj.max_user_rank > obj.max_owtf_rank)
     return getLabel(obj.max_user_rank);
   return getLabel(obj.max_owtf_rank);
 }

@@ -126,7 +126,7 @@ var mySpace = {
                     transaction_log_url:"{{ transaction_log_url }}",
                     url_log_url:"{{ url_log_url }}",
                     target_config:{},
-                    sessions_ui_url: "{{ sessions_ui_url }}",
+                    sessions_ui_url: "{{ sessions_ui_url }}"
                   };
 
 function clearFilters() {
@@ -167,6 +167,7 @@ function updatePluginReport(){
     $.get(mySpace.poutput_ui_url+'?'+$.param(mySpace.filter_data, true), function(data){
         removeOverlay('#pluginReport');
         $('#pluginReport').html(data);
+
     });
 }
 
@@ -201,7 +202,7 @@ function postToWorkList(selectedPluginData, force_overwrite){
 
 // Initialize everything
 $(document).ready(function() {
-    updateTargetInfo()  // The target info is updated using API, kindof crazy but stable way since api is our main maintainance burden
+    updateTargetInfo();  // The target info is updated using API, kindof crazy but stable way since api is our main maintainance burden
     updatePluginReport();  // Plugin report is updated using JS
     $('#pluginOutputFilterModal').on('hidden.bs.modal', function () {
       updatePluginReport();
