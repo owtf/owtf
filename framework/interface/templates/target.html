@@ -42,9 +42,33 @@
 </div>
 <!-- End Target INFO -->
 
-<!-- Buttons for few actions and logs -->
+<br />
+
+<!-- Plugin outputs loaded by JS and refreshed automatically -->
 <div class="row">
-    <div class="col-md-10 col-md-offset-2 col-sm-10 col-sm-offset-2 col-xs-12">
+      <!-- Plugin group and type filter -->
+      <div class="col-sm-2 col-md-2 col-lg-2" id="plugin_nav">
+          <strong>Plugin Group</strong><br/><br/>
+          <ul class="nav nav-pills nav-stacked" id="plugin_group_nav">
+              <li role="presentation" class="plugin_filter_tab active" data-group="all" data-tab="group"><a href="#" data-toggle="tab">All</a></li>
+              <li role="presentation" class="plugin_filter_tab" data-group="web" data-tab="group"><a href="#" data-toggle="tab">Web</a></li>
+              <li role="presentation" class="plugin_filter_tab" data-group="network" data-tab="group"><a href="#" data-toggle="tab">Network</a></li>
+              <li role="presentation" class="plugin_filter_tab" data-group="auxilary" data-tab="group"><a href="#" data-toggle="tab">Auxilary</a></li>
+          </ul>
+          <br>
+          <strong>Plugin Types</strong><br/><br/>
+          <ul class="nav nav-pills nav-stacked" id="plugin_type_nav">
+              <li role="presentation" class="plugin_filter_tab active" data-type="all" data-tab="type"><a href="#" data-toggle="tab">All</a></li>
+              <li role="presentation" class="plugin_filter_tab" data-type="semi_passive" data-tab="type"><a href="#" data-toggle="tab">Semi Passive</a></li>
+              <li role="presentation" class="plugin_filter_tab" data-type="active" data-tab="type"><a href="#" data-toggle="tab">Active</a></li>
+              <li role="presentation" class="plugin_filter_tab" data-type="bruteforce" data-tab="type"><a href="#" data-toggle="tab">Bruteforce</a></li>
+              <li role="presentation" class="plugin_filter_tab" data-type="external" data-tab="type"><a href="#" data-toggle="tab">External</a></li>
+              <li role="presentation" class="plugin_filter_tab" data-type="grep" data-tab="type"><a href="#" data-toggle="tab">Grep</a></li>
+              <li role="presentation" class="plugin_filter_tab" data-type="passive" data-tab="type"><a href="#" data-toggle="tab">Passive</a></li>
+          </ul>
+      </div>
+      <!-- Toolbar -->
+      <div class="col-sm-10 col-md-10 col-lg-10">
         <div class="target-toolbar">
             <ul class="target-tools">
                 <li class="tool">
@@ -75,6 +99,7 @@
             <span class="tool-color" style="background-color:#89e051;"></span>
             <span class="tool-color" style="background-color:#f1e05a;"></span>
         </div>
+        <!-- Severity Filter -->
         <div class="severity-filter">
             <br/>
             <ul class="nav nav-pills" id="plugin_severity_nav">
@@ -88,36 +113,8 @@
                 <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="5"><a href="#" data-toggle="tab">Critical</a></li>
             </ul>
         </div>
-    </div>
-</div>
-<!-- End Buttons -->
-
-<br />
-
-<!-- Plugin outputs loaded by JS and refreshed automatically -->
-<div class="row">
-    <div class="col-sm-2 col-md-2 col-lg-2" id="plugin_nav">
-        <strong>Plugin Group</strong><br/><br/>
-        <ul class="nav nav-pills nav-stacked" id="plugin_group_nav">
-            <li role="presentation" class="plugin_filter_tab active" data-group="all" data-tab="group"><a href="#" data-toggle="tab">All</a></li>
-            <li role="presentation" class="plugin_filter_tab" data-group="web" data-tab="group"><a href="#" data-toggle="tab">Web</a></li>
-            <li role="presentation" class="plugin_filter_tab" data-group="network" data-tab="group"><a href="#" data-toggle="tab">Network</a></li>
-            <li role="presentation" class="plugin_filter_tab" data-group="auxilary" data-tab="group"><a href="#" data-toggle="tab">Auxilary</a></li>
-        </ul>
-        <br>
-        <strong>Plugin Types</strong><br/><br/>
-        <ul class="nav nav-pills nav-stacked" id="plugin_type_nav">
-            <li role="presentation" class="plugin_filter_tab active" data-type="all" data-tab="type"><a href="#" data-toggle="tab">All</a></li>
-            <li role="presentation" class="plugin_filter_tab" data-type="semi_passive" data-tab="type"><a href="#" data-toggle="tab">Semi Passive</a></li>
-            <li role="presentation" class="plugin_filter_tab" data-type="active" data-tab="type"><a href="#" data-toggle="tab">Active</a></li>
-            <li role="presentation" class="plugin_filter_tab" data-type="bruteforce" data-tab="type"><a href="#" data-toggle="tab">Bruteforce</a></li>
-            <li role="presentation" class="plugin_filter_tab" data-type="external" data-tab="type"><a href="#" data-toggle="tab">External</a></li>
-            <li role="presentation" class="plugin_filter_tab" data-type="grep" data-tab="type"><a href="#" data-toggle="tab">Grep</a></li>
-            <li role="presentation" class="plugin_filter_tab" data-type="passive" data-tab="type"><a href="#" data-toggle="tab">Passive</a></li>
-        </ul>
-    </div>
-    <div class="col-sm-10 col-md-10 col-lg-10">
-        <div class="row-fluid" id="pluginReport">
+        <br/>
+        <div class="row-fluid" id="pluginReport"></div>
     </div>
 </div>
 
