@@ -3,20 +3,20 @@
         <div id="header_{{ test_code }}"class="panel panel-default">
             <div class="panel-heading" style="padding: 0 15px">
                 <div class="row">
-                    <div class="col-md-6" style="padding-left: 15px">
-                        <h4 class="panel-title">
-                            <a data-toggle="collapse" data-parent="#pluginOutputs" href="#{{ test_code }}">
-                                <h4 style="padding: 15px">{{ test_groups[test_code]['mapped_code'] }} {{ test_groups[test_code]['mapped_descrip'] }} <small>{{ test_groups[test_code]['hint'] }}</small></h4>
-                            </a>
-                        </h4>
-                    </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <div class="btn-group btn-group-xs" role="group">
                             {% for poutput in poutput_list %}
                             {% set pkey = poutput['plugin_type'] + '_' + poutput['plugin_code'] %}
                                 <button class="plugin_btn_{{ test_code }} plugin_type_acc btn" style="margin-top: 23px" type="button" data-code="{{ test_code }}" data-navtab="navtab_{{ pkey }}" data-content="{{ poutput['plugin_group'] }}__{{ poutput['plugin_type'] }}__{{ test_code }}">{{ poutput['plugin_type'].replace('_',' ').capitalize() }}</button>
                             {% end %}
                         </div>
+                    </div>
+                    <div class="col-md-8" style="padding-left: 15px">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#pluginOutputs" href="#{{ test_code }}">
+                                <h4 style="padding: 15px">{{ test_groups[test_code]['mapped_code'] }} {{ test_groups[test_code]['mapped_descrip'] }} <small>{{ test_groups[test_code]['hint'] }}</small></h4>
+                            </a>
+                        </h4>
                     </div>
                     <div class="col-md-2" style="text-align: center;">
                         <h4 id="header_badge_{{ test_code }}"></h4>
