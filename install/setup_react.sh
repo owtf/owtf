@@ -22,6 +22,7 @@ npm install --global gulp-cli
 
 # Installing node dependencies
 echo "${normal}[*] Installing node dependencies.${reset}"
+cd $1
 npm install
 echo "${normal}[*] Dependencies successfully Installed.${reset}"
 
