@@ -38,7 +38,7 @@ class Worker(OWTFProcess, BaseComponent):
                 logging.debug("I am worker (%d) & my master doesn't need me anymore", self.pid)
                 exit(0)
             except Exception as e:
-                self.get_component("error_handler").LogError("Exception occured while running :", trace=str(e))
+                self.get_component("error_handler").LogError("Exception occurred while running :", trace=str(e))
         logging.debug("I am worker (%d) & my master gave me poison pill", self.pid)
         exit(0)
 
@@ -77,7 +77,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         This function spawns the worker process and give them initial work
         """
         # Check if maximum limit of processes has reached
-        while (len(self.workers) < self.get_allowed_process_count()):
+        while len(self.workers) < self.get_allowed_process_count():
             self.spawn_worker()
         if not len(self.workers):
             self.error_handler.FrameworkAbort("Zero worker processes created because of lack of memory")
