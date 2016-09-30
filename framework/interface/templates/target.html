@@ -236,7 +236,6 @@ function updatePluginReport(){
     $.get(mySpace.poutput_ui_url+'?'+$.param(mySpace.filter_data, true), function(data){
         removeOverlay('#pluginReport');
         $('#pluginReport').html(data);
-
     });
 }
 
