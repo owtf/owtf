@@ -77,7 +77,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         This function spawns the worker process and give them initial work
         """
         # Check if maximum limit of processes has reached
-        while len(self.workers) < self.get_allowed_process_count():
+        while (len(self.workers) < self.get_allowed_process_count()):
             self.spawn_worker()
         if not len(self.workers):
             self.error_handler.FrameworkAbort("Zero worker processes created because of lack of memory")
