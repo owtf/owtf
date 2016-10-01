@@ -44,6 +44,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
         count = self.db.session.query(models.Transaction).filter_by(scope=scope, target_id=target_id).count()
         return count
 
+    @target_required
     def IsTransactionAlreadyAdded(self, criteria, target_id=None):
         return len(self.GetAll(criteria, target_id=target_id)) > 0
 
