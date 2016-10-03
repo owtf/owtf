@@ -133,6 +133,7 @@ class TargetManager(custom_handlers.UIRequestHandler):
             adv_filter_data["mapping"] = self.get_component("mapping_db").GetMappingTypes()
             self.render(
                 "target.html",
+                target_id=target_id,
                 target_api_url=self.reverse_url('targets_api_url', target_id),
                 targets_ui_url=self.reverse_url('targets_ui_url', None),
                 poutput_ui_url=self.reverse_url('poutput_ui_url', target_id),
