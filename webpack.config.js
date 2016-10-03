@@ -26,13 +26,13 @@ var common = {
     output: {
         path: path.join(__dirname, 'includes/build/'),
         filename: 'bundle.js',
-        publicPath: 'includes/build/'
+        publicPath: path.join(__dirname, 'includes/build/')
     }
 };
 
 var config = merge(common, {
     entry: [
-        './includes/src/main'
+        path.join(__dirname, 'includes/src/main')
     ],
     plugins: [
         new webpack.optimize.UglifyJsPlugin({
@@ -40,6 +40,11 @@ var config = merge(common, {
             mangle: true
         })
     ],
+    resolveLoader: {
+        modulesDirectories: [
+            path.join(__dirname, 'node_modules'),
+        ]
+    },
     module: {
         loaders: [{
             test: /\.js$/,
@@ -48,7 +53,6 @@ var config = merge(common, {
             include: path.join(__dirname, 'includes/src')
         }]
     }
-
 });
 
 module.exports = config;

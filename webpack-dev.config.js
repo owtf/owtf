@@ -26,14 +26,19 @@ var common = {
     output: {
         path: path.join(__dirname, 'includes/build/'),
         filename: 'bundle.js',
-        publicPath: 'includes/build/'
+        publicPath: path.join(__dirname, 'includes/build/')
     }
 };
 
 var config = merge(common, {
     entry: [
-        './includes/src/main'
+        path.join(__dirname, 'includes/src/main')
     ],
+    resolveLoader: {
+        modulesDirectories: [
+            path.join(__dirname, 'node_modules'),
+        ]
+    },
     module: {
         loaders: [{
             test: /\.js$/,
