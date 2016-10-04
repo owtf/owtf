@@ -1,5 +1,7 @@
 import React from 'react';
 import {TARGET_UI_URI, TARGET_API_URI} from '../constants';
+import Header from './Header';
+import SideFilters from './SideFilters';
 
 class Report extends React.Component {
 
@@ -31,39 +33,12 @@ class Report extends React.Component {
         this.replaceContainer.bind(this)();
         return (
             <div>
-                <ul className="breadcrumb">
-                    <li>
-                        <a href="/">Home</a>
-                    </li>
-                    <li>
-                        <a href={TARGET_UI_URI}>Target</a>
-                    </li>
-                    <li className="active">{this.state.targetdata.target_url}</li>
-                </ul>
-
-                {/* Scroll to top */}
-                <a href="javascript:" id="return-to-top">
-                    <i className="fa fa-chevron-up"></i>
-                </a>
-                {/* End of scroll to top */}
-
-                <div className="col-md-10 col-md-offset-2">
-                    <div className="page-header">
-                        <div className="row">
-                            <div className="col-md-8">
-                                <h2 style={{
-                                    wordWrap: "break-word"
-                                }}>
-                                    {this.state.targetdata.target_url}
-                                    <small>
-                                        {' (' + this.state.targetdata.host_ip + ')'}
-                                    </small>
-                                </h2>
-                            </div>
-                            <div className="col-md-4">
-                                <h3 id="rankingTargetInfo"></h3>
-                            </div>
-                        </div>
+                <Header targetdata={this.state.targetdata}/>
+                <div className="row">
+                    <div className="col-sm-2 col-md-2 col-lg-2" id="plugin_nav">
+                        <SideFilters/>
+                    </div>
+                    <div className="col-sm-10 col-md-10 col-lg-10">
                     </div>
                 </div>
             </div>
