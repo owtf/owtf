@@ -45,6 +45,42 @@ class PluginDataHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
 
+class PluginNameOutput(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self, target_id=None):
+        if not target_id:
+            raise tornado.web.HTTPError(400)
+        try:
+            plugin_outputs = self.get_component("plugin_output").GetAllPluginNames(target_id=target_id)
+            print plugin_outputs
+            # Get mappings
+            if self.get_argument("mapping", None):
+                mappings = self.get_component("mapping_db").GetMappings(self.get_argument("mapping", None))
+            else:
+                mappings = None
+
+            # Get test groups as well, for names and info links
+            test_groups = {}
+            for test_group in self.get_component("db_plugin").GetAllTestGroups():
+                if test_group['code'] in plugin_outputs:
+                    test_group["mapped_code"] = test_group["code"]
+                    test_group["mapped_descrip"] = test_group["descrip"]
+                    if mappings:
+                        try:
+                            test_group["mapped_code"] = mappings[test_group['code']][0]
+                            test_group["mapped_descrip"] = mappings[test_group['code']][1]
+                        except KeyError:
+                            pass
+                    test_groups[test_group['code']] = test_group
+
+            self.write(test_groups)
+        except InvalidTargetReference:
+            raise tornado.web.HTTPError(400)
+        except InvalidParameterType:
+            raise tornado.web.HTTPError(400)
+
+
 class TargetConfigHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 

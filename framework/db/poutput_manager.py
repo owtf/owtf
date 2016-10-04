@@ -123,6 +123,16 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         return self.DeriveOutputDicts(results, target_id=target_id)
 
     @target_required
+    def GetAllPluginNames(self, target_id=None):
+        self.target.SetTarget(target_id)
+        query = self.db.session.query(models.PluginOutput.plugin_code).filter_by(target_id=target_id)
+        results = query.distinct().all()
+        dict_list = []
+        for obj in results:
+            dict_list.append(str(obj[0]))
+        return dict_list
+
+    @target_required
     def GetUnique(self, target_id=None):
         """
         Returns a dict of some column names and their unique database
