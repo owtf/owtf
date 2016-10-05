@@ -1,4 +1,5 @@
 import json
+import collections
 from StringIO import StringIO
 from BaseHTTPServer import BaseHTTPRequestHandler
 
@@ -53,7 +54,7 @@ class PluginNameOutput(custom_handlers.UIRequestHandler):
             raise tornado.web.HTTPError(400)
         try:
             plugin_outputs = self.get_component("plugin_output").GetAllPluginNames(target_id=target_id)
-            print plugin_outputs
+
             # Get mappings
             if self.get_argument("mapping", None):
                 mappings = self.get_component("mapping_db").GetMappings(self.get_argument("mapping", None))
@@ -73,7 +74,7 @@ class PluginNameOutput(custom_handlers.UIRequestHandler):
                         except KeyError:
                             pass
                     test_groups[test_group['code']] = test_group
-
+            test_groups = collections.OrderedDict(sorted(test_groups.items()))
             self.write(test_groups)
         except InvalidTargetReference:
             raise tornado.web.HTTPError(400)
