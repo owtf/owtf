@@ -16,32 +16,32 @@ class RankButtons extends React.Component {
                 <div className="btn-group">
                     <button type="button" className={user_rank === 0
                         ? "btn active"
-                        : "btn"}>
+                        : "btn"} onClick={this.context.patchUserRank.bind(this, obj['plugin_group'], obj['plugin_type'], obj['plugin_code'], 0)}>
                         <i className="fa fa-thumbs-up"></i>
                     </button>
                     <button type="button" className={user_rank === 1
                         ? "btn active btn-success"
-                        : "btn"}>
+                        : "btn"} onClick={this.context.patchUserRank.bind(this, obj['plugin_group'], obj['plugin_type'], obj['plugin_code'], 1)}>
                         <i className="fa fa-info-circle"></i>
                     </button>
                     <button type="button" className={user_rank === 2
                         ? "btn active btn-info"
-                        : "btn"}>
+                        : "btn"} onClick={this.context.patchUserRank.bind(this, obj['plugin_group'], obj['plugin_type'], obj['plugin_code'], 2)}>
                         <i className="fa fa-exclamation-circle"></i>
                     </button>
                     <button type="button" className={user_rank === 3
                         ? "btn active btn-warning"
-                        : "btn"}>
+                        : "btn"} onClick={this.context.patchUserRank.bind(this, obj['plugin_group'], obj['plugin_type'], obj['plugin_code'], 3)}>
                         <i className="fa fa-thumbs-up"></i>
                     </button>
                     <button type="button" className={user_rank === 4
                         ? "btn active btn-danger"
-                        : "btn"}>
+                        : "btn"} onClick={this.context.patchUserRank.bind(this, obj['plugin_group'], obj['plugin_type'], obj['plugin_code'], 4)}>
                         <i className="fa fa-bell"></i>
                     </button>
                     <button type="button" className={user_rank === 5
                         ? "btn active btn-critical"
-                        : "btn"}>
+                        : "btn"} onClick={this.context.patchUserRank.bind(this, obj['plugin_group'], obj['plugin_type'], obj['plugin_code'], 5)}>
                         <i className="fa fa-bomb"></i>
                     </button>
                 </div>
@@ -51,32 +51,32 @@ class RankButtons extends React.Component {
                 <div className="btn-group">
                     <button type="button" className={user_rank === 0
                         ? "btn active"
-                        : "btn"}>
+                        : "btn"} onClick={this.context.patchUserRank.bind(this, obj['plugin_group'], obj['plugin_type'], obj['plugin_code'], 0)}>
                         <i className="fa fa-thumbs-up"></i>
                     </button>
                     <button type="button" className={owtf_rank === 1
                         ? "btn active btn-success"
-                        : "btn"}>
+                        : "btn"} onClick={this.context.patchUserRank.bind(this, obj['plugin_group'], obj['plugin_type'], obj['plugin_code'], 1)}>
                         <i className="fa fa-info-circle"></i>
                     </button>
                     <button type="button" className={owtf_rank === 2
                         ? "btn active btn-info"
-                        : "btn"}>
+                        : "btn"} onClick={this.context.patchUserRank.bind(this, obj['plugin_group'], obj['plugin_type'], obj['plugin_code'], 2)}>
                         <i className="fa fa-exclamation-circle"></i>
                     </button>
                     <button type="button" className={owtf_rank === 3
                         ? "btn active btn-warning"
-                        : "btn"}>
+                        : "btn"} onClick={this.context.patchUserRank.bind(this, obj['plugin_group'], obj['plugin_type'], obj['plugin_code'], 3)}>
                         <i className="fa fa-thumbs-up"></i>
                     </button>
                     <button type="button" className={owtf_rank === 4
                         ? "btn active btn-danger"
-                        : "btn"}>
+                        : "btn"} onClick={this.context.patchUserRank.bind(this, obj['plugin_group'], obj['plugin_type'], obj['plugin_code'], 4)}>
                         <i className="fa fa-bell"></i>
                     </button>
                     <button type="button" className={user_rank === 5
                         ? "btn active btn-critical"
-                        : "btn"}>
+                        : "btn"} onClick={this.context.patchUserRank.bind(this, obj['plugin_group'], obj['plugin_type'], obj['plugin_code'], 5)}>
                         <i className="fa fa-bomb"></i>
                     </button>
                 </div>

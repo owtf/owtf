@@ -44,6 +44,8 @@ class Report extends React.Component {
     };
 
     patchUserRank(group, type, code, user_rank) {
+        var target_id = document.getElementById("report").getAttribute("data-code");
+        var presentState = this.state.pluginData;
         $.ajax({
             url: TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code,
             type: 'PATCH',
@@ -51,7 +53,8 @@ class Report extends React.Component {
                 "user_rank": user_rank
             },
             success: function(data) {
-                console.log(data)
+                presentState[code]['user_rank'] = user_rank;
+                this.pluginDataUpdate.call(this, code);
             }.bind(this),
             error: function(xhr, textStatus, serverResponse) {
                 console.log("Server replied: " + serverResponse);
