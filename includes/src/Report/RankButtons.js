@@ -6,7 +6,7 @@ class RankButtons extends React.Component {
         var obj = this.props.obj;
         var user_rank = obj['user_rank'];
         var owtf_rank = obj['owtf_rank'];
-        if (user_rank in [0,
+        if (user_rank in[0,
             1,
             2,
             3,
@@ -84,5 +84,9 @@ class RankButtons extends React.Component {
         }
     }
 }
+
+RankButtons.contextTypes = {
+    patchUserRank: React.PropTypes.func
+};
 
 export default RankButtons;

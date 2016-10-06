@@ -4,8 +4,8 @@ import Collapse from './Collapse'
 class Accordians extends React.Component {
 
     render() {
-        var plugins = this.props.plugins;
-        var pluginData = this.props.pluginData;
+        var plugins = this.context.pluginNameData;
+        var pluginData = this.context.pluginData;
         return (
             <div className="panel-group">
                 {Object.keys(plugins).map(function(key) {
@@ -59,4 +59,10 @@ class Accordians extends React.Component {
         );
     }
 }
+
+Accordians.contextTypes = {
+    pluginNameData: React.PropTypes.object,
+    pluginData: React.PropTypes.object
+};
+
 export default Accordians;

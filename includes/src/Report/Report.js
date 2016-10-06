@@ -19,6 +19,19 @@ class Report extends React.Component {
             pluginData: {}
         }
         this.pluginDataUpdate = this.pluginDataUpdate.bind(this);
+        this.patchUserRank = this.patchUserRank.bind(this);
+    };
+
+    getChildContext() {
+        var context_obj = {
+            targetdata: this.state.targetdata,
+            pluginNameData: this.state.pluginNameData,
+            pluginData: this.state.pluginData,
+            pluginDataUpdate: this.pluginDataUpdate,
+            patchUserRank: this.patchUserRank
+        };
+
+        return context_obj;
     };
 
     pluginDataUpdate(key) {
@@ -28,6 +41,22 @@ class Report extends React.Component {
             presentState[key] = result;
             this.setState({pluginData: presentState});
         }.bind(this));
+    };
+
+    patchUserRank(group, type, code, user_rank) {
+        $.ajax({
+            url: TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code,
+            type: 'PATCH',
+            data: {
+                "user_rank": user_rank
+            },
+            success: function(data) {
+                console.log(data)
+            }.bind(this),
+            error: function(xhr, textStatus, serverResponse) {
+                console.log("Server replied: " + serverResponse);
+            }.bind(this)
+        });
     };
 
     /* Making an AJAX request on source property */
@@ -40,7 +69,7 @@ class Report extends React.Component {
 
         this.serverRequest2 = $.get(TARGET_API_URI + target_id + '/poutput/names/', function(result) {
             this.setState({pluginNameData: result});
-            Object.keys(result).forEach(function(key,index) {
+            Object.keys(result).forEach(function(key, index) {
                 pluginDataUpdate(key);
             });
         }.bind(this));
@@ -61,12 +90,20 @@ class Report extends React.Component {
                         <SideFilters/>
                     </div>
                     <div className="col-sm-10 col-md-10 col-lg-10">
-                        <Accordians plugins={this.state.pluginNameData} pluginData={this.state.pluginData} />
+                        <Accordians/>
                     </div>
                 </div>
             </div>
         );
     }
 }
+
+Report.childContextTypes = {
+    targetdata: React.PropTypes.object,
+    pluginNameData: React.PropTypes.object,
+    pluginData: React.PropTypes.object,
+    pluginDataUpdate: React.PropTypes.func,
+    patchUserRank: React.PropTypes.func
+};
 
 export default Report;
