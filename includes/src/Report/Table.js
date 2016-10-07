@@ -11,6 +11,12 @@ class Table extends React.Component {
         var end_time = obj['end_time'];
         var run_time = obj['status'];
         var output = obj['output'];
+        var group = obj['plugin_group'];
+        var type = obj['plugin_type'];
+        var code = obj['plugin_code'];
+        var deletePluginOutput = this.context.deletePluginOutput;
+        var postToWorkList = this.context.postToWorkList;
+
         return (
             <table className="table table-bordered table-striped table-hover">
                 <thead>
@@ -69,17 +75,21 @@ class Table extends React.Component {
                             if (output_path !== undefined) {
                                 return (
                                     <td>
-                                        <a href="" target="_blank" className="btn btn-primary">Browse</a>
+                                        <a href={"/output_files/" + output_path} target="_blank" className="btn btn-primary">Browse</a>
                                     </td>
                                 );
                             }
                         })()}
                         <td>
                             <div className="btn-group">
-                                <button className="btn btn-success" data-toggle="tooltip" data-placement="bottom" title="Rerun plugin">
+                                <button className="btn btn-success" onClick={postToWorkList.bind(this, {
+                                    "code": code,
+                                    "group": group,
+                                    "type": type
+                                }, true)} data-toggle="tooltip" data-placement="bottom" title="Rerun plugin">
                                     <i className="fa fa-refresh"></i>
                                 </button>
-                                <button className="btn btn-danger" data-toggle="tooltip" data-placement="bottom" title="Delete plugin output">
+                                <button className="btn btn-danger" onClick={deletePluginOutput.bind(this, group, type, code)} data-toggle="tooltip" data-placement="bottom" title="Delete plugin output">
                                     <i className="fa fa-times"></i>
                                 </button>
                             </div>
@@ -115,5 +125,10 @@ class Table extends React.Component {
         );
     }
 }
+
+Table.contextTypes = {
+    deletePluginOutput: React.PropTypes.func,
+    postToWorkList: React.PropTypes.func
+};
 
 export default Table;

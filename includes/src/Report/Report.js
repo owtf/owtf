@@ -1,5 +1,5 @@
 import React from 'react';
-import {TARGET_UI_URI, TARGET_API_URI} from '../constants';
+import {TARGET_UI_URI, TARGET_API_URI, WORKLIST_API_URI} from '../constants';
 import Header from './Header';
 import SideFilters from './SideFilters';
 import Accordians from './Accordians';
@@ -18,8 +18,11 @@ class Report extends React.Component {
             pluginNameData: {},
             pluginData: {}
         }
+        this.updateReport = this.updateReport.bind(this);
         this.pluginDataUpdate = this.pluginDataUpdate.bind(this);
         this.patchUserRank = this.patchUserRank.bind(this);
+        this.deletePluginOutput = this.deletePluginOutput.bind(this);
+        this.postToWorkList = this.postToWorkList.bind(this);
     };
 
     getChildContext() {
@@ -28,7 +31,9 @@ class Report extends React.Component {
             pluginNameData: this.state.pluginNameData,
             pluginData: this.state.pluginData,
             pluginDataUpdate: this.pluginDataUpdate,
-            patchUserRank: this.patchUserRank
+            patchUserRank: this.patchUserRank,
+            deletePluginOutput: this.deletePluginOutput,
+            postToWorkList: this.postToWorkList
         };
 
         return context_obj;
@@ -40,6 +45,18 @@ class Report extends React.Component {
         $.get(TARGET_API_URI + target_id + '/poutput/?plugin_code=' + key, function(result) {
             presentState[key] = result;
             this.setState({pluginData: presentState});
+        }.bind(this));
+    };
+
+    updateReport() {
+        var target_id = document.getElementById("report").getAttribute("data-code");
+        var pluginDataUpdate = this.pluginDataUpdate;
+
+        $.get(TARGET_API_URI + target_id + '/poutput/names/', function(result) {
+            this.setState({pluginNameData: result});
+            Object.keys(result).forEach(function(key, index) {
+                pluginDataUpdate(key);
+            });
         }.bind(this));
     };
 
@@ -57,13 +74,45 @@ class Report extends React.Component {
             }.bind(this)
         });
         var item = presentState[code];
-        for (var i=0; i < item.length; i++) {
+        for (var i = 0; i < item.length; i++) {
             if (item[i].plugin_group === group && item[i].plugin_type === type) {
-              item[i].user_rank = user_rank;
-              presentState[code] = item;
-              this.setState({pluginData: presentState});
+                item[i].user_rank = user_rank;
+                presentState[code] = item;
+                this.setState({pluginData: presentState});
             }
         }
+    };
+
+    postToWorkList(selectedPluginData, force_overwrite) {
+        selectedPluginData["id"] = document.getElementById("report").getAttribute("data-code");
+        selectedPluginData["force_overwrite"] = force_overwrite;
+        $.ajax({
+            url: WORKLIST_API_URI,
+            type: 'POST',
+            data: $.param(selectedPluginData, true),
+            success: function(data) {
+                console.log("Selected plugins launched, please check worklist to manage :D");
+            },
+            error: function(xhr, textStatus, serverResponse) {
+                console.log("Server replied: " + serverResponse);
+            }
+        });
+    };
+
+    deletePluginOutput(group, type, code) {
+        var target_id = document.getElementById("report").getAttribute("data-code");
+        var updateReport = this.updateReport;
+        $.ajax({
+            url: TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code,
+            type: 'DELETE',
+            success: function() {
+                console.log("Deleted plugin output for " + type + "@" + code);
+                updateReport();
+            },
+            error: function(xhr, textStatus, serverResponse) {
+                console.log("Server replied: " + serverResponse);
+            }
+        });
     };
 
     /* Making an AJAX request on source property */
@@ -110,7 +159,9 @@ Report.childContextTypes = {
     pluginNameData: React.PropTypes.object,
     pluginData: React.PropTypes.object,
     pluginDataUpdate: React.PropTypes.func,
-    patchUserRank: React.PropTypes.func
+    patchUserRank: React.PropTypes.func,
+    deletePluginOutput: React.PropTypes.func,
+    postToWorkList: React.PropTypes.func
 };
 
 export default Report;
