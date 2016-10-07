@@ -107,6 +107,31 @@ class Accordians extends React.Component {
                                             </a>
                                         </h4>
                                     </div>
+                                    <div className="col-md-2" style={{
+                                        textAlign: "center"
+                                    }}>
+                                        <h4>
+                                            <i>
+                                                <small dangerouslySetInnerHTML={(() => {
+                                                    if (key in pluginData) {
+                                                        if (testCaseMax == 0)
+                                                            return {__html: "<label class='alert alert-passing' style='margin-bottom: 0px'>Passing</label>"};
+                                                        else if (testCaseMax == 1)
+                                                            return {__html: "<label class='alert alert-success' style='margin-bottom: 0px'>Info</label>"};
+                                                        else if (testCaseMax == 2)
+                                                            return {__html: "<label class='alert alert-info' style='margin-bottom: 0px'>Low</label>"};
+                                                        else if (testCaseMax == 3)
+                                                            return {__html: "<label class='alert alert-warning' style='margin-bottom: 0px'>Medium</label>"};
+                                                        else if (testCaseMax == 4)
+                                                            return {__html: "<label class='alert alert-danger' style='margin-bottom: 0px'>High</label>"};
+                                                        else if (testCaseMax == 5)
+                                                            return {__html: "<label class='alert alert-critical' style='margin-bottom: 0px'>Critical</label>"};
+                                                        return {__html: ""};
+                                                    }
+                                                })()}></small>
+                                            </i>
+                                        </h4>
+                                    </div>
                                 </div>
                             </div>
                             {(() => {
