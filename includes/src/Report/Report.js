@@ -57,8 +57,8 @@ class Report extends React.Component {
             }.bind(this)
         });
         var item = presentState[code];
-        for (var i=0;i<item.length;i++){
-            if (item[i].plugin_group == group && item[i].plugin_type == type) {
+        for (var i=0; i < item.length; i++) {
+            if (item[i].plugin_group === group && item[i].plugin_type === type) {
               item[i].user_rank = user_rank;
               presentState[code] = item;
               this.setState({pluginData: presentState});
