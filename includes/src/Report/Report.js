@@ -52,14 +52,18 @@ class Report extends React.Component {
             data: {
                 "user_rank": user_rank
             },
-            success: function(data) {
-                presentState[code]['user_rank'] = user_rank;
-                this.pluginDataUpdate.call(this, code);
-            }.bind(this),
             error: function(xhr, textStatus, serverResponse) {
                 console.log("Server replied: " + serverResponse);
             }.bind(this)
         });
+        var item = presentState[code];
+        for (var i=0;i<item.length;i++){
+            if (item[i].plugin_group == group && item[i].plugin_type == type) {
+              item[i].user_rank = user_rank;
+              presentState[code] = item;
+              this.setState({pluginData: presentState});
+            }
+        }
     };
 
     /* Making an AJAX request on source property */
