@@ -10,7 +10,44 @@ class Accordians extends React.Component {
             <div className="panel-group">
                 {Object.keys(plugins).map(function(key) {
                     return (
-                        <div className="panel panel-default" key={key}>
+                        <div className={(() => {
+                            if (key in pluginData) {
+                                var testCaseMax = 0;
+                                var maxUserRank = -1;
+                                var maxOWTFRank = -1;
+                                var pluginDataList = pluginData[key];
+                                for (var i = 0; i < pluginDataList.length; i++) {
+                                    if (pluginDataList[i].user_rank != null && pluginDataList[i].user_rank != -1) {
+                                        if (pluginDataList[i].user_rank > maxUserRank) {
+                                            maxUserRank = pluginDataList[i].user_rank;
+                                        }
+                                    } else if (pluginDataList[i].owtf_rank != null && pluginDataList[i].owtf_rank != -1) {
+                                        if (pluginDataList[i].owtf_rank > maxOWTFRank) {
+                                            maxOWTFRank = pluginDataList[i].owtf_rank;
+                                        }
+                                    }
+                                }
+                                testCaseMax = (maxUserRank > maxOWTFRank)
+                                    ? maxUserRank
+                                    : maxOWTFRank;
+                                if (testCaseMax == 0)
+                                    return "panel panel-passing";
+                                else if (testCaseMax === 1)
+                                    return "panel panel-success";
+                                else if (testCaseMax === 2)
+                                    return "panel panel-info";
+                                else if (testCaseMax === 3)
+                                    return "panel panel-warning";
+                                else if (testCaseMax === 4)
+                                    return "panel panel-danger";
+                                else if (testCaseMax === 5)
+                                    return "panel panel-critical";
+                                return "panel panel-default";
+                            }
+                            else {
+                                return "panel panel-default";
+                            }
+                        })()} key={key}>
                             <div className="panel-heading" style={{
                                 padding: '0 15px'
                             }}>
@@ -36,7 +73,7 @@ class Accordians extends React.Component {
                                         paddingLeft: '15px'
                                     }}>
                                         <h4 className="panel-title">
-                                            <a data-toggle="collapse" data-parent="#pluginOutputs" href={"#"+plugins[key]['code']}>
+                                            <a data-toggle="collapse" data-parent="#pluginOutputs" href={"#" + plugins[key]['code']}>
                                                 <h4 style={{
                                                     padding: '15px'
                                                 }}>{plugins[key]['mapped_code'] + ' ' + plugins[key]['mapped_descrip']}
