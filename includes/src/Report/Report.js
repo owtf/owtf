@@ -16,14 +16,19 @@ class Report extends React.Component {
         this.state = {
             targetdata: {},
             pluginNameData: {},
-            pluginData: {}
-        }
+            pluginData: {},
+            selectedGroup: [],
+            selectedType: [],
+            selectedRank: []
+        };
+
         this.updateReport = this.updateReport.bind(this);
         this.pluginDataUpdate = this.pluginDataUpdate.bind(this);
         this.patchUserRank = this.patchUserRank.bind(this);
         this.deletePluginOutput = this.deletePluginOutput.bind(this);
         this.postToWorkList = this.postToWorkList.bind(this);
         this.handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian.bind(this);
+        this.updateFilter = this.updateFilter.bind(this);
     };
 
     getChildContext() {
@@ -31,11 +36,15 @@ class Report extends React.Component {
             targetdata: this.state.targetdata,
             pluginNameData: this.state.pluginNameData,
             pluginData: this.state.pluginData,
+            selectedType: this.state.selectedType,
+            selectedGroup: this.state.selectedGroup,
+            selectedRank: this.state.selectedRank,
             pluginDataUpdate: this.pluginDataUpdate,
             patchUserRank: this.patchUserRank,
             deletePluginOutput: this.deletePluginOutput,
             postToWorkList: this.postToWorkList,
-            handlePluginBtnOnAccordian: this.handlePluginBtnOnAccordian
+            handlePluginBtnOnAccordian: this.handlePluginBtnOnAccordian,
+            updateFilter: this.updateFilter
         };
 
         return context_obj;
@@ -44,18 +53,76 @@ class Report extends React.Component {
     pluginDataUpdate(key) {
         var target_id = document.getElementById("report").getAttribute("data-code");
         var presentState = this.state.pluginData;
-        $.get(TARGET_API_URI + target_id + '/poutput/?plugin_code=' + key, function(result) {
+        var url = TARGET_API_URI + target_id + '/poutput/?';
+        var selectedgroup = this.state.selectedGroup;
+        var selectedtype = this.state.selectedType;
+        var selectedrank = this.state.selectedRank;
+        for (var i=0;i < selectedgroup.length; i++) {
+            url = url + "plugin_group=" + selectedgroup[i] + "&";
+        }
+        for (var i=0;i < selectedtype.length; i++) {
+            url = url + "plugin_type=" + selectedtype[i] + "&";
+        }
+        for (var i=0;i < selectedrank.length; i++) {
+            url = url + "user_rank=" + selectedrank[i] + "&";
+        }
+        url = url + "plugin_code=" + key;
+        $.get(url, function(result) {
             presentState[key] = result;
             presentState[key]['pactive'] = result[0].plugin_type;
             this.setState({pluginData: presentState});
         }.bind(this));
     };
 
+    updateFilter(filter_type, val) {
+        if (filter_type === 'type') {
+            var presentState = this.state.selectedType;
+            var index = presentState.indexOf(val);
+            if (index > -1) {
+                presentState.splice(index, 1);
+            } else {
+                presentState.push(val);
+            }
+            this.setState({selectedType: presentState});
+        } else if (filter_type === 'group') {
+            var presentState = this.state.selectedGroup;
+            var index = presentState.indexOf(val);
+            if (index > -1) {
+                presentState.splice(index, 1);
+            } else {
+                presentState.push(val);
+            }
+            this.setState({selectedGroup: presentState});
+        } else if (filter_type === 'rank') {
+            var presentState = this.state.selectedRank;
+            var index = presentState.indexOf(val);
+            if (index > -1) {
+                presentState.splice(index, 1);
+            } else {
+                presentState.push(val);
+            }
+            this.setState({selectedRank: presentState});
+        }
+        this.updateReport.call();
+    };
+
     updateReport() {
         var target_id = document.getElementById("report").getAttribute("data-code");
         var pluginDataUpdate = this.pluginDataUpdate;
-
-        $.get(TARGET_API_URI + target_id + '/poutput/names/', function(result) {
+        var url = TARGET_API_URI + target_id + '/poutput/names/?';
+        var selectedgroup = this.state.selectedGroup;
+        var selectedtype = this.state.selectedType;
+        var selectedrank = this.state.selectedRank;
+        for (var i=0;i < selectedgroup.length; i++) {
+            url = url + "plugin_group=" + selectedgroup[i] + "&";
+        }
+        for (var i=0;i < selectedtype.length; i++) {
+            url = url + "plugin_type=" + selectedtype[i] + "&";
+        }
+        for (var i=0;i < selectedrank.length; i++) {
+            url = url + "user_rank=" + selectedrank[i] + "&";
+        }
+        $.get(url, function(result) {
             this.setState({pluginNameData: result});
             Object.keys(result).forEach(function(key, index) {
                 pluginDataUpdate(key);
@@ -180,11 +247,15 @@ Report.childContextTypes = {
     targetdata: React.PropTypes.object,
     pluginNameData: React.PropTypes.object,
     pluginData: React.PropTypes.object,
+    selectedType: React.PropTypes.array,
+    selectedRank: React.PropTypes.array,
+    selectedGroup: React.PropTypes.array,
     pluginDataUpdate: React.PropTypes.func,
     patchUserRank: React.PropTypes.func,
     deletePluginOutput: React.PropTypes.func,
     postToWorkList: React.PropTypes.func,
-    handlePluginBtnOnAccordian: React.PropTypes.func
+    handlePluginBtnOnAccordian: React.PropTypes.func,
+    updateFilter: React.PropTypes.func
 };
 
 export default Report;
