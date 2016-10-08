@@ -31,7 +31,7 @@ class Accordians extends React.Component {
         var handlePluginBtnOnAccordian = this.context.handlePluginBtnOnAccordian;
 
         return (
-            <div className="panel-group">
+            <div className="panel-group" id="pluginOutputs">
                 {Object.keys(plugins).map(function(key) {
                     if (key in pluginData) {
                         var testCaseMax = getRank.call(this, pluginData[key]);
