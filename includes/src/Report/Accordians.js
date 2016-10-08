@@ -28,6 +28,7 @@ class Accordians extends React.Component {
         var plugins = this.context.pluginNameData;
         var pluginData = this.context.pluginData;
         var getRank = this.getRank;
+        var handlePluginBtnOnAccordian = this.context.handlePluginBtnOnAccordian;
 
         return (
             <div className="panel-group">
@@ -66,7 +67,7 @@ class Accordians extends React.Component {
                                                     <div className="btn-group btn-group-xs" role="group">
                                                         {pluginData[key].map(function(obj) {
                                                             return (
-                                                                <button key={key + obj['plugin_type'].split('_').join(' ')} className={(() => {
+                                                                <button onClick={handlePluginBtnOnAccordian.bind(this, key, obj['plugin_type'])} key={key + obj['plugin_type'].split('_').join(' ')} className={(() => {
                                                                     if (key in pluginData) {
                                                                         if (testCaseMax == 0)
                                                                             return "plugin_type_acc btn btn-default";
@@ -149,7 +150,8 @@ class Accordians extends React.Component {
 
 Accordians.contextTypes = {
     pluginNameData: React.PropTypes.object,
-    pluginData: React.PropTypes.object
+    pluginData: React.PropTypes.object,
+    handlePluginBtnOnAccordian: React.PropTypes.func
 };
 
 export default Accordians;

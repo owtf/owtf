@@ -23,6 +23,7 @@ class Report extends React.Component {
         this.patchUserRank = this.patchUserRank.bind(this);
         this.deletePluginOutput = this.deletePluginOutput.bind(this);
         this.postToWorkList = this.postToWorkList.bind(this);
+        this.handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian.bind(this);
     };
 
     getChildContext() {
@@ -33,7 +34,8 @@ class Report extends React.Component {
             pluginDataUpdate: this.pluginDataUpdate,
             patchUserRank: this.patchUserRank,
             deletePluginOutput: this.deletePluginOutput,
-            postToWorkList: this.postToWorkList
+            postToWorkList: this.postToWorkList,
+            handlePluginBtnOnAccordian: this.handlePluginBtnOnAccordian
         };
 
         return context_obj;
@@ -44,6 +46,7 @@ class Report extends React.Component {
         var presentState = this.state.pluginData;
         $.get(TARGET_API_URI + target_id + '/poutput/?plugin_code=' + key, function(result) {
             presentState[key] = result;
+            presentState[key]['pactive'] = result[0].plugin_type;
             this.setState({pluginData: presentState});
         }.bind(this));
     };
@@ -115,6 +118,12 @@ class Report extends React.Component {
         });
     };
 
+    handlePluginBtnOnAccordian(key, plugin_type) {
+        var presentState = this.state.pluginData;
+        presentState[key]['pactive'] = plugin_type;
+        this.setState({pluginData: presentState});
+    };
+
     /* Making an AJAX request on source property */
     componentDidMount() {
         var target_id = document.getElementById("report").getAttribute("data-code");
@@ -161,7 +170,8 @@ Report.childContextTypes = {
     pluginDataUpdate: React.PropTypes.func,
     patchUserRank: React.PropTypes.func,
     deletePluginOutput: React.PropTypes.func,
-    postToWorkList: React.PropTypes.func
+    postToWorkList: React.PropTypes.func,
+    handlePluginBtnOnAccordian: React.PropTypes.func
 };
 
 export default Report;
