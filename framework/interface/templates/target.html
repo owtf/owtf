@@ -17,5 +17,13 @@
 
 {% block content %}
 <div id="report" data-code="{{ target_id }}"></div>
-
+<script>
+  // Function defined in poutput copied because react does not render script tag.
+  function getSearchString(elem){
+      return $(elem).closest('table').find('input#searchString').val();
+  }
+  function clickAllButtons(elem){
+      $(elem).closest('table').find('button.individualSearchButton').trigger('click');
+  }
+</script>
 {% end %}
