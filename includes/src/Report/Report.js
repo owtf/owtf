@@ -77,12 +77,21 @@ class Report extends React.Component {
             }.bind(this)
         });
         var item = presentState[code];
+        var index;
         for (var i = 0; i < item.length; i++) {
             if (item[i].plugin_group === group && item[i].plugin_type === type) {
+                index = i;
                 item[i].user_rank = user_rank;
                 presentState[code] = item;
                 this.setState({pluginData: presentState});
             }
+        }
+        if (index === item.length -1) {
+            $('#' + code).collapse('hide');
+        } else {
+            item.pactive = item[index+1].plugin_type;
+            presentState[code] = item;
+            this.setState({pluginData: presentState});
         }
     };
 
