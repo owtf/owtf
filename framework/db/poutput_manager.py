@@ -123,13 +123,16 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         return self.DeriveOutputDicts(results, target_id=target_id)
 
     @target_required
-    def GetAllPluginNames(self, target_id=None):
+    def GetAllPluginNames(self, filter_data=None, target_id=None):
+        if not filter_data:
+            filter_data = {}
         self.target.SetTarget(target_id)
-        query = self.db.session.query(models.PluginOutput.plugin_code).filter_by(target_id=target_id)
-        results = query.distinct().all()
+        query = self.GenerateQueryUsingSession(filter_data, target_id)
+        results = query.all()
         dict_list = []
         for obj in results:
-            dict_list.append(str(obj[0]))
+            pdict = dict(obj.__dict__)
+            dict_list.append(str(pdict['plugin_code']));
         return dict_list
 
     @target_required

@@ -49,22 +49,21 @@ class PluginDataHandler(custom_handlers.APIRequestHandler):
 class PluginNameOutput(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
-    def get(self, target_id=None):
-        if not target_id:
-            raise tornado.web.HTTPError(400)
+    def get(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
         try:
-            plugin_outputs = self.get_component("plugin_output").GetAllPluginNames(target_id=target_id)
-
+            filter_data = dict(self.request.arguments)
+            #print filter_data
+            results = self.get_component("plugin_output").GetAllPluginNames(filter_data, target_id=int(target_id))
             # Get mappings
             if self.get_argument("mapping", None):
                 mappings = self.get_component("mapping_db").GetMappings(self.get_argument("mapping", None))
             else:
                 mappings = None
 
-            # Get test groups as well, for names and info links
+            ## Get test groups as well, for names and info links
             test_groups = {}
             for test_group in self.get_component("db_plugin").GetAllTestGroups():
-                if test_group['code'] in plugin_outputs:
+                if test_group['code'] in results:
                     test_group["mapped_code"] = test_group["code"]
                     test_group["mapped_descrip"] = test_group["descrip"]
                     if mappings:
@@ -76,9 +75,11 @@ class PluginNameOutput(custom_handlers.UIRequestHandler):
                     test_groups[test_group['code']] = test_group
             test_groups = collections.OrderedDict(sorted(test_groups.items()))
             self.write(test_groups)
-        except InvalidTargetReference:
+        except exceptions.InvalidTargetReference as e:
+            cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-        except InvalidParameterType:
+        except exceptions.InvalidParameterType as e:
+            cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
 
