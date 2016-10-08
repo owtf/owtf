@@ -86,10 +86,10 @@ class Report extends React.Component {
                 this.setState({pluginData: presentState});
             }
         }
-        if (index === item.length -1) {
+        if (index === item.length - 1) {
             $('#' + code).collapse('hide');
         } else {
-            item.pactive = item[index+1].plugin_type;
+            item.pactive = item[index + 1].plugin_type;
             presentState[code] = item;
             this.setState({pluginData: presentState});
         }
@@ -130,7 +130,11 @@ class Report extends React.Component {
     handlePluginBtnOnAccordian(key, plugin_type) {
         var presentState = this.state.pluginData;
         presentState[key]['pactive'] = plugin_type;
-        this.setState({pluginData: presentState});
+        this.setState({
+            pluginData: presentState
+        }, function() {
+            $('#' + key).collapse('show');
+        });
     };
 
     /* Making an AJAX request on source property */
