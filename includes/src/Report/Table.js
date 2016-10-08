@@ -1,6 +1,43 @@
 import React from 'react';
+import {TARGET_API_URI} from '../constants';
 
 class Table extends React.Component {
+
+    patchUserNotes(group, type, code, user_notes) {
+        var target_id = document.getElementById("report").getAttribute("data-code");
+        $.ajax({
+            url: TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code,
+            type: 'PATCH',
+            data: {
+                "user_notes": user_notes
+            },
+            error: function(xhr, textStatus, serverResponse) {
+                console.log("Server replied: " + serverResponse);
+            }.bind(this)
+        });
+    };
+
+    handleEditor(group, type, code, instance) { // Same function called both to create or close editor
+        var target_id = document.getElementById("report").getAttribute("data-code");
+        var editorRef = "editor_" + group + "_" + type + "_" + code;
+        var instance = this.refs[editorRef];
+        var editorArea = $(instance).closest('table').find('.editor');
+        console.log(editorArea);
+        var patchUserNotes = this.patchUserNotes;
+        try {
+            var editor = editorArea.ckeditorGet(); // This line generates error if editor not found
+            console.log(editor);
+            patchUserNotes.call(this, group, type, code, editorArea.val());
+            editor.destroy();
+            editorArea.css("display", "None");
+        } catch (err) {
+            $.getJSON(TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code, function(data) {
+                console.log(data);
+                editorArea.val(data.user_notes);
+                editorArea.ckeditor();
+            });
+        }
+    };
 
     render() {
         var obj = this.props.obj;
@@ -89,7 +126,7 @@ class Table extends React.Component {
                                 }, true)} data-toggle="tooltip" data-placement="bottom" title="Rerun plugin">
                                     <i className="fa fa-refresh"></i>
                                 </button>
-                                <button className="btn btn-danger" onClick={deletePluginOutput.bind(this, group, type, code)} data-toggle="tooltip" data-placement="bottom" title="Delete plugin output">
+                                <button className="btn btn-danger" onClick={deletePluginOutput.bind(this, group, type, code, )} data-toggle="tooltip" data-placement="bottom" title="Delete plugin output">
                                     <i className="fa fa-times"></i>
                                 </button>
                             </div>
@@ -97,7 +134,7 @@ class Table extends React.Component {
                     </tr>
                     <tr>
                         <th colSpan="6">
-                            <button className="btn btn-default pull-right">
+                            <button ref={"editor_" + group + "_" + type + "_" + code} className="btn btn-default pull-right" onClick={this.handleEditor.bind(this, group, type, code)}>
                                 <i className="fa fa-pencil"></i>
                                 Notes
                             </button>
