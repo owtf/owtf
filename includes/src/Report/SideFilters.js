@@ -16,7 +16,7 @@ class SideFilters extends React.Component {
                   {groups.map(function(obj) {
                       return (
                         <li key={obj} role="presentation" className={selectedGroup.indexOf(obj) > -1 ? "active":""}>
-                            <a className="text-capitalize" href="#" onClick={updateFilter.bind(this, 'group', obj)}>{obj.replace("_", " ")}</a>
+                            <a className="text-capitalize" href="#" onClick={updateFilter.bind(this, 'plugin_group', obj)}>{obj.replace("_", " ")}</a>
                         </li>
                       );
                   })}
@@ -27,7 +27,7 @@ class SideFilters extends React.Component {
                   {type.map(function(obj) {
                       return (
                         <li key={obj} role="presentation" className={selectedType.indexOf(obj) > -1 ? "active" : ""}>
-                            <a className="text-capitalize" href="#" onClick={updateFilter.bind(this, 'type', obj)}>{obj.replace("_", " ")}</a>
+                            <a className="text-capitalize" href="#" onClick={updateFilter.bind(this, 'plugin_type', obj)}>{obj.replace("_", " ")}</a>
                         </li>
                       );
                   })}

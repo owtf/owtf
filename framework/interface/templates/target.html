@@ -17,13 +17,51 @@
 
 {% block content %}
 <div id="report" data-code="{{ target_id }}"></div>
+
+<!-- Plugin launcher template -->
+{% module Template("plugin_launcher.html",
+    plugin_launch_modal_id="pluginLaunchModal",
+    plugins_api_url="mySpace.plugins_api_url",
+    worklist_post_func="postToWorkList") %}
+<!-- End plugin launcher template -->
+
 <script>
-  // Function defined in poutput copied because react does not render script tag.
-  function getSearchString(elem){
-      return $(elem).closest('table').find('input#searchString').val();
-  }
-  function clickAllButtons(elem){
-      $(elem).closest('table').find('button.individualSearchButton').trigger('click');
-  }
+    var mySpace = {
+        target_id: "{{ target_id}}",
+        worklist_api_url: "{{ worklist_api_url }}",
+        plugins_api_url: "{{ plugins_api_url }}?group=web&group=network",
+        adv_filter_data: "{{ adv_filter_data }}",
+        sessions_ui_url: "{{ sessions_ui_url }}"
+    };
+
+    // Close the modal when plugins are launched successfully
+    function pluginLaunchSuccess() {
+        $('#pluginLaunchModal').modal('hide');
+        alertSuccess("Selected plugins launched, please check worklist to manage :D");
+    }
+
+    // Main function that posts using API to launch plugins
+    function postToWorkList(selectedPluginData, force_overwrite) {
+        selectedPluginData["id"] = mySpace.target_id;
+        selectedPluginData["force_overwrite"] = force_overwrite;
+        $.ajax({
+            url: mySpace.worklist_api_url,
+            type: 'POST',
+            data: $.param(selectedPluginData, true),
+            success: pluginLaunchSuccess,
+            error: function(xhr, textStatus, serverResponse) {
+                alertFail("Server replied: " + serverResponse);
+            }
+        });
+    }
+
+    // Function defined in poutput copied because react does not render script tag.
+    function getSearchString(elem) {
+        return $(elem).closest('table').find('input#searchString').val();
+    }
+
+    function clickAllButtons(elem) {
+        $(elem).closest('table').find('button.individualSearchButton').trigger('click');
+    }
 </script>
 {% end %}

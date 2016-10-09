@@ -3,6 +3,7 @@ import {TARGET_UI_URI, TARGET_API_URI, WORKLIST_API_URI} from '../constants';
 import Header from './Header';
 import SideFilters from './SideFilters';
 import Accordians from './Accordians';
+import Toolbar from './Toolbar';
 
 class Report extends React.Component {
 
@@ -19,7 +20,10 @@ class Report extends React.Component {
             pluginData: {},
             selectedGroup: [],
             selectedType: [],
-            selectedRank: []
+            selectedRank: [],
+            selectedOwtfRank: [],
+            selectedMapping: "",
+            selectedStatus: []
         };
 
         this.updateReport = this.updateReport.bind(this);
@@ -29,6 +33,7 @@ class Report extends React.Component {
         this.postToWorkList = this.postToWorkList.bind(this);
         this.handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian.bind(this);
         this.updateFilter = this.updateFilter.bind(this);
+        this.clearFilters = this.clearFilters.bind(this);
     };
 
     getChildContext() {
@@ -44,7 +49,9 @@ class Report extends React.Component {
             deletePluginOutput: this.deletePluginOutput,
             postToWorkList: this.postToWorkList,
             handlePluginBtnOnAccordian: this.handlePluginBtnOnAccordian,
-            updateFilter: this.updateFilter
+            updateFilter: this.updateFilter,
+            updateReport: this.updateReport,
+            clearFilters: this.clearFilters
         };
 
         return context_obj;
@@ -57,15 +64,26 @@ class Report extends React.Component {
         var selectedgroup = this.state.selectedGroup;
         var selectedtype = this.state.selectedType;
         var selectedrank = this.state.selectedRank;
-        for (var i=0;i < selectedgroup.length; i++) {
+        var selectedOwtfRank = this.state.selectedOwtfRank;
+        var selectedStatus = this.state.selectedStatus;
+        var selectedMapping = this.state.selectedMapping;
+
+        for (var i = 0; i < selectedgroup.length; i++) {
             url = url + "plugin_group=" + selectedgroup[i] + "&";
         }
-        for (var i=0;i < selectedtype.length; i++) {
+        for (var i = 0; i < selectedtype.length; i++) {
             url = url + "plugin_type=" + selectedtype[i] + "&";
         }
-        for (var i=0;i < selectedrank.length; i++) {
+        for (var i = 0; i < selectedrank.length; i++) {
             url = url + "user_rank=" + selectedrank[i] + "&";
         }
+        for (var i = 0; i < selectedOwtfRank.length; i++) {
+            url = url + "owtf_rank=" + selectedOwtfRank[i] + "&";
+        }
+        for (var i = 0; i < selectedStatus.length; i++) {
+            url = url + "status=" + selectedStatus[i] + "&";
+        }
+        url = url + "mapping=" + selectedMapping + "&";
         url = url + "plugin_code=" + key;
         $.get(url, function(result) {
             presentState[key] = result;
@@ -75,7 +93,7 @@ class Report extends React.Component {
     };
 
     updateFilter(filter_type, val) {
-        if (filter_type === 'type') {
+        if (filter_type === 'plugin_type') {
             var presentState = this.state.selectedType;
             var index = presentState.indexOf(val);
             if (index > -1) {
@@ -84,7 +102,7 @@ class Report extends React.Component {
                 presentState.push(val);
             }
             this.setState({selectedType: presentState});
-        } else if (filter_type === 'group') {
+        } else if (filter_type === 'plugin_group') {
             var presentState = this.state.selectedGroup;
             var index = presentState.indexOf(val);
             if (index > -1) {
@@ -93,7 +111,7 @@ class Report extends React.Component {
                 presentState.push(val);
             }
             this.setState({selectedGroup: presentState});
-        } else if (filter_type === 'rank') {
+        } else if (filter_type === 'user_rank') {
             var presentState = this.state.selectedRank;
             var index = presentState.indexOf(val);
             if (index > -1) {
@@ -102,8 +120,44 @@ class Report extends React.Component {
                 presentState.push(val);
             }
             this.setState({selectedRank: presentState});
+        } else if (filter_type === 'owtf_rank') {
+            var presentState = this.state.selectedOwtfRank;
+            var index = presentState.indexOf(val);
+            if (index > -1) {
+                presentState.splice(index, 1);
+            } else {
+                presentState.push(val);
+            }
+            this.setState({selectedOwtfRank: presentState});
+        } else if (filter_type === 'mapping') {
+            var presentState = this.state.selectedMapping;
+            presentState = val;
+            this.setState({selectedMapping: presentState});
+        } else if (filter_type === 'status') {
+            var presentState = this.state.selectedStatus;
+            var index = presentState.indexOf(val);
+            if (index > -1) {
+                presentState.splice(index, 1);
+            } else {
+                presentState.push(val);
+            }
+            this.setState({selectedStatus: presentState});
         }
         this.updateReport.call();
+    };
+
+    clearFilters() {
+        $(".filterCheckbox").attr("checked", false);
+        this.setState({
+            selectedStatus: [],
+            selectedRank: [],
+            selectedGroup: [],
+            selectedMapping: "",
+            selectedOwtfRank: [],
+            selectedType: []
+        }, function() {
+            this.updateReport.call();
+        });
     };
 
     updateReport() {
@@ -113,15 +167,25 @@ class Report extends React.Component {
         var selectedgroup = this.state.selectedGroup;
         var selectedtype = this.state.selectedType;
         var selectedrank = this.state.selectedRank;
-        for (var i=0;i < selectedgroup.length; i++) {
+        var selectedOwtfRank = this.state.selectedOwtfRank;
+        var selectedStatus = this.state.selectedStatus;
+        var selectedMapping = this.state.selectedMapping;
+        for (var i = 0; i < selectedgroup.length; i++) {
             url = url + "plugin_group=" + selectedgroup[i] + "&";
         }
-        for (var i=0;i < selectedtype.length; i++) {
+        for (var i = 0; i < selectedtype.length; i++) {
             url = url + "plugin_type=" + selectedtype[i] + "&";
         }
-        for (var i=0;i < selectedrank.length; i++) {
+        for (var i = 0; i < selectedrank.length; i++) {
             url = url + "user_rank=" + selectedrank[i] + "&";
         }
+        for (var i = 0; i < selectedOwtfRank.length; i++) {
+            url = url + "owtf_rank=" + selectedOwtfRank[i] + "&";
+        }
+        for (var i = 0; i < selectedStatus.length; i++) {
+            url = url + "status=" + selectedStatus[i] + "&";
+        }
+        url = url + "mapping=" + selectedMapping + "&";
         $.get(url, function(result) {
             this.setState({pluginNameData: result});
             Object.keys(result).forEach(function(key, index) {
@@ -235,6 +299,8 @@ class Report extends React.Component {
                         <SideFilters/>
                     </div>
                     <div className="col-sm-10 col-md-10 col-lg-10">
+                        <Toolbar/>
+                        <br/>
                         <Accordians/>
                     </div>
                 </div>
@@ -255,7 +321,9 @@ Report.childContextTypes = {
     deletePluginOutput: React.PropTypes.func,
     postToWorkList: React.PropTypes.func,
     handlePluginBtnOnAccordian: React.PropTypes.func,
-    updateFilter: React.PropTypes.func
+    updateFilter: React.PropTypes.func,
+    updateReport: React.PropTypes.func,
+    clearFilters: React.PropTypes.func
 };
 
 export default Report;
