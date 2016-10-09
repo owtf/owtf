@@ -1,6 +1,8 @@
 import os
 import json
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import PluginOutputInterface
 from framework.db.target_manager import target_required
@@ -206,7 +208,11 @@ class POutputDB(BaseComponent, PluginOutputInterface):
                 self.plugin_handler.GetPluginOutputDir(plugin)) else None),
             owtf_rank=plugin['owtf_rank'])
         )
-        self.db.session.commit()
+        try:
+            self.db.session.commit()
+        except SQLAlchemyError as e:
+            self.db.session.rollback()
+            raise e
 
     @target_required
     def SavePartialPluginOutput(self, plugin, output, message, target_id=None):
@@ -226,7 +232,11 @@ class POutputDB(BaseComponent, PluginOutputInterface):
                 self.plugin_handler.GetPluginOutputDir(plugin)) else None),
             owtf_rank=plugin['owtf_rank'])
         )
-        self.db.session.commit()
+        try:
+            self.db.session.commit()
+        except SQLAlchemyError as e:
+            self.db.session.rollback()
+            raise e
 
     def GetSeverityFrequency(self):
         severity_frequency = [
