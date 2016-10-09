@@ -4,13 +4,14 @@ The PluginHandler is in charge of running all plugins taking into account the
 chosen settings.
 """
 
+import os
 import imp
 import logging
+from collections import defaultdict
 
 from ptp import PTP
 from ptp.libptp.constants import UNKNOWN
 from ptp.libptp.exceptions import PTPError
-from sqlalchemy.exc import SQLAlchemyError
 
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import PluginHandlerInterface
@@ -357,14 +358,10 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             plugin['status'] = status_msg
             plugin['end'] = self.timer.get_end_date_time('Plugin')
             plugin['owtf_rank'] = self.rank_plugin(output, self.GetPluginOutputDir(plugin))
-            try:
-                if status_msg == 'Successful':
-                    self.plugin_output.SavePluginOutput(plugin, output)
-                else:
-                    self.plugin_output.SavePartialPluginOutput(plugin, partial_output, abort_reason)
-            except SQLAlchemyError as e:
-                logging.error("Exception occurred while during database transaction : \n%s", str(e))
-                output += str(e)
+            if status_msg == 'Successful':
+                self.plugin_output.SavePluginOutput(plugin, output)
+            else:
+                self.plugin_output.SavePartialPluginOutput(plugin, partial_output, abort_reason)
             if status_msg == 'Aborted':
                 self.error_handler.UserAbort('Plugin')
             if abort_reason == 'Framework Aborted':
