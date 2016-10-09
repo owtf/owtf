@@ -7,12 +7,12 @@ in order to run third party tools
 from collections import defaultdict
 import signal
 import subprocess
+import os
 import logging
 
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ShellInterface
 from framework.lib.general import *
-from sqlalchemy.exc import SQLAlchemyError
 
 
 class Shell(BaseComponent, ShellInterface):
@@ -128,11 +128,8 @@ class Shell(BaseComponent, ShellInterface):
             Cancelled = True
             Output += self.error_handler.UserAbort('Command', Output)  # Identify as Command Level abort
         finally:
-            try:
-                self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
-            except SQLAlchemyError as e:
-                logging.error("Exception occurred while during database transaction : \n%s", str(e))
-                Output += str(e)
+            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
+
         return scrub_output(Output)
 
     def shell_exec(self, Command, **kwds):  # Mostly used for internal framework commands

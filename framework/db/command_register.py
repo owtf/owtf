@@ -3,8 +3,6 @@
 Component to handle data storage and search of all commands run
 '''
 
-from sqlalchemy.exc import SQLAlchemyError
-
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import CommandRegisterInterface
 from framework.db import models
@@ -36,11 +34,7 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
             modified_command=Command['ModifiedCommand'].strip(),
             original_command=Command['OriginalCommand'].strip()
         ))
-        try:
-            self.db.session.commit()
-        except SQLAlchemyError as e:
-            self.db.session.rollback()
-            raise e
+        self.db.session.commit()
 
     def DeleteCommand(self, Command):
         command_obj = self.db.session.query(models.Command).get(Command)
