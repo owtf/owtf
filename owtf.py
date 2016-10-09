@@ -221,6 +221,9 @@ def main(args):
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
     owtf_pid = os.getpid()
+    if "--build-react" in args[1:]:
+        build_react_bundle(root_dir)
+
     if "--update" not in args[1:]:
         try:
             ComponentInitialiser.initialisation_phase_1(root_dir, owtf_pid)
@@ -238,7 +241,6 @@ def main(args):
                 ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
                 ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
         )
-        build_react_bundle(root_dir)
         run_owtf(core, args)
     else:
         # First confirming that --update flag is present in args and then
