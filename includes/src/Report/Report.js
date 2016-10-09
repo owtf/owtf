@@ -4,6 +4,7 @@ import Header from './Header';
 import SideFilters from './SideFilters';
 import Accordians from './Accordians';
 import Toolbar from './Toolbar';
+import { Notification } from 'react-notification';
 
 class Report extends React.Component {
 
@@ -23,7 +24,9 @@ class Report extends React.Component {
             selectedRank: [],
             selectedOwtfRank: [],
             selectedMapping: "",
-            selectedStatus: []
+            selectedStatus: [],
+            snackbarOpen: false,
+            alertMessage: ""
         };
 
         this.updateReport = this.updateReport.bind(this);
@@ -34,6 +37,8 @@ class Report extends React.Component {
         this.handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian.bind(this);
         this.updateFilter = this.updateFilter.bind(this);
         this.clearFilters = this.clearFilters.bind(this);
+        this.handleSnackBarRequestClose = this.handleSnackBarRequestClose.bind(this);
+        this.alert = this.alert.bind(this);
     };
 
     getChildContext() {
@@ -197,6 +202,7 @@ class Report extends React.Component {
     patchUserRank(group, type, code, user_rank) {
         var target_id = document.getElementById("report").getAttribute("data-code");
         var presentState = this.state.pluginData;
+        var alert = this.alert;
         $.ajax({
             url: TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code,
             type: 'PATCH',
@@ -204,7 +210,7 @@ class Report extends React.Component {
                 "user_rank": user_rank
             },
             error: function(xhr, textStatus, serverResponse) {
-                console.log("Server replied: " + serverResponse);
+                alert.call(this, "Server replied: " + serverResponse);
             }.bind(this)
         });
         var item = presentState[code];
@@ -229,15 +235,16 @@ class Report extends React.Component {
     postToWorkList(selectedPluginData, force_overwrite) {
         selectedPluginData["id"] = document.getElementById("report").getAttribute("data-code");
         selectedPluginData["force_overwrite"] = force_overwrite;
+        var alert = this.alert;
         $.ajax({
             url: WORKLIST_API_URI,
             type: 'POST',
             data: $.param(selectedPluginData, true),
             success: function(data) {
-                console.log("Selected plugins launched, please check worklist to manage :D");
+                alert.call(this, "Selected plugins launched, please check worklist to manage :D");
             },
             error: function(xhr, textStatus, serverResponse) {
-                console.log("Server replied: " + serverResponse);
+                alert.call(this, "Server replied: " + serverResponse);
             }
         });
     };
@@ -245,15 +252,16 @@ class Report extends React.Component {
     deletePluginOutput(group, type, code) {
         var target_id = document.getElementById("report").getAttribute("data-code");
         var updateReport = this.updateReport;
+        var alert = this.alert;
         $.ajax({
             url: TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code,
             type: 'DELETE',
             success: function() {
-                console.log("Deleted plugin output for " + type + "@" + code);
+                alert.call(this, "Deleted plugin output for " + type + "@" + code);
                 updateReport();
             },
             error: function(xhr, textStatus, serverResponse) {
-                console.log("Server replied: " + serverResponse);
+                alert.call(this, "Server replied: " + serverResponse);
             }
         });
     };
@@ -266,6 +274,14 @@ class Report extends React.Component {
         }, function() {
             $('#' + key).collapse('show');
         });
+    };
+
+    alert(message) {
+        this.setState({snackbarOpen: true, alertMessage: message});
+    };
+
+    handleSnackBarRequestClose() {
+        this.setState({snackbarOpen: false, alertMessage: ""});
     };
 
     /* Making an AJAX request on source property */
@@ -304,6 +320,7 @@ class Report extends React.Component {
                         <Accordians/>
                     </div>
                 </div>
+                <Notification isActive={this.state.snackbarOpen} message={this.state.alertMessage} action="close" dismissAfter={5000} onClick={this.handleSnackBarRequestClose}/>
             </div>
         );
     }
