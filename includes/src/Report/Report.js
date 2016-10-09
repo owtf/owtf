@@ -4,7 +4,7 @@ import Header from './Header';
 import SideFilters from './SideFilters';
 import Accordians from './Accordians';
 import Toolbar from './Toolbar';
-import { Notification } from 'react-notification';
+import {Notification} from 'react-notification';
 
 class Report extends React.Component {
 

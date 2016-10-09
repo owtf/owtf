@@ -26,6 +26,12 @@ class Header extends React.Component {
         return localMax;
     };
 
+    returnToTopHandler() {
+        $('body,html').animate({
+            scrollTop: 0 // Scroll to top of body
+        }, 500);
+    }
+
     render() {
         var localMax = this.getLocalRank.call(this);
         return (
@@ -41,7 +47,7 @@ class Header extends React.Component {
                 </ul>
 
                 {/* Scroll to top */}
-                <a href="javascript:" id="return-to-top">
+                <a href="#" onClick={this.returnToTopHandler.bind(this)} id="return-to-top">
                     <i className="fa fa-chevron-up"></i>
                 </a>
                 {/* End of scroll to top */}

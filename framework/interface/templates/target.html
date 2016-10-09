@@ -63,5 +63,24 @@
     function clickAllButtons(elem) {
         $(elem).closest('table').find('button.individualSearchButton').trigger('click');
     }
+
+    // Keep moving the plugin group nav with scroll to make it in sync with report and handling visibility of scroll to top button
+    $(window).scroll(function(){
+        // Do not do in mobile phones
+        if(!(/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
+            var y = 200;
+            if (y <= $(window).scrollTop()) {
+                $("#plugin_nav").css({"marginTop": ($(window).scrollTop())-200 + "px"});
+            } else {
+                $("#plugin_nav").css({"marginTop": "0px"});
+            }
+        }
+
+        if ($(this).scrollTop() >= 50) {        // If page is scrolled more than 50px
+            $('#return-to-top').fadeIn(200);    // Fade in the arrow
+        } else {
+            $('#return-to-top').fadeOut(200);   // Else fade out the arrow
+        }
+    });
 </script>
 {% end %}

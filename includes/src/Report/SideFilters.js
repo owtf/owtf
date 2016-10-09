@@ -9,7 +9,7 @@ class SideFilters extends React.Component {
         var groups = ['web', 'network', 'auxilary'];
         var type = ['semi_passive', 'active', 'bruteforce', 'external', 'grep', 'passive'];
         return (
-            <div>
+            <div id="plugin_nav">
                 {/* Plugin group and type filter */}
                 <strong>Plugin Group</strong><br/><br/>
                 <ul className="nav nav-pills nav-stacked">
