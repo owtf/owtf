@@ -198,16 +198,12 @@ function displayWorkersInfo(){
                             html += '<p><strong>Group:</strong> '+obj.work[1].group+'</p>';
                         }
                         html += '<p style="display:inline"><strong>Logs: </strong>';
-                        var lines = getWorkerLog(obj.id,"all").split("<br/>").length - 1;
-                        if (lines>0) {
-
-                            html += '<div class="btn-group"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Lines <span class="caret"></span></button><ul class="dropdown-menu scrollable-menu" role="menu">'
-                            html += '<li><a class="logTab href="#" onclick=openLogModal(' + obj.id.toString() + ',' + '-1' + ')>' + "All" + '</a></li>';
-                            for(i=1;i < lines+1;i++){
-                                html += '<li><a class="logTab href="#" onclick=openLogModal(' + obj.id.toString() + ',' + i.toString() + ')>' + i + '</a></li>';
-                            }
-                            html += '</ul></div>'
+                        html += '<div class="btn-group"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Lines <span class="caret"></span></button><ul class="dropdown-menu scrollable-menu" role="menu">'
+                        html += '<li><a class="logTab href="#" onclick=openLogModal(' + obj.id.toString() + ',' + '-1' + ')>' + "All" + '</a></li>';
+                        for(i=1;i < 10;i++){
+                            html += '<li><a class="logTab href="#" onclick=openLogModal(' + obj.id.toString() + ',' + i.toString() + ')>' + i + '</a></li>';
                         }
+                        html += '</ul></div>'
                         html += getWorkerLog(obj.id,2) + '</p>';
                         html += '</div>';
                         html += '</div>';
