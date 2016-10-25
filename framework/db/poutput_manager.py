@@ -142,15 +142,15 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         Useful for advanced filter
         """
         unique_data = {
-            "plugin_type": [str(i[0]) for i in self.db.session.query(models.PluginOutput.plugin_type).filter_by(
+            "plugin_type": [i[0] for i in self.db.session.query(models.PluginOutput.plugin_type).filter_by(
                 target_id=target_id).distinct().all()],
-            "plugin_group": [str(i[0]) for i in self.db.session.query(models.PluginOutput.plugin_group).filter_by(
+            "plugin_group": [i[0] for i in self.db.session.query(models.PluginOutput.plugin_group).filter_by(
                 target_id=target_id).distinct().all()],
-            "status": [str(i[0]) for i in self.db.session.query(models.PluginOutput.status).filter_by(
+            "status": [i[0] for i in self.db.session.query(models.PluginOutput.status).filter_by(
                 target_id=target_id).distinct().all()],
-            "user_rank": [str(i[0]) for i in self.db.session.query(models.PluginOutput.user_rank).filter_by(
+            "user_rank": [i[0] for i in self.db.session.query(models.PluginOutput.user_rank).filter_by(
                 target_id=target_id).distinct().all()],
-            "owtf_rank": [str(i[0]) for i in self.db.session.query(models.PluginOutput.owtf_rank).filter_by(
+            "owtf_rank": [i[0] for i in self.db.session.query(models.PluginOutput.owtf_rank).filter_by(
                 target_id=target_id).distinct().all()],
         }
         return unique_data
