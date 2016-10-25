@@ -6,12 +6,7 @@ class RankButtons extends React.Component {
         var obj = this.props.obj;
         var user_rank = obj['user_rank'];
         var owtf_rank = obj['owtf_rank'];
-        if (user_rank in[0,
-            1,
-            2,
-            3,
-            4,
-            5]) {
+        if (user_rank in [0, 1, 2, 3, 4, 5]) {
             return (
                 <div className="btn-group">
                     <button type="button" className={user_rank === 0
