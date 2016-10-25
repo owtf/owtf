@@ -46,7 +46,8 @@ class Collapse extends React.Component {
                                             <small>{obj['plugin_code']}</small>
                                         </blockquote>
                                     </div>
-                                    <div className="pull-right" data-toggle="buttons">
+                                    <div data-toggle="buttons">
+                                        <br/>
                                         <RankButtons obj={obj}/>
                                     </div>
                                     <br/>
