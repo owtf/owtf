@@ -122,6 +122,9 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         results = query.all()
         return self.DeriveOutputDicts(results, target_id=target_id)
 
+    # So with the help of this method what we are doing here,
+    # On loading the target page, it only requests for the names of plugins then after it completes we fetch the data for every plugin.
+    # This way we are optimising the report by breaking the request in several parts.
     @target_required
     def GetAllPluginNames(self, filter_data=None, target_id=None):
         if not filter_data:
