@@ -6,7 +6,7 @@ class SideFilters extends React.Component {
         var updateFilter = this.context.updateFilter;
         var selectedGroup = this.context.selectedGroup;
         var selectedType = this.context.selectedType;
-        var groups = ['web', 'network', 'auxilary'];
+        var groups = ['web', 'network', 'auxiliary'];
         var type = ['semi_passive', 'active', 'bruteforce', 'external', 'grep', 'passive'];
         return (
             <div id="plugin_nav">
