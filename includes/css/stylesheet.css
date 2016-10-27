@@ -66,6 +66,20 @@ body {
     text-decoration: none;
 }
 
+.btn-unranked {
+    color: #fff;
+    background-color: #A4A2A1;
+    border-color: #6D6C6C;
+    text-decoration: none;
+}
+
+.btn-unranked:active, .btn-unranked:hover {
+    color: #fff;
+    background-color: #A4A2A1;
+    border-color: #6D6C6C;
+    text-decoration: none;
+}
+
 .panel-passing > .panel-heading, .alert-passing, .label-passing, .btn-passive:active, .btn-passing.active {
     background-image: linear-gradient(to bottom, #76746D 0px, #67655D 100%);
     background-repeat: repeat-x;

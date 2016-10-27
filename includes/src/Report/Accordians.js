@@ -38,6 +38,7 @@ class Accordians extends React.Component {
                     }
                     return (
                         <div className={(() => {
+                            console.log(key);
                             if (key in pluginData) {
                                 if (testCaseMax == 0)
                                     return "panel panel-passing";
@@ -70,20 +71,20 @@ class Accordians extends React.Component {
                                                                 <button onClick={handlePluginBtnOnAccordian.bind(this, key, obj['plugin_type'])} key={key + obj['plugin_type'].split('_').join(' ')} className={(() => {
                                                                     if (key in pluginData) {
                                                                         if (testCaseMax == 0)
-                                                                            return "plugin_type_acc btn btn-default";
+                                                                            return "btn btn-default";
                                                                         else if (testCaseMax === 1)
-                                                                            return "plugin_type_acc btn btn-success";
+                                                                            return "btn btn-success";
                                                                         else if (testCaseMax === 2)
-                                                                            return "plugin_type_acc btn btn-info";
+                                                                            return "btn btn-info";
                                                                         else if (testCaseMax === 3)
-                                                                            return "plugin_type_acc btn btn-warning";
+                                                                            return "btn btn-warning";
                                                                         else if (testCaseMax === 4)
-                                                                            return "plugin_type_acc btn btn-danger";
+                                                                            return "btn btn-danger";
                                                                         else if (testCaseMax === 5)
-                                                                            return "plugin_type_acc btn btn-critical";
-                                                                        return "plugin_type_acc btn";
+                                                                            return "btn btn-critical";
+                                                                        return "btn btn-unranked";
                                                                     } else {
-                                                                        return "plugin_type_acc btn";
+                                                                        return "btn";
                                                                     }
                                                                 })()} style={{
                                                                     marginTop: "23px"
