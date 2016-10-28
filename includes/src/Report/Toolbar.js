@@ -111,8 +111,10 @@ class Toolbar extends React.Component {
                                 {Object.keys(adv_filter_data).map(function(key) {
                                     if (key === 'mapping') {
                                         return (
-                                            <div key={key}>
-                                                <label className="text-capitalize">{key.split('_').join(' ') + " : "}</label>
+                                            <div className="row" key={key}>
+                                                <div className="col-md-2">
+                                                    <label className="text-capitalize">{key.split('_').join(' ') + ": "}</label>
+                                                </div>
                                                 {adv_filter_data[key].map(function(obj) {
                                                     return (
                                                         <label className="radio-inline" key={obj}>
@@ -126,14 +128,18 @@ class Toolbar extends React.Component {
 
                                     } else {
                                         return (
-                                            <div key={key}>
-                                                <label className="text-capitalize">{key.split('_').join(' ') + ": "}</label>
+                                            <div className="row" key={key}>
+                                                <div className="col-md-2">
+                                                    <label className="text-capitalize">{key.split('_').join(' ') + ": "}</label>
+                                                </div>
                                                 {adv_filter_data[key].map(function(obj) {
-                                                    return (
-                                                        <label className="checkbox-inline" key={obj}>
-                                                            <input type="checkbox" className="filterCheckbox" onChange={updateFilter.bind(this, key, obj)}/> {obj}
-                                                        </label>
-                                                    );
+                                                    if (obj !== '') {
+                                                        return (
+                                                            <label className="checkbox-inline" key={obj}>
+                                                                <input type="checkbox" className="filterCheckbox" onChange={updateFilter.bind(this, key, obj)}/> {obj}
+                                                            </label>
+                                                        );
+                                                    }
                                                 })}
                                                 <hr/>
                                             </div>
