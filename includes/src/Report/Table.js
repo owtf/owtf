@@ -5,6 +5,7 @@ class Table extends React.Component {
 
     patchUserNotes(group, type, code, user_notes) {
         var target_id = document.getElementById("report").getAttribute("data-code");
+        var alert = this.context.alert;
         $.ajax({
             url: TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code,
             type: 'PATCH',
@@ -12,7 +13,7 @@ class Table extends React.Component {
                 "user_notes": user_notes
             },
             error: function(xhr, textStatus, serverResponse) {
-                console.log("Server replied: " + serverResponse);
+                alert.call(this, "Server replied: " + serverResponse);
             }.bind(this)
         });
     };
@@ -22,17 +23,14 @@ class Table extends React.Component {
         var editorRef = "editor_" + group + "_" + type + "_" + code;
         var instance = this.refs[editorRef];
         var editorArea = $(instance).closest('table').find('.editor');
-        console.log(editorArea);
         var patchUserNotes = this.patchUserNotes;
         try {
             var editor = editorArea.ckeditorGet(); // This line generates error if editor not found
-            console.log(editor);
             patchUserNotes.call(this, group, type, code, editorArea.val());
             editor.destroy();
             editorArea.css("display", "None");
         } catch (err) {
             $.getJSON(TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code, function(data) {
-                console.log(data);
                 editorArea.val(data.user_notes);
                 editorArea.ckeditor();
             });
@@ -165,7 +163,8 @@ class Table extends React.Component {
 
 Table.contextTypes = {
     deletePluginOutput: React.PropTypes.func,
-    postToWorkList: React.PropTypes.func
+    postToWorkList: React.PropTypes.func,
+    alert: React.PropTypes.func
 };
 
 export default Table;

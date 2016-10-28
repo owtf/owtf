@@ -340,7 +340,8 @@ Report.childContextTypes = {
     handlePluginBtnOnAccordian: React.PropTypes.func,
     updateFilter: React.PropTypes.func,
     updateReport: React.PropTypes.func,
-    clearFilters: React.PropTypes.func
+    clearFilters: React.PropTypes.func,
+    alert: React.PropTypes.func
 };
 
 export default Report;

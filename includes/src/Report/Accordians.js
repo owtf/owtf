@@ -38,7 +38,6 @@ class Accordians extends React.Component {
                     }
                     return (
                         <div className={(() => {
-                            console.log(key);
                             if (key in pluginData) {
                                 if (testCaseMax == 0)
                                     return "panel panel-passing";
