@@ -124,6 +124,22 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         results = query.all()
         return self.DeriveOutputDicts(results, target_id=target_id)
 
+    # So with the help of this method what we are doing here,
+    # On loading the target page, it only requests for the names of plugins then after it completes we fetch the data for every plugin.
+    # This way we are optimising the report by breaking the request in several parts.
+    @target_required
+    def GetAllPluginNames(self, filter_data=None, target_id=None):
+        if not filter_data:
+            filter_data = {}
+        self.target.SetTarget(target_id)
+        query = self.GenerateQueryUsingSession(filter_data, target_id)
+        results = query.all()
+        dict_list = []
+        for obj in results:
+            pdict = dict(obj.__dict__)
+            dict_list.append(str(pdict['plugin_code']));
+        return dict_list
+
     @target_required
     def GetUnique(self, target_id=None):
         """

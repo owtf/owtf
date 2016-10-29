@@ -16,112 +16,7 @@
 {% end %}
 
 {% block content %}
-<!-- BreadCrumb -->
-<ul class="breadcrumb">
-    <li><a href="/">Home</a></li>
-    <li><a href="{{ targets_ui_url }}">Target</a></li>
-    <li class="active" id="breadCrumbTarget"></li>
-</ul>
-
-<!-- Scroll to top -->
-<a href="javascript:" id="return-to-top"><i class="fa fa-chevron-up"></i></a>
-<!-- End of ccroll to top -->
-
-<!-- Target INFO display, populated using JS and OWTF Sweet API -->
-<div class="col-md-10 col-md-offset-2">
-    <div class="page-header">
-        <div class="row">
-            <div class="col-md-8">
-                <h2 style="word-wrap: break-word;" id="TargetInfo"></h2>
-            </div>
-            <div class="col-md-4">
-                <h3 id="rankingTargetInfo"></h3>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- End Target INFO -->
-
-<br />
-
-<!-- Plugin outputs loaded by JS and refreshed automatically -->
-<div class="row">
-      <!-- Plugin group and type filter -->
-      <div class="col-sm-2 col-md-2 col-lg-2" id="plugin_nav">
-          <strong>Plugin Group</strong><br/><br/>
-          <ul class="nav nav-pills nav-stacked" id="plugin_group_nav">
-              <li role="presentation" class="plugin_filter_tab active" data-group="all" data-tab="group"><a href="#" data-toggle="tab">All</a></li>
-              <li role="presentation" class="plugin_filter_tab" data-group="web" data-tab="group"><a href="#" data-toggle="tab">Web</a></li>
-              <li role="presentation" class="plugin_filter_tab" data-group="network" data-tab="group"><a href="#" data-toggle="tab">Network</a></li>
-              <li role="presentation" class="plugin_filter_tab" data-group="auxilary" data-tab="group"><a href="#" data-toggle="tab">Auxilary</a></li>
-          </ul>
-          <br>
-          <strong>Plugin Types</strong><br/><br/>
-          <ul class="nav nav-pills nav-stacked" id="plugin_type_nav">
-              <li role="presentation" class="plugin_filter_tab active" data-type="all" data-tab="type"><a href="#" data-toggle="tab">All</a></li>
-              <li role="presentation" class="plugin_filter_tab" data-type="semi_passive" data-tab="type"><a href="#" data-toggle="tab">Semi Passive</a></li>
-              <li role="presentation" class="plugin_filter_tab" data-type="active" data-tab="type"><a href="#" data-toggle="tab">Active</a></li>
-              <li role="presentation" class="plugin_filter_tab" data-type="bruteforce" data-tab="type"><a href="#" data-toggle="tab">Bruteforce</a></li>
-              <li role="presentation" class="plugin_filter_tab" data-type="external" data-tab="type"><a href="#" data-toggle="tab">External</a></li>
-              <li role="presentation" class="plugin_filter_tab" data-type="grep" data-tab="type"><a href="#" data-toggle="tab">Grep</a></li>
-              <li role="presentation" class="plugin_filter_tab" data-type="passive" data-tab="type"><a href="#" data-toggle="tab">Passive</a></li>
-          </ul>
-      </div>
-      <!-- Toolbar -->
-      <div class="col-sm-10 col-md-10 col-lg-10">
-        <div class="target-toolbar">
-            <ul class="target-tools">
-                <li class="tool">
-                    <a href="#" data-toggle="modal" data-target="#pluginOutputFilterModal">
-                        <i class="fa fa-filter" aria-hidden="true"></i> Filter
-                    </a>
-                </li>
-                <li class="tool">
-                    <a onclick="updatePluginReport();" href="#">
-                        <i class="fa fa-refresh" aria-hidden="true"></i> Refresh
-                    </a>
-                </li>
-                <li class="tool">
-                    <a href="#" data-toggle="modal" data-target="#pluginLaunchModal">
-                        <i class="fa fa-bolt" aria-hidden="true"></i> Run Plugins
-                    </a>
-                </li>
-                <li class="tool">
-                    <a href="#" onclick="loadSessionManager();">
-                        <i class="fa fa-flag" aria-hidden="true"></i> User Sessions
-                    </a>
-                </li>
-            </ul>
-        </div>
-        <div class="tool-colorbar">
-            <span class="tool-color" style="background-color:#3572A5;"></span>
-            <span class="tool-color" style="background-color:#e44b23;"></span>
-            <span class="tool-color" style="background-color:#89e051;"></span>
-            <span class="tool-color" style="background-color:#f1e05a;"></span>
-        </div>
-        <!-- Severity Filter -->
-        <div class="severity-filter">
-            <br/>
-            <ul class="nav nav-pills" id="plugin_severity_nav">
-                <li role="presentation" class="plugin_filter_tab active" data-tab="severity" data-severity="-2"><a href="#" data-toggle="tab">All</a></li>
-                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="-1"><a href="#" data-toggle="tab">Unranked</a></li>
-                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="0"><a href="#" data-toggle="tab">Passing</a></li>
-                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="1"><a href="#" data-toggle="tab">Info</a></li>
-                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="2"><a href="#" data-toggle="tab">Low</a></li>
-                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="3"><a href="#" data-toggle="tab">Medium</a></li>
-                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="4"><a href="#" data-toggle="tab">High</a></li>
-                <li role="presentation" class="plugin_filter_tab" data-tab="severity" data-severity="5"><a href="#" data-toggle="tab">Critical</a></li>
-            </ul>
-        </div>
-        <br/>
-        <div class="row-fluid" id="pluginReport"></div>
-    </div>
-</div>
-
-
-    <!-- Plugin outputs grouped by test code -->
-</div>
-<!-- End Plugin Outputs -->
+<div id="report" data-code="{{ target_id }}"></div>
 
 <!-- Plugin launcher template -->
 {% module Template("plugin_launcher.html",
@@ -130,252 +25,62 @@
     worklist_post_func="postToWorkList") %}
 <!-- End plugin launcher template -->
 
-<!-- Begin Plugin Output Filter Modal -->
-<div class="modal fade" id="pluginOutputFilterModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title" id="pluginOutputFilterModalLabel">Advanced Filter</h4>
-      </div>
-      <div class="modal-body" id="pluginOutputFilterModalBody">
-            {% for filter_type in adv_filter_data.keys() %}
-                <label for="name">{{ filter_type.replace("_", " ").capitalize() }}</label>
-                {% if filter_type == 'mapping'  %}
-                    <div>
-                        {% for data in sorted(adv_filter_data[filter_type]) %}
-                            {% if data %}
-                               <label class="radio-inline">
-                                  <input type="radio" class="filterCheckbox" name="mapping" onchange="modifyMapping(this, '{{ filter_type }}', '{{ data }}');"> {{ data }}
-                               </label>
-                            {% end %}
-                        {% end %}
-                        <label class="radio-inline">
-                            <input type="radio" class="filterCheckbox" name="mapping" onchange="modifyMapping(this, '{{ filter_type }}', '{{ "" }}');" checked> OWTF
-                        </label>
-                    </div>
-                {% else %}
-                    <div>
-                        {% for data in sorted(adv_filter_data[filter_type]) %}
-                            {% if data %}
-                               <label class="checkbox-inline">
-                                  <input type="checkbox" class="filterCheckbox" onchange="modifyFilter(this, '{{ filter_type }}', '{{ data }}');"> {{ data }}
-                               </label>
-                            {% end %}
-                        {% end %}
-                    </div>
-                {% end %}
-                <hr>
-            {% end %}
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-danger" onclick="clearFilters();" data-dismiss="modal" aria-hidden="true">Clear Filters!</button>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- End Plugin Output Filter Modal -->
-
 <script>
-// All api urls needed for calls, these are provided by the server
-var mySpace = {
-                    target_api_url:"{{ target_api_url }}",
-                    targets_ui_url:"{{ targets_ui_url }}",
-                    poutput_ui_url:"{{ poutput_ui_url }}",
-                    filter_data:{},
-                    plugins_api_url:"{{ plugins_api_url }}?group=web&group=network",
-                    worklist_api_url:"{{ worklist_api_url }}",
-                    transaction_log_url:"{{ transaction_log_url }}",
-                    url_log_url:"{{ url_log_url }}",
-                    target_config:{},
-                    sessions_ui_url: "{{ sessions_ui_url }}"
-                  };
+    var mySpace = {
+        target_id: "{{ target_id}}",
+        worklist_api_url: "{{ worklist_api_url }}",
+        plugins_api_url: "{{ plugins_api_url }}?group=web&group=network",
+        adv_filter_data: "{{ adv_filter_data }}",
+        sessions_ui_url: "{{ sessions_ui_url }}"
+    };
 
-function clearFilters() {
-    mySpace.filter_data = {};
-    $(".filterCheckbox").attr("checked", false);
-}
-
-function modifyFilter(checkbox, filter_type, data){
-    if (typeof mySpace.filter_data[filter_type] === 'undefined') {
-        mySpace.filter_data[filter_type] = [];
+    // Close the modal when plugins are launched successfully
+    function pluginLaunchSuccess() {
+        $('#pluginLaunchModal').modal('hide');
+        alertSuccess("Selected plugins launched, please check worklist to manage :D");
     }
-    if (checkbox.checked && (mySpace.filter_data[filter_type].indexOf(data) == -1)) {
-        mySpace.filter_data[filter_type].push(data);
-    } else if ((!checkbox.checked) && (mySpace.filter_data[filter_type].indexOf(data) > -1)) {
-        mySpace.filter_data[filter_type].splice(mySpace.filter_data[filter_type].indexOf(data), 1);
-    }
-}
 
-function modifyMapping(radio, filter_type, data){
-    if (typeof mySpace.filter_data[filter_type] === 'undefined') {
-       mySpace.filter_data[filter_type] = [];
-    }
-    if (radio.checked) {
-        mySpace.filter_data[filter_type] = [data];
-    }
-}
-
-//Launch user sessions manager
-function loadSessionManager(){
-    window.location.href = mySpace.sessions_ui_url;
-}
-
-// For loading plugin report, JS fetches the html and places it at designated place
-function updatePluginReport(){
-    // Resetting all the filters
-    $("#plugin_type_nav > .active").first().removeClass('active');
-    $("#plugin_group_nav > .active").first().removeClass('active');
-    $("#plugin_severity_nav > .active").first().removeClass('active');
-    $("#plugin_severity_nav > li").first().addClass('active');
-    $("#plugin_group_nav > li").first().addClass('active');
-    $("#plugin_type_nav > li").first().addClass('active');
-    // Add the spinner, and when plugin report is fetched it is automatically removed
-    // since pluginReport is added as the html of the div
-    addOverlay('#pluginReport');
-    $.get(mySpace.poutput_ui_url+'?'+$.param(mySpace.filter_data, true), function(data){
-        removeOverlay('#pluginReport');
-        $('#pluginReport').html(data);
-    });
-}
-
-// Target info loaded using API, target_api_url is helpful for that
-function updateTargetAndBreadCrumbInfo(){
-    $.getJSON(mySpace.target_api_url, function(obj){
-            mySpace.target_config = obj;
-            $('#TargetInfo').html(obj.target_url+'<small> ('+obj.host_ip+')</small>');
-            $('#breadCrumbTarget').html(obj.target_url);
-    });
-}
-
-// Close the modal when plugins are launched successfully
-function pluginLaunchSuccess(){
-    $('#pluginLaunchModal').modal('hide');
-    alertSuccess("Selected plugins launched, please check worklist to manage :D");
-}
-
-// Main function that posts using API to launch plugins
-function postToWorkList(selectedPluginData, force_overwrite){
-    selectedPluginData["id"] = mySpace.target_config.id;
-    selectedPluginData["force_overwrite"] = force_overwrite;
-    $.ajax({
-            url:mySpace.worklist_api_url,
-            type:'POST',
-            data:$.param(selectedPluginData, true),
-            success:pluginLaunchSuccess,
-            error:function(xhr, textStatus, serverResponse){
-                alertFail("Server replied: "+serverResponse);
-                }
-            });
-}
-
-// Handling report update when plugin group nav is used
-function pluginFilterHandler() {
-    $('.plugin_filter_tab').click(function() {
-        var tab = $(this).attr('data-tab');
-        if (tab === "group") {
-            var plugin_group = $(this).attr('data-group');
-            var plugin_type = $("#plugin_type_nav > .active").first().attr('data-type');
-            var plugin_severity = $("#plugin_severity_nav > .active").first().attr('data-severity');
-        } else if (tab === "type"){
-            var plugin_type = $(this).attr('data-type');
-            var plugin_group = $("#plugin_group_nav > .active").first().attr('data-group');
-            var plugin_severity = $("#plugin_severity_nav > .active").first().attr('data-severity');
-        } else if (tab === "severity"){
-            var plugin_severity = $(this).attr('data-severity');
-            var plugin_group = $("#plugin_group_nav > .active").first().attr('data-group');
-            var plugin_type = $("#plugin_type_nav > .active").first().attr('data-type');
-        }
-        var url = mySpace.poutput_ui_url;
-        if (plugin_group !== "all") {
-            url = url + "?plugin_group=" + plugin_group + "&";
-        } else {
-            url = url + "?";
-        }
-
-        if (plugin_type !== "all") {
-            url = url + "plugin_type=" + plugin_type + "&";
-        }
-
-        if (plugin_severity !== "-2") {
-            url = url + "user_rank=" + plugin_severity;
-        }
-
-        addOverlay('#pluginReport');
-        $.get(url, function(data) {
-            removeOverlay('#pluginReport');
-            $('#pluginReport').html(data);
+    // Main function that posts using API to launch plugins
+    function postToWorkList(selectedPluginData, force_overwrite) {
+        selectedPluginData["id"] = mySpace.target_id;
+        selectedPluginData["force_overwrite"] = force_overwrite;
+        $.ajax({
+            url: mySpace.worklist_api_url,
+            type: 'POST',
+            data: $.param(selectedPluginData, true),
+            success: pluginLaunchSuccess,
+            error: function(xhr, textStatus, serverResponse) {
+                alertFail("Server replied: " + serverResponse);
+            }
         });
-    });
-}
+    }
 
-// Function Handling return  to top button at bottom
-function returnToTopHandler() {
-    $('#return-to-top').click(function() {      // When arrow is clicked
-        $('body,html').animate({
-            scrollTop : 0                       // Scroll to top of body
-        }, 500);
-    });
-}
+    // Function defined in poutput copied because react does not render script tag.
+    function getSearchString(elem) {
+        return $(elem).closest('table').find('input#searchString').val();
+    }
 
-// Function handling keyboard navigation
-function keyBoardNav() {
-    $(document).bind('keydown', function(event) {
-        // Toggle between plugin type using Ctrl + right, Ctrl + left
-        if( event.which === 39 && event.ctrlKey) {
-            var activeTab = $('.panel-collapse.collapse.in > .panel-body > ul > li.active');
-            if (activeTab.next().attr("class") === "") {
-                activeTab.removeClass( "active" );
-                activeTab.next().addClass( "active" );
-                var activeContentDiv = $('.panel-collapse.collapse.in > .panel-body > div.tab-content > div.tab-pane.active');
-                activeContentDiv.removeClass( "active" );
-                activeContentDiv.next().addClass( "active" );
+    function clickAllButtons(elem) {
+        $(elem).closest('table').find('button.individualSearchButton').trigger('click');
+    }
 
-            }
-        } else if (event.which === 37 && event.ctrlKey) {
-            var activeTab = $('.panel-collapse.collapse.in > .panel-body > ul > li.active');
-            if (activeTab.prev().attr("class") === "") {
-                activeTab.removeClass( "active" );
-                activeTab.prev().addClass( "active" );
-                var activeContentDiv = $('.panel-collapse.collapse.in > .panel-body > div.tab-content > div.tab-pane.active');
-                activeContentDiv.removeClass( "active" );
-                activeContentDiv.prev().addClass( "active" );
+    // Keep moving the plugin group nav with scroll to make it in sync with report and handling visibility of scroll to top button
+    $(window).scroll(function(){
+        // Do not do in mobile phones
+        if(!(/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
+            var y = 200;
+            if (y <= $(window).scrollTop()) {
+                $("#plugin_nav").css({"marginTop": ($(window).scrollTop())-200 + "px"});
+            } else {
+                $("#plugin_nav").css({"marginTop": "0px"});
             }
         }
-    });
-}
 
-// Keep moving the plugin group nav with scroll to make it in sync with report and handling visibility of scroll to top button
-$(window).scroll(function(){
-    // Do not do in mobile phones
-    if(!(/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
-        var y = 200;
-        if (y <= $(window).scrollTop()) {
-            $("#plugin_nav").css({"marginTop": ($(window).scrollTop())-200 + "px"});
+        if ($(this).scrollTop() >= 50) {        // If page is scrolled more than 50px
+            $('#return-to-top').fadeIn(200);    // Fade in the arrow
         } else {
-            $("#plugin_nav").css({"marginTop": "0px"});
+            $('#return-to-top').fadeOut(200);   // Else fade out the arrow
         }
-    }
-
-    if ($(this).scrollTop() >= 50) {        // If page is scrolled more than 50px
-        $('#return-to-top').fadeIn(200);    // Fade in the arrow
-    } else {
-        $('#return-to-top').fadeOut(200);   // Else fade out the arrow
-    }
-
-});
-
-// Initialize everything
-$(document).ready(function() {
-    $("#app").parent().attr('class', 'container-fluid'); // Making it full width container
-    updateTargetAndBreadCrumbInfo();  // The target and breadcrumb info is updated using API, kindof crazy but stable way since api is our main maintainance burden
-    updatePluginReport();  // Plugin report is updated using JS
-    $('#pluginOutputFilterModal').on('hidden.bs.modal', function () {
-      updatePluginReport();
     });
-    pluginFilterHandler();
-    returnToTopHandler();
-    keyBoardNav();
-});
 </script>
 {% end %}

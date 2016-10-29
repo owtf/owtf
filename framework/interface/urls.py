@@ -3,8 +3,8 @@ import tornado.web
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.interface import api_handlers, ui_handlers, custom_handlers
 
-
 def get_handlers():
+
     db_plugin = ServiceLocator.get_component("db_plugin")
     config = ServiceLocator.get_component("config")
     plugin_group_re = '(%s)?' % '|'.join(db_plugin.GetAllGroups())
@@ -32,6 +32,8 @@ def get_handlers():
         tornado.web.url(r'/api/targets/([0-9]+)/transactions/?([0-9]+)?/?$', api_handlers.TransactionDataHandler, name='transactions_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/transactions/search/?$', api_handlers.TransactionSearchHandler, name='transactions_search_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/poutput/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginOutputHandler, name='poutput_api_url'),
+        tornado.web.url(r'/api/targets/([0-9]+)/poutput/names/?', api_handlers.PluginNameOutput, name='plugin_name_api_url'),
+
         # The following one url is dummy and actually processed in file server
         tornado.web.url(r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', api_handlers.WorkerHandler, name='workers_api_url'),
         tornado.web.url(r'/api/worklist/?([0-9]+)?/?(pause|resume|delete)?/?$', api_handlers.WorklistHandler, name='worklist_api_url'),

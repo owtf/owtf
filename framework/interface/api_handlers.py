@@ -1,4 +1,5 @@
 import json
+import collections
 from StringIO import StringIO
 from BaseHTTPServer import BaseHTTPRequestHandler
 
@@ -41,6 +42,43 @@ class PluginDataHandler(custom_handlers.APIRequestHandler):
                 else:
                     raise tornado.web.HTTPError(400)
         except exceptions.InvalidTargetReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+
+
+class PluginNameOutput(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
+        try:
+            filter_data = dict(self.request.arguments)
+            #print filter_data
+            results = self.get_component("plugin_output").GetAllPluginNames(filter_data, target_id=int(target_id))
+            # Get mappings
+            if self.get_argument("mapping", None):
+                mappings = self.get_component("mapping_db").GetMappings(self.get_argument("mapping", None))
+            else:
+                mappings = None
+
+            ## Get test groups as well, for names and info links
+            test_groups = {}
+            for test_group in self.get_component("db_plugin").GetAllTestGroups():
+                if test_group['code'] in results:
+                    test_group["mapped_code"] = test_group["code"]
+                    test_group["mapped_descrip"] = test_group["descrip"]
+                    if mappings:
+                        try:
+                            test_group["mapped_code"] = mappings[test_group['code']][0]
+                            test_group["mapped_descrip"] = mappings[test_group['code']][1]
+                        except KeyError:
+                            pass
+                    test_groups[test_group['code']] = test_group
+            test_groups = collections.OrderedDict(sorted(test_groups.items()))
+            self.write(test_groups)
+        except exceptions.InvalidTargetReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
