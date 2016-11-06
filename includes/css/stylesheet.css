@@ -9,6 +9,11 @@
     src: url(../fonts/JosefinSans-SemiBold.ttf);
 }
 
+@font-face {
+    font-family: NotoSans;
+    src: url(../fonts/NotoSans-Regular.ttf);
+}
+
 /* severity buttons style */
 .sev-no {
 	color: #000;
@@ -28,7 +33,7 @@
 
 body {
         padding-top: 70px;
-				font-family: 'OpenSans', sans-serif;
+				font-family: 'NotoSans', sans-serif;
 }
 
 /* Used in plugin reports */
