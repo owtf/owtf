@@ -113,6 +113,15 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             raise InvalidParameterType("Integer has to be provided for integer fields")
         if not for_delete:
             query = query.order_by(models.PluginOutput.plugin_key.asc())
+        try:
+            if filter_data.get("offset", None):
+                if isinstance(filter_data.get("offset"), list):
+                    query = query.offset(int(filter_data["offset"][0]))
+            if filter_data.get("limit", None):
+                if isinstance(filter_data.get("limit"), list):
+                    query = query.limit(int(filter_data["limit"][0]))
+        except ValueError:
+            raise InvalidParameterType("Integer has to be provided for integer fields")
         return query
 
     @target_required
