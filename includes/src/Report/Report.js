@@ -49,6 +49,8 @@ class Report extends React.Component {
             selectedType: this.state.selectedType,
             selectedGroup: this.state.selectedGroup,
             selectedRank: this.state.selectedRank,
+            selectedOwtfRank: this.state.selectedOwtfRank,
+            selectedStatus: this.state.selectedStatus,
             pluginDataUpdate: this.pluginDataUpdate,
             patchUserRank: this.patchUserRank,
             deletePluginOutput: this.deletePluginOutput,
@@ -62,7 +64,7 @@ class Report extends React.Component {
         return context_obj;
     };
 
-    pluginDataUpdate(key) {
+    pluginDataUpdate(offset, pluginsCount) {
         var target_id = document.getElementById("report").getAttribute("data-code");
         var presentState = this.state.pluginData;
         var url = TARGET_API_URI + target_id + '/poutput/?';
@@ -72,7 +74,8 @@ class Report extends React.Component {
         var selectedOwtfRank = this.state.selectedOwtfRank;
         var selectedStatus = this.state.selectedStatus;
         var selectedMapping = this.state.selectedMapping;
-
+        var pluginDataUpdate = this.pluginDataUpdate;
+        var limit = 30;
         for (var i = 0; i < selectedgroup.length; i++) {
             url = url + "plugin_group=" + selectedgroup[i] + "&";
         }
@@ -89,11 +92,19 @@ class Report extends React.Component {
             url = url + "status=" + selectedStatus[i] + "&";
         }
         url = url + "mapping=" + selectedMapping + "&";
-        url = url + "plugin_code=" + key;
+        url = url + "offset=" + offset + "&" + "limit=" + limit.toString();
         $.get(url, function(result) {
-            presentState[key] = result;
-            presentState[key]['pactive'] = result[0].plugin_type;
+            for (var i=0;  i < result.length; i++) {
+              if (!presentState.hasOwnProperty(result[i].plugin_code)) {
+                  presentState[result[i].plugin_code] = [];
+                  presentState[result[i].plugin_code]['pactive'] = result[i].plugin_type;
+              }
+              presentState[result[i].plugin_code].push(result[i]);
+            }
             this.setState({pluginData: presentState});
+            if (result.length  === limit) {
+                pluginDataUpdate.call(this, offset+limit, pluginsCount);
+            }
         }.bind(this));
     };
 
@@ -193,9 +204,6 @@ class Report extends React.Component {
         url = url + "mapping=" + selectedMapping + "&";
         $.get(url, function(result) {
             this.setState({pluginNameData: result});
-            Object.keys(result).forEach(function(key, index) {
-                pluginDataUpdate(key);
-            });
         }.bind(this));
     };
 
@@ -230,6 +238,7 @@ class Report extends React.Component {
             presentState[code] = item;
             this.setState({pluginData: presentState});
         }
+        this.updateReport.call();
     };
 
     postToWorkList(selectedPluginData, force_overwrite) {
@@ -253,16 +262,27 @@ class Report extends React.Component {
         var target_id = document.getElementById("report").getAttribute("data-code");
         var updateReport = this.updateReport;
         var alert = this.alert;
+        var presentState = this.state.pluginData;
+        var pluginData = presentState[code];
+
         $.ajax({
             url: TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code,
             type: 'DELETE',
             success: function() {
                 alert.call(this, "Deleted plugin output for " + type + "@" + code);
+                for (var i=0; i < pluginData.length; i++) {
+                    if ((pluginData[i]['plugin_type'] === type) && (pluginData[i]['plugin_group'] === group)) {
+                        break;
+                    }
+                }
+                pluginData.splice(i, 1);
+                presentState[code] = pluginData;
+                this.setState({pluginData: presentState});
                 updateReport();
-            },
+            }.bind(this),
             error: function(xhr, textStatus, serverResponse) {
                 alert.call(this, "Server replied: " + serverResponse);
-            }
+            }.bind(this)
         });
     };
 
@@ -294,9 +314,7 @@ class Report extends React.Component {
 
         this.serverRequest2 = $.get(TARGET_API_URI + target_id + '/poutput/names/', function(result) {
             this.setState({pluginNameData: result});
-            Object.keys(result).forEach(function(key, index) {
-                pluginDataUpdate(key);
-            });
+            pluginDataUpdate(0, Object.keys(result).length);
         }.bind(this));
     };
 
@@ -333,6 +351,8 @@ Report.childContextTypes = {
     selectedType: React.PropTypes.array,
     selectedRank: React.PropTypes.array,
     selectedGroup: React.PropTypes.array,
+    selectedOwtfRank: React.PropTypes.array,
+    selectedStatus: React.PropTypes.array,
     pluginDataUpdate: React.PropTypes.func,
     patchUserRank: React.PropTypes.func,
     deletePluginOutput: React.PropTypes.func,
