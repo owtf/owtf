@@ -19,4 +19,4 @@ PyVirtualDisplay==0.2
 rdflib==4.2.1
 selenium==2.53.6
 SQLAlchemy==1.0.15
-tornado==4.4.1
+tornado==4.4.2
