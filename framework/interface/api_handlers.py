@@ -507,16 +507,12 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
     def get(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
         try:
             filter_data = dict(self.request.arguments)
-            if not plugin_group:  # First check if plugin_group is present in url
-                self.write(self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id)))
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group": plugin_group})
-                self.write(self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id)))
             if plugin_type and plugin_group and (not plugin_code):
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
-                self.write(self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id)))
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
@@ -525,11 +521,20 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                     "plugin_group": plugin_group,
                     "plugin_code": plugin_code
                 })
-                results = self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id))
-                if results:
-                    self.write(results[0])
+            results = self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id))
+            dictToReturn = {}
+            for item in results:
+                if (dictToReturn.has_key(item['plugin_code'])):
+                    dictToReturn[item['plugin_code']].append(item)
                 else:
-                    raise tornado.web.HTTPError(400)
+                    ini_list = []
+                    ini_list.append(item)
+                    dictToReturn[item['plugin_code']] = ini_list
+            if results:
+                self.write(dictToReturn)
+            else:
+                raise tornado.web.HTTPError(400)
+
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
