@@ -1,7 +1,7 @@
 import React from 'react';
 import {TARGET_API_URI} from '../constants';
 
-class Table extends React.Component {
+class Table extends React.PureComponent {
 
     patchUserNotes(group, type, code, user_notes) {
         var target_id = document.getElementById("report").getAttribute("data-code");

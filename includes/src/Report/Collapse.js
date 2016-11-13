@@ -12,6 +12,7 @@ class Collapse extends React.Component {
         var selectedGroup = this.context.selectedGroup;
         var selectedOwtfRank = this.context.selectedOwtfRank;
         var selectedStatus = this.context.selectedStatus;
+        var pactive = this.props.pactive;
         return (
             <div id={plugin['code']} className="panel-collapse collapse">
                 <div className="panel-body">
@@ -23,7 +24,7 @@ class Collapse extends React.Component {
                             if ((selectedType.length === 0 || selectedType.indexOf(obj['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(obj['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(obj['status']) !== -1)) {
                                 var pkey = obj['plugin_type'] + '_' + obj['plugin_code'];
                                 return (
-                                    <li key={pkey} className={pluginData['pactive'] === obj['plugin_type']
+                                    <li key={pkey} className={pactive === obj['plugin_type']
                                         ? "active"
                                         : ""}>
                                         <a href={"#" + obj['plugin_group'] + '_' + obj['plugin_type'] + '_' + obj['plugin_code']} data-toggle="tab">
@@ -45,7 +46,7 @@ class Collapse extends React.Component {
                             if ((selectedType.length === 0 || selectedType.indexOf(obj['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1)) {
                                 var pkey = obj['plugin_type'] + '_' + obj['plugin_code'];
                                 return (
-                                    <div className={pluginData['pactive'] === obj['plugin_type']
+                                    <div className={pactive === obj['plugin_type']
                                         ? "tab-pane active"
                                         : "tab-pane"} id={obj['plugin_group'] + '_' + obj['plugin_type'] + '_' + obj['plugin_code']} key={"tab" + pkey}>
                                         <div className="pull-left" data-toggle="buttons-checkbox">

@@ -5,6 +5,7 @@ import SideFilters from './SideFilters';
 import Accordians from './Accordians';
 import Toolbar from './Toolbar';
 import {Notification} from 'react-notification';
+import update from 'immutability-helper';
 
 class Report extends React.Component {
 
@@ -16,7 +17,6 @@ class Report extends React.Component {
         super(props);
 
         this.state = {
-            targetdata: {},
             pluginNameData: {},
             pluginData: {},
             selectedGroup: [],
@@ -34,7 +34,6 @@ class Report extends React.Component {
         this.patchUserRank = this.patchUserRank.bind(this);
         this.deletePluginOutput = this.deletePluginOutput.bind(this);
         this.postToWorkList = this.postToWorkList.bind(this);
-        this.handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian.bind(this);
         this.updateFilter = this.updateFilter.bind(this);
         this.clearFilters = this.clearFilters.bind(this);
         this.handleSnackBarRequestClose = this.handleSnackBarRequestClose.bind(this);
@@ -43,7 +42,6 @@ class Report extends React.Component {
 
     getChildContext() {
         var context_obj = {
-            targetdata: this.state.targetdata,
             pluginNameData: this.state.pluginNameData,
             pluginData: this.state.pluginData,
             selectedType: this.state.selectedType,
@@ -55,7 +53,6 @@ class Report extends React.Component {
             patchUserRank: this.patchUserRank,
             deletePluginOutput: this.deletePluginOutput,
             postToWorkList: this.postToWorkList,
-            handlePluginBtnOnAccordian: this.handlePluginBtnOnAccordian,
             updateFilter: this.updateFilter,
             updateReport: this.updateReport,
             clearFilters: this.clearFilters
@@ -64,7 +61,7 @@ class Report extends React.Component {
         return context_obj;
     };
 
-    pluginDataUpdate(offset, pluginsCount) {
+    pluginDataUpdate() {
         var target_id = document.getElementById("report").getAttribute("data-code");
         var presentState = this.state.pluginData;
         var url = TARGET_API_URI + target_id + '/poutput/?';
@@ -92,74 +89,47 @@ class Report extends React.Component {
             url = url + "status=" + selectedStatus[i] + "&";
         }
         url = url + "mapping=" + selectedMapping + "&";
-        url = url + "offset=" + offset + "&" + "limit=" + limit.toString();
         $.get(url, function(result) {
-            for (var i=0;  i < result.length; i++) {
-              if (!presentState.hasOwnProperty(result[i].plugin_code)) {
-                  presentState[result[i].plugin_code] = [];
-                  presentState[result[i].plugin_code]['pactive'] = result[i].plugin_type;
-              }
-              presentState[result[i].plugin_code].push(result[i]);
-            }
-            this.setState({pluginData: presentState});
-            if (result.length  === limit) {
-                pluginDataUpdate.call(this, offset+limit, pluginsCount);
-            }
+            this.setState({pluginData: result});
         }.bind(this));
     };
 
     updateFilter(filter_type, val) {
+        var type;
         if (filter_type === 'plugin_type') {
-            var presentState = this.state.selectedType;
-            var index = presentState.indexOf(val);
-            if (index > -1) {
-                presentState.splice(index, 1);
-            } else {
-                presentState.push(val);
-            }
-            this.setState({selectedType: presentState});
+            type = 'selectedType';
         } else if (filter_type === 'plugin_group') {
-            var presentState = this.state.selectedGroup;
-            var index = presentState.indexOf(val);
-            if (index > -1) {
-                presentState.splice(index, 1);
-            } else {
-                presentState.push(val);
-            }
-            this.setState({selectedGroup: presentState});
+            type = 'selectedGroup';
         } else if (filter_type === 'user_rank') {
-            var presentState = this.state.selectedRank;
-            var index = presentState.indexOf(val);
-            if (index > -1) {
-                presentState.splice(index, 1);
-            } else {
-                presentState.push(val);
-            }
-            this.setState({selectedRank: presentState});
+            type = 'selectedRank';
         } else if (filter_type === 'owtf_rank') {
-            var presentState = this.state.selectedOwtfRank;
-            var index = presentState.indexOf(val);
-            if (index > -1) {
-                presentState.splice(index, 1);
-            } else {
-                presentState.push(val);
-            }
-            this.setState({selectedOwtfRank: presentState});
+            type = 'selectedOwtfRank';
         } else if (filter_type === 'mapping') {
-            var presentState = this.state.selectedMapping;
-            presentState = val;
-            this.setState({selectedMapping: presentState});
+            this.setState({selectedMapping: val});
+            return;
         } else if (filter_type === 'status') {
-            var presentState = this.state.selectedStatus;
-            var index = presentState.indexOf(val);
-            if (index > -1) {
-                presentState.splice(index, 1);
-            } else {
-                presentState.push(val);
-            }
-            this.setState({selectedStatus: presentState});
+            type = 'selectedStatus';
         }
-        this.updateReport.call();
+
+        var index = this.state[type].indexOf(val);
+        if (index > -1) {
+            this.setState({
+                [type]: update(this.state[type], {
+                    $splice: [
+                        [index, 1]
+                    ]
+                })
+            }, function() {
+                this.updateReport.call();
+            });
+        } else {
+            this.setState({
+                [type]: update(this.state[type], {$push: [val]})
+            }, function() {
+                this.updateReport.call();
+            });
+        }
+
     };
 
     clearFilters() {
@@ -178,7 +148,6 @@ class Report extends React.Component {
 
     updateReport() {
         var target_id = document.getElementById("report").getAttribute("data-code");
-        var pluginDataUpdate = this.pluginDataUpdate;
         var url = TARGET_API_URI + target_id + '/poutput/names/?';
         var selectedgroup = this.state.selectedGroup;
         var selectedtype = this.state.selectedType;
@@ -222,23 +191,14 @@ class Report extends React.Component {
             }.bind(this)
         });
         var item = presentState[code];
-        var index;
         for (var i = 0; i < item.length; i++) {
             if (item[i].plugin_group === group && item[i].plugin_type === type) {
-                index = i;
                 item[i].user_rank = user_rank;
                 presentState[code] = item;
                 this.setState({pluginData: presentState});
             }
         }
-        if (index === item.length - 1) {
-            $('#' + code).collapse('hide');
-        } else {
-            item.pactive = item[index + 1].plugin_type;
-            presentState[code] = item;
-            this.setState({pluginData: presentState});
-        }
-        this.updateReport.call();
+        $('#' + code).collapse('hide');
     };
 
     postToWorkList(selectedPluginData, force_overwrite) {
@@ -264,13 +224,14 @@ class Report extends React.Component {
         var alert = this.alert;
         var presentState = this.state.pluginData;
         var pluginData = presentState[code];
-
+        var updateReport = this.updateReport;
         $.ajax({
             url: TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code,
             type: 'DELETE',
             success: function() {
                 alert.call(this, "Deleted plugin output for " + type + "@" + code);
-                for (var i=0; i < pluginData.length; i++) {
+                updateReport.call();
+                for (var i = 0; i < pluginData.length; i++) {
                     if ((pluginData[i]['plugin_type'] === type) && (pluginData[i]['plugin_group'] === group)) {
                         break;
                     }
@@ -278,21 +239,11 @@ class Report extends React.Component {
                 pluginData.splice(i, 1);
                 presentState[code] = pluginData;
                 this.setState({pluginData: presentState});
-                updateReport();
+
             }.bind(this),
             error: function(xhr, textStatus, serverResponse) {
                 alert.call(this, "Server replied: " + serverResponse);
             }.bind(this)
-        });
-    };
-
-    handlePluginBtnOnAccordian(key, plugin_type) {
-        var presentState = this.state.pluginData;
-        presentState[key]['pactive'] = plugin_type;
-        this.setState({
-            pluginData: presentState
-        }, function() {
-            $('#' + key).collapse('show');
         });
     };
 
@@ -306,34 +257,29 @@ class Report extends React.Component {
 
     /* Making an AJAX request on source property */
     componentDidMount() {
+        this.replaceContainer.bind(this)();
         var target_id = document.getElementById("report").getAttribute("data-code");
         var pluginDataUpdate = this.pluginDataUpdate;
-        this.serverRequest1 = $.get(TARGET_API_URI + target_id, function(result) {
-            this.setState({targetdata: result});
-        }.bind(this));
-
-        this.serverRequest2 = $.get(TARGET_API_URI + target_id + '/poutput/names/', function(result) {
+        this.serverRequest = $.get(TARGET_API_URI + target_id + '/poutput/names/', function(result) {
             this.setState({pluginNameData: result});
-            pluginDataUpdate(0, Object.keys(result).length);
+            setTimeout(pluginDataUpdate.bind(this), 100);
         }.bind(this));
     };
 
     componentWillUnmount() {
-        this.serverRequest1.abort();
-        this.serverRequest2.abort();
+        this.serverRequest.abort();
     };
 
     render() {
-        this.replaceContainer.bind(this)();
         return (
             <div>
-                <Header targetdata={this.state.targetdata}/>
+                <Header pluginData={this.state.pluginData}/>
                 <div className="row">
                     <div className="col-sm-2 col-md-2 col-lg-2" id="plugin_nav">
-                        <SideFilters/>
+                        <SideFilters selectedGroup={this.state.selectedGroup} selectedType={this.state.selectedType}/>
                     </div>
                     <div className="col-sm-10 col-md-10 col-lg-10">
-                        <Toolbar/>
+                        <Toolbar selectedRank={this.state.selectedRank}/>
                         <br/>
                         <Accordians/>
                     </div>
@@ -345,7 +291,6 @@ class Report extends React.Component {
 }
 
 Report.childContextTypes = {
-    targetdata: React.PropTypes.object,
     pluginNameData: React.PropTypes.object,
     pluginData: React.PropTypes.object,
     selectedType: React.PropTypes.array,
@@ -357,7 +302,6 @@ Report.childContextTypes = {
     patchUserRank: React.PropTypes.func,
     deletePluginOutput: React.PropTypes.func,
     postToWorkList: React.PropTypes.func,
-    handlePluginBtnOnAccordian: React.PropTypes.func,
     updateFilter: React.PropTypes.func,
     updateReport: React.PropTypes.func,
     clearFilters: React.PropTypes.func,

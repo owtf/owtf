@@ -1,6 +1,6 @@
 import React from 'react';
 
-class Toolbar extends React.Component {
+class Toolbar extends React.PureComponent {
 
     //Launch user sessions manager
     loadSessionManager() {
@@ -8,7 +8,7 @@ class Toolbar extends React.Component {
     };
 
     render() {
-        var selectedRank = this.context.selectedRank;
+        var selectedRank = this.props.selectedRank;
         var adv_filter_data = mySpace.adv_filter_data;
         var elem = document.createElement('textarea');
         elem.innerHTML = adv_filter_data;

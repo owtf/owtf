@@ -6,7 +6,12 @@ class Accordians extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            pactive: {}
+        };
+
         this.getRank = this.getRank.bind(this);
+        this.handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian.bind(this);
     };
 
     getRank(pluginDataList) {
@@ -20,14 +25,14 @@ class Accordians extends React.Component {
         var selectedStatus = this.context.selectedStatus;
 
         for (var i = 0; i < pluginDataList.length; i++) {
-            if ((selectedType.length === 0 || selectedType.indexOf(pluginDataList[i].plugin_type) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(pluginDataList[i].plugin_group) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(pluginDataList[i].user_rank) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(pluginDataList[i].owtf_rank) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(pluginDataList[i].status) !== -1)) {
-                if (pluginDataList[i].user_rank != null && pluginDataList[i].user_rank != -1) {
-                    if (pluginDataList[i].user_rank > maxUserRank) {
-                        maxUserRank = pluginDataList[i].user_rank;
+            if ((selectedType.length === 0 || selectedType.indexOf(pluginDataList[i]['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(pluginDataList[i]['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(pluginDataList[i]['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(pluginDataList[i]['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(pluginDataList[i]['status']) !== -1)) {
+                if (pluginDataList[i]['user_rank'] != null && pluginDataList[i]['user_rank'] != -1) {
+                    if (pluginDataList[i]['user_rank'] > maxUserRank) {
+                        maxUserRank = pluginDataList[i]['user_rank'];
                     }
-                } else if (pluginDataList[i].owtf_rank != null && pluginDataList[i].owtf_rank != -1) {
-                    if (pluginDataList[i].owtf_rank > maxOWTFRank) {
-                        maxOWTFRank = pluginDataList[i].owtf_rank;
+                } else if (pluginDataList[i]['owtf_rank'] != null && pluginDataList[i]['owtf_rank'] != -1) {
+                    if (pluginDataList[i]['owtf_rank'] > maxOWTFRank) {
+                        maxOWTFRank = pluginDataList[i]['owtf_rank'];
                     }
                 }
             }
@@ -38,16 +43,27 @@ class Accordians extends React.Component {
         return testCaseMax;
     };
 
+    handlePluginBtnOnAccordian(key, plugin_type) {
+        var presentPactive = this.state.pactive;
+        presentPactive[key] = plugin_type;
+        this.setState({
+            pactive: presentPactive
+        }, function() {
+            $('#' + key).collapse('show');
+        });
+    };
+
     render() {
+        var pactive = this.state.pactive;
         var plugins = this.context.pluginNameData;
         var pluginData = this.context.pluginData;
         var getRank = this.getRank;
-        var handlePluginBtnOnAccordian = this.context.handlePluginBtnOnAccordian;
         var selectedType = this.context.selectedType;
         var selectedRank = this.context.selectedRank;
         var selectedGroup = this.context.selectedGroup;
         var selectedOwtfRank = this.context.selectedOwtfRank;
         var selectedStatus = this.context.selectedStatus;
+        var handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian;
 
         return (
             <div className="panel-group" id="pluginOutputs">
@@ -158,7 +174,7 @@ class Accordians extends React.Component {
                             </div>
                             {(() => {
                                 if (key in pluginData) {
-                                    return (<Collapse pluginData={pluginData[key]} plugin={plugins[key]}/>);
+                                    return (<Collapse pluginData={pluginData[key]} plugin={plugins[key]} pactive={pactive.hasOwnProperty(key) ? pactive[key] : (pluginData[key].length > 0 ? pluginData[key][0]['plugin_type'] : null) }/>);
                                 }
                             })()}
                         </div>
@@ -177,7 +193,6 @@ Accordians.contextTypes = {
     selectedGroup: React.PropTypes.array,
     selectedOwtfRank: React.PropTypes.array,
     selectedStatus: React.PropTypes.array,
-    handlePluginBtnOnAccordian: React.PropTypes.func
 };
 
 export default Accordians;
