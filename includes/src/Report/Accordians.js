@@ -3,18 +3,37 @@ import Collapse from './Collapse'
 
 class Accordians extends React.Component {
 
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            pactive: {}
+        };
+
+        this.getRank = this.getRank.bind(this);
+        this.handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian.bind(this);
+    };
+
     getRank(pluginDataList) {
         var testCaseMax = 0;
         var maxUserRank = -1;
         var maxOWTFRank = -1;
+        var selectedType = this.context.selectedType;
+        var selectedRank = this.context.selectedRank;
+        var selectedGroup = this.context.selectedGroup;
+        var selectedOwtfRank = this.context.selectedOwtfRank;
+        var selectedStatus = this.context.selectedStatus;
+
         for (var i = 0; i < pluginDataList.length; i++) {
-            if (pluginDataList[i].user_rank != null && pluginDataList[i].user_rank != -1) {
-                if (pluginDataList[i].user_rank > maxUserRank) {
-                    maxUserRank = pluginDataList[i].user_rank;
-                }
-            } else if (pluginDataList[i].owtf_rank != null && pluginDataList[i].owtf_rank != -1) {
-                if (pluginDataList[i].owtf_rank > maxOWTFRank) {
-                    maxOWTFRank = pluginDataList[i].owtf_rank;
+            if ((selectedType.length === 0 || selectedType.indexOf(pluginDataList[i]['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(pluginDataList[i]['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(pluginDataList[i]['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(pluginDataList[i]['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(pluginDataList[i]['status']) !== -1)) {
+                if (pluginDataList[i]['user_rank'] != null && pluginDataList[i]['user_rank'] != -1) {
+                    if (pluginDataList[i]['user_rank'] > maxUserRank) {
+                        maxUserRank = pluginDataList[i]['user_rank'];
+                    }
+                } else if (pluginDataList[i]['owtf_rank'] != null && pluginDataList[i]['owtf_rank'] != -1) {
+                    if (pluginDataList[i]['owtf_rank'] > maxOWTFRank) {
+                        maxOWTFRank = pluginDataList[i]['owtf_rank'];
+                    }
                 }
             }
         }
@@ -24,11 +43,27 @@ class Accordians extends React.Component {
         return testCaseMax;
     };
 
+    handlePluginBtnOnAccordian(key, plugin_type) {
+        var presentPactive = this.state.pactive;
+        presentPactive[key] = plugin_type;
+        this.setState({
+            pactive: presentPactive
+        }, function() {
+            $('#' + key).collapse('show');
+        });
+    };
+
     render() {
+        var pactive = this.state.pactive;
         var plugins = this.context.pluginNameData;
         var pluginData = this.context.pluginData;
         var getRank = this.getRank;
-        var handlePluginBtnOnAccordian = this.context.handlePluginBtnOnAccordian;
+        var selectedType = this.context.selectedType;
+        var selectedRank = this.context.selectedRank;
+        var selectedGroup = this.context.selectedGroup;
+        var selectedOwtfRank = this.context.selectedOwtfRank;
+        var selectedStatus = this.context.selectedStatus;
+        var handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian;
 
         return (
             <div className="panel-group" id="pluginOutputs">
@@ -66,29 +101,31 @@ class Accordians extends React.Component {
                                                 <div className="col-md-2">
                                                     <div className="btn-group btn-group-xs" role="group">
                                                         {pluginData[key].map(function(obj) {
-                                                            return (
-                                                                <button onClick={handlePluginBtnOnAccordian.bind(this, key, obj['plugin_type'])} key={key + obj['plugin_type'].split('_').join(' ')} className={(() => {
-                                                                    if (key in pluginData) {
-                                                                        if (testCaseMax == 0)
-                                                                            return "btn btn-default";
-                                                                        else if (testCaseMax === 1)
-                                                                            return "btn btn-success";
-                                                                        else if (testCaseMax === 2)
-                                                                            return "btn btn-info";
-                                                                        else if (testCaseMax === 3)
-                                                                            return "btn btn-warning";
-                                                                        else if (testCaseMax === 4)
-                                                                            return "btn btn-danger";
-                                                                        else if (testCaseMax === 5)
-                                                                            return "btn btn-critical";
-                                                                        return "btn btn-unranked";
-                                                                    } else {
-                                                                        return "btn";
-                                                                    }
-                                                                })()} style={{
-                                                                    marginTop: "23px"
-                                                                }} type="button">{obj['plugin_type'].split('_').join(' ').charAt(0).toUpperCase() + obj['plugin_type'].split('_').join(' ').slice(1)}</button>
-                                                            );
+                                                            if ((selectedType.length === 0 || selectedType.indexOf(obj['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(obj['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(obj['status']) !== -1)) {
+                                                                return (
+                                                                    <button onClick={handlePluginBtnOnAccordian.bind(this, key, obj['plugin_type'])} key={key + obj['plugin_type'].split('_').join(' ')} className={(() => {
+                                                                        if (key in pluginData) {
+                                                                            if (testCaseMax == 0)
+                                                                                return "btn btn-default";
+                                                                            else if (testCaseMax === 1)
+                                                                                return "btn btn-success";
+                                                                            else if (testCaseMax === 2)
+                                                                                return "btn btn-info";
+                                                                            else if (testCaseMax === 3)
+                                                                                return "btn btn-warning";
+                                                                            else if (testCaseMax === 4)
+                                                                                return "btn btn-danger";
+                                                                            else if (testCaseMax === 5)
+                                                                                return "btn btn-critical";
+                                                                            return "btn btn-unranked";
+                                                                        } else {
+                                                                            return "btn";
+                                                                        }
+                                                                    })()} style={{
+                                                                        marginTop: "23px"
+                                                                    }} type="button">{obj['plugin_type'].split('_').join(' ').charAt(0).toUpperCase() + obj['plugin_type'].split('_').join(' ').slice(1)}</button>
+                                                                );
+                                                            }
                                                         })}
                                                     </div>
                                                 </div>
@@ -137,7 +174,7 @@ class Accordians extends React.Component {
                             </div>
                             {(() => {
                                 if (key in pluginData) {
-                                    return (<Collapse pluginData={pluginData[key]} plugin={plugins[key]}/>);
+                                    return (<Collapse pluginData={pluginData[key]} plugin={plugins[key]} pactive={pactive.hasOwnProperty(key) ? pactive[key] : (pluginData[key].length > 0 ? pluginData[key][0]['plugin_type'] : null) }/>);
                                 }
                             })()}
                         </div>
@@ -151,7 +188,11 @@ class Accordians extends React.Component {
 Accordians.contextTypes = {
     pluginNameData: React.PropTypes.object,
     pluginData: React.PropTypes.object,
-    handlePluginBtnOnAccordian: React.PropTypes.func
+    selectedType: React.PropTypes.array,
+    selectedRank: React.PropTypes.array,
+    selectedGroup: React.PropTypes.array,
+    selectedOwtfRank: React.PropTypes.array,
+    selectedStatus: React.PropTypes.array,
 };
 
 export default Accordians;

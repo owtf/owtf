@@ -7,6 +7,12 @@ class Collapse extends React.Component {
     render() {
         var plugin = this.props.plugin;
         var pluginData = this.props.pluginData;
+        var selectedType = this.context.selectedType;
+        var selectedRank = this.context.selectedRank;
+        var selectedGroup = this.context.selectedGroup;
+        var selectedOwtfRank = this.context.selectedOwtfRank;
+        var selectedStatus = this.context.selectedStatus;
+        var pactive = this.props.pactive;
         return (
             <div id={plugin['code']} className="panel-collapse collapse">
                 <div className="panel-body">
@@ -15,16 +21,18 @@ class Collapse extends React.Component {
                             <a className="btn" disabled="disabled">Type:</a>
                         </li>
                         {pluginData.map(function(obj) {
-                            var pkey = obj['plugin_type'] + '_' + obj['plugin_code'];
-                            return (
-                                <li key={pkey} className={pluginData['pactive'] === obj['plugin_type']
-                                    ? "active"
-                                    : ""}>
-                                    <a href={"#" + obj['plugin_group'] + '_' + obj['plugin_type'] + '_' + obj['plugin_code']} data-toggle="tab">
-                                        {obj['plugin_type'].split('_').join(' ')}
-                                    </a>
-                                </li>
-                            );
+                            if ((selectedType.length === 0 || selectedType.indexOf(obj['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(obj['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(obj['status']) !== -1)) {
+                                var pkey = obj['plugin_type'] + '_' + obj['plugin_code'];
+                                return (
+                                    <li key={pkey} className={pactive === obj['plugin_type']
+                                        ? "active"
+                                        : ""}>
+                                        <a href={"#" + obj['plugin_group'] + '_' + obj['plugin_type'] + '_' + obj['plugin_code']} data-toggle="tab">
+                                            {obj['plugin_type'].split('_').join(' ')}
+                                        </a>
+                                    </li>
+                                );
+                            }
                         })}
                         <li className="pull-right">
                             <a href={plugin['url']} target="_blank" title="More information">
@@ -35,28 +43,30 @@ class Collapse extends React.Component {
                     <br/>
                     <div className="tab-content">
                         {pluginData.map(function(obj) {
-                            var pkey = obj['plugin_type'] + '_' + obj['plugin_code'];
-                            return (
-                                <div className={pluginData['pactive'] === obj['plugin_type']
-                                    ? "tab-pane active"
-                                    : "tab-pane"} id={obj['plugin_group'] + '_' + obj['plugin_type'] + '_' + obj['plugin_code']} key={"tab" + pkey}>
-                                    <div className="pull-left" data-toggle="buttons-checkbox">
-                                        <blockquote>
-                                            <h4>{obj['plugin_type'].split('_').join(' ').charAt(0).toUpperCase() + obj['plugin_type'].split('_').join(' ').slice(1)}</h4>
-                                            <small>{obj['plugin_code']}</small>
-                                        </blockquote>
-                                    </div>
-                                    <div data-toggle="buttons">
+                            if ((selectedType.length === 0 || selectedType.indexOf(obj['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1)) {
+                                var pkey = obj['plugin_type'] + '_' + obj['plugin_code'];
+                                return (
+                                    <div className={pactive === obj['plugin_type']
+                                        ? "tab-pane active"
+                                        : "tab-pane"} id={obj['plugin_group'] + '_' + obj['plugin_type'] + '_' + obj['plugin_code']} key={"tab" + pkey}>
+                                        <div className="pull-left" data-toggle="buttons-checkbox">
+                                            <blockquote>
+                                                <h4>{obj['plugin_type'].split('_').join(' ').charAt(0).toUpperCase() + obj['plugin_type'].split('_').join(' ').slice(1)}</h4>
+                                                <small>{obj['plugin_code']}</small>
+                                            </blockquote>
+                                        </div>
+                                        <div data-toggle="buttons">
+                                            <br/>
+                                            <RankButtons obj={obj}/>
+                                        </div>
                                         <br/>
-                                        <RankButtons obj={obj}/>
+                                        <br/>
+                                        <br/>
+                                        <br/>
+                                        <Table obj={obj}/>
                                     </div>
-                                    <br/>
-                                    <br/>
-                                    <br/>
-                                    <br/>
-                                    <Table obj={obj}/>
-                                </div>
-                            );
+                                );
+                            }
                         })}
                     </div>
                 </div>
@@ -64,5 +74,13 @@ class Collapse extends React.Component {
         );
     }
 }
+
+Collapse.contextTypes = {
+    selectedType: React.PropTypes.array,
+    selectedRank: React.PropTypes.array,
+    selectedGroup: React.PropTypes.array,
+    selectedOwtfRank: React.PropTypes.array,
+    selectedStatus: React.PropTypes.array
+};
 
 export default Collapse;

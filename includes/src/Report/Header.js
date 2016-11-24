@@ -1,21 +1,38 @@
 import React from 'react';
-import {TARGET_UI_URI} from '../constants';
+import {TARGET_UI_URI, TARGET_API_URI} from '../constants';
 
-class Header extends React.Component {
+/**
+  * Interesting read: Why here I used PureComponent - https://facebook.github.io/react/docs/react-api.html#react.purecomponent
+  * Aim here to prevant Header's re-rendering unless any pluginData is updated.
+  * PluginData is only updated initially or when some plugin is deleted.
+  * This re-rendering is implemented due to rank in header without that there will no need.
+*/
+
+class Header extends React.PureComponent {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            targetdata: {},
+            localMax: -1
+        };
+
+        this.getLocalRank = this.getLocalRank.bind(this);
+    };
+
     getLocalRank() {
         var localMax = 0;
         var maxUserRank = -1;
         var maxOWTFRank = -1;
-        var pluginData = this.context.pluginData;
+        var pluginData = this.props.pluginData;
         for (var key in pluginData) {
-            if (pluginData.hasOwnProperty(key)) {
-                var poutputs = pluginData[key];
-                for (var i = 0; i < poutputs.length; i++) {
-                    if (poutputs[i].user_rank != null && poutputs[i].user_rank > maxUserRank) {
-                        maxUserRank = poutputs[i].user_rank;
-                    } else if (poutputs[i].owtf_rank != null && poutputs[i].owtf_rank > maxOWTFRank) {
-                        maxOWTFRank = poutputs[i].owtf_rank;
-                    }
+            var poutputs = pluginData[key];
+            for (var i = 0; i < poutputs.length; i++) {
+                if (poutputs[i].user_rank != null && poutputs[i].user_rank > maxUserRank) {
+                    maxUserRank = poutputs[i].user_rank;
+                } else if (poutputs[i].owtf_rank != null && poutputs[i].owtf_rank > maxOWTFRank) {
+                    maxOWTFRank = poutputs[i].owtf_rank;
                 }
             }
         }
@@ -23,7 +40,7 @@ class Header extends React.Component {
         localMax = (maxUserRank > maxOWTFRank)
             ? maxUserRank
             : maxOWTFRank;
-        return localMax;
+        this.setState({localMax: localMax});
     };
 
     returnToTopHandler() {
@@ -32,8 +49,19 @@ class Header extends React.Component {
         }, 500);
     }
 
+    componentDidMount() {
+        var target_id = document.getElementById("report").getAttribute("data-code");
+        this.serverRequest1 = $.get(TARGET_API_URI + target_id, function(result) {
+            this.setState({targetdata: result});
+        }.bind(this));
+    }
+
+    componentWillUpdate() {
+        setTimeout(this.getLocalRank.bind(this), 100);
+    }
+
     render() {
-        var localMax = this.getLocalRank.call(this);
+        var localMax = this.state.localMax;
         return (
             <div>
                 <ul className="breadcrumb">
@@ -43,7 +71,7 @@ class Header extends React.Component {
                     <li>
                         <a href={TARGET_UI_URI}>Target</a>
                     </li>
-                    <li className="active">{this.context.targetdata.target_url}</li>
+                    <li className="active">{this.state.targetdata.target_url}</li>
                 </ul>
 
                 {/* Scroll to top */}
@@ -59,9 +87,9 @@ class Header extends React.Component {
                                 <h2 style={{
                                     wordWrap: "break-word"
                                 }}>
-                                    {this.context.targetdata.target_url}
+                                    {this.state.targetdata.target_url}
                                     <small>
-                                        {' (' + this.context.targetdata.host_ip + ')'}
+                                        {' (' + this.state.targetdata.host_ip + ')'}
                                     </small>
                                 </h2>
                             </div>
@@ -89,11 +117,5 @@ class Header extends React.Component {
         );
     }
 }
-
-Header.contextTypes = {
-    targetdata: React.PropTypes.object,
-    pluginNameData: React.PropTypes.object,
-    pluginData: React.PropTypes.object
-};
 
 export default Header;
