@@ -30,7 +30,7 @@
 <h5><strong>Total scan progress</strong></h5>
 <div id="progressbar">
   <div class="progress">
-    <div id="pluginprogress" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+    <div id="pluginprogress" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
     </div>
   </div>
 </div>
@@ -238,7 +238,7 @@ function openLogModal(worker, lines){
 //Function which updates progress bar
 function moveProgressBar() {
     var elem = $("#pluginprogress");
-    var progressbar = setInterval(function() {
+    var progressbar = function() {
         $.getJSON(mySpace.progress_api_url, function(data) {
             var left_count = data.left_count;
             var complete_count = data.complete_count;
@@ -254,8 +254,10 @@ function moveProgressBar() {
                     clearInterval(progressbar);
                 }
             }
-        });
-    }, 1000);
+        })
+    };
+    progressbar();
+    setInterval(progressbar, 13000);
 }
 
 $(document).ready(function() {
