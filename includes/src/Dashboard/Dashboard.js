@@ -35,7 +35,7 @@ class Dashboard extends React.Component {
                         <Chart source={SEVERITY_CHART_URL}/>
                     </div>
                     <div className="col-xs-12 col-sm-12 com-md-6 col-lg-6">
-                        <WorkerPanel source={HOST + FILE_SERVER_PORT + WORKER_PANEL_URL} pollInterval={2000}/>
+                        <WorkerPanel source={HOST + FILE_SERVER_PORT + WORKER_PANEL_URL} pollInterval={13000}/>
                     </div>
                 </div>
             </div>

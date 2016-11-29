@@ -142,7 +142,7 @@ class WorkerLegend extends React.Component {
     }
 }
 
-class WorkerPanel extends React.Component {
+class ProgressBar extends React.Component {
 
     constructor(props) {
         super(props);
@@ -194,6 +194,13 @@ class WorkerPanel extends React.Component {
     };
 
     render() {
+        return (<Circle percent={this.state.percent} strokeWidth="6" strokeColor={this.state.color}/>);
+    }
+}
+
+class WorkerPanel extends React.Component {
+
+    render() {
         const HOST = location.protocol.concat("//").concat(window.location.hostname).concat(":");
         return (
             <div>
@@ -206,11 +213,11 @@ class WorkerPanel extends React.Component {
                 <div className="row">
                     <div className="col-xs-12 col-sm-4 col-md-4 col-lg-4">
                         <div className="center-block workerpanel-progress-bar">
-                            <Circle percent={this.state.percent} strokeWidth="6" strokeColor={this.state.color}/>
+                            <ProgressBar pollInterval={this.props.pollInterval} source={this.props.source}/>
                         </div>
                     </div>
                     <div className="col-xs-12 col-sm-8 col-md-8 col-lg-8">
-                        <WorkerLegend source={HOST + FILE_SERVER_PORT + WORKER_DETAIL_URL} pollInterval={2000}/>
+                        <WorkerLegend source={HOST + FILE_SERVER_PORT + WORKER_DETAIL_URL} pollInterval={this.props.pollInterval}/>
                     </div>
                 </div>
             </div>
