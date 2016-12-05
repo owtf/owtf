@@ -43,7 +43,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         return Content
 
     @target_required
-    def DeriveOutputDict(self, obj, target_id=None):
+    def DeriveOutputDict(self, obj, target_id=None, inc_output=False):
         if target_id:
             self.target.SetTarget(target_id)
         if obj:
@@ -51,20 +51,23 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             pdict.pop("_sa_instance_state", None)
             pdict.pop("date_time")
             # If output is present, json decode it
-            if pdict.get("output", None):
-                pdict["output"] = self.DeriveHTMLOutput(json.loads(pdict["output"]))
+            if inc_output:
+                if pdict.get("output", None):
+                    pdict["output"] = self.DeriveHTMLOutput(json.loads(pdict["output"]))
+            else:
+                pdict.pop("output")
             pdict["start_time"] = obj.start_time.strftime(self.db_config.Get("DATE_TIME_FORMAT"))
             pdict["end_time"] = obj.end_time.strftime(self.db_config.Get("DATE_TIME_FORMAT"))
             pdict["run_time"] = self.timer.get_time_as_str(obj.run_time)
             return pdict
 
     @target_required
-    def DeriveOutputDicts(self, obj_list, target_id=None):
+    def DeriveOutputDicts(self, obj_list, target_id=None, inc_output=False):
         if target_id:
             self.target.SetTarget(target_id)
         dict_list = []
         for obj in obj_list:
-            dict_list.append(self.DeriveOutputDict(obj, target_id=target_id))
+            dict_list.append(self.DeriveOutputDict(obj, target_id=target_id, inc_output=inc_output))
         return dict_list
 
     def GenerateQueryUsingSession(self, filter_data, target_id, for_delete=False):
@@ -125,29 +128,13 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         return query
 
     @target_required
-    def GetAll(self, filter_data=None, target_id=None):
+    def GetAll(self, filter_data=None, target_id=None, inc_output=False):
         if not filter_data:
             filter_data = {}
         self.target.SetTarget(target_id)
         query = self.GenerateQueryUsingSession(filter_data, target_id)
         results = query.all()
-        return self.DeriveOutputDicts(results, target_id=target_id)
-
-    # So with the help of this method what we are doing here,
-    # On loading the target page, it only requests for the names of plugins then after it completes we fetch the data for every plugin.
-    # This way we are optimising the report by breaking the request in several parts.
-    @target_required
-    def GetAllPluginNames(self, filter_data=None, target_id=None):
-        if not filter_data:
-            filter_data = {}
-        self.target.SetTarget(target_id)
-        query = self.GenerateQueryUsingSession(filter_data, target_id)
-        results = query.all()
-        dict_list = []
-        for obj in results:
-            pdict = dict(obj.__dict__)
-            dict_list.append(str(pdict['plugin_code']));
-        return dict_list
+        return self.DeriveOutputDicts(results, target_id=target_id, inc_output=inc_output)
 
     @target_required
     def GetUnique(self, target_id=None):

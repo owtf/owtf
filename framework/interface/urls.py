@@ -32,7 +32,7 @@ def get_handlers():
         tornado.web.url(r'/api/targets/([0-9]+)/transactions/?([0-9]+)?/?$', api_handlers.TransactionDataHandler, name='transactions_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/transactions/search/?$', api_handlers.TransactionSearchHandler, name='transactions_search_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/poutput/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginOutputHandler, name='poutput_api_url'),
-        tornado.web.url(r'/api/targets/([0-9]+)/poutput/names/?', api_handlers.PluginNameOutput, name='plugin_name_api_url'),
+        tornado.web.url(r'/api/targets/([0-9]+)/poutput/names/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginNameOutput, name='plugin_name_api_url'),
 
         # The following one url is dummy and actually processed in file server
         tornado.web.url(r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', api_handlers.WorkerHandler, name='workers_api_url'),
