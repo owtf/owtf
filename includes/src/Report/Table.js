@@ -45,7 +45,7 @@ class Table extends React.PureComponent {
         var start_time = obj['start_time'];
         var end_time = obj['end_time'];
         var run_time = obj['status'];
-        var output = obj['output'];
+        var output = obj['output'] === undefined ? "" : obj['output'];
         var group = obj['plugin_group'];
         var type = obj['plugin_type'];
         var code = obj['plugin_code'];

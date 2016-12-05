@@ -14,33 +14,9 @@ class Header extends React.PureComponent {
         super(props);
 
         this.state = {
-            targetdata: {},
-            localMax: -1
+            targetdata: {}
         };
 
-        this.getLocalRank = this.getLocalRank.bind(this);
-    };
-
-    getLocalRank() {
-        var localMax = 0;
-        var maxUserRank = -1;
-        var maxOWTFRank = -1;
-        var pluginData = this.props.pluginData;
-        for (var key in pluginData) {
-            var poutputs = pluginData[key];
-            for (var i = 0; i < poutputs.length; i++) {
-                if (poutputs[i].user_rank != null && poutputs[i].user_rank > maxUserRank) {
-                    maxUserRank = poutputs[i].user_rank;
-                } else if (poutputs[i].owtf_rank != null && poutputs[i].owtf_rank > maxOWTFRank) {
-                    maxOWTFRank = poutputs[i].owtf_rank;
-                }
-            }
-        }
-
-        localMax = (maxUserRank > maxOWTFRank)
-            ? maxUserRank
-            : maxOWTFRank;
-        this.setState({localMax: localMax});
     };
 
     returnToTopHandler() {
@@ -56,12 +32,10 @@ class Header extends React.PureComponent {
         }.bind(this));
     }
 
-    componentWillUpdate() {
-        setTimeout(this.getLocalRank.bind(this), 100);
-    }
-
     render() {
-        var localMax = this.state.localMax;
+        var localMax = this.state.targetdata.max_user_rank > this.state.targetdata.max_owtf_rank
+            ? this.state.targetdata.max_user_rank
+            : this.state.targetdata.max_owtf_rank;
         return (
             <div>
                 <ul className="breadcrumb">
