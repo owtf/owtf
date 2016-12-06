@@ -1,6 +1,6 @@
 import React from 'react';
 import Accordian from './Accordian';
-import {TARGET_API_URI} from '../constants';
+import {TARGET_API_URI, STATIC_URI} from '../constants';
 
 class Accordians extends React.Component {
 
@@ -8,7 +8,8 @@ class Accordians extends React.Component {
         super(props);
 
         this.state = {
-            pluginNameData: {}
+            pluginNameData: {},
+            isLoaded: false
         };
     };
 
@@ -16,7 +17,7 @@ class Accordians extends React.Component {
     componentDidMount() {
         var target_id = document.getElementById("report").getAttribute("data-code");
         this.serverRequest = $.get(TARGET_API_URI + target_id + '/poutput/names/', function(result) {
-            this.setState({pluginNameData: result});
+            this.setState({pluginNameData: result, isLoaded: true});
         }.bind(this));
     };
 
@@ -26,13 +27,21 @@ class Accordians extends React.Component {
 
     render() {
         var plugins = this.state.pluginNameData;
-        return (
-            <div className="panel-group" id="pluginOutputs">
-                {Object.keys(plugins).map(function(key) {
-                    return (<Accordian data={plugins[key]} code={key}/>);
-                })}
-            </div>
-        );
+        if (this.state.isLoaded) {
+            return (
+                <div className="panel-group" id="pluginOutputs">
+                    {Object.keys(plugins).map(function(key) {
+                        return (<Accordian data={plugins[key]} code={key}/>);
+                    })}
+                </div>
+            );
+        } else {
+            return (
+                <div>
+                    <img src={STATIC_URI + "img/Preloader_big.gif"} alt="Loader" style={{"display": "block", "margin": "auto"}}/>
+                </div>
+            );
+        }
     }
 }
 
