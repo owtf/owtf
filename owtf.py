@@ -216,6 +216,10 @@ def main(args):
 
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
+    if 'owtf.py' in os.listdir(os.getcwd()) or 'owtf' == os.getcwd()[:-4:]:
+        usage("Start owtf in a different directory. 'cd /path/to/pentest/directory' \n'/path/to/owtf.py'")
+        exit(-1)
+
     owtf_pid = os.getpid()
     if "--update" not in args[1:]:
         try:
