@@ -61,6 +61,6 @@ DATABASE_PASS: $db_pass" >> ${db_config_file}
     echo "${info}[*] Do you want to create database and user as specified in $db_config_file [Y/n]?"
     read choice
     if [ choice != 'n' ]; then
-        sudo sh ${RootDir}/scripts/db_run.sh
+        sh ${RootDir}/scripts/db_run.sh
     fi
 fi

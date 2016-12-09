@@ -37,12 +37,6 @@ get_postgres_server_port() {
     echo "$(sudo netstat -lptn | grep "^tcp " | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f2)"
 }
 
-# Bail out if not root privileges
-if [ "$(id -u)" != "0" ]; then
-   echo "This script must be run as root" 1>&2
-   exit 1
-fi
-
 FILE_PATH=$(readlink -f "$0")
 SCRIPTS_DIR=$(dirname "$FILE_PATH")
 RootDir=$(dirname "$SCRIPTS_DIR")
@@ -74,13 +68,13 @@ if [ -z "$postgres_server_ip" ]; then
         service_bin=$?
         which systemctl  >> /dev/null 2>&1
         systemctl_bin=$?
-        if [ "$service_bin" != "1" ]; then
-            service postgresql start
-            service postgresql status | grep -q '^Running clusters: ..*$'
+        if [ "$service_bin" = "1" ]; then
+            sudo service postgresql start
+            sudo service postgresql status | grep -q '^Running clusters: ..*$'
             status_exitcode="$?"
-        elif [ "$systemctl_bin" != "1" ]; then
-            systemctl start postgresql
-            systemctl status postgresql | grep -q "active"
+        elif [ "$systemctl_bin" = "1" ]; then
+            sudo systemctl start postgresql
+            sudo systemctl status postgresql | grep -q "active"
             status_exitcode="$?"
         else
             echo "[+] We couldn't determine how to start the postgres server, please start it and rerun this script"
@@ -116,11 +110,11 @@ if [ "$postgres_server_ip" != "$saved_server_ip" ] || [ "$postgres_server_port" 
     fi
 fi
 
-check_owtf_db=$(su - postgres -c "psql -l | grep -w $saved_server_dbname | grep -w $saved_server_user | wc -l")
+check_owtf_db=$(sudo su - postgres -c "psql -l | grep -w $saved_server_dbname | grep -w $saved_server_user | wc -l")
 if [ "$check_owtf_db" = "0" ]; then
     echo "[+] The problem seems to be the user role and db mentioned in $db_config_file. Do you want us to create them? [Y/n]"
     read choice
     if [ "$choice" != "n" ]; then
-        sudo sh $RootDir/scripts/db_setup.sh init
+        sh $RootDir/scripts/db_setup.sh init
     fi
 fi
