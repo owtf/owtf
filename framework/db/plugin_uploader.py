@@ -11,13 +11,11 @@ from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.db import models
 from framework.db.target_manager import target_required
 
-full_parse_tools = ['w3af', 'skipfish', 'arachni']
-
 class PluginUploader():
 
 	def __init__(self, tool_name):
 		self.supported_tools = ['w3af', 'skipfish', 'arachni', 'hoppy', 'burpsuite']
-		self.full_parse_tools = ['w3af', 'skipfish', 'arachni']
+		#self.full_parse_tools = ['w3af', 'skipfish', 'arachni']
 		self.db = ServiceLocator.get_component("db")
 		self.transaction = ServiceLocator.get_component("transaction")
 		self.re_extras = re.compile(r"(.*?) (\/.*?||\w+.*?) HT.*?")
@@ -29,12 +27,8 @@ class PluginUploader():
 			raise Exception("%s tool not supported by this plugin" % tool_name)
 
 	def init_uploader(self, pathname):
-
-		if self.tool_name in self.full_parse_tools:
-			parsed_data = self.ptp.parse(pathname)
-			self.parsed_data = parsed_data[1]
-		else:
-			self.parsed_data = self.ptp.parse(pathname)
+		parsed_data = self.ptp.parse(pathname, http_parse=True)
+		self.parsed_data = parsed_data[-1]['transactions']
 
 	@target_required
 	def OWTFDBUpload(self, target_id=None):
@@ -60,7 +54,7 @@ class PluginUploader():
 				local_timestamp=datetime.now(),
 				raw_request=data['request'].decode('utf-8', 'ignore'),
 				response_status=data['response_status_code'],
-				response_headers=data['response_header'].decode('utf-8', 'ignore'),
+				response_headers=data['response_headers'].decode('utf-8', 'ignore'),
 				response_body=data['response_body'].decode('utf-8', 'ignore'),
 				response_size=len(data['response_body']),
 				binary_response=None,
