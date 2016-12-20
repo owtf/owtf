@@ -27,7 +27,7 @@
     </div>
 </div>
 <br>
-<h5><strong>Total scan progress (Updates in every 13 sec)</strong></h5>
+<h5><strong data-toggle="tooltip" title="updates in 13s">Total scan progress</strong></h5>
 <div id="progressbar">
   <div class="progress">
     <div id="pluginprogress" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
@@ -263,6 +263,7 @@ function moveProgressBar() {
 $(document).ready(function() {
         displayWorkersInfo();  // Then workers information can be displayed
         moveProgressBar();
+        $('[data-toggle="tooltip"]').tooltip();
 });
 </script>
 {% end %}

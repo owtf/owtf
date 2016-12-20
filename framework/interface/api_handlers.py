@@ -52,7 +52,7 @@ class PluginNameOutput(custom_handlers.UIRequestHandler):
     def get(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
         try:
             filter_data = dict(self.request.arguments)
-            if plugin_group and (not plugin_type):
+            if plugin_group and not plugin_type:
                 filter_data.update({"plugin_group": plugin_group})
             if plugin_type and plugin_group and (not plugin_code):
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
@@ -61,11 +61,7 @@ class PluginNameOutput(custom_handlers.UIRequestHandler):
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
-                filter_data.update({
-                    "plugin_type": plugin_type,
-                    "plugin_group": plugin_group,
-                    "plugin_code": plugin_code
-                })
+                filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code})
             results = self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id), inc_output=False)
 
             # Get mappings
@@ -87,19 +83,19 @@ class PluginNameOutput(custom_handlers.UIRequestHandler):
                         pass
                 test_groups[test_group['code']] = test_group
 
-            dictToReturn = {}
+            dict_to_return = {}
             for item in results:
-                if (dictToReturn.has_key(item['plugin_code'])):
-                    dictToReturn[item['plugin_code']]['data'].append(item)
+                if (dict_to_return.has_key(item['plugin_code'])):
+                    dict_to_return[item['plugin_code']]['data'].append(item)
                 else:
                     ini_list = []
                     ini_list.append(item)
-                    dictToReturn[item["plugin_code"]] = {}
-                    dictToReturn[item["plugin_code"]]["data"] = ini_list
-                    dictToReturn[item["plugin_code"]]["details"] = test_groups[item["plugin_code"]]
-            dictToReturn = collections.OrderedDict(sorted(dictToReturn.items()))
+                    dict_to_return[item["plugin_code"]] = {}
+                    dict_to_return[item["plugin_code"]]["data"] = ini_list
+                    dict_to_return[item["plugin_code"]]["details"] = test_groups[item["plugin_code"]]
+            dict_to_return = collections.OrderedDict(sorted(dict_to_return.items()))
             if results:
-                self.write(dictToReturn)
+                self.write(dict_to_return)
             else:
                 raise tornado.web.HTTPError(400)
 
