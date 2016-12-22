@@ -255,4 +255,9 @@ def main(args):
 
 
 if __name__ == "__main__":
+
+    if os.path.dirname(os.path.abspath(sys.argv[0])) == os.getcwd():
+        usage("Start owtf in a different directory. 'cd path/to/pentest/directory; ./path/to/owtf.py'")
+        exit(-1)
+
     main(sys.argv)

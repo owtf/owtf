@@ -116,7 +116,7 @@ def finish(error_code):
             Colorizer.normal("[*] Visit https://github.com/owtf/owtf for help ")
         else:
             Colorizer.success("[*] Finished!")
-            Colorizer.info("[*] Start OWTF by running './owtf.py' in parent directory")
+            Colorizer.info("[*] Start OWTF by running 'cd path/to/pentest/directory; ./path/to/owtf.py'")
 
 
 def install(cmd_arguments):
