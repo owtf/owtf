@@ -211,6 +211,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         if pseudo_index:
             try:
                 temp_dict = dict(self.workers[pseudo_index - 1])
+                temp_dict["name"] = temp_dict["worker"].name
                 temp_dict["worker"] = temp_dict["worker"].pid
                 temp_dict["id"] = pseudo_index
                 return temp_dict
@@ -220,6 +221,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             worker_temp_list = []
             for i, obj in enumerate(self.workers):
                 temp_dict = dict(self.workers[i])
+                temp_dict["name"] = temp_dict["worker"].name
                 temp_dict["worker"] = temp_dict["worker"].pid
                 temp_dict["id"] = i + 1  # Zero-Index is not human friendly
                 worker_temp_list.append(temp_dict)

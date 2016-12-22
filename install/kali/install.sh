@@ -36,8 +36,8 @@ sudo -E "$apt_wrapper_path" libcurl4-openssl-dev
 #    git clone https://github.com/andresriancho/w3af.git
 #fi
 
-echo "${info}[*] Installing LBD, arachni, gnutls-bin and metagoofil from Kali Repos${reset}"
-sudo -E "$apt_wrapper_path" lbd gnutls-bin arachni metagoofil
+echo "${info}[*] Installing LBD, arachni, gnutls-bin, o-saft and metagoofil from Kali Repos${reset}"
+sudo -E "$apt_wrapper_path" lbd gnutls-bin arachni o-saft metagoofil
 
 echo "${info}[*] Installing ProxyChains${reset}"
 sudo -E "$apt_wrapper_path" proxychains
