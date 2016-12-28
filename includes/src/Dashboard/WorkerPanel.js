@@ -13,9 +13,9 @@ class Worker extends React.Component {
     /* Function resposible to make enteries for each worker in worker legend */
     getWork() {
         // Function which logs of corresponsing worker and display in modal
-        var getLog = function(id) {
+        var getLog = function(id, name) {
             $('#logModalLabel').html("Worker-" + id + " log");
-            const FILE_URL = location.protocol.concat("//").concat(window.location.hostname).concat(":").concat(FILE_SERVER_PORT).concat("/logs/Worker-").concat(id).concat(".log");
+            const FILE_URL = location.protocol.concat("//").concat(window.location.hostname).concat(":").concat(FILE_SERVER_PORT).concat("/logs/").concat(name).concat(".log");
             var log;
             $.ajax({
                 async: false,
@@ -40,7 +40,7 @@ class Worker extends React.Component {
                     {/* Loading GIF if worker is busy */}
                     <img className="workerpanel-labelimg" src={STATIC_URI + "img/Preloader.gif"}/>
                     <p className="workerpanel-label">{"Worker " + this.props.data.id + " - " + this.props.data.work[1].name + " ("}<TimeAgo date={this.props.data.start_time}/>)
-                        <button type="button" className="btn btn-primary btn-xs" data-toggle="modal" data-target="#logModal" onClick={getLog.bind(this, this.props.data.id)}>
+                        <button type="button" className="btn btn-primary btn-xs" data-toggle="modal" data-target="#logModal" onClick={getLog.bind(this, this.props.data.id, this.props.data.name)}>
                             Log
                         </button>
                     </p>
@@ -52,7 +52,7 @@ class Worker extends React.Component {
                     {/* Constant image if worker is not busy */}
                     <img className="workerpanel-labelimg" src={STATIC_URI + "img/not-running.png"}/>
                     <p className="workerpanel-label">{"Worker " + this.props.data.id + " - " + "Not Running "}
-                        <button type="button" className="btn btn-primary btn-xs" data-toggle="modal" data-target="#logModal" onClick={getLog.bind(this, this.props.data.id)}>
+                        <button type="button" className="btn btn-primary btn-xs" data-toggle="modal" data-target="#logModal" onClick={getLog.bind(this, this.props.data.id, this.props.data.name)}>
                             Log
                         </button>
                     </p>
