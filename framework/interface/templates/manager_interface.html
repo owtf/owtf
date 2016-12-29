@@ -202,6 +202,7 @@ function displayWorkersInfo(){
                         } else {
                             html += '<p style="display:inline"><strong>Logs: </strong>';
                             html += '<div class="btn-group"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Lines <span class="caret"></span></button><ul class="dropdown-menu scrollable-menu" role="menu">'
+                            html += '<li><a class="logTab" href="#" onclick="hideLog(' + obj.id.toString() + ')">' + "None" + '</a></li>';
                             html += '<li><a class="logTab" href="#" onclick=openLogModal("' + obj.name + '",' + '-1' + ')>' + "All" + '</a></li>';
                             for(i=1;i < 10;i++){
                                 html += '<li><a class="logTab" href="#" onclick=openLogModal("' + obj.name + '",' + i.toString() + ')>' + i + '</a></li>';
@@ -242,6 +243,14 @@ function openLogModal(worker, lines){
 function displayLog(id){
     if (workerLogs.indexOf(id) === -1) {
         workerLogs.push(id);
+    }
+    displayWorkersInfo();
+}
+
+function hideLog(id){
+    var index = workerLogs.indexOf(id);
+    if (index > -1) {
+        workerLogs.splice(index, 1);
     }
     displayWorkersInfo();
 }
