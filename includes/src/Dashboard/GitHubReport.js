@@ -11,6 +11,12 @@ const styles = {
     }
 };
 
+/**
+ *  React Component for GitHubReport(Top right button).
+ *  It is child components which is used by Dashboard.js
+ *  Uses Rest API - /api/errors/ (Obtained from props)
+ */
+
 class GitHubReport extends React.Component {
 
     constructor(props) {
@@ -25,7 +31,12 @@ class GitHubReport extends React.Component {
         this.deleteIssue = this.deleteIssue.bind(this);
     };
 
-    /* Function resposible to submit github issue */
+    /**
+     * Function resposible to submit github issue.
+     * Rest API - /api/errors/
+     * @param {id, e} values id: id of error to submit, e: DOM event
+     */
+
     addGithubIssue(id, e) {
         e.preventDefault();
         var username = $('#error' + id.toString() + "-username").val();
@@ -63,7 +74,12 @@ class GitHubReport extends React.Component {
         window.open(link);
     };
 
-    /* Function resposible to delete a error */
+    /**
+     * Function resposible to delete a error from OWTF database.
+     * Rest API - /api/errors/
+     * @param {id} values id: id of error to submit.
+     */
+
     deleteIssue(id) {
         $.ajax({
             url: this.props.source + id.toString(),

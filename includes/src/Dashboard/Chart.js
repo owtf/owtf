@@ -1,6 +1,12 @@
 import React from 'react';
 import {Pie} from 'react-chartjs';
 
+/**
+ *  React Component to create one entry of chart legend.
+ *  It is child components which is used by ChartLegend Component
+ *  Receives {"color": <color hex>, "id": <id>, "value": <int>, "label": <severity>} as an JS object where color represent color of that severity.
+ */
+
 class Severity extends React.Component {
 
     render() {
@@ -17,6 +23,12 @@ class Severity extends React.Component {
     }
 }
 
+/**
+ *  React Component to create chart legend.
+ *  It is child components which is used by Chart Component
+ *  Receives JSON object same as JSON response object obtained from REST API (/api/targets/severitychart/)
+ */
+
 class ChartLegend extends React.Component {
 
     render() {
@@ -29,6 +41,49 @@ class ChartLegend extends React.Component {
         );
     }
 }
+
+/**
+ *  React Component for Pie Chart.
+ *  It is child components which is used by Dashboard.js
+ *  Uses npm package - react-chartjs (https://github.com/reactjs/react-chartjs) to create Pie chart
+ *  Uses Rest API - /api/targets/severitychart/ (Obtained from props)
+ * JSON response object:
+ * {
+ *  "data": [
+ *    {
+ *      "color": "#A9A9A9",
+ *      "id": 0,
+ *      "value": <int>,
+ *      "label": "Not Ranked"
+ *    },
+ *    {
+ *      "color": "#b1d9f4",
+ *      "id": 2,
+ *      "value": <int>,
+ *      "label": "Info"
+ *    },
+ *    {
+ *      "color": "#337ab7",
+ *      "id": 3,
+ *      "value": <int>,
+ *      "label": "Low"
+ *    },
+ *    {
+ *      "color": "#c12e2a",
+ *      "id": 5,
+ *      "value": <int>,
+ *      "label": "High"
+ *    },
+ *    {
+ *      "color": "#800080",
+ *      "id": 6,
+ *      "value": <int>,
+ *      "label": "Critical"
+ *    }
+ *  ]
+ *}
+ *  Each element of data array represent details of one severity. Value is number of targets belongs to that severity.
+ */
 
 class Chart extends React.Component {
 
@@ -63,6 +118,7 @@ class Chart extends React.Component {
                 <div className="row">
                     <div className="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                         <div className="center-block vulchart">
+                            {/* React Component from react-chartjs package */}
                             <Pie data={this.state.piedata} width="175%" height="175%"/>
                         </div>
                     </div>
