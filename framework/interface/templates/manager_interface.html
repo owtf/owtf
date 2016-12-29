@@ -63,7 +63,7 @@ var mySpace = {
                 };
 
 var num_workers;
-
+var workerLogs = [];
 // Abort worker with id using API
 function abortWorker(workerId){
     addOverlay('#worker_'+workerId); // just add overlay the worker info refresh will auto. remove it
@@ -120,12 +120,12 @@ function addWorker(){
 }
 
 // Function handling log lines
-function getWorkerLog(id, lines){
+function getWorkerLog(name, lines){
     var log  = " Nothing to show here!";
     if (lines === "all"){
-        var URL = mySpace.log_url_port + "/logs/Worker-" + id.toString() + ".log";
+        var URL = mySpace.log_url_port + "/logs/" + name.toString() + ".log";
     } else {
-        var URL = mySpace.log_url_port + "/logs/Worker-" + id.toString() + ".log?lines=" + lines.toString();
+        var URL = mySpace.log_url_port + "/logs/" + name.toString() + ".log?lines=" + lines.toString();
     }
     $.ajax({
         async: false,
@@ -197,16 +197,20 @@ function displayWorkersInfo(){
                             html += '<p><strong>Type:</strong> '+obj.work[1].type.replace('_',' ')+'</p>';
                             html += '<p><strong>Group:</strong> '+obj.work[1].group+'</p>';
                         }
-                        html += '<p style="display:inline"><strong>Logs: </strong>';
-                        html += '<div class="btn-group"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Lines <span class="caret"></span></button><ul class="dropdown-menu scrollable-menu" role="menu">'
-                        html += '<li><a class="logTab href="#" onclick=openLogModal(' + obj.id.toString() + ',' + '-1' + ')>' + "All" + '</a></li>';
-                        for(i=1;i < 10;i++){
-                            html += '<li><a class="logTab href="#" onclick=openLogModal(' + obj.id.toString() + ',' + i.toString() + ')>' + i + '</a></li>';
+                        if (workerLogs.indexOf(obj.id) === -1) {
+                            html += '<button type="button" onclick="displayLog(' + obj.id.toString() + ')" class="btn btn-primary btn-xs">Show logs</button>';
+                        } else {
+                            html += '<p style="display:inline"><strong>Logs: </strong>';
+                            html += '<div class="btn-group"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Lines <span class="caret"></span></button><ul class="dropdown-menu scrollable-menu" role="menu">'
+                            html += '<li><a class="logTab" href="#" onclick=openLogModal("' + obj.name + '",' + '-1' + ')>' + "All" + '</a></li>';
+                            for(i=1;i < 10;i++){
+                                html += '<li><a class="logTab" href="#" onclick=openLogModal("' + obj.name + '",' + i.toString() + ')>' + i + '</a></li>';
+                            }
+                            html += '</ul></div>'
+                            html += getWorkerLog(obj.name,2) + '</p>';
+                            html += '</div>';
+                            html += '</div>';
                         }
-                        html += '</ul></div>'
-                        html += getWorkerLog(obj.id,2) + '</p>';
-                        html += '</div>';
-                        html += '</div>';
 
                         $('#workersInfo').append(html);
 
@@ -233,6 +237,13 @@ function openLogModal(worker, lines){
     var log = getWorkerLog(worker, lines);
     $('#logModal').find('.modal-body').html(log);
     $('#logModal').modal("show");
+}
+
+function displayLog(id){
+    if (workerLogs.indexOf(id) === -1) {
+        workerLogs.push(id);
+    }
+    displayWorkersInfo();
 }
 
 //Function which updates progress bar
