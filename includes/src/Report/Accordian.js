@@ -4,17 +4,23 @@ import {TARGET_API_URI, WORKLIST_API_URI} from '../constants';
 import update from 'immutability-helper';
 import {Notification} from 'react-notification';
 
+/**
+  * React Component for one Accordian. It is child component used by Accordians Component.
+  * Uses REST API - /api/targets/<target_id>/poutput/ with plugin_code
+  * Speciality of this React implementation is that the filtering is totally client side no server intraction is happening on filtering as compare to previous implementation.(Super fast filtering)
+  */
+
 class Accordian extends React.Component {
 
     constructor(props) {
         super(props);
 
         this.state = {
-            pactive: {},
+            pactive: {}, // Tells which plugin_type is active on Accordian
             code: "",
             details: {},
             pluginData: [],
-            isClicked: false,
+            isClicked: false, // Contents is alredy loaded or not.(To Prevant unneccesaary request)
             snackbarOpen: false,
             alertMessage: ""
         };
@@ -38,6 +44,12 @@ class Accordian extends React.Component {
 
         return context_obj;
     };
+
+    /**
+      * Function responsible for determing rank on Accordian
+      * @param {pluginDataList} values pluginDataList: details of results of plugins. (Array element belongs to result of one plugin_type)
+      * @return rank of plugin.
+      */
 
     getRankAndTypeCount(pluginDataList) {
         var testCaseMax = 0;
@@ -70,6 +82,12 @@ class Accordian extends React.Component {
         return {rank: testCaseMax, count: count};
     };
 
+    /**
+      * Function responsible for handling the button on Accordian.
+      * It changes the pactive to clicked plugin_type and opens the Accordian.
+      * @param {plugin_type} values plugin_type: Plugin type which is been clicked
+      */
+
     handlePluginBtnOnAccordian(plugin_type) {
         if (!this.state.isClicked) {
             this.fetchData(plugin_type);
@@ -81,6 +99,12 @@ class Accordian extends React.Component {
             });
         }
     };
+
+    /**
+      * Function responsible for fetching the plugin data from server.
+      * Uses REST API - /api/targets/<target_id>/poutput/
+      * @param {plugin_type} values plugin_type: Plugin type which is been clicked
+      */
 
     fetchData(plugin_type) {
         if (this.state.isClicked === false) {
@@ -96,6 +120,13 @@ class Accordian extends React.Component {
             }.bind(this));
         }
     };
+
+    /**
+      * Function responsible for changing/ranking the plugins.
+      * Uses REST API - /api/targets/<target_id>/poutput/<group>/<type>/<code>/
+      * @param {group, type, code, user_rank} values group:group of plugin clicked, type: type of plugin clicked, code: code of plugin clicked, user_rank: rank changed to.
+      * Re-Renders the **single** Accordian, closed tje Accordia if is the last plugin_type, move to next plugin_type if not.
+      */
 
     patchUserRank(group, type, code, user_rank) {
         var target_id = document.getElementById("report").getAttribute("data-code");
@@ -127,6 +158,12 @@ class Accordian extends React.Component {
         this.setState({pluginData: presentState, pactive: pactive});
     };
 
+    /**
+      * Function responsible for re-scanning of one plugin.
+      * Uses REST API - /api/worklist/
+      * It adds the plugins(work) to worklist.
+      */
+
     postToWorkList(selectedPluginData, force_overwrite) {
         selectedPluginData["id"] = document.getElementById("report").getAttribute("data-code");
         selectedPluginData["force_overwrite"] = force_overwrite;
@@ -143,6 +180,13 @@ class Accordian extends React.Component {
             }
         });
     };
+
+    /**
+      * Function responsible for deleting a instance of plugin.
+      * Uses REST API - /api/targets/<target_id>/poutput/<group>/<type>/<code>/
+      * @param {group, type, code, user_rank} values group:group of plugin clicked, type: type of plugin clicked, code: code of plugin clicked, user_rank: rank changed to.
+      * Re-Renders the **single** Accordian, move to previous/next plugin_type
+      */
 
     deletePluginOutput(group, type, code) {
         var target_id = document.getElementById("report").getAttribute("data-code");
@@ -192,8 +236,7 @@ class Accordian extends React.Component {
         var details = this.props.data['details'];
         var pluginData = this.props.data['data'];
         var code = this.props.code;
-        this.setState({details: details, pluginData: pluginData, code: code, pactive: pluginData[0]['plugin_type']
-        });
+        this.setState({details: details, pluginData: pluginData, code: code, pactive: pluginData[0]['plugin_type']});
     };
 
     render() {

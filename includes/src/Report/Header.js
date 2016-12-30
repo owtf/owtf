@@ -2,11 +2,12 @@ import React from 'react';
 import {TARGET_UI_URI, TARGET_API_URI} from '../constants';
 
 /**
+  * React Component for Header. It is child component used by Report Component.
+  * Uses REST API - /api/targets/1 (TARGET_API_URI)
   * Interesting read: Why here I used PureComponent - https://facebook.github.io/react/docs/react-api.html#react.purecomponent
   * Aim here to prevant Header's re-rendering unless any pluginData is updated.
   * PluginData is only updated initially or when some plugin is deleted.
-  * This re-rendering is implemented due to rank in header without that there will no need.
-*/
+  */
 
 class Header extends React.PureComponent {
 

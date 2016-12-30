@@ -1,7 +1,17 @@
 import React from 'react';
 import {TARGET_API_URI} from '../constants';
 
+/**
+  * React Component for Table in collapse. It is child component used by Collapse Component.
+  */
+
 class Table extends React.PureComponent {
+
+  /**
+    * Function responsible for handling editing of notes.
+    * Uses REST API - /api/targets/<target_id>/poutput/<group>/<type>/<code>/
+    * @param {group, type, code, user_rank} values group:group of plugin clicked, type: type of plugin clicked, code: code of plugin clicked, user_rank: rank changed to.
+    */
 
     patchUserNotes(group, type, code, user_notes) {
         var target_id = document.getElementById("report").getAttribute("data-code");
@@ -17,6 +27,13 @@ class Table extends React.PureComponent {
             }.bind(this)
         });
     };
+
+    /**
+      * Function responsible for handling user_notes editor.
+      * Uses external library: (js/ckeditor/ckeditor.js, js/ckeditor/adapters/jquery.js)
+      * Uses REST API - /api/targets/<target_id>/poutput/<group>/<type>/<code>/ to fill the editor area with user_notes.
+      * @param {group, type, code, user_rank} values group:group of plugin clicked, type: type of plugin clicked, code: code of plugin clicked, user_rank: rank changed to.
+      */
 
     handleEditor(group, type, code, instance) { // Same function called both to create or close editor
         var target_id = document.getElementById("report").getAttribute("data-code");

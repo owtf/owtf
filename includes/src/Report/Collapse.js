@@ -2,6 +2,11 @@ import React from 'react';
 import RankButtons from './RankButtons';
 import Table from './Table';
 
+/**
+  * React Component for Accordian's collapse. It is child component used by Accordian Component.
+  * This is collapse that opens on either clicking plugin_type buttons or Accordian heading.
+  */
+
 class Collapse extends React.Component {
 
     render() {

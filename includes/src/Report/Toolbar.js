@@ -1,14 +1,22 @@
 import React from 'react';
 
+/**
+  * React Component for Toolbar. It is child component used by Report Component.
+  * Uses context or say Report function updateFilter to update the filter arrays selectedRank etc.
+  * Interesting read: Why here I used PureComponent - https://facebook.github.io/react/docs/react-api.html#react.purecomponent
+  * Aim here to prevant Toolbar's re-rendering on props/state updates other than selectedRank array.
+  */
+
 class Toolbar extends React.PureComponent {
 
-    //Launch user sessions manager
+    // Launch user sessions manager
     loadSessionManager() {
         window.location.href = mySpace.sessions_ui_url;
     };
 
     render() {
         var selectedRank = this.props.selectedRank;
+        /* adv_filter_data varaible obtained from space of main template target.html. */
         var adv_filter_data = mySpace.adv_filter_data;
         var elem = document.createElement('textarea');
         elem.innerHTML = adv_filter_data;
