@@ -5,6 +5,10 @@ const style = {
     margin: 12
 };
 
+/**
+  * React Component for Footer. It is child component used by Transactions.
+  */
+
 export class Footer extends React.Component {
 
     constructor(props) {
@@ -23,6 +27,9 @@ export class Footer extends React.Component {
         $('#ScriptModal').modal('toggle');
     };
 
+    /**
+      * Function which tests that the provided script name for zest is correct or not (Regexically, only alphanumeric characters are allowed)
+      */
     verifyFileName(elem) {
         var alphaExp = /^[0-9a-zA-Z]+$/;
         if (elem.match(alphaExp)) {
@@ -31,6 +38,10 @@ export class Footer extends React.Component {
             this.setState({modalMessages: "Incorrect File Name(only alphanumeric characters allowed)"});
         }
     };
+
+    /**
+      * Function which tests that provided file name already exists or not.
+      */
 
     checkIfFileExists(data, Status, xhr) {
         this.handleClose.call();
@@ -41,6 +52,11 @@ export class Footer extends React.Component {
             this.context.alert("Script with this name already exists !");
         }
     };
+
+    /**
+      * Function which sends the reqeusts to server for zest script. It gives the file name and selected Transactions as a data in reqeust.
+      * Uses REST API - /api/targets/target_id/transactions/
+      */
 
     requestSender() {
         var file_name = this.refs.zestscriptname.value;

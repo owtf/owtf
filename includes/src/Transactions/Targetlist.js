@@ -1,5 +1,9 @@
 import React from 'react';
 
+/**
+  * React Component for TargetList. It is child component used by Transactions.
+  */
+
 export class TargetList extends React.Component {
 
     render() {

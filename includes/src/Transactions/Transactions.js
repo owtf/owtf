@@ -11,6 +11,22 @@ import injectTapEventPlugin from 'react-tap-event-plugin';
 // http://stackoverflow.com/a/34015469/988941
 injectTapEventPlugin();
 
+/**
+ * React Component for Transactions.
+ * This is main component which renders the Transactions page.
+ * - Renders on (URL)  - /ui/transactions/
+ * - Child Components:
+ *    - Header (Header.js) - React Component for header(includes - breadcrumb, zest script console  buttons)
+ *    - Footer (Footer.js) - React component for handling zest script.(send, close action)
+ *    - TargetList (TargetList.js) - React Component for targets list in side bar.
+ *    - TransactionHeader (TransactionHeader.js) - React Component for showing request and response on an entry of TransactionTable.
+ *    - TransactionTable (TransactionTable.js) - React Component for Transactions Table.
+ *  Context is used to maintain code readibility Interesting Read - (https://facebook.github.io/react/docs/context.html)
+ *  Uses REST API - /api/targets/search/ : To get targets.
+ *                - /api/targets/target_id/transactions/search/ : To feth the transactions from a particular target_id.
+ *                - /api/targets/target_id/transactions/transaction_id/: To fetch request and response headers of particular target and particular transaction.
+ */
+
 class Transactions extends React.Component {
 
     /* Function which replace the container to full width */
@@ -187,6 +203,7 @@ class Transactions extends React.Component {
         document.removeEventListener('mouseup', e => this.handleMouseUp(e));
     };
 
+    /* Function responsible for handling the resizable height of table. */
     getElementTopPosition(element) {
         var top = 0;
         do {
@@ -201,6 +218,7 @@ class Transactions extends React.Component {
         this.setState({headerHeight: changedValue});
     };
 
+    /* Handling filters in TransactionTable */
     tableSearch(e, field) {
         var filteredData = [];
         for (var i = 0; i < this.state.transactionsData.length; i++) {

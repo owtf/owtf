@@ -1,5 +1,9 @@
 import React from 'react';
 
+/**
+  * React Component for TransactionHeader. It is child component used by Transactions.
+  */
+
 const styles = {
     tab: {
         paddingTop: 16,
