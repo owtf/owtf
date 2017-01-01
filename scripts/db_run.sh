@@ -95,10 +95,12 @@ if [ -z "$postgres_server_ip" ]; then
 fi
 
 # Refresh postgres settings
-postgres_server_ip=$(get_postgres_server_ip)
-postgres_server_port=$(get_postgres_server_port)
+postgres_server_ips=$(get_postgres_server_ip)
+postgres_server_ports=$(get_postgres_server_port)
 
-if [ "$postgres_server_ip" != "$saved_server_ip" ] || [ "$postgres_server_port" != "$saved_server_port" ]; then
+if test "${postgres_server_ips#*$saved_server_ip}" = "$postgres_server_ips" || test "${postgres_server_ports#*$saved_server_port}" = "$postgres_server_ports"; then
+    postgres_server_ip=$(echo $postgres_server_ips | sed 's/ .*//')
+    postgres_server_port=$(echo $postgres_server_ports | sed 's/ .*//')
     echo "[+] Postgres running on $postgres_server_ip:$postgres_server_port"
     echo "[+] OWTF db config points towards $saved_server_ip:$saved_server_port"
     echo "[+] Do you want us to save the new settings for OWTF? [Y/n]"
