@@ -64,17 +64,17 @@ if [ -z "$postgres_server_ip" ]; then
     echo "[+] Can I start db server for you? [Y/n]"
     read choice
     if [ "$choice" != "n" ]; then
-        which service  >> /dev/null 2>&1
+        sudo which service  >> /dev/null 2>&1
         service_bin=$?
-        which systemctl  >> /dev/null 2>&1
+        sudo which systemctl  >> /dev/null 2>&1
         systemctl_bin=$?
-        if [ "$service_bin" = "1" ]; then
+        if [ "$service_bin" = "0" ]; then
             sudo service postgresql start
-            sudo service postgresql status | grep -q '^Running clusters: ..*$'
+            sudo service postgresql status | grep -q "Active: active"
             status_exitcode="$?"
-        elif [ "$systemctl_bin" = "1" ]; then
+        elif [ "$systemctl_bin" = "0" ]; then
             sudo systemctl start postgresql
-            sudo systemctl status postgresql | grep -q "active"
+            sudo systemctl status postgresql | grep -q "Active: active"
             status_exitcode="$?"
         else
             echo "[+] We couldn't determine how to start the postgres server, please start it and rerun this script"

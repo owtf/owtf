@@ -37,17 +37,17 @@ postgresql_fix() {
 
       echo "Restarting the postgresql service"
       # get the return values of which commands to determine the service controller
-      which service  >> /dev/null 2>&1
+      sudo which service  >> /dev/null 2>&1
       service_bin=$?
-      which systemctl  >> /dev/null 2>&1
+      sudo which systemctl  >> /dev/null 2>&1
       systemctl_bin=$?
       if [ "$service_bin" != "1" ]; then
         sudo service postgresql restart
-        sudo service postgresql status | grep -q '^Running clusters: ..*$'
+        sudo service postgresql status | grep -q "Active: active"
         status_exitcode="$?"
       elif [ "$systemctl_bin" != "1" ]; then
         sudo systemctl restart postgresql
-        sudo systemctl status postgresql | grep -q "active"
+        sudo systemctl status postgresql | grep -q "Active: active"
         status_exitcode="$?"
       else
         echo "[+] It seems postgres server is not running or responding, please start/restart it manually!"
