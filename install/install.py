@@ -87,7 +87,7 @@ def install_using_pip(requirements_file):
     :return: True - if installation successful, and False if not.
     """
     # Instead of using file directly with pip which can crash because of single library
-    return run_command("sudo -E pip2 install --upgrade -r %s" % requirements_file)
+    return run_command("pip2 install --upgrade -r %s" % requirements_file)
 
 
 def install_restricted_from_cfg(config_file):
@@ -181,13 +181,13 @@ def install(cmd_arguments):
 
     Colorizer.normal("[*] Upgrading pip to the latest version ...")
     # Upgrade pip before install required libraries
-    run_command("sudo pip2 install --upgrade pip")
+    run_command("pip2 install --upgrade pip")
     Colorizer.normal("Upgrading setuptools to the latest version ...")
     # Upgrade setuptools
-    run_command("sudo pip2 install --upgrade setuptools")
+    run_command("pip2 install --upgrade setuptools")
     Colorizer.normal("Upgrading cffi to the latest version ...")
     # Mitigate cffi errors by upgrading it first
-    run_command("sudo pip2 install --upgrade cffi")
+    run_command("pip2 install --upgrade cffi")
 
     install_using_pip(owtf_pip)
 

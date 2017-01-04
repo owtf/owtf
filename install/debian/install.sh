@@ -31,11 +31,11 @@ sudo -E "$apt_wrapper_path" install python-dev libpython-dev libffi-dev
 
 # Install dependancies
 sudo -E "$apt_wrapper_path" install xvfb xserver-xephyr libxml2-dev libxslt-dev libcurl4-gnutls-dev \
-                                    libcurl4-nss-dev libcurl4-openssl-dev tor
+                                    libcurl4-nss-dev libcurl4-openssl-dev tor libssl-dev
 
 
 # psycopg2 dependency
-sudo -E "$apt_wrapper_path" postgresql-server-dev-all postgresql-client postgresql-client-common
+sudo -E "$apt_wrapper_path" postgresql
 
 # pycurl dependency
 export PYCURL_SSL_LIBRARY=gnutls

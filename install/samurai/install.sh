@@ -15,7 +15,7 @@ IsInstalled() {
 RootDir=$1
 
 ########### Pip is the foremost thing that must be installed along with some needed dependencies for python libraries
-sudo -E apt-get -y install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev libcurl4-gnutls-dev libcurl4-nss-dev libcurl4-openssl-dev
+sudo -E apt-get -y install python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev libcurl4-gnutls-dev libcurl4-nss-dev libcurl4-openssl-dev libssl-dev
 export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip
 
 ############ Proposed clean solution instead of cloning by git
