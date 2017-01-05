@@ -5,7 +5,7 @@
 # - The casing of names is critical for dependency checks, eg. pyOpenSSL and not pyopenssl
 cookies==2.2.1
 ipaddr==2.1.11
-lxml==3.7.0
+lxml==3.7.1
 Markdown==2.6.7
 pexpect==4.2.1
 psycopg2==2.6.2
@@ -19,5 +19,5 @@ PyVirtualDisplay==0.2.1
 rdflib==4.2.1
 selenium==3.0.2
 SQLAlchemy==1.1.4
-tornado==4.4.1
+tornado==4.4.2
 requests==2.12.4
