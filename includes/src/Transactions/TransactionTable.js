@@ -1,5 +1,9 @@
 import React from 'react';
 
+/**
+  * React Component for TransactionTable. It is child component used by Transactions.
+  */
+
 export class TransactionTable extends React.Component {
 
     constructor(props) {
@@ -14,11 +18,12 @@ export class TransactionTable extends React.Component {
         this.handleRowSelection = this.handleRowSelection.bind(this);
     };
 
-    /* Function responsible for
-    1) When zest is not active, updating Header and Body when some row is clicked
-    2) When zest is active, this function manage multi selection of rows and immediately updates
-       selected row in zest (parentstate) that we will going to be used by requestSender to form zest script
-    3) handle click is called onRowSelection(material-ui default)*/
+    /**
+      * Function responsible for
+      * 1) When zest is not active, updating Header and Body when some row is clicked
+      * 2) When zest is active, this function manage multi selection of rows and immediately updates selected row in zest (parentstate) that we will going to be used by requestSender to form zest script
+      * 3) handle click is called onRowSelection(material-ui default)
+      */
     handleClick(selectedRows) {
         if (!this.context.zestActive) {
             var transaction_id = this.context.transactionsData[selectedRows].id;
@@ -27,6 +32,10 @@ export class TransactionTable extends React.Component {
             this.context.getTransactionsHeaders(target_id, transaction_id);
         }
     };
+
+    /**
+      * Function responsible for handling selection of checkboxes when zest is Active.
+      */
 
     handleRowSelection(index, e) {
         if (this.context.zestActive) {

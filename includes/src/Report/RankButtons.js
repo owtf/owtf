@@ -1,5 +1,9 @@
 import React from 'react';
 
+/**
+  * React Component for RankButtons. It is child component used by Collapse Component.
+  */
+
 class RankButtons extends React.Component {
 
     render() {

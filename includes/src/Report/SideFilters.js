@@ -1,5 +1,12 @@
 import React from 'react';
 
+/**
+  * React Component for SideFilters. It is child component used by Report Component.
+  * Uses context or say Report function to update the filter arrays like selectedGroup etc.
+  * Interesting read: Why here I used PureComponent - https://facebook.github.io/react/docs/react-api.html#react.purecomponent
+  * Aim here to prevant SideFilters's re-rendering on props/state updates other than filter arrays.
+  */
+
 class SideFilters extends React.PureComponent {
 
     render() {

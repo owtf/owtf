@@ -6,7 +6,17 @@ import GitHubReport from './GitHubReport';
 import {SEVERITY_CHART_URL, SEVERITY_PANEL_URL, WORKER_PANEL_URL, ERROR_URL, POLLINTERVAL} from './constants';
 import {FILE_SERVER_PORT} from '../constants';
 
-/* Class resposible for making dashboard page content */
+/**
+ * React Component for Dashboard.
+ * This is main component which renders the Dashboard page.
+ * - Renders on (URL)  - /ui/dashboard/
+ * - Child Components:
+ *    - GitHubReport (GitHubReport.js) - Top right button to report issue/bug directly to OWTF GitHub Repo.
+ *    - VulnerabilityPanel (Panel.js) - Shows total counts(plugins) of each severity of scanned targets.
+ *    - Chart (Chart.js) - Creates pie chart. Describes how many **targets** are repored as low, high, info, critical etc.
+ *    - WorkerPanel (WorkerPanel.js) - Shows progress of running targets and worker log.
+ */
+
 class Dashboard extends React.Component {
     render() {
         const HOST = location.protocol.concat("//").concat(window.location.hostname).concat(":");

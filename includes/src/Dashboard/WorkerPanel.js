@@ -4,6 +4,13 @@ import TimeAgo from 'react-timeago';
 import {WORKER_DETAIL_URL} from './constants';
 import {FILE_SERVER_PORT, STATIC_URI} from '../constants';
 
+/**
+ *  React Component for one entry of Worker Panel legend.
+ *  It is child components which is used by WorkerLegend
+ *  Receives - {"busy": false, "name": "Worker-1", "work": [], "worker": 14733, "paused": false, "id": 1}, as an JS object from properties.
+ *  work is array which contains the work assigned to that worker
+ */
+
 class Worker extends React.Component {
     constructor(props) {
         super(props);
@@ -74,6 +81,26 @@ class Worker extends React.Component {
     }
 }
 
+/**
+ *  React Component for Worker legend.
+ *  It is child components which is used by WorkerPanel Component.
+ *  Uses Rest API -
+        - /api/workers/ to get details of workers.
+ * JSON response object:
+ *  Array of JS objects containing the details of each worker.
+ *    [
+ *       {
+ *         "busy": false,
+ *         "name": "Worker-1",
+ *         "work": [],
+ *         "worker": 14733,
+ *         "paused": false,
+ *         "id": 1
+ *       }
+ *     ]
+ *  Each element of data array represent details of what each worker is doing.
+ */
+
 class WorkerLegend extends React.Component {
     constructor(props) {
         super(props);
@@ -142,6 +169,21 @@ class WorkerLegend extends React.Component {
     }
 }
 
+/**
+ *  React Component for ProgressBar.
+ *  It is child components which is used by WorkerPanel Component.
+ *  Uses npm package - rc-progress (http://react-component.github.io/progress/) to create ProgressBar
+ *  Uses Rest API -
+        - /api/plugins/progress/ (Obtained from props) to get data for ProgressBar
+        -
+ * JSON response object:
+ * - /api/plugins/progress/
+ *     {
+ *      "left_count": 0, // Represent how many are left to be to scanned
+ *      "complete_count": // Represents how many plugins are scanned.
+ *    }
+ */
+
 class ProgressBar extends React.Component {
 
     constructor(props) {
@@ -197,6 +239,11 @@ class ProgressBar extends React.Component {
         return (<Circle percent={this.state.percent} strokeWidth="6" strokeColor={this.state.color}/>);
     }
 }
+
+/**
+ *  React Component for Worker Panel.
+ *  It is child components which is used by Dashboard.js
+ */
 
 class WorkerPanel extends React.Component {
 

@@ -1,6 +1,10 @@
 import React from 'react';
 import {TRANSACTION_ZCONSOLE_URL} from './constants';
 
+/**
+  * React Component for Header. It is child component used by Transactions.
+  */
+
 export class Header extends React.Component {
 
     constructor(props) {

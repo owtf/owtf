@@ -1,5 +1,11 @@
 import React from 'react';
 
+/**
+ * React Component for Home.
+ *
+ * - Renders on (URL)  - /ui/
+ */
+
 class Home extends React.Component {
     render() {
         return (
