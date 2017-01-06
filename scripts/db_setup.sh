@@ -24,12 +24,6 @@ then
     exit 1
 fi
 
-# Bail out if not root privileges
-if [ "$(id -u)" != "0" ]; then
-   echo "This script must be run as root" 1>&2
-   exit 1
-fi
-
 postgresql_fix() {
   # remove SSL=true from the postgresql main config
   postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | sed 's/\./ /g' | awk '{print $1 "." $2}')"
@@ -39,21 +33,21 @@ postgresql_fix() {
   remove_ssl=${response:-"y"}  # tolower
   case $remove_ssl in
     [yY][eE][sS]|[yY])
-      sed -i -e '/ssl =/ s/= .*/= false/' $postgres_conf
+      sudo sed -i -e '/ssl =/ s/= .*/= false/' $postgres_conf
 
       echo "Restarting the postgresql service"
       # get the return values of which commands to determine the service controller
-      which service  >> /dev/null 2>&1
+      sudo which service  >> /dev/null 2>&1
       service_bin=$?
-      which systemctl  >> /dev/null 2>&1
+      sudo which systemctl  >> /dev/null 2>&1
       systemctl_bin=$?
       if [ "$service_bin" != "1" ]; then
-        service postgresql restart
-        service postgresql status | grep -q '^Running clusters: ..*$'
+        sudo service postgresql restart
+        sudo service postgresql status | grep -q "Active: active"
         status_exitcode="$?"
       elif [ "$systemctl_bin" != "1" ]; then
-        systemctl restart postgresql
-        systemctl status postgresql | grep -q "active"
+        sudo systemctl restart postgresql
+        sudo systemctl status postgresql | grep -q "Active: active"
         status_exitcode="$?"
       else
         echo "[+] It seems postgres server is not running or responding, please start/restart it manually!"
@@ -97,11 +91,11 @@ read dummy
 
 if [ "$Action" = "init" ]
 then
-    su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""
-    su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""
+    sudo su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""
+    sudo su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""
     postgresql_fix
 elif [ "$Action" = "clean" ]
 then
-    su postgres -c "psql -c \"DROP DATABASE $db_name\""
-    su postgres -c "psql -c \"DROP USER $db_user\""
+    sudo su postgres -c "psql -c \"DROP DATABASE $db_name\""
+    sudo su postgres -c "psql -c \"DROP USER $db_user\""
 fi
