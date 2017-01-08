@@ -121,6 +121,7 @@ def finish(error_code):
             Colorizer.info("[*] Start OWTF by running 'cd path/to/pentest/directory; ./path/to/owtf.py'")
 
 def setup_virtualenv():
+    Colorizer.normal("[*] Seting up virtual environment named owtf...")
     # sources files and commands
     source = 'source /usr/local/bin/virtualenvwrapper.sh'
     setup_env = 'cd $WORKON_HOME; virtualenv -q -p %s owtf >/dev/null 2>&1; source owtf/bin/activate' % sys.executable
@@ -133,6 +134,17 @@ def setup_virtualenv():
     # Update the os environment variable
     os.environ.update(env)
 
+def setup_pip():
+    # Installing pip
+    Colorizer.info("[*] Installing pip")
+    directory = "/tmp/owtf-install/pip/%s" % os.getpid()
+    command = 'command -v pip2 >/dev/null || { wget --user-agent="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101' \
+                ' Firefox/15.0" --tries=3 https://bootstrap.pypa.io/get-pip.py; sudo python get-pip.py;}'
+    install_in_directory(os.path.expanduser(directory), command)
+
+    # Installing virtualenv
+    Colorizer.info("[*] Installing virtualenv and virtualenvwrapper")
+    install_in_directory(os.path.expanduser(str(os.getpid())), "sudo pip install virtualenv virtualenvwrapper")
 
 def install(cmd_arguments):
     """Perform installation of OWTF Framework. Wraps around all helper methods made in this module.
@@ -182,6 +194,10 @@ def install(cmd_arguments):
                 Colorizer.warning("[!] Invalid Number specified")
                 continue
 
+    # Installing pip and setting up virtualenv
+    setup_pip()
+    setup_virtualenv()
+
     # Install distro specific dependencies and packages needed for OWTF to work
     if distro_num != 0:
         run_command(cp.get(cp.sections()[int(distro_num) - 1], "install"))
@@ -192,7 +208,6 @@ def install(cmd_arguments):
     # This is due to db config setup included in this. Should run only after PostgreSQL is installed.
     # See https://github.com/owtf/owtf/issues/797.
     install_restricted_from_cfg(restricted_cfg)
-    setup_virtualenv()
 
     Colorizer.normal("[*] Upgrading pip to the latest version ...")
     # Upgrade pip before install required libraries
@@ -279,3 +294,4 @@ if __name__ == "__main__":
     check_sudo()
     installer_status_code = install(sys.argv[1:])
     finish(installer_status_code)
+    Colorizer.normal("[*] Add 'source /usr/local/bin/virtualenvwrapper.sh' to your terminal config file.")
