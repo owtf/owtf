@@ -21,11 +21,6 @@ apt_wrapper_path="$RootDir/install/aptitude-wrapper.sh"
 # Perform apt-get update before starting to install all packages, so we can get the latests manifests and packages versions
 sudo apt-get update
 
-# Grab and install pip
-echo "${info}[*] Installing pip using get-pip.py${reset}"
-wget --user-agent="${user_agent}" --tries=3 https://raw.github.com/pypa/pip/master/contrib/get-pip.py
-sudo -E python get-pip.py
-
 # Install headers for x86_64-linux-gnu-gcc
 sudo -E "$apt_wrapper_path" install python-dev libpython-dev libffi-dev
 
@@ -57,8 +52,5 @@ sudo "$apt_wrapper_path" update
 echo "${normal}[*] Installing missing tools${reset}"
 sudo -E "$apt_wrapper_path" install lbd arachni tlssled nmap nikto skipfish w3af-console dirbuster wapiti hydra waffit \
                                     ua-tester wpscan theharvester whatweb dnsrecon metagoofil metasploit-framework o-saft
-
-echo "${normal}[*] Cleaning up get-pip script${reset}"
-rm *get-pip*
 
 echo "${normal}[*] All done!${reset}"
