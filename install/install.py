@@ -2,6 +2,8 @@
 
 import os
 import sys
+import subprocess
+import json
 import platform
 import argparse
 from space_checker_utils import wget_wrapper
@@ -118,6 +120,19 @@ def finish(error_code):
             Colorizer.success("[*] Finished!")
             Colorizer.info("[*] Start OWTF by running 'cd path/to/pentest/directory; ./path/to/owtf.py'")
 
+def setup_virtualenv():
+    # sources files and commands
+    source = 'source /usr/local/bin/virtualenvwrapper.sh'
+    setup_env = 'cd $WORKON_HOME; virtualenv -q -p %s owtf >/dev/null 2>&1; source owtf/bin/activate' % sys.executable
+    dump = sys.executable+' -c "import os, json;print json.dumps(dict(os.environ))"'
+
+    pipe = subprocess.Popen(['/bin/bash', '-c', '%s >/dev/null 2>&1; %s; %s' % (source, setup_env, dump)],
+                            stdout=subprocess.PIPE)
+    env = json.loads(pipe.stdout.read())
+
+    # Update the os environment variable
+    os.environ.update(env)
+
 
 def install(cmd_arguments):
     """Perform installation of OWTF Framework. Wraps around all helper methods made in this module.
@@ -177,6 +192,7 @@ def install(cmd_arguments):
     # This is due to db config setup included in this. Should run only after PostgreSQL is installed.
     # See https://github.com/owtf/owtf/issues/797.
     install_restricted_from_cfg(restricted_cfg)
+    setup_virtualenv()
 
     Colorizer.normal("[*] Upgrading pip to the latest version ...")
     # Upgrade pip before install required libraries
