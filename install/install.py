@@ -167,17 +167,16 @@ def install(cmd_arguments):
                 Colorizer.warning("[!] Invalid Number specified")
                 continue
 
-    # Now install distro independent stuff - optional
-    install_restricted_from_cfg(restricted_cfg)
-    # Install distro specific libraries needed for OWTF to work
+    # Install distro specific dependencies and packages needed for OWTF to work
     if distro_num != 0:
         run_command(cp.get(cp.sections()[int(distro_num) - 1], "install"))
     else:
         Colorizer.normal("[*] Skipping distro related installation :(")
 
-    # Return if option to install only owtf dependencies is given, as there are optional tools further
-    if args.core_only:
-        return
+    # Now install distro independent stuff - optional
+    # This is due to db config setup included in this. Should run only after PostgreSQL is installed.
+    # See https://github.com/owtf/owtf/issues/797.
+    install_restricted_from_cfg(restricted_cfg)
 
     Colorizer.normal("[*] Upgrading pip to the latest version ...")
     # Upgrade pip before install required libraries
@@ -256,7 +255,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--no-user-input', help='run script with default options for user input', action="store_true")
-    parser.add_argument('--core-only', help='install only owtf dependencies, skip optional tools', action="store_true")
 
     Colorizer.normal("[*] Great that you are installing OWTF :D")
     Colorizer.warning("[!] There will be lot of output, please be patient")
