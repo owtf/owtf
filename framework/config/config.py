@@ -9,6 +9,7 @@ import os
 import re
 import logging
 import socket
+import shutil
 from copy import deepcopy
 from urlparse import urlparse
 from collections import defaultdict
@@ -57,7 +58,17 @@ class Config(BaseComponent, ConfigInterface):
         # Available profiles = g -> General configuration, n -> Network plugin
         # order, w -> Web plugin order, r -> Resources file
         self.initialize_attributes()
-        self.LoadFrameworkConfigFromFile(os.path.join(self.RootDir, 'framework', 'config', 'framework_config.cfg'))
+        path = os.path.join(os.path.expanduser("~"), os.path.join('.owtf', 'configuration'))
+        try:
+            os.makedirs(path)
+        except OSError:
+            if not os.path.isdir(path):
+                raise
+        path_config = os.path.join(path, 'framework_config.cfg')
+        if not os.path.isfile(path_config):
+            open(path_config,"w+").close()
+            shutil.copy(os.path.join(self.RootDir, 'configuration', 'frameworks', 'framework_config.cfg.default'), path_config)
+        self.LoadFrameworkConfigFromFile(os.path.join(path_config))
 
     def init(self):
         """Initialize the Option resources."""
