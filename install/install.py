@@ -89,7 +89,7 @@ def install_using_pip(requirements_file):
     :return: True - if installation successful, and False if not.
     """
     # Instead of using file directly with pip which can crash because of single library
-    return run_command("pip install --upgrade -r %s" % requirements_file)
+    return run_command("pip2 install --upgrade -r %s" % requirements_file)
 
 
 def install_restricted_from_cfg(config_file):
@@ -118,7 +118,7 @@ def finish(error_code):
             Colorizer.normal("[*] Visit https://github.com/owtf/owtf for help ")
         else:
             Colorizer.success("[*] Finished!")
-            Colorizer.info("[*] Start OWTF by running 'cd path/to/pentest/directory; ./path/to/owtf.py'")
+            Colorizer.info("[*] Start OWTF by running 'workon owtf; cd path/to/pentest/directory; ./path/to/owtf.py'")
 
 def setup_virtualenv():
     Colorizer.normal("[*] Seting up virtual environment named owtf...")
@@ -134,6 +134,14 @@ def setup_virtualenv():
     # Update the os environment variable
     os.environ.update(env)
 
+    if os.path.join(os.environ.get("WORKON_HOME"), "owtf") == os.environ.get("VIRTUAL_ENV"):
+        # Add source to shell config file
+        Colorizer.normal("[*] Adding virtualenvwrapper source to shell config file")
+        shell_rc_path = os.path.join(os.environ.get("HOME"), ".%src" % os.environ.get("SHELL").split(os.sep)[-1])
+        run_command("echo '%s' >> %s" % (source, shell_rc_path))
+    else:
+        Colorizer.warning("Unable to setup virtualenv...")
+
 def setup_pip():
     # Installing pip
     Colorizer.info("[*] Installing pip")
@@ -144,7 +152,7 @@ def setup_pip():
 
     # Installing virtualenv
     Colorizer.info("[*] Installing virtualenv and virtualenvwrapper")
-    install_in_directory(os.path.expanduser(str(os.getpid())), "sudo pip install virtualenv virtualenvwrapper")
+    install_in_directory(os.path.expanduser(str(os.getpid())), "sudo pip2 install virtualenv virtualenvwrapper")
 
 def install(cmd_arguments):
     """Perform installation of OWTF Framework. Wraps around all helper methods made in this module.
@@ -211,13 +219,13 @@ def install(cmd_arguments):
 
     Colorizer.normal("[*] Upgrading pip to the latest version ...")
     # Upgrade pip before install required libraries
-    run_command("pip install --upgrade pip")
+    run_command("pip2 install --upgrade pip")
     Colorizer.normal("Upgrading setuptools to the latest version ...")
     # Upgrade setuptools
-    run_command("pip install --upgrade setuptools")
+    run_command("pip2 install --upgrade setuptools")
     Colorizer.normal("Upgrading cffi to the latest version ...")
     # Mitigate cffi errors by upgrading it first
-    run_command("pip install --upgrade cffi")
+    run_command("pip2 install --upgrade cffi")
 
     install_using_pip(owtf_pip)
 
@@ -294,4 +302,3 @@ if __name__ == "__main__":
     check_sudo()
     installer_status_code = install(sys.argv[1:])
     finish(installer_status_code)
-    Colorizer.normal("[*] Add 'source /usr/local/bin/virtualenvwrapper.sh' to your terminal config file.")

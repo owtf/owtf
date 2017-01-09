@@ -33,7 +33,7 @@ pkgver() {
 
 package() {
 
-    pip install PTP python-owasp-zap-v2 PyVirtualDisplay selenium
+    pip2 install PTP python-owasp-zap-v2 PyVirtualDisplay selenium
 
     cd "$srcdir/owtf"
 
