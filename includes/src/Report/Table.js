@@ -127,7 +127,7 @@ class Table extends React.PureComponent {
                             if (output_path !== undefined) {
                                 return (
                                     <td>
-                                        <a href={"/output_files/" + output_path} target="_blank" className="btn btn-primary">Browse</a>
+                                        <a href={"/output_files/" + output_path} target="_blank" className={output_path === null ? "btn btn-primary disabled":"btn btn-primary"}>Browse</a>
                                     </td>
                                 );
                             }
