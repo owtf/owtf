@@ -28,14 +28,6 @@ sudo -E "$apt_wrapper_path" postgresql-server-dev-all postgresql-client postgres
 # pycurl dependency
 sudo -E "$apt_wrapper_path" libcurl4-openssl-dev
 
-############ Tools missing in Kali
-#mkdir -p $RootDir/tools/restricted
-#cd $RootDir/tools/restricted
-#IsInstalled "w3af"
-#if [ $? -eq 0 ]; then # Not installed
-#    git clone https://github.com/andresriancho/w3af.git
-#fi
-
 echo "${info}[*] Installing LBD, arachni, gnutls-bin, o-saft and metagoofil from Kali Repos${reset}"
 sudo -E "$apt_wrapper_path" lbd gnutls-bin arachni o-saft metagoofil
 
