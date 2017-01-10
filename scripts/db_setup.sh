@@ -50,8 +50,7 @@ postgresql_fix() {
         sudo systemctl status postgresql | grep -q "Active: active"
         status_exitcode="$?"
       else
-        echo "[+] It seems postgres server is not running or responding, please start/restart it manually!"
-        exit 1
+        sudo pg_ctlcluster ${postgres_version} main restart
       fi
       ;;
     *)
