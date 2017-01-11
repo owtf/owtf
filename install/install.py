@@ -149,6 +149,8 @@ def setup_pip():
     command = 'command -v pip2 >/dev/null || { wget --user-agent="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101' \
                 ' Firefox/15.0" --tries=3 https://bootstrap.pypa.io/get-pip.py; sudo python get-pip.py;}'
     install_in_directory(os.path.expanduser(directory), command)
+    Colorizer.info("[*] Installing required packages for pipsecure")
+    run_command("sudo pip2 install pyopenssl ndg-httpsclient pyasn1")
 
     # Installing virtualenv
     Colorizer.info("[*] Installing virtualenv and virtualenvwrapper")
