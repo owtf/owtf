@@ -124,7 +124,7 @@ def setup_virtualenv():
     Colorizer.normal("[*] Seting up virtual environment named owtf...")
     # sources files and commands
     source = 'source /usr/local/bin/virtualenvwrapper.sh'
-    setup_env = 'cd $WORKON_HOME; virtualenv -q -p %s owtf >/dev/null 2>&1; source owtf/bin/activate' % sys.executable
+    setup_env = 'cd $WORKON_HOME; virtualenv -q --always-copy -p %s owtf >/dev/null 2>&1; source owtf/bin/activate' % sys.executable
     dump = sys.executable+' -c "import os, json;print json.dumps(dict(os.environ))"'
 
     pipe = subprocess.Popen(['/bin/bash', '-c', '%s >/dev/null 2>&1; %s; %s' % (source, setup_env, dump)],
