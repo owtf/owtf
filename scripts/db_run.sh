@@ -82,6 +82,9 @@ if [ -z "$postgres_server_ip" ]; then
         elif
             echo "[+] Using pg_ctlcluster to start the server."
             sudo pg_ctlcluster ${postgres_version} main start
+        else
+            echo "[+] We couldn't determine how to start the postgres server, please start it and rerun this script"
+            exit 1
         fi
         if [ "$status_exitcode" != "0" ]; then
             echo "[+] Starting failed because postgreSQL service is not available!"
