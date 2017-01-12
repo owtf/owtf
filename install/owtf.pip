@@ -5,7 +5,7 @@
 # - The casing of names is critical for dependency checks, eg. pyOpenSSL and not pyopenssl
 cookies==2.2.1
 ipaddr==2.1.11
-lxml==3.7.1
+lxml==3.7.2
 Markdown==2.6.7
 ndg-httpsclient==0.4.2
 pyasn1==0.1.9

@@ -79,7 +79,7 @@ if [ -z "$postgres_server_ip" ]; then
             sudo systemctl start postgresql
             sudo systemctl status postgresql | grep -q "Active: active"
             status_exitcode="$?"
-        elif ["$systemctl_bin" != "0" && "service_bin" != "0"]; then
+        elif [ "$systemctl_bin" != "0" ] && [ "$service_bin" != "0" ]; then
             echo "[+] Using pg_ctlcluster to start the server."
             sudo pg_ctlcluster ${postgres_version} main start
         else
