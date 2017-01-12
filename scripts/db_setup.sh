@@ -44,11 +44,9 @@ postgresql_fix() {
       if [ "$service_bin" != "1" ]; then
         sudo service postgresql restart
         sudo service postgresql status | grep -q "Active: active"
-        status_exitcode="$?"
       elif [ "$systemctl_bin" != "1" ]; then
         sudo systemctl restart postgresql
         sudo systemctl status postgresql | grep -q "Active: active"
-        status_exitcode="$?"
       else
         sudo pg_ctlcluster ${postgres_version} main restart
       fi
