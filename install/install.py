@@ -120,11 +120,13 @@ def finish(error_code):
             Colorizer.success("[*] Finished!")
             Colorizer.info("[*] Start OWTF by running 'workon owtf; cd path/to/pentest/directory; ./path/to/owtf.py'")
 
+
 def setup_virtualenv():
     Colorizer.normal("[*] Seting up virtual environment named owtf...")
     # sources files and commands
     source = 'source /usr/local/bin/virtualenvwrapper.sh'
-    setup_env = 'cd $WORKON_HOME; virtualenv -q --always-copy -p %s owtf >/dev/null 2>&1; source owtf/bin/activate' % sys.executable
+    setup_env = 'cd $WORKON_HOME; virtualenv -q --always-copy -p %s owtf >/dev/null 2>&1;'\
+        ' source owtf/bin/activate' % sys.executable
     dump = sys.executable+' -c "import os, json;print json.dumps(dict(os.environ))"'
 
     pipe = subprocess.Popen(['/bin/bash', '-c', '%s >/dev/null 2>&1; %s; %s' % (source, setup_env, dump)],
@@ -134,20 +136,21 @@ def setup_virtualenv():
     # Update the os environment variable
     os.environ.update(env)
 
-    if os.path.join(os.environ.get("WORKON_HOME"), "owtf") == os.environ.get("VIRTUAL_ENV"):
+    if os.path.join(os.environ["WORKON_HOME"], "owtf") == os.environ["VIRTUAL_ENV"]:
         # Add source to shell config file
         Colorizer.normal("[*] Adding virtualenvwrapper source to shell config file")
-        shell_rc_path = os.path.join(os.environ.get("HOME"), ".%src" % os.environ.get("SHELL").split(os.sep)[-1])
+        shell_rc_path = os.path.join(os.environ["HOME"], ".%src" % os.environ["SHELL"].split(os.sep)[-1])
         run_command("echo '%s' >> %s" % (source, shell_rc_path))
     else:
         Colorizer.warning("Unable to setup virtualenv...")
+
 
 def setup_pip():
     # Installing pip
     Colorizer.info("[*] Installing pip")
     directory = "/tmp/owtf-install/pip/%s" % os.getpid()
-    command = 'command -v pip2 >/dev/null || { wget --user-agent="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101' \
-                ' Firefox/15.0" --tries=3 https://bootstrap.pypa.io/get-pip.py; sudo python get-pip.py;}'
+    command = 'command -v pip2 >/dev/null || { wget --user-agent="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101'\
+        ' Firefox/15.0" --tries=3 https://bootstrap.pypa.io/get-pip.py; sudo python get-pip.py;}'
     install_in_directory(os.path.expanduser(directory), command)
     Colorizer.info("[*] Installing required packages for pipsecure")
     run_command("sudo pip2 install pyopenssl ndg-httpsclient pyasn1")
@@ -155,6 +158,7 @@ def setup_pip():
     # Installing virtualenv
     Colorizer.info("[*] Installing virtualenv and virtualenvwrapper")
     install_in_directory(os.path.expanduser(str(os.getpid())), "sudo pip2 install virtualenv virtualenvwrapper")
+
 
 def install(cmd_arguments):
     """Perform installation of OWTF Framework. Wraps around all helper methods made in this module.
