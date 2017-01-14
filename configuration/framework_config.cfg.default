@@ -45,11 +45,11 @@ TARGETS_DIR: targets
 
 
 # ---------------------- Default profile settings ---------------------- #
-DEFAULT_GENERAL_PROFILE: @@@FRAMEWORK_DIR@@@/configuration/general/default.cfg
-DEFAULT_RESOURCES_PROFILE: @@@FRAMEWORK_DIR@@@/configuration/resources/default.cfg
+DEFAULT_GENERAL_PROFILE: @@@FRAMEWORK_DIR@@@/configuration/general_default.cfg
+DEFAULT_RESOURCES_PROFILE: @@@FRAMEWORK_DIR@@@/configuration/resources_default.cfg
 DEFAULT_WEB_PLUGIN_ORDER_PROFILE: @@@FRAMEWORK_DIR@@@/profiles/plugin_web/order.cfg
 DEFAULT_NET_PLUGIN_ORDER_PROFILE: @@@FRAMEWORK_DIR@@@/profiles/plugin_net/order.cfg
-DEFAULT_MAPPING_PROFILE: @@@FRAMEWORK_DIR@@@/configuration/mappings/default.cfg
+DEFAULT_MAPPING_PROFILE: @@@FRAMEWORK_DIR@@@/configuration/mappings_default.cfg
 
 
 # ---------------------------- URL regexps ---------------------------- #

@@ -34,7 +34,8 @@ class ResourceDB(BaseComponent, ResourceInterface):
                 raise
         path_resources = os.path.join(path, 'resource_manager.cfg')
         if not os.path.isfile(path_resources):
-            open(path_resources,"w+").close()
+            with open(path_resources,"w+")as f:
+                f.close()
             shutil.copy(file_path, path_resources)
         file_path = os.path.join(path_resources)
         logging.info("Loading Resources from: %s..", file_path)

@@ -40,7 +40,8 @@ class MappingDB(BaseComponent, MappingDBInterface):
                 raise
         path_mapping = os.path.join(path, 'mapping_manager.cfg')
         if not os.path.isfile(path_mapping):
-            open(path_mapping,"w+").close()
+            with open(path_mapping,"w+") as f:
+                f.close()
             shutil.copy(file_path, path_mapping)
         file_path = path_mapping
         logging.info("Loading Mapping from: %s..", file_path)
