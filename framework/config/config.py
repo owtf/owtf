@@ -66,8 +66,9 @@ class Config(BaseComponent, ConfigInterface):
                 raise
         path_config = os.path.join(path, 'framework_config.cfg')
         if not os.path.isfile(path_config):
-            open(path_config,"w+").close()
-            shutil.copy(os.path.join(self.RootDir, 'configuration', 'frameworks', 'framework_config.cfg.default'), path_config)
+            with open(path_config,"w+") as f:
+                f.close()
+            shutil.copy(os.path.join(self.RootDir, 'configuration', 'framework_config.cfg.default'), path_config)
         self.LoadFrameworkConfigFromFile(os.path.join(path_config))
 
     def init(self):

@@ -38,7 +38,8 @@ class ConfigDB(BaseComponent, DBConfigInterface):
                 raise
         path_general = os.path.join(path, 'general_manager.cfg')
         if not os.path.isfile(path_general):
-            open(path_general,"w+").close()
+            with open(path_general,"w+") as f:
+                f.close()
             shutil.copy(file_path, path_general)
         file_path = os.path.join(path_general)
         logging.info("Loading Configuration from: %s.." % file_path)
