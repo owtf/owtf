@@ -1,5 +1,5 @@
 import React from 'react';
-import {TARGET_UI_URI, TARGET_API_URI} from '../constants';
+import {TARGET_UI_URI, TARGET_API_URI} from '../constants.jsx';
 
 /**
   * React Component for Header. It is child component used by Report Component.

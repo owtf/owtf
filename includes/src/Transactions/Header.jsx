@@ -1,5 +1,5 @@
 import React from 'react';
-import {TRANSACTION_ZCONSOLE_URL} from './constants';
+import {TRANSACTION_ZCONSOLE_URL} from './constants.jsx';
 
 /**
   * React Component for Header. It is child component used by Transactions.

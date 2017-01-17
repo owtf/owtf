@@ -1,6 +1,6 @@
 import React from 'react';
-import Accordian from './Accordian';
-import {TARGET_API_URI, STATIC_URI} from '../constants';
+import Accordian from './Accordian.jsx';
+import {TARGET_API_URI, STATIC_URI} from '../constants.jsx';
 
 /**
   * React Component for group of Accordian. It is child component used by Report Component.

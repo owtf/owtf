@@ -1,8 +1,8 @@
 import React from 'react';
-import Header from './Header';
-import SideFilters from './SideFilters';
-import Accordians from './Accordians';
-import Toolbar from './Toolbar';
+import Header from './Header.jsx';
+import SideFilters from './SideFilters.jsx';
+import Accordians from './Accordians.jsx';
+import Toolbar from './Toolbar.jsx';
 import {Notification} from 'react-notification';
 import update from 'immutability-helper';
 

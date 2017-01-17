@@ -1,6 +1,6 @@
 import React from 'react';
-import Collapse from './Collapse'
-import {TARGET_API_URI, WORKLIST_API_URI} from '../constants';
+import Collapse from './Collapse.jsx'
+import {TARGET_API_URI, WORKLIST_API_URI} from '../constants.jsx';
 import update from 'immutability-helper';
 import {Notification} from 'react-notification';
 

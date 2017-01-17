@@ -45,9 +45,12 @@ var config = merge(common, {
             path.join(__dirname, 'node_modules'),
         ]
     },
+    resolve: {
+        extensions: ['', '.js', '.jsx']
+    },
     module: {
         loaders: [{
-            test: /\.js$/,
+            test: /\.jsx?$/,
             exclude: /node_modules/,
             loaders: ['babel', 'babel?presets[]=react,presets[]=es2015,presets[]=stage-0'],
             include: path.join(__dirname, 'includes/src')

@@ -1,8 +1,8 @@
 import React from 'react';
 import {Circle} from 'rc-progress';
 import TimeAgo from 'react-timeago';
-import {WORKER_DETAIL_URL} from './constants';
-import {FILE_SERVER_PORT, STATIC_URI} from '../constants';
+import {WORKER_DETAIL_URL} from './constants.jsx';
+import {FILE_SERVER_PORT, STATIC_URI} from '../constants.jsx';
 
 /**
  *  React Component for one entry of Worker Panel legend.

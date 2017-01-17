@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Home from './Home/Home';
-import Dashboard from './Dashboard/Dashboard';
-import Transactions from './Transactions/Transactions';
-import Report from './Report/Report';
+import Home from './Home/Home.jsx';
+import Dashboard from './Dashboard/Dashboard.jsx';
+import Transactions from './Transactions/Transactions.jsx';
+import Report from './Report/Report.jsx';
 
 var pageID = document.getElementById('app').childNodes[1].id;
 
