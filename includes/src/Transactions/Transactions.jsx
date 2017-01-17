@@ -1,11 +1,11 @@
 import React from 'react';
-import {TARGET_URL, TRANSACTIONS_URL, TRANSACTION_HEADER_URL} from './constants';
-import TransactionTable from './TransactionTable';
-import TransactionHeaders from './TransactionHeader';
-import Header from './Header';
-import Footer from './Footer';
+import {TARGET_URL, TRANSACTIONS_URL, TRANSACTION_HEADER_URL} from './constants.jsx';
+import TransactionTable from './TransactionTable.jsx';
+import TransactionHeaders from './TransactionHeader.jsx';
+import Header from './Header.jsx';
+import Footer from './Footer.jsx';
 import { Notification } from 'react-notification';
-import TargetList from './Targetlist';
+import TargetList from './Targetlist.jsx';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 // Needed for onTouchTap
 // http://stackoverflow.com/a/34015469/988941

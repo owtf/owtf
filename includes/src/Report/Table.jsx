@@ -1,5 +1,5 @@
 import React from 'react';
-import {TARGET_API_URI} from '../constants';
+import {TARGET_API_URI} from '../constants.jsx';
 
 /**
   * React Component for Table in collapse. It is child component used by Collapse Component.

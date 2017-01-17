@@ -1,6 +1,6 @@
 import React from 'react';
-import RankButtons from './RankButtons';
-import Table from './Table';
+import RankButtons from './RankButtons.jsx';
+import Table from './Table.jsx';
 
 /**
   * React Component for Accordian's collapse. It is child component used by Accordian Component.

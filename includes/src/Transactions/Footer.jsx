@@ -1,5 +1,5 @@
 import React from 'react';
-import {TRANSACTION_API_URL} from './constants';
+import {TRANSACTION_API_URL} from './constants.jsx';
 
 const style = {
     margin: 12
