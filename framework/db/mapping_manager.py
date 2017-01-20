@@ -2,7 +2,6 @@ import os
 import json
 import logging
 import ConfigParser
-import shutil
 
 from framework.db import models
 from framework.dependency_management.dependency_resolver import BaseComponent
@@ -32,18 +31,7 @@ class MappingDB(BaseComponent, MappingDBInterface):
         This needs to be a list instead of a dictionary to preserve order in
         python < 2.7
         """
-        path = os.path.join(os.path.expanduser("~"), os.path.join('.owtf', 'configuration'))
-        try:
-            os.makedirs(path)
-        except OSError:
-            if not os.path.isdir(path):
-                raise
-        path_mapping = os.path.join(path, 'mapping_manager.cfg')
-        if not os.path.isfile(path_mapping):
-            with open(path_mapping,"w+") as f:
-                f.close()
-            shutil.copy(file_path, path_mapping)
-        file_path = path_mapping
+        file_path = self.config.SelectConfigFilePath(file_path)
         logging.info("Loading Mapping from: %s..", file_path)
         config_parser = ConfigParser.RawConfigParser()
         # Otherwise all the keys are converted to lowercase xD
