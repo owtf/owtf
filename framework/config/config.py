@@ -9,7 +9,6 @@ import os
 import re
 import logging
 import socket
-import shutil
 from copy import deepcopy
 from urlparse import urlparse
 from collections import defaultdict
@@ -58,18 +57,7 @@ class Config(BaseComponent, ConfigInterface):
         # Available profiles = g -> General configuration, n -> Network plugin
         # order, w -> Web plugin order, r -> Resources file
         self.initialize_attributes()
-        path = os.path.join(os.path.expanduser("~"), os.path.join('.owtf', 'configuration'))
-        try:
-            os.makedirs(path)
-        except OSError:
-            if not os.path.isdir(path):
-                raise
-        path_config = os.path.join(path, 'framework_config.cfg')
-        if not os.path.isfile(path_config):
-            with open(path_config,"w+") as f:
-                f.close()
-            shutil.copy(os.path.join(self.RootDir, 'configuration', 'framework_config.cfg.default'), path_config)
-        self.LoadFrameworkConfigFromFile(os.path.join(path_config))
+        self.LoadFrameworkConfigFromFile(self.SelectConfigFilePath(os.path.join(os.path.expanduser('~'), '.owtf', 'configuration', 'framework_config.cfg')))
 
     def init(self):
         """Initialize the Option resources."""
@@ -83,6 +71,13 @@ class Config(BaseComponent, ConfigInterface):
         self.Config = defaultdict(list)  # General configuration information.
         for type in CONFIG_TYPES:
             self.Config[type] = {}
+
+    def SelectConfigFilePath(self, file_path):
+        if os.path.isfile(file_path):
+            return file_path
+
+        path = os.path.join(self.RootDir, 'configuration', os.path.basename(file_path))
+        return path
 
     def LoadFrameworkConfigFromFile(self, config_path):
         """Load the configuration from into a global dictionary."""

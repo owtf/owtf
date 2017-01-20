@@ -1,7 +1,6 @@
 import os
 import logging
 import ConfigParser
-import shutil
 
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import DBConfigInterface
@@ -30,18 +29,7 @@ class ConfigDB(BaseComponent, DBConfigInterface):
 
     def LoadConfigDBFromFile(self, file_path):
         # TODO: Implementy user override mechanism
-        path = os.path.join(os.path.expanduser("~"), os.path.join('.owtf', 'configuration'))
-        try:
-            os.makedirs(path)
-        except OSError:
-            if not os.path.isdir(path):
-                raise
-        path_general = os.path.join(path, 'general_manager.cfg')
-        if not os.path.isfile(path_general):
-            with open(path_general,"w+") as f:
-                f.close()
-            shutil.copy(file_path, path_general)
-        file_path = os.path.join(path_general)
+        file_path = self.config.SelectConfigFilePath(file_path)
         logging.info("Loading Configuration from: %s.." % file_path)
         config_parser = ConfigParser.RawConfigParser()
         config_parser.optionxform = str  # Otherwise all the keys are converted to lowercase xD
