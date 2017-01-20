@@ -57,7 +57,7 @@ class Config(BaseComponent, ConfigInterface):
         # Available profiles = g -> General configuration, n -> Network plugin
         # order, w -> Web plugin order, r -> Resources file
         self.initialize_attributes()
-        self.LoadFrameworkConfigFromFile(self.SelectConfigFilePath(os.path.join(os.path.expanduser('~'), '.owtf', 'configuration', 'framework_config.cfg')))
+        self.LoadFrameworkConfigFromFile(self.select_config_path(os.path.join(os.path.expanduser('~'), '.owtf', 'configuration', 'framework_config.cfg')))
 
     def init(self):
         """Initialize the Option resources."""
@@ -72,7 +72,7 @@ class Config(BaseComponent, ConfigInterface):
         for type in CONFIG_TYPES:
             self.Config[type] = {}
 
-    def SelectConfigFilePath(self, file_path):
+    def select_config_path(self, file_path):
         if os.path.isfile(file_path):
             return file_path
 
