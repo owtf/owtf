@@ -118,11 +118,13 @@ def finish(error_code):
             Colorizer.normal("[*] Visit https://github.com/owtf/owtf for help ")
         else:
             Colorizer.success("[*] Finished!")
-            Colorizer.info("[*] Start OWTF by running 'workon owtf; cd path/to/pentest/directory; ./path/to/owtf.py'")
+            Colorizer.info("[*] Run following command to start virtualenv: source ~/.%src; workon owtf"
+                    % os.environ["SHELL"].split(os.sep)[-1])
+            Colorizer.info("[*] Start OWTF by running 'cd path/to/pentest/directory; ./path/to/owtf.py'")
 
 
 def setup_virtualenv():
-    Colorizer.normal("[*] Seting up virtual environment named owtf...")
+    Colorizer.info("[*] Seting up virtual environment named owtf...")
     # sources files and commands
     source = 'source /usr/local/bin/virtualenvwrapper.sh'
     setup_env = 'cd $WORKON_HOME; virtualenv -q --always-copy -p %s owtf >/dev/null 2>&1;'\
@@ -135,10 +137,9 @@ def setup_virtualenv():
 
     # Update the os environment variable
     os.environ.update(env)
-
     if os.path.join(os.environ["WORKON_HOME"], "owtf") == os.environ["VIRTUAL_ENV"]:
         # Add source to shell config file
-        Colorizer.normal("[*] Adding virtualenvwrapper source to shell config file")
+        Colorizer.info("[*] Adding virtualenvwrapper source to shell config file")
         shell_rc_path = os.path.join(os.environ["HOME"], ".%src" % os.environ["SHELL"].split(os.sep)[-1])
         run_command("echo '%s' >> %s" % (source, shell_rc_path))
     else:
