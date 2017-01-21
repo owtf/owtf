@@ -59,6 +59,9 @@ saved_server_pass="$(get_config_value DATABASE_PASS $db_config_file)"
 postgres_server_ip=$(get_postgres_server_ip)
 postgres_server_port=$(get_postgres_server_port)
 
+# PostgreSQL version
+postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | sed 's/\./ /g' | awk '{print $1 "." $2}')"
+
 if [ -z "$postgres_server_ip" ]; then
     echo "[+] PostgreSQL server is not running."
     echo "[+] Can I start db server for you? [Y/n]"
@@ -76,6 +79,9 @@ if [ -z "$postgres_server_ip" ]; then
             sudo systemctl start postgresql
             sudo systemctl status postgresql | grep -q "Active: active"
             status_exitcode="$?"
+        elif [ "$systemctl_bin" != "0" ] && [ "$service_bin" != "0" ]; then
+            echo "[+] Using pg_ctlcluster to start the server."
+            sudo pg_ctlcluster ${postgres_version} main start
         else
             echo "[+] We couldn't determine how to start the postgres server, please start it and rerun this script"
             exit 1
