@@ -145,6 +145,8 @@ def setup_virtualenv():
         with open(shell_rc_path, "r") as f:
             if mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ).find(source) == -1:
                 run_command("echo '%s' >> %s" % (source, shell_rc_path))
+            else:
+                Colorizer.info("[+] Source line already added to the $SHELL config ")
     else:
         Colorizer.warning("Unable to setup virtualenv...")
 
