@@ -31,7 +31,7 @@ class MappingDB(BaseComponent, MappingDBInterface):
         This needs to be a list instead of a dictionary to preserve order in
         python < 2.7
         """
-        file_path = self.config.select_config_path(file_path)
+        file_path = self.config.select_user_or_default_config_path(file_path)
         logging.info("Loading Mapping from: %s..", file_path)
         config_parser = ConfigParser.RawConfigParser()
         # Otherwise all the keys are converted to lowercase xD

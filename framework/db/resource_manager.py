@@ -25,7 +25,7 @@ class ResourceDB(BaseComponent, ResourceInterface):
 
     # This needs to be a list instead of a dictionary to preserve order in python < 2.7
     def LoadResourceDBFromFile(self, file_path):
-        file_path = self.config.select_config_path(file_path)
+        file_path = self.config.select_user_or_default_config_path(file_path)
         logging.info("Loading Resources from: %s..", file_path)
         if not os.path.isfile(file_path):  # check if the resource file exists
             self.error_handler.FrameworkAbort("Resource file not found at: %s" % file_path)
