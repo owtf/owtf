@@ -5,9 +5,9 @@
 
 # Install missing stuff needed for w3af in kali
 sudo apt-get -y install python2.7-dev libsqlite3-dev
-sudo pip install clamd PyGithub GitPython pybloomfiltermmap esmre nltk pdfminer futures guess-language cluster msgpack-python python-ntlm
-sudo pip install git+git://github.com/ramen/phply.git\#egg=phply
-sudo pip install xdot
+pip2 install clamd PyGithub GitPython pybloomfiltermmap esmre nltk pdfminer futures guess-language cluster msgpack-python python-ntlm
+pip2 install git+https://github.com/ramen/phply.git\#egg=phply
+pip2 install xdot
 
 if [ ! -f ~/.w3af/startup.conf ]
 then

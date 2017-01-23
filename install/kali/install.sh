@@ -19,22 +19,14 @@ RootDir=$1
 apt_wrapper_path="$RootDir/install/aptitude-wrapper.sh"
 # Perform apt-get update before starting to install all packages, so we can get the latests manifests and packages versions
 sudo apt-get update
-sudo -E "$apt_wrapper_path" python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev
+sudo -E "$apt_wrapper_path" python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev
 export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip in kali
 
 # psycopg2 dependency
-sudo -E "$apt_wrapper_path" postgresql-server-dev-all postgresql-client postgresql-client-common
+sudo -E "$apt_wrapper_path" postgresql-server-dev-all postgresql-client postgresql-client-common postgresql
 
 # pycurl dependency
 sudo -E "$apt_wrapper_path" libcurl4-openssl-dev
-
-############ Tools missing in Kali
-#mkdir -p $RootDir/tools/restricted
-#cd $RootDir/tools/restricted
-#IsInstalled "w3af"
-#if [ $? -eq 0 ]; then # Not installed
-#    git clone https://github.com/andresriancho/w3af.git
-#fi
 
 echo "${info}[*] Installing LBD, arachni, gnutls-bin, o-saft and metagoofil from Kali Repos${reset}"
 sudo -E "$apt_wrapper_path" lbd gnutls-bin arachni o-saft metagoofil

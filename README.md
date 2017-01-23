@@ -23,61 +23,39 @@ The tool is highly configurable and anybody can trivially create simple plugins 
 Features
 ===
 
-##### Resilience
+- **Resilience**: If one tool crashes **OWTF**,  will move on to the next tool/test, saving the partial output of the tool until it crashed. **OWTF** also allow you to monitor worker processes and estimated plugin runtimes.
 
-If one tool crashes **OWTF**,  will move on to the next tool/test, saving the partial output of the tool until it crashed. **OWTF** also allow you to monitor worker processes and estimated plugin runtimes.
+- **Flexibile**: If your internet connectivity or the target host goes down during an assessment, you can ***pause*** the relevant worker processes and **resume** them later avoiding losing data to little as possible.
 
-##### Flexibilty
-If your internet connectivity or the target host goes down during an assessment, you can ***pause*** the relevant worker processes and **resume** them later avoiding losing data to little as possible.
+- **Tests Separation**: **OWTF** separates its traffic to the target into mainly 3 types of plugins:
 
+  - **Passive** : No traffic goes to the target
 
-##### Tests Separation
+  - **Semi Passive** : Normal traffic to target
 
-**OWTF** separates its traffic to the target into mainly 3 types of plugins:
+  - **Active**:  Direct vulnerability probing
 
-- **Passive** : No traffic goes to the target
+  Some features like the *passive* and *semi_passive* **test separation** may also assist pen testers wishing to go the extra   mile to get a head start and maybe even legitimately start report writing or preparing attacks before they are given the green light to test.
 
-- **Semi Passive** : Normal traffic to target
+- **ReST API**: OWTF uses **PostgreSQL** as the database backend. All core **OWTF** functions and options are exposed through a ReST API making it easy to add new features with little effort.
 
-- **Active**:  Direct vulnerability probing
+- **Follows popular pen-testing standards**:
 
-Some features like the *passive* and *semi_passive* **test separation** may also assist pen testers wishing to go the extra mile to get a head start and maybe even legitimately start report writing or preparing attacks before they are given the green light to test.
+  - **OWTF** will try to classify the findings as closely as possible to the **OWASP Testing Guide**. It also supports the **NIST** and the **PTES** standards.
 
+  - **PlugnHack v2 support** :  **PlugnHack** is a *proposed* standard from the **Mozilla** security team for defining how security tools can interact with browsers in a more useful and usable way.
 
-##### Easy to use APIs
+  - **Zest and OWASP-ZAP integration** : **Zest** is an experimental specialized *scripting language* (domain-specific ) developed by the **Mozilla** security team and is intended to be used in web oriented security tools.
 
-OWTF uses **PostgreSQL** as the database backend. All core **OWTF** functions and options are exposed through APIs making it easy to add new features with little effort.
+- **Responsive web interface**: **OWTF** now has a default web interface which integrates all core **OWTF** options and makes it possible to manage large pentests easily.
 
+- **Interactive report updated on the fly**:
 
-##### Follows popular pen-testing standards
+  - **Automated** plugin rankings from the tool output, fully configurable by the user.
 
-- **OWTF** will try to classify the findings as closely as possible to the **OWASP Testing Guide**. It also supports the **NIST** and the **PTES** standards.
+  - **Configurable** risk rankings
 
-- **PlugnHack v2 support** :  **PlugnHack** is a *proposed* standard from the **Mozilla** security team for defining how security tools can interact with browsers in a more useful and usable way.
-
-- **Zest and OWASP-ZAP integration** : **Zest** is an experimental specialized *scripting language* (domain-specific ) developed by the **Mozilla** security team and is intended to be used in web oriented security tools.
-
-
-##### Responsive web interface
-
-**OWTF** now has a default web interface which integrates all core **OWTF** options and makes it possible to manage large pentests easily.
-
-- The default configuration can be changed easily from the browser.
-
-- Makes it easy to control worker processes and see the estimated run times for each plugin run.
-
-- Manage a large number of target URLs easily
-
-- **Searchable** transactions and URL *logs*.
-
-
-##### Interactive report updated on the fly:
-
-- **Automated** plugin rankings from the tool output, fully configurable by the user.
-
--  **Configurable** risk rankings
-
-- **In-line notes  editor** for each plugin.
+  - **In-line notes editor** for each plugin.
 
 
 Requirements
@@ -101,6 +79,12 @@ wget -N https://raw.githubusercontent.com/owtf/bootstrap-script/master/bootstrap
 or simply `git clone https://github.com/owtf/owtf.git; cd owtf/; python2 install/install.py`
 
 Check out the [wiki](https://github.com/owtf/owtf/wiki/OWASP-OWTF-Installation) for more information.
+
+To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker** installed) provided to try OWTF:
+
+`docker build -t owtf-dev .`
+
+`docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v ~/path_to_OWTF_on_host:/owtf owtf-dev /bin/bash`
 
 License
 ===
