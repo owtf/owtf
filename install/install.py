@@ -6,6 +6,7 @@ import subprocess
 import json
 import platform
 import argparse
+import mmap
 from space_checker_utils import wget_wrapper
 
 import ConfigParser
@@ -138,10 +139,12 @@ def setup_virtualenv():
     # Update the os environment variable
     os.environ.update(env)
     if os.path.join(os.environ["WORKON_HOME"], "owtf") == os.environ["VIRTUAL_ENV"]:
-        # Add source to shell config file
+        # Add source to shell config file only if not present
         Colorizer.info("[*] Adding virtualenvwrapper source to shell config file")
         shell_rc_path = os.path.join(os.environ["HOME"], ".%src" % os.environ["SHELL"].split(os.sep)[-1])
-        run_command("echo '%s' >> %s" % (source, shell_rc_path))
+        with open(shell_rc_path, "r") as f:
+            if mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ).find(source) == -1:
+                run_command("echo '%s' >> %s" % (source, shell_rc_path))
     else:
         Colorizer.warning("Unable to setup virtualenv...")
 
