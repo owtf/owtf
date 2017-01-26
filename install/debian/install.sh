@@ -39,9 +39,9 @@ echo "${normal}[*] Adding Kali Public Key for repos${reset}"
 gpg --keyserver pgpkeys.mit.edu --recv-key ED444FF07D8D0BF6
 echo "${normal}[*] Adding Kali repos to install the missing tools${reset}"
 
-sudo sh -c "echo 'deb http://http.kali.org/kali  kali main contrib non-free' >> /etc/apt/sources.list"
-sudo sh -c "echo 'deb-src http://http.kali.org/kali kali main contrib non-free' >> /etc/apt/sources.list"
-sudo sh -c "echo 'deb http://repo.kali.org/kali kali-bleeding-edge main contrib non-free' >> /etc/apt/sources.list"
+sudo sh -c "echo 'deb http://http.kali.org/kali kali-rolling main contrib non-free' >> /etc/apt/sources.list"
+sudo sh -c "echo 'deb-src http://http.kali.org/kali kali-rolling main contrib non-free' >> /etc/apt/sources.list"
+sudo sh -c "echo 'deb http://repo.kali.org/kali kali-rolling main contrib non-free' >> /etc/apt/sources.list"
 
 # Patch script for debian apt
 echo "${normal}[*] Adding apt preferences in order to keep Debian free from Kali garbage as much as possible :P${reset}"
