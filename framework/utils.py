@@ -1,9 +1,11 @@
 import os
+import sys
 import shutil
 import codecs
 import logging
 import tempfile
 from ipaddr import IPAddress
+
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.general import WipeBadCharsForFilename
 
@@ -90,6 +92,20 @@ def print_version(root_dir, commit_hash=False, version=False):
             ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
     else:
         pass
+
+
+def check_if_virtualenv_python():
+    """Checks if the script is running inside a virtualenv or not
+    Stolen from http://stackoverflow.com/questions/1871549/python-determine-if-running-inside-virtualenv
+    - Inside a virtualenv, sys.prefix points to the virtualenv directory,
+    and sys.real_prefix points to the "real" prefix of the system Python (often /usr or /usr/local or some such).
+
+    Outside the virtualenv, sys.real_prefix does not exist.
+    """
+    if not hasattr(sys, 'real_prefix'):
+        print("[-] It seems that virtualenv has not been activated!\n")
+        print("[-] Please run: \t source ~/.%src; workon owtf\n" % os.environ["SHELL"].split(os.sep)[-1])
+        sys.exit(1)
 
 
 class FileOperations(object):
