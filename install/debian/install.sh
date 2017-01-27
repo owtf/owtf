@@ -45,9 +45,9 @@ sudo sh -c "echo 'deb http://repo.kali.org/kali kali-rolling main contrib non-fr
 
 # Patch script for debian apt
 echo "${normal}[*] Adding apt preferences in order to keep Debian free from Kali garbage as much as possible :P${reset}"
-sh "$RootDir/install/debian/pref.sh"
+sudo sh "$RootDir/install/debian/pref.sh"
 
-sudo "$apt_wrapper_path" update
+sudo apt-get update
 
 echo "${normal}[*] Installing missing tools${reset}"
 sudo -E "$apt_wrapper_path" install lbd arachni tlssled nmap nikto skipfish w3af-console dirbuster wapiti hydra waffit \
