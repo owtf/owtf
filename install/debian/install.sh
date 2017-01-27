@@ -36,7 +36,7 @@ sudo -E "$apt_wrapper_path" postgresql-server-dev-all postgresql-client postgres
 export PYCURL_SSL_LIBRARY=gnutls
 
 echo "${normal}[*] Adding Kali Public Key for repos${reset}"
-gpg --keyserver pgpkeys.mit.edu --recv-key ED444FF07D8D0BF6
+gpg --keyserver hkp://keys.gnupg.net --recv-key 7D8D0BF6
 echo "${normal}[*] Adding Kali repos to install the missing tools${reset}"
 
 sudo sh -c "echo 'deb http://http.kali.org/kali kali-rolling main contrib non-free' >> /etc/apt/sources.list"
