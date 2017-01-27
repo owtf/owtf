@@ -15,8 +15,10 @@ from framework.core import Core
 from framework.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework import update
+from framework.utils import check_if_virtualenv_python
 from framework.lib.cli_options import usage, parse_options, parse_update_options
 
+check_if_virtualenv_python()
 verify_dependencies(os.path.dirname(os.path.abspath(sys.argv[0])) or '.')
 
 

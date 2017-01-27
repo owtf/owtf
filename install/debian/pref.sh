@@ -7,6 +7,6 @@ unstable="\n#Package: *\n#Pin: release a=unstable\n#Pin-Priority: 900\n"
 
 kali="\nPackage: *\nPin: release n=kali\nPin-Priority: 850\n"
 
-kaliEdge="\nPackage: *\nPin: release n=kali-bleeding-edge\nPin-Priority: 800"
+kali-rolling="\nPackage: *\nPin: release n=kali-rolling\nPin-Priority: 800"
 
-echo -e ${stable} ${testing} ${unstable} ${kali} ${kaliEdge} > /etc/apt/preferences.d/kali_pref
+echo -e ${stable} ${testing} ${unstable} ${kali} ${kali-rolling} > /etc/apt/preferences.d/kali_pref
