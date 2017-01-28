@@ -57,7 +57,7 @@ class Config(BaseComponent, ConfigInterface):
         # Available profiles = g -> General configuration, n -> Network plugin
         # order, w -> Web plugin order, r -> Resources file
         self.initialize_attributes()
-        self.LoadFrameworkConfigFromFile(self.select_user_or_default_config_path(os.path.join(os.path.expanduser('~'), '.owtf', 'configuration', 'framework_config.cfg')))
+        self.LoadFrameworkConfigFromFile(self.select_user_or_default_config_path(os.path.join('.owtf', 'configuration', 'framework_config.cfg')))
 
     def init(self):
         """Initialize the Option resources."""
@@ -74,6 +74,7 @@ class Config(BaseComponent, ConfigInterface):
 
     def select_user_or_default_config_path(self, file_path):
         """If user config files are present return the passed file path, else the default config file path."""
+        file_path = os.path.join(os.path.expanduser('~'),file_path)
         if os.path.isfile(file_path):
             return file_path
 
