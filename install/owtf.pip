@@ -9,7 +9,7 @@ lxml==3.7.2
 Markdown==2.6.7
 pexpect==4.2.1
 psycopg2==2.6.2
-PTP==0.3.0
+PTP==0.4.1
 pycurl==7.43.0
 pyOpenSSL==16.2.0
 python-owasp-zap-v2.4==0.0.8
