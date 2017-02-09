@@ -214,15 +214,16 @@ def install(cmd_arguments):
                 Colorizer.warning("[!] Invalid Number specified")
                 continue
 
-    # Installing pip and setting up virtualenv
-    setup_pip()
-    setup_virtualenv()
-
     # Install distro specific dependencies and packages needed for OWTF to work
     if distro_num != 0:
         run_command(cp.get(cp.sections()[int(distro_num) - 1], "install"))
     else:
         Colorizer.normal("[*] Skipping distro related installation :(")
+
+    # Installing pip and setting up virtualenv.
+    # This requires distro specific dependencies to be installed properly.
+    setup_pip()
+    setup_virtualenv()
 
     # Now install distro independent stuff - optional
     # This is due to db config setup included in this. Should run only after PostgreSQL is installed.
