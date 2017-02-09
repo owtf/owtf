@@ -6,10 +6,16 @@ branches:
     only:
         - develop
 
+services:
+    - docker
+
 sudo:
     - required
 
 before_install:
+    - docker pull ubuntu:16.04
+    - docker-compose up --build -d -f Dockerfile
+
     - sudo apt-get purge python-openssl
     - sudo apt-get install libffi-dev
     - sudo pip install pyopenssl
