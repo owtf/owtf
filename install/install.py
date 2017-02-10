@@ -6,6 +6,7 @@ import subprocess
 import json
 import platform
 import argparse
+from distutils import dir_util
 import mmap
 from space_checker_utils import wget_wrapper
 
@@ -313,4 +314,11 @@ if __name__ == "__main__":
     Colorizer.info("[*] Last commit hash: %s" % owtf_last_commit())
     check_sudo()
     installer_status_code = install(sys.argv[1:])
+
+    # Copying config files
+    path = os.path.join(os.path.expanduser('~'), '.owtf', 'configuration')
+    create_directory(path)
+    path_config = os.path.join(root_dir, 'configuration')
+    dir_util.copy_tree(path_config, path)
+
     finish(installer_status_code)
