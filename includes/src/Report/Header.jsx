@@ -69,7 +69,7 @@ class Header extends React.PureComponent {
                                 </h2>
                             </div>
                             <div className="col-md-2">
-                                <h3 dangerouslySetInnerHTML={(() => {
+                                <h3 id="overallrank" dangerouslySetInnerHTML={(() => {
                                     if (localMax == 0)
                                         return {__html: "<i><small><label class='alert alert-passing' style='margin-bottom: 0px'>Passing</label></small></i>"};
                                     else if (localMax == 1)
