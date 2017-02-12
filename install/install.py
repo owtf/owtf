@@ -2,9 +2,12 @@
 
 import os
 import sys
+import subprocess
+import json
 import platform
 import argparse
 from distutils import dir_util
+import mmap
 from space_checker_utils import wget_wrapper
 
 import ConfigParser
@@ -88,7 +91,7 @@ def install_using_pip(requirements_file):
     :return: True - if installation successful, and False if not.
     """
     # Instead of using file directly with pip which can crash because of single library
-    return run_command("sudo -E pip2 install --upgrade -r %s" % requirements_file)
+    return run_command("pip2 install --upgrade -r %s" % requirements_file)
 
 
 def install_restricted_from_cfg(config_file):
@@ -117,7 +120,51 @@ def finish(error_code):
             Colorizer.normal("[*] Visit https://github.com/owtf/owtf for help ")
         else:
             Colorizer.success("[*] Finished!")
+            Colorizer.info("[*] Run following command to start virtualenv: source ~/.%src; workon owtf"
+                    % os.environ["SHELL"].split(os.sep)[-1])
             Colorizer.info("[*] Start OWTF by running 'cd path/to/pentest/directory; ./path/to/owtf.py'")
+
+
+def setup_virtualenv():
+    Colorizer.info("[*] Seting up virtual environment named owtf...")
+    # sources files and commands
+    source = 'source /usr/local/bin/virtualenvwrapper.sh'
+    setup_env = 'cd $WORKON_HOME; virtualenv -q --always-copy -p %s owtf >/dev/null 2>&1;'\
+        ' source owtf/bin/activate' % sys.executable
+    dump = sys.executable+' -c "import os, json;print json.dumps(dict(os.environ))"'
+
+    pipe = subprocess.Popen(['/bin/bash', '-c', '%s >/dev/null 2>&1; %s; %s' % (source, setup_env, dump)],
+                            stdout=subprocess.PIPE)
+    env = json.loads(pipe.stdout.read())
+
+    # Update the os environment variable
+    os.environ.update(env)
+    if os.path.join(os.environ["WORKON_HOME"], "owtf") == os.environ["VIRTUAL_ENV"]:
+        # Add source to shell config file only if not present
+        Colorizer.info("[*] Adding virtualenvwrapper source to shell config file")
+        shell_rc_path = os.path.join(os.environ["HOME"], ".%src" % os.environ["SHELL"].split(os.sep)[-1])
+        with open(shell_rc_path, "r") as f:
+            if mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ).find(source) == -1:
+                run_command("echo '%s' >> %s" % (source, shell_rc_path))
+            else:
+                Colorizer.info("[+] Source line already added to the $SHELL config ")
+    else:
+        Colorizer.warning("Unable to setup virtualenv...")
+
+
+def setup_pip():
+    # Installing pip
+    Colorizer.info("[*] Installing pip")
+    directory = "/tmp/owtf-install/pip/%s" % os.getpid()
+    command = 'command -v pip2 >/dev/null || { wget --user-agent="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101'\
+        ' Firefox/15.0" --tries=3 https://bootstrap.pypa.io/get-pip.py; sudo python get-pip.py;}'
+    install_in_directory(os.path.expanduser(directory), command)
+    Colorizer.info("[*] Installing required packages for pipsecure")
+    run_command("sudo pip2 install pyopenssl ndg-httpsclient pyasn1")
+
+    # Installing virtualenv
+    Colorizer.info("[*] Installing virtualenv and virtualenvwrapper")
+    install_in_directory(os.path.expanduser(str(os.getpid())), "sudo pip2 install virtualenv virtualenvwrapper")
 
 
 def install(cmd_arguments):
@@ -168,6 +215,10 @@ def install(cmd_arguments):
                 Colorizer.warning("[!] Invalid Number specified")
                 continue
 
+    # Installing pip and setting up virtualenv
+    setup_pip()
+    setup_virtualenv()
+
     # Install distro specific dependencies and packages needed for OWTF to work
     if distro_num != 0:
         run_command(cp.get(cp.sections()[int(distro_num) - 1], "install"))
@@ -181,13 +232,13 @@ def install(cmd_arguments):
 
     Colorizer.normal("[*] Upgrading pip to the latest version ...")
     # Upgrade pip before install required libraries
-    run_command("sudo pip2 install --upgrade pip")
+    run_command("pip2 install --upgrade pip")
     Colorizer.normal("Upgrading setuptools to the latest version ...")
     # Upgrade setuptools
-    run_command("sudo pip2 install --upgrade setuptools")
+    run_command("pip2 install --upgrade setuptools")
     Colorizer.normal("Upgrading cffi to the latest version ...")
     # Mitigate cffi errors by upgrading it first
-    run_command("sudo pip2 install --upgrade cffi")
+    run_command("pip2 install --upgrade cffi")
 
     install_using_pip(owtf_pip)
 

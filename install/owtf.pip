@@ -7,8 +7,6 @@ cookies==2.2.1
 ipaddr==2.1.11
 lxml==3.7.2
 Markdown==2.6.7
-ndg-httpsclient==0.4.2
-pyasn1==0.1.9
 pexpect==4.2.1
 psycopg2==2.6.2
 PTP==0.3.0
