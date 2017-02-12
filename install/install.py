@@ -316,9 +316,9 @@ if __name__ == "__main__":
     installer_status_code = install(sys.argv[1:])
 
     # Copying config files
-    path = os.path.join(os.path.expanduser('~'), '.owtf', 'configuration')
-    create_directory(path)
-    path_config = os.path.join(root_dir, 'configuration')
-    dir_util.copy_tree(path_config, path)
+    dest_config_path = os.path.join(os.path.expanduser('~'), '.owtf', 'configuration')
+    create_directory(dest_config_path)
+    src_config_path = os.path.join(root_dir, 'configuration')
+    dir_util.copy_tree(src_config_path, dest_config_path)
 
     finish(installer_status_code)
