@@ -28,6 +28,9 @@ class Accordians extends React.Component {
         var target_id = document.getElementById("report").getAttribute("data-code");
         this.serverRequest = $.get(TARGET_API_URI + target_id + '/poutput/names/', function(result) {
             this.setState({pluginNameData: result, isLoaded: true});
+        }.bind(this))
+        .fail(function() {
+            this.setState({isLoaded: true});
         }.bind(this));
     };
 

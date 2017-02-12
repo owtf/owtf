@@ -142,6 +142,31 @@ class Accordian extends React.Component {
                 alert.call(this, "Server replied: " + serverResponse);
             }.bind(this)
         });
+
+        /* Overall Rank update starts */
+        var localMax = -1;
+        var rankHtml = "";
+        $.get(TARGET_API_URI + target_id, function(result) {
+            localMax = result.max_user_rank > result.max_owtf_rank
+                ? result.max_user_rank
+                : result.max_owtf_rank;
+            if (localMax == 0)
+                rankHtml = "<i><small><label class='alert alert-passing' style='margin-bottom: 0px'>Passing</label></small></i>";
+            else if (localMax == 1)
+                rankHtml = "<i><small><label class='alert alert-success' style='margin-bottom: 0px'>Info</label></small></i>";
+            else if (localMax == 2)
+                rankHtml = "<i><small><label class='alert alert-info' style='margin-bottom: 0px'>Low</label></small></i>";
+            else if (localMax == 3)
+                rankHtml = "<i><small><label class='alert alert-warning' style='margin-bottom: 0px'>Medium</label></small></i>";
+            else if (localMax == 4)
+                rankHtml = "<i><small><label class='alert alert-danger' style='margin-bottom: 0px'>High</label></small></i>";
+            else if (localMax == 5)
+                rankHtml = "<i><small><label class='alert alert-critical' style='margin-bottom: 0px'>Critical</label></small></i>";
+            $("#overallrank").html(rankHtml);
+
+        }.bind(this));
+        /* Overall Rank update ends */
+
         var index = -1;
         var pactive = this.state.pactive;
         for (var i = 0; i < presentState.length; i++) {
