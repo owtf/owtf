@@ -7,16 +7,15 @@ import json
 import platform
 import argparse
 import mmap
-from space_checker_utils import wget_wrapper
-
 import ConfigParser
+from distutils import dir_util
+
+from space_checker_utils import wget_wrapper
 
 
 def create_directory(directory):
     """Create parent directories as necessary.
-
     :param directory: (~str) Path of directory to be made.
-
     :return: True - if directory is created, and False - if not.
     """
     try:
@@ -31,9 +30,7 @@ def create_directory(directory):
 
 def run_command(command):
     """Execute the provided shell command.
-
     :param command: (~str) Linux shell command.
-
     :return: True - if command executed, and False if not.
     """
     Colorizer.normal("[*] Running following command")
@@ -67,10 +64,8 @@ def check_sudo():
 
 def install_in_directory(directory, command):
     """Execute a certain command while staying inside one directory.
-
     :param directory: (~str) Path of directory in which installation command has to be executed.
     :param command: (~str) Linux shell command (most likely `wget` here)
-
     :return: True - if installation successful or directory already exists, and False if not.
     """
     if create_directory(directory):
@@ -84,9 +79,7 @@ def install_in_directory(directory, command):
 
 def install_using_pip(requirements_file):
     """Install pip libraries as mentioned in a requirements file.
-
     :param requirements_file: (~str) Path to requirements file - in which libraries are listed.
-
     :return: True - if installation successful, and False if not.
     """
     # Instead of using file directly with pip which can crash because of single library
@@ -95,7 +88,6 @@ def install_using_pip(requirements_file):
 
 def install_restricted_from_cfg(config_file):
     """Install restricted tools and dependencies which are distro independent.
-
     :param config_file: (~str) Path to configuration file having information about restricted content.
     """
     cp = ConfigParser.ConfigParser({"RootDir": root_dir, "Pid": pid})
@@ -313,4 +305,11 @@ if __name__ == "__main__":
     Colorizer.info("[*] Last commit hash: %s" % owtf_last_commit())
     check_sudo()
     installer_status_code = install(sys.argv[1:])
+
+    # Copying config files
+    dest_config_path = os.path.join(os.path.expanduser('~'), '.owtf', 'configuration')
+    create_directory(dest_config_path)
+    src_config_path = os.path.join(root_dir, 'configuration')
+    dir_util.copy_tree(src_config_path, dest_config_path)
+
     finish(installer_status_code)
