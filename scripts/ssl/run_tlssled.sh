@@ -27,9 +27,15 @@ sleep 5
 SSL_HANDSHAKE_LINES=$(cat $RENEG_FILE | wc -l)
 
 if [ $SSL_HANDSHAKE_LINES -lt 15 ] ; then
-        # SSL handshake failed - Non SSL/TLS service
-        # If the target service does not speak SSL/TLS, openssl does not terminate
-        kill -s SIGINT ${pid}
+    # SSL handshake failed - Non SSL/TLS service
+    # If the target service does not speak SSL/TLS, openssl does not terminate
+
+    # Note: When bash is invoked as sh,
+    #       it uses a sh compatibility mode where most modern features are
+    #       turned off. sh doesn't recognize SIGKILL, but the bash
+    #       invocation is using its builtin, and that builtin does.
+    # SIGINT = 2 (signal number)
+    kill -2 ${pid}
 
 	echo
 	echo "[*] TLSSLED skipped!: The host $HOST does not appear to speak SSL/TLS on port: $PORT"
