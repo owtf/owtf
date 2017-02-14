@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import PluginOutputInterface
 from framework.db.target_manager import target_required
+from framework.db.session_manager import session_required
 from framework.lib.exceptions import InvalidParameterType
 from framework.db import models
 from framework.utils import FileOperations
@@ -250,7 +251,8 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             self.db.session.rollback()
             raise e
 
-    def GetSeverityFrequency(self):
+    @session_required
+    def GetSeverityFrequency(self, session_id=None):
         severity_frequency = [
             {"id": 0, "label": "Passing", "value": 0},
             {"id": 1, "label": "Info", "value": 0},
@@ -259,14 +261,21 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             {"id": 4, "label": "High", "value": 0},
             {"id": 5, "label": "Critical", "value": 0},
         ]
+
+        targets = []
+        target_objs = self.db.session.query(models.Target.id).filter(models.Target.sessions.any(id=session_id)).all()
+        for target_obj in target_objs:
+            targets.append(target_obj.id)
+
         plugin_objs = self.db.session.query(models.PluginOutput).all()
 
         for plugin_obj in plugin_objs:
-            if plugin_obj.user_rank != -1:
-                severity_frequency[plugin_obj.user_rank]["value"] += 1
-            else:
-                if plugin_obj.owtf_rank != -1:
-                    # Removing the not ranked plugins
-                    severity_frequency[plugin_obj.owtf_rank]["value"] += 1
+            if plugin_obj.target_id in targets:
+                if plugin_obj.user_rank != -1:
+                    severity_frequency[plugin_obj.user_rank]["value"] += 1
+                else:
+                    if plugin_obj.owtf_rank != -1:
+                        # Removing the not ranked plugins
+                        severity_frequency[plugin_obj.owtf_rank]["value"] += 1
 
         return {"data": severity_frequency[::-1]}

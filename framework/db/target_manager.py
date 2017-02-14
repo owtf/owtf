@@ -331,7 +331,8 @@ class TargetDB(BaseComponent, TargetInterface):
             results.append(values)
         return ({"data": results})
 
-    def GetTargetsSeverityCount(self):
+    @session_required
+    def GetTargetsSeverityCount(self, session_id=None):
         filtered_severity_objs = []
         # "not ranked" = gray, "passing" = light green, "info" = light sky blue, "low" = blue, medium = yellow, high = red, critical = dark purple
         severity_frequency = [
@@ -343,8 +344,8 @@ class TargetDB(BaseComponent, TargetInterface):
             {"id":5, "label": "High", "value": 0, "color": "#c12e2a"},
             {"id":6, "label": "Critical", "value": 0, "color": "#800080"}
         ]
-        total = self.db.session.query(models.Target).count()
-        target_objs = self.db.session.query(models.Target).all()
+        total = self.db.session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).count()
+        target_objs = self.db.session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).all()
 
         for target_obj in target_objs:
             if target_obj.max_user_rank != -1:
