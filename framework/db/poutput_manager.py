@@ -172,6 +172,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
                     if isinstance(patch_data["user_rank"], list):
                         patch_data["user_rank"] = patch_data["user_rank"][0]
                     obj.user_rank = int(patch_data["user_rank"])
+                    obj.owtf_rank = -1
                 if patch_data.get("user_notes", None):
                     if isinstance(patch_data["user_notes"], list):
                         patch_data["user_notes"] = patch_data["user_notes"][0]
