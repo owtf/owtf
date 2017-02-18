@@ -44,9 +44,9 @@ sudo grep -q -F 'kali' /etc/apt/sources.list || sudo echo 'deb http://http.kali.
 
 # Patch script for debian apt
 echo "${normal}[*] Adding apt preferences in order to keep Debian free from Kali garbage as much as possible :P${reset}"
-sudo sh "$RootDir/install/debian/pref.sh"
+sh "$RootDir/install/debian/pref.sh"
 
-sudo apt-get update
+sudo "$apt_wrapper_path" update
 
 echo "${normal}[*] Installing missing tools${reset}"
 sudo -E "$apt_wrapper_path" lbd arachni tlssled nmap nikto skipfish w3af-console dirbuster wapiti hydra waffit \
