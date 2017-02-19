@@ -105,15 +105,11 @@ def is_compatible():
             return True
 
 
-def finish(error_code):
-        if error_code == 1:
-            Colorizer.danger("\n[!] The installation was not successful.")
-            Colorizer.normal("[*] Visit https://github.com/owtf/owtf for help ")
-        else:
-            Colorizer.success("[*] Finished!")
-            Colorizer.info("[*] Run following command to start virtualenv: source ~/.%src; workon owtf"
-                    % os.environ["SHELL"].split(os.sep)[-1])
-            Colorizer.info("[*] Start OWTF by running 'cd path/to/pentest/directory; ./path/to/owtf.py'")
+def finish():
+    Colorizer.success("[*] Finished!")
+    Colorizer.info("[*] Run following command to start virtualenv: source ~/.%src; workon owtf"
+                   % os.environ["SHELL"].split(os.sep)[-1])
+    Colorizer.info("[*] Start OWTF by running 'cd path/to/pentest/directory; ./path/to/owtf.py'")
 
 
 def setup_virtualenv():
@@ -206,15 +202,16 @@ def install(cmd_arguments):
                 Colorizer.warning("[!] Invalid Number specified")
                 continue
 
-    # Installing pip and setting up virtualenv
-    setup_pip()
-    setup_virtualenv()
-
     # Install distro specific dependencies and packages needed for OWTF to work
     if distro_num != 0:
         run_command(cp.get(cp.sections()[int(distro_num) - 1], "install"))
     else:
         Colorizer.normal("[*] Skipping distro related installation :(")
+
+    # Installing pip and setting up virtualenv.
+    # This requires distro specific dependencies to be installed properly.
+    setup_pip()
+    setup_virtualenv()
 
     # Now install distro independent stuff - optional
     # This is due to db config setup included in this. Should run only after PostgreSQL is installed.
@@ -304,7 +301,7 @@ if __name__ == "__main__":
 
     Colorizer.info("[*] Last commit hash: %s" % owtf_last_commit())
     check_sudo()
-    installer_status_code = install(sys.argv[1:])
+    install(sys.argv[1:])
 
     # Copying config files
     dest_config_path = os.path.join(os.path.expanduser('~'), '.owtf', 'configuration')
@@ -312,4 +309,4 @@ if __name__ == "__main__":
     src_config_path = os.path.join(root_dir, 'configuration')
     dir_util.copy_tree(src_config_path, dest_config_path)
 
-    finish(installer_status_code)
+    finish()
