@@ -73,13 +73,18 @@ class Config(BaseComponent, ConfigInterface):
         for type in CONFIG_TYPES:
             self.Config[type] = {}
 
-    def select_user_or_default_config_path(self, file_path):
-        """If user config files are present return the passed file path, else the default config file path."""
+    def select_user_or_default_config_path(self, file_path, default_path=""):
+        """
+        If user config files are present return the passed file path, else the default config file path
+        :param file_path: Path of config file to locate
+        :param default_path: Default path of this file relative to "@@@RootDir@@@/configuration/" excluding filename
+        :return: Absolute path of the file if found else default path
+        """
         file_path = os.path.join(os.path.expanduser('~'), file_path)
         if os.path.isfile(file_path):
             return file_path
 
-        path = os.path.join(self.RootDir, 'configuration', os.path.basename(file_path))
+        path = os.path.join(self.RootDir, 'configuration', default_path, os.path.basename(file_path))
         return path
 
     def LoadFrameworkConfigFromFile(self, config_path):
