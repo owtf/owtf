@@ -23,11 +23,14 @@ class PluginDB(BaseComponent, DBPluginInterface):
         self.db = self.get_component("db")
         self.error_handler = self.get_component("error_handler")
         self.LoadTestGroups(self.config.select_user_or_default_config_path(
-            self.config.FrameworkConfigGet("WEB_TEST_GROUPS"), os.path.join("profiles","plugin_web")), "web")
+            self.config.FrameworkConfigGet("WEB_TEST_GROUPS"), self.config.FrameworkConfigGet("WEB_PLUGIN_CONFIG_DIR")),
+            "web")
         self.LoadTestGroups(self.config.select_user_or_default_config_path(
-            self.config.FrameworkConfigGet("NET_TEST_GROUPS"), os.path.join("profiles","plugin_net")), "network")
+            self.config.FrameworkConfigGet("NET_TEST_GROUPS"), self.config.FrameworkConfigGet("NET_PLUGIN_CONFIG_DIR")),
+            "network")
         self.LoadTestGroups(self.config.select_user_or_default_config_path(
-            self.config.FrameworkConfigGet("AUX_TEST_GROUPS"), os.path.join("profiles","plugin_aux")), "auxiliary")
+            self.config.FrameworkConfigGet("AUX_TEST_GROUPS"), self.config.FrameworkConfigGet("AUX_PLUGIN_CONFIG_DIR")),
+            "auxiliary")
         # After loading the test groups then load the plugins, because of many-to-one relationship
         self.LoadFromFileSystem()  # Load plugins :P
 
