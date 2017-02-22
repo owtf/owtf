@@ -10,6 +10,8 @@ from collections import defaultdict
 
 from sqlalchemy import desc, asc
 
+from hrt.interface import HttpRequestTranslator
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import TransactionInterface
 from framework.db.target_manager import target_required
@@ -436,6 +438,44 @@ class TransactionManager(BaseComponent, TransactionInterface):
         if not transaction_obj:
             raise InvalidTransactionReference("No transaction with %s exists" % str(trans_id))
         return self.DeriveTransactionDict(transaction_obj, include_raw_data=True)
+
+    @target_required
+    def GetHrtResponse(self, filter_data, trans_id, target_id=None):
+        transaction_obj = self.db.session.query(models.Transaction).filter_by(target_id=target_id, id=trans_id).first()
+
+        if 'language' in filter_data:
+            # Validate the request. It should contain language as POST parameter.
+            language = filter_data['language']
+        else:
+            response = "Please specify the language."
+            return response
+
+        # If target not found. Raise error.
+        if not transaction_obj:
+            raise InvalidTransactionReference("No transaction with %s exists" % str(trans_id))
+
+        transaction_obj_dict = dict(transaction_obj.__dict__)
+        raw_request = transaction_obj_dict['raw_request']
+        method = transaction_obj_dict['method']
+
+        # Due to issue https://github.com/owtf/http-request-translator/issues/53
+        if method not in ['GET', 'POST']:
+            response = "Request cannnot be completed.\nOnly GET and POST method supported."
+            return response
+
+        try:
+            hrt_obj = HttpRequestTranslator(
+                request=raw_request,
+                languages=language,
+                proxy=None,
+                search_string=None,
+                data=None)
+            codes = hrt_obj.generate_code()
+            response = (''.join(v for v in codes.values()))
+        except:
+            response = "Sorry! Submitted request cannot be translated.\nIf you think this is a mistake. Please report the bug at \nhttps://github.com/owtf/http-request-translator/issues/"
+
+        return response
 
     @target_required
     def GetSessionData(self, target_id=None):
