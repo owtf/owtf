@@ -246,7 +246,8 @@ class TargetDB(BaseComponent, TargetInterface):
                 if filter_data.get('limit', None):
                     if isinstance(filter_data.get('limit'), list):
                         filter_data['limit'] = filter_data['limit'][0]
-                    query = query.limit(int(filter_data['limit']))
+                    if int(filter_data['limit']) != -1:
+                        query = query.limit(int(filter_data['limit']))
             except ValueError:
                 raise InvalidParameterType("Invalid parameter type for target db for id[lt] or id[gt]")
         return query
