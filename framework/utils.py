@@ -4,6 +4,7 @@ import shutil
 import codecs
 import logging
 import tempfile
+import subprocess
 from ipaddr import IPAddress
 
 from framework.dependency_management.dependency_resolver import ServiceLocator
@@ -77,13 +78,14 @@ def directory_access(path, mode):
 def print_version(root_dir, commit_hash=False, version=False):
     # check if the root dir is a git repository
     if os.path.exists(os.path.join(root_dir, '.git')):
-        command = ('git log -n 1 --pretty=format:"%H"')
-        commit_hash = os.popen(command).read()
+        command = 'git log -n 1 --pretty=format:"%H"'
+        # Run this command from root_dir :)
+        commit_hash = subprocess.check_output(command, cwd=root_dir, shell=True )
 
     if commit_hash and version:
         return "OWTF Version: %s, Release: %s  \nLast commit hash: %s" % (
             ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
-            ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE')), commit_hash
+            ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'), commit_hash)
     elif commit_hash:
         return commit_hash
     elif version:
