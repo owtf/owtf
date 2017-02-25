@@ -14,7 +14,7 @@ get_config_value(){
     echo "$(grep -i ${parameter} ${file} | sed  "s|$parameter: ||g;s|~|$HOME|g")"
 }
 
-config_file="$RootDir/profiles/general/default.cfg"
+config_file="$RootDir/configuration/general.cfg"
 certs_folder=$(get_config_value CERTS_FOLDER ${config_file})
 ca_cert=$(get_config_value CA_CERT ${config_file})
 ca_key=$(get_config_value CA_KEY ${config_file})

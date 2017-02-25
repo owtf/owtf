@@ -20,7 +20,7 @@ install:
     - git clone https://github.com/owtf/owtf_testing
     - source /usr/local/bin/virtualenvwrapper.sh
     - workon owtf
-    - pip install --upgrade --force-reinstall -r ./owtf_testing/owtf_testing.pip
+    - pip install --upgrade -r ./owtf_testing/owtf_testing.pip
 
 before_script:
     - cp -f ./owtf_testing/profiles/plugin_web/groups.cfg ./profiles/plugin_web/groups.cfg
