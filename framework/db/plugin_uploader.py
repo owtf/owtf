@@ -27,7 +27,7 @@ class PluginUploader():
 			raise Exception("%s tool not supported by this plugin" % tool_name)
 
 	def init_uploader(self, pathname):
-		parsed_data = self.ptp.parse(pathname, http_parse=True)
+		parsed_data = self.ptp.parse(pathname)
 		self.parsed_data = parsed_data[-1]['transactions']
 
 	@target_required
@@ -53,10 +53,10 @@ class PluginUploader():
 				time_human="Uploaded by " + self.tool_name, # to distinguish uploader reports in transaction table
 				local_timestamp=datetime.now(),
 				raw_request=data['request'].decode('utf-8', 'ignore'),
-				response_status=data['response_status_code'],
-				response_headers=data['response_headers'].decode('utf-8', 'ignore'),
-				response_body=data['response_body'].decode('utf-8', 'ignore'),
-				response_size=len(data['response_body']),
+				response_status=data['status_code'],
+				response_headers=data['headers'].decode('utf-8', 'ignore'),
+				response_body=data['body'].decode('utf-8', 'ignore'),
+				response_size=len(data['body']),
 				binary_response=None,
 				session_tokens=None,
 				login=None,
