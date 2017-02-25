@@ -32,7 +32,7 @@ FILE_PATH=$(readlink -f "$0")
 INSTALL_DIR=$(dirname "$FILE_PATH")
 RootDir=${RootDir:-$(dirname "$INSTALL_DIR")}
 
-config_file="$RootDir/framework/config/framework_config.cfg"
+config_file="$RootDir/configuration/framework_config.cfg"
 db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
 
 db_name="owtfdb"
@@ -61,6 +61,6 @@ DATABASE_PASS: $db_pass" >> ${db_config_file}
     echo "${info}[*] Do you want to create database and user as specified in $db_config_file [Y/n]?"
     read choice
     if [ choice != 'n' ]; then
-        sudo sh ${RootDir}/scripts/db_run.sh
+        sh ${RootDir}/scripts/db_run.sh
     fi
 fi

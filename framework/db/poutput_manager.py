@@ -1,6 +1,8 @@
 import os
 import json
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import PluginOutputInterface
 from framework.db.target_manager import target_required
@@ -170,6 +172,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
                     if isinstance(patch_data["user_rank"], list):
                         patch_data["user_rank"] = patch_data["user_rank"][0]
                     obj.user_rank = int(patch_data["user_rank"])
+                    obj.owtf_rank = -1
                 if patch_data.get("user_notes", None):
                     if isinstance(patch_data["user_notes"], list):
                         patch_data["user_notes"] = patch_data["user_notes"][0]
@@ -205,7 +208,11 @@ class POutputDB(BaseComponent, PluginOutputInterface):
                 self.plugin_handler.GetPluginOutputDir(plugin)) else None),
             owtf_rank=plugin['owtf_rank'])
         )
-        self.db.session.commit()
+        try:
+            self.db.session.commit()
+        except SQLAlchemyError as e:
+            self.db.session.rollback()
+            raise e
 
     @target_required
     def SavePartialPluginOutput(self, plugin, output, message, target_id=None):
@@ -225,4 +232,8 @@ class POutputDB(BaseComponent, PluginOutputInterface):
                 self.plugin_handler.GetPluginOutputDir(plugin)) else None),
             owtf_rank=plugin['owtf_rank'])
         )
-        self.db.session.commit()
+        try:
+            self.db.session.commit()
+        except SQLAlchemyError as e:
+            self.db.session.rollback()
+            raise e

@@ -38,7 +38,7 @@ class Worker(OWTFProcess, BaseComponent):
                 logging.debug("I am worker (%d) & my master doesn't need me anymore", self.pid)
                 exit(0)
             except Exception as e:
-                self.get_component("error_handler").LogError("Exception occured while running :", trace=str(e))
+                self.get_component("error_handler").LogError("Exception occurred while running :", trace=str(e))
         logging.debug("I am worker (%d) & my master gave me poison pill", self.pid)
         exit(0)
 
@@ -211,6 +211,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         if pseudo_index:
             try:
                 temp_dict = dict(self.workers[pseudo_index - 1])
+                temp_dict["name"] = temp_dict["worker"].name
                 temp_dict["worker"] = temp_dict["worker"].pid
                 temp_dict["id"] = pseudo_index
                 return temp_dict
@@ -220,6 +221,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             worker_temp_list = []
             for i, obj in enumerate(self.workers):
                 temp_dict = dict(self.workers[i])
+                temp_dict["name"] = temp_dict["worker"].name
                 temp_dict["worker"] = temp_dict["worker"].pid
                 temp_dict["id"] = i + 1  # Zero-Index is not human friendly
                 worker_temp_list.append(temp_dict)
