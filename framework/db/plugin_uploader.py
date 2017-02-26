@@ -44,6 +44,8 @@ class PluginUploader():
 			extras = self.re_extras.findall(data['request'])[0]
 			Method = extras[0]
 			Url = target_url + extras[1]
+			# Converting to latin1 to avoid ascii encoding errors
+			if self.tool_name == 'burpsuite': data['body'] = data['body'].encode('latin1', 'ignore')
 			transaction_model = models.Transaction(
 				url=Url,
 				scope=None,
