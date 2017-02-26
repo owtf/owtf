@@ -21,11 +21,16 @@ export class TransactionHeaders extends React.Component {
         this.getHrt = this.getHrt.bind(this);
     };
 
-    getHrt(language, e) {
+    getHrt(e) {
+        e.preventDefault();
         if (!this.context.zestActive) {
             var transaction_id = this.context.transactionHeaderData.id;
             var target_id = this.context.target_id;
-            this.context.getHrtResponse(target_id, transaction_id, language);
+            var language = $("#language option:selected").text();
+            var proxy = $("#proxy").val();
+            var search_string = $("#searchstring").val();
+            var data = $("#data").val();
+            this.context.getHrtResponse(target_id, transaction_id, language, proxy, search_string, data);
         }
     };
 
@@ -54,35 +59,52 @@ export class TransactionHeaders extends React.Component {
                         <pre>{this.context.transactionHeaderData.requestHeader}</pre>
                         {this.context.transactionHeaderData.requestHeader !== '' &&
                             <div>
-                                <p>
-                                    <strong>Generate Code</strong>
-                                </p>
-                                <div className="dropdown">
-                                    <button className="btn btn-default dropdown-toggle pull-left" type="button" data-toggle="dropdown">Language
-                                        <span className="caret"></span>
-                                    </button>
-                                    <ul className="dropdown-menu">
-                                        <li>
-                                            <a onClick={this.getHrt.bind(this, "bash")} href="#">Bash</a>
-                                        </li>
-                                        <li>
-                                            <a onClick={this.getHrt.bind(this, "python")} href="#">Python</a>
-                                        </li>
-                                        <li>
-                                            <a onClick={this.getHrt.bind(this, "php")} href="#">PHP</a>
-                                        </li>
-                                        <li>
-                                            <a onClick={this.getHrt.bind(this, "ruby")} href="#">Ruby</a>
-                                        </li>
-                                    </ul>
+                                <br/>
+                                <div className="row">
+                                    <div className="col-md-12">
+                                        <form action="#" className="form-inline" onSubmit={this.getHrt.bind(this)}>
+                                            <div className="form-group">
+                                                <label for="language">Language:&nbsp;</label>
+                                                <select className="form-control" id="language">
+                                                    <option>Bash</option>
+                                                    <option>Python</option>
+                                                    <option>PHP</option>
+                                                    <option>Ruby</option>
+                                                </select>
+                                            </div>
+                                            &nbsp;
+                                            <div className="form-group">
+                                                <label for="proxy">Proxy:&nbsp;</label>
+                                                <input type="text" className="form-control" id="proxy" placeholder="proxy:port"/>
+                                            </div>
+                                            &nbsp;
+                                            <div className="form-group">
+                                                <label for="searchstring">Search String:&nbsp;</label>
+                                                <input type="text" className="form-control" id="searchstring" placeholder="Search String"/>
+                                            </div>
+                                            &nbsp;
+                                            <div className="form-group">
+                                                <label for="data">Data:&nbsp;</label>
+                                                <input type="text" className="form-control" id="data" placeholder="data"/>
+                                            </div>
+                                            &nbsp;
+                                            <div className="btn-group pull-right">
+                                                <button type="submit" className="btn btn-danger" >Generate code</button>
+                                                <CopyToClipboard text={this.context.hrtResponse}>
+                                                    <button className="btn btn-success pull-right" type="button">Copy to clipboard</button>
+                                                </CopyToClipboard>&nbsp;
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
-                                <CopyToClipboard text={this.context.hrtResponse}>
-                                    <button className="btn btn-success pull-right" type="button">Copy to clipboard</button>
-                                </CopyToClipboard>&nbsp;
-                                <br/><br/>
-                                <pre>
-                                      {this.context.hrtResponse}
-                                </pre>
+                                <br/>
+                                <div className="row">
+                                    <div className="col-md-12">
+                                        <pre>
+                                              {this.context.hrtResponse}
+                                        </pre>
+                                    </div>
+                                </div>
                             </div>
                         }
                     </div>
