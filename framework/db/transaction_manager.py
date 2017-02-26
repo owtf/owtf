@@ -443,12 +443,9 @@ class TransactionManager(BaseComponent, TransactionInterface):
     def GetHrtResponse(self, filter_data, trans_id, target_id=None):
         transaction_obj = self.db.session.query(models.Transaction).filter_by(target_id=target_id, id=trans_id).first()
 
-        if 'language' in filter_data:
-            # Validate the request. It should contain language as POST parameter.
-            language = filter_data['language']
-        else:
-            response = "Please specify the language."
-            return response
+        languages = ['bash']  # Default script language is set to bash.
+        if filter_data.get('language'):
+            languages = map(lambda x: x.strip(), filter_data['language'][0].split(','))
 
         # If target not found. Raise error.
         if not transaction_obj:
@@ -466,7 +463,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
         try:
             hrt_obj = HttpRequestTranslator(
                 request=raw_request,
-                languages=language,
+                languages=languages,
                 proxy=None,
                 search_string=None,
                 data=None)
