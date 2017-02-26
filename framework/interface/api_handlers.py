@@ -454,9 +454,6 @@ class TransactionDataHandler(custom_handlers.APIRequestHandler):
 class TransactionHrtHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['POST']
 
-    def get(self, target_id=None, transaction_id=None):
-        raise tornado.web.HTTPError(405)
-
     def post(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
@@ -473,15 +470,6 @@ class TransactionHrtHandler(custom_handlers.APIRequestHandler):
         except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
-
-    def put(self):
-        raise tornado.web.HTTPError(405)
-
-    def patch(self):
-        raise tornado.web.HTTPError(405)
-
-    def delete(self, target_id=None, transaction_id=None):
-        raise tornado.web.HTTPError(405)
 
 class TransactionSearchHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET']
