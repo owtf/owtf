@@ -444,9 +444,19 @@ class TransactionManager(BaseComponent, TransactionInterface):
     def GetHrtResponse(self, filter_data, trans_id, target_id=None):
         transaction_obj = self.db.session.query(models.Transaction).filter_by(target_id=target_id, id=trans_id).first()
 
+        # Data validation
         languages = ['bash']  # Default script language is set to bash.
         if filter_data.get('language'):
             languages = map(lambda x: x.strip(), filter_data['language'][0].split(','))
+
+        if filter_data.get('proxy'):
+            proxy = None if filter_data['proxy'][0] == '' else filter_data['proxy'][0]
+
+        if filter_data.get('search_string'):
+            search_string = None if filter_data['search_string'][0] == '' else filter_data['search_string'][0]
+
+        if filter_data.get('data'):
+            data = None if filter_data['data'][0] == '' else filter_data['data'][0]
 
         # If target not found. Raise error.
         if not transaction_obj:
@@ -458,9 +468,9 @@ class TransactionManager(BaseComponent, TransactionInterface):
             hrt_obj = HttpRequestTranslator(
                 request=raw_request,
                 languages=languages,
-                proxy=None,
-                search_string=None,
-                data=None)
+                proxy=proxy,
+                search_string=search_string,
+                data=data)
             codes = hrt_obj.generate_code()
             return (''.join(v for v in codes.values()))
         except Exception as e:
