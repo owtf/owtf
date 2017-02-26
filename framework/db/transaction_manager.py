@@ -6,6 +6,7 @@ The DB stores HTTP transactions, unique URLs and more.
 import re
 import json
 import base64
+import logging
 from collections import defaultdict
 
 from sqlalchemy import desc, asc
@@ -451,14 +452,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
         if not transaction_obj:
             raise InvalidTransactionReference("No transaction with %s exists" % str(trans_id))
 
-        transaction_obj_dict = dict(transaction_obj.__dict__)
-        raw_request = transaction_obj_dict['raw_request']
-        method = transaction_obj_dict['method']
-
-        # Due to issue https://github.com/owtf/http-request-translator/issues/53
-        if method not in ['GET', 'POST']:
-            response = "Request cannnot be completed.\nOnly GET and POST method supported."
-            return response
+        raw_request = transaction_obj.raw_request
 
         try:
             hrt_obj = HttpRequestTranslator(
@@ -468,11 +462,10 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 search_string=None,
                 data=None)
             codes = hrt_obj.generate_code()
-            response = (''.join(v for v in codes.values()))
-        except:
-            response = "Sorry! Submitted request cannot be translated.\nIf you think this is a mistake. Please report the bug at \nhttps://github.com/owtf/http-request-translator/issues/"
-
-        return response
+            return (''.join(v for v in codes.values()))
+        except Exception as e:
+            logging.error('Unexpected exception when running HRT: %s' % e)
+            return str(e)
 
     @target_required
     def GetSessionData(self, target_id=None):
