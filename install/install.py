@@ -147,11 +147,11 @@ def setup_pip():
         ' Firefox/15.0" --tries=3 https://bootstrap.pypa.io/get-pip.py; sudo python get-pip.py;}'
     install_in_directory(os.path.expanduser(directory), command)
     Colorizer.info("[*] Installing required packages for pipsecure")
-    run_command("sudo pip2 install pyopenssl ndg-httpsclient pyasn1")
+    run_command("sudo pip2 install --upgrade pyopenssl ndg-httpsclient pyasn1")
 
     # Installing virtualenv
     Colorizer.info("[*] Installing virtualenv and virtualenvwrapper")
-    install_in_directory(os.path.expanduser(str(os.getpid())), "sudo pip2 install virtualenv virtualenvwrapper")
+    install_in_directory(os.path.expanduser(str(os.getpid())), "sudo pip2 install --upgrade virtualenv virtualenvwrapper")
 
 
 def install(cmd_arguments):
