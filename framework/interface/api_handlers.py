@@ -461,13 +461,7 @@ class TransactionHrtHandler(custom_handlers.APIRequestHandler):
                 self.write(self.get_component("transaction").GetHrtResponse(filter_data, int(transaction_id), target_id=int(target_id)))
             else:
                 raise tornado.web.HTTPError(400)
-        except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
-            raise tornado.web.HTTPError(400)
-        except exceptions.InvalidTransactionReference as e:
-            cprint(e.parameter)
-            raise tornado.web.HTTPError(400)
-        except exceptions.InvalidParameterType as e:
+        except (InvalidTargetReference, InvalidTransactionReference, InvalidParameterType) as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
