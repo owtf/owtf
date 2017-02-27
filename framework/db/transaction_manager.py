@@ -449,6 +449,10 @@ class TransactionManager(BaseComponent, TransactionInterface):
         if filter_data.get('language'):
             languages = map(lambda x: x.strip(), filter_data['language'][0].split(','))
 
+        proxy = None
+        search_string = None
+        data = None
+
         if filter_data.get('proxy'):
             proxy = None if filter_data['proxy'][0] == '' else filter_data['proxy'][0]
 
