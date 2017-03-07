@@ -7,6 +7,7 @@ import json
 import platform
 import argparse
 import mmap
+import traceback
 import ConfigParser
 from distutils import dir_util
 
@@ -136,11 +137,11 @@ def setup_virtualenv():
                     run_command("echo '%s' >> %s" % (source, shell_rc_path))
                 else:
                     Colorizer.info("[+] Source line already added to the $SHELL config ")
-        else:
-            return False
-    except:
-        return False
-    return True
+            return True
+    except KeyError:
+        traceback.print_exc()
+    return False
+
 
 
 def setup_pip():
