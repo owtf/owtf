@@ -119,8 +119,15 @@ def setup_virtualenv():
         run_command('sudo ln -s /usr/bin/virtualenvwrapper.sh /usr/local/bin/virtualenvwrapper.sh >/dev/null 2>&1;')
     # sources files and commands
     source = 'source /usr/local/bin/virtualenvwrapper.sh'
-    setup_env = 'cd $WORKON_HOME; virtualenv2 -q --always-copy -p %s owtf >/dev/null 2>&1;'\
-        ' source owtf/bin/activate' % sys.executable
+
+    # Workaround for systems where the default Python Interpreter is 3.0+
+    if not os.path.isfile('/usr/bin/virtualenv2'):
+        setup_env = 'cd $WORKON_HOME; virtualenv -q --always-copy -p %s owtf >/dev/null 2>&1;'\
+            ' source owtf/bin/activate' % sys.executable
+    else:
+        setup_env = 'cd $WORKON_HOME; virtualenv2 -q --always-copy -p %s owtf >/dev/null 2>&1;'\
+            ' source owtf/bin/activate' % sys.executable
+
     dump = '%s -c "import os, json;print json.dumps(dict(os.environ))"' % sys.executable
 
     pipe = subprocess.Popen(['/bin/bash', '-c', '%s >/dev/null 2>&1; %s; %s' % (source, setup_env, dump)],
