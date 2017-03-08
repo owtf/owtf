@@ -181,18 +181,19 @@ class Transactions extends React.Component {
                   parameter - language : <selected language>
                   Response - output of HRT.
      */
-    getHrtResponse(target_id, transaction_id, language, proxy, search_string, data) {
+    getHrtResponse(target_id, transaction_id, values) {
         var URL = TRANSACTION_HRT_URL.replace("target_id", target_id.toString());
         URL = URL.replace("transaction_id", transaction_id.toString());
+        var data = {};
+        for(var i=0;i < values.length;i++) {
+            if (values[i].value !== ""){
+                data[values[i].name] = values[i].value;
+            }
+        }
         $.ajax({
             type: "POST",
             url: URL,
-            data: {
-                'language': language,
-                'proxy': proxy,
-                'search_string': search_string,
-                'data': data
-            },
+            data: data,
             success: function(result) {
                 this.setState({hrtResponse: result})
             }.bind(this)

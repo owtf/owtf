@@ -447,20 +447,20 @@ class TransactionManager(BaseComponent, TransactionInterface):
         # Data validation
         languages = ['bash']  # Default script language is set to bash.
         if filter_data.get('language'):
-            languages = map(lambda x: x.strip(), filter_data['language'][0].split(','))
+            languages = map(lambda x: x.strip(), filter_data['language'])
 
         proxy = None
         search_string = None
         data = None
 
         if filter_data.get('proxy'):
-            proxy = None if filter_data['proxy'][0] == '' else filter_data['proxy'][0]
+            proxy = filter_data['proxy'][0]
 
         if filter_data.get('search_string'):
-            search_string = None if filter_data['search_string'][0] == '' else filter_data['search_string'][0]
+            search_string = filter_data['search_string'][0]
 
         if filter_data.get('data'):
-            data = None if filter_data['data'][0] == '' else filter_data['data'][0]
+            data = filter_data['data'][0]
 
         # If target not found. Raise error.
         if not transaction_obj:
