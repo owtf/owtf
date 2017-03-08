@@ -114,11 +114,22 @@ def finish():
 
 
 def setup_virtualenv():
-    Colorizer.info("[*] Seting up virtual environment named owtf...")
+    Colorizer.info("[*] Setting up virtual environment named owtf...")
+
+    # Workaround for systems where the default Python Interpreter is 3.0+
+    venv_var = 'virtualenv2'
+    if not os.path.isfile('/usr/bin/virtualenv2'):
+        venv_var = 'virtualenv'
+
+    # If /usr/local/bin/virtualenvwrapper.sh doesn't exist, create a symlink from /usr/bin/
+    if not os.path.isfile('/usr/local/bin/virtualenvwrapper.sh'):
+        run_command('sudo ln -s /usr/bin/virtualenvwrapper.sh /usr/local/bin/virtualenvwrapper.sh >/dev/null 2>&1;')
     # sources files and commands
     source = 'source /usr/local/bin/virtualenvwrapper.sh'
-    setup_env = 'cd $WORKON_HOME; virtualenv -q --always-copy -p %s owtf >/dev/null 2>&1;'\
-        ' source owtf/bin/activate' % sys.executable
+
+    setup_env = 'cd $WORKON_HOME; %s -q --always-copy -p %s owtf >/dev/null 2>&1;'\
+        ' source owtf/bin/activate' % (venv_var, sys.executable)
+
     dump = '%s -c "import os, json;print json.dumps(dict(os.environ))"' % sys.executable
 
     pipe = subprocess.Popen(['/bin/bash', '-c', '%s >/dev/null 2>&1; %s; %s' % (source, setup_env, dump)],
