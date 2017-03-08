@@ -7,6 +7,7 @@ import json
 import platform
 import argparse
 import mmap
+import traceback
 import ConfigParser
 from distutils import dir_util
 
@@ -126,17 +127,21 @@ def setup_virtualenv():
 
     # Update the os environment variable
     os.environ.update(env)
-    if os.path.join(os.environ["WORKON_HOME"], "owtf") == os.environ["VIRTUAL_ENV"]:
-        # Add source to shell config file only if not present
-        Colorizer.info("[*] Adding virtualenvwrapper source to shell config file")
-        shell_rc_path = os.path.join(os.environ["HOME"], ".%src" % os.environ["SHELL"].split(os.sep)[-1])
-        with open(shell_rc_path, "r") as f:
-            if mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ).find(source) == -1:
-                run_command("echo '%s' >> %s" % (source, shell_rc_path))
-            else:
-                Colorizer.info("[+] Source line already added to the $SHELL config ")
-    else:
-        Colorizer.warning("Unable to setup virtualenv...")
+    try:
+        if os.path.join(os.environ["WORKON_HOME"], "owtf") == os.environ["VIRTUAL_ENV"]:
+            # Add source to shell config file only if not present
+            Colorizer.info("[*] Adding virtualenvwrapper source to shell config file")
+            shell_rc_path = os.path.join(os.environ["HOME"], ".%src" % os.environ["SHELL"].split(os.sep)[-1])
+            with open(shell_rc_path, "r") as f:
+                if mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ).find(source) == -1:
+                    run_command("echo '%s' >> %s" % (source, shell_rc_path))
+                else:
+                    Colorizer.info("[+] Source line already added to the $SHELL config ")
+            return True
+    except KeyError:
+        traceback.print_exc()
+    return False
+
 
 
 def setup_pip():
@@ -211,7 +216,11 @@ def install(cmd_arguments):
     # Installing pip and setting up virtualenv.
     # This requires distro specific dependencies to be installed properly.
     setup_pip()
-    setup_virtualenv()
+    if setup_virtualenv():
+        install_using_pip(owtf_pip)
+    else:
+        Colorizer.danger("Unable to setup virtualenv...")
+        Colorizer.danger("Skipping installation of OWTF python dependencies ...")
 
     # Now install distro independent stuff - optional
     # This is due to db config setup included in this. Should run only after PostgreSQL is installed.
@@ -227,8 +236,6 @@ def install(cmd_arguments):
     Colorizer.normal("Upgrading cffi to the latest version ...")
     # Mitigate cffi errors by upgrading it first
     run_command("pip2 install --upgrade cffi")
-
-    install_using_pip(owtf_pip)
 
 
 class Colorizer:
