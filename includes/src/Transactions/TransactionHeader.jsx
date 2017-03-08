@@ -23,14 +23,12 @@ export class TransactionHeaders extends React.Component {
 
     getHrt(e) {
         e.preventDefault();
+        var values = $("#hrtForm").serializeArray();
         if (!this.context.zestActive) {
             var transaction_id = this.context.transactionHeaderData.id;
             var target_id = this.context.target_id;
-            var language = $("#language option:selected").text();
-            var proxy = $("#proxy").val();
-            var search_string = $("#searchstring").val();
-            var data = $("#data").val();
-            this.context.getHrtResponse(target_id, transaction_id, language, proxy, search_string, data);
+            var values = $("#hrtForm").serializeArray();
+            this.context.getHrtResponse(target_id, transaction_id, values);
         }
     };
 
@@ -62,30 +60,30 @@ export class TransactionHeaders extends React.Component {
                                 <br/>
                                 <div className="row">
                                     <div className="col-md-12">
-                                        <form action="#" className="form-inline" onSubmit={this.getHrt.bind(this)}>
+                                        <form action="#" id="hrtForm" className="form-inline" onSubmit={this.getHrt.bind(this)}>
                                             <div className="form-group">
                                                 <label for="language">Language:&nbsp;</label>
-                                                <select className="form-control" id="language">
-                                                    <option>Bash</option>
-                                                    <option>Python</option>
-                                                    <option>PHP</option>
-                                                    <option>Ruby</option>
+                                                <select className="form-control" name="language">
+                                                    <option value="bash">Bash</option>
+                                                    <option value="python">Python</option>
+                                                    <option value="php">PHP</option>
+                                                    <option value="ruby">Ruby</option>
                                                 </select>
                                             </div>
                                             &nbsp;
                                             <div className="form-group">
                                                 <label for="proxy">Proxy:&nbsp;</label>
-                                                <input type="text" className="form-control" id="proxy" placeholder="proxy:port"/>
+                                                <input type="text" className="form-control" name="proxy" placeholder="proxy:port"/>
                                             </div>
                                             &nbsp;
                                             <div className="form-group">
                                                 <label for="searchstring">Search String:&nbsp;</label>
-                                                <input type="text" className="form-control" id="searchstring" placeholder="Search String"/>
+                                                <input type="text" className="form-control" name="searchstring" placeholder="Search String"/>
                                             </div>
                                             &nbsp;
                                             <div className="form-group">
                                                 <label for="data">Data:&nbsp;</label>
-                                                <input type="text" className="form-control" id="data" placeholder="data"/>
+                                                <input type="text" className="form-control" name="data" placeholder="data"/>
                                             </div>
                                             &nbsp;
                                             <div className="btn-group pull-right">
