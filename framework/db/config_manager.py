@@ -29,6 +29,7 @@ class ConfigDB(BaseComponent, DBConfigInterface):
 
     def LoadConfigDBFromFile(self, file_path):
         # TODO: Implementy user override mechanism
+        file_path = self.config.select_user_or_default_config_path(file_path)
         logging.info("Loading Configuration from: %s.." % file_path)
         config_parser = ConfigParser.RawConfigParser()
         config_parser.optionxform = str  # Otherwise all the keys are converted to lowercase xD
