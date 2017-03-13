@@ -32,6 +32,7 @@ class Config(BaseComponent, ConfigInterface):
 
     RootDir = None
     OwtfPid = None
+    Framework_config_path = os.path.expanduser(os.path.join("~", '.owtf', 'configuration', 'framework_config.cfg'))
     Profiles = {
         "GENERAL_PROFILE": None,
         "RESOURCES_PROFILE": None,
@@ -57,7 +58,7 @@ class Config(BaseComponent, ConfigInterface):
         # Available profiles = g -> General configuration, n -> Network plugin
         # order, w -> Web plugin order, r -> Resources file
         self.initialize_attributes()
-        self.LoadFrameworkConfigFromFile(os.path.join(self.RootDir, 'framework', 'config', 'framework_config.cfg'))
+        self.LoadFrameworkConfigFromFile(self.framework_config_file_path())
 
     def init(self):
         """Initialize the Option resources."""
@@ -71,6 +72,27 @@ class Config(BaseComponent, ConfigInterface):
         self.Config = defaultdict(list)  # General configuration information.
         for type in CONFIG_TYPES:
             self.Config[type] = {}
+
+    def select_user_or_default_config_path(self, file_path, default_path=""):
+        """
+        If user config files are present return the passed file path, else the default config file path
+        :param file_path: Path of config file to locate
+        :param default_path: Default path of this file relative to "@@@RootDir@@@/configuration/" excluding filename
+        :return: Absolute path of the file if found else default path
+        """
+        file_path = os.path.expanduser(file_path)
+        if os.path.isfile(file_path):
+            return file_path
+
+        path = os.path.join(self.FrameworkConfigGet("CONFIG_DIR"), default_path, os.path.basename(file_path))
+        return path
+
+    def framework_config_file_path(self):
+        if os.path.isfile(self.Framework_config_path):
+            return self.Framework_config_path
+
+        path = os.path.join(self.RootDir, 'configuration', os.path.basename(self.Framework_config_path))
+        return path
 
     def LoadFrameworkConfigFromFile(self, config_path):
         """Load the configuration from into a global dictionary."""
@@ -155,6 +177,7 @@ class Config(BaseComponent, ConfigInterface):
     def LoadProfiles(self, profiles):
         # This prevents python from blowing up when the Key does not exist :)
         self.Profiles = defaultdict(list)
+
         # Now override with User-provided profiles, if present.
         self.Profiles["GENERAL_PROFILE"] = profiles.get('g', None) or self.FrameworkConfigGet("DEFAULT_GENERAL_PROFILE")
         # Resources profile
