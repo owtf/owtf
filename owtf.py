@@ -6,19 +6,51 @@ In charge of processing arguments and call the framework.
 
 from __future__ import print_function
 
+import json
+import logging
 import os
 import sys
-import logging
+import subprocess
+import traceback
+
+"""Checks if the script is running inside a virtualenv or not
+Stolen from http://stackoverflow.com/questions/1871549/python-determine-if-running-inside-virtualenv
+- Inside a virtualenv, sys.prefix points to the virtualenv directory,
+and sys.real_prefix points to the "real" prefix of the system Python (often /usr or /usr/local or some such).
+
+Outside the virtualenv, sys.real_prefix does not exist.
+"""
+if not hasattr(sys, 'real_prefix'):
+    print("[-] Activating virtualenv 'owtf' ...")
+    # This check ensures that virtualenvwrapper.sh file has been activated
+    if os.environ.get("WORKON_HOME") is None:
+        shell_rc_path = os.path.join(os.environ["HOME"], ".%src" % os.environ["SHELL"].split(os.sep)[-1])
+        dump = '%s -c "import os, json;print json.dumps(dict(os.environ))"' % sys.executable
+        pipe = subprocess.Popen(['/bin/bash', '-c', 'source %s >/dev/null 2>&1; %s' % (shell_rc_path, dump)],
+                                stdout=subprocess.PIPE)
+        env = json.loads(pipe.stdout.read())
+        # Update the os environment variable
+        os.environ.update(env)
+
+    try:
+        activate_script = os.path.join(os.environ["WORKON_HOME"], "owtf", "bin", "activate_this.py")
+        if os.path.exists(activate_script):
+            execfile(activate_script, dict(__file__=activate_script))
+        else:
+            print("[-] Unable to find virtualenv 'owtf'. Please rerun the install script")
+            sys.exit(1)
+    except:
+        traceback.print_exc()
+        print("Unable to activate virtualenv. Please report the error on https://github.com/owtf/owtf")
+        sys.exit(1)
 
 from framework.dependency_check import verify_dependencies
 from framework.core import Core
 from framework.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework import update
-from framework.utils import check_if_virtualenv_python
 from framework.lib.cli_options import usage, parse_options, parse_update_options
 
-check_if_virtualenv_python()
 verify_dependencies(os.path.dirname(os.path.abspath(sys.argv[0])) or '.')
 
 
