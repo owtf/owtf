@@ -8,7 +8,7 @@ ipaddr==2.1.11
 lxml==3.7.3
 Markdown==2.6.8
 pexpect==4.2.1
-psycopg2==2.6.2
+psycopg2==2.7.1
 PTP==0.4.1
 pycurl==7.43.0
 pyOpenSSL==16.2.0
@@ -19,6 +19,6 @@ rdflib==4.2.2
 # We donot use six directly, but there is an error while trying to install pyOpenSSL.
 # More details at https://github.com/owtf/owtf/issues/332
 six==1.10.0
-selenium==3.0.2
-SQLAlchemy==1.1.5
+selenium==3.3.1
+SQLAlchemy==1.1.6
 tornado==4.4.2
