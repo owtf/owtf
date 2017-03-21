@@ -6,7 +6,7 @@ RootDir=${RootDir:-$(dirname "$INSTALL_DIR")}
 local_hash_file="$RootDir/zest/release.hash"
 
 # bring in the variables: `normal`, `info`, `warning`, `danger`, `reset`, `user_agent`
-. "$(dirname "$(readlink -f "$0")")/utils.sh"
+. "$(dirname "$(readlink -f "$0")")/../install/utils/utils.sh"
 
 if [ -f ${local_hash_file} ]; then
   local_hash="$(cat ${local_hash_file})"
@@ -21,8 +21,6 @@ install() {
   cd */.
   cp -r * ${RootDir}/zest
 }
-
-
 
 # check if local hash present
 if [ -z ${local_hash} ]; then

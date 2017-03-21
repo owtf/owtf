@@ -11,7 +11,7 @@ import traceback
 import ConfigParser
 from distutils import dir_util
 
-from space_checker_utils import wget_wrapper
+from utils.space_checker_utils import wget_wrapper
 
 
 def create_directory(directory):
