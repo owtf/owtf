@@ -1,10 +1,10 @@
 import React from 'react';
-import {TARGET_URL, TRANSACTIONS_URL, TRANSACTION_HEADER_URL} from './constants.jsx';
+import {TARGET_URL, TRANSACTIONS_URL, TRANSACTION_HEADER_URL, TRANSACTION_HRT_URL} from './constants.jsx';
 import TransactionTable from './TransactionTable.jsx';
 import TransactionHeaders from './TransactionHeader.jsx';
 import Header from './Header.jsx';
 import Footer from './Footer.jsx';
-import { Notification } from 'react-notification';
+import {Notification} from 'react-notification';
 import TargetList from './Targetlist.jsx';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 // Needed for onTouchTap
@@ -39,11 +39,13 @@ class Transactions extends React.Component {
         this.state = {
             target_id: 0,
             transactionHeaderData: {
+                id: '',
                 requestHeader: '',
                 responseHeader: '',
                 responseBody: ''
             },
             transactionsData: [],
+            hrtResponse: '',
             limitValue: 100,
             offsetValue: 0,
             targetsData: [],
@@ -63,6 +65,7 @@ class Transactions extends React.Component {
         this.alert = this.alert.bind(this);
         this.handleSnackBarRequestClose = this.handleSnackBarRequestClose.bind(this);
         this.getTransactionsHeaders = this.getTransactionsHeaders.bind(this);
+        this.getHrtResponse = this.getHrtResponse.bind(this);
         this.updateZestState = this.updateZestState.bind(this);
         this.closeZestState = this.closeZestState.bind(this);
         this.getElementTopPosition = this.getElementTopPosition.bind(this);
@@ -81,6 +84,7 @@ class Transactions extends React.Component {
             target_id: this.state.target_id,
             transactionHeaderData: this.state.transactionHeaderData,
             transactionsData: this.state.transactionsData,
+            hrtResponse: this.state.hrtResponse,
             limitValue: this.state.limitValue,
             offsetValue: this.state.offsetValue,
             targetsData: this.state.targetsData,
@@ -95,6 +99,7 @@ class Transactions extends React.Component {
             alert: this.alert,
             handleSnackBarRequestClose: this.handleSnackBarRequestClose,
             getTransactionsHeaders: this.getTransactionsHeaders,
+            getHrtResponse: this.getHrtResponse,
             updateZestState: this.updateZestState,
             closeZestState: this.closeZestState,
             getElementTopPosition: this.getElementTopPosition,
@@ -115,10 +120,12 @@ class Transactions extends React.Component {
                 target_id: target_id,
                 transactionsData: transactions,
                 transactionHeaderData: {
+                    id: '',
                     requestHeader: '',
                     responseHeader: '',
                     responseBody: ''
-                }
+                },
+                hrtResponse: ''
             });
         }.bind(this));
     };
@@ -153,18 +160,44 @@ class Transactions extends React.Component {
     };
 
     /* Function responsible for filling data TransactionHeaders and Body component */
-    getTransactionsHeaders(target_id, transaction_id) {
+    getTransactionsHeaders(target_id, transaction_id, language) {
         var URL = TRANSACTION_HEADER_URL.replace("target_id", target_id.toString());
         URL = URL.replace("transaction_id", transaction_id.toString());
         $.get(URL, function(result) {
             this.setState({
                 transactionHeaderData: {
+                    id: result.id,
                     requestHeader: result.raw_request,
                     responseHeader: result.response_headers,
                     responseBody: result.response_body
-                }
+                },
+                hrtResponse: ''
             });
         }.bind(this));
+    };
+
+    /* Function which is handling HRT (http request handler) for request translation.
+        Rest API - POST /api/targets/<target_id>/transactions/hrt/<transaction_id/
+                  parameter - language : <selected language>
+                  Response - output of HRT.
+     */
+    getHrtResponse(target_id, transaction_id, values) {
+        var URL = TRANSACTION_HRT_URL.replace("target_id", target_id.toString());
+        URL = URL.replace("transaction_id", transaction_id.toString());
+        var data = {};
+        for(var i=0;i < values.length;i++) {
+            if (values[i].value !== ""){
+                data[values[i].name] = values[i].value;
+            }
+        }
+        $.ajax({
+            type: "POST",
+            url: URL,
+            data: data,
+            success: function(result) {
+                this.setState({hrtResponse: result})
+            }.bind(this)
+        });
     };
 
     /* Imp: Function which is handling all the stuff when create zest script button is clicked. This
@@ -243,10 +276,12 @@ class Transactions extends React.Component {
             this.setState({
                 transactionsData: filteredData,
                 transactionHeaderData: {
+                    id: '',
                     requestHeader: '',
                     responseHeader: '',
                     responseBody: ''
-                }
+                },
+                hrtResponse: ''
             });
         };
     };
@@ -319,6 +354,7 @@ Transactions.childContextTypes = {
     target_id: React.PropTypes.number,
     transactionHeaderData: React.PropTypes.object,
     transactionsData: React.PropTypes.array,
+    hrtResponse: React.PropTypes.string,
     limitValue: React.PropTypes.number,
     offsetValue: React.PropTypes.number,
     targetsData: React.PropTypes.array,
@@ -333,6 +369,7 @@ Transactions.childContextTypes = {
     alert: React.PropTypes.func,
     handleSnackBarRequestClose: React.PropTypes.func,
     getTransactionsHeaders: React.PropTypes.func,
+    getHrtResponse: React.PropTypes.func,
     updateZestState: React.PropTypes.func,
     closeZestState: React.PropTypes.func,
     getElementTopPosition: React.PropTypes.func,
