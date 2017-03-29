@@ -1,5 +1,6 @@
 import React from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import {Notification} from 'react-notification';
 
 /**
   * React Component for TransactionHeader. It is child component used by Transactions.
@@ -18,7 +19,14 @@ export class TransactionHeaders extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            hrtForm: false,
+            snackbarOpen: false
+        };
+
         this.getHrt = this.getHrt.bind(this);
+        this.displayHrtForm = this.displayHrtForm.bind(this);
+        this.handleSnackBarRequestClose = this.handleSnackBarRequestClose.bind(this);
     };
 
     getHrt(e) {
@@ -30,6 +38,14 @@ export class TransactionHeaders extends React.Component {
             var values = $("#hrtForm").serializeArray();
             this.context.getHrtResponse(target_id, transaction_id, values);
         }
+    };
+
+    displayHrtForm() {
+        this.setState({hrtForm: !this.state.hrtForm});
+    };
+
+    handleSnackBarRequestClose() {
+        this.setState({snackbarOpen: false});
     };
 
     componentDidMount() {
@@ -56,10 +72,16 @@ export class TransactionHeaders extends React.Component {
                         <p>Request Header</p>
                         <pre>{this.context.transactionHeaderData.requestHeader}</pre>
                         {this.context.transactionHeaderData.requestHeader !== '' &&
+                          <div className="btn-group pull-right">
+                              <button type="submit" className="btn btn-success" onClick={this.displayHrtForm.bind(this)}>Copy as</button>
+                          </div>
+                        }
+                        {this.context.transactionHeaderData.requestHeader !== '' && this.state.hrtForm &&
                             <div>
                                 <br/>
                                 <div className="row">
                                     <div className="col-md-12">
+                                        <h5><strong>Generate Code</strong></h5>
                                         <form action="#" id="hrtForm" className="form-inline" onSubmit={this.getHrt.bind(this)}>
                                             <div className="form-group">
                                                 <label for="language">Language:&nbsp;</label>
@@ -89,10 +111,11 @@ export class TransactionHeaders extends React.Component {
                                             <div className="btn-group pull-right">
                                                 <button type="submit" className="btn btn-danger" >Generate code</button>
                                                 <CopyToClipboard text={this.context.hrtResponse}>
-                                                    <button className="btn btn-success pull-right" type="button">Copy to clipboard</button>
+                                                    <button className="btn btn-success pull-right" type="button" onClick={this.setState.bind(this, {snackbarOpen: true})}>Copy to clipboard</button>
                                                 </CopyToClipboard>&nbsp;
                                             </div>
                                         </form>
+                                        <Notification isActive={this.state.snackbarOpen} message="Copied to clipboard" action="close" dismissAfter={5000} onClick={this.handleSnackBarRequestClose}/>
                                     </div>
                                 </div>
                                 <br/>
