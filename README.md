@@ -78,11 +78,6 @@ wget -N https://raw.githubusercontent.com/owtf/bootstrap-script/master/bootstrap
 
 or simply `git clone https://github.com/owtf/owtf.git; cd owtf/; python2 install/install.py`
 
-> NOTE: OWTF creates a Python virtual environment to install dependencies in Kali Linux for a seamless experience. You need to reload your shell config and activate the OWTF environment (`workon owtf`) after installation.
-
-
-Check out the [wiki](https://github.com/owtf/owtf/wiki/OWASP-OWTF-Installation) for more information.
-
 To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker** installed) provided to try OWTF:
 
 `docker build -t owtf-dev .`
