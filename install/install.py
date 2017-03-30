@@ -11,7 +11,7 @@ import traceback
 import ConfigParser
 from distutils import dir_util
 
-from space_checker_utils import wget_wrapper
+from utils.space_checker_utils import wget_wrapper
 
 
 def create_directory(directory):
@@ -98,7 +98,7 @@ def install_restricted_from_cfg(config_file):
         install_in_directory(os.path.expanduser(cp.get(section, "directory")), cp.get(section, "command"))
 
 
-def is_compatible():
+def is_debian_derivative():
         compatible_value = os.system("which apt-get >> /dev/null 2>&1")
         if (compatible_value >> 8) == 1:
             return False
@@ -178,10 +178,8 @@ def install(cmd_arguments):
     distro_num = 0
     if "kali" in distro.lower():
         distro_num = 1
-    elif "samurai" in distro.lower():
+    elif is_debian_derivative():
         distro_num = 2
-    elif is_compatible():
-        distro_num = 3
 
     if distro_num != 0:
         Colorizer.info("[*] %s has been automatically detected... " % distro)
