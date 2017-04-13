@@ -21,5 +21,5 @@ def run(PluginInfo):
     plugin_output_dir = target.GetPath('plugin_output_dir')
     pUploader = PluginUploader('hoppy')
     pUploader.init_uploader(plugin_output_dir)
-    pUploader.OWTFDBUpload()
+    pUploader.owtf_db_upload()
     return Content

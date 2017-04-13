@@ -50,7 +50,7 @@
 </form>
         </div>
         <div class="modal-header">
-        <button id="httpUpload" class="btn btn-success" onclick="HTTPUpload();">Upload </button></div>
+        <button id="httpUpload" class="btn btn-success" onclick="HttpUpload();">Upload </button></div>
     </div>
   </div>
 </div>
@@ -143,28 +143,28 @@
 <!-- End Plugin Output Filter Modal -->
 
 <script>
-function HTTPUpload() {
+function HttpUpload() {
     var selectedVal = "";
     var ReportPath = $("input[id='ReportPath']").val();
     var selected = $("input[type='radio'][name='tool']:checked");
     if (selected.length > 0) {
         selectedVal = selected.val();
     }
-    $('#uploaderModal').modal('hide')
+    $('#uploaderModal').modal('hide');
 
     $.ajax({
-    url: mySpace.poutput_ui_url+'?'+$.param(mySpace.filter_data, true),
-    type: 'POST',
-    data: {
-        'toolname': selectedVal,
-        'pathname': ReportPath
-    },
-    success: function(data){
-        alertSuccess("Successfully Uploaded!");
-    },
-    error: function(xhr, textStatus, serverResponse) {
-        alertFail(serverResponse + ". See terminal for the error"); //or whatever
-    }
+        url: mySpace.poutput_ui_url+'?'+$.param(mySpace.filter_data, true),
+        type: 'POST',
+        data: {
+            'toolname': selectedVal,
+            'pathname': ReportPath
+        },
+        success: function(data){
+            alertSuccess("Successfully Uploaded!");
+        },
+        error: function(xhr, textStatus, serverResponse) {
+            alertFail(serverResponse + ". See terminal for the error"); //or whatever
+        }
     });
 }
 // All api urls needed for calls, these are provided by the server

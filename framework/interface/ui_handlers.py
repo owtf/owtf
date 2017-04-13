@@ -346,15 +346,12 @@ class PluginOutput(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST']
 
     def post(self, target_id=None):
-        """ This function is a test function rght now to test the
-        http uploading functionality
-        """
         tool_name = self.get_argument('toolname')
         dir_path = self.get_argument('pathname')
         try:
             pUploader = PluginUploader(tool_name)
             pUploader.init_uploader(dir_path)
-            pUploader.OWTFDBUpload(target_id=target_id)
+            pUploader.owtf_db_upload(target_id=target_id)
         except Exception as e:
             print(e)
             raise tornado.web.HTTPError(400)

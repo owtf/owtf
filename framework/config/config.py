@@ -127,9 +127,7 @@ class Config(BaseComponent, ConfigInterface):
 
     def ProcessOptionsPhase2(self, options):
         target_urls = self.LoadTargets(options)
-        if(options['UploadTool']):
-            pass
-        else:
+        if not options.get('UploadTool'):
             self.load_works(target_urls, options)
 
     def load_works(self, target_urls, options):

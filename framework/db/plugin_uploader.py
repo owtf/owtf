@@ -1,42 +1,45 @@
 from __future__ import print_function
+import os
+import re
+import logging
+
 from sys import getsizeof, stderr
 from itertools import chain
 from collections import deque
-import os
 from datetime import datetime
-import re
+from ptp.libptp.exceptions import PTPError
 
 from ptp import PTP
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.db import models
 from framework.db.target_manager import target_required
 
+
 class PluginUploader():
 
 	def __init__(self, tool_name):
-		self.supported_tools = ['w3af', 'skipfish', 'arachni', 'hoppy', 'burpsuite']
-		#self.full_parse_tools = ['w3af', 'skipfish', 'arachni']
 		self.db = ServiceLocator.get_component("db")
 		self.transaction = ServiceLocator.get_component("transaction")
+		# extras here is used to extract method and url from request
 		self.re_extras = re.compile(r"(.*?) (\/.*?||\w+.*?) HT.*?")
-		if tool_name in self.supported_tools:
-			self.tool_name = tool_name
+		try:
 			self.ptp = PTP(tool_name)
-		else:
+			self.tool_name = tool_name
+		except PTPError:
 			self.tool_name = None
-			raise Exception("%s tool not supported by this plugin" % tool_name)
+			logging.error("%s tool not supported by this plugin" % tool_name)
 
 	def init_uploader(self, pathname):
 		parsed_data = self.ptp.parse(pathname)
 		self.parsed_data = parsed_data[-1]['transactions']
 
 	@target_required
-	def OWTFDBUpload(self, target_id=None):
-		if(target_id is None):
-			print("Target id is None, aborting uploader!!")
+	def owtf_db_upload(self, target_id=None):
+		if target_id is None:
+			logging.error("Target id is None, aborting uploader!!")
 			return
 		if self.parsed_data is None:
-			print("Nothing found in the file, aborting uploader!!")
+			logging.error("Nothing found in the file, aborting uploader!!")
 			return
 		self.upload_checks()
 		target_url = ServiceLocator.get_component("target").GetTargetURLForID(target_id)
@@ -67,25 +70,18 @@ class PluginUploader():
 			transaction_model.target_id = target_id
 			self.db.session.add(transaction_model)
 		self.db.session.commit()
-		print("Successfuly uploaded!!")
+		logging.info("Successfuly uploaded!!")
 
 	def upload_checks(self):
 		data_size = self.total_size(self.parsed_data)
 		disk_status = self.disk_usage('/')
-		percent_size = round((float(data_size)/disk_status['free'])*100, 1)
-		if int(percent_size) <= 5:
-			print("Uploading data size is less than 5%")
+		percent_size = round((float(data_size)/disk_status['free']) * 100, 1)
+		if int(percent_size) <= 10:
+			logging.info("Uploading data size is less than 10%")
 		elif int(percent_size) >= 99:
 			raise Exception("Not enough space, aborting uploader")
-		elif 90 < int(percent_size) < 99:
-			print("WARNING!!! Uploading data is approx '%0.1f%%' size of free space available" % percent_size)
-			cont = raw_input("Do you want to continue? y/n \n")
-			if cont == 'n':
-				raise Exception("Uploading aborted!")
-			else:
-				pass
 		else:
-			print("Uploading data is approx '%0.1f%%' size of free space available" % percent_size)
+			logging.warn("WARNING!!! Uploading data is approx '%0.1f%%' size of free space available" % percent_size)
 			cont = raw_input("Do you want to continue? y/n \n")
 			if cont == 'n':
 				raise Exception("Uploading aborted!")

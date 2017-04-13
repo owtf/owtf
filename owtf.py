@@ -168,7 +168,7 @@ def process_options(user_args):
     if any([arg.ToolName, arg.DirPath]):
         if not(all([arg.ToolName, arg.DirPath])):
             usage("Provide both --upload as well as --path argument along with the target")
-        elif len(scope)!=1:
+        elif len(scope) != 1:
             usage("While using --upload and --path it is required to provide single target only")
             
 

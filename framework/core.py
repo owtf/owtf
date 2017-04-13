@@ -221,7 +221,7 @@ class Core(BaseComponent):
         if options['UploadTool']:
             pUploader = PluginUploader(options['UploadTool'])
             pUploader.init_uploader(options['ReportUploadPath'])
-            pUploader.OWTFDBUpload()
+            pUploader.owtf_db_upload()
             self.finish()
         return True
 
