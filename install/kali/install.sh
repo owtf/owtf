@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-. "$(dirname "$(readlink -f "$0")")/../utils.sh"
+. "$(dirname "$(readlink -f "$0")")/../utils/utils.sh"
 
 IsInstalled() {
 	directory=$1
@@ -16,10 +16,10 @@ RootDir=$1
 
 ########### Pip is the foremost thing that must be installed along with some needed dependencies for python libraries
 
-apt_wrapper_path="$RootDir/install/aptitude-wrapper.sh"
+apt_wrapper_path="$RootDir/install/utils/aptitude-wrapper.sh"
 # Perform apt-get update before starting to install all packages, so we can get the latests manifests and packages versions
 sudo apt-get update
-sudo -E "$apt_wrapper_path" python-pip xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-dev
+sudo -E "$apt_wrapper_path" xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-dev
 export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip in kali
 
 # psycopg2 dependency

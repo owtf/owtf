@@ -9,7 +9,7 @@ from multiprocessing.util import register_after_fork
 
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine, exc
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import Session as BaseSession
 
 from framework.utils import FileOperations
@@ -128,9 +128,7 @@ class DB(BaseComponent, DBInterface):
                     self._db_settings['DATABASE_IP'],
                     self._db_settings['DATABASE_PORT'],
                     self._db_settings['DATABASE_NAME']),
-                poolclass=QueuePool,
-                pool_size=5,
-                max_overflow=10)
+                poolclass=NullPool)
             BaseClass.metadata.create_all(engine)
             # Fix for forking
             register_after_fork(engine, engine.dispose)

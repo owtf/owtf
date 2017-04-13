@@ -4,7 +4,7 @@ RootDir=$1
 
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-. "$(dirname "$(readlink -f "$0")")/utils.sh"
+. "$(dirname "$(readlink -f "$0")")/../install/utils/utils.sh"
 
 get_config_value(){
 

@@ -7,10 +7,11 @@ import json
 import platform
 import argparse
 import mmap
+import traceback
 import ConfigParser
 from distutils import dir_util
 
-from space_checker_utils import wget_wrapper
+from utils.space_checker_utils import wget_wrapper
 
 
 def create_directory(directory):
@@ -97,7 +98,7 @@ def install_restricted_from_cfg(config_file):
         install_in_directory(os.path.expanduser(cp.get(section, "directory")), cp.get(section, "command"))
 
 
-def is_compatible():
+def is_debian_derivative():
         compatible_value = os.system("which apt-get >> /dev/null 2>&1")
         if (compatible_value >> 8) == 1:
             return False
@@ -113,11 +114,15 @@ def finish():
 
 
 def setup_virtualenv():
-    Colorizer.info("[*] Seting up virtual environment named owtf...")
+    Colorizer.info("[*] Setting up virtual environment named owtf...")
+    # If /usr/local/bin/virtualenvwrapper.sh doesn't exist, create a symlink from /usr/bin/
+    if not os.path.isfile('/usr/local/bin/virtualenvwrapper.sh'):
+        run_command('sudo ln -s /usr/bin/virtualenvwrapper.sh /usr/local/bin/virtualenvwrapper.sh >/dev/null 2>&1;')
+
     # sources files and commands
     source = 'source /usr/local/bin/virtualenvwrapper.sh'
-    setup_env = 'cd $WORKON_HOME; virtualenv -q --always-copy -p %s owtf >/dev/null 2>&1;'\
-        ' source owtf/bin/activate' % sys.executable
+    setup_env = 'cd $WORKON_HOME; virtualenv -q --always-copy --python=python2.7 owtf >/dev/null 2>&1;'\
+        ' source owtf/bin/activate'
     dump = '%s -c "import os, json;print json.dumps(dict(os.environ))"' % sys.executable
 
     pipe = subprocess.Popen(['/bin/bash', '-c', '%s >/dev/null 2>&1; %s; %s' % (source, setup_env, dump)],
@@ -126,17 +131,21 @@ def setup_virtualenv():
 
     # Update the os environment variable
     os.environ.update(env)
-    if os.path.join(os.environ["WORKON_HOME"], "owtf") == os.environ["VIRTUAL_ENV"]:
-        # Add source to shell config file only if not present
-        Colorizer.info("[*] Adding virtualenvwrapper source to shell config file")
-        shell_rc_path = os.path.join(os.environ["HOME"], ".%src" % os.environ["SHELL"].split(os.sep)[-1])
-        with open(shell_rc_path, "r") as f:
-            if mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ).find(source) == -1:
-                run_command("echo '%s' >> %s" % (source, shell_rc_path))
-            else:
-                Colorizer.info("[+] Source line already added to the $SHELL config ")
-    else:
-        Colorizer.warning("Unable to setup virtualenv...")
+    try:
+        if os.path.join(os.environ["WORKON_HOME"], "owtf") == os.environ["VIRTUAL_ENV"]:
+            # Add source to shell config file only if not present
+            Colorizer.info("[*] Adding virtualenvwrapper source to shell config file")
+            shell_rc_path = os.path.join(os.environ["HOME"], ".%src" % os.environ["SHELL"].split(os.sep)[-1])
+            with open(shell_rc_path, "r") as f:
+                if mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ).find(source) == -1:
+                    run_command("echo '%s' >> %s" % (source, shell_rc_path))
+                else:
+                    Colorizer.info("[+] Source line already added to the $SHELL config ")
+            return True
+    except KeyError:
+        traceback.print_exc()
+    return False
+
 
 
 def setup_pip():
@@ -147,11 +156,11 @@ def setup_pip():
         ' Firefox/15.0" --tries=3 https://bootstrap.pypa.io/get-pip.py; sudo python get-pip.py;}'
     install_in_directory(os.path.expanduser(directory), command)
     Colorizer.info("[*] Installing required packages for pipsecure")
-    run_command("sudo pip2 install pyopenssl ndg-httpsclient pyasn1")
+    run_command("sudo pip2 install --upgrade pyopenssl ndg-httpsclient pyasn1")
 
     # Installing virtualenv
     Colorizer.info("[*] Installing virtualenv and virtualenvwrapper")
-    install_in_directory(os.path.expanduser(str(os.getpid())), "sudo pip2 install virtualenv virtualenvwrapper")
+    install_in_directory(os.path.expanduser(str(os.getpid())), "sudo pip2 install --upgrade virtualenv virtualenvwrapper")
 
 
 def install(cmd_arguments):
@@ -169,10 +178,8 @@ def install(cmd_arguments):
     distro_num = 0
     if "kali" in distro.lower():
         distro_num = 1
-    elif "samurai" in distro.lower():
+    elif is_debian_derivative():
         distro_num = 2
-    elif is_compatible():
-        distro_num = 3
 
     if distro_num != 0:
         Colorizer.info("[*] %s has been automatically detected... " % distro)
@@ -211,7 +218,11 @@ def install(cmd_arguments):
     # Installing pip and setting up virtualenv.
     # This requires distro specific dependencies to be installed properly.
     setup_pip()
-    setup_virtualenv()
+    if setup_virtualenv():
+        install_using_pip(owtf_pip)
+    else:
+        Colorizer.danger("Unable to setup virtualenv...")
+        Colorizer.danger("Skipping installation of OWTF python dependencies ...")
 
     # Now install distro independent stuff - optional
     # This is due to db config setup included in this. Should run only after PostgreSQL is installed.
@@ -227,8 +238,6 @@ def install(cmd_arguments):
     Colorizer.normal("Upgrading cffi to the latest version ...")
     # Mitigate cffi errors by upgrading it first
     run_command("pip2 install --upgrade cffi")
-
-    install_using_pip(owtf_pip)
 
 
 class Colorizer:

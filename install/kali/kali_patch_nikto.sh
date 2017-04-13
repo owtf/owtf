@@ -4,7 +4,7 @@
 #       Script to fix the nikto config to use a normal-looking User Agent so that we can hopefully bypass simple WAF blacklists
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-. "$(dirname "$(readlink -f "$0")")/../utils.sh"
+. "$(dirname "$(readlink -f "$0")")/../utils/utils.sh"
 
 NIKTO_CONF_FILE="/etc/nikto.conf"
 NIKTO_CONF_BACKUP="$NIKTO_CONF_FILE.backup"
