@@ -55,7 +55,7 @@ class PluginUploader():
 				method=Method,
 				data=None,
 				time=None,
-				time_human="Uploaded by " + self.tool_name, # to distinguish uploader reports in transaction table
+				time_human="NA",
 				local_timestamp=datetime.now(),
 				raw_request=data['request'].decode('utf-8', 'ignore'),
 				response_status=data['status_code'],
