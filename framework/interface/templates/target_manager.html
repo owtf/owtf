@@ -462,6 +462,7 @@ function newTargets(targetUrlsString, button) {
             $("#newTargetUrls").val("");
         } else { // Not a valid url
             alertFail(escapeHtml(line)+" is not a valid url");
+            enableInput("#addTargetBtn"); // Enable the button if url is not valid
         }
     });
 
