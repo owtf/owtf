@@ -2,7 +2,7 @@ FROM kalilinux/kali-linux-docker
 
 RUN apt-get -y update && apt-get -y upgrade
 # Install certificates to ensure https links in wget work
-RUN apt-get install ca-certificates
+RUN apt-get -y install ca-certificates
 # Install sudo, python, and Java for Zest functionality
 RUN apt-get -y install sudo python openjdk-8-jre openjdk-8-jdk
 
