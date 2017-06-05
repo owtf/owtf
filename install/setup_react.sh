@@ -3,7 +3,7 @@
 # This script install the node dependencies listed in package.json and build the bundle file using webpack.
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-. "$(dirname "$(readlink -f "$0")")/utils.sh"
+. "$(dirname "$(readlink -f "$0")")/utils/utils.sh"
 
 # Instead of using apt-get to install npm we will nvm to install npm because apt-get installs older-version of node
 echo "${normal}[*] Installing npm using nvm.${reset}"
