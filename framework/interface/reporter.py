@@ -41,11 +41,11 @@ class Reporter(BaseComponent, ReporterInterface):
         return self.TransactionTableForTransactions(transactions)
 
     def TransactionTableForURL(self, UseCache, URL, Method=None, Data=None):
-        transaction = self.requester.GetTransaction(UseCache, URL, method=Method, data=Data)
+        transaction = self.requester.get_transaction(UseCache, URL, method=Method, data=Data)
         return self.TransactionTableForTransactions([transaction])
 
     def TransactionTableForURLList(self, UseCache, URLList, Method=None, Data=None):
-        transactions = self.requester.GetTransactions(UseCache, URLList, method=Method, data=Data)
+        transactions = self.requester.get_transactions(UseCache, URLList, method=Method, data=Data)
         return self.TransactionTableForTransactions(transactions)
 
     def TransactionTableForTransactions(self, Transactions):

@@ -56,8 +56,8 @@ class TransactionLogger(OWTFProcess):
                 response = response_from_cache(os.path.join(self.cache_dir, request_hash))
                 target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list,
                                                                                  host_list)
-                owtf_transaction = transaction.HTTP_Transaction(timer.Timer())
-                owtf_transaction.ImportProxyRequestResponse(request, response)
+                owtf_transaction = transaction.HTTPTransaction(timer.Timer())
+                owtf_transaction.import_proxy_req_response(request, response)
                 try:
                     transactions_dict[target_id].append(owtf_transaction)
                 except KeyError:

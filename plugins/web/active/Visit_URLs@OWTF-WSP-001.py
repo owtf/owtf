@@ -15,7 +15,7 @@ DESCRIPTION = "Visit URLs found by other tools, some could be sensitive: need pe
 def run(PluginInfo):
     urls = ServiceLocator.get_component("url_manager").GetURLsToVisit()
     for url in urls:  # This will return only unvisited urls
-        ServiceLocator.get_component("requester").GetTransaction(True, url)  # Use cache if possible
+        ServiceLocator.get_component("requester").get_transaction(True, url)  # Use cache if possible
     Content = "%s URLs were visited" % str(len(urls))
     OWTFLogger.log(Content)
     return ServiceLocator.get_component("plugin_helper").HtmlString(Content)

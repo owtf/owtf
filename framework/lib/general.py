@@ -86,7 +86,7 @@ def TruncLines(Str, NumLines, EOL="\n"):
     return EOL.join(Str.split(EOL)[0:NumLines])
 
 
-def DeriveHTTPMethod(Method, Data):  # Derives the HTTP method from Data, etc
+def derive_http_method(Method, Data):  # Derives the HTTP method from Data, etc
     DMethod = Method
     # Method not provided: Determine method from params
     if DMethod is None or DMethod == '':

@@ -3,18 +3,17 @@
 The Requester module is in charge of simplifying HTTP requests and
 automatically log HTTP transactions by calling the DB module.
 """
-
 import sys
 import httplib
 import logging
 import urllib
-import urllib2
+
+from urllib3.poolmanager import PoolManager
 
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import RequesterInterface
 from framework.http import transaction
 from framework.lib.general import *
-
 
 # Intercept raw request trick from:
 # http://stackoverflow.com/questions/6085709/get-headers-sent-in-urllib2-http-request
@@ -71,7 +70,6 @@ class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
 
 
 class Requester(BaseComponent, RequesterInterface):
-
     COMPONENT_NAME = "requester"
 
     def __init__(self, proxy):
@@ -85,10 +83,10 @@ class Requester(BaseComponent, RequesterInterface):
         self.timer = self.get_component("timer")
         self.http_transaction = None
         self.Headers = {'User-Agent': self.db_config.Get('USER_AGENT')}
-        self.RequestCountRefused = 0
-        self.RequestCountTotal = 0
-        self.LogTransactions = False
-        self.Proxy = proxy
+        self.request_count_refused = 0
+        self.request_count_total = 0
+        self.log_transactions = False
+        self.proxy = proxy
         if proxy is None:
             logging.debug(
                 "WARNING: No outbound proxy selected. It is recommended to "
@@ -105,47 +103,47 @@ class Requester(BaseComponent, RequesterInterface):
         urllib2.install_opener(self.Opener)
 
     def log_transactions(self, log_transactions=True):
-        backup = self.LogTransactions
-        self.LogTransactions = log_transactions
+        backup = self.log_transactions
+        self.log_transactions = log_transactions
         return backup
 
-    def NeedToAskBeforeRequest(self):
+    def ask_before_request(self):
         return not self.plugin_handler.NormalRequestsAllowed()
 
-    def IsTransactionAlreadyAdded(self, url):
-        return self.transaction.IsTransactionAlreadyAdded({'url': url.strip()})
+    def is_transaction_added(self, url):
+        return self.transaction.is_transaction_added({'url': url.strip()})
 
     def is_request_possible(self):
         return self.plugin_handler.RequestsPossible()
 
-    def ProxyCheck(self):
+    def proxy_check(self):
         # Verify proxy works! www.google.com might not work in a restricted network, try target URL :)
-        if self.Proxy is not None and self.is_request_possible():
+        if self.proxy is not None and self.is_request_possible():
             url = self.db_config.Get('PROXY_CHECK_URL')
-            refused_before = self.RequestCountRefused
+            refused_before = self.request_count_refused
             cprint("Proxy Check: Avoid logging request again if already in DB..")
             log_setting_backup = False
-            if self.IsTransactionAlreadyAdded(url):
+            if self.is_transaction_added(url):
                 log_setting_backup = self.log_transactions(False)
             if log_setting_backup:
                 self.log_transactions(log_setting_backup)
-            refused_after = self.RequestCountRefused
+            refused_after = self.request_count_refused
             if refused_before < refused_after:  # Proxy is refusing connections.
                 return [False, "ERROR: Proxy Check error: The proxy is not listening or is refusing connections"]
             else:
                 return [True, "Proxy Check OK: The proxy appears to be working"]
         return [True, "Proxy Check OK: No proxy is setup or no HTTP requests will be made"]
 
-    def GetHeaders(self):
+    def get_headers(self):
         return self.Headers
 
-    def SetHeaders(self, headers):
+    def set_headers(self, headers):
         self.Headers = headers
 
-    def SetHeader(self, header, value):
+    def set_header(self, header, value):
         self.Headers[header] = value
 
-    def StringToDict(self, string):
+    def str_to_dict(self, string):
         dict = defaultdict(list)
         count = 0
         prev_item = ''
@@ -158,19 +156,19 @@ class Requester(BaseComponent, RequesterInterface):
             count += 1
         return dict
 
-    def DerivePOSTToStr(self, post=None):
-        post = self.DerivePOST(post)
+    def post_to_str(self, post=None):
+        post = self.derive_post(post)
         if post is None:
             return ''
         return post
 
-    def DerivePOST(self, post=None):
+    def derive_post(self, post=None):
         if '' == post:
             post = None
         if post is not None:
             if isinstance(post, str) or isinstance(post, unicode):
                 # Must be a dictionary prior to urlencode.
-                post = self.StringToDict(post)
+                post = self.str_to_dict(post)
             post = urllib.urlencode(post)
         return post
 
@@ -178,52 +176,52 @@ class Requester(BaseComponent, RequesterInterface):
         return urllib2.urlopen(request)
 
     def set_succesful_transaction(self, raw_request, response):
-        return self.http_transaction.SetTransaction(True, raw_request[0], response)
+        return self.http_transaction.set_transaction(True, raw_request[0], response)
 
     def log_transaction(self):
         self.transaction.LogTransaction(self.http_transaction)
 
-    def Request(self, url, method=None, post=None):
+    def request(self, url, method=None, post=None):
         # kludge: necessary to get around urllib2 limitations: Need this to get the exact request that was sent.
         global raw_request
         url = str(url)
 
         raw_request = []  # Init Raw Request to blank list.
-        post = self.DerivePOST(post)
-        method = DeriveHTTPMethod(method, post)
+        post = self.derive_post(post)
+        method = derive_http_method(method, post)
         url = url.strip()  # Clean up URL.
-        request = urllib2.Request(url, post, self.Headers)  # GET request.
+        request = urllib2.request(url, post, self.Headers)  # GET request.
         if method is not None:
             # kludge: necessary to do anything other that GET or POST with urllib2
             request.get_method = lambda: method
         # MUST create a new Transaction object each time so that lists of
         # transactions can be created and process at plugin-level
         # Pass the timer object to avoid instantiating each time.
-        self.http_transaction = transaction.HTTP_Transaction(self.timer)
-        self.http_transaction.Start(url, post, method, self.target.IsInScopeURL(url))
-        self.RequestCountTotal += 1
+        self.http_transaction = transaction.HTTPTransaction(self.timer)
+        self.http_transaction.start(url, post, method, self.target.IsInScopeURL(url))
+        self.request_count_total += 1
         try:
             response = self.perform_request(request)
             self.set_succesful_transaction(raw_request, response)
         except urllib2.HTTPError as Error:  # page NOT found.
             # Error is really a response for anything other than 200 OK in urllib2 :)
-            self.http_transaction.SetTransaction(False, raw_request[0], Error)
+            self.http_transaction.set_transaction(False, raw_request[0], Error)
         except urllib2.URLError as Error:  # Connection refused?
-            err_message = self.ProcessHTTPErrorCode(Error, url)
-            self.http_transaction.SetError(err_message)
+            err_message = self.process_http_err_code(Error, url)
+            self.http_transaction.set_error(err_message)
         except IOError:
             err_message = "ERROR: Requester Object -> Unknown HTTP Request error: %s\n%s" % (url, str(sys.exc_info()))
-            self.http_transaction.SetError(err_message)
-        if self.LogTransactions:
+            self.http_transaction.set_error(err_message)
+        if self.log_transactions:
             # Log transaction in DB for analysis later and return modified Transaction with ID.
             self.log_transaction()
         return self.http_transaction
 
-    def ProcessHTTPErrorCode(self, error, url):
+    def process_http_err_code(self, error, url):
         message = ""
         if str(error.reason).startswith("[Errno 111]"):
             message = "ERROR: The connection was refused!: %s" % str(error)
-            self.RequestCountRefused += 1
+            self.request_count_refused += 1
         elif str(error.reason).startswith("[Errno -2]"):
             self.error_handler.FrameworkAbort("ERROR: cannot resolve hostname!: %s" % str(error))
         else:
@@ -232,62 +230,62 @@ class Requester(BaseComponent, RequesterInterface):
         log.info(message)
         return "%s (Requester Object): %s\n%s" % (message, url, str(sys.exc_info()))
 
-    def GET(self, url):
-        return self.Request(url)
+    def get(self, url):
+        return self.request(url)
 
-    def POST(self, url, data):
-        return self.Request(url, 'POST', data)
+    def post(self, url, data):
+        return self.request(url, 'POST', data)
 
-    def TRACE(self, url):
-        return self.Request(url, 'TRACE', None)
+    def trace(self, url):
+        return self.request(url, 'TRACE', None)
 
-    def OPTIONS(self, url):
-        return self.Request(url, 'OPTIONS', None)
+    def options(self, url):
+        return self.request(url, 'OPTIONS', None)
 
-    def HEAD(self, url):
-        return self.Request(url, 'HEAD', None)
+    def head(self, url):
+        return self.request(url, 'HEAD', None)
 
-    def DEBUG(self, url):
-        self.BackupHeaders()
+    def debug(self, url):
+        self.backup_headers()
         self.Headers['Command'] = 'start-debug'
-        result = self.Request(url, 'DEBUG', None)
-        self.RestoreHeaders()
+        result = self.request(url, 'DEBUG', None)
+        self.restore_headers()
         return result
 
-    def PUT(self, url, content_type='text/plain'):
-        self.BackupHeaders()
+    def put(self, url, content_type='text/plain'):
+        self.backup_headers()
         self.Headers['Content-Type'] = content_type
         self.Headers['Content-Length'] = "0"
-        result = self.Request(url, 'PUT', None)
-        self.RestoreHeaders()
+        result = self.request(url, 'PUT', None)
+        self.restore_headers()
         return result
 
-    def BackupHeaders(self):
+    def backup_headers(self):
         self.HeadersBackup = dict.copy(self.Headers)
 
-    def RestoreHeaders(self):
+    def restore_headers(self):
         self.Headers = dict.copy(self.HeadersBackup)
 
-    def GetTransaction(self, use_cache, url, method=None, data=None):
+    def get_transaction(self, use_cache, url, method=None, data=None):
         criteria = {'url': url.strip()}
         if method is not None:
             criteria['method'] = method
         # Must clean-up data to ensure match is found.
         if data is not None:
-            criteria['data'] = self.DerivePOSTToStr(data)
+            criteria['data'] = self.post_to_str(data)
         # Visit URL if not already visited.
-        if (not use_cache or not self.transaction.IsTransactionAlreadyAdded(criteria)):
+        if (not use_cache or not self.transaction.is_transaction_added(criteria)):
             if method in ['', 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS']:
-                return self.Request(url, method, data)
+                return self.request(url, method, data)
             elif method == 'DEBUG':
-                return self.DEBUG(url)
+                return self.debug(url)
             elif method == 'PUT':
-                return self.PUT(url, data)
+                return self.put(url, data)
         else:  # Retrieve from DB = faster.
             # Important since there is no transaction ID with transactions objects created by Requester.
             return self.transaction.GetFirst(criteria)
 
-    def GetTransactions(self, use_cache, url_list, method=None, data=None, unique=True):
+    def get_transactions(self, use_cache, url_list, method=None, data=None, unique=True):
         transactions = []
         if unique:
             url_list = set(url_list)
@@ -299,7 +297,7 @@ class Requester(BaseComponent, RequesterInterface):
                 self.error_handler.Add("Minor issue: %s is not a valid URL and has been ignored, processing continues" %
                                        str(url))
                 continue  # Skip garbage URLs.
-            transaction = self.GetTransaction(use_cache, url, method=method, data=data)
+            transaction = self.get_transaction(use_cache, url, method=method, data=data)
             if transaction is not None:
                 transactions.append(transaction)
         return transactions
