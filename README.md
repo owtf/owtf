@@ -80,9 +80,11 @@ or simply `git clone https://github.com/owtf/owtf.git; cd owtf/; python2 install
 
 To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker** installed) provided to try OWTF:
 
-`docker build -t owtf-dev .`
-
-`docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v ~/path_to_OWTF_on_host:/owtf owtf-dev /bin/bash`
+ - `$ docker build -t owtf-dev .`
+ - `$ docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v ~/path_to_OWTF_on_host:/owtf owtf-dev /bin/bash`
+ - Open `~/.owtf/configuration` and change `SERVER_ADDR: 127.0.0.1` to `SERVER_ADDR: 0.0.0.0`.
+ - Run owtf
+ - Open `localhost:8009` for OWTF webUI.
 
 License
 ===
