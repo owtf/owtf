@@ -152,6 +152,7 @@ class TargetDB(BaseComponent, TargetInterface):
         else:
             session_obj = self.db.session.query(models.Session).get(session_id)
             target_obj = self.db.session.query(models.Target).filter_by(target_url=target_url).one()
+            self.SetTarget(target_obj.id)
             if session_obj in target_obj.sessions:
                 raise DBIntegrityException("%s already present in Target DB & session" % target_url)
             else:

@@ -8,7 +8,7 @@ from tornado.escape import url_escape
 from framework.dependency_management.dependency_resolver import ServiceLocator
 from framework.lib.exceptions import InvalidTargetReference, InvalidParameterType
 from framework.interface import custom_handlers
-
+from framework.db.plugin_uploader import PluginUploader
 
 class Redirect(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
@@ -343,7 +343,18 @@ class PlugnHack(custom_handlers.UIRequestHandler):
 
 
 class PluginOutput(custom_handlers.UIRequestHandler):
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ['GET', 'POST']
+
+    def post(self, target_id=None):
+        tool_name = self.get_argument('toolname')
+        dir_path = self.get_argument('pathname')
+        try:
+            pUploader = PluginUploader(tool_name)
+            pUploader.init_uploader(dir_path)
+            pUploader.owtf_db_upload(target_id=target_id)
+        except Exception as e:
+            print(e)
+            raise tornado.web.HTTPError(400)
 
     def get(self, target_id=None):
         if not target_id:

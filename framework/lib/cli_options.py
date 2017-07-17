@@ -206,6 +206,17 @@ def parse_options(cli_options, valid_groups, valid_types):
         action='store_true',
         help='Run OWTF without its Web UI.')
     parser.add_argument('Targets', nargs='*', help='List of Targets')
+    parser.add_argument(
+        "--upload",
+        dest="ToolName",
+        default=None,
+        help="The tool name of which you want to upload the report to OWTF Db "
+            "supported tools are (w3af, arachni, ...)")
+    parser.add_argument(
+        "--path",
+        dest="DirPath",
+        default=None,
+        help="The directory path of the respective tool's report ")
     return parser.parse_args(cli_options)
 
 

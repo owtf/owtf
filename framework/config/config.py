@@ -127,7 +127,8 @@ class Config(BaseComponent, ConfigInterface):
 
     def ProcessOptionsPhase2(self, options):
         target_urls = self.LoadTargets(options)
-        self.load_works(target_urls, options)
+        if not options.get('UploadTool'):
+            self.load_works(target_urls, options)
 
     def load_works(self, target_urls, options):
         """Select the proper plugins to run against the target URLs.

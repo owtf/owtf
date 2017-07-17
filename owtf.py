@@ -160,6 +160,13 @@ def process_options(user_args):
         if target[0] == "-":
             usage("Invalid Target: " + target)
 
+    if any([arg.ToolName, arg.DirPath]):
+        if not(all([arg.ToolName, arg.DirPath])):
+            usage("Provide both --upload as well as --path argument along with the target")
+        elif len(scope) != 1:
+            usage("While using --upload and --path it is required to provide single target only")
+            
+
     args = ''
     if plugin_group == 'auxiliary':
         # For auxiliary plugins, the scope are the parameters.
@@ -187,7 +194,9 @@ def process_options(user_args):
         'TOR_mode': arg.TOR_mode,
         'Botnet_mode': arg.Botnet_mode,
         'nowebui': arg.nowebui,
-        'Args': args
+        'Args': args,
+        'UploadTool': arg.ToolName,
+        'ReportUploadPath': arg.DirPath
     }
 
 
