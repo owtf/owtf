@@ -1,4 +1,5 @@
 import os
+import json
 import collections
 import uuid
 
@@ -22,6 +23,13 @@ class Home(custom_handlers.UIRequestHandler):
 
     def get(self):
         self.render('home.html', auto_updater_api_url=self.reverse_url('auto_updater_api_url'),)
+
+
+class Dashboard(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        self.render("dashboard.html")
 
 
 class TransactionLog(custom_handlers.UIRequestHandler):
@@ -126,10 +134,11 @@ class TargetManager(custom_handlers.UIRequestHandler):
             adv_filter_data["mapping"] = self.get_component("mapping_db").GetMappingTypes()
             self.render(
                 "target.html",
+                target_id=target_id,
                 target_api_url=self.reverse_url('targets_api_url', target_id),
                 targets_ui_url=self.reverse_url('targets_ui_url', None),
                 poutput_ui_url=self.reverse_url('poutput_ui_url', target_id),
-                adv_filter_data=adv_filter_data,
+                adv_filter_data=json.dumps(adv_filter_data),
                 plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
                 worklist_api_url=self.reverse_url('worklist_api_url', None, None),
                 transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
@@ -410,7 +419,9 @@ class WorkerManager(custom_handlers.UIRequestHandler):
                 workers_api_url=output_files_server + self.reverse_url('workers_api_url', None, None),
                 targets_api_url=self.reverse_url('targets_api_url', None),
                 targets_ui_url=self.reverse_url('targets_ui_url', None),
-                plugins_api_url=self.reverse_url('plugins_api_url', None, None, None)
+                plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
+                progress_api_url=output_files_server + self.reverse_url('poutput_count'),
+                log_url_port=output_files_server
             )
         else:
             self.render(
@@ -439,6 +450,11 @@ class Help(custom_handlers.UIRequestHandler):
     def get(self):
         self.render("help.html")
 
+class Transactions(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        self.render("transaction_log.html")
 
 class ConfigurationManager(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ('GET')

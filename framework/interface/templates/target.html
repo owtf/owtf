@@ -16,50 +16,7 @@
 {% end %}
 
 {% block content %}
-<!-- Target INFO display, populated using JS and OWTF Sweet API -->
-<div class="page-header">
-    <div class="row">
-        <div class="col-md-8">
-            <h2 style="word-wrap: break-word;" id="TargetInfo"></h2>
-        </div>
-        <div class="col-md-4">
-            <h3 id="rankingTargetInfo"></h3>
-        </div>
-    </div>
-</div>
-<!-- End Target INFO -->
-
-<!-- Buttons for few actions and logs -->
-<div class="row">
-    <div class="pull-right">
-        <div class="btn-group">
-            <!-- Modal content is present in plugin report -->
-            <button class="btn btn-primary" data-toggle="modal" data-target="#pluginOutputFilterModal"><i class="fa fa-filter"></i> Filter </button>
-            <button class="btn btn-success" onclick="updatePluginReport();" href="#"><i class="fa fa-refresh"></i> Refresh </button>
-            <button class="btn btn-danger" data-toggle="modal" data-target="#pluginLaunchModal"><i class="fa fa-flash"></i> Run Plugins </button>
-            <button class="btn btn-info" onclick="loadSessionManager();" href="#"><i class="fa fa-flag"></i> User Sessions</button>
-            <div class="btn-group">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                    Logs
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a href="#" onclick="window.open(mySpace.transaction_log_url);"><i class="fa fa-list-alt"></i> Transaction Log </a></li>
-                    <li><a href="#" onclick="window.open(mySpace.url_log_url);"><i class="fa fa-link"></i> URL Log </a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- End Buttons -->
-
-<br />
-
-<!-- Plugin outputs loaded by JS and refreshed automatically -->
-<div class="row-fluid" id="pluginReport">
-    <!-- Plugin outputs grouped by test code -->
-</div>
-<!-- End Plugin Outputs -->
+<div id="report" data-code="{{ target_id }}"></div>
 
 <!-- Plugin launcher template -->
 {% module Template("plugin_launcher.html",
@@ -68,145 +25,62 @@
     worklist_post_func="postToWorkList") %}
 <!-- End plugin launcher template -->
 
-<!-- Begin Plugin Output Filter Modal -->
-<div class="modal fade" id="pluginOutputFilterModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title" id="pluginOutputFilterModalLabel">Advanced Filter</h4>
-      </div>
-      <div class="modal-body" id="pluginOutputFilterModalBody">
-            {% for filter_type in adv_filter_data.keys() %}
-                <label for="name">{{ filter_type.replace("_", " ").capitalize() }}</label>
-                {% if filter_type == 'mapping'  %}
-                    <div>
-                        {% for data in sorted(adv_filter_data[filter_type]) %}
-                            {% if data %}
-                               <label class="radio-inline">
-                                  <input type="radio" class="filterCheckbox" name="mapping" onchange="modifyMapping(this, '{{ filter_type }}', '{{ data }}');"> {{ data }}
-                               </label>
-                            {% end %}
-                        {% end %}
-                        <label class="radio-inline">
-                            <input type="radio" class="filterCheckbox" name="mapping" onchange="modifyMapping(this, '{{ filter_type }}', '{{ "" }}');" checked> OWTF
-                        </label>
-                    </div>
-                {% else %}
-                    <div>
-                        {% for data in sorted(adv_filter_data[filter_type]) %}
-                            {% if data %}
-                               <label class="checkbox-inline">
-                                  <input type="checkbox" class="filterCheckbox" onchange="modifyFilter(this, '{{ filter_type }}', '{{ data }}');"> {{ data }}
-                               </label>
-                            {% end %}
-                        {% end %}
-                    </div>
-                {% end %}
-                <hr>
-            {% end %}
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-danger" onclick="clearFilters();" data-dismiss="modal" aria-hidden="true">Clear Filters!</button>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- End Plugin Output Filter Modal -->
-
 <script>
-// All api urls needed for calls, these are provided by the server
-var mySpace = {
-                    target_api_url:"{{ target_api_url }}",
-                    targets_ui_url:"{{ targets_ui_url }}",
-                    poutput_ui_url:"{{ poutput_ui_url }}",
-                    filter_data:{},
-                    plugins_api_url:"{{ plugins_api_url }}?group=web&group=network",
-                    worklist_api_url:"{{ worklist_api_url }}",
-                    transaction_log_url:"{{ transaction_log_url }}",
-                    url_log_url:"{{ url_log_url }}",
-                    target_config:{},
-                    sessions_ui_url: "{{ sessions_ui_url }}"
-                  };
+    var mySpace = {
+        target_id: "{{ target_id}}",
+        worklist_api_url: "{{ worklist_api_url }}",
+        plugins_api_url: "{{ plugins_api_url }}?group=web&group=network",
+        adv_filter_data: "{{ adv_filter_data }}",
+        sessions_ui_url: "{{ sessions_ui_url }}"
+    };
 
-function clearFilters() {
-    mySpace.filter_data = {};
-    $(".filterCheckbox").attr("checked", false);
-}
-
-function modifyFilter(checkbox, filter_type, data){
-    if (typeof mySpace.filter_data[filter_type] === 'undefined') {
-        mySpace.filter_data[filter_type] = [];
+    // Close the modal when plugins are launched successfully
+    function pluginLaunchSuccess() {
+        $('#pluginLaunchModal').modal('hide');
+        alertSuccess("Selected plugins launched, please check worklist to manage :D");
     }
-    if (checkbox.checked && (mySpace.filter_data[filter_type].indexOf(data) == -1)) {
-        mySpace.filter_data[filter_type].push(data);
-    } else if ((!checkbox.checked) && (mySpace.filter_data[filter_type].indexOf(data) > -1)) {
-        mySpace.filter_data[filter_type].splice(mySpace.filter_data[filter_type].indexOf(data), 1);
+
+    // Main function that posts using API to launch plugins
+    function postToWorkList(selectedPluginData, force_overwrite) {
+        selectedPluginData["id"] = mySpace.target_id;
+        selectedPluginData["force_overwrite"] = force_overwrite;
+        $.ajax({
+            url: mySpace.worklist_api_url,
+            type: 'POST',
+            data: $.param(selectedPluginData, true),
+            success: pluginLaunchSuccess,
+            error: function(xhr, textStatus, serverResponse) {
+                alertFail("Server replied: " + serverResponse);
+            }
+        });
     }
-}
 
-function modifyMapping(radio, filter_type, data){
-    if (typeof mySpace.filter_data[filter_type] === 'undefined') {
-       mySpace.filter_data[filter_type] = [];
+    // Function defined in poutput copied because react does not render script tag.
+    function getSearchString(elem) {
+        return $(elem).closest('table').find('input#searchString').val();
     }
-    if (radio.checked) {
-        mySpace.filter_data[filter_type] = [data];
+
+    function clickAllButtons(elem) {
+        $(elem).closest('table').find('button.individualSearchButton').trigger('click');
     }
-}
 
-//Launch user sessions manager
-function loadSessionManager(){
-    window.location.href = mySpace.sessions_ui_url;
-}
+    // Keep moving the plugin group nav with scroll to make it in sync with report and handling visibility of scroll to top button
+    $(window).scroll(function(){
+        // Do not do in mobile phones
+        if(!(/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
+            var y = 200;
+            if (y <= $(window).scrollTop()) {
+                $("#plugin_nav").css({"marginTop": ($(window).scrollTop())-200 + "px"});
+            } else {
+                $("#plugin_nav").css({"marginTop": "0px"});
+            }
+        }
 
-// For loading plugin report, JS fetches the html and places it at designated place
-function updatePluginReport(){
-    // Add the spinner, and when plugin report is fetched it is automatically removed
-    // since pluginReport is added as the html of the div
-    addOverlay('#pluginReport');
-    $.get(mySpace.poutput_ui_url+'?'+$.param(mySpace.filter_data, true), function(data){
-        removeOverlay('#pluginReport');
-        $('#pluginReport').html(data);
-
+        if ($(this).scrollTop() >= 50) {        // If page is scrolled more than 50px
+            $('#return-to-top').fadeIn(200);    // Fade in the arrow
+        } else {
+            $('#return-to-top').fadeOut(200);   // Else fade out the arrow
+        }
     });
-}
-
-// Target info loaded using API, target_api_url is helpful for that
-function updateTargetInfo(){
-    $.getJSON(mySpace.target_api_url, function(obj){
-            mySpace.target_config = obj;
-            $('#TargetInfo').html(obj.target_url+'<small> ('+obj.host_ip+')</small>');
-            });
-}
-
-// Close the modal when plugins are launched successfully
-function pluginLaunchSuccess(){
-    $('#pluginLaunchModal').modal('hide');
-    alertSuccess("Selected plugins launched, please check worklist to manage :D");
-}
-
-// Main function that posts using API to launch plugins
-function postToWorkList(selectedPluginData, force_overwrite){
-    selectedPluginData["id"] = mySpace.target_config.id;
-    selectedPluginData["force_overwrite"] = force_overwrite;
-    $.ajax({
-            url:mySpace.worklist_api_url,
-            type:'POST',
-            data:$.param(selectedPluginData, true),
-            success:pluginLaunchSuccess,
-            error:function(xhr, textStatus, serverResponse){
-                alertFail("Server replied: "+serverResponse);
-                }
-            });
-}
-
-// Initialize everything
-$(document).ready(function() {
-    updateTargetInfo();  // The target info is updated using API, kindof crazy but stable way since api is our main maintainance burden
-    updatePluginReport();  // Plugin report is updated using JS
-    $('#pluginOutputFilterModal').on('hidden.bs.modal', function () {
-      updatePluginReport();
-    });
-});
 </script>
 {% end %}

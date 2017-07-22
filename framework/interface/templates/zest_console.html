@@ -32,7 +32,7 @@ body {
   overflow:auto;
 }
 
-.btn{
+.btn.zconsolebtn{
   margin:30px;
   padding:7px;
 
@@ -72,7 +72,18 @@ body {
 {% end %}
 
 {% block content %}
-
+<br/>
+<div class="row">
+    <ul class="breadcrumb">
+        <li>
+            <a href="/">Home</a>
+        </li>
+        <li>
+            <a href="/ui/transactions/">Transactions</a>
+        </li>
+        <li class="active">Zest Console</li>
+    </ul>
+</div>
 <div class="container">
   <div class="row-fluid">
       <div class="col-md-3">
@@ -106,8 +117,8 @@ body {
        </div>
      </div>
      <div class="row" style="text-align:center" >
-        <button class="btn btn-primary" onclick="recordToggle()" id="recordZest">Record a Zest Script!</button>
-        <button class="btn btn-primary" id="RunZest" onclick="runZestScript()"> Run the Zest Script !</button>
+        <button class="btn btn-primary zconsolebtn" onclick="recordToggle()" id="recordZest">Record a Zest Script!</button>
+        <button class="btn btn-primary zconsolebtn" id="RunZest" onclick="runZestScript()"> Run the Zest Script !</button>
      </div>
 
     </div>
@@ -380,6 +391,7 @@ $(document).ready(function() {
   getScriptNames();
   setRecordButton();
   $("#script_result").hide();
+  updateBreadCrumb();
 });
 
 </script>

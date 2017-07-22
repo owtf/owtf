@@ -9,10 +9,13 @@
     <meta name="author" content="OWASP OWTF Team">
 
     <!-- Styles -->
+    <!-- Roboto Font required by Material UI -->
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,300,500' rel='stylesheet' type='text/css'>
     <link href="{{ static_url('css/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet">
     <link href="{{ static_url('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ static_url('css/spinner.css') }}" rel="stylesheet">
     <link id="skin_css" href="{{ static_url('css/stylesheet.css') }}" rel="stylesheet"> <!-- All tweaks present in this file -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- End Styles -->
 
     <!-- JS -->
@@ -120,6 +123,7 @@
     function disableInput(selector) {
         $(selector).prop("disabled", true);
     }
+
     </script>
     <!-- End status box message -->
 
@@ -143,11 +147,13 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav navbar-right">
-                    <li><a href="{{ reverse_url('targets_ui_url', None) }}"><i class="fa fa-crosshairs"></i> Targets</a></li>
+                    <li><a href="{{ reverse_url('dashboard_ui_url') }}"><i class="fa fa-tachometer"></i> Dashboard</a></li>
+                    <li><a href="{{ reverse_url('targets_ui_url', None) }}" class="target-tab"><i class="fa fa-crosshairs"></i> Targets</a></li>
                     <li><a href="{{ reverse_url('workers_ui_url', None) }}"><i class="fa fa-th-large"></i> Workers</a></li>
                     <li><a href="{{ reverse_url('worklist_ui_url') }}"><i class="fa fa-bars"></i> Worklist</a></li>
                     <li><a href="{{ reverse_url('configuration_ui_url') }}"><i class="fa fa-gears"></i> Settings</a></li>
-		    <li><a href="{{ reverse_url('plugnhack_ui_url') }}"><i class="fa fa-sign-in"></i> PlugnHack</a></li>
+                    <li><a href="{{ reverse_url('plugnhack_ui_url') }}"><i class="fa fa-sign-in"></i> PlugnHack</a></li>
+                    <li><a href="{{ reverse_url('transactions_ui_url') }}"><i class="fa fa-list-alt"></i> Transactions</a></li>
                     <li><a href="{{ reverse_url('help_ui_url') }}"><i class="fa fa-link"></i> Help</a></li>
                 </ul> <!-- nav navbar-nav -->
             </div>
@@ -162,11 +168,32 @@
             </div>
             <!-- End Status box -->
             <!-- Child template content -->
-            <div class="row-fluid">
+            <div class="row-fluid" id="app">
                 {% block content %}Content{% end %}
             </div>
             <!-- End Child template -->
         </div>
+        <script>
+            // Function Handling keyboard navigation(Global)
+            function baseKeyBoardNav() {
+                $(document).bind('keydown', function(event) {
+                    // Shift + leftKey to move to previous tab
+                    if( event.which === 37 && event.shiftKey ) {
+                        var prevTab = $(".breadcrumb .active").prev();
+                        if (prevTab.length !== 0) {
+                            var prevTabLink = $("a",prevTab).attr('href');
+                            window.location = prevTabLink;
+                        }
+                    }
+                });
+            }
+
+            $(document).ready(function() {
+                baseKeyBoardNav();
+            });
+        </script>
+        <!-- Bundle File generated using webpack -->
+        <script type="text/javascript" src="{{ static_url('build/bundle.js') }}"></script>
         <!-- End container -->
     </body>
 </html>

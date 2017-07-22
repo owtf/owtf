@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import PluginOutputInterface
 from framework.db.target_manager import target_required
+from framework.db.session_manager import session_required
 from framework.lib.exceptions import InvalidParameterType
 from framework.db import models
 from framework.utils import FileOperations
@@ -32,6 +33,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
     def PluginCountOutput(self):
         complete_count = self.db.session.query(models.PluginOutput).count()
         left_count = self.db.session.query(models.Work).count()
+        left_count += self.get_component("worker_manager").get_busy_workers()
         results = {'complete_count': complete_count, 'left_count': left_count}
         return results
 
@@ -42,7 +44,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         return Content
 
     @target_required
-    def DeriveOutputDict(self, obj, target_id=None):
+    def DeriveOutputDict(self, obj, target_id=None, inc_output=False):
         if target_id:
             self.target.SetTarget(target_id)
         if obj:
@@ -50,20 +52,23 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             pdict.pop("_sa_instance_state", None)
             pdict.pop("date_time")
             # If output is present, json decode it
-            if pdict.get("output", None):
-                pdict["output"] = self.DeriveHTMLOutput(json.loads(pdict["output"]))
+            if inc_output:
+                if pdict.get("output", None):
+                    pdict["output"] = self.DeriveHTMLOutput(json.loads(pdict["output"]))
+            else:
+                pdict.pop("output")
             pdict["start_time"] = obj.start_time.strftime(self.db_config.Get("DATE_TIME_FORMAT"))
             pdict["end_time"] = obj.end_time.strftime(self.db_config.Get("DATE_TIME_FORMAT"))
             pdict["run_time"] = self.timer.get_time_as_str(obj.run_time)
             return pdict
 
     @target_required
-    def DeriveOutputDicts(self, obj_list, target_id=None):
+    def DeriveOutputDicts(self, obj_list, target_id=None, inc_output=False):
         if target_id:
             self.target.SetTarget(target_id)
         dict_list = []
         for obj in obj_list:
-            dict_list.append(self.DeriveOutputDict(obj, target_id=target_id))
+            dict_list.append(self.DeriveOutputDict(obj, target_id=target_id, inc_output=inc_output))
         return dict_list
 
     def GenerateQueryUsingSession(self, filter_data, target_id, for_delete=False):
@@ -112,16 +117,25 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             raise InvalidParameterType("Integer has to be provided for integer fields")
         if not for_delete:
             query = query.order_by(models.PluginOutput.plugin_key.asc())
+        try:
+            if filter_data.get("offset", None):
+                if isinstance(filter_data.get("offset"), list):
+                    query = query.offset(int(filter_data["offset"][0]))
+            if filter_data.get("limit", None):
+                if isinstance(filter_data.get("limit"), list):
+                    query = query.limit(int(filter_data["limit"][0]))
+        except ValueError:
+            raise InvalidParameterType("Integer has to be provided for integer fields")
         return query
 
     @target_required
-    def GetAll(self, filter_data=None, target_id=None):
+    def GetAll(self, filter_data=None, target_id=None, inc_output=False):
         if not filter_data:
             filter_data = {}
         self.target.SetTarget(target_id)
         query = self.GenerateQueryUsingSession(filter_data, target_id)
         results = query.all()
-        return self.DeriveOutputDicts(results, target_id=target_id)
+        return self.DeriveOutputDicts(results, target_id=target_id, inc_output=inc_output)
 
     @target_required
     def GetUnique(self, target_id=None):
@@ -237,3 +251,32 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         except SQLAlchemyError as e:
             self.db.session.rollback()
             raise e
+
+    @session_required
+    def GetSeverityFrequency(self, session_id=None):
+        severity_frequency = [
+            {"id": 0, "label": "Passing", "value": 0},
+            {"id": 1, "label": "Info", "value": 0},
+            {"id": 2, "label": "Low", "value": 0},
+            {"id": 3, "label": "Medium", "value": 0},
+            {"id": 4, "label": "High", "value": 0},
+            {"id": 5, "label": "Critical", "value": 0},
+        ]
+
+        targets = []
+        target_objs = self.db.session.query(models.Target.id).filter(models.Target.sessions.any(id=session_id)).all()
+        for target_obj in target_objs:
+            targets.append(target_obj.id)
+
+        plugin_objs = self.db.session.query(models.PluginOutput).all()
+
+        for plugin_obj in plugin_objs:
+            if plugin_obj.target_id in targets:
+                if plugin_obj.user_rank != -1:
+                    severity_frequency[plugin_obj.user_rank]["value"] += 1
+                else:
+                    if plugin_obj.owtf_rank != -1:
+                        # Removing the not ranked plugins
+                        severity_frequency[plugin_obj.owtf_rank]["value"] += 1
+
+        return {"data": severity_frequency[::-1]}

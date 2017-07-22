@@ -192,6 +192,7 @@ class Error(Base):
     traceback = Column(String, nullable=True)
     user_message = Column(String, nullable=True)
     reported = Column(Boolean, default=False)
+    github_issue_url = Column(String, nullable=True)
 
     def __repr__(self):
         return "<Error (traceback='%s')>" % (self.traceback)
