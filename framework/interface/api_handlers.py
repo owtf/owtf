@@ -900,27 +900,3 @@ class PlugnhackHandler(custom_handlers.APIRequestHandler):
             cprint("\n")
             cprint("I/O error at event writing: (%s): %s" % (e.errno, e.strerror))
             cprint("\n")
-
-
-class AutoUpdaterHandler(custom_handlers.APIRequestHandler):
-    """
-    Notify on the home page if the repo is at its latest commit from upstream
-    """
-    SUPPORTED_METHODS = ['GET']
-
-    @tornado.gen.coroutine
-    def get(self):
-        client = tornado.httpclient.AsyncHTTPClient()
-        response = yield client.fetch("https://api.github.com/repos/owtf/owtf/commits/develop", user_agent='OWTF')
-
-        info = json.loads(response.body)
-        root_dir = self.get_component("config").RootDir
-
-        # now compare the commit_hash with the latest tag
-        if print_version(root_dir, commit_hash=True) != info["sha"]:
-            self.write("""
-                Seems that your repository is older than the upstream. The latest commit is from %s.\n
-                Please update, it may resolve some issues!
-                """ % (info["commit"]["message"]))
-        else:
-            self.write('Seems like you are running latest version. Happy Pwning!')
