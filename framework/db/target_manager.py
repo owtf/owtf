@@ -1,4 +1,5 @@
 import os
+import datetime
 from urlparse import urlparse
 
 from framework.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
@@ -245,7 +246,8 @@ class TargetDB(BaseComponent, TargetInterface):
                 if filter_data.get('limit', None):
                     if isinstance(filter_data.get('limit'), list):
                         filter_data['limit'] = filter_data['limit'][0]
-                    query = query.limit(int(filter_data['limit']))
+                    if int(filter_data['limit']) != -1:
+                        query = query.limit(int(filter_data['limit']))
             except ValueError:
                 raise InvalidParameterType("Invalid parameter type for target db for id[lt] or id[gt]")
         return query
@@ -313,3 +315,47 @@ class TargetDB(BaseComponent, TargetInterface):
             if ParsedURL.hostname == HostName:
                 return True
         return False
+
+    def GetRecentlyFinishedTargets(self):
+        results = []
+        time15min = datetime.datetime.now() - datetime.timedelta(minutes=15)
+        completed_targets = self.db.session.query(models.PluginOutput.target_id).filter(models.PluginOutput.end_time>=time15min).distinct(models.PluginOutput.target_id)
+        running_targets = self.db.session.query(models.Work.target_id).distinct(models.Work.target_id)
+        list_completed_targets = [target[0] for target in completed_targets]
+        list_running_targets = [target[0] for target in running_targets]
+        recently_finished_targets = [x for x in list_completed_targets if x not in list_running_targets]
+        for target in recently_finished_targets:
+            values = {}
+            target_obj = self.db.session.query(models.Target).filter_by(id=target)
+            values['target_id'] = target_obj[0].id
+            values['target_url'] = target_obj[0].target_url
+            results.append(values)
+        return ({"data": results})
+
+    @session_required
+    def GetTargetsSeverityCount(self, session_id=None):
+        filtered_severity_objs = []
+        # "not ranked" = gray, "passing" = light green, "info" = light sky blue, "low" = blue, medium = yellow, high = red, critical = dark purple
+        severity_frequency = [
+            {"id":0, "label": "Not Ranked", "value": 0, "color": "#A9A9A9"},
+            {"id":1, "label": "Passing", "value": 0, "color": "#32CD32"},
+            {"id":2, "label": "Info", "value": 0, "color": "#b1d9f4"},
+            {"id":3, "label": "Low", "value": 0, "color": "#337ab7"},
+            {"id":4, "label": "Medium", "value": 0, "color": "#ffcc00"},
+            {"id":5, "label": "High", "value": 0, "color": "#c12e2a"},
+            {"id":6, "label": "Critical", "value": 0, "color": "#800080"}
+        ]
+        total = self.db.session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).count()
+        target_objs = self.db.session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).all()
+
+        for target_obj in target_objs:
+            if target_obj.max_user_rank != -1:
+                severity_frequency[target_obj.max_user_rank + 1]["value"] += 100 / total
+            else:
+                severity_frequency[target_obj.max_owtf_rank + 1]["value"] += 100 / total
+
+        for severity in severity_frequency:
+            if severity["value"] != 0:
+                filtered_severity_objs.append(severity)
+
+        return {"data": filtered_severity_objs}

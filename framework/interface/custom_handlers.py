@@ -6,6 +6,7 @@ import hashlib
 import datetime
 import mimetypes
 import email.utils
+import subprocess
 
 import tornado.web
 import tornado.template
@@ -31,6 +32,11 @@ class UIRequestHandler(tornado.web.RequestHandler, BaseComponent):
 
 
 class StaticFileHandler(tornado.web.StaticFileHandler):
+
+    def set_default_headers(self):
+        self.add_header("Access-Control-Allow-Origin", "*")
+        self.add_header("Access-Control-Allow-Methods", "GET, POST, DELETE")
+
     def get(self, path, include_body=True):
         """
         This is an edited method of original class so that we can show
@@ -109,13 +115,18 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
                     self.set_status(304)
                     return
 
-            with open(abspath, "rb") as file:
-                data = file.read()
-                hasher = hashlib.sha1()
-                hasher.update(data)
-                self.set_header("Etag", '"%s"' % hasher.hexdigest())
-                if include_body:
-                    self.write(data)
-                else:
-                    assert self.request.method == "HEAD"
-                    self.set_header("Content-Length", len(data))
+            no_of_lines = self.get_argument("lines", default="-1")
+            if no_of_lines != "-1":
+                data = subprocess.check_output(["tail", "-" + no_of_lines, abspath])
+            else:
+                with open(abspath, "rb") as file:
+                    data = file.read()
+
+            hasher = hashlib.sha1()
+            hasher.update(data)
+            self.set_header("Etag", '"%s"' % hasher.hexdigest())
+            if include_body:
+                self.write(data)
+            else:
+                assert self.request.method == "HEAD"
+                self.set_header("Content-Length", len(data))

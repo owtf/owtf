@@ -227,6 +227,15 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                 worker_temp_list.append(temp_dict)
             return worker_temp_list
 
+    def get_busy_workers(self):
+        count = 0
+        workers = self.get_worker_details()
+        for worker in workers:
+            if worker["busy"] is True:
+                count += 1
+
+        return count
+
     def get_worker_dict(self, pseudo_index):
         try:
             return self.workers[pseudo_index - 1]

@@ -6,9 +6,12 @@ The DB stores HTTP transactions, unique URLs and more.
 import re
 import json
 import base64
+import logging
 from collections import defaultdict
 
 from sqlalchemy import desc, asc
+
+from hrt.interface import HttpRequestTranslator
 
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import TransactionInterface
@@ -436,6 +439,47 @@ class TransactionManager(BaseComponent, TransactionInterface):
         if not transaction_obj:
             raise InvalidTransactionReference("No transaction with %s exists" % str(trans_id))
         return self.DeriveTransactionDict(transaction_obj, include_raw_data=True)
+
+    @target_required
+    def GetHrtResponse(self, filter_data, trans_id, target_id=None):
+        transaction_obj = self.db.session.query(models.Transaction).filter_by(target_id=target_id, id=trans_id).first()
+
+        # Data validation
+        languages = ['bash']  # Default script language is set to bash.
+        if filter_data.get('language'):
+            languages = map(lambda x: x.strip(), filter_data['language'])
+
+        proxy = None
+        search_string = None
+        data = None
+
+        if filter_data.get('proxy'):
+            proxy = filter_data['proxy'][0]
+
+        if filter_data.get('search_string'):
+            search_string = filter_data['search_string'][0]
+
+        if filter_data.get('data'):
+            data = filter_data['data'][0]
+
+        # If target not found. Raise error.
+        if not transaction_obj:
+            raise InvalidTransactionReference("No transaction with %s exists" % str(trans_id))
+
+        raw_request = transaction_obj.raw_request
+
+        try:
+            hrt_obj = HttpRequestTranslator(
+                request=raw_request,
+                languages=languages,
+                proxy=proxy,
+                search_string=search_string,
+                data=data)
+            codes = hrt_obj.generate_code()
+            return (''.join(v for v in codes.values()))
+        except Exception as e:
+            logging.error('Unexpected exception when running HRT: %s' % e)
+            return str(e)
 
     @target_required
     def GetSessionData(self, target_id=None):

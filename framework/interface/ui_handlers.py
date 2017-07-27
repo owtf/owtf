@@ -1,4 +1,5 @@
 import os
+import json
 import collections
 import uuid
 
@@ -21,7 +22,14 @@ class Home(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
     def get(self):
-        self.render('home.html', auto_updater_api_url=self.reverse_url('auto_updater_api_url'),)
+        self.render('home.html')
+
+
+class Dashboard(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        self.render("dashboard.html")
 
 
 class TransactionLog(custom_handlers.UIRequestHandler):
@@ -126,220 +134,17 @@ class TargetManager(custom_handlers.UIRequestHandler):
             adv_filter_data["mapping"] = self.get_component("mapping_db").GetMappingTypes()
             self.render(
                 "target.html",
+                target_id=target_id,
                 target_api_url=self.reverse_url('targets_api_url', target_id),
                 targets_ui_url=self.reverse_url('targets_ui_url', None),
                 poutput_ui_url=self.reverse_url('poutput_ui_url', target_id),
-                adv_filter_data=adv_filter_data,
+                adv_filter_data=json.dumps(adv_filter_data),
                 plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
                 worklist_api_url=self.reverse_url('worklist_api_url', None, None),
                 transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                 url_log_url=self.reverse_url('url_log_url', target_id),
                 sessions_ui_url=self.reverse_url('sessions_ui_url', target_id),
             )
-
-
-class PlugnHack(custom_handlers.UIRequestHandler):
-    """
-    PlugnHack handles the requests which are used for integration
-    of OWTF with Firefox browser using Plug-n-Hack add-on.
-    For more information about Mozilla Plug-n-Hack standard visit:
-    https://blog.mozilla.org/security/2013/08/22/plug-n-hack/
-    """
-    SUPPORTED_METHODS = ['GET']
-
-    @tornado.web.asynchronous
-    def get(self, extension=""):
-        """
-        pnh is an abbreviation for Plug-n-Hack
-        URL in default case = http://127.0.0.1:8009/ui/plugnhack/
-        Templates folder is framework/interface/templates/pnh
-        For Plug-n-Hack, following files are used:
-
-        ===================================================
-        |    File Name    |          Relative path        |
-        ===================================================
-        |  Provider file  |   /ui/plugnhack/              |
-        ---------------------------------------------------
-        |  Manifest file  |   /ui/plugnhack/manifest.json |
-        ---------------------------------------------------
-        |  Commands file  |   /ui/plugnhack/service.json  |
-        ---------------------------------------------------
-        |  PAC file       |   /ui/plugnhack/proxy.pac     |
-        ---------------------------------------------------
-        |  CA Cert        |   /ui/plugnhack/ca.crt        |
-        ---------------------------------------------------
-        """
-        root_url = "%s://%s" % (self.request.protocol, self.request.host)  # URL of UI SERVER, http://127.0.0.1:8009
-        command_url = os.path.join(root_url, "")  # URL for use in service.json, http://127.0.0.1:8009/
-        # URL for use in manifest.json, http://127.0.0.1:8009/ui/plugnhack
-        pnh_url = os.path.join(root_url, "ui", "plugnhack")
-        # URL for use in manifest.json, Plug-n-Hack probe will send messages to http://127.0.0.1:8008/plugnhack
-        probe_url = "http://%s:%s" % (self.get_component("db_config").Get('INBOUND_PROXY_IP'),
-                                      self.get_component("db_config").Get('INBOUND_PROXY_PORT'))
-        # Obtain path to PlugnHack template files
-        # PLUGNHACK_TEMPLATES_DIR is defined in /framework/config/framework_config.cfg
-        pnh_folder = os.path.join(self.get_component("config").FrameworkConfigGet('PLUGNHACK_TEMPLATES_DIR'), "")
-        self.application.ca_cert = os.path.expanduser(self.get_component("db_config").Get('CA_CERT'))  # CA certificate
-        # Using UUID system generate a key for substitution of 'api_key' in 'manifest.json', 'probe' descriptor section
-        # Its use is temporary, till Bhadarwaj implements 'API key generation'
-        api_key = uuid.uuid4().hex
-
-        # In this case plugnhack.html is rendered and {{ manifest_url }} is replaced with 'manifest_url' value
-        if extension == "":
-            manifest_url = "%s/manifest.json" % pnh_url
-            # Set response status code to 200 'OK'
-            self.set_status(200)
-            # Set response header 'Content-Type'
-            self.set_header("Content-Type", "text/html")
-            # Set response header 'Etag', it will not appear in response,
-            # we don't need web-cache validation
-            self.set_header("Etag", "")
-            # Set response header 'Server, it will not appear in response
-            self.set_header("Server", "")
-            # Set response header 'Date', it will not appear in response
-            self.set_header("Date", "")
-            # Set response header 'Cache-Control', it will not appear,
-            # we don't need caching for Plugnhack
-            self.add_header("Cache-Control", "no-cache")
-            # Set response header 'Pragma', it will not appear in response
-            self.add_header("Pragma", "no-cache")
-            # Set response headers for CORS, it allows many resources on a
-            # web page to be requested from another domain outside the domain
-            # the resource originated from. This mechanism is used in OWASP ZAP.
-            self.add_header("Access-Control-Allow-Origin", "*")
-            self.add_header("Access-Control-Allow-Header", "OWTF-Header")
-            self.add_header("Access-Control-Allow-Method", "GET, POST, OPTIONS")
-
-            self.render(
-                "%splugnhack.html" % pnh_folder,
-                manifest_url=manifest_url,
-                plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
-            )
-
-        # In this case {{ pnh_url }} in manifest.json are replaced with 'pnh_url' value
-        elif extension == "manifest.json":
-            # Set response status code to 200 'OK'
-            self.set_status(200)
-            # Set response header 'Content-Type'
-            self.set_header("Content-Type", "application/json")
-            # Set response header 'Etag', it will not appear in response,
-            # we don't need web-cache validation
-            self.set_header("Etag", "")
-            # Set response header 'Server, it will not appear in response
-            self.set_header("Server", "")
-            # Set response header 'Date', it will not appear in response
-            self.set_header("Date", "")
-            # Set response header 'Cache-Control', it will not appear,
-            # we don't need caching for Plugnhack
-            self.add_header("Cache-Control", "no-cache")
-            # Set response header 'Pragma', it will not appear in response
-            self.add_header("Pragma", "no-cache")
-            # Set response headers for CORS, it allows many resources on a
-            # web page to be requested from another domain outside the domain
-            # the resource originated from. This mechanism is used in OWASP ZAP.
-            # Without this Plug-n-Hack cannot send messages and error:
-            # 'Cross-Origin Request Blocked: The Same Origin Policy disallows reading
-            # the remote resource at' will be present in browser console
-            self.add_header("Access-Control-Allow-Origin", "*")
-            self.add_header("Access-Control-Allow-Header", "OWTF-Header")
-            self.add_header("Access-Control-Allow-Method", "GET, POST, OPTIONS")
-
-            self.render(
-                "%smanifest.json" % pnh_folder,
-                pnh_url=pnh_url,
-                probe_url=probe_url,
-                api_key=api_key,
-                plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
-            )
-        # In this case {{ root_url }} in service.json are replaced with 'root_url' value
-        elif extension == "service.json":
-            # Set response status code to 200 'OK'
-            self.set_status(200)
-            # Set response header 'Content-Type'
-            self.set_header("Content-Type", "application/json")
-            # Set response header 'Etag', it will not appear in response,
-            # we don't need web-cache validation
-            self.set_header("Etag", "")
-            # Set response header 'Server, it will not appear in response
-            self.set_header("Server", "")
-            # Set response header 'Date', it will not appear in response
-            self.set_header("Date", "")
-            # Set response header 'Cache-Control', it will not appear,
-            # we don't need caching for Plugnhack
-            self.add_header("Cache-Control", "no-cache")
-            # Set response header 'Pragma', it will not appear in response
-            self.add_header("Pragma", "no-cache")
-            # Set response headers for CORS, it allows many resources on a
-            # web page to be requested from another domain outside the domain
-            # the resource originated from. This mechanism is used in OWASP ZAP.
-
-            self.add_header("Access-Control-Allow-Origin", "*")
-            self.add_header("Access-Control-Allow-Header", "OWTF-Header")
-            self.add_header("Access-Control-Allow-Method", "GET, POST, OPTIONS")
-
-            self.render(
-                "%sservice.json" % pnh_folder,
-                root_url=command_url,
-                plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
-            )
-        # In this case {{ proxy_details }} in proxy.pac is replaced with 'proxy_details' value
-        elif extension == "proxy.pac":
-            proxy_details = "%s:%s" % (self.get_component("db_config").Get('INBOUND_PROXY_IP'),
-                                       self.get_component("db_config").Get('INBOUND_PROXY_PORT'))
-            # Set response status code to 200 'OK'
-            self.set_status(200)
-            # Set response header 'Content-Type'
-            self.set_header("Content-Type", "text/plain")
-            # Set response header 'Etag', it will not appear in response,
-            # we don't need web-cache validation
-            self.set_header("Etag", "")
-            # Set response header 'Server, it will not appear in response
-            self.set_header("Server", "")
-            # Set response header 'Date', it will not appear in response
-            self.set_header("Date", "")
-            # Set response header 'Cache-Control', it will not appear,
-            # we don't need caching for Plugnhack
-            self.add_header("Cache-Control", "no-cache")
-            # Set response header 'Pragma', it will not appear in response
-            self.add_header("Pragma", "no-cache")
-            # Set response headers for CORS, it allows many resources on a
-            # web page to be requested from another domain outside the domain
-            # the resource originated from. This mechanism is used in OWASP ZAP.
-            self.add_header("Access-Control-Allow-Origin", "*")
-            self.add_header("Access-Control-Allow-Header", "OWTF-Header")
-            self.add_header("Access-Control-Allow-Method", "GET, POST, OPTIONS")
-
-            self.render(
-                "%sproxy.pac" % pnh_folder,
-                proxy_details=proxy_details,
-                plugnhack_ui_url=self.reverse_url('plugnhack_ui_url')
-            )
-
-        elif extension == "ca.crt":
-            # Set response status code to 200 'OK'
-            self.set_status(200)
-            # Set response header 'Content-Type'
-            self.set_header("Content-Type", "application/pkix-cert")
-            # Set response header 'Etag', it will not appear in response,
-            # we don't need web-cache validation
-            self.set_header("Etag", "")
-            # Set response header 'Server, it will not appear in response
-            self.set_header("Server", "")
-            # Set response header 'Date', it will not appear in response
-            self.set_header("Date", "")
-            # Set response header 'Cache-Control', it will not appear,
-            # we don't need caching for Plugnhack
-            self.add_header("Cache-Control", "no-cache")
-            # Set response header 'Pragma', it will not appear in response
-            self.add_header("Pragma", "no-cache")
-            # Set response headers for CORS, it allows many resources on a
-            # web page to be requested from another domain outside the domain
-            # the resource originated from. This mechanism is used in OWASP ZAP.
-            self.add_header("Access-Control-Allow-Origin", "*")
-            self.add_header("Access-Control-Allow-Header", "OWTF-Header")
-            self.add_header("Access-Control-Allow-Method", "GET, POST, OPTIONS")
-
-            self.render(self.application.ca_cert, plugnhack_ui_url=self.reverse_url('plugnhack_ui_url'))
 
 
 class PluginOutput(custom_handlers.UIRequestHandler):
@@ -410,7 +215,9 @@ class WorkerManager(custom_handlers.UIRequestHandler):
                 workers_api_url=output_files_server + self.reverse_url('workers_api_url', None, None),
                 targets_api_url=self.reverse_url('targets_api_url', None),
                 targets_ui_url=self.reverse_url('targets_ui_url', None),
-                plugins_api_url=self.reverse_url('plugins_api_url', None, None, None)
+                plugins_api_url=self.reverse_url('plugins_api_url', None, None, None),
+                progress_api_url=output_files_server + self.reverse_url('poutput_count'),
+                log_url_port=output_files_server
             )
         else:
             self.render(
@@ -439,6 +246,11 @@ class Help(custom_handlers.UIRequestHandler):
     def get(self):
         self.render("help.html")
 
+class Transactions(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        self.render("transaction_log.html")
 
 class ConfigurationManager(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ('GET')

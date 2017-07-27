@@ -11,6 +11,14 @@
 
 {% block content %}
 <div class="row">
+    <ul class="breadcrumb">
+        <li>
+            <a href="/">Home</a>
+        </li>
+        <li class="active">Targets</li>
+    </ul>
+</div>
+<div class="row">
     <!-- Input area to add new targets -->
     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <div class="row-fluid">
@@ -533,6 +541,7 @@ function drawTargetTable() {
         "stateSave": true,
         "bServerSide": true,
         "ajax": dummyAjax,
+        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
         "fnDrawCallback": function( settings ) {
             // Managing the "Select all" checkbox
             // everytime the table is drawn, it checks if all the
@@ -601,6 +610,16 @@ function drawTargetTable() {
     });
 }
 
+// Function handling keyboard navigation
+function keyBoardNav() {
+    $(document).bind('keydown', function(event) {
+        // Submit the targets with Shift + Enter
+        if( event.which === 13 && event.shiftKey ) {
+            newTargets($('#newTargetUrls').val(), this);
+        }
+    });
+}
+
 // The target list table has to be initialized first
 $(document).ready(function() {
     drawTargetTable();
@@ -618,6 +637,7 @@ $(document).ready(function() {
         updateSessions();
     });
     updateCurrentSessionInfo();
+    keyBoardNav();
 });
 </script>
 {% end %}

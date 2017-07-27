@@ -190,6 +190,10 @@ def process_options(user_args):
         'Args': args
     }
 
+def build_react_bundle(root_dir):
+    print("\033[93m[*] Building the react bundle. Plese wait..")
+    command = "NODE_ENV=production webpack --config " + str(root_dir) + "/webpack.config.js" + " > /dev/null"
+    os.system(command)
 
 def run_owtf(core, args):
     try:
@@ -214,6 +218,9 @@ def main(args):
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
     owtf_pid = os.getpid()
+    if "--build-react" in args[1:]:
+        build_react_bundle(root_dir)
+
     if "--update" not in args[1:]:
         try:
             ComponentInitialiser.initialisation_phase_1(root_dir, owtf_pid)

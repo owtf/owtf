@@ -561,6 +561,9 @@ class Config(BaseComponent, ConfigInterface):
     def GetOutputDirForTargets(self):
         return os.path.join(self.GetOutputDir(), self.FrameworkConfigGet("TARGETS_DIR"))
 
+    def GetOutputDirForWorkersLogs(self):
+        return os.path.join(self.GetOutputDir(), self.FrameworkConfigGet("WORKER_LOG_DIR"))
+
     def CleanUpForTarget(self, target_URL):
         return FileOperations.rm_tree(self.GetOutputDirForTarget(target_URL))
 
