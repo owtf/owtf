@@ -30,10 +30,11 @@ if [ "$5" ] && [ "$5" != "$ip" ]; then
         NIKTO_NOLOOKUP="" #Host name passed: must look up
 fi
 
-NIKTO_SSL=""
-SSL_CONNECTION_LINES=$(sleep 5 ; echo -e "^C" 2> /dev/null | openssl s_client -connect "$HOST_NAME":"$PORT" -brief 2>&1 | grep "ESTABLISHED" | wc -l)
-if [ "$SSL_CONNECTION_LINES" -gt 0 ]; then # SSL connection successful, proceed with nikto -ssl switch
-        NIKTO_SSL="-ssl"
+NIKTO_SSL="-nossl"
+SSL_CONNECTION_LINES=$(sleep 5 ; echo -e "^C" 2> /dev/null | openssl s_client -connect "$HOST_NAME":"$PORT" -brief 2>&1 | grep "ESTABLISHED" | wc -l )
+
+if [ "$SSL_CONNECTION_LINES" -gt 0 ]; then # SSL connection successful, proceed with -ssl switch
+       NIKTO_SSL="-ssl"
 fi
 
 # Temporary nikto config file
@@ -62,6 +63,7 @@ fi
 COMMAND="nikto $NIKTO_NOLOOKUP -evasion 1 $NIKTO_SSL -config $TEMP_NIKTO_CONF_FILE -host $HOST_NAME -port $PORT -output $DIR/$LOG_XML -Format xml"
 echo "[*] Running: $COMMAND"
 $COMMAND
+
 
 echo
 echo "[*] Done!"
