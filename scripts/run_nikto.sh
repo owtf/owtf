@@ -35,13 +35,9 @@ SSL_CONNECTION_LINES=$(sleep 5 ; echo -e "^C" 2> /dev/null | openssl s_client -c
 
 if [ "$SSL_CONNECTION_LINES" -gt 0 ]; then # SSL connection successful, procede with -ssl switch
        NIKTO_SSL="-ssl"
-       echo  "ssl-connection"
-echo
 fi
 if [ "$SSL_CONNECTION_LINES" -lt 1 ]; then # nossl connection.
          NIKTO_SSL="-nossl"
-         echo "No-ssl_Connection"
-echo
 fi
 
 # Temporary nikto config file
@@ -71,12 +67,6 @@ COMMAND="nikto $NIKTO_NOLOOKUP -evasion 1 $NIKTO_SSL -config $TEMP_NIKTO_CONF_FI
 echo "[*] Running: $COMMAND"
 $COMMAND
 
-SSL_CONNECTION_LINES=$(sleep 5 ; echo -e "^C" 2> /dev/null | openssl s_client -connect "$HOST_NAME":"$PORT" -brief 2>&1 | grep "ESTABLISHED" | wc -l )
-if [ "$SSL_CONNECTION_LINES" -gt 0 ]; then
-echo      "ssl-Connection"
-fi
-if [ "$SSL_CONNECTION_LINES" -lt 1 ]; then 
-echo      "No-ssl-Connection"
-fi
+
 echo
 echo "[*] Done!"
