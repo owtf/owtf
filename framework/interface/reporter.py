@@ -7,6 +7,7 @@ The reporter module is in charge of producing the HTML Report as well as
 import cgi
 
 from tornado.template import Loader
+from tornado.escape import url_escape
 
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import ReporterInterface
@@ -136,7 +137,7 @@ class Reporter(BaseComponent, ReporterInterface):
             "Name": Name,
             "CommandIntro": CommandIntro,
             "ModifiedCommand": ModifiedCommand,
-            "FilePath": RelativeFilePath,
+            "FilePath": url_escape(RelativeFilePath),
             "OutputIntro": OutputIntro,
             "OutputLines": OutputLines,
             "TimeStr": TimeStr,
