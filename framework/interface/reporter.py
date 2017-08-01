@@ -137,7 +137,7 @@ class Reporter(BaseComponent, ReporterInterface):
             "Name": Name,
             "CommandIntro": CommandIntro,
             "ModifiedCommand": ModifiedCommand,
-            "FilePath": url_escape(RelativeFilePath),
+            "FilePath": RelativeFilePath,
             "OutputIntro": OutputIntro,
             "OutputLines": OutputLines,
             "TimeStr": TimeStr,
