@@ -16,180 +16,177 @@ from framework.lib.general import *
 from cookies import Cookie
 
 
-class HTTP_Transaction(object):
-    def __init__(self, Timer):
-        self.Timer = Timer
-        self.New = False
+class HTTPTransaction(object):
+    def __init__(self, timer):
+        self.timer = timer
+        self.new = False
 
-    def ScopeToStr(self):
-        return str(self.IsInScope)[0]
+    def str_scope(self):
+        return str(self.is_in_scope)[0]
 
-    def InScope(self):
-        return(self.IsInScope)
+    def in_scope(self):
+        return self.is_in_scope
 
-    def Start(self, url, data, method, is_in_scope):
-        self.IsInScope = is_in_scope
-        self.StartRequest()
-        self.URL = url
-        self.InitData(data)
-        self.Method = DeriveHTTPMethod(method, data)
-        self.Found = None
-        self.RawRequest = ''
-        self.ResponseHeaders = []
-        self.ResponseSize = ''
-        self.Status = ''
-        self.ID = ''
-        self.HTMLLinkToID = ''
-        self.New = True  # Flag new transaction.
+    def start(self, url, data, method, is_in_scope):
+        self.is_in_scope = is_in_scope
+        self.start_request()
+        self.url = url
+        self.init_data(data)
+        self.method = derive_http_method(method, data)
+        self.found = None
+        self.raw_request = ''
+        self.response_headers = []
+        self.response_size = ''
+        self.status = ''
+        self.id = ''
+        self.link_to_id = ''
+        self.new = True  # Flag new transaction.
 
-    def InitData(self, data):
-        self.Data = data
-        if self.Data is None:
+    def init_data(self, data):
+        self.data = data
+        if self.data is None:
             # This simplifies other code later, no need to cast to str if None, etc.
-            self.Data = ''
+            self.data = ''
 
-    def StartRequest(self):
-        self.Timer.start_timer('Request')
-        self.Time = self.TimeHuman = ''
+    def start_request(self):
+        self.timer.start_timer('Request')
+        self.time = self.time_human = ''
 
-    def EndRequest(self):
-        self.Time = self.Timer.get_elapsed_time_as_str('Request')
-        self.TimeHuman = self.Time
-        self.LocalTimestamp = self.Timer.get_current_date_time()
+    def end_request(self):
+        self.time = self.timer.get_elapsed_time_as_str('Request')
+        self.time_human = self.time
+        self.local_timestamp = self.timer.get_current_date_time()
 
-    def SetTransaction(self, found, request, response):
+    def set_transaction(self, found, request, response):
         # Response can be "Response" for 200 OK or "Error" for everything else, we don't care here.
-        if self.URL != response.url:
+        if self.url != response.url:
             if response.code not in [302, 301]:  # No way, error in hook.
                 # Mark as a redirect, dirty but more accurate than 200 :P
-                self.Status = "%s Found" % str(302)
-                self.Status += " --Redirect--> %s " % str(response.code)
-                self.Status += response.msg
+                self.status = "%s Found" % str(302)
+                self.status += " --Redirect--> %s " % str(response.code)
+                self.status += response.msg
             # Redirect differs in schema (i.e. https instead of http).
-            if self.URL.split(':')[0] != response.url.split(':')[0]:
+            if self.url.split(':')[0] != response.url.split(':')[0]:
                 pass
-            self.URL = response.url
+            self.url = response.url
         else:
-            self.Status = "%s %s" % (str(response.code), response.msg)
-        self.RawRequest = request
-        self.Found = found
-        self.ResponseHeaders = response.headers
-        self.ResponseContents = response.read()
+            self.status = "%s %s" % (str(response.code), response.msg)
+        self.raw_request = request
+        self.found = found
+        self.response_headers = response.headers
+        self.response_contents = response.read()
         # a new self.Decodedcontent is added if the received response is in compressed format
-        self.checkIfCompressed(response, self.ResponseContents)
-        self.EndRequest()
+        self.check_compressed(response, self.response_contents)
+        self.end_request()
 
-    def SetTransactionFromDB(self, id, url, method, status, time, time_human, local_timestamp, request_data,
-                             raw_request, response_headers, response_size, response_body):
-        self.ID = id
-        self.New = False  # Flag NOT new transaction.
-        self.URL = url
-        self.Method = method
-        self.Status = status
-        self.Found = (self.Status == "200 OK")
-        self.Time = time
-        self.TimeHuman = time_human
-        self.LocalTimestamp = local_timestamp
-        self.Data = request_data
-        self.RawRequest = raw_request
-        self.ResponseHeaders = response_headers
-        self.ResponseSize = response_size
-        self.ResponseContents = response_body
+    def set_transaction_from_db(self, id, url, method, status, time, time_human, local_timestamp, request_data,
+                                raw_request, response_headers, response_size, response_body):
+        self.id = id
+        self.new = False  # Flag NOT new transaction.
+        self.url = url
+        self.method = method
+        self.status = status
+        self.found = (self.status == "200 OK")
+        self.time = time
+        self.time_human = time_human
+        self.local_timestamp = local_timestamp
+        self.data = request_data
+        self.raw_request = raw_request
+        self.response_headers = response_headers
+        self.response_size = response_size
+        self.response_contents = response_body
 
-    def GetSessionTokens(self):
+    def get_session_tokens(self):
         cookies = []
         try:  # parsing may sometimes fail
-            for cookie in self.Cookies_list:
+            for cookie in self.cookies_list:
                 cookies.append(Cookie.from_string(cookie).to_dict())
         except:
             pass
         return json.dumps(cookies)
 
-    def SetError(self, error_message):
+    def set_error(self, error_message):
         # Only called for unknown errors, 404 and other HTTP stuff handled on self.SetResponse.
-        self.ResponseContents = error_message
-        self.EndRequest()
+        self.response_contents = error_message
+        self.end_request()
 
-    def GetID(self):
-        return (self.ID)
+    def get_id(self):
+        return (self.id)
 
-    def SetID(self, id, html_link_to_id):
-        self.ID = id
-        self.HTMLLinkToID = html_link_to_id
+    def set_id(self, id, html_link_to_id):
+        self.id = id
+        self.link_to_id = html_link_to_id
         # Only for new transactions, not when retrieved from DB, etc.
-        if self.New:
+        if self.new:
             log = logging.getLogger('general')
             log.info("New owtf HTTP Transaction: %s",
-                     " - ".join([self.ID, self.TimeHuman, self.Status, self.Method, self.URL]))
+                     " - ".join([self.id, self.time_human, self.status, self.method, self.url]))
 
-    def GetHTMLLink(self, link_name=''):
+    def get_html_link(self, link_name=''):
         if '' == link_name:
-            link_name = "Transaction %s" % self.ID
-        return self.HTMLLinkToID.replace('@@@PLACE_HOLDER@@@', link_name)
+            link_name = "Transaction %s" % self.id
+        return self.link_to_id.replace('@@@PLACE_HOLDER@@@', link_name)
 
-    def GetHTMLLinkWithTime(self, link_name=''):
-        return "%s (%s)" % (self.GetHTMLLink(link_name), self.TimeHuman)
+    def get_link_with_time(self, link_name=''):
+        return "%s (%s)" % (self.get_html_link(link_name), self.time_human)
 
-    def GetRawEscaped(self):
-        return "<pre>%s</pre>" % cgi.escape(self.GetRaw())
+    def get_raw_escaped(self):
+        return "<pre>%s</pre>" % cgi.escape(self.get_raw())
 
-    def GetRaw(self):
-        return "%s\n\n%s" % (self.GetRawRequest(), self.GetRawResponse())
+    def get_raw(self):
+        return "%s\n\n%s" % (self.get_raw_request(), self.get_raw_response())
 
-    def GetRawRequest(self):
-        return self.RawRequest
+    def get_raw_request(self):
+        return self.raw_request
 
-    def GetStatus(self):
-        return self.Status
+    def get_status(self):
+        return self.status
 
-    def GetResponseHeaders(self):
-        return self.ResponseHeaders
+    def get_response_headers(self):
+        return self.response_headers
 
-    def GetRawResponse(self, with_status=True):
+    def get_raw_response(self, with_status=True):
         try:
-            return "%s\r\n%s\n\n%s" % (self.GetStatus(), str(self.ResponseHeaders), self.ResponseContents)
+            return "%s\r\n%s\n\n%s" % (self.get_status(), str(self.response_headers), self.response_contents)
         except UnicodeDecodeError:
-            return "%s\r\n%s\n\n[Binary Content]" % (self.GetStatus(), str(self.ResponseHeaders))
+            return "%s\r\n%s\n\n[Binary Content]" % (self.get_status(), str(self.response_headers))
 
-    def GetRawResponseHeaders(self, with_status=True):
-        return "%s\r\n%s" % (self.GetStatus(), str(self.ResponseHeaders))
+    def get_raw_response_headers(self, with_status=True):
+        return "%s\r\n%s" % (self.get_status(), str(self.response_headers))
 
-    def GetRawResponseBody(self):
-        return self.ResponseContents
+    def get_raw_response_body(self):
+        return self.response_contents
 
-    def ImportProxyRequestResponse(self, request, response):
-        self.IsInScope = request.in_scope
-        self.URL = request.url
-        self.InitData(request.body)
-        self.Method = request.method
+    def import_proxy_req_response(self, request, response):
+        self.is_in_scope = request.in_scope
+        self.url = request.url
+        self.init_data(request.body)
+        self.method = request.method
         try:
-            self.Status = "%s %s" % (str(response.code), response_messages[int(response.code)])
+            self.status = "%s %s" % (str(response.code), response_messages[int(response.code)])
         except KeyError:
-            self.Status = "%s Unknown Error" % str(response.code)
-        self.RawRequest = request.raw_request
-        self.ResponseHeaders = response.header_string
-        self.ResponseContents = response.body
-        self.ResponseSize = len(self.ResponseContents)
-        self.Time = str(response.request_time)
-        self.TimeHuman = self.Timer.get_time_human(self.Time)
-        self.LocalTimestamp = request.local_timestamp
-        self.Found = (self.Status == "200 OK")
-        self.Cookies_list = response.cookies
-        self.New = True
-        self.ID = ''
-        self.HTMLLinkToID = ''
+            self.status = "%s Unknown Error" % str(response.code)
+        self.raw_request = request.raw_request
+        self.response_headers = response.header_string
+        self.response_contents = response.body
+        self.response_size = len(self.response_contents)
+        self.time = str(response.request_time)
+        self.time_human = self.timer.get_time_human(self.time)
+        self.local_timestamp = request.local_timestamp
+        self.found = (self.status == "200 OK")
+        self.cookies_list = response.cookies
+        self.new = True
+        self.id = ''
+        self.link_to_id = ''
 
-    def getDecodedResponse(self):
-        return self.DecodedResponse
-
-    def checkIfCompressed(self, response, content):
+    def check_compressed(self, response, content):
         if response.info().get('Content-Encoding') == 'gzip':  # check for gzip compression
-            compressedFile = StringIO.StringIO()
-            compressedFile.write(content)
-            compressedFile.seek(0)
-            f = gzip.GzipFile(fileobj=compressedFile, mode='rb')
-            self.DecodedContent = f.read()
+            compressed_file = StringIO.StringIO()
+            compressed_file.write(content)
+            compressed_file.seek(0)
+            f = gzip.GzipFile(fileobj=compressed_file, mode='rb')
+            self.decoded_content = f.read()
         elif response.info().get('Content-Encoding') == 'deflate':  # check for deflate compression
-            self.DecodedContent = zlib.decompress(content)
+            self.decoded_content = zlib.decompress(content)
         else:
-            self.DecodedContent = content  # else the no compression
+            self.decoded_content = content  # else the no compression

@@ -183,19 +183,19 @@ class PluginOutputInterface(AbstractInterface):
 class RequesterInterface(AbstractInterface):
 
     @abstractmethod
-    def GetTransaction(self):
+    def get_transaction(self):
         pass
 
     @abstractmethod
-    def GetTransactions(self):
+    def get_transactions(self):
         pass
 
     @abstractmethod
-    def Request(self):
+    def request(self):
         pass
 
     @abstractmethod
-    def SetHeaders(self):
+    def set_headers(self):
         pass
 
 

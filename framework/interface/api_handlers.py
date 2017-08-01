@@ -354,9 +354,9 @@ class ReplayRequestHandler(custom_handlers.APIRequestHandler):
         parsed_req = HTTPRequest(rw_request)  # parse if its a valid HTTP request
         if parsed_req.error_code is None:
             replay_headers = self.RemoveIfNoneMatch(parsed_req.headers)
-            self.get_component("requester").SetHeaders(replay_headers)  # Set the headers
+            self.get_component("requester").set_headers(replay_headers)  # Set the headers
             # make the actual request using requester module
-            trans_obj = self.get_component("requester").Request(parsed_req.path, parsed_req.command)
+            trans_obj = self.get_component("requester").request(parsed_req.path, parsed_req.command)
             res_data = {}  # received response body and headers will be saved here
             res_data['STATUS'] = trans_obj.Status
             res_data['HEADERS'] = str(trans_obj.ResponseHeaders)

@@ -26,5 +26,5 @@ def run(PluginInfo):
             URLList.append(URL)  # Keep track of processed URLs
             AllCookieValues = {}
             for i in range(0, 2):  # Get more cookies to perform analysis
-                Transaction = ServiceLocator.get_component("requester").GetTransaction(False, URL)
+                Transaction = ServiceLocator.get_component("requester").get_transaction(False, URL)
     return Result
