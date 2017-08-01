@@ -24,8 +24,9 @@ export class TransactionTable extends React.Component {
       * 2) When zest is active, this function manage multi selection of rows and immediately updates selected row in zest (parentstate) that we will going to be used by requestSender to form zest script
       * 3) handle click is called onRowSelection(material-ui default)
       */
-    handleClick(selectedRows) {
+    handleClick(selectedRows, e) {
         if (!this.context.zestActive) {
+            $(e.target).parent().addClass('active').siblings().removeClass('active');
             var transaction_id = this.context.transactionsData[selectedRows].id;
             var target_id = this.context.target_id;
             /* To update header and body for selected row */
@@ -132,7 +133,7 @@ export class TransactionTable extends React.Component {
                     "height": this.state.tableHeight,
                     "overflow": "scroll"
                 }}>
-                    <table className="table table-striped">
+                    <table className="table">
                         <tbody>
                             {this.context.transactionsData.map(function(transaction, index) {
                                 return (
