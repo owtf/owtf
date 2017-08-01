@@ -56,7 +56,7 @@ class Table extends React.PureComponent {
 
     render() {
         var obj = this.props.obj;
-        var output_path = obj['output_path'];
+        var output_path = encodeURIComponent(obj['output_path']) + "/";
         var status = obj['status'];
         var run_time = obj['run_time'];
         var start_time = obj['start_time'];
