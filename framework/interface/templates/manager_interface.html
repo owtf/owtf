@@ -133,9 +133,9 @@ function getWorkerLog(name, lines){
         success: function(data) {
             log = data;
             if (log) {
-                log = '<p style="word-wrap: break-word">'.concat(log.split('\n').join('<br/>')).concat('<p>');
+                log = '<pre style="word-wrap: break-word; white-space: pre-wrap;">'.concat(log.split('\n').join('<br/>')).concat('<pre>');
             } else {
-                log = " Nothing to show here!";
+                log = "Nothing to show here!";
             }
         }
     });

@@ -31,9 +31,9 @@ class Worker extends React.Component {
                     log = data;
                     if (log) {
                         log = "<p>".concat(log.split("\n").join("<br/>")).concat("<p>");
-                        $('#log-modal-body').html(log);
+                        $('#log-modal-body').text(log);
                     } else {
-                        $('#log-modal-body').html("Nothing to show here!");
+                        $('#log-modal-body').text("Nothing to show here!");
                     }
                 }
             });
