@@ -12,7 +12,7 @@ org_name = str(sys.argv[1]).split('.json', 1)[0]
 
 if data[0]['status'] == 'ERROR':
     print "sslscan finished with errors"
-    sys.exit(0)
+sys.exit(-1)
 
 print "RESULT IN SSL_TLS_TESTING_FUNCTIONALITY_FROM_SSLLABS_REPORT.html"
 
