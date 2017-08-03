@@ -32,6 +32,32 @@ def is_internal_ip(ip):
     parsed_ip = IPAddress(ip)
     return parsed_ip.is_private
 
+def get_rank(user_rank, owtf_rank):
+    """Return actual rank of plugin
+
+    :param int user_rank: Rank given by user/tester
+    :param int owtf_rank: Automated rank by OWTF
+    If rank:
+    -1: Unranked
+     0: Passing
+     1: Info
+     2: Low
+     3: Medium
+     4: High
+     5: Critical
+
+    """
+    rank = user_rank if user_rank > owtf_rank else owtf_rank
+
+    return {
+        -1: "Unranked",
+        0: "Passing",
+        1: "Info",
+        2: "Low",
+        3: "Medium",
+        4: "High",
+        5: "Critical"
+    }[rank]
 
 def catch_io_errors(func):
     """Decorator on I/O functions.

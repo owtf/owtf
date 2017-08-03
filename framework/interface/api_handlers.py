@@ -2,13 +2,14 @@ import json
 import collections
 from StringIO import StringIO
 from BaseHTTPServer import BaseHTTPRequestHandler
+from time import gmtime, strftime
 
 import tornado.gen
 import tornado.web
 import tornado.httpclient
 
 from framework.lib import exceptions
-from framework.utils import print_version
+from framework.utils import print_version, get_rank
 from framework.lib.general import cprint
 from framework.interface import custom_handlers
 from framework.lib.exceptions import InvalidTargetReference
@@ -841,4 +842,66 @@ class ErrorDataHandler(custom_handlers.APIRequestHandler):
         try:
             self.get_component("db_error").Delete(error_id)
         except exceptions.InvalidErrorReference:
+            raise tornado.web.HTTPError(400)
+
+class ReportExportHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self, target_id=None):
+        if not target_id:
+            raise tornado.web.HTTPError(400)
+        try:
+            filter_data = dict(self.request.arguments)  # IMPORTANT!!
+            plugin_outputs = self.get_component("plugin_output").GetAll(filter_data, target_id=target_id, inc_output=True)
+            # Group the plugin outputs to make it easier in template
+            grouped_plugin_outputs = {}
+            for poutput in plugin_outputs:
+                if grouped_plugin_outputs.get(poutput['plugin_code']) is None:
+                    # No problem of overwriting
+                    grouped_plugin_outputs[poutput['plugin_code']] = []
+
+                poutput["rank"] = get_rank(poutput["user_rank"], poutput["owtf_rank"])
+                grouped_plugin_outputs[poutput['plugin_code']].append(poutput)
+            # Needed ordered list for ease in templates
+            grouped_plugin_outputs = collections.OrderedDict(sorted(grouped_plugin_outputs.items()))
+
+            # Get mappings
+            if self.get_argument("mapping", None):
+                mappings = self.get_component("mapping_db").GetMappings(self.get_argument("mapping", None))
+            else:
+                mappings = None
+
+            # Get test groups as well, for names and info links
+            test_groups = {}
+            for test_group in self.get_component("db_plugin").GetAllTestGroups():
+                test_group["mapped_code"] = test_group["code"]
+                test_group["mapped_descrip"] = test_group["descrip"]
+                if mappings:
+                    try:
+                        test_group["mapped_code"] = mappings[test_group['code']][0]
+                        test_group["mapped_descrip"] = mappings[test_group['code']][1]
+                    except KeyError:
+                        pass
+                test_groups[test_group['code']] = test_group
+
+            vulnerabilities = []
+            for key, value in grouped_plugin_outputs.iteritems():
+                obj = test_groups[key]
+                obj["data"] = value
+                vulnerabilities.append(obj)
+
+            result = self.get_component("target").GetTargetConfigForID(target_id)
+            result["vulnerabilities"] = vulnerabilities
+            result["time"] = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+
+            if result:
+                self.write(result)
+            else:
+                raise tornado.web.HTTPError(400)
+
+        except exceptions.InvalidTargetReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except exceptions.InvalidParameterType as e:
+            cprint(e.parameter)
             raise tornado.web.HTTPError(400)
