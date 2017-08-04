@@ -845,13 +845,23 @@ class ErrorDataHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
 class ReportExportHandler(custom_handlers.APIRequestHandler):
+    """
+    Class handling APIs related to export report funtionality.
+    In OWTF, export report funtionality is implemented using docxtemplater.
+    docxtemplater takes two inputs:
+     - input.docx - Docx template for docxtemplater
+     - JSON - Data need to be filled in above template
+    """
     SUPPORTED_METHODS = ['GET']
 
     def get(self, target_id=None):
+        """
+        REST API - /api/targets/<target_id>/export/ returns JSON(data) for template.
+        """
         if not target_id:
             raise tornado.web.HTTPError(400)
         try:
-            filter_data = dict(self.request.arguments)  # IMPORTANT!!
+            filter_data = dict(self.request.arguments)
             plugin_outputs = self.get_component("plugin_output").GetAll(filter_data, target_id=target_id, inc_output=True)
             # Group the plugin outputs to make it easier in template
             grouped_plugin_outputs = {}
@@ -866,29 +876,25 @@ class ReportExportHandler(custom_handlers.APIRequestHandler):
             grouped_plugin_outputs = collections.OrderedDict(sorted(grouped_plugin_outputs.items()))
 
             # Get mappings
-            if self.get_argument("mapping", None):
-                mappings = self.get_component("mapping_db").GetMappings(self.get_argument("mapping", None))
-            else:
-                mappings = None
+            mappings = self.get_argument("mapping", None)
+            if mappings:
+                mappings = self.get_component("mapping_db").GetMappings(mappings)
 
             # Get test groups as well, for names and info links
             test_groups = {}
             for test_group in self.get_component("db_plugin").GetAllTestGroups():
                 test_group["mapped_code"] = test_group["code"]
                 test_group["mapped_descrip"] = test_group["descrip"]
-                if mappings:
-                    try:
-                        test_group["mapped_code"] = mappings[test_group['code']][0]
-                        test_group["mapped_descrip"] = mappings[test_group['code']][1]
-                    except KeyError:
-                        pass
+                if mappings and test_group['code'] in mappings:
+                    code, description = mappings[test_group['code']]
+                    test_group["mapped_code"] = code
+                    test_group["mapped_descrip"] = description
                 test_groups[test_group['code']] = test_group
 
             vulnerabilities = []
-            for key, value in grouped_plugin_outputs.iteritems():
-                obj = test_groups[key]
-                obj["data"] = value
-                vulnerabilities.append(obj)
+            for key, value in grouped_plugin_outputs.items():
+                test_groups[key]["data"] = value
+                vulnerabilities.append(test_groups[key])
 
             result = self.get_component("target").GetTargetConfigForID(target_id)
             result["vulnerabilities"] = vulnerabilities

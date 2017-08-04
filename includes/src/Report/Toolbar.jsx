@@ -1,4 +1,5 @@
 import React from 'react';
+import { getDocx } from './Export.js';
 
 /**
   * React Component for Toolbar. It is child component used by Report Component.
@@ -8,6 +9,12 @@ import React from 'react';
   */
 
 class Toolbar extends React.PureComponent {
+
+    constructor(props) {
+        super(props);
+
+        this.getDocx = getDocx.bind(this);
+    };
 
     // Launch user sessions manager
     loadSessionManager() {
@@ -23,50 +30,47 @@ class Toolbar extends React.PureComponent {
         var decoded = elem.value;
         adv_filter_data = JSON.parse(decoded);
         var updateFilter = this.context.updateFilter;
+        var target_id = document.getElementById("report").getAttribute("data-code");
         return (
-            <div>
-                <div className="target-toolbar">
-                    <ul className="target-tools">
-                        <li className="tool">
-                            <a href="#" data-toggle="modal" data-target="#pluginOutputFilterModal">
-                                <i className="fa fa-filter" aria-hidden="true"></i>
+            <div className="container-fluid">
+                {/* Buttons for few actions and logs */}
+                <div className="row">
+                    <div className="pull-right">
+                        <div className="btn-group">
+                            <button className="btn btn-primary" data-toggle="modal" data-target="#pluginOutputFilterModal">
+                                <i className="fa fa-filter"></i>
                                 Filter
-                            </a>
-                        </li>
-                        <li className="tool">
-                            <a onClick={this.context.updateReport.bind(this)} href="#">
-                                <i className="fa fa-refresh" aria-hidden="true"></i>
+                            </button>
+                            <button className="btn btn-success" onClick={this.context.updateReport.bind(this)} href="#">
+                                <i className="fa fa-refresh"></i>
                                 Refresh
-                            </a>
-                        </li>
-                        <li className="tool">
-                            <a href="#" data-toggle="modal" data-target="#pluginLaunchModal">
-                                <i className="fa fa-bolt" aria-hidden="true"></i>
+                            </button>
+                            <button className="btn btn-danger" data-toggle="modal" data-target="#pluginLaunchModal">
+                                <i className="fa fa-flash"></i>
                                 Run Plugins
-                            </a>
-                        </li>
-                        <li className="tool">
-                            <a href="#" onClick={this.loadSessionManager.bind(this)}>
-                                <i className="fa fa-flag" aria-hidden="true"></i>
+                            </button>
+                            <button className="btn btn-info" onClick={this.loadSessionManager.bind(this)} href="#">
+                                <i className="fa fa-flag"></i>
                                 User Sessions
-                            </a>
-                        </li>
-                    </ul>
+                            </button>
+                            <div className="btn-group">
+                                <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                    Export Report
+                                    <span className="caret"></span>
+                                </button>
+                                <ul className="dropdown-menu">
+                                    <li>
+                                        <a href="#" onClick={this.getDocx.bind(this, target_id)}>
+                                            <i className="fa fa-file-word-o"></i>
+                                            &nbsp;docx
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div className="tool-colorbar">
-                    <span className="tool-color" style={{
-                        backgroundColor: "#3572A5"
-                    }}></span>
-                    <span className="tool-color" style={{
-                        backgroundColor: "#e44b23"
-                    }}></span>
-                    <span className="tool-color" style={{
-                        backgroundColor: "#89e051"
-                    }}></span>
-                    <span className="tool-color" style={{
-                        backgroundColor: "#f1e05a"
-                    }}></span>
-                </div>
+                {/* End Buttons */}
                 {/* Severity Filter */}
                 <div className="severity-filter">
                     <br/>
