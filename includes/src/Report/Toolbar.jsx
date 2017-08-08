@@ -1,5 +1,5 @@
 import React from 'react';
-import { getDocx } from './Export.js';
+import {templatesNames, getDocx} from './Export.js';
 
 /**
   * React Component for Toolbar. It is child component used by Report Component.
@@ -31,8 +31,10 @@ class Toolbar extends React.PureComponent {
         adv_filter_data = JSON.parse(decoded);
         var updateFilter = this.context.updateFilter;
         var target_id = document.getElementById("report").getAttribute("data-code");
+        var getDocx = this.getDocx;
+
         return (
-            <div className="container-fluid">
+            <div className="container">
                 {/* Buttons for few actions and logs */}
                 <div className="row">
                     <div className="pull-right">
@@ -59,12 +61,17 @@ class Toolbar extends React.PureComponent {
                                     <span className="caret"></span>
                                 </button>
                                 <ul className="dropdown-menu">
-                                    <li>
-                                        <a href="#" onClick={this.getDocx.bind(this, target_id)}>
-                                            <i className="fa fa-file-word-o"></i>
-                                            &nbsp;docx
-                                        </a>
-                                    </li>
+                                    <li><h6 className="dropdown-header">Select template</h6></li>
+                                    {templatesNames.map(function(template) {
+                                        return (
+                                            <li>
+                                                <a href="#" onClick={getDocx.bind(this, target_id, template)}>
+                                                    <i className="fa fa-file-word-o"></i>
+                                                    &nbsp;{template}
+                                                </a>
+                                            </li>
+                                        );
+                                    })}
                                 </ul>
                             </div>
                         </div>

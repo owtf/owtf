@@ -1,0 +1,3 @@
+[submodule "includes/src/Report/templates"]
+	path = includes/src/Report/templates
+	url = https://github.com/owtf/templates
