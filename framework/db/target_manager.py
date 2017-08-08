@@ -74,7 +74,7 @@ class TargetDB(BaseComponent, TargetInterface):
             self.TargetConfig = self.GetTargetConfigForID(target_id)
             self.PathConfig = self.DerivePathConfig(self.TargetConfig)
         except InvalidTargetReference:
-            pass
+            raise InvalidTargetReference("Target doesn't exist: %s" % str(target_id))
 
     def DerivePathConfig(self, target_config):
         path_config = {}
