@@ -3,13 +3,15 @@ import collections
 from StringIO import StringIO
 from BaseHTTPServer import BaseHTTPRequestHandler
 from time import gmtime, strftime
+from collections import defaultdict
 
 import tornado.gen
 import tornado.web
 import tornado.httpclient
 
 from framework.lib import exceptions
-from framework.utils import print_version, get_rank
+from framework.utils import print_version
+from framework.constants import RANKS
 from framework.lib.general import cprint
 from framework.interface import custom_handlers
 from framework.lib.exceptions import InvalidTargetReference
@@ -846,12 +848,13 @@ class ErrorDataHandler(custom_handlers.APIRequestHandler):
 
 class ReportExportHandler(custom_handlers.APIRequestHandler):
     """
-    Class handling APIs related to export report funtionality.
-    In OWTF, export report funtionality is implemented using docxtemplater.
-    docxtemplater takes two inputs:
-     - input.docx - Docx template for docxtemplater
-     - JSON - Data need to be filled in above template
+    Class handling API methods related to export report funtionality.
+    This API returns all information about a target scan present in OWTF.
+    :raise InvalidTargetReference: If target doesn't exists.
+    :raise InvalidParameterType: If some unknown parameter in `filter_data`.
     """
+    # TODO: Add API documentation.
+
     SUPPORTED_METHODS = ['GET']
 
     def get(self, target_id=None):
@@ -863,51 +866,47 @@ class ReportExportHandler(custom_handlers.APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             plugin_outputs = self.get_component("plugin_output").GetAll(filter_data, target_id=target_id, inc_output=True)
-            # Group the plugin outputs to make it easier in template
-            grouped_plugin_outputs = {}
-            for poutput in plugin_outputs:
-                if grouped_plugin_outputs.get(poutput['plugin_code']) is None:
-                    # No problem of overwriting
-                    grouped_plugin_outputs[poutput['plugin_code']] = []
-
-                poutput["rank"] = get_rank(poutput["user_rank"], poutput["owtf_rank"])
-                grouped_plugin_outputs[poutput['plugin_code']].append(poutput)
-            # Needed ordered list for ease in templates
-            grouped_plugin_outputs = collections.OrderedDict(sorted(grouped_plugin_outputs.items()))
-
-            # Get mappings
-            mappings = self.get_argument("mapping", None)
-            if mappings:
-                mappings = self.get_component("mapping_db").GetMappings(mappings)
-
-            # Get test groups as well, for names and info links
-            test_groups = {}
-            for test_group in self.get_component("db_plugin").GetAllTestGroups():
-                test_group["mapped_code"] = test_group["code"]
-                test_group["mapped_descrip"] = test_group["descrip"]
-                if mappings and test_group['code'] in mappings:
-                    code, description = mappings[test_group['code']]
-                    test_group["mapped_code"] = code
-                    test_group["mapped_descrip"] = description
-                test_groups[test_group['code']] = test_group
-
-            vulnerabilities = []
-            for key, value in grouped_plugin_outputs.items():
-                test_groups[key]["data"] = value
-                vulnerabilities.append(test_groups[key])
-
-            result = self.get_component("target").GetTargetConfigForID(target_id)
-            result["vulnerabilities"] = vulnerabilities
-            result["time"] = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-
-            if result:
-                self.write(result)
-            else:
-                raise tornado.web.HTTPError(400)
-
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        # Group the plugin outputs to make it easier in template
+        grouped_plugin_outputs = defaultdict(list)
+        for output in plugin_outputs:
+            output['rank'] = RANKS.get(max(output['user_rank'], output['owtf_rank']))
+            grouped_plugin_outputs[output['plugin_code']].append(output)
+
+        # Needed ordered list for ease in templates
+        grouped_plugin_outputs = collections.OrderedDict(sorted(grouped_plugin_outputs.items()))
+
+        # Get mappings
+        mappings = self.get_argument("mapping", None)
+        if mappings:
+            mappings = self.get_component("mapping_db").GetMappings(mappings)
+
+        # Get test groups as well, for names and info links
+        test_groups = {}
+        for test_group in self.get_component("db_plugin").GetAllTestGroups():
+            test_group["mapped_code"] = test_group["code"]
+            test_group["mapped_descrip"] = test_group["descrip"]
+            if mappings and test_group['code'] in mappings:
+                code, description = mappings[test_group['code']]
+                test_group["mapped_code"] = code
+                test_group["mapped_descrip"] = description
+            test_groups[test_group['code']] = test_group
+
+        vulnerabilities = []
+        for key, value in grouped_plugin_outputs.items():
+            test_groups[key]["data"] = value
+            vulnerabilities.append(test_groups[key])
+
+        result = self.get_component("target").GetTargetConfigForID(target_id)
+        result["vulnerabilities"] = vulnerabilities
+        result["time"] = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+
+        if result:
+            self.write(result)
+        else:
             raise tornado.web.HTTPError(400)
