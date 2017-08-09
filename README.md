@@ -76,7 +76,7 @@ Recommended:
 wget -N https://raw.githubusercontent.com/owtf/bootstrap-script/master/bootstrap.sh; bash bootstrap.sh
 ```
 
-or simply `git clone https://github.com/owtf/owtf.git; cd owtf/; python2 install/install.py`
+or simply `git clone --recursive https://github.com/owtf/owtf.git; cd owtf/; python2 install/install.py`
 
 To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker** installed) provided to try OWTF:
 

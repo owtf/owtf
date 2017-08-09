@@ -54,7 +54,12 @@ var config = merge(common, {
             exclude: /node_modules/,
             loaders: ['babel', 'babel?presets[]=react,presets[]=es2015,presets[]=stage-0'],
             include: path.join(__dirname, 'includes/src')
-        }]
+        },
+        {
+            test: /\.docx?$/,
+            loaders: ['binary-loader'],
+        }
+      ]
     }
 });
 
