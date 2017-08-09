@@ -1,3 +1,4 @@
+[![Black Hat Arsenal USA](https://rawgit.com/toolswatch/badges/master/arsenal/2017.svg)](http://www.toolswatch.org/2017/06/the-black-hat-arsenal-usa-2017-phenomenal-line-up-announced/)
 [![Requirements Status](https://requires.io/github/owtf/owtf/requirements.svg?branch=develop)](https://requires.io/github/owtf/owtf/requirements/?branch=develop)
 [![Build Status](https://travis-ci.org/owtf/owtf.svg?branch=develop)](https://travis-ci.org/owtf/owtf)
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
