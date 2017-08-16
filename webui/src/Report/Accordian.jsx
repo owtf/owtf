@@ -277,6 +277,7 @@ class Accordian extends React.Component {
         var selectedGroup = this.context.selectedGroup;
         var selectedOwtfRank = this.context.selectedOwtfRank;
         var selectedStatus = this.context.selectedStatus;
+        var mapping = this.context.selectedMapping;
         var handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian;
         var isClicked = this.state.isClicked;
         if (count > 0) {
@@ -334,7 +335,14 @@ class Accordian extends React.Component {
                                     <a data-toggle="collapse" data-parent="#pluginOutputs" href={"#" + code} onClick={this.fetchData.bind(this, pactive)}>
                                         <h4 style={{
                                             padding: '15px'
-                                        }}>{details['mapped_code'] + ' ' + details['mapped_descrip']}
+                                        }}>
+                                            {(() => {
+                                                if (mapping === "" || (details['mappings'][mapping] === undefined)) {
+                                                    return details['code'] + " " + details['descrip'];
+                                                } else {
+                                                    return details['mappings'][mapping][0] + " " + details['mappings'][mapping][1];
+                                                }
+                                            })()}
                                             <small>{" " + details['hint']}</small>
                                         </h4>
                                     </a>
@@ -382,7 +390,8 @@ Accordian.contextTypes = {
     selectedRank: React.PropTypes.array,
     selectedGroup: React.PropTypes.array,
     selectedOwtfRank: React.PropTypes.array,
-    selectedStatus: React.PropTypes.array
+    selectedStatus: React.PropTypes.array,
+    selectedMapping: React.PropTypes.string
 };
 
 Accordian.childContextTypes = {
