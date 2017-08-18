@@ -32,7 +32,7 @@ class Config(BaseComponent, ConfigInterface):
 
     RootDir = None
     OwtfPid = None
-    Framework_config_path = os.path.expanduser(os.path.join("~", '.owtf', 'config', 'framework_config.cfg'))
+    Framework_config_path = os.path.expanduser(os.path.join("~", '.owtf', 'config', 'framework.cfg'))
     Profiles = {
         "GENERAL_PROFILE": None,
         "RESOURCES_PROFILE": None,
