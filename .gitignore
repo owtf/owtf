@@ -66,6 +66,10 @@ local.properties
 *.*~
 
 # Front End(ReactJS) development Dependencies#
-################################################################
-node_modules/*
-includes/build/*
+#############################################
+webui/node_modules/*
+webui/build/*
+
+# Mac/OS specific files
+#############################################
+*.DS_Store
