@@ -2,14 +2,14 @@ var gulp = require('gulp');
 var webpack = require('webpack-stream');
 
 gulp.task('default', function() {
-  return gulp.src('includes/src/main.js')
+  return gulp.src('src/main.js')
     .pipe(webpack( require('./webpack-dev.config.js') ))
-    .pipe(gulp.dest('includes/build/'));
+    .pipe(gulp.dest('public/build/'));
 });
 
-gulp.watch('includes/src/**/*.js', function(event) {
+gulp.watch('src/**/*.js', function(event) {
   console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
-  return gulp.src('includes/src/main.js')
+  return gulp.src('src/main.js')
     .pipe(webpack( require('./webpack-dev.config.js') ))
-    .pipe(gulp.dest('includes/build/'));
+    .pipe(gulp.dest('public/build/'));
 });

@@ -24,21 +24,15 @@ var common = {
         }),
     ],
     output: {
-        path: path.join(__dirname, 'includes/build/'),
+        path: path.join(__dirname, 'public/build/'),
         filename: 'bundle.js',
-        publicPath: path.join(__dirname, 'includes/build/')
+        publicPath: path.join(__dirname, 'public/build/')
     }
 };
 
 var config = merge(common, {
     entry: [
-        path.join(__dirname, 'includes/src/main')
-    ],
-    plugins: [
-        new webpack.optimize.UglifyJsPlugin({
-            compress: true,
-            mangle: true
-        })
+        path.join(__dirname, 'src/main')
     ],
     resolveLoader: {
         modulesDirectories: [
@@ -53,7 +47,7 @@ var config = merge(common, {
             test: /\.jsx?$/,
             exclude: /node_modules/,
             loaders: ['babel', 'babel?presets[]=react,presets[]=es2015,presets[]=stage-0'],
-            include: path.join(__dirname, 'includes/src')
+            include: path.join(__dirname, 'src')
         },
         {
             test: /\.docx?$/,
@@ -61,6 +55,7 @@ var config = merge(common, {
         }
       ]
     }
+
 });
 
 module.exports = config;
