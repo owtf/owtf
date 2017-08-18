@@ -68,7 +68,7 @@ local.properties
 # Front End(ReactJS) development Dependencies#
 #############################################
 webui/node_modules/*
-webui/build/*
+webui/public/build/*
 
 # Mac/OS specific files
 #############################################
