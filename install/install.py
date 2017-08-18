@@ -313,9 +313,9 @@ if __name__ == "__main__":
     install(sys.argv[1:])
 
     # Copying config files
-    dest_config_path = os.path.join(os.path.expanduser('~'), '.owtf', 'configuration')
+    dest_config_path = os.path.join(os.path.expanduser('~'), '.owtf', 'config')
     create_directory(dest_config_path)
-    src_config_path = os.path.join(root_dir, 'configuration')
+    src_config_path = os.path.join(root_dir, 'config')
     dir_util.copy_tree(src_config_path, dest_config_path)
 
     finish()

@@ -65,7 +65,7 @@ SCRIPTS_DIR=$(dirname "$FILE_PATH")
 RootDir=$(dirname "$SCRIPTS_DIR")
 
 if [ "$2" = "" ]; then
-    config_file="$RootDir/configuration/framework_config.cfg"
+    config_file="$RootDir/config/framework_config.cfg"
     db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
 else
     db_config_file="$2"

@@ -32,7 +32,7 @@ class Config(BaseComponent, ConfigInterface):
 
     RootDir = None
     OwtfPid = None
-    Framework_config_path = os.path.expanduser(os.path.join("~", '.owtf', 'configuration', 'framework_config.cfg'))
+    Framework_config_path = os.path.expanduser(os.path.join("~", '.owtf', 'config', 'framework_config.cfg'))
     Profiles = {
         "GENERAL_PROFILE": None,
         "RESOURCES_PROFILE": None,
@@ -91,7 +91,7 @@ class Config(BaseComponent, ConfigInterface):
         if os.path.isfile(self.Framework_config_path):
             return self.Framework_config_path
 
-        path = os.path.join(self.RootDir, 'configuration', os.path.basename(self.Framework_config_path))
+        path = os.path.join(self.RootDir, 'config', os.path.basename(self.Framework_config_path))
         return path
 
     def LoadFrameworkConfigFromFile(self, config_path):
