@@ -55,12 +55,12 @@ coverage.xml
 
 # Directories with potential license restrictions that prevent re-distribution #
 ################################################################################
-dictionaries/restricted/*
-tools/restricted/*
+owtf/dictionaries/restricted/*
+owtf/tools/restricted/*
 
 # Dictionaries pulled from Github #
 ###################################
-dictionaries/fuzzdb
+owtf/dictionaries/fuzzdb
 
 # Tools with license restrictions that prevent re-distribution #
 ################################################################
@@ -72,8 +72,8 @@ tests/restricted/*
 
 # Directory with the output of OWTF
 ###################################
-owtf_review/*
-scans/*
+*owtf_review/*
+*scans/*
 
 # Unit Testing Framework files #
 ################################
@@ -83,12 +83,12 @@ tests/tests.log.html
 
 # Zest jars #
 #############
-zest/zest_lib/*
-zest/zest_runner_lib/*
-zest/zest.jar
-zest/zest_runner.jar
-zest/release.hash
-zest/README.md
+owtf/zest/zest_lib/*
+owtf/zest/zest_runner_lib/*
+owtf/zest/zest.jar
+owtf/zest/zest_runner.jar
+owtf/zest/release.hash
+owtf/zest/README.md
 
 # Pycharm (Jetbrains) IDE Specific files #
 ##########################################
@@ -97,7 +97,6 @@ zest/README.md
 # PyDev (Eclipse) IDE Specific Files #
 ######################################
 .metadata
-bin/
 tmp/
 *.tmp
 *.bak
