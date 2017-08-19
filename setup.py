@@ -31,6 +31,12 @@ for item in requirements:
 
 post_script = os.path.join(ROOT_DIR, "owtf/install/install.py")
 
+tests_require = [
+    'PyHamcrest==1.9.0',
+    'mock>=1.3.0',
+    'tornado==4.5.1'
+]
+
 
 class PostDevelopCommand(develop):
     """Post-installation for development mode."""
@@ -63,8 +69,11 @@ setup(
     include_package_data=True,
     zip_safe=False,
     platforms='any',
-    install_requires=requires,
+    install_requires=sorted(requires, key=lambda s: s.lower()),
     dependency_links=links,
+    extras_require={
+        'tests': requires + tests_require,
+    },
     cmdclass={
         'develop': PostDevelopCommand,
         'install': PostInstallCommand,

@@ -179,15 +179,6 @@ def install(cmd_arguments):
     # See https://github.com/owtf/owtf/issues/797.
     install_restricted_from_cfg(restricted_cfg)
 
-    Colorizer.normal("[*] Upgrading pip to the latest version ...")
-    # Upgrade pip before install required libraries
-    run_command("pip2 install --upgrade pip")
-    Colorizer.normal("Upgrading setuptools to the latest version ...")
-    # Upgrade setuptools
-    run_command("pip2 install --upgrade setuptools")
-    Colorizer.normal("Upgrading cffi to the latest version ...")
-    # Mitigate cffi errors by upgrading it first
-    run_command("pip2 install --upgrade cffi")
 
 class Colorizer:
 
