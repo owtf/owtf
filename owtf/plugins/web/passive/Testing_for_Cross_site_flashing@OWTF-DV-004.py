@@ -2,7 +2,7 @@
 PASSIVE Plugin for Testing for Cross site flashing (OWASP-DV-004)
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Google Hacking for Cross Site Flashing"

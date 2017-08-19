@@ -2,7 +2,7 @@
 Plugin for probing ftp
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = " FTP Probing "

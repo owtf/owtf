@@ -2,44 +2,44 @@ import logging
 import multiprocessing
 from datetime import time
 
-from framework.config.config import Config
-from framework.db.command_register import CommandRegister
-from framework.db.config_manager import ConfigDB
-from framework.db.db import DB
-from framework.db.error_manager import ErrorDB
-from framework.db.mapping_manager import MappingDB
-from framework.db.plugin_manager import PluginDB
-from framework.db.poutput_manager import POutputDB
-from framework.db.resource_manager import ResourceDB
-from framework.db.session_manager import OWTFSessionDB
-from framework.db.target_manager import TargetDB
-from framework.db.transaction_manager import TransactionManager
-from framework.db.url_manager import URLManager
-from framework.db.worklist_manager import WorklistManager
-from framework.dependency_management.dependency_resolver import ServiceLocator
-from framework.error_handler import ErrorHandler
-from framework.http.proxy.outbound_proxyminer import Proxy_Miner
-from framework.http.proxy.proxy_manager import Proxy_manager, Proxy_Checker
-from framework.http.requester import Requester
-from framework.interface.reporter import Reporter
-from framework.lib.general import cprint
-from framework.plugin.plugin_handler import PluginHandler
-from framework.plugin.plugin_helper import PluginHelper
-from framework.plugin.plugin_params import PluginParams
-from framework.protocols.smtp import SMTP
-from framework.protocols.smb import SMB
-from framework.selenium.selenium_handler import Selenium
-from framework.shell.blocking_shell import Shell
-from framework.shell.interactive_shell import InteractiveShell
-from framework.timer import Timer
-from framework.wrappers.set.set_handler import SETHandler
-from framework.zap import ZAP_API
-from framework.zest import Zest
+from owtf.config.config import Config
+from owtf.db.command_register import CommandRegister
+from owtf.db.config_manager import ConfigDB
+from owtf.db.db import DB
+from owtf.db.error_manager import ErrorDB
+from owtf.db.mapping_manager import MappingDB
+from owtf.db.plugin_manager import PluginDB
+from owtf.db.poutput_manager import POutputDB
+from owtf.db.resource_manager import ResourceDB
+from owtf.db.session_manager import OWTFSessionDB
+from owtf.db.target_manager import TargetDB
+from owtf.db.transaction_manager import TransactionManager
+from owtf.db.url_manager import URLManager
+from owtf.db.worklist_manager import WorklistManager
+from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.error_handler import ErrorHandler
+from owtf.http.proxy.outbound_proxyminer import Proxy_Miner
+from owtf.http.proxy.proxy_manager import Proxy_manager, Proxy_Checker
+from owtf.http.requester import Requester
+from owtf.interface.reporter import Reporter
+from owtf.lib.general import cprint
+from owtf.plugin.plugin_handler import PluginHandler
+from owtf.plugin.plugin_helper import PluginHelper
+from owtf.plugin.plugin_params import PluginParams
+from owtf.protocols.smtp import SMTP
+from owtf.protocols.smb import SMB
+from owtf.selenium.selenium_handler import Selenium
+from owtf.shell.blocking_shell import Shell
+from owtf.shell.interactive_shell import InteractiveShell
+from owtf.timer import Timer
+from owtf.wrappers.set.set_handler import SETHandler
+from owtf.zap import ZAP_API
+from owtf.zest import Zest
 
 
 class ComponentInitialiser():
     """
-        Initialises all the components for the OWTF framework. The order is important as
+        Initialises all the components for the OWTF owtf. The order is important as
         there are dependencies between modules. Cyclic dependencies are solved using a
         two-step initialization process through an init() method.
     """
@@ -155,7 +155,7 @@ class ComponentInitialiser():
                 cprint("Done")
 
             if proxy_manager.number_of_proxies is 0:
-                ServiceLocator.get_component("error_handler").FrameworkAbort("No Alive proxies.")
+                ServiceLocator.get_component("error_handler").owtfAbort("No Alive proxies.")
 
             proxy = proxy_manager.get_next_available_proxy()
 

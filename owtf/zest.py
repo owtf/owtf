@@ -3,9 +3,9 @@ import os.path
 from os import listdir
 from os.path import isfile, join
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import ZestInterface
-from framework.utils import FileOperations
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import ZestInterface
+from owtf.utils import FileOperations
 
 
 class Zest(BaseComponent, ZestInterface):

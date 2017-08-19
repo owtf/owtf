@@ -9,10 +9,10 @@ import glob
 import time
 from urlparse import urlparse
 
-from framework.http import transaction
-from framework.http.proxy.cache_handler import response_from_cache, request_from_cache
-from framework.lib.owtf_process import OWTFProcess
-from framework import timer
+from owtf.http import transaction
+from owtf.http.proxy.cache_handler import response_from_cache, request_from_cache
+from owtf.lib.owtf_process import OWTFProcess
+from owtf import timer
 
 
 class TransactionLogger(OWTFProcess):

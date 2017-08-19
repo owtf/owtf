@@ -5,10 +5,10 @@ Component to handle data storage and search of all commands run
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import CommandRegisterInterface
-from framework.db import models
-from framework.db.target_manager import target_required
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import CommandRegisterInterface
+from owtf.db import models
+from owtf.db.target_manager import target_required
 
 
 class CommandRegister(BaseComponent, CommandRegisterInterface):

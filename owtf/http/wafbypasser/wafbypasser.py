@@ -5,18 +5,18 @@ import string
 from tornado.httputil import HTTPHeaders
 from tornado.httpclient import HTTPRequest
 
-from framework.http.wafbypasser.core.hpp_lib import asp_hpp, param_overwrite
-from framework.http.wafbypasser.core.placeholder_length import find_length
-from framework.http.wafbypasser.core.detection import *
-from framework.http.wafbypasser.core.argument_parser import get_args
-from framework.http.wafbypasser.core.fuzzer import Fuzzer
-from framework.http.wafbypasser.core.helper import load_payload_file, Error
-from framework.http.wafbypasser.core.http_helper import HTTPHelper
-from framework.http.wafbypasser.core.param_source_detector import detect_accepted_sources
-from framework.http.wafbypasser.core.response_analyzer import analyze_responses, print_request, print_response, \
+from owtf.http.wafbypasser.core.hpp_lib import asp_hpp, param_overwrite
+from owtf.http.wafbypasser.core.placeholder_length import find_length
+from owtf.http.wafbypasser.core.detection import *
+from owtf.http.wafbypasser.core.argument_parser import get_args
+from owtf.http.wafbypasser.core.fuzzer import Fuzzer
+from owtf.http.wafbypasser.core.helper import load_payload_file, Error
+from owtf.http.wafbypasser.core.http_helper import HTTPHelper
+from owtf.http.wafbypasser.core.param_source_detector import detect_accepted_sources
+from owtf.http.wafbypasser.core.response_analyzer import analyze_responses, print_request, print_response, \
     analyze_chars, analyze_encoded_chars, analyze_accepted_sources
-from framework.http.wafbypasser.core.placeholder_manager import PlaceholderManager
-from framework.http.wafbypasser.core.obfuscation_lib import unicode_urlencode, urlencode, transformations_info
+from owtf.http.wafbypasser.core.placeholder_manager import PlaceholderManager
+from owtf.http.wafbypasser.core.obfuscation_lib import unicode_urlencode, urlencode, transformations_info
 
 
 class WAFBypasser:

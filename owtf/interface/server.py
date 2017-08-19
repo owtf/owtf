@@ -3,9 +3,9 @@ import tornado.ioloop
 import tornado.web
 import tornado.options
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.interface import urls
-from framework.lib.owtf_process import OWTFProcess
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.interface import urls
+from owtf.lib.owtf_process import OWTFProcess
 
 
 class InterfaceServer(OWTFProcess, BaseComponent):

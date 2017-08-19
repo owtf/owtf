@@ -2,7 +2,7 @@
 ACTIVE Plugin for Testing for SSL-TLS (OWASP-CM-001)
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Active probing for SSL configuration"

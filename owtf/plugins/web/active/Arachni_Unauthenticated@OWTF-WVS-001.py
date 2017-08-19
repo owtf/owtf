@@ -4,7 +4,7 @@ This will perform a "low-hanging-fruit" pass on the web app for easy to find (to
 
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Active Vulnerability Scanning without credentials via Arachni"

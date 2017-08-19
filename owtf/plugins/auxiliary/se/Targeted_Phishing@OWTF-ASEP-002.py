@@ -1,5 +1,5 @@
-from framework.dependency_management.dependency_resolver import ServiceLocator
-from framework.lib.general import cprint
+from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.lib.general import cprint
 
 
 DESCRIPTION = "Targeted Phishing Testing plugin"

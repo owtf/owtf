@@ -1,4 +1,4 @@
-from framework.dependency_management.interfaces import AbstractInterface
+from owtf.dependency_management.interfaces import AbstractInterface
 
 
 class ServiceLocator:

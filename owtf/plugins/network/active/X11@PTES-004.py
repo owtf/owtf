@@ -2,7 +2,7 @@
 Plugin for probing x11
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = " x11 Probing "

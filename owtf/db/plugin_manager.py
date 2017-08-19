@@ -4,10 +4,10 @@ import json
 
 from sqlalchemy import or_
 
-from framework.db import models
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import DBPluginInterface
-from framework.utils import FileOperations
+from owtf.db import models
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import DBPluginInterface
+from owtf.utils import FileOperations
 
 
 TEST_GROUPS = ['web', 'network', 'auxiliary']

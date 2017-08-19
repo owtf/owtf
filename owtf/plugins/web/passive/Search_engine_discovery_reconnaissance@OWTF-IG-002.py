@@ -2,7 +2,7 @@
 PASSIVE Plugin for Search engine discovery/reconnaissance (OWASP-IG-002)
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "General Google Hacking/Email harvesting, etc"

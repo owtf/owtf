@@ -2,7 +2,7 @@
 PASSIVE Plugin for Testing for Application Discovery (OWASP-IG-005)
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Third party discovery resources"

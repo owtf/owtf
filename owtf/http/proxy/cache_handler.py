@@ -12,7 +12,7 @@ import datetime
 
 import tornado.httputil
 
-from framework.lib.filelock import FileLock
+from owtf.lib.filelock import FileLock
 
 
 class CacheHandler(object):

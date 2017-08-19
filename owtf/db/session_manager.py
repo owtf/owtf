@@ -1,6 +1,6 @@
-from framework.db import models
-from framework.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
-from framework.lib import exceptions
+from owtf.db import models
+from owtf.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
+from owtf.lib import exceptions
 
 
 def session_required(func):

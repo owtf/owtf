@@ -14,7 +14,7 @@ import errno
 def cprint(msg):
     pad = "[-] "
     print(pad + str(msg).replace("\n", "\n" + pad))
-    return Message
+    return msg
 
 
 def MultipleReplace(Text, ReplaceDict):
@@ -84,7 +84,7 @@ def merge_dicts(a, b):
 
 
 def truncate_lines(str, num_lines, EOL="\n"):
-    retur EOL.join(str.split(EOL)[0:num_lines])
+    return EOL.join(str.split(EOL)[0:num_lines])
 
 
 def derive_http_method(method, data):  # Derives the HTTP method from Data, etc

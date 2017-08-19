@@ -6,9 +6,9 @@ This is the handler for the Social Engineering Toolkit (SET) trying to overcome 
 
 import time
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import AbstractInterface
-from framework.lib.general import *
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import AbstractInterface
+from owtf.lib.general import *
 
 
 SCRIPT_DELAY = 2

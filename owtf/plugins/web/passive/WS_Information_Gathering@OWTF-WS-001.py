@@ -2,7 +2,7 @@
 PASSIVE Plugin for Testing: WS Information Gathering (OWASP-WS-001)
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Google Hacking/Third party sites for Web Services"

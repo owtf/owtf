@@ -2,7 +2,7 @@
 '''
 Debug DB stores debug messages xD
 '''
-from framework.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.dependency_resolver import BaseComponent
 
 
 class DebugDB(BaseComponent):

@@ -10,10 +10,10 @@ import cgi
 import logging
 from tornado.template import Template
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.lib.exceptions import FrameworkAbortException, PluginAbortException
-from framework.lib.general import *
-from framework.utils import FileOperations
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
+from owtf.lib.general import *
+from owtf.utils import FileOperations
 
 
 PLUGIN_OUTPUT = {"type": None, "output": None}  # This will be json encoded and stored in db as string

@@ -10,10 +10,10 @@ import logging
 import urllib
 import urllib2
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import RequesterInterface
-from framework.http import transaction
-from framework.lib.general import *
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import RequesterInterface
+from owtf.http import transaction
+from owtf.lib.general import *
 
 
 # Intercept raw request trick from:

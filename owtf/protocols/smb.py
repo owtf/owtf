@@ -7,9 +7,9 @@ the limitations of set-automate.
 
 import os
 
-from framework.shell import pexpect_shell
-from framework.lib.general import *
-from framework.utils import FileOperations
+from owtf.shell import pexpect_shell
+from owtf.lib.general import *
+from owtf.utils import FileOperations
 
 
 class SMB(pexpect_shell.PExpectShell):

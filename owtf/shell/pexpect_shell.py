@@ -8,8 +8,8 @@ interaction with subprocesses running tools or remote connections (i.e. shells)
 import pexpect
 import sys
 
-from framework.lib.general import *
-from framework.shell import blocking_shell
+from owtf.lib.general import *
+from owtf.shell import blocking_shell
 
 
 class PExpectShell(blocking_shell.Shell):

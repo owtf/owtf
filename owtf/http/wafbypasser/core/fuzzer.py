@@ -2,7 +2,7 @@ from time import sleep
 from tornado import ioloop
 from tornado.httpclient import AsyncHTTPClient, HTTPClient, HTTPError
 
-from framework.http.wafbypasser.core.http_helper import HTTPHelper
+from owtf.http.wafbypasser.core.http_helper import HTTPHelper
 
 
 class Fuzzer:

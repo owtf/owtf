@@ -5,9 +5,9 @@ The DB stores worklist
 
 from sqlalchemy.sql import not_
 
-from framework.db import models
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.lib import exceptions
+from owtf.db import models
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.lib import exceptions
 
 
 class WorklistManager(BaseComponent):

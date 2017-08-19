@@ -2,7 +2,7 @@
 EXTERNAL Plugin for CAPTCHA assistance
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Plugin to assist manual testing"

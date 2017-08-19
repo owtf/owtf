@@ -2,7 +2,7 @@
 PASSIVE Plugin for Testing_for_SSL-TLS_(OWASP-CM-001)
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Third party resources"

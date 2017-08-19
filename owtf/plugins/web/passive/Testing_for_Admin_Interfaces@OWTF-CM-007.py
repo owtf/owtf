@@ -3,7 +3,7 @@ PASSIVE Plugin for Testing for Admin Interfaces (OWASP-CM-007)
 https://www.owasp.org/index.php/Testing_for_Admin_Interfaces_%28OWASP-CM-007%29
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Google Hacking for Admin interfaces"

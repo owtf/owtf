@@ -8,8 +8,8 @@ import socket
 import time
 from multiprocessing import Process
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.lib.general import cprint
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.lib.general import cprint
 
 
 class TOR_manager(BaseComponent):

@@ -9,12 +9,11 @@ import tornado.gen
 import tornado.web
 import tornado.httpclient
 
-from framework.lib import exceptions
-from framework.utils import print_version
-from framework.constants import RANKS
-from framework.lib.general import cprint
-from framework.interface import custom_handlers
-from framework.lib.exceptions import InvalidTargetReference
+from owtf.lib import exceptions
+from owtf.constants import RANKS
+from owtf.lib.general import cprint
+from owtf.interface import custom_handlers
+from owtf.lib.exceptions import InvalidTargetReference
 
 
 class PluginDataHandler(custom_handlers.APIRequestHandler):

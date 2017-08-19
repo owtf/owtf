@@ -8,9 +8,9 @@ import os
 import smtplib
 from email import MIMEMultipart, MIMEBase, MIMEText, Encoders
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.lib.general import *
-from framework.utils import FileOperations
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.lib.general import *
+from owtf.utils import FileOperations
 
 
 class SMTP(BaseComponent):

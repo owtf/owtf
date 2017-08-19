@@ -41,7 +41,7 @@ FILE_PATH=$(readlink -f "$0")
 SCRIPTS_DIR=$(dirname "$FILE_PATH")
 RootDir=$(dirname "$SCRIPTS_DIR")
 
-config_file="$RootDir/config/framework_config.cfg"
+config_file="$RootDir/conf/framework.cfg"
 db_config_file="$(get_db_config_file $config_file $1)"
 
 if [ ! -f "$db_config_file" ]; then

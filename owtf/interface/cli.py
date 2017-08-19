@@ -1,6 +1,6 @@
 import tornado.ioloop
 
-from framework.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.dependency_resolver import BaseComponent
 
 
 class CliServer(BaseComponent):

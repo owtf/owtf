@@ -3,7 +3,7 @@ PASSIVE Plugin for Testing for SQL Injection (OWASP-DV-005)
 https://www.owasp.org/index.php/Testing_for_SQL_Injection_%28OWASP-DV-005%29
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Google Hacking for SQLi"

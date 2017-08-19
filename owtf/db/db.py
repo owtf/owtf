@@ -12,10 +12,10 @@ from sqlalchemy import create_engine, exc
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.orm import Session as BaseSession
 
-from framework.utils import FileOperations
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import DBInterface
-from framework.db import models
+from owtf.utils import FileOperations
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import DBInterface
+from owtf.db import models
 
 
 class Session(BaseSession):

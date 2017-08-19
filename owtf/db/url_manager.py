@@ -5,12 +5,12 @@ The DB stores HTTP transactions, unique URLs and more.
 
 import re
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import URLManagerInterface
-from framework.lib.exceptions import InvalidParameterType
-from framework.lib.general import *
-from framework.db.target_manager import target_required
-from framework.db import models
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import URLManagerInterface
+from owtf.lib.exceptions import InvalidParameterType
+from owtf.lib.general import *
+from owtf.db.target_manager import target_required
+from owtf.db import models
 
 
 class URLManager(BaseComponent, URLManagerInterface):

@@ -2,8 +2,8 @@
 PASSIVE Plugin for HTTP Methods Testing
 """
 
-from framework.utils import OWTFLogger
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.utils import OWTFLogger
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Third party resources"

@@ -3,13 +3,13 @@ import json
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import PluginOutputInterface
-from framework.db.target_manager import target_required
-from framework.db.session_manager import session_required
-from framework.lib.exceptions import InvalidParameterType
-from framework.db import models
-from framework.utils import FileOperations
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import PluginOutputInterface
+from owtf.db.target_manager import target_required
+from owtf.db.session_manager import session_required
+from owtf.lib.exceptions import InvalidParameterType
+from owtf.db import models
+from owtf.utils import FileOperations
 
 
 class POutputDB(BaseComponent, PluginOutputInterface):

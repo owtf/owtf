@@ -5,8 +5,8 @@ NOTE: This is an active plugin because it may visit URLs retrieved by vulnerabil
 which may be considered sensitive or include vulnerability probing
 """
 
-from framework.utils import OWTFLogger
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.utils import OWTFLogger
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Visit URLs found by other tools, some could be sensitive: need permission"

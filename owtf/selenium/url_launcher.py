@@ -4,7 +4,7 @@ import unittest
 
 from selenium.common.exceptions import NoSuchElementException
 
-from framework.lib.general import *
+from owtf.lib.general import *
 
 
 class URLLauncher(unittest.TestCase):

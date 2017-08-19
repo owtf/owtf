@@ -3,10 +3,10 @@
 Component to handle data storage and search of all errors
 '''
 
-from framework.db import models
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import DBErrorInterface
-from framework.lib.exceptions import InvalidErrorReference
+from owtf.db import models
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import DBErrorInterface
+from owtf.lib.exceptions import InvalidErrorReference
 
 
 class ErrorDB(BaseComponent, DBErrorInterface):

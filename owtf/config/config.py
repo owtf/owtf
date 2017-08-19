@@ -13,12 +13,12 @@ from copy import deepcopy
 from urlparse import urlparse
 from collections import defaultdict
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import ConfigInterface
-from framework.lib.exceptions import PluginAbortException, DBIntegrityException, UnresolvableTargetException
-from framework.lib.general import cprint
-from framework.db import target_manager
-from framework.utils import is_internal_ip, directory_access, FileOperations
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import ConfigInterface
+from owtf.lib.exceptions import PluginAbortException, DBIntegrityException, UnresolvableTargetException
+from owtf.lib.general import cprint
+from owtf.db import target_manager
+from owtf.utils import is_internal_ip, directory_access, FileOperations
 
 
 REPLACEMENT_DELIMITER = "@@@"
@@ -32,7 +32,7 @@ class Config(BaseComponent, ConfigInterface):
 
     RootDir = None
     OwtfPid = None
-    Framework_config_path = os.path.expanduser(os.path.join("~", '.owtf', 'config', 'framework.cfg'))
+    Framework_config_path = os.path.expanduser(os.path.join("~", '.owtf', 'conf', 'framework.cfg'))
     Profiles = {
         "GENERAL_PROFILE": None,
         "RESOURCES_PROFILE": None,
@@ -91,7 +91,8 @@ class Config(BaseComponent, ConfigInterface):
         if os.path.isfile(self.Framework_config_path):
             return self.Framework_config_path
 
-        path = os.path.join(self.RootDir, 'config', os.path.basename(self.Framework_config_path))
+
+        path = os.path.join(self.RootDir, 'conf', os.path.basename(self.Framework_config_path))
         return path
 
     def LoadFrameworkConfigFromFile(self, config_path):

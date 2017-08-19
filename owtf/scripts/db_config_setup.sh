@@ -32,7 +32,7 @@ FILE_PATH=$(readlink -f "$0")
 INSTALL_DIR=$(dirname "$FILE_PATH")
 RootDir=${RootDir:-$(dirname "$INSTALL_DIR")}
 
-config_file="$RootDir/config/framework.cfg"
+config_file="$RootDir/conf/framework.cfg"
 db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
 
 db_name="owtfdb"

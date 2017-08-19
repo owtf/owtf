@@ -3,7 +3,7 @@ ACTIVE Plugin for Testing for Web Application Fingerprint (OWASP-IG-004)
 https://www.owasp.org/index.php/Testing_for_Web_Application_Fingerprint_%28OWASP-IG-004%29
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Active probing for fingerprint analysis"

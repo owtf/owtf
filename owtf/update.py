@@ -8,7 +8,7 @@ import json
 import urllib2
 from subprocess import PIPE
 from subprocess import Popen as execute
-from framework.lib.general import cprint
+from owtf.lib.general import cprint
 
 
 class Updater(object):

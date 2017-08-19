@@ -8,8 +8,8 @@ human-readable form.
 import math
 import datetime
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import TimerInterface
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import TimerInterface
 
 
 class Timer(BaseComponent, TimerInterface):

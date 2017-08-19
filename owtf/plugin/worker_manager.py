@@ -8,11 +8,11 @@ import multiprocessing
 import Queue
 from time import strftime
 
-from framework.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
-from framework.dependency_management.interfaces import WorkerManagerInterface
-from framework.lib.general import check_pid
-from framework.lib.owtf_process import OWTFProcess
-from framework.lib.exceptions import InvalidWorkerReference
+from owtf.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
+from owtf.dependency_management.interfaces import WorkerManagerInterface
+from owtf.lib.general import check_pid
+from owtf.lib.owtf_process import OWTFProcess
+from owtf.lib.exceptions import InvalidWorkerReference
 
 
 class Worker(OWTFProcess, BaseComponent):

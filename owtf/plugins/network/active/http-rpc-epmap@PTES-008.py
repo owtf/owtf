@@ -2,7 +2,7 @@
 Plugin for probing HTTP Rpc
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = " HTTP Rpc Probing "

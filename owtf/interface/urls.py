@@ -1,7 +1,7 @@
 import tornado.web
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
-from framework.interface import api_handlers, ui_handlers, custom_handlers
+from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.interface import api_handlers, ui_handlers, custom_handlers
 
 def get_handlers():
 

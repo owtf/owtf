@@ -27,9 +27,9 @@ import tornado.gen
 
 from socket_wrapper import wrap_socket
 from cache_handler import CacheHandler
-from framework.dependency_management.dependency_resolver import BaseComponent, ComponentNotFoundException
-from framework.utils import FileOperations
-from framework.lib.owtf_process import OWTFProcess
+from owtf.dependency_management.dependency_resolver import BaseComponent, ComponentNotFoundException
+from owtf.utils import FileOperations
+from owtf.lib.owtf_process import OWTFProcess
 
 
 def prepare_curl_callback(curl):

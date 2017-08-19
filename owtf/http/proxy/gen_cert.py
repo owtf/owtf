@@ -9,7 +9,7 @@ import hashlib
 import re
 from OpenSSL import crypto
 
-from framework.lib.filelock import FileLock
+from owtf.lib.filelock import FileLock
 
 
 def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):

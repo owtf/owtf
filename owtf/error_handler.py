@@ -10,11 +10,11 @@ import sys
 import json
 import urllib2
 import requests
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import ErrorHandlerInterface
-from framework.lib.exceptions import FrameworkAbortException, PluginAbortException
-from framework.lib.general import cprint
-from framework.utils import OutputCleaner, print_version
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import ErrorHandlerInterface
+from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
+from owtf.lib.general import cprint
+from owtf.utils import OutputCleaner, print_version
 
 
 class ErrorHandler(BaseComponent, ErrorHandlerInterface):

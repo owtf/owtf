@@ -3,10 +3,10 @@
 from pyvirtualdisplay import Display
 from selenium import webdriver
 
-from framework.selenium import url_launcher
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import AbstractInterface
-from framework.lib.general import *
+from owtf.selenium import url_launcher
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import AbstractInterface
+from owtf.lib.general import *
 
 
 class Selenium(BaseComponent, AbstractInterface):

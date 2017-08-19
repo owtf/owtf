@@ -7,9 +7,9 @@ interaction with subprocesses running tools or remote connections (i.e. shells)
 
 import subprocess
 
-from framework.lib.general import *
-from framework.shell import blocking_shell
-from framework.shell.async_subprocess import *
+from owtf.lib.general import *
+from owtf.shell import blocking_shell
+from owtf.shell.async_subprocess import *
 
 
 class InteractiveShell(blocking_shell.Shell):

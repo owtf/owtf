@@ -13,13 +13,13 @@ import multiprocessing
 import subprocess
 import tornado
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.component_initialiser import ComponentInitialiser
-from framework.utils import FileOperations, catch_io_errors, OutputCleaner, OWTFLogger
-from framework.interface import server, cli
-from framework.http.proxy import proxy, transaction_logger
-from framework.plugin import worker_manager
-from framework.lib.formatters import ConsoleFormatter, FileFormatter
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.component_initialiser import ComponentInitialiser
+from owtf.utils import FileOperations, catch_io_errors, OutputCleaner, OWTFLogger
+from owtf.interface import server, cli
+from owtf.http.proxy import proxy, transaction_logger
+from owtf.plugin import worker_manager
+from owtf.lib.formatters import ConsoleFormatter, FileFormatter
 
 
 class Core(BaseComponent):

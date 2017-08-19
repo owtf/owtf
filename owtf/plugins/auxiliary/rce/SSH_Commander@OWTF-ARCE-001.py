@@ -1,5 +1,5 @@
-from framework.dependency_management.dependency_resolver import ServiceLocator
-from framework.lib.general import get_file_as_list
+from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.lib.general import get_file_as_list
 
 
 DESCRIPTION = "Runs commands on an agent server via SSH -i.e. for IDS testing-"

@@ -3,8 +3,8 @@ Robots.txt semi-passive plugin, parses robots.txt file to generate on-screen
 links and save them for later spidering and analysis
 """
 
-from framework.utils import OWTFLogger
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.utils import OWTFLogger
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Normal request for robots.txt analysis"

@@ -4,7 +4,7 @@ import ast
 
 from tornado.httputil import HTTPHeaders
 
-from framework.http.wafbypasser.core.template_parser import TemplateParser
+from owtf.http.wafbypasser.core.template_parser import TemplateParser
 
 
 class PlaceholderManager:

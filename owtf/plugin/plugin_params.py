@@ -2,8 +2,8 @@
 
 from collections import defaultdict
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.lib.general import *
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.lib.general import *
 
 
 class PluginParams(BaseComponent):

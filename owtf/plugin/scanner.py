@@ -6,8 +6,8 @@ The scan_network scans the network for different ports and call network plugins 
 import re
 import logging
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.utils import FileOperations
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.utils import FileOperations
 
 SCANS_FOLDER = "scans"  # Folder under which all scans will be saved
 PING_SWEEP_FILE = "%s/00_ping_sweep" % SCANS_FOLDER

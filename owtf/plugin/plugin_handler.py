@@ -12,12 +12,12 @@ from ptp.libptp.constants import UNKNOWN
 from ptp.libptp.exceptions import PTPError
 from sqlalchemy.exc import SQLAlchemyError
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import PluginHandlerInterface
-from framework.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
-from framework.lib.general import *
-from framework.plugin.scanner import Scanner
-from framework.utils import FileOperations
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import PluginHandlerInterface
+from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
+from owtf.lib.general import *
+from owtf.plugin.scanner import Scanner
+from owtf.utils import FileOperations
 
 
 INTRO_BANNER_GENERAL = """

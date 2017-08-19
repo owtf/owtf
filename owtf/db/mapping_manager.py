@@ -3,10 +3,10 @@ import json
 import logging
 import ConfigParser
 
-from framework.db import models
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import MappingDBInterface
-from framework.lib.exceptions import InvalidMappingReference
+from owtf.db import models
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import MappingDBInterface
+from owtf.lib.exceptions import InvalidMappingReference
 
 
 class MappingDB(BaseComponent, MappingDBInterface):

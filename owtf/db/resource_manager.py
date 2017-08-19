@@ -1,11 +1,11 @@
 import os
 import logging
 
-from framework.utils import FileOperations
-from framework.db import models
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import ResourceInterface
-from framework.lib.general import cprint
+from owtf.utils import FileOperations
+from owtf.db import models
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import ResourceInterface
+from owtf.lib.general import cprint
 
 
 class ResourceDB(BaseComponent, ResourceInterface):

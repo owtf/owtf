@@ -2,7 +2,7 @@
 ACTIVE Plugin for Testing for HTTP Methods and XST (OWASP-CM-008)
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Active probing for HTTP methods"

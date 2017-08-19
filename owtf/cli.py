@@ -10,11 +10,11 @@ import os
 import sys
 import logging
 
-from framework.core import Core
-from framework.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
-from framework.dependency_management.dependency_resolver import ServiceLocator
-from framework import update
-from framework.lib.cli_options import usage, parse_options, parse_update_options
+from owtf.core import Core
+from owtf.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
+from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf import update
+from owtf.lib.cli_options import usage, parse_options, parse_update_options
 
 
 def banner():
@@ -74,7 +74,7 @@ def process_options(user_args):
     if arg.TOR_mode:
         arg.TOR_mode = arg.TOR_mode.split(":")
         if(arg.TOR_mode[0] == "help"):
-            from framework.http.proxy.tor_manager import TOR_manager
+            from owtf.http.proxy.tor_manager import TOR_manager
             TOR_manager.msg_configure_tor()
             exit(0)
         if len(arg.TOR_mode) == 1:
@@ -256,10 +256,3 @@ def main(args):
                 updater.set_proxy(arg.OutboundProxy)
         # Update method called to perform update.
         updater.update()
-
-
-if __name__ == "__main__":
-    if os.getcwd().find(os.path.dirname(os.path.abspath(sys.argv[0]))) == 0:
-        usage("Start owtf in a different directory. 'cd path/to/pentest/directory; ./path/to/owtf.py'")
-        sys.exit("Can`t start owtf in current directory",1)
-    main(sys.argv)

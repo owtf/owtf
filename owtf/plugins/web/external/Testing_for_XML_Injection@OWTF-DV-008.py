@@ -1,4 +1,4 @@
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "XML Injection Plugin to assist manual testing"

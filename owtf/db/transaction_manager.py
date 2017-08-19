@@ -13,12 +13,12 @@ from sqlalchemy import desc, asc
 
 from hrt.interface import HttpRequestTranslator
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import TransactionInterface
-from framework.db.target_manager import target_required
-from framework.lib.exceptions import InvalidTransactionReference, InvalidParameterType
-from framework.http import transaction
-from framework.db import models
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import TransactionInterface
+from owtf.db.target_manager import target_required
+from owtf.lib.exceptions import InvalidTransactionReference, InvalidParameterType
+from owtf.http import transaction
+from owtf.db import models
 
 
 # The regex find differs for these types :P

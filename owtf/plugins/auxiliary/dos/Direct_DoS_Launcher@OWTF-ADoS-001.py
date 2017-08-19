@@ -1,4 +1,4 @@
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Denial of Service (DoS) Launcher -i.e. for IDS/DoS testing-"

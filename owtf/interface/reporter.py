@@ -8,10 +8,10 @@ import cgi
 
 from tornado.template import Loader
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import ReporterInterface
-from framework.lib.general import *
-from framework.interface.html.filter import sanitiser
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import ReporterInterface
+from owtf.lib.general import *
+from owtf.interface.html.filter import sanitiser
 
 
 class Reporter(BaseComponent, ReporterInterface):

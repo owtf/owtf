@@ -6,9 +6,9 @@ import uuid
 import tornado.web
 from tornado.escape import url_escape
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
-from framework.lib.exceptions import InvalidTargetReference, InvalidParameterType
-from framework.interface import custom_handlers
+from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.lib.exceptions import InvalidTargetReference, InvalidParameterType
+from owtf.interface import custom_handlers
 
 
 class Redirect(custom_handlers.UIRequestHandler):

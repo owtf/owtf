@@ -1,4 +1,4 @@
-from framework.http.wafbypasser.core.http_helper import HTTPHelper
+from owtf.http.wafbypasser.core.http_helper import HTTPHelper
 
 
 def detect_accepted_sources(http_helper, url, data, headers, param_name, param_source, param_value, method):

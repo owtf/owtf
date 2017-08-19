@@ -108,44 +108,7 @@ def is_debian_derivative():
 
 def finish():
     Colorizer.success("[*] Finished!")
-    Colorizer.info("[*] Run following command to start virtualenv: source ~/.%src; workon owtf"
-                   % os.environ["SHELL"].split(os.sep)[-1])
     Colorizer.info("[*] Start OWTF by running 'cd path/to/pentest/directory; ./path/to/owtf.py'")
-
-
-def setup_virtualenv():
-    Colorizer.info("[*] Setting up virtual environment named owtf...")
-    # If /usr/local/bin/virtualenvwrapper.sh doesn't exist, create a symlink from /usr/bin/
-    if not os.path.isfile('/usr/local/bin/virtualenvwrapper.sh'):
-        run_command('sudo ln -s /usr/bin/virtualenvwrapper.sh /usr/local/bin/virtualenvwrapper.sh >/dev/null 2>&1;')
-
-    # sources files and commands
-    source = 'source /usr/local/bin/virtualenvwrapper.sh'
-    setup_env = 'cd $WORKON_HOME; virtualenv -q --always-copy --python=python2.7 owtf >/dev/null 2>&1;'\
-        ' source owtf/bin/activate'
-    dump = '%s -c "import os, json;print json.dumps(dict(os.environ))"' % sys.executable
-
-    pipe = subprocess.Popen(['/bin/bash', '-c', '%s >/dev/null 2>&1; %s; %s' % (source, setup_env, dump)],
-                            stdout=subprocess.PIPE)
-    env = json.loads(pipe.stdout.read())
-
-    # Update the os environment variable
-    os.environ.update(env)
-    try:
-        if os.path.join(os.environ["WORKON_HOME"], "owtf") == os.environ["VIRTUAL_ENV"]:
-            # Add source to shell config file only if not present
-            Colorizer.info("[*] Adding virtualenvwrapper source to shell config file")
-            shell_rc_path = os.path.join(os.environ["HOME"], ".%src" % os.environ["SHELL"].split(os.sep)[-1])
-            with open(shell_rc_path, "r") as f:
-                if mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ).find(source) == -1:
-                    run_command("echo '%s' >> %s" % (source, shell_rc_path))
-                else:
-                    Colorizer.info("[+] Source line already added to the $SHELL config ")
-            return True
-    except KeyError:
-        traceback.print_exc()
-    return False
-
 
 
 def setup_pip():
@@ -157,10 +120,6 @@ def setup_pip():
     install_in_directory(os.path.expanduser(directory), command)
     Colorizer.info("[*] Installing required packages for pipsecure")
     run_command("sudo pip2 install --upgrade pyopenssl ndg-httpsclient pyasn1")
-
-    # Installing virtualenv
-    Colorizer.info("[*] Installing virtualenv and virtualenvwrapper")
-    install_in_directory(os.path.expanduser(str(os.getpid())), "sudo pip2 install --upgrade virtualenv virtualenvwrapper")
 
 
 def install(cmd_arguments):
@@ -214,15 +173,6 @@ def install(cmd_arguments):
         run_command(cp.get(cp.sections()[int(distro_num) - 1], "install"))
     else:
         Colorizer.normal("[*] Skipping distro related installation :(")
-
-    # Installing pip and setting up virtualenv.
-    # This requires distro specific dependencies to be installed properly.
-    setup_pip()
-    if setup_virtualenv():
-        install_using_pip(owtf_pip)
-    else:
-        Colorizer.danger("Unable to setup virtualenv...")
-        Colorizer.danger("Skipping installation of OWTF python dependencies ...")
 
     # Now install distro independent stuff - optional
     # This is due to db config setup included in this. Should run only after PostgreSQL is installed.
@@ -309,9 +259,9 @@ if __name__ == "__main__":
     install(sys.argv[1:])
 
     # Copying config files
-    dest_config_path = os.path.join(os.path.expanduser('~'), '.owtf', 'config')
+    dest_config_path = os.path.join(os.path.expanduser('~'), '.owtf', 'conf')
     create_directory(dest_config_path)
-    src_config_path = os.path.join(root_dir, 'config')
+    src_config_path = os.path.join(root_dir, 'conf')
     dir_util.copy_tree(src_config_path, dest_config_path)
 
     finish()

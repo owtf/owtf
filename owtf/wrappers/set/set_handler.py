@@ -6,9 +6,9 @@ This is the handler for the Social Engineering Toolkit (SET) trying to overcome 
 
 import time
 
-from framework.lib.general import *
-from framework.shell import pexpect_shell
-from framework.wrappers.set import spear_phishing
+from owtf.lib.general import *
+from owtf.shell import pexpect_shell
+from owtf.wrappers.set import spear_phishing
 
 
 class SETHandler(pexpect_shell.PExpectShell):

@@ -11,7 +11,7 @@ import subprocess
 import tornado.web
 import tornado.template
 
-from framework.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.dependency_resolver import BaseComponent
 
 
 class APIRequestHandler(tornado.web.RequestHandler, BaseComponent):

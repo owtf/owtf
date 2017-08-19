@@ -32,9 +32,11 @@ for item in requirements:
 
 post_script = os.path.join(ROOT_DIR, "owtf/install/install.py")
 
+
 class PostDevelopCommand(develop):
     """Post-installation for development mode."""
     def run(self):
+        develop.run(self)
         print('Running post install')
         call([sys.executable, post_script])
 
@@ -42,13 +44,14 @@ class PostDevelopCommand(develop):
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
+        install.run(self)
         print('Running post install')
         call([sys.executable, post_script])
 
 
 setup(
     name='owtf',
-    version="2.1a",
+    version="2.1",
     url='https://github.com/owtf/owtf',
     license='BSD',
     author="Abraham Aranguren",
@@ -56,7 +59,7 @@ setup(
     description='OWASP+PTES focused try to unite great tools and make pen testing more efficient',
     long_description="OWASP OWTF is a project focused on penetration testing efficiency and alignment of security tests"
                      "to security standards like the OWASP Testing Guide (v3 and v4), the OWASP Top 10, PTES and NIST",
-    packages=find_packages(),
+    packages=find_packages(exclude=['*node_modules/*']),
     include_package_data=True,
     zip_safe=False,
     platforms='any',
@@ -67,8 +70,8 @@ setup(
         'install': PostInstallCommand,
     },
     entry_points={
-        "console_scripts": [
-            "owtf = owtf.owtf"
+        'console_scripts': [
+            'owtf = owtf.__main__:main'
         ]
     },
     classifiers=[

@@ -9,9 +9,9 @@ import signal
 import subprocess
 import logging
 
-from framework.dependency_management.dependency_resolver import BaseComponent
-from framework.dependency_management.interfaces import ShellInterface
-from framework.lib.general import *
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import ShellInterface
+from owtf.lib.general import *
 from sqlalchemy.exc import SQLAlchemyError
 
 

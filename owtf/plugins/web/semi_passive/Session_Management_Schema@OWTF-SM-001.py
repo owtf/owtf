@@ -3,7 +3,7 @@ SEMI-PASSIVE Plugin for Testing for Session Management Schema (OWASP-SM-001)
 https://www.owasp.org/index.php/Testing_for_Session_Management_Schema_%28OWASP-SM-001%29
 """
 
-from framework.dependency_management.dependency_resolver import ServiceLocator
+from owtf.dependency_management.dependency_resolver import ServiceLocator
 
 
 DESCRIPTION = "Normal requests to gather session managament info"

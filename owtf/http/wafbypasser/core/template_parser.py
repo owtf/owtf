@@ -1,6 +1,6 @@
 from lxml import etree
 
-from framework.http.wafbypasser.core import obfuscation_lib
+from owtf.http.wafbypasser.core import obfuscation_lib
 
 
 class XMLAnalyzer(object):

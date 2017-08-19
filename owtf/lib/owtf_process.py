@@ -5,7 +5,7 @@ Consists of owtf process class and its manager
 
 from multiprocessing import Process, Queue
 
-from framework.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.dependency_resolver import BaseComponent
 
 
 class OWTFProcess(Process, BaseComponent):

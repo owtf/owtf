@@ -2,12 +2,12 @@ import os
 import datetime
 from urlparse import urlparse
 
-from framework.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
-from framework.dependency_management.interfaces import TargetInterface
-from framework.lib.exceptions import DBIntegrityException, InvalidTargetReference, InvalidParameterType
-from framework.db import models
-from framework.db.session_manager import session_required
-from framework.lib.general import cprint  # TODO: Shift to logging
+from owtf.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
+from owtf.dependency_management.interfaces import TargetInterface
+from owtf.lib.exceptions import DBIntegrityException, InvalidTargetReference, InvalidParameterType
+from owtf.db import models
+from owtf.db.session_manager import session_required
+from owtf.lib.general import cprint  # TODO: Shift to logging
 
 
 TARGET_CONFIG = {

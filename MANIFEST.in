@@ -1,7 +1,7 @@
-recursive-include scripts/ *
-recursive-include docs/ *
-recursive-include config/ *
-recursive-include tests/ *
-include *.md
-include *.py
-include *.txt
+recursive-include owtf/conf *
+recursive-include owtf/dictionaries *
+recursive-include owtf/plugins *
+recursive-include owtf/scripts *
+recursive-include owtf/tools *
+recursive-include owtf/webui *
+recursive-include owtf/interface/templates *

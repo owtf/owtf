@@ -1,5 +1,5 @@
-from framework.dependency_management.dependency_resolver import ServiceLocator
-from framework.http.wafbypasser import wafbypasser
+from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.http.wafbypasser import wafbypasser
 
 
 def format_args(args):

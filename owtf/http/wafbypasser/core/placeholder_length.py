@@ -1,7 +1,7 @@
 import ast
 from tornado.httpclient import HTTPClient, HTTPError
 
-from framework.http.wafbypasser.core.helper import Error
+from owtf.http.wafbypasser.core.helper import Error
 
 
 def find_length(owtf, http_helper, lsig, url, method, detection_struct, ch, headers, body=None):
