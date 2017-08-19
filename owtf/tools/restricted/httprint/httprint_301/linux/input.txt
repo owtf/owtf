@@ -1,0 +1,8 @@
+# inputs for httprint can be:
+# - individual IP addresses (default port 80)
+# - http://servername:[port]/
+# - https://servername:[port]/
+# - IP ranges xx.xx.xx.xx-yy.yy.yy.yy
+#
+http://www.apache.org/
+

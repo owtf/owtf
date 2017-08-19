@@ -1,0 +1,44 @@
+# file to recognize HTTP ports from NMAP results.
+# for importing NMAP XML output into HTTPRINT
+# 
+# to designate a new port as an HTTP port, add a line
+# in the following format:
+#
+# <service-name>  <port>/tcp
+#
+# e.g.
+#
+# compaqdiag      2301/tcp
+#
+# To designate a port as SSL, suffix the service name
+# with "-ssl"
+#
+# e.g.
+#
+# weblogic        7001/tcp    # Weblogic
+# weblogic-ssl    7002/tcp    # Weblogic SSL
+#
+http              80/tcp     # World Wide Web HTTP
+http-mgmt         280/tcp
+http-ssl          443/tcp    # secure http (SSL)
+gss-http          488/tcp
+http-alt          591/tcp    # FileMaker, Inc. - HTTP Alternate
+http-rpc-epmap    593/tcp    # HTTP RPC Ep Map
+NFS-or-IIS        1025/tcp   # IIS, NFS, or listener RFS remote_file_sharing
+IIS               1027/tcp
+compaqdiag        2301/tcp   # Compaq remote diagnostic/management
+squid-http        3128/tcp   # Squid HTTP Proxy or MS ISA
+proxy-plus        4480/tcp   # Proxy+ HTTP proxy port
+vnc-http          5800/tcp   # Virtual Network Computer HTTP Access, display 0
+vnc-http-1        5801/tcp   # Virtual Network Computer HTTP Access, display 1
+vnc-http-2        5802/tcp   # Virtual Network Computer HTTP Access, display 2
+vnc-http-3        5803/tcp   # Virtual Network Computer HTTP Access, display 3
+analogx           6588/tcp   # AnalogX HTTP proxy port
+weblogic          7001/tcp   # Weblogic
+weblogic-ssl      7002/tcp   # Weblogic SSL
+http-alt          8000/tcp
+http-alt          8001/tcp
+http-alt          8002/tcp
+http-proxy        8080/tcp   # Common HTTP proxy/second web server port
+sun-answerbook    8888/tcp   # Sun Answerbook HTTP server
+http-alt          9090/tcp

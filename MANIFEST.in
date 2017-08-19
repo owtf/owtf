@@ -1,0 +1,7 @@
+recursive-include scripts/ *
+recursive-include docs/ *
+recursive-include config/ *
+recursive-include tests/ *
+include *.md
+include *.py
+include *.txt

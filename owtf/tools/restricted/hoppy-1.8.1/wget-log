@@ -1,0 +1,6 @@
+--2017-08-19 03:00:27--  https://labs.portcullis.co.uk/download/hoppy-1.8.1.tar.bz2
+Resolving labs.portcullis.co.uk (labs.portcullis.co.uk)... 77.75.105.66
+Connecting to labs.portcullis.co.uk (labs.portcullis.co.uk)|77.75.105.66|:443... connected.
+ERROR: The certificate of 'labs.portcullis.co.uk' is not trusted.
+ERROR: The certificate of 'labs.portcullis.co.uk' hasn't got a known issuer.
+ERROR: The certificate of 'labs.portcullis.co.uk' was signed using an insecure algorithm.
