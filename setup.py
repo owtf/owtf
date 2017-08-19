@@ -29,7 +29,6 @@ for item in requirements:
     if item.req:
         requires.append(str(item.req))  # always the package name
 
-
 post_script = os.path.join(ROOT_DIR, "owtf/install/install.py")
 
 
@@ -44,7 +43,8 @@ class PostDevelopCommand(develop):
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
-        install.run(self)
+        # Need because of a setuptools bug: https://github.com/pypa/setuptools/issues/456
+        self.do_egg_install()
         print('Running post install')
         call([sys.executable, post_script])
 
