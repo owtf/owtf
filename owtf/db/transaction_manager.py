@@ -152,10 +152,10 @@ class TransactionManager(BaseComponent, TransactionInterface):
             response_body = trans.response_body
             if trans.binary_response:
                 response_body = base64.b64decode(response_body)
-            owtf_transaction.SetTransactionFromDB(trans.id, trans.url, trans.method, trans.response_status,
-                                                  str(trans.time), trans.time_human, trans.local_timestamp, trans.data,
-                                                  trans.raw_request, trans.response_headers, len(response_body),
-                                                  response_body)
+            owtf_transaction.set_transaction_from_db(trans.id, trans.url, trans.method, trans.response_status,
+                                                     str(trans.time), trans.time_human, trans.local_timestamp, trans.data,
+                                                     trans.raw_request, trans.response_headers, len(response_body),
+                                                     response_body)
             return owtf_transaction
         return None
 
@@ -167,10 +167,10 @@ class TransactionManager(BaseComponent, TransactionInterface):
 
     def GetTransactionModel(self, transaction):
         try:
-            response_body = transaction.GetRawResponseBody().encode("utf-8")
+            response_body = transaction.get_raw_response_body().encode("utf-8")
             binary_response = False
         except UnicodeDecodeError:
-            response_body = base64.b64encode(transaction.GetRawResponseBody())
+            response_body = base64.b64encode(transaction.get_raw_response_body())
             binary_response = True
         finally:
             transaction_model = models.Transaction(
@@ -183,11 +183,11 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 local_timestamp=transaction.LocalTimestamp,
                 raw_request=transaction.GetRawRequest(),
                 response_status=transaction.GetStatus(),
-                response_headers=transaction.GetResponseHeaders(),
+                response_headers=transaction.get_response_headers(),
                 response_body=response_body,
                 response_size=len(response_body),
                 binary_response=binary_response,
-                session_tokens=transaction.GetSessionTokens(),
+                session_tokens=transaction.get_session_tokens(),
                 login=None,
                 logout=None
             )
@@ -326,10 +326,10 @@ class TransactionManager(BaseComponent, TransactionInterface):
         return grep_output
 
     def GrepResponseBody(self, regex_name, regex, owtf_transaction):
-        return self.Grep(regex_name, regex, owtf_transaction.GetRawResponseBody())
+        return self.Grep(regex_name, regex, owtf_transaction.get_raw_response_body())
 
     def GrepResponseHeaders(self, regex_name, regex, owtf_transaction):
-        return self.Grep(regex_name, regex, owtf_transaction.GetResponseHeaders())
+        return self.Grep(regex_name, regex, owtf_transaction.get_response_headers())
 
     def Grep(self, regex_name, regex, data):
         results = regex.findall(data)

@@ -5,10 +5,6 @@ owtf.dependency_management.component_initializer
 Implements 3 phased component initialization process
 """
 
-import logging
-import multiprocessing
-from datetime import time
-
 from owtf.config.config import Config
 from owtf.db.command_register import CommandRegister
 from owtf.db.config_manager import ConfigDB
@@ -25,11 +21,8 @@ from owtf.db.url_manager import URLManager
 from owtf.db.worklist_manager import WorklistManager
 from owtf.dependency_management.dependency_resolver import ServiceLocator
 from owtf.error_handler import ErrorHandler
-from owtf.http.proxy.outbound_proxyminer import Proxy_Miner
-from owtf.http.proxy.proxy_manager import Proxy_manager, Proxy_Checker
 from owtf.http.requester import Requester
 from owtf.interface.reporter import Reporter
-from owtf.lib.general import cprint
 from owtf.plugin.plugin_handler import PluginHandler
 from owtf.plugin.plugin_helper import PluginHelper
 from owtf.plugin.plugin_params import PluginParams
@@ -116,55 +109,6 @@ class ComponentInitialiser():
         PluginHelper()
         ServiceLocator.get_component("plugin_handler").init(options)
         ServiceLocator.get_component("reporter").init()
-
-    @staticmethod
-    def intialise_proxy_manager(options):
-        """ Proxy Manager initialization.
-
-        :param dict options: Proxy manager configuration parameters.
-        """
-        proxy_manager = None
-        if options['Botnet_mode'] is not None:
-            proxy_manager = Proxy_manager()
-            answer = "Yes"
-            proxies = []
-            if options['Botnet_mode'][0] == "miner":
-                miner = Proxy_Miner()
-                proxies = miner.start_miner()
-
-            if options['Botnet_mode'][0] == "list":  # load proxies from list
-                proxies = proxy_manager.load_proxy_list(options['Botnet_mode'][1])
-                answer = input("[#] Do you want to check the proxy list? [Yes/no] : ")
-
-            if answer.upper() in ["", "YES", "Y"]:
-                proxy_q = multiprocessing.Queue()
-                proxy_checker = multiprocessing.Process(target=Proxy_Checker.check_proxies, args=(proxy_q, proxies,))
-                logging.info("Checking Proxies...")
-                start_time = time.time()
-                proxy_checker.start()
-                proxies = proxy_q.get()
-                proxy_checker.join()
-
-            proxy_manager.proxies = proxies
-            proxy_manager.number_of_proxies = len(proxies)
-
-            if options['Botnet_mode'][0] == "miner":
-                logging.info("Writing proxies to disk(~/.owtf/proxy_miner/proxies.txt)")
-                miner.export_proxies_to_file("proxies.txt", proxies)
-            if answer.upper() in ["", "YES", "Y"]:
-                logging.info("Proxy Check Time: %s" % time.strftime('%H:%M:%S',
-                             time.localtime(time.time() - start_time - 3600)))
-                cprint("Done")
-
-            if proxy_manager.number_of_proxies is 0:
-                ServiceLocator.get_component("error_handler").owtfAbort("No Alive proxies.")
-
-            proxy = proxy_manager.get_next_available_proxy()
-
-            # check proxy var... http:// sock://
-            options['OutboundProxy'] = []
-            options['OutboundProxy'].append(proxy["proxy"][0])
-            options['OutboundProxy'].append(proxy["proxy"][1])
 
 
 class DatabaseNotRunningException(Exception):

@@ -88,7 +88,7 @@ class PluginHelper(BaseComponent):
                 POST = Chunks[1]
                 Transaction = self.requester.GetTransaction(True, URL, Method, POST)
             if Transaction.Found:
-                RawHTML = Transaction.GetRawResponseBody()
+                RawHTML = Transaction.get_raw_response_body()
                 FilteredHTML = self.reporter.sanitize_html(RawHTML)
                 NotSandboxedPath = self.plugin_handler.DumpOutputFile("NOT_SANDBOXED_%s.html" % Name, FilteredHTML,
                                                                       PluginInfo)

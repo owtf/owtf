@@ -1,5 +1,7 @@
-#!/usr/bin/env python
 """
+owtf.http.requester
+~~~~~~~~~~~~~~~~~~~
+
 The Requester module is in charge of simplifying HTTP requests and
 automatically log HTTP transactions by calling the DB module.
 """
@@ -87,7 +89,7 @@ class Requester(BaseComponent, RequesterInterface):
         self.Headers = {'User-Agent': self.db_config.Get('USER_AGENT')}
         self.RequestCountRefused = 0
         self.RequestCountTotal = 0
-        self.LogTransactions = False
+        self.log_transactions = False
         self.Proxy = proxy
         if proxy is None:
             logging.debug(
@@ -105,8 +107,8 @@ class Requester(BaseComponent, RequesterInterface):
         urllib2.install_opener(self.Opener)
 
     def log_transactions(self, log_transactions=True):
-        backup = self.LogTransactions
-        self.LogTransactions = log_transactions
+        backup = self.log_transactions
+        self.log_transactions = log_transactions
         return backup
 
     def NeedToAskBeforeRequest(self):
@@ -178,7 +180,7 @@ class Requester(BaseComponent, RequesterInterface):
         return urllib2.urlopen(request)
 
     def set_succesful_transaction(self, raw_request, response):
-        return self.http_transaction.SetTransaction(True, raw_request[0], response)
+        return self.http_transaction.set_transaction(True, raw_request[0], response)
 
     def log_transaction(self):
         self.transaction.LogTransaction(self.http_transaction)
@@ -200,21 +202,21 @@ class Requester(BaseComponent, RequesterInterface):
         # transactions can be created and process at plugin-level
         # Pass the timer object to avoid instantiating each time.
         self.http_transaction = transaction.HTTP_Transaction(self.timer)
-        self.http_transaction.Start(url, post, method, self.target.IsInScopeURL(url))
+        self.http_transaction.start(url, post, method, self.target.IsInScopeurl(url))
         self.RequestCountTotal += 1
         try:
             response = self.perform_request(request)
             self.set_succesful_transaction(raw_request, response)
         except urllib2.HTTPError as Error:  # page NOT found.
             # Error is really a response for anything other than 200 OK in urllib2 :)
-            self.http_transaction.SetTransaction(False, raw_request[0], Error)
-        except urllib2.URLError as Error:  # Connection refused?
+            self.http_transaction.set_transaction(False, raw_request[0], Error)
+        except urllib2.urlError as Error:  # Connection refused?
             err_message = self.ProcessHTTPErrorCode(Error, url)
-            self.http_transaction.SetError(err_message)
+            self.http_transaction.set_error(err_message)
         except IOError:
             err_message = "ERROR: Requester Object -> Unknown HTTP Request error: %s\n%s" % (url, str(sys.exc_info()))
-            self.http_transaction.SetError(err_message)
-        if self.LogTransactions:
+            self.http_transaction.set_error(err_message)
+        if self.log_transactions:
             # Log transaction in DB for analysis later and return modified Transaction with ID.
             self.log_transaction()
         return self.http_transaction
@@ -295,7 +297,7 @@ class Requester(BaseComponent, RequesterInterface):
             url = url.strip()  # Clean up the URL first.
             if not url:
                 continue  # Skip blank lines.
-            if not self.url_manager.IsURL(url):
+            if not self.url_manager.Isurl(url):
                 self.error_handler.add("Minor issue: %s is not a valid URL and has been ignored, processing continues" %
                                        str(url))
                 continue  # Skip garbage URLs.

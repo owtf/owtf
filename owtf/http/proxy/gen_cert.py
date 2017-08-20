@@ -1,8 +1,9 @@
-#!/usr/bin/env python
-'''
-# Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
-#                     as a part of Google Summer of Code 2013
-'''
+"""
+owtf.http.proxy.proxy
+~~~~~~~~~~~~~~~~~~~~~
+
+Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013
+"""
 
 import os
 import hashlib
@@ -13,16 +14,28 @@ from owtf.lib.filelock import FileLock
 
 
 def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
-    """
-    This function takes a domain name as a parameter and then creates a certificate and key with the
+    """ This function takes a domain name as a parameter and then creates a certificate and key with the
     domain name(replacing dots by underscores), finally signing the certificate using specified CA and
     returns the path of key and cert files. If you are yet to generate a CA then check the top comments
+
+    :param domain: domain for the cert
+    :type domain: `str`
+    :param ca_crt: ca.crt file path
+    :type ca_crt: `str`
+    :param ca_key: ca.key file path
+    :type ca_key: `str`
+    :param ca_pass: Password for the certificate
+    :type ca_pass: `str`
+    :param certs_folder:
+    :type certs_folder: `str`
+    :return: Key and cert path
+    :rtype: `str`
     """
     key_path = os.path.join(certs_folder, re.sub('[^-0-9a-zA-Z_]', '_', domain) + ".key")
     cert_path = os.path.join(certs_folder, re.sub('[^-0-9a-zA-Z_]', '_', domain) + ".crt")
 
     # The first conditions checks if file exists, and does nothing if true
-    # If file doenst exist lock is obtained for writing (Other processes in race must wait)
+    # If file doesn't exist lock is obtained for writing (Other processes in race must wait)
     # After obtaining lock another check to handle race conditions gracefully
     if os.path.exists(key_path) and os.path.exists(cert_path):
         pass

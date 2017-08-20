@@ -1,6 +1,8 @@
-#!/usr/bin/env python
 """
-# Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013.
+owtf.http.proxy.proxy
+~~~~~~~~~~~~~~~~~~~~~
+
+Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013.
 """
 
 import os
@@ -25,8 +27,8 @@ import tornado.template
 import tornado.websocket
 import tornado.gen
 
-from socket_wrapper import wrap_socket
-from cache_handler import CacheHandler
+from owtf.http.proxy.socket_wrapper import wrap_socket
+from owtf.http.proxy.cache_handler import CacheHandler
 from owtf.dependency_management.dependency_resolver import BaseComponent, ComponentNotFoundException
 from owtf.utils import FileOperations
 from owtf.lib.owtf_process import OWTFProcess
@@ -37,7 +39,6 @@ def prepare_curl_callback(curl):
 
 
 class ProxyHandler(tornado.web.RequestHandler):
-
     """This RequestHandler processes all the requests that the application received."""
 
     SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE']
@@ -46,8 +47,12 @@ class ProxyHandler(tornado.web.RequestHandler):
     restricted_response_headers = None
 
     def __new__(cls, application, request, **kwargs):
-        # http://stackoverflow.com/questions/3209233/how-to-replace-an-instance-in-init-with-a-different-object
-        # Based on upgrade header, websocket request handler must be used
+        """
+        .note::
+
+            http://stackoverflow.com/questions/3209233/how-to-replace-an-instance-in-init-with-a-different-object
+            Based on upgrade header, websocket request handler must be used
+        """
         try:
             if request.headers['Upgrade'].lower() == 'websocket':
                 return CustomWebSocketHandler(application, request, **kwargs)
@@ -56,14 +61,22 @@ class ProxyHandler(tornado.web.RequestHandler):
         return tornado.web.RequestHandler.__new__(cls, application, request, **kwargs)
 
     def set_default_headers(self):
-        # Automatically called by Tornado,
-        # Used to remove "Server" header set by tornado
+        """Automatically called by Tornado, and is used to remove "Server" header set by tornado
+
+        :return: None
+        :rtype: None
+        """
         del self._headers["Server"]
 
     def set_status(self, status_code, reason=None):
-        """Sets the status code for our response.
+        """Sets the status code for our response. Overriding is done so as to handle unknown response codes gracefully.
 
-        Overriding is done so as to handle unknown response codes gracefully.
+        :param status_code: status code to set
+        :type status_code: `int`
+        :param reason: Status code reason
+        :type reason: `str`
+        :return: None
+        :rtype: None
         """
         self._status_code = status_code
         if reason is not None:
@@ -75,7 +88,13 @@ class ProxyHandler(tornado.web.RequestHandler):
                 self._reason = tornado.escape.native_str("Server Not Found")
 
     def finish_response(self, response):
-        """Write a new response and cache it."""
+        """Write a new response and cache it
+
+        :param response:
+        :type response:
+        :return: None
+        :rtype: None
+        """
         self.set_status(response.code)
         for header, value in response.headers.get_all():
             if header == "Set-Cookie":
@@ -86,7 +105,13 @@ class ProxyHandler(tornado.web.RequestHandler):
         self.finish()
 
     def handle_data_chunk(self, data):
-        """Callback when a small chunk is received."""
+        """Callback when a small chunk is received.
+
+        :param data: Data to write
+        :type data: `str`
+        :return: None
+        :rtype: None
+        """
         if data:
             self.write(data)
             self.request.response_buffer += data
@@ -94,9 +119,11 @@ class ProxyHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def get(self):
-        """Handle all requests except the connect request.
+        """Handle all requests except the connect request. Once ssl stream is formed between browser and proxy,
+        the requests are then processed by this function.
 
-        Once ssl stream is formed between browser and proxy, the requests are then processed by this function.
+        :return: None
+        :rtype: None
         """
         # The flow starts here
         self.request.local_timestamp = datetime.datetime.now()
@@ -264,10 +291,18 @@ class ProxyHandler(tornado.web.RequestHandler):
         * The client side socket is wrapped in ssl
         * If the wrapping is successful, a new SSLIOStream is made using that socket
         * The stream is added back to the server for monitoring
+
+        :return: None
+        :rtype: None
         """
         host, port = self.request.uri.split(':')
 
         def start_tunnel():
+            """Init steps for a HTTPS tunnel
+
+            :return:
+            :rtype:
+            """
             try:
                 self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
                 wrap_socket(
@@ -283,12 +318,25 @@ class ProxyHandler(tornado.web.RequestHandler):
                 pass
 
         def ssl_success(client_socket):
+            """This is done on getting successful tunnel
+
+            :param client_socket: Client socket
+            :type client_socket:
+            :return: None
+            :rtype: None
+            """
             client = tornado.iostream.SSLIOStream(client_socket)
             ProxyHandler.server.handle_stream(client, self.application.inbound_ip)
 
-        # Tiny Hack to satisfy proxychains CONNECT request to HTTP port.
-        # HTTPS fail check has to be improvised
+
         def ssl_fail():
+            """Tiny Hack to satisfy proxychains CONNECT request to HTTP port.
+
+            #TODO: HTTPS fail check has to be improvised
+
+            :return: None
+            :rtype: None
+            """
             try:
                 self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
             except tornado.iostream.StreamClosedError:
@@ -322,7 +370,15 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
     def upstream_connect(self, io_loop=None, callback=None):
         """Custom alternative to tornado.websocket.websocket_connect.
 
-        Returns a future.
+        .note::
+            Returns a future instance.
+
+        :param io_loop:
+        :type io_loop:
+        :param callback:
+        :type callback:
+        :return:
+        :rtype:
         """
         # io_loop is needed or it won't work with Tornado.
         if io_loop is None:
@@ -338,7 +394,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
 
         # Have to add cookies and stuff
         request_headers = tornado.httputil.HTTPHeaders()
-        for name, value in self.request.headers.items():
+        for name, value in list(self.request.headers.items()):
             if name not in ProxyHandler.restricted_request_headers:
                 request_headers.add(name, value)
         # Build a custom request
@@ -356,7 +412,17 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         return self.upstream_connection.connect_future
 
     def _execute(self, transforms, *args, **kwargs):
-        """Overriding of a method of WebSocketHandler."""
+        """Overriding of a method of WebSocketHandler
+
+        :param transforms:
+        :type transforms:
+        :param args:
+        :type args:
+        :param kwargs:
+        :type kwargs:
+        :return:
+        :rtype:
+        """
 
         def start_tunnel(future):
             """A callback which is called when connection to url is successful."""
@@ -378,8 +444,14 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
 
     def store_upstream_data(self, message):
         """Save websocket data sent from client to server.
-
         i.e add it to HTTPRequest.response_buffer with direction (>>)
+
+        :param message: Message to be stored
+        :type message: `str`
+        :return: None
+        :rtype: None
+        """
+        """
         """
         try:  # Cannot write binary content as a string, so catch it
             self.handshake_request.response_buffer += (">>> %s\r\n" % message)
@@ -388,8 +460,12 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
 
     def store_downstream_data(self, message):
         """Save websocket data sent from client to server.
-
         i.e add it to HTTPRequest.response_buffer with direction (<<)
+
+        :param message: Downstream data
+        :type message: `str`
+        :return: None
+        :rtype: None
         """
         try:  # Cannot write binary content as a string, so catch it.
             self.handshake_request.response_buffer += ("<<< %s\r\n" % message)
@@ -397,10 +473,15 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.handshake_request.response_buffer += ("<<< May be binary\r\n")
 
     def on_message(self, message):
-        """Everytime a message is received from client side, this instance method is called."""
+        """Everytime a message is received from client side, this instance method is called.
+        
+        :param message: Message to write or store
+        :type message: `str`
+        :return: None
+        :rtype: None
+        """
         self.upstream.write_message(message)  # The obtained message is written to upstream.
         self.store_upstream_data(message)
-
         # The following check ensures that if a callback is added for reading message from upstream, another one is not
         # added.
         if not self.upstream.read_future:
@@ -408,7 +489,13 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.upstream.read_message(callback=self.on_response)
 
     def on_response(self, message):
-        """A callback when a message is recieved from upstream."""
+        """A callback when a message is recieved from upstream.
+
+        :param message:
+        :type message:
+        :return:
+        :rtype:
+        """
         # The following check ensures that if a callback is added for reading message from upstream, another one is not
         # added
         if not self.upstream.read_future:
@@ -422,8 +509,10 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         """Called when websocket is closed.
-
         So handshake request-response pair along with websocket data as response body is saved
+
+        :return: None
+        :rtype: None
         """
         # Required for cache_handler
         self.handshake_response = tornado.httpclient.HTTPResponse(
@@ -445,36 +534,29 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
 
 class CustomWebSocketClientConnection(tornado.websocket.WebSocketClientConnection):
     def _handle_1xx(self, code):
-        # Had to extract response code, so it is necessary to override.
+        """Had to extract response code, so it is necessary to override.
+
+        :param code: status code
+        :type code: `int`
+        :return: None
+        :rtype: None
+        """
         self.code = code
         super(CustomWebSocketClientConnection, self)._handle_1xx(code)
-
-
-class CommandHandler(tornado.web.RequestHandler):
-
-    """This handles the python function calls issued with relative url "/JSON/?cmd=".
-
-    Responses are in JSON
-    """
-
-    @tornado.web.asynchronous
-    def get(self, relative_url):
-        # Currently only get requests are sufficient for providing PnH service commands.
-        command_list = self.get_arguments("cmd")
-        info = {}
-        for command in command_list:
-            if command.startswith("Core"):
-                command = "self.application.%s" % command
-                info[command] = eval(command)
-            if command.startswith("setattr"):
-                info[command] = eval(command)
-        self.write(info)
-        self.finish()
 
 
 class ProxyProcess(OWTFProcess, BaseComponent):
 
     def initialize(self, outbound_options=[], outbound_auth=""):
+        """Initialize the proxy process
+
+        :param outbound_options: Outbound proxy options
+        :type outbound_options: `list`
+        :param outbound_auth: Authentication string
+        :type outbound_auth: `str`
+        :return: None
+        :rtype: None
+        """
         # The tornado application, which is used to pass variables to request handler
         self.application = tornado.web.Application(handlers=[(r'.*', ProxyHandler)], debug=False, gzip=True,)
         self.config = self.get_component("config")
@@ -595,6 +677,11 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             self.application.http_auth = False
 
     def pseudo_run(self):
+        """Run function for the multiprocessing proxy
+
+        :return: None
+        :rtype: None
+        """
         self.application.Core.disable_console_logging()
         try:
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
@@ -611,5 +698,10 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             self.clean_up()
 
     def clean_up(self):
+        """Stop the instances
+
+        :return: None
+        :rtype: None
+        """
         self.server.stop()
         tornado.ioloop.IOLoop.instance().stop()
