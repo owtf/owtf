@@ -9,5 +9,5 @@ DESCRIPTION = " VNC Probing "
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('VncProbeMethods')
+    resource = ServiceLocator.get_component("resource").get_resources('VncProbeMethods')
     return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource, PluginInfo, [])

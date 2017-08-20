@@ -39,7 +39,7 @@ def run(PluginInfo):
         DELAY_BETWEEN_COMMANDS = Args['ISHELL_DELAY_BETWEEN_COMMANDS']
         if Iteration == 1 or not REUSE_CONNECTION:
             ServiceLocator.get_component("interactive_shell").Open({
-                'ConnectVia': ServiceLocator.get_component("resource").GetResources('RCE_SBD_Connection'),
+                'ConnectVia': ServiceLocator.get_component("resource").get_resources('RCE_SBD_Connection'),
                 'InitialCommands': None,
                 'ExitMethod': Args['ISHELL_EXIT_METHOD'],
                 'CommandsBeforeExit': Args['ISHELL_COMMANDS_BEFORE_EXIT'],

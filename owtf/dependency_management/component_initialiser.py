@@ -1,3 +1,10 @@
+"""
+owtf.dependency_management.component_initializer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Implements 3 phased component initialization process
+"""
+
 import logging
 import multiprocessing
 from datetime import time
@@ -128,7 +135,7 @@ class ComponentInitialiser():
 
             if options['Botnet_mode'][0] == "list":  # load proxies from list
                 proxies = proxy_manager.load_proxy_list(options['Botnet_mode'][1])
-                answer = raw_input("[#] Do you want to check the proxy list? [Yes/no] : ")
+                answer = input("[#] Do you want to check the proxy list? [Yes/no] : ")
 
             if answer.upper() in ["", "YES", "Y"]:
                 proxy_q = multiprocessing.Queue()

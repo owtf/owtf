@@ -10,6 +10,6 @@ DESCRIPTION = "Third party resources"
 
 def run(PluginInfo):
     # Vuln search box to be built in core and resued in different plugins:
-    resource = ServiceLocator.get_component("resource").GetResources('PassiveSSL')
+    resource = ServiceLocator.get_component("resource").get_resources('PassiveSSL')
     Content = ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', resource)
     return Content

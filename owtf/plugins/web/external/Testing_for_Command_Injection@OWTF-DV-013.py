@@ -5,6 +5,6 @@ DESCRIPTION = "Plugin to assist manual testing"
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('ExternalCommandInjection')
+    resource = ServiceLocator.get_component("resource").get_resources('ExternalCommandInjection')
     Content = ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', resource)
     return Content

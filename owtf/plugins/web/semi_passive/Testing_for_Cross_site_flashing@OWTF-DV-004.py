@@ -12,7 +12,7 @@ DESCRIPTION = "Normal requests for XSF analysis"
 def run(PluginInfo):
     url_list = []
     for File in ["crossdomain.xml", "clientaccesspolicy.xml"]:
-        for url in ServiceLocator.get_component("target").GetAsList(['target_url', 'top_url']):
+        for url in ServiceLocator.get_component("target").get_as_list(['target_url', 'top_url']):
             url_list.append(url + "/" + File)  # Compute all URL + File combinations
     # The requester owtf component will unique the URLs
     TransactionList = ServiceLocator.get_component("requester").GetTransactions(True, url_list)

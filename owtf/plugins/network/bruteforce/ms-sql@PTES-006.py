@@ -9,5 +9,5 @@ DESCRIPTION = " MsSql Probing "
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('BruteMsSqlProbeMethods')
+    resource = ServiceLocator.get_component("resource").get_resources('BruteMsSqlProbeMethods')
     return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource, PluginInfo, [])

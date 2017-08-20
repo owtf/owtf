@@ -150,11 +150,11 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         SaveDir = self.GetPluginOutputDir(Plugin)
         abs_path = FileOperations.dump_file(Filename, Contents, SaveDir)
         if RelativePath:
-            return (os.path.relpath(abs_path, self.config.GetOutputDirForTargets()))
+            return (os.path.relpath(abs_path, self.config.get_output_dir_target()))
         return (abs_path)
 
     def RetrieveAbsPath(self, RelativePath):
-        return (os.path.join(self.config.GetOutputDirForTargets(), RelativePath))
+        return (os.path.join(self.config.get_output_dir_target(), RelativePath))
 
     def exists(self, directory):
         return os.path.exists(directory)
@@ -303,7 +303,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.timer.start_timer('Plugin')
         plugin['start'] = self.timer.get_start_date_time('Plugin')
         # Use relative path from targets folders while saving
-        plugin['output_path'] = os.path.relpath(self.GetPluginOutputDir(plugin), self.config.GetOutputDirForTargets())
+        plugin['output_path'] = os.path.relpath(self.GetPluginOutputDir(plugin), self.config.get_output_dir_target())
         status['AllSkipped'] = False  # A plugin is going to be run.
         plugin['status'] = 'Running'
         self.PluginCount += 1

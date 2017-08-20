@@ -34,7 +34,7 @@ def run(PluginInfo):
 
     for Args in plugin_params.GetArgs(args, PluginInfo):
         plugin_params.SetConfig(Args)
-        resource = config.GetResources('PassBruteForce_' + Args['BRUTEFORCER'] + "_" + Args['CATEGORY'])
+        resource = config.get_resources('PassBruteForce_' + Args['BRUTEFORCER'] + "_" + Args['CATEGORY'])
         Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
                                                                              PluginInfo, "")  # No previous output
     return Content

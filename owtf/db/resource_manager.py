@@ -51,10 +51,10 @@ class ResourceDB(BaseComponent, ResourceInterface):
         return resources
 
     def GetReplacementDict(self):
-        configuration = self.db_config.GetReplacementDict()
+        configuration = self.db_config.get_replacement_dict()
         configuration.update(self.target.GetTargetConfig())
-        configuration.update(self.config.GetReplacementDict())
-        configuration.update(self.config.GetFrameworkConfigDict()) # for aux plugins
+        configuration.update(self.config.get_replacement_dict())
+        configuration.update(self.config.get_framework_config_dict()) # for aux plugins
         return configuration
 
     def GetRawResources(self, ResourceType):

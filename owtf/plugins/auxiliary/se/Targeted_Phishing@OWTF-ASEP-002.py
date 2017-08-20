@@ -35,7 +35,7 @@ def run(PluginInfo):
             cprint("Email delivered succcessfully")
         else:
             cprint("Email delivery failed")
-    resource = ServiceLocator.get_component("config").GetResources('SendPhishingAttackviaSET')
+    resource = ServiceLocator.get_component("config").get_resources('SendPhishingAttackviaSET')
     Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
                                                                          PluginInfo, Content)
     return Content

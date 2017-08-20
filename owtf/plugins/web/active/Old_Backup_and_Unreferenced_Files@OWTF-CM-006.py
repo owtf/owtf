@@ -17,10 +17,10 @@ def run(PluginInfo):
 
     # Get settings from the config DB
     db_interactive = ServiceLocator.get_component("db_config").Get('INTERACTIVE')
-    resource = ServiceLocator.get_component("resource").GetResources(DirBusterInteraction[db_interactive])
+    resource = ServiceLocator.get_component("resource").get_resources(DirBusterInteraction[db_interactive])
     Content = ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
                                                                         PluginInfo, [])
-    extractURL_resource = ServiceLocator.get_component("resource").GetResources('DirBuster_Extract_URLs')
+    extractURL_resource = ServiceLocator.get_component("resource").get_resources('DirBuster_Extract_URLs')
     Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output',
                                                                          extractURL_resource, PluginInfo, [])
     return Content

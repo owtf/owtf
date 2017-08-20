@@ -24,7 +24,7 @@ def run(PluginInfo):
     }
     for Args in plugin_params.GetArgs(args, PluginInfo):
         plugin_params.SetConfig(Args)
-        resource = config.GetResources('DoS_' + Args['CATEGORY'])
+        resource = config.get_resources('DoS_' + Args['CATEGORY'])
         Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
                                                                              PluginInfo, "")  # No previous output
     return Content

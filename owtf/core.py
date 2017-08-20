@@ -57,7 +57,7 @@ class Core(BaseComponent):
         self.db_config = self.get_component("db_config")
         self.error_handler = self.get_component("error_handler")
         # ----------------------- Directory creation ----------------------- #
-        FileOperations.create_missing_dirs(self.config.FrameworkConfigGetLogsDir())
+        FileOperations.create_missing_dirs(self.config.get_logs_dir())
         self.create_temp_storage_dirs()
         self.enable_logging()
         # The following attributes will be initialised later
@@ -101,7 +101,7 @@ class Core(BaseComponent):
         """ The proxy along with supporting processes are started here
 
         :param options: Optional arguments
-        :type options: `list`
+        :type options: `dict`
         :return:
         :rtype: None
         """
@@ -150,7 +150,7 @@ class Core(BaseComponent):
         process_name = kwargs.get("process_name", multiprocessing.current_process().name)
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
-        file_handler = self.file_handler(self.config.FrameworkConfigGetLogPath(process_name), mode="w+")
+        file_handler = self.file_handler(self.config.get_log_path(process_name), mode="w+")
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(FileFormatter())
 
@@ -196,7 +196,7 @@ class Core(BaseComponent):
         """This function initializes the entire framework
 
         :param options: Additional arguments for the component initializer
-        :type options: `list`
+        :type options: `dict`
         :return: True if all commands do not fail
         :rtype: `bool`
         """
@@ -208,10 +208,9 @@ class Core(BaseComponent):
         if options['list_plugins']:
             self.plugin_handler.show_plugin_list(options['list_plugins'])
             self.finish()
-        self.config.ProcessOptionsPhase2(options)
+        self.config.process_phase2(options)
         command = self.get_command(options['argv'])
 
-        self.start_botnet_mode(options)
         self.start_proxy(options)  # Proxy mode is started in that function.
         # Set anonymized invoking command for error dump info.
         self.error_handler.set_command(OutputCleaner.anonymise_command(command))
@@ -224,7 +223,7 @@ class Core(BaseComponent):
          The order is important here ;)
 
         :param options: Additional arguments
-        :type options: `list`
+        :type options: `dict`
         :return:
         :rtype: None
         """

@@ -15,6 +15,6 @@ def run(PluginInfo):
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     Content = plugin_helper.TransactionTableForURL(True, URL, Method='TRACE')
     resource = ServiceLocator.get_component("resource")
-    Content += plugin_helper.CommandDump('Test Command', 'Output', resource.GetResources('ActiveHTTPMethods'),
+    Content += plugin_helper.CommandDump('Test Command', 'Output', resource.get_resources('ActiveHTTPMethods'),
                                          PluginInfo, Content)
     return Content

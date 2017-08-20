@@ -9,6 +9,6 @@ DESCRIPTION = " HTTP Rpc Probing "
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('HttpRpcProbeMethods')
+    resource = ServiceLocator.get_component("resource").get_resources('HttpRpcProbeMethods')
     # No previous output
     return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource, PluginInfo, [])

@@ -1,3 +1,10 @@
+"""
+owtf.dependency_management.interfaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Implements abstract interfaces for different services to build on
+"""
+
 from abc import abstractmethod, abstractproperty
 
 
@@ -505,7 +512,7 @@ class TargetInterface(AbstractInterface):
 class ConfigInterface(AbstractInterface):
 
     @abstractmethod
-    def CleanUpForTarget(self):
+    def cleanup_target_dirs(self):
         pass
 
     @abstractmethod
@@ -513,11 +520,11 @@ class ConfigInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def CreateOutputDirForTarget(self):
+    def create_output_dir_target(self):
         pass
 
     @abstractmethod
-    def DeriveConfigFromURL(self):
+    def derive_config_from_url(self):
         pass
 
     @abstractmethod
@@ -529,23 +536,23 @@ class ConfigInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def FrameworkConfigGetLogPath(self):
+    def get_log_path(self):
         pass
 
     @abstractmethod
-    def FrameworkConfigGetLogsDir(self):
+    def get_logs_dir(self):
         pass
 
     @abstractmethod
-    def GetAsList(self):
+    def get_as_list(self):
         pass
 
     @abstractmethod
-    def GetFrameworkConfigDict(self):
+    def get_framework_config_dict(self):
         pass
 
     @abstractmethod
-    def GetHeaderList(self):
+    def get_header_list(self):
         pass
 
     @abstractmethod
@@ -553,19 +560,19 @@ class ConfigInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def GetOutputDirForTarget(self):
+    def get_target_dir(self):
         pass
 
     @abstractmethod
-    def GetOutputDirForTargets(self):
+    def get_output_dir_target(self):
         pass
 
     @abstractmethod
-    def GetReplacementDict(self):
+    def get_replacement_dict(self):
         pass
 
     @abstractmethod
-    def GetResources(self):
+    def get_resources(self):
         pass
 
     @abstractmethod
@@ -577,7 +584,7 @@ class ConfigInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def IsSet(self):
+    def is_set(self):
         pass
 
     @abstractmethod

@@ -253,7 +253,7 @@ def main(args):
         exit(-1)
 
     args = process_options(args[1:])
-    ServiceLocator.get_component("config").ProcessOptionsPhase1(args)
+    ServiceLocator.get_component("config").process_phase1(args)
     ComponentInitialiser.initialisation_phase_2(args)
 
     # Initialise Framework.

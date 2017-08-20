@@ -8,11 +8,11 @@ DESCRIPTION = "robots.txt analysis through third party sites"
 def run(PluginInfo):
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     resource = ServiceLocator.get_component("resource")
-    Content = plugin_helper.RequestLinkList('Passive Analysis Results', resource.GetResources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
-    Content += plugin_helper.ResourceLinkList('Online Resources', resource.GetResources('PassiveRobotsAnalysisLinks'))
+    Content = plugin_helper.RequestLinkList('Passive Analysis Results', resource.get_resources('PassiveRobotsAnalysisHTTPRequests'), PluginInfo)
+    Content += plugin_helper.ResourceLinkList('Online Resources', resource.get_resources('PassiveRobotsAnalysisLinks'))
     # Try to retrieve the robots.txt file from all defined resources
     Count = 0
-    for Name, Resource in resource.GetResources('PassiveRobots'):
+    for Name, Resource in resource.get_resources('PassiveRobots'):
         URL = Resource  # Just for clarity
         # Preparing link chunks for disallowed entries
         LinkStart, LinkFinish = URL.split('/robots.txt')

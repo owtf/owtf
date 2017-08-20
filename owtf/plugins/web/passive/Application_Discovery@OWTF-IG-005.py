@@ -11,11 +11,11 @@ DESCRIPTION = "Third party discovery resources"
 def run(PluginInfo):
     resource = ServiceLocator.get_component("resource")
     Content = ServiceLocator.get_component("plugin_helper").TabbedResourceLinkList([
-        ['DNS', resource.GetResources('PassiveAppDiscoveryDNS')],
-        ['WHOIS', resource.GetResources('PassiveAppDiscoveryWHOIS')],
-        ['DB Lookups', resource.GetResources('PassiveAppDiscoveryDbLookup')],
-        ['Ping', resource.GetResources('PassiveAppDiscoveryPing')],
-        ['Traceroute', resource.GetResources('PassiveAppDiscoveryTraceroute')],
-        ['Misc', resource.GetResources('PassiveAppDiscoveryMisc')]
+        ['DNS', resource.get_resources('PassiveAppDiscoveryDNS')],
+        ['WHOIS', resource.get_resources('PassiveAppDiscoveryWHOIS')],
+        ['DB Lookups', resource.get_resources('PassiveAppDiscoveryDbLookup')],
+        ['Ping', resource.get_resources('PassiveAppDiscoveryPing')],
+        ['Traceroute', resource.get_resources('PassiveAppDiscoveryTraceroute')],
+        ['Misc', resource.get_resources('PassiveAppDiscoveryMisc')]
     ])
     return Content

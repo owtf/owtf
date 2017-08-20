@@ -51,7 +51,7 @@ class ConfigDB(BaseComponent, DBConfigInterface):
     def Get(self, Key):
         obj = self.db.session.query(models.ConfigSetting).get(Key)
         if obj:
-            return self.config.MultipleReplace(obj.value, self.config.GetReplacementDict())
+            return self.config.MultipleReplace(obj.value, self.config.get_replacement_dict())
         else:
             return None
 
@@ -100,7 +100,7 @@ class ConfigDB(BaseComponent, DBConfigInterface):
         config_dicts = self.DeriveConfigDicts(results)
         for config_dict in config_dicts:
             config_dict["value"] = self.config.MultipleReplace(
-                config_dict["value"], self.config.GetReplacementDict())
+                config_dict["value"], self.config.get_replacement_dict())
         return config_dicts
 
     def GetSections(self):

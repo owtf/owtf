@@ -83,7 +83,7 @@ class TargetDB(BaseComponent, TargetInterface):
                                                   target_config['host_ip'])
         path_config['port_output'] = os.path.join(path_config['host_output'], target_config['port_number'])
         # Set the URL output directory (plugins will save their data here).
-        path_config['url_output'] = os.path.join(self.config.GetOutputDirForTarget(target_config['target_url']))
+        path_config['url_output'] = os.path.join(self.config.get_target_dir(target_config['target_url']))
         # Set the partial results path.
         path_config['partial_url_output_path'] = os.path.join(path_config['url_output'], 'partial')
         return path_config
@@ -131,7 +131,7 @@ class TargetDB(BaseComponent, TargetInterface):
         if target_url not in self.GetTargetURLs():
             # A try-except can be used here, but then ip-resolution takes time
             # even if target is present
-            target_config = self.config.DeriveConfigFromURL(target_url)
+            target_config = self.config.derive_config_from_url(target_url)
             # ----------- Target model object creation -----------
             config_obj = models.Target(target_url=target_url)
             config_obj.host_name = target_config["host_name"]
@@ -186,10 +186,10 @@ class TargetDB(BaseComponent, TargetInterface):
         target_url = target_obj.target_url
         self.db.session.delete(target_obj)
         self.db.session.commit()
-        self.config.CleanUpForTarget(target_url)
+        self.config.cleanup_target_dirs(target_url)
 
     def CreateMissingDBsForURL(self, TargetURL):
-        self.config.CreateOutputDirForTarget(TargetURL)
+        self.config.create_output_dir_target(TargetURL)
 
     def GetTargetURLForID(self, ID):
         target_obj = self.db.session.query(models.Target).get(ID)

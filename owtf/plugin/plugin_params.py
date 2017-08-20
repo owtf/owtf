@@ -67,7 +67,7 @@ class PluginParams(BaseComponent):
     def DefaultArgFromConfig(self, Args, ArgName, SettingList):
         DefaultOrderStr = " (Default order is: %s)" % str(SettingList)
         for Setting in SettingList:
-            if self.config.IsSet(Setting):  # Argument is set in config
+            if self.config.is_set(Setting):  # Argument is set in config
                 Args[ArgName] = self.config.FrameworkConfigGet(Setting)
                 cprint("Defaulted not passed '%s' to '%s'%s" % (ArgName, str(Args[ArgName]), DefaultOrderStr))
                 return True
@@ -128,7 +128,7 @@ class PluginParams(BaseComponent):
     def SetConfig(self, Args):
         for ArgName, ArgValue in Args.items():
             cprint("Overriding configuration setting '_%s' with value %s.." % (ArgName, str(ArgValue)))
-            self.config.SetGeneral('string', '%s_' % ArgName, ArgValue)  # Pre-pend "_" to avoid naming collisions
+            self.config.set_general_val('string', '%s_' % ArgName, ArgValue)  # Pre-pend "_" to avoid naming collisions
 
     def GetPermutations(self, Args):
         Permutations = defaultdict(list)

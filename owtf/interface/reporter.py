@@ -107,7 +107,7 @@ class Reporter(BaseComponent, ReporterInterface):
         """
         Draws an HTML Search box for defined Vuln Search resources
         """
-        VulnSearchResources = self.resource.GetResources('VulnSearch')
+        VulnSearchResources = self.resource.get_resources('VulnSearch')
         return self.Loader.load("vulnerability_search_box.html").generate(SearchStr=SearchStr,
                                                                           VulnSearchResources=VulnSearchResources)
 
@@ -119,7 +119,7 @@ class Reporter(BaseComponent, ReporterInterface):
         CommandList = []
         for item in CommandCategoryList:
             TitleList.append(item[0])
-            CommandList.append(self.resource.GetResources(item[1]))
+            CommandList.append(self.resource.get_resources(item[1]))
         # TODO: Fix up the plugin
         return self.Loader.load("suggested_command_box.html").generate(Header=Header, TitleList=TitleList,
                                                                        CommandList=CommandList)

@@ -309,10 +309,10 @@ class TransactionManager(BaseComponent, TransactionInterface):
         return re.compile(regexp, re.IGNORECASE | re.DOTALL)
 
     def CompileRegexs(self):
-        for key in self.config.GetFrameworkConfigDict().keys():
+        for key in self.config.get_framework_config_dict().keys():
             key = key[3:-3]  # Remove "@@@"
             if key.startswith('HEADERS'):
-                header_list = self.config.GetHeaderList(key)
+                header_list = self.config.get_header_list(key)
                 self.regexs['HEADERS'][key] = self.CompileHeaderRegex(header_list)
             elif key.startswith('RESPONSE'):
                 RegexpName, GrepRegexp, PythonRegexp = self.config.FrameworkConfigGet(key).split('_____')

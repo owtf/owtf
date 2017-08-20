@@ -168,7 +168,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         for plugin in query.all():
             # First check if path exists in db
             if plugin.output_path:
-                output_path = os.path.join(self.config.GetOutputDirForTargets(), plugin.output_path)
+                output_path = os.path.join(self.config.get_output_dir_target(), plugin.output_path)
                 if os.path.exists(output_path):
                     FileOperations.rm_tree(output_path)
         # When folders are removed delete the results from db

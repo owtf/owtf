@@ -12,6 +12,6 @@ def run(PluginInfo):
     return ServiceLocator.get_component("plugin_helper").CommandDump(
         'Test Command',
         'Output',
-        ServiceLocator.get_component("resource").GetResources('DomainBruteForcing'),
+        ServiceLocator.get_component("resource").get_resources('DomainBruteForcing'),
         PluginInfo,
         "")  # No previous output

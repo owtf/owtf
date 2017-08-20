@@ -9,7 +9,7 @@ DESCRIPTION = "Active probing for app discovery"
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('ActiveDiscovery')
+    resource = ServiceLocator.get_component("resource").get_resources('ActiveDiscovery')
     # No previous output
     return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output',
                                                                      resource, PluginInfo, [])
