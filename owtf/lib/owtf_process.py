@@ -1,5 +1,7 @@
-#!/usr/bin/env python
 """
+owtf.lib.owtf_process
+~~~~~~~~~~~~~~~~~~~~~
+
 Consists of owtf process class and its manager
 """
 
@@ -24,7 +26,7 @@ class OWTFProcess(Process, BaseComponent):
         self.plugin_handler = self.get_component("plugin_handler")
         self.poison_q = Queue()
         self._process = None
-        for key in kwargs.keys():  # Attach all kwargs to self
+        for key in list(kwargs.keys()):  # Attach all kwargs to self
             setattr(self, key, kwargs.get(key, None))
         super(OWTFProcess, self).__init__()
 
@@ -35,10 +37,18 @@ class OWTFProcess(Process, BaseComponent):
         pass
 
     def run(self):
-        """
-        This method must not be overridden by user
+        """This method must not be overridden by user
+
+        .note::
+
         + Set proper logger with file handler and Formatter
         + Launch process specific code
+
+        :return: None
+        :rtype: None
+        """
+        """
+
         """
         try:
             # ------ DB Reinitialization ------ #

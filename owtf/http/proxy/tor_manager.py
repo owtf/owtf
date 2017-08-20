@@ -36,10 +36,10 @@ class TOR_manager(BaseComponent):
             except ValueError:
                 self.error_handler.abort_framework("Invalid TOR port")
         if args[2] == '':
-            self.TOR_control_port = 9051
+            self.tor_control_port = 9051
         else:
             try:
-                self.TOR_control_port = int(args[2])
+                self.tor_control_port = int(args[2])
             except ValueError:
                 self.error_handler.abort_framework("Invalid TOR Controlport")
         if args[3] == '':
@@ -56,13 +56,13 @@ class TOR_manager(BaseComponent):
             if self.time < 1:
                 self.error_handler.abort_framework("Invalid TOR Time")
 
-        self.TOR_Connection = self.Open_connection()
+        self.tor_conn = self.Open_connection()
         self.Authenticate()
 
     # This function is handling the authentication process to TOR control connection.
     def Authenticate(self):
-        self.TOR_Connection.send('AUTHENTICATE "%s"\r\n' % self.password)
-        response = self.TOR_Connection.recv(1024)
+        self.tor_conn.send('AUTHENTICATE "%s"\r\n' % self.password)
+        response = self.tor_conn.recv(1024)
         if response.startswith('250'):  # 250 is the success response
             cprint("Successfully Authenticated to TOR control")
         else:
@@ -72,15 +72,15 @@ class TOR_manager(BaseComponent):
     def Open_connection(self):
         try:
             s = socket.socket()
-            s.connect((self.ip, self.TOR_control_port))
+            s.connect((self.ip, self.tor_control_port))
             cprint("Connected to TOR control")
             return s
         except Exception as error:
             self.error_handler.abort_framework("Can't connect to the TOR daemon : %s" % error.strerror)
 
     # Starts a new TOR_control_process which will renew the IP address.
-    def Run(self):
-        tor_ctrl_proc = Process(target=TOR_control_process, args=(self,))
+    def run(self):
+        tor_ctrl_proc = Process(target=tor_control_process, args=(self,))
         tor_ctrl_proc.start()
         return tor_ctrl_proc
 
@@ -124,9 +124,9 @@ class TOR_manager(BaseComponent):
 
     # Sends an NEWNYM message to TOR control in order to renew the IP address
     def renew_ip(self):
-        self.TOR_Connection.send("signal NEWNYM\r\n")
-        responce = self.TOR_Connection.recv(1024)
-        if responce.startswith('250'):
+        self.tor_conn.send("signal NEWNYM\r\n")
+        response = self.tor_conn.recv(1024)
+        if response.startswith('250'):
             cprint("TOR : IP renewed")
             return True
         else:
@@ -135,7 +135,7 @@ class TOR_manager(BaseComponent):
 
 
 # This will run in a new process in order to renew the IP address after certain time.
-def TOR_control_process(self):
+def tor_control_process(self):
     while 1:
         while self.renew_ip() is True:
             time.sleep(self.time * 60)  # time converted in minutes

@@ -71,7 +71,7 @@ class Core(BaseComponent):
         """
         tmp_dir = os.path.join('/tmp', 'owtf')
         if not os.path.exists(tmp_dir):
-            tmp_dir = os.path.join(tmp_dir, str(self.config.OwtfPid))
+            tmp_dir = os.path.join(tmp_dir, str(self.config.owtf_pid))
             if not os.path.exists(tmp_dir):
                 FileOperations.make_dirs(tmp_dir)
 
@@ -81,8 +81,8 @@ class Core(BaseComponent):
         :return:
         :rtype: None
         """
-        curr_tmp_dir = os.path.join('/tmp', 'owtf', str(self.config.OwtfPid))
-        new_tmp_dir = os.path.join('/tmp', 'owtf', 'old-%d' % self.config.OwtfPid)
+        curr_tmp_dir = os.path.join('/tmp', 'owtf', str(self.config.owtf_pid))
+        new_tmp_dir = os.path.join('/tmp', 'owtf', 'old-%d' % self.config.owtf_pid)
         if os.path.exists(curr_tmp_dir) and os.access(curr_tmp_dir, os.W_OK):
             os.rename(curr_tmp_dir, new_tmp_dir)
 

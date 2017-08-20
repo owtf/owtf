@@ -1,7 +1,7 @@
-# taken from https://github.com/ilastik/lazyflow/blob/master/lazyflow/utility/fileLock.py
-# original version from http://www.evanfosmark.com/2009/01/cross-platform-file-locking-support-in-python/
-
 """
+owtf.lib.filelock
+~~~~~~~~~~~~~~~~~
+
 Implementation of a simple cross-platform file locking mechanism.
 This is a modified version of code retrieved on 2013-01-01 from
 http://www.evanfosmark.com/2009/01/cross-platform-file-locking-support-in-python.
@@ -22,6 +22,9 @@ Modifications in this version:
    context manager.
    - Added ``locked()`` function.
    - Added blocking parameter to ``acquire()`` method
+
+# taken from https://github.com/ilastik/lazyflow/blob/master/lazyflow/utility/fileLock.py
+# original version from http://www.evanfosmark.com/2009/01/cross-platform-file-locking-support-in-python/
 """
 
 import os
@@ -54,24 +57,34 @@ class FileLock(object):
                 self._lock_file_contents += arg + "\n"
 
     def locked(self):
-        """
-        Returns True iff the file is owned by THIS FileLock instance.
+        """Returns True iff the file is owned by THIS FileLock instance.
         (Even if this returns false, the file could be owned by another FileLock instance,
         possibly in a different thread or process).
+
+        :return: True if file owned by Filelock instance
+        :rtype: `bool`
         """
         return self.is_locked
 
     def available(self):
-        """
-        Returns True iff the file is currently available to be locked.
+        """Returns True iff the file is currently available to be locked.
+
+        :return: True if lockfile is available
+        :rtype: `bool`
         """
         return not os.path.exists(self.lockfile)
 
     def acquire(self, blocking=True):
-        """ Acquire the lock, if possible. If the lock is in use, and `blocking` is False, return False.
+        """Acquire the lock, if possible. If the lock is in use, and `blocking` is False, return False.
             Otherwise, check again every `self.delay` seconds until it either gets the lock or
             exceeds `timeout` number of seconds, in which case it raises an exception.
+
+        :param blocking: File blocked or not
+        :type blocking: `bool`
+        :return: True if lock is acquired, else False
+        :rtype: `bool`
         """
+
         start_time = time.time()
         while True:
             try:
@@ -94,9 +107,12 @@ class FileLock(object):
         return True
 
     def release(self):
-        """ Get rid of the lock by deleting the lockfile.
+        """Get rid of the lock by deleting the lockfile.
             When working in a `with` statement, this gets automatically
             called at the end.
+
+        :return: None
+        :rtype: None
         """
         self.is_locked = False
         os.unlink(self.lockfile)

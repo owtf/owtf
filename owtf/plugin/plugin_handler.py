@@ -137,9 +137,9 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         # Organise results by OWASP Test type and then active, passive, semi_passive
         if ((Plugin['group'] == 'web') or (Plugin['group'] == 'network')):
             return os.path.join(self.target.GetPath('partial_url_output_path'),
-                                WipeBadCharsForFilename(Plugin['title']), Plugin['type'])
+                                wipe_bad_chars(Plugin['title']), Plugin['type'])
         elif Plugin['group'] == 'auxiliary':
-            return os.path.join(self.config.get_val('AUX_OUTPUT_PATH'), WipeBadCharsForFilename(Plugin['title']),
+            return os.path.join(self.config.get_val('AUX_OUTPUT_PATH'), wipe_bad_chars(Plugin['title']),
                                 Plugin['type'])
 
     def RequestsPossible(self):

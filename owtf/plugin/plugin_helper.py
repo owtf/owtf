@@ -129,7 +129,7 @@ class PluginHelper(BaseComponent):
         PluginOutputDir = self.plugin_handler.GetPluginOutputDir(PluginInfo)
         # FULL output path for plugins to use
         self.target.SetPath('plugin_output_dir', "%s/%s" % (os.getcwd(), PluginOutputDir))
-        self.shell.RefreshReplacements()  # Get dynamic replacement, i.e. plugin-specific output directory
+        self.shell.refresh_replacements()  # Get dynamic replacement, i.e. plugin-specific output directory
         return PluginOutputDir
 
     def InitPluginOutputDir(self, PluginInfo):

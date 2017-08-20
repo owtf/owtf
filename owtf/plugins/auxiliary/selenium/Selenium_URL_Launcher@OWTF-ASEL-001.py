@@ -29,5 +29,5 @@ def run(PluginInfo):
             'BASE_URL': Args['BASE_URL'],
             'INPUT_FILE': InputFile
         })
-        URLLauncher.Run()
+        URLLauncher.run()
     return Content

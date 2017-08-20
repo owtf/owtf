@@ -224,7 +224,7 @@ class ShellInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def RefreshReplacements(self):
+    def refresh_replacements(self):
         pass
 
     @abstractmethod
@@ -592,7 +592,7 @@ class ConfigInterface(AbstractInterface):
         pass
 
     @abstractproperty
-    def OwtfPid(self):
+    def owtf_pid(self):
         pass
 
     @abstractmethod

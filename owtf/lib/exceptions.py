@@ -1,5 +1,7 @@
-#!/usr/bin/env python
 """
+owtf.lib.exceptions
+~~~~~~~~~~~~~~~~~~~
+
 Declares the framework exceptions.
 """
 

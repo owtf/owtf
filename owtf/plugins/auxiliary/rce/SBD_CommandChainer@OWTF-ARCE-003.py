@@ -49,7 +49,7 @@ def run(PluginInfo):
             }, PluginInfo)
         else:
             OWTFLogger.log("Reusing initial connection..")
-        Content += ServiceLocator.get_component("interactive_shell").Run(
+        Content += ServiceLocator.get_component("interactive_shell").run(
             Args['COMMAND_PREFIX'] + Args['TEST'] + Args['COMMAND_SUFFIX'], PluginInfo)
         OWTFLogger.log("Sleeping " + DELAY_BETWEEN_COMMANDS + " second(s) (increases reliability)..")
         time.sleep(int(DELAY_BETWEEN_COMMANDS))

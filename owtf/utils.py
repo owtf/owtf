@@ -13,7 +13,7 @@ import tempfile
 from ipaddr import IPAddress
 
 from owtf.dependency_management.dependency_resolver import ServiceLocator
-from owtf.lib.general import WipeBadCharsForFilename
+from owtf.lib.general import wipe_bad_chars
 
 
 class OutputCleaner():
@@ -133,7 +133,7 @@ class FileOperations(object):
         :return: The final full path of the created file
         :rtype: `str`
         """
-        save_path = os.path.join(directory, WipeBadCharsForFilename(filename))
+        save_path = os.path.join(directory, wipe_bad_chars(filename))
         FileOperations.create_missing_dirs(directory)
         with FileOperations.codecs_open(save_path, 'wb', 'utf-8') as f:
             f.write(contents.decode('utf-8', 'replace'))

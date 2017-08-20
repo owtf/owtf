@@ -46,7 +46,7 @@ def run(PluginInfo):
         Args['ATTACHMENT_NAME'] = Args['ATTACHMENT_NAME'] + "_" + Args['PHISHING_PAYLOAD'] + "-" + \
             Args['SET_EMAIL_TEMPLATE']
         plugin_params.SetConfig(Args)  # Only now, after modifying ATTACHMENT_NAME, update config
-        Content += ServiceLocator.get_component("spear_phishing").Run(Args, PluginInfo)
+        Content += ServiceLocator.get_component("spear_phishing").run(Args, PluginInfo)
     resource = ServiceLocator.get_component("config").get_resources('SendPhishingAttackviaSET')
     Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
                                                                          PluginInfo, Content)
