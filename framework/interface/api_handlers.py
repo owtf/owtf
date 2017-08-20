@@ -52,39 +52,28 @@ class PluginDataHandler(custom_handlers.APIRequestHandler):
 class PluginNameOutput(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
-    def get(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
+    def get(self, target_id=None):
+        """Retrieve scan results for a target.
+
+        :return: {code: {data: [], details: {}}, code2: {data: [], details: {}} }
+
+        This API doesn't return `output` section as part of optimization.
+        `data` is array of scan results according to `plugin_types`.
+        `details` contains info about `code`.
+
+        """
         try:
             filter_data = dict(self.request.arguments)
-            if plugin_group and not plugin_type:
-                filter_data.update({"plugin_group": plugin_group})
-            if plugin_type and plugin_group and (not plugin_code):
-                if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
-                    raise tornado.web.HTTPError(400)
-                filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
-            if plugin_type and plugin_group and plugin_code:
-                if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
-                    raise tornado.web.HTTPError(400)
-                filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code})
             results = self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id), inc_output=False)
 
             # Get mappings
-            if self.get_argument("mapping", None):
-                mappings = self.get_component("mapping_db").GetMappings(self.get_argument("mapping", None))
-            else:
-                mappings = None
+            mappings = self.get_component("mapping_db").get_all_mappings()
 
-            ## Get test groups as well, for names and info links
-            test_groups = {}
-            for test_group in self.get_component("db_plugin").GetAllTestGroups():
-                test_group["mapped_code"] = test_group["code"]
-                test_group["mapped_descrip"] = test_group["descrip"]
-                if mappings:
-                    try:
-                        test_group["mapped_code"] = mappings[test_group['code']][0]
-                        test_group["mapped_descrip"] = mappings[test_group['code']][1]
-                    except KeyError:
-                        pass
-                test_groups[test_group['code']] = test_group
+            # Get test groups as well, for names and info links
+            groups = {}
+            for group in self.get_component("db_plugin").GetAllTestGroups():
+                group['mappings'] = mappings.get(group['code'], {})
+                groups[group['code']] = group
 
             dict_to_return = {}
             for item in results:
@@ -95,7 +84,7 @@ class PluginNameOutput(custom_handlers.UIRequestHandler):
                     ini_list.append(item)
                     dict_to_return[item["plugin_code"]] = {}
                     dict_to_return[item["plugin_code"]]["data"] = ini_list
-                    dict_to_return[item["plugin_code"]]["details"] = test_groups[item["plugin_code"]]
+                    dict_to_return[item["plugin_code"]]["details"] = groups[item["plugin_code"]]
             dict_to_return = collections.OrderedDict(sorted(dict_to_return.items()))
             if results:
                 self.write(dict_to_return)
