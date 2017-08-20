@@ -14,12 +14,12 @@ def run(PluginInfo):
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {
-            'RHOST': config.FrameworkConfigGet('RHOST_DESCRIP'),
-            'RPORT': config.FrameworkConfigGet('RPORT_DESCRIP')
+            'RHOST': config.get_val('RHOST_DESCRIP'),
+            'RPORT': config.get_val('RPORT_DESCRIP')
         },
         'Optional': {
             'CATEGORY': 'Category to use (i.e. ' + ', '.join(sorted(CATEGORIES)) + ')',
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+            'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')
         }
     }
     for Args in plugin_params.GetArgs(args, PluginInfo):

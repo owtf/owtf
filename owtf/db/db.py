@@ -103,7 +103,7 @@ class DB(BaseComponent, DBInterface):
 
     def _get_db_settings(self):
         """Create DB settings according to the configuration file."""
-        config_path = os.path.expanduser(self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'))
+        config_path = os.path.expanduser(self.config.get_val('DATABASE_SETTINGS_FILE'))
         settings = {}
         with FileOperations.open(config_path, 'r') as f:
             for line in f:
@@ -138,10 +138,10 @@ class DB(BaseComponent, DBInterface):
         except ValueError as e:  # Potentially corrupted DB config.
             self.error_handler.abort_framework(
                 "Database configuration file is potentially corrupted. Please check %s\n[DB] %s" %
-                (self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'), str(e)))
+                (self.config.get_val('DATABASE_SETTINGS_FILE'), str(e)))
         except KeyError:  # Indicates incomplete db config file
             self.error_handler.abort_framework("Incomplete database configuration settings in %s" %
-                                               self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'))
+                                               self.config.get_val('DATABASE_SETTINGS_FILE'))
         except exc.OperationalError as e:
             self.error_handler.abort_framework("[DB] %s\nRun scripts/db_run.sh to start/setup db" % str(e))
 

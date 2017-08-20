@@ -68,7 +68,7 @@ class PluginParams(BaseComponent):
         DefaultOrderStr = " (Default order is: %s)" % str(SettingList)
         for Setting in SettingList:
             if self.config.is_set(Setting):  # Argument is set in config
-                Args[ArgName] = self.config.FrameworkConfigGet(Setting)
+                Args[ArgName] = self.config.get_val(Setting)
                 cprint("Defaulted not passed '%s' to '%s'%s" % (ArgName, str(Args[ArgName]), DefaultOrderStr))
                 return True
         cprint("Could not default not passed: '%s'%s" % (ArgName, DefaultOrderStr))

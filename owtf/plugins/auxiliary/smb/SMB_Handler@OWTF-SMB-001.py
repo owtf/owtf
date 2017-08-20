@@ -13,16 +13,16 @@ def run(PluginInfo):
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {
-            'SMB_HOST': config.FrameworkConfigGet('SMB_HOST_DESCRIP'),
-            'SMB_SHARE': config.FrameworkConfigGet('SMB_SHARE_DESCRIP'),
-            'SMB_MOUNT_POINT': config.FrameworkConfigGet('SMB_MOUNT_POINT_DESCRIP'),
+            'SMB_HOST': config.get_val('SMB_HOST_DESCRIP'),
+            'SMB_SHARE': config.get_val('SMB_SHARE_DESCRIP'),
+            'SMB_MOUNT_POINT': config.get_val('SMB_MOUNT_POINT_DESCRIP'),
         },
         'Optional': {
-            'SMB_USER': config.FrameworkConfigGet('SMB_USER_DESCRIP'),
-            'SMB_PASS': config.FrameworkConfigGet('SMB_PASS_DESCRIP'),
-            'SMB_DOWNLOAD': config.FrameworkConfigGet('SMB_DOWNLOAD_DESCRIP'),
-            'SMB_UPLOAD': config.FrameworkConfigGet('SMB_UPLOAD_DESCRIP'),
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+            'SMB_USER': config.get_val('SMB_USER_DESCRIP'),
+            'SMB_PASS': config.get_val('SMB_PASS_DESCRIP'),
+            'SMB_DOWNLOAD': config.get_val('SMB_DOWNLOAD_DESCRIP'),
+            'SMB_UPLOAD': config.get_val('SMB_UPLOAD_DESCRIP'),
+            'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')
         }
     }
 

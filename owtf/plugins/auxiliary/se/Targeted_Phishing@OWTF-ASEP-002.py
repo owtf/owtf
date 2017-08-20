@@ -13,19 +13,19 @@ def run(PluginInfo):
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {
-            'EMAIL_TARGET': config.FrameworkConfigGet('EMAIL_TARGET_DESCRIP'),
-            'EMAIL_FROM': config.FrameworkConfigGet('EMAIL_FROM_DESCRIP'),
-            'SMTP_LOGIN': config.FrameworkConfigGet('SMTP_LOGIN_DESCRIP'),
-            'SMTP_PASS': config.FrameworkConfigGet('SMTP_PASS_DESCRIP'),
-            'SMTP_HOST': config.FrameworkConfigGet('SMTP_HOST_DESCRIP'),
-            'SMTP_PORT': config.FrameworkConfigGet('SMTP_PORT_DESCRIP'),
-            'EMAIL_PRIORITY': config.FrameworkConfigGet('EMAIL_PRIORITY_DESCRIP'),
-            'EMAIL_SUBJECT': config.FrameworkConfigGet('EMAIL_SUBJECT_DESCRIP'),
-            'EMAIL_BODY': config.FrameworkConfigGet('EMAIL_BODY_DESCRIP'),
+            'EMAIL_TARGET': config.get_val('EMAIL_TARGET_DESCRIP'),
+            'EMAIL_FROM': config.get_val('EMAIL_FROM_DESCRIP'),
+            'SMTP_LOGIN': config.get_val('SMTP_LOGIN_DESCRIP'),
+            'SMTP_PASS': config.get_val('SMTP_PASS_DESCRIP'),
+            'SMTP_HOST': config.get_val('SMTP_HOST_DESCRIP'),
+            'SMTP_PORT': config.get_val('SMTP_PORT_DESCRIP'),
+            'EMAIL_PRIORITY': config.get_val('EMAIL_PRIORITY_DESCRIP'),
+            'EMAIL_SUBJECT': config.get_val('EMAIL_SUBJECT_DESCRIP'),
+            'EMAIL_BODY': config.get_val('EMAIL_BODY_DESCRIP'),
         },
         'Optional': {
-            'EMAIL_ATTACHMENT': config.FrameworkConfigGet('EMAIL_ATTACHMENT_DESCRIP'),
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+            'EMAIL_ATTACHMENT': config.get_val('EMAIL_ATTACHMENT_DESCRIP'),
+            'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')
         }
     }
 

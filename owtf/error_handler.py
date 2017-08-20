@@ -185,9 +185,9 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
         data = json.dumps(data)  # Converted to string.
         headers = {
             "Content-Type": "application/json",
-            "Authorization": "token " + self.config.FrameworkConfigGet("GITHUB_BUG_REPORTER_TOKEN")
+            "Authorization": "token " + self.config.get_val("GITHUB_BUG_REPORTER_TOKEN")
         }
-        request = requests.post(self.config.FrameworkConfigGet("GITHUB_API_ISSUES_URL"), headers=headers, data=data)
+        request = requests.post(self.config.get_val("GITHUB_API_ISSUES_URL"), headers=headers, data=data)
         response = request.json()
         if request.status_code == 201:
             self.db_error.UpdateAfterGitHubReport(id, body, True, response["html_url"])

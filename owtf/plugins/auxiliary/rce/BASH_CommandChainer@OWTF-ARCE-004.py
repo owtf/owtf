@@ -16,20 +16,20 @@ def run(PluginInfo):
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {
-            'RHOST': config.FrameworkConfigGet('RHOST_DESCRIP'),
-            'SBD_PORT': config.FrameworkConfigGet('SBD_PORT_DESCRIP'),
-            'SBD_PASSWORD': config.FrameworkConfigGet('SBD_PASSWORD_DESCRIP'),
+            'RHOST': config.get_val('RHOST_DESCRIP'),
+            'SBD_PORT': config.get_val('SBD_PORT_DESCRIP'),
+            'SBD_PASSWORD': config.get_val('SBD_PASSWORD_DESCRIP'),
             'COMMAND_PREFIX': 'The command string to be pre-pended to the tests (i.e. /usr/lib/firefox... http...)',
         },
         'Optional': {
             'TEST': 'The test to be included between prefix and suffix',
             'COMMAND_SUFFIX': 'The URL to be appended to the tests (i.e. ...whatever)',
-            'ISHELL_REUSE_CONNECTION': config.FrameworkConfigGet('ISHELL_REUSE_CONNECTION_DESCRIP'),
-            'ISHELL_EXIT_METHOD': config.FrameworkConfigGet('ISHELL_EXIT_METHOD_DESCRIP'),
-            'ISHELL_DELAY_BETWEEN_COMMANDS': config.FrameworkConfigGet('ISHELL_DELAY_BETWEEN_COMMANDS_DESCRIP'),
-            'ISHELL_COMMANDS_BEFORE_EXIT': config.FrameworkConfigGet('ISHELL_COMMANDS_BEFORE_EXIT_DESCRIP'),
-            'ISHELL_COMMANDS_BEFORE_EXIT_DELIM': config.FrameworkConfigGet('ISHELL_COMMANDS_BEFORE_EXIT_DELIM_DESCRIP'),
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+            'ISHELL_REUSE_CONNECTION': config.get_val('ISHELL_REUSE_CONNECTION_DESCRIP'),
+            'ISHELL_EXIT_METHOD': config.get_val('ISHELL_EXIT_METHOD_DESCRIP'),
+            'ISHELL_DELAY_BETWEEN_COMMANDS': config.get_val('ISHELL_DELAY_BETWEEN_COMMANDS_DESCRIP'),
+            'ISHELL_COMMANDS_BEFORE_EXIT': config.get_val('ISHELL_COMMANDS_BEFORE_EXIT_DESCRIP'),
+            'ISHELL_COMMANDS_BEFORE_EXIT_DELIM': config.get_val('ISHELL_COMMANDS_BEFORE_EXIT_DELIM_DESCRIP'),
+            'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')
         }
     }
 

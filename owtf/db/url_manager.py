@@ -24,11 +24,11 @@ class URLManager(BaseComponent, URLManagerInterface):
         self.target = self.get_component("target")
         self.db = self.get_component("db")
         # Compile regular expressions once at the beginning for speed purposes:
-        self.IsFileRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_FILE_URL'), re.IGNORECASE)
-        self.IsSmallFileRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_SMALL_FILE_URL'), re.IGNORECASE)
-        self.IsImageRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_IMAGE_URL'), re.IGNORECASE)
-        self.IsURLRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_VALID_URL'), re.IGNORECASE)
-        self.IsSSIRegexp = re.compile(self.config.FrameworkConfigGet('REGEXP_SSI_URL'), re.IGNORECASE)
+        self.IsFileRegexp = re.compile(self.config.get_val('REGEXP_FILE_URL'), re.IGNORECASE)
+        self.IsSmallFileRegexp = re.compile(self.config.get_val('REGEXP_SMALL_FILE_URL'), re.IGNORECASE)
+        self.IsImageRegexp = re.compile(self.config.get_val('REGEXP_IMAGE_URL'), re.IGNORECASE)
+        self.IsURLRegexp = re.compile(self.config.get_val('REGEXP_VALID_URL'), re.IGNORECASE)
+        self.IsSSIRegexp = re.compile(self.config.get_val('REGEXP_SSI_URL'), re.IGNORECASE)
 
     def IsRegexpURL(self, URL, Regexp):
         return len(Regexp.findall(URL)) > 0

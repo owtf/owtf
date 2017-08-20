@@ -528,7 +528,7 @@ class ConfigInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def FrameworkConfigGet(self):
+    def get_val(self):
         pass
 
     @abstractmethod

@@ -35,7 +35,6 @@ class TransactionManager(BaseComponent, TransactionInterface):
         self.db = self.get_component("db")
         self.target = self.get_component("target")
         self.url_manager = self.get_component("url_manager")
-        self.zest = self.get_component("zest")
         self.regexs = defaultdict(list)
         for regex_type in REGEX_TYPES:
             self.regexs[regex_type] = {}
@@ -315,7 +314,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 header_list = self.config.get_header_list(key)
                 self.regexs['HEADERS'][key] = self.CompileHeaderRegex(header_list)
             elif key.startswith('RESPONSE'):
-                RegexpName, GrepRegexp, PythonRegexp = self.config.FrameworkConfigGet(key).split('_____')
+                RegexpName, GrepRegexp, PythonRegexp = self.config.get_val(key).split('_____')
                 self.regexs['BODY'][key] = self.CompileResponseRegex(PythonRegexp)
 
     def GrepTransaction(self, owtf_transaction):

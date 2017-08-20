@@ -12,7 +12,10 @@ import re
 import logging
 import socket
 from copy import deepcopy
-from urllib.parse import urlparse
+try: #PY3
+    from urllib.parse import urlparse
+except ImportError:  #PY2
+     from urlparse import urlparse
 from collections import defaultdict
 
 from owtf.dependency_management.dependency_resolver import BaseComponent

@@ -17,18 +17,18 @@ def run(PluginInfo):
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {
-            'RHOST': config.FrameworkConfigGet('RHOST_DESCRIP'),
-            'RPORT': config.FrameworkConfigGet('RPORT_DESCRIP'),
+            'RHOST': config.get_val('RHOST_DESCRIP'),
+            'RPORT': config.get_val('RPORT_DESCRIP'),
             'CATEGORY': 'Category to use (i.e. ' + ', '.join(sorted(CATEGORIES)) + ')'
         },
         'Optional': {
             'BRUTEFORCER': 'Bruteforcer to use (i.e. ' + ', '.join(sorted(BRUTEFORCER)) + ')',
-            'ONLINE_USER_LIST': config.FrameworkConfigGet('ONLINE_USER_LIST_DESCRIP'),
-            'ONLINE_PASSWORD_LIST': config.FrameworkConfigGet('ONLINE_PASSWORD_LIST_DESCRIP'),
-            'THREADS': config.FrameworkConfigGet('THREADS_DESCRIP'),
-            '_RESPONSE_WAIT': config.FrameworkConfigGet('_RESPONSE_WAIT_DESCRIP'),
-            'CONNECT_WAIT': config.FrameworkConfigGet('CONNECT_WAIT_DESCRIP'),
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+            'ONLINE_USER_LIST': config.get_val('ONLINE_USER_LIST_DESCRIP'),
+            'ONLINE_PASSWORD_LIST': config.get_val('ONLINE_PASSWORD_LIST_DESCRIP'),
+            'THREADS': config.get_val('THREADS_DESCRIP'),
+            '_RESPONSE_WAIT': config.get_val('_RESPONSE_WAIT_DESCRIP'),
+            'CONNECT_WAIT': config.get_val('CONNECT_WAIT_DESCRIP'),
+            'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')
         }
     }
 

@@ -260,7 +260,7 @@ def main(args):
     core = Core()
     logging.warn(
         "OWTF Version: %s, Release: %s " % (
-            ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
-            ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
+            ServiceLocator.get_component("config").get_val('VERSION'),
+            ServiceLocator.get_component("config").get_val('RELEASE'))
     )
     run_owtf(core, args)

@@ -42,7 +42,7 @@ def get_handlers():
         tornado.web.url(r'/api/worklist/search/?$', api_handlers.WorklistSearchHandler, name='worklist_search_api_url'),
         tornado.web.url(r'/api/configuration/?$', api_handlers.ConfigurationHandler, name='configuration_api_url'),
 
-        (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': config.FrameworkConfigGet('STATICFILES_DIR')}),
+        (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': config.get_val('STATICFILES_DIR')}),
         tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),
         tornado.web.url(r'/?$', ui_handlers.Redirect, name='redirect_ui_url'),
         tornado.web.url(r'/ui/?$', ui_handlers.Home, name='home_ui_url'),

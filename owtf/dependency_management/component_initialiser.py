@@ -86,7 +86,6 @@ class ComponentInitialiser():
         Timer(db_config.Get('DATE_TIME_FORMAT'))
         ServiceLocator.get_component("db_plugin").init()
         ServiceLocator.get_component("config").init()
-        ServiceLocator.get_component("zest").init()
         PluginHandler(args)
         Reporter()
         POutputDB()

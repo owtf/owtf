@@ -16,16 +16,16 @@ class InterfaceServer(OWTFProcess, BaseComponent):
         db = self.get_component("db")
         application = tornado.web.Application(
             handlers=urls.get_handlers(),
-            template_path=config.FrameworkConfigGet('INTERFACE_TEMPLATES_DIR'),
+            template_path=config.get_val('INTERFACE_TEMPLATES_DIR'),
             debug=False,
             gzip=True,
-            static_path=config.FrameworkConfigGet('STATICFILES_DIR'),
+            static_path=config.get_val('STATICFILES_DIR'),
             compiled_template_cache=False
         )
         self.server = tornado.httpserver.HTTPServer(application)
         try:
-            ui_port = int(config.FrameworkConfigGet("UI_SERVER_PORT"))
-            ui_address = config.FrameworkConfigGet("SERVER_ADDR")
+            ui_port = int(config.get_val("UI_SERVER_PORT"))
+            ui_address = config.get_val("SERVER_ADDR")
             self.server.bind(ui_port, address=ui_address)
             tornado.options.parse_command_line(
                 args=['dummy_arg', '--log_file_prefix=%s' % db_config.Get('UI_SERVER_LOG'), '--logging=info'])
@@ -46,14 +46,14 @@ class FileServer(BaseComponent):
             db = self.get_component("db")
             self.application = tornado.web.Application(
                 handlers=urls.get_file_server_handlers(),
-                template_path=config.FrameworkConfigGet('INTERFACE_TEMPLATES_DIR'),
+                template_path=config.get_val('INTERFACE_TEMPLATES_DIR'),
                 debug=False,
                 gzip=True
             )
             self.application.Core = self.get_component("core")
             self.server = tornado.httpserver.HTTPServer(self.application)
-            fileserver_port = int(config.FrameworkConfigGet("FILE_SERVER_PORT"))
-            fileserver_addr = config.FrameworkConfigGet("SERVER_ADDR")
+            fileserver_port = int(config.get_val("FILE_SERVER_PORT"))
+            fileserver_addr = config.get_val("SERVER_ADDR")
             self.server.bind(fileserver_port, address=fileserver_addr)
             tornado.options.parse_command_line(
                 args=['dummy_arg', '--log_file_prefix=%s' % db.Config.Get('FILE_SERVER_LOG'), '--logging=info'])

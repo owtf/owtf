@@ -189,7 +189,7 @@ class PluginHelper(BaseComponent):
             }
             plugin_output = [plugin_output]
             # This command returns URLs for processing
-            if Name == self.config.FrameworkConfigGet('EXTRACT_URLS_RESERVED_RESOURCE_NAME'):
+            if Name == self.config.get_val('EXTRACT_URLS_RESERVED_RESOURCE_NAME'):
                 #  The plugin_output output dict will be remade if the resource is of this type
                 plugin_output = self.LogURLsFromStr(RawOutput)
             # TODO: Look below to handle streaming report

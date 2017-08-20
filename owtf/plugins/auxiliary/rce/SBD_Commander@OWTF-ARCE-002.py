@@ -13,12 +13,12 @@ def run(PluginInfo):
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {
-            'RHOST': config.FrameworkConfigGet('RHOST_DESCRIP'),
-            'SBD_PORT': config.FrameworkConfigGet('SBD_PORT_DESCRIP'),
-            'SBD_PASSWORD': config.FrameworkConfigGet('SBD_PASSWORD_DESCRIP'),
-            'COMMAND_FILE': config.FrameworkConfigGet('COMMAND_FILE_DESCRIP')
+            'RHOST': config.get_val('RHOST_DESCRIP'),
+            'SBD_PORT': config.get_val('SBD_PORT_DESCRIP'),
+            'SBD_PASSWORD': config.get_val('SBD_PASSWORD_DESCRIP'),
+            'COMMAND_FILE': config.get_val('COMMAND_FILE_DESCRIP')
         },
-        'Optional': {'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')}
+        'Optional': {'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')}
     }
 
     for Args in plugin_params.GetArgs(args, PluginInfo):

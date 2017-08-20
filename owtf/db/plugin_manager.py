@@ -23,13 +23,13 @@ class PluginDB(BaseComponent, DBPluginInterface):
         self.db = self.get_component("db")
         self.error_handler = self.get_component("error_handler")
         self.LoadTestGroups(self.config.select_user_or_default_config_path(
-            self.config.FrameworkConfigGet("WEB_TEST_GROUPS"), self.config.FrameworkConfigGet("WEB_PLUGIN_CONFIG_DIR")),
+            self.config.get_val("WEB_TEST_GROUPS"), self.config.get_val("WEB_PLUGIN_CONFIG_DIR")),
             "web")
         self.LoadTestGroups(self.config.select_user_or_default_config_path(
-            self.config.FrameworkConfigGet("NET_TEST_GROUPS"), self.config.FrameworkConfigGet("NET_PLUGIN_CONFIG_DIR")),
+            self.config.get_val("NET_TEST_GROUPS"), self.config.get_val("NET_PLUGIN_CONFIG_DIR")),
             "network")
         self.LoadTestGroups(self.config.select_user_or_default_config_path(
-            self.config.FrameworkConfigGet("AUX_TEST_GROUPS"), self.config.FrameworkConfigGet("AUX_PLUGIN_CONFIG_DIR")),
+            self.config.get_val("AUX_TEST_GROUPS"), self.config.get_val("AUX_PLUGIN_CONFIG_DIR")),
             "auxiliary")
         # After loading the test groups then load the plugins, because of many-to-one relationship
         self.LoadFromFileSystem()  # Load plugins :P
@@ -91,13 +91,13 @@ class PluginDB(BaseComponent, DBPluginInterface):
         # Retrieve the list of the plugins (sorted) from the directory given by
         # 'PLUGIN_DIR'.
         plugins = []
-        for root, _, files in os.walk(self.config.FrameworkConfigGet('PLUGINS_DIR')):
+        for root, _, files in os.walk(self.config.get_val('PLUGINS_DIR')):
             plugins.extend([os.path.join(root, filename) for filename in files if filename.endswith('py')])
         plugins = sorted(plugins)
         # Retrieve the information of the plugin.
         for plugin_path in plugins:
             # Only keep the relative path to the plugin
-            plugin = plugin_path.replace(self.config.FrameworkConfigGet('PLUGINS_DIR'), '')
+            plugin = plugin_path.replace(self.config.get_val('PLUGINS_DIR'), '')
             # TODO: Using os.path.sep might not be portable especially on
             # Windows platform since it allows '/' and '\' in the path.
             # Retrieve the group, the type and the file of the plugin.

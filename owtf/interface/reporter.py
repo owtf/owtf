@@ -27,7 +27,7 @@ class Reporter(BaseComponent, ReporterInterface):
         self.requester = None
         self.Init = False
         self.Sanitiser = sanitiser.HTMLSanitiser()
-        self.Loader = Loader(self.config.FrameworkConfigGet('POUTPUT_TEMPLATES_DIR'))
+        self.Loader = Loader(self.config.get_val('POUTPUT_TEMPLATES_DIR'))
         self.mNumLinesToShow = 15
         self.CounterList = []
 

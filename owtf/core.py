@@ -123,7 +123,7 @@ class Core(BaseComponent):
             self.transaction_logger = transaction_logger.TransactionLogger(
                 cache_dir=self.db_config.Get('INBOUND_PROXY_CACHE_DIR'))
             logging.warn(
-                "%s:% <-- HTTP(S) Proxy to which requests can be directed",
+                "%s:%s <-- HTTP(S) Proxy to which requests can be directed",
                 self.db_config.Get('INBOUND_PROXY_IP'),
                 self.db_config.Get("INBOUND_PROXY_PORT"))
             self.proxy_process.start()
@@ -239,8 +239,8 @@ class Core(BaseComponent):
         self.interface_server = server.InterfaceServer()
         logging.warn(
             "http://%s:%s <-- Web UI URL",
-            self.config.FrameworkConfigGet("SERVER_ADDR"),
-            self.config.FrameworkConfigGet("UI_SERVER_PORT"))
+            self.config.get_val("SERVER_ADDR"),
+            self.config.get_val("UI_SERVER_PORT"))
         logging.info("Press Ctrl+C when you spawned a shell ;)")
         self.disable_console_logging()
         self.interface_server.start()

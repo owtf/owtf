@@ -79,7 +79,7 @@ class TargetDB(BaseComponent, TargetInterface):
     def DerivePathConfig(self, target_config):
         path_config = {}
         # Set the output directory.
-        path_config['host_output'] = os.path.join(self.config.FrameworkConfigGet('OUTPUT_PATH'),
+        path_config['host_output'] = os.path.join(self.config.get_val('OUTPUT_PATH'),
                                                   target_config['host_ip'])
         path_config['port_output'] = os.path.join(path_config['host_output'], target_config['port_number'])
         # Set the URL output directory (plugins will save their data here).

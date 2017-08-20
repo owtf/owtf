@@ -205,8 +205,8 @@ class WorkerManager(custom_handlers.UIRequestHandler):
     @tornado.web.asynchronous
     def get(self, worker_id=None):
         config = ServiceLocator.get_component("config")
-        ui_port = config.FrameworkConfigGet("UI_SERVER_PORT")
-        fileserver_port = config.FrameworkConfigGet("FILE_SERVER_PORT")
+        ui_port = config.get_val("UI_SERVER_PORT")
+        fileserver_port = config.get_val("FILE_SERVER_PORT")
         output_files_server = "%s://%s" % (self.request.protocol, self.request.host.replace(ui_port, fileserver_port))
         if not worker_id:
             self.render(
@@ -264,8 +264,8 @@ class FileRedirectHandler(custom_handlers.UIRequestHandler):
 
     def get(self, file_url):
         config = ServiceLocator.get_component("config")
-        ui_port = config.FrameworkConfigGet("UI_SERVER_PORT")
-        fileserver_port = config.FrameworkConfigGet("FILE_SERVER_PORT")
+        ui_port = config.get_val("UI_SERVER_PORT")
+        fileserver_port = config.get_val("FILE_SERVER_PORT")
         output_files_server = "%s://%s/" % (self.request.protocol, self.request.host.replace(ui_port, fileserver_port))
         redirect_file_url = output_files_server + url_escape(file_url, plus=False)
         self.redirect(redirect_file_url, permanent=True)

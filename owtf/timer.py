@@ -11,7 +11,7 @@ import math
 import datetime
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
-from owtf.dependency_management.interfaces import timersrInterface
+from owtf.dependency_management.interfaces import TimerInterface
 
 
 class Timer(BaseComponent, TimerInterface):

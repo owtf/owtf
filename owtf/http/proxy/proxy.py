@@ -577,10 +577,10 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         # Header filters
         # Restricted headers are picked from framework/config/framework_config.cfg
         # These headers are removed from the response obtained from webserver, before sending it to browser
-        restricted_response_headers = self.config.FrameworkConfigGet("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
+        restricted_response_headers = self.config.get_val("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
         ProxyHandler.restricted_response_headers = restricted_response_headers
         # These headers are removed from request obtained from browser, before sending it to webserver
-        restricted_request_headers = self.config.FrameworkConfigGet("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
+        restricted_request_headers = self.config.get_val("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
         ProxyHandler.restricted_request_headers = restricted_request_headers
 
         # HTTP Auth options

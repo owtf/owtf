@@ -14,14 +14,14 @@ def run(PluginInfo):
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {
-            'RHOST': config.FrameworkConfigGet('RHOST_DESCRIP'),
-            'RUSER': config.FrameworkConfigGet('RUSER_DESCRIP'),
-            'COMMAND_FILE': config.FrameworkConfigGet('COMMAND_FILE_DESCRIP')
+            'RHOST': config.get_val('RHOST_DESCRIP'),
+            'RUSER': config.get_val('RUSER_DESCRIP'),
+            'COMMAND_FILE': config.get_val('COMMAND_FILE_DESCRIP')
         },
         'Optional': {
-            'RPORT': config.FrameworkConfigGet('RPORT_DESCRIP'),
-            'PASSPHRASE': config.FrameworkConfigGet('PASSPHRASE_DESCRIP'),
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+            'RPORT': config.get_val('RPORT_DESCRIP'),
+            'PASSPHRASE': config.get_val('PASSPHRASE_DESCRIP'),
+            'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')
         }
     }
 

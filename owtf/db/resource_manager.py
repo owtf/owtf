@@ -70,7 +70,7 @@ class ResourceDB(BaseComponent, ResourceInterface):
         raw_resources = self.GetRawResources(ResourceType)
         resources = []
         for name, resource in raw_resources:
-            resources.append([name, self.config.MultipleReplace(resource, replacement_dict)])
+            resources.append([name, self.config.multi_replace(resource, replacement_dict)])
         return resources
 
     def GetRawResourceList(self, ResourceList):
@@ -83,5 +83,5 @@ class ResourceDB(BaseComponent, ResourceInterface):
         raw_resources = self.GetRawResourceList(ResourceTypeList)
         resources = []
         for name, resource in raw_resources:
-            resources.append([name, self.config.MultipleReplace(resource, replacement_dict)])
+            resources.append([name, self.config.multi_replace(resource, replacement_dict)])
         return resources
