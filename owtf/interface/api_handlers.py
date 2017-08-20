@@ -824,7 +824,7 @@ class ErrorDataHandler(custom_handlers.APIRequestHandler):
                 title = filter_data['title'][0]
                 body = filter_data['body'][0]
                 id = int(filter_data['id'][0])
-                self.write(self.get_component("error_handler").AddGithubIssue(username, title, body, id))
+                self.write(self.get_component("error_handler").add_github_issue(username, title, body, id))
             except:
                 raise tornado.web.HTTPError(400)
         else:

@@ -29,7 +29,7 @@ def ShellExec(Command):
 			print MultipleReplace(line, { "\n":"", "\r":"" }) # Show progress on the screen too!
 			Output += line # Save as much output as possible before a tool crashes! :)
 	except KeyboardInterrupt:
-		Output += self.Core.Error.UserAbort('Command', Output) # Identify as Command Level abort
+		Output += self.Core.Error.user_abort('Command', Output) # Identify as Command Level abort
 	return Output
 
 # Perform multiple replacements in one go using the replace dictionary in format: { 'search' : 'replace' }

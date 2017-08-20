@@ -79,23 +79,23 @@ class DBPluginInterface(AbstractInterface):
 class ErrorHandlerInterface(AbstractInterface):
 
     @abstractmethod
-    def Add(self):
+    def add(self):
         pass
 
     @abstractmethod
-    def AddGithubIssue(self):
+    def add_github_issue(self):
         pass
 
     @abstractmethod
-    def FrameworkAbort(self):
+    def abort_framework(self):
         pass
 
     @abstractmethod
-    def SetCommand(self):
+    def set_command(self):
         pass
 
     @abstractmethod
-    def UserAbort(self):
+    def user_abort(self):
         pass
 
 

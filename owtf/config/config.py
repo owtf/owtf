@@ -110,8 +110,8 @@ class Config(BaseComponent, ConfigInterface):
                 self.Set(key,
                          self.MultipleReplace(value, {'FRAMEWORK_DIR': self.RootDir, 'OWTF_PID': str(self.OwtfPid)}))
             except ValueError:
-                self.error_handler.FrameworkAbort("Problem in config file: %s -> Cannot parse line: %s" % (config_path,
-                                                                                                           line))
+                self.error_handler.abort_framework("Problem in config file: %s -> Cannot parse line: %s" % (config_path,
+                                                                                                            line))
 
     def ConvertStrToBool(self, string):
         return (not(string in ['False', 'false', 0, '0']))
@@ -477,7 +477,7 @@ class Config(BaseComponent, ConfigInterface):
             return self.GetKeyValue(key)
         except KeyError:
             message = "The configuration item: %s does not exist!" % key
-            self.error_handler.Add(message)
+            self.error_handler.add(message)
             # Raise plugin-level exception to move on to next plugin.
             raise PluginAbortException(message)
 

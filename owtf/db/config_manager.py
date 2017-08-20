@@ -34,7 +34,7 @@ class ConfigDB(BaseComponent, DBConfigInterface):
         config_parser = ConfigParser.RawConfigParser()
         config_parser.optionxform = str  # Otherwise all the keys are converted to lowercase xD
         if not os.path.isfile(file_path):  # check if the config file exists
-            self.error_handler.FrameworkAbort("Config file not found at: %s" % file_path)
+            self.error_handler.abort_framework("Config file not found at: %s" % file_path)
         config_parser.read(file_path)
         for section in config_parser.sections():
             for key, value in config_parser.items(section):

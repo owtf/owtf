@@ -47,8 +47,8 @@ class PluginDB(BaseComponent, DBPluginInterface):
             try:
                 Code, Priority, Descrip, Hint, URL = line.strip().split(' | ')
             except ValueError:
-                self.error_handler.FrameworkAbort("Problem in Test Groups file: '%s' -> Cannot parse line: %s" %
-                                                  (file_path, line))
+                self.error_handler.abort_framework("Problem in Test Groups file: '%s' -> Cannot parse line: %s" %
+                                                   (file_path, line))
             if len(Descrip) < 2:
                 Descrip = Hint
             if len(Hint) < 2:

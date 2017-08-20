@@ -102,7 +102,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                     found = True
                     break
             if not found:
-                self.error_handler.FrameworkAbort("The code '%s' is not a valid plugin, please use the -l option to see"
+                self.error_handler.abort_framework("The code '%s' is not a valid plugin, please use the -l option to see"
                                                   "available plugin names and codes" % code)
         return valid_plugin_codes  # Return list of Codes
 
@@ -368,7 +368,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)
             if status_msg == 'Aborted':
-                self.error_handler.UserAbort('Plugin')
+                self.error_handler.user_abort('Plugin')
             if abort_reason == 'Framework Aborted':
                 self.Core.finish()
         return output

@@ -37,7 +37,7 @@ class MappingDB(BaseComponent, MappingDBInterface):
         # Otherwise all the keys are converted to lowercase xD
         config_parser.optionxform = str
         if not os.path.isfile(file_path):  # check if the mapping file exists
-            self.error_handler.FrameworkAbort("Mapping file not found at: %s" % file_path)
+            self.error_handler.abort_framework("Mapping file not found at: %s" % file_path)
         config_parser.read(file_path)
         for owtf_code in config_parser.sections():
             mappings = {}

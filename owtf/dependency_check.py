@@ -1,6 +1,8 @@
-#!/usr/bin/env python
 """
-This is the script for checking the owtf pip dependencies
+owtf.dependency_check
+~~~~~~~~~~~~~~~~~~~~~
+
+This is the script which checks the owtf pip dependencies before loading the framework
 """
 
 import os
@@ -18,6 +20,13 @@ except ImportError:
 
 
 def is_present(module_name):
+    """Checks if module can be imported
+
+    :param module_name: Name of the module to import
+    :type module_name: `str`
+    :return: True or False based on whether module can be imported
+    :rtype: `boolean`
+    """
     try:
         __import__(module_name)
     except ImportError:
@@ -27,6 +36,13 @@ def is_present(module_name):
 
 
 def verify_dependencies(root_dir):
+    """Goes over the requirements file, parses it and checks if all requirements are satisfied
+
+    :param root_dir: Root directory for OWTF
+    :type root_dir: `str`
+    :return:
+    :rtype: None
+    """
     # Get all the installed libraries
     # installed_libraries = {"tornado": "version"}
     installed_libraries = dict((i.project_name, i.version) for i in pip.get_installed_distributions())
@@ -39,7 +55,7 @@ def verify_dependencies(root_dir):
     # Iterate over requirements and check if existed
     missing_libraries = []
     for library_name in owtf_libraries:
-        if library_name not in installed_libraries.keys():
+        if library_name not in list(installed_libraries.keys()):
             # Check if the module is installed via package manager
             if not is_present(library_name):
                 missing_libraries.append(library_name)

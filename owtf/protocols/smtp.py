@@ -74,7 +74,7 @@ class SMTP(BaseComponent):
                 mail_server.sendmail(options['SMTP_LOGIN'], target, message.as_string())
                 self.Print("Email relay successful!")
             except Exception, e:
-                self.error_handler.Add("Error delivering email: %s" % str(e), '')
+                self.error_handler.add("Error delivering email: %s" % str(e), '')
                 num_errors += 1
         return (num_errors == 0)
 

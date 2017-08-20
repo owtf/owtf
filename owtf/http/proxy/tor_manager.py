@@ -34,14 +34,14 @@ class TOR_manager(BaseComponent):
             try:
                 self.port = int(args[1])
             except ValueError:
-                self.error_handler.FrameworkAbort("Invalid TOR port")
+                self.error_handler.abort_framework("Invalid TOR port")
         if args[2] == '':
             self.TOR_control_port = 9051
         else:
             try:
                 self.TOR_control_port = int(args[2])
             except ValueError:
-                self.error_handler.FrameworkAbort("Invalid TOR Controlport")
+                self.error_handler.abort_framework("Invalid TOR Controlport")
         if args[3] == '':
             self.password = "owtf"
         else:
@@ -52,9 +52,9 @@ class TOR_manager(BaseComponent):
             try:
                 self.time = int(args[4])
             except ValueError:
-                self.error_handler.FrameworkAbort("Invalid TOR Time")
+                self.error_handler.abort_framework("Invalid TOR Time")
             if self.time < 1:
-                self.error_handler.FrameworkAbort("Invalid TOR Time")
+                self.error_handler.abort_framework("Invalid TOR Time")
 
         self.TOR_Connection = self.Open_connection()
         self.Authenticate()
@@ -66,7 +66,7 @@ class TOR_manager(BaseComponent):
         if response.startswith('250'):  # 250 is the success response
             cprint("Successfully Authenticated to TOR control")
         else:
-            self.error_handler.FrameworkAbort("Authentication Error : %s" % response)
+            self.error_handler.abort_framework("Authentication Error : %s" % response)
 
     # Opens a new connection to TOR control
     def Open_connection(self):
@@ -76,7 +76,7 @@ class TOR_manager(BaseComponent):
             cprint("Connected to TOR control")
             return s
         except Exception as error:
-            self.error_handler.FrameworkAbort("Can't connect to the TOR daemon : %s" % error.strerror)
+            self.error_handler.abort_framework("Can't connect to the TOR daemon : %s" % error.strerror)
 
     # Starts a new TOR_control_process which will renew the IP address.
     def Run(self):

@@ -64,7 +64,7 @@ class PExpectShell(blocking_shell.Shell):
         except KeyboardInterrupt:
             Cancelled = True
             self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
-            Output += self.error_handler.UserAbort('Command', Output)  # Identify as Command Level abort
+            Output += self.error_handler.user_abort('Command', Output)  # Identify as Command Level abort
         if not Cancelled:
             self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
         return Output

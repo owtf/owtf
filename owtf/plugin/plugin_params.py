@@ -23,13 +23,13 @@ class PluginParams(BaseComponent):
         for Arg in self.RawArgs:
             Chunks = Arg.split('=')
             if len(Chunks) < 2:
-                self.error_handler.Add("USER ERROR: %s arguments should be in NAME=VALUE format" % str(Chunks), 'user')
+                self.error_handler.add("USER ERROR: %s arguments should be in NAME=VALUE format" % str(Chunks), 'user')
                 return False
             ArgName = Chunks[0]
             try:
                 ArgValue = Arg.replace(ArgName, '')[1:]
             except ValueError:
-                self.error_handler.Add("USER ERROR: %s arguments should be in NAME=VALUE format" % str(ArgName), 'user')
+                self.error_handler.add("USER ERROR: %s arguments should be in NAME=VALUE format" % str(ArgName), 'user')
                 return False
             self.Args[ArgName] = ArgValue
         return True
@@ -59,7 +59,7 @@ class PluginParams(BaseComponent):
         if len(FullArgList['Optional']) > 0:
             self.ListArgs(FullArgList['Optional'], False)
         cprint("\nUsage: %s\n" % self.GetArgsExample(FullArgList, Plugin))
-        self.error_handler.FrameworkAbort("User is only viewing options, exiting", False)
+        self.error_handler.abort_framework("User is only viewing options, exiting", False)
 
     def ShowPlugin(self, Plugin):
         return "Plugin: %s/%s" % (Plugin['type'], Plugin['file'])
@@ -89,7 +89,7 @@ class PluginParams(BaseComponent):
                     # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or
                     # Argument is optional = ok to skip
                     continue
-                self.error_handler.Add("USER ERROR: %s requires argument: '%s'" % (self.ShowPlugin(Plugin), ArgName),
+                self.error_handler.add("USER ERROR: %s requires argument: '%s'" % (self.ShowPlugin(Plugin), ArgName),
                                        'user')
                 return self.RetArgError({}, Plugin)  # Abort processing (invalid data)
             Args[ArgName] = self.Args[ArgName]
@@ -107,11 +107,11 @@ class PluginParams(BaseComponent):
 
     def CheckArgList(self, FullArgList, Plugin):
         if ('Mandatory' not in FullArgList) or ('Optional' not in FullArgList):
-            self.error_handler.Add("OWTF PLUGIN BUG: %s requires declared Mandatory and Optional arguments" %
+            self.error_handler.add("OWTF PLUGIN BUG: %s requires declared Mandatory and Optional arguments" %
                                    self.ShowPlugin(Plugin))
             return self.RetArgError(True, Plugin)
         if 'Description' not in FullArgList:
-            self.error_handler.Add("OWTF PLUGIN BUG: %s  requires a Description" % self.ShowPlugin(Plugin))
+            self.error_handler.add("OWTF PLUGIN BUG: %s  requires a Description" % self.ShowPlugin(Plugin))
             return self.RetArgError(False, Plugin)
         return True
 

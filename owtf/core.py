@@ -1,7 +1,10 @@
-#!/usr/bin/env python
 """
-The core is the glue that holds the components together and allows some of them
-to communicate with each other
+owtf.core
+~~~~~~~~~
+
+The core is the glue that holds the components together and allows some of them to
+communicate with each other. Basically injects dependencies so that they can be used
+across modules.
 """
 
 import os
@@ -11,6 +14,7 @@ import socket
 import logging
 import multiprocessing
 import subprocess
+
 import tornado
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
@@ -40,8 +44,8 @@ class Core(BaseComponent):
             + Required folders created
             + All other components are attached to core: shell, db etc... (using ServiceLocator)
 
-        :return: instance of :class:`framework.core.Core`
-        :rtype::class:`framework.core.Core`
+        :return: instance of :class:`owtf.core.Core`
+        :rtype::class:`owtf.core.Core`
 
         """
         self.register_in_service_locator()
@@ -53,25 +57,18 @@ class Core(BaseComponent):
         self.db_config = self.get_component("db_config")
         self.error_handler = self.get_component("error_handler")
         # ----------------------- Directory creation ----------------------- #
-        self.create_dirs()
-        self.pnh_log_file()  # <-- This is not supposed to be here
+        FileOperations.create_missing_dirs(self.config.FrameworkConfigGetLogsDir())
+        self.create_temp_storage_dirs()
         self.enable_logging()
         # The following attributes will be initialised later
         self.tor_process = None
 
-    def create_dirs(self):
-        """
-        Any directory which needs to be created at the start of owtf
-        needs to be placed inside here. No hardcoding of paths please
-        """
-        # Logs folder creation
-        if not os.path.exists(self.config.FrameworkConfigGetLogsDir()):
-            FileOperations.create_missing_dirs(self.config.FrameworkConfigGetLogsDir())
-        # Temporary storage directories creation
-        self.create_temp_storage_dirs()
-
     def create_temp_storage_dirs(self):
-        """Create a temporary directory in /tmp with pid suffix."""
+        """Create a temporary directory in /tmp with pid suffix.
+
+        :return:
+        :rtype: None
+        """
         tmp_dir = os.path.join('/tmp', 'owtf')
         if not os.path.exists(tmp_dir):
             tmp_dir = os.path.join(tmp_dir, str(self.config.OwtfPid))
@@ -79,38 +76,15 @@ class Core(BaseComponent):
                 FileOperations.make_dirs(tmp_dir)
 
     def clean_temp_storage_dirs(self):
-        """Rename older temporary directory to avoid any further confusions."""
+        """Rename older temporary directory to avoid any further confusions.
+
+        :return:
+        :rtype: None
+        """
         curr_tmp_dir = os.path.join('/tmp', 'owtf', str(self.config.OwtfPid))
         new_tmp_dir = os.path.join('/tmp', 'owtf', 'old-%d' % self.config.OwtfPid)
         if os.path.exists(curr_tmp_dir) and os.access(curr_tmp_dir, os.W_OK):
             os.rename(curr_tmp_dir, new_tmp_dir)
-
-    def pnh_log_file(self):
-        self.path = self.config.FrameworkConfigGet('PNH_EVENTS_FILE')
-        self.mode = "w"
-        try:
-            if os.path.isfile(self.path):
-                pass
-            else:
-                with FileOperations.open(self.path, self.mode, owtf_clean=False):
-                    pass
-        except IOError as e:
-            OWTFLogger.log("I/O error ({0}): {1}".format(e.errno, e.strerror))
-            raise
-
-    def write_event(self, content, mode):
-        self.content = content
-        self.mode = mode
-        self.file_path = self.config.FrameworkConfigGet('PNH_EVENTS_FILE')
-
-        if (os.path.isfile(self.file_path) and os.access(self.file_path, os.W_OK)):
-            try:
-                with FileOperations.open(self.file_path, self.mode, owtf_clean=False) as log_file:
-                    log_file.write(self.content)
-                    log_file.write("\n")
-                return True
-            except IOError:
-                return False
 
     def get_command(self, argv):
         """Format command to remove directory and space-separated arguments.
@@ -123,11 +97,14 @@ class Core(BaseComponent):
         """
         return " ".join(argv).replace(argv[0], os.path.basename(argv[0]))
 
-    def start_botnet_mode(self, options):
-        ComponentInitialiser.intialise_proxy_manager(options)
-
     def start_proxy(self, options):
-        # The proxy along with supporting processes are started
+        """ The proxy along with supporting processes are started here
+
+        :param options: Optional arguments
+        :type options: `list`
+        :return:
+        :rtype: None
+        """
         if True:
             # Check if port is in use
             try:
@@ -137,31 +114,38 @@ class Core(BaseComponent):
                     int(self.db_config.Get('INBOUND_PROXY_PORT'))))
                 temp_socket.close()
             except socket.error:
-                self.error_handler.FrameworkAbort("Inbound proxy address %s:%s already in use" %
-                                                  (self.db_config.Get('INBOUND_PROXY_IP'),
+                self.error_handler.abort_framework("Inbound proxy address %s:%s already in use" %
+                                                   (self.db_config.Get('INBOUND_PROXY_IP'),
                                                    self.db_config.Get("INBOUND_PROXY_PORT")))
             # If everything is fine.
-            self.ProxyProcess = proxy.ProxyProcess()
-            self.ProxyProcess.initialize(options['OutboundProxy'], options['OutboundProxyAuth'])
-            self.TransactionLogger = transaction_logger.TransactionLogger(
+            self.proxy_process = proxy.ProxyProcess()
+            self.proxy_process.initialize(options['OutboundProxy'], options['OutboundProxyAuth'])
+            self.transaction_logger = transaction_logger.TransactionLogger(
                 cache_dir=self.db_config.Get('INBOUND_PROXY_CACHE_DIR'))
             logging.warn(
-                "%s:%s <-- HTTP(S) Proxy to which requests can be directed",
+                "%s:% <-- HTTP(S) Proxy to which requests can be directed",
                 self.db_config.Get('INBOUND_PROXY_IP'),
                 self.db_config.Get("INBOUND_PROXY_PORT"))
-            self.ProxyProcess.start()
+            self.proxy_process.start()
             logging.debug("Starting Transaction logger process")
-            self.TransactionLogger.start()
+            self.transaction_logger.start()
             logging.debug("Proxy transaction's log file at %s", self.db_config.Get("PROXY_LOG"))
         else:
             ComponentInitialiser.initialisation_phase_3(options['OutboundProxy'])
 
     def enable_logging(self, **kwargs):
-        """
+        """Enables both file and console logging
+
+         . note::
+
         + process_name <-- can be specified in kwargs
         + Must be called from inside the process because we are kind of
           overriding the root logger
-        + Enables both file and console logging
+
+        :param kwargs: Additional arguments to the logger
+        :type kwargs: `dict`
+        :return:
+        :rtype: None
         """
         process_name = kwargs.get("process_name", multiprocessing.current_process().name)
         logger = logging.getLogger()
@@ -178,11 +162,19 @@ class Core(BaseComponent):
         logger.handlers = [file_handler, stream_handler]
 
     def disable_console_logging(self, **kwargs):
-        """
+        """ Disables console logging
+
+        . note::
+
         + Must be called from inside the process because we should
           remove handler for that root logger
         + Since we add console handler in the last, we can remove
           the last handler to disable console logging
+
+        :param kwargs: Additional arguments to the logger
+        :type kwargs: `dict`
+        :return:
+        :rtype: None
         """
         logger = logging.getLogger()
         if isinstance(logger.handlers[-1], logging.StreamHandler):
@@ -201,35 +193,50 @@ class Core(BaseComponent):
                 return self.run_cli()
 
     def initialise_framework(self, options):
-        self.ProxyMode = options["ProxyMode"]
+        """This function initializes the entire framework
+
+        :param options: Additional arguments for the component initializer
+        :type options: `list`
+        :return: True if all commands do not fail
+        :rtype: `bool`
+        """
+        self.proxy_mode = options["ProxyMode"]
         logging.info("Loading framework please wait..")
         ComponentInitialiser.initialisation_phase_3(options)
         self.initialise_plugin_handler_and_params(options)
         # No processing required, just list available modules.
         if options['list_plugins']:
-            self.PluginHandler.show_plugin_list(options['list_plugins'])
+            self.plugin_handler.show_plugin_list(options['list_plugins'])
             self.finish()
         self.config.ProcessOptionsPhase2(options)
         command = self.get_command(options['argv'])
 
         self.start_botnet_mode(options)
         self.start_proxy(options)  # Proxy mode is started in that function.
-        # Set anonymised invoking command for error dump info.
-        self.error_handler.SetCommand(OutputCleaner.anonymise_command(command))
+        # Set anonymized invoking command for error dump info.
+        self.error_handler.set_command(OutputCleaner.anonymise_command(command))
         return True
 
     def initialise_plugin_handler_and_params(self, options):
-        # The order is important here ;)
-        self.PluginHandler = self.get_component("plugin_handler")
-        self.PluginParams = self.get_component("plugin_params")
+        """Init step for plugin handler and params
+
+        . note::
+         The order is important here ;)
+
+        :param options: Additional arguments
+        :type options: `list`
+        :return:
+        :rtype: None
+        """
+
+        self.plugin_handler = self.get_component("plugin_handler")
+        self.plugin_params = self.get_component("plugin_params")
         # If OWTF is run without the Web UI, the WorkerManager should exit as soon as all jobs have been completed.
         # Otherwise, keep WorkerManager alive.
-        self.WorkerManager = worker_manager.WorkerManager(keep_working=not options['nowebui'])
+        self.worker_manager = worker_manager.WorkerManager(keep_working=not options['nowebui'])
 
     def run_server(self):
-        """
-        This method starts the interface server
-        """
+        """This method starts the interface server"""
         self.interface_server = server.InterfaceServer()
         logging.warn(
             "http://%s:%s <-- Web UI URL",
@@ -238,8 +245,8 @@ class Core(BaseComponent):
         logging.info("Press Ctrl+C when you spawned a shell ;)")
         self.disable_console_logging()
         self.interface_server.start()
-        self.FileServer = server.FileServer()
-        self.FileServer.start()
+        self.file_server = server.FileServer()
+        self.file_server.start()
 
     def run_cli(self):
         """This method starts the CLI server."""
@@ -254,22 +261,22 @@ class Core(BaseComponent):
 
         """
         if getattr(self, "TOR_process", None) is not None:
-            self.TOR_process.terminate()
+            self.tor_process.terminate()
         else:
             if getattr(self, "PluginHandler", None) is not None:
-                self.PluginHandler.clean_up()
+                self.plugin_handler.clean_up()
             if getattr(self, "ProxyProcess", None) is not None:
                 logging.info("Stopping inbound proxy processes and cleaning up. Please wait!")
-                self.ProxyProcess.clean_up()
-                self.kill_children(self.ProxyProcess.pid)
-                self.ProxyProcess.join()
+                self.proxy_process.clean_up()
+                self.kill_children(self.proxy_process.pid)
+                self.proxy_process.join()
             if getattr(self, "TransactionLogger", None) is not None:
                 # No signal is generated during closing process by terminate()
-                self.TransactionLogger.poison_q.put('done')
-                self.TransactionLogger.join()
+                self.transaction_logger.poison_q.put('done')
+                self.transaction_logger.join()
             if getattr(self, "WorkerManager", None) is not None:
                 # Properly stop the workers.
-                self.WorkerManager.clean_up()
+                self.worker_manager.clean_up()
             if getattr(self, "db", None) is not None:
                 # Properly stop any DB instances.
                 self.db.clean_up()
@@ -280,6 +287,15 @@ class Core(BaseComponent):
             exit(0)
 
     def kill_children(self, parent_pid, sig=signal.SIGINT):
+        """Kill all OWTF child process when the SIGINT is received
+
+        :param parent_pid: The pid of the parent OWTF process
+        :type parent_pid: `int`
+        :param sig: Signal received
+        :type sig: `int`
+        :return:
+        :rtype: None
+        """
         ps_command = subprocess.Popen(
             "ps -o pid --ppid %d --noheaders" % parent_pid,
             shell=True,

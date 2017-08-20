@@ -225,7 +225,7 @@ class Requester(BaseComponent, RequesterInterface):
             message = "ERROR: The connection was refused!: %s" % str(error)
             self.RequestCountRefused += 1
         elif str(error.reason).startswith("[Errno -2]"):
-            self.error_handler.FrameworkAbort("ERROR: cannot resolve hostname!: %s" % str(error))
+            self.error_handler.abort_framework("ERROR: cannot resolve hostname!: %s" % str(error))
         else:
             message = "ERROR: The connection was not refused, unknown error!"
         log = logging.getLogger('general')
@@ -296,7 +296,7 @@ class Requester(BaseComponent, RequesterInterface):
             if not url:
                 continue  # Skip blank lines.
             if not self.url_manager.IsURL(url):
-                self.error_handler.Add("Minor issue: %s is not a valid URL and has been ignored, processing continues" %
+                self.error_handler.add("Minor issue: %s is not a valid URL and has been ignored, processing continues" %
                                        str(url))
                 continue  # Skip garbage URLs.
             transaction = self.GetTransaction(use_cache, url, method=method, data=data)

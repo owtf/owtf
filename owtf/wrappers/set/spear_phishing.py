@@ -56,7 +56,7 @@ class SpearPhishing(BaseComponent, AbstractInterface):
         MandatoryPaths = self.config.GetAsList(['_PDF_TEMPLATE', '_WORD_TEMPLATE', '_EMAIL_TARGET'])
         MandatoryPaths.append(self.db_config.Get('TOOL_SET_DIR'))
         if not paths_exist(MandatoryPaths) or not paths_exist(self.GetSETScripts(Args)):
-            self.error_handler.FrameworkAbort("USER ERROR: Some mandatory paths were not found your filesystem",
+            self.error_handler.abort_framework("USER ERROR: Some mandatory paths were not found your filesystem",
                                               'user')
             return False
         return True

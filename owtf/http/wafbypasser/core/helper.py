@@ -23,4 +23,4 @@ def load_payload_file(payload_path, valid_size=100000, exclude_chars=[]):
 
 def Error(owtf, message):
     print "Error: %s" % message
-    owtf.Error.FrameworkAbort(message)
+    owtf.Error.abort_framework(message)

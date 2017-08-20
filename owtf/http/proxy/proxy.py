@@ -526,7 +526,7 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             assert os.path.exists(self.application.ca_cert)
             assert os.path.exists(self.application.ca_key)
         except AssertionError:
-            self.get_component("error_handler").FrameworkAbort("Files required for SSL MiTM are missing."
+            self.get_component("error_handler").abort_framework("Files required for SSL MiTM are missing."
                                                                " Please run the install script")
 
         try:  # If certs folder missing, create that.

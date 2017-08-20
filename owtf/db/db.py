@@ -115,8 +115,8 @@ class DB(BaseComponent, DBInterface):
                     key, value = line.split(':')
                     settings[key.strip()] = value.strip()
                 except ValueError:
-                    self.error_handler.FrameworkAbort("Problem in config file: '%s' -> Cannot parse line: %s" %
-                                                      (config_path, line))
+                    self.error_handler.abort_framework("Problem in config file: '%s' -> Cannot parse line: %s" %
+                                                       (config_path, line))
         return settings
 
     def CreateEngine(self, BaseClass):
@@ -136,14 +136,14 @@ class DB(BaseComponent, DBInterface):
             register_after_fork(engine, engine.dispose)
             return engine
         except ValueError as e:  # Potentially corrupted DB config.
-            self.error_handler.FrameworkAbort(
+            self.error_handler.abort_framework(
                 "Database configuration file is potentially corrupted. Please check %s\n[DB] %s" %
                 (self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'), str(e)))
         except KeyError:  # Indicates incomplete db config file
-            self.error_handler.FrameworkAbort("Incomplete database configuration settings in %s" %
-                                              self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'))
+            self.error_handler.abort_framework("Incomplete database configuration settings in %s" %
+                                               self.config.FrameworkConfigGet('DATABASE_SETTINGS_FILE'))
         except exc.OperationalError as e:
-            self.error_handler.FrameworkAbort("[DB] %s\nRun scripts/db_run.sh to start/setup db" % str(e))
+            self.error_handler.abort_framework("[DB] %s\nRun scripts/db_run.sh to start/setup db" % str(e))
 
     def CreateScopedSession(self):
         # Not to be used apart from main process, use CreateSession instead

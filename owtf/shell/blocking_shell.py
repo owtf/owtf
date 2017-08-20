@@ -126,7 +126,7 @@ class Shell(BaseComponent, ShellInterface):
             except OSError:
                 pass  # Plugin RIP (Rested In Peace)
             Cancelled = True
-            Output += self.error_handler.UserAbort('Command', Output)  # Identify as Command Level abort
+            Output += self.error_handler.user_abort('Command', Output)  # Identify as Command Level abort
         finally:
             try:
                 self.FinishCommand(CommandInfo, Cancelled, PluginInfo)

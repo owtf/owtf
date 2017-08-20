@@ -28,7 +28,7 @@ class ResourceDB(BaseComponent, ResourceInterface):
         file_path = self.config.select_user_or_default_config_path(file_path)
         logging.info("Loading Resources from: %s..", file_path)
         if not os.path.isfile(file_path):  # check if the resource file exists
-            self.error_handler.FrameworkAbort("Resource file not found at: %s" % file_path)
+            self.error_handler.abort_framework("Resource file not found at: %s" % file_path)
         resources = self.GetResourcesFromFile(file_path)
         # Delete all old resources which are not edited by user
         # because we may have updated the resource

@@ -26,8 +26,6 @@ class ServiceLocator:
         "transaction",
         "url_manager",
         "worker_manager",
-        "zap_api",
-        "zest",
         "target",
         "reporter",
         "smb",

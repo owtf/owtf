@@ -33,8 +33,6 @@ from owtf.shell.blocking_shell import Shell
 from owtf.shell.interactive_shell import InteractiveShell
 from owtf.timer import Timer
 from owtf.wrappers.set.set_handler import SETHandler
-from owtf.zap import ZAP_API
-from owtf.zest import Zest
 
 
 class ComponentInitialiser():
@@ -67,7 +65,6 @@ class ComponentInitialiser():
         ErrorDB()
         MappingDB()
         PluginDB()
-        Zest()
         URLManager()
         TransactionManager()
 
@@ -95,7 +92,6 @@ class ComponentInitialiser():
         Selenium()
         SMTP()
         SETHandler()
-        ZAP_API()
 
     @staticmethod
     def initialisation_phase_3(options):
