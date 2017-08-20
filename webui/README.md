@@ -11,11 +11,13 @@ Webpack takes the full dependency tree and generate a single build/bundle.js.
 
 These commands should be run from OWTF root directory.
 
-`$ npm install -g webpack`
+`$ npm install -g yarn`
 
-`$ npm install --global gulp-cli`
+`$ yarn add webpack`
 
-`$ npm install`
+`$ yarn add gulp-cli`
+
+`$ yarn`
 
 > Please ensure that you have npm >= 3.10.3 and node >= 6.7.0. In case you do not have **npm** installed. Use [nvm](https://github.com/creationix/nvm) to install npm on your system. Debian packages may not work because they are no longer maintained.
 
@@ -25,7 +27,7 @@ These commands should be run from OWTF root directory.
 
 This command should be run from OWTF root directory.
 
-`$ npm run build`
+`$ yarn build`
 
 For building production bundle, we use config **webpack.config.js**. It generally takes more time as compare to normal building as it is using modules like UglifyJs to compress the generating compiled JS code from JSX. It generates optimized and compressed code.
 
