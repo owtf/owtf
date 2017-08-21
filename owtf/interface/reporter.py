@@ -3,7 +3,10 @@ owtf.interface.reporter
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 The reporter module is in charge of producing the HTML Report as well as
- provide plugins with common HTML Rendering functions
+provide plugins with common HTML Rendering functions
+
+.note::
+    This is being deprecated.
 """
 
 import cgi

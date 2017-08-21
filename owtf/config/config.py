@@ -280,7 +280,7 @@ class Config(BaseComponent, ConfigInterface):
         target_params = ['RHOST', 'TARGET', 'SMB_HOST', 'BASE_URL', 'SMTP_HOST']
         plugin_params = self.get_component("plugin_params")
         targets = None
-        if plugin_params.ProcessArgs():
+        if plugin_params.process_args():
             for param in target_params:
                 if param in plugin_params.Args:
                     targets = plugin_params.Args[param]

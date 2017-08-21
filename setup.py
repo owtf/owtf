@@ -73,13 +73,5 @@ setup(
         'console_scripts': [
             'owtf = owtf.__main__:main'
         ]
-    },
-    classifiers=[
-        'Development Status :: 2 - Beta',
-        'Intended Audience :: Pentesters',
-        'Operating System :: POSIX',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-    ]
+    }
 )

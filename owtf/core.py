@@ -20,9 +20,9 @@ import tornado
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.component_initialiser import ComponentInitialiser
 from owtf.utils import FileOperations, catch_io_errors, OutputCleaner, OWTFLogger
-from owtf.interface import server, cli
+from owtf.interface import server
 from owtf.http.proxy import proxy, transaction_logger
-from owtf.plugin import worker_manager
+from owtf.db import worker_manager
 from owtf.lib.formatters import ConsoleFormatter, FileFormatter
 
 
@@ -249,7 +249,7 @@ class Core(BaseComponent):
 
     def run_cli(self):
         """This method starts the CLI server."""
-        self.cli_server = cli.CliServer()
+        self.cli_server = server.CliServer()
         self.cli_server.start()
 
     def finish(self):

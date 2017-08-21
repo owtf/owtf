@@ -30,7 +30,7 @@ def run(PluginInfo):
     }
 
     for Args in plugin_params.GetArgs(args, PluginInfo):
-        plugin_params.SetConfig(Args)  # Update config
+        plugin_params.set_config(Args)  # Update config
         if ServiceLocator.get_component("smtp").Send(Args):
             cprint("Email delivered succcessfully")
         else:

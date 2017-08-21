@@ -2,7 +2,8 @@
 owtf.interface.ui_handlers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
+.note::
+    Not been refactored since this is being deprecated
 """
 
 import json

@@ -1,8 +1,13 @@
-#!/usr/bin/env python
-'''
+"""
+owtf.plugin.plugin_helper
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 This module contains helper functions to make plugins simpler to read and write,
 centralising common functionality easy to reuse
-'''
+
+NOTE: This module has not been refactored since this is being deprecated
+"""
+
 
 import cgi
 import logging

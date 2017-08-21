@@ -34,7 +34,7 @@ def run(PluginInfo):
     }
 
     for Args in plugin_params.GetArgs(args, PluginInfo):
-        plugin_params.SetConfig(Args)  # Sets the auxiliary plugin arguments as config
+        plugin_params.set_config(Args)  # Sets the auxiliary plugin arguments as config
         REUSE_CONNECTION = (Args['ISHELL_REUSE_CONNECTION'] == 'yes')
         DELAY_BETWEEN_COMMANDS = Args['ISHELL_DELAY_BETWEEN_COMMANDS']
         if Iteration == 1 or not REUSE_CONNECTION:

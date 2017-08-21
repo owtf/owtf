@@ -22,7 +22,7 @@ def run(PluginInfo):
     }
 
     for Args in plugin_params.GetArgs(args, PluginInfo):
-        plugin_params.SetConfig(Args)  # Sets the auxiliary plugin arguments as config
+        plugin_params.set_config(Args)  # Sets the auxiliary plugin arguments as config
         ServiceLocator.get_component("interactive_shell").Open({
             'ConnectVia': ServiceLocator.get_component("resource").get_resources('RCE_SBD_Connection'),
             'InitialCommands': None,

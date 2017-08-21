@@ -19,7 +19,6 @@ from owtf.dependency_management.interfaces import PluginHandlerInterface
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
 from owtf.lib.general import *
 from owtf.plugin.scanner import Scanner
-from owtf.plugin.worker_manager import WorkerManager
 from owtf.utils import FileOperations
 
 

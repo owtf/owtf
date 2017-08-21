@@ -23,7 +23,7 @@ def run(PluginInfo):
     }
 
     for Args in plugin_params.GetArgs(args, PluginInfo):
-        plugin_params.SetConfig(Args)
+        plugin_params.set_config(Args)
         InputFile = config.get_val("SELENIUM_URL_VECTORS_" + Args['CATEGORY'])
         URLLauncher = ServiceLocator.get_component("selenium_handler").CreateURLLauncher({
             'BASE_URL': Args['BASE_URL'],

@@ -10,6 +10,7 @@ import tornado.web
 from owtf.dependency_management.dependency_resolver import ServiceLocator
 from owtf.interface import api_handlers, ui_handlers, custom_handlers
 
+
 def get_handlers():
 
     db_plugin = ServiceLocator.get_component("db_plugin")
