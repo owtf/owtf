@@ -4,8 +4,6 @@ This module contains helper functions to make plugins simpler to read and write,
 centralising common functionality easy to reuse
 '''
 
-import os
-import re
 import cgi
 import logging
 from tornado.template import Template
@@ -90,8 +88,8 @@ class PluginHelper(BaseComponent):
             if Transaction.Found:
                 RawHTML = Transaction.get_raw_response_body()
                 FilteredHTML = self.reporter.sanitize_html(RawHTML)
-                NotSandboxedPath = self.plugin_handler.DumpOutputFile("NOT_SANDBOXED_%s.html" % Name, FilteredHTML,
-                                                                      PluginInfo)
+                NotSandboxedPath = self.plugin_handler.dump_output_file("NOT_SANDBOXED_%s.html" % Name, FilteredHTML,
+                                                                        PluginInfo)
                 logging.info("File: NOT_SANDBOXED_%s.html saved to: %s", Name, NotSandboxedPath)
                 iframe_template = Template("""
                     <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder='0'
@@ -100,7 +98,7 @@ class PluginHelper(BaseComponent):
                     </iframe>
                     """)
                 iframe = iframe_template.generate(NotSandboxedPath=NotSandboxedPath.split('/')[-1])
-                SandboxedPath = self.plugin_handler.DumpOutputFile("SANDBOXED_%s.html" % Name, iframe, PluginInfo)
+                SandboxedPath = self.plugin_handler.dump_output_file("SANDBOXED_%s.html" % Name, iframe, PluginInfo)
                 logging.info("File: SANDBOXED_%s.html saved to: %s", Name, SandboxedPath)
                 LinkList.append((Name, SandboxedPath))
         plugin_output = dict(PLUGIN_OUTPUT)
@@ -126,7 +124,7 @@ class PluginHelper(BaseComponent):
         return ([plugin_output])
 
     def SetConfigPluginOutputDir(self, PluginInfo):
-        PluginOutputDir = self.plugin_handler.GetPluginOutputDir(PluginInfo)
+        PluginOutputDir = self.plugin_handler.get_plugin_output_dir(PluginInfo)
         # FULL output path for plugins to use
         self.target.SetPath('plugin_output_dir', "%s/%s" % (os.getcwd(), PluginOutputDir))
         self.shell.refresh_replacements()  # Get dynamic replacement, i.e. plugin-specific output directory
@@ -145,10 +143,10 @@ class PluginHelper(BaseComponent):
         ModifiedCommand = self.shell.GetModifiedShellCommand(Command, PluginOutputDir)
         try:
             RawOutput = self.shell.shell_exec_monitor(ModifiedCommand, PluginInfo)
-        except PluginAbortException, PartialOutput:
+        except PluginAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             PluginAbort = True
-        except FrameworkAbortException, PartialOutput:
+        except FrameworkAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             FrameworkAbort = True
 
@@ -182,8 +180,8 @@ class PluginHelper(BaseComponent):
                 "Name": self.GetCommandOutputFileNameAndExtension(Name)[0],
                 "CommandIntro": CommandIntro,
                 "ModifiedCommand": ModifiedCommand,
-                "RelativeFilePath": self.plugin_handler.DumpOutputFile(dump_file_name, RawOutput, PluginInfo,
-                                                                       RelativePath=True),
+                "RelativeFilePath": self.plugin_handler.dump_output_file(dump_file_name, RawOutput, PluginInfo,
+                                                                         RelativePath=True),
                 "OutputIntro": OutputIntro,
                 "TimeStr": TimeStr
             }
@@ -221,7 +219,7 @@ class PluginHelper(BaseComponent):
         return ([plugin_output])
 
     def DumpFile(self, Filename, Contents, PluginInfo, LinkName=''):
-        save_path = self.plugin_handler.DumpOutputFile(Filename, Contents, PluginInfo)
+        save_path = self.plugin_handler.dump_output_file(Filename, Contents, PluginInfo)
         if not LinkName:
             LinkName = save_path
         logging.info("File: %s saved to: %s", Filename, save_path)
@@ -255,7 +253,7 @@ class PluginHelper(BaseComponent):
         plugin_output["type"] = "Robots"
         num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = \
             self.AnalyseRobotsEntries(Contents)
-        SavePath = self.plugin_handler.DumpOutputFile(Filename, Contents, PluginInfo, True)
+        SavePath = self.plugin_handler.dump_output_file(Filename, Contents, PluginInfo, True)
         TopURL = self.target.get('top_url')
         EntriesList = []
         # robots.txt contains some entries, show browsable list! :)

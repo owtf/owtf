@@ -118,7 +118,7 @@ class Requester(BaseComponent, RequesterInterface):
         return self.transaction.is_already_added({'url': url.strip()})
 
     def is_request_possible(self):
-        return self.plugin_handler.RequestsPossible()
+        return self.plugin_handler.requests_possible()
 
     def ProxyCheck(self):
         # Verify proxy works! www.google.com might not work in a restricted network, try target URL :)

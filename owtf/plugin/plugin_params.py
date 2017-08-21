@@ -1,6 +1,8 @@
-#!/usr/bin/env python
+"""
+owtf.plugin.plugin_params.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-from collections import defaultdict
+"""
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.lib.general import *
@@ -40,14 +42,14 @@ class PluginParams(BaseComponent):
             cprint("Mandatory parameters:")
         else:
             cprint("Optional parameters:")
-        for ArgName, ArgDescrip in Args.items():
+        for ArgName, ArgDescrip in list(Args.items()):
             if ArgDescrip is None:
                 ArgDescrip = ""
             cprint("- %s%s%s" % (ArgName, (30 - len(ArgName)) * '_', ArgDescrip.replace('\n', "\n")))
 
     def GetArgsExample(self, FullArgList, Plugin):
         ArgsStr = []
-        for Key, Value in merge_dicts(FullArgList['Mandatory'], FullArgList['Optional']).items():
+        for Key, Value in list(merge_dicts(FullArgList['Mandatory'], FullArgList['Optional']).items()):
             ArgsStr.append(Key)
         Pad = '=? '
         return Pad.join(ArgsStr) + Pad
@@ -119,14 +121,14 @@ class PluginParams(BaseComponent):
         if not AllArgs:
             return self.NoArgs
         ArgsStr = []
-        for ArgName, ArgValue in AllArgs.items():
+        for ArgName, ArgValue in list(AllArgs.items()):
             ArgsStr.append(ArgName + "=" + str(self.Args[ArgName]))
             AllArgs[ArgName] = ArgValue
         Plugin['Args'] = ' '.join(ArgsStr)  # Record arguments in Plugin dictionary
         return [AllArgs]
 
     def SetConfig(self, Args):
-        for ArgName, ArgValue in Args.items():
+        for ArgName, ArgValue in list(Args.items()):
             cprint("Overriding configuration setting '_%s' with value %s.." % (ArgName, str(ArgValue)))
             self.config.set_general_val('string', '%s_' % ArgName, ArgValue)  # Pre-pend "_" to avoid naming collisions
 
@@ -135,7 +137,7 @@ class PluginParams(BaseComponent):
         if 'REPEAT_DELIM' not in Args:
             return Permutations  # No permutations
         Separator = Args['REPEAT_DELIM']
-        for ArgName, ArgValue in Args.items():
+        for ArgName, ArgValue in list(Args.items()):
             if ArgName == 'REPEAT_DELIM':
                 continue  # The repeat delimiter is not considered a permutation: It's the permutation delimiter :)
             Chunks = ArgValue.split(Separator)
@@ -161,7 +163,7 @@ class PluginParams(BaseComponent):
             return ArgList  # Nothing to do
         Args = ArgList[0]
         PermutationList = [Args]
-        for ArgName, Permutations in self.GetPermutations(Args).items():
+        for ArgName, Permutations in list(self.GetPermutations(Args).items()):
             self.SetPermutation(ArgName, Permutations, PermutationList)
         if not PermutationList:
             return ArgList  # No permutations, return original arguments

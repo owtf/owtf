@@ -1,5 +1,7 @@
-#!/usr/bin/env python
 """
+owtf.plugin.plugin_handler
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 The PluginHandler is in charge of running all plugins taking into account the
 chosen settings.
 """
@@ -14,9 +16,10 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.interfaces import PluginHandlerInterface
-from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
+from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
 from owtf.lib.general import *
 from owtf.plugin.scanner import Scanner
+from owtf.plugin.worker_manager import WorkerManager
 from owtf.utils import FileOperations
 
 
@@ -44,7 +47,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
     def __init__(self, options):
         self.register_in_service_locator()
-        self.Core = None
+        self.core = None
         self.db = self.get_component("db")
         self.config = self.get_component("config")
         self.plugin_output = None
@@ -58,29 +61,36 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
     def init_options(self, options):
         """Initialize CLI options for each instance of PluginHandler."""
-        self.PluginCount = 0
-        self.Simulation = options['Simulation']
-        self.Scope = options['Scope']
-        self.PluginGroup = options['PluginGroup']
-        self.OnlyPluginsList = self.ValidateAndFormatPluginList(options.get('OnlyPlugins'))
-        self.ExceptPluginsList = self.ValidateAndFormatPluginList(options.get('ExceptPlugins'))
+        self.plugin_count = 0
+        self.simulation = options['Simulation']
+        self.scope = options['Scope']
+        self.plugin_group = options['PluginGroup']
+        self.only_plugins_list = self.validate_format_plugin_list(options.get('OnlyPlugins'))
+        self.except_plugins_list = self.validate_format_plugin_list(options.get('ExceptPlugins'))
         # For special plugin types like "quiet" -> "semi_passive" + "passive"
         if isinstance(options.get('PluginType'), str):
             options['PluginType'] = options['PluginType'].split(',')
         self.scanner = None
-        self.InitExecutionRegistry()
+        self.init_exec_registry()
 
     def init(self, options):
         self.init_options(options)
-        self.Core = self.get_component("core")
+        self.core = self.get_component("core")
         self.plugin_output = self.get_component("plugin_output")
         self.reporter = self.get_component("reporter")
         self.scanner = Scanner()
 
-    def PluginAlreadyRun(self, PluginInfo):
-        return self.plugin_output.plugin_already_run(PluginInfo)
+    def plugin_already_run(self, plugin_info):
+        """Check if plugin has already run
 
-    def ValidateAndFormatPluginList(self, plugin_codes):
+        :param plugin_info: Plugin info
+        :type plugin_info: `dict`
+        :return: true/false
+        :rtype: `bool`
+        """
+        return self.plugin_output.plugin_already_run(plugin_info)
+
+    def validate_format_plugin_list(self, plugin_codes):
         """Validate the plugin codes by checking if they exist.
 
         :param list plugin_codes: OWTF plugin codes to be validated.
@@ -93,7 +103,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         if not plugin_codes:
             return []
         valid_plugin_codes = []
-        plugins_by_group = self.db_plugin.get_plugins_by_group(self.PluginGroup)
+        plugins_by_group = self.db_plugin.get_plugins_by_group(self.plugin_group)
         for code in plugin_codes:
             found = False
             for plugin in plugins_by_group:  # Processing Loop
@@ -106,64 +116,132 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                                                   "available plugin names and codes" % code)
         return valid_plugin_codes  # Return list of Codes
 
-    def InitExecutionRegistry(self):
-        # Initialises the Execution registry: As plugins execute they will be tracked here
-        # Useful to avoid calling plugins stupidly :)
-        self.ExecutionRegistry = defaultdict(list)
-        for Target in self.Scope:
-            self.ExecutionRegistry[Target] = []
+    def init_exec_registry(self):
+        """Initialises the Execution registry: As plugins execute they will be tracked here
+        Useful to avoid calling plugins stupidly :)
 
-    def GetLastPluginExecution(self, Plugin):
-        ExecLog = self.ExecutionRegistry[
-            self.config.GetTarget()]  # Get shorcut to relevant execution log for this target for readability below :)
-        NumItems = len(ExecLog)
-        if NumItems == 0:
+        :return: None
+        :rtype: None
+        """
+        self.exec_registry = defaultdict(list)
+        for target in self.scope:
+            self.exec_registry[target] = []
+
+    def get_last_plugin_exec(self, plugin):
+        """Get shortcut to relevant execution log for this target for readability below :)
+
+        :param plugin: plugin dict
+        :type plugin: `dict`
+        :return: Index
+        :rtype: `int`
+        """
+        exec_log = self.exec_registry[self.config.Gettarget()]
+        num_items = len(exec_log)
+        if num_items == 0:
             return -1  # List is empty
-        for Index in range((NumItems - 1), -1, -1):
-            Match = True
+        for index in range((num_items - 1), -1, -1):
+            match = True
             # Compare all execution log values against the passed Plugin, if all match, return index to log record
-            for Key, Value in ExecLog[Index].items():
-                if Key not in Plugin or Plugin[Key] != Value:
-                    Match = False
-            if Match:
-                return Index
+            for k, v in list(exec_log[index].items()):
+                if k not in plugin or plugin[k] != v:
+                    match = False
+            if match:
+                return index
         return -1
 
-    def GetExecLogSinceLastExecution(self, Plugin):
-        # Get all execution entries from log since last time the passed plugin executed
-        return self.ExecutionRegistry[self.config.GetTarget()][self.GetLastPluginExecution(Plugin):]
+    def get_log_since_last_exec(self, plugin):
+        """Get all execution entries from log since last time the passed plugin executed
 
-    def GetPluginOutputDir(self, Plugin):
+        :param plugin: Plugin dict
+        :type plugin: `dict`
+        :return: The logs from execution registry
+        :rtype: `dict`
+        """
+        return self.exec_registry[self.config.target][self.get_last_plugin_exec(plugin):]
+
+    def get_plugin_output_dir(self, plugin):
+        """Get plugin directory by test type
+
+        :param plugin: Plugin dict
+        :type plugin: `dict`
+        :return: Path to the plugin's output dir
+        :rtype: `str`
+        """
         # Organise results by OWASP Test type and then active, passive, semi_passive
-        if ((Plugin['group'] == 'web') or (Plugin['group'] == 'network')):
-            return os.path.join(self.target.GetPath('partial_url_output_path'),
-                                wipe_bad_chars(Plugin['title']), Plugin['type'])
-        elif Plugin['group'] == 'auxiliary':
-            return os.path.join(self.config.get_val('AUX_OUTPUT_PATH'), wipe_bad_chars(Plugin['title']),
-                                Plugin['type'])
+        if ((plugin['group'] == 'web') or (plugin['group'] == 'network')):
+            return os.path.join(self.target.get_path('partial_url_output_path'),
+                                wipe_bad_chars(plugin['title']), plugin['type'])
+        elif plugin['group'] == 'auxiliary':
+            return os.path.join(self.config.get_val('AUX_OUTPUT_PATH'), wipe_bad_chars(plugin['title']),
+                                plugin['type'])
 
-    def RequestsPossible(self):
-        # Even passive plugins will make requests to external resources
+    def requests_possible(self):
+        """Check if requests are possible
+        .note::
+             Even passive plugins will make requests to external resources
+
+        :return:
+        :rtype: `bool`
+        """
         return ['grep'] != self.db_plugin.get_types_for_plugin_group('web')
 
-    def DumpOutputFile(self, Filename, Contents, Plugin, RelativePath=False):
-        SaveDir = self.GetPluginOutputDir(Plugin)
-        abs_path = FileOperations.dump_file(Filename, Contents, SaveDir)
-        if RelativePath:
-            return (os.path.relpath(abs_path, self.config.get_output_dir_target()))
-        return (abs_path)
+    def dump_output_file(self, filename, contents, plugin, relative_path=False):
+        """Dumps output file to path
 
-    def RetrieveAbsPath(self, RelativePath):
-        return (os.path.join(self.config.get_output_dir_target(), RelativePath))
+        :param filename: Name of the file
+        :type filename: `str`
+        :param contents: Contents of the file
+        :type contents: `str`
+        :param plugin: Plugin
+        :type plugin: `dict`
+        :param relative_path: use relative path
+        :type relative_path: `bool`
+        :return: Absolute path to the file
+        :rtype: `str`
+        """
+        save_dir = self.get_plugin_output_dir(plugin)
+        abs_path = FileOperations.dump_file(filename, contents, save_dir)
+        if relative_path:
+            return (os.path.relpath(abs_path, self.config.get_output_dir_target()))
+        return abs_path
+
+    def get_abs_path(self, relative_path):
+        """Absolute path from relative path
+
+        :param relative_path: Relative path
+        :type relative_path: `str`
+        :return: The absolute path
+        :rtype: `str`
+        """
+        return (os.path.join(self.config.get_output_dir_target(), relative_path))
 
     def exists(self, directory):
+        """Check if directory exists
+
+        :param directory: directory to check
+        :type directory: `str`
+        :return: True if it exists, else False
+        :rtype: `bool`
+        """
         return os.path.exists(directory)
 
-    def GetModule(self, ModuleName, ModuleFile, ModulePath):
-        # Python fiddling to load a module from a file, there is probably a better way...
-        # ModulePath = os.path.abspath(ModuleFile)
-        f, Filename, desc = imp.find_module(ModuleFile.split('.')[0], [ModulePath])
-        return imp.load_module(ModuleName, f, Filename, desc)
+    def get_module(self, module_name, module_file, module_path):
+        """Python fiddling to load a module from a file, there is probably a better way...
+
+        .usage::
+            ModulePath = os.path.abspath(ModuleFile)
+
+        :param module_name: Name of the module
+        :type module_name: `str`
+        :param module_file:  Name of module file
+        :type module_file: `str`
+        :param module_path: path to the module
+        :type module_path: `str`
+        :return: None
+        :rtype: None
+        """
+        f, filename, desc = imp.find_module(module_file.split('.')[0], [module_path])
+        return imp.load_module(module_name, f, filename, desc)
 
     def chosen_plugin(self, plugin, show_reason=False):
         """Verify that the plugin has been chosen by the user.
@@ -177,13 +255,13 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         """
         chosen = True
         reason = 'not-specified'
-        if plugin['group'] == self.PluginGroup:
+        if plugin['group'] == self.plugin_group:
             # Skip plugins not present in the white-list defined by the user.
-            if self.OnlyPluginsList and plugin['code'] not in self.OnlyPluginsList:
+            if self.only_plugins_list and plugin['code'] not in self.only_plugins_list:
                 chosen = False
                 reason = 'not in white-list'
             # Skip plugins present in the black-list defined by the user.
-            if self.ExceptPluginsList and plugin['code'] in self.ExceptPluginsList:
+            if self.except_plugins_list and plugin['code'] in self.except_plugins_list:
                 chosen = False
                 reason = 'in black-list'
         if plugin['type'] not in self.db_plugin.get_types_for_plugin_group(plugin['group']):
@@ -199,6 +277,11 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         return chosen
 
     def force_overwrite(self):
+        """Force overwrite default config
+
+        :return:
+        :rtype:
+        """
         return self.config.get('FORCE_OVERWRITE')
 
     def plugin_can_run(self, plugin, show_reason=False):
@@ -214,7 +297,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         if not self.chosen_plugin(plugin, show_reason=show_reason):
             return False  # Skip not chosen plugins
         # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active)
-        if self.PluginAlreadyRun(plugin) and ((not self.force_overwrite() and not ('grep' == plugin['type'])) or
+        if self.plugin_already_run(plugin) and ((not self.force_overwrite() and not ('grep' == plugin['type'])) or
                                               plugin['type'] == 'external'):
             if show_reason:
                 logging.warning(
@@ -224,19 +307,39 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                     plugin['type']
                 )
             return False
-        if 'grep' == plugin['type'] and self.PluginAlreadyRun(plugin):
+        if 'grep' == plugin['type'] and self.plugin_already_run(plugin):
             # Grep plugins can only run if some active or semi_passive plugin was run since the last time
             return False
         return True
 
-    def GetPluginFullPath(self, PluginDir, Plugin):
-        return "%s/%s/%s" % (PluginDir, Plugin['type'], Plugin['file'])  # Path to run the plugin
+    def get_plugin_full_path(self, plugin_dir, plugin):
+        """Get full path to the plugin
 
-    def RunPlugin(self, PluginDir, Plugin, save_output=True):
-        PluginPath = self.GetPluginFullPath(PluginDir, Plugin)
-        (Path, Name) = os.path.split(PluginPath)
-        PluginOutput = self.GetModule("", Name, Path + "/").run(Plugin)
-        return PluginOutput
+        :param plugin_dir: path to the plugin directory
+        :type plugin_dir: `str`
+        :param plugin: Plugin dict
+        :type plugin: `dict`
+        :return: Full path to the plugin
+        :rtype: `str`
+        """
+        return "%s/%s/%s" % (plugin_dir, plugin['type'], plugin['file'])  # Path to run the plugin
+
+    def run_plugin(self, plugin_dir, plugin, save_output=True):
+        """Run a specific plugin
+
+        :param plugin_dir: path of plugin directory
+        :type plugin_dir: `str`
+        :param plugin: Plugin dict
+        :type plugin: `dict`
+        :param save_output: Save output option
+        :type save_output: `bool`
+        :return: Plugin output
+        :rtype: `dict`
+        """
+        plugin_path = self.get_plugin_full_path(plugin_dir, plugin)
+        (path, name) = os.path.split(plugin_path)
+        plugin_output = self.get_module("", name, path + "/").run(plugin)
+        return plugin_output
 
     @staticmethod
     def rank_plugin(output, pathname):
@@ -284,7 +387,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             owtf_rank = -1
         return owtf_rank
 
-    def ProcessPlugin(self, plugin_dir, plugin, status={}):
+    def process_plugin(self, plugin_dir, plugin, status=None):
         """Process a plugin from running to ranking.
 
         :param str plugin_dir: Path to the plugin directory.
@@ -296,6 +399,8 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :rtype: list
 
         """
+        if status is None:
+            status = {}
         # Ensure that the plugin CAN be run before starting anything.
         if not self.plugin_can_run(plugin, show_reason=True):
             return None
@@ -303,20 +408,20 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.timer.start_timer('Plugin')
         plugin['start'] = self.timer.get_start_date_time('Plugin')
         # Use relative path from targets folders while saving
-        plugin['output_path'] = os.path.relpath(self.GetPluginOutputDir(plugin), self.config.get_output_dir_target())
+        plugin['output_path'] = os.path.relpath(self.get_plugin_output_dir(plugin), self.config.get_output_dir_target())
         status['AllSkipped'] = False  # A plugin is going to be run.
         plugin['status'] = 'Running'
-        self.PluginCount += 1
+        self.plugin_count += 1
         logging.info(
             '_' * 10 + ' %d - Target: %s -> Plugin: %s (%s/%s) ' + '_' * 10,
-            self.PluginCount,
+            self.plugin_count,
             self.target.get_target_url(),
             plugin['title'],
             plugin['group'],
             plugin['type'])
         # Skip processing in simulation mode, but show until line above
         # to illustrate what will run
-        if self.Simulation:
+        if self.simulation:
             return None
         # DB empty => grep plugins will fail, skip!!
         if ('grep' == plugin['type'] and self.transaction.num_transactions() == 0):
@@ -327,7 +432,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         partial_output = []
         abort_reason = ''
         try:
-            output = self.RunPlugin(plugin_dir, plugin)
+            output = self.run_plugin(plugin_dir, plugin)
             status_msg = 'Successful'
             status['SomeSuccessful'] = True
         except KeyboardInterrupt:
@@ -344,7 +449,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             partial_output = PartialOutput.parameter
             abort_reason = 'Aborted by User'
             status['SomeAborted'] = True
-        except UnreachableTargetException as PartialOutput:
+        except UnreachabletargetException as PartialOutput:
             status_msg = 'Unreachable Target'
             partial_output = PartialOutput.parameter
             abort_reason = 'Unreachable Target'
@@ -358,7 +463,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         finally:
             plugin['status'] = status_msg
             plugin['end'] = self.timer.get_end_date_time('Plugin')
-            plugin['owtf_rank'] = self.rank_plugin(output, self.GetPluginOutputDir(plugin))
+            plugin['owtf_rank'] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
             try:
                 if status_msg == 'Successful':
                     self.plugin_output.save_plugin_output(plugin, output)
@@ -370,66 +475,117 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             if status_msg == 'Aborted':
                 self.error_handler.user_abort('Plugin')
             if abort_reason == 'Framework Aborted':
-                self.Core.finish()
+                self.core.finish()
         return output
 
-    def ProcessPlugins(self):
+    def process_plugins(self):
+        """Process plugins
+
+        :return:
+        :rtype:
+        """
         status = {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True}
-        if self.PluginGroup in ['web', 'auxiliary', 'network']:
-            self.ProcessPluginsForTargetList(self.PluginGroup, status, self.target.get_all("ID"))
+        if self.plugin_group in ['web', 'auxiliary', 'network']:
+            self.process_plugins_for_target_list(self.plugin_group, status, self.target.get_all("ID"))
         return status
 
-    def GetPluginGroupDir(self, PluginGroup):
-        PluginDir = self.config.get_val('PLUGINS_DIR') + PluginGroup
-        return PluginDir
+    def get_plugin_group_dir(self, plugin_group):
+        """Get directory for plugin group
 
-    def SwitchToTarget(self, Target):
-        self.target.set_target(Target)  # Tell Target DB that all Gets/Sets are now Target-specific
+        :param plugin_group: Plugin group
+        :type plugin_group: `str`
+        :return: Path to the output dir for plugin group
+        :rtype: `str`
+        """
+        plugin_dir = self.config.get_val('PLUGINS_DIR') + plugin_group
+        return plugin_dir
 
-    def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList):
-        # TargetList param will be useful for netsec stuff to call this
-        PluginDir = self.GetPluginGroupDir(PluginGroup)
-        if PluginGroup == 'network':
+    def switch_to_target(self, target):
+        """Switch to target
+
+        :param target: target id
+        :type target: `int`
+        :return: None
+        :rtype: None
+        """
+        self.target.set_target(target)  # Tell Target DB that all Gets/Sets are now Target-specific
+
+    def process_plugins_for_target_list(self, plugin_group, status, target_list):
+        """Process plugins for all targets in the list
+
+        :param plugin_group: Plugin group
+        :type plugin_group: `str`
+        :param status: Plugin exec status
+        :type status: `dict`
+        :param target_list: List of targets
+        :type target_list: `list`
+        :return: None
+        :rtype: None
+        """
+        plugin_dir = self.get_plugin_group_dir(plugin_group)
+        if plugin_group == 'network':
             portwaves = self.config.get('PORTWAVES')
             waves = portwaves.split(',')
             waves.append('-1')
             lastwave = 0
-            for Target in TargetList:  # For each Target
-                self.scanner.scan_network(Target)
+            for target in target_list:  # For each Target
+                self.scanner.scan_network(target)
                 # Scanning and processing the first part of the ports
                 for i in range(1):
                     ports = self.config.get_tcp_ports(lastwave, waves[i])
-                    print "Probing for ports %s" % str(ports)
-                    http = self.scanner.probe_network(Target, 'tcp', ports)
+                    print("Probing for ports %s" % str(ports))
+                    http = self.scanner.probe_network(target, 'tcp', ports)
                     # Tell Config that all Gets/Sets are now
                     # Target-specific.
-                    self.SwitchToTarget(Target)
-                    for Plugin in PluginGroup:
-                        self.ProcessPlugin(PluginDir, Plugin, Status)
+                    self.switch_to_target(target)
+                    for plugin in plugin_group:
+                        self.process_plugin(plugin_dir, plugin, status)
                     lastwave = waves[i]
                     for http_ports in http:
                         if http_ports == '443':
-                            self.ProcessPluginsForTargetList(
+                            self.process_plugins_for_target_list(
                                 'web',
                                 {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True},
-                                {'https://%s' % Target.split('//')[1]})
+                                {'https://%s' % target.split('//')[1]})
                         else:
-                            self.ProcessPluginsForTargetList(
+                            self.process_plugins_for_target_list(
                                 'web',
                                 {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True},
-                                {Target})
+                                {target})
         else:
             pass
 
     def clean_up(self):
+        """Cleanup workers
+
+        :return: None
+        :rtype: None
+        """
         if getattr(self, "WorkerManager", None) is not None:
             self.WorkerManager.clean_up()
 
-    def SavePluginInfo(self, PluginOutput, Plugin):
-        self.db.SaveDBs()  # Save new URLs to DB after each request
-        self.reporter.SavePluginReport(PluginOutput, Plugin)  # Timer retrieved by Reporter
+    def save_plugin_info(self, plugin_output, plugin):
+        """Saves reporter info
+
+        :param plugin_output: Plugin output
+        :type plugin_output: `dict`
+        :param plugin: Plugin dict
+        :type plugin: `dict`
+        :return: None
+        :rtype: None
+        """
+        self.reporter.SavePluginReport(plugin_output, plugin)  # Timer retrieved by Reporter
 
     def show_plugin_list(self, group, msg=INTRO_BANNER_GENERAL):
+        """Show available plugins
+
+        :param group: Plugin group
+        :type group: `str`
+        :param msg: Message to print
+        :type msg: `str`
+        :return: None
+        :rtype: None
+        """
         if group == 'web':
             logging.info("%s%s\nAvailable WEB plugins:", msg, INTRO_BANNER_WEB_PLUGIN_TYPE)
         elif group == 'auxiliary':
@@ -440,9 +596,18 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             self.show_plugin_types(plugin_type, group)
 
     def show_plugin_types(self, plugin_type, group):
+        """Show all plugin types
+
+        :param plugin_type: Plugin type
+        :type plugin_type: `str`
+        :param group: Plugin group
+        :type group: `str`
+        :return: None
+        :rtype: None
+        """
         logging.info("\n%s %s plugins %s", '*' * 40, plugin_type.title().replace('_', '-'), '*' * 40)
-        for Plugin in self.db_plugin.get_plugins_by_group_type(group, plugin_type):
-            LineStart = " %s:%s" % (Plugin['type'], Plugin['name'])
-            Pad1 = "_" * (60 - len(LineStart))
-            Pad2 = "_" * (20 - len(Plugin['code']))
-            logging.info("%s%s(%s)%s%s", LineStart, Pad1, Plugin['code'], Pad2, Plugin['descrip'])
+        for plugin in self.db_plugin.get_plugins_by_group_type(group, plugin_type):
+            line_start = " %s:%s" % (plugin['type'], plugin['name'])
+            pad1 = "_" * (60 - len(line_start))
+            pad2 = "_" * (20 - len(plugin['code']))
+            logging.info("%s%s(%s)%s%s", line_start, pad1, plugin['code'], pad2, plugin['descrip'])

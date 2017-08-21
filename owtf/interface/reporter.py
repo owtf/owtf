@@ -125,7 +125,7 @@ class Reporter(BaseComponent, ReporterInterface):
                                                                        CommandList=CommandList)
 
     def CommandDump(self, Name, CommandIntro, ModifiedCommand, RelativeFilePath, OutputIntro, TimeStr):
-        AbsPath = self.plugin_handler.RetrieveAbsPath(RelativeFilePath)
+        AbsPath = self.plugin_handler.get_abs_path(RelativeFilePath)
         OutputLines = open(AbsPath, "r").readlines()
         longOutput = (len(OutputLines) > self.mNumLinesToShow)
         if (len(OutputLines) > self.mNumLinesToShow):

@@ -120,7 +120,7 @@ class MappingDBInterface(AbstractInterface):
 class PluginHandlerInterface(AbstractInterface):
 
     @abstractmethod
-    def DumpOutputFile(self):
+    def dump_output_file(self):
         pass
 
     @abstractmethod
@@ -128,7 +128,7 @@ class PluginHandlerInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def GetPluginOutputDir(self):
+    def get_plugin_output_dir(self):
         pass
 
     @abstractmethod
@@ -136,15 +136,15 @@ class PluginHandlerInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def ProcessPlugin(self):
+    def process_plugin(self):
         pass
 
     @abstractmethod
-    def RequestsPossible(self):
+    def requests_possible(self):
         pass
 
     @abstractmethod
-    def RetrieveAbsPath(self):
+    def get_abs_path(self):
         pass
 
     @abstractmethod
@@ -152,7 +152,7 @@ class PluginHandlerInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def ValidateAndFormatPluginList(self):
+    def validate_format_plugin_list(self):
         pass
 
 

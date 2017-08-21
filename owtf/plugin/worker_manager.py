@@ -1,11 +1,18 @@
-#!/usr/bin/env python
+"""
+owtf.plugin.worker_manager
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+"""
 
 import os
 import signal
 import subprocess
 import logging
 import multiprocessing
-import Queue
+try:
+    import queue
+except ImportError:
+    import Queue
 from time import strftime
 
 from owtf.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
@@ -30,9 +37,9 @@ class Worker(OWTFProcess, BaseComponent):
                 target, plugin = work
                 pluginDir = self.plugin_handler.GetPluginGroupDir(plugin['group'])
                 self.plugin_handler.SwitchToTarget(target["id"])
-                self.plugin_handler.ProcessPlugin(pluginDir, plugin)
+                self.plugin_handler.process_plugin(pluginDir, plugin)
                 self.output_q.put('done')
-            except Queue.Empty:
+            except queue.Empty:
                 pass
             except KeyboardInterrupt:
                 logging.debug("I am worker (%d) & my master doesn't need me anymore", self.pid)

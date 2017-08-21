@@ -1,7 +1,9 @@
-#!/usr/bin/env python
-'''
+"""
+owtf.plugin.scanner
+~~~~~~~~~~~~~~~~~~~
+
 The scan_network scans the network for different ports and call network plugins for different services running on target
-'''
+"""
 
 import re
 import logging
