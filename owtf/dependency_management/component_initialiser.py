@@ -76,7 +76,7 @@ class ComponentInitialiser():
         """
         db_config = ServiceLocator.get_component("db_config")
         db_config.init()
-        Timer(db_config.Get('DATE_TIME_FORMAT'))
+        Timer(db_config.get('DATE_TIME_FORMAT'))
         ServiceLocator.get_component("db_plugin").init()
         ServiceLocator.get_component("config").init()
         PluginHandler(args)
@@ -104,7 +104,7 @@ class ComponentInitialiser():
         ServiceLocator.get_component("db").init()
         db_config = ServiceLocator.get_component("db_config")
         ServiceLocator.get_component("error_handler").init()
-        proxy = [db_config.Get('INBOUND_PROXY_IP'), db_config.Get('INBOUND_PROXY_PORT')]
+        proxy = [db_config.get('INBOUND_PROXY_IP'), db_config.get('INBOUND_PROXY_PORT')]
         Requester(proxy)
         PluginHelper()
         ServiceLocator.get_component("plugin_handler").init(options)

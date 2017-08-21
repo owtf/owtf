@@ -16,7 +16,7 @@ def run(PluginInfo):
     DirBusterInteraction = {'true': 'DirBusterInteractive', 'false': 'DirBusterNotInteractive'}
 
     # Get settings from the config DB
-    db_interactive = ServiceLocator.get_component("db_config").Get('INTERACTIVE')
+    db_interactive = ServiceLocator.get_component("db_config").get('INTERACTIVE')
     resource = ServiceLocator.get_component("resource").get_resources(DirBusterInteraction[db_interactive])
     Content = ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
                                                                         PluginInfo, [])

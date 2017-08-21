@@ -210,13 +210,13 @@ class Reporter(BaseComponent, ReporterInterface):
         vars = {
             "Cookies": [{
                 "Name": Cookie.split('=')[0],
-                "Link": Header2TransacDict[self.config.Get('HEADERS_FOR_COOKIES').lower() + Cookie],
+                "Link": Header2TransacDict[self.config.get('HEADERS_FOR_COOKIES').lower() + Cookie],
                 "Attribs": Cookie.replace(Cookie.split('=')[0] + "=", "").replace("; ", ";").split(";"),
             } for Cookie in CookieValueList],
         }
         Table = self.Render.CreateTable({'class': 'report_intro'})
-        SetCookie = self.config.Get('HEADERS_FOR_COOKIES').lower()
-        PossibleCookieAttributes = self.config.Get('COOKIE_ATTRIBUTES').split(',')
+        SetCookie = self.config.get('HEADERS_FOR_COOKIES').lower()
+        PossibleCookieAttributes = self.config.get('COOKIE_ATTRIBUTES').split(',')
         for Cookie in CookieValueList:
             CookieName = Cookie.split('=')[0]
             CookieLink = self.Render.DrawButtonLink(cgi.escape(CookieName), Header2TransacDict[SetCookie + Cookie])

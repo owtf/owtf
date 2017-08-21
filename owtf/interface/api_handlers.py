@@ -24,21 +24,21 @@ class PluginDataHandler(custom_handlers.APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group:  # Check if plugin_group is present in url
-                self.write(self.get_component("db_plugin").GetAll(filter_data))
+                self.write(self.get_component("db_plugin").get_all(filter_data))
             if plugin_group and (not plugin_type) and (not plugin_code):
                 filter_data.update({"group": plugin_group})
-                self.write(self.get_component("db_plugin").GetAll(filter_data))
+                self.write(self.get_component("db_plugin").get_all(filter_data))
             if plugin_group and plugin_type and (not plugin_code):
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"type": plugin_type, "group": plugin_group})
-                self.write(self.get_component("db_plugin").GetAll(filter_data))
+                self.write(self.get_component("db_plugin").get_all(filter_data))
             if plugin_group and plugin_type and plugin_code:
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"type": plugin_type, "group": plugin_group, "code": plugin_code})
                 # This combination will be unique, so have to return a dict
-                results = self.get_component("db_plugin").GetAll(filter_data)
+                results = self.get_component("db_plugin").get_all(filter_data)
                 if results:
                     self.write(results[0])
                 else:
@@ -64,7 +64,7 @@ class PluginNameOutput(custom_handlers.UIRequestHandler):
                 if plugin_type not in self.get_component("db_plugin").GetTypesForGroup(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code})
-            results = self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id), inc_output=False)
+            results = self.get_component("plugin_output").get_all(filter_data, target_id=int(target_id), inc_output=False)
 
             # Get mappings
             if self.get_argument("mapping", None):
@@ -498,7 +498,7 @@ class URLDataHandler(custom_handlers.APIRequestHandler):
         try:
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
-            self.write(self.get_component("url_manager").GetAll(filter_data, target_id=int(target_id)))
+            self.write(self.get_component("url_manager").get_all(filter_data, target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -562,7 +562,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                     "plugin_group": plugin_group,
                     "plugin_code": plugin_code
                 })
-            results = self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id), inc_output=True)
+            results = self.get_component("plugin_output").get_all(filter_data, target_id=int(target_id), inc_output=True)
             if results:
                 self.write(results)
             else:
@@ -587,7 +587,7 @@ class PluginOutputHandler(custom_handlers.APIRequestHandler):
                 raise tornado.web.HTTPError(400)
             else:
                 patch_data = dict(self.request.arguments)
-                self.get_component("plugin_output").Update(plugin_group, plugin_type, plugin_code, patch_data,
+                self.get_component("plugin_output").update(plugin_group, plugin_type, plugin_code, patch_data,
                                                            target_id=target_id)
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
@@ -726,7 +726,7 @@ class WorklistHandler(custom_handlers.APIRequestHandler):
             filter_data = dict(self.request.arguments)
             if not filter_data:
                 raise tornado.web.HTTPError(400)
-            plugin_list = self.get_component("db_plugin").GetAll(filter_data)
+            plugin_list = self.get_component("db_plugin").get_all(filter_data)
             target_list = self.get_component("target").GetTargetConfigs(filter_data)
             if (not plugin_list) or (not target_list):
                 raise tornado.web.HTTPError(400)
@@ -793,12 +793,12 @@ class ConfigurationHandler(custom_handlers.APIRequestHandler):
 
     def get(self):
         filter_data = dict(self.request.arguments)
-        self.write(self.get_component("db_config").GetAll(filter_data))
+        self.write(self.get_component("db_config").get_all(filter_data))
 
     def patch(self):
         for key, value_list in self.request.arguments.items():
             try:
-                self.get_component("db_config").Update(key, value_list[0])
+                self.get_component("db_config").update(key, value_list[0])
             except exceptions.InvalidConfigurationReference:
                 raise tornado.web.HTTPError(400)
 
@@ -809,10 +809,10 @@ class ErrorDataHandler(custom_handlers.APIRequestHandler):
     def get(self, error_id=None):
         if error_id is None:
             filter_data = dict(self.request.arguments)
-            self.write(self.get_component("db_error").GetAll(filter_data))
+            self.write(self.get_component("db_error").get_all(filter_data))
         else:
             try:
-                self.write(self.get_component("db_error").Get(error_id))
+                self.write(self.get_component("db_error").get(error_id))
             except exceptions.InvalidErrorReference:
                 raise tornado.web.HTTPError(400)
 
@@ -835,13 +835,13 @@ class ErrorDataHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
         if self.request.arguments.get_argument("user_message", default=None):
             raise tornado.web.HTTPError(400)
-        self.get_component("db_error").Update(error_id, self.request.arguments.get_argument("user_message"))
+        self.get_component("db_error").update(error_id, self.request.arguments.get_argument("user_message"))
 
     def delete(self, error_id=None):
         if error_id is None:
             raise tornado.web.HTTPError(400)
         try:
-            self.get_component("db_error").Delete(error_id)
+            self.get_component("db_error").delete(error_id)
         except exceptions.InvalidErrorReference:
             raise tornado.web.HTTPError(400)
 
@@ -864,7 +864,7 @@ class ReportExportHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
         try:
             filter_data = dict(self.request.arguments)
-            plugin_outputs = self.get_component("plugin_output").GetAll(filter_data, target_id=target_id, inc_output=True)
+            plugin_outputs = self.get_component("plugin_output").get_all(filter_data, target_id=target_id, inc_output=True)
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)

@@ -10,7 +10,7 @@ DESCRIPTION = "Active probing for HTTP methods"
 
 def run(PluginInfo):
     target = ServiceLocator.get_component("target")
-    URL = target.Get('top_url')
+    URL = target.get('top_url')
     # TODO: PUT not working right yet
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     Content = plugin_helper.TransactionTableForURL(True, URL, Method='TRACE')

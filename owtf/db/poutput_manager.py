@@ -57,8 +57,8 @@ class POutputDB(BaseComponent, PluginOutputInterface):
                     pdict["output"] = self.DeriveHTMLOutput(json.loads(pdict["output"]))
             else:
                 pdict.pop("output")
-            pdict["start_time"] = obj.start_time.strftime(self.db_config.Get("DATE_TIME_FORMAT"))
-            pdict["end_time"] = obj.end_time.strftime(self.db_config.Get("DATE_TIME_FORMAT"))
+            pdict["start_time"] = obj.start_time.strftime(self.db_config.get("DATE_TIME_FORMAT"))
+            pdict["end_time"] = obj.end_time.strftime(self.db_config.get("DATE_TIME_FORMAT"))
             pdict["run_time"] = self.timer.get_time_as_str(obj.run_time)
             return pdict
 

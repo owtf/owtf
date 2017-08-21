@@ -1,3 +1,10 @@
+"""
+owtf.db.resource_manager
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+"""
+
 import os
 import logging
 
@@ -21,23 +28,38 @@ class ResourceDB(BaseComponent, ResourceInterface):
         self.error_handler = self.get_component("error_handler")
 
     def init(self):
-        self.LoadResourceDBFromFile(self.config.get_profile_path("RESOURCES_PROFILE"))
+        self.load_resources_from_file(self.config.get_profile_path("RESOURCES_PROFILE"))
 
-    # This needs to be a list instead of a dictionary to preserve order in python < 2.7
-    def LoadResourceDBFromFile(self, file_path):
+    def load_resources_from_file(self, file_path):
+        """Parses the resources config file and loads data into the DB
+        .note::
+            This needs to be a list instead of a dictionary to preserve order in python < 2.7
+
+        :param file_path: Path to the resources config file
+        :type file_path: `str`
+        :return: None
+        :rtype: None
+        """
         file_path = self.config.select_user_or_default_config_path(file_path)
         logging.info("Loading Resources from: %s..", file_path)
         if not os.path.isfile(file_path):  # check if the resource file exists
             self.error_handler.abort_framework("Resource file not found at: %s" % file_path)
-        resources = self.GetResourcesFromFile(file_path)
+        resources = self.get_resources_from_file(file_path)
         # Delete all old resources which are not edited by user
         # because we may have updated the resource
         self.db.session.query(models.Resource).filter_by(dirty=False).delete()
-        for Type, Name, Resource in resources:
-            self.db.session.add(models.Resource(resource_type=Type, resource_name=Name, resource=Resource))
+        for type, name, resource in resources:
+            self.db.session.add(models.Resource(resource_type=type, resource_name=name, resource=resource))
         self.db.session.commit()
 
-    def GetResourcesFromFile(self, resource_file):
+    def get_resources_from_file(self, resource_file):
+        """Fetch resources for a file
+
+        :param resource_file: Path to the resource file
+        :type resource_file: `str`
+        :return: Resources as a set
+        :rtype: `set`
+        """
         resources = set()
         ConfigFile = FileOperations.open(resource_file, 'r').read().splitlines()  # To remove stupid '\n' at the end
         for line in ConfigFile:

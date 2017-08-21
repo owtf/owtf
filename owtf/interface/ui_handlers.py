@@ -155,7 +155,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
             raise tornado.web.HTTPError(400)
         try:
             filter_data = dict(self.request.arguments)  # IMPORTANT!!
-            plugin_outputs = self.get_component("plugin_output").GetAll(filter_data, target_id=target_id)
+            plugin_outputs = self.get_component("plugin_output").get_all(filter_data, target_id=target_id)
             # Group the plugin outputs to make it easier in template
             grouped_plugin_outputs = {}
             for poutput in plugin_outputs:

@@ -1,7 +1,9 @@
-#!/usr/bin/env python
-'''
+"""
+owtf.db.error_manager
+~~~~~~~~~~~~~~~~~~~~~
+
 Component to handle data storage and search of all errors
-'''
+"""
 
 from owtf.db import models
 from owtf.dependency_management.dependency_resolver import BaseComponent
@@ -18,12 +20,28 @@ class ErrorDB(BaseComponent, DBErrorInterface):
         self.db = self.get_component("db")
         self.config = self.get_component("config")
 
-    def Add(self, Message, Trace):
-        error = models.Error(owtf_message=Message, traceback=Trace)
+    def add(self, message, trace):
+        """Add an error to the DB
+
+        :param message: Message to be added
+        :type message: `str`
+        :param trace: Traceback
+        :type trace: `str`
+        :return: None
+        :rtype: None
+        """
+        error = models.Error(owtf_message=message, traceback=trace)
         self.db.session.add(error)
         self.db.session.commit()
 
-    def Delete(self, error_id):
+    def delete(self, error_id):
+        """Deletes an error from the DB
+
+        :param error_id: ID of the error to be deleted
+        :type error_id: `int`
+        :return: None
+        :rtype: None
+        """
         error = self.db.session.query(models.Error).get(error_id)
         if error:
             self.db.session.delete(error)
@@ -31,7 +49,14 @@ class ErrorDB(BaseComponent, DBErrorInterface):
         else:
             raise InvalidErrorReference("No error with id %s" % str(error_id))
 
-    def GenerateQueryUsingSession(self, criteria):
+    def gen_query_session(self, criteria):
+        """Generates the ORM query using the criteria
+
+        :param criteria: Filter criteria
+        :type criteria: `dict`
+        :return:
+        :rtype:
+        """
         query = self.db.session.query(models.Error)
         if criteria.get('reported', None):
             if isinstance(criteria.get('reported'), list):
@@ -39,7 +64,16 @@ class ErrorDB(BaseComponent, DBErrorInterface):
             query = query.filter_by(reported=self.config.ConvertStrToBool(criteria['reported']))
         return query
 
-    def Update(self, error_id, user_message):
+    def update(self, error_id, user_message):
+        """Update an error message in the DB
+
+        :param error_id: ID of the error message
+        :type error_id: `int`
+        :param user_message: New message
+        :type user_message: `str`
+        :return: None
+        :rtype: None
+        """
         error = self.db.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
             raise InvalidErrorReference("No error with id %s" % str(error_id))
@@ -47,7 +81,20 @@ class ErrorDB(BaseComponent, DBErrorInterface):
         self.db.session.merge(error)
         self.db.session.commit()
 
-    def UpdateAfterGitHubReport(self, error_id, traceback, reported, github_issue_url):
+    def update_after_github_report(self, error_id, traceback, reported, github_issue_url):
+        """Store back the Github issue URL in the DB
+
+        :param error_id: Id of the reported error message
+        :type error_id: `int`
+        :param traceback: Traceback
+        :type traceback: `str`
+        :param reported: Reported or not
+        :type reported: `bool`
+        :param github_issue_url: Github issue url
+        :type github_issue_url: `str`
+        :return: None
+        :rtype: None
+        """
         error = self.db.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
             raise InvalidErrorReference("No error with id %s" % str(error_id))
@@ -59,27 +106,55 @@ class ErrorDB(BaseComponent, DBErrorInterface):
         self.db.session.merge(error)
         self.db.session.commit()
 
-    def DeriveErrorDict(self, error_obj):
+    def derive_error_dict(self, error_obj):
+        """Get the error dict from an object
+
+        :param error_obj: Error object
+        :type error_obj:
+        :return: Error dict
+        :rtype: `dict`
+        """
         tdict = dict(error_obj.__dict__)
         tdict.pop("_sa_instance_state", None)
         return tdict
 
-    def DeriveErrorDicts(self, error_obj_list):
+    def derive_error_dicts(self, error_obj_list):
+        """Get error dicts for a list of error objs
+
+        :param error_obj_list: List of error objects
+        :type error_obj_list: `list`
+        :return: List of error dicts
+        :rtype: `list`
+        """
         results = []
         for error_obj in error_obj_list:
             if error_obj:
-                results.append(self.DeriveErrorDict(error_obj))
+                results.append(self.derive_error_dict(error_obj))
         return results
 
-    def GetAll(self, criteria=None):
+    def get_all(self, criteria=None):
+        """Get all error dicts based on criteria
+
+        :param criteria: Filter criteria
+        :type criteria: `dict`
+        :return: Error dicts
+        :rtype: `list`
+        """
         if not criteria:
             criteria = {}
-        query = self.GenerateQueryUsingSession(criteria)
+        query = self.gen_query_session(criteria)
         results = query.all()
-        return self.DeriveErrorDicts(results)
+        return self.derive_error_dicts(results)
 
-    def Get(self, error_id):
+    def get(self, error_id):
+        """Get an error based on the id
+
+        :param error_id: Error id
+        :type error_id: `int`
+        :return: Error dict
+        :rtype: `dict`
+        """
         error = self.db.session.query(models.Error).get(error_id)
         if not error:  # If invalid error id, bail out
             raise InvalidErrorReference("No error with id %s" % str(error_id))
-        return self.DeriveErrorDict(error)
+        return self.derive_error_dict(error)

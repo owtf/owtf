@@ -203,7 +203,7 @@ class Config(BaseComponent, ConfigInterface):
             filter_data = {'type': options['PluginType'], 'group': group}
         else:
             filter_data = {"code": options.get("OnlyPlugins"), "type": options.get("PluginType")}
-        plugins = self.db_plugin.GetAll(filter_data)
+        plugins = self.db_plugin.get_all(filter_data)
         if not plugins:
             logging.error("No plugin found matching type '%s' and group '%s' for target '%s'!" %
                           (options['PluginType'], group, target))

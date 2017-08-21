@@ -574,17 +574,17 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         # if lock is True then a new recursive lock object is created to
         # synchronize access to the value
         self.application.Core.pnh_inject = Value('i', 0, lock=True)
-        self.application.inbound_ip = self.db_config.Get('INBOUND_PROXY_IP')
-        self.application.inbound_port = int(self.db_config.Get('INBOUND_PROXY_PORT'))
+        self.application.inbound_ip = self.db_config.get('INBOUND_PROXY_IP')
+        self.application.inbound_port = int(self.db_config.get('INBOUND_PROXY_PORT'))
 
         if self.proxy_manager:
             self.instances = "1"  # Botnet mode needs only one proxy process.
         else:
-            self.instances = self.db_config.Get("INBOUND_PROXY_PROCESSES")
+            self.instances = self.db_config.get("INBOUND_PROXY_PROCESSES")
 
         # Proxy CACHE
         # Cache related settings, including creating required folders according to cache folder structure
-        self.application.cache_dir = self.db_config.Get("INBOUND_PROXY_CACHE_DIR")
+        self.application.cache_dir = self.db_config.get("INBOUND_PROXY_CACHE_DIR")
         # Clean possible older cache directory.
         if os.path.exists(self.application.cache_dir):
             FileOperations.rm_tree(self.application.cache_dir)
@@ -593,16 +593,16 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         # SSL MiTM
         # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory
         # ~/.owtf/proxy)
-        self.application.ca_cert = os.path.expanduser(self.db_config.Get('CA_CERT'))
-        self.application.ca_key = os.path.expanduser(self.db_config.Get('CA_KEY'))
+        self.application.ca_cert = os.path.expanduser(self.db_config.get('CA_CERT'))
+        self.application.ca_key = os.path.expanduser(self.db_config.get('CA_KEY'))
         # To stop OWTF from breaking for our beloved users :P
         try:
-            self.application.ca_key_pass = FileOperations.open(os.path.expanduser(self.db_config.Get('CA_PASS_FILE')),
+            self.application.ca_key_pass = FileOperations.open(os.path.expanduser(self.db_config.get('CA_PASS_FILE')),
                                                                'r', owtf_clean=False).read().strip()
         except IOError:
             self.application.ca_key_pass = "owtf"  # XXX: Legacy CA key pass for older versions.
         self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
-        self.application.certs_folder = os.path.expanduser(self.db_config.Get('CERTS_FOLDER'))
+        self.application.certs_folder = os.path.expanduser(self.db_config.get('CERTS_FOLDER'))
 
         try:  # Ensure CA.crt and Key exist.
             assert os.path.exists(self.application.ca_cert)
@@ -618,16 +618,16 @@ class ProxyProcess(OWTFProcess, BaseComponent):
 
         # Blacklist (or) Whitelist Cookies
         # Building cookie regex to be used for cookie filtering for caching
-        if self.db_config.Get('WHITELIST_COOKIES') == 'None':
-            cookies_list = self.db_config.Get('BLACKLIST_COOKIES').split(',')
+        if self.db_config.get('WHITELIST_COOKIES') == 'None':
+            cookies_list = self.db_config.get('BLACKLIST_COOKIES').split(',')
             self.application.cookie_blacklist = True
         else:
-            cookies_list = self.db_config.Get('WHITELIST_COOKIES').split(',')
+            cookies_list = self.db_config.get('WHITELIST_COOKIES').split(',')
             self.application.cookie_blacklist = False
         if self.application.cookie_blacklist:
             regex_cookies_list = [cookie + "=([^;]+;?)" for cookie in cookies_list]
         else:
-            regex_cookies_list = ["(" + cookie + "=[^;]+;?)" for cookie in self.db_config.Get('COOKIES_LIST')]
+            regex_cookies_list = ["(" + cookie + "=[^;]+;?)" for cookie in self.db_config.get('COOKIES_LIST')]
         regex_string = '|'.join(regex_cookies_list)
         self.application.cookie_regex = re.compile(regex_string)
 
@@ -666,13 +666,13 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         ProxyHandler.restricted_request_headers = restricted_request_headers
 
         # HTTP Auth options
-        if self.db_config.Get("HTTP_AUTH_HOST") != "None":
+        if self.db_config.get("HTTP_AUTH_HOST") != "None":
             self.application.http_auth = True
             # All the variables are lists
-            self.application.http_auth_hosts = self.db_config.Get("HTTP_AUTH_HOST").strip().split(',')
-            self.application.http_auth_usernames = self.db_config.Get("HTTP_AUTH_USERNAME").strip().split(',')
-            self.application.http_auth_passwords = self.db_config.Get("HTTP_AUTH_PASSWORD").strip().split(',')
-            self.application.http_auth_modes = self.db_config.Get("HTTP_AUTH_MODE").strip().split(',')
+            self.application.http_auth_hosts = self.db_config.get("HTTP_AUTH_HOST").strip().split(',')
+            self.application.http_auth_usernames = self.db_config.get("HTTP_AUTH_USERNAME").strip().split(',')
+            self.application.http_auth_passwords = self.db_config.get("HTTP_AUTH_PASSWORD").strip().split(',')
+            self.application.http_auth_modes = self.db_config.get("HTTP_AUTH_MODE").strip().split(',')
         else:
             self.application.http_auth = False
 
@@ -688,7 +688,7 @@ class ProxyProcess(OWTFProcess, BaseComponent):
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
             tornado.options.parse_command_line(
-                args=["dummy_arg", "--log_file_prefix=%s" % self.db_config.Get("PROXY_LOG"), "--logging=info"])
+                args=["dummy_arg", "--log_file_prefix=%s" % self.db_config.get("PROXY_LOG"), "--logging=info"])
             # To run any number of instances
             # "0" equals the number of cores present in a machine
             self.server.start(int(self.instances))

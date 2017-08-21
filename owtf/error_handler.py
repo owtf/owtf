@@ -190,6 +190,6 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
         request = requests.post(self.config.get_val("GITHUB_API_ISSUES_URL"), headers=headers, data=data)
         response = request.json()
         if request.status_code == 201:
-            self.db_error.UpdateAfterGitHubReport(id, body, True, response["html_url"])
+            self.db_error.update_after_github_report(id, body, True, response["html_url"])
 
         return response

@@ -79,7 +79,7 @@ class SpearPhishing(BaseComponent, AbstractInterface):
         :rtype:
         """
         mandatory_paths = self.config.get_as_list(['_PDF_TEMPLATE', '_WORD_TEMPLATE', '_EMAIL_TARGET'])
-        mandatory_paths.append(self.db_config.Get('TOOL_SET_DIR'))
+        mandatory_paths.append(self.db_config.get('TOOL_SET_DIR'))
         if not paths_exist(mandatory_paths) or not paths_exist(self.get_set_scripts(args)):
             self.error_handler.abort_framework("USER ERROR: Some mandatory paths were not found your filesystem",
                                               'user')

@@ -59,14 +59,14 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         self.spawn_workers()
 
     def get_allowed_process_count(self):
-        process_per_core = int(self.db_config.Get('PROCESS_PER_CORE'))
+        process_per_core = int(self.db_config.get('PROCESS_PER_CORE'))
         cpu_count = multiprocessing.cpu_count()
         return process_per_core * cpu_count
 
     def get_task(self):
         work = None
         free_mem = self.shell.shell_exec("free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
-        if int(free_mem) > int(self.db_config.Get('MIN_RAM_NEEDED')):
+        if int(free_mem) > int(self.db_config.get('MIN_RAM_NEEDED')):
             work = self.db.Worklist.get_work(self.targets_in_use())
         else:
             logging.warn("Not enough memory to execute a plugin")

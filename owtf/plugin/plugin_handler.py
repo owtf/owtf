@@ -199,7 +199,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         return chosen
 
     def force_overwrite(self):
-        return self.config.Get('FORCE_OVERWRITE')
+        return self.config.get('FORCE_OVERWRITE')
 
     def plugin_can_run(self, plugin, show_reason=False):
         """Verify that a plugin can be run by OWTF.
@@ -376,7 +376,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
     def ProcessPlugins(self):
         status = {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True}
         if self.PluginGroup in ['web', 'auxiliary', 'network']:
-            self.ProcessPluginsForTargetList(self.PluginGroup, status, self.target.GetAll("ID"))
+            self.ProcessPluginsForTargetList(self.PluginGroup, status, self.target.get_all("ID"))
         return status
 
     def GetPluginGroupDir(self, PluginGroup):
@@ -390,7 +390,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         # TargetList param will be useful for netsec stuff to call this
         PluginDir = self.GetPluginGroupDir(PluginGroup)
         if PluginGroup == 'network':
-            portwaves = self.config.Get('PORTWAVES')
+            portwaves = self.config.get('PORTWAVES')
             waves = portwaves.split(',')
             waves.append('-1')
             lastwave = 0
@@ -398,7 +398,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                 self.scanner.scan_network(Target)
                 # Scanning and processing the first part of the ports
                 for i in range(1):
-                    ports = self.config.GetTcpPorts(lastwave, waves[i])
+                    ports = self.config.get_tcp_ports(lastwave, waves[i])
                     print "Probing for ports %s" % str(ports)
                     http = self.scanner.probe_network(Target, 'tcp', ports)
                     # Tell Config that all Gets/Sets are now

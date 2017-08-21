@@ -256,7 +256,7 @@ class PluginHelper(BaseComponent):
         num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = \
             self.AnalyseRobotsEntries(Contents)
         SavePath = self.plugin_handler.DumpOutputFile(Filename, Contents, PluginInfo, True)
-        TopURL = self.target.Get('top_url')
+        TopURL = self.target.get('top_url')
         EntriesList = []
         # robots.txt contains some entries, show browsable list! :)
         if num_disallow > 0 or num_allow > 0 or num_sitemap > 0:

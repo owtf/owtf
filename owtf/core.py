@@ -110,26 +110,26 @@ class Core(BaseComponent):
             try:
                 temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 temp_socket.bind((
-                    self.db_config.Get('INBOUND_PROXY_IP'),
-                    int(self.db_config.Get('INBOUND_PROXY_PORT'))))
+                    self.db_config.get('INBOUND_PROXY_IP'),
+                    int(self.db_config.get('INBOUND_PROXY_PORT'))))
                 temp_socket.close()
             except socket.error:
                 self.error_handler.abort_framework("Inbound proxy address %s:%s already in use" %
-                                                   (self.db_config.Get('INBOUND_PROXY_IP'),
-                                                   self.db_config.Get("INBOUND_PROXY_PORT")))
+                                                   (self.db_config.get('INBOUND_PROXY_IP'),
+                                                   self.db_config.get("INBOUND_PROXY_PORT")))
             # If everything is fine.
             self.proxy_process = proxy.ProxyProcess()
             self.proxy_process.initialize(options['OutboundProxy'], options['OutboundProxyAuth'])
             self.transaction_logger = transaction_logger.TransactionLogger(
-                cache_dir=self.db_config.Get('INBOUND_PROXY_CACHE_DIR'))
+                cache_dir=self.db_config.get('INBOUND_PROXY_CACHE_DIR'))
             logging.warn(
                 "%s:%s <-- HTTP(S) Proxy to which requests can be directed",
-                self.db_config.Get('INBOUND_PROXY_IP'),
-                self.db_config.Get("INBOUND_PROXY_PORT"))
+                self.db_config.get('INBOUND_PROXY_IP'),
+                self.db_config.get("INBOUND_PROXY_PORT"))
             self.proxy_process.start()
             logging.debug("Starting Transaction logger process")
             self.transaction_logger.start()
-            logging.debug("Proxy transaction's log file at %s", self.db_config.Get("PROXY_LOG"))
+            logging.debug("Proxy transaction's log file at %s", self.db_config.get("PROXY_LOG"))
         else:
             ComponentInitialiser.initialisation_phase_3(options['OutboundProxy'])
 

@@ -1,7 +1,9 @@
-#!/usr/bin/env python
-'''
+"""
+owtf.db.db
+~~~~~~~~~~
+
 This file handles all the database transactions.
-'''
+"""
 
 import os
 from contextlib import contextmanager
@@ -25,13 +27,14 @@ class Session(BaseSession):
 
     @contextmanager
     def atomic(self):
-        """
-        Transaction context manager.
+        """Transaction context manager.
 
-        Will commit the transaction on successful completion
-        of the block, or roll it back on error.
+        .note::
+            Will commit the transaction on successful completion of the block, or roll it back on error.
+            Supports nested usage (via savepoints).
 
-        Supports nested usage (via savepoints).
+        :return: None
+        :rtype: None
         """
         nested = self._in_atomic
         self.begin(nested=nested)
@@ -56,53 +59,68 @@ class DB(BaseComponent, DBInterface):
         self.register_in_service_locator()
         self.config = self.get_component("config")
         self.error_handler = self.get_component("error_handler")
-        self.ErrorDBSession = None
-        self.Transaction = None
-        self.URL = None
-        self.Plugin = None
-        self.POutput = None
-        self.Target = None
-        self.Resource = None
-        self.Error = None
-        self.CommandRegister = None
-        self.Mapping = None
+        self.error_db_session = None
+        self.transaction = None
+        self.url = None
+        self.plugin = None
+        self.poutput = None
+        self.target = None
+        self.resource = None
+        self.error = None
+        self.command_register = None
+        self.mapping = None
         self._db_settings = self._get_db_settings()
         self.create_session()
 
     def init(self):
         self.config = self.get_component("config")
-        self.Transaction = self.get_component("transaction")
-        self.URL = self.get_component("url_manager")
-        self.Plugin = self.get_component("db_plugin")
-        self.POutput = self.get_component("plugin_output")
-        self.Target = self.get_component("target")
-        self.Resource = self.get_component("resource")
-        self.Config = self.get_component("db_config")
-        self.Error = self.get_component("db_error")
-        self.CommandRegister = self.get_component("command_register")
-        self.Mapping = self.get_component("mapping_db")
+        self.transaction = self.get_component("transaction")
+        self.url = self.get_component("url_manager")
+        self.plugin = self.get_component("db_plugin")
+        self.poutput = self.get_component("plugin_output")
+        self.target = self.get_component("target")
+        self.resource = self.get_component("resource")
+        self.config = self.get_component("db_config")
+        self.error = self.get_component("db_error")
+        self.command_register = self.get_component("command_register")
+        self.mapping = self.get_component("mapping_db")
         self.error_handler = self.get_component("error_handler")
-        self.OWTFSession = self.get_component("session_db")
-        self.Worklist = self.get_component("worklist_manager")
-        self.DBHealthCheck()
+        self.owtf_session = self.get_component("session_db")
+        self.worklist = self.get_component("worklist_manager")
 
     def get_category(self, plugin_code):
-        return self.Mapping.GetCategory(plugin_code)
+        """Get the mapping for a plugin code
 
-    def DBHealthCheck(self):
-        # TODO: Fix this for postgresql: self.Target.DBHealthCheck()
-        return
+        :param plugin_code: Plugin code
+        :type plugin_code: `str`
+        :return:
+        :rtype:
+        """
+        return self.mapping.GetCategory(plugin_code)
 
     def create_session(self):
-        self.Session = self.CreateScopedSession()
-        self.session = self.Session()
+        """Create a DB session
+
+        :return: None
+        :rtype: None
+        """
+        self._session = self.create_scoped_session()
+        self.session = self._session()
 
     def clean_up(self):
-        """Close the sqlalchemy session opened by DB."""
+        """Close the sqlalchemy session opened by DB
+
+        :return: None
+        :rtype: None
+        """
         self.session.close()
 
     def _get_db_settings(self):
-        """Create DB settings according to the configuration file."""
+        """Create DB settings according to the configuration file.
+
+        :return: Settings dict
+        :rtype: `dict`
+        """
         config_path = os.path.expanduser(self.config.get_val('DATABASE_SETTINGS_FILE'))
         settings = {}
         with FileOperations.open(config_path, 'r') as f:
@@ -119,7 +137,12 @@ class DB(BaseComponent, DBInterface):
                                                        (config_path, line))
         return settings
 
-    def CreateEngine(self, BaseClass):
+    def create_engine(self, base):
+        """Create the SQLAlchemy engine with parameters
+
+        :return: None
+        :rtype: None
+        """
         try:
             engine = create_engine(
                 "postgresql+psycopg2://%s:%s@%s:%s/%s" % (
@@ -131,7 +154,7 @@ class DB(BaseComponent, DBInterface):
                 poolclass=QueuePool,
                 pool_size=5,
                 max_overflow=10)
-            BaseClass.metadata.create_all(engine)
+            base.metadata.create_all(engine)
             # Fix for forking
             register_after_fork(engine, engine.dispose)
             return engine
@@ -145,8 +168,15 @@ class DB(BaseComponent, DBInterface):
         except exc.OperationalError as e:
             self.error_handler.abort_framework("[DB] %s\nRun scripts/db_run.sh to start/setup db" % str(e))
 
-    def CreateScopedSession(self):
-        # Not to be used apart from main process, use CreateSession instead
-        self.engine = self.CreateEngine(models.Base)
+    def create_scoped_session(self):
+        """Scoped session for the main OWTF process
+
+        .note::
+            Not to be used apart from main process, use CreateSession instead
+
+        :return:
+        :rtype:
+        """
+        self.engine = self.create_engine(models.Base)
         session_factory = sessionmaker(bind=self.engine, autocommit=False, class_=Session)
         return scoped_session(session_factory)

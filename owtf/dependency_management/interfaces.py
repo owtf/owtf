@@ -15,11 +15,11 @@ class AbstractInterface():
 class CommandRegisterInterface(AbstractInterface):
 
     @abstractmethod
-    def AddCommand(self):
+    def add_command(self):
         pass
 
     @abstractmethod
-    def CommandAlreadyRegistered(self):
+    def command_already_registered(self):
         pass
 
 
@@ -37,26 +37,26 @@ class DBInterface(AbstractInterface):
 class DBConfigInterface(AbstractInterface):
 
     @abstractmethod
-    def Get(self):
+    def get(self):
         pass
 
     @abstractmethod
-    def GetAll(self):
+    def get_all(self):
         pass
 
     @abstractmethod
-    def GetReplacementDict(self):
+    def get_replacement_dict(self):
         pass
 
     @abstractmethod
-    def Update(self):
+    def update(self):
         pass
 
 
 class DBErrorInterface(AbstractInterface):
 
     @abstractmethod
-    def Add(self):
+    def add(self):
         pass
 
 

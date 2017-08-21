@@ -31,10 +31,10 @@ class OutputCleaner():
         command = command.decode('utf-8', 'ignore')
         target = ServiceLocator.get_component("target")
         # Host name setting value for all targets in scope.
-        for host in target.GetAll('HOST_NAME'):
+        for host in target.get_all('HOST_NAME'):
             if host:  # Value is not blank
                 command = command.replace(host, 'some.target.com')
-        for ip in target.GetAll('HOST_IP'):
+        for ip in target.get_all('HOST_IP'):
             if ip:
                 command = command.replace(ip, 'xxx.xxx.xxx.xxx')
         return command

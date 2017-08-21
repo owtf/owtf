@@ -14,7 +14,7 @@ def run(PluginInfo):
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     target = ServiceLocator.get_component("target")
     requester = ServiceLocator.get_component("requester")
-    top_url = target.Get('top_url')
+    top_url = target.get('top_url')
     url = "%s/robots.txt" % top_url
     test_result = []
     # Use transaction cache if possible for speed

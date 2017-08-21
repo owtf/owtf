@@ -82,7 +82,7 @@ class Shell(BaseComponent, ShellInterface):
         cmd_info['RunTime'] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
         cmd_info['Target'] = self.target.GetTargetID()
         cmd_info['PluginKey'] = plugin_info["key"]
-        self.command_register.AddCommand(cmd_info)
+        self.command_register.add_command(cmd_info)
 
     def escape_shell_path(self, text):
         """Escape shell path characters in the text
@@ -118,7 +118,7 @@ class Shell(BaseComponent, ShellInterface):
         :return: List of return values
         :rtype: `list`
         """
-        target = self.command_register.CommandAlreadyRegistered(command['OriginalCommand'])
+        target = self.command_register.command_already_registered(command['OriginalCommand'])
         if target:  # target_config will be None for a not found match
             return [target, False]
         return [None, True]

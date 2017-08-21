@@ -86,7 +86,7 @@ class Requester(BaseComponent, RequesterInterface):
         self.plugin_handler = self.get_component("plugin_handler")
         self.timer = self.get_component("timer")
         self.http_transaction = None
-        self.Headers = {'User-Agent': self.db_config.Get('USER_AGENT')}
+        self.Headers = {'User-Agent': self.db_config.get('USER_AGENT')}
         self.RequestCountRefused = 0
         self.RequestCountTotal = 0
         self.log_transactions = False
@@ -123,7 +123,7 @@ class Requester(BaseComponent, RequesterInterface):
     def ProxyCheck(self):
         # Verify proxy works! www.google.com might not work in a restricted network, try target URL :)
         if self.Proxy is not None and self.is_request_possible():
-            url = self.db_config.Get('PROXY_CHECK_URL')
+            url = self.db_config.get('PROXY_CHECK_URL')
             refused_before = self.RequestCountRefused
             cprint("Proxy Check: Avoid logging request again if already in DB..")
             log_setting_backup = False

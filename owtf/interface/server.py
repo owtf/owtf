@@ -28,7 +28,7 @@ class InterfaceServer(OWTFProcess, BaseComponent):
             ui_address = config.get_val("SERVER_ADDR")
             self.server.bind(ui_port, address=ui_address)
             tornado.options.parse_command_line(
-                args=['dummy_arg', '--log_file_prefix=%s' % db_config.Get('UI_SERVER_LOG'), '--logging=info'])
+                args=['dummy_arg', '--log_file_prefix=%s' % db_config.get('UI_SERVER_LOG'), '--logging=info'])
             self.server.start(0)
             db.create_session()
             tornado.ioloop.IOLoop.instance().start()
@@ -56,7 +56,7 @@ class FileServer(BaseComponent):
             fileserver_addr = config.get_val("SERVER_ADDR")
             self.server.bind(fileserver_port, address=fileserver_addr)
             tornado.options.parse_command_line(
-                args=['dummy_arg', '--log_file_prefix=%s' % db.Config.Get('FILE_SERVER_LOG'), '--logging=info'])
+                args=['dummy_arg', '--log_file_prefix=%s' % db.Config.get('FILE_SERVER_LOG'), '--logging=info'])
             self.server.start(1)
             # 'self.manage_cron' is an instance of class 'tornado.ioloop.PeriodicCallback',
             # it schedules the given callback to be called periodically.
