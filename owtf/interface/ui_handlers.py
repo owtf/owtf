@@ -74,37 +74,6 @@ class HTTPSessions(custom_handlers.UIRequestHandler):
         self.render("sessions_manager.html", sessions_api_url=self.reverse_url('sessions_api_url', target_id),)
 
 
-class ReplayRequest(custom_handlers.UIRequestHandler):
-    SUPPORTED_METHODS = ['GET']
-
-    @tornado.web.asynchronous
-    def get(self, target_id=None, transaction_id=None):
-        if not target_id or not transaction_id:
-            raise tornado.web.HTTPError(405)
-        else:
-            self.render(
-                "replay_request.html",
-                transaction_api_url=self.reverse_url('transactions_api_url', target_id, transaction_id),
-                transaction_replay_api_url=self.reverse_url('transaction_replay_api_url', target_id, transaction_id)
-            )
-
-
-class ZestScriptConsoleHandler(custom_handlers.UIRequestHandler):
-    SUPPORTED_METHODS = ['GET']
-
-    @tornado.web.asynchronous
-    def get(self, target_id=None):
-        if not target_id:
-            raise tornado.web.HTTPError(405)
-        else:
-            self.render(
-                "zest_console.html",
-                zest_console_api_url=self.reverse_url('zest_console_api_url', target_id),
-                zest_recording=self.get_component("zest").IsRecording(),
-                zest_target_heading=(self.get_component("zest").GetTargetConfig(target_id))['HOST_AND_PORT']
-            )
-
-
 class UrlLog(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
