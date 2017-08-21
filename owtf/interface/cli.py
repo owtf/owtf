@@ -1,3 +1,9 @@
+"""
+owtf.interface.cli
+~~~~~~~~~~~~~~~~~~
+
+"""
+
 import tornado.ioloop
 
 from owtf.dependency_management.dependency_resolver import BaseComponent

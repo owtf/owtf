@@ -1,3 +1,10 @@
+"""
+owtf.interface.urls
+~~~~~~~~~~~~~~~~~~~
+
+
+"""
+
 import tornado.web
 
 from owtf.dependency_management.dependency_resolver import ServiceLocator

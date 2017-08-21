@@ -1,7 +1,12 @@
-import os
+"""
+owtf.interface.ui_handlers
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+"""
+
 import json
 import collections
-import uuid
 
 import tornado.web
 from tornado.escape import url_escape

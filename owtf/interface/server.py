@@ -1,3 +1,11 @@
+"""
+owtf.interface.server
+~~~~~~~~~~~~~~~~~~~~~
+
+"""
+
+import logging
+
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
@@ -56,7 +64,7 @@ class FileServer(BaseComponent):
             fileserver_addr = config.get_val("SERVER_ADDR")
             self.server.bind(fileserver_port, address=fileserver_addr)
             tornado.options.parse_command_line(
-                args=['dummy_arg', '--log_file_prefix=%s' % db.Config.get('FILE_SERVER_LOG'), '--logging=info'])
+                args=['dummy_arg', '--log_file_prefix=%s' % db.config.get('FILE_SERVER_LOG'), '--logging=info'])
             self.server.start(1)
             # 'self.manage_cron' is an instance of class 'tornado.ioloop.PeriodicCallback',
             # it schedules the given callback to be called periodically.
@@ -64,9 +72,8 @@ class FileServer(BaseComponent):
             self.manager_cron = tornado.ioloop.PeriodicCallback(self.worker_manager.manage_workers, 2000)
             self.manager_cron.start()
             tornado.ioloop.IOLoop.instance().start()
-        except KeyboardInterrupt:
-            pass
-        finally:
+        except Exception as e:
+            logging.error(e)
             self.clean_up()
 
     def clean_up(self):

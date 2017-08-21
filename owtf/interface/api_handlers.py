@@ -1,3 +1,9 @@
+"""
+owtf.interface.api_handlers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+"""
+
 import json
 import collections
 from StringIO import StringIO

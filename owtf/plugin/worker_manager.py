@@ -12,7 +12,7 @@ import multiprocessing
 try:
     import queue
 except ImportError:
-    import Queue
+    import Queue as queue
 from time import strftime
 
 from owtf.dependency_management.dependency_resolver import BaseComponent, ServiceLocator

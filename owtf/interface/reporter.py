@@ -1,8 +1,10 @@
-#!/usr/bin/env python
-'''
+"""
+owtf.interface.reporter
+~~~~~~~~~~~~~~~~~~~~~~~
+
 The reporter module is in charge of producing the HTML Report as well as
  provide plugins with common HTML Rendering functions
-'''
+"""
 
 import cgi
 
@@ -10,7 +12,6 @@ from tornado.template import Loader
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.interfaces import ReporterInterface
-from owtf.lib.general import *
 from owtf.interface.html.filter import sanitiser
 
 
@@ -51,9 +52,9 @@ class Reporter(BaseComponent, ReporterInterface):
     def TransactionTableForTransactions(self, Transactions):
         return self.Loader.load("transaction_table.html").generate(TransactionList=Transactions)
 
-    def unicode(self, *args):
+    def str(self, *args):
         try:
-            return unicode(*args)
+            return str(*args)
         except TypeError:
             return args[0]  # Input is already Unicode
 
