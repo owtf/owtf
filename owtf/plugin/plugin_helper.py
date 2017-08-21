@@ -204,14 +204,14 @@ class PluginHelper(BaseComponent):
         plugin_output = dict(PLUGIN_OUTPUT)
         self.timer.start_timer('LogURLsFromStr')
         # Extract and classify URLs and store in DB
-        URLList = self.url_manager.ImportURLs(RawOutput.strip().split("\n"))
+        URLList = self.url_manager.import_urls(RawOutput.strip().split("\n"))
         NumFound = 0
         VisitURLs = False
         # TODO: Whether or not active testing will depend on the user profile ;). Have cool ideas for profile names
         if True:
             VisitURLs = True
             # Visit all URLs if not in Cache
-            for Transaction in self.requester.GetTransactions(True, self.url_manager.GetURLsToVisit()):
+            for Transaction in self.requester.GetTransactions(True, self.url_manager.get_urls_to_visit()):
                 if Transaction is not None and Transaction.Found:
                     NumFound += 1
         TimeStr = self.timer.get_elapsed_time_as_str('LogURLsFromStr')
@@ -267,11 +267,11 @@ class PluginHelper(BaseComponent):
                 for Entry in Entries:
                     if 'Sitemap Entries' == Display:
                         URL = Entry
-                        self.url_manager.AddURL(URL)  # Store real links in the DB
+                        self.url_manager.add_url(URL)  # Store real links in the DB
                         Links.append([Entry, Entry])  # Show link in defined format (passive/semi_passive)
                     else:
                         URL = TopURL + Entry
-                        self.url_manager.AddURL(URL)  # Store real links in the DB
+                        self.url_manager.add_url(URL)  # Store real links in the DB
                         # Show link in defined format (passive/semi_passive)
                         Links.append([Entry, LinkStart + Entry + LinkEnd])
                 EntriesList.append((Display, Links))

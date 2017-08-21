@@ -258,7 +258,7 @@ class Config(BaseComponent, ConfigInterface):
         added_targets = []
         for target in scope:
             try:
-                self.target.AddTarget(target)
+                self.target.add_target(target)
                 added_targets.append(target)
             except DBIntegrityException:
                 logging.warning("%s already exists in DB" % target)

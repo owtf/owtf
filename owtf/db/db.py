@@ -96,7 +96,7 @@ class DB(BaseComponent, DBInterface):
         :return:
         :rtype:
         """
-        return self.mapping.GetCategory(plugin_code)
+        return self.mapping.get_category(plugin_code)
 
     def create_session(self):
         """Create a DB session

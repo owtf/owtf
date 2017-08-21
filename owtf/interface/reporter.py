@@ -37,7 +37,7 @@ class Reporter(BaseComponent, ReporterInterface):
     def TransactionTableFromIDs(self, TransactionIDs, NumLinesReq=15, NumLinesRes=15):
         """ Draws a table of HTTP Transactions """
         # functions to get the first lines of a long string
-        transactions = self.transaction.GetByIDs(TransactionIDs)
+        transactions = self.transaction.get_by_ids(TransactionIDs)
         return self.TransactionTableForTransactions(transactions)
 
     def TransactionTableForURL(self, UseCache, URL, Method=None, Data=None):
@@ -174,8 +174,8 @@ class Reporter(BaseComponent, ReporterInterface):
 
 # ---------------------- Grep Plugin Outputs -------------------- #
     def ResponseBodyMatches(self, ResponseRegexpName):
-        RegexpName, GrepOutputs, TransactionIDS, match_percent = self.transaction.SearchByRegexName(ResponseRegexpName,
-                                                                                                    stats=True)
+        RegexpName, GrepOutputs, TransactionIDS, match_percent = self.transaction.search_by_regex_name(ResponseRegexpName,
+                                                                                                       stats=True)
         variables = {
             "name": RegexpName.replace("RESPONSE_REGEXP_FOR_", "").replace('_', ' '),
             "matches": GrepOutputs,
@@ -188,8 +188,8 @@ class Reporter(BaseComponent, ReporterInterface):
         return self.ResearchHeaders(HeaderRegexpName)[0]
 
     def ResearchHeaders(self, RegexName):
-        regex_name, grep_outputs, transaction_ids, match_percent = self.transaction.SearchByRegexName(RegexName,
-                                                                                                      stats=True)
+        regex_name, grep_outputs, transaction_ids, match_percent = self.transaction.search_by_regex_name(RegexName,
+                                                                                                         stats=True)
         # [[unique_matches, matched_transactions, matched_percentage]]
         searches = self.Loader.load("header_searches.html").generate(match_percent=match_percent, matches=grep_outputs,
                                                                      transaction_ids=transaction_ids)
@@ -203,7 +203,7 @@ class Reporter(BaseComponent, ReporterInterface):
         return HeaderTable
 
     def TopTransactionsBySpeed(self, Order):
-        transactions = self.transaction.GetTopTransactionsBySpeed(Order)
+        transactions = self.transaction.get_top_by_speed(Order)
         return self.TransactionTableForTransactions(transactions)
 
     def CookieAttributeAnalysis(self, CookieValueList, Header2TransacDict):

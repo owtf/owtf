@@ -21,7 +21,7 @@ def run(PluginInfo):
     transaction = ServiceLocator.get_component("transaction")
     for ID in transaction.GrepTransactionIDsForHeaders(
             [ServiceLocator.get_component("config").get('HEADERS_FOR_COOKIES')]):  # Transactions with cookies
-        URL = transaction.GetByID(ID).URL  # Limitation: Not Checking POST, normally not a problem ..
+        URL = transaction.get_by_id(ID).URL  # Limitation: Not Checking POST, normally not a problem ..
         if URL not in URLList:  # Only if URL not already processed!
             URLList.append(URL)  # Keep track of processed URLs
             AllCookieValues = {}

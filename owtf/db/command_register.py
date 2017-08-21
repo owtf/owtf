@@ -79,12 +79,12 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
             # If the command was completed and the plugin output to which it
             # is referring exists
             if register_entry.success:
-                if self.plugin_output.PluginOutputExists(register_entry.plugin_key, register_entry.target_id):
-                    return self.target.GetTargetURLForID(register_entry.target_id)
+                if self.plugin_output.plugin_output_exists(register_entry.plugin_key, register_entry.target_id):
+                    return self.target.get_target_url_for_id(register_entry.target_id)
                 else:
                     self.del_command(original_command)
                     return None
             else:  # Command failed
                 self.del_command(original_command)
-                return self.target.GetTargetURLForID(register_entry.target_id)
+                return self.target.get_target_url_for_id(register_entry.target_id)
         return None

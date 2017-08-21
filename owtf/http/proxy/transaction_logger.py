@@ -80,10 +80,10 @@ class TransactionLogger(OWTFProcess):
         :rtype: `dict`
         """
         transactions_dict = None
-        target_list = self.target.GetIndexedTargets()
+        target_list = self.target.get_indexed_targets()
         if target_list:  # If there are no targets in db, where are we going to add. OMG
             transactions_dict = {}
-            host_list = self.target.GetAllInScope('host_name')
+            host_list = self.target.get_all_in_scope('host_name')
 
             for request_hash in hash_list:
                 request = request_from_cache(os.path.join(self.cache_dir, request_hash))

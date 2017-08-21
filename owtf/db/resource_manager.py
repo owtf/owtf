@@ -2,7 +2,6 @@
 owtf.db.resource_manager
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 """
 
 import os
@@ -72,37 +71,70 @@ class ResourceDB(BaseComponent, ResourceInterface):
                 cprint("ERROR: The delimiter is incorrect in this line at Resource File: %s" % str(line.split('_____')))
         return resources
 
-    def GetReplacementDict(self):
+    def get_replacement_dict(self):
+        """Get the configuration update changes as a dict
+
+        :return:
+        :rtype:
+        """
         configuration = self.db_config.get_replacement_dict()
         configuration.update(self.target.GetTargetConfig())
         configuration.update(self.config.get_replacement_dict())
         configuration.update(self.config.get_framework_config_dict()) # for aux plugins
         return configuration
 
-    def GetRawResources(self, ResourceType):
+    def get_raw_resources(self, resource_type):
+        """Fetch raw resources filtered on type
+
+        :param resource_type: Resource type
+        :type resource_type: `str`
+        :return: List of raw resources
+        :rtype: `list`
+        """
         filter_query = self.db.session.query(models.Resource.resource_name, models.Resource.resource).filter_by(
-            resource_type=ResourceType)
+            resource_type=resource_type)
         # Sorting is necessary for working of ExtractURLs, since it must run after main command, so order is imp
         sort_query = filter_query.order_by(models.Resource.id)
         raw_resources = sort_query.all()
         return raw_resources
 
-    def GetResources(self, ResourceType):
-        replacement_dict = self.GetReplacementDict()
-        raw_resources = self.GetRawResources(ResourceType)
+    def get_resources(self, resource_type):
+        """Fetch resources filtered on type
+
+        :param resource_type: Resource type
+        :type resource_type: `str`
+        :return: List of resources
+        :rtype: `list`
+        """
+        replacement_dict = self.get_replacement_dict()
+        raw_resources = self.get_raw_resources(resource_type)
         resources = []
         for name, resource in raw_resources:
             resources.append([name, self.config.multi_replace(resource, replacement_dict)])
         return resources
 
-    def GetRawResourceList(self, ResourceList):
+    def get_raw_resource_list(self, resource_list):
+        """Get raw resources as from a resource list
+
+        :param resource_list: List of resource types
+        :type resource_list: `list`
+        :return: List of raw resources
+        :rtype: `list`
+        """
         raw_resources = self.db.session.query(models.Resource.resource_name, models.Resource.resource).filter(
             models.Resource.resource_type.in_(ResourceList)).all()
         return raw_resources
 
-    def GetResourceList(self, ResourceTypeList):
-        replacement_dict = self.GetReplacementDict()
-        raw_resources = self.GetRawResourceList(ResourceTypeList)
+    def get_resource_list(self, resource_type_list):
+        """Get list of resources from list of types
+
+        :param resource_type_list: List of resource types
+        :type resource_type_list: `list`
+        :return: List of resources
+        :rtype: `list`
+        """
+        replacement_dict = self.get_replacement_dict()
+        raw_resources = self.get_raw_resource_list(resource_type_list)
         resources = []
         for name, resource in raw_resources:
             resources.append([name, self.config.multi_replace(resource, replacement_dict)])

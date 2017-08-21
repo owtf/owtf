@@ -7,8 +7,8 @@ def get_handlers():
 
     db_plugin = ServiceLocator.get_component("db_plugin")
     config = ServiceLocator.get_component("config")
-    plugin_group_re = '(%s)?' % '|'.join(db_plugin.GetAllGroups())
-    plugin_type_re = '(%s)?' % '|'.join(db_plugin.GetAllTypes())
+    plugin_group_re = '(%s)?' % '|'.join(db_plugin.get_all_plugin_groups())
+    plugin_type_re = '(%s)?' % '|'.join(db_plugin.get_all_plugin_types())
     plugin_code_re = '([0-9A-Z\-]+)?'
 
     URLS = [

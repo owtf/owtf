@@ -115,7 +115,7 @@ class Requester(BaseComponent, RequesterInterface):
         return not self.plugin_handler.NormalRequestsAllowed()
 
     def IsTransactionAlreadyAdded(self, url):
-        return self.transaction.IsTransactionAlreadyAdded({'url': url.strip()})
+        return self.transaction.is_already_added({'url': url.strip()})
 
     def is_request_possible(self):
         return self.plugin_handler.RequestsPossible()
@@ -278,7 +278,7 @@ class Requester(BaseComponent, RequesterInterface):
         if data is not None:
             criteria['data'] = self.DerivePOSTToStr(data)
         # Visit URL if not already visited.
-        if (not use_cache or not self.transaction.IsTransactionAlreadyAdded(criteria)):
+        if (not use_cache or not self.transaction.is_already_added(criteria)):
             if method in ['', 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS']:
                 return self.Request(url, method, data)
             elif method == 'DEBUG':
@@ -287,7 +287,7 @@ class Requester(BaseComponent, RequesterInterface):
                 return self.PUT(url, data)
         else:  # Retrieve from DB = faster.
             # Important since there is no transaction ID with transactions objects created by Requester.
-            return self.transaction.GetFirst(criteria)
+            return self.transaction.get_first(criteria)
 
     def GetTransactions(self, use_cache, url_list, method=None, data=None, unique=True):
         transactions = []

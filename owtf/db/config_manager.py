@@ -7,9 +7,9 @@ owtf.db.config_manager
 import os
 import logging
 import sys
-if sys.version_info[0] == 3:
-    import parser as parser
-else:
+try:
+    import configparser as parser
+except ImportError:
     import ConfigParser as parser
 
 from owtf.dependency_management.dependency_resolver import BaseComponent

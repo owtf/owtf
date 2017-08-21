@@ -63,23 +63,23 @@ class DBErrorInterface(AbstractInterface):
 class DBPluginInterface(AbstractInterface):
 
     @abstractmethod
-    def GetAll(self):
+    def get_all(self):
         pass
 
     @abstractmethod
-    def GetAllTestGroups(self):
+    def get_all_test_groups(self):
         pass
 
     @abstractmethod
-    def GetPluginsByGroup(self):
+    def get_plugins_by_group(self):
         pass
 
     @abstractmethod
-    def GetPluginsByGroupType(self):
+    def get_plugins_by_group_type(self):
         pass
 
     @abstractmethod
-    def GetTypesForGroup(self):
+    def get_types_for_plugin_group(self):
         pass
 
 
@@ -109,11 +109,11 @@ class ErrorHandlerInterface(AbstractInterface):
 class MappingDBInterface(AbstractInterface):
 
     @abstractmethod
-    def GetMappingTypes(self):
+    def get_mapping_types(self):
         pass
 
     @abstractmethod
-    def GetMappings(self):
+    def get_mappings(self):
         pass
 
 
@@ -159,31 +159,31 @@ class PluginHandlerInterface(AbstractInterface):
 class PluginOutputInterface(AbstractInterface):
 
     @abstractmethod
-    def DeleteAll(self):
+    def delete_all(self):
         pass
 
     @abstractmethod
-    def GetAll(self):
+    def get_all(self):
         pass
 
     @abstractmethod
-    def GetUnique(self):
+    def get_unique(self):
         pass
 
     @abstractmethod
-    def PluginAlreadyRun(self):
+    def plugin_already_run(self):
         pass
 
     @abstractmethod
-    def SavePartialPluginOutput(self):
+    def save_partial_output(self):
         pass
 
     @abstractmethod
-    def SavePluginOutput(self):
+    def save_plugin_output(self):
         pass
 
     @abstractmethod
-    def Update(self):
+    def update(self):
         pass
 
 
@@ -209,11 +209,11 @@ class RequesterInterface(AbstractInterface):
 class ResourceInterface(AbstractInterface):
 
     @abstractmethod
-    def GetResourceList(self):
+    def get_resource_list(self):
         pass
 
     @abstractmethod
-    def GetResources(self):
+    def get_resources(self):
         pass
 
 
@@ -258,35 +258,35 @@ class TimerInterface(AbstractInterface):
 class TransactionInterface(AbstractInterface):
 
     @abstractmethod
-    def DeleteTransaction(self):
+    def delete_transaction(self):
         pass
 
     @abstractmethod
-    def GetAllAsDicts(self):
+    def get_all_as_dicts(self):
         pass
 
     @abstractmethod
-    def GetByIDAsDict(self):
+    def get_by_id_as_dict(self):
         pass
 
     @abstractmethod
-    def GetByIDs(self):
+    def get_by_ids(self):
         pass
 
     @abstractmethod
-    def GetFirst(self):
+    def get_first(self):
         pass
 
     @abstractmethod
-    def GetSessionData(self):
+    def get_session_data(self):
         pass
 
     @abstractmethod
-    def GetTopTransactionsBySpeed(self):
+    def get_top_by_speed(self):
         pass
 
     @abstractmethod
-    def IsTransactionAlreadyAdded(self):
+    def is_already_added(self):
         pass
 
     @abstractmethod
@@ -294,26 +294,26 @@ class TransactionInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def LogTransactionsFromLogger(self):
+    def log_transactions_from_logger(self):
         pass
 
     @abstractmethod
-    def NumTransactions(self):
+    def num_transactions(self):
         pass
 
     @abstractmethod
-    def SearchAll(self):
+    def search_all(self):
         pass
 
     @abstractmethod
-    def SearchByRegexName(self):
+    def search_by_regex_name(self):
         pass
 
 
 class URLManagerInterface(AbstractInterface):
 
     @abstractmethod
-    def AddURL(self):
+    def add_url(self):
         pass
 
     @abstractmethod
@@ -325,27 +325,27 @@ class URLManagerInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def GetAll(self):
+    def get_all(self):
         pass
 
     @abstractmethod
-    def GetURLsToVisit(self):
+    def get_urls_to_visit(self):
         pass
 
     @abstractmethod
-    def ImportProcessedURLs(self):
+    def import_processed_url(self):
         pass
 
     @abstractmethod
-    def ImportURLs(self):
+    def import_urls(self):
         pass
 
     @abstractmethod
-    def IsURL(self):
+    def is_url(self):
         pass
 
     @abstractmethod
-    def SearchAll(self):
+    def search_all(self):
         pass
 
 
@@ -441,15 +441,15 @@ class ZestInterface(AbstractInterface):
 class TargetInterface(AbstractInterface):
 
     @abstractmethod
-    def AddTarget(self):
+    def add_target(self):
         pass
 
     @abstractmethod
-    def DeleteTarget(self):
+    def delete_target(self):
         pass
 
     @abstractmethod
-    def Get(self):
+    def get(self):
         pass
 
     @abstractmethod
@@ -457,11 +457,11 @@ class TargetInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def GetAllInScope(self):
+    def get_all_in_scope(self):
         pass
 
     @abstractmethod
-    def GetIndexedTargets(self):
+    def get_indexed_targets(self):
         pass
 
     @abstractmethod
@@ -485,11 +485,11 @@ class TargetInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def GetTargetURL(self):
+    def get_target_url(self):
         pass
 
     @abstractmethod
-    def IsInScopeURL(self):
+    def is_url_in_scope(self):
         pass
 
     @abstractmethod
@@ -501,11 +501,11 @@ class TargetInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def SetTarget(self):
+    def set_target(self):
         pass
 
     @abstractmethod
-    def UpdateTarget(self):
+    def update_target(self):
         pass
 
 

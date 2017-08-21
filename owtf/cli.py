@@ -39,7 +39,7 @@ def get_plugins_from_arg(arg):
     :rtype: `list`
     """
     plugins = arg.split(',')
-    plugin_groups = ServiceLocator.get_component("db_plugin").GetGroupsForPlugins(plugins)
+    plugin_groups = ServiceLocator.get_component("db_plugin").get_groups_for_plugins(plugins)
     if len(plugin_groups) > 1:
         usage("The plugins specified belong to several plugin groups: '%s'" % str(plugin_groups))
     return [plugins, plugin_groups]
@@ -55,8 +55,8 @@ def process_options(user_args):
     """
     try:
         db_plugin = ServiceLocator.get_component("db_plugin")
-        valid_groups = db_plugin.GetAllGroups()
-        valid_types = db_plugin.GetAllTypes() + ['all', 'quiet']
+        valid_groups = db_plugin.get_all_plugin_groups()
+        valid_types = db_plugin.get_all_plugin_types() + ['all', 'quiet']
         arg = parse_options(user_args, valid_groups, valid_types)
     except KeyboardInterrupt as e:
         usage("Invalid OWTF option(s) %s" % e)
@@ -148,7 +148,7 @@ def process_options(user_args):
             except ValueError:
                 usage("Invalid port for Inbound Proxy")
 
-    plugin_types_for_group = db_plugin.GetTypesForGroup(plugin_group)
+    plugin_types_for_group = db_plugin.get_types_for_plugin_group(plugin_group)
     if arg.PluginType == 'all':
         arg.PluginType = plugin_types_for_group
     elif arg.PluginType == 'quiet':

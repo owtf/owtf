@@ -78,7 +78,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.scanner = Scanner()
 
     def PluginAlreadyRun(self, PluginInfo):
-        return self.plugin_output.PluginAlreadyRun(PluginInfo)
+        return self.plugin_output.plugin_already_run(PluginInfo)
 
     def ValidateAndFormatPluginList(self, plugin_codes):
         """Validate the plugin codes by checking if they exist.
@@ -93,7 +93,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         if not plugin_codes:
             return []
         valid_plugin_codes = []
-        plugins_by_group = self.db_plugin.GetPluginsByGroup(self.PluginGroup)
+        plugins_by_group = self.db_plugin.get_plugins_by_group(self.PluginGroup)
         for code in plugin_codes:
             found = False
             for plugin in plugins_by_group:  # Processing Loop
@@ -144,7 +144,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
     def RequestsPossible(self):
         # Even passive plugins will make requests to external resources
-        return ['grep'] != self.db_plugin.GetTypesForGroup('web')
+        return ['grep'] != self.db_plugin.get_types_for_plugin_group('web')
 
     def DumpOutputFile(self, Filename, Contents, Plugin, RelativePath=False):
         SaveDir = self.GetPluginOutputDir(Plugin)
@@ -186,7 +186,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             if self.ExceptPluginsList and plugin['code'] in self.ExceptPluginsList:
                 chosen = False
                 reason = 'in black-list'
-        if plugin['type'] not in self.db_plugin.GetTypesForGroup(plugin['group']):
+        if plugin['type'] not in self.db_plugin.get_types_for_plugin_group(plugin['group']):
             chosen = False  # Skip plugin: Not matching selected type
             reason = 'not matching selected type'
         if not chosen and show_reason:
@@ -310,7 +310,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         logging.info(
             '_' * 10 + ' %d - Target: %s -> Plugin: %s (%s/%s) ' + '_' * 10,
             self.PluginCount,
-            self.target.GetTargetURL(),
+            self.target.get_target_url(),
             plugin['title'],
             plugin['group'],
             plugin['type'])
@@ -319,7 +319,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         if self.Simulation:
             return None
         # DB empty => grep plugins will fail, skip!!
-        if ('grep' == plugin['type'] and self.transaction.NumTransactions() == 0):
+        if ('grep' == plugin['type'] and self.transaction.num_transactions() == 0):
             logging.info('Skipped - Cannot run grep plugins: The Transaction DB is empty')
             return None
         output = None
@@ -361,9 +361,9 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             plugin['owtf_rank'] = self.rank_plugin(output, self.GetPluginOutputDir(plugin))
             try:
                 if status_msg == 'Successful':
-                    self.plugin_output.SavePluginOutput(plugin, output)
+                    self.plugin_output.save_plugin_output(plugin, output)
                 else:
-                    self.plugin_output.SavePartialPluginOutput(plugin, partial_output, abort_reason)
+                    self.plugin_output.save_partial_output(plugin, partial_output, abort_reason)
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)
@@ -384,7 +384,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         return PluginDir
 
     def SwitchToTarget(self, Target):
-        self.target.SetTarget(Target)  # Tell Target DB that all Gets/Sets are now Target-specific
+        self.target.set_target(Target)  # Tell Target DB that all Gets/Sets are now Target-specific
 
     def ProcessPluginsForTargetList(self, PluginGroup, Status, TargetList):
         # TargetList param will be useful for netsec stuff to call this
@@ -436,12 +436,12 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             logging.info("%s\nAvailable AUXILIARY plugins:", msg)
         elif group == 'network':
             logging.info("%s\nAvailable NETWORK plugins:", msg)
-        for plugin_type in self.db_plugin.GetTypesForGroup(group):
+        for plugin_type in self.db_plugin.get_types_for_plugin_group(group):
             self.show_plugin_types(plugin_type, group)
 
     def show_plugin_types(self, plugin_type, group):
         logging.info("\n%s %s plugins %s", '*' * 40, plugin_type.title().replace('_', '-'), '*' * 40)
-        for Plugin in self.db_plugin.GetPluginsByGroupType(group, plugin_type):
+        for Plugin in self.db_plugin.get_plugins_by_group_type(group, plugin_type):
             LineStart = " %s:%s" % (Plugin['type'], Plugin['name'])
             Pad1 = "_" * (60 - len(LineStart))
             Pad2 = "_" * (20 - len(Plugin['code']))

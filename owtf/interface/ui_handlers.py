@@ -130,8 +130,8 @@ class TargetManager(custom_handlers.UIRequestHandler):
                 worklist_api_url=self.reverse_url('worklist_api_url', None, None)
             )
         else:
-            adv_filter_data = self.get_component("plugin_output").GetUnique(target_id=int(target_id))
-            adv_filter_data["mapping"] = self.get_component("mapping_db").GetMappingTypes()
+            adv_filter_data = self.get_component("plugin_output").get_unique(target_id=int(target_id))
+            adv_filter_data["mapping"] = self.get_component("mapping_db").get_mapping_types()
             self.render(
                 "target.html",
                 target_id=target_id,
@@ -168,13 +168,13 @@ class PluginOutput(custom_handlers.UIRequestHandler):
 
             # Get mappings
             if self.get_argument("mapping", None):
-                mappings = self.get_component("mapping_db").GetMappings(self.get_argument("mapping", None))
+                mappings = self.get_component("mapping_db").get_mappings(self.get_argument("mapping", None))
             else:
                 mappings = None
 
             # Get test groups as well, for names and info links
             test_groups = {}
-            for test_group in self.get_component("db_plugin").GetAllTestGroups():
+            for test_group in self.get_component("db_plugin").get_all_test_groups():
                 test_group["mapped_code"] = test_group["code"]
                 test_group["mapped_descrip"] = test_group["descrip"]
                 if mappings:

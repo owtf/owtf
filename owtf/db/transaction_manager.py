@@ -1,5 +1,7 @@
-#!/usr/bin/env python
 """
+owtf.db.transaction_manager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 The DB stores HTTP transactions, unique URLs and more.
 """
 
@@ -10,7 +12,6 @@ import logging
 from collections import defaultdict
 
 from sqlalchemy import desc, asc
-
 from hrt.interface import HttpRequestTranslator
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
@@ -38,19 +39,47 @@ class TransactionManager(BaseComponent, TransactionInterface):
         self.regexs = defaultdict(list)
         for regex_type in REGEX_TYPES:
             self.regexs[regex_type] = {}
-        self.CompileRegexs()
+        self.compile_regex()
 
     @target_required
-    def NumTransactions(self, scope=True, target_id=None):
-        """Return num transactions in scope by default."""
+    def num_transactions(self, scope=True, target_id=None):
+        """Return number of transactions in scope by default
+
+        :param scope: In/out scope
+        :type scope: `bool`
+        :param target_id: ID of the target
+        :type target_id: `int`
+        :return: Number of transactions in scope
+        :rtype: `int`
+        """
         count = self.db.session.query(models.Transaction).filter_by(scope=scope, target_id=target_id).count()
         return count
 
     @target_required
-    def IsTransactionAlreadyAdded(self, criteria, target_id=None):
-        return len(self.GetAll(criteria, target_id=target_id)) > 0
+    def is_already_added(self, criteria, target_id=None):
+        """Checks if the transaction is already in the DB
 
-    def GenerateQueryUsingSession(self, criteria, target_id, for_stats=False):
+        :param criteria: Filter criteria
+        :type criteria: `dict`
+        :param target_id: Target ID
+        :type target_id: `int`
+        :return: True/False
+        :rtype: `bool`
+        """
+        return len(self.get_all(criteria, target_id=target_id)) > 0
+
+    def gen_query(self, criteria, target_id, for_stats=False):
+        """Generate query based on criteria
+
+        :param criteria: Filter criteria
+        :type criteria: `dict`
+        :param target_id: Target ID
+        :type target_id: `int`
+        :param for_stats: True/False
+        :type for_stats: `bool`
+        :return: 
+        :rtype:
+        """
         query = self.db.session.query(models.Transaction).filter_by(target_id=target_id)
         # If transaction search is being done
         if criteria.get('search', None):
@@ -87,17 +116,17 @@ class TransactionManager(BaseComponent, TransactionInterface):
                                      models.Transaction.response_body.like('%%%s%%' % criteria.get('response_body')))
         else:  # If transaction filter is being done
             if criteria.get('url', None):
-                if isinstance(criteria.get('url'), (str, unicode)):
+                if isinstance(criteria.get('url'), str):
                     query = query.filter_by(url=criteria['url'])
                 if isinstance(criteria.get('url'), list):
                     query = query.filter(models.Transaction.url.in_(criteria.get('url')))
             if criteria.get('method', None):
-                if isinstance(criteria.get('method'), (str, unicode)):
+                if isinstance(criteria.get('method'), str):
                     query = query.filter_by(method=criteria['method'])
                 if isinstance(criteria.get('method'), list):
                     query = query.filter(models.Transaction.method.in_(criteria.get('method')))
             if criteria.get('data', None):
-                if isinstance(criteria.get('data'), (str, unicode)):
+                if isinstance(criteria.get('data'), str):
                     query = query.filter_by(data=criteria['data'])
                 if isinstance(criteria.get('data'), list):
                     query = query.filter(models.Transaction.data.in_(criteria.get('data')))
@@ -131,22 +160,41 @@ class TransactionManager(BaseComponent, TransactionInterface):
         return query
 
     @target_required
-    def GetFirst(self, Criteria, target_id=None):
+    def get_first(self, criteria, target_id=None):
+        """Assemble only the first transaction that matches the criteria from DB
+
+        :param criteria: Filter criteria
+        :type criteria: `dict`
+        :param target_id: Target ID
+        :type target_id: `int`
+        :return:
+        :rtype:
         """
-        Assemble only the first transaction that matches the criteria from DB
-        """
-        query = self.GenerateQueryUsingSession(Criteria, target_id)
-        return self.DeriveTransaction(query.first())
+        query = self.gen_query(criteria, target_id)
+        return self.get_transaction(query.first())
 
     @target_required
-    def GetAll(self, Criteria, target_id=None):
-        """
-        Assemble ALL transactions that match the criteria from DB
-        """
-        query = self.GenerateQueryUsingSession(Criteria, target_id)
-        return self.DeriveTransactions(query.all())
+    def get_all(self, criteria, target_id=None):
+        """Assemble ALL transactions that match the criteria from DB
 
-    def DeriveTransaction(self, trans):
+        :param criteria: Filter criteria
+        :type criteria: `dict`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return:
+        :rtype:
+        """
+        query = self.gen_query(criteria, target_id)
+        return self.get_transactions(query.all())
+
+    def get_transaction(self, trans):
+        """Fetch transaction from the DB
+
+        :param trans: OWTF transaction
+        :type trans: :`Class:transaction.HTTP_Transaction`
+        :return:
+        :rtype:
+        """
         if trans:
             owtf_transaction = transaction.HTTP_Transaction(None)
             response_body = trans.response_body
@@ -159,13 +207,27 @@ class TransactionManager(BaseComponent, TransactionInterface):
             return owtf_transaction
         return None
 
-    def DeriveTransactions(self, transactions):
+    def get_transactions(self, transactions):
+        """Get multiple transactions from the DB
+
+        :param transactions: List of transactions objects
+        :type transactions: `list`
+        :return: List of transactions
+        :rtype: `list`
+        """
         owtf_tlist = []
         for transaction_obj in transactions:
-            owtf_tlist.append(self.DeriveTransaction(transaction_obj))
+            owtf_tlist.append(self.get_transaction(transaction_obj))
         return owtf_tlist
 
-    def GetTransactionModel(self, transaction):
+    def get_transaction_model(self, transaction):
+        """Generate object to be added to the DB
+
+        :param transaction: OWTF transaction
+        :type transaction::`Class:transaction.HTTP_Transaction`
+        :return: Transaction object
+        :rtype::`Class:model.Transaction`
+        """
         try:
             response_body = transaction.get_raw_response_body().encode("utf-8")
             binary_response = False
@@ -194,23 +256,28 @@ class TransactionManager(BaseComponent, TransactionInterface):
             return transaction_model
 
     @target_required
-    def LogTransactions(self, transaction_list, target_id=None):
-        """
-        This function does the following things in order
-        + Add all transactions to a session and commit
-        + Add all the grepped results and commit
-        + Add all urls to url db
+    def log_transactions(self, transaction_list, target_id=None):
+        """This function does the following things in order
+            + Add all transactions to a session and commit
+            + Add all the grepped results and commit
+            + Add all urls to url db
+
+        :param transaction_list: List of transaction objects
+        :type transaction_list: `list`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return:
+        :rtype:
         """
         # Create a usable session
-        # Initiate urls_list for holding urls and transaction_model_list
-        # for holding transaction models
+        # Initiate urls_list for holding urls and transaction_model_list for holding transaction models
         urls_list = []
         transaction_model_list = []
         # Add transactions and commit so that we can have access to
         # transaction ids etc..
         for transaction_obj in transaction_list:
             # TODO: This shit will go crazy on non-ascii characters
-            transaction_model = self.GetTransactionModel(transaction_obj)
+            transaction_model = self.get_transaction_model(transaction_obj)
             transaction_model.target_id = target_id
             transaction_model_list.append(transaction_model)
             self.db.session.add(transaction_model)
@@ -228,10 +295,10 @@ class TransactionManager(BaseComponent, TransactionInterface):
             # + Transaction must be in scope
             if (not transaction_model.binary_response) and (transaction_model.scope):
                 # Get the grep results
-                grep_outputs = self.GrepTransaction(owtf_transaction)
+                grep_outputs = self.grep_transaction(owtf_transaction)
                 if grep_outputs:  # If valid grep results exist
                     # Iterate over regex_name and regex results
-                    for regex_name, regex_results in grep_outputs.iteritems():
+                    for regex_name, regex_results in grep_outputs.items():
                         # Then iterate over the results to store each result in
                         # a seperate row, but also check to avoid duplicate
                         # entries as we have many-to-many relationship
@@ -240,98 +307,202 @@ class TransactionManager(BaseComponent, TransactionInterface):
                             # Conver the match to json
                             match = json.dumps(match)
                             # Fetch if any existing entry
-                            existing_grep_output = self.db.session.query(
-                                models.GrepOutput).filter_by(target_id=target_id, name=regex_name, output=match).first()
+                            existing_grep_output = self.db.session.query(models.GrepOutput).filter_by(
+                                target_id=target_id, name=regex_name, output=match).first()
                             if existing_grep_output:
                                 existing_grep_output.transactions.append(transaction_model)
                                 self.db.session.merge(existing_grep_output)
                             else:
                                 self.db.session.add(models.GrepOutput(target_id=target_id,
-                                                                      transactions=[transaction_model], name=regex_name,
+                                                                      transactions=[transaction_model],
+                                                                      name=regex_name,
                                                                       output=match))
         self.db.session.commit()
-        zest_trans_list = []
-        # Append the transaction in the list if recording is set to on
-        if self.zest.IsRecording():
-            for model in transaction_model_list:
-                zest_trans_list.append(model.id)
-            self.zest.addtoRecordedTrans(zest_trans_list)
-        self.url_manager.ImportProcessedURLs(urls_list, target_id=target_id)
+        self.url_manager.import_processed_url(urls_list, target_id=target_id)
 
-    def LogTransactionsFromLogger(self, transactions_dict):
-        # transaction_dict is a dictionary with target_id as key and list of owtf transactions
-        for target_id, transaction_list in transactions_dict.items():
+    def log_transactions_from_logger(self, transactions_dict):
+        """Logs transactions as they come into the DB
+
+        .note::
+            Transaction_dict is a dictionary with target_id as key and list of owtf transactions
+
+        :param transactions_dict: Dict of target id and corresponding owtf transactions
+        :type transactions_dict: `dict`
+        :return: None
+        :rtype: None
+        """
+        for target_id, transaction_list in list(transactions_dict.items()):
             if transaction_list:
-                self.LogTransactions(transaction_list, target_id=target_id)
+                self.log_transactions(transaction_list, target_id=target_id)
 
     @target_required
-    def DeleteTransaction(self, transaction_id, target_id=None):
+    def delete_transaction(self, transaction_id, target_id=None):
+        """Deletes transaction from DB
+
+        :param transaction_id: transaction ID
+        :type transaction_id: `int`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: None
+        :rtype: None
+        """
         self.db.session.query(models.Transaction).filter_by(target_id=target_id, id=transaction_id).delete()
         self.db.session.commit()
 
     @target_required
-    def GetNumTransactionsInScope(self, target_id=None):
-        return self.NumTransactions(target_id=target_id)
+    def get_num_transactions_inscope(self, target_id=None):
+        """Gets number of transactions in scope
 
-    def GetByID(self, ID):
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: Number of transactions in scopes
+        :rtype: `int`
+        """
+        return self.num_transactions(target_id=target_id)
+
+    def get_by_id(self, id):
+        """Get transaction object by id
+
+        :param id: ID to fetch
+        :type id: `int`
+        :return: Transaction object
+        :rtype::`Class:model.Transaction`
+        """
         model_obj = None
         try:
-            ID = int(ID)
+            ID = int(id)
             model_obj = self.db.session.query(models.Transaction).get(ID)
         except ValueError:
             pass
         finally:
             return model_obj  # None returned if no such transaction.
 
-    def GetByIDs(self, id_list):
+    def get_by_ids(self, id_list):
+        """Get transactions by id list
+
+        :param id_list: List of ids
+        :type id_list: `list`
+        :return: List of transaction objects
+        :rtype: `list`
+        """
         model_objs = []
         for ID in id_list:
-            model_obj = self.GetByID(ID)
+            model_obj = self.get_by_id(ID)
             if model_obj:
                 model_objs.append(model_obj)
-        return self.DeriveTransactions(model_objs)
+        return self.get_transactions(model_objs)
 
     @target_required
-    def GetTopTransactionsBySpeed(self, Order="Desc", Num=10, target_id=None):
-        if Order == "Desc":
+    def get_top_by_speed(self, order="Desc", num=10, target_id=None):
+        """Get top transactions by speed
+
+        :param order: Ascending/descending order
+        :type order: `str`
+        :param num: Num of transactions to fetch
+        :type num: `int`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: List of transactions
+        :rtype: `list`
+        """
+        if order == "Desc":
             results = self.db.session.query(models.Transaction).filter_by(target_id=target_id).order_by(
-                desc(models.Transaction.time)).limit(Num)
+                desc(models.Transaction.time)).limit(num)
         else:
             results = self.db.session.query(models.Transaction).filter_by(target_id=target_id).order_by(
-                asc(models.Transaction.time)).limit(Num)
-        return self.DeriveTransactions(results)
+                asc(models.Transaction.time)).limit(num)
+        return self.get_transactions(results)
 
-    def CompileHeaderRegex(self, header_list):
+    def compile_header_regex(self, header_list):
+        """Compile a regex
+
+        :param header_list: List of header strings
+        :type header_list: `list`
+        :return:
+        :rtype:
+        """
         return re.compile('(%s): ([^\r]*)' % '|'.join(header_list), re.IGNORECASE)
 
-    def CompileResponseRegex(self, regexp):
+    def compile_response_regex(self, regexp):
+        """Compile a response regex
+
+        :param regexp: Regex
+        :type regexp: `str`
+        :return:
+        :rtype:
+        """
         return re.compile(regexp, re.IGNORECASE | re.DOTALL)
 
-    def CompileRegexs(self):
-        for key in self.config.get_framework_config_dict().keys():
+    def compile_regex(self):
+        """General function for getting and compiling regexes
+
+        :return: None
+        :rtype: None
+        """
+        for key in list(self.config.get_framework_config_dict().keys()):
             key = key[3:-3]  # Remove "@@@"
             if key.startswith('HEADERS'):
                 header_list = self.config.get_header_list(key)
-                self.regexs['HEADERS'][key] = self.CompileHeaderRegex(header_list)
+                self.regexs['HEADERS'][key] = self.compile_header_regex(header_list)
             elif key.startswith('RESPONSE'):
-                RegexpName, GrepRegexp, PythonRegexp = self.config.get_val(key).split('_____')
-                self.regexs['BODY'][key] = self.CompileResponseRegex(PythonRegexp)
+                regexp_name, grep_regexp, python_regexp = self.config.get_val(key).split('_____')
+                self.regexs['BODY'][key] = self.compile_response_regex(python_regexp)
 
-    def GrepTransaction(self, owtf_transaction):
+    def grep_transaction(self, owtf_transaction):
+        """Grep transaction
+
+        :param owtf_transaction: OWTF transaction
+        :type owtf_transaction:
+        :return: Output
+        :rtype: `dict`
+        """
         grep_output = {}
-        for regex_name, regex in self.regexs['HEADERS'].items():
-            grep_output.update(self.GrepResponseHeaders(regex_name, regex, owtf_transaction))
-        for regex_name, regex in self.regexs['BODY'].items():
-            grep_output.update(self.GrepResponseBody(regex_name, regex, owtf_transaction))
+        for regex_name, regex in list(self.regexs['HEADERS'].items()):
+            grep_output.update(self.grep_response_headers(regex_name, regex, owtf_transaction))
+        for regex_name, regex in list(self.regexs['BODY'].items()):
+            grep_output.update(self.grep_response_body(regex_name, regex, owtf_transaction))
         return grep_output
 
-    def GrepResponseBody(self, regex_name, regex, owtf_transaction):
-        return self.Grep(regex_name, regex, owtf_transaction.get_raw_response_body())
+    def grep_response_body(self, regex_name, regex, owtf_transaction):
+        """Grep response body
 
-    def GrepResponseHeaders(self, regex_name, regex, owtf_transaction):
-        return self.Grep(regex_name, regex, owtf_transaction.get_response_headers())
+        :param regex_name: Regex name
+        :type regex_name: `str`
+        :param regex: Regex
+        :type regex:
+        :param owtf_transaction: OWTF transaction
+        :type owtf_transaction:
+        :return: Output
+        :rtype: `dict`
+        """
+        return self.grep(regex_name, regex, owtf_transaction.get_raw_response_body())
 
-    def Grep(self, regex_name, regex, data):
+    def grep_response_headers(self, regex_name, regex, owtf_transaction):
+        """Grep response headers
+
+        :param regex_name: Name of regex
+        :type regex_name: `str`
+        :param regex: Regex
+        :type regex:
+        :param owtf_transaction: OWTF transaction
+        :type owtf_transaction:
+        :return: Output
+        :rtype: `dict`
+        """
+        return self.grep(regex_name, regex, owtf_transaction.get_response_headers())
+
+    def grep(self, regex_name, regex, data):
+        """Run regex
+
+        :param regex_name: Name of regex
+        :type regex_name: `str`
+        :param regex: Regex
+        :type regex:
+        :param data: Data
+        :type data: `str`
+        :return: Output from grep
+        :rtype: `dict`
+        """
         results = regex.findall(data)
         output = {}
         if results:
@@ -339,14 +510,24 @@ class TransactionManager(BaseComponent, TransactionInterface):
         return output
 
     @target_required
-    def SearchByRegexName(self, regex_name, stats=False, target_id=None):
-        """
-        Allows searching of the grep_outputs table using a regex name
-        What this function returns :
-        + regex_name
-        + grep_outputs - list of unique matches
-        + transaction_ids - list of one transaction id per unique match
-        + match_percent
+    def search_by_regex_name(self, regex_name, stats=False, target_id=None):
+        """Allows searching of the grep_outputs table using a regex name
+
+        .note::
+            What this function returns :
+            + regex_name
+            + grep_outputs - list of unique matches
+            + transaction_ids - list of one transaction id per unique match
+            + match_percent
+
+        :param regex_name: Name of regex
+        :type regex_name: `str`
+        :param stats: true/false
+        :type stats: `bool`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: List of results
+        :rtype: `list`
         """
         # Get the grep outputs and only unique values
         grep_outputs = self.db.session.query(models.GrepOutput.output).filter_by(
@@ -379,20 +560,38 @@ class TransactionManager(BaseComponent, TransactionInterface):
         return [regex_name, [json.loads(i) for i in grep_outputs], transaction_ids, match_percent]
 
     @target_required
-    def SearchByRegexNames(self, name_list, stats=False, target_id=None):
+    def search_by_regex_names(self, name_list, stats=False, target_id=None):
+        """Allows searching of the grep_outputs table using a regex name
+
+        .note::
+            What this function returns is a list of list containing
+            + regex_name
+            + grep_outputs - list of unique matches
+            + transaction_ids - list of one transaction id per unique match
+            + match_percent
+
+        :param name_list: List of names
+        :type name_list: `list`
+        :param stats: True/false
+        :type stats: `bool`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: List of matched ids
+        :rtype: `list`
         """
-        Allows searching of the grep_outputs table using a regex name
-        What this function returns is a list of list containing
-        + regex_name
-        + grep_outputs - list of unique matches
-        + transaction_ids - list of one transaction id per unique match
-        + match_percent
-        """
-        results = [self.SearchByRegexName(regex_name, stats=stats, target_id=target_id) for regex_name in name_list]
+        results = [self.search_by_regex_name(regex_name, stats=stats, target_id=target_id) for regex_name in name_list]
         return results
 
-# ----------------------------- API Methods -----------------------------
-    def DeriveTransactionDict(self, tdb_obj, include_raw_data=False):
+    def get_transaction_dict(self, tdb_obj, include_raw_data=False):
+        """Derive a transaction dict from an object
+
+        :param tdb_obj_list: Transaction object
+        :type tdb_obj_list:
+        :param include_raw_data: true/false to include raw transactions
+        :type include_raw_data: `bool`
+        :return: transaction dict
+        :rtype: `dict`
+        """
         # Create a new copy so no accidental changes
         tdict = dict(tdb_obj.__dict__)
         tdict.pop("_sa_instance_state")
@@ -406,47 +605,96 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 tdict["response_body"] = base64.b64encode(str(tdict["response_body"]))
         return tdict
 
-    def DeriveTransactionDicts(self, tdb_obj_list, include_raw_data=False):
-        return [self.DeriveTransactionDict(tdb_obj, include_raw_data) for tdb_obj in tdb_obj_list]
+    def get_transaction_dicts(self, tdb_obj_list, include_raw_data=False):
+        """Derive a list of transaction dicts from an object list
+
+        :param tdb_obj_list: List of transaction objects
+        :type tdb_obj_list: `list`
+        :param include_raw_data: true/false to include raw transactions
+        :type include_raw_data: `bool`
+        :return: List of transaction dicts
+        :rtype: `list`
+        """
+        return [self.get_transaction_dict(tdb_obj, include_raw_data) for tdb_obj in tdb_obj_list]
 
     @target_required
-    def SearchAll(self, Criteria, target_id=None, include_raw_data=True):
-        # Three things needed
-        # + Total number of transactions
-        # + Filtered transaaction dicts
-        # + Filtered number of transactions
+    def search_all(self, criteria, target_id=None, include_raw_data=True):
+        """Search all transactions.Three things needed
+            + Total number of transactions
+            + Filtered transaction dicts
+            + Filtered number of transactions
+
+        :param criteria: Filter criteria
+        :type criteria: `dict`
+        :param target_id: target ID
+        :type target_id: `int`
+        :param include_raw_data: True/False to include raw data
+        :type include_raw_data: `bool`
+        :return: Results
+        :rtype: `dict`
+        """
         total = self.db.session.query(models.Transaction).filter_by(target_id=target_id).count()
-        filtered_transaction_objs = self.GenerateQueryUsingSession(Criteria, target_id).all()
-        filtered_number = self.GenerateQueryUsingSession(Criteria, target_id, for_stats=True).count()
+        filtered_transaction_objs = self.gen_query(criteria, target_id).all()
+        filtered_number = self.gen_query(criteria, target_id, for_stats=True).count()
         results = {
             "records_total": total,
             "records_filtered": filtered_number,
-            "data": self.DeriveTransactionDicts(filtered_transaction_objs, include_raw_data)
+            "data": self.get_transaction_dicts(filtered_transaction_objs, include_raw_data)
         }
         return results
 
     @target_required
-    def GetAllAsDicts(self, Criteria, target_id=None, include_raw_data=False):
-        # Assemble ALL transactions that match the criteria from DB.
-        query = self.GenerateQueryUsingSession(Criteria, target_id)
+    def get_all_as_dicts(self, criteria, target_id=None, include_raw_data=False):
+        """Assemble ALL transactions that match the criteria from DB.
+
+        :param criteria: Filter criteria
+        :type criteria: `dict`
+        :param target_id: target ID
+        :type target_id: `int`
+        :param include_raw_data: True/False as to include raw data
+        :type include_raw_data: `bool`
+        :return: List of transaction dicts
+        :rtype: `list`
+        """
+        query = self.gen_query(criteria, target_id)
         transaction_objs = query.all()
-        return self.DeriveTransactionDicts(transaction_objs, include_raw_data)
+        return self.get_transaction_dicts(transaction_objs, include_raw_data)
 
     @target_required
-    def GetByIDAsDict(self, trans_id, target_id=None):
+    def get_by_id_as_dict(self, trans_id, target_id=None):
+        """Get transaction dict by ID
+
+        :param trans_id: Transaction ID
+        :type trans_id: `int`
+        :param target_id: Target ID
+        :type target_id: `int`
+        :return: transaction object as dict
+        :rtype: `dict`
+        """
         transaction_obj = self.db.session.query(models.Transaction).filter_by(target_id=target_id, id=trans_id).first()
         if not transaction_obj:
             raise InvalidTransactionReference("No transaction with %s exists" % str(trans_id))
-        return self.DeriveTransactionDict(transaction_obj, include_raw_data=True)
+        return self.get_transaction_dict(transaction_obj, include_raw_data=True)
 
     @target_required
-    def GetHrtResponse(self, filter_data, trans_id, target_id=None):
+    def get_hrt_response(self, filter_data, trans_id, target_id=None):
+        """Converts the transaction and calls hrt
+
+        :param filter_data: Filter data
+        :type filter_data: `dict`
+        :param trans_id: Transaction ID
+        :type trans_id: `int`
+        :param target_id: Target ID
+        :type target_id: `int`
+        :return: Converted code
+        :rtype: `string`
+        """
         transaction_obj = self.db.session.query(models.Transaction).filter_by(target_id=target_id, id=trans_id).first()
 
         # Data validation
         languages = ['bash']  # Default script language is set to bash.
         if filter_data.get('language'):
-            languages = map(lambda x: x.strip(), filter_data['language'])
+            languages = [x.strip() for x in filter_data['language']]
 
         proxy = None
         search_string = None
@@ -475,19 +723,35 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 search_string=search_string,
                 data=data)
             codes = hrt_obj.generate_code()
-            return (''.join(v for v in codes.values()))
+            return ''.join(v for v in list(codes.values()))
         except Exception as e:
             logging.error('Unexpected exception when running HRT: %s' % e)
             return str(e)
 
     @target_required
-    def GetSessionData(self, target_id=None):
-        """
-        * This will return the data from the `session_tokens` column in the form of a list,
-          having no `null` values
-        * A sample data: [{"attributes": {"Path": "/", "HttpOnly": true}, "name": "ASP.NET_SessionId",
-                          "value": "jx0ydsvwqtfgqcufazwigiih"}, {"attributes": {"Path": "/"}, "name": "amSessionId",
-                          "value": "618174515"}]
+    def get_session_data(self, target_id=None):
+        """This will return the data from the `session_tokens` column in the form of a list, having no `null` values
+
+        Some sample data:
+        [{
+            "attributes": {
+                "Path": "/",
+                "HttpOnly": true
+            },
+            "name": "ASP.NET_SessionId",
+            "value": "jx0ydsvwqtfgqcufazwigiih"
+            }, {
+                "attributes": {
+                    "Path": "/"
+                },
+                "name": "amSessionId",
+                "value": "618174515"
+        }]
+
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: List of cookie dicts
+        :rtype: `list`
         """
         session_data = self.db.session.query(models.Transaction.session_tokens).filter_by(target_id=target_id).all()
         results = [json.loads(el[0]) for el in session_data if el and el[0]]
