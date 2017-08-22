@@ -18,7 +18,7 @@ def run(PluginInfo):
     url = "%s/robots.txt" % top_url
     test_result = []
     # Use transaction cache if possible for speed
-    http_transaction = requester.GetTransaction(True, url, "GET")
+    http_transaction = requester.get_transaction(True, url, "GET")
     if http_transaction is not None and http_transaction.Found:
         test_result += plugin_helper.ProcessRobots(PluginInfo, http_transaction.get_raw_response_body(), top_url, '')
     else:  # robots.txt NOT found

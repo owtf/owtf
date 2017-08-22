@@ -91,7 +91,7 @@ def remove_blanks_list(src):
     return [el for el in src if el]
 
 
-def List2DictKeys(list):
+def list_to_dict_keys(list):
     """Convert a list to dict with keys from list items
 
     :param list: list to convert

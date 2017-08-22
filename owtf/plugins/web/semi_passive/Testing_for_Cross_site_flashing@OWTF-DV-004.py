@@ -15,7 +15,7 @@ def run(PluginInfo):
         for url in ServiceLocator.get_component("target").get_as_list(['target_url', 'top_url']):
             url_list.append(url + "/" + File)  # Compute all URL + File combinations
     # The requester owtf component will unique the URLs
-    TransactionList = ServiceLocator.get_component("requester").GetTransactions(True, url_list)
+    TransactionList = ServiceLocator.get_component("requester").get_transactions(True, url_list)
     # Even though we have transaction list, those transactions do not have id
     # because our proxy stores the transactions and not the requester. So the
     # best way is to use the url list to retrieve transactions while making the

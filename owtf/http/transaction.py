@@ -6,17 +6,15 @@ HTTP_Transaction is a container of useful HTTP Transaction information to
 simplify code both in the framework and the plugins.
 """
 
-import sys
 import cgi
 import logging
 import io
 import gzip
 import zlib
 import json
-
-if sys.version_info > (3,):
+try:
     from http.client import responses as response_messages
-else:
+except ImportError:
     from httplib import responses as response_messages
 
 from cookies import Cookie

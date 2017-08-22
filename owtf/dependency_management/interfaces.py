@@ -190,11 +190,11 @@ class PluginOutputInterface(AbstractInterface):
 class RequesterInterface(AbstractInterface):
 
     @abstractmethod
-    def GetTransaction(self):
+    def get_transaction(self):
         pass
 
     @abstractmethod
-    def GetTransactions(self):
+    def get_transactions(self):
         pass
 
     @abstractmethod
@@ -202,7 +202,7 @@ class RequesterInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def SetHeaders(self):
+    def set_headers(self):
         pass
 
 

@@ -89,7 +89,7 @@ class PluginHelper(BaseComponent):
             if len(Chunks) > 1:  # POST
                 Method = 'POST'
                 POST = Chunks[1]
-                Transaction = self.requester.GetTransaction(True, URL, Method, POST)
+                Transaction = self.requester.get_transaction(True, URL, Method, POST)
             if Transaction.Found:
                 RawHTML = Transaction.get_raw_response_body()
                 FilteredHTML = self.reporter.sanitize_html(RawHTML)
@@ -214,7 +214,7 @@ class PluginHelper(BaseComponent):
         if True:
             VisitURLs = True
             # Visit all URLs if not in Cache
-            for Transaction in self.requester.GetTransactions(True, self.url_manager.get_urls_to_visit()):
+            for Transaction in self.requester.get_transactions(True, self.url_manager.get_urls_to_visit()):
                 if Transaction is not None and Transaction.Found:
                     NumFound += 1
         TimeStr = self.timer.get_elapsed_time_as_str('LogURLsFromStr')
@@ -304,7 +304,7 @@ class PluginHelper(BaseComponent):
     def TransactionTableForURLList(self, UseCache, URLList, Method=None, Data=None):
         # Have to make sure that those urls are visited ;), so we
         # perform get transactions but don't save the transaction ids etc..
-        self.requester.GetTransactions(UseCache, URLList, Method, Data)
+        self.requester.get_transactions(UseCache, URLList, Method, Data)
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "TransactionTableForURLList"
         plugin_output["output"] = {"UseCache": UseCache, "URLList": URLList, "Method": Method, "Data": Data}
@@ -313,7 +313,7 @@ class PluginHelper(BaseComponent):
     def TransactionTableForURL(self, UseCache, URL, Method=None, Data=None):
         # Have to make sure that those urls are visited ;),
         # so we perform get transactions but don't save the transaction ids
-        self.requester.GetTransaction(UseCache, URL, method=Method, data=Data)
+        self.requester.get_transaction(UseCache, URL, method=Method, data=Data)
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "TransactionTableForURL"
         plugin_output["output"] = {"UseCache": UseCache, "URL": URL, "Method": Method, "Data": Data}
