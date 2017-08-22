@@ -27,8 +27,8 @@ import tornado.template
 import tornado.websocket
 import tornado.gen
 
-from owtf.http.proxy.socket_wrapper import wrap_socket
-from owtf.http.proxy.cache_handler import CacheHandler
+from owtf.proxy.socket_wrapper import wrap_socket
+from owtf.proxy.cache_handler import CacheHandler
 from owtf.dependency_management.dependency_resolver import BaseComponent, ComponentNotFoundException
 from owtf.utils import FileOperations
 from owtf.lib.owtf_process import OWTFProcess

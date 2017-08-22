@@ -21,7 +21,7 @@ from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.component_initialiser import ComponentInitialiser
 from owtf.utils import FileOperations, catch_io_errors, OutputCleaner, OWTFLogger
 from owtf.interface import server
-from owtf.http.proxy import proxy, transaction_logger
+from owtf.proxy import proxy, transaction_logger
 from owtf.db import worker_manager
 from owtf.lib.formatters import ConsoleFormatter, FileFormatter
 

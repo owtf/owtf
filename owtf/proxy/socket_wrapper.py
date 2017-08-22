@@ -9,7 +9,7 @@ import ssl
 
 from tornado import ioloop
 
-from owtf.http.proxy.gen_cert import gen_signed_cert
+from owtf.proxy.gen_cert import gen_signed_cert
 
 
 def wrap_socket(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=None, failure=None, io=None, **options):

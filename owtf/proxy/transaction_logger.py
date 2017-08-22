@@ -15,7 +15,7 @@ else:
     from urlparse import urlparse
 
 from owtf.http import transaction
-from owtf.http.proxy.cache_handler import response_from_cache, request_from_cache
+from owtf.proxy.cache_handler import response_from_cache, request_from_cache
 from owtf.lib.owtf_process import OWTFProcess
 from owtf import timer
 
