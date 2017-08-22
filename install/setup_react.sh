@@ -5,6 +5,9 @@
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
 . "$(dirname "$(readlink -f "$0")")/utils/utils.sh"
 
+# Download community written templates for export report funtionality.
+git clone https://github.com/owtf/templates.git $1/webui/src/Report/templates
+
 # Instead of using apt-get to install npm we will nvm to install npm because apt-get installs older-version of node
 echo "${normal}[*] Installing npm using nvm.${reset}"
 wget https://raw.githubusercontent.com/creationix/nvm/v0.31.1/install.sh -O /tmp/install_nvm.sh
@@ -19,8 +22,6 @@ nvm alias default node
 echo "${normal}[*] npm successfully Installed.${reset}"
 
 # Installing webpack and gulp globally so that it can used by command line to build the bundle.
-npm install -g webpack
-npm install -g gulp-cli
 npm install -g yarn
 
 # Installing node dependencies
