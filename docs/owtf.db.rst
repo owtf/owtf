@@ -116,6 +116,14 @@ owtf.db.url_manager module
     :undoc-members:
     :show-inheritance:
 
+owtf.db.worker_manager module
+-----------------------------
+
+.. automodule:: owtf.db.worker_manager
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 owtf.db.worklist_manager module
 -------------------------------
 

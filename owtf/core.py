@@ -162,14 +162,11 @@ class Core(BaseComponent):
         logger.handlers = [file_handler, stream_handler]
 
     def disable_console_logging(self, **kwargs):
-        """ Disables console logging
+        """Disables console logging
 
         . note::
-
-        + Must be called from inside the process because we should
-          remove handler for that root logger
-        + Since we add console handler in the last, we can remove
-          the last handler to disable console logging
+            Must be called from inside the process because we should remove handler for that root logger. Since we add
+            console handler in the last, we can remove the last handler to disable console logging
 
         :param kwargs: Additional arguments to the logger
         :type kwargs: `dict`

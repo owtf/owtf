@@ -20,7 +20,6 @@ owtf.shell.blocking_shell module
     :undoc-members:
     :show-inheritance:
 
-
 owtf.shell.interactive_shell module
 -----------------------------------
 

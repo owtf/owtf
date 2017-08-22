@@ -19,14 +19,6 @@ owtf.interface.api_handlers module
     :undoc-members:
     :show-inheritance:
 
-owtf.interface.cli module
--------------------------
-
-.. automodule:: owtf.interface.cli
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 owtf.interface.custom_handlers module
 -------------------------------------
 

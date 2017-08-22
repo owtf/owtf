@@ -212,7 +212,7 @@ def run_owtf(core, args):
     """This function calls core and loads the appropriate phases of component initialization
 
     :param core: core object
-    :type core::class:`owtf.core.Core`
+    :type core::Class:`owtf.core.Core`
     :param args: Arguments dictionary
     :type args: `dict`
     :return:

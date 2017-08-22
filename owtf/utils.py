@@ -46,7 +46,7 @@ def is_internal_ip(ip):
     :param str ip: IP address
 
     :return: True if it is a private IP, otherwise False
-    :rtype:`bool`
+    :rtype: `bool`
     """
     parsed_ip = IPAddress(ip)
     return parsed_ip.is_private
@@ -83,7 +83,7 @@ def directory_access(path, mode):
     :param str mode: Access type.
 
     :return: Valid access rights
-    :rtype:`str`
+    :rtype: `str`
     """
     try:
         temp_file = tempfile.NamedTemporaryFile(mode=mode, dir=path, delete=True)

@@ -36,14 +36,6 @@ owtf.plugin.scanner module
     :undoc-members:
     :show-inheritance:
 
-owtf.plugin.worker_manager module
----------------------------------
-
-.. automodule:: owtf.plugin.worker_manager
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------
