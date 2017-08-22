@@ -19,7 +19,7 @@ def run(PluginInfo):
     # Vuln search box to be built in core and reused in different plugins:
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     Content = plugin_helper.VulnerabilitySearchBox('')
-    resource = ServiceLocator.get_component("resource").GetResources('PassiveFingerPrint')
+    resource = ServiceLocator.get_component("resource").get_resources('PassiveFingerPrint')
     Content += plugin_helper.ResourceLinkList('Online Resources', resource)
     Content += plugin_helper.SuggestedCommandBox(PluginInfo, mapping, 'CMS Fingerprint - Potentially useful commands')
     return Content

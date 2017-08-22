@@ -10,6 +10,6 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via Wapiti"
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('Wapiti_Unauth')
+    resource = ServiceLocator.get_component("resource").get_resources('Wapiti_Unauth')
     return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output',
                                                                      resource, PluginInfo, [])

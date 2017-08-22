@@ -1,16 +1,43 @@
-#!/usr/bin/env python
-'''
-# Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in)
-#                     as a part of Google Summer of Code 2013
-'''
+"""
+owtf.http.proxy.socket_wrapper
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013
+"""
+
 import ssl
+
 from tornado import ioloop
 
-from gen_cert import gen_signed_cert
+from owtf.http.proxy.gen_cert import gen_signed_cert
 
 
 def wrap_socket(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=None, failure=None, io=None, **options):
-    """Wrap an active socket in an SSL socket."""
+    """Wrap an active socket in an SSL socket.
+
+    :param socket:
+    :type socket:
+    :param domain:
+    :type domain:
+    :param ca_crt:
+    :type ca_crt:
+    :param ca_key:
+    :type ca_key:
+    :param ca_pass:
+    :type ca_pass:
+    :param certs_folder:
+    :type certs_folder:
+    :param success:
+    :type success:
+    :param failure:
+    :type failure:
+    :param io:
+    :type io:
+    :param options:
+    :type options:
+    :return:
+    :rtype:
+    """
 
     # # Default Options
     options.setdefault('do_handshake_on_connect', False)
@@ -44,8 +71,16 @@ def wrap_socket(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=N
     def handshake(fd, events):
         """Handler fGetting the same error here... also looking for answers....
         TheHippo Dec 19 '12 at 20:29or SSL handshake negotiation.
-        See Python docs for ssl.do_handshake()."""
+        See Python docs for ssl.do_handshake().
 
+
+        :param fd:
+        :type fd:
+        :param events:
+        :type events:
+        :return:
+        :rtype:
+        """
         if events & io.ERROR:
             error()
             return

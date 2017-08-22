@@ -1,8 +1,13 @@
-#!/usr/bin/env python
-'''
+"""
+owtf.interface.reporter
+~~~~~~~~~~~~~~~~~~~~~~~
+
 The reporter module is in charge of producing the HTML Report as well as
- provide plugins with common HTML Rendering functions
-'''
+provide plugins with common HTML Rendering functions
+
+.note::
+    This is being deprecated.
+"""
 
 import cgi
 
@@ -10,7 +15,6 @@ from tornado.template import Loader
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.interfaces import ReporterInterface
-from owtf.lib.general import *
 from owtf.interface.html.filter import sanitiser
 
 
@@ -27,7 +31,7 @@ class Reporter(BaseComponent, ReporterInterface):
         self.requester = None
         self.Init = False
         self.Sanitiser = sanitiser.HTMLSanitiser()
-        self.Loader = Loader(self.config.FrameworkConfigGet('POUTPUT_TEMPLATES_DIR'))
+        self.Loader = Loader(self.config.get_val('POUTPUT_TEMPLATES_DIR'))
         self.mNumLinesToShow = 15
         self.CounterList = []
 
@@ -37,23 +41,23 @@ class Reporter(BaseComponent, ReporterInterface):
     def TransactionTableFromIDs(self, TransactionIDs, NumLinesReq=15, NumLinesRes=15):
         """ Draws a table of HTTP Transactions """
         # functions to get the first lines of a long string
-        transactions = self.transaction.GetByIDs(TransactionIDs)
+        transactions = self.transaction.get_by_ids(TransactionIDs)
         return self.TransactionTableForTransactions(transactions)
 
     def TransactionTableForURL(self, UseCache, URL, Method=None, Data=None):
-        transaction = self.requester.GetTransaction(UseCache, URL, method=Method, data=Data)
+        transaction = self.requester.get_transaction(UseCache, URL, method=Method, data=Data)
         return self.TransactionTableForTransactions([transaction])
 
     def TransactionTableForURLList(self, UseCache, URLList, Method=None, Data=None):
-        transactions = self.requester.GetTransactions(UseCache, URLList, method=Method, data=Data)
+        transactions = self.requester.get_transactions(UseCache, URLList, method=Method, data=Data)
         return self.TransactionTableForTransactions(transactions)
 
     def TransactionTableForTransactions(self, Transactions):
         return self.Loader.load("transaction_table.html").generate(TransactionList=Transactions)
 
-    def unicode(self, *args):
+    def str(self, *args):
         try:
-            return unicode(*args)
+            return str(*args)
         except TypeError:
             return args[0]  # Input is already Unicode
 
@@ -107,7 +111,7 @@ class Reporter(BaseComponent, ReporterInterface):
         """
         Draws an HTML Search box for defined Vuln Search resources
         """
-        VulnSearchResources = self.resource.GetResources('VulnSearch')
+        VulnSearchResources = self.resource.get_resources('VulnSearch')
         return self.Loader.load("vulnerability_search_box.html").generate(SearchStr=SearchStr,
                                                                           VulnSearchResources=VulnSearchResources)
 
@@ -119,13 +123,13 @@ class Reporter(BaseComponent, ReporterInterface):
         CommandList = []
         for item in CommandCategoryList:
             TitleList.append(item[0])
-            CommandList.append(self.resource.GetResources(item[1]))
+            CommandList.append(self.resource.get_resources(item[1]))
         # TODO: Fix up the plugin
         return self.Loader.load("suggested_command_box.html").generate(Header=Header, TitleList=TitleList,
                                                                        CommandList=CommandList)
 
     def CommandDump(self, Name, CommandIntro, ModifiedCommand, RelativeFilePath, OutputIntro, TimeStr):
-        AbsPath = self.plugin_handler.RetrieveAbsPath(RelativeFilePath)
+        AbsPath = self.plugin_handler.get_abs_path(RelativeFilePath)
         OutputLines = open(AbsPath, "r").readlines()
         longOutput = (len(OutputLines) > self.mNumLinesToShow)
         if (len(OutputLines) > self.mNumLinesToShow):
@@ -174,8 +178,8 @@ class Reporter(BaseComponent, ReporterInterface):
 
 # ---------------------- Grep Plugin Outputs -------------------- #
     def ResponseBodyMatches(self, ResponseRegexpName):
-        RegexpName, GrepOutputs, TransactionIDS, match_percent = self.transaction.SearchByRegexName(ResponseRegexpName,
-                                                                                                    stats=True)
+        RegexpName, GrepOutputs, TransactionIDS, match_percent = self.transaction.search_by_regex_name(ResponseRegexpName,
+                                                                                                       stats=True)
         variables = {
             "name": RegexpName.replace("RESPONSE_REGEXP_FOR_", "").replace('_', ' '),
             "matches": GrepOutputs,
@@ -188,8 +192,8 @@ class Reporter(BaseComponent, ReporterInterface):
         return self.ResearchHeaders(HeaderRegexpName)[0]
 
     def ResearchHeaders(self, RegexName):
-        regex_name, grep_outputs, transaction_ids, match_percent = self.transaction.SearchByRegexName(RegexName,
-                                                                                                      stats=True)
+        regex_name, grep_outputs, transaction_ids, match_percent = self.transaction.search_by_regex_name(RegexName,
+                                                                                                         stats=True)
         # [[unique_matches, matched_transactions, matched_percentage]]
         searches = self.Loader.load("header_searches.html").generate(match_percent=match_percent, matches=grep_outputs,
                                                                      transaction_ids=transaction_ids)
@@ -203,20 +207,20 @@ class Reporter(BaseComponent, ReporterInterface):
         return HeaderTable
 
     def TopTransactionsBySpeed(self, Order):
-        transactions = self.transaction.GetTopTransactionsBySpeed(Order)
+        transactions = self.transaction.get_top_by_speed(Order)
         return self.TransactionTableForTransactions(transactions)
 
     def CookieAttributeAnalysis(self, CookieValueList, Header2TransacDict):
         vars = {
             "Cookies": [{
                 "Name": Cookie.split('=')[0],
-                "Link": Header2TransacDict[self.config.Get('HEADERS_FOR_COOKIES').lower() + Cookie],
+                "Link": Header2TransacDict[self.config.get('HEADERS_FOR_COOKIES').lower() + Cookie],
                 "Attribs": Cookie.replace(Cookie.split('=')[0] + "=", "").replace("; ", ";").split(";"),
             } for Cookie in CookieValueList],
         }
         Table = self.Render.CreateTable({'class': 'report_intro'})
-        SetCookie = self.config.Get('HEADERS_FOR_COOKIES').lower()
-        PossibleCookieAttributes = self.config.Get('COOKIE_ATTRIBUTES').split(',')
+        SetCookie = self.config.get('HEADERS_FOR_COOKIES').lower()
+        PossibleCookieAttributes = self.config.get('COOKIE_ATTRIBUTES').split(',')
         for Cookie in CookieValueList:
             CookieName = Cookie.split('=')[0]
             CookieLink = self.Render.DrawButtonLink(cgi.escape(CookieName), Header2TransacDict[SetCookie + Cookie])

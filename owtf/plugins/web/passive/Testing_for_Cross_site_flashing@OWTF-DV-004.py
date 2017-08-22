@@ -9,6 +9,6 @@ DESCRIPTION = "Google Hacking for Cross Site Flashing"
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('PassiveCrossSiteFlashingLnk')
+    resource = ServiceLocator.get_component("resource").get_resources('PassiveCrossSiteFlashingLnk')
     Content = ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', resource)
     return Content

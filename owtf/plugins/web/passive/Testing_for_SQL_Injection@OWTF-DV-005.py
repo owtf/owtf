@@ -10,6 +10,6 @@ DESCRIPTION = "Google Hacking for SQLi"
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('PassiveSQLInjectionLnk')
+    resource = ServiceLocator.get_component("resource").get_resources('PassiveSQLInjectionLnk')
     Content = ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', resource)
     return Content

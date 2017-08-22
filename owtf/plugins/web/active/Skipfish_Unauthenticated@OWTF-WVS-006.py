@@ -10,6 +10,6 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via Skipfish"
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('Skipfish_Unauth')
+    resource = ServiceLocator.get_component("resource").get_resources('Skipfish_Unauth')
     return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output',
                                                                      resource, PluginInfo, [])

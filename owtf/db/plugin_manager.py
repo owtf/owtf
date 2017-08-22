@@ -1,3 +1,9 @@
+"""
+owtf.db.plugin_manager
+
+This module manages the plugins and their dependencies
+"""
+
 import os
 import imp
 import json
@@ -22,43 +28,61 @@ class PluginDB(BaseComponent, DBPluginInterface):
         self.config = self.get_component("config")
         self.db = self.get_component("db")
         self.error_handler = self.get_component("error_handler")
-        self.LoadTestGroups(self.config.select_user_or_default_config_path(
-            self.config.FrameworkConfigGet("WEB_TEST_GROUPS"), self.config.FrameworkConfigGet("WEB_PLUGIN_CONFIG_DIR")),
+        self.load_test_groups(self.config.select_user_or_default_config_path(
+            self.config.get_val("WEB_TEST_GROUPS"), self.config.get_val("WEB_PLUGIN_CONFIG_DIR")),
             "web")
-        self.LoadTestGroups(self.config.select_user_or_default_config_path(
-            self.config.FrameworkConfigGet("NET_TEST_GROUPS"), self.config.FrameworkConfigGet("NET_PLUGIN_CONFIG_DIR")),
+        self.load_test_groups(self.config.select_user_or_default_config_path(
+            self.config.get_val("NET_TEST_GROUPS"), self.config.get_val("NET_PLUGIN_CONFIG_DIR")),
             "network")
-        self.LoadTestGroups(self.config.select_user_or_default_config_path(
-            self.config.FrameworkConfigGet("AUX_TEST_GROUPS"), self.config.FrameworkConfigGet("AUX_PLUGIN_CONFIG_DIR")),
+        self.load_test_groups(self.config.select_user_or_default_config_path(
+            self.config.get_val("AUX_TEST_GROUPS"), self.config.get_val("AUX_PLUGIN_CONFIG_DIR")),
             "auxiliary")
         # After loading the test groups then load the plugins, because of many-to-one relationship
-        self.LoadFromFileSystem()  # Load plugins :P
+        self.load_plugins()  # Load plugins :P
 
     def init(self):
         self.timer = self.get_component("timer")
 
-    def GetTestGroupsFromFile(self, file_path):
-        # This needs to be a list instead of a dictionary to preserve order in python < 2.7
-        TestGroups = []
-        ConfigFile = FileOperations.open(file_path, 'r').read().splitlines()
-        for line in ConfigFile:
+    def get_test_groups_config(self, file_path):
+        """Reads the test groups from a config file
+
+        .note::
+            This needs to be a list instead of a dictionary to preserve order in python < 2.7
+
+        :param file_path: The path to the config file
+        :type file_path: `str`
+        :return: List of test groups
+        :rtype: `list`
+        """
+        test_groups = []
+        config_file = FileOperations.open(file_path, 'r').read().splitlines()
+        for line in config_file:
             if '#' == line[0]:
                 continue  # Skip comments
             try:
-                Code, Priority, Descrip, Hint, URL = line.strip().split(' | ')
+                code, priority, descrip, hint, url = line.strip().split(' | ')
             except ValueError:
-                self.error_handler.FrameworkAbort("Problem in Test Groups file: '%s' -> Cannot parse line: %s" %
-                                                  (file_path, line))
-            if len(Descrip) < 2:
-                Descrip = Hint
-            if len(Hint) < 2:
-                Hint = ""
-            TestGroups.append({'code': Code, 'priority': Priority, 'descrip': Descrip, 'hint': Hint, 'url': URL})
-        return TestGroups
+                self.error_handler.abort_framework("Problem in Test Groups file: '%s' -> Cannot parse line: %s" %
+                                                   (file_path, line))
+            if len(descrip) < 2:
+                descrip = hint
+            if len(hint) < 2:
+                hint = ""
+            test_groups.append({'code': code, 'priority': priority, 'descrip': descrip, 'hint': hint, 'url': url})
+        return test_groups
 
-    def LoadTestGroups(self, test_groups_file, plugin_group):
-        TestGroups = self.GetTestGroupsFromFile(test_groups_file)
-        for group in TestGroups:
+    def load_test_groups(self, test_groups_file, plugin_group):
+        """Load test groups into the DB.
+
+        :param test_groups_file: The path to the test groups config
+        :type test_groups_file: `str`
+        :param plugin_group: Plugin group to load
+        :type plugin_group: `str`
+        :return: None
+        :rtype: None
+        """
+        test_groups = self.get_test_groups_config(test_groups_file)
+        for group in test_groups:
             self.db.session.merge(
                 models.TestGroup(
                     code=group['code'],
@@ -70,34 +94,37 @@ class PluginDB(BaseComponent, DBPluginInterface):
             )
         self.db.session.commit()
 
-    def LoadFromFileSystem(self):
+    def load_plugins(self):
         """Loads the plugins from the filesystem and updates their info.
 
-        Walks through each sub-directory of `PLUGINS_DIR`.
-        For each file, loads it thanks to the imp module.
-        Updates the database with the information for each plugin:
-            + 'title': the title of the plugin
-            + 'name': the name of the plugin
-            + 'code': the internal code of the plugin
-            + 'group': the group of the plugin (ex: web)
-            + 'type': the type of the plugin (ex: active, passive, ...)
-            + 'descrip': the description of the plugin
-            + 'file': the filename of the plugin
-            + 'internet_res': does the plugin use internet resources?
+        .note::
+            Walks through each sub-directory of `PLUGINS_DIR`.
+            For each file, loads it thanks to the imp module.
+            Updates the database with the information for each plugin:
+                + 'title': the title of the plugin
+                + 'name': the name of the plugin
+                + 'code': the internal code of the plugin
+                + 'group': the group of the plugin (ex: web)
+                + 'type': the type of the plugin (ex: active, passive, ...)
+                + 'descrip': the description of the plugin
+                + 'file': the filename of the plugin
+                + 'internet_res': does the plugin use internet resources?
 
+        :return: None
+        :rtype: None
         """
         # TODO: When the -t, -e or -o is given to OWTF command line, only load
         # the specific plugins (and not all of them like below).
         # Retrieve the list of the plugins (sorted) from the directory given by
         # 'PLUGIN_DIR'.
         plugins = []
-        for root, _, files in os.walk(self.config.FrameworkConfigGet('PLUGINS_DIR')):
+        for root, _, files in os.walk(self.config.get_val('PLUGINS_DIR')):
             plugins.extend([os.path.join(root, filename) for filename in files if filename.endswith('py')])
         plugins = sorted(plugins)
         # Retrieve the information of the plugin.
         for plugin_path in plugins:
             # Only keep the relative path to the plugin
-            plugin = plugin_path.replace(self.config.FrameworkConfigGet('PLUGINS_DIR'), '')
+            plugin = plugin_path.replace(self.config.get_val('PLUGINS_DIR'), '')
             # TODO: Using os.path.sep might not be portable especially on
             # Windows platform since it allows '/' and '\' in the path.
             # Retrieve the group, the type and the file of the plugin.
@@ -138,47 +165,97 @@ class PluginDB(BaseComponent, DBPluginInterface):
             )
         self.db.session.commit()
 
-    def DeriveTestGroupDict(self, obj):
+    def derive_test_group_dict(self, obj):
+        """Fetch the test group dict from the obj
+
+        :param obj: The test group object
+        :type obj:
+        :return: Test group dict
+        :rtype: `dict`
+        """
         if obj:
             pdict = dict(obj.__dict__)
             pdict.pop("_sa_instance_state")
             return pdict
 
-    def DeriveTestGroupDicts(self, obj_list):
+    def derive_test_group_dicts(self, obj_list):
+        """Fetch the test group dicts from the obj list
+
+        :param obj_list: The test group object list
+        :type obj_list: `list`
+        :return: Test group dicts in a list
+        :rtype: `list`
+        """
         dict_list = []
         for obj in obj_list:
-            dict_list.append(self.DeriveTestGroupDict(obj))
+            dict_list.append(self.derive_test_group_dict(obj))
         return dict_list
 
-    def GetTestGroup(self, code):
+    def get_test_group(self, code):
+        """Get the test group based on plugin code
+
+        :param code: Plugin code
+        :type code: `str`
+        :return: Test group dict
+        :rtype: `dict`
+        """
         group = self.db.session.query(models.TestGroup).get(code)
-        return self.DeriveTestGroupDict(group)
+        return self.derive_test_group_dict(group)
 
-    def GetAllTestGroups(self):
+    def get_all_test_groups(self):
+        """Get all test groups from th DB
+
+        :return:
+        :rtype:
+        """
         test_groups = self.db.session.query(models.TestGroup).order_by(models.TestGroup.priority.desc()).all()
-        return self.DeriveTestGroupDicts(test_groups)
+        return self.derive_test_group_dicts(test_groups)
 
-    def GetAllGroups(self):
+    def get_all_plugin_groups(self):
+        """Get all plugin groups from the DB
+
+        :return: List of available plugin groups
+        :rtype: `list`
+        """
         groups = self.db.session.query(models.Plugin.group).distinct().all()
         groups = [i[0] for i in groups]
         return groups
 
-    def GetAllTypes(self):
+    def get_all_plugin_types(self):
+        """Get all plugin types from the DB
+
+        :return: All available plugin types
+        :rtype: `list`
+        """
         plugin_types = self.db.session.query(models.Plugin.type).distinct().all()
         plugin_types = [i[0] for i in plugin_types]  # Necessary because of sqlalchemy
         return plugin_types
 
-    def GetTypesForGroup(self, PluginGroup):
-        plugin_types = self.db.session.query(models.Plugin.type).filter_by(group=PluginGroup).distinct().all()
+    def get_types_for_plugin_group(self, plugin_group):
+        """Get available plugin types for a plugin group
+
+        :param plugin_group: Plugin group
+        :type plugin_group: `str`
+        :return: List of available plugin types
+        :rtype: `list`
+        """
+        plugin_types = self.db.session.query(models.Plugin.type).filter_by(group=plugin_group).distinct().all()
         plugin_types = [i[0] for i in plugin_types]
         return plugin_types
 
-    def DerivePluginDict(self, obj):
+    def derive_plugin_dict(self, obj):
+        """Fetch the plugin dict from an object
+
+        :param obj: Plugin object
+        :type obj:
+        :return: Plugin dict
+        :rtype: `dict`
+        """
         if obj:
             pdict = dict(obj.__dict__)
             pdict.pop("_sa_instance_state")
             # Remove outputs array if present
-            if "outputs" in pdict.keys():
+            if "outputs" in list(pdict.keys()):
                 pdict.pop("outputs")
             pdict["min_time"] = None
             min_time = obj.min_time
@@ -186,37 +263,58 @@ class PluginDB(BaseComponent, DBPluginInterface):
                 pdict["min_time"] = self.timer.get_time_as_str(min_time)
             return pdict
 
-    def DerivePluginDicts(self, obj_list):
+    def derive_plugin_dicts(self, obj_list):
+        """Fetch plugin dicts from a obj list
+
+        :param obj_list: List of plugin objects
+        :type obj_list: `list`
+        :return: List of plugin dicts
+        :rtype: `list`
+        """
         plugin_dicts = []
         for obj in obj_list:
-            plugin_dicts.append(self.DerivePluginDict(obj))
+            plugin_dicts.append(self.derive_plugin_dict(obj))
         return plugin_dicts
 
-    def GenerateQueryUsingSession(self, criteria):
+    def gen_query(self, criteria):
+        """Generate a SQLAlchemy query based on the filter criteria
+
+        :param criteria: Filter criteria
+        :type criteria: `dict`
+        :return:
+        :rtype:
+        """
         query = self.db.session.query(models.Plugin).join(models.TestGroup)
         if criteria.get("type", None):
-            if isinstance(criteria["type"], (str, unicode)):
+            if isinstance(criteria["type"], str):
                 query = query.filter(models.Plugin.type == criteria["type"])
             if isinstance(criteria["type"], list):
                 query = query.filter(models.Plugin.type.in_(criteria["type"]))
         if criteria.get("group", None):
-            if isinstance(criteria["group"], (str, unicode)):
+            if isinstance(criteria["group"], str):
                 query = query.filter_by(group=criteria["group"])
             if isinstance(criteria["group"], list):
                 query = query.filter(models.Plugin.group.in_(criteria["group"]))
         if criteria.get("code", None):
-            if isinstance(criteria["code"], (str, unicode)):
+            if isinstance(criteria["code"], str):
                 query = query.filter_by(code=criteria["code"])
             if isinstance(criteria["code"], list):
                 query = query.filter(models.Plugin.code.in_(criteria["code"]))
         if criteria.get("name", None):
-            if isinstance(criteria["name"], (str, unicode)):
+            if isinstance(criteria["name"], str):
                 query = query.filter(models.Plugin.name == criteria["name"])
             if isinstance(criteria["name"], list):
                 query = query.filter(models.Plugin.name.in_(criteria["name"]))
         return query.order_by(models.TestGroup.priority.desc())
 
-    def PluginNametoCode(self, codes):
+    def plugin_name_to_code(self, codes):
+        """Given list of names, get the corresponding codes
+
+        :param codes: The codes to fetch
+        :type codes: `list`
+        :return: Corresponding plugin codes as a list
+        :rtype: `list`
+        """
         checklist = ["OWTF-", "PTES-"]
         query = self.db.session.query(models.Plugin.code)
         for count, name in enumerate(codes):
@@ -225,24 +323,64 @@ class PluginDB(BaseComponent, DBPluginInterface):
                 codes[count] = str(code[0])
         return codes
 
-    def GetAll(self, Criteria={}):
-        if "code" in Criteria:
-            Criteria["code"] = self.PluginNametoCode(Criteria["code"])
-        query = self.GenerateQueryUsingSession(Criteria)
+    def get_all(self, criteria=None):
+        """Get plugin dicts based on filter criteria
+
+        :param criteria: Filter criteria
+        :type criteria: `dict`
+        :return: List of plugin dicts
+        :rtype: `list`
+        """
+        if criteria is None:
+            criteria = dict()
+
+        if "code" in criteria:
+            criteria["code"] = self.plugin_name_to_code(criteria["code"])
+        query = self.gen_query(criteria)
         plugin_obj_list = query.all()
-        return self.DerivePluginDicts(plugin_obj_list)
+        return self.derive_plugin_dicts(plugin_obj_list)
 
-    def GetPluginsByType(self, PluginType):
-        return self.GetAll({"type": PluginType})
+    def get_plugins_by_type(self, plugin_type):
+        """Get plugins based on type argument
 
-    def GetPluginsByGroup(self, PluginGroup):
-        return self.GetAll({"group": PluginGroup})
+        :param plugin_type: Plugin type
+        :type plugin_type: `str`
+        :return: List of plugin dicts
+        :rtype: `list`
+        """
+        return self.get_all({"type": plugin_type})
 
-    def GetPluginsByGroupType(self, PluginGroup, PluginType):
-        return self.GetAll({"type": PluginType, "group": PluginGroup})
+    def get_plugins_by_group(self, plugin_group):
+        """Get plugins by plugin group
 
-    def GetGroupsForPlugins(self, Plugins):
-        groups = self.db.session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(Plugins),
-                                                                   models.Plugin.name.in_(Plugins))).distinct().all()
+        :param plugin_group: Plugin group
+        :type plugin_group: `str`
+        :return: List of plugin dicts
+        :rtype: `list`
+        """
+        return self.get_all({"group": plugin_group})
+
+    def get_plugins_by_group_type(self, plugin_group, plugin_type):
+        """Get plugins by group and plugin type
+
+        :param plugin_group: Plugin group
+        :type plugin_group: `str`
+        :param plugin_type: plugin type
+        :type plugin_type: `str`
+        :return: List of plugin dicts
+        :rtype: `list`
+        """
+        return self.get_all({"type": plugin_type, "group": plugin_group})
+
+    def get_groups_for_plugins(self, plugins):
+        """Gets avaiable groups for selected plugins
+
+        :param plugins: Plugins selected
+        :type plugins: `list`
+        :return: List of available plugin groups
+        :rtype: `list`
+        """
+        groups = self.db.session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(plugins),
+            models.Plugin.name.in_(plugins))).distinct().all()
         groups = [i[0] for i in groups]
         return groups

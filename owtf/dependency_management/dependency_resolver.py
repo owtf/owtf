@@ -1,9 +1,17 @@
+"""
+owtf.dependency_management.dependency_resolver
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Implements the main ServiceLocator class
+"""
+
 from owtf.dependency_management.interfaces import AbstractInterface
 
 
 class ServiceLocator:
-    """Object whose responsibility is to be able to store and retrieve components from memory.
-       Acts as a global access point to all the components in the OWTF framework.
+    """
+    Object whose responsibility is to be able to store and retrieve components from memory.
+    Acts as a global access point to all the components in the OWTF framework.
     """
 
     registry = {}
@@ -26,8 +34,6 @@ class ServiceLocator:
         "transaction",
         "url_manager",
         "worker_manager",
-        "zap_api",
-        "zest",
         "target",
         "reporter",
         "smb",
@@ -51,6 +57,13 @@ class ServiceLocator:
 
     @classmethod
     def _component_should_implement_interface(cls, name):
+        """Checks if the component has an interface
+
+        :param name: Name of the component
+        :type name: `str`
+        :return: True if name is in permitted interfaces, else False
+        :rtype: `bool`
+        """
         return name in cls.components_implementing_interfaces
 
     @classmethod
@@ -66,6 +79,13 @@ class ServiceLocator:
 
     @classmethod
     def already_registered(cls, name):
+        """Checks if the component is already registered in the registry
+
+        :param name: Name of the component
+        :type name: `str`
+        :return: True if already registered, else False
+        :rtype: `bool`
+        """
         return name in cls.registry
 
 
@@ -76,7 +96,6 @@ class BaseComponent():
         """Register the current component in the service locator. The subclass must define a COMPONENT_NAME
            constant with the name of the component.
         """
-
         ServiceLocator.register_component(self.COMPONENT_NAME, self)  # Defined in subclasses
 
     @classmethod

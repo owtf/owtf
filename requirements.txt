@@ -5,7 +5,8 @@
 # - The casing of names is critical for dependency checks, eg. pyOpenSSL and not pyopenssl
 cffi==1.10.0
 cookies==2.2.1
-ipaddr==2.1.11
+# Here till they upload a Python3 compatible version of the library
+-e git://github.com/google/ipaddr-py#egg=ipaddr
 lxml==3.8.0
 Markdown==2.6.8
 pexpect==4.2.1
@@ -16,8 +17,6 @@ pyOpenSSL==17.0.0
 python-owasp-zap-v2.4==0.0.11
 PyVirtualDisplay==0.2.1
 requests==2.17.3
-# We donot use six directly, but there is an error while trying to install pyOpenSSL.
-# More details at https://github.com/owtf/owtf/issues/332
 six==1.10.0
 selenium==3.4.3
 SQLAlchemy==1.1.11

@@ -1,11 +1,14 @@
-#!/usr/bin/env python
-'''
+"""
+owtf.plugin.plugin_helper
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 This module contains helper functions to make plugins simpler to read and write,
 centralising common functionality easy to reuse
-'''
 
-import os
-import re
+NOTE: This module has not been refactored since this is being deprecated
+"""
+
+
 import cgi
 import logging
 from tornado.template import Template
@@ -86,12 +89,12 @@ class PluginHelper(BaseComponent):
             if len(Chunks) > 1:  # POST
                 Method = 'POST'
                 POST = Chunks[1]
-                Transaction = self.requester.GetTransaction(True, URL, Method, POST)
+                Transaction = self.requester.get_transaction(True, URL, Method, POST)
             if Transaction.Found:
-                RawHTML = Transaction.GetRawResponseBody()
+                RawHTML = Transaction.get_raw_response_body()
                 FilteredHTML = self.reporter.sanitize_html(RawHTML)
-                NotSandboxedPath = self.plugin_handler.DumpOutputFile("NOT_SANDBOXED_%s.html" % Name, FilteredHTML,
-                                                                      PluginInfo)
+                NotSandboxedPath = self.plugin_handler.dump_output_file("NOT_SANDBOXED_%s.html" % Name, FilteredHTML,
+                                                                        PluginInfo)
                 logging.info("File: NOT_SANDBOXED_%s.html saved to: %s", Name, NotSandboxedPath)
                 iframe_template = Template("""
                     <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder='0'
@@ -100,7 +103,7 @@ class PluginHelper(BaseComponent):
                     </iframe>
                     """)
                 iframe = iframe_template.generate(NotSandboxedPath=NotSandboxedPath.split('/')[-1])
-                SandboxedPath = self.plugin_handler.DumpOutputFile("SANDBOXED_%s.html" % Name, iframe, PluginInfo)
+                SandboxedPath = self.plugin_handler.dump_output_file("SANDBOXED_%s.html" % Name, iframe, PluginInfo)
                 logging.info("File: SANDBOXED_%s.html saved to: %s", Name, SandboxedPath)
                 LinkList.append((Name, SandboxedPath))
         plugin_output = dict(PLUGIN_OUTPUT)
@@ -126,10 +129,10 @@ class PluginHelper(BaseComponent):
         return ([plugin_output])
 
     def SetConfigPluginOutputDir(self, PluginInfo):
-        PluginOutputDir = self.plugin_handler.GetPluginOutputDir(PluginInfo)
+        PluginOutputDir = self.plugin_handler.get_plugin_output_dir(PluginInfo)
         # FULL output path for plugins to use
         self.target.SetPath('plugin_output_dir', "%s/%s" % (os.getcwd(), PluginOutputDir))
-        self.shell.RefreshReplacements()  # Get dynamic replacement, i.e. plugin-specific output directory
+        self.shell.refresh_replacements()  # Get dynamic replacement, i.e. plugin-specific output directory
         return PluginOutputDir
 
     def InitPluginOutputDir(self, PluginInfo):
@@ -145,10 +148,10 @@ class PluginHelper(BaseComponent):
         ModifiedCommand = self.shell.GetModifiedShellCommand(Command, PluginOutputDir)
         try:
             RawOutput = self.shell.shell_exec_monitor(ModifiedCommand, PluginInfo)
-        except PluginAbortException, PartialOutput:
+        except PluginAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             PluginAbort = True
-        except FrameworkAbortException, PartialOutput:
+        except FrameworkAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             FrameworkAbort = True
 
@@ -182,14 +185,14 @@ class PluginHelper(BaseComponent):
                 "Name": self.GetCommandOutputFileNameAndExtension(Name)[0],
                 "CommandIntro": CommandIntro,
                 "ModifiedCommand": ModifiedCommand,
-                "RelativeFilePath": self.plugin_handler.DumpOutputFile(dump_file_name, RawOutput, PluginInfo,
-                                                                       RelativePath=True),
+                "RelativeFilePath": self.plugin_handler.dump_output_file(dump_file_name, RawOutput, PluginInfo,
+                                                                         RelativePath=True),
                 "OutputIntro": OutputIntro,
                 "TimeStr": TimeStr
             }
             plugin_output = [plugin_output]
             # This command returns URLs for processing
-            if Name == self.config.FrameworkConfigGet('EXTRACT_URLS_RESERVED_RESOURCE_NAME'):
+            if Name == self.config.get_val('EXTRACT_URLS_RESERVED_RESOURCE_NAME'):
                 #  The plugin_output output dict will be remade if the resource is of this type
                 plugin_output = self.LogURLsFromStr(RawOutput)
             # TODO: Look below to handle streaming report
@@ -204,14 +207,14 @@ class PluginHelper(BaseComponent):
         plugin_output = dict(PLUGIN_OUTPUT)
         self.timer.start_timer('LogURLsFromStr')
         # Extract and classify URLs and store in DB
-        URLList = self.url_manager.ImportURLs(RawOutput.strip().split("\n"))
+        URLList = self.url_manager.import_urls(RawOutput.strip().split("\n"))
         NumFound = 0
         VisitURLs = False
         # TODO: Whether or not active testing will depend on the user profile ;). Have cool ideas for profile names
         if True:
             VisitURLs = True
             # Visit all URLs if not in Cache
-            for Transaction in self.requester.GetTransactions(True, self.url_manager.GetURLsToVisit()):
+            for Transaction in self.requester.get_transactions(True, self.url_manager.get_urls_to_visit()):
                 if Transaction is not None and Transaction.Found:
                     NumFound += 1
         TimeStr = self.timer.get_elapsed_time_as_str('LogURLsFromStr')
@@ -221,7 +224,7 @@ class PluginHelper(BaseComponent):
         return ([plugin_output])
 
     def DumpFile(self, Filename, Contents, PluginInfo, LinkName=''):
-        save_path = self.plugin_handler.DumpOutputFile(Filename, Contents, PluginInfo)
+        save_path = self.plugin_handler.dump_output_file(Filename, Contents, PluginInfo)
         if not LinkName:
             LinkName = save_path
         logging.info("File: %s saved to: %s", Filename, save_path)
@@ -255,8 +258,8 @@ class PluginHelper(BaseComponent):
         plugin_output["type"] = "Robots"
         num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = \
             self.AnalyseRobotsEntries(Contents)
-        SavePath = self.plugin_handler.DumpOutputFile(Filename, Contents, PluginInfo, True)
-        TopURL = self.target.Get('top_url')
+        SavePath = self.plugin_handler.dump_output_file(Filename, Contents, PluginInfo, True)
+        TopURL = self.target.get('top_url')
         EntriesList = []
         # robots.txt contains some entries, show browsable list! :)
         if num_disallow > 0 or num_allow > 0 or num_sitemap > 0:
@@ -267,11 +270,11 @@ class PluginHelper(BaseComponent):
                 for Entry in Entries:
                     if 'Sitemap Entries' == Display:
                         URL = Entry
-                        self.url_manager.AddURL(URL)  # Store real links in the DB
+                        self.url_manager.add_url(URL)  # Store real links in the DB
                         Links.append([Entry, Entry])  # Show link in defined format (passive/semi_passive)
                     else:
                         URL = TopURL + Entry
-                        self.url_manager.AddURL(URL)  # Store real links in the DB
+                        self.url_manager.add_url(URL)  # Store real links in the DB
                         # Show link in defined format (passive/semi_passive)
                         Links.append([Entry, LinkStart + Entry + LinkEnd])
                 EntriesList.append((Display, Links))
@@ -301,7 +304,7 @@ class PluginHelper(BaseComponent):
     def TransactionTableForURLList(self, UseCache, URLList, Method=None, Data=None):
         # Have to make sure that those urls are visited ;), so we
         # perform get transactions but don't save the transaction ids etc..
-        self.requester.GetTransactions(UseCache, URLList, Method, Data)
+        self.requester.get_transactions(UseCache, URLList, Method, Data)
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "TransactionTableForURLList"
         plugin_output["output"] = {"UseCache": UseCache, "URLList": URLList, "Method": Method, "Data": Data}
@@ -310,7 +313,7 @@ class PluginHelper(BaseComponent):
     def TransactionTableForURL(self, UseCache, URL, Method=None, Data=None):
         # Have to make sure that those urls are visited ;),
         # so we perform get transactions but don't save the transaction ids
-        self.requester.GetTransaction(UseCache, URL, method=Method, data=Data)
+        self.requester.get_transaction(UseCache, URL, method=Method, data=Data)
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "TransactionTableForURL"
         plugin_output["output"] = {"UseCache": UseCache, "URL": URL, "Method": Method, "Data": Data}

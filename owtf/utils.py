@@ -1,41 +1,61 @@
+"""
+owtf.utils
+~~~~~~~~~~~~~~
+Miscellaneous utility functions used throughout the framework
+"""
+
 import os
-import sys
 import shutil
 import codecs
 import logging
 import tempfile
-import subprocess
+
 from ipaddr import IPAddress
 
 from owtf.dependency_management.dependency_resolver import ServiceLocator
-from owtf.lib.general import WipeBadCharsForFilename
+from owtf.lib.general import wipe_bad_chars
+
 
 class OutputCleaner():
-
+    """General functions which process output"""
     @staticmethod
     def anonymise_command(command):
+        """
+        Anonymize the target IP and host name
+
+        :param command: command to anonymize
+        :type command: `str`
+        :return: sanitized command
+        :rtype: `str`
+        """
         command = command.decode('utf-8', 'ignore')
         target = ServiceLocator.get_component("target")
         # Host name setting value for all targets in scope.
-        for host in target.GetAll('HOST_NAME'):
+        for host in target.get_all('HOST_NAME'):
             if host:  # Value is not blank
                 command = command.replace(host, 'some.target.com')
-        for ip in target.GetAll('HOST_IP'):
+        for ip in target.get_all('HOST_IP'):
             if ip:
                 command = command.replace(ip, 'xxx.xxx.xxx.xxx')
         return command
 
 
 def is_internal_ip(ip):
-    # parses the input IP into IPv4 or IPv6
+    """Parses the input IP and checks if it is a private IP
+
+    :param str ip: IP address
+
+    :return: True if it is a private IP, otherwise False
+    :rtype: `bool`
+    """
     parsed_ip = IPAddress(ip)
     return parsed_ip.is_private
+
 
 def catch_io_errors(func):
     """Decorator on I/O functions.
 
     If an error is detected, force OWTF to quit properly.
-
     """
     def io_error(*args, **kwargs):
         """Call the original function while checking for errors.
@@ -51,7 +71,7 @@ def catch_io_errors(func):
             if owtf_clean:
                 error_handler = ServiceLocator.get_component("error_handler")
                 if error_handler:
-                    error_handler.FrameworkAbort("Error when calling '%s'! %s." % (func.__name__, str(e)))
+                    error_handler.abort_framework("Error when calling '%s'! %s." % (func.__name__, str(e)))
             raise e
     return io_error
 
@@ -63,9 +83,8 @@ def directory_access(path, mode):
     :param str mode: Access type.
 
     :return: Valid access rights
-    :rtype:`str`
+    :rtype: `str`
     """
-
     try:
         temp_file = tempfile.NamedTemporaryFile(mode=mode, dir=path, delete=True)
     except (IOError, OSError):
@@ -73,32 +92,18 @@ def directory_access(path, mode):
     return True
 
 
-def print_version(root_dir, commit_hash=False, version=False):
-    # check if the root dir is a git repository
-    if os.path.exists(os.path.join(root_dir, '.git')):
-        command = 'git log -n 1 --pretty=format:"%H"'
-        # Run this command from root_dir :)
-        commit_hash = subprocess.check_output(command, cwd=root_dir, shell=True )
-
-    if commit_hash and version:
-        return "OWTF Version: %s, Release: %s  \nLast commit hash: %s" % (
-            ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
-            ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'), commit_hash)
-    elif commit_hash:
-        return commit_hash
-    elif version:
-        return "OWTF Version: %s, Release: %s " % (
-            ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
-            ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
-    else:
-        pass
-
-
 class FileOperations(object):
 
     @staticmethod
     @catch_io_errors
     def create_missing_dirs(path):
+        """Creates missing directories if not already present
+
+        :param path: Path of the directory to create
+        :type path: `str`
+        :return:
+        :rtype: None
+        """
         # truncate filepath to 255 char (*nix limit)
         # See issue #521
         directory = path[:255]
@@ -111,12 +116,24 @@ class FileOperations(object):
     @staticmethod
     @catch_io_errors
     def codecs_open(*args, **kwargs):
+        """ A wrapper for Python codes with additional argument support"""
         return codecs.open(*args, **kwargs)
 
     @staticmethod
     @catch_io_errors
     def dump_file(filename, contents, directory):
-        save_path = os.path.join(directory, WipeBadCharsForFilename(filename))
+        """Create a file with user supplied contents
+
+        :param filename: File to be created
+        :type filename: `str`
+        :param contents: Contents to write to the file
+        :type contents: `str`
+        :param directory: Directory where the file will be saved
+        :type directory: `str`
+        :return: The final full path of the created file
+        :rtype: `str`
+        """
+        save_path = os.path.join(directory, wipe_bad_chars(filename))
         FileOperations.create_missing_dirs(directory)
         with FileOperations.codecs_open(save_path, 'wb', 'utf-8') as f:
             f.write(contents.decode('utf-8', 'replace'))
@@ -144,6 +161,7 @@ class FileOperations(object):
 
 
 class OWTFLogger():
+    """A custom logger for the framework"""
 
     @staticmethod
     def log(msg, *args, **kwargs):

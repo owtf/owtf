@@ -10,7 +10,7 @@ DESCRIPTION = "Active Probing for fingerprint analysis"
 
 def run(PluginInfo):
     # No previous output
-    resource = ServiceLocator.get_component("resource").GetResources('ActiveInfrastructureConfigurationManagement')
+    resource = ServiceLocator.get_component("resource").get_resources('ActiveInfrastructureConfigurationManagement')
     Content = ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
                                                                         PluginInfo, [])
     return Content

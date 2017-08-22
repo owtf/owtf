@@ -1,7 +1,10 @@
-#!/usr/bin/env python
-'''
-Debug DB stores debug messages xD
-'''
+"""
+owtf.db.debug
+~~~~~~~~~~~~~
+
+Debug DB stores debug messages
+"""
+
 from owtf.dependency_management.dependency_resolver import BaseComponent
 
 
@@ -14,4 +17,11 @@ class DebugDB(BaseComponent):
         self.db = self.get_component("db")
 
     def Add(self, Message):
-        self.db.Add('DEBUG_DB', Message)
+        """Add a debug message to the DB
+
+        :param Message: Message to be added
+        :type Message: `str`
+        :return: None
+        :rtype: None
+        """
+        self.db.add('DEBUG_DB', Message)

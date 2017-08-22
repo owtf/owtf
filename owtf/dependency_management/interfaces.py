@@ -1,3 +1,10 @@
+"""
+owtf.dependency_management.interfaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Implements abstract interfaces for different services to build on
+"""
+
 from abc import abstractmethod, abstractproperty
 
 
@@ -8,11 +15,11 @@ class AbstractInterface():
 class CommandRegisterInterface(AbstractInterface):
 
     @abstractmethod
-    def AddCommand(self):
+    def add_command(self):
         pass
 
     @abstractmethod
-    def CommandAlreadyRegistered(self):
+    def command_already_registered(self):
         pass
 
 
@@ -30,90 +37,90 @@ class DBInterface(AbstractInterface):
 class DBConfigInterface(AbstractInterface):
 
     @abstractmethod
-    def Get(self):
+    def get(self):
         pass
 
     @abstractmethod
-    def GetAll(self):
+    def get_all(self):
         pass
 
     @abstractmethod
-    def GetReplacementDict(self):
+    def get_replacement_dict(self):
         pass
 
     @abstractmethod
-    def Update(self):
+    def update(self):
         pass
 
 
 class DBErrorInterface(AbstractInterface):
 
     @abstractmethod
-    def Add(self):
+    def add(self):
         pass
 
 
 class DBPluginInterface(AbstractInterface):
 
     @abstractmethod
-    def GetAll(self):
+    def get_all(self):
         pass
 
     @abstractmethod
-    def GetAllTestGroups(self):
+    def get_all_test_groups(self):
         pass
 
     @abstractmethod
-    def GetPluginsByGroup(self):
+    def get_plugins_by_group(self):
         pass
 
     @abstractmethod
-    def GetPluginsByGroupType(self):
+    def get_plugins_by_group_type(self):
         pass
 
     @abstractmethod
-    def GetTypesForGroup(self):
+    def get_types_for_plugin_group(self):
         pass
 
 
 class ErrorHandlerInterface(AbstractInterface):
 
     @abstractmethod
-    def Add(self):
+    def add(self):
         pass
 
     @abstractmethod
-    def AddGithubIssue(self):
+    def add_github_issue(self):
         pass
 
     @abstractmethod
-    def FrameworkAbort(self):
+    def abort_framework(self):
         pass
 
     @abstractmethod
-    def SetCommand(self):
+    def set_command(self):
         pass
 
     @abstractmethod
-    def UserAbort(self):
+    def user_abort(self):
         pass
 
 
 class MappingDBInterface(AbstractInterface):
 
     @abstractmethod
-    def GetMappingTypes(self):
+    def get_mapping_types(self):
         pass
 
     @abstractmethod
-    def GetMappings(self):
+    def get_mappings(self):
         pass
 
 
 class PluginHandlerInterface(AbstractInterface):
 
     @abstractmethod
-    def DumpOutputFile(self):
+    def dump_output_file(self):
         pass
 
     @abstractmethod
@@ -121,7 +128,7 @@ class PluginHandlerInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def GetPluginOutputDir(self):
+    def get_plugin_output_dir(self):
         pass
 
     @abstractmethod
@@ -129,15 +136,15 @@ class PluginHandlerInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def ProcessPlugin(self):
+    def process_plugin(self):
         pass
 
     @abstractmethod
-    def RequestsPossible(self):
+    def requests_possible(self):
         pass
 
     @abstractmethod
-    def RetrieveAbsPath(self):
+    def get_abs_path(self):
         pass
 
     @abstractmethod
@@ -145,49 +152,49 @@ class PluginHandlerInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def ValidateAndFormatPluginList(self):
+    def validate_format_plugin_list(self):
         pass
 
 
 class PluginOutputInterface(AbstractInterface):
 
     @abstractmethod
-    def DeleteAll(self):
+    def delete_all(self):
         pass
 
     @abstractmethod
-    def GetAll(self):
+    def get_all(self):
         pass
 
     @abstractmethod
-    def GetUnique(self):
+    def get_unique(self):
         pass
 
     @abstractmethod
-    def PluginAlreadyRun(self):
+    def plugin_already_run(self):
         pass
 
     @abstractmethod
-    def SavePartialPluginOutput(self):
+    def save_partial_output(self):
         pass
 
     @abstractmethod
-    def SavePluginOutput(self):
+    def save_plugin_output(self):
         pass
 
     @abstractmethod
-    def Update(self):
+    def update(self):
         pass
 
 
 class RequesterInterface(AbstractInterface):
 
     @abstractmethod
-    def GetTransaction(self):
+    def get_transaction(self):
         pass
 
     @abstractmethod
-    def GetTransactions(self):
+    def get_transactions(self):
         pass
 
     @abstractmethod
@@ -195,18 +202,18 @@ class RequesterInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def SetHeaders(self):
+    def set_headers(self):
         pass
 
 
 class ResourceInterface(AbstractInterface):
 
     @abstractmethod
-    def GetResourceList(self):
+    def get_resource_list(self):
         pass
 
     @abstractmethod
-    def GetResources(self):
+    def get_resources(self):
         pass
 
 
@@ -217,7 +224,7 @@ class ShellInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def RefreshReplacements(self):
+    def refresh_replacements(self):
         pass
 
     @abstractmethod
@@ -251,35 +258,35 @@ class TimerInterface(AbstractInterface):
 class TransactionInterface(AbstractInterface):
 
     @abstractmethod
-    def DeleteTransaction(self):
+    def delete_transaction(self):
         pass
 
     @abstractmethod
-    def GetAllAsDicts(self):
+    def get_all_as_dicts(self):
         pass
 
     @abstractmethod
-    def GetByIDAsDict(self):
+    def get_by_id_as_dict(self):
         pass
 
     @abstractmethod
-    def GetByIDs(self):
+    def get_by_ids(self):
         pass
 
     @abstractmethod
-    def GetFirst(self):
+    def get_first(self):
         pass
 
     @abstractmethod
-    def GetSessionData(self):
+    def get_session_data(self):
         pass
 
     @abstractmethod
-    def GetTopTransactionsBySpeed(self):
+    def get_top_by_speed(self):
         pass
 
     @abstractmethod
-    def IsTransactionAlreadyAdded(self):
+    def is_already_added(self):
         pass
 
     @abstractmethod
@@ -287,26 +294,26 @@ class TransactionInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def LogTransactionsFromLogger(self):
+    def log_transactions_from_logger(self):
         pass
 
     @abstractmethod
-    def NumTransactions(self):
+    def num_transactions(self):
         pass
 
     @abstractmethod
-    def SearchAll(self):
+    def search_all(self):
         pass
 
     @abstractmethod
-    def SearchByRegexName(self):
+    def search_by_regex_name(self):
         pass
 
 
 class URLManagerInterface(AbstractInterface):
 
     @abstractmethod
-    def AddURL(self):
+    def add_url(self):
         pass
 
     @abstractmethod
@@ -318,27 +325,27 @@ class URLManagerInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def GetAll(self):
+    def get_all(self):
         pass
 
     @abstractmethod
-    def GetURLsToVisit(self):
+    def get_urls_to_visit(self):
         pass
 
     @abstractmethod
-    def ImportProcessedURLs(self):
+    def import_processed_url(self):
         pass
 
     @abstractmethod
-    def ImportURLs(self):
+    def import_urls(self):
         pass
 
     @abstractmethod
-    def IsURL(self):
+    def is_url(self):
         pass
 
     @abstractmethod
-    def SearchAll(self):
+    def search_all(self):
         pass
 
 
@@ -434,15 +441,15 @@ class ZestInterface(AbstractInterface):
 class TargetInterface(AbstractInterface):
 
     @abstractmethod
-    def AddTarget(self):
+    def add_target(self):
         pass
 
     @abstractmethod
-    def DeleteTarget(self):
+    def delete_target(self):
         pass
 
     @abstractmethod
-    def Get(self):
+    def get(self):
         pass
 
     @abstractmethod
@@ -450,11 +457,11 @@ class TargetInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def GetAllInScope(self):
+    def get_all_in_scope(self):
         pass
 
     @abstractmethod
-    def GetIndexedTargets(self):
+    def get_indexed_targets(self):
         pass
 
     @abstractmethod
@@ -478,11 +485,11 @@ class TargetInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def GetTargetURL(self):
+    def get_target_url(self):
         pass
 
     @abstractmethod
-    def IsInScopeURL(self):
+    def is_url_in_scope(self):
         pass
 
     @abstractmethod
@@ -494,18 +501,18 @@ class TargetInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def SetTarget(self):
+    def set_target(self):
         pass
 
     @abstractmethod
-    def UpdateTarget(self):
+    def update_target(self):
         pass
 
 
 class ConfigInterface(AbstractInterface):
 
     @abstractmethod
-    def CleanUpForTarget(self):
+    def cleanup_target_dirs(self):
         pass
 
     @abstractmethod
@@ -513,15 +520,15 @@ class ConfigInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def CreateOutputDirForTarget(self):
+    def create_output_dir_target(self):
         pass
 
     @abstractmethod
-    def DeriveConfigFromURL(self):
+    def derive_config_from_url(self):
         pass
 
     @abstractmethod
-    def FrameworkConfigGet(self):
+    def get_val(self):
         pass
 
     @abstractmethod
@@ -529,23 +536,23 @@ class ConfigInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def FrameworkConfigGetLogPath(self):
+    def get_log_path(self):
         pass
 
     @abstractmethod
-    def FrameworkConfigGetLogsDir(self):
+    def get_logs_dir(self):
         pass
 
     @abstractmethod
-    def GetAsList(self):
+    def get_as_list(self):
         pass
 
     @abstractmethod
-    def GetFrameworkConfigDict(self):
+    def get_framework_config_dict(self):
         pass
 
     @abstractmethod
-    def GetHeaderList(self):
+    def get_header_list(self):
         pass
 
     @abstractmethod
@@ -553,19 +560,19 @@ class ConfigInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def GetOutputDirForTarget(self):
+    def get_target_dir(self):
         pass
 
     @abstractmethod
-    def GetOutputDirForTargets(self):
+    def get_output_dir_target(self):
         pass
 
     @abstractmethod
-    def GetReplacementDict(self):
+    def get_replacement_dict(self):
         pass
 
     @abstractmethod
-    def GetResources(self):
+    def get_resources(self):
         pass
 
     @abstractmethod
@@ -577,7 +584,7 @@ class ConfigInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def IsSet(self):
+    def is_set(self):
         pass
 
     @abstractmethod
@@ -585,7 +592,7 @@ class ConfigInterface(AbstractInterface):
         pass
 
     @abstractproperty
-    def OwtfPid(self):
+    def owtf_pid(self):
         pass
 
     @abstractmethod

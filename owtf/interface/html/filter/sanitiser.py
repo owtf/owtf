@@ -49,7 +49,7 @@ class HTMLSanitiser:
 # For testing as a standalone script:
 if 'sanitiser.py' in sys.argv[0]:  # When called as a script run tests
     Sanitiser = HTMLSanitiser()
-    Input = sys.stdin.read()  # Read for stdin so that we can cat whatever | sanitiser => easier to test in bulk
+    Input = sys.stdin.read()  # read for stdin so that we can cat whatever | sanitiser => easier to test in bulk
     Sanitiser.TestPrint("raw input=", Input)
     Sanitiser.TestPrint("Filter 1 - clean_html=", clean_html(Input))
     Sanitiser.TestPrint("Filter 2 - white_list=", Sanitiser.Cleaner.clean_html(Input))

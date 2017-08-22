@@ -1,7 +1,13 @@
-import os
+"""
+owtf.interface.ui_handlers
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.note::
+    Not been refactored since this is being deprecated
+"""
+
 import json
 import collections
-import uuid
 
 import tornado.web
 from tornado.escape import url_escape
@@ -68,37 +74,6 @@ class HTTPSessions(custom_handlers.UIRequestHandler):
         self.render("sessions_manager.html", sessions_api_url=self.reverse_url('sessions_api_url', target_id),)
 
 
-class ReplayRequest(custom_handlers.UIRequestHandler):
-    SUPPORTED_METHODS = ['GET']
-
-    @tornado.web.asynchronous
-    def get(self, target_id=None, transaction_id=None):
-        if not target_id or not transaction_id:
-            raise tornado.web.HTTPError(405)
-        else:
-            self.render(
-                "replay_request.html",
-                transaction_api_url=self.reverse_url('transactions_api_url', target_id, transaction_id),
-                transaction_replay_api_url=self.reverse_url('transaction_replay_api_url', target_id, transaction_id)
-            )
-
-
-class ZestScriptConsoleHandler(custom_handlers.UIRequestHandler):
-    SUPPORTED_METHODS = ['GET']
-
-    @tornado.web.asynchronous
-    def get(self, target_id=None):
-        if not target_id:
-            raise tornado.web.HTTPError(405)
-        else:
-            self.render(
-                "zest_console.html",
-                zest_console_api_url=self.reverse_url('zest_console_api_url', target_id),
-                zest_recording=self.get_component("zest").IsRecording(),
-                zest_target_heading=(self.get_component("zest").GetTargetConfig(target_id))['HOST_AND_PORT']
-            )
-
-
 class UrlLog(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
@@ -130,8 +105,8 @@ class TargetManager(custom_handlers.UIRequestHandler):
                 worklist_api_url=self.reverse_url('worklist_api_url', None, None)
             )
         else:
-            adv_filter_data = self.get_component("plugin_output").GetUnique(target_id=int(target_id))
-            adv_filter_data["mapping"] = self.get_component("mapping_db").GetMappingTypes()
+            adv_filter_data = self.get_component("plugin_output").get_unique(target_id=int(target_id))
+            adv_filter_data["mapping"] = self.get_component("mapping_db").get_mapping_types()
             self.render(
                 "target.html",
                 target_id=target_id,
@@ -155,7 +130,7 @@ class PluginOutput(custom_handlers.UIRequestHandler):
             raise tornado.web.HTTPError(400)
         try:
             filter_data = dict(self.request.arguments)  # IMPORTANT!!
-            plugin_outputs = self.get_component("plugin_output").GetAll(filter_data, target_id=target_id)
+            plugin_outputs = self.get_component("plugin_output").get_all(filter_data, target_id=target_id)
             # Group the plugin outputs to make it easier in template
             grouped_plugin_outputs = {}
             for poutput in plugin_outputs:
@@ -168,13 +143,13 @@ class PluginOutput(custom_handlers.UIRequestHandler):
 
             # Get mappings
             if self.get_argument("mapping", None):
-                mappings = self.get_component("mapping_db").GetMappings(self.get_argument("mapping", None))
+                mappings = self.get_component("mapping_db").get_mappings(self.get_argument("mapping", None))
             else:
                 mappings = None
 
             # Get test groups as well, for names and info links
             test_groups = {}
-            for test_group in self.get_component("db_plugin").GetAllTestGroups():
+            for test_group in self.get_component("db_plugin").get_all_test_groups():
                 test_group["mapped_code"] = test_group["code"]
                 test_group["mapped_descrip"] = test_group["descrip"]
                 if mappings:
@@ -205,8 +180,8 @@ class WorkerManager(custom_handlers.UIRequestHandler):
     @tornado.web.asynchronous
     def get(self, worker_id=None):
         config = ServiceLocator.get_component("config")
-        ui_port = config.FrameworkConfigGet("UI_SERVER_PORT")
-        fileserver_port = config.FrameworkConfigGet("FILE_SERVER_PORT")
+        ui_port = config.get_val("UI_SERVER_PORT")
+        fileserver_port = config.get_val("FILE_SERVER_PORT")
         output_files_server = "%s://%s" % (self.request.protocol, self.request.host.replace(ui_port, fileserver_port))
         if not worker_id:
             self.render(
@@ -264,8 +239,8 @@ class FileRedirectHandler(custom_handlers.UIRequestHandler):
 
     def get(self, file_url):
         config = ServiceLocator.get_component("config")
-        ui_port = config.FrameworkConfigGet("UI_SERVER_PORT")
-        fileserver_port = config.FrameworkConfigGet("FILE_SERVER_PORT")
+        ui_port = config.get_val("UI_SERVER_PORT")
+        fileserver_port = config.get_val("FILE_SERVER_PORT")
         output_files_server = "%s://%s/" % (self.request.protocol, self.request.host.replace(ui_port, fileserver_port))
         redirect_file_url = output_files_server + url_escape(file_url, plus=False)
         self.redirect(redirect_file_url, permanent=True)

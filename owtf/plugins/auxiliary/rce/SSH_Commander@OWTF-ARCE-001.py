@@ -14,21 +14,21 @@ def run(PluginInfo):
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {
-            'RHOST': config.FrameworkConfigGet('RHOST_DESCRIP'),
-            'RUSER': config.FrameworkConfigGet('RUSER_DESCRIP'),
-            'COMMAND_FILE': config.FrameworkConfigGet('COMMAND_FILE_DESCRIP')
+            'RHOST': config.get_val('RHOST_DESCRIP'),
+            'RUSER': config.get_val('RUSER_DESCRIP'),
+            'COMMAND_FILE': config.get_val('COMMAND_FILE_DESCRIP')
         },
         'Optional': {
-            'RPORT': config.FrameworkConfigGet('RPORT_DESCRIP'),
-            'PASSPHRASE': config.FrameworkConfigGet('PASSPHRASE_DESCRIP'),
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+            'RPORT': config.get_val('RPORT_DESCRIP'),
+            'PASSPHRASE': config.get_val('PASSPHRASE_DESCRIP'),
+            'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')
         }
     }
 
     for Args in plugin_params.GetArgs(args, PluginInfo):
-        plugin_params.SetConfig(Args)  # Sets the auxiliary plugin arguments as config
+        plugin_params.set_config(Args)  # Sets the auxiliary plugin arguments as config
         ServiceLocator.get_component("interactive_shell").Open({
-            'ConnectVia': ServiceLocator.get_component("resource").GetResources('RCE_SSH_Connection'),
+            'ConnectVia': ServiceLocator.get_component("resource").get_resources('RCE_SSH_Connection'),
             'InitialCommands': Args['PASSPHRASE'],
             'ExitMethod': Args['ISHELL_EXIT_METHOD'],
             'CommandsBeforeExit': Args['ISHELL_COMMANDS_BEFORE_EXIT'],

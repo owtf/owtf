@@ -5,6 +5,6 @@ DESCRIPTION = "Plugin to assist manual testing"
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('ExternalSSL')
+    resource = ServiceLocator.get_component("resource").get_resources('ExternalSSL')
     Content = ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', resource)
     return Content

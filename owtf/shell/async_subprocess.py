@@ -1,5 +1,7 @@
-#!/usr/bin/env python
 """
+owtf.shell.async_subprocess
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 # Inspired from:
 # http://code.activestate.com/recipes/440554-module-to-allow-asynchronous-subprocess-use-on-win/
 """
@@ -60,7 +62,7 @@ class AsyncPopen(subprocess.Popen):
                 (errCode, written) = WriteFile(x, input)
             except ValueError:
                 return self._close('stdin')
-            except (subprocess.pywintypes.error, Exception), why:
+            except (subprocess.pywintypes.error, Exception) as why:
                 if why[0] in (109, errno.ESHUTDOWN):
                     return self._close('stdin')
                 raise
@@ -79,7 +81,7 @@ class AsyncPopen(subprocess.Popen):
                     (errCode, read) = ReadFile(x, nAvail, None)
             except ValueError:
                 return self._close(which)
-            except (subprocess.pywintypes.error, Exception), why:
+            except (subprocess.pywintypes.error, Exception) as why:
                 if why[0] in (109, errno.ESHUTDOWN):
                     return self._close(which)
                 raise
@@ -95,7 +97,7 @@ class AsyncPopen(subprocess.Popen):
                 return 0
             try:
                 written = os.write(self.stdin.fileno(), input)
-            except OSError, why:
+            except OSError as why:
                 if why[0] == errno.EPIPE:  # broken pipe
                     return self._close('stdin')
                 raise
@@ -122,7 +124,7 @@ class AsyncPopen(subprocess.Popen):
                     fcntl.fcntl(conn, fcntl.F_SETFL, flags)
 
 
-def RecvSome(p, t=.1, e=1, tr=5, stderr=0):
+def recv_some(p, t=.1, e=1, tr=5, stderr=0):
     if tr < 1:
         tr = 1
     x = time.time() + t
@@ -145,12 +147,15 @@ def RecvSome(p, t=.1, e=1, tr=5, stderr=0):
     return ''.join(y)
 
 
-def SendAll(p, data):
+def send_all(p, data):
     while len(data):
         sent = p.send(data)
         if sent is None:
             raise DisconnectException(DISCONNECT_MESSAGE)
-        data = buffer(data, sent)
+        import sys
+        if sys.version_info > (3,):
+            buffer = memoryview
+        data = buffer(data)
 
 
 if __name__ == '__main__':
@@ -160,10 +165,10 @@ if __name__ == '__main__':
         shell, commands, tail = ('sh', ('ls', 'echo HELLO WORLD'), '\n')
 
     a = AsyncPopen(shell, stdin=PIPE, stdout=PIPE)
-    print RecvSome(a),
+    print(recv_some(a))
     for cmd in commands:
-        SendAll(a, cmd + tail)
-        print RecvSome(a),
-    SendAll(a, 'exit' + tail)
-    print RecvSome(a, e=0)
+        send_all(a, cmd + tail)
+        print(recv_some(a))
+    send_all(a, 'exit' + tail)
+    print(recv_some(a, e=0))
     a.wait()

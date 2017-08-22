@@ -1,10 +1,11 @@
-#!/usr/bin/env python
 """
+owtf.protocols.smtp
+~~~~~~~~~~~~~~~~~~~
+
 Description:
 This is the OWTF SMTP handler, to simplify sending emails.
 """
 
-import os
 import smtplib
 from email import MIMEMultipart, MIMEBase, MIMEText, Encoders
 
@@ -20,29 +21,29 @@ class SMTP(BaseComponent):
     def __init__(self):
         self.register_in_service_locator()
         self.error_handler = self.get_component("error_handler")
-        self.MsgPrefix = 'OWTF SMTP Client - '
+        self.msg_prefix = 'OWTF SMTP Client - '
 
-    def Print(self, message):
-        cprint(self.MsgPrefix + message)
+    def pprint(self, message):
+        cprint(self.msg_prefix + message)
 
     def create_connection_with_mail_server(self, options):
         return smtplib.SMTP(options['SMTP_HOST'], int(options['SMTP_PORT']))
 
-    def Connect(self, options):
+    def connect(self, options):
         try:
             mail_server = self.create_connection_with_mail_server(options)
             mail_server.ehlo()
-        except Exception, e:
-            print("Error connecting to %s on port %s" % (options['SMTP_HOST'], options['SMTP_PORT']))
+        except Exception:
+            pprint("Error connecting to %s on port %s" % (options['SMTP_HOST'], options['SMTP_PORT']))
             return None
         try:
             mail_server.starttls()  # Give start TLS a shot
-        except Exception, e:
-            self.Print("%s - Assuming TLS unsupported and trying to continue.." % str(e))
+        except Exception as e:
+            self.pprint("%s - Assuming TLS unsupported and trying to continue.." % str(e))
         try:
             mail_server.login(options['SMTP_LOGIN'], options['SMTP_PASS'])
-        except Exception, e:
-            self.Print("ERROR: %s - Assuming open-relay and trying to continue.." % str(e))
+        except Exception as e:
+            self.pprint("ERROR: %s - Assuming open-relay and trying to continue.." % str(e))
         return mail_server
 
     def is_file(self, target):
@@ -51,7 +52,7 @@ class SMTP(BaseComponent):
     def get_file_content_as_list(self, options):
         return get_file_as_list(options['EMAIL_TARGET'])
 
-    def BuildTargetList(self, options):
+    def build_target_list(self, options):
         """Build a list of targets for simplification purposes."""
         if self.is_file(options['EMAIL_TARGET']):
             target_list = self.get_file_content_as_list(options)
@@ -59,37 +60,37 @@ class SMTP(BaseComponent):
             target_list = [options['EMAIL_TARGET']]
         return target_list
 
-    def Send(self, options):
+    def send(self, options):
         num_errors = 0
-        for target in self.BuildTargetList(options):
+        for target in self.build_target_list(options):
             target = target.strip()
             if not target:
                 continue  # Skip blank lines!
-            self.Print("Sending email for target: " + target)
+            self.pprint("Sending email for target: " + target)
             try:
-                message = self.BuildMessage(options, target)
-                mail_server = self.Connect(options)
+                message = self.build_message(options, target)
+                mail_server = self.connect(options)
                 if mail_server is None:
                     raise Exception('error connecting to %s' % str(target))
                 mail_server.sendmail(options['SMTP_LOGIN'], target, message.as_string())
-                self.Print("Email relay successful!")
-            except Exception, e:
-                self.error_handler.Add("Error delivering email: %s" % str(e), '')
+                self.pprint("Email relay successful!")
+            except Exception as e:
+                self.error_handler.add("Error delivering email: %s" % str(e), '')
                 num_errors += 1
         return (num_errors == 0)
 
-    def BuildMessage(self, options, target):
+    def build_message(self, options, target):
         message = MIMEMultipart.MIMEMultipart()
-        for name, value in options.items():
+        for name, value in list(options.items()):
             if name == 'EMAIL_BODY':
-                self.AddBody(message, value)
+                self.add_body(message, value)
             elif name == 'EMAIL_ATTACHMENT':
-                self.AddAttachment(message, value)
+                self.add_attachment(message, value)
             else:  # From, To, Subject, etc.
-                self.SetOption(message, name, value, target)
+                self.set_option(message, name, value, target)
         return message
 
-    def SetOption(self, message, option, value, target):
+    def set_option(self, message, option, value, target):
         if option == 'EMAIL_FROM':
             message['From'] = value
         elif option == 'EMAIL_TARGET':
@@ -101,7 +102,7 @@ class SMTP(BaseComponent):
         elif option == 'EMAIL_SUBJECT':
             message['Subject'] = value
 
-    def AddBody(self, message, text):
+    def add_body(self, message, text):
         # If a file has been specified as Body, then set Body to file contents.
         if os.path.isfile(text):
             body = FileOperations.open(text).read().strip()
@@ -109,7 +110,7 @@ class SMTP(BaseComponent):
             body = text
         message.attach(MIMEText.MIMEText(body, message))
 
-    def AddAttachment(self, message, attachment):
+    def add_attachment(self, message, attachment):
         if not attachment:
             return False
         binary_blob = MIMEBase.MIMEBase('application', 'octet-stream')

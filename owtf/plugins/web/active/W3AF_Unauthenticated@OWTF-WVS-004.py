@@ -10,6 +10,6 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via w3af"
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('W3AF_Unauth')
+    resource = ServiceLocator.get_component("resource").get_resources('W3AF_Unauth')
     return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output',
                                                                      resource, PluginInfo, [])

@@ -1,3 +1,9 @@
+"""
+owtf.db.poutput_manager
+~~~~~~~~~~~~~~~~~~~~~~~
+
+"""
+
 import os
 import json
 
@@ -26,27 +32,59 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         self.timer = self.get_component("timer")
         self.db = self.get_component("db")
 
-    def PluginOutputExists(self, plugin_key, target_id):
+    def plugin_output_exists(self, plugin_key, target_id):
+        """Check if output exists
+
+        :param plugin_key: plugin key
+        :type plugin_key: `str`
+        :param target_id: Target id
+        :type target_id: `int`
+        :return: True if count > 0
+        :rtype: `bool`
+        """
         count = self.db.session.query(models.PluginOutput).filter_by(target_id=target_id, plugin_key=plugin_key).count()
         return (count > 0)
 
-    def PluginCountOutput(self):
+    def plugin_count_output(self):
+        """Get count stats
+
+        :return: Count stats
+        :rtype: `dict`
+        """
         complete_count = self.db.session.query(models.PluginOutput).count()
         left_count = self.db.session.query(models.Work).count()
         left_count += self.get_component("worker_manager").get_busy_workers()
         results = {'complete_count': complete_count, 'left_count': left_count}
         return results
 
-    def DeriveHTMLOutput(self, plugin_output):
-        Content = ''
+    def get_html_output(self, plugin_output):
+        """Get html output
+
+        :param plugin_output: Plugin output
+        :type plugin_output: `list`
+        :return: HTML string
+        :rtype: `str`
+        """
+        content = ''
         for item in plugin_output:
-            Content += getattr(self.reporter, item["type"])(**item["output"])
-        return Content
+            content += getattr(self.reporter, item["type"])(**item["output"])
+        return content
 
     @target_required
-    def DeriveOutputDict(self, obj, target_id=None, inc_output=False):
+    def get_output_dict(self, obj, target_id=None, inc_output=False):
+        """Gets plugin outputs as dict
+
+        :param obj: output obj
+        :type obj:
+        :param target_id: target ID
+        :type target_id: `int`
+        :param inc_output: Is there?
+        :type inc_output: `bool`
+        :return: Plugin output as a dict
+        :rtype: `dict`
+        """
         if target_id:
-            self.target.SetTarget(target_id)
+            self.target.set_target(target_id)
         if obj:
             pdict = dict(obj.__dict__)
             pdict.pop("_sa_instance_state", None)
@@ -54,61 +92,83 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             # If output is present, json decode it
             if inc_output:
                 if pdict.get("output", None):
-                    pdict["output"] = self.DeriveHTMLOutput(json.loads(pdict["output"]))
+                    pdict["output"] = self.get_html_output(json.loads(pdict["output"]))
             else:
                 pdict.pop("output")
-            pdict["start_time"] = obj.start_time.strftime(self.db_config.Get("DATE_TIME_FORMAT"))
-            pdict["end_time"] = obj.end_time.strftime(self.db_config.Get("DATE_TIME_FORMAT"))
+            pdict["start_time"] = obj.start_time.strftime(self.db_config.get("DATE_TIME_FORMAT"))
+            pdict["end_time"] = obj.end_time.strftime(self.db_config.get("DATE_TIME_FORMAT"))
             pdict["run_time"] = self.timer.get_time_as_str(obj.run_time)
             return pdict
 
     @target_required
-    def DeriveOutputDicts(self, obj_list, target_id=None, inc_output=False):
+    def get_output_dicts(self, obj_list, target_id=None, inc_output=False):
+        """Get plugin output dicts from a list of objects
+
+        :param obj_list: List of objects
+        :type obj_list: `list`
+        :param target_id: target ID
+        :type target_id: `int`
+        :param inc_output: True/false
+        :type inc_output: `bool`
+        :return: List of output dicts
+        :rtype: `list`
+        """
         if target_id:
-            self.target.SetTarget(target_id)
+            self.target.set_target(target_id)
         dict_list = []
         for obj in obj_list:
-            dict_list.append(self.DeriveOutputDict(obj, target_id=target_id, inc_output=inc_output))
+            dict_list.append(self.get_output_dict(obj, target_id=target_id, inc_output=inc_output))
         return dict_list
 
-    def GenerateQueryUsingSession(self, filter_data, target_id, for_delete=False):
+    def gen_query(self, filter_data, target_id, for_delete=False):
+        """Generate query
+
+        :param filter_data: Filter criteria
+        :type filter_data: `dict`
+        :param target_id: target ID
+        :type target_id: `int`
+        :param for_delete: For deletion?
+        :type for_delete: `bool`
+        :return:
+        :rtype:
+        """
         query = self.db.session.query(models.PluginOutput).filter_by(target_id=target_id)
         if filter_data.get("target_id", None):
             query.filter_by(target_id=filter_data["target_id"])
         if filter_data.get("plugin_key", None):
-            if isinstance(filter_data.get("plugin_key"), (str, unicode)):
+            if isinstance(filter_data.get("plugin_key"), str):
                 query = query.filter_by(plugin_key=filter_data["plugin_key"])
             if isinstance(filter_data.get("plugin_key"), list):
                 query = query.filter(models.PluginOutput.plugin_key.in_(filter_data["plugin_key"]))
         if filter_data.get("plugin_type", None):
-            if isinstance(filter_data.get("plugin_type"), (str, unicode)):
+            if isinstance(filter_data.get("plugin_type"), str):
                 query = query.filter_by(plugin_type=filter_data["plugin_type"])
             if isinstance(filter_data.get("plugin_type"), list):
                 query = query.filter(models.PluginOutput.plugin_type.in_(filter_data["plugin_type"]))
         if filter_data.get("plugin_group", None):
-            if isinstance(filter_data.get("plugin_group"), (str, unicode)):
+            if isinstance(filter_data.get("plugin_group"), str):
                 query = query.filter_by(plugin_group=filter_data["plugin_group"])
             if isinstance(filter_data.get("plugin_group"), list):
                 query = query.filter(models.PluginOutput.plugin_group.in_(filter_data["plugin_group"]))
         if filter_data.get("plugin_code", None):
-            if isinstance(filter_data.get("plugin_code"), (str, unicode)):
+            if isinstance(filter_data.get("plugin_code"), str):
                 query = query.filter_by(plugin_code=filter_data["plugin_code"])
             if isinstance(filter_data.get("plugin_code"), list):
                 query = query.filter(models.PluginOutput.plugin_code.in_(filter_data["plugin_code"]))
         if filter_data.get("status", None):
-            if isinstance(filter_data.get("status"), (str, unicode)):
+            if isinstance(filter_data.get("status"), str):
                 query = query.filter_by(status=filter_data["status"])
             if isinstance(filter_data.get("status"), list):
                 query = query.filter(models.PluginOutput.status.in_(filter_data["status"]))
         try:
             if filter_data.get("user_rank", None):
-                if isinstance(filter_data.get("user_rank"), (str, unicode)):
+                if isinstance(filter_data.get("user_rank"), str):
                     query = query.filter_by(user_rank=int(filter_data["user_rank"]))
                 if isinstance(filter_data.get("user_rank"), list):
                     numbers_list = [int(x) for x in filter_data["user_rank"]]
                     query = query.filter(models.PluginOutput.user_rank.in_(numbers_list))
             if filter_data.get("owtf_rank", None):
-                if isinstance(filter_data.get("owtf_rank"), (str, unicode)):
+                if isinstance(filter_data.get("owtf_rank"), str):
                     query = query.filter_by(owtf_rank=int(filter_data["owtf_rank"]))
                 if isinstance(filter_data.get("owtf_rank"), list):
                     numbers_list = [int(x) for x in filter_data["owtf_rank"]]
@@ -129,19 +189,33 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         return query
 
     @target_required
-    def GetAll(self, filter_data=None, target_id=None, inc_output=False):
+    def get_all(self, filter_data=None, target_id=None, inc_output=False):
+        """Get all data based on criteria
+
+        :param filter_data: Filter data
+        :type filter_data: `dict`
+        :param target_id: target ID
+        :type target_id: `int`
+        :param inc_output: true/false
+        :type inc_output: `bool`
+        :return: list of output dicts
+        :rtype: `list`
+        """
         if not filter_data:
             filter_data = {}
-        self.target.SetTarget(target_id)
-        query = self.GenerateQueryUsingSession(filter_data, target_id)
+        self.target.set_target(target_id)
+        query = self.gen_query(filter_data, target_id)
         results = query.all()
-        return self.DeriveOutputDicts(results, target_id=target_id, inc_output=inc_output)
+        return self.get_output_dicts(results, target_id=target_id, inc_output=inc_output)
 
     @target_required
-    def GetUnique(self, target_id=None):
-        """
-        Returns a dict of some column names and their unique database
-        Useful for advanced filter
+    def get_unique(self, target_id=None):
+        """Returns a dict of some column names and their unique database, useful for advanced filter
+
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: Results
+        :rtype: `dict`
         """
         unique_data = {
             "plugin_type": [i[0] for i in self.db.session.query(models.PluginOutput.plugin_type).filter_by(
@@ -158,17 +232,26 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         return unique_data
 
     @target_required
-    def DeleteAll(self, filter_data, target_id=None):
-        """
-        Here keeping filter_data optional is very risky
+    def delete_all(self, filter_data, target_id=None):
+        """Delete all plugin output
+
+        .note::
+            Here keeping filter_data optional is very risky
+
+        :param filter_data: Filter data
+        :type filter_data: `dict`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: None
+        :rtype: None
         """
         # for_delete = True: empty dict will match all results
-        query = self.GenerateQueryUsingSession(filter_data, target_id, for_delete=True)
+        query = self.gen_query(filter_data, target_id, for_delete=True)
         # Delete the folders created for these plugins
         for plugin in query.all():
             # First check if path exists in db
             if plugin.output_path:
-                output_path = os.path.join(self.config.GetOutputDirForTargets(), plugin.output_path)
+                output_path = os.path.join(self.config.get_output_dir_target(), plugin.output_path)
                 if os.path.exists(output_path):
                     FileOperations.rm_tree(output_path)
         # When folders are removed delete the results from db
@@ -176,9 +259,24 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         self.db.session.commit()
 
     @target_required
-    def Update(self, plugin_group, plugin_type, plugin_code, patch_data, target_id=None):
+    def update(self, plugin_group, plugin_type, plugin_code, patch_data, target_id=None):
+        """Update output in DB
+
+        :param plugin_group: Plugin group
+        :type plugin_group: `str`
+        :param plugin_type: Plugin type
+        :type plugin_type: `str`
+        :param plugin_code: Plugin code
+        :type plugin_code: `str`
+        :param patch_data: Patched data
+        :type patch_data: `dict`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: None
+        :rtype: None
+        """
         plugin_dict = {"plugin_group": plugin_group, "plugin_type": plugin_type, "plugin_code": plugin_code}
-        query = self.GenerateQueryUsingSession(plugin_dict, target_id)
+        query = self.gen_query(plugin_dict, target_id)
         obj = query.first()
         if obj:
             try:
@@ -196,17 +294,36 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             except ValueError:
                 raise InvalidParameterType("Integer has to be provided for integer fields")
 
-    def PluginAlreadyRun(self, PluginInfo, target_id=None):
+    def plugin_already_run(self, plugin_info, target_id=None):
+        """Check if plugin already ran
+
+        :param plugin_info: Plugin info
+        :type plugin_info: `dict`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: True if already ran
+        :rtype: `bool`
+        """
         plugin_output_count = self.db.session.query(models.PluginOutput).filter_by(
             target_id=target_id,
-            plugin_code=PluginInfo["code"],
-            plugin_type=PluginInfo["type"],
-            plugin_group=PluginInfo["group"]).count()
+            plugin_code=plugin_info["code"],
+            plugin_type=plugin_info["type"],
+            plugin_group=plugin_info["group"]).count()
         return plugin_output_count > 0  # This is nothing but a "None" returned
 
     @target_required
-    def SavePluginOutput(self, plugin, output, target_id=None):
-        """Save into the database the command output of the plugin `plugin."""
+    def save_plugin_output(self, plugin, output, target_id=None):
+        """Save into the database the command output of the plugin.
+
+        :param plugin: Plugin dict
+        :type plugin: `dict`
+        :param output: Plugin output
+        :type output: `str`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: None
+        :rtype: None
+        """
         self.db.session.merge(models.PluginOutput(
             plugin_key=plugin["key"],
             plugin_code=plugin["code"],
@@ -219,7 +336,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored it will be there
             output_path=(plugin["output_path"] if os.path.exists(
-                self.plugin_handler.GetPluginOutputDir(plugin)) else None),
+                self.plugin_handler.get_plugin_output_dir(plugin)) else None),
             owtf_rank=plugin['owtf_rank'])
         )
         try:
@@ -229,7 +346,20 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             raise e
 
     @target_required
-    def SavePartialPluginOutput(self, plugin, output, message, target_id=None):
+    def save_partial_output(self, plugin, output, message, target_id=None):
+        """Save partial plugin output
+
+        :param plugin: Plugin dict
+        :type plugin: `dict`
+        :param output: Output
+        :type output: `str`
+        :param message: Message
+        :type message: `str`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: None
+        :rtype: None
+        """
         self.db.session.merge(models.PluginOutput(
             plugin_key=plugin["key"],
             plugin_code=plugin["code"],
@@ -243,7 +373,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored it will be there
             output_path=(plugin["output_path"] if os.path.exists(
-                self.plugin_handler.GetPluginOutputDir(plugin)) else None),
+                self.plugin_handler.get_plugin_output_dir(plugin)) else None),
             owtf_rank=plugin['owtf_rank'])
         )
         try:
@@ -253,7 +383,14 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             raise e
 
     @session_required
-    def GetSeverityFrequency(self, session_id=None):
+    def get_severity_freq(self, session_id=None):
+        """Get severity frequencies for the analytics
+
+        :param session_id: session ID
+        :type session_id: `int`
+        :return: Frequency data
+        :rtype: `dict`
+        """
         severity_frequency = [
             {"id": 0, "label": "Passing", "value": 0},
             {"id": 1, "label": "Info", "value": 0},

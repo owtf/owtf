@@ -11,7 +11,7 @@ DESCRIPTION = "Third party resources"
 
 def run(PluginInfo):
     # Vuln search box to be built in core and resued in different plugins:
-    resource = ServiceLocator.get_component("resource").GetResources('PassiveMethods')
+    resource = ServiceLocator.get_component("resource").get_resources('PassiveMethods')
     Content = ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', resource)
     OWTFLogger.log("Passive links generated for target")
     return Content

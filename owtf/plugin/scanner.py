@@ -1,7 +1,9 @@
-#!/usr/bin/env python
-'''
+"""
+owtf.plugin.scanner
+~~~~~~~~~~~~~~~~~~~
+
 The scan_network scans the network for different ports and call network plugins for different services running on target
-'''
+"""
 
 import re
 import logging
@@ -29,6 +31,15 @@ class Scanner(BaseComponent):
         self.shell.shell_exec("mkdir %s" % SCANS_FOLDER)
 
     def ping_sweep(self, target, scantype):
+        """Do a ping sweep
+
+        :param target: Target to scan
+        :type target: `str`
+        :param scantype: Type of scan
+        :type scantype: `str`
+        :return: None
+        :rtype: None
+        """
         if scantype == "full":
             logging.info("Performing Intense Host discovery")
             self.shell.shell_exec("nmap -n -v -sP -PE -PP -PS21,22,23,25,80,443,113,21339 -PA80,113,443,10042"
@@ -41,6 +52,15 @@ class Scanner(BaseComponent):
         self.shell.shell_exec('grep Up %s.gnmap | cut -f2 -d\" \" > %s.ips' % (PING_SWEEP_FILE, PING_SWEEP_FILE))
 
     def dns_sweep(self, file_with_ips, file_prefix):
+        """Do a DNS sweep
+
+        :param file_with_ips: Path of file with IP addresses
+        :type file_with_ips: `str`
+        :param file_prefix: File name prefix
+        :type file_prefix: `str`
+        :return: None
+        :rtype: None
+        """
         logging.info("Finding misconfigured DNS servers that might allow zone transfers among live ips ..")
         self.shell.shell_exec("nmap -PN -n -sS -p 53 -iL %s -oA %s" % (file_with_ips, file_prefix))
 
@@ -80,6 +100,19 @@ class Scanner(BaseComponent):
             return
 
     def scan_and_grab_banners(self, file_with_ips, file_prefix, scan_type, nmap_options):
+        """Scan targets and grab service banners
+
+        :param file_with_ips: Path to file with IPs
+        :type file_with_ips: `str`
+        :param file_prefix: File name prefix
+        :type file_prefix: `str`
+        :param scan_type: Type of scan
+        :type scan_type: `str`
+        :param nmap_options: nmap options
+        :type nmap_options: `dict`
+        :return: None
+        :rtype: None
+        """
         if scan_type == "tcp":
             logging.info("Performing TCP portscan, OS detection, Service detection, banner grabbing, etc")
             self.shell.shell_exec("nmap -PN -n -v --min-parallelism=10 -iL %s -sS -sV -O  -oA %s.tcp %s") % (
@@ -94,9 +127,23 @@ class Scanner(BaseComponent):
                 self.shell.shell_exec("amap -1 -i %s.udp.gnmap -Abq -m -o %s.udp.amap" % (file_prefix, file_prefix))
 
     def get_nmap_services_file(self):
+        """Return default NMAP services file
+
+        :return: Path to the file
+        :rtype: `str`
+        """
         return '/usr/share/nmap/nmap-services'
 
     def get_ports_for_service(self, service, protocol):
+        """Get ports for different services
+
+        :param service: Service name
+        :type service: `str`
+        :param protocol: Protocol
+        :type protocol: `str`
+        :return: List of ports
+        :rtype: `list`
+        """
         regexp = '(.*?)\t(.*?/.*?)\t(.*?)($|\t)(#.*){0,1}'
         re.compile(regexp)
         list = []
@@ -113,6 +160,15 @@ class Scanner(BaseComponent):
         return list
 
     def target_service(self, nmap_file, service):
+        """Services for a target
+
+        :param nmap_file: Path to nmap file
+        :type nmap_file: `str`
+        :param service: Service to get
+        :type service: `str`
+        :return: Response
+        :rtype: `str`
+        """
         ports_for_service = self.get_ports_for_service(service, "")
         f = FileOperations.open(nmap_file.strip())
         response = ""
@@ -139,6 +195,15 @@ class Scanner(BaseComponent):
         return response
 
     def probe_service_for_hosts(self, nmap_file, target):
+        """Probe a service for a domain
+
+        :param nmap_file: Path to nmap file
+        :type nmap_file: `str`
+        :param target: Target name
+        :type target: `str`
+        :return: List of services
+        :rtype: `list`
+        """
         services = []
         # Get all available plugins from network plugin order file
         net_plugins = self.config.Plugin.GetOrder("network")
@@ -169,9 +234,27 @@ class Scanner(BaseComponent):
         return http
 
     def scan_network(self, target):
+        """Do a ping sweep for a target
+
+        :param target: Target url
+        :type target: `str`
+        :return: None
+        :rtype: None
+        """
         self.ping_sweep(target.split("//")[1], "full")
         self.dns_sweep("%s.ips" % PING_SWEEP_FILE, DNS_INFO_FILE)
 
     def probe_network(self, target, protocol, port):
+        """Probe network for services
+
+        :param target: target url
+        :type target: `str`
+        :param protocol: Protocol scan
+        :type protocol: `str`
+        :param port: Port number for target
+        :type port: `int`
+        :return: None
+        :rtype: None
+        """
         self.scan_and_grab_banners("%s.ips" % PING_SWEEP_FILE, FAST_SCAN_FILE, protocol, "-p %s" % port)
         return self.probe_service_for_hosts("%s.%s.gnmap" % (FAST_SCAN_FILE, protocol), target.split("//")[1])

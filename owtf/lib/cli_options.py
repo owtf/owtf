@@ -1,10 +1,24 @@
+"""
+owtf.lib.cli_options
+~~~~~~~~~~~~~~~~~~~~
+
+Main CLI processing machine
+"""
+
 from __future__ import print_function
+
 import sys
 import argparse
 
 
 def usage(error_message):
-    """Display the usage message describing how to use owtf."""
+    """Display the usage message describing how to use owtf.
+
+    :param error_message: Error message to display
+    :type error_message: `str`
+    :return: None
+    :rtype: None
+    """
     full_path = sys.argv[0].strip()
     main = full_path.split('/')[-1]
 
@@ -82,6 +96,17 @@ def usage(error_message):
 
 
 def parse_options(cli_options, valid_groups, valid_types):
+    """Main arguments processing for the CLI
+
+    :param cli_options: CLI args Supplied by user
+    :type cli_options: `dict`
+    :param valid_groups: Plugin groups to chose from
+    :type valid_groups: `list`
+    :param valid_types: Plugin types to chose from
+    :type valid_types: `list`
+    :return:
+    :rtype:
+    """
     parser = argparse.ArgumentParser(
         description="OWASP OWTF, the Offensive (Web) Testing Framework, is "
                     "an OWASP+PTES-focused try to unite great tools and "
@@ -194,48 +219,10 @@ def parse_options(cli_options, valid_groups, valid_types):
         action="store_true",
         help="Use this flag to run OWTF Inbound Proxy")
     parser.add_argument(
-        "--update", "--update",
-        dest="Update",
-        action="store_true",
-        help="Use this flag to update OWTF to stable version "
-             "(not bleeding edge)")
-    parser.add_argument(
         '--nowebui',
         dest='nowebui',
         default=False,
         action='store_true',
         help='Run OWTF without its Web UI.')
     parser.add_argument('Targets', nargs='*', help='List of Targets')
-    parser.add_argument(
-        "--build-react", "--build-react",
-        dest="ReactBundle",
-        action="store_true",
-        help='Use this flag to generate React bundle on startup')
-    return parser.parse_args(cli_options)
-
-
-def parse_update_options(cli_options):
-    parser = argparse.ArgumentParser(
-        description="OWASP OWTF, the Offensive (Web) Testing Framework, is "
-                    "an OWASP+PTES-focused try to unite great tools and "
-                    "make pentesting more efficient @owtfp http://owtf.org"
-                    "\nAuthor: Abraham Aranguren <name.surname@owasp.org> - "
-                    "http://7-a.org - Twitter: @7a_")
-    parser.add_argument(
-        "-x", "--outbound_proxy",
-        dest="OutboundProxy",
-        default=None,
-        help="type://ip:port - Send all OWTF requests using the proxy for "
-             "the given ip and port. The 'type' can be 'http'(default) or "
-             "'socks'")
-    parser.add_argument(
-        "-xa", "--outbound_proxy_auth",
-        dest="OutboundProxyAuth",
-        default=None,
-        help="username:password - Credentials if any for outbound proxy")
-    parser.add_argument(
-        "--update", "--update",
-        dest="Update",
-        action="store_true",
-        help="Use this flag to update OWTF")
     return parser.parse_args(cli_options)

@@ -1,4 +1,10 @@
-#!/usr/bin/env python
+"""
+owtf.lib.formatters
+~~~~~~~~~~~~~~~~~~~
+
+CLI string formatting
+"""
+
 import logging
 
 # CUSTOM LOG LEVELS
@@ -23,7 +29,13 @@ class ConsoleFormatter(logging.Formatter):
     info_fmt = TERMINAL_COLOR_BLUE + "[-] %(message)s" + TERMINAL_COLOR_END
 
     def format(self, record):
+        """ Choose format according to record level
 
+        :param record: Record to format
+        :type record: `str`
+        :return: Formatted string
+        :rtype: `str`
+        """
         # Save the original format configured by the user
         # when the logger formatter was instantiated
         format_orig = self._fmt

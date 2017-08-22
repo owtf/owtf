@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+"""
+owtf.selenium.selenium_handler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Launch and browse URLs using Selenium
+"""
 
 from pyvirtualdisplay import Display
 from selenium import webdriver
@@ -15,28 +20,50 @@ class Selenium(BaseComponent, AbstractInterface):
 
     def __init__(self):
         self.register_in_service_locator()
-        self.Init = False
+        self.init = False
 
-    def SetDisplay(self):
+    def set_display(self):
+        """Sets the display element for Selenium
+
+        :return: None
+        :rtype: None
+        """
         cprint("Setting Selenium's display ..")
-        self.Display = Display(visible=0, size=(800, 600))
-        self.Display.start()
+        self.display = Display(visible=0, size=(800, 600))
+        self.display.start()
 
-    def SetDriver(self):
+    def set_driver(self):
+        """Loads up the Firefox driver
+
+        :return: None
+        :rtype: None
+        """
         cprint("Setting Selenium's driver ..")
-        self.Driver = webdriver.Firefox()
-        self.Driver.implicitly_wait(30)
+        self.driver = webdriver.Firefox()
+        self.driver.implicitly_wait(30)
 
-    def InitSelenium(self):
-        if not self.Init:  # Perform this expensive operation only once.
-            self.Init = True
+    def init_selenium(self):
+        """Set up Selenium instance
+
+        :return: None
+        :rtype: None
+        """
+        if not self.init:  # Perform this expensive operation only once.
+            self.init = True
             cprint("Initialising Selenium please wait ..")
-            self.SetDisplay()
+            self.set_display()
             try:
-                self.SetDriver()
+                self.set_driver()
             except Exception as e:
                 print(e)
 
-    def CreateURLLauncher(self, args):
-        self.InitSelenium()
+    def create_url_launcher(self, args):
+        """Init Selenium and URL launcher
+
+        :param args: User supplied args
+        :type args: `dict`
+        :return: None
+        :rtype: None
+        """
+        self.init_selenium()
         return url_launcher.URLLauncher(self, args['BASE_URL'], args['INPUT_FILE'])

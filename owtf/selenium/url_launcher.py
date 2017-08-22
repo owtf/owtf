@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+"""
+owtf.selenium.url_launcher
+
+URL testing machine through a Selenium driver instance
+"""
 
 import unittest
 
@@ -9,33 +13,33 @@ from owtf.lib.general import *
 
 class URLLauncher(unittest.TestCase):
     def __init__(self, selenium, base_url, vector_file):
-        self.Selenium = selenium
-        self.URLList = []
+        self.selenium = selenium
+        self.url_list = []
         for vector in get_file_as_list(vector_file):
-            self.URLList.append(base_url + vector)
+            self.url_list.append(base_url + vector)
 
-    def Run(self):
-        self.SetUp()
+    def run(self):
+        self.set_up()
         try:
-            self.TestURLs()
+            self.test_urls()
         except Exception as e:
             print(e)
 
-    def SetUp(self):
-        self.verificationErrors = []
+    def set_up(self):
+        self.verification_errors = []
 
-    def TestURLs(self):
-        for url in self.URLList:
+    def test_urls(self):
+        for url in self.url_list:
             cprint("Launching URL: %s" % url)
-            self.Selenium.Driver.get(url)
+            self.selenium.driver.get(url)
 
     def is_element_present(self, how, what):
         try:
-            self.Selenium.Driver.find_element(by=how, value=what)
+            self.selenium.driver.find_element(by=how, value=what)
         except NoSuchElementException:
             return False
         return True
 
-    def tearDown(self):
-        self.Selenium.Driver.quit()
-        self.assertEqual([], self.verificationErrors)
+    def tear_down(self):
+        self.selenium.driver.quit()
+        self.assertEqual([], self.verification_errors)

@@ -1,3 +1,9 @@
+"""
+owtf.db.models
+~~~~~~~~~~~~~~
+
+The SQLAlchemy models for every table in the OWTF DB.
+"""
 import datetime
 
 from sqlalchemy.ext.declarative import declarative_base

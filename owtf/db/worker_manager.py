@@ -1,11 +1,18 @@
-#!/usr/bin/env python
+"""
+owtf.db.worker_manager
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+"""
 
 import os
 import signal
 import subprocess
 import logging
 import multiprocessing
-import Queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 from time import strftime
 
 from owtf.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
@@ -17,8 +24,10 @@ from owtf.lib.exceptions import InvalidWorkerReference
 
 class Worker(OWTFProcess, BaseComponent):
     def pseudo_run(self):
-        """
-        When run for the first time, put something into output queue ;)
+        """ When run for the first time, put something into output queue ;)
+
+        :return: None
+        :rtype: None
         """
         self.output_q.put('Started')
         while self.poison_q.empty():
@@ -30,15 +39,15 @@ class Worker(OWTFProcess, BaseComponent):
                 target, plugin = work
                 pluginDir = self.plugin_handler.GetPluginGroupDir(plugin['group'])
                 self.plugin_handler.SwitchToTarget(target["id"])
-                self.plugin_handler.ProcessPlugin(pluginDir, plugin)
+                self.plugin_handler.process_plugin(pluginDir, plugin)
                 self.output_q.put('done')
-            except Queue.Empty:
+            except queue.Empty:
                 pass
             except KeyboardInterrupt:
                 logging.debug("I am worker (%d) & my master doesn't need me anymore", self.pid)
                 exit(0)
             except Exception as e:
-                self.get_component("error_handler").LogError("Exception occurred while running :", trace=str(e))
+                self.get_component("error_handler").log_error("Exception occurred while running :", trace=str(e))
         logging.debug("I am worker (%d) & my master gave me poison pill", self.pid)
         exit(0)
 
@@ -59,30 +68,49 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         self.spawn_workers()
 
     def get_allowed_process_count(self):
-        process_per_core = int(self.db_config.Get('PROCESS_PER_CORE'))
+        """Get the number of max processes
+
+        :return: max number of allowed processes
+        :rtype: `int`
+        """
+        process_per_core = int(self.db_config.get('PROCESS_PER_CORE'))
         cpu_count = multiprocessing.cpu_count()
         return process_per_core * cpu_count
 
     def get_task(self):
+        """Fetch task dict for worker
+
+        :return: Work dict
+        :rtype: `dict`
+        """
         work = None
         free_mem = self.shell.shell_exec("free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
-        if int(free_mem) > int(self.db_config.Get('MIN_RAM_NEEDED')):
+        if int(free_mem) > int(self.db_config.get('MIN_RAM_NEEDED')):
             work = self.db.Worklist.get_work(self.targets_in_use())
         else:
             logging.warn("Not enough memory to execute a plugin")
         return work
 
     def spawn_workers(self):
-        """
-        This function spawns the worker process and give them initial work
+        """This function spawns the worker process and give them initial work
+
+        :return: None
+        :rtype: None
         """
         # Check if maximum limit of processes has reached
         while (len(self.workers) < self.get_allowed_process_count()):
             self.spawn_worker()
         if not len(self.workers):
-            self.error_handler.FrameworkAbort("Zero worker processes created because of lack of memory")
+            self.error_handler.abort_framework("Zero worker processes created because of lack of memory")
 
     def spawn_worker(self, index=None):
+        """Spawn a new worker
+
+        :param index: Worker index
+        :type index: `int`
+        :return: None
+        :rtype: None
+        """
         w = Worker(input_q=multiprocessing.Queue(), output_q=multiprocessing.Queue())
         worker_dict = {"worker": w, "work": (), "busy": False, "paused": False}
 
@@ -104,10 +132,12 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         return target_ids
 
     def manage_workers(self):
-        """
-        This function manages workers, it polls on each queue of worker
+        """This function manages workers, it polls on each queue of worker
         checks if it has done his work and then gives it new work
         if there is one
+
+        :return: None
+        :rtype: None
         """
         # Loop while there is some work in worklist
         for k in range(0, len(self.workers)):
@@ -137,13 +167,19 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                         ServiceLocator.get_component('core').finish()
 
     def is_any_worker_busy(self):
-        """If a worker is still busy, return True. Return False otherwise."""
+        """If a worker is still busy, return True. Return False otherwise.
+
+        :return: True if any worker is busy
+        :return: `bool`
+        """
         return True in [worker['busy'] for worker in self.workers]
 
     def poison_pill_to_workers(self):
-        """
-        This function waits for each worker to complete his work and
+        """This function waits for each worker to complete his work and
         send it Poision Pill(emtpy work)
+
+        :return: None
+        :rtype: None
         """
         for item in self.workers:
             # Check if process is doing some work
@@ -156,19 +192,28 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             item["worker"].poison_q.put("DIE")
 
     def join_workers(self):
-        """
-        Joins all the workers
+        """Joins all the workers
+
+        :return: None
+        :rtype: None
         """
         for item in self.workers:
             item["worker"].join()
 
     def clean_up(self):
+        """Cleanup workers
+
+        :return: None
+        :rtype: None
+        """
         self.poison_pill_to_workers()
         self.join_workers()
 
     def exit(self):
-        """
-        This function empties the pending work list and aborts all processes
+        """This function empties the pending work list and aborts all processes
+
+        :return: None
+        :rtype: None
         """
         # As worklist is emptied, aborting of plugins will result in
         # killing of workers
@@ -178,11 +223,18 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             self._signal_process(item["worker"].pid, signal.SIGINT)
 
     def _signal_process(self, pid, psignal):
+        """This function kills all children of a process and abort that process
+
+        .note::
+            Child processes are handled at shell level
+
+        :param pid: Pid of the process
+        :type pid: `int`
+        :param psignal: Signal to send
+        :type psignal: `int`
+        :return: None
+        :rtype: None
         """
-        This function kills all children of a process and abort that process
-        """
-        # Child processes are handled at shell level :P
-        # self.core.KillChildProcesses(pid,signal.SIGINT)
         try:
             # This will kick the exception handler if plugin is running,
             # so plugin is killed
@@ -192,6 +244,15 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             logging.error("Error while trying to abort Worker process", exc_info=True)
 
     def _signal_children(self, parent_pid, psignal):
+        """Signal OWTF child processes
+
+        :param parent_pid: Parent process PID
+        :type parent_pid: `int`
+        :param psignal: Signal to send
+        :type psignal: `int`
+        :return: None
+        :rtype: None
+        """
         ps_command = subprocess.Popen(
             "ps -o pid --ppid %d --noheaders" % parent_pid,
             shell=True,
@@ -204,10 +265,18 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             except Exception:
                 logging.error("Error while trying to signal", exc_info=True)
 
-# --------------------------- API Methods ---------------------------- #
-# PSEUDO_INDEX = INDEX + 1
+
+    # NOTE: PSEUDO_INDEX = INDEX + 1
+    # This is because the list index starts from 0 and in the UI, indices start from 1
 
     def get_worker_details(self, pseudo_index=None):
+        """Get worker details
+
+        :param pseudo_index: worker index
+        :type pseudo_index: `int`
+        :return: Worker details
+        :rtype: `dict`
+        """
         if pseudo_index:
             try:
                 temp_dict = dict(self.workers[pseudo_index - 1])
@@ -228,6 +297,11 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             return worker_temp_list
 
     def get_busy_workers(self):
+        """Returns number of busy workers
+
+        :return: Number of busy workers
+        :rtype: `int`
+        """
         count = 0
         workers = self.get_worker_details()
         for worker in workers:
@@ -237,14 +311,23 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         return count
 
     def get_worker_dict(self, pseudo_index):
+        """Fetch the worker dict from the list
+
+        :param pseudo_index: worker index
+        :type pseudo_index: `int`
+        :return: Worker info
+        :rtype: `dict`
+        """
         try:
             return self.workers[pseudo_index - 1]
         except IndexError:
             raise InvalidWorkerReference("No worker process with id: %s" % str(pseudo_index))
 
     def create_worker(self):
-        """
-        Create new worker
+        """Create new worker
+
+        :return: None
+        :rtype: None
         """
         self.spawn_worker()
 
@@ -263,8 +346,12 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             raise InvalidWorkerReference("Worker with id %s is busy" % str(pseudo_index))
 
     def pause_worker(self, pseudo_index):
-        """
-        Pause worker by sending SIGSTOP after verifying the process is running
+        """Pause worker by sending SIGSTOP after verifying the process is running
+
+        :param pseudo_index: worker index
+        :type pseudo_index: `int`
+        :return: None
+        :rtype: None
         """
         worker_dict = self.get_worker_dict(pseudo_index)
         if not worker_dict["paused"]:
@@ -273,8 +360,10 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             worker_dict["paused"] = True
 
     def pause_all_workers(self):
-        """
-        Pause all workers by sending SIGSTOP after verifying they are running
+        """Pause all workers by sending SIGSTOP after verifying they are running
+
+        :return: None
+        :rtype: None
         """
         for worker_dict in self.workers:
             if not worker_dict["paused"]:
@@ -283,8 +372,12 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                 worker_dict["paused"] = True
 
     def resume_worker(self, pseudo_index):
-        """
-        Resume worker by sending SIGCONT after verfifying that process is paused
+        """Resume worker by sending SIGCONT after verifying that process is paused
+
+        :param pseudo_index: Worker index
+        :type pseudo_index: `int`
+        :return: None
+        :rtype: None
         """
         worker_dict = self.get_worker_dict(pseudo_index)
         if worker_dict["paused"]:
@@ -293,9 +386,11 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             worker_dict["paused"] = False
 
     def resume_all_workers(self):
-        """
-        Resume all workers by sending SIGCONT to each one of them after verfication
+        """Resume all workers by sending SIGCONT to each one of them after verification
         that it is really paused
+
+        :return: None
+        :rtype: None
         """
         for worker_dict in self.workers:
             if worker_dict["paused"]:
@@ -304,9 +399,13 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                 worker_dict["paused"] = False
 
     def abort_worker(self, pseudo_index):
-        """
-        Abort worker i.e kill current command, but the worker process is not
+        """Abort worker i.e kill current command, but the worker process is not
         removed, so manager_cron will restart it
+
+        :param pseudo_index: pseudo index for the worker
+        :type pseudo_index: `int`
+        :return: None
+        :rtype: None
         """
         worker_dict = self.get_worker_dict(pseudo_index)
         # You only send SIGINT to worker since it will handle it more

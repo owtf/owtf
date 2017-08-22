@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
 """
-This is the command-line front-end:
-In charge of processing arguments and call the framework.
+owtf.cli
+
+This is the command-line front-end in charge of processing arguments and call the framework.
 """
 
 from __future__ import print_function
@@ -13,11 +13,12 @@ import logging
 from owtf.core import Core
 from owtf.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
 from owtf.dependency_management.dependency_resolver import ServiceLocator
-from owtf import update
-from owtf.lib.cli_options import usage, parse_options, parse_update_options
+from owtf.lib.cli_options import usage, parse_options
 
 
 def banner():
+    """Prints a figlet type banner"""
+
     print("""\033[92m
  _____ _ _ _ _____ _____
 |     | | | |_   _|   __|
@@ -30,21 +31,36 @@ def banner():
 
 
 def get_plugins_from_arg(arg):
+    """ Returns a list of requested plugins and plugin groups
+
+    :param arg: Comma separated list of plugins
+    :type arg: `str`
+    :return: List of plugins and plugin groups
+    :rtype: `list`
+    """
     plugins = arg.split(',')
-    plugin_groups = ServiceLocator.get_component("db_plugin").GetGroupsForPlugins(plugins)
+    plugin_groups = ServiceLocator.get_component("db_plugin").get_groups_for_plugins(plugins)
     if len(plugin_groups) > 1:
-        usage("The plugins specified belong to several Plugin Groups: '%s'" % str(plugin_groups))
+        usage("The plugins specified belong to several plugin groups: '%s'" % str(plugin_groups))
     return [plugins, plugin_groups]
 
 
 def process_options(user_args):
+    """ The main argument processing function
+
+    :param user_args: User supplied arguments
+    :type user_args: `str`
+    :return: A dictionary of arguments
+    :rtype: `dict`
+    """
     try:
         db_plugin = ServiceLocator.get_component("db_plugin")
-        valid_groups = db_plugin.GetAllGroups()
-        valid_types = db_plugin.GetAllTypes() + ['all', 'quiet']
+        valid_groups = db_plugin.get_all_plugin_groups()
+        valid_types = db_plugin.get_all_plugin_types() + ['all', 'quiet']
         arg = parse_options(user_args, valid_groups, valid_types)
     except KeyboardInterrupt as e:
         usage("Invalid OWTF option(s) %s" % e)
+        sys.exit(0)
 
     # Default settings:
     profiles = {}
@@ -132,7 +148,7 @@ def process_options(user_args):
             except ValueError:
                 usage("Invalid port for Inbound Proxy")
 
-    plugin_types_for_group = db_plugin.GetTypesForGroup(plugin_group)
+    plugin_types_for_group = db_plugin.get_types_for_plugin_group(plugin_group)
     if arg.PluginType == 'all':
         arg.PluginType = plugin_types_for_group
     elif arg.PluginType == 'quiet':
@@ -166,6 +182,7 @@ def process_options(user_args):
         args = scope
         # auxiliary plugins do not have targets, they have metasploit-like parameters.
         scope = ['auxiliary']
+
     return {
         'list_plugins': arg.list_plugins,
         'Force_Overwrite': arg.ForceOverwrite,
@@ -190,12 +207,17 @@ def process_options(user_args):
         'Args': args
     }
 
-def build_react_bundle(root_dir):
-    print("\033[93m[*] Building the react bundle. Plese wait..")
-    command = "NODE_ENV=production webpack --config " + str(root_dir) + "/webpack.config.js" + " > /dev/null"
-    os.system(command)
 
 def run_owtf(core, args):
+    """This function calls core and loads the appropriate phases of component initialization
+
+    :param core: core object
+    :type core::Class:`owtf.core.Core`
+    :param args: Arguments dictionary
+    :type args: `dict`
+    :return:
+    :rtype: None
+    """
     try:
         if core.start(args):
             # Only if Start is for real (i.e. not just listing plugins, etc)
@@ -213,46 +235,32 @@ def run_owtf(core, args):
 
 
 def main(args):
-    banner()
+    """ The main wrapper which loads everything
 
+    :param args: User supplied arguments dictionary
+    :type args: `dict`
+    :return:
+    :rtype: None
+    """
+    banner()
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
     owtf_pid = os.getpid()
-    if "--build-react" in args[1:]:
-        build_react_bundle(root_dir)
 
-    if "--update" not in args[1:]:
-        try:
-            ComponentInitialiser.initialisation_phase_1(root_dir, owtf_pid)
-        except DatabaseNotRunningException:
-            exit(-1)
+    try:
+        ComponentInitialiser.initialisation_phase_1(root_dir, owtf_pid)
+    except DatabaseNotRunningException:
+        exit(-1)
 
-        args = process_options(args[1:])
-        ServiceLocator.get_component("config").ProcessOptionsPhase1(args)
-        ComponentInitialiser.initialisation_phase_2(args)
+    args = process_options(args[1:])
+    ServiceLocator.get_component("config").process_phase1(args)
+    ComponentInitialiser.initialisation_phase_2(args)
 
-        # Initialise Framework.
-        core = Core()
-        logging.warn(
-            "OWTF Version: %s, Release: %s " % (
-                ServiceLocator.get_component("config").FrameworkConfigGet('VERSION'),
-                ServiceLocator.get_component("config").FrameworkConfigGet('RELEASE'))
-        )
-        run_owtf(core, args)
-    else:
-        # First confirming that --update flag is present in args and then
-        # creating a different parser for parsing the args.
-        try:
-            arg = parse_update_options(args[1:])
-        except Exception as e:
-            usage("Invalid OWTF option(s) %s" % e)
-        # Updater class is imported
-        updater = update.Updater(root_dir)
-        # If outbound proxy is set, those values are added to updater.
-        if arg.OutboundProxy:
-            if arg.OutboundProxyAuth:
-                updater.set_proxy(arg.OutboundProxy, proxy_auth=arg.OutboundProxyAuth)
-            else:
-                updater.set_proxy(arg.OutboundProxy)
-        # Update method called to perform update.
-        updater.update()
+    # Initialise Framework.
+    core = Core()
+    logging.warn(
+        "OWTF Version: %s, Release: %s " % (
+            ServiceLocator.get_component("config").get_val('VERSION'),
+            ServiceLocator.get_component("config").get_val('RELEASE'))
+    )
+    run_owtf(core, args)

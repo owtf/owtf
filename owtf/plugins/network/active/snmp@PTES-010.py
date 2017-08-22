@@ -9,5 +9,5 @@ DESCRIPTION = " SNMP Probing "
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('SnmpProbeMethods')
+    resource = ServiceLocator.get_component("resource").get_resources('SnmpProbeMethods')
     return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource, PluginInfo, [])

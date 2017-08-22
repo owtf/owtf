@@ -1,9 +1,11 @@
-#!/usr/bin/env python
-'''
+"""
+owtf.shell.pexpect_shell
+~~~~~~~~~~~~~~~~~~~~~~~~
+
 The shell module allows running arbitrary shell commands and is critical to the framework
 in order to run third party tools. The interactive shell module allows non-blocking
 interaction with subprocesses running tools or remote connections (i.e. shells)
-'''
+"""
 
 import pexpect
 import sys
@@ -15,129 +17,208 @@ from owtf.shell import blocking_shell
 class PExpectShell(blocking_shell.Shell):
     def __init__(self):
         blocking_shell.Shell.__init__(self)  # Calling parent class to do its init part
-        self.Connection = None
-        self.Options = None
-        self.CommandTimeOffset = 'PExpectCommand'
+        self.connection = None
+        self.options = None
+        self.command_time_offset = 'PExpectCommand'
 
-    def CheckConnection(self, AbortMessage):
-        if not self.Connection:
-            cprint("ERROR - Communication channel closed - %s" % AbortMessage)
+    def check_conn(self, abort_message):
+        """Check the connection is alive or not
+
+        :param abort_message: Abort message to print
+        :type abort_message: `str`
+        :return: True if channel is open, else False
+        :rtype: `bool`
+        """
+        if not self.connection:
+            cprint("ERROR - Communication channel closed - %s" % abort_message)
             return False
         return True
 
-    def Read(self, Time=1):
-        Output = ''
-        if not self.CheckConnection('Cannot read'):
-            return Output
-        try:
-            Output = self.Connection.after
-            if Output is None:
-                Output = ''
-            print Output  # Show progress on screen
-        except pexpect.EOF:
-            cprint("ERROR: Read - The Communication channel is down!")
-            return Output  # End of communication channel
-        return Output
+    def read(self, time=1):
+        """Read data from the channel
 
-    def FormatCommand(self, Command):
-        if "RHOST" in self.Options and 'RPORT' in self.Options:  # Interactive shell on remote connection
-            return "%s:%s-%s" % (self.Options['RHOST'], self.Options['RPORT'], Command)
+        :param time: Time interval in seconds
+        :type time: `int`
+        :return: Output from the channel
+        :rtype: `str`
+        """
+        output = ''
+        if not self.check_conn('Cannot read'):
+            return output
+        try:
+            output = self.connection.after
+            if output is None:
+                output = ''
+            print(output)  # Show progress on screen
+        except pexpect.EOF:
+            cprint("ERROR: read - The Communication channel is down!")
+            return output  # End of communication channel
+        return output
+
+    def format_cmd(self, command):
+        """Format the command to be printed on console
+
+        :param command: Command to run
+        :type command: `str`
+        :return: Formatted command string
+        :rtype: `str`
+        """
+        if "RHOST" in self.options and 'RPORT' in self.options:  # Interactive shell on remote connection
+            return "%s:%s-%s" % (self.options['RHOST'], self.options['RPORT'], command)
         else:
-            return "Interactive - %s" % Command
+            return "Interactive - %s" % command
 
-    def Run(self, Command, PluginInfo):
-        Output = ''
-        Cancelled = False
-        if not self.CheckConnection("NOT RUNNING Interactive command: %s" % Command):
-            return Output
+    def run(self, command, plugin_info):
+        """Run the interactive command
+
+        :param command: Command to run
+        :type command: `str`
+        :param plugin_info: Context info for the plugin
+        :type plugin_info: `dict`
+        :return: Plugin output
+        :rtype: `str`
+        """
+        output = ''
+        cancelled = False
+        if not self.check_conn("NOT RUNNING Interactive command: %s" % command):
+            return output
         # TODO: tail to be configurable: \n for *nix, \r\n for win32
-        LogCommand = self.FormatCommand(Command)
-        CommandInfo = self.StartCommand(LogCommand, LogCommand)
+        log_cmd = self.format_cmd(command)
+        cmd_info = self.start_cmd(log_cmd, log_cmd)
         try:
-            cprint("Running Interactive command: %s" % Command)
-            self.Connection.sendline(Command)
-            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
+            cprint("Running Interactive command: %s" % command)
+            self.connection.sendline(command)
+            self.finish_cmd(cmd_info, cancelled, plugin_info)
         except pexpect.EOF:
-            Cancelled = True
+            cancelled = True
             cprint("ERROR: Run - The Communication Channel is down!")
-            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
+            self.finish_cmd(cmd_info, cancelled, plugin_info)
         except KeyboardInterrupt:
-            Cancelled = True
-            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
-            Output += self.error_handler.UserAbort('Command', Output)  # Identify as Command Level abort
-        if not Cancelled:
-            self.FinishCommand(CommandInfo, Cancelled, PluginInfo)
-        return Output
+            cancelled = True
+            self.finish_cmd(cmd_info, cancelled, plugin_info)
+            output += self.error_handler.user_abort('Command', output)  # Identify as Command Level abort
+        if not cancelled:
+            self.finish_cmd(cmd_info, cancelled, plugin_info)
+        return output
 
-    def Expect(self, Pattern, TimeOut=-1):
-        if self.Connection is None:
+    def expect(self, pattern, timeout=-1):
+        """Check that channel is open by sending dummy data
+
+        :param pattern: Pattern to check
+        :type pattern: `str`
+        :param timeout: Timeouts when data send and receive
+        :type timeout: `int`
+        :return: True if connection is alive, else False
+        :rtype: `bool`
+        """
+        if self.connection is None:
             return False
         try:
-            self.Connection.expect(Pattern, TimeOut)
+            self.connection.expect(pattern, timeout)
         except pexpect.EOF:
             cprint("ERROR: Expect - The Communication Channel is down!")
         except pexpect.TIMEOUT:
-            cprint("ERROR: Expect timeout threshold exceeded for pattern %s!" % Pattern)
+            cprint("ERROR: Expect timeout threshold exceeded for pattern %s!" % pattern)
             cprint("Before:")
-            print self.Connection.after
+            print(self.connection.after)
             cprint("After:")
-            print self.Connection.after
+            print(self.connection.after)
         return True
 
-    def RunCommandList(self, CommandList, PluginInfo):
-        Output = ""
-        for Command in CommandList:
-            Output += self.Run(Command, PluginInfo)
-        return Output
+    def run_cmd_list(self, cmd_list, plugin_info):
+        """Run a list of commands
 
-    def Open(self, Options, PluginInfo):
-        self.Options = Options  # Store Options for Closing processing
-        Output = ''
-        if not self.Connection:
-            CommandList = ['bash']
-            if 'ConnectVia' in Options:
-                Name, Command = Options['ConnectVia'][0]
-                CommandList += Command.split(";")
-            CmdCount = 1
-            for Cmd in CommandList:
-                if CmdCount == 1:
+        :param cmd_list: List of commands to run
+        :type cmd_list: `list`
+        :param plugin_info: Plugin context information
+        :type plugin_info: `dict`
+        :return: Command output
+        :rtype: `str`
+        """
+        output = ""
+        for command in cmd_list:
+            output += self.run(command, plugin_info)
+        return output
+
+    def open(self, options, plugin_info):
+        """Open the connection channel
+
+        :param options: User supplied args
+        :type options: `dict`
+        :param plugin_info: Context info for plugins
+        :type plugin_info: `dict`
+        :return: Plugin output
+        :rtype: `str`
+        """
+        self.options = options  # Store options for Closing processing
+        output = ''
+        if not self.connection:
+            cmd_list = ['bash']
+            if 'ConnectVia' in options:
+                name, command = options['ConnectVia'][0]
+                cmd_list += command.split(";")
+            cmd_count = 1
+            for cmd in cmd_list:
+                if cmd_count == 1:
                     try:
-                        self.Connection = pexpect.spawn(Cmd)
-                        self.Connection.logfile = sys.stdout  # Ensure screen feedback
+                        self.connection = pexpect.spawn(cmd)
+                        self.connection.logfile = sys.stdout  # Ensure screen feedback
                     except ValueError as e:
                         cprint(e.message)
                 else:
-                    self.Run(Cmd, PluginInfo)
-                CmdCount += 1
-            if 'InitialCommands' in Options and Options['InitialCommands']:
-                Output += self.RunCommandList(Options['InitialCommands'], PluginInfo)
-        return Output
+                    self.run(cmd, plugin_info)
+                cmd_count += 1
+            if 'InitialCommands' in options and options['InitialCommands']:
+                output += self.run_cmd_list(options['InitialCommands'], plugin_info)
+        return output
 
-    def Kill(self):
+    def kill(self):
+        """Kill the communication channel
+
+        :return: None
+        :rtype: None
+        """
         cprint("Killing Communication Channel..")
-        if self.Connection is not None:
-            self.Connection.kill(0)
-            self.Connection = None
+        if self.connection is not None:
+            self.connection.kill(0)
+            self.connection = None
 
-    def Wait(self):
+    def wait(self):
+        """Wait for the communication channel to close
+
+        :return: None
+        :rtype: None
+        """
         cprint("Waiting for Communication Channel to close..")
-        self.Connection.wait()
-        self.Connection = None
+        self.connection.wait()
+        self.connection = None
 
-    def Close(self, PluginInfo):
-        if self.Connection is None:
+    def close(self, plugin_info):
+        """Close the communication channel
+
+        :param plugin_info: Context information for plugin
+        :type plugin_info: `dict`
+        :return: None
+        :rtype: None
+        """
+        if self.connection is None:
             cprint("Close: Connection already closed")
             return False
-        if 'CommandsBeforeExit' in self.Options and self.Options['CommandsBeforeExit']:
+        if 'CommandsBeforeExit' in self.options and self.options['CommandsBeforeExit']:
             cprint("Running commands before closing Communication Channel..")
-            self.RunCommandList(self.Options['CommandsBeforeExit'].split(self.Options['CommandsBeforeExitDelim']), PluginInfo)
+            self.run_cmd_list(self.options['CommandsBeforeExit'].split(self.options['CommandsBeforeExitDelim']), plugin_info)
         cprint("Trying to close Communication Channel..")
-        self.Run("exit", PluginInfo)
+        self.run("exit", plugin_info)
 
-        if 'ExitMethod' in self.Options and self.Options['ExitMethod'] == 'kill':
-            self.Kill()
+        if 'ExitMethod' in self.options and self.options['ExitMethod'] == 'kill':
+            self.kill()
         else:  # By default wait
-            self.Wait()
+            self.wait()
 
-    def IsClosed(self):
-        return self.Connection is None
+    def is_closed(self):
+        """Check if connection is closed
+
+        :return: True if closed, else True
+        :rtype: `bool`
+        """
+        return self.connection is None

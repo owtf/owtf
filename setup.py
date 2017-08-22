@@ -38,14 +38,6 @@ tests_require = [
 ]
 
 
-class PostDevelopCommand(develop):
-    """Post-installation for development mode."""
-    def run(self):
-        develop.run(self)
-        print('Running post install')
-        call([sys.executable, post_script])
-
-
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
@@ -75,20 +67,11 @@ setup(
         'tests': requires + tests_require,
     },
     cmdclass={
-        'develop': PostDevelopCommand,
         'install': PostInstallCommand,
     },
     entry_points={
         'console_scripts': [
             'owtf = owtf.__main__:main'
         ]
-    },
-    classifiers=[
-        'Development Status :: 2 - Beta',
-        'Intended Audience :: Pentesters',
-        'Operating System :: POSIX',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-    ]
+    }
 )

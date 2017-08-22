@@ -9,5 +9,5 @@ DESCRIPTION = " SMB Probing "
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('SmbProbeMethods')
+    resource = ServiceLocator.get_component("resource").get_resources('SmbProbeMethods')
     return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource, PluginInfo, [])

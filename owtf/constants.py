@@ -1,5 +1,8 @@
 """
-Constants used across the owtf.
+owtf.constants
+~~~~~~~~~~~~~~
+
+Ranking constants used across the framework.
 """
 
 # `int` value of ranks

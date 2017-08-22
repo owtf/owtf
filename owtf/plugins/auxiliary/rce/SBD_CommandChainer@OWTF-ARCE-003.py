@@ -16,30 +16,30 @@ def run(PluginInfo):
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {
-            'RHOST': config.FrameworkConfigGet('RHOST_DESCRIP'),
-            'SBD_PORT': config.FrameworkConfigGet('SBD_PORT_DESCRIP'),
-            'SBD_PASSWORD': config.FrameworkConfigGet('SBD_PASSWORD_DESCRIP'),
+            'RHOST': config.get_val('RHOST_DESCRIP'),
+            'SBD_PORT': config.get_val('SBD_PORT_DESCRIP'),
+            'SBD_PASSWORD': config.get_val('SBD_PASSWORD_DESCRIP'),
             'COMMAND_PREFIX': 'The command string to be pre-pended to the tests (i.e. /usr/lib/firefox... http...)',
         },
         'Optional': {
             'TEST': 'The test to be included between prefix and suffix',
             'COMMAND_SUFFIX': 'The URL to be appended to the tests (i.e. ...whatever)',
-            'ISHELL_REUSE_CONNECTION': config.FrameworkConfigGet('ISHELL_REUSE_CONNECTION_DESCRIP'),
-            'ISHELL_EXIT_METHOD': config.FrameworkConfigGet('ISHELL_EXIT_METHOD_DESCRIP'),
-            'ISHELL_DELAY_BETWEEN_COMMANDS': config.FrameworkConfigGet('ISHELL_DELAY_BETWEEN_COMMANDS_DESCRIP'),
-            'ISHELL_COMMANDS_BEFORE_EXIT': config.FrameworkConfigGet('ISHELL_COMMANDS_BEFORE_EXIT_DESCRIP'),
-            'ISHELL_COMMANDS_BEFORE_EXIT_DELIM': config.FrameworkConfigGet('ISHELL_COMMANDS_BEFORE_EXIT_DELIM_DESCRIP'),
-            'REPEAT_DELIM': config.FrameworkConfigGet('REPEAT_DELIM_DESCRIP')
+            'ISHELL_REUSE_CONNECTION': config.get_val('ISHELL_REUSE_CONNECTION_DESCRIP'),
+            'ISHELL_EXIT_METHOD': config.get_val('ISHELL_EXIT_METHOD_DESCRIP'),
+            'ISHELL_DELAY_BETWEEN_COMMANDS': config.get_val('ISHELL_DELAY_BETWEEN_COMMANDS_DESCRIP'),
+            'ISHELL_COMMANDS_BEFORE_EXIT': config.get_val('ISHELL_COMMANDS_BEFORE_EXIT_DESCRIP'),
+            'ISHELL_COMMANDS_BEFORE_EXIT_DELIM': config.get_val('ISHELL_COMMANDS_BEFORE_EXIT_DELIM_DESCRIP'),
+            'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')
         }
     }
 
     for Args in plugin_params.GetArgs(args, PluginInfo):
-        plugin_params.SetConfig(Args)  # Sets the auxiliary plugin arguments as config
+        plugin_params.set_config(Args)  # Sets the auxiliary plugin arguments as config
         REUSE_CONNECTION = (Args['ISHELL_REUSE_CONNECTION'] == 'yes')
         DELAY_BETWEEN_COMMANDS = Args['ISHELL_DELAY_BETWEEN_COMMANDS']
         if Iteration == 1 or not REUSE_CONNECTION:
             ServiceLocator.get_component("interactive_shell").Open({
-                'ConnectVia': ServiceLocator.get_component("resource").GetResources('RCE_SBD_Connection'),
+                'ConnectVia': ServiceLocator.get_component("resource").get_resources('RCE_SBD_Connection'),
                 'InitialCommands': None,
                 'ExitMethod': Args['ISHELL_EXIT_METHOD'],
                 'CommandsBeforeExit': Args['ISHELL_COMMANDS_BEFORE_EXIT'],
@@ -49,7 +49,7 @@ def run(PluginInfo):
             }, PluginInfo)
         else:
             OWTFLogger.log("Reusing initial connection..")
-        Content += ServiceLocator.get_component("interactive_shell").Run(
+        Content += ServiceLocator.get_component("interactive_shell").run(
             Args['COMMAND_PREFIX'] + Args['TEST'] + Args['COMMAND_SUFFIX'], PluginInfo)
         OWTFLogger.log("Sleeping " + DELAY_BETWEEN_COMMANDS + " second(s) (increases reliability)..")
         time.sleep(int(DELAY_BETWEEN_COMMANDS))

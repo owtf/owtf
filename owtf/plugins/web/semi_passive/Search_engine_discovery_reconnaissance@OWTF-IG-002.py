@@ -10,7 +10,7 @@ ATTR = {'INTERNET_RESOURCES': True}
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").GetResources('SemiPassiveSearchEngineDiscoveryCmd')
+    resource = ServiceLocator.get_component("resource").get_resources('SemiPassiveSearchEngineDiscoveryCmd')
     Content = ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output',
                                                                         resource, PluginInfo, [])  # No previous output
     return Content
