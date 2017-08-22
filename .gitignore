@@ -117,6 +117,7 @@ local.properties
 #############################################
 owtf/webui/node_modules/*
 owtf/webui/public/build/*
+owtf/webui/src/Report/templates/*
 
 # Mac/OS specific files
 #############################################

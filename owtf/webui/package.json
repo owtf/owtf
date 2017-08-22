@@ -47,7 +47,7 @@
     "sass-loader": "^4.0.0",
     "slash": "^1.0.0",
     "style-loader": "^0.13.1",
-    "webpack": "^1.13.0",
+    "webpack": "^3.5.5",
     "webpack-merge": "^0.14.0",
     "webpack-stream": "^3.2.0"
   }
