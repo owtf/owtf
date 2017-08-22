@@ -35,7 +35,7 @@ def get_handlers():
         tornado.web.url(r'/api/targets/([0-9]+)/transactions/search/?$', api_handlers.TransactionSearchHandler, name='transactions_search_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/transactions/hrt/?([0-9]+)?/?$', api_handlers.TransactionHrtHandler, name='transactions_hrt_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/poutput/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginOutputHandler, name='poutput_api_url'),
-        tornado.web.url(r'/api/targets/([0-9]+)/poutput/names/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginNameOutput, name='plugin_name_api_url'),
+        tornado.web.url(r'/api/targets/([0-9]+)/poutput/names/?$', api_handlers.PluginNameOutput, name='plugin_name_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/export/?$', api_handlers.ReportExportHandler, name='report_export_api_url'),
 
         # The following one url is dummy and actually processed in file server

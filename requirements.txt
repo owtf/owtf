@@ -5,6 +5,8 @@
 # - The casing of names is critical for dependency checks, eg. pyOpenSSL and not pyopenssl
 cffi==1.10.0
 cookies==2.2.1
+dnspython==1.15.0
+hrt==0.1.0
 # Here till they upload a Python3 compatible version of the library
 -e git://github.com/google/ipaddr-py#egg=ipaddr
 lxml==3.8.0
@@ -21,4 +23,3 @@ six==1.10.0
 selenium==3.4.3
 SQLAlchemy==1.1.11
 tornado==4.5.1
-hrt==0.1.0

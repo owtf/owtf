@@ -106,6 +106,15 @@ class MappingDB(BaseComponent, MappingDBInterface):
         """
         return self.mapping_types
 
+    def get_all_mappings(self):
+        """Create a mapping between OWTF plugins code and OWTF plugins description.
+
+        :return: Mapping dictionary {code: [mapped_code, mapped_description], code2: [mapped_code, mapped_description], ...}
+        :rtype: dict
+        """
+        mapping_objs = self.db.session.query(models.Mapping).all()
+        return {mapping['owtf_code']: mapping['mappings'] for mapping in self.derive_mapping_dicts(mapping_objs)}
+
     def get_mappings(self, mapping_type):
         """Fetches mappings from DB based on mapping type
 
