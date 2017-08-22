@@ -1,10 +1,13 @@
+Offensive Web Testing Framework
+===
+
 [![Requirements Status](https://requires.io/github/owtf/owtf/requirements.svg?branch=develop)](https://requires.io/github/owtf/owtf/requirements/?branch=develop)
 [![Build Status](https://travis-ci.org/owtf/owtf.svg?branch=develop)](https://travis-ci.org/owtf/owtf)
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
-[![Platform (GNU/Linux)](https://img.shields.io/badge/platform-GNU/Linux-red.svg?style=flat-square)](http://www.kernel.org)
 [![python](https://img.shields.io/badge/python-2.7-blue.svg)](https://www.python.org/downloads/)
+[![python](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/)
 
-<img src="https://www.owasp.org/images/7/73/OWTFLogo.png" height="150" width="120" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![](https://www.owasp.org/images/5/59/Project_Type_Files_TOOL.jpg)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![](https://www.owasp.org/images/d/dd/Mature_projects.png)
+<img src="https://www.owasp.org/images/7/73/OWTFLogo.png" height="150" width="120" />
 
 **OWASP OWTF** is a project focused on penetration testing efficiency and alignment of security tests to security standards like the OWASP Testing Guide (v3 and v4), the OWASP Top 10, PTES and NIST so that pentesters will have more time to
 
@@ -16,7 +19,7 @@
 
 The tool is highly configurable and anybody can trivially create simple plugins or add new tests in the configuration files without having any development experience.
 
-> **Note**: This tool is however not a **silverbullet** and will only be as good as the   person using it: Understanding and experience will be required to correctly interpret tool output and decide what to investigate further in order to demonstrate impact.
+> **Note**: This tool is however not a **silverbullet** and will only be as good as the person using it: Understanding and experience will be required to correctly interpret tool output and decide what to investigate further in order to demonstrate impact.
 
 
 Requirements
