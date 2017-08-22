@@ -41,18 +41,18 @@ var config = merge(common, {
         })
     ],
     resolveLoader: {
-        modulesDirectories: [
+        modules: [
             path.join(__dirname, 'node_modules'),
         ]
     },
     resolve: {
-        extensions: ['', '.js', '.jsx']
+        extensions: ['.js', '.jsx']
     },
     module: {
         loaders: [{
             test: /\.jsx?$/,
             exclude: /node_modules/,
-            loaders: ['babel', 'babel?presets[]=react,presets[]=es2015,presets[]=stage-0'],
+            loaders: ['babel-loader', 'babel-loader?presets[]=react,presets[]=es2015,presets[]=stage-0'],
             include: path.join(__dirname, 'src')
         },
         {
