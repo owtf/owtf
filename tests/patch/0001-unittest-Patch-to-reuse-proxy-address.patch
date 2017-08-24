@@ -4,27 +4,27 @@ Date: Fri, 15 Jul 2016 16:49:00 +0530
 Subject: [PATCH] owtf testing fix
 
 ---
- framework/core.py | 7 ++++---
+ owtf/core.py | 7 ++++---
  1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/framework/core.py b/framework/core.py
+diff --git a/owtf/core.py b/owtf/core.py
 index edf13aa..91049db 100644
---- a/framework/core.py
-+++ b/framework/core.py
+--- a/owtf/core.py
++++ b/owtf/core.py
 @@ -137,9 +137,10 @@ class Core(BaseComponent):
-                     int(self.db_config.Get('INBOUND_PROXY_PORT'))))
+                     int(self.db_config.get('INBOUND_PROXY_PORT'))))
                  temp_socket.close()
              except socket.error:
 -                self.error_handler.FrameworkAbort("Inbound proxy address %s:%s already in use" %
--                                                  (self.db_config.Get('INBOUND_PROXY_IP'),
--                                                   self.db_config.Get("INBOUND_PROXY_PORT")))
+-                                                  (self.db_config.get('INBOUND_PROXY_IP'),
+-                                                   self.db_config.get("INBOUND_PROXY_PORT")))
 +                # self.error_handler.FrameworkAbort("Inbound proxy address %s:%s already in use" %
-+                #                                  (self.db_config.Get('INBOUND_PROXY_IP'),
-+                #                                   self.db_config.Get("INBOUND_PROXY_PORT")))
++                #                                  (self.db_config.get('INBOUND_PROXY_IP'),
++                #                                   self.db_config.get("INBOUND_PROXY_PORT")))
 +                pass
              # If everything is fine.
-             self.ProxyProcess = proxy.ProxyProcess()
-             self.ProxyProcess.initialize(options['OutboundProxy'], options['OutboundProxyAuth'])
+             self.proxy_process = proxy.ProxyProcess()
+             self.proxy_process.initialize(options['OutboundProxy'], options['OutboundProxyAuth'])
 --
 2.9.0
 
