@@ -5,6 +5,7 @@ branches:
   only:
   - master
   - develop
+  - break
 dist:
 - trusty
 sudo:
@@ -14,12 +15,12 @@ before_install:
 - sudo apt-get install libffi-dev
 - sudo pip install pyopenssl
 install:
-- echo '\n\n' | python ./install/install.py
+- echo '\n\n' | python setup.py install
 - rm -rf ./tests
 - git clone https://github.com/owtf/owtf_testing
 - source /usr/local/bin/virtualenvwrapper.sh
 - workon owtf
-- pip install --upgrade -r ./owtf_testing/owtf_testing.pip
+- pip install --upgrade -r requirements.txt
 before_script:
 - cp -f ./owtf_testing/profiles/plugin_web/groups.cfg ~/.owtf/configuration/profiles/plugin_web/groups.cfg
 - cp -f ./owtf_testing/profiles/plugin_net/groups.cfg ~/.owtf/configuration/profiles/plugin_net/groups.cfg
