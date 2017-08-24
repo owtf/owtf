@@ -37,9 +37,9 @@ class Worker(OWTFProcess, BaseComponent):
                 if work == ():
                     exit(0)
                 target, plugin = work
-                pluginDir = self.plugin_handler.GetPluginGroupDir(plugin['group'])
-                self.plugin_handler.SwitchToTarget(target["id"])
-                self.plugin_handler.process_plugin(pluginDir, plugin)
+                plugin_dir = self.plugin_handler.get_plugin_group_dir(plugin['group'])
+                self.plugin_handler.switch_to_target(target["id"])
+                self.plugin_handler.process_plugin(plugin_dir, plugin)
                 self.output_q.put('done')
             except queue.Empty:
                 pass
@@ -86,7 +86,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         work = None
         free_mem = self.shell.shell_exec("free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
         if int(free_mem) > int(self.db_config.get('MIN_RAM_NEEDED')):
-            work = self.db.Worklist.get_work(self.targets_in_use())
+            work = self.db.worklist.get_work(self.targets_in_use())
         else:
             logging.warn("Not enough memory to execute a plugin")
         return work

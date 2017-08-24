@@ -34,7 +34,7 @@ class SETHandler(pexpect_shell.PExpectShell):
         """
         # TODO: Replacements
         output = ""
-        for step in MultipleReplace(open(script_path).read(), args).split("\n"):
+        for step in multi_replace(open(script_path).read(), args).split("\n"):
             if not step.strip():
                 cprint("WARNING: Sending Blank!")  # Necessary sometimes, but warn
             if debug:

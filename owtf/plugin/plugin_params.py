@@ -82,7 +82,7 @@ class PluginParams(BaseComponent):
         :param full_args_list: Full args list
         :type full_args_list: `dict`
         :param plugin: Plugin
-        :type plugin: `str`
+        :type plugin: `dict`
         :return: None
         :rtype: None
         """
@@ -183,7 +183,7 @@ class PluginParams(BaseComponent):
         """Returns the arg error for a plugin
 
         :param return_val: The return value
-        :type return_val: `str`
+        :type return_val: `dict`
         :param plugin: Plugin dict
         :type plugin: `dict`
         :return: return val

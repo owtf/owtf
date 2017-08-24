@@ -69,24 +69,24 @@ class Reporter(BaseComponent, ReporterInterface):
 
 # ----------------------------------- Methods exported from plugin_helper.py ---------------------------------
 
-    def CommandTable(self, Command):
+    def cmd_table(self, command):
         return self.Loader.load("command_table.html").generate(Command=Command)
 
-    def LinkList(self, LinkListName, Links):
+    def link_list(self, link_listName, Links):
         """
         Wrapper to allow rendering a bunch of links -without name- as resource
         links with name = link
         """
-        return self.Loader.load("link_list.html").generate(LinkListName=LinkListName, Links=Links)
+        return self.Loader.load("link_list.html").generate(link_listName=link_listName, Links=Links)
 
-    def ResourceLinkList(self, ResourceListName, ResourceList):
+    def resource_linklist(self, ResourceListName, ResourceList):
         """
         Draws an HTML Search box for defined Vuln Search resources
         """
         return self.Loader.load("resource_link_list.html").generate(ResourceListName=ResourceListName,
                                                                     ResourceList=ResourceList)
 
-    def TabbedResourceLinkList(self, ResourcesList):
+    def Tabbedresource_linklist(self, ResourcesList):
         """
         ResourceList = [
             "ResourceListName", [["Name1","Resource1"],["Name2","Resource2"]]
@@ -100,12 +100,12 @@ class Reporter(BaseComponent, ReporterInterface):
             Resources.append([TabID, ResourceList])
         return self.Loader.load("tabbed_resource_link_list.html").generate(TabData=TabData, Resources=Resources)
 
-    def ListPostProcessing(self, ResourceListName, LinkList, HTMLLinkList):
+    def ListPostProcessing(self, ResourceListName, link_list, HTMLlink_list):
         return self.Loader.load("list_post_processing.html").generate(ResourceListName=ResourceListName,
-                                                                      LinkList=LinkList, HTMLLinkList=HTMLLinkList)
+                                                                      link_list=link_list, HTMLlink_list=HTMLlink_list)
 
-    def RequestLinkList(self, ResourceListName, LinkList):
-        return self.Loader.load("request_link_list.html").generate(ResourceListName=ResourceListName, LinkList=LinkList)
+    def Requestlink_list(self, ResourceListName, link_list):
+        return self.Loader.load("request_link_list.html").generate(ResourceListName=ResourceListName, link_list=link_list)
 
     def VulnerabilitySearchBox(self, SearchStr):
         """
@@ -153,7 +153,7 @@ class Reporter(BaseComponent, ReporterInterface):
         html_content = self.Loader.load("urls_from_str.html").generate(TimeStr=TimeStr, VisitURLs=VisitURLs,
                                                                        NumURLs=len(URLList), NumFound=NumFound)
         if URLList:
-            html_content += self.LinkList("URLs Scraped", URLList)
+            html_content += self.link_list("URLs Scraped", URLList)
         return html_content
 
     def Robots(self, NotStr, NumLines, NumAllow, NumDisallow, NumSitemap, SavePath, EntriesList, NumAddedURLs):
@@ -170,7 +170,7 @@ class Reporter(BaseComponent, ReporterInterface):
         if NumDisallow > 0 or NumAllow > 0 or NumSitemap > 0:
             for Display, Links in EntriesList:
                 if Links:  # Filters empty lists
-                    TestResult += self.ResourceLinkList(Display, Links)
+                    TestResult += self.resource_linklist(Display, Links)
         return TestResult
 
     def HtmlString(self, String):

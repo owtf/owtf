@@ -10,7 +10,7 @@ DESCRIPTION = "Third party discovery resources"
 
 def run(PluginInfo):
     resource = ServiceLocator.get_component("resource")
-    Content = ServiceLocator.get_component("plugin_helper").TabbedResourceLinkList([
+    Content = ServiceLocator.get_component("plugin_helper").Tabbedresource_linklist([
         ['DNS', resource.get_resources('PassiveAppDiscoveryDNS')],
         ['WHOIS', resource.get_resources('PassiveAppDiscoveryWHOIS')],
         ['DB Lookups', resource.get_resources('PassiveAppDiscoveryDbLookup')],

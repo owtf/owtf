@@ -165,6 +165,7 @@ function displayWorkersInfo(){
             ifModified: true,
             dataType:'json',
             success:function(data, textStatus, jqXHR){
+                console.log(data);
                 if (304 != jqXHR.status){  // To do something only when some information has changed, i.e do nothing on 304 Not Modified
                     $('#workersInfo').html('');
                     num_workers = data.length;
@@ -186,7 +187,7 @@ function displayWorkersInfo(){
                         html += '<div class="panel-heading"><h3 class="panel-title">Worker '+obj.id+getControlButtons(obj)+'</h3></div>';
                         html += '<div class="panel-body">';
                         html += '<p><strong>PID:</strong> '+obj.worker+'</p>';
-                        if (obj.start_time.localeCompare("NA") == -1) {
+                        if (obj.start_time.localeCompare("N/A") == -1) {
                             html += '<p><strong>Start Time: </strong> '+obj.start_time+' (~ ' + getElapsedTime(obj.start_time)+')'+'</p>';
                         } else {
                             html += '<p><strong>Start Time: </strong>N/A</p>';

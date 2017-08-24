@@ -10,5 +10,5 @@ DESCRIPTION = "Google Hacking for CAPTCHA"
 
 def run(PluginInfo):
     resource = ServiceLocator.get_component("resource").get_resources('PassiveCAPTCHALnk')
-    Content = ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', resource)
+    Content = ServiceLocator.get_component("plugin_helper").resource_linklist('Online Resources', resource)
     return Content

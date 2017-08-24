@@ -19,23 +19,6 @@ RootDir=$1
 apt_wrapper_path="$RootDir/install/utils/aptitude-wrapper.sh"
 # Perform apt-get update before starting to install all packages, so we can get the latests manifests and packages versions
 sudo apt-get update
-sudo -E "$apt_wrapper_path" xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-dev
-export PYCURL_SSL_LIBRARY=gnutls # Needed for installation of pycurl using pip in kali
-
-# psycopg2 dependency
-sudo -E "$apt_wrapper_path" postgresql-server-dev-all postgresql-client postgresql-client-common postgresql
-
-# pycurl dependency
-sudo -E "$apt_wrapper_path" libcurl4-openssl-dev
-
-echo "${info}[*] Installing LBD, arachni, gnutls-bin, o-saft and metagoofil from Kali Repos${reset}"
-sudo -E "$apt_wrapper_path" lbd gnutls-bin arachni o-saft metagoofil
-
-echo "${info}[*] Installing ProxyChains${reset}"
-sudo -E "$apt_wrapper_path" proxychains
-
-echo "${info}[*] Installing Tor${reset}"
-sudo -E "$apt_wrapper_path" tor
 
 ########## Patch scripts
 sh "$RootDir/install/kali/kali_patch_w3af.sh"

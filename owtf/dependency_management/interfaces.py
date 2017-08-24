@@ -465,7 +465,7 @@ class TargetInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def GetPath(self):
+    def get_path(self):
         pass
 
     @abstractmethod
@@ -497,7 +497,7 @@ class TargetInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def SetPath(self):
+    def set_path(self):
         pass
 
     @abstractmethod
@@ -588,7 +588,7 @@ class ConfigInterface(AbstractInterface):
         pass
 
     @abstractmethod
-    def MultipleReplace(self):
+    def multi_replace(self):
         pass
 
     @abstractproperty

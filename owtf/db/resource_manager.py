@@ -60,13 +60,13 @@ class ResourceDB(BaseComponent, ResourceInterface):
         :rtype: `set`
         """
         resources = set()
-        ConfigFile = FileOperations.open(resource_file, 'r').read().splitlines()  # To remove stupid '\n' at the end
-        for line in ConfigFile:
+        config_file = FileOperations.open(resource_file, 'r').read().splitlines()  # To remove stupid '\n' at the end
+        for line in config_file:
             if '#' == line[0]:
                 continue  # Skip comment lines
             try:
-                Type, Name, Resource = line.split('_____')
-                resources.add((Type, Name, Resource))
+                type, name, resource = line.split('_____')
+                resources.add((type, name, resource))
             except ValueError:
                 cprint("ERROR: The delimiter is incorrect in this line at Resource File: %s" % str(line.split('_____')))
         return resources
@@ -78,7 +78,7 @@ class ResourceDB(BaseComponent, ResourceInterface):
         :rtype:
         """
         configuration = self.db_config.get_replacement_dict()
-        configuration.update(self.target.GetTargetConfig())
+        configuration.update(self.target.get_target_config())
         configuration.update(self.config.get_replacement_dict())
         configuration.update(self.config.get_framework_config_dict()) # for aux plugins
         return configuration
@@ -122,7 +122,7 @@ class ResourceDB(BaseComponent, ResourceInterface):
         :rtype: `list`
         """
         raw_resources = self.db.session.query(models.Resource.resource_name, models.Resource.resource).filter(
-            models.Resource.resource_type.in_(ResourceList)).all()
+            models.Resource.resource_type.in_(resource_list)).all()
         return raw_resources
 
     def get_resource_list(self, resource_type_list):

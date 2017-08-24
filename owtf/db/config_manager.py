@@ -116,7 +116,14 @@ class ConfigDB(BaseComponent, DBConfigInterface):
                 config_dict_list.append(self.derive_config_dict(config_obj))
         return config_dict_list
 
-    def GenerateQueryUsingSession(self, criteria):
+    def gen_query(self, criteria):
+        """Generate query
+
+        :param criteria: Filter criteria
+        :type criteria: `dict`
+        :return:
+        :rtype:
+        """
         query = self.db.session.query(models.ConfigSetting)
         if criteria.get("key", None):
             if isinstance(criteria["key"], str):
@@ -144,7 +151,7 @@ class ConfigDB(BaseComponent, DBConfigInterface):
         """
         if not criteria:
             criteria = {}
-        query = self.GenerateQueryUsingSession(criteria)
+        query = self.gen_query(criteria)
         return self.derive_config_dicts(query.all())
 
     def get_all_tools(self):

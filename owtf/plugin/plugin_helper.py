@@ -38,49 +38,65 @@ class PluginHelper(BaseComponent):
         self.shell = self.get_component("shell")
         self.timer = self.get_component("timer")
         # Compile regular expressions only once on init:
-        self.RobotsAllowRegexp = re.compile("Allow: ([^\n  #]+)")
-        self.RobotsDisallowRegexp = re.compile("Disallow: ([^\n #]+)")
-        self.RobotsSiteMap = re.compile("Sitemap: ([^\n #]+)")
+        self.robots_allow_regex = re.compile("Allow: ([^\n  #]+)")
+        self.robots_disallow_regex = re.compile("Disallow: ([^\n #]+)")
+        self.robots_sitemap = re.compile("Sitemap: ([^\n #]+)")
 
-    def MultipleReplace(self, Text, ReplaceDict):  # This redundant method is here so that plugins can use it
-        return MultipleReplace(Text, ReplaceDict)
+    def multi_replace(self, text, replace_dict):
+        """ This redundant method is here so that plugins can use it
 
-    def CommandTable(self, Command):
+        :param text: Text to replace with
+        :type text: `str`
+        :param replace_dict: Dict to modify
+        :type replace_dict: `dict`
+        :return: Replaced dict
+        :rtype: `dict`
+        """
+        return multi_replace(text, replace_dict)
+
+    def cmd_table(self, command):
+        """Format the command table
+
+        :param command: Command ran
+        :type command: `str`
+        :return: Plugin output
+        :rtype: `list`
+        """
         plugin_output = dict(PLUGIN_OUTPUT)
-        plugin_output["type"] = "CommandTable"
-        plugin_output["output"] = {"Command": Command}
-        return ([plugin_output])
+        plugin_output["type"] = "cmd_table"
+        plugin_output["output"] = {"Command": command}
+        return [plugin_output]
 
-    def LinkList(self, LinkListName, Links):
+    def link_list(self, link_list_name, links):
         plugin_output = dict(PLUGIN_OUTPUT)
-        plugin_output["type"] = "LinkList"
-        plugin_output["output"] = {"LinkListName": LinkListName, "Links": Links}
-        return ([plugin_output])
+        plugin_output["type"] = "link_list"
+        plugin_output["output"] = {"link_listName": link_list_name, "Links": links}
+        return [plugin_output]
 
-    def ResourceLinkList(self, ResourceListName, ResourceList):
+    def resource_linklist(self, ResourceListName, ResourceList):
         plugin_output = dict(PLUGIN_OUTPUT)
-        plugin_output["type"] = "ResourceLinkList"
+        plugin_output["type"] = "resource_linklist"
         plugin_output["output"] = {"ResourceListName": ResourceListName, "ResourceList": ResourceList}
         return ([plugin_output])
 
-    def TabbedResourceLinkList(self, ResourcesList):
+    def Tabbedresource_linklist(self, ResourcesList):
         plugin_output = dict(PLUGIN_OUTPUT)
-        plugin_output["type"] = "TabbedResourceLinkList"
+        plugin_output["type"] = "Tabbedresource_linklist"
         plugin_output["output"] = {"ResourcesList": ResourcesList}
         return ([plugin_output])
 
-    def ListPostProcessing(self, ResourceListName, LinkList, HTMLLinkList):
+    def ListPostProcessing(self, ResourceListName, link_list, HTMLlink_list):
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "ListPostProcessing"
         plugin_output["output"] = {
             "ResourceListName": ResourceListName,
-            "LinkList": LinkList,
-            "HTMLLinkList": HTMLLinkList
+            "link_list": link_list,
+            "HTMLlink_list": HTMLlink_list
         }
         return ([plugin_output])
 
-    def RequestLinkList(self, ResourceListName, ResourceList, PluginInfo):
-        LinkList = []
+    def Requestlink_list(self, ResourceListName, ResourceList, PluginInfo):
+        link_list = []
         for Name, Resource in ResourceList:
             Chunks = Resource.split('###POST###')
             URL = Chunks[0]
@@ -105,10 +121,10 @@ class PluginHelper(BaseComponent):
                 iframe = iframe_template.generate(NotSandboxedPath=NotSandboxedPath.split('/')[-1])
                 SandboxedPath = self.plugin_handler.dump_output_file("SANDBOXED_%s.html" % Name, iframe, PluginInfo)
                 logging.info("File: SANDBOXED_%s.html saved to: %s", Name, SandboxedPath)
-                LinkList.append((Name, SandboxedPath))
+                link_list.append((Name, SandboxedPath))
         plugin_output = dict(PLUGIN_OUTPUT)
-        plugin_output["type"] = "RequestLinkList"
-        plugin_output["output"] = {"ResourceListName": ResourceListName, "LinkList": LinkList}
+        plugin_output["type"] = "Requestlink_list"
+        plugin_output["output"] = {"ResourceListName": ResourceListName, "link_list": link_list}
         return ([plugin_output])
 
     def VulnerabilitySearchBox(self, SearchStr):
@@ -131,7 +147,7 @@ class PluginHelper(BaseComponent):
     def SetConfigPluginOutputDir(self, PluginInfo):
         PluginOutputDir = self.plugin_handler.get_plugin_output_dir(PluginInfo)
         # FULL output path for plugins to use
-        self.target.SetPath('plugin_output_dir', "%s/%s" % (os.getcwd(), PluginOutputDir))
+        self.target.set_path('plugin_output_dir', "%s/%s" % (os.getcwd(), PluginOutputDir))
         self.shell.refresh_replacements()  # Get dynamic replacement, i.e. plugin-specific output directory
         return PluginOutputDir
 
@@ -145,7 +161,7 @@ class PluginHelper(BaseComponent):
         if not PluginOutputDir:
             PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
         self.timer.start_timer('FormatCommandAndOutput')
-        ModifiedCommand = self.shell.GetModifiedShellCommand(Command, PluginOutputDir)
+        ModifiedCommand = self.shell.get_modified_shell_cmd(Command, PluginOutputDir)
         try:
             RawOutput = self.shell.shell_exec_monitor(ModifiedCommand, PluginInfo)
         except PluginAbortException as PartialOutput:
@@ -241,11 +257,11 @@ class PluginHelper(BaseComponent):
 
     def AnalyseRobotsEntries(self, Contents):  # Find the entries of each kind and count them
         num_lines = len(Contents.split("\n"))  # Total number of robots.txt entries
-        AllowedEntries = list(set(self.RobotsAllowRegexp.findall(Contents)))  # list(set()) is to avoid repeated entries
+        AllowedEntries = list(set(self.robots_allow_regex.findall(Contents)))  # list(set()) is to avoid repeated entries
         num_allow = len(AllowedEntries)  # Number of lines that start with "Allow:"
-        DisallowedEntries = list(set(self.RobotsDisallowRegexp.findall(Contents)))
+        DisallowedEntries = list(set(self.robots_disallow_regex.findall(Contents)))
         num_disallow = len(DisallowedEntries)  # Number of lines that start with "Disallow:"
-        SitemapEntries = list(set(self.RobotsSiteMap.findall(Contents)))
+        SitemapEntries = list(set(self.robots_sitemap.findall(Contents)))
         num_sitemap = len(SitemapEntries)  # Number of lines that start with "Sitemap:"
         RobotsFound = True
         if 0 == num_allow and 0 == num_disallow and 0 == num_sitemap:

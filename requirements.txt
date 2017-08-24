@@ -9,8 +9,9 @@ dnspython==1.15.0
 hrt==0.1.0
 # Here till they upload a Python3 compatible version of the library
 -e git://github.com/google/ipaddr-py#egg=ipaddr
-lxml==3.8.0
 Markdown==2.6.8
+ndg-httpsclient==0.4.2
+pyasn1==0.3.2
 pexpect==4.2.1
 psycopg2==2.7.1
 PTP==0.4.1

@@ -26,14 +26,14 @@ def ShellExec(Command):
 		while True:
 			line = proc.stdout.readline()
 			if not line: break
-			print MultipleReplace(line, { "\n":"", "\r":"" }) # Show progress on the screen too!
+			print multi_replace(line, { "\n":"", "\r":"" }) # Show progress on the screen too!
 			Output += line # Save as much output as possible before a tool crashes! :)
 	except KeyboardInterrupt:
 		Output += self.Core.Error.user_abort('Command', Output) # Identify as Command Level abort
 	return Output
 
 # Perform multiple replacements in one go using the replace dictionary in format: { 'search' : 'replace' }
-def MultipleReplace(Text, ReplaceDict):
+def multi_replace(Text, ReplaceDict):
 	NewText = Text
 	for Search,Replace in ReplaceDict.items():
 		NewText = NewText.replace(Search, str(Replace))
@@ -74,7 +74,7 @@ def GetParams(): # Basic validation and parameter retrieval:
 
 Params = GetParams() # Step 1 - Retrieve params and basic validation
 with open(Params['SET_TMP_SCRIPT'], 'w') as file: # Step 2 - Create temporary script with hard-coded values from parameters:
-	file.write(MultipleReplace(open(Params['SET_PARAMS_SCRIPT']).read(), Params))
+	file.write(multi_replace(open(Params['SET_PARAMS_SCRIPT']).read(), Params))
 
 ShellExec(Params['SET_DEBUG_AUTOMATE']+" "+Params['TOOL_SET_DIR']+" "+Params['SET_TMP_SCRIPT']) # Step 3 - Run SET script
 ShellExec("rm -f "+Params['SET_TMP_SCRIPT']) # Step 4 - Remove temporary script with hard-coded values
