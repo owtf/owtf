@@ -5,7 +5,7 @@ branches:
   only:
   - master
   - develop
-  - break
+  - viyatb/break
 dist:
 - trusty
 sudo:
@@ -22,7 +22,6 @@ before_script:
 - cp -f ./tests/profiles/plugin_aux/groups.cfg ~/.owtf/conf/profiles/plugin_aux/groups.cfg
 - git config --global user.email "tasty@mac.test"
 - git config --global user.name "Tasty Test"
-- git am < ./tests/patch/0001-unittest-Patch-to-reuse-proxy-address.patch
 - "./tests/patch/skipfish.sh"
 script:
 - sudo python -m unittest tests.tests_functional.cli.test_simulation.OWTFCliSimulationTest.test_cli_simulation
