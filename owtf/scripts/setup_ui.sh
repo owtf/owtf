@@ -9,11 +9,7 @@
 if [ ! -d "${1}/webui/src/Report/templates" ]; then
     echo "${warning} Templates not found, fetching the latest ones...${reset}"
     git clone https://github.com/owtf/templates.git "$1/webui/src/Report/templates"
-else
-    echo "${warning} Templates found, updating...${reset}"
-    cd "$1/webui/src/Report/templates" && git pull && cd -
 fi
-
 if [ ! -z "${OWTF_DEV}" ]; then
     echo "OWTF_DEV is set, building the bundle"
     # Instead of using apt-get to install npm we will nvm to install npm because apt-get installs older-version of node
