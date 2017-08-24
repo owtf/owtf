@@ -16,7 +16,7 @@ class DebugDB(BaseComponent):
         self.register_in_service_locator()
         self.db = self.get_component("db")
 
-    def Add(self, Message):
+    def add(self, Message):
         """Add a debug message to the DB
 
         :param Message: Message to be added

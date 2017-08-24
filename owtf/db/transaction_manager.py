@@ -236,15 +236,15 @@ class TransactionManager(BaseComponent, TransactionInterface):
             binary_response = True
         finally:
             transaction_model = models.Transaction(
-                url=transaction.URL,
-                scope=transaction.InScope(),
-                method=transaction.Method,
-                data=transaction.Data,
-                time=float(transaction.Time),
-                time_human=transaction.TimeHuman,
-                local_timestamp=transaction.LocalTimestamp,
-                raw_request=transaction.GetRawRequest(),
-                response_status=transaction.GetStatus(),
+                url=transaction.url,
+                scope=transaction.in_scope(),
+                method=transaction.method,
+                data=transaction.data,
+                time=float(transaction.time),
+                time_human=transaction.time_human,
+                local_timestamp=transaction.local_timestamp,
+                raw_request=transaction.get_raw_request(),
+                response_status=transaction.get_status(),
                 response_headers=transaction.get_response_headers(),
                 response_body=response_body,
                 response_size=len(response_body),
@@ -281,7 +281,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
             transaction_model.target_id = target_id
             transaction_model_list.append(transaction_model)
             self.db.session.add(transaction_model)
-            urls_list.append([transaction_obj.URL, True, transaction_obj.InScope()])
+            urls_list.append([transaction_obj.url, True, transaction_obj.in_scope()])
         self.db.session.commit()
         # Now since we have the ids ready, we can process the grep output and
         # add accordingly. So iterate over transactions and their models.
@@ -370,8 +370,8 @@ class TransactionManager(BaseComponent, TransactionInterface):
         """
         model_obj = None
         try:
-            ID = int(id)
-            model_obj = self.db.session.query(models.Transaction).get(ID)
+            id = int(id)
+            model_obj = self.db.session.query(models.Transaction).get(id)
         except ValueError:
             pass
         finally:
@@ -386,8 +386,8 @@ class TransactionManager(BaseComponent, TransactionInterface):
         :rtype: `list`
         """
         model_objs = []
-        for ID in id_list:
-            model_obj = self.get_by_id(ID)
+        for id in id_list:
+            model_obj = self.get_by_id(id)
             if model_obj:
                 model_objs.append(model_obj)
         return self.get_transactions(model_objs)

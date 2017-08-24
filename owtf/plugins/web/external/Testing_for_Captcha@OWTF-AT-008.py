@@ -12,5 +12,5 @@ def run(PluginInfo):
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     Content = plugin_helper.VulnerabilitySearchBox('')
     resource = ServiceLocator.get_component("resource").get_resources('ExternalCAPTCHA')
-    Content += plugin_helper.ResourceLinkList('Tools', resource)
+    Content += plugin_helper.resource_linklist('Tools', resource)
     return Content

@@ -373,7 +373,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
         return self.get_all({"type": plugin_type, "group": plugin_group})
 
     def get_groups_for_plugins(self, plugins):
-        """Gets avaiable groups for selected plugins
+        """Gets available groups for selected plugins
 
         :param plugins: Plugins selected
         :type plugins: `list`

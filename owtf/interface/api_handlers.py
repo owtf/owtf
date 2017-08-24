@@ -63,14 +63,14 @@ class PluginNameOutput(custom_handlers.APIRequestHandler):
         """
         try:
             filter_data = dict(self.request.arguments)
-            results = self.get_component("plugin_output").GetAll(filter_data, target_id=int(target_id), inc_output=False)
+            results = self.get_component("plugin_output").get_all(filter_data, target_id=int(target_id), inc_output=False)
 
             # Get mappings
             mappings = self.get_component("mapping_db").get_all_mappings()
 
             # Get test groups as well, for names and info links
             groups = {}
-            for group in self.get_component("db_plugin").GetAllTestGroups():
+            for group in self.get_component("db_plugin").get_all_test_groups():
                 group['mappings'] = mappings.get(group['code'], {})
                 groups[group['code']] = group
 
@@ -107,9 +107,9 @@ class TargetConfigHandler(custom_handlers.APIRequestHandler):
             if not target_id:
                 # Get all filter data here, so that it can be passed
                 filter_data = dict(self.request.arguments)
-                self.write(self.get_component("target").GetTargetConfigs(filter_data))
+                self.write(self.get_component("target").get_target_config_dicts(filter_data))
             else:
-                self.write(self.get_component("target").GetTargetConfigForID(target_id))
+                self.write(self.get_component("target").get_target_config_by_id(target_id))
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -157,7 +157,7 @@ class TargetConfigSearchHandler(custom_handlers.APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
-            self.write(self.get_component("target").SearchTargetConfigs(filter_data=filter_data))
+            self.write(self.get_component("target").search_target_configs(filter_data=filter_data))
         except exceptions.InvalidParameterType:
             raise tornado.web.HTTPError(400)
 
@@ -565,10 +565,10 @@ class WorklistHandler(custom_handlers.APIRequestHandler):
             if not filter_data:
                 raise tornado.web.HTTPError(400)
             plugin_list = self.get_component("db_plugin").get_all(filter_data)
-            target_list = self.get_component("target").GetTargetConfigs(filter_data)
+            target_list = self.get_component("target").get_target_config_dicts(filter_data)
             if (not plugin_list) or (not target_list):
                 raise tornado.web.HTTPError(400)
-            force_overwrite = self.get_component("config").ConvertStrToBool(self.get_argument("force_overwrite",
+            force_overwrite = self.get_component("config").str2bool(self.get_argument("force_overwrite",
                                                                                               "False"))
             self.get_component("worklist_manager").add_work(target_list, plugin_list, force_overwrite=force_overwrite)
             self.set_status(201)
@@ -740,7 +740,7 @@ class ReportExportHandler(custom_handlers.APIRequestHandler):
             test_groups[key]["data"] = value
             vulnerabilities.append(test_groups[key])
 
-        result = self.get_component("target").GetTargetConfigForID(target_id)
+        result = self.get_component("target").get_target_config_by_id(target_id)
         result["vulnerabilities"] = vulnerabilities
         result["time"] = strftime("%Y-%m-%d %H:%M:%S", gmtime())
 

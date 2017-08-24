@@ -127,7 +127,7 @@ class OWTFSessionDB(BaseComponent):
         session_obj.targets.remove(target_obj)
         # Delete target whole together if present in this session alone
         if len(target_obj.sessions) == 0:
-            self.db.Target.delete_target(ID=target_obj.id)
+            self.db.target.delete_target(ID=target_obj.id)
         self.db.session.commit()
 
     def delete_session(self, session_id):
@@ -144,7 +144,7 @@ class OWTFSessionDB(BaseComponent):
         for target in session_obj.targets:
             # Means attached to only this session obj
             if len(target.sessions) == 1:
-                self.db.Target.delete_target(ID=target.id)
+                self.db.target.delete_target(ID=target.id)
         self.db.session.delete(session_obj)
         self._ensure_default_session()  # i.e if there are no sessions, add one
         self.db.session.commit()
@@ -190,7 +190,7 @@ class OWTFSessionDB(BaseComponent):
         if filter_data.get('active', None):
             if isinstance(filter_data.get('active'), list):
                 filter_data['active'] = filter_data['active'][0]
-            query = query.filter_by(active=self.config.ConvertStrToBool(filter_data['active']))
+            query = query.filter_by(active=self.config.str2bool(filter_data['active']))
         return query.order_by(models.Session.id)
 
     def get_all(self, filter_data):

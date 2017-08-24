@@ -13,7 +13,7 @@ var mySpace = {
                     worker_api_url:"{{ worker_api_url }}",
                     targets_api_url:"{{ targets_api_url }}",
                     targets_ui_url:"{{ targets_ui_url }}",
-                    target_configs:{},
+                    target_configs:{}
                 };
 
 // Function to abort a worker using API
@@ -56,6 +56,7 @@ function displayWorkersInfo(){
             ifModified: true,
             dataType:'json',
             success:function(obj, textStatus, jqXHR){
+                console.log(obj);
                 if (304 != jqXHR.status){
                 }
             }

@@ -134,7 +134,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :return: Index
         :rtype: `int`
         """
-        exec_log = self.exec_registry[self.config.Gettarget()]
+        exec_log = self.exec_registry[self.config.target]
         num_items = len(exec_log)
         if num_items == 0:
             return -1  # List is empty
@@ -336,7 +336,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :rtype: `dict`
         """
         plugin_path = self.get_plugin_full_path(plugin_dir, plugin)
-        (path, name) = os.path.split(plugin_path)
+        path, name = os.path.split(plugin_path)
         plugin_output = self.get_module("", name, path + "/").run(plugin)
         return plugin_output
 
@@ -561,7 +561,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :rtype: None
         """
         if getattr(self, "WorkerManager", None) is not None:
-            self.WorkerManager.clean_up()
+            self.core.worker_manager.clean_up()
 
     def save_plugin_info(self, plugin_output, plugin):
         """Saves reporter info

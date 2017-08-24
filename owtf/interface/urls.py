@@ -22,7 +22,7 @@ def get_handlers():
     URLS = [
         tornado.web.url(r'/api/errors/?([0-9]+)?/?$', api_handlers.ErrorDataHandler, name='errors_api_url'),
         tornado.web.url(r'/api/sessions/?([0-9]+)?/?(activate|add|remove)?/?$', api_handlers.OWTFSessionHandler, name='owtf_sessions_api_url'),
-        tornado.web.url(r'/api/dashboard/severitypanel/?$', api_handlers.DashboardPanelHandler, name='targets_search_api_url'),
+        tornado.web.url(r'/api/dashboard/severitypanel/?$', api_handlers.DashboardPanelHandler),
         tornado.web.url(r'/api/plugins/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', api_handlers.PluginDataHandler, name='plugins_api_url'),
         tornado.web.url(r'/api/plugins/progress/?$', api_handlers.ProgressBarHandler, name='poutput_count'),
         tornado.web.url(r'/api/targets/severitychart/?$', api_handlers.TargetSeverityChartHandler, name='targets_severity'),

@@ -86,8 +86,8 @@ class WorklistManager(BaseComponent):
         :rtype: `dict`
         """
         if work_model is not None:
-            wdict = {}
-            wdict["target"] = self.target.DeriveTargetConfig(work_model.target)
+            wdict = dict()
+            wdict["target"] = self.target.get_target_config_dict(work_model.target)
             wdict["plugin"] = self.db_plugin.derive_plugin_dict(work_model.plugin)
             wdict["id"] = work_model.id
             wdict["active"] = work_model.active

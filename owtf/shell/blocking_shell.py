@@ -39,7 +39,7 @@ class Shell(BaseComponent, ShellInterface):
         :return: None
         :rtype: None
         """
-        self.dynamic_replacements['###plugin_output_dir###'] = self.target.GetPath('plugin_output_dir')
+        self.dynamic_replacements['###plugin_output_dir###'] = self.target.get_path('plugin_output_dir')
 
     def start_cmd(self, original_cmd, modified_cmd):
         """Start the timer and return the list of commands to run
@@ -80,7 +80,7 @@ class Shell(BaseComponent, ShellInterface):
             success = False
         cmd_info['Success'] = success
         cmd_info['RunTime'] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
-        cmd_info['Target'] = self.target.GetTargetID()
+        cmd_info['Target'] = self.target.get_target_id()
         cmd_info['PluginKey'] = plugin_info["key"]
         self.command_register.add_command(cmd_info)
 
@@ -92,7 +92,7 @@ class Shell(BaseComponent, ShellInterface):
         :return: Modified text
         :rtype: `str`
         """
-        return multi_replace(Text, {' ': '\ ', '(': '\(', ')': '\)'})
+        return multi_replace(text, {' ': '\ ', '(': '\(', ')': '\)'})
 
     def get_modified_shell_cmd(self, command, plugin_output_dir):
         """Returns the modified shell command to run

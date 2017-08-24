@@ -11,4 +11,4 @@ DESCRIPTION = "Google Hacking for juicy files"
 
 def run(PluginInfo):
     resource = ServiceLocator.get_component("resource").get_resources('PassiveOldBackupUnreferencedFilesLnk')
-    return ServiceLocator.get_component("plugin_helper").ResourceLinkList('Online Resources', resource)
+    return ServiceLocator.get_component("plugin_helper").resource_linklist('Online Resources', resource)

@@ -20,6 +20,6 @@ def run(PluginInfo):
     plugin_helper = ServiceLocator.get_component("plugin_helper")
     Content = plugin_helper.VulnerabilitySearchBox('')
     resource = ServiceLocator.get_component("resource").get_resources('PassiveFingerPrint')
-    Content += plugin_helper.ResourceLinkList('Online Resources', resource)
+    Content += plugin_helper.resource_linklist('Online Resources', resource)
     Content += plugin_helper.SuggestedCommandBox(PluginInfo, mapping, 'CMS Fingerprint - Potentially useful commands')
     return Content

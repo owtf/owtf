@@ -56,7 +56,7 @@ def target_required(func):
     """
     def wrapped_function(*args, **kwargs):
         if "target_id" not in kwargs:
-            kwargs["target_id"] = ServiceLocator.get_component("target").Gettarget_id()
+            kwargs["target_id"] = ServiceLocator.get_component("target").get_target_id()
         return func(*args, **kwargs)
     return wrapped_function
 
@@ -86,7 +86,7 @@ class TargetDB(BaseComponent, TargetInterface):
         try:
             self.target_id = target_id
             self.target_config = self.get_target_config_by_id(target_id)
-            self.path_config = self.Derivepath_config(self.target_config)
+            self.path_config = self.get_path_configs(self.target_config)
         except InvalidTargetReference:
             raise InvalidTargetReference("Target doesn't exist: %s" % str(target_id))
 
@@ -131,7 +131,7 @@ class TargetDB(BaseComponent, TargetInterface):
         :return: List of target urls
         :rtype: `list`
         """
-        return self.GetAll("target_url")
+        return self.get_all("target_url")
 
     def get_indexed_targets(self):
         """Get indexed targets
@@ -158,10 +158,10 @@ class TargetDB(BaseComponent, TargetInterface):
         """
         return self.path_config
 
-    def GetPath(self, output_type):
+    def get_path(self, output_type):
         return self.path_config.get(output_type, None)
 
-    def SetPath(self, output_type, path):
+    def set_path(self, output_type, path):
         # Mainly used for setting output paths for individual plugins, which
         # need not be saved: plugin_output_dir.
         self.path_config[output_type] = path
