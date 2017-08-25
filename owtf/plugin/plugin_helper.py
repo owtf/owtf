@@ -191,6 +191,7 @@ class PluginHelper(BaseComponent):
     def CommandDump(self, CommandIntro, OutputIntro, ResourceList, PluginInfo, PreviousOutput):
         output_list = []
         PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
+        ResourceList = sorted(ResourceList, key=lambda x: x[0] == "Extract URLs")
         for Name, Command in ResourceList:
             dump_file_name = "%s.txt" % os.path.splitext(Name)[0]  # Add txt extension to avoid wrong mimetypes
             plugin_output = dict(PLUGIN_OUTPUT)

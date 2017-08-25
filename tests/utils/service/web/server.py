@@ -2,9 +2,10 @@ import os
 import sys
 import time
 import signal
-import logging
-import httplib
-
+try:
+    import http.server as httplib
+except:
+    import httplib
 from multiprocessing import Process
 
 import tornado.ioloop

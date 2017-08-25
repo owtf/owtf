@@ -34,7 +34,7 @@ post_script = os.path.join(ROOT_DIR, "owtf/install/install.py")
 tests_require = [
     'PyHamcrest==1.9.0',
     'mock>=1.3.0',
-    'tornado==4.5.1'
+    'pytest==3.2.1'
 ]
 
 

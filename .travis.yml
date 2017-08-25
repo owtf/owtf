@@ -23,34 +23,7 @@ before_script:
 - git config --global user.email "tasty@mac.test"
 - git config --global user.name "Tasty Test"
 - "./tests/patch/skipfish.sh"
-script:
-- sudo python -m unittest tests.tests_functional.cli.test_simulation.OWTFCliSimulationTest.test_cli_simulation
-- sudo python -m unittest tests.tests_functional.cli.test_simulation.OWTFCliSimulationTest.test_cli_no_simulation
-- sudo python -m unittest tests.tests_functional.cli.test_nowebui.OWTFCliNoWebUITest.test_cli_no_webui
-- sudo python -m unittest tests.tests_functional.cli.test_empty_run.OWTFCliEmptyRunTest.test_cli_empty_run
-- sudo python -m unittest tests.tests_functional.cli.test_list_plugins.OWTFCliListPluginsTest.test_cli_list_plugins_aux
-- sudo python -m unittest tests.tests_functional.cli.test_list_plugins.OWTFCliListPluginsTest.test_cli_list_plugins_net
-- sudo python -m unittest tests.tests_functional.cli.test_list_plugins.OWTFCliListPluginsTest.test_cli_list_plugins_web
-- sudo python -m unittest tests.tests_functional.cli.test_only.OWTFCliOnlyPluginsTest.test_only_one_plugin
-- sudo python -m unittest tests.tests_functional.cli.test_only.OWTFCliOnlyPluginsTest.test_only_one_plugin_one_type
-- sudo python -m unittest tests.tests_functional.cli.test_except.OWTFCliExceptTest.test_except
-- sudo python -m unittest tests.tests_functional.cli.test_scope.OWTFCliScopeTest.test_cli_target_is_valid_ip
-- sudo python -m unittest tests.tests_functional.cli.test_scope.OWTFCliScopeTest.test_cli_target_is_invalid
-- sudo python -m unittest tests.tests_functional.cli.test_scope.OWTFCliScopeTest.test_cli_target_is_valid_http
-- sudo python -m unittest tests.tests_functional.cli.test_scope.OWTFCliScopeTest.test_cli_target_are_mixed
-- sudo python -m unittest tests.tests_functional.cli.test_scope.OWTFCliScopeTest.test_cli_target_are_mixed_but_web_specified
-- sudo python -m unittest tests.tests_functional.cli.test_scope.OWTFCliScopeTest.test_cli_target_are_mixed_but_net_specified
-- sudo python -m unittest tests.tests_functional.cli.test_type.OWTFCliTypeTest.test_cli_type_no_group_and_type_when_http_host
-- sudo python -m unittest tests.tests_functional.cli.test_type.OWTFCliTypeTest.test_cli_type_no_group_and_type_when_host
-- sudo python -m unittest tests.tests_functional.cli.test_type.OWTFCliTypeTest.test_cli_type_no_group_and_type_when_http_ip
-- sudo python -m unittest tests.tests_functional.cli.test_type.OWTFCliTypeTest.test_cli_type_no_group_and_type_when_ip
-- sudo python -m unittest tests.tests_functional.plugins.web.test_web.OWTFCliWebPluginTest.test_web_active
-- sudo python -m unittest tests.tests_functional.plugins.web.test_web.OWTFCliWebPluginTest.test_web_passive
-- sudo python -m unittest tests.tests_functional.plugins.web.test_web.OWTFCliWebPluginTest.test_web_semi_passive
-- sudo python -m unittest tests.tests_functional.plugins.web.test_web.OWTFCliWebPluginTest.test_web_external
-- sudo python -m unittest tests.tests_functional.plugins.web.test_web.OWTFCliWebPluginTest.test_web_grep
-- sudo python -m unittest tests.tests_functional.plugins.web.active.test_web_active.OWTFCliWebActivePluginTest.test_web_active_wvs_001
-- sudo python -m unittest tests.tests_functional.plugins.web.active.test_web_active.OWTFCliWebActivePluginTest.test_web_active_wvs_006
+script: pytest
 notifications:
   email: false
   irc:

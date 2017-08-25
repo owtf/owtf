@@ -52,7 +52,8 @@ class OWTFCliTestCase(unittest.TestCase):
         if extra_args:
             args += extra_args
         print("with the following options: %s" % args)
-        owtf.main(args)
+        args_str = ' '.join(args)
+        os.system("python -m owtf %s" % args_str)
         self.load_logs()
 
     def load_logs(self):
@@ -142,7 +143,7 @@ class OWTFCliTestCase(unittest.TestCase):
 
 class OWTFCliWebPluginTestCase(OWTFCliTestCase):
 
-    DEFAULT_ARGS = ['owtf.py', '--nowebui']
+    DEFAULT_ARGS = ['--nowebui']
     PROTOCOL = 'http'
     IP = '127.0.0.1'
     PORT = '8888'
