@@ -256,21 +256,21 @@ class Core(BaseComponent):
         :rtype: None
 
         """
-        if getattr(self, "TOR_process", None) is not None:
+        if getattr(self, "tor_process", None) is not None:
             self.tor_process.terminate()
         else:
-            if getattr(self, "PluginHandler", None) is not None:
+            if getattr(self, "plugin_handler", None) is not None:
                 self.plugin_handler.clean_up()
-            if getattr(self, "ProxyProcess", None) is not None:
+            if getattr(self, "proxy_process", None) is not None:
                 logging.info("Stopping inbound proxy processes and cleaning up. Please wait!")
                 self.proxy_process.clean_up()
                 self.kill_children(self.proxy_process.pid)
                 self.proxy_process.join()
-            if getattr(self, "TransactionLogger", None) is not None:
+            if getattr(self, "transaction_logger", None) is not None:
                 # No signal is generated during closing process by terminate()
                 self.transaction_logger.poison_q.put('done')
                 self.transaction_logger.join()
-            if getattr(self, "WorkerManager", None) is not None:
+            if getattr(self, "worker_manager", None) is not None:
                 # Properly stop the workers.
                 self.worker_manager.clean_up()
             if getattr(self, "db", None) is not None:
@@ -280,7 +280,7 @@ class Core(BaseComponent):
             if getattr(self, "cli_server", None) is not None:
                 self.cli_server.clean_up()
             tornado.ioloop.IOLoop.instance().stop()
-            exit(0)
+            sys.exit(0)
 
     def kill_children(self, parent_pid, sig=signal.SIGINT):
         """Kill all OWTF child process when the SIGINT is received
@@ -302,4 +302,4 @@ class Core(BaseComponent):
             try:
                 os.kill(int(pid_str), sig)
             except:
-                logging.warning("Unable to kill the processus: '%s'", pid_str)
+                logging.warning("Unable to kill the processes: '%s'", pid_str)

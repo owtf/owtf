@@ -191,7 +191,7 @@ class Config(BaseComponent, ConfigInterface):
         :param str target_url: the target URL
         :param dict options: the options from the CLI.
         """
-        target = self.target.get_valTargetConfigs({'target_url': target_url})
+        target = self.target.get_target_config_dicts({'target_url': target_url})
         group = options['PluginGroup']
         if options['OnlyPlugins'] is None:
             # If the plugin group option is the default one (not specified by the user).

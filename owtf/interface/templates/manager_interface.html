@@ -165,7 +165,6 @@ function displayWorkersInfo(){
             ifModified: true,
             dataType:'json',
             success:function(data, textStatus, jqXHR){
-                console.log(data);
                 if (304 != jqXHR.status){  // To do something only when some information has changed, i.e do nothing on 304 Not Modified
                     $('#workersInfo').html('');
                     num_workers = data.length;

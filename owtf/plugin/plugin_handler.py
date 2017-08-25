@@ -560,7 +560,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :return: None
         :rtype: None
         """
-        if getattr(self, "WorkerManager", None) is not None:
+        if getattr(self, "worker_manager", None) is not None:
             self.core.worker_manager.clean_up()
 
     def save_plugin_info(self, plugin_output, plugin):

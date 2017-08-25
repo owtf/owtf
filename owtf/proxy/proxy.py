@@ -563,24 +563,10 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         self.db_config = self.get_component("db_config")
         # All required variables in request handler
         # Required variables are added as attributes to application, so that request handler can access these
-        self.application.Core = self.get_component("core")
-        try:
-            self.proxy_manager = self.get_component("proxy_manager")
-        except ComponentNotFoundException:
-            self.proxy_manager = None
-        self.application.proxy_manager = self.proxy_manager
-        # ctypes object allocated from shared memory to verify if proxy must inject probe code or not
-        # 'i' means ctypes type is integer, initialization value is 0
-        # if lock is True then a new recursive lock object is created to
-        # synchronize access to the value
-        self.application.Core.pnh_inject = Value('i', 0, lock=True)
+        self.application.core = self.get_component("core")
         self.application.inbound_ip = self.db_config.get('INBOUND_PROXY_IP')
         self.application.inbound_port = int(self.db_config.get('INBOUND_PROXY_PORT'))
-
-        if self.proxy_manager:
-            self.instances = "1"  # Botnet mode needs only one proxy process.
-        else:
-            self.instances = self.db_config.get("INBOUND_PROXY_PROCESSES")
+        self.instances = self.db_config.get("INBOUND_PROXY_PROCESSES")
 
         # Proxy CACHE
         # Cache related settings, including creating required folders according to cache folder structure
@@ -682,7 +668,7 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         :return: None
         :rtype: None
         """
-        self.application.Core.disable_console_logging()
+        self.application.core.disable_console_logging()
         try:
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
