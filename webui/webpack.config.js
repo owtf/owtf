@@ -32,9 +32,17 @@ var common = {
 
 var config = merge(common, {
     entry: [
-        path.join(__dirname, 'src/main')
+        path.join(__dirname, 'src/main'),
+        path.join(__dirname, 'scss/main')
     ],
     plugins: [
+        new webpack.LoaderOptionsPlugin({
+            minimize: true,
+            debug: false,
+        }),
+        new ExtractTextPlugin('css/bundle.css', {
+            allChunks: true
+        }),
         new webpack.optimize.UglifyJsPlugin({
             compress: true,
             mangle: true
@@ -46,20 +54,34 @@ var config = merge(common, {
         ]
     },
     resolve: {
-        extensions: ['.js', '.jsx']
+        extensions: ['.js', '.jsx', '.scss']
     },
     module: {
         loaders: [{
-            test: /\.jsx?$/,
-            exclude: /node_modules/,
-            loaders: ['babel-loader', 'babel-loader?presets[]=react,presets[]=es2015,presets[]=stage-0'],
-            include: path.join(__dirname, 'src')
-        },
-        {
-            test: /\.docx?$/,
-            loaders: ['binary-loader'],
-        }
-      ]
+                test: /\.jsx?$/,
+                exclude: /node_modules/,
+                loaders: ['babel-loader', 'babel-loader?presets[]=react,presets[]=es2015,presets[]=stage-0'],
+                include: path.join(__dirname, 'src')
+            },
+            {
+                test: /\.docx?$/,
+                loaders: ['binary-loader'],
+            },
+            {
+                test: /\.(sass|scss|css)$/,
+                loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
+            },
+            {
+                test: /.(ttf|otf|eot|svg|woff(2)?)(\?[a-z0-9]+)?$/,
+                use: [{
+                    loader: 'file-loader',
+                    options: {
+                        name: '[name].[ext]',
+                        outputPath: 'fonts/', // where the fonts will go
+                    }
+                }]
+            },
+        ]
     }
 });
 
