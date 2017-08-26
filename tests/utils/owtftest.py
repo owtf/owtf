@@ -8,7 +8,7 @@ import unittest
 import mock
 from hamcrest import *
 
-from tests.utils.clean import db_clean, clean_owtf_review
+from tests.utils.clean import db_setup, clean_owtf_review
 from tests.utils.utils import load_log, DIR_OWTF_REVIEW, DIR_OWTF_LOGS
 from tests.utils.service.web.server import WebServerProcess
 
@@ -97,7 +97,8 @@ class OWTFCliTestCase(unittest.TestCase):
     def clean_old_runs():
         """Clean the database and the older owtf_review directory."""
         # Reset the database.
-        db_clean()
+        db_setup("clean")
+        db_setup("init")
         # Remove old OWTF outputs
         clean_owtf_review()
 
