@@ -5,6 +5,7 @@ owtf.db.worker_manager
 """
 
 import os
+import sys
 import signal
 import subprocess
 import logging
@@ -35,7 +36,7 @@ class Worker(OWTFProcess, BaseComponent):
                 work = self.input_q.get(True, 2)
                 # If work is empty this means no work is there
                 if work == ():
-                    exit(0)
+                    sys.exit(0)
                 target, plugin = work
                 plugin_dir = self.plugin_handler.get_plugin_group_dir(plugin['group'])
                 self.plugin_handler.switch_to_target(target["id"])
@@ -45,11 +46,11 @@ class Worker(OWTFProcess, BaseComponent):
                 pass
             except KeyboardInterrupt:
                 logging.debug("I am worker (%d) & my master doesn't need me anymore", self.pid)
-                exit(0)
+                sys.exit(0)
             except Exception as e:
                 self.get_component("error_handler").log_error("Exception occurred while running :", trace=str(e))
         logging.debug("I am worker (%d) & my master gave me poison pill", self.pid)
-        exit(0)
+        sys.exit(0)
 
 
 class WorkerManager(BaseComponent, WorkerManagerInterface):

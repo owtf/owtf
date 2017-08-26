@@ -173,7 +173,8 @@ class PluginHelper(BaseComponent):
 
         TimeStr = self.timer.get_elapsed_time_as_str('FormatCommandAndOutput')
         logging.info("Time=%s", TimeStr)
-        return [ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]
+        out = [ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]
+        return out
 
     def GetCommandOutputFileNameAndExtension(self, InputName):
         OutputName = InputName
@@ -203,7 +204,7 @@ class PluginHelper(BaseComponent):
                 "CommandIntro": CommandIntro,
                 "ModifiedCommand": ModifiedCommand,
                 "RelativeFilePath": self.plugin_handler.dump_output_file(dump_file_name, RawOutput, PluginInfo,
-                                                                         RelativePath=True),
+                                                                         relative_path=True),
                 "OutputIntro": OutputIntro,
                 "TimeStr": TimeStr
             }
@@ -218,7 +219,7 @@ class PluginHelper(BaseComponent):
             if FrameworkAbort:
                 raise FrameworkAbortException(PreviousOutput + plugin_output)
             output_list += plugin_output
-        return (output_list)
+        return output_list
 
     def LogURLsFromStr(self, RawOutput):
         plugin_output = dict(PLUGIN_OUTPUT)
@@ -232,13 +233,13 @@ class PluginHelper(BaseComponent):
             VisitURLs = True
             # Visit all URLs if not in Cache
             for Transaction in self.requester.get_transactions(True, self.url_manager.get_urls_to_visit()):
-                if Transaction is not None and Transaction.Found:
+                if Transaction is not None and Transaction.found:
                     NumFound += 1
         TimeStr = self.timer.get_elapsed_time_as_str('LogURLsFromStr')
-        logging.info("Spider/URL scaper time=%s", TimeStr)
+        logging.info("Spider/URL scraper time=%s", TimeStr)
         plugin_output["type"] = "URLsFromStr"
         plugin_output["output"] = {"TimeStr": TimeStr, "VisitURLs": VisitURLs, "URLList": URLList, "NumFound": NumFound}
-        return ([plugin_output])
+        return [plugin_output]
 
     def DumpFile(self, Filename, Contents, PluginInfo, LinkName=''):
         save_path = self.plugin_handler.dump_output_file(Filename, Contents, PluginInfo)

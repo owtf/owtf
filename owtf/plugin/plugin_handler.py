@@ -448,7 +448,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             partial_output = PartialOutput.parameter
             abort_reason = 'Aborted by User'
             status['SomeAborted'] = True
-        except UnreachabletargetException as PartialOutput:
+        except UnreachableTargetException as PartialOutput:
             status_msg = 'Unreachable Target'
             partial_output = PartialOutput.parameter
             abort_reason = 'Unreachable Target'
@@ -561,19 +561,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :rtype: None
         """
         if getattr(self, "worker_manager", None) is not None:
-            self.core.worker_manager.clean_up()
-
-    def save_plugin_info(self, plugin_output, plugin):
-        """Saves reporter info
-
-        :param plugin_output: Plugin output
-        :type plugin_output: `dict`
-        :param plugin: Plugin dict
-        :type plugin: `dict`
-        :return: None
-        :rtype: None
-        """
-        self.reporter.SavePluginReport(plugin_output, plugin)  # Timer retrieved by Reporter
+            self.worker_manager.clean_up()
 
     def show_plugin_list(self, group, msg=INTRO_BANNER_GENERAL):
         """Show available plugins

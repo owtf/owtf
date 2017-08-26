@@ -64,7 +64,7 @@ setup(
     install_requires=sorted(requires, key=lambda s: s.lower()),
     dependency_links=links,
     extras_require={
-        'tests': requires + tests_require,
+        'test': tests_require,
     },
     cmdclass={
         'install': PostInstallCommand,

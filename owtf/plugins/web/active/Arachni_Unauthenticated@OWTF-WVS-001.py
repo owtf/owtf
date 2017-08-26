@@ -14,3 +14,4 @@ def run(PluginInfo):
     resource = ServiceLocator.get_component("resource").get_resources('Arachni_Unauth')
     return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output',
                                                                      resource, PluginInfo, [])
+

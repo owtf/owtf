@@ -59,7 +59,7 @@ class HTTP_Transaction(object):
         self.start_request()
         self.url = url
         self.init_data(data)
-        self.method = DeriveHTTPMethod(method, data)
+        self.method = get_http_method(method, data)
         self.found = None
         self.raw_request = ''
         self.response_headers = []
