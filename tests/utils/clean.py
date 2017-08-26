@@ -5,20 +5,15 @@ import subprocess
 
 # FIXME: Do not remove user's results. Need OWTF to fix its custom profiles
 # options.
-DIR_SCRIPTS = 'scripts'
-DB_SETUP_SCRIPT = 'db_setup.sh'
+Makefile = 'Makefile'
 DIR_OWTF_REVIEW = 'owtf_review'
 
 
-def db_setup(cmd):
+def db_clean():
     """Reset OWTF database."""
-    if cmd not in ['clean', 'init']:
-        return
     pwd = os.getcwd()
     db_process = subprocess.Popen(
-        "/usr/bin/echo '\n' | %s %s" % (
-            os.path.join(pwd, DIR_SCRIPTS, DB_SETUP_SCRIPT),
-            cmd),
+        "make clean",
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
