@@ -170,7 +170,6 @@ class TransactionManager(BaseComponent, TransactionInterface):
         :return:
         :rtype:
         """
-        print criteria, target_id
         query = self.gen_query(criteria, target_id)
         return self.get_transaction(query.first())
 
@@ -196,7 +195,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
         :return:
         :rtype:
         """
-        if (trans and len(trans) > 0):
+        if trans and len(trans) > 0:
             owtf_transaction = transaction.HTTP_Transaction(None)
             response_body = trans.response_body
             if trans.binary_response:
@@ -216,12 +215,8 @@ class TransactionManager(BaseComponent, TransactionInterface):
         :return: List of transactions
         :rtype: `list`
         """
-        owtf_tlist = []
-        for transaction_obj in transactions:
-            print self.get_transaction(transaction_obj)
-            if self.get_transaction(transaction_obj) is not None:
-                owtf_tlist.append(self.get_transaction(transaction_obj))
-        return owtf_tlist
+        return [self.get_transaction(transaction) for transaction in transactions if
+                self.get_transaction(transaction) is not None]
 
     def get_transaction_model(self, transaction):
         """Generate object to be added to the DB

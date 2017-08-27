@@ -552,7 +552,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                                 {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True},
                                 {target})
         else:
-            exit(0)
+            pass
 
     def clean_up(self):
         """Cleanup workers

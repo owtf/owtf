@@ -314,11 +314,11 @@ class Requester(BaseComponent, RequesterInterface):
         try:
             response = self.perform_request(r)
             self.set_successful_transaction(raw_request, response)
-        except HTTPError as Error:  # page NOT found.
+        except HTTPError as error:  # page NOT found.
             # Error is really a response for anything other than 200 OK in urllib2 :)
-            self.http_transaction.set_transaction(False, raw_request[0], Error)
-        except URLError as Error:  # Connection refused?
-            err_message = self.process_http_error_code(Error, url)
+            self.http_transaction.set_transaction(False, raw_request[0], error)
+        except URLError as error:  # Connection refused?
+            err_message = self.process_http_error_code(error, url)
             self.http_transaction.set_error(err_message)
         except IOError:
             err_message = "ERROR: Requester Object -> Unknown HTTP Request error: %s\n%s" % (url, str(sys.exc_info()))

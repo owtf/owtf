@@ -1,20 +1,26 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import json
 import sys
 import traceback
 
 
-with open(str(sys.argv[1]), 'r') as data_file:
-    data = json.load(data_file)
+try:
+    with open(str(sys.argv[1]), 'r') as data_file:
+        data = json.load(data_file)
+except IOError:
+    print("No such file found, skipping...")
+    exit(0)
 
 org_name = str(sys.argv[1]).split('.json', 1)[0]
 
 if data[0]['status'] == 'ERROR':
-    print "sslscan finished with errors"
+    print("sslscan finished with errors")
     sys.exit(0)
 
-print "RESULT IN SSL_TLS_TESTING_FUNCTIONALITY_FROM_SSLLABS_REPORT.html"
+print("RESULT IN SSL_TLS_TESTING_FUNCTIONALITY_FROM_SSLLABS_REPORT.html")
 
 try:
     with open(org_name+"_report.html", 'w') as f:
@@ -57,6 +63,6 @@ try:
         f.write('</html>')
 except:
     print('Something went wrong when parsing result')
-    print traceback.format_exc()
+    print(traceback.format_exc())
     sys.exit(0)
 sys.exit(0)

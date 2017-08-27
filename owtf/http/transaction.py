@@ -17,8 +17,9 @@ try:
 except ImportError:
     from httplib import responses as response_messages
 
-from owtf.lib.general import *
 from cookies import Cookie
+
+from owtf.lib.general import derive_http_method
 
 
 class HTTP_Transaction(object):
@@ -228,7 +229,7 @@ class HTTP_Transaction(object):
         # Only for new transactions, not when retrieved from DB, etc.
         if self.new:
             log = logging.getLogger('general')
-            log.info("New owtf HTTP Transaction: %s",
+            log.info("New OWTF HTTP Transaction: %s",
                      " - ".join([self.id, self.time_human, self.status, self.method, self.url]))
 
     def get_html_link(self, link_name=''):

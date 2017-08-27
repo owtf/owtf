@@ -9,7 +9,6 @@ try:
 except ImportError:
     from distutils.core import setup, find_packages
 
-from setuptools.command.develop import develop
 from setuptools.command.install import install
 
 
@@ -34,7 +33,6 @@ post_script = os.path.join(ROOT_DIR, "owtf/install/install.py")
 tests_require = [
     'PyHamcrest==1.9.0',
     'mock>=1.3.0',
-    'pytest==3.2.1'
 ]
 
 
