@@ -25,14 +25,14 @@ before_script:
 - git config --global user.name "Tasty Test"
 - "./tests/patch/skipfish.sh"
 script:
-  python -m unittest tests.tests_functional.cli.test_empty_run
-  python -m unittest tests.tests_functional.cli.test_except
-  python -m unittest tests.tests_functional.cli.test_list_plugins
-  python -m unittest tests.tests_functional.cli.test_nowebui
-  python -m unittest tests.tests_functional.cli.test_only
-  python -m unittest tests.tests_functional.cli.test_scope
-  python -m unittest tests.tests_functional.cli.test_type
-  python -m unittest tests.tests_functional.plugins.web
+  - python -m unittest tests.tests_functional.cli.test_empty_run
+  - python -m unittest tests.tests_functional.cli.test_except
+  - python -m unittest tests.tests_functional.cli.test_list_plugins
+  - python -m unittest tests.tests_functional.cli.test_nowebui
+  - python -m unittest tests.tests_functional.cli.test_only
+  - python -m unittest tests.tests_functional.cli.test_scope
+  - python -m unittest tests.tests_functional.cli.test_type
+  - python -m unittest tests.tests_functional.plugins.web
 notifications:
   email: false
   irc:
