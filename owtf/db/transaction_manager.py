@@ -135,11 +135,11 @@ class TransactionManager(BaseComponent, TransactionInterface):
         if criteria.get('scope', None):
             if isinstance(criteria.get('scope'), list):
                 criteria['scope'] = criteria['scope'][0]
-            query = query.filter_by(scope=self.config.ConvertStrToBool(criteria['scope']))
+            query = query.filter_by(scope=self.config.str2bool(criteria['scope']))
         if criteria.get('binary_response', None):
             if isinstance(criteria.get('binary_response'), list):
                 criteria['binary_response'] = criteria['binary_response'][0]
-            query = query.filter_by(binary_response=self.config.ConvertStrToBool(criteria['binary_response']))
+            query = query.filter_by(binary_response=self.config.str2bool(criteria['binary_response']))
         if not for_stats:  # query for stats shouldn't have limit and offset
             try:
                 query.order_by(models.Transaction.local_timestamp)
@@ -170,6 +170,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
         :return:
         :rtype:
         """
+        print criteria, target_id
         query = self.gen_query(criteria, target_id)
         return self.get_transaction(query.first())
 
@@ -195,7 +196,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
         :return:
         :rtype:
         """
-        if trans:
+        if (trans and len(trans) > 0):
             owtf_transaction = transaction.HTTP_Transaction(None)
             response_body = trans.response_body
             if trans.binary_response:
@@ -217,7 +218,9 @@ class TransactionManager(BaseComponent, TransactionInterface):
         """
         owtf_tlist = []
         for transaction_obj in transactions:
-            owtf_tlist.append(self.get_transaction(transaction_obj))
+            print self.get_transaction(transaction_obj)
+            if self.get_transaction(transaction_obj) is not None:
+                owtf_tlist.append(self.get_transaction(transaction_obj))
         return owtf_tlist
 
     def get_transaction_model(self, transaction):

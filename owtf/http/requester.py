@@ -261,7 +261,7 @@ class Requester(BaseComponent, RequesterInterface):
         """
         return urlopen(request)
 
-    def set_succesful_transaction(self, raw_request, response):
+    def set_successful_transaction(self, raw_request, response):
         """Set a transaction from request and response
 
         :param raw_request: Raw request
@@ -309,15 +309,15 @@ class Requester(BaseComponent, RequesterInterface):
         # transactions can be created and process at plugin-level
         # Pass the timer object to avoid instantiating each time.
         self.http_transaction = transaction.HTTP_Transaction(self.timer)
-        self.http_transaction.start(url, post, method, self.target.IsInScopeurl(url))
+        self.http_transaction.start(url, post, method, self.target.is_url_in_scope(url))
         self.req_count_total += 1
         try:
             response = self.perform_request(r)
-            self.set_succesful_transaction(raw_request, response)
+            self.set_successful_transaction(raw_request, response)
         except HTTPError as Error:  # page NOT found.
             # Error is really a response for anything other than 200 OK in urllib2 :)
             self.http_transaction.set_transaction(False, raw_request[0], Error)
-        except urlError as Error:  # Connection refused?
+        except URLError as Error:  # Connection refused?
             err_message = self.process_http_error_code(Error, url)
             self.http_transaction.set_error(err_message)
         except IOError:
@@ -504,7 +504,7 @@ class Requester(BaseComponent, RequesterInterface):
             url = url.strip()  # Clean up the URL first.
             if not url:
                 continue  # Skip blank lines.
-            if not self.url_manager.Isurl(url):
+            if not self.url_manager.is_url(url):
                 self.error_handler.add("Minor issue: %s is not a valid URL and has been ignored, processing continues" %
                                        str(url))
                 continue  # Skip garbage URLs.

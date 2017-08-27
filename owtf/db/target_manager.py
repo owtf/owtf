@@ -166,17 +166,6 @@ class TargetDB(BaseComponent, TargetInterface):
         # need not be saved: plugin_output_dir.
         self.path_config[output_type] = path
 
-    def DBHealthCheck(self):
-        # Target DB Health Check
-        target_list = self.db.session.query(models.Target).all()
-        if target_list:
-            # If needed in order to prevent an uninitialized value for target
-            # in self.SetTarget(target) few lines later.
-            for target in target_list:
-                self.create_missing_dirs_target(target.target_url)
-            # This is to avoid "None" value for the main settings.
-            self.set_target(target.id)
-
     @session_required
     def add_target(self, target_url, session_id=None):
         """Adds a target to session
@@ -496,7 +485,7 @@ class TargetDB(BaseComponent, TargetInterface):
         """
         parsed_url = urlparse(url)
         # Get all known Host Names in Scope.
-        for host_name in self.GetAll('host_name'):
+        for host_name in self.get_all('host_name'):
             if parsed_url.hostname == host_name:
                 return True
         return False

@@ -17,6 +17,7 @@ try:
 except ImportError:
     from httplib import responses as response_messages
 
+from owtf.lib.general import *
 from cookies import Cookie
 
 
@@ -59,7 +60,7 @@ class HTTP_Transaction(object):
         self.start_request()
         self.url = url
         self.init_data(data)
-        self.method = get_http_method(method, data)
+        self.method = derive_http_method(method, data)
         self.found = None
         self.raw_request = ''
         self.response_headers = []

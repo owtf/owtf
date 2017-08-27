@@ -106,22 +106,22 @@ class PluginHelper(BaseComponent):
                 Method = 'POST'
                 POST = Chunks[1]
                 Transaction = self.requester.get_transaction(True, URL, Method, POST)
-            if Transaction.Found:
-                RawHTML = Transaction.get_raw_response_body()
-                FilteredHTML = self.reporter.sanitize_html(RawHTML)
-                NotSandboxedPath = self.plugin_handler.dump_output_file("NOT_SANDBOXED_%s.html" % Name, FilteredHTML,
-                                                                        PluginInfo)
-                logging.info("File: NOT_SANDBOXED_%s.html saved to: %s", Name, NotSandboxedPath)
-                iframe_template = Template("""
-                    <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder='0'
-                    style="overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
-                    Your browser does not support iframes
-                    </iframe>
-                    """)
-                iframe = iframe_template.generate(NotSandboxedPath=NotSandboxedPath.split('/')[-1])
-                SandboxedPath = self.plugin_handler.dump_output_file("SANDBOXED_%s.html" % Name, iframe, PluginInfo)
-                logging.info("File: SANDBOXED_%s.html saved to: %s", Name, SandboxedPath)
-                link_list.append((Name, SandboxedPath))
+                if Transaction is not None and Transaction.found:
+                    RawHTML = Transaction.get_raw_response_body()
+                    FilteredHTML = self.reporter.sanitize_html(RawHTML)
+                    NotSandboxedPath = self.plugin_handler.dump_output_file("NOT_SANDBOXED_%s.html" % Name, FilteredHTML,
+                                                                            PluginInfo)
+                    logging.info("File: NOT_SANDBOXED_%s.html saved to: %s", Name, NotSandboxedPath)
+                    iframe_template = Template("""
+                        <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder='0'
+                        style="overflow-y:auto; overflow-x:hidden;width:100%;height:100%;" >
+                        Your browser does not support iframes
+                        </iframe>
+                        """)
+                    iframe = iframe_template.generate(NotSandboxedPath=NotSandboxedPath.split('/')[-1])
+                    SandboxedPath = self.plugin_handler.dump_output_file("SANDBOXED_%s.html" % Name, iframe, PluginInfo)
+                    logging.info("File: SANDBOXED_%s.html saved to: %s", Name, SandboxedPath)
+                    link_list.append((Name, SandboxedPath))
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "Requestlink_list"
         plugin_output["output"] = {"ResourceListName": ResourceListName, "link_list": link_list}
@@ -281,7 +281,6 @@ class PluginHelper(BaseComponent):
         EntriesList = []
         # robots.txt contains some entries, show browsable list! :)
         if num_disallow > 0 or num_allow > 0 or num_sitemap > 0:
-            self.url_manager.AddURLsStart()
             for Display, Entries in [['Disallowed Entries', DisallowedEntries], ['Allowed Entries', AllowedEntries],
                                      ['Sitemap Entries', SitemapEntries]]:
                 Links = []  # Initialise category-specific link list
@@ -296,7 +295,6 @@ class PluginHelper(BaseComponent):
                         # Show link in defined format (passive/semi_passive)
                         Links.append([Entry, LinkStart + Entry + LinkEnd])
                 EntriesList.append((Display, Links))
-                NumAddedURLs = self.url_manager.AddURLsEnd()
                 plugin_output["output"] = {
                     "NotStr": NotStr,
                     "NumLines": num_lines,
@@ -304,7 +302,6 @@ class PluginHelper(BaseComponent):
                     "NumDisallow": num_disallow,
                     "NumSitemap": num_sitemap,
                     "SavePath": SavePath,
-                    "NumAddedURLs": NumAddedURLs,
                     "EntriesList": EntriesList
                 }
                 return ([plugin_output])
@@ -322,7 +319,6 @@ class PluginHelper(BaseComponent):
     def TransactionTableForURLList(self, UseCache, URLList, Method=None, Data=None):
         # Have to make sure that those urls are visited ;), so we
         # perform get transactions but don't save the transaction ids etc..
-        self.requester.get_transactions(UseCache, URLList, Method, Data)
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "TransactionTableForURLList"
         plugin_output["output"] = {"UseCache": UseCache, "URLList": URLList, "Method": Method, "Data": Data}

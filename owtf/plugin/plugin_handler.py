@@ -16,7 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.interfaces import PluginHandlerInterface
-from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
+from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
 from owtf.lib.general import *
 from owtf.plugin.scanner import Scanner
 from owtf.utils import FileOperations
@@ -552,7 +552,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                                 {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True},
                                 {target})
         else:
-            pass
+            exit(0)
 
     def clean_up(self):
         """Cleanup workers

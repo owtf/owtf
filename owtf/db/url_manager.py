@@ -105,6 +105,19 @@ class URLManager(BaseComponent, URLManagerInterface):
             self.db.session.merge(models.Url(target_id=target_id, url=url, visited=visited, scope=scope))
             self.db.session.commit()
 
+    def get_num_urls(self, target_id=None):
+        count = self.db.session.query(models.Url(target_id=target_id)).count()
+        return count
+
+    def add_urls_start(self):
+        self.num_urls_before = self.get_num_urls()
+
+    def add_urls_end(self):
+        num_urls_after = self.get_num_urls()
+        msg = str(num_urls_after - self.num_urls_before)+" URLs have been added and classified"
+        logging.info(msg)
+        return num_urls_after - self.num_urls_before
+
     def get_urls_to_visit(self, target=None):
         """Gets urls to visit for a target
 
@@ -209,7 +222,7 @@ class URLManager(BaseComponent, URLManagerInterface):
         """Generate query based on criteria and target ID
 
         :param criteria: Filter criteria
-        :type criteria: `list`
+        :type criteria: `dict`
         :param target_id: Target ID
         :type target_id: `int`
         :param for_stats: True/False
