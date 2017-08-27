@@ -14,9 +14,6 @@ before_install:
 - sudo apt-get purge python-openssl
 - sudo apt-get install libffi-dev
 - sudo pip install pyopenssl
-- sudo python owtf/install/kali/kali_patch_nikto.sh
-- sudo python owtf/install/kali/kali_patch_tlssled.sh
-- sudo python owtf/install/kali/kali_patch_w3af.sh
 install:
 - echo '\n\n' | python setup.py install
 before_script:
