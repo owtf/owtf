@@ -17,14 +17,22 @@ before_install:
 install:
 - echo '\n\n' | python setup.py install
 before_script:
-- pip install mock pyHamcrest pytest
+- pip install mock pyHamcrest
 - cp -f ./tests/profiles/plugin_web/groups.cfg ~/.owtf/conf/profiles/plugin_web/groups.cfg
 - cp -f ./tests/profiles/plugin_net/groups.cfg ~/.owtf/conf/profiles/plugin_net/groups.cfg
 - cp -f ./tests/profiles/plugin_aux/groups.cfg ~/.owtf/conf/profiles/plugin_aux/groups.cfg
 - git config --global user.email "tasty@mac.test"
 - git config --global user.name "Tasty Test"
 - "./tests/patch/skipfish.sh"
-script: pytest --capture=no
+script:
+  python -m unittest tests.tests_functional.cli.test_empty_run
+  python -m unittest tests.tests_functional.cli.test_except
+  python -m unittest tests.tests_functional.cli.test_list_plugins
+  python -m unittest tests.tests_functional.cli.test_nowebui
+  python -m unittest tests.tests_functional.cli.test_only
+  python -m unittest tests.tests_functional.cli.test_scope
+  python -m unittest tests.tests_functional.cli.test_type
+  python -m unittest tests.tests_functional.plugins.web
 notifications:
   email: false
   irc:

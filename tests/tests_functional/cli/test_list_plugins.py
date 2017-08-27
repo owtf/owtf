@@ -10,7 +10,7 @@ class OWTFCliListPluginsTest(OWTFCliTestCase):
 
     def test_cli_list_plugins_aux(self):
         """Run OWTF to list the aux plugins."""
-        expected = ['Available AUXILIARY plugins', 'exploit', 'smb', 'bruteforce', 'dos', 'wafbypasser', 'se', 'rce', 'selenium']
+        expected = ['Available AUXILIARY plugins', 'exploit', 'smb', 'bruteforce', 'dos', 'se', 'rce', 'selenium']
 
         self.run_owtf('-l', 'auxiliary')
         self.assert_are_in_logs(expected, name='MainProcess')
