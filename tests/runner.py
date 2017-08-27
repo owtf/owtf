@@ -14,6 +14,6 @@ def include():
 
 if __name__ == '__main__':
     include()
-    from utils.suite.parser import get_suites
+    from tests.utils.suite.parser import get_suites
     suite = get_suites(sys.argv[1:])
     unittest.TextTestRunner(verbosity=3).run(suite)

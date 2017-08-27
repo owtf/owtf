@@ -5,8 +5,8 @@ import subprocess
 
 # FIXME: Do not remove user's results. Need OWTF to fix its custom profiles
 # options.
-DIR_SCRIPTS = 'scripts'
-DB_SETUP_SCRIPT = 'db_setup.sh'
+DIR_SCRIPTS = 'owtf/scripts'
+DB_SETUP_SCRIPT = 'owtf/db_setup.sh'
 DIR_OWTF_REVIEW = 'owtf_review'
 
 
