@@ -5,7 +5,10 @@
 from __future__ import print_function
 from lxml import html
 import os
-import urllib2
+try:
+    import urllib2
+except ImportError:
+    import urllib as urllib2
 
 
 abs_path = os.path.dirname(os.path.abspath(__file__))

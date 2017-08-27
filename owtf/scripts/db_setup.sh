@@ -90,7 +90,6 @@ if [ "$Action" = "init" ]
 then
     sudo su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""
     sudo su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""
-    postgresql_fix
 elif [ "$Action" = "clean" ]
 then
     sudo su postgres -c "psql -c \"DROP DATABASE $db_name\""

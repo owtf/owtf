@@ -71,5 +71,16 @@ setup(
         'console_scripts': [
             'owtf = owtf.__main__:main'
         ]
-    }
+    },
+    classifiers=[
+        'License :: OSI Approved :: BSD License',
+        'Development Status :: 5 - Production/Stable',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Operating System :: POSIX :: Linux',
+        'Topic :: Security'
+    ]
 )
