@@ -126,5 +126,6 @@ owtf/webui/src/Report/templates/*
 # Deb packaging
 #############################################
 debian/owtf/
-*.db
+debian/.debhelper/
+*.deb
 *.tar.gz

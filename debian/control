@@ -8,9 +8,7 @@ Homepage: http://owtf.org
 
 Package: owtf
 Architecture: any
-Depends: python-pip, python2.7-dev, libsqlite3-dev, python3-pip, python3-dev, git, xvfb, xserver-xephyr, libxml2-dev, \
-         libxslt-dev, libssl-dev, zlib1g-dev, gcc, python-all-dev, postgresql-server-dev-all, postgresql-client, \
-         postgresql-client-common, postgresql, libcurl4-openssl-dev, proxychains, tor
+Depends: python-pip, python2.7-dev, libsqlite3-dev, python3-pip, python3-dev, git, xvfb, xserver-xephyr, libxml2-dev, libxslt-dev, libssl-dev, zlib1g-dev, gcc, python-all-dev, postgresql-server-dev-all, postgresql-client, postgresql-client-common, postgresql, libcurl4-openssl-dev, proxychains, tor, libffi-dev
 Recommends: gnutls-bin, arachni, o-saft, metagoofil
 Description: Offensive (web) Testing Framework
  Offensive web testing framework is a try to unite all

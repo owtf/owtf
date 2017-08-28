@@ -80,6 +80,12 @@ docker-run:
 	@echo "--> Running the Docker development image"
 	docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v $(current_dir):/owtf owtf/owtf /bin/bash
 
+### DEBIAN PACKAGING
+
+build-debian:
+	@echo "--> Building the Debian package"
+	dpkg-buildpackage -us -uc -d
+
 ### LINT
 
 lint-py:
@@ -132,7 +138,7 @@ distclean-py: clean-py
 	@echo "--> Removing egg-info directory."
 	rm -rf owtf.egg-info
 
-distclean-js: clean-js
+distclean-js:
 	@echo "--> Removing node modules."
 	rm -rf owtf/webui/node_modules
 
