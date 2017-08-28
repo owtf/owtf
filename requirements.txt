@@ -8,7 +8,7 @@ cookies==2.2.1
 dnspython==1.15.0
 hrt==0.1.0
 # Here till they upload a Python3 compatible version of the library
--e git://github.com/google/ipaddr-py#egg=ipaddr
+-e git+https://github.com/google/ipaddr-py#egg=ipaddr
 Markdown==2.6.9
 ndg-httpsclient==0.4.2
 pyasn1==0.3.2

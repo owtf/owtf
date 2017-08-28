@@ -122,3 +122,6 @@ owtf/webui/src/Report/templates/*
 # Mac/OS specific files
 #############################################
 *.DS_Store
+
+# Deb packaging
+debian/owtf/

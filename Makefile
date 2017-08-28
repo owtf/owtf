@@ -24,7 +24,7 @@ install-dependencies:
 	@echo "--> Installing Kali dependencies"
 	sudo apt-get update
 	sudo apt-get install -y python git
-	sudo apt-get install -y vfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev \
+	sudo apt-get install -y xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev \
 			python-pip postgresql-server-dev-all postgresql-client postgresql-client-common postgresql  \
 			libcurl4-openssl-dev proxychains tor
 
@@ -78,7 +78,7 @@ docker-build:
 
 docker-run:
 	@echo "--> Running the Docker development image"
-	docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v $(current_dir):/owtf owtf/refactor /bin/bash
+	docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v $(current_dir):/owtf owtf/owtf /bin/bash
 
 ### LINT
 
