@@ -1,7 +1,7 @@
 import os
 import sys
 from subprocess import call
-
+import io
 import pip
 
 try:
@@ -9,10 +9,20 @@ try:
 except ImportError:
     from distutils.core import setup, find_packages
 
+from setuptools.command.develop import develop
 from setuptools.command.install import install
 
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+
+
+def parse_file(filename, encoding='utf-8'):
+  """Return contents of the given file using the given encoding."""
+  path = os.path.join(os.path.abspath(os.path.dirname(__file__)), filename)
+  with io.open(path, encoding=encoding) as fo:
+    contents = fo.read()
+  return contents
+
 
 links = []
 requires = []
@@ -36,6 +46,14 @@ tests_require = [
 ]
 
 
+class PostDevelopCommand(develop):
+    """Post-installation for development mode."""
+    def run(self):
+        develop.run(self)
+        print('Running post install')
+        call([sys.executable, post_script])
+
+
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
@@ -53,15 +71,18 @@ setup(
     author="Abraham Aranguren",
     author_email="abraham.aranguren@owasp.org",
     description='OWASP+PTES focused try to unite great tools and make pen testing more efficient',
-    long_description="OWASP OWTF is a project focused on penetration testing efficiency and alignment of security tests"
-                     "to security standards like the OWASP Testing Guide (v3 and v4), the OWASP Top 10, PTES and NIST",
+    long_description=parse_file('README.md'),
     packages=find_packages(exclude=['*node_modules/*']),
     include_package_data=True,
     zip_safe=False,
     platforms='any',
-    install_requires=sorted(requires, key=lambda s: s.lower()),
+    install_requires=sorted(requires, key=lambda s: s.split("==")[0].lower()),
     dependency_links=links,
+    extras_require={
+        'test': tests_require + requires,
+    },
     cmdclass={
+        'develop': PostDevelopCommand,
         'install': PostInstallCommand,
     },
     entry_points={

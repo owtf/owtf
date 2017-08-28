@@ -38,11 +38,13 @@ Recommended:
 
 `pip install owtf` or `pip install git+https://github.com/owtf/owtf#egg=owtf`
 
+To install OWTF for development purposes, use
+`OWTF_DEV=1 python setup.py install`
 
 To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker** installed) provided to try OWTF:
 
- - `$ docker build -t owtf .`
- - `$ docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v ~/path_to_OWTF_on_host:/owtf owtf /bin/bash`
+ - `make docker-build`
+ - `make docker-run`
  - Open `~/.owtf/conf` and change `SERVER_ADDR: 127.0.0.1` to `SERVER_ADDR: 0.0.0.0`.
  - Create a virtualenv, `virtualenv env` and activate it `source env/bin/activate`.
  - Install and run OWTF.
@@ -84,7 +86,7 @@ Features
 License
 ===
 
-Checkout [LICENSE](LICENSE)
+Checkout [LICENSE](LICENSE.md)
 
 Links
 ===
