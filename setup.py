@@ -1,20 +1,23 @@
 import os
 import sys
+import re
+import ast
 from subprocess import call
 import io
 import pip
-
 try:
     from setuptools import setup, find_packages
 except ImportError:
     from distutils.core import setup, find_packages
-
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
 
+with open('owtf/__init__.py', 'rb') as f:
+    version = str(ast.literal_eval(_version_re.search(f.read().decode('utf-8')).group(1)))
 
 def parse_file(filename, encoding='utf-8'):
   """Return contents of the given file using the given encoding."""
@@ -22,7 +25,6 @@ def parse_file(filename, encoding='utf-8'):
   with io.open(path, encoding=encoding) as fo:
     contents = fo.read()
   return contents
-
 
 links = []
 requires = []
@@ -40,11 +42,14 @@ for item in requirements:
 
 post_script = os.path.join(ROOT_DIR, "owtf/install/install.py")
 
-tests_require = [
+tests_requires = [
     'PyHamcrest==1.9.0',
     'mock>=1.3.0',
 ]
 
+docs_requires = [
+    'sphinx'
+]
 
 class PostDevelopCommand(develop):
     """Post-installation for development mode."""
@@ -65,7 +70,7 @@ class PostInstallCommand(install):
 
 setup(
     name='owtf',
-    version="2.1",
+    version=version,
     url='https://github.com/owtf/owtf',
     license='BSD',
     author="Abraham Aranguren",
