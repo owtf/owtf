@@ -1,13 +1,6 @@
 owtf.http package
 =================
 
-Subpackages
------------
-
-.. toctree::
-
-    owtf.http.proxy
-
 Submodules
 ----------
 

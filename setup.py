@@ -48,7 +48,8 @@ tests_requires = [
 ]
 
 docs_requires = [
-    'sphinx'
+    'sphinx',
+    'sphinx_py3doc_enhanced_theme'
 ]
 
 class PostDevelopCommand(develop):
@@ -84,7 +85,8 @@ setup(
     install_requires=sorted(requires, key=lambda s: s.split("==")[0].lower()),
     dependency_links=links,
     extras_require={
-        'test': tests_require + requires,
+        'test': tests_requires + requires,
+        'docs': docs_requires
     },
     cmdclass={
         'develop': PostDevelopCommand,

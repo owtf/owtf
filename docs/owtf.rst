@@ -15,7 +15,7 @@ Subpackages
     owtf.lib
     owtf.plugin
     owtf.protocols
-    owtf.runner
+    owtf.proxy
     owtf.selenium
     owtf.shell
     owtf.wrappers

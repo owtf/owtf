@@ -1,13 +1,6 @@
 owtf.install package
 ====================
 
-Subpackages
------------
-
-.. toctree::
-
-    owtf.install.utils
-
 Submodules
 ----------
 
