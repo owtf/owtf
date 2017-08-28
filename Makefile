@@ -26,7 +26,7 @@ install-dependencies:
 	sudo apt-get install -y python git
 	sudo apt-get install -y xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev \
 			python-pip postgresql-server-dev-all postgresql-client postgresql-client-common postgresql  \
-			libcurl4-openssl-dev proxychains tor
+			libcurl4-openssl-dev proxychains tor libffi-dev
 
 opt-tools:
 	sudo apt-get install -y lbd gnutls-bin arachni o-saft metagoofil
