@@ -1,3 +1,52 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Translations
+*.mo
+*.pot
+
 # Compiled source and other garbage #
 #####################################
 *.pyc
@@ -5,12 +54,12 @@
 
 # Directories with potential license restrictions that prevent re-distribution #
 ################################################################################
-dictionaries/restricted/*
-tools/restricted/*
+owtf/dictionaries/restricted/*
+owtf/tools/restricted/*
 
 # Dictionaries pulled from Github #
 ###################################
-dictionaries/fuzzdb
+owtf/dictionaries/fuzzdb
 
 # Tools with license restrictions that prevent re-distribution #
 ################################################################
@@ -22,8 +71,8 @@ tests/restricted/*
 
 # Directory with the output of OWTF
 ###################################
-owtf_review/*
-scans/*
+*owtf_review/*
+*scans/*
 
 # Unit Testing Framework files #
 ################################
@@ -33,12 +82,12 @@ tests/tests.log.html
 
 # Zest jars #
 #############
-zest/zest_lib/*
-zest/zest_runner_lib/*
-zest/zest.jar
-zest/zest_runner.jar
-zest/release.hash
-zest/README.md
+owtf/zest/zest_lib/*
+owtf/zest/zest_runner_lib/*
+owtf/zest/zest.jar
+owtf/zest/zest_runner.jar
+owtf/zest/release.hash
+owtf/zest/README.md
 
 # Pycharm (Jetbrains) IDE Specific files #
 ##########################################
@@ -47,7 +96,6 @@ zest/README.md
 # PyDev (Eclipse) IDE Specific Files #
 ######################################
 .metadata
-bin/
 tmp/
 *.tmp
 *.bak
@@ -67,11 +115,17 @@ local.properties
 
 # Front End(ReactJS) development Dependencies#
 #############################################
-webui/src/Report/templates/*
-webui/yarn.lock
-webui/node_modules/*
-webui/public/build/*
+owtf/webui/node_modules/*
+owtf/webui/public/build/*
+owtf/webui/src/Report/templates/*
 
 # Mac/OS specific files
 #############################################
 *.DS_Store
+
+# Deb packaging
+#############################################
+debian/owtf/
+debian/.debhelper/
+*.deb
+*.tar.gz

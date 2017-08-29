@@ -1,0 +1,25 @@
+# Before editing this file, read this or else XD
+# - The libraries are written in alphabetical order
+# - The version number is important, it is required that you test
+#   the latest version and add it here
+# - The casing of names is critical for dependency checks, eg. pyOpenSSL and not pyopenssl
+cffi==1.10.0
+cookies==2.2.1
+dnspython==1.15.0
+hrt==0.1.0
+# Here till they upload a Python3 compatible version of the library
+-e git+https://github.com/google/ipaddr-py#egg=ipaddr
+Markdown==2.6.9
+ndg-httpsclient==0.4.2
+pyasn1==0.3.2
+pexpect==4.2.1
+psycopg2==2.7.1
+PTP==0.4.1
+pycurl==7.43.0
+pyOpenSSL==17.2.0
+PyVirtualDisplay==0.2.1
+requests==2.18.4
+six==1.10.0
+selenium==3.4.3
+SQLAlchemy==1.1.13
+tornado==4.5.2

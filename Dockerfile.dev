@@ -1,0 +1,43 @@
+FROM kalilinux/kali-linux-docker
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get -y update && apt-get -y dist-upgrade && apt-get clean
+
+# Install certificates to ensure https links in wget work
+RUN apt-get -y install ca-certificates
+
+RUN apt-get -y install  xvfb \
+                        xserver-xephyr \
+                        libxml2-dev \
+                        libxslt-dev \
+                        libssl-dev \
+                        zlib1g-dev \
+                        gcc \
+                        python-all-dev \
+                        python-pip
+
+# Needed for installation of pycurl using pip in kali
+ENV PYCURL_SSL_LIBRARY=gnutls
+
+# psycopg2, pycurl dependency
+RUN apt-get -y install  postgresql-server-dev-all \
+                        postgresql-client \
+                        postgresql-client-common \
+                        postgresql  \
+                        libcurl4-openssl-dev \
+                        proxychains \
+                        tor
+
+# Install optional tools (LBD, arachni, gnutls-bin, o-saft and metagoofil)
+RUN apt-get -y install  lbd \
+                        gnutls-bin \
+                        arachni \
+                        o-saft \
+                        metagoofil
+
+
+# Install sudo, python, and Java for Zest functionality
+RUN apt-get -y install sudo git python openjdk-8-jre openjdk-8-jdk
+
+# Fix for exporting a SHELL variable in the environment
+ENV SHELL /bin/bash
+

@@ -16,6 +16,7 @@ Contents:
 
    owtf
    install.rst
+   modules.rst
    config.rst
    usage.rst
    troubleshooting.rst
