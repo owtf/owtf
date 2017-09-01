@@ -290,7 +290,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         # HTTPS fail check has to be improvised
         def ssl_fail():
             try:
-                self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
+                self.request.connection.stream.write(b"HTTPS/1.1 200 Connection established\r\n\r\n")
             except tornado.iostream.StreamClosedError:
                 pass
             ProxyHandler.server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
