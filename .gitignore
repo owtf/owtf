@@ -115,9 +115,16 @@ local.properties
 
 # Front End(ReactJS) development Dependencies#
 #############################################
-owtf/webui/node_modules/*
-owtf/webui/public/build/*
-owtf/webui/src/Report/templates/*
+# Don't check auto-generated stuff into git
+owtf/webui/coverage
+owtf/webui/build
+owtf/webui/node_modules
+owtf/webui/stats.json
+
+# Cruft
+.DS_Store
+owtf/webui/npm-debug.log
+owtf/webui/.idea
 
 # Mac/OS specific files
 #############################################
