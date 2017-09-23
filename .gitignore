@@ -119,6 +119,9 @@ local.properties
 owtf/webapp/node_modules/*
 owtf/webapp/public/build/*
 owtf/webapp/src/Report/templates/*
+# Don't check auto-generated stuff into git
+owtf/webapp/coverage
+owtf/webapp/stats.json
 
 # Mac/OS specific files
 #############################################
