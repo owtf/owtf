@@ -1,0 +1,15 @@
+--2017-08-30 01:16:15--  https://www.netsparker.com/s/research/SVNDigger.zip
+Resolving www.netsparker.com (www.netsparker.com)... 52.1.25.52
+Connecting to www.netsparker.com (www.netsparker.com)|52.1.25.52|:443... connected.
+HTTP request sent, awaiting response... 301 Moved Permanently
+Location: /statics/research/SVNDigger.zip [following]
+--2017-08-30 01:16:15--  https://www.netsparker.com/statics/research/SVNDigger.zip
+Reusing existing connection to www.netsparker.com:443.
+HTTP request sent, awaiting response... 200 OK
+Length: 578261 (565K) [application/x-zip-compressed]
+Saving to: 'SVNDigger.zip'
+
+SVNDigger.zip                                  0%[                                                                                             ]       0  --.-KB/s               SVNDigger.zip                                100%[============================================================================================>] 564.71K  3.20MB/s    in 0.2s    
+
+2017-08-30 01:16:15 (3.20 MB/s) - 'SVNDigger.zip' saved [578261/578261]
+

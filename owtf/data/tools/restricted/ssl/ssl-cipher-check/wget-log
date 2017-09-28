@@ -1,0 +1,11 @@
+--2017-08-30 01:16:11--  http://unspecific.com/ssl/ssl-cipher-check.pl
+Resolving unspecific.com (unspecific.com)... 66.228.54.129
+Connecting to unspecific.com (unspecific.com)|66.228.54.129|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 18460 (18K) [text/x-perl]
+Saving to: 'ssl-cipher-check.pl'
+
+ssl-cipher-check.pl                            0%[                                                                                             ]       0  --.-KB/s               ssl-cipher-check.pl                          100%[============================================================================================>]  18.03K  --.-KB/s    in 0.04s   
+
+2017-08-30 01:16:11 (431 KB/s) - 'ssl-cipher-check.pl' saved [18460/18460]
+

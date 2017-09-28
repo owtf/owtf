@@ -1,0 +1,11 @@
+--2017-08-30 01:16:14--  https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/cms-explorer/cms-explorer-1.0.tar.bz2
+Resolving storage.googleapis.com (storage.googleapis.com)... 172.217.7.208, 2607:f8b0:4004:801::2010
+Connecting to storage.googleapis.com (storage.googleapis.com)|172.217.7.208|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 176245 (172K) [application/octet-stream]
+Saving to: 'cms-explorer-1.0.tar.bz2'
+
+cms-explorer-1.0.tar.bz2                       0%[                                                                                             ]       0  --.-KB/s               cms-explorer-1.0.tar.bz2                     100%[============================================================================================>] 172.11K  1.09MB/s    in 0.2s    
+
+2017-08-30 01:16:15 (1.09 MB/s) - 'cms-explorer-1.0.tar.bz2' saved [176245/176245]
+
