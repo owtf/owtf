@@ -66,6 +66,7 @@ You will need homebrew. The working step by step command you will need to execut
  
 ```bash
  $ virtualenv <venv name>
+ $ source <venv name>/bin/activate
  $ brew install openssl
  # We need to install 'cryptography' first to avoid issues
  $ pip install cryptography --global-option=build_ext --global-option="-L/usr/local/opt/openssl/lib" --global-option="-I/usr/local/opt/openssl/include"
