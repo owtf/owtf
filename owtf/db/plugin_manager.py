@@ -315,7 +315,7 @@ class PluginDB(BaseComponent, DBPluginInterface):
         :return: Corresponding plugin codes as a list
         :rtype: `list`
         """
-        checklist = ["OWTF-", "PTES-"]
+        checklist = ["OWTF-", "PTES-", "FCUS-"]
         query = self.db.session.query(models.Plugin.code)
         for count, name in enumerate(codes):
             if all(check not in name for check in checklist):

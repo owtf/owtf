@@ -36,8 +36,24 @@ get_postgres_server_ip() {
 get_postgres_server_port() {
     echo "$(sudo netstat -lptn | grep "^tcp " | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f2)"
 }
+#!/bin/sh
 
-FILE_PATH=$(readlink -f "$0")
+TARGET=$0
+cd $(dirname "$TARGET")
+TARGET=$(basename "$TARGET")
+# Iterate down a (possible) chain of symlinks
+while [ -L "$TARGET" ]
+do
+    TARGET=$(readlink "$TARGET")
+    cd $(dirname "$TARGET")
+    TARGET=$(basename "$TARGET")
+done
+# Compute the canonicalized name by finding the physical path 
+# for the directory we're in and appending the target file.
+DIR=`pwd -P`
+RESULT="$DIR/$TARGET"
+
+FILE_PATH=$RESULT
 SCRIPTS_DIR=$(dirname "$FILE_PATH")
 RootDir=$(dirname "$SCRIPTS_DIR")
 

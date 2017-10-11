@@ -60,7 +60,7 @@ postgresql_fix() {
 
 Action=$1
 
-FILE_PATH=$(readlink -f "$0")
+FILE_PATH=$(greadlink -f "$0")
 SCRIPTS_DIR=$(dirname "$FILE_PATH")
 RootDir=$(dirname "$SCRIPTS_DIR")
 
@@ -88,10 +88,10 @@ read dummy
 
 if [ "$Action" = "init" ]
 then
-    sudo su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""
-    sudo su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""
+    psql -Upostgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass'"
+    psql -Upostgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"
 elif [ "$Action" = "clean" ]
 then
-    sudo su postgres -c "psql -c \"DROP DATABASE $db_name\""
-    sudo su postgres -c "psql -c \"DROP USER $db_user\""
+    psql -Upostgres -c "DROP DATABASE $db_name"
+    psql -Upostgres -c "DROP USER $db_user"
 fi

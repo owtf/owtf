@@ -4,8 +4,8 @@ RootDir=$1
 
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-. "$(dirname "$(readlink -f "$0")")/utils.sh"
-
+. "$(dirname "$(greadlink -f "$0")")/utils.sh"
+set -x
 get_config_value(){
 
     parameter=$1
@@ -19,7 +19,7 @@ certs_folder=$(get_config_value CERTS_FOLDER ${config_file})
 ca_cert=$(get_config_value CA_CERT ${config_file})
 ca_key=$(get_config_value CA_KEY ${config_file})
 ca_pass_file=$(get_config_value CA_PASS_FILE ${config_file})
-ca_key_pass=$(head /dev/random -c16 | od -tx1 -w16 | head -n1 | cut -d' ' -f2- | tr -d ' ')
+ca_key_pass=$(ghead /dev/random -c16 | god -tx1 -w16 | ghead -n1 | cut -d' ' -f2- | tr -d ' ')
 
 if [ ! -f ${ca_cert} ]; then
 

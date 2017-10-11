@@ -293,7 +293,7 @@ class Core(BaseComponent):
         :rtype: None
         """
         ps_command = subprocess.Popen(
-            "ps -o pid --ppid %d --noheaders" % parent_pid,
+            "pgrep -P %d" % parent_pid,
             shell=True,
             stdout=subprocess.PIPE)
         ps_output = ps_command.stdout.read()

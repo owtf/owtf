@@ -6,7 +6,19 @@
 # @param --cfg-only : Create the db.cfg file and skip postgres server setup and start
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-. "$(dirname "$(readlink -f "$0")")/utils.sh"
+set -x
+TARGET=$0
+
+cd $(dirname "$TARGET")
+TARGET=$(basename "$TARGET")
+# Compute the canonicalized name by finding the physical path 
+# for the directory we're in and appending the target file.
+DIR=`pwd -P`
+RESULT="$DIR/$TARGET"
+
+echo $RESULT
+
+. "$(dirname "$RESULT")/utils.sh"
 
 get_config_value(){
 
@@ -28,7 +40,7 @@ do
     fi
 done
 
-FILE_PATH=$(readlink -f "$0")
+FILE_PATH=$RESULT
 INSTALL_DIR=$(dirname "$FILE_PATH")
 RootDir=${RootDir:-$(dirname "$INSTALL_DIR")}
 
