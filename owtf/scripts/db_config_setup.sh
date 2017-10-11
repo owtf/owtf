@@ -6,27 +6,9 @@
 # @param --cfg-only : Create the db.cfg file and skip postgres server setup and start
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-set -x
-TARGET=$0
 
-cd $(dirname "$TARGET")
-TARGET=$(basename "$TARGET")
-# Compute the canonicalized name by finding the physical path 
-# for the directory we're in and appending the target file.
-DIR=`pwd -P`
-RESULT="$DIR/$TARGET"
-
-echo $RESULT
-
-. "$(dirname "$RESULT")/utils.sh"
-
-get_config_value(){
-
-    parameter=$1
-    file=$2
-
-    echo "$(grep -i ${parameter} ${file} | sed  "s|$parameter: ||g;s|~|$HOME|g")"
-}
+cd $(dirname "$0");SCRIPT_DIR=`pwd -P`;cd $OLDPWD
+. $SCRIPT_DIR/common.sh
 
 # Simple command line argument handler.
 cfg_only=false
@@ -40,7 +22,7 @@ do
     fi
 done
 
-FILE_PATH=$RESULT
+FILE_PATH=$($READLINK_CMD -f "$0")
 INSTALL_DIR=$(dirname "$FILE_PATH")
 RootDir=${RootDir:-$(dirname "$INSTALL_DIR")}
 
@@ -49,7 +31,7 @@ db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
 
 db_name="owtfdb"
 db_user="owtf_db_user"
-db_pass=$(head /dev/random -c8 | od -tx1 -w16 | head -n1 | cut -d' ' -f2- | tr -d ' ')
+db_pass=$($HEAD_CMD /dev/random -c8 | $OD_CMD -tx1 -w16 | $HEAD_CMD -n1 | cut -d' ' -f2- | tr -d ' ')
 
 if [ ! -f ${db_config_file} ]; then
     mkdir -p "$(dirname ${db_config_file})"
@@ -67,6 +49,7 @@ DATABASE_USER: $db_user
 DATABASE_PASS: $db_pass" >> ${db_config_file}
 
     if ${cfg_only} ; then
+        echo "${info}[*] Quitting ... config only!"
         exit 0
     fi
 
@@ -75,4 +58,7 @@ DATABASE_PASS: $db_pass" >> ${db_config_file}
     if [ choice != 'n' ]; then
         sh ${RootDir}/scripts/db_run.sh
     fi
+else
+    echo "${info}[*] '${db_config_file}'' Already exists! Nothing done."
+
 fi

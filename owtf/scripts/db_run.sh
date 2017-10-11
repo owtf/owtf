@@ -2,58 +2,11 @@
 # This script runs postgres server in very stupid ways, this script is tested
 # extensively on Kali
 
-get_config_value(){
+cd $(dirname "$0");SCRIPT_DIR=`pwd -P`;cd $OLDPWD
+. $SCRIPT_DIR/common.sh
 
-    parameter=$1
-    file=$2
 
-    echo "$(grep -i $parameter $file | sed  "s|$parameter: ||g;s|~|$HOME|g")"
-}
-
-get_db_config_file(){
-
-    config_file=$1
-    db_config_file=$2
-
-    default_db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
-    if [ -f "$default_db_config_file" ]; then
-        echo "$default_db_config_file"
-        return 0
-    fi
-    if [ -f "$db_config_file" ]; then
-        echo "$db_config_file"
-        return 0
-    fi
-    echo "Default file "$default_db_config_file" does not exist" >&2
-    echo "Rerun script with path parameter. Usage : $0 [db_config_file_path]" >&2
-    return 1
-}
-
-get_postgres_server_ip() {
-    echo "$(sudo netstat -lptn | grep "^tcp " | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f1)"
-}
-
-get_postgres_server_port() {
-    echo "$(sudo netstat -lptn | grep "^tcp " | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f2)"
-}
-#!/bin/sh
-
-TARGET=$0
-cd $(dirname "$TARGET")
-TARGET=$(basename "$TARGET")
-# Iterate down a (possible) chain of symlinks
-while [ -L "$TARGET" ]
-do
-    TARGET=$(readlink "$TARGET")
-    cd $(dirname "$TARGET")
-    TARGET=$(basename "$TARGET")
-done
-# Compute the canonicalized name by finding the physical path 
-# for the directory we're in and appending the target file.
-DIR=`pwd -P`
-RESULT="$DIR/$TARGET"
-
-FILE_PATH=$RESULT
+FILE_PATH=$($READLINK_CMD -f "$0")
 SCRIPTS_DIR=$(dirname "$FILE_PATH")
 RootDir=$(dirname "$SCRIPTS_DIR")
 
@@ -76,7 +29,7 @@ postgres_server_ip=$(get_postgres_server_ip)
 postgres_server_port=$(get_postgres_server_port)
 
 # PostgreSQL version
-postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | sed 's/\./ /g' | awk '{print $1 "." $2}')"
+postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | $SED_CMD 's/\./ /g' | awk '{print $1 "." $2}')"
 
 if [ -z "$postgres_server_ip" ]; then
     echo "[+] PostgreSQL server is not running."
@@ -121,15 +74,15 @@ postgres_server_ips=$(get_postgres_server_ip)
 postgres_server_ports=$(get_postgres_server_port)
 
 if test "${postgres_server_ips#*$saved_server_ip}" = "$postgres_server_ips" || test "${postgres_server_ports#*$saved_server_port}" = "$postgres_server_ports"; then
-    postgres_server_ip=$(echo $postgres_server_ips | sed 's/ .*//')
-    postgres_server_port=$(echo $postgres_server_ports | sed 's/ .*//')
+    postgres_server_ip=$(echo $postgres_server_ips | $SED_CMD 's/ .*//')
+    postgres_server_port=$(echo $postgres_server_ports | $SED_CMD 's/ .*//')
     echo "[+] Postgres running on $postgres_server_ip:$postgres_server_port"
     echo "[+] OWTF db config points towards $saved_server_ip:$saved_server_port"
     echo "[+] Do you want us to save the new settings for OWTF? [Y/n]"
     read choice
     if [ "$choice" != "n" ]; then
-        sed -i "/DATABASE_IP/s/$saved_server_ip/$postgres_server_ip/" $db_config_file
-        sed -i "/DATABASE_PORT/s/$saved_server_port/$postgres_server_port/" $db_config_file
+        $SED_CMD -i "/DATABASE_IP/s/$saved_server_ip/$postgres_server_ip/" $db_config_file
+        $SED_CMD -i "/DATABASE_PORT/s/$saved_server_port/$postgres_server_port/" $db_config_file
         echo "[+] New database configuration saved"
     fi
 fi

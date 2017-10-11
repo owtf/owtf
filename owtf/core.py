@@ -292,8 +292,12 @@ class Core(BaseComponent):
         :return:
         :rtype: None
         """
+        if sys.platform == 'darwin':
+            base_cmd = "pgrep -P %d"
+        else:
+            base_cmd = "ps -o pid --ppid %d --noheaders"
         ps_command = subprocess.Popen(
-            "pgrep -P %d" % parent_pid,
+            base_cmd % parent_pid,
             shell=True,
             stdout=subprocess.PIPE)
         ps_output = ps_command.stdout.read()

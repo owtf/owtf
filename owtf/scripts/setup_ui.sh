@@ -3,7 +3,8 @@
 # This script install the node dependencies listed in package.json and build the bundle file using webpack.
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-. "$(dirname "$(readlink -f "$0")")/utils.sh"
+cd $(dirname "$0");SCRIPT_DIR=`pwd -P`;cd $OLDPWD
+. $SCRIPT_DIR/common.sh
 
 # Download community written templates for export report functionality.
 if [ ! -d "${1}/webui/src/Report/templates" ]; then

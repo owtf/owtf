@@ -4,22 +4,15 @@ RootDir=$1
 
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-. "$(dirname "$(greadlink -f "$0")")/utils.sh"
-set -x
-get_config_value(){
-
-    parameter=$1
-    file=$2
-
-    echo "$(grep -i ${parameter} ${file} | sed  "s|$parameter: ||g;s|~|$HOME|g")"
-}
+cd $(dirname "$0");SCRIPT_DIR=`pwd -P`;cd $OLDPWD
+. $SCRIPT_DIR/common.sh
 
 config_file="$RootDir/conf/general.cfg"
 certs_folder=$(get_config_value CERTS_FOLDER ${config_file})
 ca_cert=$(get_config_value CA_CERT ${config_file})
 ca_key=$(get_config_value CA_KEY ${config_file})
 ca_pass_file=$(get_config_value CA_PASS_FILE ${config_file})
-ca_key_pass=$(ghead /dev/random -c16 | god -tx1 -w16 | ghead -n1 | cut -d' ' -f2- | tr -d ' ')
+ca_key_pass=$($HEAD_CMD /dev/random -c16 | $OD_CMD -tx1 -w16 | $HEAD_CMD -n1 | cut -d' ' -f2- | tr -d ' ')
 
 if [ ! -f ${ca_cert} ]; then
 
@@ -37,4 +30,6 @@ if [ ! -f ${ca_cert} ]; then
     openssl genrsa -des3 -passout pass:${ca_key_pass} -out "$ca_key" 4096
     openssl req -new -x509 -days 3650 -subj "/C=US/ST=Pwnland/L=OWASP/O=OWTF/CN=MiTMProxy" -passin pass:${ca_key_pass} -key "$ca_key" -out "$ca_cert"
     echo "${warning}[!] Don't forget to add the $ca_cert as a trusted CA in your browser${reset}"
+else
+    echo "${info}[*] '${ca_cert}' already exists. Nothing done."
 fi
