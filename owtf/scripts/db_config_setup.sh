@@ -29,11 +29,21 @@ RootDir=${RootDir:-$(dirname "$INSTALL_DIR")}
 config_file="$RootDir/conf/framework.cfg"
 db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
 
-db_name="owtfdb"
-db_user="owtf_db_user"
-db_pass=$($HEAD_CMD /dev/random -c8 | $OD_CMD -tx1 -w16 | $HEAD_CMD -n1 | cut -d' ' -f2- | tr -d ' ')
+default_db_name="owtfdb"
+default_db_user="owtf_db_user"
+default_db_pass=$($HEAD_CMD /dev/random -c8 | $OD_CMD -tx1 -w16 | $HEAD_CMD -n1 | cut -d' ' -f2- | tr -d ' ')
 
 if [ ! -f ${db_config_file} ]; then
+    echo "${info}[*] Please enter the database name ($default_db_name):" 
+    read db_name
+    db_name=${db_name:-$default_db_name}
+    echo "${info}[*] Please enter the user name ($default_db_user):" 
+    read db_user
+    db_user=${db_user:-$default_db_user}
+    echo "${info}[*] Please enter the database password (<random generated>):" 
+    read db_pass
+    db_pass=${db_pass:-$default_db_pass}
+    
     mkdir -p "$(dirname ${db_config_file})"
     echo "${info}[*] Creating default config at $db_config_file${reset}"
     echo "${warning}[!] Don't forget to edit $db_config_file${reset}"
@@ -60,5 +70,4 @@ DATABASE_PASS: $db_pass" >> ${db_config_file}
     fi
 else
     echo "${info}[*] '${db_config_file}'' Already exists! Nothing done."
-
 fi

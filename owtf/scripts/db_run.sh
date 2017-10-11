@@ -32,8 +32,8 @@ postgres_server_port=$(get_postgres_server_port)
 postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | $SED_CMD 's/\./ /g' | awk '{print $1 "." $2}')"
 
 if [ -z "$postgres_server_ip" ]; then
-    echo "[+] PostgreSQL server is not running."
-    echo "[+] Can I start db server for you? [Y/n]"
+    echo "${info}[+] PostgreSQL server is not running."
+    echo "${info}[+] Can I start db server for you? [Y/n]"
     read choice
     if [ "$choice" != "n" ]; then
         sudo which service  >> /dev/null 2>&1
@@ -49,24 +49,26 @@ if [ -z "$postgres_server_ip" ]; then
             sudo systemctl status postgresql | grep -q "Active: active"
             status_exitcode="$?"
         elif [ "$systemctl_bin" != "0" ] && [ "$service_bin" != "0" ]; then
-            echo "[+] Using pg_ctlcluster to start the server."
+            echo "${info}[+] Using pg_ctlcluster to start the server."
             sudo pg_ctlcluster ${postgres_version} main start
         else
-            echo "[+] We couldn't determine how to start the postgres server, please start it and rerun this script"
+            echo "${info}[+] We couldn't determine how to start the postgres server, please start it and rerun this script"
             exit 1
         fi
         if [ "$status_exitcode" != "0" ]; then
-            echo "[+] Starting failed because postgreSQL service is not available!"
-            echo "[+] Run # sh scripts/start_postgres.sh and rerun this script"
+            echo "${info}[+] Starting failed because postgreSQL service is not available!"
+            echo "${info}[+] Run # sh scripts/start_postgres.sh and rerun this script"
             exit 1
         fi
     else
-        echo "[+] On DEBIAN based distro [i.e Kali, Ubuntu etc..]"
+        echo "${info}[+] On DEBIAN based distro [i.e Kali, Ubuntu etc..]"
         echo "          sudo service postgresql start"
-        echo "[+] On RPM based distro [i.e Fedora etc..]"
+        echo "${info}[+] On RPM based distro [i.e Fedora etc..]"
         echo "          sudo systemctl start postgresql"
         exit 1
     fi
+else
+    echo "${info}[+] PostgreSQL server is running ${postgres_server_ip}:${postgres_server_port} :)"
 fi
 
 # Refresh postgres settings
@@ -76,22 +78,23 @@ postgres_server_ports=$(get_postgres_server_port)
 if test "${postgres_server_ips#*$saved_server_ip}" = "$postgres_server_ips" || test "${postgres_server_ports#*$saved_server_port}" = "$postgres_server_ports"; then
     postgres_server_ip=$(echo $postgres_server_ips | $SED_CMD 's/ .*//')
     postgres_server_port=$(echo $postgres_server_ports | $SED_CMD 's/ .*//')
-    echo "[+] Postgres running on $postgres_server_ip:$postgres_server_port"
-    echo "[+] OWTF db config points towards $saved_server_ip:$saved_server_port"
-    echo "[+] Do you want us to save the new settings for OWTF? [Y/n]"
+    echo "${info}[+] Postgres running on $postgres_server_ip:$postgres_server_port"
+    echo "${info}[+] OWTF db config points towards $saved_server_ip:$saved_server_port"
+    echo "${info}[+] Do you want us to save the new settings for OWTF? [Y/n]"
     read choice
     if [ "$choice" != "n" ]; then
         $SED_CMD -i "/DATABASE_IP/s/$saved_server_ip/$postgres_server_ip/" $db_config_file
         $SED_CMD -i "/DATABASE_PORT/s/$saved_server_port/$postgres_server_port/" $db_config_file
-        echo "[+] New database configuration saved"
+        echo "${info}[+] New database configuration saved"
     fi
 fi
-
-check_owtf_db=$(sudo su - postgres -c "psql -l | grep -w $saved_server_dbname | grep -w $saved_server_user | wc -l")
+check_owtf_db=$(postgresql_check_db)
 if [ "$check_owtf_db" = "0" ]; then
-    echo "[+] The problem seems to be the user role and db mentioned in $db_config_file. Do you want us to create them? [Y/n]"
+    echo "${info}[+] The problem seems to be the user role and db mentioned in $db_config_file. Do you want us to create them? [Y/n]"
     read choice
     if [ "$choice" != "n" ]; then
         sh $RootDir/scripts/db_setup.sh init
     fi
+else
+    echo "${info}[+] User role and db mentioned in $db_config_file are setup correctly."
 fi

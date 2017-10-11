@@ -79,6 +79,7 @@ def install_restricted_from_cfg(config_file):
     cp.read(config_file)
     for section in cp.sections():
         logging.info("[*] Installing %s" % section)
+        print "Section: " + section
         install_in_directory(os.path.expanduser(cp.get(section, "directory")), cp.get(section, "command"))
 
 
@@ -127,7 +128,7 @@ if __name__ == "__main__":
     restricted_cfg = os.path.join(root_dir, "install", "install.cfg")
     print("[*] Great that you are installing OWTF :D")
     print("[!] There will be lot of output, please be patient")
-    check_sudo()
+    if not sys.platform == 'darwin': check_sudo()
     install_restricted_from_cfg(restricted_cfg)
     print("[*] Finished!")
     print("[*] Start OWTF by running 'cd path/to/pentest/directory; python -m owtf'")

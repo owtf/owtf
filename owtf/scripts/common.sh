@@ -81,5 +81,9 @@ postgresql_drop_db() {
   sudo su postgres -c "psql -c \"DROP DATABASE $db_name\""
 }
 
+postgresql_check_db() {
+  sudo su - postgres -c "psql -l | grep -w $saved_server_dbname | grep -w $saved_server_user | wc -l"
+}
+
 
 . $SCRIPT_DIR/platform_config.sh

@@ -41,9 +41,13 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 	postgresql_drop_user() {
 	 	psql -Upostgres -c "DROP USER $db_user"
 	}
-	
+
 	postgresql_drop_db() {
 		psql -Upostgres -c "DROP DATABASE $db_name"
+	}
+
+	postgresql_check_db() {
+	  	psql -l | grep -w $saved_server_dbname | grep -w $saved_server_user | wc -l
 	}
 
 fi
