@@ -58,6 +58,27 @@ To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker** install
   ```
  - Open `localhost:8009` for OWTF web interface.
 
+## Install on OSX
+
+You can also install OWTF directly on OSX
+
+You will need homebrew. The working step by step command you will need to execute
+ 
+```bash
+ $ virtualenv <venv name>
+ $ brew install openssl
+ # We need to install 'cryptography' first to avoid issues
+ $ pip install cryptography --global-option=build_ext --global-option="-L/usr/local/opt/openssl/lib" --global-option="-I/usr/local/opt/openssl/include"
+ $ git clone <this repo>
+ $ cd owtf
+ $ python setup.py install
+ # Run OWTF!
+ $ python -m owtf
+```
+
+You will have to fix the tools binaries directories in `~/.owtf/conf/general.cfg` first.
+
+
 Features
 ===
 
