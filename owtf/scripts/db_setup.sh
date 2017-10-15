@@ -22,7 +22,7 @@ fi
 
 Action=$1
 
-FILE_PATH=$(greadlink -f "$0")
+FILE_PATH=$($READLINK_CMD -f "$0")
 SCRIPTS_DIR=$(dirname "$FILE_PATH")
 RootDir=$(dirname "$SCRIPTS_DIR")
 
