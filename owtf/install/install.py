@@ -104,13 +104,14 @@ def copy_dirs(dir):
     :rtype: None
     """
 
-    # Create the directory and copy the contents over
+    src_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     dest_root = os.path.join(os.path.expanduser('~'), '.owtf')
     target_src_dir = os.path.join(src_root, dir)
     target_dest_dir = os.path.join(dest_root, dir)
 
     # check if already exists
     if not os.path.isdir(target_dest_dir):
+        # Create the directory and copy the contents over
         create_directory(target_dest_dir)
         dir_util.copy_tree(target_src_dir, target_dest_dir)
 
