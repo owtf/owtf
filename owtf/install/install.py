@@ -79,7 +79,6 @@ def install_restricted_from_cfg(config_file):
     cp.read(config_file)
     for section in cp.sections():
         logging.info("[*] Installing %s" % section)
-        print "Section: " + section
         install_in_directory(os.path.expanduser(cp.get(section, "directory")), cp.get(section, "command"))
 
 
@@ -104,13 +103,16 @@ def copy_dirs(dir):
     :return: None
     :rtype: None
     """
-    dest_root = os.path.join(os.path.expanduser('~'), '.owtf')
-    src_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
     # Create the directory and copy the contents over
-    create_directory(os.path.join(dest_root, dir))
-    dir_util.copy_tree(os.path.join(src_root, dir), os.path.join(dest_root, dir))
+    dest_root = os.path.join(os.path.expanduser('~'), '.owtf')
+    target_src_dir = os.path.join(src_root, dir)
+    target_dest_dir = os.path.join(dest_root, dir)
 
+    # check if already exists
+    if not os.path.isdir(target_dest_dir):
+        create_directory(target_dest_dir)
+        dir_util.copy_tree(target_src_dir, target_dest_dir)
 
 if __name__ == "__main__":
     root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
