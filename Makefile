@@ -12,11 +12,19 @@ endif
 
 db-clean:
 	@echo "--> Dropping the database"
-	-echo '\n' | sh owtf/scripts/db_setup.sh clean
+	@sh owtf/scripts/db_setup.sh clean
 
 db-init:
 	@echo "--> Initializing the database"
-	-echo '\n' | sh owtf/scripts/db_setup.sh init
+	@sh owtf/scripts/db_setup.sh init
+
+db-run:
+	@echo "--> Initializing the database"
+	@sh owtf/scripts/db_run.sh
+
+db-config:
+	@echo "--> Initializing the database"
+	@sh owtf/scripts/db_config_setup.sh
 
 reset-db: db-clean db-init
 

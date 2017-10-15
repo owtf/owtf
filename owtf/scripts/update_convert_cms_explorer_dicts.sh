@@ -3,7 +3,8 @@
 
 
 # bring in the variables: `normal`, `info`, `warning`, `danger`, `reset`, `user-agent`
-. "$(dirname "$(readlink -f "$0")")/utils.sh"
+cd $(dirname "$0");SCRIPT_DIR=`pwd -P`;cd $OLDPWD
+. $SCRIPT_DIR/common.sh
 
 RootDir=$1
 SOURCE_DIR="$RootDir/tools/restricted/cms-explorer"
