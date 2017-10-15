@@ -60,9 +60,8 @@ To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker** install
 
 ## Install on OSX
 
-You can also install OWTF directly on OSX
+Dependencies: Install homebrew (https://brew.sh/) and follow the steps given below:
 
-You will need homebrew. The working step by step command you will need to execute
  
 ```bash
  $ virtualenv <venv name>
@@ -77,7 +76,7 @@ You will need homebrew. The working step by step command you will need to execut
  $ python -m owtf
 ```
 
-You will have to fix the tools binaries directories in `~/.owtf/conf/general.cfg` first.
+In order to run the tools, install them and point the OWTF config `~/.owtf/conf/general.cfg` to the correct locations.
 
 
 Features
