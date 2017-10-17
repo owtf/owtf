@@ -15,7 +15,7 @@ pyasn1==0.3.2
 pexpect==4.2.1
 psutil==5.3.1
 psycopg2==2.7.1
-PTP==0.4.1
+PTP==0.4.2
 pycurl==7.43.0
 pyOpenSSL==17.2.0
 PyVirtualDisplay==0.2.1

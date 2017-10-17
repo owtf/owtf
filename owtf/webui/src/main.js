@@ -1,3 +1,8 @@
+// FIXME: following line of code generates /font folder
+// there are better ways of doing this but whitout this
+// font-awesome is not being loaded in a fresh install
+import "font-awesome/css/font-awesome.css";
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Home from './Home/Home.jsx';
