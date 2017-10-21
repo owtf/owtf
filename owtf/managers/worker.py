@@ -10,6 +10,7 @@ import signal
 import subprocess
 import logging
 import multiprocessing
+import psutil
 try:
     import queue
 except ImportError:
@@ -85,8 +86,9 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         :rtype: `dict`
         """
         work = None
-        free_mem = self.shell.shell_exec("free -m | grep Mem | sed 's/  */#/g' | cut -f 4 -d#")
-        if int(free_mem) > int(self.db_config.get('MIN_RAM_NEEDED')):
+
+        avail = psutil.virtual_memory().available
+        if int(avail/1024/1024) > int(self.db_config.get('MIN_RAM_NEEDED')):
             work = self.db.worklist.get_work(self.targets_in_use())
         else:
             logging.warn("Not enough memory to execute a plugin")

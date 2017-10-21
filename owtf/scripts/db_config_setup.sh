@@ -6,15 +6,9 @@
 # @param --cfg-only : Create the db.cfg file and skip postgres server setup and start
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-. "$(dirname "$(readlink -f "$0")")/utils.sh"
 
-get_config_value(){
-
-    parameter=$1
-    file=$2
-
-    echo "$(grep -i ${parameter} ${file} | sed  "s|$parameter: ||g;s|~|$HOME|g")"
-}
+cd $(dirname "$0");SCRIPT_DIR=`pwd -P`;cd $OLDPWD
+. $SCRIPT_DIR/common.sh
 
 # Simple command line argument handler.
 cfg_only=false
@@ -28,18 +22,28 @@ do
     fi
 done
 
-FILE_PATH=$(readlink -f "$0")
+FILE_PATH=$($READLINK_CMD -f "$0")
 INSTALL_DIR=$(dirname "$FILE_PATH")
 RootDir=${RootDir:-$(dirname "$INSTALL_DIR")}
 
 config_file="$RootDir/conf/framework.cfg"
 db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
 
-db_name="owtfdb"
-db_user="owtf_db_user"
-db_pass=$(head /dev/random -c8 | od -tx1 -w16 | head -n1 | cut -d' ' -f2- | tr -d ' ')
+default_db_name="owtfdb"
+default_db_user="owtf_db_user"
+default_db_pass=$($HEAD_CMD /dev/random -c8 | $OD_CMD -tx1 -w16 | $HEAD_CMD -n1 | cut -d' ' -f2- | tr -d ' ')
 
 if [ ! -f ${db_config_file} ]; then
+    echo "${info}[*] Please enter the database name ($default_db_name):" 
+    read db_name
+    db_name=${db_name:-$default_db_name}
+    echo "${info}[*] Please enter the user name ($default_db_user):" 
+    read db_user
+    db_user=${db_user:-$default_db_user}
+    echo "${info}[*] Please enter the database password (<random generated>):" 
+    read db_pass
+    db_pass=${db_pass:-$default_db_pass}
+    
     mkdir -p "$(dirname ${db_config_file})"
     echo "${info}[*] Creating default config at $db_config_file${reset}"
     echo "${warning}[!] Don't forget to edit $db_config_file${reset}"
@@ -55,6 +59,7 @@ DATABASE_USER: $db_user
 DATABASE_PASS: $db_pass" >> ${db_config_file}
 
     if ${cfg_only} ; then
+        echo "${info}[*] Quitting ... config only!"
         exit 0
     fi
 
@@ -63,4 +68,6 @@ DATABASE_PASS: $db_pass" >> ${db_config_file}
     if [ choice != 'n' ]; then
         sh ${RootDir}/scripts/db_run.sh
     fi
+else
+    echo "${info}[*] '${db_config_file}'' Already exists! Nothing done."
 fi

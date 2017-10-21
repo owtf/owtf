@@ -166,7 +166,7 @@ class DB(BaseComponent, DBInterface):
             self.error_handler.abort_framework("Incomplete database configuration settings in %s" %
                                                self.config.get_val('DATABASE_SETTINGS_FILE'))
         except exc.OperationalError as e:
-            self.error_handler.abort_framework("[DB] %s\nRun scripts/db_run.sh to start/setup db" % str(e))
+            self.error_handler.abort_framework("[DB] %s\nRun 'make db-run' to start/setup db" % str(e))
 
     def create_scoped_session(self):
         """Scoped session for the main OWTF process

@@ -103,13 +103,17 @@ def copy_dirs(dir):
     :return: None
     :rtype: None
     """
-    dest_root = os.path.join(os.path.expanduser('~'), '.owtf')
+
     src_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    dest_root = os.path.join(os.path.expanduser('~'), '.owtf')
+    target_src_dir = os.path.join(src_root, dir)
+    target_dest_dir = os.path.join(dest_root, dir)
 
-    # Create the directory and copy the contents over
-    create_directory(os.path.join(dest_root, dir))
-    dir_util.copy_tree(os.path.join(src_root, dir), os.path.join(dest_root, dir))
-
+    # check if already exists
+    if not os.path.isdir(target_dest_dir):
+        # Create the directory and copy the contents over
+        create_directory(target_dest_dir)
+        dir_util.copy_tree(target_src_dir, target_dest_dir)
 
 if __name__ == "__main__":
     root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -127,7 +131,7 @@ if __name__ == "__main__":
     restricted_cfg = os.path.join(root_dir, "install", "install.cfg")
     print("[*] Great that you are installing OWTF :D")
     print("[!] There will be lot of output, please be patient")
-    check_sudo()
+    if not sys.platform == 'darwin': check_sudo()
     install_restricted_from_cfg(restricted_cfg)
     print("[*] Finished!")
     print("[*] Start OWTF by running 'cd path/to/pentest/directory; python -m owtf'")

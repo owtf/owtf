@@ -3,14 +3,14 @@
 # This script install the node dependencies listed in package.json and build the bundle file using webpack.
 
 # bring in the color variables: `normal`, `info`, `warning`, `danger`, `reset`
-. "$(dirname "$(readlink -f "$0")")/utils.sh"
+cd $(dirname "$0");SCRIPT_DIR=`pwd -P`;cd $OLDPWD
+. $SCRIPT_DIR/common.sh
 
 # Download community written templates for export report functionality.
 if [ ! -d "${1}/webui/src/Report/templates" ]; then
     echo "${warning} Templates not found, fetching the latest ones...${reset}"
     git clone https://github.com/owtf/templates.git "$1/webui/src/Report/templates"
 fi
-
 # Instead of using apt-get to install npm we will nvm to install npm because apt-get installs older-version of node
 echo "${normal}[*] Installing npm using nvm.${reset}"
 wget https://raw.githubusercontent.com/creationix/nvm/v0.31.1/install.sh -O /tmp/install_nvm.sh

@@ -4,11 +4,11 @@
  */
 
 /* Importing font-awesome */
-$fa-font-path: "~/static/build/fonts"; // Path of
+$fa-font-path: "/static/build/fonts"; // Path of
 @import "~font-awesome/scss/font-awesome.scss";
 
 /* Importing bootstrap */
-$icon-font-path: "~/static/build/fonts";
+$icon-font-path: "/static/build/fonts";
 @import "~bootstrap-sass/assets/stylesheets/_bootstrap.scss";
 
 @import "vendor/dataTables.bootstrap.scss";
