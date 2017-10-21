@@ -1,16 +1,0 @@
---2017-08-30 01:16:16--  https://github.com/fuzzdb-project/fuzzdb/archive/master.zip
-Resolving github.com (github.com)... 192.30.253.113, 192.30.253.112
-Connecting to github.com (github.com)|192.30.253.113|:443... connected.
-HTTP request sent, awaiting response... 302 Found
-Location: https://codeload.github.com/fuzzdb-project/fuzzdb/zip/master [following]
---2017-08-30 01:16:16--  https://codeload.github.com/fuzzdb-project/fuzzdb/zip/master
-Resolving codeload.github.com (codeload.github.com)... 192.30.253.120, 192.30.253.121
-Connecting to codeload.github.com (codeload.github.com)|192.30.253.120|:443... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: unspecified [application/zip]
-Saving to: 'master.zip'
-
-master.zip                                       [<=>                                                                                          ]       0  --.-KB/s               master.zip                                       [ <=>                                                                                         ] 656.73K  3.20MB/s               master.zip                                       [  <=>                                                                                        ]   1.61M  4.03MB/s               master.zip                                       [   <=>                                                                                       ]   2.64M  4.39MB/s               master.zip                                       [    <=>                                                                                      ]   3.70M  4.62MB/s               master.zip                                       [     <=>                                                                                     ]   4.67M  4.67MB/s               master.zip                                       [      <=>                                                                                    ]   5.57M  4.74MB/s    in 1.2s    
-
-2017-08-30 01:16:18 (4.74 MB/s) - 'master.zip' saved [5835788]
-

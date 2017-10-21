@@ -1,1 +1,0 @@
-/owtf/owtf/dictionaries/fuzzdb/fuzzdb-master/discovery/predictable-filepaths/filename-dirname-bruteforce/raft-medium-extensions-lowercase.txt
