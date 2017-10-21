@@ -16,9 +16,9 @@ from owtf.managers.config import ConfigDB
 from owtf.managers.error import ErrorDB
 from owtf.managers.mapping import MappingDB
 from owtf.managers.plugin import PluginDB
-from owtf.managers.plugin import PluginHandler
-from owtf.managers.plugin import PluginHelper
-from owtf.managers.plugin import PluginParams
+from owtf.plugin.plugin_handler import PluginHandler
+from owtf.plugin.plugin_helper import PluginHelper
+from owtf.plugin.plugin_params import PluginParams
 from owtf.managers.poutput import POutputDB
 from owtf.managers.resource import ResourceDB
 from owtf.managers.session import OWTFSessionDB
