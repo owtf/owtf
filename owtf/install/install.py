@@ -104,7 +104,7 @@ def copy_dirs(dir):
     :rtype: None
     """
 
-    src_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    src_root = os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data'))
     dest_root = os.path.join(os.path.expanduser('~'), '.owtf')
     target_src_dir = os.path.join(src_root, dir)
     target_dest_dir = os.path.join(dest_root, dir)
