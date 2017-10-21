@@ -95,7 +95,7 @@ def is_debian_derivative():
         return True
 
 
-def copy_dirs(root_dir, dir):
+def copy_dirs(dir):
     """Copy directories with error handling to ~/.owtf
 
     :param src: directory to copy
@@ -104,17 +104,17 @@ def copy_dirs(root_dir, dir):
     :rtype: None
     """
 
-    src_root = os.path.dirname(os.path.join(root_dir, 'data'))
+    src_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     dest_root = os.path.join(os.path.expanduser('~'), '.owtf')
     target_src_dir = os.path.join(src_root, dir)
     target_dest_dir = os.path.join(dest_root, dir)
-    print target_dest_dir, target_src_dir
 
     # check if already exists
     if not os.path.isdir(target_dest_dir):
         # Create the directory and copy the contents over
         create_directory(target_dest_dir)
         dir_util.copy_tree(target_src_dir, target_dest_dir)
+
 
 if __name__ == "__main__":
     root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -124,9 +124,9 @@ if __name__ == "__main__":
     scripts_path = os.path.join(root_dir, "scripts")
 
     # Copy all necessary directories
-    copy_dirs(root_dir, 'conf')
-    copy_dirs(root_dir, 'tools')
-    copy_dirs(root_dir, 'dictionaries')
+    copy_dirs('data/conf')
+    copy_dirs('data/tools')
+    copy_dirs('data/dictionaries')
 
     # Restricted tools and dictionaries
     restricted_cfg = os.path.join(root_dir, "install", "install.cfg")
