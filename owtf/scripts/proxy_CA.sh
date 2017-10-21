@@ -7,7 +7,7 @@ RootDir=$1
 cd $(dirname "$0");SCRIPT_DIR=`pwd -P`;cd $OLDPWD
 . $SCRIPT_DIR/common.sh
 
-config_file="$RootDir/conf/general.cfg"
+config_file="$RootDir/data/conf/general.cfg"
 certs_folder=$(get_config_value CERTS_FOLDER ${config_file})
 ca_cert=$(get_config_value CA_CERT ${config_file})
 ca_key=$(get_config_value CA_KEY ${config_file})

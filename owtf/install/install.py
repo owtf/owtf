@@ -14,20 +14,7 @@ except ImportError:
     import ConfigParser as parser
 from distutils import dir_util
 
-
-def create_directory(directory):
-    """Create parent directories as necessary.
-    :param directory: (~str) Path of directory to be made.
-    :return: True - if directory is created, and False - if not.
-    """
-    try:
-        os.makedirs(directory)
-        return True
-    except OSError:
-        # Checks if the folder is empty
-        if not os.listdir(directory):
-            return True
-        return False
+from owtf.utils import FileOperations
 
 
 def run_command(command):
@@ -61,7 +48,7 @@ def install_in_directory(directory, command):
     :param command: (~str) Linux shell command (most likely `wget` here)
     :return: True - if installation successful or directory already exists, and False if not.
     """
-    if create_directory(directory):
+    if FileOperations.create_missing_dirs(directory):
         logging.info("[*] Switching to %s" % directory)
         os.chdir(directory)
         return run_command(command)
@@ -95,7 +82,7 @@ def is_debian_derivative():
         return True
 
 
-def copy_dirs(dir):
+def copy_dirs(root, dir):
     """Copy directories with error handling to ~/.owtf
 
     :param src: directory to copy
@@ -104,16 +91,12 @@ def copy_dirs(dir):
     :rtype: None
     """
 
-    src_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     dest_root = os.path.join(os.path.expanduser('~'), '.owtf')
-    target_src_dir = os.path.join(src_root, dir)
+    target_src_dir = os.path.join(root, 'data', dir)
     target_dest_dir = os.path.join(dest_root, dir)
-
     # check if already exists
-    if not os.path.isdir(target_dest_dir):
-        # Create the directory and copy the contents over
-        create_directory(target_dest_dir)
-        dir_util.copy_tree(target_src_dir, target_dest_dir)
+    FileOperations.create_missing_dirs(target_dest_dir)
+    dir_util.copy_tree(target_src_dir, target_dest_dir)
 
 
 if __name__ == "__main__":
@@ -124,9 +107,9 @@ if __name__ == "__main__":
     scripts_path = os.path.join(root_dir, "scripts")
 
     # Copy all necessary directories
-    copy_dirs('data/conf')
-    copy_dirs('data/tools')
-    copy_dirs('data/dictionaries')
+    copy_dirs(root_dir, 'conf')
+    copy_dirs(root_dir, 'tools')
+    copy_dirs(root_dir, 'dictionaries')
 
     # Restricted tools and dictionaries
     restricted_cfg = os.path.join(root_dir, "install", "install.cfg")

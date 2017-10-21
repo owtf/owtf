@@ -7,7 +7,7 @@ cd $(dirname "$0");SCRIPT_DIR=`pwd -P`;cd $OLDPWD
 . $SCRIPT_DIR/common.sh
 
 RootDir=$1
-SOURCE_DIR="$RootDir/tools/restricted/cms-explorer"
+SOURCE_DIR="${HOME}/.owtf/tools/restricted/cms-explorer"
 
 if [ ! -d "$SOURCE_DIR" ]; then
   wget --user-agent="${user_agent}" --tries=3 http://cms-explorer.googlecode.com/files/cms-explorer-1.0.tar.bz2; bunzip2 *; tar xvf *; rm -f *.tar 2> /dev/null

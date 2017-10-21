@@ -10,7 +10,7 @@ FILE_PATH=$($READLINK_CMD -f "$0")
 SCRIPTS_DIR=$(dirname "$FILE_PATH")
 RootDir=$(dirname "$SCRIPTS_DIR")
 
-config_file="$RootDir/conf/framework.cfg"
+config_file="$RootDir/data/conf/framework.cfg"
 db_config_file="$(get_db_config_file $config_file $1)"
 
 if [ ! -f "$db_config_file" ]; then

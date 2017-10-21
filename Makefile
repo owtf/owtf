@@ -127,6 +127,7 @@ clean-py:
 	@echo "--> Removing Python bytecode files."
 	find . -name '__pycache__' -delete  # Python 3
 	find . -name '*.py[co]' -delete  # Python 2
+	rm -rf build/
 
 clean-js:
 	@echo "--> Removing JavaScript build output."
