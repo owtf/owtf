@@ -15,7 +15,6 @@ from tornado.template import Loader
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.interfaces import ReporterInterface
-from owtf.interface.html.filter import sanitiser
 
 
 class Reporter(BaseComponent, ReporterInterface):
@@ -30,7 +29,6 @@ class Reporter(BaseComponent, ReporterInterface):
         self.plugin_handler = self.get_component("plugin_handler")
         self.requester = None
         self.Init = False
-        self.Sanitiser = sanitiser.HTMLSanitiser()
         self.Loader = Loader(self.config.get_val('POUTPUT_TEMPLATES_DIR'))
         self.mNumLinesToShow = 15
         self.CounterList = []
@@ -60,9 +58,6 @@ class Reporter(BaseComponent, ReporterInterface):
             return str(*args)
         except TypeError:
             return args[0]  # Input is already Unicode
-
-    def sanitize_html(self, RawHTML):
-        return self.Sanitiser.CleanThirdPartyHTML(RawHTML)
 
     def reset_loader(self):
         return self.Loader.reset()
