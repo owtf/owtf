@@ -17,6 +17,20 @@ from distutils import dir_util
 from owtf.utils import FileOperations
 
 
+def create_directory(directory):
+    """Create parent directories as necessary.
+    :param directory: (~str) Path of directory to be made.
+    :return: True - if directory is created, and False - if not.
+    """
+    try:
+        os.makedirs(directory)
+        return True
+    except OSError:
+        # Checks if the folder is empty
+        if not os.listdir(directory):
+            return True
+        return False
+
 def run_command(command):
     """Execute the provided shell command.
     :param command: (~str) Linux shell command.
@@ -48,7 +62,7 @@ def install_in_directory(directory, command):
     :param command: (~str) Linux shell command (most likely `wget` here)
     :return: True - if installation successful or directory already exists, and False if not.
     """
-    if FileOperations.create_missing_dirs(directory):
+    if create_directory(directory):
         logging.info("[*] Switching to %s" % directory)
         os.chdir(directory)
         return run_command(command)
@@ -115,7 +129,8 @@ if __name__ == "__main__":
     restricted_cfg = os.path.join(root_dir, "install", "install.cfg")
     print("[*] Great that you are installing OWTF :D")
     print("[!] There will be lot of output, please be patient")
-    if not sys.platform == 'darwin': check_sudo()
+    if not sys.platform == 'darwin':
+        check_sudo()
     install_restricted_from_cfg(restricted_cfg)
     print("[*] Finished!")
     print("[*] Start OWTF by running 'cd path/to/pentest/directory; python -m owtf'")

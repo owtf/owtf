@@ -1,11 +1,0 @@
---2017-08-30 01:16:11--  http://www.agarri.fr/docs/wordlists.tgz
-Resolving www.agarri.fr (www.agarri.fr)... 92.243.29.213
-Connecting to www.agarri.fr (www.agarri.fr)|92.243.29.213|:80... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: 1618997 (1.5M) [application/x-gzip]
-Saving to: 'wordlists.tgz'
-
-wordlists.tgz                                  0%[                                                                                             ]       0  --.-KB/s               wordlists.tgz                                  0%[                                                                                             ]  11.79K  57.3KB/s               wordlists.tgz                                  2%[=>                                                                                           ]  37.37K  89.5KB/s               wordlists.tgz                                  5%[====>                                                                                        ]  92.30K   146KB/s               wordlists.tgz                                 13%[===========>                                                                                 ] 214.49K   254KB/s               wordlists.tgz                                 27%[========================>                                                                    ] 438.48K   414KB/s               wordlists.tgz                                 47%[===========================================>                                                 ] 753.80K   593KB/s               wordlists.tgz                                 68%[==============================================================>                              ]   1.05M   496KB/s               wordlists.tgz                                 99%[===========================================================================================> ]   1.54M   660KB/s               wordlists.tgz                                100%[============================================================================================>]   1.54M   662KB/s    in 2.4s    
-
-2017-08-30 01:16:14 (662 KB/s) - 'wordlists.tgz' saved [1618997/1618997]
-

@@ -1,13 +1,0 @@
---2017-08-30 01:16:22--  https://github.com/ssllabs/ssllabs-scan/releases/download/v1.4.0/ssllabs-scan_1.4.0-linux64.tgz
-Resolving github.com (github.com)... 192.30.253.113, 192.30.253.112
-Connecting to github.com (github.com)|192.30.253.113|:443... connected.
-HTTP request sent, awaiting response... 302 Found
-Location: https://github-production-release-asset-2e65be.s3.amazonaws.com/25200819/efb26e98-a27b-11e6-9235-500e52a46974?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20170830%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20170830T011622Z&X-Amz-Expires=300&X-Amz-Signature=5e8ad0359bca5263ce0f8c625c42f570a67cc9c9fb283c6adcf98119647fb99c&X-Amz-SignedHeaders=host&actor_id=0&response-content-disposition=attachment%3B%20filename%3Dssllabs-scan_1.4.0-linux64.tgz&response-content-type=application%2Foctet-stream [following]
---2017-08-30 01:16:22--  https://github-production-release-asset-2e65be.s3.amazonaws.com/25200819/efb26e98-a27b-11e6-9235-500e52a46974?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20170830%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20170830T011622Z&X-Amz-Expires=300&X-Amz-Signature=5e8ad0359bca5263ce0f8c625c42f570a67cc9c9fb283c6adcf98119647fb99c&X-Amz-SignedHeaders=host&actor_id=0&response-content-disposition=attachment%3B%20filename%3Dssllabs-scan_1.4.0-linux64.tgz&response-content-type=application%2Foctet-stream
-Resolving github-production-release-asset-2e65be.s3.amazonaws.com (github-production-release-asset-2e65be.s3.amazonaws.com)... 52.216.230.171
-Connecting to github-production-release-asset-2e65be.s3.amazonaws.com (github-production-release-asset-2e65be.s3.amazonaws.com)|52.216.230.171|:443... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: 2125204 (2.0M) [application/octet-stream]
-Saving to: 'ssllabs-scan_1.4.0-linux64.tgz'
-
-ssllabs-scan_1.4.0-linux64.tgz                 0%[                                                                                             ]       0  --.-KB/s               

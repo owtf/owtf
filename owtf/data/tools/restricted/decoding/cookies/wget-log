@@ -1,11 +1,0 @@
---2017-08-30 01:14:55--  http://www.taddong.com/tools/BIG-IP_cookie_decoder.zip
-Resolving www.taddong.com (www.taddong.com)... 217.160.0.200
-Connecting to www.taddong.com (www.taddong.com)|217.160.0.200|:80... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: 839 [application/zip]
-Saving to: 'BIG-IP_cookie_decoder.zip'
-
-BIG-IP_cookie_decoder.zip                      0%[                                                                                             ]       0  --.-KB/s               BIG-IP_cookie_decoder.zip                    100%[============================================================================================>]     839  --.-KB/s    in 0s      
-
-2017-08-30 01:14:55 (32.8 MB/s) - 'BIG-IP_cookie_decoder.zip' saved [839/839]
-
