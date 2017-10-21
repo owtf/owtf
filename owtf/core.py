@@ -19,10 +19,10 @@ import tornado
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.component_initialiser import ComponentInitialiser
-from owtf.utils import FileOperations, catch_io_errors, OutputCleaner, OWTFLogger
-from owtf.interface import server
+from owtf.utils import FileOperations, catch_io_errors, OutputCleaner
+from owtf.api import server
 from owtf.proxy import proxy, transaction_logger
-from owtf.db import worker_manager
+from owtf.managers import worker
 from owtf.lib.formatters import ConsoleFormatter, FileFormatter
 
 
@@ -229,11 +229,11 @@ class Core(BaseComponent):
         self.plugin_params = self.get_component("plugin_params")
         # If OWTF is run without the Web UI, the WorkerManager should exit as soon as all jobs have been completed.
         # Otherwise, keep WorkerManager alive.
-        self.worker_manager = worker_manager.WorkerManager(keep_working=not options['nowebui'])
+        self.worker_manager = worker.WorkerManager(keep_working=not options['nowebui'])
 
     def run_server(self):
         """This method starts the interface server"""
-        self.interface_server = server.InterfaceServer()
+        self.interface_server = server.APIServer()
         logging.warn(
             "http://%s:%s <-- Web UI URL",
             self.config.get_val("SERVER_ADDR"),

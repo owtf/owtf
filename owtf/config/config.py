@@ -22,7 +22,7 @@ from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.interfaces import ConfigInterface
 from owtf.lib.exceptions import PluginAbortException, DBIntegrityException, UnresolvableTargetException
 from owtf.lib.general import cprint
-from owtf.db import target_manager
+from owtf.managers import target as target_manager
 from owtf.utils import is_internal_ip, directory_access, FileOperations
 
 
@@ -37,7 +37,7 @@ class Config(BaseComponent, ConfigInterface):
 
     root_dir = None
     owtf_pid = None
-    config_path = os.path.expanduser(os.path.join("~", '.owtf', 'conf', 'framework.cfg'))
+    config_path = os.path.expanduser(os.path.join("~", '.owtf', 'data', 'conf', 'framework.cfg'))
     profiles = {
         "GENERAL_PROFILE": None,
         "RESOURCES_PROFILE": None,
@@ -111,7 +111,7 @@ class Config(BaseComponent, ConfigInterface):
         """
         if os.path.isfile(self.config_path):
             return self.config_path
-        path = os.path.join(self.root_dir, 'conf', os.path.basename(self.config_path))
+        path = os.path.join(self.root_dir, 'data', 'conf', os.path.basename(self.config_path))
         return path
 
     def load_config_from_file(self, config_path):

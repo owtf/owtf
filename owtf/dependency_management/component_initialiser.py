@@ -5,29 +5,29 @@ owtf.dependency_management.component_initializer
 Implements 3 phased component initialization process
 """
 
+from owtf.api.reporter import Reporter
 from owtf.config.config import Config
-from owtf.db.command_register import CommandRegister
-from owtf.db.config_manager import ConfigDB
-from owtf.db.db import DB
-from owtf.db.error_manager import ErrorDB
-from owtf.db.mapping_manager import MappingDB
-from owtf.db.plugin_manager import PluginDB
-from owtf.db.poutput_manager import POutputDB
-from owtf.db.resource_manager import ResourceDB
-from owtf.db.session_manager import OWTFSessionDB
-from owtf.db.target_manager import TargetDB
-from owtf.db.transaction_manager import TransactionManager
-from owtf.db.url_manager import URLManager
-from owtf.db.worklist_manager import WorklistManager
+from owtf.db.database import DB
 from owtf.dependency_management.dependency_resolver import ServiceLocator
 from owtf.error_handler import ErrorHandler
 from owtf.http.requester import Requester
-from owtf.interface.reporter import Reporter
+from owtf.managers.command_register import CommandRegister
+from owtf.managers.config import ConfigDB
+from owtf.managers.error import ErrorDB
+from owtf.managers.mapping import MappingDB
+from owtf.managers.plugin import PluginDB
 from owtf.plugin.plugin_handler import PluginHandler
 from owtf.plugin.plugin_helper import PluginHelper
 from owtf.plugin.plugin_params import PluginParams
-from owtf.protocols.smtp import SMTP
+from owtf.managers.poutput import POutputDB
+from owtf.managers.resource import ResourceDB
+from owtf.managers.session import OWTFSessionDB
+from owtf.managers.target import TargetDB
+from owtf.managers.transaction import TransactionManager
+from owtf.managers.url import URLManager
+from owtf.managers.worklist import WorklistManager
 from owtf.protocols.smb import SMB
+from owtf.protocols.smtp import SMTP
 from owtf.selenium.selenium_handler import Selenium
 from owtf.shell.blocking_shell import Shell
 from owtf.shell.interactive_shell import InteractiveShell

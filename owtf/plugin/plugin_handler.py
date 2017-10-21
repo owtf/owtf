@@ -9,6 +9,8 @@ chosen settings.
 import imp
 import logging
 
+from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
+from owtf.lib.general import *
 from ptp import PTP
 from ptp.libptp.constants import UNKNOWN
 from ptp.libptp.exceptions import PTPError
@@ -16,8 +18,6 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.interfaces import PluginHandlerInterface
-from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
-from owtf.lib.general import *
 from owtf.plugin.scanner import Scanner
 from owtf.utils import FileOperations
 

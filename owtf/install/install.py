@@ -14,6 +14,8 @@ except ImportError:
     import ConfigParser as parser
 from distutils import dir_util
 
+from owtf.utils import FileOperations
+
 
 def create_directory(directory):
     """Create parent directories as necessary.
@@ -28,7 +30,6 @@ def create_directory(directory):
         if not os.listdir(directory):
             return True
         return False
-
 
 def run_command(command):
     """Execute the provided shell command.
@@ -95,7 +96,7 @@ def is_debian_derivative():
         return True
 
 
-def copy_dirs(dir):
+def copy_dirs(root, dir):
     """Copy directories with error handling to ~/.owtf
 
     :param src: directory to copy
@@ -104,16 +105,13 @@ def copy_dirs(dir):
     :rtype: None
     """
 
-    src_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     dest_root = os.path.join(os.path.expanduser('~'), '.owtf')
-    target_src_dir = os.path.join(src_root, dir)
+    target_src_dir = os.path.join(root, 'data', dir)
     target_dest_dir = os.path.join(dest_root, dir)
-
     # check if already exists
-    if not os.path.isdir(target_dest_dir):
-        # Create the directory and copy the contents over
-        create_directory(target_dest_dir)
-        dir_util.copy_tree(target_src_dir, target_dest_dir)
+    FileOperations.create_missing_dirs(target_dest_dir)
+    dir_util.copy_tree(target_src_dir, target_dest_dir)
+
 
 if __name__ == "__main__":
     root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -123,15 +121,16 @@ if __name__ == "__main__":
     scripts_path = os.path.join(root_dir, "scripts")
 
     # Copy all necessary directories
-    copy_dirs('conf')
-    copy_dirs('tools')
-    copy_dirs('dictionaries')
+    copy_dirs(root_dir, 'conf')
+    copy_dirs(root_dir, 'tools')
+    copy_dirs(root_dir, 'dictionaries')
 
     # Restricted tools and dictionaries
     restricted_cfg = os.path.join(root_dir, "install", "install.cfg")
     print("[*] Great that you are installing OWTF :D")
     print("[!] There will be lot of output, please be patient")
-    if not sys.platform == 'darwin': check_sudo()
+    if not sys.platform == 'darwin':
+        check_sudo()
     install_restricted_from_cfg(restricted_cfg)
     print("[*] Finished!")
     print("[*] Start OWTF by running 'cd path/to/pentest/directory; python -m owtf'")
