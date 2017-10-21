@@ -55,19 +55,17 @@ docs_requires = [
 class PostDevelopCommand(develop):
     """Post-installation for development mode."""
     def run(self):
+        develop.run(self)
         print('Running post install')
         call([sys.executable, post_script])
-        develop.run(self)
-
 
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
         # Need because of a setuptools bug: https://github.com/pypa/setuptools/issues/456
+        self.do_egg_install()
         print('Running post install')
         call([sys.executable, post_script])
-        self.do_egg_install()
-
 
 setup(
     name='owtf',
