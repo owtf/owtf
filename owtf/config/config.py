@@ -22,7 +22,7 @@ from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.interfaces import ConfigInterface
 from owtf.lib.exceptions import PluginAbortException, DBIntegrityException, UnresolvableTargetException
 from owtf.lib.general import cprint
-from owtf.db import target_manager
+from owtf.managers import target as target_manager
 from owtf.utils import is_internal_ip, directory_access, FileOperations
 
 
