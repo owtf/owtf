@@ -119,9 +119,6 @@ owtf/webui/node_modules/*
 owtf/webui/public/build/*
 owtf/webui/src/Report/templates/*
 
-# Yarn files
-owtf/webui/yarn.lock
-
 # Mac/OS specific files
 #############################################
 *.DS_Store
