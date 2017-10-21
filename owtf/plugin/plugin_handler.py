@@ -18,7 +18,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.interfaces import PluginHandlerInterface
-from owtf.managers.plugin import Scanner
+from owtf.plugin.scanner import Scanner
 from owtf.utils import FileOperations
 
 
