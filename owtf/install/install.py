@@ -108,6 +108,7 @@ def copy_dirs(root_dir, dir):
     dest_root = os.path.join(os.path.expanduser('~'), '.owtf')
     target_src_dir = os.path.join(src_root, dir)
     target_dest_dir = os.path.join(dest_root, dir)
+    print target_dest_dir, target_src_dir
 
     # check if already exists
     if not os.path.isdir(target_dest_dir):
