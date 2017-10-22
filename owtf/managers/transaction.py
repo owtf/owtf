@@ -443,7 +443,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
                 header_list = self.config.get_header_list(key)
                 self.regexs['HEADERS'][key] = self.compile_header_regex(header_list)
             elif key.startswith('RESPONSE'):
-                regexp_name, grep_regexp, python_regexp = self.config.get_val(key).split('_____')
+                _, _, python_regexp = self.config.get_val(key).split('_____')
                 self.regexs['BODY'][key] = self.compile_response_regex(python_regexp)
 
     def grep_transaction(self, owtf_transaction):

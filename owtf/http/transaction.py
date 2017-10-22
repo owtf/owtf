@@ -17,7 +17,7 @@ try:
 except ImportError:
     from httplib import responses as response_messages
 
-from cookies import Cookie
+from cookies import Cookie, InvalidCookieError
 
 from owtf.lib.general import derive_http_method
 
@@ -190,9 +190,9 @@ class HTTP_Transaction(object):
         try:  # parsing may sometimes fail
             for cookie in self.cookies_list:
                 cookies.append(Cookie.from_string(cookie).to_dict())
-        except:
-            pass
-        return json.dumps(cookies)
+        except InvalidCookieError:
+            logging.debug("Cannot not parse the cookies")
+        return cookies
 
     def set_error(self, error_message):
         """Set the error message for a transaction

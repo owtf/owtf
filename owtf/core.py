@@ -282,6 +282,7 @@ class Core(BaseComponent):
             tornado.ioloop.IOLoop.instance().stop()
             sys.exit(0)
 
+    @staticmethod
     def kill_children(self, parent_pid, sig=signal.SIGINT):
         """Kill all OWTF child process when the SIGINT is received
 
