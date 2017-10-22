@@ -267,7 +267,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         """
 
         def on_terminate(proc):
-            print("Process {} terminated with exit code {}".format(proc, proc.returncode))
+            logging.debug("Process {} terminated with exit code {}".format(proc, proc.returncode))
 
         parent = psutil.Process(parent_pid)
         children = parent.children(recursive=True)
