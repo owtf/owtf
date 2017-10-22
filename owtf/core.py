@@ -13,9 +13,9 @@ import signal
 import socket
 import logging
 import multiprocessing
-import subprocess
 
 import tornado
+import psutil
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.component_initialiser import ComponentInitialiser
@@ -292,18 +292,27 @@ class Core(BaseComponent):
         :return:
         :rtype: None
         """
-        if sys.platform == 'darwin':
-            base_cmd = "pgrep -P %d"
-        else:
-            base_cmd = "ps -o pid --ppid %d --noheaders"
-        ps_command = subprocess.Popen(
-            base_cmd % parent_pid,
-            shell=True,
-            stdout=subprocess.PIPE)
-        ps_output = ps_command.stdout.read()
-        for pid_str in ps_output.split("\n")[:-1]:
-            self.kill_children(int(pid_str), sig)
-            try:
-                os.kill(int(pid_str), sig)
-            except:
-                logging.warning("Unable to kill the processes: '%s'", pid_str)
+        def on_terminate(proc):
+            """Log debug info on child process termination
+            
+            :param proc: Process pid
+            :rtype: None
+            """
+            logging.debug("Process {} terminated with exit code {}".format(proc, proc.returncode))
+
+        parent = psutil.Process(parent_pid)
+        children = parent.children(recursive=True)
+        for child in children:
+            child.send_signal(sig)
+
+        _, alive = psutil.wait_procs(children, callback=on_terminate)
+        if not alive:
+            # send SIGKILL
+            for pid in alive:
+                logging.debug("Process {} survived SIGTERM; trying SIGKILL" % pid)
+                pid.kill()
+        _, alive = psutil.wait_procs(alive, callback=on_terminate)
+        if not alive:
+            # give up
+            for pid in alive:
+                logging.debug("Process {} survived SIGKILL; giving up" % pid)
