@@ -1,0 +1,13 @@
+<div class="well well-small">
+        {{ LinkListName }}: 
+        <ul class="list-unstyled">
+        {% for Link in Links %}
+                <li> 
+                        <i class="fa fa-chevron-circle-right"></i>
+                        <a href="{{ Link }}" class="button" target="_blank">
+                                <span> {{ Link }} </span>
+                        </a> 
+                </li>
+        {% end %}
+        </ul>
+</div>

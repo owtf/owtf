@@ -8,7 +8,7 @@ import tornado.web
 
 from owtf.api.handlers.config import ConfigurationHandler
 from owtf.api.handlers.misc import ErrorDataHandler, DashboardPanelHandler, ProgressBarHandler
-from owtf.api.handlers.plugin import PluginDataHandler, PluginNameOutput
+from owtf.api.handlers.plugin import PluginDataHandler, PluginNameOutput, PluginOutputHandler
 from owtf.api.handlers.report import ReportExportHandler
 from owtf.api.handlers.session import OWTFSessionHandler
 from owtf.api.handlers.targets import TargetSeverityChartHandler, TargetConfigSearchHandler, TargetConfigHandler
@@ -16,7 +16,8 @@ from owtf.api.handlers.transactions import URLDataHandler, URLSearchHandler, Tra
     TransactionHrtHandler, TransactionSearchHandler
 from owtf.api.handlers.work import WorkerHandler, WorklistHandler, WorklistSearchHandler
 from owtf.dependency_management.dependency_resolver import ServiceLocator
-from owtf.api.base import StaticFileHandler, FileRedirectHandler
+from owtf.api.base import StaticFileHandler
+from owtf.api.handlers import ui_handlers
 
 
 def get_handlers():
@@ -52,7 +53,20 @@ def get_handlers():
         tornado.web.url(r'/api/configuration/?$', ConfigurationHandler, name='configuration_api_url'),
 
         (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': config.get_val('STATICFILES_DIR')}),
-        tornado.web.url(r'/output_files/(.*)', FileRedirectHandler, name='file_redirect_url')]
+        tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),
+        tornado.web.url(r'/?$', ui_handlers.Redirect, name='redirect_ui_url'),
+        tornado.web.url(r'/ui/?$', ui_handlers.Home, name='home_ui_url'),
+        tornado.web.url(r'/ui/dashboard/?$', ui_handlers.Dashboard, name='dashboard_ui_url'),
+        tornado.web.url(r'/ui/targets/?([0-9]+)?/?$', ui_handlers.TargetManager, name='targets_ui_url'),
+        tornado.web.url(r'/ui/targets/([0-9]+)/transactions/?([0-9]+)?/?$', ui_handlers.TransactionLog, name='transaction_log_url'),
+        tornado.web.url(r'/ui/targets/([0-9]+)/sessions/?$', ui_handlers.HTTPSessions, name='sessions_ui_url'),
+        tornado.web.url(r'/ui/targets/([0-9]+)/urls/?$', ui_handlers.UrlLog, name='url_log_url'),
+        tornado.web.url(r'/ui/targets/([0-9]+)/poutput/?', ui_handlers.PluginOutput, name='poutput_ui_url'),
+        tornado.web.url(r'/ui/workers/?([0-9])?/?', ui_handlers.WorkerManager, name='workers_ui_url'),
+        tornado.web.url(r'/ui/worklist/?', ui_handlers.WorklistManager, name='worklist_ui_url'),
+        tornado.web.url(r'/ui/configuration/?$', ui_handlers.ConfigurationManager, name='configuration_ui_url'),
+        tornado.web.url(r'/ui/transactions/?', ui_handlers.Transactions, name='transactions_ui_url'),
+        tornado.web.url(r'/ui/help/?', ui_handlers.Help, name='help_ui_url')]
     return URLS
 
 

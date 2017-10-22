@@ -17,11 +17,16 @@ except ImportError:
     import Queue as queue
 from time import strftime
 
+import psutil
+
 from owtf.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
 from owtf.dependency_management.interfaces import WorkerManagerInterface
 from owtf.lib.general import check_pid
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.lib.exceptions import InvalidWorkerReference
+
+# For psutil
+TIMEOUT = 3
 
 
 class Worker(OWTFProcess, BaseComponent):
@@ -238,13 +243,17 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         :return: None
         :rtype: None
         """
-        try:
-            # This will kick the exception handler if plugin is running,
-            # so plugin is killed
-            # Else, the worker dies :'(
-            os.kill(pid, psignal)
-        except:
-            logging.error("Error while trying to abort Worker process", exc_info=True)
+        parent = psutil.Process(pid)
+        children = parent.children(recursive=True)
+        children.append(parent)
+        for pid in children:
+            pid.send_signal(psignal)
+        gone, alive = psutil.wait_procs(children, timeout=TIMEOUT)
+        if not alive:
+            # send SIGKILL
+            for pid in alive:
+                logging.debug("Process {} survived SIGTERM; trying SIGKILL" % pid)
+                pid.kill()
 
     def _signal_children(self, parent_pid, psignal):
         """Signal OWTF child processes
@@ -256,17 +265,26 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         :return: None
         :rtype: None
         """
-        ps_command = subprocess.Popen(
-            "ps -o pid --ppid %d --noheaders" % parent_pid,
-            shell=True,
-            stdout=subprocess.PIPE)
-        ps_output = ps_command.stdout.read()
-        for pid_str in ps_output.split("\n")[:-1]:
-            self._signal_children(int(pid_str), psignal)
-            try:
-                os.kill(int(pid_str), psignal)
-            except Exception:
-                logging.error("Error while trying to signal", exc_info=True)
+
+        def on_terminate(proc):
+            print("Process {} terminated with exit code {}".format(proc, proc.returncode))
+
+        parent = psutil.Process(parent_pid)
+        children = parent.children(recursive=True)
+        for child in children:
+            child.send_signal(psignal)
+
+        gone, alive = psutil.wait_procs(children, timeout=TIMEOUT, callback=on_terminate)
+        if not alive:
+            # send SIGKILL
+            for pid in alive:
+                logging.debug("Process {} survived SIGTERM; trying SIGKILL" % pid)
+                pid.kill()
+        gone, alive = psutil.wait_procs(alive, timeout=TIMEOUT, callback=on_terminate)
+        if not alive:
+            # give up
+            for pid in alive:
+                logging.debug("Process {} survived SIGKILL; giving up" % pid)
 
 
     # NOTE: PSEUDO_INDEX = INDEX + 1

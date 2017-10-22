@@ -1,0 +1,288 @@
+{% extends base.html %}
+
+{% block title %}Manager Interface{% end %}
+
+{% block includes %}
+<script type="text/javascript" src="{{ static_url('js/moment.js') }}"></script>
+{% end %}
+
+{% block content %}
+<div class="row">
+    <ul class="breadcrumb">
+        <li>
+            <a href="/">Home</a>
+        </li>
+        <li class="active">Workers</li>
+    </ul>
+</div>
+<!-- Workers Info Area -->
+<div class="row">
+    <div class="col col-md-12">
+        <div class="btn-toolbar pull-right">
+            <button class="btn btn-md btn-success" onclick="addWorker();"><i class="fa fa-plus"></i> Add worker!</button>
+            <button class="btn btn-md btn-warning" onclick="pauseAllWorkers()"><i class="fa fa-pause"></i> Pause All</button>
+            <button class="btn btn-md btn-info" onclick="resumeAllWorkers()"><i class="fa fa-play"></i> Resume All</button>
+        </div>
+    </div>
+</div>
+<br>
+<h5><strong data-toggle="tooltip" title="updates in 13s">Total scan progress</strong></h5>
+<div id="progressbar">
+  <div class="progress">
+    <div id="pluginprogress" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+    </div>
+  </div>
+</div>
+<div class="row" id="workersInfo">
+</div>
+<div id="logModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Worker Log</h4>
+      </div>
+      <div class="modal-body">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- End Workers Info Area -->
+<script>
+var mySpace = {
+                    workers_api_url:"{{ workers_api_url }}",
+                    targets_ui_url:"{{ targets_ui_url }}",
+                    plugins_api_url:"{{ plugins_api_url }}",
+                    progress_api_url:"{{ progress_api_url }}",
+                    log_url_port:"{{ log_url_port }}"
+                };
+
+var num_workers;
+var workerLogs = [];
+// Abort worker with id using API
+function abortWorker(workerId){
+    addOverlay('#worker_'+workerId); // just add overlay the worker info refresh will auto. remove it
+    $.get(mySpace.workers_api_url+workerId+'/abort');
+    num_workers -= 1;
+}
+
+// Pause worker with id using API
+function pauseWorker(workerId){
+    addOverlay('#worker_'+workerId); // just add overlay the worker info refresh will auto. remove it
+    $.get(mySpace.workers_api_url+workerId+'/pause');
+}
+
+function pauseAllWorkers() {
+    var w = num_workers;
+    while (w > 0) {
+        addOverlay('#worker_'+w);
+        w--;
+    }
+    $.get(mySpace.workers_api_url+'0'+'/pause');
+}
+
+// Resume worker with id using API
+function resumeWorker(workerId){
+    addOverlay('#worker_'+workerId); // just add overlay the worker info refresh will auto. remove it
+    $.get(mySpace.workers_api_url+workerId+'/resume');
+}
+
+function resumeAllWorkers() {
+    var w = num_workers;
+    while (w > 0) {
+        addOverlay('#worker_'+w);
+        w--;
+    }
+    $.get(mySpace.workers_api_url+'0'+'/resume');
+}
+
+// Delete a worker process using API
+function deleteWorker(workerId){
+    $.ajax({
+            url:mySpace.workers_api_url+workerId,
+            type:'DELETE',
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+                }
+            });
+    num_workers -= 1;
+}
+
+// Add new worker using API
+function addWorker(){
+    $.post(mySpace.workers_api_url);
+    num_workers += 1;
+}
+
+// Function handling log lines
+function getWorkerLog(name, lines){
+    var log  = " Nothing to show here!";
+    if (lines === "all"){
+        var URL = mySpace.log_url_port + "/logs/" + name.toString() + ".log";
+    } else {
+        var URL = mySpace.log_url_port + "/logs/" + name.toString() + ".log?lines=" + lines.toString();
+    }
+    $.ajax({
+        async: false,
+        url: URL,
+        success: function(data) {
+            log = data;
+            if (log) {
+                log = '<pre style="word-wrap: break-word; white-space: pre-wrap;">'.concat(log.split('\n').join('<br/>')).concat('<pre>');
+            } else {
+                log = "Nothing to show here!";
+            }
+        }
+    });
+    return log;
+}
+
+// Function to get control buttons based on the present state of a worker i.e return pause button if worker is active & vice versa
+function getControlButtons(obj){
+    html = '<div class="btn-toolbar pull-right">';
+    if (obj.busy){
+        if(obj.paused){
+            html += '<button class="btn btn-success btn-xs" href="#" onclick="resumeWorker('+obj.id+');"><i class="fa fa-play"></i></button>';
+        }else{
+            html += '<button class="btn btn-primary btn-xs" href="#" onclick="pauseWorker('+obj.id+');"><i class="fa fa-pause"></i></button>';
+            html += '<button class="btn btn-danger btn-xs" href="#" onclick="abortWorker('+obj.id+');"><i class="fa fa-times"></i></button>';
+        }
+    } else {
+        html += '<button class="btn btn-danger btn-xs" href="#" onclick="deleteWorker('+obj.id+');"><i class="fa fa-times"></i></button>';
+    }
+    html += '</div>';
+    return(html);
+}
+
+// Function which populates worker info & is called at a regular interval
+function displayWorkersInfo(){
+    $.ajax({url: mySpace.workers_api_url,
+            ifModified: true,
+            dataType:'json',
+            success:function(data, textStatus, jqXHR){
+                if (304 != jqXHR.status){  // To do something only when some information has changed, i.e do nothing on 304 Not Modified
+                    $('#workersInfo').html('');
+                    num_workers = data.length;
+                    $.each(data, function(index, obj){
+                        // We add three span3 panels in a row, so we use index to add
+                        // opening and closing tags for a row
+                        if (index%2 === 0)
+                            $('#workersInfo').append('<div class="col col-md-4 row-fluid">');
+
+                        html = '<div class="span5 panel ';
+                        if (obj.busy && !obj.paused){
+                            html += 'panel-primary"';
+                        }else if (obj.paused){
+                            html += 'panel-info"';
+                        }else{
+                            html += 'panel-default"';
+                        }
+                        html += ' id="worker_'+obj.id+'">';
+                        html += '<div class="panel-heading"><h3 class="panel-title">Worker '+obj.id+getControlButtons(obj)+'</h3></div>';
+                        html += '<div class="panel-body">';
+                        html += '<p><strong>PID:</strong> '+obj.worker+'</p>';
+                        if (obj.start_time.localeCompare("N/A") == -1) {
+                            html += '<p><strong>Start Time: </strong> '+obj.start_time+' (~ ' + getElapsedTime(obj.start_time)+')'+'</p>';
+                        } else {
+                            html += '<p><strong>Start Time: </strong>N/A</p>';
+                        }
+                        if (obj.work.length > 0){
+                            html += '<p><strong>Target:</strong> <a href="'+mySpace.targets_ui_url+obj.work[0]["id"]+'">'+obj.work[0].target_url+'</a></p>';
+                            html += '<p><strong>Plugin:</strong> '+obj.work[1].title+'</p>';
+                            html += '<p><strong>Type:</strong> '+obj.work[1].type.replace('_',' ')+'</p>';
+                            html += '<p><strong>Group:</strong> '+obj.work[1].group+'</p>';
+                        }
+                        if (workerLogs.indexOf(obj.id) === -1) {
+                            html += '<button type="button" onclick="displayLog(' + obj.id.toString() + ')" class="btn btn-primary btn-xs">Show logs</button>';
+                        } else {
+                            html += '<p style="display:inline"><strong>Logs: </strong>';
+                            html += '<div class="btn-group"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Lines <span class="caret"></span></button><ul class="dropdown-menu scrollable-menu" role="menu">'
+                            html += '<li><a class="logTab" href="#" onclick="hideLog(' + obj.id.toString() + ')">' + "None" + '</a></li>';
+                            html += '<li><a class="logTab" href="#" onclick=openLogModal("' + obj.name + '",' + '-1' + ')>' + "All" + '</a></li>';
+                            for(i=1;i < 10;i++){
+                                html += '<li><a class="logTab" href="#" onclick=openLogModal("' + obj.name + '",' + i.toString() + ')>' + i + '</a></li>';
+                            }
+                            html += '</ul></div>'
+                            html += getWorkerLog(obj.name,2) + '</p>';
+                            html += '</div>';
+                            html += '</div>';
+                        }
+
+                        $('#workersInfo').append(html);
+
+                        // We add three span3 panels in a row, so we use index to add
+                        // opening and closing tags for a row
+                        if (index%2 === 1)
+                            $('#workersInfo').append('</div>');
+                    });
+                }
+            }
+    });
+    setTimeout(displayWorkersInfo, 13000);
+}
+
+//Function which give elapsed time by calculting difference between two given times in string. Function uses moment.js
+function getElapsedTime(start_time){
+    var ms = moment(moment()).diff(moment(start_time,"YYYY/MM/DD HH:mm:ss"));
+    var d = moment.duration(ms);
+    var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm:ss");
+    return s;
+}
+
+function openLogModal(worker, lines){
+    var log = getWorkerLog(worker, lines);
+    $('#logModal').find('.modal-body').html(log);
+    $('#logModal').modal("show");
+}
+
+function displayLog(id){
+    if (workerLogs.indexOf(id) === -1) {
+        workerLogs.push(id);
+    }
+    displayWorkersInfo();
+}
+
+function hideLog(id){
+    var index = workerLogs.indexOf(id);
+    if (index > -1) {
+        workerLogs.splice(index, 1);
+    }
+    displayWorkersInfo();
+}
+
+//Function which updates progress bar
+function moveProgressBar() {
+    var elem = $("#pluginprogress");
+    var progressbar = function() {
+        $.getJSON(mySpace.progress_api_url, function(data) {
+            var left_count = data.left_count;
+            var complete_count = data.complete_count;
+            if (left_count == 0 && complete_count == 0) {
+                $('#progressbar').html('<p>You have not added anything to worklist yet</p>');
+                clearInterval(progressbar);
+            } else {
+                percentage_done = (complete_count / (left_count + complete_count)) * 100;
+                elem.css("width", percentage_done + '%');
+                if (percentage_done == 100) {
+                    elem.removeClass('active');
+                    $('#progressbar').html('<p>Worklist is empty</p>');
+                    clearInterval(progressbar);
+                }
+            }
+        })
+    };
+    progressbar();
+    setInterval(progressbar, 13000);
+}
+
+$(document).ready(function() {
+        displayWorkersInfo();  // Then workers information can be displayed
+        moveProgressBar();
+        $('[data-toggle="tooltip"]').tooltip();
+});
+</script>
+{% end %}

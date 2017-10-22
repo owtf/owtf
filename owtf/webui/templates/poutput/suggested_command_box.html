@@ -1,0 +1,33 @@
+<hr />
+<h4>
+    {% if Header %}
+        {{ Header }}
+    {% else %}
+        Suggested potentially interesting commands
+    {% end %}
+</h4>
+<!-- Nav tabs -->
+<ul class="nav nav-tabs" role="tablist">
+    {% for title in TitleList %}
+        <li><a href="#{{ title.replace(' ', '_') }}" role="tab" data-toggle="tab">{{ title }}</a></li>
+    {% end %}
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+    {% for i in range(0, len(CommandList)) %}
+        {% set title = TitleList[i] %}
+        {% set commands = CommandList[i] %}
+        <div class="tab-pane" id="{{ title.replace(' ', '_') }}">
+            {% for resource in commands %}
+                <div class="panel panel-default">
+                      <!-- Default panel contents -->
+                      <div class="panel-heading">{{ resource[0] }}</div>
+                      <div class="panel-body">
+                        <pre class="commandPre">{{ resource[1] }}</pre>
+                      </div>
+                </div>
+            {% end %}
+        </div>
+    {% end %}
+</div>

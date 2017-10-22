@@ -1,0 +1,221 @@
+{% extends base.html %}
+
+{% block title %}Transaction{% end %}
+
+{% block content %}
+<style type="text/css">
+
+.top-buffer { margin-bottom:30px; }
+.check {}
+
+.modal-dialog-center{
+  width: 320px;
+  margin: 0;
+  position: absolute;
+  top: 35%;
+  left: 42%;
+}
+.clear { clear: both; height: 80px; }
+
+.scrollablePre {
+  overflow: auto;
+  word-wrap: normal;
+  overflow-wrap: normal;
+  white-space: pre;
+}
+
+</style>
+
+<div class="row">
+    <div class="btn-group pull-left">
+         <button class="btn btn-warning" onClick="forwardToZAP()"><i class="fa fa-filter"></i> Forward </button>
+         <button class="btn btn-default" onclick="replayRequest()"><i class="fa fa-refresh"></i> Replay </button>
+         <button class="btn btn-danger launch-modal" data-toggle="modal" data-target="#ScriptModal"> Create a Zest Script ! </button>
+    </div>
+</div>
+<br />
+<div class="row-fluid">
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">Raw Request</div>
+            <div class="panel-body">
+                <pre class="scrollablePre" id="raw_request"></pre>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">Raw Response Headers</div>
+            <div class="panel-body">
+                <pre class="scrollablePre" id="raw_response_headers"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div id="raw_response_body_heading" class="panel-heading">Raw Response Body</div>
+            <div class="panel-body">
+                <pre class="scrollablePre" id="raw_response_body"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Script Name Modal-->
+<div class="modal fade" id="ScriptModal" tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog-center">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button"  class="close"  data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Enter Script Name :</h4>
+        <h6 class="modal-title" id="name_tip">(only alphanumeric characters)</h6>
+      </div>
+      <div class="modal-body">
+        <p id="Filecheck" style="color:red"></p>
+        <input type="text" id="textareaID" class="form-control"></input>
+      </div>
+      <div class="modal-footer">
+         <button type="button" class="btn btn-primary" id="saveBtn" onclick="createZestScript()">Generate!</button>
+        <button type="button" class="btn btn-default"  data-dismiss="modal">Cancel</button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+var mySpace = {
+                    transaction_api_url:"{{ transaction_api_url }}",
+                    transaction_log_url:"{{ transaction_log_url }}",
+                    transaction_replay_url:"{{ transaction_replay_url }}",
+                    forward_zap_url:"{{ forward_zap_url }}",
+              };
+
+/*
+sends get request to forward the selected HTTP transaction to ZAP proxy,
+listening at the configured port
+*/
+function forwardToZAP(){
+
+    $.ajax({
+            url:mySpace.forward_zap_url,
+            type:'GET',
+            error:function(xhr,textStatus, serverResponse){
+                alert("Server replied: "+serverResponse+"\nTip:Check if ZAP proxy is listening on the configured port");
+
+            }
+    });
+
+}
+
+
+function navigateToTransactionLog(){
+    window.location.href = mySpace.transaction_log_url;
+}
+
+function deleteTransaction(){
+    $.ajax({
+            url:mySpace.transaction_api_url,
+            type:'DELETE',
+            success:navigateToTransactionLog,
+            error:function(xhr, textStatus, serverResponse){
+                alert("Server replied: "+serverResponse);
+                }
+            });
+}
+
+// focuses/clears textbox in script modal window
+
+$('#ScriptModal').on('show.bs.modal', function (e) {
+
+        $('#textareaID').focus();
+        clearText("textareaID");
+        $("#Filecheck").text('');
+});
+
+//clears text
+function clearText(id){
+
+        id='#'+id;
+        $(id).val('');
+}
+
+/*
+ takes file name, validates it for alpha-numeric characters and finally sends
+POST request to create the Zest script with given name.
+*/
+function createZestScript(){
+
+    var file_name=$('#textareaID').val();
+        //validates file name using regex
+    if(validateFilename(file_name)){
+
+         $.ajax({
+            url:mySpace.transaction_api_url+"zest",
+            type:'POST',
+            data:{name:file_name},
+            success:checkIfFileExists,
+            error:function(xhr, textStatus, serverResponse){
+            alert("Server replied: "+serverResponse);
+                }
+
+            });
+    }
+}
+
+//Checks whether file exists else success
+function checkIfFileExists(data, Status, xhr){
+
+        if(data.exists!="true"){
+           $('#ScriptModal').modal('hide');
+           alertSuccess("Script Created :D");
+        }
+        else{
+           $("#Filecheck").text("Script with this name already exists !");
+        }
+
+}
+
+//checks filename contains alpha-numeric characters using regex.
+function validateFilename(elem){
+
+        var alphaExp = /^[0-9a-zA-Z]+$/;
+        //  var alphaExp=/^[\w,\s-]+/
+        if(elem.match(alphaExp)){
+          return true;
+        }
+        else{
+          $("#Filecheck").text("Script name invalid !");
+        }
+}
+
+//opens the window (HTTP console) to replay the selected request
+function replayRequest(){
+
+    window.open(mySpace.transaction_replay_url, "_blank", "scrollbars=yes, resizable=yes, top=100, left=400, width=850, height=600");
+}
+
+
+function displayTransaction(){
+    $.getJSON( mySpace.transaction_api_url, function(obj){
+            $("#raw_request").text(obj.raw_request);
+            $("#raw_response_headers").text(obj.response_status+"\r\n"+obj.response_headers);
+            $("#raw_response_body").text(obj.response_body);
+            if (obj.binary_response){
+                $("#raw_response_body_heading").html("Raw Response Body <span class='label label-default'>BASE64 Encoded</span>");
+            }else{
+                $("#raw_response_body_heading").html("Raw Response Body");
+            }
+        });
+}
+
+
+$(document).ready(function() {
+        displayTransaction();
+        $('#backLink').attr("href", mySpace.transaction_log_url);
+});
+</script>
+{% end %}

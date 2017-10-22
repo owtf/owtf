@@ -30,8 +30,15 @@ class APIRequestHandler(tornado.web.RequestHandler, BaseComponent):
             super(APIRequestHandler, self).write(chunk)
 
 
+class UIRequestHandler(tornado.web.RequestHandler, BaseComponent):
+    def reverse_url(self, name, *args):
+        url = super(UIRequestHandler, self).reverse_url(name, *args)
+        url = url.replace('?', '')
+        return url.split('None')[0]
+
+
 class FileRedirectHandler(tornado.web.RequestHandler):
-    SUPPORTED_METHODS = ('GET')
+    SUPPORTED_METHODS = ['GET']
 
     def get(self, file_url):
         config = ServiceLocator.get_component("config")

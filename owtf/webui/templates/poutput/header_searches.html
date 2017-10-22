@@ -1,0 +1,43 @@
+<table class="table table-bordered table-striped ">
+    <thead>
+        <tr>
+            <th class="text-center" colspan="2">
+                Header Analysis Summary
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+                <th>HTTP Transaction Stats</th>
+                <td> {{ match_percent }}% matched </td>
+        </tr>
+    </tbody>
+</table>
+{% if matches %} {# Check if matches exist, and then only draw the match table #}
+    <div class="alert alert-info"><strong>NOTE!</strong> Only <u>unique values per header</u> are shown with a link to an example transaction</div>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+        <th class="text-center" colspan="2">
+            Header Value Analysis
+        </th>
+    </tr>
+        </thead>
+            <tbody>
+            <tr>
+                    <th> Header </th>
+                    <th> Values </th>
+            </tr>
+            {% for i in range(0, len(matches)) %}
+                <tr>
+                    <td> {{ matches[i][0] }} </td>
+                    <td>
+                        <a class="label label-primary" onclick="navigateToTransaction('{{ transaction_ids[i] }}');return(false);" href="#" target="_blank">
+                            {{ matches[i][1] }}
+                        </a>
+                    </td>
+                </tr>
+            {% end %}
+        </tbody>
+    </table>
+{% end %}

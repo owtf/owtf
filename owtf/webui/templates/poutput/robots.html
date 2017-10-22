@@ -1,0 +1,7 @@
+<div class="alert {% if robots_found %}alert-success{% else %}alert-danger{% end %}">
+  robots.txt was <strong>{% if not robots_found %}NOT{% end %}FOUND</strong>
+  <br />
+  <strong>{{ num_lines }} lines:</strong> {{ num_allow }} Allowed,  {{ num_disallow }} Disallowed, {{ num_sitemap }} Sitemap.
+  <br />
+  Saved to: <a class="btn btn-default btn-sm" href="/output_files/{{ save_path }}" target="_blank">{{ save_path }}</a>
+</div>

@@ -1,0 +1,23 @@
+<div class="row-fluid">
+    <h4>{{ CommandIntro }}</h4>
+    <div class="col-md-12">
+        <pre class="commandPre">{{ ModifiedCommand }}</pre>
+    </div>
+</div>
+<div class="row-fluid">
+    <h4><a href="/output_files/{{ FilePath }}" target="_blank">{{ Name }}</a> {{ OutputIntro }} (Execution Time: {{ TimeStr }})</h4>
+    <div class="col-md-12">
+        <pre class="wrappedPre">{{ OutputLines }}</pre>
+    </div>
+</div>
+<div class="row-fluid">
+     {% if longOutput %}
+
+     <div class='alert alert-warning'>
+            <strong>NOTE!</strong>
+            Output longer than {{ mNumLinesToShow }} lines,
+            <a href="/output_files/{{ FilePath }}" target="_blank"> Click here to see all output! </a>
+     </div>
+
+     {% end %}
+</div>

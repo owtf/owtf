@@ -94,3 +94,86 @@ class PluginNameOutput(APIRequestHandler):
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
 
+
+class PluginOutputHandler(APIRequestHandler):
+    SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+
+    def get(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
+        try:
+            filter_data = dict(self.request.arguments)
+            if plugin_group and (not plugin_type):
+                filter_data.update({"plugin_group": plugin_group})
+            if plugin_type and plugin_group and (not plugin_code):
+                if plugin_type not in self.get_component("db_plugin").get_types_for_plugin_group(plugin_group):
+                    raise tornado.web.HTTPError(400)
+                filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
+            if plugin_type and plugin_group and plugin_code:
+                if plugin_type not in self.get_component("db_plugin").get_types_for_plugin_group(plugin_group):
+                    raise tornado.web.HTTPError(400)
+                filter_data.update({
+                    "plugin_type": plugin_type,
+                    "plugin_group": plugin_group,
+                    "plugin_code": plugin_code
+                })
+            results = self.get_component("plugin_output").get_all(filter_data, target_id=int(target_id), inc_output=True)
+            if results:
+                self.write(results)
+            else:
+                raise tornado.web.HTTPError(400)
+
+        except exceptions.InvalidTargetReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except exceptions.InvalidParameterType as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+
+    def post(self, target_url):
+        raise tornado.web.HTTPError(405)
+
+    def put(self):
+        raise tornado.web.HTTPError(405)
+
+    def patch(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
+        try:
+            if (not target_id) or (not plugin_group) or (not plugin_type) or (not plugin_code):
+                raise tornado.web.HTTPError(400)
+            else:
+                patch_data = dict(self.request.arguments)
+                self.get_component("plugin_output").update(plugin_group, plugin_type, plugin_code, patch_data,
+                                                           target_id=target_id)
+        except exceptions.InvalidTargetReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except exceptions.InvalidParameterType as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+
+    def delete(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
+        try:
+            filter_data = dict(self.request.arguments)
+            if not plugin_group:  # First check if plugin_group is present in url
+                self.get_component("plugin_output").delete_all(filter_data, target_id=int(target_id))
+            if plugin_group and (not plugin_type):
+                filter_data.update({"plugin_group": plugin_group})
+                self.get_component("plugin_output").delete_all(filter_data, target_id=int(target_id))
+            if plugin_type and plugin_group and (not plugin_code):
+                if plugin_type not in self.get_component("db_plugin").get_types_for_plugin_group(plugin_group):
+                    raise tornado.web.HTTPError(400)
+                filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
+                self.get_component("plugin_output").delete_all(filter_data, target_id=int(target_id))
+            if plugin_type and plugin_group and plugin_code:
+                if plugin_type not in self.get_component("db_plugin").get_types_for_plugin_group(plugin_group):
+                    raise tornado.web.HTTPError(400)
+                filter_data.update({
+                    "plugin_type": plugin_type,
+                    "plugin_group": plugin_group,
+                    "plugin_code": plugin_code
+                })
+                self.get_component("plugin_output").delete_all(filter_data, target_id=int(target_id))
+        except exceptions.InvalidTargetReference as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)
+        except exceptions.InvalidParameterType as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(400)

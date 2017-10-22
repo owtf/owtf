@@ -1,0 +1,141 @@
+{% extends base.html %}
+
+{% block title %}HTTP Console{% end %}
+
+{% block includes %}
+
+{% end %}
+
+{% block content %}
+<style type="text/css">
+a, a:active, a:focus {
+  outline: none
+
+}
+.nav-tabs > li {
+    float:none;
+    display:inline-block;
+}
+.clear{ clear: both; height: 30px; }
+
+.descriptionarea {
+   min-width: 490px;
+   position: relative;
+    display: inline-block;
+}
+
+.descriptionarea textarea{
+    width: 600px;
+    height:250px;
+}
+
+.descriptionarea span.namefortxtarea{
+    display: block;
+    text-align: left;
+    font-size:12px;
+}
+
+.descriptionarea span.buttonfortxtarea{
+    display: block;
+    text-align: center;
+}
+
+</style>
+
+<div class="container-fluid">
+  <div style="text-align: center;">
+    <div class="tabbable">
+      <ul class="nav nav-tabs">
+        <li class="active"><a href="#request" data-toggle="tab">Request</a></li>
+        <li><a href="#response" data-toggle="tab">Response</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="tab-content">
+    <div class="tab-pane active" id="request">
+      <div class="descriptionarea">
+        <span class="namefortxtarea"><h4>Raw Request</h4></span>
+        <textarea id="request_area" spellcheck='false'></textarea>
+        <span class="buttonfortxtarea">
+          <button type="button" class="btn btn-primary"  onclick="replayRequest()">Send</button>
+      </span>
+      </div>
+    </div>
+  <div class="tab-pane" id="response">
+      <br/>
+      <div class="row">
+          <div class="col-md-8">
+            <div class="panel panel-default">
+              <div id="raw_response_headers_heading" class="panel-heading">Raw Response Headers</div>
+                <div class="panel-body">
+                  <pre id="raw_response_headers"></pre>
+                </div>
+            </div>
+          </div>
+      </div>
+      <div class="row">
+        <div class="col-md-8">
+          <div class="panel panel-default">
+            <div id="raw_response_body_heading" class="panel-heading">Raw Response Body</div>
+              <div class="panel-body">
+                 <pre id="raw_response_body"></pre>
+              </div>
+          </div>
+        </div>
+      </div>
+  </div>
+  </div>
+</div>
+<!-- tab content -->
+
+<script>
+
+var mySpace = {
+                    transaction_api_url:"{{ transaction_api_url }}",
+                    transaction_replay_api_url:"{{ transaction_replay_api_url }}",
+ };
+
+//loads initial HTTP request, directly shows the selected request in the editing box
+function getInitialRequest(){
+    $.getJSON( mySpace.transaction_api_url, function(obj){
+            $("#request_area").text(obj.raw_request);
+        });
+}
+
+//callback function after successful response
+function afterGet(obj){
+          var $tabs = $('.tabbable li');
+          $tabs.filter('.active').next('li').find('a[data-toggle="tab"]').tab('show'); //enables response tab
+          $("#raw_response_headers").text(obj.STATUS+"\r\n"+obj.HEADERS);
+          $("#raw_response_body").text(obj.BODY);
+          //TODO : figure out what to do if binary response
+          /*  if (obj.binary_response){
+                $("#raw_response_body_heading").html("Raw Response Body <span class='label label-default'>BASE64 Encoded</span>");
+            }else{
+                $("#raw_response_body_heading").html("Raw Response Body");
+            }*/
+}
+
+//this function posts the modified request
+function replayRequest(){
+    var str=$('#request_area').val();
+    $.ajax({
+            url:mySpace.transaction_replay_api_url,
+            type:'POST',
+            data:{get_req:str},
+            success:afterGet,
+            error:function(xhr, textStatus, serverResponse){
+            alert("Server replied: "+serverResponse);
+                }
+
+            });
+}
+
+$(document).ready(function() {
+  $(".navbar-fixed-top").hide();
+  getInitialRequest();
+});
+
+
+</script>
+{% end %}
