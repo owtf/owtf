@@ -127,7 +127,6 @@ clean-py:
 	@echo "--> Removing Python bytecode files."
 	find . -name '__pycache__' -delete  # Python 3
 	find . -name '*.py[co]' -delete  # Python 2
-	rm -rf build/
 
 clean-js:
 	@echo "--> Removing JavaScript build output."
@@ -145,6 +144,8 @@ clean: clean-py clean-js clean-logs
 distclean-py: clean-py
 	@echo "--> Removing egg-info directory."
 	rm -rf owtf.egg-info
+	rm -rf build/
+	rm -rf dist/
 
 distclean-js:
 	@echo "--> Removing node modules."
