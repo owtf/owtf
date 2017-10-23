@@ -178,5 +178,5 @@ class DB(BaseComponent, DBInterface):
         :rtype:
         """
         self.engine = self.create_engine(models.Base)
-        session_factory = sessionmaker(bind=self.engine, autocommit=False, class_=Session)
+        session_factory = sessionmaker(bind=self.engine, class_=Session)
         return scoped_session(session_factory)

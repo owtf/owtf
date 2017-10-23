@@ -101,12 +101,12 @@ class ErrorHandler(BaseComponent, ErrorHandlerInterface):
         # Levels so far can be Command or Plugin
         logging.info("\nThe %s was aborted by the user: Please check the report and plugin output files" % level)
         message = ("\nThe %s was aborted by the user: Please check the report and plugin output files" % level)
-        if 'Command' == level:
+        if level == 'Command':
             option = 'p'
-            if 'e' == option:
-                if 'Command' == level:  # Try to save partial plugin results.
-                    raise FrameworkAbortException(partial_output)
-            elif 'p' == option:  # Move on to next plugin.
+            if option == 'e':
+                # Try to save partial plugin results.
+                raise FrameworkAbortException(partial_output)
+            elif option == 'p':  # Move on to next plugin.
                 # Jump to next handler and pass partial output to avoid losing results.
                 raise PluginAbortException(partial_output)
         return message

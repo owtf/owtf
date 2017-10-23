@@ -11,6 +11,8 @@ import json
 import base64
 import hashlib
 import datetime
+import logging
+import traceback
 
 import tornado.httputil
 
@@ -142,8 +144,10 @@ class CacheHandler(object):
                 return self.create_response_object()
             else:
                 self.file_lock = FileLock(self.file_path)
-                self.file_lock.acquire()
-
+                try:
+                    self.file_lock.acquire()
+                except FileLockTimeoutException:
+                    logging.debug("Lock could not be acquired %s" % traceback.print_exc)
                 # For handling race conditions
                 if os.path.isfile(self.file_path):
                     self.file_lock.release()

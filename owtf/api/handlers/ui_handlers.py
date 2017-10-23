@@ -1,5 +1,5 @@
 """
-owtf.interface.ui_handlers
+owtf.api.ui_handlers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .note::
