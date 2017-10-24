@@ -42,6 +42,10 @@ opt-tools:
 web-tools:
 	sudo apt-get install kali-linux-web
 
+activate-virtualenv:
+	pip install virtualenv
+	virtualenv ${HOME}/.venv/owtf
+	source "${HOME}/.venv/owtf/bin/activate"
 ### REQUIREMENTS
 
 install-python-requirements: setup.py check-root
