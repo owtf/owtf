@@ -124,7 +124,6 @@ if __name__ == "__main__":
     copy_dirs(root_dir, 'conf')
     copy_dirs(root_dir, 'tools')
     copy_dirs(root_dir, 'dictionaries')
-    copy_dirs(root_dir, 'plugins')
 
     # Restricted tools and dictionaries
     restricted_cfg = os.path.join(root_dir, "install", "install.cfg")
