@@ -3,4 +3,4 @@ owtf
 ~~~~~
 """
 
-__version__ = '2.2-beta'
+__version__ = '2.3b'
