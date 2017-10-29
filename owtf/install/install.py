@@ -8,6 +8,8 @@ The main install script
 import os
 import sys
 import logging
+import shutil
+
 try:
     import configparser as parser
 except ImportError:
@@ -109,8 +111,8 @@ def copy_dirs(root, dir):
     target_src_dir = os.path.join(root, 'data', dir)
     target_dest_dir = os.path.join(dest_root, dir)
     # check if already exists
-    FileOperations.create_missing_dirs(target_dest_dir)
-    dir_util.copy_tree(target_src_dir, target_dest_dir)
+    if not os.path.exists(target_dest_dir):
+        shutil.copytree(target_src_dir, target_dest_dir)
 
 
 if __name__ == "__main__":
