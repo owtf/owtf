@@ -2,6 +2,7 @@ language: python
 python:
 - '2.7'
 branches:
+
   only:
   - master
   - develop
@@ -28,6 +29,7 @@ before_script:
 - git config --global user.name "Tasty Test"
 - git am < ./owtf_testing/patch/0001-unittest-Patch-to-reuse-proxy-address.patch
 - "./owtf_testing/patch/skipfish.sh"
+
 script:
 - sudo $WORKON_HOME/owtf/bin/python -m unittest owtf_testing.tests_functional.cli.test_simulation.OWTFCliSimulationTest.test_cli_simulation
 - sudo $WORKON_HOME/owtf/bin/python -m unittest owtf_testing.tests_functional.cli.test_simulation.OWTFCliSimulationTest.test_cli_no_simulation
