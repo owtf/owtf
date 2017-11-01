@@ -67,7 +67,22 @@ Currently, **OWTF** is developed and is supported on **Linux**, with out-of-box 
 **OWTF** has been developed for Python 2.7, and therefore it **may** not run <u>as intended</u> on older Python versions.
 
 For more information on third-party library requirements, please refer to the [requirements](https://github.com/owtf/owtf/blob/e8270f2b26e6846366dda9b622c694fa9342e1bf/install/owtf.pip).
-
+List of Requirements
+===
+beautifulsoup4==4.3.2
+lxml==3.4.0
+Markdown==2.5.1
+pexpect==3.3
+psycopg2==2.5.4
+PTP==0.1.1
+pycurl==7.19.5
+pyOpenSSL==0.14
+python-owasp-zap-v2==0.0.9
+PyVirtualDisplay==0.1.5
+rdflib==4.1.2
+selenium==2.43.0
+SQLAlchemy==0.9.7
+tornado==4.0.2
 Installation
 ===
 
