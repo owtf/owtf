@@ -1,0 +1,12 @@
+*.pyc
+*.pyc
+*.pyo
+*.tmp
+.eggs/
+.git/
+.tox/
+.ropeproject/
+.cache/
+build/
+htmlcov/
+tmp/

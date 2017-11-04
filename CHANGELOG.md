@@ -818,7 +818,7 @@
  + Implemented new CLI option for algorithm: breadth (default): runs each plugin against all targets first. And depth runs all plugins against each target first <=> Abraham Aranguren (@7a_) 
  + Massive refactoring/rewrite of significant portions of the framework to support: algorithm, multi-host targets, future net plugins, etc <=> Abraham Aranguren (@7a_) 
  + Changed Config to transparently handle multi-target configurations (i.e. self.Core.Config.Get('x') --> 'x' is relevant for the current target) <=> Abraham Aranguren (@7a_) 
- + Changed Config to transparently handle multi-target replacements (i.e. self.Core.Config.GetReplacementDict() --> Returns PLACE_HOLDER => VALUE pairs relevant for target) <=> Abraham Aranguren (@7a_) 
+ + Changed Config to transparently handle multi-target replacements (i.e. self.Core.Config.get_replacement_dict() --> Returns PLACE_HOLDER => VALUE pairs relevant for target) <=> Abraham Aranguren (@7a_) 
  + Serious refactoring to dynamically load plugins and plugin types from the file system along with a description of what they do <=> Abraham Aranguren (@7a_) 
  + Significant DB refactoring to accomodate to the new multi-host/multi-db problem, created plugin register db and improved DB simulation mode without touching disk <=> Abraham Aranguren (@7a_) 
  + Bug fix: New Plugin highlighting upon screen refresh is now working again <=> Abraham Aranguren (@7a_) 

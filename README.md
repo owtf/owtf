@@ -1,11 +1,13 @@
-[![Black Hat Arsenal USA](https://rawgit.com/toolswatch/badges/master/arsenal/2017.svg)](http://www.toolswatch.org/2017/06/the-black-hat-arsenal-usa-2017-phenomenal-line-up-announced/)
+Offensive Web Testing Framework
+===
+
 [![Requirements Status](https://requires.io/github/owtf/owtf/requirements.svg?branch=develop)](https://requires.io/github/owtf/owtf/requirements/?branch=develop)
 [![Build Status](https://travis-ci.org/owtf/owtf.svg?branch=develop)](https://travis-ci.org/owtf/owtf)
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
-[![Platform (GNU/Linux)](https://img.shields.io/badge/platform-GNU/Linux-red.svg?style=flat-square)](http://www.kernel.org)
 [![python](https://img.shields.io/badge/python-2.7-blue.svg)](https://www.python.org/downloads/)
+[![python](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/)
 
-<img src="https://www.owasp.org/images/7/73/OWTFLogo.png" height="150" width="120" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![](https://www.owasp.org/images/5/59/Project_Type_Files_TOOL.jpg)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![](https://www.owasp.org/images/d/dd/Mature_projects.png)
+<img src="https://www.owasp.org/images/7/73/OWTFLogo.png" height="150" width="120" />
 
 **OWASP OWTF** is a project focused on penetration testing efficiency and alignment of security tests to security standards like the OWASP Testing Guide (v3 and v4), the OWASP Top 10, PTES and NIST so that pentesters will have more time to
 
@@ -15,82 +17,94 @@
 - Perform more tactical/targeted fuzzing on seemingly risky areas
 - Demonstrate true impact despite the short timeframes we are typically given to test.
 
-
 The tool is highly configurable and anybody can trivially create simple plugins or add new tests in the configuration files without having any development experience.
 
-> **Note**: This tool is however not a **silverbullet** and will only be as good as the   person using it: Understanding and experience will be required to correctly interpret tool output and decide what to investigate further in order to demonstrate impact.
-
-
-Features
-===
-
-- **Resilience**: If one tool crashes **OWTF**,  will move on to the next tool/test, saving the partial output of the tool until it crashed. **OWTF** also allow you to monitor worker processes and estimated plugin runtimes.
-
-- **Flexibile**: If your internet connectivity or the target host goes down during an assessment, you can ***pause*** the relevant worker processes and **resume** them later avoiding losing data to little as possible.
-
-- **Tests Separation**: **OWTF** separates its traffic to the target into mainly 3 types of plugins:
-
-  - **Passive** : No traffic goes to the target
-
-  - **Semi Passive** : Normal traffic to target
-
-  - **Active**:  Direct vulnerability probing
-
-  Some features like the *passive* and *semi_passive* **test separation** may also assist pen testers wishing to go the extra   mile to get a head start and maybe even legitimately start report writing or preparing attacks before they are given the green light to test.
-
-- **ReST API**: OWTF uses **PostgreSQL** as the database backend. All core **OWTF** functions and options are exposed through a ReST API making it easy to add new features with little effort.
-
-- **Follows popular pen-testing standards**:
-
-  - **OWTF** will try to classify the findings as closely as possible to the **OWASP Testing Guide**. It also supports the **NIST** and the **PTES** standards.
-
-  - **PlugnHack v2 support** :  **PlugnHack** is a *proposed* standard from the **Mozilla** security team for defining how security tools can interact with browsers in a more useful and usable way.
-
-  - **Zest and OWASP-ZAP integration** : **Zest** is an experimental specialized *scripting language* (domain-specific ) developed by the **Mozilla** security team and is intended to be used in web oriented security tools.
-
-- **Responsive web interface**: **OWTF** now has a default web interface which integrates all core **OWTF** options and makes it possible to manage large pentests easily.
-
-- **Interactive report updated on the fly**:
-
-  - **Automated** plugin rankings from the tool output, fully configurable by the user.
-
-  - **Configurable** risk rankings
-
-  - **In-line notes editor** for each plugin.
+> **Note**: This tool is however not a **silverbullet** and will only be as good as the person using it: Understanding and experience will be required to correctly interpret tool output and decide what to investigate further in order to demonstrate impact.
 
 
 Requirements
 ===
 
-Currently, **OWTF** is developed and is supported on **Linux**, with out-of-box support for the **Kali Linux** (1.x and 2.x).
+OWTF is developed on KaliLinux and macOS but it is made for Kali Linux (or other Debian derivatives)
 
-**OWTF** has been developed for Python 2.7, and therefore it **may** not run <u>as intended</u> on older Python versions.
-
-For more information on third-party library requirements, please refer to the [requirements](https://github.com/owtf/owtf/blob/e8270f2b26e6846366dda9b622c694fa9342e1bf/install/owtf.pip).
+OWTF supports both Python2 and Python3.
 
 Installation
 ===
 
 Recommended:
 
-```bash
-wget -N https://raw.githubusercontent.com/owtf/bootstrap-script/master/bootstrap.sh; bash bootstrap.sh
-```
+> Using a virtualenv is highly recommended!
 
-or simply `git clone https://github.com/owtf/owtf.git; cd owtf/; python2 install/install.py`
+`pip install owtf` or `pip install git+https://github.com/owtf/owtf#egg=owtf` or clone the repo and `python setup.py install`
 
 To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker** installed) provided to try OWTF:
 
- - `$ docker build -t owtf-dev .`
- - `$ docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v ~/path_to_OWTF_on_host:/owtf owtf-dev /bin/bash`
- - Open `~/.owtf/configuration` and change `SERVER_ADDR: 127.0.0.1` to `SERVER_ADDR: 0.0.0.0`.
- - Run owtf
- - Open `localhost:8009` for OWTF webUI.
+ - `make docker-build`
+ - `make docker-run`
+ - Open `~/.owtf/conf` and change `SERVER_ADDR: 127.0.0.1` to `SERVER_ADDR: 0.0.0.0`.
+ - Create a virtualenv, `virtualenv env` and activate it `source env/bin/activate`.
+ - Install and run OWTF.
+ 
+  ```bash
+   $ cd owtf/
+   # Install the develop version, so that any change made is instantly reflected.
+   $ python setup.py develop
+   # Run OWTF!
+   $ python -m owtf
+  ```
+ - Open `localhost:8009` for OWTF web interface.
+
+## Install on OSX
+
+Dependencies: Install homebrew (https://brew.sh/) and follow the steps given below:
+
+ 
+```bash
+ $ virtualenv <venv name>
+ $ source <venv name>/bin/activate
+ $ brew install coreutils gnu-sed openssl
+ # We need to install 'cryptography' first to avoid issues
+ $ pip install cryptography --global-option=build_ext --global-option="-L/usr/local/opt/openssl/lib" --global-option="-I/usr/local/opt/openssl/include"
+ $ git clone <this repo>
+ $ cd owtf
+ $ python setup.py install
+ # Run OWTF!
+ $ python -m owtf
+```
+
+In order to run the tools, install them and point the OWTF config `~/.owtf/conf/general.cfg` to the correct locations.
+
+
+Features
+===
+
+- **Resilience**: If one tool crashes **OWTF**,  will move on to the next tool/test, saving the partial output of the tool until it crashed.
+
+- **Flexibile**: Pause and resume your work.
+
+- **Tests Separation**: **OWTF** separates its traffic to the target into mainly 3 types of plugins:
+
+  - **Passive** : No traffic goes to the target
+  - **Semi Passive** : Normal traffic to target
+  - **Active**:  Direct vulnerability probing
+
+- Extensive REST API.
+
+- Has almost complete OWASP Testing Guide(v3, v4), Top 10, NIST, CWE coverage.
+
+- **Web interface**: Easily manage large penetration engagements easily.
+
+- **Interactive report**:
+  - **Automated** plugin rankings from the tool output, fully configurable by the user.
+  - **Configurable** risk rankings
+  - **In-line notes editor** for each plugin.
+
 
 License
 ===
 
-Checkout [LICENSE](LICENSE)
+Checkout [LICENSE](LICENSE.md)
 
 Links
 ===

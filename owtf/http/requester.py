@@ -1,0 +1,514 @@
+"""
+owtf.http.requester
+~~~~~~~~~~~~~~~~~~~
+
+The Requester module is in charge of simplifying HTTP requests and
+automatically log HTTP transactions by calling the DB module.
+"""
+
+import sys
+import logging
+try:
+    import http.client as client
+except ImportError:
+    import httplib as client
+try:
+    from urllib.parse import urlparse, urlencode
+    from urllib.request import urlopen, Request
+    from urllib.error import HTTPError, URLError
+    from urllib import HTTPHandler, HTTPSHandler, HTTPRedirectHandler, ProxyHandler, build_opener, install_opener
+except ImportError:
+    from urlparse import urlparse
+    from urllib import urlencode
+    from urllib2 import urlopen, Request, HTTPError, HTTPHandler, HTTPSHandler, HTTPRedirectHandler, ProxyHandler, \
+                        build_opener, install_opener, URLError
+
+from owtf.dependency_management.dependency_resolver import BaseComponent
+from owtf.dependency_management.interfaces import RequesterInterface
+from owtf.http import transaction
+from owtf.lib.general import *
+
+
+# Intercept raw request trick from:
+# http://stackoverflow.com/questions/6085709/get-headers-sent-in-urllib2-http-request
+class MyHTTPConnection(client.HTTPConnection):
+    def send(self, s):
+        global raw_request
+        # Saving to global variable for Requester class to see.
+        raw_request.append(s)
+        client.HTTPConnection.send(self, s)
+
+
+class MyHTTPHandler(HTTPHandler):
+    def http_open(self, req):
+        try:
+            return self.do_open(MyHTTPConnection, req)
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt  # Not handled here.
+        except Exception:
+            # Can't have OWTF crash due to a library exception -i.e. raise BadStatusLine(line)-
+            return ''
+
+
+class MyHTTPSConnection(client.HTTPSConnection):
+    def send(self, s):
+        global raw_request
+        # Saving to global variable for Requester class to see.
+        raw_request.append(s)
+        client.HTTPSConnection.send(self, s)
+
+
+class MyHTTPSHandler(HTTPSHandler):
+    def https_open(self, req):
+        try:
+            return self.do_open(MyHTTPSConnection, req)
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt  # Not handled here.
+        except Exception:
+            # Can't have OWTF crash due to a library exception -i.e. raise BadStatusLine(line)-.
+            return ''
+
+
+# SmartRedirectHandler is courtesy of:
+# http://www.diveintopython.net/http_web_services/redirects.html
+class SmartRedirectHandler(HTTPRedirectHandler):
+    def http_error_301(self, req, fp, code, msg, headers):
+        result = HTTPRedirectHandler.http_error_301(self, req, fp, code, msg, headers)
+        result.status = code
+        return result
+
+    def http_error_302(self, req, fp, code, msg, headers):
+        result = HTTPRedirectHandler.http_error_302(self, req, fp, code, msg, headers)
+        result.status = code
+        return result
+
+
+class Requester(BaseComponent, RequesterInterface):
+
+    COMPONENT_NAME = "requester"
+
+    def __init__(self, proxy):
+        self.register_in_service_locator()
+        self.db_config = self.get_component("db_config")
+        self.target = self.get_component("target")
+        self.transaction = self.get_component("transaction")
+        self.url_manager = self.get_component("url_manager")
+        self.error_handler = self.get_component("error_handler")
+        self.plugin_handler = self.get_component("plugin_handler")
+        self.timer = self.get_component("timer")
+        self.http_transaction = None
+        self.headers = {'User-Agent': self.db_config.get('USER_AGENT')}
+        self.req_count_refused = 0
+        self.req_count_total = 0
+        self.log_transactions = False
+        self.proxy = proxy
+        if proxy is None:
+            logging.debug(
+                "WARNING: No outbound proxy selected. It is recommended to "
+                "use an outbound proxy for tactical fuzzing later")
+            self.opener = build_opener(MyHTTPHandler, MyHTTPSHandler, SmartRedirectHandler)
+        else:  # All requests must use the outbound proxy.
+            logging.debug("Setting up proxy(inbound) for OWTF requests..")
+            ip, port = proxy
+            proxy_conf = {'http': 'http://%s:%s' % (ip, port), 'https': 'http://%s:%s' % (ip, port)}
+            proxy_handler = ProxyHandler(proxy_conf)
+            # FIXME: Works except no raw request on https.
+            self.opener = build_opener(proxy_handler, MyHTTPHandler, MyHTTPSHandler, SmartRedirectHandler)
+        install_opener(self.opener)
+
+    def log_transactions(self, log_transactions=True):
+        """Log transactions
+
+        :param log_transactions: True/False
+        :type log_transactions: `bool`
+        :return: True/False
+        :rtype: `bool`
+        """
+        backup = self.log_transactions
+        self.log_transactions = log_transactions
+        return backup
+
+    def is_transaction_added(self, url):
+        """Checks if the transaction has already been added
+
+        :param url: URL of the transaction
+        :type url: `str`
+        :return: True/False
+        :rtype: `bool`
+        """
+        return self.transaction.is_already_added({'url': url.strip()})
+
+    def is_request_possible(self):
+        """Check if requests are possible
+
+        :return: True if yes, else False
+        :rtype: `bool`
+        """
+        return self.plugin_handler.requests_possible()
+
+    def proxy_check(self):
+        """Checks if the target URL can be accessed through proxy
+
+        .note::
+            Verify proxy works! www.google.com might not work in a restricted network, try target URL :)
+
+        :return: Result of the check
+        :rtype: `list`
+        """
+        if self.proxy is not None and self.is_request_possible():
+            url = self.db_config.get('PROXY_CHECK_URL')
+            refused_before = self.req_count_refused
+            cprint("Proxy Check: Avoid logging request again if already in DB..")
+            log_setting_backup = False
+            if self.is_transaction_added(url):
+                log_setting_backup = self.log_transactions(False)
+            if log_setting_backup:
+                self.log_transactions(log_setting_backup)
+            refused_after = self.req_count_refused
+            if refused_before < refused_after:  # Proxy is refusing connections.
+                return [False, "ERROR: Proxy Check error: The proxy is not listening or is refusing connections"]
+            else:
+                return [True, "Proxy Check OK: The proxy appears to be working"]
+        return [True, "Proxy Check OK: No proxy is setup or no HTTP requests will be made"]
+
+    def get_headers(self):
+        """Get headers
+
+        :return: Headers
+        :rtype: `dict`
+        """
+        return self.headers
+
+    def set_headers(self, headers):
+        """Set supplied headers
+
+        :param headers: Headers to set
+        :type headers: `dict`
+        :return: None
+        :rtype: None
+        """
+        self.headers = headers
+
+    def set_header(self, header, value):
+        """Set the value of header
+
+        :param header: Header key
+        :type header: `str`
+        :param value: Value to be set
+        :type value: `str`
+        :return: None
+        :rtype: None
+        """
+        self.headers[header] = value
+
+    def str_to_dict(self, string):
+        """Convert a string to a dict
+
+        :param string: String to convert
+        :type string: `str`
+        :return: Resultant dict
+        :rtype: `dict`
+        """
+        dict = defaultdict(list)
+        count = 0
+        prev_item = ''
+        for item in string.strip().split('='):
+            if count % 2 == 1:  # Key.
+                dict[prev_item] = item
+            else:  # Value.
+                dict[item] = ''
+                prev_item = item
+            count += 1
+        return dict
+
+    def get_post_to_str(self, post=None):
+        """Convert POST req to str
+
+        :param post: POST request
+        :type post:
+        :return: Resultant string
+        :rtype: `str`
+        """
+        post = self.get_post(post)
+        if post is None:
+            return ''
+        return post
+
+    def get_post(self, post=None):
+        """Get post request
+
+        :param post: Post request
+        :type post: `str`
+        :return: Processed POST request
+        :rtype: `str`
+        """
+        if '' == post:
+            post = None
+        if post is not None:
+            if isinstance(post, str) or isinstance(post, unicode):
+                # Must be a dictionary prior to urlencode.
+                post = self.str_to_dict(post)
+            post = urlencode(post)
+        return post
+
+    def perform_request(self, request):
+        """Send the request
+
+        :param request: Request to send
+        :type request:
+        :return: None
+        :rtype: None
+        """
+        return urlopen(request)
+
+    def set_successful_transaction(self, raw_request, response):
+        """Set a transaction from request and response
+
+        :param raw_request: Raw request
+        :type raw_request: `list`
+        :param response: response
+        :type response:
+        :return: None
+        :rtype: None
+        """
+        return self.http_transaction.set_transaction(True, raw_request[0], response)
+
+    def log_transaction(self):
+        """Log a transaction
+
+        :return: None
+        :rtype: None
+        """
+        self.transaction.log_transaction(self.http_transaction)
+
+    def request(self, url, method=None, post=None):
+        """Main request function
+
+        :param url: Target URL
+        :type url: `str`
+        :param method: Method for the request
+        :type method: `str`
+        :param post: Post body
+        :type post: `str` or None
+        :return:
+        :rtype:
+        """
+        # kludge: necessary to get around urllib2 limitations: Need this to get the exact request that was sent.
+        global raw_request
+        url = str(url)
+
+        raw_request = []  # Init Raw Request to blank list.
+        post = self.get_post(post)
+        method = derive_http_method(method, post)
+        url = url.strip()  # Clean up URL.
+        r = Request(url, post, self.headers)  # GET request.
+        if method is not None:
+            # kludge: necessary to do anything other that GET or POST with urllib2
+            r.get_method = lambda: method
+        # MUST create a new Transaction object each time so that lists of
+        # transactions can be created and process at plugin-level
+        # Pass the timer object to avoid instantiating each time.
+        self.http_transaction = transaction.HTTP_Transaction(self.timer)
+        self.http_transaction.start(url, post, method, self.target.is_url_in_scope(url))
+        self.req_count_total += 1
+        try:
+            response = self.perform_request(r)
+            self.set_successful_transaction(raw_request, response)
+        except HTTPError as error:  # page NOT found.
+            # Error is really a response for anything other than 200 OK in urllib2 :)
+            self.http_transaction.set_transaction(False, raw_request[0], error)
+        except URLError as error:  # Connection refused?
+            err_message = self.process_http_error_code(error, url)
+            self.http_transaction.set_error(err_message)
+        except IOError:
+            err_message = "ERROR: Requester Object -> Unknown HTTP Request error: %s\n%s" % (url, str(sys.exc_info()))
+            self.http_transaction.set_error(err_message)
+        if self.log_transactions:
+            # Log transaction in DB for analysis later and return modified Transaction with ID.
+            self.log_transaction()
+        return self.http_transaction
+
+    def process_http_error_code(self, error, url):
+        """Process HTTP error code
+
+        :param error: Error
+        :type error:
+        :param url: Target URL
+        :type url: `str`
+        :return: Message
+        :rtype: `str`
+        """
+        message = ""
+        if str(error.reason).startswith("[Errno 111]"):
+            message = "ERROR: The connection was refused!: %s" % str(error)
+            self.req_count_refused += 1
+        elif str(error.reason).startswith("[Errno -2]"):
+            self.error_handler.abort_framework("ERROR: cannot resolve hostname!: %s" % str(error))
+        else:
+            message = "ERROR: The connection was not refused, unknown error!"
+        log = logging.getLogger('general')
+        log.info(message)
+        return "%s (Requester Object): %s\n%s" % (message, url, str(sys.exc_info()))
+
+    def get(self, url):
+        """Wrapper for get requests
+
+        :param url: Target url
+        :type url: `str`
+        :return:
+        :rtype:
+        """
+        return self.request(url)
+
+    def post(self, url, data):
+        """Wrapper for Post requests
+
+        :param url: Target url
+        :type url: `str`
+        :param data: Post data
+        :type data: `str`
+        :return:
+        :rtype:
+        """
+        return self.request(url, 'POST', data)
+
+    def trace(self, url):
+        """Wrapper for trace requests
+
+        :param url: Target url
+        :type url: `str`
+        :return:
+        :rtype:
+        """
+        return self.request(url, 'TRACE', None)
+
+    def options(self, url):
+        """Wrapper for options requests
+
+        :param url: Target url
+        :type url: `str`
+        :return:
+        :rtype:
+        """
+        return self.request(url, 'OPTIONS', None)
+
+    def head(self, url):
+        """Wrapper for head requests
+
+        :param url: Target url
+        :type url: `str`
+        :return:
+        :rtype:
+        """
+        return self.request(url, 'HEAD', None)
+
+    def debug(self, url):
+        """Debug request
+
+        :param url: Target url
+        :type url: `str`
+        :return:
+        :rtype:
+        """
+        self.backup_headers()
+        self.headers['Command'] = 'start-debug'
+        result = self.request(url, 'DEBUG', None)
+        self.restore_headers()
+        return result
+
+    def put(self, url, content_type='text/plain'):
+        """Wrapper for put requests
+
+        :param url: Target url
+        :type url: `str`
+        :param content_type: Content Type
+        :type content_type: `str`
+        :return:
+        :rtype:
+        """
+        self.backup_headers()
+        self.headers['Content-Type'] = content_type
+        self.headers['Content-Length'] = "0"
+        result = self.request(url, 'PUT', None)
+        self.restore_headers()
+        return result
+
+    def backup_headers(self):
+        """Backup headers
+
+        :return: None
+        :rtype: None
+        """
+        self.headers_backup = dict.copy(self.headers)
+
+    def restore_headers(self):
+        """Restore headers
+
+        :return: None
+        :rtype: None
+        """
+        self.headers = dict.copy(self.headers_backup)
+
+    def get_transaction(self, use_cache, url, method=None, data=None):
+        """Get transaction from request, response
+
+        :param use_cache: Cache usage
+        :type use_cache: `bool`
+        :param url: Request URL
+        :type url: `str`
+        :param method: Request method
+        :type method: `str`
+        :param data: Request data
+        :type data: `str`
+        :return:
+        :rtype:
+        """
+        criteria = {'url': url.strip()}
+        if method is not None:
+            criteria['method'] = method
+        # Must clean-up data to ensure match is found.
+        if data is not None:
+            criteria['data'] = self.get_post_to_str(data)
+        # Visit URL if not already visited.
+        if (not use_cache or not self.transaction.is_already_added(criteria)):
+            if method in ['', 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS']:
+                return self.request(url, method, data)
+            elif method == 'DEBUG':
+                return self.debug(url)
+            elif method == 'PUT':
+                return self.put(url, data)
+        else:  # Retrieve from DB = faster.
+            # Important since there is no transaction ID with transactions objects created by Requester.
+            return self.transaction.get_first(criteria)
+
+    def get_transactions(self, use_cache, url_list, method=None, data=None, unique=True):
+        """Get transaction from request, response
+
+        :param use_cache: Cache usage
+        :type use_cache: `bool`
+        :param url_list: List of request URLs
+        :type url_list: `list`
+        :param method: Request method
+        :type method: `str`
+        :param data: Request data
+        :type data: `str`
+        :param unique: Unique or not
+        :type unique: `bool`
+        :return: List of transactions
+        :rtype: `list`
+        """
+        transactions = []
+        if unique:
+            url_list = set(url_list)
+        for url in url_list:
+            url = url.strip()  # Clean up the URL first.
+            if not url:
+                continue  # Skip blank lines.
+            if not self.url_manager.is_url(url):
+                self.error_handler.add("Minor issue: %s is not a valid URL and has been ignored, processing continues" %
+                                       str(url))
+                continue  # Skip garbage URLs.
+            transaction = self.get_transaction(use_cache, url, method=method, data=data)
+            if transaction is not None:
+                transactions.append(transaction)
+        return transactions

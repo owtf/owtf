@@ -1,0 +1,85 @@
+{% extends base.html %}
+
+{% block title %}Target Panel{% end %}
+
+{% block includes %}
+<!-- DataTable Requirements -->
+<script type="text/javascript" charset="utf-8" src="{{ static_url('js/jquery.dataTables.min.js') }}"></script>
+<script type="text/javascript" charset="utf-8" src="{{ static_url('js/dataTables.bootstrap.js') }}"></script>
+<!-- End DataTable requirements -->
+
+<!-- Ckeditor requirements -->
+<script type="text/javascript" charset="utf-8" src="{{ static_url('js/ckeditor/ckeditor.js') }}"></script>
+<script type="text/javascript" charset="utf-8" src="{{ static_url('js/ckeditor/adapters/jquery.js') }}"></script>
+<!-- End CKeditor requirements -->
+{% end %}
+
+{% block content %}
+<div id="report" data-code="{{ target_id }}"></div>
+
+<!-- Plugin launcher template -->
+{% module Template("plugin_launcher.html",
+    plugin_launch_modal_id="pluginLaunchModal",
+    plugins_api_url="mySpace.plugins_api_url",
+    worklist_post_func="postToWorkList") %}
+<!-- End plugin launcher template -->
+
+<script>
+    var mySpace = {
+        target_id: "{{ target_id}}",
+        worklist_api_url: "{{ worklist_api_url }}",
+        plugins_api_url: "{{ plugins_api_url }}?group=web&group=network",
+        adv_filter_data: "{{ adv_filter_data }}",
+        sessions_ui_url: "{{ sessions_ui_url }}"
+    };
+
+    // Close the modal when plugins are launched successfully
+    function pluginLaunchSuccess() {
+        $('#pluginLaunchModal').modal('hide');
+        alertSuccess("Selected plugins launched, please check worklist to manage :D");
+    }
+
+    // Main function that posts using API to launch plugins
+    function postToWorkList(selectedPluginData, force_overwrite) {
+        selectedPluginData["id"] = mySpace.target_id;
+        selectedPluginData["force_overwrite"] = force_overwrite;
+        $.ajax({
+            url: mySpace.worklist_api_url,
+            type: 'POST',
+            data: $.param(selectedPluginData, true),
+            success: pluginLaunchSuccess,
+            error: function(xhr, textStatus, serverResponse) {
+                alertFail("Server replied: " + serverResponse);
+            }
+        });
+    }
+
+    // Function defined in poutput copied because react does not render script tag.
+    function getSearchString(elem) {
+        return $(elem).closest('table').find('input#searchString').val();
+    }
+
+    function clickAllButtons(elem) {
+        $(elem).closest('table').find('button.individualSearchButton').trigger('click');
+    }
+
+    // Keep moving the plugin group nav with scroll to make it in sync with report and handling visibility of scroll to top button
+    $(window).scroll(function(){
+        // Do not do in mobile phones
+        if(!(/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
+            var y = 200;
+            if (y <= $(window).scrollTop()) {
+                $("#plugin_nav").css({"marginTop": ($(window).scrollTop())-200 + "px"});
+            } else {
+                $("#plugin_nav").css({"marginTop": "0px"});
+            }
+        }
+
+        if ($(this).scrollTop() >= 50) {        // If page is scrolled more than 50px
+            $('#return-to-top').fadeIn(200);    // Fade in the arrow
+        } else {
+            $('#return-to-top').fadeOut(200);   // Else fade out the arrow
+        }
+    });
+</script>
+{% end %}
