@@ -21,7 +21,7 @@ def run(PluginInfo):
         'Optional': {'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')}
     }
 
-    for Args in plugin_params.GetArgs(args, PluginInfo):
+    for Args in plugin_params.get_args(args, PluginInfo):
         plugin_params.set_config(Args)  # Sets the auxiliary plugin arguments as config
         ServiceLocator.get_component("interactive_shell").Open({
             'ConnectVia': ServiceLocator.get_component("resource").get_resources('RCE_SBD_Connection'),

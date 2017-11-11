@@ -282,15 +282,15 @@ class Config(BaseComponent, ConfigInterface):
         targets = None
         if plugin_params.process_args():
             for param in target_params:
-                if param in plugin_params.Args:
-                    targets = plugin_params.Args[param]
+                if param in plugin_params.args:
+                    targets = plugin_params.args[param]
                     break  # it will capture only the first one matched
             repeat_delim = ','
             if targets is None:
                 logging.error("Aux target not found! See your plugin accepted parameters in ./plugins/ folder")
                 return []
-            if 'REPEAT_DELIM' in plugin_params.Args:
-                repeat_delim = plugin_params.Args['REPEAT_DELIM']
+            if 'REPEAT_DELIM' in plugin_params.args:
+                repeat_delim = plugin_params.args['REPEAT_DELIM']
             return targets.split(repeat_delim)
         else:
             return []
@@ -313,6 +313,7 @@ class Config(BaseComponent, ConfigInterface):
                 # holders.
                 new_text = new_text.replace(REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER,
                                             self.multi_replace(replace_dict[key], replace_dict))
+        new_text = os.path.expanduser(new_text)
         return new_text
 
     def load_proxy_config(self, options):
