@@ -26,7 +26,7 @@ def run(PluginInfo):
         }
     }
 
-    for Args in plugin_params.GetArgs(args, PluginInfo):
+    for Args in plugin_params.get_args(args, PluginInfo):
         plugin_params.set_config(Args)  # Sets the auxiliary plugin arguments as config
         smb.Mount(Args, PluginInfo)
         smb.Transfer()

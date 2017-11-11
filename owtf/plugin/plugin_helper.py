@@ -162,6 +162,7 @@ class PluginHelper(BaseComponent):
             PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
         self.timer.start_timer('FormatCommandAndOutput')
         ModifiedCommand = self.shell.get_modified_shell_cmd(Command, PluginOutputDir)
+
         try:
             RawOutput = self.shell.shell_exec_monitor(ModifiedCommand, PluginInfo)
         except PluginAbortException as PartialOutput:
@@ -170,6 +171,7 @@ class PluginHelper(BaseComponent):
         except FrameworkAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             FrameworkAbort = True
+
 
         TimeStr = self.timer.get_elapsed_time_as_str('FormatCommandAndOutput')
         logging.info("Time=%s", TimeStr)
