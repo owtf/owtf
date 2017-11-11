@@ -32,7 +32,7 @@ def run(PluginInfo):
         }
     }
 
-    for Args in plugin_params.GetArgs(args, PluginInfo):
+    for Args in plugin_params.get_args(args, PluginInfo):
         plugin_params.set_config(Args)
         resource = config.get_resources('PassBruteForce_' + Args['BRUTEFORCER'] + "_" + Args['CATEGORY'])
         Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,

@@ -41,7 +41,7 @@ def run(PluginInfo):
         }
     }
 
-    for Args in plugin_params.GetArgs(args, PluginInfo):
+    for Args in plugin_params.get_args(args, PluginInfo):
         # Let user specify the attachment name:
         Args['ATTACHMENT_NAME'] = Args['ATTACHMENT_NAME'] + "_" + Args['PHISHING_PAYLOAD'] + "-" + \
             Args['SET_EMAIL_TEMPLATE']
