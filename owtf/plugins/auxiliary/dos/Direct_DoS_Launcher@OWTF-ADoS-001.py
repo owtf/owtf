@@ -22,7 +22,7 @@ def run(PluginInfo):
             'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')
         }
     }
-    for Args in plugin_params.GetArgs(args, PluginInfo):
+    for Args in plugin_params.get_args(args, PluginInfo):
         plugin_params.set_config(Args)
         resource = config.get_resources('DoS_' + Args['CATEGORY'])
         Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,

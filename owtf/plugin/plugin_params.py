@@ -29,6 +29,8 @@ class PluginParams(BaseComponent):
         """
         self.args = defaultdict(list)
         for arg in self.raw_args:
+            if 'O' == arg:
+                continue
             chunks = arg.split('=')
             if len(chunks) < 2:
                 self.error_handler.add("USER ERROR: %s arguments should be in NAME=VALUE format" % str(chunks), 'user')
@@ -202,8 +204,8 @@ class PluginParams(BaseComponent):
         :return: True if run successful
         :rtype: `bool`
         """
-        if ('mandatory' not in full_args_list) or ('Optional' not in full_args_list):
-            self.error_handler.add("OWTF PLUGIN BUG: %s requires declared mandatory and Optional arguments" %
+        if ('Mandatory' not in full_args_list) or ('Optional' not in full_args_list):
+            self.error_handler.add("OWTF PLUGIN BUG: %s requires declared Mandatory and Optional arguments" %
                                    self.show_plugin(plugin))
             return self.ret_arg_error(True, plugin)
         if 'Description' not in full_args_list:
@@ -240,7 +242,7 @@ class PluginParams(BaseComponent):
         """
         for arg_name, arg_val in list(args.items()):
             cprint("Overriding configuration setting '_%s' with value %s.." % (arg_name, str(arg_val)))
-            self.config.set_general_val('string', '%s_' % arg_name, arg_val)  # Pre-pend "_" to avoid naming collisions
+            self.config.set_general_val('string', '_%s' % arg_name, arg_val)  # Pre-pend "_" to avoid naming collisions
 
     def get_permutations(self, args):
         """Get permutations from args
@@ -322,7 +324,7 @@ class PluginParams(BaseComponent):
         if 'O' in self.raw_args:  # To view available options
             self.show_param_info(full_args_list, plugin)
             return self.no_args  # Abort processing, just showing options
-        mandatory = self.get_arg_list(full_args_list['mandatory'], plugin, True)
+        mandatory = self.get_arg_list(full_args_list['Mandatory'], plugin, True)
         optional = self.get_arg_list(full_args_list['Optional'], plugin, False)
         if self.get_arg_error(plugin):
             cprint("")
