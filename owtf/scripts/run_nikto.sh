@@ -30,7 +30,7 @@ if [ "$5" ] && [ "$5" != "$ip" ]; then
         NIKTO_NOLOOKUP="" #Host name passed: must look up
 fi
 
-NIKTO_SSL=""
+NIKTO_SSL="-nossl"
 SSL_CONNECTION_LINES=$(sleep 5 ; echo -e "^C" 2> /dev/null | openssl s_client -connect "$HOST_NAME":"$PORT" -brief 2>&1 | grep "ESTABLISHED" | wc -l)
 if [ "$SSL_CONNECTION_LINES" -gt 0 ]; then # SSL connection successful, proceed with nikto -ssl switch
         NIKTO_SSL="-ssl"
