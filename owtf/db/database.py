@@ -31,7 +31,7 @@ class Session(BaseSession):
 
         .note::
             Will commit the transaction on successful completion of the block, or roll it back on error.
-            Supports nested usage (via savepoints).
+            Supports nested usage (via save points).
 
         :return: None
         :rtype: None
