@@ -45,7 +45,7 @@ class Target(Base):
     host_ip = Column(String)
     port_number = Column(String)
     url_scheme = Column(String)
-    alternative_ips = Column(String, nullable=True)  # Comma seperated
+    alternative_ips = Column(String, nullable=True)
     host_name = Column(String)
     host_path = Column(String)
     ip_url = Column(String)
