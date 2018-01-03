@@ -13,18 +13,20 @@ import logging
 from copy import deepcopy
 
 from owtf.config import config_handler
-from owtf.core import Core
+from owtf.core import core
 from owtf.lib import exceptions
 from owtf.lib.cli_options import usage, parse_options
 from owtf import __version__, __release__
-from owtf.managers import load_resources_from_file
+from owtf.managers.config import load_config_db_file, load_framework_config_file
+from owtf.managers.resource import load_resources_from_file
 from owtf.managers.mapping import load_mappings_from_file
 from owtf.managers.plugin import get_groups_for_plugins, get_all_plugin_types, get_all_plugin_groups, \
     get_types_for_plugin_group, load_test_groups, load_plugins
 from owtf.managers.session import _ensure_default_session
 from owtf.settings import WEB_TEST_GROUPS, AUX_TEST_GROUPS, NET_TEST_GROUPS, DEFAULT_RESOURCES_PROFILE, \
     FALLBACK_RESOURCES_PROFILE, FALLBACK_AUX_TEST_GROUPS, FALLBACK_NET_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, \
-    FALLBACK_MAPPING_PROFILE, DEFAULT_MAPPING_PROFILE
+    FALLBACK_MAPPING_PROFILE, DEFAULT_MAPPING_PROFILE, DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, \
+    DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE
 from owtf.utils.file import clean_temp_storage_dirs
 
 
@@ -223,6 +225,8 @@ def main(args):
 
     try:
         _ensure_default_session()
+        load_framework_config_file(DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid)
+        load_config_db_file(DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE)
         load_resources_from_file(DEFAULT_RESOURCES_PROFILE, FALLBACK_RESOURCES_PROFILE)
         load_mappings_from_file(DEFAULT_MAPPING_PROFILE, FALLBACK_MAPPING_PROFILE)
         load_test_groups(WEB_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, "web")
@@ -237,7 +241,6 @@ def main(args):
     config_handler.cli_options = deepcopy(args)
 
     # Initialise Framework.
-    core = Core()
     logging.warn("OWTF Version: {0}, Release: {1} ".format(__version__, __release__))
     try:
         if core.start(args):

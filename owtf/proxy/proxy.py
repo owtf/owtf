@@ -31,7 +31,9 @@ from owtf.config import config_handler
 from owtf.proxy.socket_wrapper import wrap_socket
 from owtf.proxy.cache_handler import CacheHandler
 from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, INBOUND_PROXY_PROCESSES, INBOUND_PROXY_CACHE_DIR, \
-    BLACKLIST_COOKIES, WHITELIST_COOKIES, HTTP_AUTH_HOST
+    BLACKLIST_COOKIES, WHITELIST_COOKIES, HTTP_AUTH_HOST, HTTP_AUTH_USERNAME, HTTP_AUTH_PASSWORD, HTTP_AUTH_MODE, \
+    PROXY_LOG, CERTS_FOLDER, CA_KEY, CA_CERT, CA_PASS_FILE
+from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 from owtf.lib.owtf_process import OWTFProcess
 
@@ -582,18 +584,18 @@ class ProxyProcess(OWTFProcess):
         self.application.ca_key = os.path.expanduser(CA_KEY)
         # To stop OWTF from breaking for our beloved users :P
         try:
-            self.application.ca_key_pass = FileOperations.open(os.path.expanduser(self.db_config.get('CA_PASS_FILE')),
+            self.application.ca_key_pass = FileOperations.open(os.path.expanduser(CA_PASS_FILE),
                                                                'r', owtf_clean=False).read().strip()
         except IOError:
             self.application.ca_key_pass = "owtf"  # XXX: Legacy CA key pass for older versions.
         self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
-        self.application.certs_folder = os.path.expanduser(self.db_config.get('CERTS_FOLDER'))
+        self.application.certs_folder = os.path.expanduser(CERTS_FOLDER)
 
         try:  # Ensure CA.crt and Key exist.
             assert os.path.exists(self.application.ca_cert)
             assert os.path.exists(self.application.ca_key)
         except AssertionError:
-            self.get_component("error_handler").abort_framework("Files required for SSL MiTM are missing."
+            abort_framework("Files required for SSL MiTM are missing."
                                                                " Please run the install script")
 
         try:  # If certs folder missing, create that.
@@ -644,20 +646,20 @@ class ProxyProcess(OWTFProcess):
         # Header filters
         # Restricted headers are picked from framework/config/framework_config.cfg
         # These headers are removed from the response obtained from webserver, before sending it to browser
-        restricted_response_headers = config_handler.get_val("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
-        ProxyHandler.restricted_response_headers = restricted_response_headers
+        #restricted_response_headers = config_handler.get_val("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
+        #ProxyHandler.restricted_response_headers = restricted_response_headers
         # These headers are removed from request obtained from browser, before sending it to webserver
-        restricted_request_headers = config_handler.get_val("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
-        ProxyHandler.restricted_request_headers = restricted_request_headers
+        #restricted_request_headers = config_handler.get_val("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
+        #ProxyHandler.restricted_request_headers = restricted_request_headers
 
         # HTTP Auth options
         if HTTP_AUTH_HOST is not None:
             self.application.http_auth = True
             # All the variables are lists
-            self.application.http_auth_hosts = self.db_config.get("HTTP_AUTH_HOST").strip().split(',')
-            self.application.http_auth_usernames = self.db_config.get("HTTP_AUTH_USERNAME").strip().split(',')
-            self.application.http_auth_passwords = self.db_config.get("HTTP_AUTH_PASSWORD").strip().split(',')
-            self.application.http_auth_modes = self.db_config.get("HTTP_AUTH_MODE").strip().split(',')
+            self.application.http_auth_hosts = HTTP_AUTH_HOST.strip().split(',')
+            self.application.http_auth_usernames = HTTP_AUTH_USERNAME.strip().split(',')
+            self.application.http_auth_passwords = HTTP_AUTH_PASSWORD.strip().split(',')
+            self.application.http_auth_modes = HTTP_AUTH_MODE.strip().split(',')
         else:
             self.application.http_auth = False
 
@@ -672,7 +674,7 @@ class ProxyProcess(OWTFProcess):
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
             tornado.options.parse_command_line(
-                args=["dummy_arg", "--log_file_prefix=%s" % self.db_config.get("PROXY_LOG"), "--logging=info"])
+                args=["dummy_arg", "--log_file_prefix=%s".format(PROXY_LOG), "--logging=info"])
             # To run any number of instances
             # "0" equals the number of cores present in a machine
             self.server.start(int(self.instances))

@@ -7,6 +7,7 @@ The DB stores worklist
 
 from sqlalchemy.sql import not_
 
+from owtf import db
 from owtf.db import models
 from owtf.lib import exceptions
 from owtf.managers.plugin import derive_plugin_dict

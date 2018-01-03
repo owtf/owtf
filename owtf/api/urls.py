@@ -17,14 +17,14 @@ from owtf.api.handlers.transactions import URLDataHandler, URLSearchHandler, Tra
 from owtf.api.handlers.work import WorkerHandler, WorklistHandler, WorklistSearchHandler
 from owtf.api.base import StaticFileHandler
 from owtf.api.handlers import ui_handlers
+from owtf.managers.plugin import get_all_plugin_groups, get_all_plugin_types
+from owtf.settings import STATIC_ROOT
+from owtf.utils.file import get_dir_worker_logs, get_output_dir_target
 
 
 def get_handlers():
-
-    db_plugin = ServiceLocator.get_component("db_plugin")
-    config = ServiceLocator.get_component("config")
-    plugin_group_re = '(%s)?' % '|'.join(db_plugin.get_all_plugin_groups())
-    plugin_type_re = '(%s)?' % '|'.join(db_plugin.get_all_plugin_types())
+    plugin_group_re = '(%s)?' % '|'.join(get_all_plugin_groups())
+    plugin_type_re = '(%s)?' % '|'.join(get_all_plugin_types())
     plugin_code_re = '([0-9A-Z\-]+)?'
 
     URLS = [
@@ -51,7 +51,7 @@ def get_handlers():
         tornado.web.url(r'/api/worklist/search/?$', WorklistSearchHandler, name='worklist_search_api_url'),
         tornado.web.url(r'/api/configuration/?$', ConfigurationHandler, name='configuration_api_url'),
 
-        (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': config.get_val('STATICFILES_DIR')}),
+        (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': STATIC_ROOT}),
         tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),
         tornado.web.url(r'/?$', ui_handlers.Redirect, name='redirect_ui_url'),
         tornado.web.url(r'/ui/?$', ui_handlers.Home, name='home_ui_url'),
@@ -70,11 +70,10 @@ def get_handlers():
 
 
 def get_file_server_handlers():
-    config = ServiceLocator.get_component("config")
     URLS = [
         tornado.web.url(r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', WorkerHandler, name='workers_api_url'),
         tornado.web.url(r'/api/plugins/progress/?$', ProgressBarHandler, name='poutput_count'),
-        tornado.web.url(r'/logs/(.*)', StaticFileHandler, {'path': config.get_dir_worker_logs()}, name="logs_files_url"),
-        tornado.web.url(r'/(.*)', StaticFileHandler, {'path': config.get_output_dir_target()}, name="output_files_url"),
+        tornado.web.url(r'/logs/(.*)', StaticFileHandler, {'path': get_dir_worker_logs()}, name="logs_files_url"),
+        tornado.web.url(r'/(.*)', StaticFileHandler, {'path': get_output_dir_target()}, name="output_files_url"),
     ]
     return URLS

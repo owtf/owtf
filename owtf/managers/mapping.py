@@ -13,10 +13,13 @@ try:
 except ImportError:
     import ConfigParser as parser
 
+from owtf import db
 from owtf.utils.error import abort_framework
-from owtf.config import config_handler
 from owtf.db import models
 from owtf.lib.exceptions import InvalidMappingReference
+
+
+mapping_types = list()
 
 
 def derive_mapping_dict(obj):
@@ -118,7 +121,7 @@ def load_mappings_from_file(default, fallback):
         category = None
         for mapping_type, data in config_parser.items(owtf_code):
             if mapping_type != 'category':
-                if mapping_type not in self.mapping_types:
+                if mapping_type not in mapping_types:
                     mapping_types.append(mapping_type)
                 mapped_code, mapped_name = data.split('_____')
                 mappings[mapping_type] = [mapped_code, mapped_name]

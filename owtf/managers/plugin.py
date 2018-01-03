@@ -10,6 +10,7 @@ import json
 
 from sqlalchemy import or_
 
+from owtf import db
 from owtf.db import models
 from owtf.settings import PLUGINS_DIR
 from owtf.utils.error import abort_framework
@@ -108,7 +109,8 @@ def load_plugins():
         # TODO: Using os.path.sep might not be portable especially on
         # Windows platform since it allows '/' and '\' in the path.
         # Retrieve the group, the type and the file of the plugin.
-        chunks = plugin.split(os.path.sep)
+        # Ensure all empty strings are removed from the list
+        chunks = filter(None, plugin.split(os.path.sep))
         # TODO: Ensure that the variables group, type and file exist when
         # the length of chunks is less than 3.
         if len(chunks) == 3:

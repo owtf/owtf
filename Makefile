@@ -12,7 +12,7 @@ endif
 
 db-clean:
 	@echo "--> Dropping the database"
-	@sh owtf/scripts/db_setup.sh clean
+	@sh owtf/data/scripts/db_setup.sh clean
 
 db-init:
 	@echo "--> Initializing the database"
@@ -20,11 +20,11 @@ db-init:
 
 db-run:
 	@echo "--> Initializing the database"
-	@sh owtf/scripts/db_run.sh
+	@sh owtf/data/scripts/db_run.sh
 
 db-config:
 	@echo "--> Initializing the database"
-	@sh owtf/scripts/db_config_setup.sh
+	@sh owtf/data/scripts/db_config_setup.sh
 
 reset-db: db-clean db-init
 
