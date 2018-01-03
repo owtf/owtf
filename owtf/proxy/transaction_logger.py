@@ -9,15 +9,15 @@ import os
 import glob
 import time
 import sys
-if sys.version_info[0] == 3:
+try:
     from urllib.parse import urlparse
-else:
+except ImportError:
     from urlparse import urlparse
 
 from owtf.http import transaction
 from owtf.proxy.cache_handler import response_from_cache, request_from_cache
 from owtf.lib.owtf_process import OWTFProcess
-from owtf import timer
+from owtf.utils import timer
 
 
 class TransactionLogger(OWTFProcess):
@@ -30,8 +30,6 @@ class TransactionLogger(OWTFProcess):
 
     def __init__(self, **kwargs):
         super(TransactionLogger, self).__init__(**kwargs)
-        self.target = self.get_component("target")
-        self.transaction = self.get_component("transaction")
 
     def derive_target_for_transaction(self, request, response, target_list, host_list):
         """Get the target and target ID for transaction
@@ -106,7 +104,7 @@ class TransactionLogger(OWTFProcess):
         :return: List of hashes
         :rtype: `list`
         """
-        hash_list = []
+        hash_list = list()
         for file_path in glob.glob(os.path.join(cache_dir, "*.rd")):
             request_hash = os.path.basename(file_path)[:-3]
             hash_list.append(request_hash)

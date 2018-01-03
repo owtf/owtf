@@ -9,18 +9,15 @@ interaction with subprocesses running tools or remote connections (i.e. shells)
 
 import subprocess
 
-from owtf.lib.general import *
 from owtf.shell import blocking_shell
 from owtf.shell.async_subprocess import *
+from owtf.utils.strings import cprint
 
 
 class InteractiveShell(blocking_shell.Shell):
 
-    COMPONENT_NAME = "interactive_shell"
-
     def __init__(self):
         blocking_shell.Shell.__init__(self)  # Calling parent class to do its init part
-        self.register_in_service_locator()
         self.connection = None
         self.options = None
         self.command_time_offset = 'InteractiveCommand'
@@ -34,7 +31,7 @@ class InteractiveShell(blocking_shell.Shell):
         :rtype: `bool`
         """
         if not self.connection:
-            cprint("ERROR - Communication channel closed - %s" % AbortMessage)
+            cprint("ERROR - Communication channel closed - %s".format(AbortMessage))
             return False
         return True
 

@@ -4,7 +4,7 @@ import os
 import re
 from collections import defaultdict
 
-from owtf.config.config import REPLACEMENT_DELIMITER
+from owtf.settings import REPLACEMENT_DELIMITER
 
 
 def str2bool(string):
@@ -254,3 +254,23 @@ def is_convertable(value, conv):
         return conv(value)
     except ValueError:
         return None
+
+def str_to_dict(string):
+    """Convert a string to a dict
+
+    :param string: String to convert
+    :type string: `str`
+    :return: Resultant dict
+    :rtype: `dict`
+    """
+    dict = defaultdict(list)
+    count = 0
+    prev_item = ''
+    for item in string.strip().split('='):
+        if count % 2 == 1:  # Key.
+            dict[prev_item] = item
+        else:  # Value.
+            dict[item] = ''
+            prev_item = item
+        count += 1
+    return dict

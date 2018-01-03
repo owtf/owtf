@@ -1,9 +1,12 @@
+import codecs
 import os
+import sys
 import shutil
-import tempfile
+import logging
 
-from owtf import error_handler
-from owtf.lib.general import cprint
+from owtf.settings import LOGS_DIR, WORKER_LOG_DIR, TARGETS_DIR, OUTPUT_PATH, OWTF_CONF
+from owtf.utils.error import abort_framework
+from owtf.utils.strings import wipe_bad_chars, cprint
 
 
 def catch_io_errors(func):
@@ -24,9 +27,7 @@ def catch_io_errors(func):
             return func(*args, **kwargs)
         except (OSError, IOError) as e:
             if owtf_clean:
-                if error_handler:
-                    error_handler.abort_framework(
-                        "Error when calling '%s'! %s." % (func.__name__, str(e)))
+                abort_framework("Error when calling '%s'! %s." % (func.__name__, str(e)))
             raise e
 
     return io_error
@@ -130,7 +131,7 @@ def get_file_as_list(filename):
             output = f.read().split("\n")
             cprint("Loaded file: %s" % filename)
     except IOError:
-        log("Cannot open file: %s (%s)" % (filename, str(sys.exc_info())))
+        logging.error("Cannot open file: %s (%s)" % (filename, str(sys.exc_info())))
         output = []
     return output
 
@@ -161,46 +162,50 @@ def clean_temp_storage_dirs(owtf_pid):
         os.rename(curr_tmp_dir, new_tmp_dir)
 
 
-def get_output_dir(self):
+def get_output_dir():
     """Gets the output directory for the session
 
     :return: The path to the output directory
     :rtype: `str`
     """
-    output_dir = os.path.expanduser(self.get_val("OUTPUT_PATH"))
+    output_dir = os.path.expanduser(OUTPUT_PATH)
     if not os.path.isabs(output_dir) and directory_access(os.getcwd(), "w+"):
         return output_dir
     else:
         # The output_dir may not be created yet, so check its parent.
         if directory_access(os.path.dirname(output_dir), "w+"):
             return output_dir
-    return os.path.expanduser(os.path.join(self.get_val("SETTINGS_DIR"), output_dir))
+    return os.path.expanduser(os.path.join(OWTF_CONF, output_dir))
 
-def get_output_dir_target(self):
+
+def get_output_dir_target():
     """Returns the output directory for the targets
 
     :return: Path to output directory
     :rtype: `str`
     """
-    return os.path.join(self.get_output_dir(), self.get_val("TARGETS_DIR"))
+    return os.path.join(get_output_dir(), TARGETS_DIR)
 
-def get_dir_worker_logs(self):
+
+def get_dir_worker_logs():
     """Returns the output directory for the worker logs
 
     :return: Path to output directory for the worker logs
     :rtype: `str`
     """
-    return os.path.join(self.get_output_dir(), self.get_val("WORKER_LOG_DIR"))
+    return os.path.join(get_output_dir(), WORKER_LOG_DIR)
 
-def cleanup_target_dirs(self, target_url):
+
+def cleanup_target_dirs( target_url):
     """Cleanup the directories for the specific target
 
     :return: None
     :rtype: None
     """
-    return FileOperations.rm_tree(self.get_target_dir(target_url))
+    return FileOperations.rm_tree(get_target_dir(target_url))
 
-def get_target_dir(self, target_url):
+
+def get_target_dir( target_url):
     """Gets the specific directory for a target in the target output directory
 
     :param target_url: Target URL for which directory path is needed
@@ -209,9 +214,10 @@ def get_target_dir(self, target_url):
     :rtype: `str`
     """
     clean_target_url = target_url.replace("/", "_").replace(":", "").replace("#", "")
-    return os.path.join(self.get_output_dir_target(), clean_target_url)
+    return os.path.join(get_output_dir_target(), clean_target_url)
 
-def create_output_dir_target(self, target_url):
+
+def create_output_dir_target( target_url):
     """Creates output directories for the target URL
 
     :param target_url: The target URL
@@ -219,4 +225,27 @@ def create_output_dir_target(self, target_url):
     :return: None
     :rtype: None
     """
-    FileOperations.create_missing_dirs(self.get_target_dir(target_url))
+    FileOperations.create_missing_dirs(get_target_dir(target_url))
+
+
+def get_logs_dir():
+    """
+    Get log directory by checking if abs or relative path is provided in
+    config file
+    """
+    # Check access for logs dir parent directory because logs dir may not be created.
+    if os.path.isabs(LOGS_DIR) and directory_access(os.path.dirname(LOGS_DIR), "w+"):
+        return LOGS_DIR
+    else:
+        return os.path.join(get_output_dir(), LOGS_DIR)
+
+
+def get_log_path(process_name):
+    """Get the log file path based on the process name
+    :param process_name: Process name
+    :type process_name: `str`
+    :return: Path to the specific log file
+    :rtype: `str`
+    """
+    log_file_name = "%s.log" % process_name
+    return os.path.join(get_logs_dir(), log_file_name)

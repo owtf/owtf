@@ -15,7 +15,6 @@ from owtf.api.handlers.targets import TargetSeverityChartHandler, TargetConfigSe
 from owtf.api.handlers.transactions import URLDataHandler, URLSearchHandler, TransactionDataHandler, \
     TransactionHrtHandler, TransactionSearchHandler
 from owtf.api.handlers.work import WorkerHandler, WorklistHandler, WorklistSearchHandler
-from owtf.dependency_management.dependency_resolver import ServiceLocator
 from owtf.api.base import StaticFileHandler
 from owtf.api.handlers import ui_handlers
 

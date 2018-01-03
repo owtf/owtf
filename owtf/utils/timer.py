@@ -10,19 +10,12 @@ human-readable form.
 import math
 import datetime
 
-from owtf.dependency_management.dependency_resolver import BaseComponent
-from owtf.dependency_management.interfaces import TimerInterface
 
-
-class Timer(BaseComponent, TimerInterface):
-
-    COMPONENT_NAME = "timer"
-
+class Timer(object):
     # Dictionary of timers, Several timers can be set at any given point in time.
     timers = {}
 
     def __init__(self, datetime_format="%d/%m/%Y-%H:%M"):
-        self.register_in_service_locator()
         self.date_time_format = datetime_format
 
     def start_timer(self, offset='0'):

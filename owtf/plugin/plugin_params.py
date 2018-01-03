@@ -5,21 +5,20 @@ owtf.plugin.plugin_params.py
 Manage parameters to the plugins
 """
 
-from owtf.dependency_management.dependency_resolver import BaseComponent
-from owtf.lib.general import *
+from collections import defaultdict
+
+from owtf.config import config_handler
+from owtf.managers.error import add_error
+from owtf.utils.error import abort_framework
+from owtf.utils.strings import cprint, merge_dicts
 
 
-class PluginParams(BaseComponent):
+class PluginParams(object):
 
-    COMPONENT_NAME = "plugin_params"
-
-    def __init__(self, Options):
-        self.register_in_service_locator()
-        self.config = self.get_component("config")
-        self.error_handler = self.get_component("error_handler")
-        self.raw_args = Options['Args']
+    def __init__(self, options):
+        self.raw_args = options['Args']
         self.init = False
-        self.no_args = []
+        self.no_args = list()
 
     def process_args(self):
         """Process args
@@ -33,13 +32,13 @@ class PluginParams(BaseComponent):
                 continue
             chunks = arg.split('=')
             if len(chunks) < 2:
-                self.error_handler.add("USER ERROR: %s arguments should be in NAME=VALUE format" % str(chunks), 'user')
+                add_error("USER ERROR: %s arguments should be in NAME=VALUE format" % str(chunks), 'user')
                 return False
             arg_name = chunks[0]
             try:
                 arg_val = arg.replace(arg_name, '')[1:]
-            except valueError:
-                self.error_handler.add("USER ERROR: %s arguments should be in NAME=VALUE format" % str(arg_name), 'user')
+            except ValueError:
+                add_error("USER ERROR: %s arguments should be in NAME=VALUE format" % str(arg_name), 'user')
                 return False
             self.args[arg_name] = arg_val
         return True
@@ -72,7 +71,7 @@ class PluginParams(BaseComponent):
         :return: Padded example
         :rtype: `str`
         """
-        args_str = []
+        args_str = list()
         for key, value in list(merge_dicts(full_args_list['mandatory'], full_args_list['Optional']).items()):
             args_str.append(key)
         pad = '=? '
@@ -94,7 +93,7 @@ class PluginParams(BaseComponent):
         if len(full_args_list['Optional']) > 0:
             self.list_args(full_args_list['Optional'], False)
         cprint("\nUsage: %s\n" % self.get_args_example(full_args_list))
-        self.error_handler.abort_framework("User is only viewing options, exiting", False)
+        abort_framework("User is only viewing options, exiting")
 
     def show_plugin(self, plugin):
         """Show plugin info
@@ -104,7 +103,7 @@ class PluginParams(BaseComponent):
         :return: Formatted plugin string
         :rtype: `str`
         """
-        return "plugin: %s/%s" % (plugin['type'], plugin['file'])
+        return "plugin: %s/%s".format(plugin['type'], plugin['file'])
 
     def default_arg_from_config(self, args, arg_name, settings_list):
         """Get default args from config
@@ -120,8 +119,8 @@ class PluginParams(BaseComponent):
         """
         default_order_str = " (Default order is: %s)" % str(settings_list)
         for setting in settings_list:
-            if self.config.is_set(setting):  # argument is set in config
-                args[arg_name] = self.config.get_val(setting)
+            if config_handler.is_set(setting):  # argument is set in config
+                args[arg_name] = config_handler.get_val(setting)
                 cprint("default not passed '%s' to '%s'%s" % (arg_name, str(args[arg_name]), default_order_str))
                 return True
         cprint("Could not default not passed: '%s'%s" % (arg_name, default_order_str))
@@ -153,7 +152,7 @@ class PluginParams(BaseComponent):
                     # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or
                     # argument is optional = ok to skip
                     continue
-                self.error_handler.add("USER ERROR: %s requires argument: '%s'" % (self.show_plugin(plugin), arg_name),
+                add_error("USER ERROR: %s requires argument: '%s'" % (self.show_plugin(plugin), arg_name),
                                        'user')
                 return self.ret_arg_error({}, plugin)  # Abort processing (invalid data)
             args[arg_name] = self.args[arg_name]
@@ -205,11 +204,11 @@ class PluginParams(BaseComponent):
         :rtype: `bool`
         """
         if ('Mandatory' not in full_args_list) or ('Optional' not in full_args_list):
-            self.error_handler.add("OWTF PLUGIN BUG: %s requires declared Mandatory and Optional arguments" %
+            add_error("OWTF PLUGIN BUG: %s requires declared Mandatory and Optional arguments" %
                                    self.show_plugin(plugin))
             return self.ret_arg_error(True, plugin)
         if 'Description' not in full_args_list:
-            self.error_handler.add("OWTF PLUGIN BUG: %s  requires a Description" % self.show_plugin(plugin))
+            add_error("OWTF PLUGIN BUG: %s  requires a Description" % self.show_plugin(plugin))
             return self.ret_arg_error(False, plugin)
         return True
 
@@ -225,7 +224,7 @@ class PluginParams(BaseComponent):
         """
         if not all_args:
             return self.no_args
-        args_str = []
+        args_str = list()
         for arg_name, arg_val in list(all_args.items()):
             args_str.append(arg_name + "=" + str(self.args[arg_name]))
             all_args[arg_name] = arg_val
@@ -242,7 +241,7 @@ class PluginParams(BaseComponent):
         """
         for arg_name, arg_val in list(args.items()):
             cprint("Overriding configuration setting '_%s' with value %s.." % (arg_name, str(arg_val)))
-            self.config.set_general_val('string', '_%s' % arg_name, arg_val)  # Pre-pend "_" to avoid naming collisions
+            config_handler.set_general_val('string', '_%s' % arg_name, arg_val)  # Pre-pend "_" to avoid naming collisions
 
     def get_permutations(self, args):
         """Get permutations from args
@@ -333,3 +332,6 @@ class PluginParams(BaseComponent):
             return self.no_args  # Error processing arguments, must abort processing
         all_args = merge_dicts(mandatory, optional)
         return self.set_args(all_args, plugin)
+
+
+plugin_params = PluginParams(config_handler.cli_options)

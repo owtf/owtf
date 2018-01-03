@@ -9,9 +9,9 @@ import tornado.web
 import tornado.httpclient
 
 from owtf.lib import exceptions
-from owtf.lib.general import cprint
 from owtf.api.base import APIRequestHandler
 from owtf.lib.exceptions import InvalidTargetReference
+from owtf.utils.strings import cprint
 
 
 class TargetConfigHandler(APIRequestHandler):

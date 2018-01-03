@@ -11,7 +11,6 @@ import logging
 import io
 import gzip
 import zlib
-import json
 try:
     from http.client import responses as response_messages
 except ImportError:
@@ -19,10 +18,10 @@ except ImportError:
 
 from cookies import Cookie, InvalidCookieError
 
-from owtf.lib.general import derive_http_method
+from owtf.utils.http import derive_http_method
 
 
-class HTTP_Transaction(object):
+class HTTPTransaction(object):
     def __init__(self, timer):
         self.timer = timer
         self.new = False
@@ -241,7 +240,7 @@ class HTTP_Transaction(object):
         :rtype: `str`
         """
         if '' == link_name:
-            link_name = "Transaction %s" % self.id
+            link_name = "Transaction {}".format(self.id)
         return self.html_link_id.replace('@@@PLACE_HOLDER@@@', link_name)
 
     def get_html_link_time(self, link_name=''):
@@ -252,7 +251,7 @@ class HTTP_Transaction(object):
         :return: Formatted HTML link
         :rtype: `str`
         """
-        return "%s (%s)" % (self.get_html_link(link_name), self.time_human)
+        return "{0} ({1})".format(self.get_html_link(link_name), self.time_human)
 
     def get_raw_escaped(self):
         """Get escaped request and response
@@ -260,7 +259,7 @@ class HTTP_Transaction(object):
         :return: None
         :rtype: None
         """
-        return "<pre>%s</pre>" % cgi.escape(self.get_raw())
+        return "<pre>{}</pre>".format(cgi.escape(self.get_raw()))
 
     def get_raw(self):
         """Get raw transaction request and response
@@ -268,7 +267,7 @@ class HTTP_Transaction(object):
         :return: Raw string with response and request
         :rtype: `str`
         """
-        return "%s\n\n%s" % (self.get_raw_request(), self.get_raw_response())
+        return "{}\n\n{}".format(self.get_raw_request(), self.get_raw_response())
 
     def get_raw_request(self):
         """Return raw request
@@ -303,9 +302,9 @@ class HTTP_Transaction(object):
         :rtype: `str`
         """
         try:
-            return "%s\r\n%s\n\n%s" % (self.get_status(), str(self.response_headers), self.response_contents)
+            return "{}\r\n{}\n\n{}".format(self.get_status(), str(self.response_headers), self.response_contents)
         except UnicodeDecodeError:
-            return "%s\r\n%s\n\n[Binary Content]" % (self.get_status(), str(self.response_headers))
+            return "{}\r\n{}\n\n[Binary Content]".format(self.get_status(), str(self.response_headers))
 
     def get_raw_response_headers(self, with_status=True):
         """Get raw response headers for the transaction
@@ -315,7 +314,7 @@ class HTTP_Transaction(object):
         :return: Raw response headers as a string
         :rtype: `str`
         """
-        return "%s\r\n%s" % (self.get_status(), str(self.response_headers))
+        return "{}\r\n{}".format(self.get_status(), str(self.response_headers))
 
     def get_raw_response_body(self):
         """Return raw response content

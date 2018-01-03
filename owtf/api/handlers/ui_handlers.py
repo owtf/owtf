@@ -12,7 +12,6 @@ import collections
 import tornado.web
 from tornado.escape import url_escape
 
-from owtf.dependency_management.dependency_resolver import ServiceLocator
 from owtf.lib.exceptions import InvalidTargetReference, InvalidParameterType
 from owtf.api.base import UIRequestHandler
 

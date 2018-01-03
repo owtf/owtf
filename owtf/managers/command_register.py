@@ -8,7 +8,8 @@ Component to handle data storage and search of all commands run
 from sqlalchemy.exc import SQLAlchemyError
 
 from owtf.db import models
-from owtf.managers.target import target_required
+from owtf.managers.poutput import plugin_output_exists
+from owtf.managers.target import target_required, target_manager
 
 
 def add_command(command):
@@ -62,12 +63,12 @@ def command_already_registered(original_command, target_id=None):
         # If the command was completed and the plugin output to which it
         # is referring exists
         if register_entry.success:
-            if plugin_output.plugin_output_exists(register_entry.plugin_key, register_entry.target_id):
-                return target.get_target_url_for_id(register_entry.target_id)
+            if plugin_output_exists(register_entry.plugin_key, register_entry.target_id):
+                return target_manager.get_target_url_for_id(register_entry.target_id)
             else:
-                del_command(original_command)
+                delete_command(original_command)
                 return None
         else:  # Command failed
-            del_command(original_command)
-            return target.get_target_url_for_id(register_entry.target_id)
+            delete_command(original_command)
+            return target_manager.get_target_url_for_id(register_entry.target_id)
     return None
