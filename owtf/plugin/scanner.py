@@ -8,8 +8,8 @@ The scan_network scans the network for different ports and call network plugins 
 import re
 import logging
 
-from owtf.dependency_management.dependency_resolver import BaseComponent
-from owtf.utils import FileOperations
+from owtf.shell.blocking_shell import Shell
+from owtf.utils.file import FileOperations
 
 SCANS_FOLDER = "scans"  # Folder under which all scans will be saved
 PING_SWEEP_FILE = "%s/00_ping_sweep" % SCANS_FOLDER
@@ -19,15 +19,10 @@ STD_SCAN_FILE = "%s/03_std_scan" % SCANS_FOLDER
 FULL_SCAN_FILE = "%s/04_full_scan" % SCANS_FOLDER
 
 
-class Scanner(BaseComponent):
-
-    COMPONENT_NAME = "scanner"
+class Scanner(object):
 
     def __init__(self):
-        self.register_in_service_locator()
-        self.shell = self.get_component("shell")
-        self.config = self.get_component("config")
-        self.plugin_handler = self.get_component("plugin_handler")
+        self.shell = Shell()
         self.shell.shell_exec("mkdir %s" % SCANS_FOLDER)
 
     def ping_sweep(self, target, scantype):
@@ -226,7 +221,7 @@ class Scanner(BaseComponent):
                     port = line.split(":")[1]
                     plugin_to_invoke = service
                     service1 = plugin_to_invoke
-                    self.config.Set("%s_PORT_NUMBER" % service1.upper(), port)
+                    self.config.set("%s_PORT_NUMBER" % service1.upper(), port)
                     if service != 'http':
                         plugin_list.append(plugin_to_invoke)
                         http.append(port)
@@ -256,5 +251,5 @@ class Scanner(BaseComponent):
         :return: None
         :rtype: None
         """
-        self.scan_and_grab_banners("%s.ips" % PING_SWEEP_FILE, FAST_SCAN_FILE, protocol, "-p %s" % port)
-        return self.probe_service_for_hosts("%s.%s.gnmap" % (FAST_SCAN_FILE, protocol), target.split("//")[1])
+        self.scan_and_grab_banners("{0}.ips".format(PING_SWEEP_FILE), FAST_SCAN_FILE, protocol, "-p" + str(port))
+        return self.probe_service_for_hosts("{0}.{1}.gnmap".format(FAST_SCAN_FILE, protocol), target.split("//")[1])

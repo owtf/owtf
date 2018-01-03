@@ -34,6 +34,7 @@ class Reporter(BaseComponent, ReporterInterface):
         self.CounterList = []
 
     def init(self):
+        # type: () -> object
         self.requester = self.get_component("requester")
 
     def TransactionTableFromIDs(self, TransactionIDs, NumLinesReq=15, NumLinesRes=15):

@@ -9,93 +9,53 @@ across modules.
 
 import os
 import sys
-import signal
 import socket
 import logging
 import multiprocessing
+from copy import deepcopy
+try: #PY3
+    from urllib.parse import urlparse
+except ImportError:  #PY2
+     from urlparse import urlparse
 
 import tornado
-import psutil
 
-from owtf.dependency_management.dependency_resolver import BaseComponent
-from owtf.dependency_management.component_initialiser import ComponentInitialiser
-from owtf.utils import FileOperations, catch_io_errors, OutputCleaner
+from owtf.config import config_handler
+from owtf.lib.exceptions import UnresolvableTargetException, DBIntegrityException
+from owtf.managers.target import add_target, get_target_config_dicts
 from owtf.api import server
 from owtf.proxy import proxy, transaction_logger
-from owtf.managers import worker
-from owtf.lib.formatters import ConsoleFormatter, FileFormatter
+from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, INBOUND_PROXY_CACHE_DIR, PROXY_LOG, SERVER_ADDR, \
+    UI_SERVER_PORT
+from owtf.utils.error import abort_framework
+from owtf.utils.file import catch_io_errors, FileOperations, get_logs_dir, get_log_path, create_temp_storage_dirs
+from owtf.utils.formatters import FileFormatter, ConsoleFormatter
+from owtf.utils.process import kill_children
+from owtf.managers.worklist import add_work
+from owtf.plugin.plugin_handler import plugin_handler
+from owtf.managers.worker import worker_manager
+from owtf.managers.plugin import get_all_plugin_dicts
+from owtf.plugin.plugin_params import plugin_params
 
 
-class Core(BaseComponent):
-
+class Core(object):
     """Main entry point for OWTF that manages the OWTF components."""
 
-    COMPONENT_NAME = "core"
-
     def __init__(self):
-        """Initialize a Core instance.
-
-        .. note::
-
-            [*] Tightly coupled, cohesive framework components
-            [*] Order is important
-
-            + IO decorated so as to abort on any permission errors
-            + Required folders created
-            + All other components are attached to core: shell, db etc... (using ServiceLocator)
-
+        """
         :return: instance of :class:`owtf.core.Core`
         :rtype::class:`owtf.core.Core`
 
         """
-        self.register_in_service_locator()
-        # ------------------------ IO decoration ------------------------ #
         self.file_handler = catch_io_errors(logging.FileHandler)
-        # -------------------- Component attachment -------------------- #
-        self.db = self.get_component("db")
-        self.config = self.get_component("config")
-        self.db_config = self.get_component("db_config")
-        self.error_handler = self.get_component("error_handler")
-        # ----------------------- Directory creation ----------------------- #
-        FileOperations.create_missing_dirs(self.config.get_logs_dir())
-        self.create_temp_storage_dirs()
-        self.enable_logging()
-        # The following attributes will be initialised later
+        self.owtf_pid = os.getppid()
+        self.plugin_handler = plugin_handler
+        self.worker_manager = worker_manager
         self.tor_process = None
-
-    def create_temp_storage_dirs(self):
-        """Create a temporary directory in /tmp with pid suffix.
-
-        :return:
-        :rtype: None
-        """
-        tmp_dir = os.path.join('/tmp', 'owtf')
-        if not os.path.exists(tmp_dir):
-            tmp_dir = os.path.join(tmp_dir, str(self.config.owtf_pid))
-            if not os.path.exists(tmp_dir):
-                FileOperations.make_dirs(tmp_dir)
-
-    def clean_temp_storage_dirs(self):
-        """Rename older temporary directory to avoid any further confusions.
-
-        :return:
-        :rtype: None
-        """
-        curr_tmp_dir = os.path.join('/tmp', 'owtf', str(self.config.owtf_pid))
-        new_tmp_dir = os.path.join('/tmp', 'owtf', 'old-%d' % self.config.owtf_pid)
-        if os.path.exists(curr_tmp_dir) and os.access(curr_tmp_dir, os.W_OK):
-            os.rename(curr_tmp_dir, new_tmp_dir)
-
-    def get_command(self, argv):
-        """Format command to remove directory and space-separated arguments.
-
-        :params list argv: Arguments for the CLI.
-
-        :return: Arguments without directory and space-separated arguments.
-        :rtype: list
-
-        """
-        return " ".join(argv).replace(argv[0], os.path.basename(argv[0]))
+        self.proxy_process = None
+        FileOperations.create_missing_dirs(get_logs_dir())
+        create_temp_storage_dirs(self.owtf_pid)
+        self.enable_logging()
 
     def start_proxy(self, options):
         """ The proxy along with supporting processes are started here
@@ -109,29 +69,21 @@ class Core(BaseComponent):
             # Check if port is in use
             try:
                 temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                temp_socket.bind((
-                    self.db_config.get('INBOUND_PROXY_IP'),
-                    int(self.db_config.get('INBOUND_PROXY_PORT'))))
+                temp_socket.bind((INBOUND_PROXY_IP, INBOUND_PROXY_PORT))
                 temp_socket.close()
             except socket.error:
-                self.error_handler.abort_framework("Inbound proxy address %s:%s already in use" %
-                                                   (self.db_config.get('INBOUND_PROXY_IP'),
-                                                   self.db_config.get("INBOUND_PROXY_PORT")))
+                abort_framework("Inbound proxy address already in use")
             # If everything is fine.
             self.proxy_process = proxy.ProxyProcess()
             self.proxy_process.initialize(options['OutboundProxy'], options['OutboundProxyAuth'])
-            self.transaction_logger = transaction_logger.TransactionLogger(
-                cache_dir=self.db_config.get('INBOUND_PROXY_CACHE_DIR'))
-            logging.warn(
-                "%s:%s <-- HTTP(S) Proxy to which requests can be directed",
-                self.db_config.get('INBOUND_PROXY_IP'),
-                self.db_config.get("INBOUND_PROXY_PORT"))
+            self.transaction_logger = transaction_logger.TransactionLogger(cache_dir=INBOUND_PROXY_CACHE_DIR)
+            logging.warn("{0}:{1} <-- HTTP(S) Proxy to which requests can be directed".format(INBOUND_PROXY_IP,
+                str(INBOUND_PROXY_PORT)))
             self.proxy_process.start()
-            logging.debug("Starting Transaction logger process")
+            logging.debug("Starting transaction logger process")
             self.transaction_logger.start()
-            logging.debug("Proxy transaction's log file at %s", self.db_config.get("PROXY_LOG"))
-        else:
-            ComponentInitialiser.initialisation_phase_3(options['OutboundProxy'])
+            logging.debug("Proxy transaction's log file at %s", PROXY_LOG)
+
 
     def enable_logging(self, **kwargs):
         """Enables both file and console logging
@@ -150,7 +102,7 @@ class Core(BaseComponent):
         process_name = kwargs.get("process_name", multiprocessing.current_process().name)
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
-        file_handler = self.file_handler(self.config.get_log_path(process_name), mode="w+")
+        file_handler = self.file_handler(get_log_path(process_name), mode="w+")
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(FileFormatter())
 
@@ -199,46 +151,21 @@ class Core(BaseComponent):
         """
         self.proxy_mode = options["ProxyMode"]
         logging.info("Loading framework please wait..")
-        ComponentInitialiser.initialisation_phase_3(options)
-        self.initialise_plugin_handler_and_params(options)
         # No processing required, just list available modules.
         if options['list_plugins']:
-            self.plugin_handler.show_plugin_list(options['list_plugins'])
+            show_plugin_list(options['list_plugins'])
             self.finish()
-        self.config.process_phase2(options)
-        command = self.get_command(options['argv'])
+        target_urls = self.load_targets(options)
+        self.load_works(target_urls, options)
 
         self.start_proxy(options)  # Proxy mode is started in that function.
-        # Set anonymized invoking command for error dump info.
-        self.error_handler.set_command(OutputCleaner.anonymise_command(command))
         return True
-
-    def initialise_plugin_handler_and_params(self, options):
-        """Init step for plugin handler and params
-
-        . note::
-         The order is important here ;)
-
-        :param options: Additional arguments
-        :type options: `dict`
-        :return:
-        :rtype: None
-        """
-
-        self.plugin_handler = self.get_component("plugin_handler")
-        self.plugin_params = self.get_component("plugin_params")
-        # If OWTF is run without the Web UI, the WorkerManager should exit as soon as all jobs have been completed.
-        # Otherwise, keep WorkerManager alive.
-        self.worker_manager = worker.WorkerManager(keep_working=not options['nowebui'])
 
     def run_server(self):
         """This method starts the interface server"""
         self.interface_server = server.APIServer()
-        logging.warn(
-            "http://%s:%s <-- Web UI URL",
-            self.config.get_val("SERVER_ADDR"),
-            self.config.get_val("UI_SERVER_PORT"))
-        logging.info("Press Ctrl+C when you spawned a shell ;)")
+        logging.warn("http://%s:%s <-- Web UI URL".format(SERVER_ADDR, UI_SERVER_PORT))
+        logging.info("Press Ctrl+C to exit.")
         self.disable_console_logging()
         self.interface_server.start()
         self.file_server = server.FileServer()
@@ -248,6 +175,97 @@ class Core(BaseComponent):
         """This method starts the CLI server."""
         self.cli_server = server.CliServer()
         self.cli_server.start()
+
+    def load_works(self, target_urls, options):
+        """Select the proper plugins to run against the target URLs.
+
+        :param list target_urls: the target URLs
+        :param dict options: the options from the CLI.
+
+        """
+        for target_url in target_urls:
+            if target_url:
+                self.load_work(target_url, options)
+
+    def load_work(self, target_url, options):
+        """Select the proper plugins to run against the target URL.
+
+        .. note::
+
+            If plugin group is not specified and several targets are fed, OWTF
+            will run the WEB plugins for targets that are URLs and the NET
+            plugins for the ones that are IP addresses.
+
+        :param str target_url: the target URL
+        :param dict options: the options from the CLI.
+        """
+        target = get_target_config_dicts({'target_url': target_url})
+        group = options['PluginGroup']
+        if options['OnlyPlugins'] is None:
+            # If the plugin group option is the default one (not specified by the user).
+            if group is None:
+                group = 'web'  # Default to web plugins.
+                # Run net plugins if target does not start with http (see #375).
+                if not target_url.startswith(('http://', 'https://')):
+                    group = 'network'
+            filter_data = {'type': options['PluginType'], 'group': group}
+        else:
+            filter_data = {"code": options.get("OnlyPlugins"), "type": options.get("PluginType")}
+        plugins = get_all_plugin_dicts(filter_data)
+        if not plugins:
+            logging.error("No plugin found matching type '%s' and group '%s' for target '%s'!" %
+                          (options['PluginType'], group, target))
+        add_work(target, plugins, force_overwrite=options["Force_Overwrite"])
+
+    def load_targets(self, options):
+        """Load targets into the DB
+
+        :param options: User supplied arguments
+        :type options: `dict`
+        :return: Added targets
+        :rtype: `list`
+        """
+        scope = options['Scope']
+        if options['PluginGroup'] == 'auxiliary':
+            scope = self.get_aux_target(options)
+        added_targets = list()
+        for target in scope:
+            try:
+                add_target(target)
+                added_targets.append(target)
+            except DBIntegrityException:
+                logging.warning("%s already exists in DB" % target)
+                added_targets.append(target)
+            except UnresolvableTargetException as e:
+                logging.error("%s" % e.parameter)
+        return added_targets
+
+    def get_aux_target(self, options):
+        """This function returns the target for auxiliary plugins from the parameters provided
+
+        :param options: User supplied arguments
+        :type options: `dict`
+        :return: List of targets for aux plugins
+        :rtype: `list`
+        """
+        # targets can be given by different params depending on the aux plugin we are running
+        # so "target_params" is a list of possible parameters by which user can give target
+        target_params = ['RHOST', 'TARGET', 'SMB_HOST', 'BASE_URL', 'SMTP_HOST']
+        targets = None
+        if plugin_params.process_args():
+            for param in target_params:
+                if param in plugin_params.args:
+                    targets = plugin_params.args[param]
+                    break  # it will capture only the first one matched
+            repeat_delim = ','
+            if targets is None:
+                logging.error("Aux target not found! See your plugin accepted parameters in ./plugins/ folder")
+                return list()
+            if 'REPEAT_DELIM' in plugin_params.args:
+                repeat_delim = plugin_params.args['REPEAT_DELIM']
+            return targets.split(repeat_delim)
+        else:
+            return list()
 
     def finish(self):
         """Finish OWTF framework after freeing resources.
@@ -264,7 +282,7 @@ class Core(BaseComponent):
             if getattr(self, "proxy_process", None) is not None:
                 logging.info("Stopping inbound proxy processes and cleaning up. Please wait!")
                 self.proxy_process.clean_up()
-                self.kill_children(self.proxy_process.pid)
+                kill_children(int(self.proxy_process.pid))
                 self.proxy_process.join()
             if getattr(self, "transaction_logger", None) is not None:
                 # No signal is generated during closing process by terminate()
@@ -282,37 +300,3 @@ class Core(BaseComponent):
             tornado.ioloop.IOLoop.instance().stop()
             sys.exit(0)
 
-    def kill_children(self, parent_pid, sig=signal.SIGINT):
-        """Kill all OWTF child process when the SIGINT is received
-
-        :param parent_pid: The pid of the parent OWTF process
-        :type parent_pid: `int`
-        :param sig: Signal received
-        :type sig: `int`
-        :return:
-        :rtype: None
-        """
-        def on_terminate(proc):
-            """Log debug info on child process termination
-            
-            :param proc: Process pid
-            :rtype: None
-            """
-            logging.debug("Process {} terminated with exit code {}".format(proc, proc.returncode))
-
-        parent = psutil.Process(parent_pid)
-        children = parent.children(recursive=True)
-        for child in children:
-            child.send_signal(sig)
-
-        _, alive = psutil.wait_procs(children, callback=on_terminate)
-        if not alive:
-            # send SIGKILL
-            for pid in alive:
-                logging.debug("Process {} survived SIGTERM; trying SIGKILL" % pid)
-                pid.kill()
-        _, alive = psutil.wait_procs(alive, callback=on_terminate)
-        if not alive:
-            # give up
-            for pid in alive:
-                logging.debug("Process {} survived SIGKILL; giving up" % pid)

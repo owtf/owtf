@@ -4,7 +4,7 @@ import logging
 from ipaddr import IPAddress
 
 from owtf.lib.exceptions import UnresolvableTargetException
-from owtf.lib.general import cprint
+from owtf.utils.strings import cprint
 
 
 def get_ips_from_hostname(hostname):

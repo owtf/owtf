@@ -10,10 +10,22 @@ import os
 import sys
 import logging
 
+from copy import deepcopy
+
+from owtf.config import config_handler
 from owtf.core import Core
-from owtf.dependency_management.component_initialiser import ComponentInitialiser, DatabaseNotRunningException
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.lib import exceptions
 from owtf.lib.cli_options import usage, parse_options
+from owtf import __version__, __release__
+from owtf.managers import load_resources_from_file
+from owtf.managers.mapping import load_mappings_from_file
+from owtf.managers.plugin import get_groups_for_plugins, get_all_plugin_types, get_all_plugin_groups, \
+    get_types_for_plugin_group, load_test_groups, load_plugins
+from owtf.managers.session import _ensure_default_session
+from owtf.settings import WEB_TEST_GROUPS, AUX_TEST_GROUPS, NET_TEST_GROUPS, DEFAULT_RESOURCES_PROFILE, \
+    FALLBACK_RESOURCES_PROFILE, FALLBACK_AUX_TEST_GROUPS, FALLBACK_NET_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, \
+    FALLBACK_MAPPING_PROFILE, DEFAULT_MAPPING_PROFILE
+from owtf.utils.file import clean_temp_storage_dirs
 
 
 def banner():
@@ -39,9 +51,9 @@ def get_plugins_from_arg(arg):
     :rtype: `list`
     """
     plugins = arg.split(',')
-    plugin_groups = ServiceLocator.get_component("db_plugin").get_groups_for_plugins(plugins)
+    plugin_groups = get_groups_for_plugins(plugins)
     if len(plugin_groups) > 1:
-        usage("The plugins specified belong to several plugin groups: '%s'" % str(plugin_groups))
+        usage("The plugins specified belong to several plugin groups: '%s'".format(str(plugin_groups)))
     return [plugins, plugin_groups]
 
 
@@ -49,21 +61,20 @@ def process_options(user_args):
     """ The main argument processing function
 
     :param user_args: User supplied arguments
-    :type user_args: `str`
+    :type user_args: `dict`
     :return: A dictionary of arguments
     :rtype: `dict`
     """
     try:
-        db_plugin = ServiceLocator.get_component("db_plugin")
-        valid_groups = db_plugin.get_all_plugin_groups()
-        valid_types = db_plugin.get_all_plugin_types() + ['all', 'quiet']
+        valid_groups = get_all_plugin_groups()
+        valid_types = get_all_plugin_types() + ['all', 'quiet']
         arg = parse_options(user_args, valid_groups, valid_types)
     except KeyboardInterrupt as e:
         usage("Invalid OWTF option(s) %s" % e)
         sys.exit(0)
 
     # Default settings:
-    profiles = {}
+    profiles = dict()
     plugin_group = arg.PluginGroup
 
     if arg.CustomProfile:  # Custom profiles specified
@@ -108,17 +119,7 @@ def process_options(user_args):
                 outbound_proxy_port = "9050"  # default TOR port
             else:
                 outbound_proxy_port = arg.TOR_mode[1]
-            arg.OutboundProxy = "socks://%s:%s" % (outbound_proxy_ip, outbound_proxy_port)
-
-    if arg.Botnet_mode:  # Checking arguments
-        arg.Botnet_mode = arg.Botnet_mode.split(":")
-        if arg.Botnet_mode[0] == "miner" and len(arg.Botnet_mode) != 1:
-            usage("Invalid argument for Botnet mode\n Mode must be miner or list")
-        if arg.Botnet_mode[0] == "list":
-            if len(arg.Botnet_mode) != 2:
-                usage("Invalid argument for Botnet mode\n Mode must be miner or list")
-            if not os.path.isfile(os.path.expanduser(arg.Botnet_mode[1])):
-                usage("Error Proxy List not found! Please check the path.")
+            arg.OutboundProxy = "socks://%s:%s".format(outbound_proxy_ip, outbound_proxy_port)
 
     if arg.OutboundProxy:
         arg.OutboundProxy = arg.OutboundProxy.split('://')
@@ -148,13 +149,13 @@ def process_options(user_args):
             except ValueError:
                 usage("Invalid port for Inbound Proxy")
 
-    plugin_types_for_group = db_plugin.get_types_for_plugin_group(plugin_group)
+    plugin_types_for_group = get_types_for_plugin_group(plugin_group)
     if arg.PluginType == 'all':
         arg.PluginType = plugin_types_for_group
     elif arg.PluginType == 'quiet':
         arg.PluginType = ['passive', 'semi_passive']
 
-    scope = arg.Targets or []  # Arguments at the end are the URL target(s)
+    scope = arg.Targets or list()  # Arguments at the end are the URL target(s)
     num_targets = len(scope)
     if plugin_group != 'auxiliary' and num_targets == 0 and not arg.list_plugins:
         # TODO: Fix this
@@ -162,7 +163,7 @@ def process_options(user_args):
     elif num_targets == 1:  # Check if this is a file
         if os.path.isfile(scope[0]):
             logging.info("Scope file: trying to load targets from it ..")
-            new_scope = []
+            new_scope = list()
             for target in open(scope[0]).read().split("\n"):
                 CleanTarget = target.strip()
                 if not CleanTarget:
@@ -202,36 +203,9 @@ def process_options(user_args):
         'PortWaves': arg.PortWaves,
         'ProxyMode': arg.ProxyMode,
         'TOR_mode': arg.TOR_mode,
-        'Botnet_mode': arg.Botnet_mode,
         'nowebui': arg.nowebui,
         'Args': args
     }
-
-
-def run_owtf(core, args):
-    """This function calls core and loads the appropriate phases of component initialization
-
-    :param core: core object
-    :type core::Class:`owtf.core.Core`
-    :param args: Arguments dictionary
-    :type args: `dict`
-    :return:
-    :rtype: None
-    """
-    try:
-        if core.start(args):
-            # Only if Start is for real (i.e. not just listing plugins, etc)
-            core.finish()  # Not Interrupted or Crashed.
-    except KeyboardInterrupt:
-        # NOTE: The user chose to interact: interactivity check redundant here:
-        logging.warning("OWTF was aborted by the user:")
-        logging.info("Please check report/plugin output files for partial results")
-        # Interrupted. Must save the DB to disk, finish report, etc.
-        core.finish()
-    except SystemExit:
-        pass  # Report already saved, framework tries to exit.
-    finally:  # Needed to rename the temp storage dirs to avoid confusion.
-        core.clean_temp_storage_dirs()
 
 
 def main(args):
@@ -248,19 +222,34 @@ def main(args):
     owtf_pid = os.getpid()
 
     try:
-        ComponentInitialiser.initialisation_phase_1(root_dir, owtf_pid)
-    except DatabaseNotRunningException:
-        exit(-1)
+        _ensure_default_session()
+        load_resources_from_file(DEFAULT_RESOURCES_PROFILE, FALLBACK_RESOURCES_PROFILE)
+        load_mappings_from_file(DEFAULT_MAPPING_PROFILE, FALLBACK_MAPPING_PROFILE)
+        load_test_groups(WEB_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, "web")
+        load_test_groups(NET_TEST_GROUPS, FALLBACK_NET_TEST_GROUPS, "net")
+        load_test_groups(AUX_TEST_GROUPS, FALLBACK_AUX_TEST_GROUPS, "aux")
+        # After loading the test groups then load the plugins, because of many-to-one relationship
+        load_plugins()
+    except exceptions.DatabaseNotRunning:
+        sys.exit(-1)
 
     args = process_options(args[1:])
-    ServiceLocator.get_component("config").process_phase1(args)
-    ComponentInitialiser.initialisation_phase_2(args)
+    config_handler.cli_options = deepcopy(args)
 
     # Initialise Framework.
     core = Core()
-    logging.warn(
-        "OWTF Version: %s, Release: %s " % (
-            ServiceLocator.get_component("config").get_val('VERSION'),
-            ServiceLocator.get_component("config").get_val('RELEASE'))
-    )
-    run_owtf(core, args)
+    logging.warn("OWTF Version: {0}, Release: {1} ".format(__version__, __release__))
+    try:
+        if core.start(args):
+            # Only if Start is for real (i.e. not just listing plugins, etc)
+            core.finish()  # Not Interrupted or Crashed.
+    except KeyboardInterrupt:
+        # NOTE: The user chose to interact: interactivity check redundant here:
+        logging.warning("OWTF was aborted by the user:")
+        logging.info("Please check report/plugin output files for partial results")
+        # Interrupted. Must save the DB to disk, finish report, etc.
+        core.finish()
+    except SystemExit:
+        pass  # Report already saved, framework tries to exit.
+    finally:  # Needed to rename the temp storage dirs to avoid confusion.
+        clean_temp_storage_dirs(owtf_pid)

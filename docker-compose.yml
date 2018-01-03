@@ -1,0 +1,9 @@
+version: '1'
+services:
+  web:
+    build: .
+    ports:
+     - "5000:5000"
+  postgres:
+    image: "redis:alpine"
+  core:

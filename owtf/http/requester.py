@@ -23,10 +23,17 @@ except ImportError:
     from urllib2 import urlopen, Request, HTTPError, HTTPHandler, HTTPSHandler, HTTPRedirectHandler, ProxyHandler, \
                         build_opener, install_opener, URLError
 
-from owtf.dependency_management.dependency_resolver import BaseComponent
-from owtf.dependency_management.interfaces import RequesterInterface
+from owtf.managers.error import add_error
+from owtf.managers.target import is_url_in_scope
+from owtf.managers.transaction import is_transaction_already_added, get_first
+from owtf.managers.url import is_url
+from owtf.plugin.plugin_handler import plugin_handler
+from owtf.settings import USER_AGENT, PROXY_CHECK_URL
+from owtf.utils.error import abort_framework
+from owtf.utils.http import derive_http_method
+from owtf.utils.strings import cprint, str_to_dict
+from owtf.utils.timer import Timer
 from owtf.http import transaction
-from owtf.lib.general import *
 
 
 # Intercept raw request trick from:
@@ -83,24 +90,15 @@ class SmartRedirectHandler(HTTPRedirectHandler):
         return result
 
 
-class Requester(BaseComponent, RequesterInterface):
-
-    COMPONENT_NAME = "requester"
+class Requester(object):
 
     def __init__(self, proxy):
-        self.register_in_service_locator()
-        self.db_config = self.get_component("db_config")
-        self.target = self.get_component("target")
-        self.transaction = self.get_component("transaction")
-        self.url_manager = self.get_component("url_manager")
-        self.error_handler = self.get_component("error_handler")
-        self.plugin_handler = self.get_component("plugin_handler")
-        self.timer = self.get_component("timer")
         self.http_transaction = None
-        self.headers = {'User-Agent': self.db_config.get('USER_AGENT')}
+        self.headers = {'User-Agent': USER_AGENT}
         self.req_count_refused = 0
         self.req_count_total = 0
         self.log_transactions = False
+        self.timer = Timer()
         self.proxy = proxy
         if proxy is None:
             logging.debug(
@@ -136,7 +134,7 @@ class Requester(BaseComponent, RequesterInterface):
         :return: True/False
         :rtype: `bool`
         """
-        return self.transaction.is_already_added({'url': url.strip()})
+        return is_transaction_already_added({'url': url.strip()})
 
     def is_request_possible(self):
         """Check if requests are possible
@@ -144,7 +142,7 @@ class Requester(BaseComponent, RequesterInterface):
         :return: True if yes, else False
         :rtype: `bool`
         """
-        return self.plugin_handler.requests_possible()
+        return plugin_handler.requests_possible()
 
     def proxy_check(self):
         """Checks if the target URL can be accessed through proxy
@@ -156,7 +154,7 @@ class Requester(BaseComponent, RequesterInterface):
         :rtype: `list`
         """
         if self.proxy is not None and self.is_request_possible():
-            url = self.db_config.get('PROXY_CHECK_URL')
+            url = PROXY_CHECK_URL
             refused_before = self.req_count_refused
             cprint("Proxy Check: Avoid logging request again if already in DB..")
             log_setting_backup = False
@@ -201,26 +199,6 @@ class Requester(BaseComponent, RequesterInterface):
         """
         self.headers[header] = value
 
-    def str_to_dict(self, string):
-        """Convert a string to a dict
-
-        :param string: String to convert
-        :type string: `str`
-        :return: Resultant dict
-        :rtype: `dict`
-        """
-        dict = defaultdict(list)
-        count = 0
-        prev_item = ''
-        for item in string.strip().split('='):
-            if count % 2 == 1:  # Key.
-                dict[prev_item] = item
-            else:  # Value.
-                dict[item] = ''
-                prev_item = item
-            count += 1
-        return dict
-
     def get_post_to_str(self, post=None):
         """Convert POST req to str
 
@@ -244,10 +222,10 @@ class Requester(BaseComponent, RequesterInterface):
         """
         if '' == post:
             post = None
-        if post is not None:
+        if post:
             if isinstance(post, str) or isinstance(post, unicode):
                 # Must be a dictionary prior to urlencode.
-                post = self.str_to_dict(post)
+                post = str_to_dict(str(post))
             post = urlencode(post)
         return post
 
@@ -279,7 +257,7 @@ class Requester(BaseComponent, RequesterInterface):
         :return: None
         :rtype: None
         """
-        self.transaction.log_transaction(self.http_transaction)
+        log_transaction(self.http_transaction)
 
     def request(self, url, method=None, post=None):
         """Main request function
@@ -308,8 +286,8 @@ class Requester(BaseComponent, RequesterInterface):
         # MUST create a new Transaction object each time so that lists of
         # transactions can be created and process at plugin-level
         # Pass the timer object to avoid instantiating each time.
-        self.http_transaction = transaction.HTTP_Transaction(self.timer)
-        self.http_transaction.start(url, post, method, self.target.is_url_in_scope(url))
+        self.http_transaction = transaction.HTTPTransaction(self.timer)
+        self.http_transaction.start(url, post, method, is_url_in_scope(url))
         self.req_count_total += 1
         try:
             response = self.perform_request(r)
@@ -343,7 +321,7 @@ class Requester(BaseComponent, RequesterInterface):
             message = "ERROR: The connection was refused!: %s" % str(error)
             self.req_count_refused += 1
         elif str(error.reason).startswith("[Errno -2]"):
-            self.error_handler.abort_framework("ERROR: cannot resolve hostname!: %s" % str(error))
+            abort_framework("ERROR: cannot resolve hostname!: %s" % str(error))
         else:
             message = "ERROR: The connection was not refused, unknown error!"
         log = logging.getLogger('general')
@@ -470,7 +448,7 @@ class Requester(BaseComponent, RequesterInterface):
         if data is not None:
             criteria['data'] = self.get_post_to_str(data)
         # Visit URL if not already visited.
-        if (not use_cache or not self.transaction.is_already_added(criteria)):
+        if (not use_cache or not is_transaction_already_added(criteria)):
             if method in ['', 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS']:
                 return self.request(url, method, data)
             elif method == 'DEBUG':
@@ -479,7 +457,7 @@ class Requester(BaseComponent, RequesterInterface):
                 return self.put(url, data)
         else:  # Retrieve from DB = faster.
             # Important since there is no transaction ID with transactions objects created by Requester.
-            return self.transaction.get_first(criteria)
+            return get_first(criteria)
 
     def get_transactions(self, use_cache, url_list, method=None, data=None, unique=True):
         """Get transaction from request, response
@@ -497,16 +475,16 @@ class Requester(BaseComponent, RequesterInterface):
         :return: List of transactions
         :rtype: `list`
         """
-        transactions = []
+        transactions = list()
         if unique:
             url_list = set(url_list)
         for url in url_list:
             url = url.strip()  # Clean up the URL first.
             if not url:
                 continue  # Skip blank lines.
-            if not self.url_manager.is_url(url):
-                self.error_handler.add("Minor issue: %s is not a valid URL and has been ignored, processing continues" %
-                                       str(url))
+            if not is_url(url):
+                add_error("Minor issue: %s is not a valid URL and has been ignored, processing continues" %
+                        str(url))
                 continue  # Skip garbage URLs.
             transaction = self.get_transaction(use_cache, url, method=method, data=data)
             if transaction is not None:

@@ -8,18 +8,25 @@ chosen settings.
 
 import imp
 import logging
+import os
 
-from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
-from owtf.lib.general import *
+from collections import defaultdict
+from sqlalchemy.exc import SQLAlchemyError
 from ptp import PTP
 from ptp.libptp.constants import UNKNOWN
 from ptp.libptp.exceptions import PTPError
-from sqlalchemy.exc import SQLAlchemyError
 
-from owtf.dependency_management.dependency_resolver import BaseComponent
-from owtf.dependency_management.interfaces import PluginHandlerInterface
+from owtf.config import config_handler
+from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
+from owtf.managers.plugin import get_plugins_by_group, get_types_for_plugin_group, get_plugins_by_group_type
+from owtf.managers.target import target_manager
+from owtf.managers.worker import worker_manager
 from owtf.plugin.scanner import Scanner
-from owtf.utils import FileOperations
+from owtf.settings import AUX_OUTPUT_PATH, FORCE_OVERWRITE, PLUGINS_DIR
+from owtf.utils.error import abort_framework
+from owtf.utils.file import FileOperations
+from owtf.utils.strings import wipe_bad_chars
+from owtf.utils.timer import Timer
 
 
 INTRO_BANNER_GENERAL = """
@@ -40,22 +47,11 @@ WEB Plugin Types:
 """
 
 
-class PluginHandler(BaseComponent, PluginHandlerInterface):
-
-    COMPONENT_NAME = "plugin_handler"
+class PluginHandler(object):
 
     def __init__(self, options):
-        self.register_in_service_locator()
-        self.core = None
-        self.db = self.get_component("db")
-        self.config = self.get_component("config")
-        self.plugin_output = None
-        self.db_plugin = self.get_component("db_plugin")
-        self.target = self.get_component("target")
-        self.transaction = self.get_component("transaction")
-        self.error_handler = self.get_component("error_handler")
-        self.reporter = None
-        self.timer = self.get_component("timer")
+        self.timer = Timer()
+        self.worker_manager = worker_manager
         self.init_options(options)
 
     def init_options(self, options):
@@ -69,14 +65,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         # For special plugin types like "quiet" -> "semi_passive" + "passive"
         if isinstance(options.get('PluginType'), str):
             options['PluginType'] = options['PluginType'].split(',')
-        self.scanner = None
         self.init_exec_registry()
-
-    def init(self, options):
-        self.init_options(options)
-        self.core = self.get_component("core")
-        self.plugin_output = self.get_component("plugin_output")
-        self.reporter = self.get_component("reporter")
         self.scanner = Scanner()
 
     def plugin_already_run(self, plugin_info):
@@ -87,7 +76,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :return: true/false
         :rtype: `bool`
         """
-        return self.plugin_output.plugin_already_run(plugin_info)
+        return self.plugin_already_run(plugin_info)
 
     def validate_format_plugin_list(self, plugin_codes):
         """Validate the plugin codes by checking if they exist.
@@ -101,8 +90,8 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         # Ensure there is always a list to iterate from! :)
         if not plugin_codes:
             return []
-        valid_plugin_codes = []
-        plugins_by_group = self.db_plugin.get_plugins_by_group(self.plugin_group)
+        valid_plugin_codes = list()
+        plugins_by_group = get_plugins_by_group(self.plugin_group)
         for code in plugin_codes:
             found = False
             for plugin in plugins_by_group:  # Processing Loop
@@ -111,7 +100,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                     found = True
                     break
             if not found:
-                self.error_handler.abort_framework("The code '%s' is not a valid plugin, please use the -l option to see"
+                abort_framework("The code '%s' is not a valid plugin, please use the -l option to see"
                                                   "available plugin names and codes" % code)
         return valid_plugin_codes  # Return list of Codes
 
@@ -124,7 +113,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         """
         self.exec_registry = defaultdict(list)
         for target in self.scope:
-            self.exec_registry[target] = []
+            self.exec_registry[target] = list()
 
     def get_last_plugin_exec(self, plugin):
         """Get shortcut to relevant execution log for this target for readability below :)
@@ -134,7 +123,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :return: Index
         :rtype: `int`
         """
-        exec_log = self.exec_registry[self.config.target]
+        exec_log = self.exec_registry[config_handler.target]
         num_items = len(exec_log)
         if num_items == 0:
             return -1  # List is empty
@@ -156,7 +145,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :return: The logs from execution registry
         :rtype: `dict`
         """
-        return self.exec_registry[self.config.target][self.get_last_plugin_exec(plugin):]
+        return self.exec_registry[config_handler.target][self.get_last_plugin_exec(plugin):]
 
     def get_plugin_output_dir(self, plugin):
         """Get plugin directory by test type
@@ -168,11 +157,10 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         """
         # Organise results by OWASP Test type and then active, passive, semi_passive
         if ((plugin['group'] == 'web') or (plugin['group'] == 'network')):
-            return os.path.join(self.target.get_path('partial_url_output_path'),
-                                wipe_bad_chars(plugin['title']), plugin['type'])
-        elif plugin['group'] == 'auxiliary':
-            return os.path.join(self.config.get_val('AUX_OUTPUT_PATH'), wipe_bad_chars(plugin['title']),
+            return os.path.join(self.target.get_path('partial_url_output_path'), wipe_bad_chars(plugin['title']),
                                 plugin['type'])
+        elif plugin['group'] == 'auxiliary':
+            return os.path.join(AUX_OUTPUT_PATH, wipe_bad_chars(plugin['title']), plugin['type'])
 
     def requests_possible(self):
         """Check if requests are possible
@@ -182,7 +170,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :return:
         :rtype: `bool`
         """
-        return ['grep'] != self.db_plugin.get_types_for_plugin_group('web')
+        return ['grep'] != get_types_for_plugin_group('web')
 
     def dump_output_file(self, filename, contents, plugin, relative_path=False):
         """Dumps output file to path
@@ -201,7 +189,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         save_dir = self.get_plugin_output_dir(plugin)
         abs_path = FileOperations.dump_file(filename, contents, save_dir)
         if relative_path:
-            return (os.path.relpath(abs_path, self.config.get_output_dir_target()))
+            return os.path.relpath(abs_path, config_handler.get_output_dir_target())
         return abs_path
 
     def get_abs_path(self, relative_path):
@@ -212,7 +200,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :return: The absolute path
         :rtype: `str`
         """
-        return (os.path.join(self.config.get_output_dir_target(), relative_path))
+        return os.path.join(config_handler.get_output_dir_target(), relative_path)
 
     def exists(self, directory):
         """Check if directory exists
@@ -263,7 +251,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
             if self.except_plugins_list and plugin['code'] in self.except_plugins_list:
                 chosen = False
                 reason = 'in black-list'
-        if plugin['type'] not in self.db_plugin.get_types_for_plugin_group(plugin['group']):
+        if plugin['type'] not in get_types_for_plugin_group(plugin['group']):
             chosen = False  # Skip plugin: Not matching selected type
             reason = 'not matching selected type'
         if not chosen and show_reason:
@@ -281,7 +269,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :return:
         :rtype:
         """
-        return self.config.get('FORCE_OVERWRITE')
+        return FORCE_OVERWRITE
 
     def plugin_can_run(self, plugin, show_reason=False):
         """Verify that a plugin can be run by OWTF.
@@ -321,7 +309,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :return: Full path to the plugin
         :rtype: `str`
         """
-        return "%s/%s/%s" % (plugin_dir, plugin['type'], plugin['file'])  # Path to run the plugin
+        return "%s/%s/%s".format(plugin_dir, plugin['type'], plugin['file'])  # Path to run the plugin
 
     def run_plugin(self, plugin_dir, plugin, save_output=True):
         """Run a specific plugin
@@ -496,7 +484,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :return: Path to the output dir for plugin group
         :rtype: `str`
         """
-        plugin_dir = self.config.get_val('PLUGINS_DIR') + plugin_group
+        plugin_dir = PLUGINS_DIR + plugin_group
         return plugin_dir
 
     def switch_to_target(self, target):
@@ -507,7 +495,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :return: None
         :rtype: None
         """
-        self.target.set_target(target)  # Tell Target DB that all Gets/Sets are now Target-specific
+        target_manager.set_target(target)  # Tell Target DB that all Gets/Sets are now Target-specific
 
     def process_plugins_for_target_list(self, plugin_group, status, target_list):
         """Process plugins for all targets in the list
@@ -523,7 +511,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         """
         plugin_dir = self.get_plugin_group_dir(plugin_group)
         if plugin_group == 'network':
-            portwaves = self.config.get('PORTWAVES')
+            portwaves = config_handler.get('PORTWAVES')
             waves = portwaves.split(',')
             waves.append('-1')
             lastwave = 0
@@ -545,7 +533,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
                             self.process_plugins_for_target_list(
                                 'web',
                                 {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True},
-                                {'https://%s' % target.split('//')[1]})
+                                {"https://%s".format(target.split('//')[1])})
                         else:
                             self.process_plugins_for_target_list(
                                 'web',
@@ -593,8 +581,11 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :rtype: None
         """
         logging.info("\n%s %s plugins %s", '*' * 40, plugin_type.title().replace('_', '-'), '*' * 40)
-        for plugin in self.db_plugin.get_plugins_by_group_type(group, plugin_type):
+        for plugin in get_plugins_by_group_type(group, plugin_type):
             line_start = " %s:%s" % (plugin['type'], plugin['name'])
             pad1 = "_" * (60 - len(line_start))
             pad2 = "_" * (20 - len(plugin['code']))
             logging.info("%s%s(%s)%s%s", line_start, pad1, plugin['code'], pad2, plugin['descrip'])
+
+
+plugin_handler = PluginHandler(config_handler.cli_options)

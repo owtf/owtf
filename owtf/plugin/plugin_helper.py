@@ -8,35 +8,23 @@ centralising common functionality easy to reuse
 NOTE: This module has not been refactored since this is being deprecated
 """
 
-
+import re
 import cgi
 import logging
 from tornado.template import Template
 
-from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
-from owtf.lib.general import *
-from owtf.utils import FileOperations
+from owtf.utils.strings import FileOperations
 
 
 PLUGIN_OUTPUT = {"type": None, "output": None}  # This will be json encoded and stored in db as string
 
 
-class PluginHelper(BaseComponent):
+class PluginHelper(object):
 
-    COMPONENT_NAME = "plugin_helper"
     mNumLinesToShow = 25
 
     def __init__(self):
-        self.register_in_service_locator()
-        self.config = self.get_component("config")
-        self.target = self.get_component("target")
-        self.url_manager = self.get_component("url_manager")
-        self.plugin_handler = self.get_component("plugin_handler")
-        self.reporter = self.get_component("reporter")
-        self.requester = self.get_component("requester")
-        self.shell = self.get_component("shell")
-        self.timer = self.get_component("timer")
         # Compile regular expressions only once on init:
         self.robots_allow_regex = re.compile("Allow: ([^\n  #]+)")
         self.robots_disallow_regex = re.compile("Disallow: ([^\n #]+)")
@@ -382,3 +370,6 @@ class PluginHelper(BaseComponent):
         plugin_output["type"] = "TopTransactionsBySpeed"
         plugin_output["output"] = {"Order": Order}
         return ([plugin_output])
+
+
+plugin_helper = PluginHelper()

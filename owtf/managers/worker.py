@@ -4,13 +4,10 @@ owtf.db.worker_manager
 
 """
 
-import os
 import sys
 import signal
-import subprocess
 import logging
 import multiprocessing
-import psutil
 try:
     import queue
 except ImportError:
@@ -19,17 +16,19 @@ from time import strftime
 
 import psutil
 
-from owtf.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
-from owtf.dependency_management.interfaces import WorkerManagerInterface
-from owtf.lib.general import check_pid
+from owtf.managers.worklist import get_work
+from owtf.settings import PROCESS_PER_CORE, MIN_RAM_NEEDED
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.lib.exceptions import InvalidWorkerReference
+from owtf.utils.process import check_pid
+from owtf.utils.error import abort_framework
+from owtf.settings import WEBUI
 
 # For psutil
 TIMEOUT = 3
 
 
-class Worker(OWTFProcess, BaseComponent):
+class Worker(OWTFProcess):
     def pseudo_run(self):
         """ When run for the first time, put something into output queue ;)
 
@@ -59,19 +58,12 @@ class Worker(OWTFProcess, BaseComponent):
         sys.exit(0)
 
 
-class WorkerManager(BaseComponent, WorkerManagerInterface):
-
-    COMPONENT_NAME = "worker_manager"
+class WorkerManager(object):
 
     def __init__(self, keep_working=True):
         self.keep_working = keep_working
-        self.register_in_service_locator()
-        self.db_config = self.get_component("db_config")
-        self.error_handler = self.get_component("error_handler")
-        self.shell = self.get_component("shell")
-        self.db = self.get_component("db")
-        self.worklist = []  # List of unprocessed (plugin*target)
-        self.workers = []  # list of worker and work (worker, work)
+        self.worklist = list()  # List of unprocessed (plugin*target)
+        self.workers = list()  # list of worker and work (worker, work)
         self.spawn_workers()
 
     def get_allowed_process_count(self):
@@ -80,7 +72,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         :return: max number of allowed processes
         :rtype: `int`
         """
-        process_per_core = int(self.db_config.get('PROCESS_PER_CORE'))
+        process_per_core = PROCESS_PER_CORE
         cpu_count = multiprocessing.cpu_count()
         return process_per_core * cpu_count
 
@@ -91,10 +83,9 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         :rtype: `dict`
         """
         work = None
-
         avail = psutil.virtual_memory().available
-        if int(avail/1024/1024) > int(self.db_config.get('MIN_RAM_NEEDED')):
-            work = self.db.worklist.get_work(self.targets_in_use())
+        if int(avail/1024/1024) > MIN_RAM_NEEDED:
+            work = get_work(self.targets_in_use())
         else:
             logging.warn("Not enough memory to execute a plugin")
         return work
@@ -109,7 +100,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         while (len(self.workers) < self.get_allowed_process_count()):
             self.spawn_worker()
         if not len(self.workers):
-            self.error_handler.abort_framework("Zero worker processes created because of lack of memory")
+            abort_framework("Zero worker processes created because of lack of memory")
 
     def spawn_worker(self, index=None):
         """Spawn a new worker
@@ -172,7 +163,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                 if not self.keep_working:
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
-                        ServiceLocator.get_component('core').finish()
+                        finish()
 
     def is_any_worker_busy(self):
         """If a worker is still busy, return True. Return False otherwise.
@@ -184,7 +175,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
 
     def poison_pill_to_workers(self):
         """This function waits for each worker to complete his work and
-        send it Poision Pill(emtpy work)
+        send it poison pill (empty work)
 
         :return: None
         :rtype: None
@@ -225,7 +216,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         """
         # As worklist is emptied, aborting of plugins will result in
         # killing of workers
-        self.worklist = []  # It is a list
+        self.worklist = list()  # It is a list
         for item in self.workers:
             work = item["worker"].poison_q.put("DIE")
             self._signal_process(item["worker"].pid, signal.SIGINT)
@@ -239,7 +230,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         :param pid: Pid of the process
         :type pid: `int`
         :param psignal: Signal to send
-        :type psignal: `int`
+        :type pid: `int`
         :return: None
         :rtype: None
         """
@@ -261,7 +252,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         :param parent_pid: Parent process PID
         :type parent_pid: `int`
         :param psignal: Signal to send
-        :type psignal: `int`
+        :type parent_pid: `int`
         :return: None
         :rtype: None
         """
@@ -286,10 +277,8 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
             for pid in alive:
                 logging.debug("Process {} survived SIGKILL; giving up" % pid)
 
-
     # NOTE: PSEUDO_INDEX = INDEX + 1
     # This is because the list index starts from 0 and in the UI, indices start from 1
-
     def get_worker_details(self, pseudo_index=None):
         """Get worker details
 
@@ -432,3 +421,6 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
         # You only send SIGINT to worker since it will handle it more
         # gracefully and kick the command process's ***
         self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
+
+
+worker_manager = WorkerManager(keep_working=WEBUI)

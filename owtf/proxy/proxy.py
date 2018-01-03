@@ -27,10 +27,12 @@ import tornado.template
 import tornado.websocket
 import tornado.gen
 
+from owtf.config import config_handler
 from owtf.proxy.socket_wrapper import wrap_socket
 from owtf.proxy.cache_handler import CacheHandler
-from owtf.dependency_management.dependency_resolver import BaseComponent, ComponentNotFoundException
-from owtf.utils import FileOperations
+from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, INBOUND_PROXY_PROCESSES, INBOUND_PROXY_CACHE_DIR, \
+    BLACKLIST_COOKIES, WHITELIST_COOKIES, HTTP_AUTH_HOST
+from owtf.utils.file import FileOperations
 from owtf.lib.owtf_process import OWTFProcess
 
 
@@ -545,9 +547,9 @@ class CustomWebSocketClientConnection(tornado.websocket.WebSocketClientConnectio
         super(CustomWebSocketClientConnection, self)._handle_1xx(code)
 
 
-class ProxyProcess(OWTFProcess, BaseComponent):
+class ProxyProcess(OWTFProcess):
 
-    def initialize(self, outbound_options=[], outbound_auth=""):
+    def initialize(self, outbound_options=list(), outbound_auth=""):
         """Initialize the proxy process
 
         :param outbound_options: Outbound proxy options
@@ -559,18 +561,15 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         """
         # The tornado application, which is used to pass variables to request handler
         self.application = tornado.web.Application(handlers=[(r'.*', ProxyHandler)], debug=False, gzip=True,)
-        self.config = self.get_component("config")
-        self.db_config = self.get_component("db_config")
         # All required variables in request handler
         # Required variables are added as attributes to application, so that request handler can access these
-        self.application.core = self.get_component("core")
-        self.application.inbound_ip = self.db_config.get('INBOUND_PROXY_IP')
-        self.application.inbound_port = int(self.db_config.get('INBOUND_PROXY_PORT'))
-        self.instances = self.db_config.get("INBOUND_PROXY_PROCESSES")
+        self.application.inbound_ip = INBOUND_PROXY_IP
+        self.application.inbound_port = int(INBOUND_PROXY_PORT)
+        self.instances = INBOUND_PROXY_PROCESSES
 
         # Proxy CACHE
         # Cache related settings, including creating required folders according to cache folder structure
-        self.application.cache_dir = self.db_config.get("INBOUND_PROXY_CACHE_DIR")
+        self.application.cache_dir = INBOUND_PROXY_CACHE_DIR
         # Clean possible older cache directory.
         if os.path.exists(self.application.cache_dir):
             FileOperations.rm_tree(self.application.cache_dir)
@@ -579,8 +578,8 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         # SSL MiTM
         # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory
         # ~/.owtf/proxy)
-        self.application.ca_cert = os.path.expanduser(self.db_config.get('CA_CERT'))
-        self.application.ca_key = os.path.expanduser(self.db_config.get('CA_KEY'))
+        self.application.ca_cert = os.path.expanduser(CA_CERT)
+        self.application.ca_key = os.path.expanduser(CA_KEY)
         # To stop OWTF from breaking for our beloved users :P
         try:
             self.application.ca_key_pass = FileOperations.open(os.path.expanduser(self.db_config.get('CA_PASS_FILE')),
@@ -604,16 +603,16 @@ class ProxyProcess(OWTFProcess, BaseComponent):
 
         # Blacklist (or) Whitelist Cookies
         # Building cookie regex to be used for cookie filtering for caching
-        if self.db_config.get('WHITELIST_COOKIES') == 'None':
-            cookies_list = self.db_config.get('BLACKLIST_COOKIES').split(',')
+        if WHITELIST_COOKIES == 'None':
+            cookies_list = BLACKLIST_COOKIES.split(',')
             self.application.cookie_blacklist = True
         else:
-            cookies_list = self.db_config.get('WHITELIST_COOKIES').split(',')
+            cookies_list = WHITELIST_COOKIES.split(',')
             self.application.cookie_blacklist = False
         if self.application.cookie_blacklist:
             regex_cookies_list = [cookie + "=([^;]+;?)" for cookie in cookies_list]
         else:
-            regex_cookies_list = ["(" + cookie + "=[^;]+;?)" for cookie in self.db_config.get('COOKIES_LIST')]
+            regex_cookies_list = ["(" + cookie + "=[^;]+;?)" for cookie in cookies_list]
         regex_string = '|'.join(regex_cookies_list)
         self.application.cookie_regex = re.compile(regex_string)
 
@@ -645,14 +644,14 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         # Header filters
         # Restricted headers are picked from framework/config/framework_config.cfg
         # These headers are removed from the response obtained from webserver, before sending it to browser
-        restricted_response_headers = self.config.get_val("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
+        restricted_response_headers = config_handler.get_val("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
         ProxyHandler.restricted_response_headers = restricted_response_headers
         # These headers are removed from request obtained from browser, before sending it to webserver
-        restricted_request_headers = self.config.get_val("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
+        restricted_request_headers = config_handler.get_val("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
         ProxyHandler.restricted_request_headers = restricted_request_headers
 
         # HTTP Auth options
-        if self.db_config.get("HTTP_AUTH_HOST") != "None":
+        if HTTP_AUTH_HOST is not None:
             self.application.http_auth = True
             # All the variables are lists
             self.application.http_auth_hosts = self.db_config.get("HTTP_AUTH_HOST").strip().split(',')
@@ -668,7 +667,6 @@ class ProxyProcess(OWTFProcess, BaseComponent):
         :return: None
         :rtype: None
         """
-        self.application.core.disable_console_logging()
         try:
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests

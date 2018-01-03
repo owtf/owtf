@@ -6,28 +6,26 @@ The shell module allows running arbitrary shell commands and is critical to the 
 in order to run third party tools
 """
 
+import os
 import signal
 import subprocess
 import logging
+from collections import defaultdict
 
-from owtf.dependency_management.dependency_resolver import BaseComponent
-from owtf.dependency_management.interfaces import ShellInterface
-from owtf.lib.general import *
 from sqlalchemy.exc import SQLAlchemyError
 
+from owtf.managers.command_register import command_already_registered, add_command
+from owtf.utils.error import user_abort
+from owtf.utils.strings import multi_replace, scrub_output
+from owtf.utils.timer import Timer
 
-class Shell(BaseComponent, ShellInterface):
 
-    COMPONENT_NAME = "shell"
+class Shell(object):
 
     def __init__(self):
-        self.register_in_service_locator()
         # Some settings like the plugin output dir are dynamic, config is no place for those
         self.dynamic_replacements = {}
-        self.command_register = self.get_component("command_register")
-        self.target = self.get_component("target")
-        self.error_handler = self.get_component("error_handler")
-        self.timer = self.get_component("timer")
+        self.timer = Timer()
         self.command_time_offset = 'Command'
         self.old_cmds = defaultdict(list)
         # Environment variables for shell
@@ -82,7 +80,7 @@ class Shell(BaseComponent, ShellInterface):
         cmd_info['RunTime'] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
         cmd_info['Target'] = self.target.get_target_id()
         cmd_info['PluginKey'] = plugin_info["key"]
-        self.command_register.add_command(cmd_info)
+        add_command(cmd_info)
 
     def escape_shell_path(self, text):
         """Escape shell path characters in the text
@@ -118,7 +116,7 @@ class Shell(BaseComponent, ShellInterface):
         :return: List of return values
         :rtype: `list`
         """
-        target = self.command_register.command_already_registered(command['OriginalCommand'])
+        target = command_already_registered(command['OriginalCommand'])
         if target:  # target_config will be None for a not found match
             return [target, False]
         return [None, True]
@@ -171,6 +169,7 @@ class Shell(BaseComponent, ShellInterface):
 
         # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-
         # in-a-separate-process-in-a-wxpyt
+        proc = None
         try:
             proc = self.create_subprocess(command)
             while True:
@@ -183,15 +182,15 @@ class Shell(BaseComponent, ShellInterface):
                 output += line  # Save as much output as possible before a tool crashes! :)
         except KeyboardInterrupt:
             os.killpg(proc.pid, signal.SIGINT)
-            outdata, errdata = proc.communicate()
-            logging.warn(outdata)
-            output += outdata
+            out, err = proc.communicate()
+            logging.warn(out)
+            output += out
             try:
                 os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # Plugin KIA (Killed in Action)
             except OSError:
                 pass  # Plugin RIP (Rested In Peace)
             cancelled = True
-            output += self.error_handler.user_abort('Command', output)  # Identify as Command Level abort
+            output += user_abort('Command', output)  # Identify as Command Level abort
         finally:
             try:
                 self.finish_cmd(cmd_info, cancelled, plugin_info)
@@ -200,7 +199,7 @@ class Shell(BaseComponent, ShellInterface):
                 output += str(e)
         return scrub_output(output)
 
-    def shell_exec(self, command, **kwds):
+    def shell_exec(self, command, **kwargs):
         """This is mostly used for internal framework commands
 
         .note::
@@ -211,12 +210,12 @@ class Shell(BaseComponent, ShellInterface):
 
         :param command: Command to run
         :type command: `str`
-        :param kwds: Misc. args
+        :param kwargs: Misc. args
         :type kwds: `dict`
         :return:
         :rtype:
         """
-        kwds.setdefault("stdout", subprocess.PIPE)
-        kwds.setdefault("stderr", subprocess.STDOUT)
-        p = subprocess.Popen(command, shell=True, **kwds)
+        kwargs.setdefault("stdout", subprocess.PIPE)
+        kwargs.setdefault("stderr", subprocess.STDOUT)
+        p = subprocess.Popen(command, shell=True, **kwargs)
         return p.communicate()[0]

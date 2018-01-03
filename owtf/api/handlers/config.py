@@ -17,12 +17,12 @@ class ConfigurationHandler(APIRequestHandler):
 
     def get(self):
         filter_data = dict(self.request.arguments)
-        self.write(self.get_component("db_config").get_all(filter_data))
+        self.write(get_config_dicts(filter_data))
 
     def patch(self):
         for key, value_list in list(self.request.arguments.items()):
             try:
-                self.get_component("db_config").update(key, value_list[0])
+                update(key, value_list[0])
             except exceptions.InvalidConfigurationReference:
                 raise tornado.web.HTTPError(400)
 

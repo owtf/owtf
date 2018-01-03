@@ -80,3 +80,6 @@ class InvalidMessageReference(FrameworkException):
 
 class InvalidMappingReference(FrameworkException):
     pass
+
+class DatabaseNotRunning(Exception):
+    pass

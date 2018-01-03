@@ -17,10 +17,10 @@ import tornado.web
 import tornado.template
 from tornado.escape import url_escape
 
-from owtf.dependency_management.dependency_resolver import BaseComponent, ServiceLocator
+from owtf.settings import FILE_SERVER_PORT, UI_SERVER_PORT
 
 
-class APIRequestHandler(tornado.web.RequestHandler, BaseComponent):
+class APIRequestHandler(tornado.web.RequestHandler):
 
     def write(self, chunk):
         if isinstance(chunk, list):
@@ -30,7 +30,7 @@ class APIRequestHandler(tornado.web.RequestHandler, BaseComponent):
             super(APIRequestHandler, self).write(chunk)
 
 
-class UIRequestHandler(tornado.web.RequestHandler, BaseComponent):
+class UIRequestHandler(tornado.web.RequestHandler):
     def reverse_url(self, name, *args):
         url = super(UIRequestHandler, self).reverse_url(name, *args)
         url = url.replace('?', '')
@@ -41,10 +41,9 @@ class FileRedirectHandler(tornado.web.RequestHandler):
     SUPPORTED_METHODS = ['GET']
 
     def get(self, file_url):
-        config = ServiceLocator.get_component("config")
-        ui_port = config.get("UI_SERVER_PORT")
-        fileserver_port = config.get("FILE_SERVER_PORT")
-        output_files_server = "%s://%s/" % (self.request.protocol, self.request.host.replace(ui_port, fileserver_port))
+        ui_port = UI_SERVER_PORT
+        fileserver_port = FILE_SERVER_PORT
+        output_files_server = "%s://%s/".format(self.request.protocol, self.request.host.replace(ui_port, fileserver_port))
         redirect_file_url = output_files_server + url_escape(file_url, plus=False)
         self.redirect(redirect_file_url, permanent=True)
 
@@ -106,15 +105,11 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
         if os.path.isfile(abspath):  # So file
             stat_result = os.stat(abspath)
             modified = datetime.datetime.fromtimestamp(stat_result[stat.ST_MTIME])
-
             self.set_header("Last-Modified", modified)
-
             mime_type, encoding = mimetypes.guess_type(abspath)
             if mime_type:
                 self.set_header("Content-Type", mime_type)
-
             cache_time = self.get_cache_time(path, modified, mime_type)
-
             if cache_time > 0:
                 self.set_header("Expires", datetime.datetime.utcnow() + datetime.timedelta(seconds=cache_time))
                 self.set_header("Cache-Control", "max-age=%s" % str(cache_time))
