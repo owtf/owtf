@@ -10,7 +10,7 @@ FILE_PATH=$($READLINK_CMD -f "$0")
 SCRIPTS_DIR=$(dirname "$FILE_PATH")
 RootDir=$(dirname "$SCRIPTS_DIR")
 
-config_file="$RootDir/data/conf/framework.cfg"
+config_file="$RootDir/../settings.py"
 db_config_file="$(get_db_config_file $config_file $1)"
 
 if [ ! -f "$db_config_file" ]; then
@@ -25,8 +25,8 @@ saved_server_user="$(get_config_value DATABASE_USER $db_config_file)"
 saved_server_pass="$(get_config_value DATABASE_PASS $db_config_file)"
 
 # Check if postgres is running
-postgres_server_ip=$(get_postgres_server_ip)
-postgres_server_port=$(get_postgres_server_port)
+postgres_server_ip='127.0.0.1'
+postgres_server_port=5432
 
 # PostgreSQL version
 postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | $SED_CMD 's/\./ /g' | awk '{print $1 "." $2}')"
@@ -69,32 +69,4 @@ if [ -z "$postgres_server_ip" ]; then
     fi
 else
     echo "${info}[+] PostgreSQL server is running ${postgres_server_ip}:${postgres_server_port} :)"
-fi
-
-# Refresh postgres settings
-postgres_server_ips=$(get_postgres_server_ip)
-postgres_server_ports=$(get_postgres_server_port)
-
-if test "${postgres_server_ips#*$saved_server_ip}" = "$postgres_server_ips" || test "${postgres_server_ports#*$saved_server_port}" = "$postgres_server_ports"; then
-    postgres_server_ip=$(echo $postgres_server_ips | $SED_CMD 's/ .*//')
-    postgres_server_port=$(echo $postgres_server_ports | $SED_CMD 's/ .*//')
-    echo "${info}[+] Postgres running on $postgres_server_ip:$postgres_server_port"
-    echo "${info}[+] OWTF db config points towards $saved_server_ip:$saved_server_port"
-    echo "${info}[+] Do you want us to save the new settings for OWTF? [Y/n]"
-    read choice
-    if [ "$choice" != "n" ]; then
-        $SED_CMD -i "/DATABASE_IP/s/$saved_server_ip/$postgres_server_ip/" $db_config_file
-        $SED_CMD -i "/DATABASE_PORT/s/$saved_server_port/$postgres_server_port/" $db_config_file
-        echo "${info}[+] New database configuration saved"
-    fi
-fi
-check_owtf_db=$(postgresql_check_db)
-if [ "$check_owtf_db" = "0" ]; then
-    echo "${info}[+] The problem seems to be the user role and db mentioned in $db_config_file. Do you want us to create them? [Y/n]"
-    read choice
-    if [ "$choice" != "n" ]; then
-        sh $RootDir/scripts/db_setup.sh init
-    fi
-else
-    echo "${info}[+] User role and db mentioned in $db_config_file are setup correctly."
 fi

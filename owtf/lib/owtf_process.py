@@ -41,7 +41,6 @@ class OWTFProcess(Process):
         :rtype: None
         """
         try:
-            db.create_session()
             self.pseudo_run()
         except KeyboardInterrupt:
             # In case of interrupt while listing plugins

@@ -7,10 +7,10 @@ owtf.db.resource_manager
 import os
 import logging
 
+from owtf import db
 from owtf import config
 from owtf.db import models
 from owtf.managers.config import get_replacement_dict
-from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 from owtf.utils.strings import multi_replace, cprint
 

@@ -5,19 +5,24 @@ owtf.db.config_manager
 """
 import os
 import logging
+
+from owtf.utils.file import FileOperations
+
+
 try:
     import configparser as parser
 except ImportError:
     import ConfigParser as parser
 
-from owtf.utils.strings import multi_replace, str2bool
+from owtf import db
+from owtf.utils.strings import multi_replace, str2bool, cprint
 from owtf.lib.exceptions import InvalidConfigurationReference
 from owtf.db import models
 from owtf.config import config_handler
 from owtf.utils.error import abort_framework
 
 
-def load_config_db_file(file_path):
+def load_config_db_file(default, fallback):
     """Load Db config from file
 
     :param file_path: The path to config file
@@ -25,7 +30,9 @@ def load_config_db_file(file_path):
     :return: None
     :rtype: None
     """
-    file_path = config_handler.discover_config(file_path)
+    file_path = default
+    if os.path.isfile(file_path):
+        file_path = fallback
     logging.info("Loading Configuration from: %s.." % file_path)
     config_parser = parser.RawConfigParser()
     config_parser.optionxform = str  # Otherwise all the keys are converted to lowercase xD
@@ -43,6 +50,30 @@ def load_config_db_file(file_path):
                         config_obj.descrip = config_parser.get(section, "%s_DESCRIP" % key)
                     db.session.merge(config_obj)
     db.session.commit()
+
+
+def load_framework_config_file(default, fallback, root_dir, owtf_pid):
+    """Load the configuration into a global dictionary.
+    :param config_path: The configuration file path
+    :type config_path: `str`
+    :return: None
+    :rtype: None
+    """
+    config_path = default
+    if os.path.isfile(config_path):
+        config_path = fallback
+    cprint("Loading config from: {}..".format(config_path))
+    config_file = FileOperations.open(config_path, 'r')
+    config_handler.set_val('FRAMEWORK_DIR', root_dir)  # Needed Later.
+    for line in config_file:
+        try:
+            key = line.split(':')[0]
+            if key[0] == '#':  # Ignore comment lines.
+                continue
+            value = line.replace("%s: ".format(key), "").strip()
+            config_handler.set_val(key, multi_replace(value, {'FRAMEWORK_DIR': root_dir, 'OWTF_PID': str(owtf_pid)}))
+        except ValueError:
+            abort_framework("Problem in config file: {} -> Cannot parse line: {}".format(config_path, line))
 
 
 def get_config_val(self, key):

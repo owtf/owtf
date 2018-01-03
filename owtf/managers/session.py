@@ -4,6 +4,7 @@ owtf.db.session_manager
 Manager functions for sessions
 """
 
+from owtf import db
 from owtf.db import models
 from owtf.lib import exceptions
 from owtf.utils.strings import str2bool

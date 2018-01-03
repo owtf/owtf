@@ -1,9 +1,8 @@
 import os
 
-
 HOME_DIR = os.path.expanduser("~")
 OWTF_CONF = os.path.join(HOME_DIR, ".owtf")
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 CONFIG_DIR = os.path.join(ROOT_DIR, 'data', 'conf')
 
 DEBUG = False
@@ -14,10 +13,10 @@ INTERACTIVE = True
 ### Database Server
 DATABASE_IP = '127.0.0.1'
 DATABASE_PORT = 5432
-DATABASE_NAME = 'owtfdb'
+DATABASE_NAME = 'owtf_db'
 DATABASE_USER = 'owtf_db_user'
 # Change me!
-DATABASE_PASS = '3309ZFdS+RsdMIdn1NdovTnu8SlcBd95m4vQcfOkYDqQ5xHI7suXfwsn2iBPpLpA'
+DATABASE_PASS = '3309ZFdS'
 
 ### Interface Server
 SERVER_ADDR = '127.0.0.1'
@@ -41,7 +40,8 @@ WORKER_LOG_DIR = 'logs'
 ### Default profile settings
 DEFAULT_GENERAL_PROFILE = os.path.join(OWTF_CONF, 'conf', 'general.cfg')
 DEFAULT_RESOURCES_PROFILE = os.path.join(OWTF_CONF, 'conf', 'resources.cfg')
-DEFAULT_MAPPING_PROFILE = os.path.join(OWTF_CONF + 'conf', 'mappings.cfg')
+DEFAULT_MAPPING_PROFILE = os.path.join(OWTF_CONF, 'conf', 'mappings.cfg')
+DEFAULT_FRAMEWORK_CONFIG = os.path.join(OWTF_CONF, 'conf', 'framework.cfg')
 DEFAULT_WEB_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_web', 'order.cfg')
 DEFAULT_NET_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_net', 'order.cfg')
 
@@ -80,7 +80,7 @@ CA_PASS_FILE = os.path.join(OWTF_CONF, 'proxy', 'ca_pass.txt')
 CERTS_FOLDER = os.path.join(OWTF_CONF, 'proxy', 'certs')
 
 BLACKLIST_COOKIES = ['_ga', '__utma', '__utmb', '__utmc', '__utmz', '__utmv']
-WHITELIST_COOKIES = None
+WHITELIST_COOKIES = ""
 PROXY_LOG = '/tmp/owtf/proxy.log'
 
 ### UI
@@ -111,6 +111,7 @@ PROXY_CHECK_URL = 'http://www.google.ie'
 
 
 ### Fallback
+FALLBACK_FRAMEWORK_CONFIG = os.path.join(ROOT_DIR, 'data', 'conf', 'framework.cfg')
 FALLBACK_WEB_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'groups.cfg')
 FALLBACK_NET_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'groups.cfg')
 FALLBACK_AUX_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_aux', 'groups.cfg')

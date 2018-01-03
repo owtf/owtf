@@ -57,14 +57,14 @@ class PluginHandler(object):
     def init_options(self, options):
         """Initialize CLI options for each instance of PluginHandler."""
         self.plugin_count = 0
-        self.simulation = options['Simulation']
-        self.scope = options['Scope']
-        self.plugin_group = options['PluginGroup']
-        self.only_plugins_list = self.validate_format_plugin_list(options.get('OnlyPlugins'))
-        self.except_plugins_list = self.validate_format_plugin_list(options.get('ExceptPlugins'))
+        #self.simulation = options.get('Simulation', None)
+        #self.scope = options['Scope']
+        #self.plugin_group = options['PluginGroup']
+        #self.only_plugins_list = self.validate_format_plugin_list(options.get('OnlyPlugins'))
+        #self.except_plugins_list = self.validate_format_plugin_list(options.get('ExceptPlugins'))
         # For special plugin types like "quiet" -> "semi_passive" + "passive"
-        if isinstance(options.get('PluginType'), str):
-            options['PluginType'] = options['PluginType'].split(',')
+        #if isinstance(options.get('PluginType'), str):
+        #    options['PluginType'] = options['PluginType'].split(',')
         self.init_exec_registry()
         self.scanner = Scanner()
 
@@ -112,8 +112,8 @@ class PluginHandler(object):
         :rtype: None
         """
         self.exec_registry = defaultdict(list)
-        for target in self.scope:
-            self.exec_registry[target] = list()
+        #for target in self.scope:
+        #    self.exec_registry[target] = list()
 
     def get_last_plugin_exec(self, plugin):
         """Get shortcut to relevant execution log for this target for readability below :)
@@ -567,7 +567,7 @@ class PluginHandler(object):
             logging.info("%s\nAvailable AUXILIARY plugins:", msg)
         elif group == 'network':
             logging.info("%s\nAvailable NETWORK plugins:", msg)
-        for plugin_type in self.db_plugin.get_types_for_plugin_group(group):
+        for plugin_type in get_types_for_plugin_group(group):
             self.show_plugin_types(plugin_type, group)
 
     def show_plugin_types(self, plugin_type, group):

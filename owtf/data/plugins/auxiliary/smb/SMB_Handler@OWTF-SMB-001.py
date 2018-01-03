@@ -1,28 +1,27 @@
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.config import config_handler
+from owtf.plugin.plugin_params import plugin_params
+from owtf.protocols.smb import SMB
 
 
 DESCRIPTION = "Mounts and/or uploads/downloads files to an SMB share -i.e. for IDS testing-"
 
 
 def run(PluginInfo):
-    Content = []
-    plugin_params = ServiceLocator.get_component("plugin_params")
-    config = ServiceLocator.get_component("config")
-    smb = ServiceLocator.get_component("smb")
-
+    Content = list()
+    smb = SMB()
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {
-            'SMB_HOST': config.get_val('SMB_HOST_DESCRIP'),
-            'SMB_SHARE': config.get_val('SMB_SHARE_DESCRIP'),
-            'SMB_MOUNT_POINT': config.get_val('SMB_MOUNT_POINT_DESCRIP'),
+            'SMB_HOST': config_handler.get_val('SMB_HOST_DESCRIP'),
+            'SMB_SHARE': config_handler.get_val('SMB_SHARE_DESCRIP'),
+            'SMB_MOUNT_POINT': config_handler.get_val('SMB_MOUNT_POINT_DESCRIP'),
         },
         'Optional': {
-            'SMB_USER': config.get_val('SMB_USER_DESCRIP'),
-            'SMB_PASS': config.get_val('SMB_PASS_DESCRIP'),
-            'SMB_DOWNLOAD': config.get_val('SMB_DOWNLOAD_DESCRIP'),
-            'SMB_UPLOAD': config.get_val('SMB_UPLOAD_DESCRIP'),
-            'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')
+            'SMB_USER': config_handler.get_val('SMB_USER_DESCRIP'),
+            'SMB_PASS': config_handler.get_val('SMB_PASS_DESCRIP'),
+            'SMB_DOWNLOAD': config_handler.get_val('SMB_DOWNLOAD_DESCRIP'),
+            'SMB_UPLOAD': config_handler.get_val('SMB_UPLOAD_DESCRIP'),
+            'REPEAT_DELIM': config_handler.get_val('REPEAT_DELIM_DESCRIP')
         }
     }
 

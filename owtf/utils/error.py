@@ -6,6 +6,7 @@ The error handler provides a centralised control for aborting the application
 and logging errors for debugging later.
 """
 
+import sys
 import logging
 
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
@@ -32,6 +33,7 @@ def abort_framework(message):
     """
     message = "Aborted by Framework: {0}".format(message)
     logging.error(message)
+    sys.exit(message)
 
 
 def get_option_from_user(options):

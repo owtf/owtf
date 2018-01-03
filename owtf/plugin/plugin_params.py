@@ -16,7 +16,7 @@ from owtf.utils.strings import cprint, merge_dicts
 class PluginParams(object):
 
     def __init__(self, options):
-        self.raw_args = options['Args']
+        #self.raw_args = options['Args']
         self.init = False
         self.no_args = list()
 
@@ -27,20 +27,20 @@ class PluginParams(object):
         :rtype: `bool`
         """
         self.args = defaultdict(list)
-        for arg in self.raw_args:
-            if 'O' == arg:
-                continue
-            chunks = arg.split('=')
-            if len(chunks) < 2:
-                add_error("USER ERROR: %s arguments should be in NAME=VALUE format" % str(chunks), 'user')
-                return False
-            arg_name = chunks[0]
-            try:
-                arg_val = arg.replace(arg_name, '')[1:]
-            except ValueError:
-                add_error("USER ERROR: %s arguments should be in NAME=VALUE format" % str(arg_name), 'user')
-                return False
-            self.args[arg_name] = arg_val
+        # #for arg in self.raw_args:
+        #     if 'O' == arg:
+        #         continue
+        #     chunks = arg.split('=')
+        #     if len(chunks) < 2:
+        #         add_error("USER ERROR: %s arguments should be in NAME=VALUE format" % str(chunks), 'user')
+        #         return False
+        #     arg_name = chunks[0]
+        #     try:
+        #         arg_val = arg.replace(arg_name, '')[1:]
+        #     except ValueError:
+        #         add_error("USER ERROR: %s arguments should be in NAME=VALUE format" % str(arg_name), 'user')
+        #         return False
+        #     self.args[arg_name] = arg_val
         return True
 
     def list_args(self, args, mandatory=True):

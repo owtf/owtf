@@ -3,30 +3,6 @@
 cd $(dirname "$0");SCRIPT_DIR=`pwd -P`;cd $OLDPWD
 . $SCRIPT_DIR/utils.sh
 
-get_config_value(){
-    parameter=$1
-    file=$2
-    echo "$(grep -i ${parameter} ${file} | sed  "s|$parameter: ||g;s|~|$HOME|g")"
-}
-
-get_db_config_file(){
-    config_file=$1
-    db_config_file=$2
-
-    default_db_config_file="$(get_config_value DATABASE_SETTINGS_FILE $config_file)"
-    if [ -f "$default_db_config_file" ]; then
-        echo "$default_db_config_file"
-        return 0
-    fi
-    if [ -f "$db_config_file" ]; then
-        echo "$db_config_file"
-        return 0
-    fi
-    echo "Default file "$default_db_config_file" does not exist" >&2
-    echo "Rerun script with path parameter. Usage : $0 [db_config_file_path]" >&2
-    return 1
-}
-
 get_postgres_server_ip() {
     echo "$(sudo netstat -lptn | grep "^tcp " | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f1)"
 }

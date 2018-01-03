@@ -1,4 +1,6 @@
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.config import config_handler
+from owtf.plugin.plugin_helper import plugin_helper
+from owtf.plugin.plugin_params import plugin_params
 
 
 DESCRIPTION = "Denial of Service (DoS) Launcher -i.e. for IDS/DoS testing-"
@@ -8,23 +10,21 @@ CATEGORIES = ['HTTP_WIN', 'HTTP', 'DHCP', 'NTFS', 'HP', 'MDNS', 'PPTP', 'SAMBA',
 
 
 def run(PluginInfo):
-    Content = []
-    plugin_params = ServiceLocator.get_component("plugin_params")
-    config = ServiceLocator.get_component("config")
+    Content = list()
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {
-            'RHOST': config.get_val('RHOST_DESCRIP'),
-            'RPORT': config.get_val('RPORT_DESCRIP')
+            'RHOST': config_handler.get_val('RHOST_DESCRIP'),
+            'RPORT': config_handler.get_val('RPORT_DESCRIP')
         },
         'Optional': {
             'CATEGORY': 'Category to use (i.e. ' + ', '.join(sorted(CATEGORIES)) + ')',
-            'REPEAT_DELIM': config.get_val('REPEAT_DELIM_DESCRIP')
+            'REPEAT_DELIM': config_handler.get_val('REPEAT_DELIM_DESCRIP')
         }
     }
     for Args in plugin_params.get_args(args, PluginInfo):
         plugin_params.set_config(Args)
-        resource = config.get_resources('DoS_' + Args['CATEGORY'])
-        Content += ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
+        resource = config_handler.get_resources('DoS_' + Args['CATEGORY'])
+        Content += plugin_helper.CommandDump('Test Command', 'Output', resource,
                                                                              PluginInfo, "")  # No previous output
     return Content

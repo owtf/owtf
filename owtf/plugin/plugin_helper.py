@@ -14,8 +14,6 @@ import logging
 from tornado.template import Template
 
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
-from owtf.utils.strings import FileOperations
-
 
 PLUGIN_OUTPUT = {"type": None, "output": None}  # This will be json encoded and stored in db as string
 

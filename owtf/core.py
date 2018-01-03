@@ -20,7 +20,7 @@ except ImportError:  #PY2
 
 import tornado
 
-from owtf.config import config_handler
+from owtf import db
 from owtf.lib.exceptions import UnresolvableTargetException, DBIntegrityException
 from owtf.managers.target import add_target, get_target_config_dicts
 from owtf.api import server
@@ -53,6 +53,7 @@ class Core(object):
         self.worker_manager = worker_manager
         self.tor_process = None
         self.proxy_process = None
+        self.db = db
         FileOperations.create_missing_dirs(get_logs_dir())
         create_temp_storage_dirs(self.owtf_pid)
         self.enable_logging()
@@ -153,7 +154,7 @@ class Core(object):
         logging.info("Loading framework please wait..")
         # No processing required, just list available modules.
         if options['list_plugins']:
-            show_plugin_list(options['list_plugins'])
+            plugin_handler.show_plugin_list(options['list_plugins'])
             self.finish()
         target_urls = self.load_targets(options)
         self.load_works(target_urls, options)
@@ -164,9 +165,8 @@ class Core(object):
     def run_server(self):
         """This method starts the interface server"""
         self.interface_server = server.APIServer()
-        logging.warn("http://%s:%s <-- Web UI URL".format(SERVER_ADDR, UI_SERVER_PORT))
+        logging.warn("http://{}:{} <-- Web UI URL".format(SERVER_ADDR, str(UI_SERVER_PORT)))
         logging.info("Press Ctrl+C to exit.")
-        self.disable_console_logging()
         self.interface_server.start()
         self.file_server = server.FileServer()
         self.file_server.start()
@@ -294,9 +294,7 @@ class Core(object):
             if getattr(self, "db", None) is not None:
                 # Properly stop any DB instances.
                 self.db.clean_up()
-            # Stop any tornado instance.
-            if getattr(self, "cli_server", None) is not None:
-                self.cli_server.clean_up()
-            tornado.ioloop.IOLoop.instance().stop()
             sys.exit(0)
 
+
+core = Core()
