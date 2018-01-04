@@ -13,29 +13,18 @@ import cgi
 
 from tornado.template import Loader
 
-from owtf.dependency_management.dependency_resolver import BaseComponent
-from owtf.dependency_management.interfaces import ReporterInterface
+from owtf.settings import POUTPUT_TEMPLATES_DIR
+from owtf.http.requester import requester
 
 
-class Reporter(BaseComponent, ReporterInterface):
-
-    COMPONENT_NAME = "reporter"
-
+class Reporter(object):
     def __init__(self):
-        self.register_in_service_locator()
-        self.config = self.get_component("config")
-        self.resource = self.get_component("resource")
-        self.transaction = self.get_component("transaction")
-        self.plugin_handler = self.get_component("plugin_handler")
         self.requester = None
         self.Init = False
-        self.Loader = Loader(self.config.get_val('POUTPUT_TEMPLATES_DIR'))
+        self.Loader = Loader(POUTPUT_TEMPLATES_DIR)
         self.mNumLinesToShow = 15
-        self.CounterList = []
-
-    def init(self):
-        # type: () -> object
-        self.requester = self.get_component("requester")
+        self.CounterList = list()
+        self.requester = requester
 
     def TransactionTableFromIDs(self, TransactionIDs, NumLinesReq=15, NumLinesRes=15):
         """ Draws a table of HTTP Transactions """
@@ -240,3 +229,6 @@ class Reporter(BaseComponent, ReporterInterface):
         if Table.GetNumRows() == 0:
                 return ""  # No Attributes found
         return "<h3>Cookie Attribute Analysis</h3>%s" % Table.Render()
+
+
+reporter = Reporter()

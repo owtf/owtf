@@ -2,15 +2,13 @@
 GREP Plugin for CORS
 NOTE: GREP plugins do NOT send traffic to the target and only grep the HTTP Transaction Log
 """
-
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.plugin.plugin_helper import plugin_helper
 
 
 DESCRIPTION = "Searches transaction DB for Cross Origin Resource Sharing headers"
 
 
 def run(PluginInfo):
-    plugin_helper = ServiceLocator.get_component("plugin_helper")
     title = "This plugin looks for HTML 5 Cross Origin Resource Sharing (CORS) headers<br/>"
     Content = plugin_helper.HtmlString(title)
     Content += plugin_helper.FindResponseHeaderMatchesForRegexpName('HEADERS_FOR_CORS')

@@ -5,6 +5,7 @@ owtf.db.error_manager
 Component to handle data storage and search of all errors
 """
 
+from owtf import db
 from owtf.db import models
 from owtf.lib.exceptions import InvalidErrorReference
 from owtf.utils.strings import str2bool

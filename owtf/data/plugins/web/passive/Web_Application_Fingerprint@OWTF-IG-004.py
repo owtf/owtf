@@ -1,8 +1,8 @@
 """
 PASSIVE Plugin for Testing for Web Application Fingerprint (OWASP-IG-004)
 """
-
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.managers.resource import get_resources
+from owtf.plugin.plugin_helper import plugin_helper
 
 
 DESCRIPTION = "Third party resources and fingerprinting suggestions"
@@ -17,9 +17,8 @@ def run(PluginInfo):
         ['Mambo', 'CMS_FingerPrint_Mambo']
     ]
     # Vuln search box to be built in core and reused in different plugins:
-    plugin_helper = ServiceLocator.get_component("plugin_helper")
     Content = plugin_helper.VulnerabilitySearchBox('')
-    resource = ServiceLocator.get_component("resource").get_resources('PassiveFingerPrint')
+    resource = get_resources('PassiveFingerPrint')
     Content += plugin_helper.resource_linklist('Online Resources', resource)
     Content += plugin_helper.SuggestedCommandBox(PluginInfo, mapping, 'CMS Fingerprint - Potentially useful commands')
     return Content

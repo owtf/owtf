@@ -1,15 +1,14 @@
 """
 ACTIVE Plugin for Testing for Application Discovery (OWASP-IG-005)
 """
-
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.managers.resource import get_resources
+from owtf.plugin.plugin_helper import plugin_helper
 
 
 DESCRIPTION = "Active probing for app discovery"
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").get_resources('ActiveDiscovery')
+    resource = get_resources('ActiveDiscovery')
     # No previous output
-    return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output',
-                                                                     resource, PluginInfo, [])
+    return plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])

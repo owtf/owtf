@@ -4,18 +4,20 @@ the transaction log to feed data to other plugins
 NOTE: This is an active plugin because it may visit URLs retrieved by vulnerability scanner spiders
 which may be considered sensitive or include vulnerability probing
 """
+import logging
 
-from owtf.utils import OWTFLogger
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.http.requester import requester
+from owtf.managers.url import get_urls_to_visit
+from owtf.plugin.plugin_helper import plugin_helper
 
 
 DESCRIPTION = "Visit URLs found by other tools, some could be sensitive: need permission"
 
 
 def run(PluginInfo):
-    urls = ServiceLocator.get_component("url_manager").get_urls_to_visit()
+    urls = get_urls_to_visit()
     for url in urls:  # This will return only unvisited urls
-        ServiceLocator.get_component("requester").get_transaction(True, url)  # Use cache if possible
-    Content = "%s URLs were visited" % str(len(urls))
-    OWTFLogger.log(Content)
-    return ServiceLocator.get_component("plugin_helper").HtmlString(Content)
+        requester.get_transaction(True, url)  # Use cache if possible
+    Content = "{} URLs were visited".format(str(len(urls)))
+    logging.info(Content)
+    return plugin_helper.HtmlString(Content)

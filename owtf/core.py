@@ -12,13 +12,10 @@ import sys
 import socket
 import logging
 import multiprocessing
-from copy import deepcopy
 try: #PY3
     from urllib.parse import urlparse
 except ImportError:  #PY2
      from urlparse import urlparse
-
-import tornado
 
 from owtf import db
 from owtf.lib.exceptions import UnresolvableTargetException, DBIntegrityException
@@ -277,8 +274,6 @@ class Core(object):
         if getattr(self, "tor_process", None) is not None:
             self.tor_process.terminate()
         else:
-            if getattr(self, "plugin_handler", None) is not None:
-                self.plugin_handler.clean_up()
             if getattr(self, "proxy_process", None) is not None:
                 logging.info("Stopping inbound proxy processes and cleaning up. Please wait!")
                 self.proxy_process.clean_up()

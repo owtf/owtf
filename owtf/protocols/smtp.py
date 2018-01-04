@@ -6,21 +6,18 @@ Description:
 This is the OWTF SMTP handler, to simplify sending emails.
 """
 
+import os
 import smtplib
 from email import MIMEMultipart, MIMEBase, MIMEText, Encoders
 
-from owtf.dependency_management.dependency_resolver import BaseComponent
-from owtf.lib.general import *
-from owtf.utils import FileOperations
+from owtf.managers.error import add_error
+from owtf.utils.file import FileOperations, get_file_as_list
+from owtf.utils.strings import cprint
 
 
-class SMTP(BaseComponent):
-
-    COMPONENT_NAME = "smtp"
+class SMTP(object):
 
     def __init__(self):
-        self.register_in_service_locator()
-        self.error_handler = self.get_component("error_handler")
         self.msg_prefix = 'OWTF SMTP Client - '
 
     def pprint(self, message):
@@ -39,11 +36,11 @@ class SMTP(BaseComponent):
         try:
             mail_server.starttls()  # Give start TLS a shot
         except Exception as e:
-            self.pprint("%s - Assuming TLS unsupported and trying to continue.." % str(e))
+            self.pprint("{} - Assuming TLS unsupported and trying to continue..".format(str(e)))
         try:
             mail_server.login(options['SMTP_LOGIN'], options['SMTP_PASS'])
         except Exception as e:
-            self.pprint("ERROR: %s - Assuming open-relay and trying to continue.." % str(e))
+            self.pprint("ERROR: {} - Assuming open-relay and trying to continue..".format(str(e)))
         return mail_server
 
     def is_file(self, target):
@@ -75,9 +72,9 @@ class SMTP(BaseComponent):
                 mail_server.sendmail(options['SMTP_LOGIN'], target, message.as_string())
                 self.pprint("Email relay successful!")
             except Exception as e:
-                self.error_handler.add("Error delivering email: %s" % str(e), '')
+                add_error("Error delivering email: %s" % str(e), '')
                 num_errors += 1
-        return (num_errors == 0)
+        return num_errors == 0
 
     def build_message(self, options, target):
         message = MIMEMultipart.MIMEMultipart()
@@ -117,6 +114,9 @@ class SMTP(BaseComponent):
         binary_blob.set_payload(FileOperations.open(attachment, 'rb').read())
         Encoders.encode_base64(binary_blob)  # base64 encode the Binary Blob.
         # Binary Blob headers.
-        binary_blob.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(attachment))
+        binary_blob.add_header('Content-Disposition', 'attachment; filename="{}"'.format(os.path.basename(attachment)))
         message.attach(binary_blob)
         return True
+
+
+smtp = SMTP()

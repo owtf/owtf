@@ -12,6 +12,9 @@ import tornado.httpclient
 
 from owtf.lib import exceptions
 from owtf.api.base import APIRequestHandler
+from owtf.managers.mapping import get_all_mappings
+from owtf.managers.plugin import get_types_for_plugin_group, get_all_plugin_dicts, get_all_test_groups
+from owtf.managers.poutput import get_all_poutputs, update_poutput, delete_all_poutput
 from owtf.utils.strings import cprint
 
 
@@ -23,21 +26,21 @@ class PluginDataHandler(APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group:  # Check if plugin_group is present in url
-                self.write(self.get_component("db_plugin").get_all(filter_data))
+                self.write(get_all_plugin_dicts(filter_data))
             if plugin_group and (not plugin_type) and (not plugin_code):
                 filter_data.update({"group": plugin_group})
-                self.write(self.get_component("db_plugin").get_all(filter_data))
+                self.write(get_all_plugin_dicts(filter_data))
             if plugin_group and plugin_type and (not plugin_code):
-                if plugin_type not in self.get_component("db_plugin").get_types_for_plugin_group(plugin_group):
+                if plugin_type not in get_types_for_plugin_group(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"type": plugin_type, "group": plugin_group})
-                self.write(self.get_component("db_plugin").get_all(filter_data))
+                self.write(get_all_plugin_dicts(filter_data))
             if plugin_group and plugin_type and plugin_code:
-                if plugin_type not in self.get_component("db_plugin").get_types_for_plugin_group(plugin_group):
+                if plugin_type not in get_types_for_plugin_group(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"type": plugin_type, "group": plugin_group, "code": plugin_code})
                 # This combination will be unique, so have to return a dict
-                results = self.get_component("db_plugin").get_all(filter_data)
+                results = get_all_plugin_dicts(filter_data)
                 if results:
                     self.write(results[0])
                 else:
@@ -59,14 +62,14 @@ class PluginNameOutput(APIRequestHandler):
         """
         try:
             filter_data = dict(self.request.arguments)
-            results = self.get_component("plugin_output").get_all(filter_data, target_id=int(target_id), inc_output=False)
+            results = get_all_poutputs(filter_data, target_id=int(target_id), inc_output=False)
 
             # Get mappings
-            mappings = self.get_component("mapping_db").get_all_mappings()
+            mappings = get_all_mappings()
 
             # Get test groups as well, for names and info links
             groups = {}
-            for group in self.get_component("db_plugin").get_all_test_groups():
+            for group in get_all_test_groups():
                 group['mappings'] = mappings.get(group['code'], {})
                 groups[group['code']] = group
 
@@ -103,18 +106,18 @@ class PluginOutputHandler(APIRequestHandler):
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group": plugin_group})
             if plugin_type and plugin_group and (not plugin_code):
-                if plugin_type not in self.get_component("db_plugin").get_types_for_plugin_group(plugin_group):
+                if plugin_type not in get_types_for_plugin_group(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
             if plugin_type and plugin_group and plugin_code:
-                if plugin_type not in self.get_component("db_plugin").get_types_for_plugin_group(plugin_group):
+                if plugin_type not in get_types_for_plugin_group(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({
                     "plugin_type": plugin_type,
                     "plugin_group": plugin_group,
                     "plugin_code": plugin_code
                 })
-            results = self.get_component("plugin_output").get_all(filter_data, target_id=int(target_id), inc_output=True)
+            results = get_all_poutputs(filter_data, target_id=int(target_id), inc_output=True)
             if results:
                 self.write(results)
             else:
@@ -139,8 +142,7 @@ class PluginOutputHandler(APIRequestHandler):
                 raise tornado.web.HTTPError(400)
             else:
                 patch_data = dict(self.request.arguments)
-                self.get_component("plugin_output").update(plugin_group, plugin_type, plugin_code, patch_data,
-                                                           target_id=target_id)
+                update_poutput(plugin_group, plugin_type, plugin_code, patch_data, target_id=target_id)
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -152,24 +154,24 @@ class PluginOutputHandler(APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group:  # First check if plugin_group is present in url
-                self.get_component("plugin_output").delete_all(filter_data, target_id=int(target_id))
+                delete_all_poutput(filter_data, target_id=int(target_id))
             if plugin_group and (not plugin_type):
                 filter_data.update({"plugin_group": plugin_group})
-                self.get_component("plugin_output").delete_all(filter_data, target_id=int(target_id))
+                delete_all_poutput(filter_data, target_id=int(target_id))
             if plugin_type and plugin_group and (not plugin_code):
-                if plugin_type not in self.get_component("db_plugin").get_types_for_plugin_group(plugin_group):
+                if plugin_type not in get_types_for_plugin_group(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
-                self.get_component("plugin_output").delete_all(filter_data, target_id=int(target_id))
+                delete_all_poutput(filter_data, target_id=int(target_id))
             if plugin_type and plugin_group and plugin_code:
-                if plugin_type not in self.get_component("db_plugin").get_types_for_plugin_group(plugin_group):
+                if plugin_type not in get_types_for_plugin_group(plugin_group):
                     raise tornado.web.HTTPError(400)
                 filter_data.update({
                     "plugin_type": plugin_type,
                     "plugin_group": plugin_group,
                     "plugin_code": plugin_code
                 })
-                self.get_component("plugin_output").delete_all(filter_data, target_id=int(target_id))
+                delete_all_poutput(filter_data, target_id=int(target_id))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)

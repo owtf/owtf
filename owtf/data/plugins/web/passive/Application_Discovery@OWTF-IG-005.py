@@ -1,21 +1,20 @@
 """
 PASSIVE Plugin for Testing for Application Discovery (OWASP-IG-005)
 """
-
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.managers.resource import get_resources
+from owtf.plugin.plugin_helper import plugin_helper
 
 
 DESCRIPTION = "Third party discovery resources"
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource")
-    Content = ServiceLocator.get_component("plugin_helper").Tabbedresource_linklist([
-        ['DNS', resource.get_resources('PassiveAppDiscoveryDNS')],
-        ['WHOIS', resource.get_resources('PassiveAppDiscoveryWHOIS')],
-        ['DB Lookups', resource.get_resources('PassiveAppDiscoveryDbLookup')],
-        ['Ping', resource.get_resources('PassiveAppDiscoveryPing')],
-        ['Traceroute', resource.get_resources('PassiveAppDiscoveryTraceroute')],
-        ['Misc', resource.get_resources('PassiveAppDiscoveryMisc')]
+    Content = plugin_helper.Tabbedresource_linklist([
+        ['DNS', get_resources('PassiveAppDiscoveryDNS')],
+        ['WHOIS', get_resources('PassiveAppDiscoveryWHOIS')],
+        ['DB Lookups', get_resources('PassiveAppDiscoveryDbLookup')],
+        ['Ping', get_resources('PassiveAppDiscoveryPing')],
+        ['Traceroute', get_resources('PassiveAppDiscoveryTraceroute')],
+        ['Misc', get_resources('PassiveAppDiscoveryMisc')]
     ])
     return Content

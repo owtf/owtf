@@ -1,9 +1,10 @@
 """
 PASSIVE Plugin for HTTP Methods Testing
 """
+import logging
 
-from owtf.utils import OWTFLogger
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.managers.resource import get_resources
+from owtf.plugin.plugin_helper import plugin_helper
 
 
 DESCRIPTION = "Third party resources"
@@ -11,7 +12,7 @@ DESCRIPTION = "Third party resources"
 
 def run(PluginInfo):
     # Vuln search box to be built in core and resued in different plugins:
-    resource = ServiceLocator.get_component("resource").get_resources('PassiveMethods')
-    Content = ServiceLocator.get_component("plugin_helper").resource_linklist('Online Resources', resource)
-    OWTFLogger.log("Passive links generated for target")
+    resource = get_resources('PassiveMethods')
+    Content = plugin_helper.resource_linklist('Online Resources', resource)
+    logging.info("Passive links generated for target")
     return Content

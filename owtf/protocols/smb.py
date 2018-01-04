@@ -6,18 +6,16 @@ Description:
 This is the handler for the Social Engineering Toolkit (SET) trying to overcome
 the limitations of set-automate.
 """
+import os
 
 from owtf.shell import pexpect_shell
-from owtf.lib.general import *
-from owtf.utils import FileOperations
+from owtf.utils.file import FileOperations
+from owtf.utils.strings import cprint
 
 
 class SMB(pexpect_shell.PExpectShell):
 
-    COMPONENT_NAME = "smb"
-
     def __init__(self):
-        self.register_in_service_locator()
         # Calling parent class to do its init part.
         pexpect_shell.PExpectShell.__init__(self)
         self.command_time_offset = 'SMBCommand'
@@ -40,9 +38,9 @@ class SMB(pexpect_shell.PExpectShell):
         self.Open(options, plugin_info)
         cprint("Ensuring Mount Point %s exists..." % options['SMB_MOUNT_POINT'])
         self.check_mount_point_existence(options)
-        mount_cmd = "smbmount //%s/%s %s" % (options['SMB_HOST'], options['SMB_SHARE'], options['SMB_MOUNT_POINT'])
+        mount_cmd = "smbmount //{}/{} {}".format(options['SMB_HOST'], options['SMB_SHARE'], options['SMB_MOUNT_POINT'])
         if options['SMB_USER']:  # Pass user if specified.
-            mount_cmd += " -o user=%s" % options['SMB_USER']
+            mount_cmd += " -o user={}".format(options['SMB_USER'])
         cprint("Mounting share..")
         self.run(mount_cmd, plugin_info)
         self.expect("Password:")
@@ -56,7 +54,7 @@ class SMB(pexpect_shell.PExpectShell):
     def transfer(self):
         operation = False
         if self.options['SMB_DOWNLOAD']:
-            self.download("%s/%s" % (self.options['SMB_MOUNT_POINT'], self.options['SMB_DOWNLOAD']), ".")
+            self.download("{}/{}".format(self.options['SMB_MOUNT_POINT'], self.options['SMB_DOWNLOAD']), ".")
             operation = True
         if self.options['SMB_UPLOAD']:
             self.upload(
@@ -73,9 +71,12 @@ class SMB(pexpect_shell.PExpectShell):
             self.close(plugin_info)
 
     def upload(self, file_path, mount_point):
-        cprint("Copying %s to %s" % (file_path, mount_point))
-        self.shell_exec_monitor("cp -r %s %s" % (file_path, mount_point))
+        cprint("Copying {} to {}".format(file_path, mount_point))
+        self.shell_exec_monitor("cp -r {} {}".format(file_path, mount_point))
 
     def download(self, remote_file_path, target_dir):
-        cprint("Copying %s to %s" % (remote_file_path, target_dir))
-        self.shell_exec_monitor("cp -r %s %s" % (remote_file_path, target_dir))
+        cprint("Copying {} to {}".format(remote_file_path, target_dir))
+        self.shell_exec_monitor("cp -r {} {}".format(remote_file_path, target_dir))
+
+
+smb = SMB()

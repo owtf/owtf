@@ -3,6 +3,7 @@ import logging
 
 from ipaddr import IPAddress
 
+from owtf.config import config_handler
 from owtf.lib.exceptions import UnresolvableTargetException
 from owtf.utils.strings import cprint
 
@@ -66,9 +67,9 @@ def get_ip_from_hostname(hostname):
         cprint("%s has several IP addresses: (%s).Choosing first: %s" %
                (hostname, "".join(ipchunks)[0:-3], ip))
         alternative_ips = ipchunks[1:]
-    set_val('alternative_ips', alternative_ips)
+    config_handler.set_val('alternative_ips', alternative_ips)
     ip = ip.strip()
-    set_val('INTERNAL_IP', is_internal_ip(ip))
+    config_handler.set_val('INTERNAL_IP', is_internal_ip(ip))
     logging.info("The IP address for %s is: '%s'" % (hostname, ip))
     return ip
 

@@ -13,6 +13,7 @@ import logging
 from sqlalchemy import desc, asc
 from hrt.interface import HttpRequestTranslator
 
+from owtf import db
 from owtf.config import config_handler
 from owtf.managers.target import target_required
 from owtf.lib.exceptions import InvalidTransactionReference, InvalidParameterType

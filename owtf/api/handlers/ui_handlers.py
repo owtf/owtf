@@ -14,6 +14,10 @@ from tornado.escape import url_escape
 
 from owtf.lib.exceptions import InvalidTargetReference, InvalidParameterType
 from owtf.api.base import UIRequestHandler
+from owtf.managers.mapping import get_all_mappings, get_mappings
+from owtf.managers.plugin import get_all_test_groups
+from owtf.managers.poutput import get_unique_dicts, get_all_poutputs
+from owtf.settings import FILE_SERVER_PORT, UI_SERVER_PORT
 
 
 class Redirect(UIRequestHandler):
@@ -104,8 +108,8 @@ class TargetManager(UIRequestHandler):
                 worklist_api_url=self.reverse_url('worklist_api_url', None, None)
             )
         else:
-            adv_filter_data = self.get_component("plugin_output").get_unique(target_id=int(target_id))
-            adv_filter_data["mapping"] = self.get_component("mapping_db").get_mapping_types()
+            adv_filter_data = get_unique_dicts(target_id=int(target_id))
+            adv_filter_data["mapping"] = get_all_mappings()
             self.render(
                 "target.html",
                 target_id=target_id,
@@ -129,7 +133,7 @@ class PluginOutput(UIRequestHandler):
             raise tornado.web.HTTPError(400)
         try:
             filter_data = dict(self.request.arguments)  # IMPORTANT!!
-            plugin_outputs = self.get_component("plugin_output").get_all(filter_data, target_id=target_id)
+            plugin_outputs = get_all_poutputs(filter_data, target_id=target_id)
             # Group the plugin outputs to make it easier in template
             grouped_plugin_outputs = {}
             for poutput in plugin_outputs:
@@ -142,13 +146,13 @@ class PluginOutput(UIRequestHandler):
 
             # Get mappings
             if self.get_argument("mapping", None):
-                mappings = self.get_component("mapping_db").get_mappings(self.get_argument("mapping", None))
+                mappings = get_mappings(self.get_argument("mapping", None))
             else:
                 mappings = None
 
             # Get test groups as well, for names and info links
             test_groups = {}
-            for test_group in self.get_component("db_plugin").get_all_test_groups():
+            for test_group in get_all_test_groups():
                 test_group["mapped_code"] = test_group["code"]
                 test_group["mapped_descrip"] = test_group["descrip"]
                 if mappings:
@@ -178,10 +182,8 @@ class WorkerManager(UIRequestHandler):
 
     @tornado.web.asynchronous
     def get(self, worker_id=None):
-        config = ServiceLocator.get_component("config")
-        ui_port = config.get_val("UI_SERVER_PORT")
-        fileserver_port = config.get_val("FILE_SERVER_PORT")
-        output_files_server = "%s://%s" % (self.request.protocol, self.request.host.replace(ui_port, fileserver_port))
+        output_files_server = "{}://{}".format(self.request.protocol, self.request.host.replace(str(UI_SERVER_PORT),
+                                                                                                str(FILE_SERVER_PORT)))
         if not worker_id:
             self.render(
                 "manager_interface.html",
@@ -237,9 +239,7 @@ class FileRedirectHandler(UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
     def get(self, file_url):
-        config = ServiceLocator.get_component("config")
-        ui_port = config.get_val("UI_SERVER_PORT")
-        fileserver_port = config.get_val("FILE_SERVER_PORT")
-        output_files_server = "%s://%s/" % (self.request.protocol, self.request.host.replace(ui_port, fileserver_port))
+        output_files_server = "{:d}://{:d}/".format(self.request.protocol, self.request.host.replace(str(UI_SERVER_PORT),
+                                                                                                str(FILE_SERVER_PORT)))
         redirect_file_url = output_files_server + url_escape(file_url, plus=False)
         self.redirect(redirect_file_url, permanent=True)

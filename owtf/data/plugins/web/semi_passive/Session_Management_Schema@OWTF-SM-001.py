@@ -5,10 +5,12 @@ https://www.owasp.org/index.php/Testing_for_Session_Management_Schema_%28OWASP-S
 from collections import defaultdict
 import json
 
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.config import config_handler
+from owtf.http.requester import requester
+from owtf.managers.transaction import search_by_regex_names, get_transaction_by_id
 
 
-DESCRIPTION = "Normal requests to gather session managament info"
+DESCRIPTION = "Normal requests to gather session management info"
 
 
 def run(PluginInfo):
@@ -20,16 +22,15 @@ def run(PluginInfo):
     cookie_dict = defaultdict(list)
 
     # Get all possible values of the cookie names and values
-    transaction = ServiceLocator.get_component("transaction")
-    for id in transaction.search_by_regex_names(
-            [ServiceLocator.get_component("config").get('HEADERS_FOR_COOKIES')]):  # Transactions with cookies
-        url = transaction.get_by_id(id).URL  # Limitation: Not Checking POST, normally not a problem
+    for id in search_by_regex_names(
+            [config_handler.get('HEADERS_FOR_COOKIES')]):  # Transactions with cookies
+        url = get_transaction_by_id(id).URL  # Limitation: Not Checking POST, normally not a problem
         if url not in url_list:  # Only if URL not already processed!
             url_list.append(url)  # Keep track of processed URLs
             for _ in range(0, 10):  # Get more cookies to perform analysis
-                transaction = ServiceLocator.get_component("requester").get_transaction(False, url)
+                transaction = requester.get_transaction(False, url)
                 cookies = transaction.get_session_tokens()
                 for cookie in cookies:
                     cookie_dict[cookie.name].append(str(cookie.value))
-    # Leave the randomness test upto the user
+    # Leave the randomness test to the user
     return json.dumps(cookie_dict)

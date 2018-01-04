@@ -10,6 +10,8 @@ human-readable form.
 import math
 import datetime
 
+from owtf.settings import DATE_TIME_FORMAT
+
 
 class Timer(object):
     # Dictionary of timers, Several timers can be set at any given point in time.
@@ -168,3 +170,6 @@ class Timer(object):
         :rtype: `str`
         """
         return self.get_end_date_time(offset).strftime(self.date_time_format)
+
+
+timer = Timer(datetime_format=DATE_TIME_FORMAT)

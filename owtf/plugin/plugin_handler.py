@@ -18,13 +18,14 @@ from ptp.libptp.exceptions import PTPError
 
 from owtf.config import config_handler
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
+from owtf.managers.config import get_tcp_ports
 from owtf.managers.plugin import get_plugins_by_group, get_types_for_plugin_group, get_plugins_by_group_type
+from owtf.managers.poutput import save_plugin_output, save_partial_output
 from owtf.managers.target import target_manager
-from owtf.managers.worker import worker_manager
 from owtf.plugin.scanner import Scanner
 from owtf.settings import AUX_OUTPUT_PATH, FORCE_OVERWRITE, PLUGINS_DIR
-from owtf.utils.error import abort_framework
-from owtf.utils.file import FileOperations
+from owtf.utils.error import abort_framework, user_abort
+from owtf.utils.file import FileOperations, get_output_dir_target
 from owtf.utils.strings import wipe_bad_chars
 from owtf.utils.timer import Timer
 
@@ -51,7 +52,6 @@ class PluginHandler(object):
 
     def __init__(self, options):
         self.timer = Timer()
-        self.worker_manager = worker_manager
         self.init_options(options)
 
     def init_options(self, options):
@@ -395,7 +395,7 @@ class PluginHandler(object):
         self.timer.start_timer('Plugin')
         plugin['start'] = self.timer.get_start_date_time('Plugin')
         # Use relative path from targets folders while saving
-        plugin['output_path'] = os.path.relpath(self.get_plugin_output_dir(plugin), self.config.get_output_dir_target())
+        plugin['output_path'] = os.path.relpath(self.get_plugin_output_dir(plugin), get_output_dir_target())
         status['AllSkipped'] = False  # A plugin is going to be run.
         plugin['status'] = 'Running'
         self.plugin_count += 1
@@ -453,16 +453,16 @@ class PluginHandler(object):
             plugin['owtf_rank'] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
             try:
                 if status_msg == 'Successful':
-                    self.plugin_output.save_plugin_output(plugin, output)
+                    save_plugin_output(plugin, output)
                 else:
-                    self.plugin_output.save_partial_output(plugin, partial_output, abort_reason)
+                    save_partial_output(plugin, partial_output, abort_reason)
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)
             if status_msg == 'Aborted':
-                self.error_handler.user_abort('Plugin')
+                user_abort('Plugin')
             if abort_reason == 'Framework Aborted':
-                self.core.finish()
+                abort_framework("Framework abort")
         return output
 
     def process_plugins(self):
@@ -519,7 +519,7 @@ class PluginHandler(object):
                 self.scanner.scan_network(target)
                 # Scanning and processing the first part of the ports
                 for i in range(1):
-                    ports = self.config.get_tcp_ports(lastwave, waves[i])
+                    ports = get_tcp_ports(lastwave, waves[i])
                     print("Probing for ports %s" % str(ports))
                     http = self.scanner.probe_network(target, 'tcp', ports)
                     # Tell Config that all Gets/Sets are now
@@ -533,7 +533,7 @@ class PluginHandler(object):
                             self.process_plugins_for_target_list(
                                 'web',
                                 {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True},
-                                {"https://%s".format(target.split('//')[1])})
+                                {"https://{}".format(target.split('//')[1])})
                         else:
                             self.process_plugins_for_target_list(
                                 'web',
@@ -542,14 +542,6 @@ class PluginHandler(object):
         else:
             pass
 
-    def clean_up(self):
-        """Cleanup workers
-
-        :return: None
-        :rtype: None
-        """
-        if getattr(self, "worker_manager", None) is not None:
-            self.worker_manager.clean_up()
 
     def show_plugin_list(self, group, msg=INTRO_BANNER_GENERAL):
         """Show available plugins

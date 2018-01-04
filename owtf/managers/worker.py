@@ -8,6 +8,11 @@ import sys
 import signal
 import logging
 import multiprocessing
+
+from owtf.managers.error import add_error
+from owtf.plugin.plugin_handler import plugin_handler
+
+
 try:
     import queue
 except ImportError:
@@ -16,7 +21,7 @@ from time import strftime
 
 import psutil
 
-from owtf.managers.worklist import get_work
+from owtf.managers.worklist import get_work_for_target
 from owtf.settings import PROCESS_PER_CORE, MIN_RAM_NEEDED
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.lib.exceptions import InvalidWorkerReference
@@ -43,18 +48,18 @@ class Worker(OWTFProcess):
                 if work == ():
                     sys.exit(0)
                 target, plugin = work
-                plugin_dir = self.plugin_handler.get_plugin_group_dir(plugin['group'])
-                self.plugin_handler.switch_to_target(target["id"])
-                self.plugin_handler.process_plugin(plugin_dir, plugin)
+                plugin_dir = plugin_handler.get_plugin_group_dir(plugin['group'])
+                plugin_handler.switch_to_target(target["id"])
+                plugin_handler.process_plugin(plugin_dir, plugin)
                 self.output_q.put('done')
             except queue.Empty:
                 pass
             except KeyboardInterrupt:
-                logging.debug("I am worker (%d) & my master doesn't need me anymore", self.pid)
+                logging.debug("Worker (%d): Finished", self.pid)
                 sys.exit(0)
             except Exception as e:
-                self.get_component("error_handler").log_error("Exception occurred while running :", trace=str(e))
-        logging.debug("I am worker (%d) & my master gave me poison pill", self.pid)
+                add_error("Exception occurred while running :", trace=str(e))
+        logging.debug("Worker (%d): Exiting...", self.pid)
         sys.exit(0)
 
 
@@ -85,7 +90,7 @@ class WorkerManager(object):
         work = None
         avail = psutil.virtual_memory().available
         if int(avail/1024/1024) > MIN_RAM_NEEDED:
-            work = get_work(self.targets_in_use())
+            work = get_work_for_target(self.targets_in_use())
         else:
             logging.warn("Not enough memory to execute a plugin")
         return work
@@ -114,7 +119,7 @@ class WorkerManager(object):
         worker_dict = {"worker": w, "work": (), "busy": False, "paused": False}
 
         if index is not None:
-            logging.debug("Replacing worker at index %d" % index)
+            logging.debug("Replacing worker at index %d", index)
             self.workers[index] = worker_dict
         else:
             logging.debug("Adding a new worker")
@@ -122,7 +127,7 @@ class WorkerManager(object):
         w.start()
 
     def targets_in_use(self):
-        target_ids = []
+        target_ids = list()
         for item in self.workers:
             try:
                 target_ids.append(item["work"][0]["id"])

@@ -11,6 +11,8 @@ import tornado.httpclient
 from owtf.lib import exceptions
 from owtf.api.base import APIRequestHandler
 from owtf.lib.exceptions import InvalidTargetReference
+from owtf.managers.target import get_target_config_by_id, get_target_config_dicts, add_targets, update_target, \
+    delete_target, search_target_configs, get_targets_by_severity_count
 from owtf.utils.strings import cprint
 
 
@@ -23,9 +25,9 @@ class TargetConfigHandler(APIRequestHandler):
             if not target_id:
                 # Get all filter data here, so that it can be passed
                 filter_data = dict(self.request.arguments)
-                self.write(self.get_component("target").get_target_config_dicts(filter_data))
+                self.write(get_target_config_dicts(filter_data))
             else:
-                self.write(self.get_component("target").get_target_config_by_id(target_id))
+                self.write(get_target_config_by_id(target_id))
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -34,7 +36,7 @@ class TargetConfigHandler(APIRequestHandler):
         if (target_id) or (not self.get_argument("target_url", default=None)):  # How can one post using an id xD
             raise tornado.web.HTTPError(400)
         try:
-            self.get_component("target").add_targets(dict(self.request.arguments)["target_url"])
+            add_targets(dict(self.request.arguments)["target_url"])
             self.set_status(201)  # Stands for "201 Created"
         except exceptions.DBIntegrityException as e:
             cprint(e.parameter)
@@ -51,7 +53,7 @@ class TargetConfigHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
         try:
             patch_data = dict(self.request.arguments)
-            self.get_component("target").update_target(patch_data, ID=target_id)
+            update_target(patch_data, id=target_id)
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -60,7 +62,7 @@ class TargetConfigHandler(APIRequestHandler):
         if not target_id:
             raise tornado.web.HTTPError(400)
         try:
-            self.get_component("target").delete_target(ID=target_id)
+            delete_target(id=target_id)
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -73,7 +75,7 @@ class TargetConfigSearchHandler(APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
-            self.write(self.get_component("target").search_target_configs(filter_data=filter_data))
+            self.write(search_target_configs(filter_data=filter_data))
         except exceptions.InvalidParameterType:
             raise tornado.web.HTTPError(400)
 
@@ -83,6 +85,6 @@ class TargetSeverityChartHandler(APIRequestHandler):
 
     def get(self):
         try:
-            self.write(self.get_component("target").get_targets_by_severity_count())
+            self.write(get_targets_by_severity_count())
         except exceptions.InvalidParameterType as e:
             raise tornado.web.HTTPError(400)

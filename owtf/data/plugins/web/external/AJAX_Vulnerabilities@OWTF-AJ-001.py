@@ -1,9 +1,12 @@
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+"""
+AJAX testing
+"""
+from owtf.plugin.plugin_helper import plugin_helper
 
 
 DESCRIPTION = "Plugin to assist manual testing"
 
 
 def run(PluginInfo):
-    Content = ServiceLocator.get_component("plugin_helper").HtmlString("Intended to show helpful info in the future")
+    Content = plugin_helper.HtmlString("Intended to show helpful info in the future")
     return Content

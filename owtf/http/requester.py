@@ -28,7 +28,7 @@ from owtf.managers.target import is_url_in_scope
 from owtf.managers.transaction import is_transaction_already_added, get_first
 from owtf.managers.url import is_url
 from owtf.plugin.plugin_handler import plugin_handler
-from owtf.settings import USER_AGENT, PROXY_CHECK_URL
+from owtf.settings import USER_AGENT, PROXY_CHECK_URL, INBOUND_PROXY_IP, INBOUND_PROXY_PORT
 from owtf.utils.error import abort_framework
 from owtf.utils.http import derive_http_method
 from owtf.utils.strings import cprint, str_to_dict
@@ -490,3 +490,6 @@ class Requester(object):
             if transaction is not None:
                 transactions.append(transaction)
         return transactions
+
+
+requester = Requester(proxy=[INBOUND_PROXY_IP, INBOUND_PROXY_PORT])

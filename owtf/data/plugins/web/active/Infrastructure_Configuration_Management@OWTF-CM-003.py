@@ -1,8 +1,8 @@
 """
 ACTIVE Plugin for Testing for Web Application Fingerprint (OWASP-IG-004)
 """
-
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.managers.resource import get_resources
+from owtf.plugin.plugin_helper import plugin_helper
 
 
 DESCRIPTION = "Active Probing for fingerprint analysis"
@@ -10,7 +10,6 @@ DESCRIPTION = "Active Probing for fingerprint analysis"
 
 def run(PluginInfo):
     # No previous output
-    resource = ServiceLocator.get_component("resource").get_resources('ActiveInfrastructureConfigurationManagement')
-    Content = ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output', resource,
-                                                                        PluginInfo, [])
+    resource = get_resources('ActiveInfrastructureConfigurationManagement')
+    Content = plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])
     return Content

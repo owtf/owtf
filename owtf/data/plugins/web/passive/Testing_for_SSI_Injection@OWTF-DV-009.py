@@ -1,14 +1,14 @@
 """
 PASSIVE Plugin for Testing_for_SSI_Injection@OWASP-DV-009
 """
-
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.managers.resource import get_resources
+from owtf.plugin.plugin_helper import plugin_helper
 
 
 DESCRIPTION = "Searching for pages that are susceptible to SSI-Injection"
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").get_resources('PassiveSSIDiscoveryLnk')
-    Content = ServiceLocator.get_component("plugin_helper").resource_linklist('Online Resources', resource)
+    resource = get_resources('PassiveSSIDiscoveryLnk')
+    Content = plugin_helper.resource_linklist('Online Resources', resource)
     return Content

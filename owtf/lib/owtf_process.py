@@ -21,6 +21,8 @@ class OWTFProcess(Process):
         """
         self.poison_q = Queue()
         self._process = None
+        self.input_q = None
+        self.output_q = None
         for key in list(kwargs.keys()):  # Attach all kwargs to self
             setattr(self, key, kwargs.get(key, None))
         super(OWTFProcess, self).__init__()
