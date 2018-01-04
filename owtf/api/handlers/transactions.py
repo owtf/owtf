@@ -10,7 +10,10 @@ import tornado.httpclient
 
 from owtf.lib import exceptions
 from owtf.api.base import APIRequestHandler
-from owtf.lib.exceptions import InvalidTargetReference
+from owtf.lib.exceptions import InvalidTargetReference, InvalidParameterType, InvalidTransactionReference
+from owtf.managers.transaction import get_by_id_as_dict, get_all_transactions_dicts, delete_transaction, \
+    get_hrt_response, search_all_transactions
+from owtf.managers.url import get_all_urls, search_all_urls
 from owtf.utils.strings import cprint
 
 
@@ -20,12 +23,11 @@ class TransactionDataHandler(APIRequestHandler):
     def get(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.write(self.get_component("transaction").get_by_id_as_dict(int(transaction_id),
-                                                                               target_id=int(target_id)))
+                self.write(get_by_id_as_dict(int(transaction_id), target_id=int(target_id)))
             else:
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
-                self.write(self.get_component("transaction").get_all_as_dicts(filter_data, target_id=int(target_id)))
+                self.write(get_all_transactions_dicts(filter_data, target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -48,7 +50,7 @@ class TransactionDataHandler(APIRequestHandler):
     def delete(self, target_id=None, transaction_id=None):
         try:
             if transaction_id:
-                self.get_component("transaction").delete_transaction(int(transaction_id), int(target_id))
+                delete_transaction(int(transaction_id), int(target_id))
             else:
                 raise tornado.web.HTTPError(400)
         except exceptions.InvalidTargetReference as e:
@@ -63,7 +65,7 @@ class TransactionHrtHandler(APIRequestHandler):
         try:
             if transaction_id:
                 filter_data = dict(self.request.arguments)
-                self.write(self.get_component("transaction").get_hrt_response(filter_data, int(transaction_id), target_id=int(target_id)))
+                self.write(get_hrt_response(filter_data, int(transaction_id), target_id=int(target_id)))
             else:
                 raise tornado.web.HTTPError(400)
         except (InvalidTargetReference, InvalidTransactionReference, InvalidParameterType) as e:
@@ -81,7 +83,7 @@ class TransactionSearchHandler(APIRequestHandler):
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
-            self.write(self.get_component("transaction").search_all(filter_data, target_id=int(target_id)))
+            self.write(search_all_transactions(filter_data, target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -100,7 +102,7 @@ class URLDataHandler(APIRequestHandler):
         try:
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
-            self.write(self.get_component("url_manager").get_all(filter_data, target_id=int(target_id)))
+            self.write(get_all_urls(filter_data, target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -135,7 +137,7 @@ class URLSearchHandler(APIRequestHandler):
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
-            self.write(self.get_component("url_manager").search_all(filter_data, target_id=int(target_id)))
+            self.write(search_all_urls(filter_data, target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)

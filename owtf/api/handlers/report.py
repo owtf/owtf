@@ -15,6 +15,10 @@ import tornado.httpclient
 from owtf.lib import exceptions
 from owtf.constants import RANKS
 from owtf.api.base import APIRequestHandler
+from owtf.managers.mapping import get_mappings
+from owtf.managers.plugin import get_all_test_groups
+from owtf.managers.poutput import get_all_poutputs
+from owtf.managers.target import get_target_config_by_id
 from owtf.utils.strings import cprint
 
 
@@ -37,7 +41,7 @@ class ReportExportHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
         try:
             filter_data = dict(self.request.arguments)
-            plugin_outputs = self.get_component("plugin_output").get_all(filter_data, target_id=target_id, inc_output=True)
+            plugin_outputs = get_all_poutputs(filter_data, target_id=target_id, inc_output=True)
         except exceptions.InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -56,11 +60,11 @@ class ReportExportHandler(APIRequestHandler):
         # Get mappings
         mappings = self.get_argument("mapping", None)
         if mappings:
-            mappings = self.get_component("mapping_db").get_mappings(mappings)
+            mappings = get_mappings(mappings)
 
         # Get test groups as well, for names and info links
-        test_groups = {}
-        for test_group in self.get_component("db_plugin").get_all_test_groups():
+        test_groups = dict()
+        for test_group in get_all_test_groups():
             test_group["mapped_code"] = test_group["code"]
             test_group["mapped_descrip"] = test_group["descrip"]
             if mappings and test_group['code'] in mappings:
@@ -69,12 +73,12 @@ class ReportExportHandler(APIRequestHandler):
                 test_group["mapped_descrip"] = description
             test_groups[test_group['code']] = test_group
 
-        vulnerabilities = []
+        vulnerabilities = list()
         for key, value in list(grouped_plugin_outputs.items()):
             test_groups[key]["data"] = value
             vulnerabilities.append(test_groups[key])
 
-        result = self.get_component("target").get_target_config_by_id(target_id)
+        result = get_target_config_by_id(target_id)
         result["vulnerabilities"] = vulnerabilities
         result["time"] = strftime("%Y-%m-%d %H:%M:%S", gmtime())
 

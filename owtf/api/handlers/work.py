@@ -10,7 +10,12 @@ import tornado.httpclient
 
 from owtf.lib import exceptions
 from owtf.api.base import APIRequestHandler
-from owtf.utils.strings import cprint
+from owtf.managers.plugin import get_all_plugin_dicts
+from owtf.managers.target import get_target_config_dicts
+from owtf.managers.worker import worker_manager
+from owtf.managers.worklist import get_all_work, get_work, add_work, remove_work, delete_all_work, patch_work, \
+    pause_all_work, resume_all_work, search_all_work
+from owtf.utils.strings import cprint, str2bool
 
 
 class WorkerHandler(APIRequestHandler):
@@ -22,14 +27,14 @@ class WorkerHandler(APIRequestHandler):
 
     def get(self, worker_id=None, action=None):
         if not worker_id:
-            self.write(self.get_component("worker_manager").get_worker_details())
+            self.write(worker_manager.get_worker_details())
         try:
             if worker_id and (not action):
-                self.write(self.get_component("worker_manager").get_worker_details(int(worker_id)))
+                self.write(worker_manager.get_worker_details(int(worker_id)))
             if worker_id and action:
                 if int(worker_id) == 0:
-                    getattr(self.get_component("worker_manager"), '%s_all_workers' % action)()
-                getattr(self.get_component("worker_manager"), '%s_worker' % action)(int(worker_id))
+                    getattr(worker_manager, '%s_all_workers' % action)()
+                getattr(worker_manager, '%s_worker' % action)(int(worker_id))
         except exceptions.InvalidWorkerReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -37,7 +42,7 @@ class WorkerHandler(APIRequestHandler):
     def post(self, worker_id=None, action=None):
         if worker_id or action:
             raise tornado.web.HTTPError(400)
-        self.get_component("worker_manager").create_worker()
+        worker_manager.create_worker()
         self.set_status(201)  # Stands for "201 Created"
 
     def options(self, worker_id=None, action=None):
@@ -47,7 +52,7 @@ class WorkerHandler(APIRequestHandler):
         if (not worker_id) or action:
             raise tornado.web.HTTPError(400)
         try:
-            self.get_component("worker_manager").delete_worker(int(worker_id))
+            worker_manager.delete_worker(int(worker_id))
         except exceptions.InvalidWorkerReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -60,9 +65,9 @@ class WorklistHandler(APIRequestHandler):
         try:
             if work_id is None:
                 criteria = dict(self.request.arguments)
-                self.write(self.get_component("worklist_manager").get_all(criteria))
+                self.write(get_all_work(criteria))
             else:
-                self.write(self.get_component("worklist_manager").get(int(work_id)))
+                self.write(get_work(int(work_id)))
         except exceptions.InvalidParameterType:
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidWorkReference:
@@ -75,13 +80,12 @@ class WorklistHandler(APIRequestHandler):
             filter_data = dict(self.request.arguments)
             if not filter_data:
                 raise tornado.web.HTTPError(400)
-            plugin_list = self.get_component("db_plugin").get_all(filter_data)
-            target_list = self.get_component("target").get_target_config_dicts(filter_data)
+            plugin_list = get_all_plugin_dicts(filter_data)
+            target_list = get_target_config_dicts(filter_data)
             if (not plugin_list) or (not target_list):
                 raise tornado.web.HTTPError(400)
-            force_overwrite = self.get_component("config").str2bool(self.get_argument("force_overwrite",
-                                                                                              "False"))
-            self.get_component("worklist_manager").add_work(target_list, plugin_list, force_overwrite=force_overwrite)
+            force_overwrite = str2bool(self.get_argument("force_overwrite", "False"))
+            add_work(target_list, plugin_list, force_overwrite=force_overwrite)
             self.set_status(201)
         except exceptions.InvalidTargetReference:
             raise tornado.web.HTTPError(400)
@@ -94,11 +98,11 @@ class WorklistHandler(APIRequestHandler):
         try:
             work_id = int(work_id)
             if work_id != 0:
-                self.get_component("worklist_manager").remove_work(work_id)
+                remove_work(work_id)
                 self.set_status(200)
             else:
                 if action == 'delete':
-                    self.get_component("worklist_manager").delete_all()
+                    delete_all_work()
         except exceptions.InvalidTargetReference:
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType:
@@ -113,14 +117,14 @@ class WorklistHandler(APIRequestHandler):
             work_id = int(work_id)
             if work_id != 0:  # 0 is like broadcast address
                 if action == 'resume':
-                    self.get_component("db").Worklist.patch_work(work_id, active=True)
+                    patch_work(work_id, active=True)
                 elif action == 'pause':
-                    self.get_component("db").Worklist.patch_work(work_id, active=False)
+                    patch_work(work_id, active=False)
             else:
                 if action == 'pause':
-                    self.get_component("worklist_manager").pause_all()
+                    pause_all_work()
                 elif action == 'resume':
-                    self.get_component("worklist_manager").resume_all()
+                    resume_all_work()
         except exceptions.InvalidWorkReference:
             raise tornado.web.HTTPError(400)
 
@@ -132,6 +136,6 @@ class WorklistSearchHandler(APIRequestHandler):
         try:
             criteria = dict(self.request.arguments)
             criteria["search"] = True
-            self.write(self.get_component("worklist_manager").search_all(criteria))
+            self.write(search_all_work(criteria))
         except exceptions.InvalidParameterType:
             raise tornado.web.HTTPError(400)

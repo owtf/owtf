@@ -5,10 +5,6 @@ owtf.db.config_manager
 """
 import os
 import logging
-
-from owtf.utils.file import FileOperations
-
-
 try:
     import configparser as parser
 except ImportError:
@@ -20,6 +16,7 @@ from owtf.lib.exceptions import InvalidConfigurationReference
 from owtf.db import models
 from owtf.config import config_handler
 from owtf.utils.error import abort_framework
+from owtf.utils.file import FileOperations
 
 
 def load_config_db_file(default, fallback):
@@ -70,7 +67,7 @@ def load_framework_config_file(default, fallback, root_dir, owtf_pid):
             key = line.split(':')[0]
             if key[0] == '#':  # Ignore comment lines.
                 continue
-            value = line.replace("%s: ".format(key), "").strip()
+            value = line.replace("{}: ".format(key), "").strip()
             config_handler.set_val(key, multi_replace(value, {'FRAMEWORK_DIR': root_dir, 'OWTF_PID': str(owtf_pid)}))
         except ValueError:
             abort_framework("Problem in config file: {} -> Cannot parse line: {}".format(config_path, line))
@@ -152,7 +149,7 @@ def get_all_config_dicts(criteria=None):
     """Get all config dicts for a criteria
 
     :param criteria: Filter criteria
-    :type criteria: `str`
+    :type criteria: `dict`
     :return: Config dict
     :rtype: `dict`
     """

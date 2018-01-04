@@ -5,7 +5,7 @@ owtf.db.url_manager
 The DB stores HTTP transactions, unique URLs and more.
 """
 from owtf.lib.exceptions import InvalidParameterType
-from owtf.managers import is_small_file_regex, is_file_regex, is_image_regex, is_ssi_regex, is_url_regex
+#from owtf.managers import is_small_file_regex, is_file_regex, is_image_regex, is_ssi_regex, is_url_regex
 from owtf.managers.target import target_required, is_url_in_scope
 from owtf.db import models
 from owtf.utils.strings import str2bool
@@ -269,7 +269,7 @@ def get_all_urls(criteria, target_id=None):
 
 
 @target_required
-def search_all(criteria, target_id=None):
+def search_all_urls(criteria, target_id=None):
     """Search all URLs based on criteria and target ID
 
     .note::

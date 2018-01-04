@@ -1,16 +1,15 @@
 """
 EXTERNAL Plugin for CAPTCHA assistance
 """
-
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.managers.resource import get_resources
+from owtf.plugin.plugin_helper import plugin_helper
 
 
 DESCRIPTION = "Plugin to assist manual testing"
 
 
 def run(PluginInfo):
-    plugin_helper = ServiceLocator.get_component("plugin_helper")
     Content = plugin_helper.VulnerabilitySearchBox('')
-    resource = ServiceLocator.get_component("resource").get_resources('ExternalCAPTCHA')
+    resource = get_resources('ExternalCAPTCHA')
     Content += plugin_helper.resource_linklist('Tools', resource)
     return Content

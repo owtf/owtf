@@ -35,7 +35,7 @@ class APIServer(OWTFProcess):
             ui_address = SERVER_ADDR
             self.server.bind(ui_port, address=ui_address)
             tornado.options.parse_command_line(
-                args=['dummy_arg', '--log_file_prefix=%s' % UI_SERVER_LOG, '--logging=info'])
+                args=['dummy_arg', '--log_file_prefix={}'.format(UI_SERVER_LOG), '--logging=info'])
             self.server.start(1)
             tornado.ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:
@@ -58,7 +58,7 @@ class FileServer(object):
             fileserver_addr = SERVER_ADDR
             self.server.bind(fileserver_port, address=fileserver_addr)
             tornado.options.parse_command_line(
-                args=['dummy_arg', '--log_file_prefix=%s'.format(FILE_SERVER_LOG), '--logging=info'])
+                args=['dummy_arg', '--log_file_prefix={}'.format(FILE_SERVER_LOG), '--logging=info'])
             self.server.start(1)
             # 'self.manage_cron' is an instance of class 'tornado.ioloop.PeriodicCallback',
             # it schedules the given callback to be called periodically.

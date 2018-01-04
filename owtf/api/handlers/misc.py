@@ -10,6 +10,8 @@ import tornado.httpclient
 
 from owtf.lib import exceptions
 from owtf.api.base import APIRequestHandler
+from owtf.managers.error import get_all_errors, get_error, update_error, delete_error
+from owtf.managers.poutput import get_severity_freq, plugin_count_output
 from owtf.utils.strings import cprint
 
 
@@ -18,7 +20,7 @@ class DashboardPanelHandler(APIRequestHandler):
 
     def get(self):
         try:
-            self.write(self.get_component("plugin_output").get_severity_freq())
+            self.write(get_severity_freq())
         except exceptions.InvalidParameterType:
             raise tornado.web.HTTPError(400)
 
@@ -32,7 +34,7 @@ class ProgressBarHandler(APIRequestHandler):
 
     def get(self):
         try:
-            self.write(self.get_component("plugin_output").plugin_count_output())
+            self.write(plugin_count_output())
         except exceptions.InvalidParameterType as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -57,38 +59,24 @@ class ErrorDataHandler(APIRequestHandler):
     def get(self, error_id=None):
         if error_id is None:
             filter_data = dict(self.request.arguments)
-            self.write(self.get_component("db_error").get_all(filter_data))
+            self.write(get_all_errors(filter_data))
         else:
             try:
-                self.write(self.get_component("db_error").get(error_id))
+                self.write(get_error(error_id))
             except exceptions.InvalidErrorReference:
                 raise tornado.web.HTTPError(400)
-
-    def post(self, error_id=None):
-        if error_id is None:
-            try:
-                filter_data = dict(self.request.arguments)
-                username = filter_data['username'][0]
-                title = filter_data['title'][0]
-                body = filter_data['body'][0]
-                id = int(filter_data['id'][0])
-                self.write(self.get_component("error_handler").add_github_issue(username, title, body, id))
-            except:
-                raise tornado.web.HTTPError(400)
-        else:
-            raise tornado.web.HTTPError(400)
 
     def patch(self, error_id=None):
         if error_id is None:
             raise tornado.web.HTTPError(400)
         if self.request.arguments.get_argument("user_message", default=None):
             raise tornado.web.HTTPError(400)
-        self.get_component("db_error").update(error_id, self.request.arguments.get_argument("user_message"))
+        update_error(error_id, self.request.arguments.get_argument("user_message"))
 
     def delete(self, error_id=None):
         if error_id is None:
             raise tornado.web.HTTPError(400)
         try:
-            self.get_component("db_error").delete(error_id)
+            delete_error(error_id)
         except exceptions.InvalidErrorReference:
             raise tornado.web.HTTPError(400)

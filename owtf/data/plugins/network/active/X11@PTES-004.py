@@ -1,14 +1,13 @@
 """
 Plugin for probing x11
 """
-
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.managers.resource import get_resources
+from owtf.plugin.plugin_helper import plugin_helper
 
 
 DESCRIPTION = " x11 Probing "
 
 
 def run(PluginInfo):
-    resource = ServiceLocator.get_component("resource").get_resources('X11ProbeMethods')
-    return ServiceLocator.get_component("plugin_helper").CommandDump('Test Command', 'Output',
-                                                                     resource, PluginInfo, [])  # No previous output
+    resource = get_resources('X11ProbeMethods')
+    return plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])  # No previous output

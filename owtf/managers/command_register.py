@@ -7,6 +7,7 @@ Component to handle data storage and search of all commands run
 
 from sqlalchemy.exc import SQLAlchemyError
 
+from owtf import db
 from owtf.db import models
 from owtf.managers.poutput import plugin_output_exists
 from owtf.managers.target import target_required, target_manager

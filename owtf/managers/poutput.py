@@ -9,6 +9,7 @@ import json
 
 from sqlalchemy.exc import SQLAlchemyError
 
+from owtf import db
 from owtf.managers.target import target_required
 from owtf.managers.session import session_required
 from owtf.lib.exceptions import InvalidParameterType
@@ -42,7 +43,6 @@ def plugin_count_output():
     """
     complete_count = db.session.query(models.PluginOutput).count()
     left_count = db.session.query(models.Work).count()
-    left_count += worker_manager.get_busy_workers()
     results = {'complete_count': complete_count, 'left_count': left_count}
     return results
 
@@ -182,7 +182,7 @@ def poutput_gen_query(filter_data, target_id, for_delete=False):
 
 
 @target_required
-def get_all(filter_data=None, target_id=None, inc_output=False):
+def get_all_poutputs(filter_data=None, target_id=None, inc_output=False):
     """Get all data based on criteria
 
     :param filter_data: Filter data

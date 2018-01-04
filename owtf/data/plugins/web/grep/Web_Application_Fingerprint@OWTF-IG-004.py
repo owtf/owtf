@@ -2,13 +2,12 @@
 GREP Plugin for Testing for Web Application Fingerprint (OWASP-IG-004)
 NOTE: GREP plugins do NOT send traffic to the target and only grep the HTTP Transaction Log
 """
-
-from owtf.dependency_management.dependency_resolver import ServiceLocator
+from owtf.plugin.plugin_helper import plugin_helper
 
 
 DESCRIPTION = "Searches transaction DB for fingerprint traces"
 
 
 def run(PluginInfo):
-    Content = ServiceLocator.get_component("plugin_helper").ResearchFingerprintInlog()
+    Content = plugin_helper.ResearchFingerprintInlog()
     return Content
