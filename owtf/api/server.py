@@ -30,6 +30,7 @@ class APIServer(OWTFProcess):
             compiled_template_cache=False
         )
         self.server = tornado.httpserver.HTTPServer(application)
+        self.disable_stream_log()
         try:
             ui_port = int(UI_SERVER_PORT)
             ui_address = SERVER_ADDR

@@ -4,7 +4,7 @@ owtf.lib.owtf_process
 
 Consists of owtf process class and its manager
 """
-
+import logging
 from multiprocessing import Process, Queue
 
 
@@ -47,6 +47,11 @@ class OWTFProcess(Process):
         except KeyboardInterrupt:
             # In case of interrupt while listing plugins
             pass
+
+    def disable_stream_log(self):
+        logger = logging.getLogger()
+        if isinstance(logger.handlers[-1], logging.StreamHandler):
+            logger.removeHandler(logger.handlers[-1])
 
     def pseudo_run(self):
         """
