@@ -41,8 +41,10 @@ def plugin_count_output():
     :return: Count stats
     :rtype: `dict`
     """
+    from owtf.managers.worker import worker_manager
     complete_count = db.session.query(models.PluginOutput).count()
     left_count = db.session.query(models.Work).count()
+    left_count += worker_manager.get_busy_workers()
     results = {'complete_count': complete_count, 'left_count': left_count}
     return results
 
@@ -55,6 +57,7 @@ def get_html_output(plugin_output):
     :return: HTML string
     :rtype: `str`
     """
+    from owtf.api.reporter import reporter
     content = ''
     for item in plugin_output:
         content += getattr(reporter, item["type"])(**item["output"])

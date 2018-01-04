@@ -16,7 +16,7 @@ try:
     from urllib.parse import urlparse, urlencode
     from urllib.request import urlopen, Request
     from urllib.error import HTTPError, URLError
-    from urllib import HTTPHandler, HTTPSHandler, HTTPRedirectHandler, ProxyHandler, build_opener, install_opener
+    from urllib.request import HTTPHandler, HTTPSHandler, HTTPRedirectHandler, ProxyHandler, build_opener, install_opener
 except ImportError:
     from urlparse import urlparse
     from urllib import urlencode
