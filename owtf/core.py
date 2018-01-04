@@ -111,7 +111,8 @@ class Core(object):
         # Replace any old handlers
         logger.handlers = [file_handler, stream_handler]
 
-    def disable_console_logging(self, **kwargs):
+    @staticmethod
+    def disable_console_logging(**kwargs):
         """Disables console logging
 
         . note::

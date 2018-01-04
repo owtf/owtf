@@ -671,6 +671,7 @@ class ProxyProcess(OWTFProcess):
         """
         try:
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
+            self.disable_stream_log()
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
             tornado.options.parse_command_line(
