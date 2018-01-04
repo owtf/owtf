@@ -110,7 +110,7 @@ def load_plugins():
         # Windows platform since it allows '/' and '\' in the path.
         # Retrieve the group, the type and the file of the plugin.
         # Ensure all empty strings are removed from the list
-        chunks = filter(None, plugin.split(os.path.sep))
+        chunks = list(filter(None, plugin.split(os.path.sep)))
         # TODO: Ensure that the variables group, type and file exist when
         # the length of chunks is less than 3.
         if len(chunks) == 3:
