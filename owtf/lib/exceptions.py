@@ -2,8 +2,10 @@
 owtf.lib.exceptions
 ~~~~~~~~~~~~~~~~~~~
 
-Declares the framework exceptions.
+Declares the framework exceptions and HTTP errors
 """
+
+import tornado.web
 
 
 class FrameworkException(Exception):
@@ -12,6 +14,14 @@ class FrameworkException(Exception):
 
     def __str__(self):
         return repr(self.parameter)
+
+
+class APIError(tornado.web.HTTPError):
+    """Exception for API-based errors"""
+
+    def __init__(self, message, code=400):
+        super(APIError, self).__init__(code)
+        self.message = message
 
 
 class FrameworkAbortException(FrameworkException):
@@ -81,5 +91,6 @@ class InvalidMessageReference(FrameworkException):
 class InvalidMappingReference(FrameworkException):
     pass
 
-class DatabaseNotRunning(Exception):
+
+class DatabaseNotRunningException(Exception):
     pass

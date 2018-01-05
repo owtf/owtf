@@ -6,6 +6,7 @@ Manager functions for sessions
 
 from owtf import db
 from owtf.db import models
+from owtf.db.database import get_count
 from owtf.lib import exceptions
 from owtf.utils.strings import str2bool
 
@@ -32,7 +33,7 @@ def _ensure_default_session():
     :return: None
     :rtype: None
     """
-    if db.session.query(models.Session).count() == 0:
+    if get_count(db.session.query(models.Session)) == 0:
         add_session("default session")
 
 

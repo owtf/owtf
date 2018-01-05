@@ -15,6 +15,7 @@ from hrt.interface import HttpRequestTranslator
 
 from owtf import db
 from owtf.config import config_handler
+from owtf.db.database import get_count
 from owtf.managers.target import target_required
 from owtf.lib.exceptions import InvalidTransactionReference, InvalidParameterType
 from owtf.http import transaction
@@ -34,7 +35,7 @@ def num_transactions(scope=True, target_id=None):
     :return: Number of transactions in scope
     :rtype: `int`
     """
-    count = db.session.query(models.Transaction).filter_by(scope=scope, target_id=target_id).count()
+    count = get_count(db.session.query(models.Transaction).filter_by(scope=scope, target_id=target_id))
     return count
 
 
@@ -544,13 +545,13 @@ def search_by_regex_name(regex_name, stats=False, target_id=None):
     # Calculate stats if needed
     if stats:
         # Calculate the total number of matches
-        num_matched_transactions = db.session.query(models.Transaction).join(
+        num_matched_transactions = get_count(db.session.query(models.Transaction).join(
             models.Transaction.grep_outputs).filter(
                 models.GrepOutput.name == regex_name,
-                models.GrepOutput.target_id == target_id).group_by(models.Transaction).count()
+                models.GrepOutput.target_id == target_id).group_by(models.Transaction))
         # Calculate total number of transactions in scope
-        num_transactions_in_scope = db.session.query(models.Transaction).filter_by(
-            scope=True, target_id=target_id).count()
+        num_transactions_in_scope = get_count(db.session.query(models.Transaction).filter_by(
+            scope=True, target_id=target_id))
         # Calculate matched percentage
         if int(num_transactions_in_scope):
             match_percent = int((num_matched_transactions / float(num_transactions_in_scope)) * 100)
@@ -638,9 +639,9 @@ def search_all_transactions(criteria, target_id=None, include_raw_data=True):
     :return: Results
     :rtype: `dict`
     """
-    total = db.session.query(models.Transaction).filter_by(target_id=target_id).count()
+    total = get_count(db.session.query(models.Transaction).filter_by(target_id=target_id))
     filtered_transaction_objs = transaction_gen_query(criteria, target_id).all()
-    filtered_number = transaction_gen_query(criteria, target_id, for_stats=True).count()
+    filtered_number = get_count(transaction_gen_query(criteria, target_id, for_stats=True))
     results = {
         "records_total": total,
         "records_filtered": filtered_number,

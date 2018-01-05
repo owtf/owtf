@@ -675,7 +675,7 @@ class ProxyProcess(OWTFProcess):
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
             tornado.options.parse_command_line(
-                args=["dummy_arg", "--log_file_prefix=%s".format(PROXY_LOG), "--logging=info"])
+                args=["dummy_arg", "--log_file_prefix={}".format(PROXY_LOG), "--logging=info"])
             # To run any number of instances
             # "0" equals the number of cores present in a machine
             self.server.start(int(self.instances))

@@ -11,7 +11,6 @@ import tornado.ioloop
 import tornado.web
 import tornado.options
 
-from owtf import db
 from owtf.api import urls
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.settings import STATIC_ROOT, UI_SERVER_LOG, SERVER_ADDR, UI_SERVER_PORT, FILE_SERVER_LOG, FILE_SERVER_PORT, \

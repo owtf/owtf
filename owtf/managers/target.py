@@ -5,6 +5,10 @@ owtf.db.target_manager
 """
 
 import os
+
+from owtf.db.database import get_count
+
+
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -382,9 +386,9 @@ def search_target_configs(filter_data=None, session_id=None):
     :return: results
     :rtype: `dict`
     """
-    total = db.session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).count()
+    total = get_count(db.session.query(models.Target).filter(models.Target.sessions.any(id=session_id)))
     filtered_target_objs = target_gen_query(filter_data, session_id).all()
-    filtered_number = target_gen_query(filter_data, session_id, for_stats=True).count()
+    filtered_number = get_count(target_gen_query(filter_data, session_id, for_stats=True))
     results = {
         "records_total": total,
         "records_filtered": filtered_number,
@@ -516,7 +520,7 @@ def get_targets_by_severity_count(session_id=None):
         {"id":5, "label": "High", "value": 0, "color": "#c12e2a"},
         {"id":6, "label": "Critical", "value": 0, "color": "#800080"}
     ]
-    total = db.session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).count()
+    total = get_count(db.session.query(models.Target).filter(models.Target.sessions.any(id=session_id)))
     target_objs = db.session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).all()
 
     for target_obj in target_objs:

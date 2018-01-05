@@ -57,14 +57,14 @@ class PluginHandler(object):
     def init_options(self, options):
         """Initialize CLI options for each instance of PluginHandler."""
         self.plugin_count = 0
-        #self.simulation = options.get('Simulation', None)
-        #self.scope = options['Scope']
-        #self.plugin_group = options['PluginGroup']
-        #self.only_plugins_list = self.validate_format_plugin_list(options.get('OnlyPlugins'))
-        #self.except_plugins_list = self.validate_format_plugin_list(options.get('ExceptPlugins'))
-        # For special plugin types like "quiet" -> "semi_passive" + "passive"
-        #if isinstance(options.get('PluginType'), str):
-        #    options['PluginType'] = options['PluginType'].split(',')
+        self.simulation = options.get('Simulation', None)
+        self.scope = options['Scope']
+        self.plugin_group = options['PluginGroup']
+        self.only_plugins_list = self.validate_format_plugin_list(options.get('OnlyPlugins'))
+        self.except_plugins_list = self.validate_format_plugin_list(options.get('ExceptPlugins'))
+        #For special plugin types like "quiet" -> "semi_passive" + "passive"
+        if isinstance(options.get('PluginType'), str):
+            options['PluginType'] = options['PluginType'].split(',')
         self.init_exec_registry()
         self.scanner = Scanner()
 
@@ -76,7 +76,8 @@ class PluginHandler(object):
         :return: true/false
         :rtype: `bool`
         """
-        return self.plugin_already_run(plugin_info)
+        from owtf.managers.poutput import plugin_already_run
+        return plugin_already_run(plugin_info)
 
     def validate_format_plugin_list(self, plugin_codes):
         """Validate the plugin codes by checking if they exist.
@@ -309,7 +310,7 @@ class PluginHandler(object):
         :return: Full path to the plugin
         :rtype: `str`
         """
-        return "%s/%s/%s".format(plugin_dir, plugin['type'], plugin['file'])  # Path to run the plugin
+        return "{0}/{1}/{2}".format(plugin_dir, plugin['type'], plugin['file'])  # Path to run the plugin
 
     def run_plugin(self, plugin_dir, plugin, save_output=True):
         """Run a specific plugin
@@ -543,41 +544,42 @@ class PluginHandler(object):
             pass
 
 
-    def show_plugin_list(self, group, msg=INTRO_BANNER_GENERAL):
-        """Show available plugins
+def show_plugin_list(group, msg=INTRO_BANNER_GENERAL):
+    """Show available plugins
 
-        :param group: Plugin group
-        :type group: `str`
-        :param msg: Message to print
-        :type msg: `str`
-        :return: None
-        :rtype: None
-        """
-        if group == 'web':
-            logging.info("%s%s\nAvailable WEB plugins:", msg, INTRO_BANNER_WEB_PLUGIN_TYPE)
-        elif group == 'auxiliary':
-            logging.info("%s\nAvailable AUXILIARY plugins:", msg)
-        elif group == 'network':
-            logging.info("%s\nAvailable NETWORK plugins:", msg)
-        for plugin_type in get_types_for_plugin_group(group):
-            self.show_plugin_types(plugin_type, group)
-
-    def show_plugin_types(self, plugin_type, group):
-        """Show all plugin types
-
-        :param plugin_type: Plugin type
-        :type plugin_type: `str`
-        :param group: Plugin group
-        :type group: `str`
-        :return: None
-        :rtype: None
-        """
-        logging.info("\n%s %s plugins %s", '*' * 40, plugin_type.title().replace('_', '-'), '*' * 40)
-        for plugin in get_plugins_by_group_type(group, plugin_type):
-            line_start = " %s:%s" % (plugin['type'], plugin['name'])
-            pad1 = "_" * (60 - len(line_start))
-            pad2 = "_" * (20 - len(plugin['code']))
-            logging.info("%s%s(%s)%s%s", line_start, pad1, plugin['code'], pad2, plugin['descrip'])
+    :param group: Plugin group
+    :type group: `str`
+    :param msg: Message to print
+    :type msg: `str`
+    :return: None
+    :rtype: None
+    """
+    if group == 'web':
+        logging.info("%s%s\nAvailable WEB plugins:", msg, INTRO_BANNER_WEB_PLUGIN_TYPE)
+    elif group == 'auxiliary':
+        logging.info("%s\nAvailable AUXILIARY plugins:", msg)
+    elif group == 'network':
+        logging.info("%s\nAvailable NETWORK plugins:", msg)
+    for plugin_type in get_types_for_plugin_group(group):
+        show_plugin_types(plugin_type, group)
 
 
-plugin_handler = PluginHandler(config_handler.cli_options)
+def show_plugin_types(plugin_type, group):
+    """Show all plugin types
+
+    :param plugin_type: Plugin type
+    :type plugin_type: `str`
+    :param group: Plugin group
+    :type group: `str`
+    :return: None
+    :rtype: None
+    """
+    logging.info("\n%s %s plugins %s", '*' * 40, plugin_type.title().replace('_', '-'), '*' * 40)
+    for plugin in get_plugins_by_group_type(group, plugin_type):
+        line_start = " %s:%s" % (plugin['type'], plugin['name'])
+        pad1 = "_" * (60 - len(line_start))
+        pad2 = "_" * (20 - len(plugin['code']))
+        logging.info("%s%s(%s)%s%s", line_start, pad1, plugin['code'], pad2, plugin['descrip'])
+
+
+plugin_handler = None

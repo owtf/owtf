@@ -10,6 +10,7 @@ import json
 from sqlalchemy.exc import SQLAlchemyError
 
 from owtf import db
+from owtf.db.database import get_count
 from owtf.managers.target import target_required
 from owtf.managers.session import session_required
 from owtf.lib.exceptions import InvalidParameterType
@@ -31,8 +32,8 @@ def plugin_output_exists(plugin_key, target_id):
     :return: True if count > 0
     :rtype: `bool`
     """
-    count = db.session.query(models.PluginOutput).filter_by(target_id=target_id, plugin_key=plugin_key).count()
-    return (count > 0)
+    count = get_count(db.session.query(models.PluginOutput).filter_by(target_id=target_id, plugin_key=plugin_key))
+    return count > 0
 
 
 def plugin_count_output():
@@ -42,8 +43,8 @@ def plugin_count_output():
     :rtype: `dict`
     """
     from owtf.managers.worker import worker_manager
-    complete_count = db.session.query(models.PluginOutput).count()
-    left_count = db.session.query(models.Work).count()
+    complete_count = get_count(db.session.query(models.PluginOutput))
+    left_count = get_count(db.session.query(models.Work))
     left_count += worker_manager.get_busy_workers()
     results = {'complete_count': complete_count, 'left_count': left_count}
     return results

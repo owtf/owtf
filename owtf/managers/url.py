@@ -4,6 +4,8 @@ owtf.db.url_manager
 
 The DB stores HTTP transactions, unique URLs and more.
 """
+from owtf import db
+from owtf.db.database import get_count
 from owtf.lib.exceptions import InvalidParameterType
 #from owtf.managers import is_small_file_regex, is_file_regex, is_image_regex, is_ssi_regex, is_url_regex
 from owtf.managers.target import target_required, is_url_in_scope
@@ -285,9 +287,9 @@ def search_all_urls(criteria, target_id=None):
     :return: Search result dict
     :rtype: `dict`
     """
-    total = db.session.query(models.Url).filter_by(target_id=target_id).count()
+    total = get_count(db.session.query(models.Url).filter_by(target_id=target_id))
     filtered_url_objs = url_gen_query(criteria, target_id).all()
-    filtered_number = url_gen_query(criteria, target_id, for_stats=True).count()
+    filtered_number = get_count(url_gen_query(criteria, target_id, for_stats=True))
     results = {
         "records_total": total,
         "records_filtered": filtered_number,
