@@ -9,6 +9,7 @@ from sqlalchemy.sql import not_
 
 from owtf import db
 from owtf.db import models
+from owtf.db.database import get_count
 from owtf.lib import exceptions
 from owtf.managers.plugin import derive_plugin_dict
 from owtf.managers.poutput import delete_all_poutput, plugin_already_run
@@ -184,8 +185,8 @@ def add_work(target_list, plugin_list, force_overwrite=False):
     for target in target_list:
         for plugin in sorted_plugin_list:
             # Check if it already in worklist
-            if db.session.query(models.Work).filter_by(target_id=target["id"],
-                                                            plugin_key=plugin["key"]).count() == 0:
+            if get_count(db.session.query(models.Work).filter_by(target_id=target["id"],
+                                                            plugin_key=plugin["key"])) == 0:
                 # Check if it is already run ;) before adding
                 is_run = plugin_already_run(plugin, target_id=target["id"])
                 if (force_overwrite is True) or (force_overwrite is False and is_run is False):
@@ -308,7 +309,7 @@ def search_all_work(criteria):
     :return: Results of the search query
     :rtype: `dict`
     """
-    total = db.session.query(models.Work).count()
+    total = get_count(db.session.query(models.Work).count())
     filtered_work_objs = worklist_generate_query(criteria).all()
     filtered_number = worklist_generate_query(criteria, for_stats=True).count()
     results = {

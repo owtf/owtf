@@ -26,8 +26,9 @@ from owtf.managers.session import _ensure_default_session
 from owtf.settings import WEB_TEST_GROUPS, AUX_TEST_GROUPS, NET_TEST_GROUPS, DEFAULT_RESOURCES_PROFILE, \
     FALLBACK_RESOURCES_PROFILE, FALLBACK_AUX_TEST_GROUPS, FALLBACK_NET_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, \
     FALLBACK_MAPPING_PROFILE, DEFAULT_MAPPING_PROFILE, DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, \
-    DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE
+    DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE, WEBUI
 from owtf.utils.file import clean_temp_storage_dirs
+from owtf.utils.strings import str2bool
 
 
 def banner():
@@ -234,11 +235,18 @@ def main(args):
         load_test_groups(AUX_TEST_GROUPS, FALLBACK_AUX_TEST_GROUPS, "aux")
         # After loading the test groups then load the plugins, because of many-to-one relationship
         load_plugins()
-    except exceptions.DatabaseNotRunning:
+    except exceptions.DatabaseNotRunningException:
         sys.exit(-1)
 
     args = process_options(args[1:])
+    args['nowebui'] = not os.environ.get('WEBUI', WEBUI)
     config_handler.cli_options = deepcopy(args)
+
+    # Initialize core, plugin handler and helpers
+    from owtf.plugin.plugin_handler import plugin_handler, PluginHandler
+    from owtf.plugin.plugin_params import plugin_params, PluginParams
+    plugin_handler = PluginHandler(args)
+    plugin_params = PluginParams(args)
 
     # Initialise Framework.
     logging.warn("OWTF Version: {0}, Release: {1} ".format(__version__, __release__))

@@ -4,6 +4,7 @@ owtf.db.worker_manager
 
 """
 
+import os
 import sys
 import signal
 import logging
@@ -428,4 +429,4 @@ class WorkerManager(object):
         self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
 
 
-worker_manager = WorkerManager(keep_working=WEBUI)
+worker_manager = WorkerManager(keep_working=os.environ.get('WEBUI', WEBUI))

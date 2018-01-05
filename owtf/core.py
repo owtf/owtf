@@ -23,7 +23,7 @@ from owtf.managers.target import add_target, get_target_config_dicts
 from owtf.api import server
 from owtf.proxy import proxy, transaction_logger
 from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, INBOUND_PROXY_CACHE_DIR, PROXY_LOG, SERVER_ADDR, \
-    UI_SERVER_PORT
+    UI_SERVER_PORT, WEBUI
 from owtf.utils.error import abort_framework
 from owtf.utils.file import catch_io_errors, FileOperations, get_logs_dir, get_log_path, create_temp_storage_dirs
 from owtf.utils.formatters import FileFormatter, ConsoleFormatter
@@ -33,6 +33,7 @@ from owtf.plugin.plugin_handler import plugin_handler
 from owtf.managers.worker import worker_manager
 from owtf.managers.plugin import get_all_plugin_dicts
 from owtf.plugin.plugin_params import plugin_params
+from owtf.plugin.plugin_handler import show_plugin_list, show_plugin_types
 
 
 class Core(object):
@@ -152,7 +153,7 @@ class Core(object):
         logging.info("Loading framework please wait..")
         # No processing required, just list available modules.
         if options['list_plugins']:
-            plugin_handler.show_plugin_list(options['list_plugins'])
+            show_plugin_list(options['list_plugins'])
             self.finish()
         target_urls = self.load_targets(options)
         self.load_works(target_urls, options)

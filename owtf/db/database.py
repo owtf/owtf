@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from multiprocessing.util import register_after_fork
 
 from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy import create_engine, exc
+from sqlalchemy import create_engine, exc, func
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.orm import Session as BaseSession
 
@@ -105,3 +105,10 @@ class SQLAlchemy(object):
         :rtype: None
         """
         self.session.close()
+
+
+def get_count(q):
+    count_q = q.statement.with_only_columns([func.count()]).order_by(None)
+    count = q.session.execute(count_q).scalar()
+    return count
+
