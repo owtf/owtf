@@ -18,7 +18,7 @@ class PluginParams(object):
     def __init__(self, options):
         self.raw_args = options['Args']
         self.init = False
-        self.no_args = list()
+        self.no_args = []
 
     def process_args(self):
         """Process args
@@ -71,7 +71,7 @@ class PluginParams(object):
         :return: Padded example
         :rtype: `str`
         """
-        args_str = list()
+        args_str = []
         for key, value in list(merge_dicts(full_args_list['mandatory'], full_args_list['Optional']).items()):
             args_str.append(key)
         pad = '=? '
@@ -126,7 +126,7 @@ class PluginParams(object):
         cprint("Could not default not passed: '%s'%s" % (arg_name, default_order_str))
         return False
 
-    def get_arg_list(self, arg_list, plugin, mandatory=True):
+    def get_arg_list(self, session, arg_list, plugin, mandatory=True):
         """Get args list
 
         :param arg_list: available args
@@ -152,7 +152,7 @@ class PluginParams(object):
                     # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or
                     # argument is optional = ok to skip
                     continue
-                add_error("USER ERROR: %s requires argument: '%s'" % (self.show_plugin(plugin), arg_name),
+                add_error(session, "USER ERROR: %s requires argument: '%s'" % (self.show_plugin(plugin), arg_name),
                                        'user')
                 return self.ret_arg_error({}, plugin)  # Abort processing (invalid data)
             args[arg_name] = self.args[arg_name]
@@ -184,7 +184,7 @@ class PluginParams(object):
         """Returns the arg error for a plugin
 
         :param return_val: The return value
-        :type return_val: `dict`
+        :type return_val: `bools`
         :param plugin: Plugin dict
         :type plugin: `dict`
         :return: return val
@@ -224,7 +224,7 @@ class PluginParams(object):
         """
         if not all_args:
             return self.no_args
-        args_str = list()
+        args_str = []
         for arg_name, arg_val in list(all_args.items()):
             args_str.append(arg_name + "=" + str(self.args[arg_name]))
             all_args[arg_name] = arg_val
@@ -249,7 +249,7 @@ class PluginParams(object):
         :param args: Available args
         :type args: `dict`
         :return: List of permutations
-        :rtype: `list`
+        :rtype: `defaultdict`
         """
         permutations = defaultdict(list)
         if 'REPEAT_DELIM' not in args:
@@ -307,7 +307,7 @@ class PluginParams(object):
             return arg_list  # No permutations, return original arguments
         return permutation_list
 
-    def get_args(self, full_args_list, plugin):
+    def get_args(self, session, full_args_list, plugin):
         """Get args from a full list for a plugin
 
         :param full_args_list: available args
@@ -323,8 +323,8 @@ class PluginParams(object):
         if 'O' in self.raw_args:  # To view available options
             self.show_param_info(full_args_list, plugin)
             return self.no_args  # Abort processing, just showing options
-        mandatory = self.get_arg_list(full_args_list['Mandatory'], plugin, True)
-        optional = self.get_arg_list(full_args_list['Optional'], plugin, False)
+        mandatory = self.get_arg_list(session, full_args_list['Mandatory'], plugin, True)
+        optional = self.get_arg_list(session, full_args_list['Optional'], plugin, False)
         if self.get_arg_error(plugin):
             cprint("")
             cprint("ERROR: Aborting argument processing, please correct the errors above and try again")

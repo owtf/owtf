@@ -10,7 +10,7 @@ CATEGORIES = ['HTTP_WIN', 'HTTP', 'DHCP', 'NTFS', 'HP', 'MDNS', 'PPTP', 'SAMBA',
 
 
 def run(PluginInfo):
-    Content = list()
+    Content = []
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {

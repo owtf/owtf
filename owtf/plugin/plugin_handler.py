@@ -68,7 +68,7 @@ class PluginHandler(object):
         self.init_exec_registry()
         self.scanner = Scanner()
 
-    def plugin_already_run(self, plugin_info):
+    def plugin_already_run(self, session, plugin_info):
         """Check if plugin has already run
 
         :param plugin_info: Plugin info
@@ -77,7 +77,7 @@ class PluginHandler(object):
         :rtype: `bool`
         """
         from owtf.managers.poutput import plugin_already_run
-        return plugin_already_run(plugin_info)
+        return plugin_already_run(session, plugin_info)
 
     def validate_format_plugin_list(self, plugin_codes):
         """Validate the plugin codes by checking if they exist.
@@ -91,7 +91,7 @@ class PluginHandler(object):
         # Ensure there is always a list to iterate from! :)
         if not plugin_codes:
             return []
-        valid_plugin_codes = list()
+        valid_plugin_codes = []
         plugins_by_group = get_plugins_by_group(self.plugin_group)
         for code in plugin_codes:
             found = False
@@ -113,8 +113,8 @@ class PluginHandler(object):
         :rtype: None
         """
         self.exec_registry = defaultdict(list)
-        #for target in self.scope:
-        #    self.exec_registry[target] = list()
+        for target in self.scope:
+            self.exec_registry[target] = []
 
     def get_last_plugin_exec(self, plugin):
         """Get shortcut to relevant execution log for this target for readability below :)
@@ -158,7 +158,7 @@ class PluginHandler(object):
         """
         # Organise results by OWASP Test type and then active, passive, semi_passive
         if ((plugin['group'] == 'web') or (plugin['group'] == 'network')):
-            return os.path.join(self.target.get_path('partial_url_output_path'), wipe_bad_chars(plugin['title']),
+            return os.path.join(target_manager.get_path('partial_url_output_path'), wipe_bad_chars(plugin['title']),
                                 plugin['type'])
         elif plugin['group'] == 'auxiliary':
             return os.path.join(AUX_OUTPUT_PATH, wipe_bad_chars(plugin['title']), plugin['type'])

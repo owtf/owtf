@@ -1,10 +1,4 @@
-"""
-owtf.api.base
-~~~~~~~~~~~~~
-
-"""
 import os
-import json
 import stat
 import time
 import hashlib
@@ -13,89 +7,9 @@ import mimetypes
 import email.utils
 import subprocess
 
+import tornado
 import tornado.web
 import tornado.template
-from tornado.escape import url_escape
-from jsonschema import ValidationError
-
-from owtf.settings import FILE_SERVER_PORT, UI_SERVER_PORT, DEBUG
-from owtf.lib.exceptions import APIError
-from owtf.api import api_assert
-from owtf.api.jsend import JSendMixin
-
-
-class APIRequestHandler(JSendMixin):
-
-    def initialize(self):
-        """
-        - Set Content-type for JSON
-        """
-        self.set_header("Content-Type", "application/json")
-
-    def write(self, chunk):
-        if isinstance(chunk, list):
-            super(APIRequestHandler, self).write(json.dumps(chunk))
-        else:
-            super(APIRequestHandler, self).write(chunk)
-
-    def write_error(self, status_code, **kwargs):
-        """Override of RequestHandler.write_error
-        Calls ``error()`` or ``fail()`` from JSendMixin depending on which
-        exception was raised with provided reason and status code.
-        :type  status_code: int
-        :param status_code: HTTP status code
-        """
-        def get_exc_message(exception):
-            return exception.log_message if \
-                hasattr(exception, "log_message") else str(exception)
-
-        self.clear()
-        self.set_status(status_code)
-
-        # Any APIError exceptions raised will result in a JSend fail written
-        # back with the log_message as data. Hence, log_message should NEVER
-        # expose internals. Since log_message is proprietary to HTTPError
-        # class exceptions, all exceptions without it will return their
-        # __str__ representation.
-        # All other exceptions result in a JSend error being written back,
-        # with log_message only written if debug mode is enabled
-        exception = kwargs["exc_info"][1]
-        if any(isinstance(exception, c) for c in [APIError, ValidationError]):
-            # ValidationError is always due to a malformed request
-            if isinstance(exception, ValidationError):
-                self.set_status(400)
-            self.fail(get_exc_message(exception))
-        else:
-            self.error(
-                message=self._reason,
-                data=get_exc_message(exception) if DEBUG
-                else None,
-                code=status_code
-            )
-
-
-class UIRequestHandler(tornado.web.RequestHandler):
-
-    def initialize(self):
-        """
-        - Set Content-type for HTML
-        """
-        self.set_header("Content-Type", "text/html")
-
-    def reverse_url(self, name, *args):
-        url = super(UIRequestHandler, self).reverse_url(name, *args)
-        url = url.replace('?', '')
-        return url.split('None')[0]
-
-
-class FileRedirectHandler(tornado.web.RequestHandler):
-    SUPPORTED_METHODS = ['GET']
-
-    def get(self, file_url):
-        output_files_server = "{}://{}/".format(self.request.protocol, self.request.host.replace(str(UI_SERVER_PORT),
-                                                                                                 str(FILE_SERVER_PORT)))
-        redirect_file_url = output_files_server + url_escape(file_url, plus=False)
-        self.redirect(redirect_file_url, permanent=True)
 
 
 class StaticFileHandler(tornado.web.StaticFileHandler):

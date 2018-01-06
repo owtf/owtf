@@ -9,7 +9,7 @@ import tornado.web
 import tornado.httpclient
 
 from owtf.lib import exceptions
-from owtf.api.base import APIRequestHandler
+from owtf.api.handlers.base import APIRequestHandler
 from owtf.managers.plugin import get_all_plugin_dicts
 from owtf.managers.target import get_target_config_dicts
 from owtf.managers.worker import worker_manager
@@ -65,9 +65,9 @@ class WorklistHandler(APIRequestHandler):
         try:
             if work_id is None:
                 criteria = dict(self.request.arguments)
-                self.write(get_all_work(criteria))
+                self.write(get_all_work(self.session, criteria))
             else:
-                self.write(get_work(int(work_id)))
+                self.write(get_work(self.session, (work_id)))
         except exceptions.InvalidParameterType:
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidWorkReference:
@@ -80,12 +80,12 @@ class WorklistHandler(APIRequestHandler):
             filter_data = dict(self.request.arguments)
             if not filter_data:
                 raise tornado.web.HTTPError(400)
-            plugin_list = get_all_plugin_dicts(filter_data)
-            target_list = get_target_config_dicts(filter_data)
+            plugin_list = get_all_plugin_dicts(self.session, filter_data)
+            target_list = get_target_config_dicts(self.session, filter_data)
             if (not plugin_list) or (not target_list):
                 raise tornado.web.HTTPError(400)
             force_overwrite = str2bool(self.get_argument("force_overwrite", "False"))
-            add_work(target_list, plugin_list, force_overwrite=force_overwrite)
+            add_work(self.session, target_list, plugin_list, force_overwrite=force_overwrite)
             self.set_status(201)
         except exceptions.InvalidTargetReference:
             raise tornado.web.HTTPError(400)
@@ -98,11 +98,11 @@ class WorklistHandler(APIRequestHandler):
         try:
             work_id = int(work_id)
             if work_id != 0:
-                remove_work(work_id)
+                remove_work(self.session, work_id)
                 self.set_status(200)
             else:
                 if action == 'delete':
-                    delete_all_work()
+                    delete_all_work(self.session)
         except exceptions.InvalidTargetReference:
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType:
@@ -117,14 +117,14 @@ class WorklistHandler(APIRequestHandler):
             work_id = int(work_id)
             if work_id != 0:  # 0 is like broadcast address
                 if action == 'resume':
-                    patch_work(work_id, active=True)
+                    patch_work(self.session, work_id, active=True)
                 elif action == 'pause':
-                    patch_work(work_id, active=False)
+                    patch_work(self.session, work_id, active=False)
             else:
                 if action == 'pause':
-                    pause_all_work()
+                    pause_all_work(self.session)
                 elif action == 'resume':
-                    resume_all_work()
+                    resume_all_work(self.session)
         except exceptions.InvalidWorkReference:
             raise tornado.web.HTTPError(400)
 
@@ -136,6 +136,6 @@ class WorklistSearchHandler(APIRequestHandler):
         try:
             criteria = dict(self.request.arguments)
             criteria["search"] = True
-            self.write(search_all_work(criteria))
+            self.write(search_all_work(self.session, criteria))
         except exceptions.InvalidParameterType:
             raise tornado.web.HTTPError(400)

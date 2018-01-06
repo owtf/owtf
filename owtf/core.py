@@ -20,10 +20,9 @@ except ImportError:  #PY2
 from owtf import db
 from owtf.lib.exceptions import UnresolvableTargetException, DBIntegrityException
 from owtf.managers.target import add_target, get_target_config_dicts
-from owtf.api import server
 from owtf.proxy import proxy, transaction_logger
 from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, INBOUND_PROXY_CACHE_DIR, PROXY_LOG, SERVER_ADDR, \
-    UI_SERVER_PORT, WEBUI
+    UI_SERVER_PORT
 from owtf.utils.error import abort_framework
 from owtf.utils.file import catch_io_errors, FileOperations, get_logs_dir, get_log_path, create_temp_storage_dirs
 from owtf.utils.formatters import FileFormatter, ConsoleFormatter
@@ -33,7 +32,10 @@ from owtf.plugin.plugin_handler import plugin_handler
 from owtf.managers.worker import worker_manager
 from owtf.managers.plugin import get_all_plugin_dicts
 from owtf.plugin.plugin_params import plugin_params
-from owtf.plugin.plugin_handler import show_plugin_list, show_plugin_types
+from owtf.plugin.plugin_handler import show_plugin_list
+from owtf.api.main import APIServer
+from owtf.cli.main import CliServer
+from owtf.filesrv.main import FileServer
 
 
 class Core(object):
@@ -163,16 +165,16 @@ class Core(object):
 
     def run_server(self):
         """This method starts the interface server"""
-        self.interface_server = server.APIServer()
+        self.api_server = APIServer()
         logging.warn("http://{}:{} <-- Web UI URL".format(SERVER_ADDR, str(UI_SERVER_PORT)))
         logging.info("Press Ctrl+C to exit.")
-        self.interface_server.start()
-        self.file_server = server.FileServer()
+        self.api_server.start()
+        self.file_server = FileServer()
         self.file_server.start()
 
     def run_cli(self):
         """This method starts the CLI server."""
-        self.cli_server = server.CliServer()
+        self.cli_server = CliServer()
         self.cli_server.start()
 
     def load_works(self, target_urls, options):
@@ -214,7 +216,7 @@ class Core(object):
         if not plugins:
             logging.error("No plugin found matching type '%s' and group '%s' for target '%s'!" %
                           (options['PluginType'], group, target))
-        add_work(target, plugins, force_overwrite=options["Force_Overwrite"])
+        add_work(db, target, plugins, force_overwrite=options["Force_Overwrite"])
 
     def load_targets(self, options):
         """Load targets into the DB
@@ -227,7 +229,7 @@ class Core(object):
         scope = options['Scope']
         if options['PluginGroup'] == 'auxiliary':
             scope = self.get_aux_target(options)
-        added_targets = list()
+        added_targets = []
         for target in scope:
             try:
                 add_target(target)
@@ -259,12 +261,12 @@ class Core(object):
             repeat_delim = ','
             if targets is None:
                 logging.error("Aux target not found! See your plugin accepted parameters in ./plugins/ folder")
-                return list()
+                return []
             if 'REPEAT_DELIM' in plugin_params.args:
                 repeat_delim = plugin_params.args['REPEAT_DELIM']
             return targets.split(repeat_delim)
         else:
-            return list()
+            return []
 
     def finish(self):
         """Finish OWTF framework after freeing resources.
@@ -290,7 +292,7 @@ class Core(object):
                 self.worker_manager.clean_up()
             if getattr(self, "db", None) is not None:
                 # Properly stop any DB instances.
-                self.db.clean_up()
+                self.db.close()
             sys.exit(0)
 
 

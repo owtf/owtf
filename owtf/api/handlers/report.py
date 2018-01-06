@@ -14,7 +14,7 @@ import tornado.httpclient
 
 from owtf.lib import exceptions
 from owtf.constants import RANKS
-from owtf.api.base import APIRequestHandler
+from owtf.api.handlers.base import APIRequestHandler
 from owtf.managers.mapping import get_mappings
 from owtf.managers.plugin import get_all_test_groups
 from owtf.managers.poutput import get_all_poutputs
@@ -60,11 +60,11 @@ class ReportExportHandler(APIRequestHandler):
         # Get mappings
         mappings = self.get_argument("mapping", None)
         if mappings:
-            mappings = get_mappings(mappings)
+            mappings = get_mappings(self.session, mappings)
 
         # Get test groups as well, for names and info links
-        test_groups = dict()
-        for test_group in get_all_test_groups():
+        test_groups = {}
+        for test_group in get_all_test_groups(self.session):
             test_group["mapped_code"] = test_group["code"]
             test_group["mapped_descrip"] = test_group["descrip"]
             if mappings and test_group['code'] in mappings:
@@ -73,7 +73,7 @@ class ReportExportHandler(APIRequestHandler):
                 test_group["mapped_descrip"] = description
             test_groups[test_group['code']] = test_group
 
-        vulnerabilities = list()
+        vulnerabilities = []
         for key, value in list(grouped_plugin_outputs.items()):
             test_groups[key]["data"] = value
             vulnerabilities.append(test_groups[key])

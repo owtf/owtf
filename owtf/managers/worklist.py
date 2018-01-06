@@ -7,7 +7,6 @@ The DB stores worklist
 
 from sqlalchemy.sql import not_
 
-from owtf import db
 from owtf.db import models
 from owtf.db.database import get_count
 from owtf.lib import exceptions
@@ -16,7 +15,7 @@ from owtf.managers.poutput import delete_all_poutput, plugin_already_run
 from owtf.managers.target import get_target_config_dict
 
 
-def worklist_generate_query(criteria=None, for_stats=False):
+def worklist_generate_query(session, criteria=None, for_stats=False):
     """Generate query based on criteria
 
     :param criteria: Filter criteria
@@ -28,7 +27,7 @@ def worklist_generate_query(criteria=None, for_stats=False):
     """
     if criteria is None:
         criteria = {}
-    query = db.session.query(models.Work).join(models.Target).join(models.Plugin).order_by(models.Work.id)
+    query = session.query(models.Work).join(models.Target).join(models.Plugin).order_by(models.Work.id)
     if criteria.get('search', None):
         if criteria.get('target_url', None):
             if isinstance(criteria.get('target_url'), list):
@@ -75,7 +74,7 @@ def _derive_work_dict(work_model):
     :rtype: `dict`
     """
     if work_model is not None:
-        wdict = dict()
+        wdict = {}
         wdict["target"] = get_target_config_dict(work_model.target)
         wdict["plugin"] = derive_plugin_dict(work_model.plugin)
         wdict["id"] = work_model.id
@@ -91,14 +90,14 @@ def _derive_work_dicts(work_models):
     :return: List of work dicts
     :rtype: `dict`
     """
-    results = list()
+    results = []
     for work_model in work_models:
         if work_model is not None:
             results.append(_derive_work_dict(work_model))
     return results
 
 
-def get_work_for_target(in_use_target_list):
+def get_work_for_target(session, in_use_target_list):
     """Get work for target list in use
 
     :param in_use_target_list: Target list in use
@@ -106,19 +105,19 @@ def get_work_for_target(in_use_target_list):
     :return: A tuple of target, plugin work
     :rtype: `tuple`
     """
-    query = db.session.query(models.Work).filter_by(active=True).order_by(models.Work.id)
+    query = session.query(models.Work).filter_by(active=True).order_by(models.Work.id)
     if len(in_use_target_list) > 0:
         query = query.filter(not_(models.Work.target_id.in_(in_use_target_list)))
     work_obj = query.first()
     if work_obj:
         # First get the worker dict and then delete
         work_dict = _derive_work_dict(work_obj)
-        db.session.delete(work_obj)
-        db.session.commit()
+        session.delete(work_obj)
+        session.commit()
         return (work_dict["target"], work_dict["plugin"])
 
 
-def get_all_work(criteria=None):
+def get_all_work(session, criteria=None):
     """Get all work dicts based on criteria
 
     :param criteria: Filter criteria
@@ -126,12 +125,12 @@ def get_all_work(criteria=None):
     :return: List of work dicts
     :rtype: `list`
     """
-    query = worklist_generate_query(criteria)
+    query = worklist_generate_query(session, criteria)
     works = query.all()
     return _derive_work_dicts(works)
 
 
-def get_work(work_id):
+def get_work(session, work_id):
     """Get the work for work dict ID
 
     :param work_id: Work ID
@@ -139,7 +138,7 @@ def get_work(work_id):
     :return: List of work dicts
     :rtype: `list`
     """
-    work = db.session.query(models.Work).get(work_id)
+    work = session.query(models.Work).get(work_id)
     if work is None:
         raise exceptions.InvalidWorkReference("No work with id %s" % str(work_id))
     return _derive_work_dict(work)
@@ -165,7 +164,7 @@ def group_sort_order(plugin_list):
     return sorted_plugin_list
 
 
-def add_work(target_list, plugin_list, force_overwrite=False):
+def add_work(session, target_list, plugin_list, force_overwrite=False):
     """Add work to the worklist
 
     :param target_list: target list
@@ -185,7 +184,7 @@ def add_work(target_list, plugin_list, force_overwrite=False):
     for target in target_list:
         for plugin in sorted_plugin_list:
             # Check if it already in worklist
-            if get_count(db.session.query(models.Work).filter_by(target_id=target["id"],
+            if get_count(session.query(models.Work).filter_by(target_id=target["id"],
                                                             plugin_key=plugin["key"])) == 0:
                 # Check if it is already run ;) before adding
                 is_run = plugin_already_run(plugin, target_id=target["id"])
@@ -195,11 +194,11 @@ def add_work(target_list, plugin_list, force_overwrite=False):
                     if force_overwrite is True:
                         delete_all_poutput({"plugin_key": plugin["key"]}, target_id=target["id"])
                     work_model = models.Work(target_id=target["id"], plugin_key=plugin["key"])
-                    db.session.add(work_model)
-    db.session.commit()
+                    session.add(work_model)
+    session.commit()
 
 
-def remove_work(work_id):
+def remove_work(session, work_id):
     """Remove work dict from worklist
 
     :param work_id: Work ID
@@ -207,26 +206,26 @@ def remove_work(work_id):
     :return: None
     :rtype: None
     """
-    work_obj = db.session.query(models.Work).get(work_id)
+    work_obj = session.query(models.Work).get(work_id)
     if work_obj is None:
         raise exceptions.InvalidWorkReference("No work with id %s" % str(work_id))
-    db.session.delete(work_obj)
-    db.session.commit()
+    session.delete(work_obj)
+    session.commit()
 
 
-def delete_all_work():
+def delete_all_work(session):
     """Delete all work from the worklist
 
     :return: None
     :rtype: None
     """
-    query = db.session.query(models.Work)
+    query = session.query(models.Work)
     for work_obj in query:
-        db.session.delete(work_obj)
-    db.session.commit()
+        session.delete(work_obj)
+    session.commit()
 
 
-def patch_work(work_id, active=True):
+def patch_work(session, work_id, active=True):
     """Patch work dict in the worklist
 
     :param work_id: Work dict id
@@ -236,38 +235,38 @@ def patch_work(work_id, active=True):
     :return: None
     :rtype: None
     """
-    work_obj = db.session.query(models.Work).get(work_id)
+    work_obj = session.query(models.Work).get(work_id)
     if work_obj is None:
         raise exceptions.InvalidWorkReference("No work with id %s" % str(work_id))
     if active != work_obj.active:
         work_obj.active = active
-        db.session.merge(work_obj)
-        db.session.commit()
+        session.merge(work_obj)
+        session.commit()
 
 
-def pause_all_work():
+def pause_all_work(session):
     """Pause all work in the worklist
 
     :return: None
     :rtype: None
     """
-    query = db.session.query(models.Work)
+    query = session.query(models.Work)
     query.update({"active": False})
-    db.session.commit()
+    session.commit()
 
 
-def resume_all_work():
+def resume_all_work(session):
     """Resume all work in the worklist
 
     :return: None
     :rtype: None
     """
-    query = db.session.query(models.Work)
+    query = session.query(models.Work)
     query.update({"active": True})
-    db.session.commit()
+    session.commit()
 
 
-def stop_plugins(plugin_list):
+def stop_plugins(session, plugin_list):
     """Stop list of plugins from the worklist
 
     :param plugin_list: List of plugins to stop
@@ -275,13 +274,13 @@ def stop_plugins(plugin_list):
     :return: None
     :rtype: None
     """
-    query = db.session.query(models.Work)
+    query = session.query(models.Work)
     for plugin in plugin_list:
         query.filter_by(plugin_key=plugin["key"]).update({"active": False})
-    db.session.commit()
+    session.commit()
 
 
-def stop_targets(target_list):
+def stop_targets(session, target_list):
     """Stop work in the worklist for a list of targets
 
     :param target_list: List of targets
@@ -289,13 +288,13 @@ def stop_targets(target_list):
     :return: None
     :rtype: None
     """
-    query = db.session.query(models.Work)
+    query = session.query(models.Work)
     for target in target_list:
         query.filter_by(target_id=target["id"]).update({"active": False})
-    db.session.commit()
+    session.commit()
 
 
-def search_all_work(criteria):
+def search_all_work(session, criteria):
     """Search the worklist
 
     .note::
@@ -309,9 +308,9 @@ def search_all_work(criteria):
     :return: Results of the search query
     :rtype: `dict`
     """
-    total = get_count(db.session.query(models.Work).count())
-    filtered_work_objs = worklist_generate_query(criteria).all()
-    filtered_number = worklist_generate_query(criteria, for_stats=True).count()
+    total = get_count(session.query(models.Work))
+    filtered_work_objs = worklist_generate_query(session, criteria).all()
+    filtered_number = worklist_generate_query(session, criteria, for_stats=True).count()
     results = {
         "records_total": total,
         "records_filtered": filtered_number,

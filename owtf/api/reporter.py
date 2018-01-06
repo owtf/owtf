@@ -23,7 +23,7 @@ class Reporter(object):
         self.Init = False
         self.Loader = Loader(POUTPUT_TEMPLATES_DIR)
         self.mNumLinesToShow = 15
-        self.CounterList = list()
+        self.CounterList = []
         self.requester = requester
 
     def TransactionTableFromIDs(self, TransactionIDs, NumLinesReq=15, NumLinesRes=15):

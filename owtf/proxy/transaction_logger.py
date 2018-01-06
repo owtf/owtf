@@ -104,7 +104,7 @@ class TransactionLogger(OWTFProcess):
         :return: List of hashes
         :rtype: `list`
         """
-        hash_list = list()
+        hash_list = []
         for file_path in glob.glob(os.path.join(cache_dir, "*.rd")):
             request_hash = os.path.basename(file_path)[:-3]
             hash_list.append(request_hash)

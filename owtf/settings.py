@@ -23,6 +23,11 @@ SERVER_ADDR = '127.0.0.1'
 UI_SERVER_PORT = 8009
 FILE_SERVER_PORT = 8010
 
+# ERROR reporting
+USE_SENTRY = True
+SENTRY_API_KEY = ''
+
+# IMP PATHS
 INSTALL_SCRIPT = os.path.join(ROOT_DIR, 'install', 'install.py')
 WEB_TEST_GROUPS = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_web', 'groups.cfg')
 NET_TEST_GROUPS = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_net', 'groups.cfg')

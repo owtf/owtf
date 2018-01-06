@@ -551,7 +551,7 @@ class CustomWebSocketClientConnection(tornado.websocket.WebSocketClientConnectio
 
 class ProxyProcess(OWTFProcess):
 
-    def initialize(self, outbound_options=list(), outbound_auth=""):
+    def initialize(self, outbound_options=[], outbound_auth=""):
         """Initialize the proxy process
 
         :param outbound_options: Outbound proxy options
