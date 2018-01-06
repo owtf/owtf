@@ -12,11 +12,15 @@ import logging
 
 from copy import deepcopy
 
+from argparse import ArgumentParser
+from sqlalchemy.orm import scoped_session
+
 from owtf.config import config_handler
 from owtf.core import core
+from owtf.db.database import Session, get_db_engine
 from owtf.lib import exceptions
 from owtf.lib.cli_options import usage, parse_options
-from owtf import __version__, __release__
+from owtf import __version__, __release__, db
 from owtf.managers.config import load_config_db_file, load_framework_config_file
 from owtf.managers.resource import load_resources_from_file
 from owtf.managers.mapping import load_mappings_from_file
@@ -28,7 +32,6 @@ from owtf.settings import WEB_TEST_GROUPS, AUX_TEST_GROUPS, NET_TEST_GROUPS, DEF
     FALLBACK_MAPPING_PROFILE, DEFAULT_MAPPING_PROFILE, DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, \
     DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE, WEBUI
 from owtf.utils.file import clean_temp_storage_dirs
-from owtf.utils.strings import str2bool
 
 
 def banner():
@@ -54,7 +57,7 @@ def get_plugins_from_arg(arg):
     :rtype: `list`
     """
     plugins = arg.split(',')
-    plugin_groups = get_groups_for_plugins(plugins)
+    plugin_groups = get_groups_for_plugins(db, plugins)
     if len(plugin_groups) > 1:
         usage("The plugins specified belong to several plugin groups: '%s'".format(str(plugin_groups)))
     return [plugins, plugin_groups]
@@ -69,15 +72,15 @@ def process_options(user_args):
     :rtype: `dict`
     """
     try:
-        valid_groups = get_all_plugin_groups()
-        valid_types = get_all_plugin_types() + ['all', 'quiet']
+        valid_groups = get_all_plugin_groups(db)
+        valid_types = get_all_plugin_types(db) + ['all', 'quiet']
         arg = parse_options(user_args, valid_groups, valid_types)
     except KeyboardInterrupt as e:
         usage("Invalid OWTF option(s) %s" % e)
         sys.exit(0)
 
     # Default settings:
-    profiles = dict()
+    profiles = {}
     plugin_group = arg.PluginGroup
 
     if arg.CustomProfile:  # Custom profiles specified
@@ -104,7 +107,7 @@ def process_options(user_args):
     if arg.TOR_mode:
         arg.TOR_mode = arg.TOR_mode.split(":")
         if(arg.TOR_mode[0] == "help"):
-            from owtf.http.proxy.tor_manager import TOR_manager
+            from owtf.proxy.tor_manager import TOR_manager
             TOR_manager.msg_configure_tor()
             exit(0)
         if len(arg.TOR_mode) == 1:
@@ -122,7 +125,7 @@ def process_options(user_args):
                 outbound_proxy_port = "9050"  # default TOR port
             else:
                 outbound_proxy_port = arg.TOR_mode[1]
-            arg.OutboundProxy = "socks://%s:%s".format(outbound_proxy_ip, outbound_proxy_port)
+            arg.OutboundProxy = "socks://{0}:{1}".format(outbound_proxy_ip, outbound_proxy_port)
 
     if arg.OutboundProxy:
         arg.OutboundProxy = arg.OutboundProxy.split('://')
@@ -152,13 +155,13 @@ def process_options(user_args):
             except ValueError:
                 usage("Invalid port for Inbound Proxy")
 
-    plugin_types_for_group = get_types_for_plugin_group(plugin_group)
+    plugin_types_for_group = get_types_for_plugin_group(db, plugin_group)
     if arg.PluginType == 'all':
         arg.PluginType = plugin_types_for_group
     elif arg.PluginType == 'quiet':
         arg.PluginType = ['passive', 'semi_passive']
 
-    scope = arg.Targets or list()  # Arguments at the end are the URL target(s)
+    scope = arg.Targets or []  # Arguments at the end are the URL target(s)
     num_targets = len(scope)
     if plugin_group != 'auxiliary' and num_targets == 0 and not arg.list_plugins:
         # TODO: Fix this
@@ -166,7 +169,7 @@ def process_options(user_args):
     elif num_targets == 1:  # Check if this is a file
         if os.path.isfile(scope[0]):
             logging.info("Scope file: trying to load targets from it ..")
-            new_scope = list()
+            new_scope = []
             for target in open(scope[0]).read().split("\n"):
                 CleanTarget = target.strip()
                 if not CleanTarget:
@@ -211,7 +214,7 @@ def process_options(user_args):
     }
 
 
-def main(args):
+def start(args):
     """ The main wrapper which loads everything
 
     :param args: User supplied arguments dictionary
@@ -223,18 +226,17 @@ def main(args):
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
     owtf_pid = os.getpid()
-
     try:
-        _ensure_default_session()
+        _ensure_default_session(db)
         load_framework_config_file(DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid)
-        load_config_db_file(DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE)
-        load_resources_from_file(DEFAULT_RESOURCES_PROFILE, FALLBACK_RESOURCES_PROFILE)
-        load_mappings_from_file(DEFAULT_MAPPING_PROFILE, FALLBACK_MAPPING_PROFILE)
-        load_test_groups(WEB_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, "web")
-        load_test_groups(NET_TEST_GROUPS, FALLBACK_NET_TEST_GROUPS, "net")
-        load_test_groups(AUX_TEST_GROUPS, FALLBACK_AUX_TEST_GROUPS, "aux")
+        load_config_db_file(db, DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE)
+        load_resources_from_file(db, DEFAULT_RESOURCES_PROFILE, FALLBACK_RESOURCES_PROFILE)
+        load_mappings_from_file(db, DEFAULT_MAPPING_PROFILE, FALLBACK_MAPPING_PROFILE)
+        load_test_groups(db, WEB_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, "web")
+        load_test_groups(db, NET_TEST_GROUPS, FALLBACK_NET_TEST_GROUPS, "net")
+        load_test_groups(db, AUX_TEST_GROUPS, FALLBACK_AUX_TEST_GROUPS, "aux")
         # After loading the test groups then load the plugins, because of many-to-one relationship
-        load_plugins()
+        load_plugins(db)
     except exceptions.DatabaseNotRunningException:
         sys.exit(-1)
 

@@ -145,12 +145,12 @@ class PluginHelper(object):
     def RunCommand(self, Command, PluginInfo, PluginOutputDir):
         FrameworkAbort = PluginAbort = False
         if not PluginOutputDir:
-            PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
+            PluginOutputDir = InitPluginOutputDir(PluginInfo)
         self.timer.start_timer('FormatCommandAndOutput')
-        ModifiedCommand = self.shell.get_modified_shell_cmd(Command, PluginOutputDir)
+        ModifiedCommand = shell.get_modified_shell_cmd(Command, PluginOutputDir)
 
         try:
-            RawOutput = self.shell.shell_exec_monitor(ModifiedCommand, PluginInfo)
+            RawOutput = shell.shell_exec_monitor(ModifiedCommand, PluginInfo)
         except PluginAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             PluginAbort = True
@@ -159,7 +159,7 @@ class PluginHelper(object):
             FrameworkAbort = True
 
 
-        TimeStr = self.timer.get_elapsed_time_as_str('FormatCommandAndOutput')
+        TimeStr = timer.get_elapsed_time_as_str('FormatCommandAndOutput')
         logging.info("Time=%s", TimeStr)
         out = [ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]
         return out

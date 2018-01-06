@@ -9,11 +9,6 @@ import sys
 import signal
 import logging
 import multiprocessing
-
-from owtf.managers.error import add_error
-from owtf.plugin.plugin_handler import plugin_handler
-
-
 try:
     import queue
 except ImportError:
@@ -22,6 +17,7 @@ from time import strftime
 
 import psutil
 
+from owtf import db
 from owtf.managers.worklist import get_work_for_target
 from owtf.settings import PROCESS_PER_CORE, MIN_RAM_NEEDED
 from owtf.lib.owtf_process import OWTFProcess
@@ -29,6 +25,9 @@ from owtf.lib.exceptions import InvalidWorkerReference
 from owtf.utils.process import check_pid
 from owtf.utils.error import abort_framework
 from owtf.settings import WEBUI
+from owtf.managers.error import add_error
+from owtf.plugin.plugin_handler import plugin_handler
+
 
 # For psutil
 TIMEOUT = 3
@@ -68,8 +67,8 @@ class WorkerManager(object):
 
     def __init__(self, keep_working=True):
         self.keep_working = keep_working
-        self.worklist = list()  # List of unprocessed (plugin*target)
-        self.workers = list()  # list of worker and work (worker, work)
+        self.worklist = []  # List of unprocessed (plugin*target)
+        self.workers = []  # list of worker and work (worker, work)
         self.spawn_workers()
 
     def get_allowed_process_count(self):
@@ -91,7 +90,7 @@ class WorkerManager(object):
         work = None
         avail = psutil.virtual_memory().available
         if int(avail/1024/1024) > MIN_RAM_NEEDED:
-            work = get_work_for_target(self.targets_in_use())
+            work = get_work_for_target(db, self.targets_in_use())
         else:
             logging.warn("Not enough memory to execute a plugin")
         return work
@@ -128,7 +127,7 @@ class WorkerManager(object):
         w.start()
 
     def targets_in_use(self):
-        target_ids = list()
+        target_ids = []
         for item in self.workers:
             try:
                 target_ids.append(item["work"][0]["id"])
@@ -169,7 +168,8 @@ class WorkerManager(object):
                 if not self.keep_working:
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
-                        finish()
+                        from owtf.core import core
+                        core.finish()
 
     def is_any_worker_busy(self):
         """If a worker is still busy, return True. Return False otherwise.
@@ -222,7 +222,7 @@ class WorkerManager(object):
         """
         # As worklist is emptied, aborting of plugins will result in
         # killing of workers
-        self.worklist = list()  # It is a list
+        self.worklist = []  # It is a list
         for item in self.workers:
             work = item["worker"].poison_q.put("DIE")
             self._signal_process(item["worker"].pid, signal.SIGINT)

@@ -7,13 +7,12 @@ Component to handle data storage and search of all commands run
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from owtf import db
 from owtf.db import models
 from owtf.managers.poutput import plugin_output_exists
 from owtf.managers.target import target_required, target_manager
 
 
-def add_command(command):
+def add_command(session, command):
     """Adds a command to the DB
 
     :param command: Command to add
@@ -21,7 +20,7 @@ def add_command(command):
     :return: None
     :rtype: None
     """
-    db.session.merge(models.Command(
+    session.merge(models.Command(
         start_time=command['Start'],
         end_time=command['End'],
         success=command['Success'],
@@ -31,12 +30,13 @@ def add_command(command):
         original_command=command['OriginalCommand'].strip()
     ))
     try:
-        db.session.commit()
+        session.commit()
     except SQLAlchemyError as e:
-        db.session.rollback()
+        session.rollback()
         raise e
 
-def delete_command(command):
+
+def delete_command(session, command):
     """Delete the command from the DB
 
     :param command: Command to delete
@@ -44,12 +44,13 @@ def delete_command(command):
     :return: None
     :rtype: None
     """
-    command_obj = db.session.query(models.Command).get(command)
-    db.session.delete(command_obj)
-    db.session.commit()
+    command_obj = session.query(models.Command).get(command)
+    session.delete(command_obj)
+    session.commit()
+
 
 @target_required
-def command_already_registered(original_command, target_id=None):
+def command_already_registered(session, original_command, target_id=None):
     """Checks if the command has already been registered
 
     :param original_command: Original command to check
@@ -59,7 +60,7 @@ def command_already_registered(original_command, target_id=None):
     :return: None
     :rtype: None
     """
-    register_entry = db.session.query(models.Command).get(original_command)
+    register_entry = session.query(models.Command).get(original_command)
     if register_entry:
         # If the command was completed and the plugin output to which it
         # is referring exists

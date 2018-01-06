@@ -42,7 +42,7 @@ class Config(object):
         for type in CONFIG_TYPES:
             self.config[type] = {}        # key can consist alphabets, numbers, hyphen & underscore.
         self.search_regex = re.compile('%s([a-zA-Z0-9-_]*?)%s' % (REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER))
-        self.cli_options = dict()
+        self.cli_options = {}
 
     def is_set(self, key):
         """Checks if the key is set in the config dict

@@ -15,7 +15,6 @@ from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
-
 # This table actually allows us to make a many to many relationship
 # between transactions table and grep_outputs table
 target_association_table = Table(

@@ -7,7 +7,7 @@ DESCRIPTION = "Mounts and/or uploads/downloads files to an SMB share -i.e. for I
 
 
 def run(PluginInfo):
-    Content = list()
+    Content = []
     smb = SMB()
     args = {
         'Description': DESCRIPTION,

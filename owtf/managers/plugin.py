@@ -10,7 +10,6 @@ import json
 
 from sqlalchemy import or_
 
-from owtf import db
 from owtf.db import models
 from owtf.settings import PLUGINS_DIR
 from owtf.utils.error import abort_framework
@@ -30,7 +29,7 @@ def get_test_groups_config(file_path):
     :return: List of test groups
     :rtype: `list`
     """
-    test_groups = list()
+    test_groups = []
     config_file = FileOperations.open(file_path, 'r').read().splitlines()
     for line in config_file:
         if '#' == line[0]:
@@ -48,7 +47,7 @@ def get_test_groups_config(file_path):
     return test_groups
 
 
-def load_test_groups(file_default, file_fallback, plugin_group):
+def load_test_groups(session, file_default, file_fallback, plugin_group):
     """Load test groups into the DB.
 
     :param test_groups_file: The path to the test groups config
@@ -63,7 +62,7 @@ def load_test_groups(file_default, file_fallback, plugin_group):
         file_path = file_fallback
     test_groups = get_test_groups_config(file_path)
     for group in test_groups:
-        db.session.merge(
+        session.merge(
             models.TestGroup(
                 code=group['code'],
                 priority=group['priority'],
@@ -72,10 +71,10 @@ def load_test_groups(file_default, file_fallback, plugin_group):
                 url=group['url'],
                 group=plugin_group)
         )
-    db.session.commit()
+    session.commit()
 
 
-def load_plugins():
+def load_plugins(session):
     """Loads the plugins from the filesystem and updates their info.
 
     .note::
@@ -98,7 +97,7 @@ def load_plugins():
     # the specific plugins (and not all of them like below).
     # Retrieve the list of the plugins (sorted) from the directory given by
     # 'PLUGIN_DIR'.
-    plugins = list()
+    plugins = []
     for root, _, files in os.walk(PLUGINS_DIR):
         plugins.extend([os.path.join(root, filename) for filename in files if filename.endswith('py')])
     plugins = sorted(plugins)
@@ -118,7 +117,7 @@ def load_plugins():
         # Retrieve the internal name and code of the plugin.
         name, code = os.path.splitext(file)[0].split('@')
         # Only load the plugin if in XXX_TEST_GROUPS configuration (e.g. web_testgroups.cfg)
-        if db.session.query(models.TestGroup).get(code) is None:
+        if session.query(models.TestGroup).get(code) is None:
             continue
         # Load the plugin as a module.
         filename, pathname, desc = imp.find_module(os.path.splitext(os.path.basename(plugin_path))[0],
@@ -132,7 +131,7 @@ def load_plugins():
         except AttributeError:  # The plugin didn't define an attr dict.
             pass
         # Save the plugin into the database.
-        db.session.merge(
+        session.merge(
             models.Plugin(
                 key='%s@%s' % (type, code),
                 group=group,
@@ -145,7 +144,7 @@ def load_plugins():
                 attr=attr
             )
         )
-    db.session.commit()
+    session.commit()
 
 
 def derive_test_group_dict(obj):
@@ -176,7 +175,7 @@ def derive_test_group_dicts(obj_list):
     return dict_list
 
 
-def get_test_group(code):
+def get_test_group(session, code):
     """Get the test group based on plugin code
 
     :param code: Plugin code
@@ -184,43 +183,43 @@ def get_test_group(code):
     :return: Test group dict
     :rtype: `dict`
     """
-    group = db.session.query(models.TestGroup).get(code)
+    group = session.query(models.TestGroup).get(code)
     return derive_test_group_dict(group)
 
 
-def get_all_test_groups():
+def get_all_test_groups(session):
     """Get all test groups from th DB
 
     :return:
     :rtype:
     """
-    test_groups = db.session.query(models.TestGroup).order_by(models.TestGroup.priority.desc()).all()
+    test_groups = session.query(models.TestGroup).order_by(models.TestGroup.priority.desc()).all()
     return derive_test_group_dicts(test_groups)
 
 
-def get_all_plugin_groups():
+def get_all_plugin_groups(session):
     """Get all plugin groups from the DB
 
     :return: List of available plugin groups
     :rtype: `list`
     """
-    groups = db.session.query(models.Plugin.group).distinct().all()
+    groups = session.query(models.Plugin.group).distinct().all()
     groups = [i[0] for i in groups]
     return groups
 
 
-def get_all_plugin_types():
+def get_all_plugin_types(session):
     """Get all plugin types from the DB
 
     :return: All available plugin types
     :rtype: `list`
     """
-    plugin_types = db.session.query(models.Plugin.type).distinct().all()
+    plugin_types = session.query(models.Plugin.type).distinct().all()
     plugin_types = [i[0] for i in plugin_types]  # Necessary because of sqlalchemy
     return plugin_types
 
 
-def get_types_for_plugin_group(plugin_group):
+def get_types_for_plugin_group(session, plugin_group):
     """Get available plugin types for a plugin group
 
     :param plugin_group: Plugin group
@@ -228,7 +227,7 @@ def get_types_for_plugin_group(plugin_group):
     :return: List of available plugin types
     :rtype: `list`
     """
-    plugin_types = db.session.query(models.Plugin.type).filter_by(group=plugin_group).distinct().all()
+    plugin_types = session.query(models.Plugin.type).filter_by(group=plugin_group).distinct().all()
     plugin_types = [i[0] for i in plugin_types]
     return plugin_types
 
@@ -268,7 +267,7 @@ def derive_plugin_dicts(obj_list):
     return plugin_dicts
 
 
-def plugin_gen_query(criteria):
+def plugin_gen_query(session, criteria):
     """Generate a SQLAlchemy query based on the filter criteria
 
     :param criteria: Filter criteria
@@ -276,7 +275,7 @@ def plugin_gen_query(criteria):
     :return:
     :rtype:
     """
-    query = db.session.query(models.Plugin).join(models.TestGroup)
+    query = session.query(models.Plugin).join(models.TestGroup)
     if criteria.get("type", None):
         if isinstance(criteria["type"], str):
             query = query.filter(models.Plugin.type == criteria["type"])
@@ -300,7 +299,7 @@ def plugin_gen_query(criteria):
     return query.order_by(models.TestGroup.priority.desc())
 
 
-def plugin_name_to_code(codes):
+def plugin_name_to_code(session, codes):
     """Given list of names, get the corresponding codes
 
     :param codes: The codes to fetch
@@ -309,7 +308,7 @@ def plugin_name_to_code(codes):
     :rtype: `list`
     """
     checklist = ["OWTF-", "PTES-"]
-    query = db.session.query(models.Plugin.code)
+    query = session.query(models.Plugin.code)
     for count, name in enumerate(codes):
         if all(check not in name for check in checklist):
             code = query.filter(models.Plugin.name == name).first()
@@ -317,7 +316,7 @@ def plugin_name_to_code(codes):
     return codes
 
 
-def get_all_plugin_dicts(criteria=None):
+def get_all_plugin_dicts(session, criteria=None):
     """Get plugin dicts based on filter criteria
 
     :param criteria: Filter criteria
@@ -326,16 +325,16 @@ def get_all_plugin_dicts(criteria=None):
     :rtype: `list`
     """
     if criteria is None:
-        criteria = dict()
+        criteria = {}
 
     if "code" in criteria:
-        criteria["code"] = plugin_name_to_code(criteria["code"])
-    query = plugin_gen_query(criteria)
+        criteria["code"] = plugin_name_to_code(session, criteria["code"])
+    query = plugin_gen_query(session, criteria)
     plugin_obj_list = query.all()
     return derive_plugin_dicts(plugin_obj_list)
 
 
-def get_plugins_by_type(plugin_type):
+def get_plugins_by_type(session, plugin_type):
     """Get plugins based on type argument
 
     :param plugin_type: Plugin type
@@ -343,10 +342,10 @@ def get_plugins_by_type(plugin_type):
     :return: List of plugin dicts
     :rtype: `list`
     """
-    return get_all_plugin_dicts({"type": plugin_type})
+    return get_all_plugin_dicts(session, {"type": plugin_type})
 
 
-def get_plugins_by_group(plugin_group):
+def get_plugins_by_group(session, plugin_group):
     """Get plugins by plugin group
 
     :param plugin_group: Plugin group
@@ -354,10 +353,10 @@ def get_plugins_by_group(plugin_group):
     :return: List of plugin dicts
     :rtype: `list`
     """
-    return get_all_plugin_dicts({"group": plugin_group})
+    return get_all_plugin_dicts(session, {"group": plugin_group})
 
 
-def get_plugins_by_group_type(plugin_group, plugin_type):
+def get_plugins_by_group_type(session, plugin_group, plugin_type):
     """Get plugins by group and plugin type
 
     :param plugin_group: Plugin group
@@ -367,10 +366,10 @@ def get_plugins_by_group_type(plugin_group, plugin_type):
     :return: List of plugin dicts
     :rtype: `list`
     """
-    return get_all_plugin_dicts({"type": plugin_type, "group": plugin_group})
+    return get_all_plugin_dicts(session, {"type": plugin_type, "group": plugin_group})
 
 
-def get_groups_for_plugins(plugins):
+def get_groups_for_plugins(session, plugins):
     """Gets available groups for selected plugins
 
     :param plugins: Plugins selected
@@ -378,7 +377,7 @@ def get_groups_for_plugins(plugins):
     :return: List of available plugin groups
     :rtype: `list`
     """
-    groups = db.session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(plugins),
+    groups = session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(plugins),
         models.Plugin.name.in_(plugins))).distinct().all()
     groups = [i[0] for i in groups]
     return groups

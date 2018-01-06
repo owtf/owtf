@@ -13,7 +13,7 @@ import tornado.web
 from tornado.escape import url_escape
 
 from owtf.lib.exceptions import InvalidTargetReference, InvalidParameterType
-from owtf.api.base import UIRequestHandler
+from owtf.api.handlers.base import UIRequestHandler
 from owtf.managers.mapping import get_all_mappings, get_mappings
 from owtf.managers.plugin import get_all_test_groups
 from owtf.managers.poutput import get_unique_dicts, get_all_poutputs
@@ -66,17 +66,6 @@ class TransactionLog(UIRequestHandler):
             )
 
 
-class HTTPSessions(UIRequestHandler):
-    """ HTTPSessions handles the user sessions. """
-    SUPPORTED_METHODS = ['GET']
-
-    @tornado.web.asynchronous
-    def get(self, target_id=None):
-        if not target_id:
-            raise tornado.web.HTTPError(405)
-        self.render("sessions_manager.html", sessions_api_url=self.reverse_url('sessions_api_url', target_id),)
-
-
 class UrlLog(UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
@@ -108,8 +97,8 @@ class TargetManager(UIRequestHandler):
                 worklist_api_url=self.reverse_url('worklist_api_url', None, None)
             )
         else:
-            adv_filter_data = get_unique_dicts(target_id=int(target_id))
-            adv_filter_data["mapping"] = get_all_mappings()
+            adv_filter_data = get_unique_dicts(self.application.session, target_id=int(target_id))
+            adv_filter_data["mapping"] = get_all_mappings(self.application.session)
             self.render(
                 "target.html",
                 target_id=target_id,
@@ -146,13 +135,13 @@ class PluginOutput(UIRequestHandler):
 
             # Get mappings
             if self.get_argument("mapping", None):
-                mappings = get_mappings(self.get_argument("mapping", None))
+                mappings = get_mappings(self.application.session, self.get_argument("mapping", None))
             else:
                 mappings = None
 
             # Get test groups as well, for names and info links
             test_groups = {}
-            for test_group in get_all_test_groups():
+            for test_group in get_all_test_groups(self.application.session):
                 test_group["mapped_code"] = test_group["code"]
                 test_group["mapped_descrip"] = test_group["descrip"]
                 if mappings:

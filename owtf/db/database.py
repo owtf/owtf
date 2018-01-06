@@ -4,107 +4,13 @@ owtf.db.db
 
 This file handles all the database transactions.
 """
-
+import functools
 import logging
-from contextlib import contextmanager
-from multiprocessing.util import register_after_fork
 
-from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine, exc, func
-from sqlalchemy.pool import QueuePool
-from sqlalchemy.orm import Session as BaseSession
+from sqlalchemy.orm import Session as _Session, sessionmaker
 
-from owtf.db import models
 from owtf.settings import DATABASE_IP, DATABASE_PORT, DATABASE_NAME, DATABASE_USER, DATABASE_PASS
-from owtf.utils.error import abort_framework
-
-
-class Session(BaseSession):
-    def __init__(self, *a, **kw):
-        super(Session, self).__init__(*a, **kw)
-        self._in_atomic = False
-
-    @contextmanager
-    def atomic(self):
-        """Transaction context manager.
-
-        .note::
-            Will commit the transaction on successful completion of the block, or roll it back on error.
-            Supports nested usage (via save points).
-
-        :return: None
-        :rtype: None
-        """
-        nested = self._in_atomic
-        self.begin(nested=nested)
-        self._in_atomic = True
-        try:
-            yield
-        except:
-            self.rollback()
-            raise
-        else:
-            self.commit()
-        finally:
-            if not nested:
-                self._in_atomic = False
-
-
-class SQLAlchemy(object):
-
-    def __init__(self):
-        self.create_session()
-
-    def create_session(self):
-        """Create a DB session
-
-        :return: None
-        :rtype: None
-        """
-        self._session = self.create_scoped_session()
-        self.session = self._session()
-
-    def create_engine(self, base):
-        """Create the SQLAlchemy engine with parameters
-
-        :return: None
-        :rtype: None
-        """
-        try:
-            engine = create_engine(
-                "postgresql+psycopg2://{}:{}@{}:{}/{}".format(DATABASE_USER, DATABASE_PASS, DATABASE_IP, int(DATABASE_PORT),
-                DATABASE_NAME, poolclass=QueuePool, pool_size=5, max_overflow=10))
-            #engine = create_engine("sqlite:///owtf.db")
-            base.metadata.create_all(engine)
-            # Fix for forking
-            #register_after_fork(engine, engine.dispose)
-            return engine
-        except ValueError as e:
-            logging.error("Potentially corrupt DB, exiting...")
-        except KeyError:  # Indicates incomplete db config file
-            abort_framework("Incomplete database configuration settings")
-        except exc.OperationalError as e:
-            abort_framework("[DB] {}\nRun 'make db-run' to start/setup db".format(str(e)))
-
-    def create_scoped_session(self):
-        """Scoped session for the main OWTF process
-
-        .note::
-            Not to be used apart from main process, use CreateSession instead
-
-        :return:
-        :rtype:
-        """
-        self.engine = self.create_engine(models.Base)
-        session_factory = sessionmaker(bind=self.engine, class_=Session)
-        return scoped_session(session_factory)
-
-    def clean_up(self):
-        """Close the sqlalchemy session opened by DB
-        :return: None
-        :rtype: None
-        """
-        self.session.close()
 
 
 def get_count(q):
@@ -112,3 +18,41 @@ def get_count(q):
     count = q.session.execute(count_q).scalar()
     return count
 
+
+def flush_transaction(method):
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        dryrun = kwargs.pop("dryrun", False)
+        try:
+            ret = method(self, *args, **kwargs)
+            if dryrun:
+                self.session.rollback()
+            else:
+                self.session.flush()
+        except Exception:
+            logging.exception("Transaction Failed. Rolling back.")
+            if self.session is not None:
+                self.session.rollback()
+            raise
+        return ret
+    return wrapper
+
+
+def get_db_engine():
+    return create_engine(
+            "postgresql+psycopg2://{}:{}@{}:{}/{}".format(DATABASE_USER, DATABASE_PASS, DATABASE_IP, int(DATABASE_PORT),
+            DATABASE_NAME), pool_recycle=300)
+
+
+class Session(_Session):
+    """ Custom session meant to utilize add on the model.
+        This Session overrides the add/add_all methods to prevent them
+        from being used. This is to for using the add methods on the
+        models themselves where overriding is available.
+    """
+
+    _add = _Session.add
+    _add_all = _Session.add_all
+    _delete = _Session.delete
+
+Session = sessionmaker(class_=Session)

@@ -8,6 +8,7 @@ The scan_network scans the network for different ports and call network plugins 
 import re
 import logging
 
+from owtf.config import config_handler
 from owtf.shell.blocking_shell import Shell
 from owtf.utils.file import FileOperations
 
@@ -221,7 +222,7 @@ class Scanner(object):
                     port = line.split(":")[1]
                     plugin_to_invoke = service
                     service1 = plugin_to_invoke
-                    self.config.set("%s_PORT_NUMBER" % service1.upper(), port)
+                    config_handler.set("%s_PORT_NUMBER" % service1.upper(), port)
                     if service != 'http':
                         plugin_list.append(plugin_to_invoke)
                         http.append(port)

@@ -475,7 +475,7 @@ class Requester(object):
         :return: List of transactions
         :rtype: `list`
         """
-        transactions = list()
+        transactions = []
         if unique:
             url_list = set(url_list)
         for url in url_list:

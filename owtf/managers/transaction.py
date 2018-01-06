@@ -13,7 +13,6 @@ import logging
 from sqlalchemy import desc, asc
 from hrt.interface import HttpRequestTranslator
 
-from owtf import db
 from owtf.config import config_handler
 from owtf.db.database import get_count
 from owtf.managers.target import target_required
@@ -25,7 +24,7 @@ from owtf.utils.strings import str2bool, get_header_list
 
 
 @target_required
-def num_transactions(scope=True, target_id=None):
+def num_transactions(session, scope=True, target_id=None):
     """Return number of transactions in scope by default
 
     :param scope: In/out scope
@@ -35,7 +34,7 @@ def num_transactions(scope=True, target_id=None):
     :return: Number of transactions in scope
     :rtype: `int`
     """
-    count = get_count(db.session.query(models.Transaction).filter_by(scope=scope, target_id=target_id))
+    count = get_count(session.query(models.Transaction).filter_by(scope=scope, target_id=target_id))
     return count
 
 
@@ -53,7 +52,7 @@ def is_transaction_already_added(criteria, target_id=None):
     return len(get_all_transactions(criteria, target_id=target_id)) > 0
 
 
-def transaction_gen_query(criteria, target_id, for_stats=False):
+def transaction_gen_query(session, criteria, target_id, for_stats=False):
     """Generate query based on criteria
 
     :param criteria: Filter criteria
@@ -65,7 +64,7 @@ def transaction_gen_query(criteria, target_id, for_stats=False):
     :return:
     :rtype:
     """
-    query = db.session.query(models.Transaction).filter_by(target_id=target_id)
+    query = session.query(models.Transaction).filter_by(target_id=target_id)
     # If transaction search is being done
     if criteria.get('search', None):
         if criteria.get('url', None):
@@ -146,7 +145,7 @@ def transaction_gen_query(criteria, target_id, for_stats=False):
 
 
 @target_required
-def get_first(criteria, target_id=None):
+def get_first(session, criteria, target_id=None):
     """Assemble only the first transaction that matches the criteria from DB
 
     :param criteria: Filter criteria
@@ -156,12 +155,12 @@ def get_first(criteria, target_id=None):
     :return:
     :rtype:
     """
-    query = transaction_gen_query(criteria, target_id)
+    query = transaction_gen_query(session, criteria, target_id)
     return get_transaction(query.first())
 
 
 @target_required
-def get_all_transactions(criteria, target_id=None):
+def get_all_transactions(session, criteria, target_id=None):
     """Assemble ALL transactions that match the criteria from DB
 
     :param criteria: Filter criteria
@@ -171,7 +170,7 @@ def get_all_transactions(criteria, target_id=None):
     :return:
     :rtype:
     """
-    query = transaction_gen_query(criteria, target_id)
+    query = transaction_gen_query(session, criteria, target_id)
     return get_transactions(query.all())
 
 
@@ -244,7 +243,7 @@ def get_transaction_model(transaction):
 
 
 @target_required
-def log_transactions(transaction_list, target_id=None):
+def log_transactions(session, transaction_list, target_id=None):
     """This function does the following things in order
         + Add all transactions to a session and commit
         + Add all the grepped results and commit
@@ -268,9 +267,9 @@ def log_transactions(transaction_list, target_id=None):
         transaction_model = get_transaction_model(transaction_obj)
         transaction_model.target_id = target_id
         transaction_model_list.append(transaction_model)
-        db.session.add(transaction_model)
+        session.add(transaction_model)
         urls_list.append([transaction_obj.url, True, transaction_obj.in_scope()])
-    db.session.commit()
+    session.commit()
     # Now since we have the ids ready, we can process the grep output and
     # add accordingly. So iterate over transactions and their models.
     for i, obj in enumerate(transaction_list):
@@ -295,17 +294,17 @@ def log_transactions(transaction_list, target_id=None):
                         # Convert the match to json
                         match = json.dumps(match)
                         # Fetch if any existing entry
-                        existing_grep_output = db.session.query(models.GrepOutput).filter_by(
+                        existing_grep_output = session.query(models.GrepOutput).filter_by(
                             target_id=target_id, name=regex_name, output=match).first()
                         if existing_grep_output:
                             existing_grep_output.transactions.append(transaction_model)
-                            db.session.merge(existing_grep_output)
+                            session.merge(existing_grep_output)
                         else:
-                            db.session.add(models.GrepOutput(target_id=target_id,
+                            session.add(models.GrepOutput(target_id=target_id,
                                                                   transactions=[transaction_model],
                                                                   name=regex_name,
                                                                   output=match))
-    db.session.commit()
+    session.commit()
     import_processed_url(urls_list, target_id=target_id)
 
 
@@ -326,7 +325,7 @@ def log_transactions_from_logger(transactions_dict):
 
 
 @target_required
-def delete_transaction(transaction_id, target_id=None):
+def delete_transaction(session, transaction_id, target_id=None):
     """Deletes transaction from DB
 
     :param transaction_id: transaction ID
@@ -336,8 +335,8 @@ def delete_transaction(transaction_id, target_id=None):
     :return: None
     :rtype: None
     """
-    db.session.query(models.Transaction).filter_by(target_id=target_id, id=transaction_id).delete()
-    db.session.commit()
+    session.query(models.Transaction).filter_by(target_id=target_id, id=transaction_id).delete()
+    session.commit()
 
 
 @target_required
@@ -352,7 +351,7 @@ def get_num_transactions_inscope(target_id=None):
     return num_transactions(target_id=target_id)
 
 
-def get_transaction_by_id(id):
+def get_transaction_by_id(session, id):
     """Get transaction object by id
 
     :param id: ID to fetch
@@ -363,14 +362,14 @@ def get_transaction_by_id(id):
     model_obj = None
     try:
         id = int(id)
-        model_obj = db.session.query(models.Transaction).get(id)
+        model_obj = session.query(models.Transaction).get(id)
     except ValueError:
         pass
     finally:
         return model_obj  # None returned if no such transaction.
 
 
-def get_transactions_by_id(id_list):
+def get_transactions_by_id(session, id_list):
     """Get transactions by id list
 
     :param id_list: List of ids
@@ -378,16 +377,16 @@ def get_transactions_by_id(id_list):
     :return: List of transaction objects
     :rtype: `list`
     """
-    model_objs = list()
+    model_objs = []
     for id in id_list:
-        model_obj = get_transaction_by_id(id)
+        model_obj = get_transaction_by_id(session, id)
         if model_obj:
             model_objs.append(model_obj)
     return get_transactions(model_objs)
 
 
 @target_required
-def get_top_by_speed(order="Desc", num=10, target_id=None):
+def get_top_by_speed(session, order="Desc", num=10, target_id=None):
     """Get top transactions by speed
 
     :param order: Ascending/descending order
@@ -400,10 +399,10 @@ def get_top_by_speed(order="Desc", num=10, target_id=None):
     :rtype: `list`
     """
     if order == "Desc":
-        results = db.session.query(models.Transaction).filter_by(target_id=target_id).order_by(
+        results = session.query(models.Transaction).filter_by(target_id=target_id).order_by(
             desc(models.Transaction.time)).limit(num)
     else:
-        results = db.session.query(models.Transaction).filter_by(target_id=target_id).order_by(
+        results = session.query(models.Transaction).filter_by(target_id=target_id).order_by(
             asc(models.Transaction.time)).limit(num)
     return get_transactions(results)
 
@@ -512,7 +511,7 @@ def grep(regex_name, regex, data):
 
 
 @target_required
-def search_by_regex_name(regex_name, stats=False, target_id=None):
+def search_by_regex_name(session, regex_name, stats=False, target_id=None):
     """Allows searching of the grep_outputs table using a regex name
 
     .note::
@@ -532,25 +531,25 @@ def search_by_regex_name(regex_name, stats=False, target_id=None):
     :rtype: `list`
     """
     # Get the grep outputs and only unique values
-    grep_outputs = db.session.query(models.GrepOutput.output).filter_by(
+    grep_outputs = session.query(models.GrepOutput.output).filter_by(
         name=regex_name, target_id=target_id).group_by(models.GrepOutput.output).all()
     grep_outputs = [i[0] for i in grep_outputs]
     # Get one transaction per match
-    transaction_ids = list()
+    transaction_ids = []
     for grep_output in grep_outputs:
-        transaction_ids.append(db.session.query(models.Transaction.id).join(
+        transaction_ids.append(session.query(models.Transaction.id).join(
             models.Transaction.grep_outputs).filter(
                 models.GrepOutput.output == grep_output,
                 models.GrepOutput.target_id == target_id).limit(1).all()[0][0])
     # Calculate stats if needed
     if stats:
         # Calculate the total number of matches
-        num_matched_transactions = get_count(db.session.query(models.Transaction).join(
+        num_matched_transactions = get_count(session.query(models.Transaction).join(
             models.Transaction.grep_outputs).filter(
                 models.GrepOutput.name == regex_name,
                 models.GrepOutput.target_id == target_id).group_by(models.Transaction))
         # Calculate total number of transactions in scope
-        num_transactions_in_scope = get_count(db.session.query(models.Transaction).filter_by(
+        num_transactions_in_scope = get_count(session.query(models.Transaction).filter_by(
             scope=True, target_id=target_id))
         # Calculate matched percentage
         if int(num_transactions_in_scope):
@@ -563,7 +562,7 @@ def search_by_regex_name(regex_name, stats=False, target_id=None):
 
 
 @target_required
-def search_by_regex_names(name_list, stats=False, target_id=None):
+def search_by_regex_names(session, name_list, stats=False, target_id=None):
     """Allows searching of the grep_outputs table using a regex name
 
     .note::
@@ -582,7 +581,7 @@ def search_by_regex_names(name_list, stats=False, target_id=None):
     :return: List of matched ids
     :rtype: `list`
     """
-    results = [search_by_regex_name(regex_name, stats=stats, target_id=target_id) for regex_name in name_list]
+    results = [search_by_regex_name(session, regex_name, stats=stats, target_id=target_id) for regex_name in name_list]
     return results
 
 
@@ -624,7 +623,7 @@ def get_transaction_dicts(tdb_obj_list, include_raw_data=False):
 
 
 @target_required
-def search_all_transactions(criteria, target_id=None, include_raw_data=True):
+def search_all_transactions(session, criteria, target_id=None, include_raw_data=True):
     """Search all transactions.Three things needed
         + Total number of transactions
         + Filtered transaction dicts
@@ -639,9 +638,9 @@ def search_all_transactions(criteria, target_id=None, include_raw_data=True):
     :return: Results
     :rtype: `dict`
     """
-    total = get_count(db.session.query(models.Transaction).filter_by(target_id=target_id))
-    filtered_transaction_objs = transaction_gen_query(criteria, target_id).all()
-    filtered_number = get_count(transaction_gen_query(criteria, target_id, for_stats=True))
+    total = get_count(session.query(models.Transaction).filter_by(target_id=target_id))
+    filtered_transaction_objs = transaction_gen_query(session, criteria, target_id).all()
+    filtered_number = get_count(transaction_gen_query(session, criteria, target_id, for_stats=True))
     results = {
         "records_total": total,
         "records_filtered": filtered_number,
@@ -651,7 +650,7 @@ def search_all_transactions(criteria, target_id=None, include_raw_data=True):
 
 
 @target_required
-def get_all_transactions_dicts(criteria, target_id=None, include_raw_data=False):
+def get_all_transactions_dicts(session, criteria, target_id=None, include_raw_data=False):
     """Assemble ALL transactions that match the criteria from DB.
 
     :param criteria: Filter criteria
@@ -663,13 +662,13 @@ def get_all_transactions_dicts(criteria, target_id=None, include_raw_data=False)
     :return: List of transaction dicts
     :rtype: `list`
     """
-    query = get_all_transactions(criteria, target_id)
+    query = get_all_transactions(session, criteria, target_id)
     transaction_objs = query.all()
     return get_transaction_dicts(transaction_objs, include_raw_data)
 
 
 @target_required
-def get_by_id_as_dict(trans_id, target_id=None):
+def get_by_id_as_dict(session, trans_id, target_id=None):
     """Get transaction dict by ID
 
     :param trans_id: Transaction ID
@@ -679,14 +678,14 @@ def get_by_id_as_dict(trans_id, target_id=None):
     :return: transaction object as dict
     :rtype: `dict`
     """
-    transaction_obj = db.session.query(models.Transaction).filter_by(target_id=target_id, id=trans_id).first()
+    transaction_obj = session.query(models.Transaction).filter_by(target_id=target_id, id=trans_id).first()
     if not transaction_obj:
         raise InvalidTransactionReference("No transaction with %s exists" % str(trans_id))
     return get_transaction_dict(transaction_obj, include_raw_data=True)
 
 
 @target_required
-def get_hrt_response(filter_data, trans_id, target_id=None):
+def get_hrt_response(session, filter_data, trans_id, target_id=None):
     """Converts the transaction and calls hrt
 
     :param filter_data: Filter data
@@ -698,7 +697,7 @@ def get_hrt_response(filter_data, trans_id, target_id=None):
     :return: Converted code
     :rtype: `string`
     """
-    transaction_obj = db.session.query(models.Transaction).filter_by(target_id=target_id, id=trans_id).first()
+    transaction_obj = session.query(models.Transaction).filter_by(target_id=target_id, id=trans_id).first()
 
     # Data validation
     languages = ['bash']  # Default script language is set to bash.
@@ -733,30 +732,14 @@ def get_hrt_response(filter_data, trans_id, target_id=None):
 
 
 @target_required
-def get_session_data(target_id=None):
+def get_session_data(session, target_id=None):
     """This will return the data from the `session_tokens` column in the form of a list, having no `null` values
-
-    Some sample data:
-    [{
-        "attributes": {
-            "Path": "/",
-            "HttpOnly": true
-        },
-        "name": "ASP.NET_SessionId",
-        "value": "jx0ydsvwqtfgqcufazwigiih"
-        }, {
-            "attributes": {
-                "Path": "/"
-            },
-            "name": "amSessionId",
-            "value": "618174515"
-    }]
 
     :param target_id: target ID
     :type target_id: `int`
     :return: List of cookie dicts
     :rtype: `list`
     """
-    session_data = db.session.query(models.Transaction.session_tokens).filter_by(target_id=target_id).all()
+    session_data = session.query(models.Transaction.session_tokens).filter_by(target_id=target_id).all()
     results = [json.loads(el[0]) for el in session_data if el and el[0]]
     return results

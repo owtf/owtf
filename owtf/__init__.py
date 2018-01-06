@@ -2,11 +2,11 @@
 owtf
 ~~~~~
 """
+from owtf.db.database import Session, get_db_engine
 
-from owtf.db.database import SQLAlchemy
 
 __version__ = '2.3b'
 __release__ = 'MacOWTF'
 
-
-db = SQLAlchemy()
+Session.configure(bind=get_db_engine())
+db = Session()

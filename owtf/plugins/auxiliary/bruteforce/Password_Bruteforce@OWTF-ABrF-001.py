@@ -12,7 +12,7 @@ CATEGORIES = ['RDP', 'LDAP2', 'LDAP3', 'MSSQL', 'MYSQL', 'CISCO', 'CISCO-ENABLE'
 
 
 def run(PluginInfo):
-    Content = list()
+    Content = []
     args = {
         'Description': DESCRIPTION,
         'Mandatory': {
