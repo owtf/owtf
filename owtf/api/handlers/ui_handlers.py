@@ -110,7 +110,6 @@ class TargetManager(UIRequestHandler):
                 worklist_api_url=self.reverse_url('worklist_api_url', None, None),
                 transaction_log_url=self.reverse_url('transaction_log_url', target_id, None),
                 url_log_url=self.reverse_url('url_log_url', target_id),
-                sessions_ui_url=self.reverse_url('sessions_ui_url', target_id),
             )
 
 

@@ -5,15 +5,11 @@ owtf.http.proxy.proxy
 Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013.
 """
 
-import os
-import re
 import ssl
 import socket
 import datetime
-from multiprocessing import Value
 
 import pycurl
-
 import tornado.httpserver
 import tornado.ioloop
 import tornado.iostream
@@ -27,15 +23,8 @@ import tornado.template
 import tornado.websocket
 import tornado.gen
 
-from owtf.config import config_handler
 from owtf.proxy.socket_wrapper import wrap_socket
 from owtf.proxy.cache_handler import CacheHandler
-from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, INBOUND_PROXY_PROCESSES, INBOUND_PROXY_CACHE_DIR, \
-    BLACKLIST_COOKIES, WHITELIST_COOKIES, HTTP_AUTH_HOST, HTTP_AUTH_USERNAME, HTTP_AUTH_PASSWORD, HTTP_AUTH_MODE, \
-    PROXY_LOG, CERTS_FOLDER, CA_KEY, CA_CERT, CA_PASS_FILE
-from owtf.utils.error import abort_framework
-from owtf.utils.file import FileOperations
-from owtf.lib.owtf_process import OWTFProcess
 
 
 def prepare_curl_callback(curl):
@@ -104,7 +93,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             if header == "Set-Cookie":
                 self.add_header(header, value)
             else:
-                if header not in ProxyHandler.restricted_response_headers:
+                if header not in self.restricted_response_headers:
                     self.set_header(header, value)
         self.finish()
 
@@ -154,7 +143,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             self.finish_response(self.cached_response)
         else:
             # Request header cleaning
-            for header in ProxyHandler.restricted_request_headers:
+            for header in self.restricted_request_headers:
                 try:
                     del self.request.headers[header]
                 except:
@@ -185,11 +174,6 @@ class ProxyHandler(tornado.web.RequestHandler):
             success_response = False  # is used to check the response in the botnet mode
 
             while not success_response:
-                # Proxy Switching (botnet_mode) code
-                if self.application.proxy_manager:
-                    proxy = self.application.proxy_manager.get_next_available_proxy()
-                    self.application.outbound_ip = proxy["proxy"][0]
-                    self.application.outbound_port = int(proxy["proxy"][1])
                 # httprequest object is created and then passed to async client with a callback
                 callback = None
                 if self.application.outbound_proxy_type == 'socks':
@@ -228,31 +212,6 @@ class ProxyHandler(tornado.web.RequestHandler):
                     else:
                         success_response = True
                         break
-
-                # Botnet mode code (proxy switching).
-                # Checking the status of the proxy (asynchronous).
-                if self.application.proxy_manager and not success_response:
-                    proxy_check_req = tornado.httpclient.HTTPRequest(
-                        url=self.application.proxy_manager.testing_url,  # testing url is google.com.
-                        use_gzip=True,
-                        proxy_host=self.application.outbound_ip,
-                        proxy_port=self.application.outbound_port,
-                        proxy_username=self.application.outbound_username,
-                        proxy_password=self.application.outbound_password,
-                        prepare_curl_callback=callback,  # socks callback function.
-                        validate_cert=False
-                    )
-                    try:
-                        proxy_check_resp = yield tornado.gen.Task(async_client.fetch, proxy_check_req)
-                    except Exception:
-                        pass
-
-                    if proxy_check_resp.code != 200:
-                        self.application.proxy_manager.remove_proxy(proxy["index"])
-                    else:
-                        success_response = True
-                else:
-                    success_response = True
 
             self.finish_response(response)
             # Cache the response after finishing the response, so caching time is not included in response time
@@ -330,7 +289,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             :rtype: None
             """
             client = tornado.iostream.SSLIOStream(client_socket)
-            ProxyHandler.server.handle_stream(client, self.application.inbound_ip)
+            self.server.handle_stream(client, self.application.inbound_ip)
 
 
         def ssl_fail():
@@ -345,7 +304,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                 self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
             except tornado.iostream.StreamClosedError:
                 pass
-            ProxyHandler.server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
+            self.server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
 
         # Hacking to be done here, so as to check for ssl using proxy and auth
         try:
@@ -547,148 +506,3 @@ class CustomWebSocketClientConnection(tornado.websocket.WebSocketClientConnectio
         """
         self.code = code
         super(CustomWebSocketClientConnection, self)._handle_1xx(code)
-
-
-class ProxyProcess(OWTFProcess):
-
-    def initialize(self, outbound_options=[], outbound_auth=""):
-        """Initialize the proxy process
-
-        :param outbound_options: Outbound proxy options
-        :type outbound_options: `list`
-        :param outbound_auth: Authentication string
-        :type outbound_auth: `str`
-        :return: None
-        :rtype: None
-        """
-        # The tornado application, which is used to pass variables to request handler
-        self.application = tornado.web.Application(handlers=[(r'.*', ProxyHandler)], debug=False, gzip=True,)
-        # All required variables in request handler
-        # Required variables are added as attributes to application, so that request handler can access these
-        self.application.inbound_ip = INBOUND_PROXY_IP
-        self.application.inbound_port = int(INBOUND_PROXY_PORT)
-        self.instances = INBOUND_PROXY_PROCESSES
-
-        # Proxy CACHE
-        # Cache related settings, including creating required folders according to cache folder structure
-        self.application.cache_dir = INBOUND_PROXY_CACHE_DIR
-        # Clean possible older cache directory.
-        if os.path.exists(self.application.cache_dir):
-            FileOperations.rm_tree(self.application.cache_dir)
-        FileOperations.make_dirs(self.application.cache_dir)
-
-        # SSL MiTM
-        # SSL certs, keys and other settings (os.path.expanduser because they are stored in users home directory
-        # ~/.owtf/proxy)
-        self.application.ca_cert = os.path.expanduser(CA_CERT)
-        self.application.ca_key = os.path.expanduser(CA_KEY)
-        # To stop OWTF from breaking for our beloved users :P
-        try:
-            self.application.ca_key_pass = FileOperations.open(os.path.expanduser(CA_PASS_FILE),
-                                                               'r', owtf_clean=False).read().strip()
-        except IOError:
-            self.application.ca_key_pass = "owtf"  # XXX: Legacy CA key pass for older versions.
-        self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
-        self.application.certs_folder = os.path.expanduser(CERTS_FOLDER)
-
-        try:  # Ensure CA.crt and Key exist.
-            assert os.path.exists(self.application.ca_cert)
-            assert os.path.exists(self.application.ca_key)
-        except AssertionError:
-            abort_framework("Files required for SSL MiTM are missing."
-                                                               " Please run the install script")
-
-        try:  # If certs folder missing, create that.
-            assert os.path.exists(self.application.certs_folder)
-        except AssertionError:
-            FileOperations.make_dirs(self.application.certs_folder)
-
-        # Blacklist (or) Whitelist Cookies
-        # Building cookie regex to be used for cookie filtering for caching
-        if WHITELIST_COOKIES == 'None':
-            cookies_list = BLACKLIST_COOKIES.split(',')
-            self.application.cookie_blacklist = True
-        else:
-            cookies_list = WHITELIST_COOKIES.split(',')
-            self.application.cookie_blacklist = False
-        if self.application.cookie_blacklist:
-            regex_cookies_list = [cookie + "=([^;]+;?)" for cookie in cookies_list]
-        else:
-            regex_cookies_list = ["(" + cookie + "=[^;]+;?)" for cookie in cookies_list]
-        regex_string = '|'.join(regex_cookies_list)
-        self.application.cookie_regex = re.compile(regex_string)
-
-        # Outbound Proxy
-        # Outbound proxy settings to be used inside request handler
-        if outbound_options:
-            if len(outbound_options) == 3:
-                self.application.outbound_proxy_type = outbound_options[0]
-                self.application.outbound_ip = outbound_options[1]
-                self.application.outbound_port = int(outbound_options[2])
-            else:
-                self.application.outbound_proxy_type = "http"
-                self.application.outbound_ip = outbound_options[0]
-                self.application.outbound_port = int(outbound_options[1])
-        else:
-            self.application.outbound_ip = None
-            self.application.outbound_port = None
-            self.application.outbound_proxy_type = None
-        if outbound_auth:
-            self.application.outbound_username, self.application.outbound_password = outbound_auth.split(":")
-        else:
-            self.application.outbound_username = None
-            self.application.outbound_password = None
-
-        self.server = tornado.httpserver.HTTPServer(self.application)
-        # server has to be a class variable, because it is used inside request handler to attach sockets for monitoring
-        ProxyHandler.server = self.server
-
-        # Header filters
-        # Restricted headers are picked from framework/config/framework_config.cfg
-        # These headers are removed from the response obtained from webserver, before sending it to browser
-        #restricted_response_headers = config_handler.get_val("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
-        #ProxyHandler.restricted_response_headers = restricted_response_headers
-        # These headers are removed from request obtained from browser, before sending it to webserver
-        #restricted_request_headers = config_handler.get_val("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
-        #ProxyHandler.restricted_request_headers = restricted_request_headers
-
-        # HTTP Auth options
-        if HTTP_AUTH_HOST is not None:
-            self.application.http_auth = True
-            # All the variables are lists
-            self.application.http_auth_hosts = HTTP_AUTH_HOST.strip().split(',')
-            self.application.http_auth_usernames = HTTP_AUTH_USERNAME.strip().split(',')
-            self.application.http_auth_passwords = HTTP_AUTH_PASSWORD.strip().split(',')
-            self.application.http_auth_modes = HTTP_AUTH_MODE.strip().split(',')
-        else:
-            self.application.http_auth = False
-
-    def pseudo_run(self):
-        """Run function for the multiprocessing proxy
-
-        :return: None
-        :rtype: None
-        """
-        try:
-            self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
-            self.disable_stream_log()
-            # Useful for using custom loggers because of relative paths in secure requests
-            # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
-            tornado.options.parse_command_line(
-                args=["dummy_arg", "--log_file_prefix={}".format(PROXY_LOG), "--logging=info"])
-            # To run any number of instances
-            # "0" equals the number of cores present in a machine
-            self.server.start(int(self.instances))
-            tornado.ioloop.IOLoop.instance().start()
-        except:
-            # Cleanup code
-            self.clean_up()
-
-    def clean_up(self):
-        """Stop the instances
-
-        :return: None
-        :rtype: None
-        """
-        self.server.stop()
-        tornado.ioloop.IOLoop.instance().stop()

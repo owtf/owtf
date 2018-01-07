@@ -40,7 +40,7 @@ class HTTPTransaction(object):
         :return: True if in scope, else False
         :rtype: `bool`
         """
-        return self.is_in_scope()
+        return self.is_in_scope
 
     def start(self, url, data, method, is_in_scope):
         """Get attributes for a new transaction

@@ -9,15 +9,12 @@ from __future__ import print_function
 import os
 import sys
 import logging
-
 from copy import deepcopy
 
-from argparse import ArgumentParser
-from sqlalchemy.orm import scoped_session
-
+from owtf.api.main import start_api_server
+from owtf.cli.main import start_cli
 from owtf.config import config_handler
-from owtf.core import core
-from owtf.db.database import Session, get_db_engine
+from owtf.filesrv.main import start_file_server
 from owtf.lib import exceptions
 from owtf.lib.cli_options import usage, parse_options
 from owtf import __version__, __release__, db
@@ -27,11 +24,16 @@ from owtf.managers.mapping import load_mappings_from_file
 from owtf.managers.plugin import get_groups_for_plugins, get_all_plugin_types, get_all_plugin_groups, \
     get_types_for_plugin_group, load_test_groups, load_plugins
 from owtf.managers.session import _ensure_default_session
+from owtf.managers.target import load_targets
+from owtf.managers.worklist import load_works
+from owtf.plugin.plugin_handler import show_plugin_list
+from owtf.proxy.main import start_proxy
 from owtf.settings import WEB_TEST_GROUPS, AUX_TEST_GROUPS, NET_TEST_GROUPS, DEFAULT_RESOURCES_PROFILE, \
     FALLBACK_RESOURCES_PROFILE, FALLBACK_AUX_TEST_GROUPS, FALLBACK_NET_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, \
     FALLBACK_MAPPING_PROFILE, DEFAULT_MAPPING_PROFILE, DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, \
-    DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE, WEBUI
-from owtf.utils.file import clean_temp_storage_dirs
+    DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE, WEBUI, SERVER_ADDR, UI_SERVER_PORT
+from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs, get_logs_dir, FileOperations
+from owtf.utils.log import enable_logging
 
 
 def banner():
@@ -214,6 +216,24 @@ def process_options(user_args):
     }
 
 
+def initialise_framework(options):
+    """This function initializes the entire framework
+
+    :param options: Additional arguments for the component initializer
+    :type options: `dict`
+    :return: True if all commands do not fail
+    :rtype: `bool`
+    """
+    logging.info("Loading framework please wait..")
+    # No processing required, just list available modules.
+    if options['list_plugins']:
+        show_plugin_list(db, options['list_plugins'])
+        sys.exit(0)
+    target_urls = load_targets(session=db, options=options)
+    load_works(session=db, target_urls=target_urls, options=options)
+    return True
+
+
 def start(args):
     """ The main wrapper which loads everything
 
@@ -226,6 +246,9 @@ def start(args):
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
     owtf_pid = os.getpid()
+    FileOperations.create_missing_dirs(get_logs_dir())
+    create_temp_storage_dirs(owtf_pid)
+    enable_logging(process_name="owtf_main")
     try:
         _ensure_default_session(db)
         load_framework_config_file(DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid)
@@ -244,7 +267,7 @@ def start(args):
     args['nowebui'] = not os.environ.get('WEBUI', WEBUI)
     config_handler.cli_options = deepcopy(args)
 
-    # Initialize core, plugin handler and helpers
+    # Initialize plugin handler and helpers
     from owtf.plugin.plugin_handler import plugin_handler, PluginHandler
     from owtf.plugin.plugin_params import plugin_params, PluginParams
     plugin_handler = PluginHandler(args)
@@ -252,16 +275,24 @@ def start(args):
 
     # Initialise Framework.
     logging.warn("OWTF Version: {0}, Release: {1} ".format(__version__, __release__))
+    start_proxy()
+    logging.warn("http://{}:{} <-- Web UI URL".format(SERVER_ADDR, str(UI_SERVER_PORT)))
     try:
-        if core.start(args):
+        if initialise_framework(args):
+            if not args['nowebui']:
+                start_api_server()
+                start_file_server()
+            else:
+                start_cli()
+        else:
             # Only if Start is for real (i.e. not just listing plugins, etc)
-            core.finish()  # Not Interrupted or Crashed.
+            sys.exit(0)  # Not Interrupted or Crashed.
     except KeyboardInterrupt:
         # NOTE: The user chose to interact: interactivity check redundant here:
         logging.warning("OWTF was aborted by the user:")
         logging.info("Please check report/plugin output files for partial results")
         # Interrupted. Must save the DB to disk, finish report, etc.
-        core.finish()
+        sys.exit(-1)
     except SystemExit:
         pass  # Report already saved, framework tries to exit.
     finally:  # Needed to rename the temp storage dirs to avoid confusion.

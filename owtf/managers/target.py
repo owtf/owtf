@@ -3,10 +3,11 @@ owtf.db.target_manager
 ~~~~~~~~~~~~~~~~~~~~~~
 
 """
-
+import logging
 import os
 
 from owtf import db
+from owtf.plugin.plugin_params import plugin_params
 
 
 try:
@@ -410,7 +411,7 @@ def get_target_config_dicts(session, filter_data=None, session_id=None):
     """
     if filter_data is None:
         filter_data = {}
-    target_obj_list = target_gen_query(session, filter_data, session_id).all()
+    target_obj_list = target_gen_query(session=session, filter_data=filter_data, session_id=session_id).all()
     return get_target_configs(target_obj_list)
 
 
@@ -444,7 +445,7 @@ def get_target_configs(target_obj_list):
     return target_configs
 
 
-def get_targets_as_list(key_list):
+def get_targets_as_list(session, key_list):
     """Get everything as list
 
     :param key_list: Target key list
@@ -454,7 +455,7 @@ def get_targets_as_list(key_list):
     """
     values = []
     for key in key_list:
-        values.append(get_all_targets(key))
+        values.append(get_all_targets(session, key))
     return values
 
 
@@ -484,7 +485,7 @@ def get_all_in_scope(session, key):
     return results
 
 
-def is_url_in_scope(url):
+def is_url_in_scope(session, url):
     """To avoid following links to other domains.
 
     :param url: URL to check
@@ -494,10 +495,62 @@ def is_url_in_scope(url):
     """
     parsed_url = urlparse(url)
     # Get all known Host Names in Scope.
-    for host_name in get_all_in_scope('host_name'):
+    for host_name in get_all_in_scope(session=session, key='host_name'):
         if parsed_url.hostname == host_name:
             return True
     return False
+
+
+def load_targets(session, options):
+    """Load targets into the DB
+
+    :param options: User supplied arguments
+    :type options: `dict`
+    :return: Added targets
+    :rtype: `list`
+    """
+    scope = options['Scope']
+    if options['PluginGroup'] == 'auxiliary':
+        scope = get_aux_target()
+    added_targets = []
+    for target in scope:
+        try:
+            add_target(session=session, target_url=target)
+            added_targets.append(target)
+        except DBIntegrityException:
+            logging.warning("%s already exists in DB" % target)
+            added_targets.append(target)
+        except UnresolvableTargetException as e:
+            logging.error("%s" % e.parameter)
+    return added_targets
+
+
+def get_aux_target():
+    """This function returns the target for auxiliary plugins from the parameters provided
+
+    :param options: User supplied arguments
+    :type options: `dict`
+    :return: List of targets for aux plugins
+    :rtype: `list`
+    """
+    # targets can be given by different params depending on the aux plugin we are running
+    # so "target_params" is a list of possible parameters by which user can give target
+    target_params = ['RHOST', 'TARGET', 'SMB_HOST', 'BASE_URL', 'SMTP_HOST']
+    targets = None
+    if plugin_params.process_args():
+        for param in target_params:
+            if param in plugin_params.args:
+                targets = plugin_params.args[param]
+                break  # it will capture only the first one matched
+        repeat_delim = ','
+        if targets is None:
+            logging.error("Aux target not found! See your plugin accepted parameters in ./plugins/ folder")
+            return []
+        if 'REPEAT_DELIM' in plugin_params.args:
+            repeat_delim = plugin_params.args['REPEAT_DELIM']
+        return targets.split(repeat_delim)
+    else:
+        return []
 
 
 @session_required

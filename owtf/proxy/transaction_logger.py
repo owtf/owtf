@@ -8,16 +8,19 @@ Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a
 import os
 import glob
 import time
-import sys
-try:
+try: #PY3
     from urllib.parse import urlparse
-except ImportError:
+except ImportError: #PY2
     from urlparse import urlparse
 
-from owtf.http import transaction
 from owtf.proxy.cache_handler import response_from_cache, request_from_cache
 from owtf.lib.owtf_process import OWTFProcess
-from owtf.utils import timer
+from owtf.utils.timer import Timer
+from owtf.db.database import Session, get_db_engine
+from owtf.http.transaction import HTTPTransaction
+from owtf.managers.target import target_manager, get_all_in_scope, get_indexed_targets
+from owtf.managers.transaction import log_transactions_from_logger
+from owtf.settings import INBOUND_PROXY_CACHE_DIR
 
 
 class TransactionLogger(OWTFProcess):
@@ -29,7 +32,13 @@ class TransactionLogger(OWTFProcess):
     """
 
     def __init__(self, **kwargs):
+        Session.configure(bind=get_db_engine())
+        self.session = Session()
         super(TransactionLogger, self).__init__(**kwargs)
+
+    def initialize(self, **kwargs):
+        self.enable_logging()
+        self.disable_console_logging()
 
     def derive_target_for_transaction(self, request, response, target_list, host_list):
         """Get the target and target ID for transaction
@@ -55,7 +64,7 @@ class TransactionLogger(OWTFProcess):
             # This check must be at the last
             elif urlparse(request.url).hostname == urlparse(target).hostname:
                 return [target_id, True]
-        return [self.target.GetTargetID(), self.get_scope_for_url(request.url, host_list)]
+        return [target_manager.get_target_id(), self.get_scope_for_url(request.url, host_list)]
 
     def get_scope_for_url(self, url, host_list):
         """Check the scope for the url in the transaction
@@ -67,7 +76,7 @@ class TransactionLogger(OWTFProcess):
         :return: True if in scope, else False
         :rtype: `bool`
         """
-        return (urlparse(url).hostname in host_list)
+        return urlparse(url).hostname in host_list
 
     def get_owtf_transactions(self, hash_list):
         """Get the proxy transactions from the cache
@@ -78,17 +87,17 @@ class TransactionLogger(OWTFProcess):
         :rtype: `dict`
         """
         transactions_dict = None
-        target_list = self.target.get_indexed_targets()
+        target_list = get_indexed_targets(self.session)
         if target_list:  # If there are no targets in db, where are we going to add. OMG
             transactions_dict = {}
-            host_list = self.target.get_all_in_scope('host_name')
+            host_list = get_all_in_scope(session=self.session, key='host_name')
 
             for request_hash in hash_list:
-                request = request_from_cache(os.path.join(self.cache_dir, request_hash))
-                response = response_from_cache(os.path.join(self.cache_dir, request_hash))
+                request = request_from_cache(os.path.join(INBOUND_PROXY_CACHE_DIR, request_hash))
+                response = response_from_cache(os.path.join(INBOUND_PROXY_CACHE_DIR, request_hash))
                 target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list,
                                                                                  host_list)
-                owtf_transaction = transaction.HTTP_Transaction(timer.timer())
+                owtf_transaction = HTTPTransaction(Timer())
                 owtf_transaction.import_proxy_req_resp(request, response)
                 try:
                     transactions_dict[target_id].append(owtf_transaction)
@@ -119,11 +128,11 @@ class TransactionLogger(OWTFProcess):
         """
         try:
             while self.poison_q.empty():
-                if glob.glob(os.path.join(self.cache_dir, "*.rd")):
-                    hash_list = self.get_hash_list(self.cache_dir)
+                if glob.glob(os.path.join(INBOUND_PROXY_CACHE_DIR, "*.rd")):
+                    hash_list = self.get_hash_list(INBOUND_PROXY_CACHE_DIR)
                     transactions_dict = self.get_owtf_transactions(hash_list)
                     if transactions_dict:  # Make sure you do not have None
-                        self.transaction.log_transactionsFromLogger(transactions_dict)
+                        log_transactions_from_logger(session=self.session, transactions_dict=transactions_dict)
                 else:
                     time.sleep(2)
         except KeyboardInterrupt:

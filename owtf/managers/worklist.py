@@ -4,15 +4,49 @@ owtf.db.worklist_manager
 
 The DB stores worklist
 """
+import logging
 
 from sqlalchemy.sql import not_
 
 from owtf.db import models
 from owtf.db.database import get_count
 from owtf.lib import exceptions
-from owtf.managers.plugin import derive_plugin_dict
+from owtf.managers.plugin import derive_plugin_dict, get_all_plugin_dicts
 from owtf.managers.poutput import delete_all_poutput, plugin_already_run
-from owtf.managers.target import get_target_config_dict
+from owtf.managers.target import get_target_config_dict, get_target_config_dicts
+
+
+def load_works(session, target_urls, options):
+    """Select the proper plugins to run against the target URL.
+
+    .. note::
+
+        If plugin group is not specified and several targets are fed, OWTF
+        will run the WEB plugins for targets that are URLs and the NET
+        plugins for the ones that are IP addresses.
+
+    :param str target_url: the target URL
+    :param dict options: the options from the CLI.
+    """
+    for target_url in target_urls:
+        if target_url:
+            target = get_target_config_dicts(session=session, filter_data={'target_url': target_url})
+            group = options['PluginGroup']
+            if options['OnlyPlugins'] is None:
+                # If the plugin group option is the default one (not specified by the user).
+                if group is None:
+                    group = 'web'  # Default to web plugins.
+                    # Run net plugins if target does not start with http (see #375).
+                    if not target_url.startswith(('http://', 'https://')):
+                        group = 'network'
+                filter_data = {'type': options['PluginType'], 'group': group}
+            else:
+                filter_data = {"code": options.get("OnlyPlugins"), "type": options.get("PluginType")}
+            plugins = get_all_plugin_dicts(session=session, criteria=filter_data)
+            if not plugins:
+                logging.error("No plugin found matching type '%s' and group '%s' for target '%s'!" %
+                              (options['PluginType'], group, target))
+            add_work(session=session, target_list=target, plugin_list=plugins, force_overwrite=options["Force_Overwrite"])
 
 
 def worklist_generate_query(session, criteria=None, for_stats=False):
@@ -187,12 +221,13 @@ def add_work(session, target_list, plugin_list, force_overwrite=False):
             if get_count(session.query(models.Work).filter_by(target_id=target["id"],
                                                             plugin_key=plugin["key"])) == 0:
                 # Check if it is already run ;) before adding
-                is_run = plugin_already_run(plugin, target_id=target["id"])
+                is_run = plugin_already_run(session=session, plugin_info=plugin, target_id=target["id"])
                 if (force_overwrite is True) or (force_overwrite is False and is_run is False):
                     # If force overwrite is true then plugin output has
                     # to be deleted first
                     if force_overwrite is True:
-                        delete_all_poutput({"plugin_key": plugin["key"]}, target_id=target["id"])
+                        delete_all_poutput(session=session, filter_data={"plugin_key": plugin["key"]},
+                                           target_id=target["id"])
                     work_model = models.Work(target_id=target["id"], plugin_key=plugin["key"])
                     session.add(work_model)
     session.commit()

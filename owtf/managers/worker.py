@@ -34,6 +34,9 @@ TIMEOUT = 3
 
 
 class Worker(OWTFProcess):
+    def initialize(self, **kwargs):
+        self.enable_logging()
+
     def pseudo_run(self):
         """ When run for the first time, put something into output queue ;)
 
@@ -58,7 +61,7 @@ class Worker(OWTFProcess):
                 logging.debug("Worker (%d): Finished", self.pid)
                 sys.exit(0)
             except Exception as e:
-                add_error("Exception occurred while running :", trace=str(e))
+                add_error(db, "Exception occurred while running :", trace=str(e))
         logging.debug("Worker (%d): Exiting...", self.pid)
         sys.exit(0)
 
@@ -168,8 +171,7 @@ class WorkerManager(object):
                 if not self.keep_working:
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
-                        from owtf.core import core
-                        core.finish()
+                        sys.exit(0)
 
     def is_any_worker_busy(self):
         """If a worker is still busy, return True. Return False otherwise.
