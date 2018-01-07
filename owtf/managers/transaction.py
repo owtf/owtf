@@ -237,7 +237,7 @@ def get_transaction_model(transaction):
             response_body=response_body,
             response_size=len(response_body),
             binary_response=binary_response,
-            session_tokens=transaction.get_session_tokens()
+            session_tokens=json.dumps(transaction.get_session_tokens())
         )
         return transaction_model
 
@@ -305,10 +305,10 @@ def log_transactions(session, transaction_list, target_id=None):
                                                                   name=regex_name,
                                                                   output=match))
     session.commit()
-    import_processed_url(urls_list, target_id=target_id)
+    import_processed_url(session=session, urls_list=urls_list, target_id=target_id)
 
 
-def log_transactions_from_logger(transactions_dict):
+def log_transactions_from_logger(session, transactions_dict):
     """Logs transactions as they come into the DB
 
     .note::
@@ -321,7 +321,7 @@ def log_transactions_from_logger(transactions_dict):
     """
     for target_id, transaction_list in list(transactions_dict.items()):
         if transaction_list:
-            log_transactions(transaction_list, target_id=target_id)
+            log_transactions(session=session, transaction_list=transaction_list, target_id=target_id)
 
 
 @target_required

@@ -32,7 +32,7 @@ INSTALL_SCRIPT = os.path.join(ROOT_DIR, 'install', 'install.py')
 WEB_TEST_GROUPS = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_web', 'groups.cfg')
 NET_TEST_GROUPS = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_net', 'groups.cfg')
 AUX_TEST_GROUPS = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_aux', 'groups.cfg')
-PLUGINS_DIR = os.path.join(ROOT_DIR, 'data', 'plugins')
+PLUGINS_DIR = os.path.join(ROOT_DIR, 'plugins')
 
 ### Output Settings
 OUTPUT_PATH = 'owtf_review'
@@ -73,6 +73,12 @@ CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+### OUTBOUND PROXY
+USE_OUTBOUND_PROXY = False
+OUTBOUND_PROXY_IP = ''
+OUTBOUND_PROXY_PORT = ''
+OUTBOUND_PROXY_AUTH = None
 
 ### Inbound Proxy Configuration
 INBOUND_PROXY_IP = '127.0.0.1'

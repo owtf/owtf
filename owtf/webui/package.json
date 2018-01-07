@@ -18,6 +18,7 @@
     "chart.js": "^1.1.1",
     "docxtemplater": "^3.1.4",
     "font-awesome": "^4.7.0",
+    "gulp-cli": "^2.0.0",
     "immutability-helper": "^2.0.0",
     "jszip": "^2.6.1",
     "rc-progress": "^1.0.4",

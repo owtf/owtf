@@ -248,5 +248,5 @@ def get_log_path(process_name):
     :return: Path to the specific log file
     :rtype: `str`
     """
-    log_file_name = "%s.log" % process_name
+    log_file_name = "{}.log".format(process_name)
     return os.path.join(get_logs_dir(), log_file_name)

@@ -544,7 +544,7 @@ class PluginHandler(object):
             pass
 
 
-def show_plugin_list(group, msg=INTRO_BANNER_GENERAL):
+def show_plugin_list(session, group, msg=INTRO_BANNER_GENERAL):
     """Show available plugins
 
     :param group: Plugin group
@@ -560,11 +560,11 @@ def show_plugin_list(group, msg=INTRO_BANNER_GENERAL):
         logging.info("%s\nAvailable AUXILIARY plugins:", msg)
     elif group == 'network':
         logging.info("%s\nAvailable NETWORK plugins:", msg)
-    for plugin_type in get_types_for_plugin_group(group):
-        show_plugin_types(plugin_type, group)
+    for plugin_type in get_types_for_plugin_group(session, group):
+        show_plugin_types(session, plugin_type, group)
 
 
-def show_plugin_types(plugin_type, group):
+def show_plugin_types(session, plugin_type, group):
     """Show all plugin types
 
     :param plugin_type: Plugin type
@@ -575,7 +575,7 @@ def show_plugin_types(plugin_type, group):
     :rtype: None
     """
     logging.info("\n%s %s plugins %s", '*' * 40, plugin_type.title().replace('_', '-'), '*' * 40)
-    for plugin in get_plugins_by_group_type(group, plugin_type):
+    for plugin in get_plugins_by_group_type(session, group, plugin_type):
         line_start = " %s:%s" % (plugin['type'], plugin['name'])
         pad1 = "_" * (60 - len(line_start))
         pad2 = "_" * (20 - len(plugin['code']))
