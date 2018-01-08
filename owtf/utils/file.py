@@ -12,16 +12,12 @@ from owtf.utils.strings import wipe_bad_chars, cprint
 
 def catch_io_errors(func):
     """Decorator on I/O functions.
-
     If an error is detected, force OWTF to quit properly.
     """
-
     def io_error(*args, **kwargs):
         """Call the original function while checking for errors.
-
         If `owtf_clean` parameter is not explicitely passed or if it is
         set to `True`, it force OWTF to properly exit.
-
         """
         owtf_clean = kwargs.pop('owtf_clean', True)
         try:
@@ -30,7 +26,6 @@ def catch_io_errors(func):
             if owtf_clean:
                 abort_framework("Error when calling '%s'! %s." % (func.__name__, str(e)))
             raise e
-
     return io_error
 
 
@@ -77,7 +72,7 @@ class FileOperations(object):
         """
         save_path = os.path.join(directory, wipe_bad_chars(filename))
         FileOperations.create_missing_dirs(directory)
-        with FileOperations.codecs_open(save_path, 'wb', 'utf-8') as f:
+        with FileOperations.codecs_open(save_path, 'w', 'utf-8') as f:
             f.write(contents.decode('utf-8', 'replace'))
         return save_path
 
@@ -197,7 +192,7 @@ def get_dir_worker_logs():
     return os.path.join(get_output_dir(), WORKER_LOG_DIR)
 
 
-def cleanup_target_dirs( target_url):
+def cleanup_target_dirs(target_url):
     """Cleanup the directories for the specific target
 
     :return: None
@@ -206,7 +201,7 @@ def cleanup_target_dirs( target_url):
     return FileOperations.rm_tree(get_target_dir(target_url))
 
 
-def get_target_dir( target_url):
+def get_target_dir(target_url):
     """Gets the specific directory for a target in the target output directory
 
     :param target_url: Target URL for which directory path is needed
@@ -218,7 +213,7 @@ def get_target_dir( target_url):
     return os.path.join(get_output_dir_target(), clean_target_url)
 
 
-def create_output_dir_target( target_url):
+def create_output_dir_target(target_url):
     """Creates output directories for the target URL
 
     :param target_url: The target URL

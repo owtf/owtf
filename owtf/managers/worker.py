@@ -9,6 +9,7 @@ import sys
 import signal
 import logging
 import multiprocessing
+import traceback
 try:
     import queue
 except ImportError:
@@ -17,7 +18,6 @@ from time import strftime
 
 import psutil
 
-from owtf import db
 from owtf.managers.worklist import get_work_for_target
 from owtf.settings import PROCESS_PER_CORE, MIN_RAM_NEEDED
 from owtf.lib.owtf_process import OWTFProcess
@@ -27,6 +27,8 @@ from owtf.utils.error import abort_framework
 from owtf.settings import WEBUI
 from owtf.managers.error import add_error
 from owtf.plugin.plugin_handler import plugin_handler
+from owtf.utils.logger import logger
+from owtf.db.database import get_scoped_session
 
 
 # For psutil
@@ -34,8 +36,13 @@ TIMEOUT = 3
 
 
 class Worker(OWTFProcess):
+    def __init__(self, **kwargs):
+        super(Worker, self).__init__(**kwargs)
+        self.initialize()
+
     def initialize(self, **kwargs):
-        self.enable_logging()
+        self.logger = logger
+        self.logger.setup_logging()
 
     def pseudo_run(self):
         """ When run for the first time, put something into output queue ;)
@@ -53,7 +60,7 @@ class Worker(OWTFProcess):
                 target, plugin = work
                 plugin_dir = plugin_handler.get_plugin_group_dir(plugin['group'])
                 plugin_handler.switch_to_target(target["id"])
-                plugin_handler.process_plugin(plugin_dir, plugin)
+                plugin_handler.process_plugin(session=self.session, plugin_dir=plugin_dir, plugin=plugin)
                 self.output_q.put('done')
             except queue.Empty:
                 pass
@@ -61,7 +68,7 @@ class Worker(OWTFProcess):
                 logging.debug("Worker (%d): Finished", self.pid)
                 sys.exit(0)
             except Exception as e:
-                add_error(db, "Exception occurred while running :", trace=str(e))
+                add_error(self.session, "Exception occurred while running plugin", str(e))
         logging.debug("Worker (%d): Exiting...", self.pid)
         sys.exit(0)
 
@@ -72,6 +79,7 @@ class WorkerManager(object):
         self.keep_working = keep_working
         self.worklist = []  # List of unprocessed (plugin*target)
         self.workers = []  # list of worker and work (worker, work)
+        self.session = get_scoped_session()
         self.spawn_workers()
 
     def get_allowed_process_count(self):
@@ -80,9 +88,8 @@ class WorkerManager(object):
         :return: max number of allowed processes
         :rtype: `int`
         """
-        process_per_core = PROCESS_PER_CORE
         cpu_count = multiprocessing.cpu_count()
-        return process_per_core * cpu_count
+        return PROCESS_PER_CORE * cpu_count
 
     def get_task(self):
         """Fetch task dict for worker
@@ -93,7 +100,7 @@ class WorkerManager(object):
         work = None
         avail = psutil.virtual_memory().available
         if int(avail/1024/1024) > MIN_RAM_NEEDED:
-            work = get_work_for_target(db, self.targets_in_use())
+            work = get_work_for_target(self.session, self.targets_in_use())
         else:
             logging.warn("Not enough memory to execute a plugin")
         return work
@@ -118,7 +125,7 @@ class WorkerManager(object):
         :return: None
         :rtype: None
         """
-        w = Worker(input_q=multiprocessing.Queue(), output_q=multiprocessing.Queue())
+        w = Worker(input_q=multiprocessing.Queue(), output_q=multiprocessing.Queue(), index=index)
         worker_dict = {"worker": w, "work": (), "busy": False, "paused": False}
 
         if index is not None:

@@ -55,6 +55,8 @@ def load_framework_config_file(default, fallback, root_dir, owtf_pid):
     :return: None
     :rtype: None
     """
+    #config_handler.root_dir = root_dir
+    #config_handler.owtf_pid = owtf_pid
     config_path = default
     if os.path.isfile(config_path):
         config_path = fallback
@@ -82,7 +84,7 @@ def get_config_val(session, key):
     """
     obj = session.query(models.ConfigSetting).get(key)
     if obj:
-        return multi_replace(obj.value, get_replacement_dict())
+        return multi_replace(obj.value, get_replacement_dict(session))
     else:
         return None
 

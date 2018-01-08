@@ -36,10 +36,6 @@ class TransactionLogger(OWTFProcess):
         self.session = Session()
         super(TransactionLogger, self).__init__(**kwargs)
 
-    def initialize(self, **kwargs):
-        self.enable_logging()
-        self.disable_console_logging()
-
     def derive_target_for_transaction(self, request, response, target_list, host_list):
         """Get the target and target ID for transaction
 

@@ -10,6 +10,7 @@ import logging
 from sqlalchemy import create_engine, exc, func
 from sqlalchemy.orm import Session as _Session, sessionmaker
 
+from owtf.db.models import Base
 from owtf.settings import DATABASE_IP, DATABASE_PORT, DATABASE_NAME, DATABASE_USER, DATABASE_PASS
 
 
@@ -39,9 +40,16 @@ def flush_transaction(method):
 
 
 def get_db_engine():
-    return create_engine(
+    engine = create_engine(
             "postgresql+psycopg2://{}:{}@{}:{}/{}".format(DATABASE_USER, DATABASE_PASS, DATABASE_IP, int(DATABASE_PORT),
             DATABASE_NAME), pool_recycle=300)
+    Base.metadata.create_all(engine)
+    return engine
+
+
+def get_scoped_session():
+    Session.configure(bind=get_db_engine())
+    return Session()
 
 
 class Session(_Session):

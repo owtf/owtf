@@ -26,14 +26,13 @@ from owtf.managers.plugin import get_groups_for_plugins, get_all_plugin_types, g
 from owtf.managers.session import _ensure_default_session
 from owtf.managers.target import load_targets
 from owtf.managers.worklist import load_works
-from owtf.plugin.plugin_handler import show_plugin_list
+from owtf.plugin.plugin_handler import show_plugin_list, plugin_handler
 from owtf.proxy.main import start_proxy
 from owtf.settings import WEB_TEST_GROUPS, AUX_TEST_GROUPS, NET_TEST_GROUPS, DEFAULT_RESOURCES_PROFILE, \
     FALLBACK_RESOURCES_PROFILE, FALLBACK_AUX_TEST_GROUPS, FALLBACK_NET_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, \
     FALLBACK_MAPPING_PROFILE, DEFAULT_MAPPING_PROFILE, DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, \
     DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE, WEBUI, SERVER_ADDR, UI_SERVER_PORT
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs, get_logs_dir, FileOperations
-from owtf.utils.log import enable_logging
 
 
 def banner():
@@ -248,7 +247,6 @@ def start(args):
     owtf_pid = os.getpid()
     FileOperations.create_missing_dirs(get_logs_dir())
     create_temp_storage_dirs(owtf_pid)
-    enable_logging(process_name="owtf_main")
     try:
         _ensure_default_session(db)
         load_framework_config_file(DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid)
@@ -267,16 +265,23 @@ def start(args):
     args['nowebui'] = not os.environ.get('WEBUI', WEBUI)
     config_handler.cli_options = deepcopy(args)
 
-    # Initialize plugin handler and helpers
-    from owtf.plugin.plugin_handler import plugin_handler, PluginHandler
-    from owtf.plugin.plugin_params import plugin_params, PluginParams
-    plugin_handler = PluginHandler(args)
-    plugin_params = PluginParams(args)
+    # Patch args
+    setattr(plugin_handler, "options", args)
+    setattr(plugin_handler, "simulation", args.get('Simulation', None))
+    setattr(plugin_handler, "scope", args['Scope'])
+    setattr(plugin_handler, "plugin_group", args['PluginGroup'])
+    setattr(plugin_handler, "only_plugins", args['OnlyPlugins'])
+    setattr(plugin_handler, "except_plugins", args['ExceptPlugins'])
+    add_plugin_list = getattr(plugin_handler, "validate_format_plugin_list")
+    setattr(plugin_handler, "only_plugins_list", add_plugin_list(session=db, plugin_codes=args['OnlyPlugins']))
+    setattr(plugin_handler, "except_plugins_list", add_plugin_list(session=db, plugin_codes=args['OnlyPlugins']))
+    exec_registry = getattr(plugin_handler, "init_exec_registry")
+    exec_registry()
 
     # Initialise Framework.
     logging.warn("OWTF Version: {0}, Release: {1} ".format(__version__, __release__))
-    start_proxy()
     logging.warn("http://{}:{} <-- Web UI URL".format(SERVER_ADDR, str(UI_SERVER_PORT)))
+    start_proxy()
     try:
         if initialise_framework(args):
             if not args['nowebui']:

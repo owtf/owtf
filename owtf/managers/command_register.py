@@ -5,11 +5,9 @@ owtf.db.command_register
 Component to handle data storage and search of all commands run
 """
 
-from sqlalchemy.exc import SQLAlchemyError
-
 from owtf.db import models
 from owtf.managers.poutput import plugin_output_exists
-from owtf.managers.target import target_required, target_manager
+from owtf.managers.target import target_required, get_target_url_for_id
 
 
 def add_command(session, command):
@@ -29,12 +27,7 @@ def add_command(session, command):
         modified_command=command['ModifiedCommand'].strip(),
         original_command=command['OriginalCommand'].strip()
     ))
-    try:
-        session.commit()
-    except SQLAlchemyError as e:
-        session.rollback()
-        raise e
-
+    session.commit()
 
 def delete_command(session, command):
     """Delete the command from the DB
@@ -65,12 +58,12 @@ def command_already_registered(session, original_command, target_id=None):
         # If the command was completed and the plugin output to which it
         # is referring exists
         if register_entry.success:
-            if plugin_output_exists(register_entry.plugin_key, register_entry.target_id):
-                return target_manager.get_target_url_for_id(register_entry.target_id)
+            if plugin_output_exists(session, register_entry.plugin_key, register_entry.target_id):
+                return get_target_url_for_id(session, register_entry.target_id)
             else:
-                delete_command(original_command)
+                delete_command(session, original_command)
                 return None
         else:  # Command failed
-            delete_command(original_command)
-            return target_manager.get_target_url_for_id(register_entry.target_id)
+            delete_command(session, original_command)
+            return get_target_url_for_id(session, register_entry.target_id)
     return None

@@ -17,14 +17,10 @@ from owtf.utils.app import Application
 from owtf.error_reporting import setup_signal_handlers, get_sentry_client
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.settings import STATIC_ROOT, UI_SERVER_LOG, SERVER_ADDR, UI_SERVER_PORT, TEMPLATES, SENTRY_API_KEY
+from owtf.utils.logger import logger
 
 
 class APIServer(OWTFProcess):
-
-    def initialize(self, **kwargs):
-        self.enable_logging()
-        self.disable_console_logging()
-
     def pseudo_run(self):
         application = Application(
             handlers=HANDLERS,
@@ -34,6 +30,9 @@ class APIServer(OWTFProcess):
             static_path=STATIC_ROOT,
             compiled_template_cache=True
         )
+        self.logger = logger
+        self.logger.setup_logging()
+        self.logger.disable_console_logging()
         self.server = tornado.httpserver.HTTPServer(application)
         try:
             ui_port = int(UI_SERVER_PORT)
@@ -41,7 +40,7 @@ class APIServer(OWTFProcess):
             self.server.bind(ui_port, address=ui_address)
             tornado.options.parse_command_line(
                 args=['dummy_arg', '--log_file_prefix={}'.format(UI_SERVER_LOG), '--logging=info'])
-            self.server.start(1)
+            self.server.start()
             tornado.ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:
             pass
@@ -50,7 +49,6 @@ class APIServer(OWTFProcess):
 def start_api_server():
     """This method starts the interface server"""
     api_server = APIServer()
-    api_server.initialize()
     api_server.start()
 
 
@@ -60,7 +58,7 @@ def main():
         # setup sentry
         sentry_client = get_sentry_client(SENTRY_API_KEY)
     except:
-        logger.exception("[-] Uncaught exception on startup")
+        logging.exception("[-] Uncaught exception on startup")
         sys.exit(1)
 
     try:

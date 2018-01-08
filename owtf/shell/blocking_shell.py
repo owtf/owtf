@@ -15,9 +15,11 @@ from collections import defaultdict
 from sqlalchemy.exc import SQLAlchemyError
 
 from owtf.managers.command_register import command_already_registered, add_command
+from owtf.managers.target import target_manager
 from owtf.utils.error import user_abort
-from owtf.utils.strings import multi_replace, scrub_output
-from owtf.utils.timer import Timer
+from owtf.utils.logger import logger
+from owtf.utils.strings import multi_replace_dict, scrub_output, multi_replace
+from owtf.utils.timer import timer
 
 
 class Shell(object):
@@ -25,11 +27,13 @@ class Shell(object):
     def __init__(self):
         # Some settings like the plugin output dir are dynamic, config is no place for those
         self.dynamic_replacements = {}
-        self.timer = Timer()
+        self.timer = timer
+        self.logger = logger
         self.command_time_offset = 'Command'
         self.old_cmds = defaultdict(list)
         # Environment variables for shell
         self.shell_env = os.environ.copy()
+        self.logger.setup_logging()
 
     def refresh_replacements(self):
         """Refresh the replaced items in the list
@@ -37,7 +41,7 @@ class Shell(object):
         :return: None
         :rtype: None
         """
-        self.dynamic_replacements['###plugin_output_dir###'] = self.target.get_path('plugin_output_dir')
+        self.dynamic_replacements['###plugin_output_dir###'] = target_manager.get_path('plugin_output_dir')
 
     def start_cmd(self, original_cmd, modified_cmd):
         """Start the timer and return the list of commands to run
@@ -60,7 +64,7 @@ class Shell(object):
         }
         return commands
 
-    def finish_cmd(self, cmd_info, was_cancelled, plugin_info):
+    def finish_cmd(self, session, cmd_info, was_cancelled, plugin_info):
         """Finish the command run
 
         :param cmd_info: Command info dict
@@ -78,9 +82,9 @@ class Shell(object):
             success = False
         cmd_info['Success'] = success
         cmd_info['RunTime'] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
-        cmd_info['Target'] = self.target.get_target_id()
+        cmd_info['Target'] = target_manager.get_target_id()
         cmd_info['PluginKey'] = plugin_info["key"]
-        add_command(cmd_info)
+        add_command(session=session, command=cmd_info)
 
     def escape_shell_path(self, text):
         """Escape shell path characters in the text
@@ -103,12 +107,12 @@ class Shell(object):
         :rtype: `str`
         """
         self.refresh_replacements()
-        new_cmd = "cd %s;%s" % (self.escape_shell_path(plugin_output_dir),
+        new_cmd = "cd {};{}".format(self.escape_shell_path(plugin_output_dir),
                                    multi_replace(command, self.dynamic_replacements))
         self.old_cmds[new_cmd] = command
         return new_cmd
 
-    def can_run_cmd(self, command):
+    def can_run_cmd(self, session, command):
         """Check if command is already in place to run
 
         :param command: Command dict to check
@@ -116,7 +120,7 @@ class Shell(object):
         :return: List of return values
         :rtype: `list`
         """
-        target = command_already_registered(command['OriginalCommand'])
+        target = command_already_registered(session=session, original_command=command['OriginalCommand'])
         if target:  # target_config will be None for a not found match
             return [target, False]
         return [None, True]
@@ -144,7 +148,7 @@ class Shell(object):
         )
         return proc
 
-    def shell_exec_monitor(self, command, plugin_info):
+    def shell_exec_monitor(self, session, command, plugin_info):
         """Monitor shell command execution
 
         :param command: Command to run
@@ -155,9 +159,9 @@ class Shell(object):
         :rtype: `str`
         """
         cmd_info = self.start_cmd(command, command)
-        target, can_run = self.can_run_cmd(cmd_info)
+        target, can_run = self.can_run_cmd(session=session, command=cmd_info)
         if not can_run:
-            message = "The command was already run for target: %s" % str(target)
+            message = "The command was already run for target: {}".format(target)
             return message
         logging.info("")
         logging.info("Executing :\n\n%s\n\n", command)
@@ -178,7 +182,7 @@ class Shell(object):
                     break
                 # NOTE: Below MUST BE print instead of "cprint" to clearly distinguish between owtf
                 # output and tool output
-                logging.warn(line.strip())  # Show progress on the screen too!
+                logging.info(line.strip())  # Show progress on the screen too!
                 output += line  # Save as much output as possible before a tool crashes! :)
         except KeyboardInterrupt:
             os.killpg(proc.pid, signal.SIGINT)
@@ -193,7 +197,7 @@ class Shell(object):
             output += user_abort('Command', output)  # Identify as Command Level abort
         finally:
             try:
-                self.finish_cmd(cmd_info, cancelled, plugin_info)
+                self.finish_cmd(session=session, cmd_info=cmd_info, was_cancelled=cancelled, plugin_info=plugin_info)
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)
@@ -219,3 +223,6 @@ class Shell(object):
         kwargs.setdefault("stderr", subprocess.STDOUT)
         p = subprocess.Popen(command, shell=True, **kwargs)
         return p.communicate()[0]
+
+
+shell = Shell()

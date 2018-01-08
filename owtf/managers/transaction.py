@@ -39,7 +39,7 @@ def num_transactions(session, scope=True, target_id=None):
 
 
 @target_required
-def is_transaction_already_added(criteria, target_id=None):
+def is_transaction_already_added(session, criteria, target_id=None):
     """Checks if the transaction is already in the DB
 
     :param criteria: Filter criteria
@@ -49,7 +49,7 @@ def is_transaction_already_added(criteria, target_id=None):
     :return: True/False
     :rtype: `bool`
     """
-    return len(get_all_transactions(criteria, target_id=target_id)) > 0
+    return len(get_all_transactions(session, criteria, target_id=target_id)) > 0
 
 
 def transaction_gen_query(session, criteria, target_id, for_stats=False):

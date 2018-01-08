@@ -9,25 +9,28 @@ chosen settings.
 import imp
 import logging
 import os
-
 from collections import defaultdict
+
 from sqlalchemy.exc import SQLAlchemyError
 from ptp import PTP
 from ptp.libptp.constants import UNKNOWN
 from ptp.libptp.exceptions import PTPError
 
+from owtf.db.database import get_scoped_session
 from owtf.config import config_handler
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
 from owtf.managers.config import get_tcp_ports
 from owtf.managers.plugin import get_plugins_by_group, get_types_for_plugin_group, get_plugins_by_group_type
 from owtf.managers.poutput import save_plugin_output, save_partial_output
 from owtf.managers.target import target_manager
+from owtf.managers.transaction import num_transactions
 from owtf.plugin.scanner import Scanner
 from owtf.settings import AUX_OUTPUT_PATH, FORCE_OVERWRITE, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
 from owtf.utils.strings import wipe_bad_chars
-from owtf.utils.timer import Timer
+from owtf.utils.timer import timer
+from owtf.utils.logger import logger
 
 
 INTRO_BANNER_GENERAL = """
@@ -51,22 +54,20 @@ WEB Plugin Types:
 class PluginHandler(object):
 
     def __init__(self, options):
-        self.timer = Timer()
-        self.init_options(options)
-
-    def init_options(self, options):
-        """Initialize CLI options for each instance of PluginHandler."""
+        self.timer = timer
+        self.plugin_group = None
+        self.simulation = None
+        self.scope = None
+        self.only_plugins = None
+        self.except_plugins = None
+        self.only_plugins_list = None
+        self.except_plugins_list = None
+        self.options = options
         self.plugin_count = 0
-        self.simulation = options.get('Simulation', None)
-        self.scope = options['Scope']
-        self.plugin_group = options['PluginGroup']
-        self.only_plugins_list = self.validate_format_plugin_list(options.get('OnlyPlugins'))
-        self.except_plugins_list = self.validate_format_plugin_list(options.get('ExceptPlugins'))
-        #For special plugin types like "quiet" -> "semi_passive" + "passive"
-        if isinstance(options.get('PluginType'), str):
-            options['PluginType'] = options['PluginType'].split(',')
-        self.init_exec_registry()
+        self.session = get_scoped_session()
         self.scanner = Scanner()
+        self.logger = logger
+        self.logger.setup_logging()
 
     def plugin_already_run(self, session, plugin_info):
         """Check if plugin has already run
@@ -79,7 +80,7 @@ class PluginHandler(object):
         from owtf.managers.poutput import plugin_already_run
         return plugin_already_run(session, plugin_info)
 
-    def validate_format_plugin_list(self, plugin_codes):
+    def validate_format_plugin_list(self, session, plugin_codes):
         """Validate the plugin codes by checking if they exist.
 
         :param list plugin_codes: OWTF plugin codes to be validated.
@@ -92,7 +93,7 @@ class PluginHandler(object):
         if not plugin_codes:
             return []
         valid_plugin_codes = []
-        plugins_by_group = get_plugins_by_group(self.plugin_group)
+        plugins_by_group = get_plugins_by_group(session=session, plugin_group=self.plugin_group)
         for code in plugin_codes:
             found = False
             for plugin in plugins_by_group:  # Processing Loop
@@ -171,7 +172,7 @@ class PluginHandler(object):
         :return:
         :rtype: `bool`
         """
-        return ['grep'] != get_types_for_plugin_group('web')
+        return ['grep'] != get_types_for_plugin_group(self.session, 'web')
 
     def dump_output_file(self, filename, contents, plugin, relative_path=False):
         """Dumps output file to path
@@ -190,7 +191,7 @@ class PluginHandler(object):
         save_dir = self.get_plugin_output_dir(plugin)
         abs_path = FileOperations.dump_file(filename, contents, save_dir)
         if relative_path:
-            return os.path.relpath(abs_path, config_handler.get_output_dir_target())
+            return os.path.relpath(abs_path, get_output_dir_target())
         return abs_path
 
     def get_abs_path(self, relative_path):
@@ -201,7 +202,7 @@ class PluginHandler(object):
         :return: The absolute path
         :rtype: `str`
         """
-        return os.path.join(config_handler.get_output_dir_target(), relative_path)
+        return os.path.join(get_output_dir_target(), relative_path)
 
     def exists(self, directory):
         """Check if directory exists
@@ -231,7 +232,7 @@ class PluginHandler(object):
         f, filename, desc = imp.find_module(module_file.split('.')[0], [module_path])
         return imp.load_module(module_name, f, filename, desc)
 
-    def chosen_plugin(self, plugin, show_reason=False):
+    def chosen_plugin(self, session, plugin, show_reason=False):
         """Verify that the plugin has been chosen by the user.
 
         :param dict plugin: The plugin dictionary with all the information.
@@ -252,7 +253,7 @@ class PluginHandler(object):
             if self.except_plugins_list and plugin['code'] in self.except_plugins_list:
                 chosen = False
                 reason = 'in black-list'
-        if plugin['type'] not in get_types_for_plugin_group(plugin['group']):
+        if plugin['type'] not in get_types_for_plugin_group(session=session, plugin_group=plugin['group']):
             chosen = False  # Skip plugin: Not matching selected type
             reason = 'not matching selected type'
         if not chosen and show_reason:
@@ -272,7 +273,7 @@ class PluginHandler(object):
         """
         return FORCE_OVERWRITE
 
-    def plugin_can_run(self, plugin, show_reason=False):
+    def plugin_can_run(self, session, plugin, show_reason=False):
         """Verify that a plugin can be run by OWTF.
 
         :param dict plugin: The plugin dictionary with all the information.
@@ -282,10 +283,11 @@ class PluginHandler(object):
         :rtype: bool
 
         """
-        if not self.chosen_plugin(plugin, show_reason=show_reason):
+        if not self.chosen_plugin(session=session, plugin=plugin, show_reason=show_reason):
             return False  # Skip not chosen plugins
         # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active)
-        if self.plugin_already_run(plugin) and ((not self.force_overwrite() and not ('grep' == plugin['type'])) or
+        if self.plugin_already_run(session=session, plugin_info=plugin) and \
+                ((not self.force_overwrite() and not ('grep' == plugin['type'])) or
                                               plugin['type'] == 'external'):
             if show_reason:
                 logging.warning(
@@ -295,7 +297,7 @@ class PluginHandler(object):
                     plugin['type']
                 )
             return False
-        if 'grep' == plugin['type'] and self.plugin_already_run(plugin):
+        if 'grep' == plugin['type'] and self.plugin_already_run(session=session, plugin_info=plugin):
             # Grep plugins can only run if some active or semi_passive plugin was run since the last time
             return False
         return True
@@ -375,7 +377,7 @@ class PluginHandler(object):
             owtf_rank = -1
         return owtf_rank
 
-    def process_plugin(self, plugin_dir, plugin, status=None):
+    def process_plugin(self, session, plugin_dir, plugin, status=None):
         """Process a plugin from running to ranking.
 
         :param str plugin_dir: Path to the plugin directory.
@@ -390,7 +392,7 @@ class PluginHandler(object):
         if status is None:
             status = {}
         # Ensure that the plugin CAN be run before starting anything.
-        if not self.plugin_can_run(plugin, show_reason=True):
+        if not self.plugin_can_run(session=session, plugin=plugin, show_reason=True):
             return None
         # Save how long it takes for the plugin to run.
         self.timer.start_timer('Plugin')
@@ -403,16 +405,12 @@ class PluginHandler(object):
         logging.info(
             '_' * 10 + ' %d - Target: %s -> Plugin: %s (%s/%s) ' + '_' * 10,
             self.plugin_count,
-            self.target.get_target_url(),
+            target_manager.get_target_url(),
             plugin['title'],
             plugin['group'],
             plugin['type'])
-        # Skip processing in simulation mode, but show until line above
-        # to illustrate what will run
-        if self.simulation:
-            return None
         # DB empty => grep plugins will fail, skip!!
-        if ('grep' == plugin['type'] and self.transaction.num_transactions() == 0):
+        if ('grep' == plugin['type'] and num_transactions(session) == 0):
             logging.info('Skipped - Cannot run grep plugins: The Transaction DB is empty')
             return None
         output = None
@@ -454,9 +452,9 @@ class PluginHandler(object):
             plugin['owtf_rank'] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
             try:
                 if status_msg == 'Successful':
-                    save_plugin_output(plugin, output)
+                    save_plugin_output(session=session, plugin=plugin, output=output)
                 else:
-                    save_partial_output(plugin, partial_output, abort_reason)
+                    save_partial_output(session=session, plugin=plugin, output=partial_output, message=abort_reason)
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)
@@ -474,7 +472,7 @@ class PluginHandler(object):
         """
         status = {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True}
         if self.plugin_group in ['web', 'auxiliary', 'network']:
-            self.process_plugins_for_target_list(self.plugin_group, status, self.target.get_all("ID"))
+            self.process_plugins_for_target_list(self.session, self.plugin_group, status, target_manager.get_all("ID"))
         return status
 
     def get_plugin_group_dir(self, plugin_group):
@@ -485,7 +483,7 @@ class PluginHandler(object):
         :return: Path to the output dir for plugin group
         :rtype: `str`
         """
-        plugin_dir = PLUGINS_DIR + plugin_group
+        plugin_dir = PLUGINS_DIR + "/" + plugin_group
         return plugin_dir
 
     def switch_to_target(self, target):
@@ -498,7 +496,7 @@ class PluginHandler(object):
         """
         target_manager.set_target(target)  # Tell Target DB that all Gets/Sets are now Target-specific
 
-    def process_plugins_for_target_list(self, plugin_group, status, target_list):
+    def process_plugins_for_target_list(self, session, plugin_group, status, target_list):
         """Process plugins for all targets in the list
 
         :param plugin_group: Plugin group
@@ -527,16 +525,18 @@ class PluginHandler(object):
                     # Target-specific.
                     self.switch_to_target(target)
                     for plugin in plugin_group:
-                        self.process_plugin(plugin_dir, plugin, status)
+                        self.process_plugin(session=session, plugin_dir=plugin_dir, plugin=plugin, status=status)
                     lastwave = waves[i]
                     for http_ports in http:
                         if http_ports == '443':
                             self.process_plugins_for_target_list(
+                                session,
                                 'web',
                                 {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True},
                                 {"https://{}".format(target.split('//')[1])})
                         else:
                             self.process_plugins_for_target_list(
+                                session,
                                 'web',
                                 {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True},
                                 {target})
@@ -582,4 +582,4 @@ def show_plugin_types(session, plugin_type, group):
         logging.info("%s%s(%s)%s%s", line_start, pad1, plugin['code'], pad2, plugin['descrip'])
 
 
-plugin_handler = None
+plugin_handler = PluginHandler(options={})

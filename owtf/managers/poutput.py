@@ -15,10 +15,9 @@ from owtf.managers.session import session_required
 from owtf.lib.exceptions import InvalidParameterType
 from owtf.db import models
 from owtf.settings import DATE_TIME_FORMAT
-from owtf.utils import timer
-from owtf.utils.file import FileOperations
+from owtf.utils.timer import timer
+from owtf.utils.file import FileOperations, get_output_dir_target
 from owtf.managers.target import target_manager
-from owtf.config import config_handler
 
 
 def plugin_output_exists(session, plugin_key, target_id):
@@ -244,12 +243,12 @@ def delete_all_poutput(session, filter_data, target_id=None):
     :rtype: None
     """
     # for_delete = True: empty dict will match all results
-    query = poutput_gen_query(filter_data, target_id, for_delete=True)
+    query = poutput_gen_query(session, filter_data, target_id, for_delete=True)
     # Delete the folders created for these plugins
     for plugin in query.all():
         # First check if path exists in db
         if plugin.output_path:
-            output_path = os.path.join(config_handler.get_output_dir_target(), plugin.output_path)
+            output_path = os.path.join(get_output_dir_target(), plugin.output_path)
             if os.path.exists(output_path):
                 FileOperations.rm_tree(output_path)
     # When folders are removed delete the results from db
@@ -325,6 +324,8 @@ def save_plugin_output(session, plugin, output, target_id=None):
     :return: None
     :rtype: None
     """
+    from owtf.plugin.plugin_handler import plugin_handler
+
     session.merge(models.PluginOutput(
         plugin_key=plugin["key"],
         plugin_code=plugin["code"],
@@ -336,14 +337,10 @@ def save_plugin_output(session, plugin, output, target_id=None):
         status=plugin["status"],
         target_id=target_id,
         # Save path only if path exists i.e if some files were to be stored it will be there
-        output_path=(plugin["output_path"] if os.path.exists(config_handler.get_plugin_output_dir(plugin)) else None),
+        output_path=(plugin["output_path"] if os.path.exists(plugin_handler.get_plugin_output_dir(plugin)) else None),
         owtf_rank=plugin['owtf_rank'])
     )
-    try:
-        session.commit()
-    except SQLAlchemyError as e:
-        session.rollback()
-        raise e
+    session.commit()
 
 
 @target_required
@@ -361,6 +358,8 @@ def save_partial_output(session, plugin, output, message, target_id=None):
     :return: None
     :rtype: None
     """
+    from owtf.plugin.plugin_handler import plugin_handler
+
     session.merge(models.PluginOutput(
         plugin_key=plugin["key"],
         plugin_code=plugin["code"],
@@ -373,15 +372,10 @@ def save_partial_output(session, plugin, output, message, target_id=None):
         status=plugin["status"],
         target_id=target_id,
         # Save path only if path exists i.e if some files were to be stored it will be there
-        output_path=(plugin["output_path"] if os.path.exists(config_handler.get_plugin_output_dir(plugin)) else None),
+        output_path=(plugin["output_path"] if os.path.exists(plugin_handler.get_plugin_output_dir(plugin)) else None),
         owtf_rank=plugin['owtf_rank'])
     )
-    try:
-        session.commit()
-    except SQLAlchemyError as e:
-        session.rollback()
-        raise e
-
+    session.commit()
 
 @session_required
 def get_severity_freq(session, session_id=None):

@@ -11,9 +11,21 @@ NOTE: This module has not been refactored since this is being deprecated
 import re
 import cgi
 import logging
+
+import os
 from tornado.template import Template
 
+from owtf.db.database import get_scoped_session
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
+from owtf.http.requester import requester
+from owtf.managers.target import target_manager
+from owtf.plugin.plugin_handler import plugin_handler
+from owtf.managers.config import config_handler
+from owtf.shell.blocking_shell import shell
+from owtf.utils.file import FileOperations
+from owtf.utils.logger import logger
+from owtf.utils.timer import timer
+
 
 PLUGIN_OUTPUT = {"type": None, "output": None}  # This will be json encoded and stored in db as string
 
@@ -23,10 +35,18 @@ class PluginHelper(object):
     mNumLinesToShow = 25
 
     def __init__(self):
+        self.plugin_handler = plugin_handler
+        self.requester = requester
+        self.requester = requester
+        self.shell = shell
+        self.timer = timer
+        self.session = get_scoped_session()
         # Compile regular expressions only once on init:
         self.robots_allow_regex = re.compile("Allow: ([^\n  #]+)")
         self.robots_disallow_regex = re.compile("Disallow: ([^\n #]+)")
         self.robots_sitemap = re.compile("Sitemap: ([^\n #]+)")
+        self.logger = logger
+        self.logger.setup_logging()
 
     def multi_replace(self, text, replace_dict):
         """ This redundant method is here so that plugins can use it
@@ -133,7 +153,7 @@ class PluginHelper(object):
     def SetConfigPluginOutputDir(self, PluginInfo):
         PluginOutputDir = self.plugin_handler.get_plugin_output_dir(PluginInfo)
         # FULL output path for plugins to use
-        self.target.set_path('plugin_output_dir', "%s/%s" % (os.getcwd(), PluginOutputDir))
+        target_manager.set_path('plugin_output_dir', "%s/%s" % (os.getcwd(), PluginOutputDir))
         self.shell.refresh_replacements()  # Get dynamic replacement, i.e. plugin-specific output directory
         return PluginOutputDir
 
@@ -145,12 +165,12 @@ class PluginHelper(object):
     def RunCommand(self, Command, PluginInfo, PluginOutputDir):
         FrameworkAbort = PluginAbort = False
         if not PluginOutputDir:
-            PluginOutputDir = InitPluginOutputDir(PluginInfo)
-        self.timer.start_timer('FormatCommandAndOutput')
+            PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
+        timer.start_timer('FormatCommandAndOutput')
         ModifiedCommand = shell.get_modified_shell_cmd(Command, PluginOutputDir)
 
         try:
-            RawOutput = shell.shell_exec_monitor(ModifiedCommand, PluginInfo)
+            RawOutput = shell.shell_exec_monitor(self.session, ModifiedCommand, PluginInfo)
         except PluginAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             PluginAbort = True
@@ -198,7 +218,7 @@ class PluginHelper(object):
             }
             plugin_output = [plugin_output]
             # This command returns URLs for processing
-            if Name == self.config.get_val('EXTRACT_URLS_RESERVED_RESOURCE_NAME'):
+            if Name == config_handler.get_val('EXTRACT_URLS_RESERVED_RESOURCE_NAME'):
                 #  The plugin_output output dict will be remade if the resource is of this type
                 plugin_output = self.LogURLsFromStr(RawOutput)
             # TODO: Look below to handle streaming report
