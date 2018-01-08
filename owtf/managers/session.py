@@ -3,8 +3,8 @@ owtf.db.session_manager
 
 Manager functions for sessions
 """
-from owtf import db
 from owtf.db import models
+from owtf.db.database import get_scoped_session
 from owtf.lib import exceptions
 from owtf.utils.strings import str2bool
 
@@ -20,7 +20,7 @@ def session_required(func):
     def wrapped_function(*args, **kwargs):
         # True if target_id doesnt exist
         if (kwargs.get("session_id", "None") == "None") or (kwargs.get("session_id", True) is None):
-            kwargs["session_id"] = get_session_id(db)
+            kwargs["session_id"] = get_session_id(get_scoped_session())
         return func(*args, **kwargs)
     return wrapped_function
 

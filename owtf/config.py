@@ -171,6 +171,9 @@ class Config(object):
         """
         return self.config
 
+    def get_replacement_dict(self):
+        return {"FRAMEWORK_DIR": self.root_dir}
+
     def show(self):
         """Print all keys and values from configuration dictionary
 

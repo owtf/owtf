@@ -7,6 +7,9 @@ from collections import defaultdict
 from owtf.settings import REPLACEMENT_DELIMITER
 
 
+search_regex = re.compile('%s([a-zA-Z0-9-_]*?)%s' % (REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER))
+
+
 def str2bool(string):
     """ Converts a string to a boolean
 
@@ -20,7 +23,6 @@ def str2bool(string):
 
 def multi_replace(text, replace_dict):
     """Recursive multiple replacement function
-
     :param text: Text to replace
     :type text: `str`
     :param replace_dict: The parameter dict to be replaced with
@@ -35,7 +37,8 @@ def multi_replace(text, replace_dict):
             # A recursive call to remove all level occurences of place
             # holders.
             new_text = new_text.replace(REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER,
-                                        multi_replace(replace_dict[key], replace_dict))
+                                        multi_replace_dict(replace_dict[key], replace_dict) )
+    new_text = os.path.expanduser(new_text)
     return new_text
 
 
@@ -99,7 +102,7 @@ def cprint(msg):
     return msg
 
 
-def multi_replace(text, replace_dict):
+def multi_replace_dict(text, replace_dict):
     """Perform multiple replacements in one go using the replace dictionary
     in format: { 'search' : 'replace' }
 

@@ -9,7 +9,7 @@ import re
 import logging
 
 from owtf.config import config_handler
-from owtf.shell.blocking_shell import Shell
+from owtf.shell.blocking_shell import shell
 from owtf.utils.file import FileOperations
 
 SCANS_FOLDER = "scans"  # Folder under which all scans will be saved
@@ -23,7 +23,7 @@ FULL_SCAN_FILE = "%s/04_full_scan" % SCANS_FOLDER
 class Scanner(object):
 
     def __init__(self):
-        self.shell = Shell()
+        self.shell = shell
         self.shell.shell_exec("mkdir %s" % SCANS_FOLDER)
 
     def ping_sweep(self, target, scantype):

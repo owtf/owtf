@@ -6,7 +6,6 @@ owtf.interface.urls
 
 import tornado.web
 
-from owtf import db
 from owtf.api.handlers.config import ConfigurationHandler
 from owtf.api.handlers.misc import ErrorDataHandler, DashboardPanelHandler, ProgressBarHandler
 from owtf.api.handlers.plugin import PluginDataHandler, PluginNameOutput, PluginOutputHandler
@@ -17,12 +16,15 @@ from owtf.api.handlers.transactions import URLDataHandler, URLSearchHandler, Tra
     TransactionHrtHandler, TransactionSearchHandler
 from owtf.api.handlers.work import WorkerHandler, WorklistHandler, WorklistSearchHandler
 from owtf.api.handlers import ui_handlers
+from owtf.db.database import get_scoped_session
 from owtf.managers.plugin import get_all_plugin_groups, get_all_plugin_types
 from owtf.settings import STATIC_ROOT
 
 
-plugin_group_re = '(%s)?' % '|'.join(get_all_plugin_groups(db))
-plugin_type_re = '(%s)?' % '|'.join(get_all_plugin_types(db))
+session = get_scoped_session()
+
+plugin_group_re = '(%s)?' % '|'.join(get_all_plugin_groups(session))
+plugin_type_re = '(%s)?' % '|'.join(get_all_plugin_types(session))
 plugin_code_re = '([0-9A-Z\-]+)?'
 
 

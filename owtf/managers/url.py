@@ -5,7 +5,7 @@ owtf.db.url_manager
 The DB stores HTTP transactions, unique URLs and more.
 """
 
-from owtf.db.database import get_count
+from owtf.db.database import get_count, get_scoped_session
 from owtf.lib.exceptions import InvalidParameterType
 #from owtf.managers import is_small_file_regex, is_file_regex, is_image_regex, is_ssi_regex, is_url_regex
 from owtf.managers.target import target_required, is_url_in_scope
@@ -92,12 +92,12 @@ def add_urls_to_db(session, url, visited, found=None, target_id=None):
         # Make sure URL is clean prior to saving in DB, nasty bugs
         # can happen without this
         url = url.strip()
-        scope = is_url_in_scope(url)
+        scope = is_url_in_scope(session, url)
         session.merge(models.Url(target_id=target_id, url=url, visited=visited, scope=scope))
         session.commit()
 
 
-def get_urls_to_visit(session, target=None):
+def get_urls_to_visit():
     """Gets urls to visit for a target
 
     :param target: Target
@@ -105,6 +105,7 @@ def get_urls_to_visit(session, target=None):
     :return: List of not visited URLs
     :rtype: `list`
     """
+    session = get_scoped_session()
     urls = session.query(models.Url.url).filter_by(visited=False).all()
     urls = [i[0] for i in urls]
     return urls

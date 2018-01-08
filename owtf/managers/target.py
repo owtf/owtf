@@ -15,7 +15,7 @@ try:
 except ImportError:
     from urlparse import urlparse
 
-from owtf.db.database import get_count
+from owtf.db.database import get_count, get_scoped_session
 from owtf.settings import OUTPUT_PATH
 from owtf.utils.file import create_output_dir_target, get_target_dir, cleanup_target_dirs
 from owtf.utils.strings import cprint, str2bool
@@ -74,6 +74,9 @@ class TargetManager(object):
     target_config = dict(TARGET_CONFIG)
     path_config = dict(PATH_CONFIG)
 
+    def __init__(self):
+        self.session = get_scoped_session()
+
     def set_target(self, target_id):
         """Set a target by ID
         :param target_id: target ID
@@ -83,10 +86,10 @@ class TargetManager(object):
         """
         try:
             self.target_id = target_id
-            self.target_config = get_target_config_by_id(db, target_id)
+            self.target_config = get_target_config_by_id(self.session, target_id)
             self.path_config = self.get_path_configs(self.target_config)
         except InvalidTargetReference:
-            raise InvalidTargetReference("Target doesn't exist: %s" % str(target_id))
+            raise InvalidTargetReference("0. Target doesn't exist: %s" % str(target_id))
 
     def get_path_configs(self, target_config):
         """Get paths to output directories
@@ -134,7 +137,7 @@ class TargetManager(object):
         :return: List of target urls
         :rtype: `list`
         """
-        return get_all_targets("target_url")
+        return get_all_targets(self.session, "target_url")
 
     def get_target_config(self):
         """Return target config
@@ -242,7 +245,7 @@ def update_target(session, data_dict, target_url=None, id=None):
     if target_url:
         target_obj = session.query(models.Target).filter_by(target_url=target_url).one()
     if not target_obj:
-        raise InvalidTargetReference("Target doesn't exist: %s" % str(id) if id else str(target_url))
+        raise InvalidTargetReference("2. Target doesn't exist: %s" % str(id) if id else str(target_url))
     # TODO: Updating all related attributes when one attribute is changed
     if data_dict.get("scope", None) is not None:
         target_obj.scope = str2bool(data_dict.get("scope", None))
@@ -265,7 +268,7 @@ def delete_target(session, target_url=None, id=None):
     if target_url:
         target_obj = session.query(models.Target).filter_by(target_url=target_url).one()
     if not target_obj:
-        raise InvalidTargetReference("Target doesn't exist: %s" % str(id) if id else str(target_url))
+        raise InvalidTargetReference("3. Target doesn't exist: %s" % str(id) if id else str(target_url))
     if target_obj:
         target_url = target_obj.target_url
         session.delete(target_obj)
@@ -295,7 +298,7 @@ def get_target_url_for_id(session, id):
     target_obj = session.query(models.Target).get(id)
     if not target_obj:
         cprint("Failing with ID: %s" % str(id))
-        raise InvalidTargetReference("Target doesn't exist with ID: %s" % str(id))
+        raise InvalidTargetReference("1. Target doesn't exist with ID: %s" % str(id))
     return target_obj.target_url
 
 
@@ -309,7 +312,7 @@ def get_target_config_by_id(session, id):
     """
     target_obj = session.query(models.Target).get(id)
     if not target_obj:
-        raise InvalidTargetReference("Target doesn't exist: %s" % str(id))
+        raise InvalidTargetReference("5. Target doesn't exist: %s" % str(id))
     return get_target_config_dict(target_obj)
 
 

@@ -7,11 +7,11 @@ owtf.db.resource_manager
 import os
 import logging
 
-from owtf import config
+from owtf import get_scoped_session
 from owtf.db import models
 from owtf.managers.config import get_replacement_dict
 from owtf.utils.file import FileOperations
-from owtf.utils.strings import multi_replace, cprint
+from owtf.utils.strings import multi_replace, cprint, multi_replace_dict
 
 
 def get_raw_resources(session, resource_type):
@@ -30,7 +30,22 @@ def get_raw_resources(session, resource_type):
     return raw_resources
 
 
-def get_resources(session, resource_type):
+def get_rsrc_replacement_dict(session):
+    """Get the configuration update changes as a dict
+    :return:
+    :rtype:
+    """
+    from owtf.managers.target import target_manager
+    from owtf.managers.config import config_handler
+
+    configuration = get_replacement_dict(session)
+    configuration.update(target_manager.get_target_config())
+    configuration.update(config_handler.get_replacement_dict())
+    configuration.update(config_handler.get_framework_config_dict()) # for aux plugins
+    return configuration
+
+
+def get_resources(resource_type):
     """Fetch resources filtered on type
 
     :param resource_type: Resource type
@@ -38,11 +53,12 @@ def get_resources(session, resource_type):
     :return: List of resources
     :rtype: `list`
     """
-    replacement_dict = get_replacement_dict(session)
+    session = get_scoped_session()
+    replacement_dict = get_rsrc_replacement_dict(session)
     raw_resources = get_raw_resources(session, resource_type)
     resources = []
     for name, resource in raw_resources:
-        resources.append([name, config.multi_replace(resource, replacement_dict)])
+        resources.append([name, multi_replace_dict(resource, replacement_dict)])
     return resources
 
 
@@ -71,7 +87,7 @@ def get_resource_list(session, resource_type_list):
     raw_resources = get_raw_resource_list(session, resource_type_list)
     resources = []
     for name, resource in raw_resources:
-        resources.append([name, multi_replace(resource, replacement_dict)])
+        resources.append([name, multi_replace_dict(resource, replacement_dict)])
     return resources
 
 

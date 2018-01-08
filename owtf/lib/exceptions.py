@@ -94,3 +94,15 @@ class InvalidMappingReference(FrameworkException):
 
 class DatabaseNotRunningException(Exception):
     pass
+
+
+class PluginException(Exception):
+    pass
+
+
+class PluginsDirectoryDoesNotExist(PluginException):
+    """The specified plugin directory does not exist."""
+
+
+class PluginsAlreadyLoaded(PluginException):
+    """`load_plugins()` called twice."""

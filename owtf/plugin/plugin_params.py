@@ -8,17 +8,21 @@ Manage parameters to the plugins
 from collections import defaultdict
 
 from owtf.config import config_handler
+from owtf.db.database import get_scoped_session
 from owtf.managers.error import add_error
 from owtf.utils.error import abort_framework
 from owtf.utils.strings import cprint, merge_dicts
+from owtf.utils.logger import logger
 
 
 class PluginParams(object):
 
     def __init__(self, options):
-        self.raw_args = options['Args']
         self.init = False
         self.no_args = []
+        self.logger = logger
+        self.session = get_scoped_session()
+        self.logger.setup_logging()
 
     def process_args(self):
         """Process args
@@ -32,13 +36,13 @@ class PluginParams(object):
                 continue
             chunks = arg.split('=')
             if len(chunks) < 2:
-                add_error("USER ERROR: %s arguments should be in NAME=VALUE format" % str(chunks), 'user')
+                add_error(self.session, "USER ERROR: %s arguments should be in NAME=VALUE format" % str(chunks), 'user')
                 return False
             arg_name = chunks[0]
             try:
                 arg_val = arg.replace(arg_name, '')[1:]
             except ValueError:
-                add_error("USER ERROR: %s arguments should be in NAME=VALUE format" % str(arg_name), 'user')
+                add_error(self.session, "USER ERROR: %s arguments should be in NAME=VALUE format" % str(arg_name), 'user')
                 return False
             self.args[arg_name] = arg_val
         return True
@@ -334,4 +338,4 @@ class PluginParams(object):
         return self.set_args(all_args, plugin)
 
 
-plugin_params = None
+plugin_params = PluginParams(options={})
