@@ -30,8 +30,6 @@ class APIServer(OWTFProcess):
             static_path=STATIC_ROOT,
             compiled_template_cache=True
         )
-        self.logger = logger
-        self.logger.setup_logging()
         self.logger.disable_console_logging()
         self.server = tornado.httpserver.HTTPServer(application)
         try:

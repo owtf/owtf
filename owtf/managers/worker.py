@@ -29,7 +29,6 @@ from owtf.utils.error import abort_framework
 from owtf.settings import WEBUI
 from owtf.managers.error import add_error
 from owtf.plugin.plugin_handler import plugin_handler
-from owtf.utils.logger import logger
 from owtf.db.database import get_scoped_session
 
 
@@ -38,14 +37,6 @@ TIMEOUT = 3
 
 
 class Worker(OWTFProcess):
-    def __init__(self, **kwargs):
-        super(Worker, self).__init__(**kwargs)
-        self.initialize()
-
-    def initialize(self, **kwargs):
-        self.logger = logger
-        self.logger.setup_logging()
-
     def pseudo_run(self):
         """ When run for the first time, put something into output queue ;)
 
@@ -70,9 +61,9 @@ class Worker(OWTFProcess):
                 logging.debug("Worker (%d): Finished", self.pid)
                 sys.exit(0)
             except Exception as e:
-                ex_type, ex, tb = sys.exc_info()
-                traceback.print_tb(tb)
-                add_error(self.session, "Exception occurred while running plugin", str(e))
+                e, ex, tb = sys.exc_info()
+                add_error(self.session, "Exception occurred while running plugin: {}, {}".format(str(e), str(ex)),
+                          str(traceback.format_tb(tb, 4096)))
         logging.debug("Worker (%d): Exiting...", self.pid)
         sys.exit(0)
 

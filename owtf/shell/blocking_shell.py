@@ -18,7 +18,7 @@ from owtf.managers.command_register import command_already_registered, add_comma
 from owtf.managers.target import target_manager
 from owtf.utils.error import user_abort
 from owtf.utils.logger import logger
-from owtf.utils.strings import multi_replace_dict, scrub_output, multi_replace
+from owtf.utils.strings import scrub_output, multi_replace, multi_replace_dict
 from owtf.utils.timer import timer
 
 
@@ -94,7 +94,7 @@ class Shell(object):
         :return: Modified text
         :rtype: `str`
         """
-        return multi_replace(text, {' ': '\ ', '(': '\(', ')': '\)'})
+        return multi_replace_dict(text, {' ': '\ ', '(': '\(', ')': '\)'})
 
     def get_modified_shell_cmd(self, command, plugin_output_dir):
         """Returns the modified shell command to run
@@ -108,7 +108,7 @@ class Shell(object):
         """
         self.refresh_replacements()
         new_cmd = "cd {};{}".format(self.escape_shell_path(plugin_output_dir),
-                                   multi_replace(command, self.dynamic_replacements))
+                                   multi_replace_dict(command, self.dynamic_replacements))
         self.old_cmds[new_cmd] = command
         return new_cmd
 

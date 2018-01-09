@@ -40,6 +40,9 @@ class ProxyProcess(OWTFProcess):
         self.application.inbound_port = int(INBOUND_PROXY_PORT)
         self.instances = INBOUND_PROXY_PROCESSES
 
+        # Disable console logging
+        self.logger.disable_console_logging()
+
         # Proxy CACHE
         # Cache related settings, including creating required folders according to cache folder structure
         self.application.cache_dir = INBOUND_PROXY_CACHE_DIR
@@ -187,6 +190,7 @@ def start_proxy():
                                                                                           str(INBOUND_PROXY_PORT)))
         proxy_process.initialize(USE_OUTBOUND_PROXY, OUTBOUND_PROXY_AUTH)
         transaction_logger = TransactionLogger(cache_dir=INBOUND_PROXY_CACHE_DIR)
+        transaction_logger.initialize()
         proxy_process.start()
         logging.debug("Starting transaction logger process")
         transaction_logger.start()

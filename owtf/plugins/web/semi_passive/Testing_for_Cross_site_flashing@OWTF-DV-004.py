@@ -12,9 +12,11 @@ DESCRIPTION = "Normal requests for XSF analysis"
 
 def run(PluginInfo):
     url_list = []
-    for File in ["crossdomain.xml", "clientaccesspolicy.xml"]:
-        for url in get_targets_as_list(['target_url', 'top_url']):
-            url_list.append(url + "/" + File)  # Compute all URL + File combinations
+    files = ["crossdomain.xml", "clientaccesspolicy.xml"]
+    for url in get_targets_as_list(['target_url', 'top_url'])[0]:
+        for file in files:
+            net_url = str(url + "/" + file)
+            url_list.append(net_url)  # Compute all URL + File combinations
     # The requester owtf component will unique the URLs
     TransactionList = requester.get_transactions(True, url_list)
     # Even though we have transaction list, those transactions do not have id

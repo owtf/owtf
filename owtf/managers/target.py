@@ -161,12 +161,13 @@ class TargetManager(object):
         self.path_config[output_type] = path
 
 
-def get_indexed_targets(session):
+def get_indexed_targets():
     """Get indexed targets
 
     :return:
     :rtype:
     """
+    session = get_scoped_session()
     results = session.query(models.Target.id, models.Target.target_url).all()
     return results
 

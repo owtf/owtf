@@ -24,6 +24,7 @@ class FileServer(object):
                 gzip=True
             )
             self.logger = logger
+            self.logger.setup_logging()
             self.logger.disable_console_logging()
             self.server = tornado.httpserver.HTTPServer(self.application)
             self.server.bind(int(FILE_SERVER_PORT), address=SERVER_ADDR)

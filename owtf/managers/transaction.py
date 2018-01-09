@@ -563,7 +563,7 @@ def search_by_regex_name(session, regex_name, stats=False, target_id=None):
 
 
 @target_required
-def search_by_regex_names(session, name_list, stats=False, target_id=None):
+def search_by_regex_names(name_list, stats=False, target_id=None):
     """Allows searching of the grep_outputs table using a regex name
 
     .note::
@@ -582,6 +582,7 @@ def search_by_regex_names(session, name_list, stats=False, target_id=None):
     :return: List of matched ids
     :rtype: `list`
     """
+    session = get_scoped_session()
     results = [search_by_regex_name(session, regex_name, stats=stats, target_id=target_id) for regex_name in name_list]
     return results
 

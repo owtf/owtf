@@ -22,9 +22,12 @@ def run(PluginInfo):
     cookie_dict = defaultdict(list)
 
     # Get all possible values of the cookie names and values
-    for id in search_by_regex_names(
-            [config_handler.get_val('HEADERS_FOR_COOKIES')]):  # Transactions with cookies
-        url = get_transaction_by_id(id).URL  # Limitation: Not Checking POST, normally not a problem
+    for id in search_by_regex_names([config_handler.get_val('HEADERS_FOR_COOKIES')]):  # Transactions with cookies
+        url = get_transaction_by_id(id)
+        if url:
+            url = url.url # Limitation: Not Checking POST, normally not a problem
+        else:
+            continue
         if url not in url_list:  # Only if URL not already processed!
             url_list.append(url)  # Keep track of processed URLs
             for _ in range(0, 10):  # Get more cookies to perform analysis
