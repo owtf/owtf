@@ -6,8 +6,12 @@ The Requester module is in charge of simplifying HTTP requests and
 automatically log HTTP transactions by calling the DB module.
 """
 
-import sys
 import logging
+import sys
+
+from owtf import get_scoped_session
+
+
 try:
     import http.client as client
 except ImportError:
@@ -32,7 +36,7 @@ from owtf.settings import USER_AGENT, PROXY_CHECK_URL, INBOUND_PROXY_IP, INBOUND
 from owtf.utils.error import abort_framework
 from owtf.utils.http import derive_http_method
 from owtf.utils.strings import cprint, str_to_dict
-from owtf.utils.timer import Timer
+from owtf.utils.timer import timer
 from owtf.http import transaction
 
 
@@ -98,7 +102,8 @@ class Requester(object):
         self.req_count_refused = 0
         self.req_count_total = 0
         self.log_transactions = False
-        self.timer = Timer()
+        self.timer = timer
+        self.session = get_scoped_session()
         self.proxy = proxy
         if proxy is None:
             logging.debug(
@@ -134,7 +139,7 @@ class Requester(object):
         :return: True/False
         :rtype: `bool`
         """
-        return is_transaction_already_added({'url': url.strip()})
+        return is_transaction_already_added(self.session, {'url': url.strip()})
 
     def is_request_possible(self):
         """Check if requests are possible
@@ -287,7 +292,7 @@ class Requester(object):
         # transactions can be created and process at plugin-level
         # Pass the timer object to avoid instantiating each time.
         self.http_transaction = transaction.HTTPTransaction(self.timer)
-        self.http_transaction.start(url, post, method, is_url_in_scope(url))
+        self.http_transaction.start(url, post, method, is_url_in_scope(self.session, url))
         self.req_count_total += 1
         try:
             response = self.perform_request(r)
@@ -448,7 +453,7 @@ class Requester(object):
         if data is not None:
             criteria['data'] = self.get_post_to_str(data)
         # Visit URL if not already visited.
-        if (not use_cache or not is_transaction_already_added(criteria)):
+        if (not use_cache or not is_transaction_already_added(self.session, criteria)):
             if method in ['', 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS']:
                 return self.request(url, method, data)
             elif method == 'DEBUG':

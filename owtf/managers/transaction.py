@@ -15,7 +15,7 @@ from sqlalchemy import desc, asc
 
 from owtf.config import config_handler
 from owtf.db import models
-from owtf.db.database import get_count
+from owtf.db.database import get_count, get_scoped_session
 from owtf.http import transaction
 from owtf.lib.exceptions import InvalidTransactionReference, InvalidParameterType
 from owtf.managers.target import target_required
@@ -351,7 +351,7 @@ def get_num_transactions_inscope(target_id=None):
     return num_transactions(target_id=target_id)
 
 
-def get_transaction_by_id(session, id):
+def get_transaction_by_id(id):
     """Get transaction object by id
 
     :param id: ID to fetch
@@ -359,6 +359,7 @@ def get_transaction_by_id(session, id):
     :return: Transaction object
     :rtype::`Class:model.Transaction`
     """
+    session = get_scoped_session()
     model_obj = None
     try:
         id = int(id)

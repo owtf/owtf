@@ -447,7 +447,7 @@ def get_target_configs(target_obj_list):
     return target_configs
 
 
-def get_targets_as_list(session, key_list):
+def get_targets_as_list(key_list):
     """Get everything as list
 
     :param key_list: Target key list
@@ -455,6 +455,7 @@ def get_targets_as_list(session, key_list):
     :return: Values list
     :rtype: `list`
     """
+    session = get_scoped_session()
     values = []
     for key in key_list:
         values.append(get_all_targets(session, key))

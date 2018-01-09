@@ -9,6 +9,7 @@ import multiprocessing
 import os
 import signal
 import sys
+import traceback
 
 
 try:
@@ -69,6 +70,8 @@ class Worker(OWTFProcess):
                 logging.debug("Worker (%d): Finished", self.pid)
                 sys.exit(0)
             except Exception as e:
+                ex_type, ex, tb = sys.exc_info()
+                traceback.print_tb(tb)
                 add_error(self.session, "Exception occurred while running plugin", str(e))
         logging.debug("Worker (%d): Exiting...", self.pid)
         sys.exit(0)

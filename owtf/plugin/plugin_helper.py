@@ -25,7 +25,7 @@ from owtf.plugin.plugin_handler import plugin_handler
 from owtf.shell.blocking_shell import shell
 from owtf.utils.file import FileOperations
 from owtf.utils.logger import logger
-from owtf.utils.strings import multi_replace_dict
+from owtf.utils.strings import multi_replace
 from owtf.utils.timer import timer
 
 
@@ -60,7 +60,7 @@ class PluginHelper(object):
         :return: Replaced dict
         :rtype: `dict`
         """
-        return multi_replace_dict(text, replace_dict)
+        return multi_replace(text, replace_dict)
 
     def cmd_table(self, command):
         """Format the command table
