@@ -4,12 +4,13 @@ owtf.db.worker_manager
 
 """
 
-import os
-import sys
-import signal
 import logging
 import multiprocessing
-import traceback
+import os
+import signal
+import sys
+
+
 try:
     import queue
 except ImportError:

@@ -1,4 +1,5 @@
 import base64
+import binascii
 import logging
 import os
 import re
@@ -34,10 +35,10 @@ def multi_replace(text, replace_dict):
     for key in search_regex.findall(new_text):
         # Check if key exists in the replace dict ;)
         if replace_dict.get(key, None):
-            # A recursive call to remove all level occurences of place
+            # A recursive call to remove all level occurrences of place
             # holders.
             new_text = new_text.replace(REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER,
-                                        multi_replace_dict(replace_dict[key], replace_dict) )
+                                        multi_replace(replace_dict[key], replace_dict) )
     new_text = os.path.expanduser(new_text)
     return new_text
 
@@ -50,9 +51,11 @@ def get_as_list(key_list):
     :return: List of corresponding values
     :rtype: `list`
     """
+    from owtf.config import config_handler
+
     value_list = []
     for key in key_list:
-        value_list.append(get_val(key))
+        value_list.append(config_handler.get_val(key))
     return value_list
 
 
@@ -64,7 +67,9 @@ def get_header_list(key):
     :return: List of values
     :rtype: `list`
     """
-    return get_val(key).split(',')
+    from owtf.config import config_handler
+
+    return config_handler.get_val(key).split(',')
 
 
 def pad_key(key):
@@ -215,6 +220,10 @@ def get_random_str(len):
     return base64.urlsafe_b64encode(os.urandom(len))[0:len]
 
 
+def gen_secure_random_str():
+    return binascii.hexlify(os.urandom(32))
+
+
 def scrub_output(output):
     """Remove all ANSI control sequences from the output
 
@@ -238,7 +247,7 @@ def paths_exist(path_list):
     valid = True
     for path in path_list:
         if path and not os.path.exists(path):
-            logging.log("WARNING: The path %s does not exist!" % path)
+            logging.log("WARNING: The path %s does not exist!", path)
             valid = False
     return valid
 

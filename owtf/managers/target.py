@@ -6,7 +6,6 @@ owtf.db.target_manager
 import logging
 import os
 
-from owtf import db
 from owtf.plugin.plugin_params import plugin_params
 
 

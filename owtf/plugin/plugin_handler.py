@@ -11,13 +11,13 @@ import logging
 import os
 from collections import defaultdict
 
-from sqlalchemy.exc import SQLAlchemyError
 from ptp import PTP
 from ptp.libptp.constants import UNKNOWN
 from ptp.libptp.exceptions import PTPError
+from sqlalchemy.exc import SQLAlchemyError
 
-from owtf.db.database import get_scoped_session
 from owtf.config import config_handler
+from owtf.db.database import get_scoped_session
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
 from owtf.managers.config import get_tcp_ports
 from owtf.managers.plugin import get_plugins_by_group, get_types_for_plugin_group, get_plugins_by_group_type
@@ -28,9 +28,9 @@ from owtf.plugin.scanner import Scanner
 from owtf.settings import AUX_OUTPUT_PATH, FORCE_OVERWRITE, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
+from owtf.utils.logger import logger
 from owtf.utils.strings import wipe_bad_chars
 from owtf.utils.timer import timer
-from owtf.utils.logger import logger
 
 
 INTRO_BANNER_GENERAL = """
