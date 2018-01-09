@@ -4,20 +4,18 @@ owtf.db.poutput_manager
 
 """
 
-import os
 import json
+import os
 
-from sqlalchemy.exc import SQLAlchemyError
-
-from owtf.db.database import get_count
-from owtf.managers.target import target_required
-from owtf.managers.session import session_required
-from owtf.lib.exceptions import InvalidParameterType
 from owtf.db import models
-from owtf.settings import DATE_TIME_FORMAT
-from owtf.utils.timer import timer
-from owtf.utils.file import FileOperations, get_output_dir_target
+from owtf.db.database import get_count
+from owtf.lib.exceptions import InvalidParameterType
+from owtf.managers.session import session_required
 from owtf.managers.target import target_manager
+from owtf.managers.target import target_required
+from owtf.settings import DATE_TIME_FORMAT
+from owtf.utils.file import FileOperations, get_output_dir_target
+from owtf.utils.timer import timer
 
 
 def plugin_output_exists(session, plugin_key, target_id):

@@ -3,6 +3,7 @@ owtf.db.session_manager
 
 Manager functions for sessions
 """
+
 from owtf.db import models
 from owtf.db.database import get_scoped_session
 from owtf.lib import exceptions
@@ -99,7 +100,7 @@ def add_target_to_session(session, target_id, session_id=None):
         raise exceptions.InvalidTargetReference("No target with id: %s" % str(target_id))
     if session_obj not in target_obj.sessions:
         session_obj.targets.append(target_obj)
-        session.commit()
+    session.commit()
 
 
 @session_required

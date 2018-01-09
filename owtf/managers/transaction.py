@@ -5,20 +5,20 @@ owtf.db.transaction_manager
 The DB stores HTTP transactions, unique URLs and more.
 """
 
-import re
-import json
 import base64
+import json
 import logging
+import re
 
-from sqlalchemy import desc, asc
 from hrt.interface import HttpRequestTranslator
+from sqlalchemy import desc, asc
 
 from owtf.config import config_handler
-from owtf.db.database import get_count
-from owtf.managers.target import target_required
-from owtf.lib.exceptions import InvalidTransactionReference, InvalidParameterType
-from owtf.http import transaction
 from owtf.db import models
+from owtf.db.database import get_count
+from owtf.http import transaction
+from owtf.lib.exceptions import InvalidTransactionReference, InvalidParameterType
+from owtf.managers.target import target_required
 from owtf.managers.url import import_processed_url
 from owtf.utils.strings import str2bool, get_header_list
 

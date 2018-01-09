@@ -4,9 +4,9 @@ owtf.db.plugin_manager
 This module manages the plugins and their dependencies
 """
 
-import os
 import imp
 import json
+import os
 
 from sqlalchemy import or_
 
@@ -15,6 +15,7 @@ from owtf.settings import PLUGINS_DIR
 from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 from owtf.utils.timer import timer
+
 
 TEST_GROUPS = ['web', 'network', 'auxiliary']
 

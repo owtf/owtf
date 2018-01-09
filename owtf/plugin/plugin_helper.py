@@ -8,22 +8,24 @@ centralising common functionality easy to reuse
 NOTE: This module has not been refactored since this is being deprecated
 """
 
-import re
 import cgi
 import logging
-
 import os
+import re
+
 from tornado.template import Template
 
 from owtf.db.database import get_scoped_session
-from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
 from owtf.http.requester import requester
-from owtf.managers.target import target_manager
-from owtf.plugin.plugin_handler import plugin_handler
+from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
 from owtf.managers.config import config_handler
+from owtf.managers.target import target_manager
+from owtf.managers.url import import_urls, get_urls_to_visit
+from owtf.plugin.plugin_handler import plugin_handler
 from owtf.shell.blocking_shell import shell
 from owtf.utils.file import FileOperations
 from owtf.utils.logger import logger
+from owtf.utils.strings import multi_replace_dict
 from owtf.utils.timer import timer
 
 
@@ -58,7 +60,7 @@ class PluginHelper(object):
         :return: Replaced dict
         :rtype: `dict`
         """
-        return multi_replace(text, replace_dict)
+        return multi_replace_dict(text, replace_dict)
 
     def cmd_table(self, command):
         """Format the command table
@@ -233,14 +235,14 @@ class PluginHelper(object):
         plugin_output = dict(PLUGIN_OUTPUT)
         self.timer.start_timer('LogURLsFromStr')
         # Extract and classify URLs and store in DB
-        URLList = self.url_manager.import_urls(RawOutput.strip().split("\n"))
+        URLList = import_urls(RawOutput.strip().split("\n"))
         NumFound = 0
         VisitURLs = False
         # TODO: Whether or not active testing will depend on the user profile ;). Have cool ideas for profile names
         if True:
             VisitURLs = True
             # Visit all URLs if not in Cache
-            for Transaction in self.requester.get_transactions(True, self.url_manager.get_urls_to_visit()):
+            for Transaction in self.requester.get_transactions(True, get_urls_to_visit()):
                 if Transaction is not None and Transaction.found:
                     NumFound += 1
         TimeStr = self.timer.get_elapsed_time_as_str('LogURLsFromStr')

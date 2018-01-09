@@ -4,14 +4,14 @@ owtf.db.resource_manager
 
 """
 
-import os
 import logging
+import os
 
 from owtf import get_scoped_session
 from owtf.db import models
 from owtf.managers.config import get_replacement_dict
 from owtf.utils.file import FileOperations
-from owtf.utils.strings import multi_replace, cprint, multi_replace_dict
+from owtf.utils.strings import cprint, multi_replace
 
 
 def get_raw_resources(session, resource_type):
@@ -58,7 +58,7 @@ def get_resources(resource_type):
     raw_resources = get_raw_resources(session, resource_type)
     resources = []
     for name, resource in raw_resources:
-        resources.append([name, multi_replace_dict(resource, replacement_dict)])
+        resources.append([name, multi_replace(resource, replacement_dict)])
     return resources
 
 
@@ -83,11 +83,11 @@ def get_resource_list(session, resource_type_list):
     :return: List of resources
     :rtype: `list`
     """
-    replacement_dict = get_replacement_dict(session)
+    replacement_dict = get_rsrc_replacement_dict(session)
     raw_resources = get_raw_resource_list(session, resource_type_list)
     resources = []
     for name, resource in raw_resources:
-        resources.append([name, multi_replace_dict(resource, replacement_dict)])
+        resources.append([name, multi_replace(resource, replacement_dict)])
     return resources
 
 
@@ -123,7 +123,7 @@ def load_resources_from_file(session, default, fallback):
     :rtype: None
     """
     file_path = default
-    logging.info("Loading Resources from: %s..", default)
+    logging.info("Loading resources from: %s..", default)
     if not os.path.isfile(default):  # check if the resource file exists
         file_path = fallback
     resources = get_resources_from_file(file_path)

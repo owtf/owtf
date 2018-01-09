@@ -21,6 +21,14 @@ from owtf.lib.exceptions import InvalidMappingReference
 mapping_types = []
 
 
+def get_mapping_types():
+    """In memory data saved when loading db
+    :return: None
+    :rtype: None
+    """
+    return mapping_types
+
+
 def derive_mapping_dict(obj):
     """Fetch the mapping dict from an object
 

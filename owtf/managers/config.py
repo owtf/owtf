@@ -3,8 +3,10 @@ owtf.db.config_manager
 ~~~~~~~~~~~~~~~~~~~~~~
 
 """
-import os
 import logging
+import os
+
+
 try:
     import configparser as parser
 except ImportError:
@@ -55,8 +57,6 @@ def load_framework_config_file(default, fallback, root_dir, owtf_pid):
     :return: None
     :rtype: None
     """
-    #config_handler.root_dir = root_dir
-    #config_handler.owtf_pid = owtf_pid
     config_path = default
     if os.path.isfile(config_path):
         config_path = fallback
@@ -84,7 +84,7 @@ def get_config_val(session, key):
     """
     obj = session.query(models.ConfigSetting).get(key)
     if obj:
-        return multi_replace(obj.value, get_replacement_dict(session))
+        return multi_replace(obj.value, config_handler.get_replacement_dict())
     else:
         return None
 
@@ -169,7 +169,7 @@ def get_all_tools(session):
     results = session.query(models.ConfigSetting).filter(models.ConfigSetting.key.like("%TOOL_%")).all()
     config_dicts = derive_config_dicts(results)
     for config_dict in config_dicts:
-        config_dict["value"] = multi_replace(config_dict["value"], get_replacement_dict())
+        config_dict["value"] = multi_replace(config_dict["value"], config_handler.get_replacement_dict())
     return config_dicts
 
 

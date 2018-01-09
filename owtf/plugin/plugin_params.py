@@ -11,8 +11,8 @@ from owtf.config import config_handler
 from owtf.db.database import get_scoped_session
 from owtf.managers.error import add_error
 from owtf.utils.error import abort_framework
-from owtf.utils.strings import cprint, merge_dicts
 from owtf.utils.logger import logger
+from owtf.utils.strings import cprint, merge_dicts
 
 
 class PluginParams(object):
