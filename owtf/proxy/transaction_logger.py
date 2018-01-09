@@ -31,10 +31,8 @@ class TransactionLogger(OWTFProcess):
     to the hash is ready to be converted.
     """
 
-    def __init__(self, **kwargs):
-        Session.configure(bind=get_db_engine())
-        self.session = Session()
-        super(TransactionLogger, self).__init__(**kwargs)
+    def initialize(self, **kwargs):
+        self.logger.disable_console_logging()
 
     def derive_target_for_transaction(self, request, response, target_list, host_list):
         """Get the target and target ID for transaction
@@ -83,7 +81,7 @@ class TransactionLogger(OWTFProcess):
         :rtype: `dict`
         """
         transactions_dict = None
-        target_list = get_indexed_targets(self.session)
+        target_list = get_indexed_targets()
         if target_list:  # If there are no targets in db, where are we going to add. OMG
             transactions_dict = {}
             host_list = get_all_in_scope(session=self.session, key='host_name')

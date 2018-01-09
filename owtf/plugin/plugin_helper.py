@@ -15,6 +15,7 @@ import re
 
 from tornado.template import Template
 
+from owtf.api.reporter import reporter
 from owtf.db.database import get_scoped_session
 from owtf.http.requester import requester
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
@@ -38,7 +39,7 @@ class PluginHelper(object):
 
     def __init__(self):
         self.plugin_handler = plugin_handler
-        self.requester = requester
+        self.reporter = reporter
         self.requester = requester
         self.shell = shell
         self.timer = timer
@@ -179,8 +180,6 @@ class PluginHelper(object):
         except FrameworkAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             FrameworkAbort = True
-
-
         TimeStr = timer.get_elapsed_time_as_str('FormatCommandAndOutput')
         logging.info("Time=%s", TimeStr)
         out = [ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]

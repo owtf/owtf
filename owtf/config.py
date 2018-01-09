@@ -41,7 +41,6 @@ class Config(object):
         self.config = defaultdict(list)  # General configuration information.
         for type in CONFIG_TYPES:
             self.config[type] = {}        # key can consist alphabets, numbers, hyphen & underscore.
-        self.search_regex = re.compile('%s([a-zA-Z0-9-_]*?)%s' % (REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER))
         self.cli_options = {}
 
     def is_set(self, key):

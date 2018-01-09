@@ -5,14 +5,10 @@ owtf.lib.owtf_process
 Consists of owtf process class and its manager
 """
 
-import logging
 from multiprocessing import Process, Queue
-import multiprocessing
-import sys
 
-from owtf.db.database import Session, get_db_engine
-from owtf.utils.file import get_log_path
-from owtf.utils.formatters import FileFormatter, ConsoleFormatter
+from owtf.db.database import get_scoped_session
+from owtf.utils.logger import logger
 
 
 class OWTFProcess(Process):
@@ -29,8 +25,9 @@ class OWTFProcess(Process):
         self.poison_q = Queue()
         self._process = None
         self.output_q = None
-        Session.configure(bind=get_db_engine())
-        self.session = Session()
+        self.session = get_scoped_session()
+        self.logger = logger
+        self.logger.setup_logging()
         for key in list(kwargs.keys()):  # Attach all kwargs to self
             setattr(self, key, kwargs.get(key, None))
         super(OWTFProcess, self).__init__()
