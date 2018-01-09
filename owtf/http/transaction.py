@@ -7,10 +7,12 @@ simplify code both in the framework and the plugins.
 """
 
 import cgi
-import logging
-import io
 import gzip
+import io
+import logging
 import zlib
+
+
 try:
     from http.client import responses as response_messages
 except ImportError:

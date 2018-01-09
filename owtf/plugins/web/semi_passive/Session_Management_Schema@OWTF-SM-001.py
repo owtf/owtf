@@ -23,7 +23,7 @@ def run(PluginInfo):
 
     # Get all possible values of the cookie names and values
     for id in search_by_regex_names(
-            [config_handler.get('HEADERS_FOR_COOKIES')]):  # Transactions with cookies
+            [config_handler.get_val('HEADERS_FOR_COOKIES')]):  # Transactions with cookies
         url = get_transaction_by_id(id).URL  # Limitation: Not Checking POST, normally not a problem
         if url not in url_list:  # Only if URL not already processed!
             url_list.append(url)  # Keep track of processed URLs

@@ -17,7 +17,7 @@ def run(PluginInfo):
     DirBusterInteraction = {'true': 'DirBusterInteractive', 'false': 'DirBusterNotInteractive'}
 
     # Get settings from the config DB
-    resource = get_resources(DirBusterInteraction[INTERACTIVE])
+    resource = get_resources(DirBusterInteraction['{}'.format(INTERACTIVE)])
     Content = plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])
     extractURL_resource = get_resources('DirBuster_Extract_URLs')
     Content += plugin_helper.CommandDump('Test Command', 'Output', extractURL_resource, PluginInfo, [])
