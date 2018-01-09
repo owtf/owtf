@@ -7,8 +7,6 @@ import logging
 import os
 
 from owtf.plugin.plugin_params import plugin_params
-
-
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -17,7 +15,7 @@ except ImportError:
 from owtf.db.database import get_count, get_scoped_session
 from owtf.settings import OUTPUT_PATH
 from owtf.utils.file import create_output_dir_target, get_target_dir, cleanup_target_dirs
-from owtf.utils.strings import cprint, str2bool
+from owtf.utils.strings import  str2bool
 from owtf.lib.exceptions import DBIntegrityException, InvalidTargetReference, InvalidParameterType, \
     UnresolvableTargetException
 from owtf.db import models
@@ -297,7 +295,7 @@ def get_target_url_for_id(session, id):
     """
     target_obj = session.query(models.Target).get(id)
     if not target_obj:
-        cprint("Failing with ID: %s" % str(id))
+        logging.info("Failing with ID: %s" % str(id))
         raise InvalidTargetReference("1. Target doesn't exist with ID: %s" % str(id))
     return target_obj.target_url
 
@@ -476,7 +474,7 @@ def get_all_targets(session, key):
     return results
 
 
-def get_all_in_scope(session, key):
+def get_all_in_scope(key):
     """Get all targets in scope by key
 
     :param key: Key
@@ -484,6 +482,7 @@ def get_all_in_scope(session, key):
     :return: List of target keys
     :rtype: `list`
     """
+    session = get_scoped_session()
     results = session.query(getattr(models.Target, key.lower())).filter_by(scope=True).all()
     results = [result[0] for result in results]
     return results

@@ -6,11 +6,12 @@ owtf.shell.async_subprocess
 # http://code.activestate.com/recipes/440554-module-to-allow-asynchronous-subprocess-use-on-win/
 """
 
+import errno
 import os
 import subprocess
-import errno
-import time
 import sys
+import time
+
 
 if subprocess.mswindows:
     from win32file import ReadFile, WriteFile

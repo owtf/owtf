@@ -1,13 +1,13 @@
 import logging
-import socket
 import os
 import re
+import socket
 
 import tornado
-import tornado.web
+import tornado.httpserver
 import tornado.ioloop
 import tornado.options
-import tornado.httpserver
+import tornado.web
 
 from owtf.config import config_handler
 from owtf.lib.owtf_process import OWTFProcess

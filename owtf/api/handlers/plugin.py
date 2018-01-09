@@ -5,17 +5,17 @@ owtf.api.plugin
 """
 
 import collections
+import logging
 
 import tornado.gen
-import tornado.web
 import tornado.httpclient
+import tornado.web
 
-from owtf.lib import exceptions
 from owtf.api.handlers.base import APIRequestHandler
+from owtf.lib import exceptions
 from owtf.managers.mapping import get_all_mappings
 from owtf.managers.plugin import get_types_for_plugin_group, get_all_plugin_dicts, get_all_test_groups
 from owtf.managers.poutput import get_all_poutputs, update_poutput, delete_all_poutput
-from owtf.utils.strings import cprint
 
 
 class PluginDataHandler(APIRequestHandler):
@@ -46,7 +46,7 @@ class PluginDataHandler(APIRequestHandler):
                 else:
                     raise tornado.web.HTTPError(400)
         except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
 
@@ -90,10 +90,10 @@ class PluginNameOutput(APIRequestHandler):
                 raise tornado.web.HTTPError(400)
 
         except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
 
@@ -124,10 +124,10 @@ class PluginOutputHandler(APIRequestHandler):
                 raise tornado.web.HTTPError(400)
 
         except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
     def post(self, target_url):
@@ -144,10 +144,10 @@ class PluginOutputHandler(APIRequestHandler):
                 patch_data = dict(self.request.arguments)
                 update_poutput(self.session, plugin_group, plugin_type, plugin_code, patch_data, target_id=target_id)
         except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
     def delete(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
@@ -173,8 +173,8 @@ class PluginOutputHandler(APIRequestHandler):
                 })
                 delete_all_poutput(self.session, filter_data, target_id=int(target_id))
         except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)

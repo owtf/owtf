@@ -5,13 +5,10 @@ owtf.api.base
 """
 import json
 
-from tornado.web import RequestHandler
 from tornado.escape import url_escape
-from jsonschema import ValidationError
+from tornado.web import RequestHandler
 
-from owtf.settings import FILE_SERVER_PORT, UI_SERVER_PORT, DEBUG
-from owtf.lib.exceptions import APIError
-from owtf.api.jsend import JSendMixin
+from owtf.settings import FILE_SERVER_PORT, UI_SERVER_PORT
 
 
 class APIRequestHandler(RequestHandler):

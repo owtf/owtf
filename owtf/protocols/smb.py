@@ -6,11 +6,11 @@ Description:
 This is the handler for the Social Engineering Toolkit (SET) trying to overcome
 the limitations of set-automate.
 """
+import logging
 import os
 
 from owtf.shell import pexpect_shell
 from owtf.utils.file import FileOperations
-from owtf.utils.strings import cprint
 
 
 class SMB(pexpect_shell.PExpectShell):
@@ -34,14 +34,14 @@ class SMB(pexpect_shell.PExpectShell):
     def mount(self, options, plugin_info):
         if self.is_mounted():
             return True
-        cprint("Initialising shell..")
+        logging.info("Initialising shell..")
         self.Open(options, plugin_info)
-        cprint("Ensuring Mount Point %s exists..." % options['SMB_MOUNT_POINT'])
+        logging.info("Ensuring Mount Point %s exists..." % options['SMB_MOUNT_POINT'])
         self.check_mount_point_existence(options)
         mount_cmd = "smbmount //{}/{} {}".format(options['SMB_HOST'], options['SMB_SHARE'], options['SMB_MOUNT_POINT'])
         if options['SMB_USER']:  # Pass user if specified.
             mount_cmd += " -o user={}".format(options['SMB_USER'])
-        cprint("Mounting share..")
+        logging.info("Mounting share..")
         self.run(mount_cmd, plugin_info)
         self.expect("Password:")
         if options['SMB_PASS']:  # Pass password if specified.
@@ -62,7 +62,7 @@ class SMB(pexpect_shell.PExpectShell):
                 self.options['SMB_MOUNT_POINT'])
             operation = True
         if not operation:
-            cprint("Nothing to do: no SMB_DOWNLOAD or SMB_UPLOAD specified..")
+            logging.info("Nothing to do: no SMB_DOWNLOAD or SMB_UPLOAD specified..")
 
     def unmount(self, plugin_info):
         if self.is_mounted():
@@ -71,11 +71,11 @@ class SMB(pexpect_shell.PExpectShell):
             self.close(plugin_info)
 
     def upload(self, file_path, mount_point):
-        cprint("Copying {} to {}".format(file_path, mount_point))
+        logging.info("Copying {} to {}".format(file_path, mount_point))
         self.shell_exec_monitor("cp -r {} {}".format(file_path, mount_point))
 
     def download(self, remote_file_path, target_dir):
-        cprint("Copying {} to {}".format(remote_file_path, target_dir))
+        logging.info("Copying {} to {}".format(remote_file_path, target_dir))
         self.shell_exec_monitor("cp -r {} {}".format(remote_file_path, target_dir))
 
 

@@ -5,8 +5,8 @@ owtf.http.proxy.transaction_logger
 Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013
 """
 
-import os
 import glob
+import os
 import time
 try: #PY3
     from urllib.parse import urlparse
@@ -16,7 +16,6 @@ except ImportError: #PY2
 from owtf.proxy.cache_handler import response_from_cache, request_from_cache
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.utils.timer import Timer
-from owtf.db.database import Session, get_db_engine
 from owtf.http.transaction import HTTPTransaction
 from owtf.managers.target import target_manager, get_all_in_scope, get_indexed_targets
 from owtf.managers.transaction import log_transactions_from_logger

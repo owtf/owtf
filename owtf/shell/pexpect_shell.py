@@ -7,11 +7,12 @@ in order to run third party tools. The interactive shell module allows non-block
 interaction with subprocesses running tools or remote connections (i.e. shells)
 """
 
-import pexpect
+import logging
 import sys
 
+import pexpect
+
 from owtf.shell import blocking_shell
-from owtf.utils.strings import cprint
 
 
 class PExpectShell(blocking_shell.Shell):
@@ -30,7 +31,7 @@ class PExpectShell(blocking_shell.Shell):
         :rtype: `bool`
         """
         if not self.connection:
-            cprint("ERROR - Communication channel closed - %s" % abort_message)
+            logging.warn("ERROR - Communication channel closed - %s" % abort_message)
             return False
         return True
 
@@ -51,7 +52,7 @@ class PExpectShell(blocking_shell.Shell):
                 output = ''
             print(output)  # Show progress on screen
         except pexpect.EOF:
-            cprint("ERROR: read - The Communication channel is down!")
+            logging.warn("ERROR: read - The Communication channel is down!")
             return output  # End of communication channel
         return output
 
@@ -86,12 +87,12 @@ class PExpectShell(blocking_shell.Shell):
         log_cmd = self.format_cmd(command)
         cmd_info = self.start_cmd(log_cmd, log_cmd)
         try:
-            cprint("Running Interactive command: %s" % command)
+            logging.info("Running Interactive command: %s" % command)
             self.connection.sendline(command)
             self.finish_cmd(cmd_info, cancelled, plugin_info)
         except pexpect.EOF:
             cancelled = True
-            cprint("ERROR: Run - The Communication Channel is down!")
+            logging.warn("ERROR: Run - The Communication Channel is down!")
             self.finish_cmd(cmd_info, cancelled, plugin_info)
         except KeyboardInterrupt:
             cancelled = True
@@ -116,12 +117,12 @@ class PExpectShell(blocking_shell.Shell):
         try:
             self.connection.expect(pattern, timeout)
         except pexpect.EOF:
-            cprint("ERROR: Expect - The Communication Channel is down!")
+            logging.warn("ERROR: Expect - The Communication Channel is down!")
         except pexpect.TIMEOUT:
-            cprint("ERROR: Expect timeout threshold exceeded for pattern %s!" % pattern)
-            cprint("Before:")
+            logging.warn("ERROR: Expect timeout threshold exceeded for pattern %s!" % pattern)
+            logging.info("Before:")
             print(self.connection.after)
-            cprint("After:")
+            logging.info("After:")
             print(self.connection.after)
         return True
 
@@ -164,7 +165,7 @@ class PExpectShell(blocking_shell.Shell):
                         self.connection = pexpect.spawn(cmd)
                         self.connection.logfile = sys.stdout  # Ensure screen feedback
                     except ValueError as e:
-                        cprint(e.message)
+                        logging.info(e.message)
                 else:
                     self.run(cmd, plugin_info)
                 cmd_count += 1
@@ -178,7 +179,7 @@ class PExpectShell(blocking_shell.Shell):
         :return: None
         :rtype: None
         """
-        cprint("Killing Communication Channel..")
+        logging.info("Killing Communication Channel..")
         if self.connection is not None:
             self.connection.kill(0)
             self.connection = None
@@ -189,7 +190,7 @@ class PExpectShell(blocking_shell.Shell):
         :return: None
         :rtype: None
         """
-        cprint("Waiting for Communication Channel to close..")
+        logging.info("Waiting for Communication Channel to close..")
         self.connection.wait()
         self.connection = None
 
@@ -202,12 +203,12 @@ class PExpectShell(blocking_shell.Shell):
         :rtype: None
         """
         if self.connection is None:
-            cprint("Close: Connection already closed")
+            logging.info("Close: Connection already closed")
             return False
         if 'CommandsBeforeExit' in self.options and self.options['CommandsBeforeExit']:
-            cprint("Running commands before closing Communication Channel..")
+            logging.info("Running commands before closing Communication Channel..")
             self.run_cmd_list(self.options['CommandsBeforeExit'].split(self.options['CommandsBeforeExitDelim']), plugin_info)
-        cprint("Trying to close Communication Channel..")
+        logging.info("Trying to close Communication Channel..")
         self.run("exit", plugin_info)
 
         if 'ExitMethod' in self.options and self.options['ExitMethod'] == 'kill':

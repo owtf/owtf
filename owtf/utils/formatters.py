@@ -16,6 +16,7 @@ TERMINAL_COLOR_GREEN = '\033[92m'
 TERMINAL_COLOR_YELLOW = '\033[93m'
 TERMINAL_COLOR_RED = '\033[91m'
 TERMINAL_COLOR_END = '\033[0m'
+TERMINAL_COLOR_LIGHT_BLUE = '\033[96m'
 
 
 class ConsoleFormatter(logging.Formatter):
@@ -23,10 +24,10 @@ class ConsoleFormatter(logging.Formatter):
     Custom formatter to show logging messages differently on Console
     """
 
-    error_fmt = TERMINAL_COLOR_RED + "[!] %(message)s" + TERMINAL_COLOR_END
-    warn_fmt = TERMINAL_COLOR_YELLOW + "[*] %(message)s" + TERMINAL_COLOR_END
-    debug_fmt = TERMINAL_COLOR_GREEN + "[+] %(message)s" + TERMINAL_COLOR_END
-    info_fmt = TERMINAL_COLOR_BLUE + "[-] %(message)s" + TERMINAL_COLOR_END
+    error_fmt = TERMINAL_COLOR_RED + "[ERROR] %(message)s" + TERMINAL_COLOR_END
+    warn_fmt = TERMINAL_COLOR_YELLOW + "[WARN] %(message)s" + TERMINAL_COLOR_END
+    debug_fmt = TERMINAL_COLOR_GREEN + "[DEBUG] %(message)s" + TERMINAL_COLOR_END
+    info_fmt = TERMINAL_COLOR_BLUE  + "[INFO] %(message)s" + TERMINAL_COLOR_END
 
     def format(self, record):
         """ Choose format according to record level

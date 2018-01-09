@@ -1,7 +1,7 @@
 import datetime
 import decimal
-import traceback
 import json
+import traceback
 
 
 class MoreTypesJSONEncoder(json.JSONEncoder):

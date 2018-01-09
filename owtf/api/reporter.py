@@ -13,8 +13,8 @@ import cgi
 
 from tornado.template import Loader
 
-from owtf.settings import POUTPUT_TEMPLATES_DIR
 from owtf.http.requester import requester
+from owtf.settings import POUTPUT_TEMPLATES_DIR
 
 
 class Reporter(object):

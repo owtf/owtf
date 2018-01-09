@@ -6,10 +6,10 @@ The shell module allows running arbitrary shell commands and is critical to the 
 in order to run third party tools
 """
 
+import logging
 import os
 import signal
 import subprocess
-import logging
 from collections import defaultdict
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -19,7 +19,7 @@ from owtf.managers.target import target_manager
 from owtf.settings import USER_AGENT, INBOUND_PROXY_IP, INBOUND_PROXY_PORT
 from owtf.utils.error import user_abort
 from owtf.utils.logger import logger
-from owtf.utils.strings import scrub_output, multi_replace, multi_replace_dict
+from owtf.utils.strings import scrub_output, multi_replace_dict
 from owtf.utils.timer import timer
 
 

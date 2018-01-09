@@ -5,13 +5,10 @@ owtf.http.proxy.tor_manager
 TOR manager module developed by Marios Kourtesis <name.surname@gmail.com>
 """
 
-import commands
+import logging
 import socket
 import time
 from multiprocessing import Process
-
-from owtf.dependency_management.dependency_resolver import BaseComponent
-from owtf.lib.general import cprint
 
 from owtf.utils.error import abort_framework
 
@@ -65,7 +62,7 @@ class TOR_manager(object):
         self.tor_conn.send('AUTHENTICATE "%s"\r\n' % self.password)
         response = self.tor_conn.recv(1024)
         if response.startswith('250'):  # 250 is the success response
-            cprint("Successfully Authenticated to TOR control")
+            logging.info("Successfully Authenticated to TOR control")
         else:
             abort_framework("Authentication Error : %s" % response)
 
@@ -78,7 +75,7 @@ class TOR_manager(object):
         try:
             s = socket.socket()
             s.connect((self.ip, self.tor_control_port))
-            cprint("Connected to TOR control")
+            logging.info("Connected to TOR control")
             return s
         except Exception as error:
             abort_framework("Can't connect to the TOR daemon : %s" % str(error))
@@ -109,12 +106,12 @@ class TOR_manager(object):
 
     @staticmethod
     def msg_start_tor(self):
-        cprint("Error : TOR daemon is not running (Tips: service tor start)")
+        logging.info("Error : TOR daemon is not running (Tips: service tor start)")
 
     # TOR configuration Info
     @staticmethod
     def msg_configure_tor():
-        cprint("""
+        logging.info("""
         1)Open torrc file usually located at '/etc/tor/torrc'
           if you can't find torrc file visit https://www.torproject.org/docs/faq.html.en#torrc
         2)Enable the TOR control port by uncommenting(removing the hash(#) symbol)
@@ -145,10 +142,10 @@ class TOR_manager(object):
         self.tor_conn.send("signal NEWNYM\r\n")
         response = self.tor_conn.recv(1024)
         if response.startswith('250'):
-            cprint("TOR : IP renewed")
+            logging.info("TOR : IP renewed")
             return True
         else:
-            cprint("[TOR]Warning: IP can't renewed")
+            logging.info("[TOR]Warning: IP can't renewed")
             return False
 
 

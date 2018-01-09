@@ -35,7 +35,7 @@ from owtf.plugin.plugin_handler import plugin_handler
 from owtf.settings import USER_AGENT, PROXY_CHECK_URL, INBOUND_PROXY_IP, INBOUND_PROXY_PORT
 from owtf.utils.error import abort_framework
 from owtf.utils.http import derive_http_method
-from owtf.utils.strings import cprint, str_to_dict
+from owtf.utils.strings import str_to_dict
 from owtf.utils.timer import timer
 from owtf.http import transaction
 
@@ -161,7 +161,7 @@ class Requester(object):
         if self.proxy is not None and self.is_request_possible():
             url = PROXY_CHECK_URL
             refused_before = self.req_count_refused
-            cprint("Proxy Check: Avoid logging request again if already in DB..")
+            logging.info("Proxy Check: Avoid logging request again if already in DB..")
             log_setting_backup = False
             if self.is_transaction_added(url):
                 log_setting_backup = self.log_transactions(False)

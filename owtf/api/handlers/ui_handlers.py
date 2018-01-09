@@ -6,14 +6,14 @@ owtf.api.ui_handlers
     Not been refactored since this is being deprecated
 """
 
-import json
 import collections
+import json
 
 import tornado.web
 from tornado.escape import url_escape
 
-from owtf.lib.exceptions import InvalidTargetReference, InvalidParameterType
 from owtf.api.handlers.base import UIRequestHandler
+from owtf.lib.exceptions import InvalidTargetReference, InvalidParameterType
 from owtf.managers.mapping import get_all_mappings, get_mappings
 from owtf.managers.plugin import get_all_test_groups
 from owtf.managers.poutput import get_unique_dicts, get_all_poutputs

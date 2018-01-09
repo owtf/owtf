@@ -4,16 +4,17 @@ owtf.api.handlers.targets
 
 """
 
-import tornado.gen
-import tornado.web
-import tornado.httpclient
+import logging
 
-from owtf.lib import exceptions
+import tornado.gen
+import tornado.httpclient
+import tornado.web
+
 from owtf.api.handlers.base import APIRequestHandler
+from owtf.lib import exceptions
 from owtf.lib.exceptions import InvalidTargetReference
 from owtf.managers.target import get_target_config_by_id, get_target_config_dicts, add_targets, update_target, \
     delete_target, search_target_configs, get_targets_by_severity_count
-from owtf.utils.strings import cprint
 
 
 class TargetConfigHandler(APIRequestHandler):
@@ -29,7 +30,7 @@ class TargetConfigHandler(APIRequestHandler):
             else:
                 self.write(get_target_config_by_id(self.session, target_id))
         except InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
     def post(self, target_id=None):
@@ -39,10 +40,10 @@ class TargetConfigHandler(APIRequestHandler):
             add_targets(self.session, dict(self.request.arguments)["target_url"])
             self.set_status(201)  # Stands for "201 Created"
         except exceptions.DBIntegrityException as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(409)
         except exceptions.UnresolvableTargetException as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(409)
 
     def put(self, target_id=None):
@@ -55,7 +56,7 @@ class TargetConfigHandler(APIRequestHandler):
             patch_data = dict(self.request.arguments)
             update_target(self.session, patch_data, id=target_id)
         except InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
     def delete(self, target_id=None):
@@ -64,7 +65,7 @@ class TargetConfigHandler(APIRequestHandler):
         try:
             delete_target(self.session, id=target_id)
         except InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
 

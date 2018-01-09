@@ -7,11 +7,10 @@ to the framework in order to run third party tools. The interactive shell module
 interaction with subprocesses running tools or remote connections (i.e. shells)
 """
 
-import subprocess
+import logging
 
 from owtf.shell import blocking_shell
 from owtf.shell.async_subprocess import *
-from owtf.utils.strings import cprint
 
 
 class InteractiveShell(blocking_shell.Shell):
@@ -31,7 +30,7 @@ class InteractiveShell(blocking_shell.Shell):
         :rtype: `bool`
         """
         if not self.connection:
-            cprint("ERROR - Communication channel closed - %s".format(AbortMessage))
+            logging.warn("ERROR - Communication channel closed - %s".format(AbortMessage))
             return False
         return True
 
@@ -49,7 +48,7 @@ class InteractiveShell(blocking_shell.Shell):
         try:
             output = recv_some(self.connection, time)
         except DisconnectException:
-            cprint("ERROR: read - The Communication channel is down!")
+            logging.warn("ERROR: read - The Communication channel is down!")
             return output  # End of communication channel
         print(output)  # Show progress on screen
         return output
@@ -83,13 +82,13 @@ class InteractiveShell(blocking_shell.Shell):
         log_cmd = self.format_cmd(command)
         cmd_info = self.start_cmd(log_cmd, log_cmd)
         try:
-            cprint("Running Interactive command: %s" % command)
+            logging.info("Running Interactive command: %s" % command)
             send_all(self.connection, command + "\n")
             output += self.read()
             self.finish_cmd(cmd_info, cancelled, plugin_info)
         except DisconnectException:
             cancelled = True
-            cprint("ERROR: Run - The Communication Channel is down!")
+            logging.warn("ERROR: Run - The Communication Channel is down!")
             self.finish_cmd(cmd_info, cancelled, plugin_info)
         except KeyboardInterrupt:
             cancelled = True
@@ -150,16 +149,16 @@ class InteractiveShell(blocking_shell.Shell):
         """
         print("Close: %s" % str(self.options))
         if self.options['CommandsBeforeExit']:
-            cprint("Running commands before closing Communication Channel..")
+            logging.info("Running commands before closing Communication Channel..")
             self.run_cmd_list(self.options['CommandsBeforeExit'].split(self.options['CommandsBeforeExitDelim']), plugin_info)
-        cprint("Trying to close Communication Channel..")
+        logging.info("Trying to close Communication Channel..")
         self.run("exit", plugin_info)
 
         if self.options['ExitMethod'] == 'kill':
-            cprint("Killing Communication Channel..")
+            logging.info("Killing Communication Channel..")
             self.connection.kill()
         else:  # By default wait
-            cprint("Waiting for Communication Channel to close..")
+            logging.info("Waiting for Communication Channel to close..")
             self.connection.wait()
         self.connection = None
 

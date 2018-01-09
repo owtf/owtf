@@ -5,26 +5,26 @@ owtf.http.proxy.proxy
 Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013.
 """
 
-import ssl
-import socket
 import datetime
-
 import pycurl
-import tornado.httpserver
-import tornado.ioloop
-import tornado.iostream
-import tornado.web
-import tornado.httpclient
+import socket
+import ssl
+
 import tornado.curl_httpclient
 import tornado.escape
+import tornado.gen
+import tornado.httpclient
+import tornado.httpserver
 import tornado.httputil
+import tornado.ioloop
+import tornado.iostream
 import tornado.options
 import tornado.template
+import tornado.web
 import tornado.websocket
-import tornado.gen
 
-from owtf.proxy.socket_wrapper import wrap_socket
 from owtf.proxy.cache_handler import CacheHandler
+from owtf.proxy.socket_wrapper import wrap_socket
 
 
 def prepare_curl_callback(curl):

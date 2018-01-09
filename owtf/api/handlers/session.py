@@ -5,11 +5,11 @@ owtf.api.handlers.session
 """
 
 import tornado.gen
-import tornado.web
 import tornado.httpclient
+import tornado.web
 
-from owtf.lib import exceptions
 from owtf.api.handlers.base import APIRequestHandler
+from owtf.lib import exceptions
 from owtf.managers.session import get_all_session_dicts, get_session_dict, add_session, add_target_to_session, \
     remove_target_from_session, set_session, delete_session
 
