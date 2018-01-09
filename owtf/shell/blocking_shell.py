@@ -16,6 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from owtf.managers.command_register import command_already_registered, add_command
 from owtf.managers.target import target_manager
+from owtf.settings import USER_AGENT, INBOUND_PROXY_IP, INBOUND_PROXY_PORT
 from owtf.utils.error import user_abort
 from owtf.utils.logger import logger
 from owtf.utils.strings import scrub_output, multi_replace, multi_replace_dict
@@ -109,6 +110,9 @@ class Shell(object):
         self.refresh_replacements()
         new_cmd = "cd {};{}".format(self.escape_shell_path(plugin_output_dir),
                                    multi_replace_dict(command, self.dynamic_replacements))
+        new_cmd = multi_replace_dict(new_cmd, {'@@@USER_AGENT@@@': USER_AGENT,
+                                               '@@@INBOUND_PROXY_IP@@@': INBOUND_PROXY_IP,
+                                               '@@@INBOUND_PROXY_PORT@@@': INBOUND_PROXY_PORT})
         self.old_cmds[new_cmd] = command
         return new_cmd
 
