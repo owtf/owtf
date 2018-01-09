@@ -233,6 +233,20 @@ def initialise_framework(options):
     return True
 
 
+def patch_obj_args(args):
+    setattr(plugin_handler, "options", args)
+    setattr(plugin_handler, "simulation", args.get('Simulation', None))
+    setattr(plugin_handler, "scope", args['Scope'])
+    setattr(plugin_handler, "plugin_group", args['PluginGroup'])
+    setattr(plugin_handler, "only_plugins", args['OnlyPlugins'])
+    setattr(plugin_handler, "except_plugins", args['ExceptPlugins'])
+    add_plugin_list = getattr(plugin_handler, "validate_format_plugin_list")
+    setattr(plugin_handler, "only_plugins_list", add_plugin_list(session=db, plugin_codes=args['OnlyPlugins']))
+    setattr(plugin_handler, "except_plugins_list", add_plugin_list(session=db, plugin_codes=args['OnlyPlugins']))
+    exec_registry = getattr(plugin_handler, "init_exec_registry")
+    exec_registry()
+
+
 def start(args):
     """ The main wrapper which loads everything
 
@@ -266,17 +280,7 @@ def start(args):
     config_handler.cli_options = deepcopy(args)
 
     # Patch args
-    setattr(plugin_handler, "options", args)
-    setattr(plugin_handler, "simulation", args.get('Simulation', None))
-    setattr(plugin_handler, "scope", args['Scope'])
-    setattr(plugin_handler, "plugin_group", args['PluginGroup'])
-    setattr(plugin_handler, "only_plugins", args['OnlyPlugins'])
-    setattr(plugin_handler, "except_plugins", args['ExceptPlugins'])
-    add_plugin_list = getattr(plugin_handler, "validate_format_plugin_list")
-    setattr(plugin_handler, "only_plugins_list", add_plugin_list(session=db, plugin_codes=args['OnlyPlugins']))
-    setattr(plugin_handler, "except_plugins_list", add_plugin_list(session=db, plugin_codes=args['OnlyPlugins']))
-    exec_registry = getattr(plugin_handler, "init_exec_registry")
-    exec_registry()
+    patch_obj_args(args)
 
     # Initialise Framework.
     logging.warn("OWTF Version: {0}, Release: {1} ".format(__version__, __release__))
