@@ -12,7 +12,7 @@ from owtf.db.database import get_scoped_session
 from owtf.managers.error import add_error
 from owtf.utils.error import abort_framework
 from owtf.utils.logger import logger
-from owtf.utils.strings import cprint, merge_dicts
+from owtf.utils.strings import merge_dicts
 
 
 class PluginParams(object):
@@ -57,15 +57,15 @@ class PluginParams(object):
         :return: None
         :rtype: None
         """
-        cprint("")  # Newline
+        logging.info("")  # Newline
         if mandatory:
-            cprint("mandatory parameters:")
+            logging.info("mandatory parameters:")
         else:
-            cprint("Optional parameters:")
+            logging.info("Optional parameters:")
         for arg_name, arg_description in list(args.items()):
             if arg_description is None:
                 arg_description = ""
-            cprint("- %s%s%s" % (arg_name, (30 - len(arg_name)) * '_', arg_description.replace('\n', "\n")))
+            logging.info("- %s%s%s" % (arg_name, (30 - len(arg_name)) * '_', arg_description.replace('\n', "\n")))
 
     def get_args_example(self, full_args_list):
         """Arguments for an example plugin
@@ -91,12 +91,12 @@ class PluginParams(object):
         :return: None
         :rtype: None
         """
-        cprint("\nInformation for %s" % self.show_plugin(plugin))
-        cprint("\nDescription: %s" % str(full_args_list['Description']))
+        logging.info("\nInformation for %s" % self.show_plugin(plugin))
+        logging.info("\nDescription: %s" % str(full_args_list['Description']))
         self.list_args(full_args_list['mandatory'], True)
         if len(full_args_list['Optional']) > 0:
             self.list_args(full_args_list['Optional'], False)
-        cprint("\nUsage: %s\n" % self.get_args_example(full_args_list))
+        logging.info("\nUsage: %s\n" % self.get_args_example(full_args_list))
         abort_framework("User is only viewing options, exiting")
 
     def show_plugin(self, plugin):
@@ -125,9 +125,9 @@ class PluginParams(object):
         for setting in settings_list:
             if config_handler.is_set(setting):  # argument is set in config
                 args[arg_name] = config_handler.get_val(setting)
-                cprint("default not passed '%s' to '%s'%s" % (arg_name, str(args[arg_name]), default_order_str))
+                logging.info("default not passed '%s' to '%s'%s" % (arg_name, str(args[arg_name]), default_order_str))
                 return True
-        cprint("Could not default not passed: '%s'%s" % (arg_name, default_order_str))
+        logging.info("Could not default not passed: '%s'%s" % (arg_name, default_order_str))
         return False
 
     def get_arg_list(self, session, arg_list, plugin, mandatory=True):
@@ -244,7 +244,7 @@ class PluginParams(object):
         :rtype: None
         """
         for arg_name, arg_val in list(args.items()):
-            cprint("Overriding configuration setting '_%s' with value %s.." % (arg_name, str(arg_val)))
+            logging.info("Overriding configuration setting '_%s' with value %s.." % (arg_name, str(arg_val)))
             config_handler.set_general_val('string', '_%s' % arg_name, arg_val)  # Pre-pend "_" to avoid naming collisions
 
     def get_permutations(self, args):
@@ -330,9 +330,9 @@ class PluginParams(object):
         mandatory = self.get_arg_list(session, full_args_list['Mandatory'], plugin, True)
         optional = self.get_arg_list(session, full_args_list['Optional'], plugin, False)
         if self.get_arg_error(plugin):
-            cprint("")
-            cprint("ERROR: Aborting argument processing, please correct the errors above and try again")
-            cprint("")
+            logging.info("")
+            logging.warn("ERROR: Aborting argument processing, please correct the errors above and try again")
+            logging.info("")
             return self.no_args  # Error processing arguments, must abort processing
         all_args = merge_dicts(mandatory, optional)
         return self.set_args(all_args, plugin)

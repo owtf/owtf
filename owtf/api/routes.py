@@ -6,6 +6,7 @@ owtf.interface.urls
 
 import tornado.web
 
+from owtf.api.handlers import ui_handlers
 from owtf.api.handlers.config import ConfigurationHandler
 from owtf.api.handlers.misc import ErrorDataHandler, DashboardPanelHandler, ProgressBarHandler
 from owtf.api.handlers.plugin import PluginDataHandler, PluginNameOutput, PluginOutputHandler
@@ -15,7 +16,6 @@ from owtf.api.handlers.targets import TargetSeverityChartHandler, TargetConfigSe
 from owtf.api.handlers.transactions import URLDataHandler, URLSearchHandler, TransactionDataHandler, \
     TransactionHrtHandler, TransactionSearchHandler
 from owtf.api.handlers.work import WorkerHandler, WorklistHandler, WorklistSearchHandler
-from owtf.api.handlers import ui_handlers
 from owtf.db.database import get_scoped_session
 from owtf.managers.plugin import get_all_plugin_groups, get_all_plugin_types
 from owtf.settings import STATIC_ROOT

@@ -4,18 +4,20 @@ owtf.api.handlers.work
 
 """
 
-import tornado.gen
-import tornado.web
-import tornado.httpclient
+import logging
 
-from owtf.lib import exceptions
+import tornado.gen
+import tornado.httpclient
+import tornado.web
+
 from owtf.api.handlers.base import APIRequestHandler
+from owtf.lib import exceptions
 from owtf.managers.plugin import get_all_plugin_dicts
 from owtf.managers.target import get_target_config_dicts
 from owtf.managers.worker import worker_manager
 from owtf.managers.worklist import get_all_work, get_work, add_work, remove_work, delete_all_work, patch_work, \
     pause_all_work, resume_all_work, search_all_work
-from owtf.utils.strings import cprint, str2bool
+from owtf.utils.strings import str2bool
 
 
 class WorkerHandler(APIRequestHandler):
@@ -36,7 +38,7 @@ class WorkerHandler(APIRequestHandler):
                     getattr(worker_manager, '%s_all_workers' % action)()
                 getattr(worker_manager, '%s_worker' % action)(int(worker_id))
         except exceptions.InvalidWorkerReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
     def post(self, worker_id=None, action=None):
@@ -54,7 +56,7 @@ class WorkerHandler(APIRequestHandler):
         try:
             worker_manager.delete_worker(int(worker_id))
         except exceptions.InvalidWorkerReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
 

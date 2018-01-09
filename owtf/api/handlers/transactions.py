@@ -4,17 +4,18 @@ owtf.api.handlers.transactions
 
 """
 
-import tornado.gen
-import tornado.web
-import tornado.httpclient
+import logging
 
-from owtf.lib import exceptions
+import tornado.gen
+import tornado.httpclient
+import tornado.web
+
 from owtf.api.handlers.base import APIRequestHandler
+from owtf.lib import exceptions
 from owtf.lib.exceptions import InvalidTargetReference, InvalidParameterType, InvalidTransactionReference
 from owtf.managers.transaction import get_by_id_as_dict, get_all_transactions_dicts, delete_transaction, \
     get_hrt_response, search_all_transactions
 from owtf.managers.url import get_all_urls, search_all_urls
-from owtf.utils.strings import cprint
 
 
 class TransactionDataHandler(APIRequestHandler):
@@ -29,13 +30,13 @@ class TransactionDataHandler(APIRequestHandler):
                 filter_data = dict(self.request.arguments)
                 self.write(get_all_transactions_dicts(self.session, filter_data, target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidTransactionReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
     def post(self, target_url):
@@ -54,7 +55,7 @@ class TransactionDataHandler(APIRequestHandler):
             else:
                 raise tornado.web.HTTPError(400)
         except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
 
@@ -69,7 +70,7 @@ class TransactionHrtHandler(APIRequestHandler):
             else:
                 raise tornado.web.HTTPError(400)
         except (InvalidTargetReference, InvalidTransactionReference, InvalidParameterType) as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
 
@@ -85,13 +86,13 @@ class TransactionSearchHandler(APIRequestHandler):
             filter_data["search"] = True
             self.write(search_all_transactions(self.session, filter_data, target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidTransactionReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
 
@@ -104,7 +105,7 @@ class URLDataHandler(APIRequestHandler):
             filter_data = dict(self.request.arguments)
             self.write(get_all_urls(self.session, filter_data, target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
     @tornado.web.asynchronous
@@ -139,8 +140,8 @@ class URLSearchHandler(APIRequestHandler):
             filter_data["search"] = True
             self.write(search_all_urls(self.session, filter_data, target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)

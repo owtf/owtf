@@ -94,19 +94,6 @@ def strip_key(key):
     return key.replace(REPLACEMENT_DELIMITER, '')
 
 
-def cprint(msg):
-    """Wrapper found console print function with padding
-
-    :param msg: Message to print
-    :type msg: `str`
-    :return: Padded message
-    :rtype: `str`
-    """
-    pad = "[-] "
-    print(pad + str(msg).replace("\n", "\n" + pad))
-    return msg
-
-
 def multi_replace_dict(text, replace_dict):
     """Perform multiple replacements in one go using the replace dictionary
     in format: { 'search' : 'replace' }

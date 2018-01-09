@@ -11,7 +11,7 @@ from owtf import get_scoped_session
 from owtf.db import models
 from owtf.managers.config import get_replacement_dict
 from owtf.utils.file import FileOperations
-from owtf.utils.strings import cprint, multi_replace
+from owtf.utils.strings import  multi_replace
 
 
 def get_raw_resources(session, resource_type):
@@ -108,7 +108,7 @@ def get_resources_from_file(resource_file):
             type, name, resource = line.split('_____')
             resources.add((type, name, resource))
         except ValueError:
-            cprint("ERROR: The delimiter is incorrect in this line at Resource File: %s" % str(line.split('_____')))
+            logging.info("ERROR: The delimiter is incorrect in this line at Resource File: %s" % str(line.split('_____')))
     return resources
 
 

@@ -4,15 +4,16 @@ owtf.api.handlers.misc
 
 """
 
-import tornado.gen
-import tornado.web
-import tornado.httpclient
+import logging
 
-from owtf.lib import exceptions
+import tornado.gen
+import tornado.httpclient
+import tornado.web
+
 from owtf.api.handlers.base import APIRequestHandler
+from owtf.lib import exceptions
 from owtf.managers.error import get_all_errors, get_error, update_error, delete_error
 from owtf.managers.poutput import get_severity_freq, plugin_count_output
-from owtf.utils.strings import cprint
 
 
 class DashboardPanelHandler(APIRequestHandler):
@@ -36,7 +37,7 @@ class ProgressBarHandler(APIRequestHandler):
         try:
             self.write(plugin_count_output(self.session))
         except exceptions.InvalidParameterType as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
     def post(self):

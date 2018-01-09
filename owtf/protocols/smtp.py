@@ -6,13 +6,13 @@ Description:
 This is the OWTF SMTP handler, to simplify sending emails.
 """
 
+import logging
 import os
 import smtplib
 from email import MIMEMultipart, MIMEBase, MIMEText, Encoders
 
 from owtf.managers.error import add_error
 from owtf.utils.file import FileOperations, get_file_as_list
-from owtf.utils.strings import cprint
 
 
 class SMTP(object):
@@ -21,7 +21,7 @@ class SMTP(object):
         self.msg_prefix = 'OWTF SMTP Client - '
 
     def pprint(self, message):
-        cprint(self.msg_prefix + message)
+        logging.info(self.msg_prefix + message)
 
     def create_connection_with_mail_server(self, options):
         return smtplib.SMTP(options['SMTP_HOST'], int(options['SMTP_PORT']))

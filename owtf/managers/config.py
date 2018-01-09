@@ -12,7 +12,7 @@ try:
 except ImportError:
     import ConfigParser as parser
 
-from owtf.utils.strings import multi_replace, str2bool, cprint
+from owtf.utils.strings import multi_replace, str2bool
 from owtf.lib.exceptions import InvalidConfigurationReference
 from owtf.db import models
 from owtf.config import config_handler
@@ -60,7 +60,7 @@ def load_framework_config_file(default, fallback, root_dir, owtf_pid):
     config_path = default
     if os.path.isfile(config_path):
         config_path = fallback
-    cprint("Loading config from: {}..".format(config_path))
+    logging.info("Loading config from: {}..".format(config_path))
     config_file = FileOperations.open(config_path, 'r')
     config_handler.set_val('FRAMEWORK_DIR', root_dir)  # Needed Later.
     for line in config_file:

@@ -7,7 +7,7 @@ import tempfile
 
 from owtf.settings import LOGS_DIR, WORKER_LOG_DIR, TARGETS_DIR, OUTPUT_PATH, OWTF_CONF
 from owtf.utils.error import abort_framework
-from owtf.utils.strings import wipe_bad_chars, cprint
+from owtf.utils.strings import wipe_bad_chars
 
 
 def catch_io_errors(func):
@@ -125,7 +125,7 @@ def get_file_as_list(filename):
     try:
         with open(filename, 'r') as f:
             output = f.read().split("\n")
-            cprint("Loaded file: %s" % filename)
+            logging.info("Loaded file: %s" % filename)
     except IOError:
         logging.error("Cannot open file: %s (%s)" % (filename, str(sys.exc_info())))
         output = []

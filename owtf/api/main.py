@@ -9,14 +9,14 @@ import logging
 import tornado
 import tornado.httpserver
 import tornado.ioloop
-import tornado.web
 import tornado.options
+import tornado.web
 
 from owtf.api.routes import HANDLERS
-from owtf.utils.app import Application
 from owtf.error_reporting import setup_signal_handlers, get_sentry_client
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.settings import STATIC_ROOT, UI_SERVER_LOG, SERVER_ADDR, UI_SERVER_PORT, TEMPLATES, SENTRY_API_KEY
+from owtf.utils.app import Application
 from owtf.utils.logger import logger
 
 

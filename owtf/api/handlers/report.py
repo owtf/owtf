@@ -5,21 +5,21 @@ owtf.api.handlers.report
 """
 
 import collections
-from time import gmtime, strftime
+import logging
 from collections import defaultdict
+from time import gmtime, strftime
 
 import tornado.gen
-import tornado.web
 import tornado.httpclient
+import tornado.web
 
-from owtf.lib import exceptions
-from owtf.constants import RANKS
 from owtf.api.handlers.base import APIRequestHandler
+from owtf.constants import RANKS
+from owtf.lib import exceptions
 from owtf.managers.mapping import get_mappings
 from owtf.managers.plugin import get_all_test_groups
 from owtf.managers.poutput import get_all_poutputs
 from owtf.managers.target import get_target_config_by_id
-from owtf.utils.strings import cprint
 
 
 class ReportExportHandler(APIRequestHandler):
@@ -43,10 +43,10 @@ class ReportExportHandler(APIRequestHandler):
             filter_data = dict(self.request.arguments)
             plugin_outputs = get_all_poutputs(filter_data, target_id=target_id, inc_output=True)
         except exceptions.InvalidTargetReference as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
         except exceptions.InvalidParameterType as e:
-            cprint(e.parameter)
+            logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
         # Group the plugin outputs to make it easier in template
         grouped_plugin_outputs = defaultdict(list)
