@@ -21,7 +21,7 @@ from owtf.http.requester import requester
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
 from owtf.managers.config import config_handler
 from owtf.managers.target import target_manager
-from owtf.managers.url import import_urls, get_urls_to_visit
+from owtf.managers.url import import_urls, get_urls_to_visit, add_url
 from owtf.plugin.plugin_handler import plugin_handler
 from owtf.shell.blocking_shell import shell
 from owtf.utils.file import FileOperations
@@ -286,7 +286,7 @@ class PluginHelper(object):
         num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = \
             self.AnalyseRobotsEntries(Contents)
         SavePath = self.plugin_handler.dump_output_file(Filename, Contents, PluginInfo, True)
-        TopURL = self.target.get('top_url')
+        TopURL = target_manager.get_val('top_url')
         EntriesList = []
         # robots.txt contains some entries, show browsable list! :)
         if num_disallow > 0 or num_allow > 0 or num_sitemap > 0:
@@ -296,11 +296,11 @@ class PluginHelper(object):
                 for Entry in Entries:
                     if 'Sitemap Entries' == Display:
                         URL = Entry
-                        self.url_manager.add_url(URL)  # Store real links in the DB
+                        add_url(self.session, URL)  # Store real links in the DB
                         Links.append([Entry, Entry])  # Show link in defined format (passive/semi_passive)
                     else:
                         URL = TopURL + Entry
-                        self.url_manager.add_url(URL)  # Store real links in the DB
+                        add_url(self.session, URL)  # Store real links in the DB
                         # Show link in defined format (passive/semi_passive)
                         Links.append([Entry, LinkStart + Entry + LinkEnd])
                 EntriesList.append((Display, Links))
