@@ -21,12 +21,11 @@ from time import strftime
 import psutil
 
 from owtf.managers.worklist import get_work_for_target
-from owtf.settings import PROCESS_PER_CORE, MIN_RAM_NEEDED
+from owtf.settings import PROCESS_PER_CORE, MIN_RAM_NEEDED, CLI
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.lib.exceptions import InvalidWorkerReference
 from owtf.utils.process import check_pid
 from owtf.utils.error import abort_framework
-from owtf.settings import WEBUI
 from owtf.managers.error import add_error
 from owtf.plugin.plugin_handler import plugin_handler
 from owtf.db.database import get_scoped_session
@@ -433,4 +432,4 @@ class WorkerManager(object):
         self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
 
 
-worker_manager = WorkerManager(keep_working=os.environ.get('WEBUI', WEBUI))
+worker_manager = WorkerManager(keep_working=not os.environ.get('CLI', CLI))
