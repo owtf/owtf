@@ -270,7 +270,6 @@ def start(args):
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
     owtf_pid = os.getpid()
-    FileOperations.create_missing_dirs(get_logs_dir())
     create_temp_storage_dirs(owtf_pid)
     try:
         _ensure_default_session(db)

@@ -19,7 +19,7 @@ from owtf.utils.process import kill_children
 
 def signal_handler(signal, frame):
     logging.warn('Cleaning up %s', multiprocessing.current_process().name)
-    kill_children(os.getpid())
+    sys.exit(0)
 
 
 class OWTFProcess(Process):

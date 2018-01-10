@@ -1,5 +1,8 @@
 import os
 
+import yaml
+
+
 HOME_DIR = os.path.expanduser("~")
 OWTF_CONF = os.path.join(HOME_DIR, ".owtf")
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -11,12 +14,13 @@ WEBUI = True
 INTERACTIVE = True
 
 ### Database Server
-DATABASE_IP = '127.0.0.1'
-DATABASE_PORT = 5432
-DATABASE_NAME = 'owtf_db'
-DATABASE_USER = 'owtf_db_user'
-# Change me!
-DATABASE_PASS = '3309ZFdS'
+with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
+    conf = yaml.load(f)
+    DATABASE_PASS = conf["password"]
+    DATABASE_NAME = conf['database_name']
+    DATABASE_USER = conf['username']
+    DATABASE_IP = conf['database_ip']
+    DATABASE_PORT = int(conf['database_port'])
 
 ### Interface Server
 SERVER_ADDR = '127.0.0.1'
@@ -85,9 +89,9 @@ INBOUND_PROXY_IP = '127.0.0.1'
 INBOUND_PROXY_PORT = 8008
 INBOUND_PROXY_PROCESSES = 0
 INBOUND_PROXY_CACHE_DIR = '/tmp/owtf/proxy-cache'
-CA_CERT = os.path.join(OWTF_CONF, 'proxy', 'ca.crt')
-CA_KEY = os.path.join(OWTF_CONF, 'proxy', 'ca.key')
-CA_PASS_FILE = os.path.join(OWTF_CONF, 'proxy', 'ca_pass.txt')
+CA_CERT = os.path.join(OWTF_CONF, "proxy", "certs", "ca.crt")
+CA_KEY = os.path.join(OWTF_CONF, "proxy", "certs", "ca.key")
+CA_PASS_FILE = os.path.join(OWTF_CONF, 'proxy', "certs", "ca_pass.txt")
 CERTS_FOLDER = os.path.join(OWTF_CONF, 'proxy', 'certs')
 
 BLACKLIST_COOKIES = ['_ga', '__utma', '__utmb', '__utmc', '__utmz', '__utmv']
