@@ -41,7 +41,7 @@ normal=${bold}$(tput setaf 7)   # white
 # =======================================
 user_agent='Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0'
 
-action=""
+action="init"
 
 certs_folder="${OWTF_DIR}/proxy/certs"
 ca_cert="${OWTF_DIR}/proxy/certs/ca.crt"
