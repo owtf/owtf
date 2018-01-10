@@ -25,14 +25,15 @@ from owtf.managers.plugin import get_groups_for_plugins, get_all_plugin_types, g
     get_types_for_plugin_group, load_test_groups, load_plugins
 from owtf.managers.session import _ensure_default_session
 from owtf.managers.target import load_targets
+from owtf.managers.worker import worker_manager
 from owtf.managers.worklist import load_works
 from owtf.plugin.plugin_handler import show_plugin_list, plugin_handler
 from owtf.proxy.main import start_proxy
 from owtf.settings import WEB_TEST_GROUPS, AUX_TEST_GROUPS, NET_TEST_GROUPS, DEFAULT_RESOURCES_PROFILE, \
     FALLBACK_RESOURCES_PROFILE, FALLBACK_AUX_TEST_GROUPS, FALLBACK_NET_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, \
     FALLBACK_MAPPING_PROFILE, DEFAULT_MAPPING_PROFILE, DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, \
-    DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE, WEBUI, SERVER_ADDR, UI_SERVER_PORT
-from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs, get_logs_dir, FileOperations
+    DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE, SERVER_ADDR, UI_SERVER_PORT, CLI
+from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.process import kill_children
 
 
@@ -85,17 +86,7 @@ def process_options(user_args):
         sys.exit(0)
 
     # Default settings:
-    profiles = {}
     plugin_group = arg.PluginGroup
-
-    if arg.CustomProfile:  # Custom profiles specified
-        # Quick pseudo-validation check
-        for profile in arg.CustomProfile.split(','):
-            chunks = profile.split(':')
-            if len(chunks) != 2 or not os.path.exists(chunks[1]):
-                usage("Invalid Profile")
-            else:  # profile "ok" :)
-                profiles[chunks[0]] = chunks[1]
 
     if arg.OnlyPlugins:
         arg.OnlyPlugins, plugin_groups = get_plugins_from_arg(arg.OnlyPlugins)
@@ -199,7 +190,6 @@ def process_options(user_args):
         'list_plugins': arg.list_plugins,
         'Force_Overwrite': arg.ForceOverwrite,
         'Interactive': arg.Interactive == 'yes',
-        'Simulation': arg.Simulation,
         'Scope': scope,
         'argv': sys.argv,
         'PluginType': arg.PluginType,
@@ -208,7 +198,6 @@ def process_options(user_args):
         'InboundProxy': arg.InboundProxy,
         'OutboundProxy': arg.OutboundProxy,
         'OutboundProxyAuth': arg.OutboundProxyAuth,
-        'Profiles': profiles,
         'PluginGroup': plugin_group,
         'RPort': arg.RPort,
         'PortWaves': arg.PortWaves,
@@ -286,7 +275,9 @@ def start(args):
         sys.exit(-1)
 
     args = process_options(args[1:])
-    args['nowebui'] = not os.environ.get('WEBUI', WEBUI)
+    cli_env = os.environ.get('CLI', None)
+    if cli_env:
+        args["nowebui"] = cli_env
     config_handler.cli_options = deepcopy(args)
 
     # Patch args
@@ -294,12 +285,12 @@ def start(args):
 
     # Initialise Framework.
     logging.warn("OWTF Version: {0}, Release: {1} ".format(__version__, __release__))
-    logging.warn("http://{}:{} <-- Web UI URL".format(SERVER_ADDR, str(UI_SERVER_PORT)))
     start_proxy()
     try:
         if initialise_framework(args):
             if not args['nowebui']:
                 start_api_server()
+                logging.warn("http://{}:{} <-- Web UI URL".format(SERVER_ADDR, str(UI_SERVER_PORT)))
                 start_file_server()
             else:
                 start_cli()

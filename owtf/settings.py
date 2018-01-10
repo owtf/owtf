@@ -9,7 +9,7 @@ ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 CONFIG_DIR = os.path.join(ROOT_DIR, 'data', 'conf')
 
 DEBUG = False
-WEBUI = True
+CLI = False
 # Used by tools like dirbuster to launch gui or cli versions
 INTERACTIVE = True
 
