@@ -40,7 +40,7 @@ for item in requirements:
     if item.req:
         requires.append(str(item.req))  # always the package name
 
-post_script = os.path.join(ROOT_DIR, "owtf/install/install.py")
+post_script = os.path.join(ROOT_DIR, "scripts/install.sh")
 
 tests_requires = [
     'PyHamcrest==1.9.0',
@@ -57,7 +57,7 @@ class PostDevelopCommand(develop):
     def run(self):
         develop.run(self)
         print('Running post install')
-        call([sys.executable, post_script])
+        call(["/bin/sh", post_script])
 
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
@@ -65,7 +65,7 @@ class PostInstallCommand(install):
         # Need because of a setuptools bug: https://github.com/pypa/setuptools/issues/456
         self.do_egg_install()
         print('Running post install')
-        call([sys.executable, post_script])
+        call(["/bin/sh",  post_script])
 
 setup(
     name='owtf',
@@ -76,7 +76,7 @@ setup(
     author_email="abraham.aranguren@owasp.org",
     description='OWASP+PTES focused try to unite great tools and make pen testing more efficient',
     long_description=parse_file('README.md'),
-    packages=find_packages(exclude=["node_modules.*", "*.node_modules", "*.node_modules.*", "node_modules"]),
+    packages=find_packages(exclude=['node_modules', 'node_modules.*']),
     include_package_data=True,
     zip_safe=False,
     platforms='any',

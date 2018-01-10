@@ -262,7 +262,7 @@ class Requester(object):
         :return: None
         :rtype: None
         """
-        log_transaction(self.http_transaction)
+        self.log_transaction(self.http_transaction)
 
     def request(self, url, method=None, post=None):
         """Main request function

@@ -1,8 +1,5 @@
-try: #PY3
-    import asyncio
-except ImportError: #PY2
-    import trollius as asyncio
-    from trollius import From
+import tornado
+import tornado.ioloop
 
 from owtf.managers.worker import worker_manager
 
@@ -16,22 +13,18 @@ class CliServer(object):
     """
     def __init__(self):
         self.worker_manager = worker_manager
-        self.task = asyncio.Task(self.worker_manager.manage_workers())
-        self.manager_cron = asyncio.get_event_loop()
-        self.manager_cron.call_later(2, self.clean_up)
+        self.manager_cron = tornado.ioloop.PeriodicCallback(self.worker_manager.manage_workers, 2000)
 
     def start(self):
         try:
-            self.manager_cron.run_until_complete(self.task)
-        except asyncio.CancelledError:
-            pass
+            self.manager_cron.start()
+            tornado.ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:
-            self.clean_up()
+            pass
 
     def clean_up(self):
         """Properly stop any tornado callbacks."""
-        self.manager_cron.cancel()
-
+        self.manager_cron.stop()
 
 def start_cli():
     """This method starts the CLI server."""

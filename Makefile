@@ -10,24 +10,6 @@ endif
 
 ### INSTALL
 
-db-clean:
-	@echo "--> Dropping the database"
-	@sh owtf/data/scripts/db_setup.sh clean
-
-db-init:
-	@echo "--> Initializing the database"
-	@sh owtf/scripts/db_setup.sh init
-
-db-run:
-	@echo "--> Initializing the database"
-	@sh owtf/data/scripts/db_run.sh
-
-db-config:
-	@echo "--> Initializing the database"
-	@sh owtf/data/scripts/db_config_setup.sh
-
-reset-db: db-clean db-init
-
 install-dependencies:
 	@echo "--> Installing Kali dependencies"
 	sudo apt-get update
@@ -37,7 +19,9 @@ install-dependencies:
 			libcurl4-openssl-dev proxychains tor libffi-dev
 
 opt-tools:
-	sudo apt-get install -y lbd gnutls-bin arachni o-saft metagoofil
+	sudo apt-get install -y lbd gnutls-bin arachni o-saft metagoofil lbd arachni \
+                        theharvester tlssled nikto dnsrecon nmap whatweb skipfish \
+                        dirbuster metasploit-framework wpscan wapiti waffit hydra metagoofil o-saft
 
 web-tools:
 	sudo apt-get install kali-linux-web

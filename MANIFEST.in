@@ -2,3 +2,4 @@ recursive-include owtf/data *
 recursive-include owtf/plugins *
 recursive-include owtf/scripts *
 recursive-include owtf/webui *
+exclude 'node_modules' 'node_modules.*'

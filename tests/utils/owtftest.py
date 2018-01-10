@@ -17,7 +17,7 @@ class OWTFCliTestCase(unittest.TestCase):
 
     """Basic OWTF test case that initialises basic patches."""
 
-    DEFAULT_ARGS = ['--nowebui']
+    DEFAULT_ARGS = []
     PROTOCOL = 'http'
     IP = '127.0.0.1'
     DOMAIN = 'localhost'
