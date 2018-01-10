@@ -22,7 +22,7 @@ def abort_framework(message):
     """Abort the OWTF framework.
 
     :warning: If it happens really early and :class:`framework.core.Core`
-        has note been instanciated yet, `sys.exit()` is called with error
+        has note been instantiated yet, `sys.exit()` is called with error
         code -1
 
     :param str message: Descriptive message about the abort.

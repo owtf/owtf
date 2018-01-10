@@ -92,7 +92,7 @@ def add_urls_to_db(session, url, visited, found=None, target_id=None):
         # Make sure URL is clean prior to saving in DB, nasty bugs
         # can happen without this
         url = url.strip()
-        scope = is_url_in_scope(session, url)
+        scope = is_url_in_scope(url)
         session.merge(models.Url(target_id=target_id, url=url, visited=visited, scope=scope))
         session.commit()
 

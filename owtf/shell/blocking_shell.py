@@ -5,7 +5,6 @@ owtf.shell.blocking_shell
 The shell module allows running arbitrary shell commands and is critical to the framework
 in order to run third party tools
 """
-
 import logging
 import os
 import signal
@@ -184,9 +183,7 @@ class Shell(object):
                 line = proc.stdout.readline()
                 if not line:
                     break
-                # NOTE: Below MUST BE print instead of "cprint" to clearly distinguish between owtf
-                # output and tool output
-                logging.info(line.strip())  # Show progress on the screen too!
+                print(line.strip())  # Show progress on the screen too!
                 output += line  # Save as much output as possible before a tool crashes! :)
         except KeyboardInterrupt:
             os.killpg(proc.pid, signal.SIGINT)

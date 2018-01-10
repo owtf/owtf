@@ -5,10 +5,21 @@ owtf.lib.owtf_process
 Consists of owtf process class and its manager
 """
 
+import logging
 from multiprocessing import Process, Queue
+import signal
+import sys
+import multiprocessing
+import os
 
 from owtf.db.database import get_scoped_session
 from owtf.utils.logger import logger
+from owtf.utils.process import kill_children
+
+
+def signal_handler(signal, frame):
+    logging.warn('Cleaning up %s', multiprocessing.current_process().name)
+    kill_children(os.getpid())
 
 
 class OWTFProcess(Process):
@@ -27,6 +38,7 @@ class OWTFProcess(Process):
         self.output_q = None
         self.session = get_scoped_session()
         self.logger = logger
+        signal.signal(signal.SIGINT, signal_handler)
         self.logger.setup_logging()
         for key in list(kwargs.keys()):  # Attach all kwargs to self
             setattr(self, key, kwargs.get(key, None))

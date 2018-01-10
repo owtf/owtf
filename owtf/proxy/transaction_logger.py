@@ -83,7 +83,7 @@ class TransactionLogger(OWTFProcess):
         target_list = get_indexed_targets()
         if target_list:  # If there are no targets in db, where are we going to add. OMG
             transactions_dict = {}
-            host_list = get_all_in_scope(session=self.session, key='host_name')
+            host_list = get_all_in_scope('host_name')
 
             for request_hash in hash_list:
                 request = request_from_cache(os.path.join(INBOUND_PROXY_CACHE_DIR, request_hash))
@@ -125,7 +125,7 @@ class TransactionLogger(OWTFProcess):
                     hash_list = self.get_hash_list(INBOUND_PROXY_CACHE_DIR)
                     transactions_dict = self.get_owtf_transactions(hash_list)
                     if transactions_dict:  # Make sure you do not have None
-                        log_transactions_from_logger(session=self.session, transactions_dict=transactions_dict)
+                        log_transactions_from_logger(transactions_dict)
                 else:
                     time.sleep(2)
         except KeyboardInterrupt:

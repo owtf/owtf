@@ -33,6 +33,10 @@ from owtf.settings import WEB_TEST_GROUPS, AUX_TEST_GROUPS, NET_TEST_GROUPS, DEF
     FALLBACK_MAPPING_PROFILE, DEFAULT_MAPPING_PROFILE, DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, \
     DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE, WEBUI, SERVER_ADDR, UI_SERVER_PORT
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs, get_logs_dir, FileOperations
+from owtf.utils.process import kill_children
+
+
+owtf_pid = None
 
 
 def banner():
@@ -215,6 +219,11 @@ def process_options(user_args):
     }
 
 
+def finish():
+    # proxy call
+    kill_children(parent_pid=owtf_pid)
+
+
 def initialise_framework(options):
     """This function initializes the entire framework
 
@@ -255,6 +264,8 @@ def start(args):
     :return:
     :rtype: None
     """
+    global owtf_pid
+
     banner()
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
@@ -295,7 +306,7 @@ def start(args):
                 start_cli()
         else:
             # Only if Start is for real (i.e. not just listing plugins, etc)
-            sys.exit(0)  # Not Interrupted or Crashed.
+            finish()  # Not Interrupted or Crashed.
     except KeyboardInterrupt:
         # NOTE: The user chose to interact: interactivity check redundant here:
         logging.warning("OWTF was aborted by the user:")
