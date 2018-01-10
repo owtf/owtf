@@ -488,7 +488,7 @@ def get_all_in_scope(key):
     return results
 
 
-def is_url_in_scope(session, url):
+def is_url_in_scope(url):
     """To avoid following links to other domains.
 
     :param url: URL to check
@@ -498,7 +498,7 @@ def is_url_in_scope(session, url):
     """
     parsed_url = urlparse(url)
     # Get all known Host Names in Scope.
-    for host_name in get_all_in_scope(session=session, key='host_name'):
+    for host_name in get_all_in_scope(key='host_name'):
         if parsed_url.hostname == host_name:
             return True
     return False

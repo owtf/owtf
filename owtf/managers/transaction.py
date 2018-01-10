@@ -308,7 +308,7 @@ def log_transactions(session, transaction_list, target_id=None):
     import_processed_url(session=session, urls_list=urls_list, target_id=target_id)
 
 
-def log_transactions_from_logger(session, transactions_dict):
+def log_transactions_from_logger(transactions_dict):
     """Logs transactions as they come into the DB
 
     .note::
@@ -319,6 +319,7 @@ def log_transactions_from_logger(session, transactions_dict):
     :return: None
     :rtype: None
     """
+    session = get_scoped_session()
     for target_id, transaction_list in list(transactions_dict.items()):
         if transaction_list:
             log_transactions(session=session, transaction_list=transaction_list, target_id=target_id)

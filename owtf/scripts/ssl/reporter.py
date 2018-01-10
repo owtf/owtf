@@ -1,11 +1,17 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import json
+import os
 import sys
 import traceback
 
 from template import RESULTS
 
+
+if not os.path.isfile(sys.argv[1]):
+    sys.exit(-1)
 
 with open(str(sys.argv[1]), 'r') as data_file:
     data = json.load(data_file)
@@ -14,13 +20,13 @@ org_name = str(sys.argv[1]).split('.json', 1)[0]
 
 try:
     if data[0]['status'] == 'ERROR':
-        print "[-] SSLLabs scan finished with errors"
+        print("[-] SSLLabs scan finished with errors")
         sys.exit(0)
 except IndexError:
-    print "Wrong format detected, exiting..."
+    print("Wrong format detected, exiting...")
     sys.exit(0)
 
-print "RESULT IN SSL_TLS_TESTING_FUNCTIONALITY_FROM_SSLLABS_REPORT.html"
+print("RESULT IN SSL_TLS_TESTING_FUNCTIONALITY_FROM_SSLLABS_REPORT.html")
 
 try:
     with open(org_name + "_report.html", 'w') as f:
@@ -84,9 +90,10 @@ try:
         content = content.replace("{{cert_chains}}", cert_chains)
 
         f.write(content)
-        print "Done. Report write successful."
+        print("Done. Report write successful.")
 except:
     print('Something went wrong when parsing result')
-    print traceback.format_exc()
+    print(traceback.format_exc())
     sys.exit(0)
+
 sys.exit(0)

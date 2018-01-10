@@ -292,7 +292,7 @@ class Requester(object):
         # transactions can be created and process at plugin-level
         # Pass the timer object to avoid instantiating each time.
         self.http_transaction = transaction.HTTPTransaction(self.timer)
-        self.http_transaction.start(url, post, method, is_url_in_scope(self.session, url))
+        self.http_transaction.start(url, post, method, is_url_in_scope(url))
         self.req_count_total += 1
         try:
             response = self.perform_request(r)
