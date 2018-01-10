@@ -327,7 +327,7 @@ proxy_setup
 
 db_setup
 
-ui_setup
+#ui_setup
 
 if [ "$(check_debian)" == "1" ]; then
     kali_install
