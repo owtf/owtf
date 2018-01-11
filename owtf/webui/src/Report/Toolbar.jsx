@@ -1,5 +1,5 @@
-import React from 'react';
-import {templatesNames, getDocx} from './Export.js';
+import { React } from 'react';
+import { templatesNames, getDocx } from './Export.js';
 
 /**
   * React Component for Toolbar. It is child component used by Report Component.
@@ -17,21 +17,21 @@ class Toolbar extends React.PureComponent {
     };
 
     // Launch user sessions manager
-    loadSessionManager() {
+    static loadSessionManager() {
         window.location.href = mySpace.sessions_ui_url;
     };
 
     render() {
-        var selectedRank = this.props.selectedRank;
-        /* adv_filter_data varaible obtained from space of main template target.html. */
-        var adv_filter_data = mySpace.adv_filter_data;
-        var elem = document.createElement('textarea');
+        let selectedRank = this.props.selectedRank;
+        /* adv_filter_data letaible obtained from space of main template target.html. */
+        let adv_filter_data = mySpace.adv_filter_data;
+        let elem = document.createElement('textarea');
         elem.innerHTML = adv_filter_data;
-        var decoded = elem.value;
+        let decoded = elem.value;
         adv_filter_data = JSON.parse(decoded);
-        var updateFilter = this.context.updateFilter;
-        var target_id = document.getElementById("report").getAttribute("data-code");
-        var getDocx = this.getDocx;
+        let updateFilter = this.context.updateFilter;
+        let target_id = document.getElementById("report").getAttribute("data-code");
+        let getDocx = this.getDocx;
 
         return (
             <div className="container">

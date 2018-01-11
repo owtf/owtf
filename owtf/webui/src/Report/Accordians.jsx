@@ -1,6 +1,6 @@
-import React from 'react';
-import Accordian from './Accordian.jsx';
-import {TARGET_API_URI, STATIC_URI} from '../constants.jsx';
+import { React } from 'react';
+import { Accordian } from './Accordian.jsx';
+import { TARGET_API_URI, STATIC_URI } from '../constants.jsx';
 
 /**
   * React Component for group of Accordian. It is child component used by Report Component.
@@ -25,7 +25,7 @@ class Accordians extends React.Component {
 
     /* Making an AJAX request on source property */
     componentDidMount() {
-        var target_id = document.getElementById("report").getAttribute("data-code");
+        let target_id = document.getElementById("report").getAttribute("data-code");
         this.serverRequest = $.get(TARGET_API_URI + target_id + '/poutput/names/', function(result) {
             this.setState({pluginNameData: result, isLoaded: true});
         }.bind(this))
@@ -39,7 +39,7 @@ class Accordians extends React.Component {
     };
 
     render() {
-        var plugins = this.state.pluginNameData;
+        let plugins = this.state.pluginNameData;
         if (this.state.isLoaded) {
             return (
                 <div className="panel-group" id="pluginOutputs">

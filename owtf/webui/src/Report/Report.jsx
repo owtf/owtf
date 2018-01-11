@@ -1,10 +1,10 @@
-import React from 'react';
-import Header from './Header.jsx';
-import SideFilters from './SideFilters.jsx';
-import Accordians from './Accordians.jsx';
-import Toolbar from './Toolbar.jsx';
-import {Notification} from 'react-notification';
-import update from 'immutability-helper';
+import { React } from 'react';
+import { Header } from './Header.jsx';
+import { SideFilters } from './SideFilters.jsx';
+import { Accordians } from './Accordians.jsx';
+import { Toolbar } from './Toolbar.jsx';
+import { Notification } from 'react-notification';
+import { update } from 'immutability-helper';
 
 /**
  * React Component for Report.
@@ -24,7 +24,7 @@ class Report extends React.Component {
       * Changes the Report to full width container.
       */
 
-    replaceContainer() {
+    static replaceContainer() {
         document.getElementById("app").parentElement.className = "container-fluid";
     };
 
@@ -46,7 +46,7 @@ class Report extends React.Component {
     };
 
     getChildContext() {
-        var context_obj = {
+        let context_obj = {
             selectedType: this.state.selectedType,
             selectedGroup: this.state.selectedGroup,
             selectedRank: this.state.selectedRank,
@@ -68,7 +68,7 @@ class Report extends React.Component {
       */
 
     updateFilter(filter_type, val) {
-        var type;
+        let type;
         if (filter_type === 'plugin_type') {
             type = 'selectedType';
         } else if (filter_type === 'plugin_group') {
@@ -84,7 +84,7 @@ class Report extends React.Component {
             type = 'selectedStatus';
         }
 
-        var index = this.state[type].indexOf(val);
+        let index = this.state[type].indexOf(val);
         if (index > -1) {
             this.setState({
                 [type]: update(this.state[type], {
@@ -105,7 +105,7 @@ class Report extends React.Component {
       * Function responsible for refreshing the Report.(Refresh button in Toolbar)
       */
 
-    updateReport() {
+    static updateReport() {
         location.reload();
     };
 

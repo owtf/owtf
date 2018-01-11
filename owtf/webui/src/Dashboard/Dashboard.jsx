@@ -1,10 +1,9 @@
-import React from 'react';
-import Chart from './Chart.jsx';
-import WorkerPanel from './WorkerPanel.jsx';
-import VulnerabilityPanel from './Panel.jsx';
-import GitHubReport from './GitHubReport.jsx';
-import {SEVERITY_CHART_URL, SEVERITY_PANEL_URL, WORKER_PANEL_URL, ERROR_URL, POLLINTERVAL} from './constants.jsx';
-import {FILE_SERVER_PORT} from '../constants.jsx';
+import { React } from 'react';
+import { Chart } from './Chart.jsx';
+import { WorkerPanel } from './WorkerPanel.jsx';
+import { VulnerabilityPanel } from './Panel.jsx';
+import { SEVERITY_CHART_URL, SEVERITY_PANEL_URL, WORKER_PANEL_URL, ERROR_URL, POLL_INTERVAL } from './constants.jsx';
+import { FILE_SERVER_PORT } from '../constants.jsx';
 
 /**
  * React Component for Dashboard.

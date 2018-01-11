@@ -1,4 +1,4 @@
-import React from 'react';
+import { React } from 'react';
 
 /**
   * React Component for RankButtons. It is child component used by Collapse Component.
@@ -7,9 +7,9 @@ import React from 'react';
 class RankButtons extends React.Component {
 
     render() {
-        var obj = this.props.obj;
-        var user_rank = obj['user_rank'];
-        var owtf_rank = obj['owtf_rank'];
+        let obj = this.props.obj;
+        let user_rank = obj['user_rank'];
+        let owtf_rank = obj['owtf_rank'];
         if (user_rank in [0, 1, 2, 3, 4, 5]) {
             return (
                 <div className="btn-group">

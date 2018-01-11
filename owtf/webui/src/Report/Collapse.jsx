@@ -10,14 +10,14 @@ import Table from './Table.jsx';
 class Collapse extends React.Component {
 
     render() {
-        var plugin = this.props.plugin;
-        var pluginData = this.props.pluginData;
-        var selectedType = this.context.selectedType;
-        var selectedRank = this.context.selectedRank;
-        var selectedGroup = this.context.selectedGroup;
-        var selectedOwtfRank = this.context.selectedOwtfRank;
-        var selectedStatus = this.context.selectedStatus;
-        var pactive = this.props.pactive;
+        let plugin = this.props.plugin;
+        let pluginData = this.props.pluginData;
+        let selectedType = this.context.selectedType;
+        let selectedRank = this.context.selectedRank;
+        let selectedGroup = this.context.selectedGroup;
+        let selectedOwtfRank = this.context.selectedOwtfRank;
+        let selectedStatus = this.context.selectedStatus;
+        let pactive = this.props.pactive;
         return (
             <div id={plugin['code']} className="panel-collapse collapse">
                 <div className="panel-body">
@@ -27,7 +27,7 @@ class Collapse extends React.Component {
                         </li>
                         {pluginData.map(function(obj) {
                             if ((selectedType.length === 0 || selectedType.indexOf(obj['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(obj['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(obj['status']) !== -1)) {
-                                var pkey = obj['plugin_type'] + '_' + obj['plugin_code'];
+                                let pkey = obj['plugin_type'] + '_' + obj['plugin_code'];
                                 return (
                                     <li key={pkey} className={pactive === obj['plugin_type']
                                         ? "active"
@@ -49,7 +49,7 @@ class Collapse extends React.Component {
                     <div className="tab-content">
                         {pluginData.map(function(obj) {
                             if ((selectedType.length === 0 || selectedType.indexOf(obj['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1)) {
-                                var pkey = obj['plugin_type'] + '_' + obj['plugin_code'];
+                                let pkey = obj['plugin_type'] + '_' + obj['plugin_code'];
                                 return (
                                     <div className={pactive === obj['plugin_type']
                                         ? "tab-pane active"

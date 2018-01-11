@@ -1,8 +1,8 @@
-import React from 'react';
-import {Circle} from 'rc-progress';
-import TimeAgo from 'react-timeago';
-import {WORKER_DETAIL_URL} from './constants.jsx';
-import {FILE_SERVER_PORT, STATIC_URI} from '../constants.jsx';
+import { React } from 'react';
+import { Circle } from 'rc-progress';
+import { TimeAgo } from 'react-timeago';
+import { WORKER_DETAIL_URL } from './constants.jsx';
+import { FILE_SERVER_PORT, STATIC_URI } from '../constants.jsx';
 
 /**
  *  React Component for one entry of Worker Panel legend.
@@ -20,10 +20,11 @@ class Worker extends React.Component {
     /* Function resposible to make enteries for each worker in worker legend */
     getWork() {
         // Function which logs of corresponsing worker and display in modal
-        var getLog = function(id, name) {
+        let getLog = function(id, name) {
             $('#logModalLabel').html("Worker-" + id + " log");
-            const FILE_URL = location.protocol.concat("//").concat(window.location.hostname).concat(":").concat(FILE_SERVER_PORT).concat("/logs/").concat(name).concat(".log");
-            var log;
+            const FILE_URL = location.protocol.concat("//").concat(window.location.hostname).concat(":").concat(
+                FILE_SERVER_PORT).concat("/logs/").concat(name).concat(".log");
+            let log;
             $.ajax({
                 async: false,
                 url: FILE_URL,
@@ -40,7 +41,7 @@ class Worker extends React.Component {
         };
 
         // This put the worker id with its currently running plugin in worker legend
-        var Work;
+        let Work;
         if (this.props.data.work.length > 0) {
             Work = (
                 <div>
@@ -108,7 +109,7 @@ class WorkerLegend extends React.Component {
         this.state = {
             workerData: [],
             intervalId: null
-        }
+        };
 
         this.changeState = this.changeState.bind(this);
     };
@@ -118,7 +119,7 @@ class WorkerLegend extends React.Component {
         $.get(this.props.source, function(result) {
             this.setState({workerData: result});
 
-            var count = 0;
+            let count = 0;
             $.each(result, function(index, obj) {
                 if (obj.busy) {
                     count++;
@@ -126,7 +127,7 @@ class WorkerLegend extends React.Component {
             });
 
             // If no worker is running then clear the interval Why? paste server resources
-            if (count == 0) {
+            if (count === 0) {
                 clearInterval(this.state.intervalId);
             }
 
@@ -192,34 +193,34 @@ class ProgressBar extends React.Component {
             percent: 0,
             color: "#3FC7FA",
             intervalId: null
-        }
+        };
 
         this.changeState = this.changeState.bind(this);
     };
 
     /* Function responsible to make changes in state of progres Bar */
     changeState() {
-        var colorMap = ["#FE8C6A", "#3FC7FA", "#85D262"];
+        let colorMap = ["#FE8C6A", "#3FC7FA", "#85D262"];
         $.ajax({
             url: this.props.source,
             dataType: 'json',
             cache: false,
             success: function(data) {
-                var left_count = data.left_count;
-                var complete_count = data.complete_count;
-                if (left_count == 0 && complete_count == 0) {
+                let left_count = data.left_count;
+                let complete_count = data.complete_count;
+                if (left_count === 0 && complete_count === 0) {
                     this.setState({
                         percent: 0,
                         color: colorMap[parseInt(Math.random() * 3)]
                     });
                     clearInterval(this.state.intervalId);
                 } else {
-                    var percentage_done = (complete_count / (left_count + complete_count)) * 100;
+                    let percentage_done = (complete_count / (left_count + complete_count)) * 100;
                     this.setState({
                         percent: percentage_done,
                         color: colorMap[parseInt(percentage_done / 34)]
                     });
-                    if (percentage_done == 100) {
+                    if (percentage_done === 100) {
                         clearInterval(this.state.intervalId);
                     }
                 }

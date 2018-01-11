@@ -1,8 +1,8 @@
-import Docxtemplater from 'docxtemplater';
-import {TARGET_API_URI} from '../constants.jsx';
-import {importDirectory} from '../utils.js';
-import JSZip from 'jszip';
-import saveAs from 'save-as';
+import { Docxtemplater } from 'docxtemplater';
+import { TARGET_API_URI } from '../constants.jsx';
+import { importDirectory } from '../utils.js';
+import { JSZip } from 'jszip';
+import { saveAs } from 'save-as';
 
 const templates = importDirectory(require.context('./templates/', true, /\.(docx)$/));
 
@@ -10,8 +10,8 @@ export const templatesNames = Object.keys(templates);
 
 // Funtion responsible for generating docx from JSON using docxtemplater.
 function getDocxReportFromJSON(json, template) {
-    var zip = new JSZip(templates[template]);
-    var doc = new Docxtemplater();
+    let zip = new JSZip(templates[template]);
+    let doc = new Docxtemplater();
     doc.loadZip(zip);
 
     //set the templateVariables
@@ -21,7 +21,7 @@ function getDocxReportFromJSON(json, template) {
         // render the document (replace all occurences of tags.
         doc.render()
     } catch (error) {
-        var e = {
+        let e = {
             message: error.message,
             name: error.name,
             stack: error.stack,
@@ -34,10 +34,10 @@ function getDocxReportFromJSON(json, template) {
         throw error;
     }
 
-    var out = doc.getZip().generate({
+    let out = doc.getZip().generate({
         type: "blob",
         mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    })
+    });
     saveAs(out, 'report.docx');
 }
 
