@@ -92,7 +92,7 @@ def usage(error_message):
     )
     if error_message:
         print("\nERROR: " + error_message)
-    exit(-1)
+    sys.exit(-1)
 
 
 def parse_options(cli_options, valid_groups, valid_types):
@@ -108,6 +108,7 @@ def parse_options(cli_options, valid_groups, valid_types):
     :rtype:
     """
     parser = argparse.ArgumentParser(
+        prog="owtf",
         description="OWASP OWTF, the Offensive (Web) Testing Framework, is "
                     "an OWASP+PTES-focused try to unite great tools and "
                     "make pentesting more efficient @owtfp http://owtf.org"

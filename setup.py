@@ -67,6 +67,15 @@ class PostInstallCommand(install):
         print('Running post install')
         call(["/bin/sh",  post_script])
 
+
+if sys.version_info < (2, 7, 9):
+  # SSL connection fixes for Python 2.7
+  requires.extend([
+    'ndg-httpsclient',
+    'pyasn1',
+  ])
+
+
 setup(
     name='owtf',
     version=version,
@@ -90,9 +99,10 @@ setup(
         'develop': PostDevelopCommand,
         'install': PostInstallCommand,
     },
+    scripts=['bin/owtf-cli'],
     entry_points={
         'console_scripts': [
-            'owtf = owtf.__main__:main'
+            'owtf = owtf.core:main'
         ]
     },
     classifiers=[

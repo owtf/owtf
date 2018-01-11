@@ -26,6 +26,7 @@ class CliServer(object):
         """Properly stop any tornado callbacks."""
         self.manager_cron.stop()
 
+
 def start_cli():
     """This method starts the CLI server."""
     cli_server = CliServer()
