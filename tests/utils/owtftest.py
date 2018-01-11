@@ -51,7 +51,7 @@ class OWTFCliTestCase(unittest.TestCase):
             args += extra_args
         print("with the following options: %s" % args)
         args_str = ' '.join(args)
-        os.system("CLI=True python -m owtf %s" % args_str)
+        os.system("CLI=True owtf-cli %s" % args_str)
         self.load_logs()
 
     def load_logs(self):
