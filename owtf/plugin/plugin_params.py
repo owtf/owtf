@@ -4,7 +4,7 @@ owtf.plugin.plugin_params.py
 
 Manage parameters to the plugins
 """
-
+import logging
 from collections import defaultdict
 
 from owtf.config import config_handler

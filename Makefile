@@ -58,6 +58,10 @@ develop-ui:
 
 install-develop-ui: install-node-requirements develop-ui
 
+post-install:
+	@echo "--> Installing dictionaries and tools"
+	python scripts/install_tools.py
+
 ### DOCS
 
 docs:

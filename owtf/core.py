@@ -17,7 +17,7 @@ from owtf.config import config_handler
 from owtf.filesrv.main import start_file_server
 from owtf.lib import exceptions
 from owtf.lib.cli_options import usage, parse_options
-from owtf import __version__, __release__, db
+from owtf import db
 from owtf.managers.config import load_config_db_file, load_framework_config_file
 from owtf.managers.resource import load_resources_from_file
 from owtf.managers.mapping import load_mappings_from_file
@@ -25,7 +25,6 @@ from owtf.managers.plugin import get_groups_for_plugins, get_all_plugin_types, g
     get_types_for_plugin_group, load_test_groups, load_plugins
 from owtf.managers.session import _ensure_default_session
 from owtf.managers.target import load_targets
-from owtf.managers.worker import worker_manager
 from owtf.managers.worklist import load_works
 from owtf.plugin.plugin_handler import show_plugin_list, plugin_handler
 from owtf.proxy.main import start_proxy
@@ -43,15 +42,6 @@ owtf_pid = None
 def banner():
     """Prints a figlet type banner"""
 
-    print("""\033[92m
- _____ _ _ _ _____ _____
-|     | | | |_   _|   __|
-|  |  | | | | | | |   __|
-|_____|_____| |_| |__|
-
-        @owtfp
-    http://owtf.org
-    \033[0m""")
 
 
 def get_plugins_from_arg(arg):
@@ -208,11 +198,6 @@ def process_options(user_args):
     }
 
 
-def finish():
-    # proxy call
-    kill_children(parent_pid=owtf_pid)
-
-
 def initialise_framework(options):
     """This function initializes the entire framework
 
@@ -225,9 +210,10 @@ def initialise_framework(options):
     # No processing required, just list available modules.
     if options['list_plugins']:
         show_plugin_list(db, options['list_plugins'])
-        sys.exit(0)
+        finish(owtf_pid)
     target_urls = load_targets(session=db, options=options)
     load_works(session=db, target_urls=target_urls, options=options)
+    start_proxy()
     return True
 
 
@@ -245,7 +231,24 @@ def patch_obj_args(args):
     exec_registry()
 
 
-def start(args):
+def x(args):
+    """Start OWTF.
+    :params dict args: Options from the CLI.
+    """
+    if initialise_framework(args):
+        if not args['nowebui']:
+            start_api_server()
+            logging.warn("http://{}:{} <-- Web UI URL".format(SERVER_ADDR, str(UI_SERVER_PORT)))
+            start_file_server()
+        else:
+            start_cli()
+
+
+def finish(owtf_pid):
+    kill_children(owtf_pid)
+
+
+def main(args):
     """ The main wrapper which loads everything
 
     :param args: User supplied arguments dictionary
@@ -253,8 +256,6 @@ def start(args):
     :return:
     :rtype: None
     """
-    global owtf_pid
-
     banner()
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
@@ -284,19 +285,10 @@ def start(args):
     patch_obj_args(args)
 
     # Initialise Framework.
-    logging.warn("OWTF Version: {0}, Release: {1} ".format(__version__, __release__))
-    start_proxy()
     try:
-        if initialise_framework(args):
-            if not args['nowebui']:
-                start_api_server()
-                logging.warn("http://{}:{} <-- Web UI URL".format(SERVER_ADDR, str(UI_SERVER_PORT)))
-                start_file_server()
-            else:
-                start_cli()
-        else:
+        if x(args):
             # Only if Start is for real (i.e. not just listing plugins, etc)
-            finish()  # Not Interrupted or Crashed.
+            sys.exit(0)  # Not Interrupted or Crashed.
     except KeyboardInterrupt:
         # NOTE: The user chose to interact: interactivity check redundant here:
         logging.warning("OWTF was aborted by the user:")

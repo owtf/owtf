@@ -2,8 +2,11 @@
 
 """ Command-line interface to various grouper administrative commands."""
 
-from owtf.cli.main import main
+import sys
+
+from owtf.core import main
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)
+

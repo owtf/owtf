@@ -106,24 +106,6 @@ copy_dirs() {
     fi
 }
 
-# Read YAML file from Bash script
-# Credits: https://gist.github.com/pkuczynski/8665367
-parse_yaml() {
-   local prefix=$2
-   local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
-   sed -ne "s|^\($s\)\($w\)$s:$s\"\(.*\)\"$s\$|\1$fs\2$fs\3|p" \
-        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p" $1 |
-   awk -F$fs '{
-      indent = length($1)/2;
-      vname[indent] = $2;
-      for (i in vname) {if (i > indent) {delete vname[i]}}
-      if (length($3) > 0) {
-         vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
-         printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
-      }
-   }'
-}
-
 # =======================================
 #   PROXY CERTS SETUP
 # =======================================
@@ -196,8 +178,8 @@ db_setup() {
     if [ "$action" = "init" ]; then
         psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass'"
         psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"
-        sudo su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""
-        sudo su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""
+        #sudo su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""
+        #sudo su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""
     elif [ "$action" = "clean" ]; then
         psql postgres -c "DROP DATABASE $db_name"
         psql postgres -c "DROP USER $db_user"
@@ -256,6 +238,7 @@ kali_install() {
     echo "${info}[*] Installing required tools...${reset}"
     make opt-tools
     make web-tools
+    sh "$SCRIPT_DIR/kali/install.sh"
 }
 
 # ======================================
@@ -327,11 +310,13 @@ proxy_setup
 
 db_setup
 
-#ui_setup
+ui_setup
 
 if [ "$(check_debian)" == "1" ]; then
     kali_install
 fi
+
+make post-install
 
 echo "${info}[*] Finished!${reset}"
 echo "${info}[*] Start OWTF by running cd path/to/pentest/directory; python -m owtf${reset}"

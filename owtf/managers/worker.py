@@ -10,8 +10,6 @@ import os
 import signal
 import sys
 import traceback
-
-
 try:
     import queue
 except ImportError:
@@ -278,13 +276,13 @@ class WorkerManager(object):
         if not alive:
             # send SIGKILL
             for pid in alive:
-                logging.debug("Process {} survived SIGTERM; trying SIGKILL" % pid)
+                logging.debug("Process {} survived SIGTERM; trying SIGKILL".format(pid))
                 pid.kill()
         gone, alive = psutil.wait_procs(alive, timeout=TIMEOUT, callback=on_terminate)
         if not alive:
             # give up
             for pid in alive:
-                logging.debug("Process {} survived SIGKILL; giving up" % pid)
+                logging.debug("Process {} survived SIGKILL; giving up".format(pid))
 
     # NOTE: PSEUDO_INDEX = INDEX + 1
     # This is because the list index starts from 0 and in the UI, indices start from 1
