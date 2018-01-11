@@ -1,5 +1,5 @@
-import React from 'react';
-import {Pie} from 'react-chartjs';
+import { React } from 'react';
+import { Pie } from 'react-chartjs';
 
 /**
  *  React Component to create one entry of chart legend.
@@ -97,7 +97,7 @@ class Chart extends React.Component {
 
     componentDidMount() {
         this.serverRequest = $.get(this.props.source, function(result) {
-            var pieData = result.data;
+            let pieData = result.data;
             this.setState({piedata: pieData});
         }.bind(this));
     };
@@ -112,7 +112,7 @@ class Chart extends React.Component {
                 <div className="row">
                     <div className="text-left">
                         <h3 className="dashboard-subheading">Previous Targets Analytics</h3>
-                        <hr></hr>
+                        <hr/>
                     </div>
                 </div>
                 <div className="row">

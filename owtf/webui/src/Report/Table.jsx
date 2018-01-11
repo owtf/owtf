@@ -1,5 +1,5 @@
-import React from 'react';
-import {TARGET_API_URI} from '../constants.jsx';
+import { React } from 'react';
+import { TARGET_API_URI } from '../constants.jsx';
 
 /**
   * React Component for Table in collapse. It is child component used by Collapse Component.
@@ -14,8 +14,8 @@ class Table extends React.PureComponent {
     */
 
     patchUserNotes(group, type, code, user_notes) {
-        var target_id = document.getElementById("report").getAttribute("data-code");
-        var alert = this.context.alert;
+        let target_id = document.getElementById("report").getAttribute("data-code");
+        let alert = this.context.alert;
         $.ajax({
             url: TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code,
             type: 'PATCH',
@@ -36,13 +36,13 @@ class Table extends React.PureComponent {
       */
 
     handleEditor(group, type, code, instance) { // Same function called both to create or close editor
-        var target_id = document.getElementById("report").getAttribute("data-code");
-        var editorRef = "editor_" + group + "_" + type + "_" + code;
-        var instance = this.refs[editorRef];
-        var editorArea = $(instance).closest('table').find('.editor');
-        var patchUserNotes = this.patchUserNotes;
+        let target_id = document.getElementById("report").getAttribute("data-code");
+        let editorRef = "editor_" + group + "_" + type + "_" + code;
+        //let instance = this.refs[editorRef];
+        let editorArea = $(instance).closest('table').find('.editor');
+        let patchUserNotes = this.patchUserNotes;
         try {
-            var editor = editorArea.ckeditorGet(); // This line generates error if editor not found
+            let editor = editorArea.ckeditorGet(); // This line generates error if editor not found
             patchUserNotes.call(this, group, type, code, editorArea.val());
             editor.destroy();
             editorArea.css("display", "None");
@@ -55,19 +55,18 @@ class Table extends React.PureComponent {
     };
 
     render() {
-        var obj = this.props.obj;
-        var output_path = encodeURIComponent(obj['output_path']) + "/";
-        var status = obj['status'];
-        var run_time = obj['run_time'];
-        var start_time = obj['start_time'];
-        var end_time = obj['end_time'];
-        var run_time = obj['status'];
-        var output = obj['output'] === undefined ? "" : obj['output'];
-        var group = obj['plugin_group'];
-        var type = obj['plugin_type'];
-        var code = obj['plugin_code'];
-        var deletePluginOutput = this.context.deletePluginOutput;
-        var postToWorkList = this.context.postToWorkList;
+        let obj = this.props.obj;
+        let output_path = encodeURIComponent(obj['output_path']) + "/";
+        let status = obj['status'];
+        let run_time = obj['run_time'];
+        let start_time = obj['start_time'];
+        let end_time = obj['end_time'];
+        let output = obj['output'] === undefined ? "" : obj['output'];
+        let group = obj['plugin_group'];
+        let type = obj['plugin_type'];
+        let code = obj['plugin_code'];
+        let deletePluginOutput = this.context.deletePluginOutput;
+        let postToWorkList = this.context.postToWorkList;
 
         return (
             <table className="table table-bordered table-striped table-hover">

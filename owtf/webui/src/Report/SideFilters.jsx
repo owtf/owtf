@@ -1,4 +1,4 @@
-import React from 'react';
+import { React } from 'react';
 
 /**
   * React Component for SideFilters. It is child component used by Report Component.
@@ -10,11 +10,11 @@ import React from 'react';
 class SideFilters extends React.PureComponent {
 
     render() {
-        var updateFilter = this.context.updateFilter;
-        var selectedGroup = this.props.selectedGroup;
-        var selectedType = this.props.selectedType;
-        var groups = ['web', 'network', 'auxiliary'];
-        var type = [
+        let updateFilter = this.context.updateFilter;
+        let selectedGroup = this.props.selectedGroup;
+        let selectedType = this.props.selectedType;
+        let groups = ['web', 'network', 'auxiliary'];
+        let type = [
             'semi_passive',
             'active',
             'bruteforce',

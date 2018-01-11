@@ -77,7 +77,7 @@ var config = merge(common, {
                     loader: 'file-loader',
                     options: {
                         name: '[name].[ext]',
-                        outputPath: 'fonts/', // where the fonts will go
+                        outputPath: 'fonts/' // where the fonts will go
                     }
                 }]
             },

@@ -1,5 +1,5 @@
-import React from 'react';
-import {TARGET_UI_URI, TARGET_API_URI} from '../constants.jsx';
+import { React } from 'react';
+import { TARGET_UI_URI, TARGET_API_URI } from '../constants.jsx';
 
 /**
   * React Component for Header. It is child component used by Report Component.
@@ -20,21 +20,21 @@ class Header extends React.PureComponent {
 
     };
 
-    returnToTopHandler() {
+    static returnToTopHandler() {
         $('body,html').animate({
             scrollTop: 0 // Scroll to top of body
         }, 500);
     }
 
     componentDidMount() {
-        var target_id = document.getElementById("report").getAttribute("data-code");
+        let target_id = document.getElementById("report").getAttribute("data-code");
         this.serverRequest1 = $.get(TARGET_API_URI + target_id, function(result) {
             this.setState({targetdata: result});
         }.bind(this));
     }
 
     render() {
-        var localMax = this.state.targetdata.max_user_rank > this.state.targetdata.max_owtf_rank
+        let localMax = this.state.targetdata.max_user_rank > this.state.targetdata.max_owtf_rank
             ? this.state.targetdata.max_user_rank
             : this.state.targetdata.max_owtf_rank;
         return (

@@ -1,8 +1,8 @@
-import React from 'react';
-import Collapse from './Collapse.jsx'
-import {TARGET_API_URI, WORKLIST_API_URI} from '../constants.jsx';
-import update from 'immutability-helper';
-import {Notification} from 'react-notification';
+import { React } from 'react';
+import { Collapse } from './Collapse.jsx'
+import { TARGET_API_URI, WORKLIST_API_URI } from '../constants.jsx';
+import { update } from 'immutability-helper';
+import { Notification } from 'react-notification';
 
 /**
   * React Component for one Accordian. It is child component used by Accordians Component.
@@ -36,7 +36,7 @@ class Accordian extends React.Component {
     };
 
     getChildContext() {
-        var context_obj = {
+        let context_obj = {
             patchUserRank: this.patchUserRank,
             deletePluginOutput: this.deletePluginOutput,
             postToWorkList: this.postToWorkList
@@ -52,23 +52,23 @@ class Accordian extends React.Component {
       */
 
     getRankAndTypeCount(pluginDataList) {
-        var testCaseMax = 0;
-        var count = 0;
-        var maxUserRank = -1;
-        var maxOWTFRank = -1;
-        var selectedType = this.context.selectedType;
-        var selectedRank = this.context.selectedRank;
-        var selectedGroup = this.context.selectedGroup;
-        var selectedOwtfRank = this.context.selectedOwtfRank;
-        var selectedStatus = this.context.selectedStatus;
+        let testCaseMax = 0;
+        let count = 0;
+        let maxUserRank = -1;
+        let maxOWTFRank = -1;
+        let selectedType = this.context.selectedType;
+        let selectedRank = this.context.selectedRank;
+        let selectedGroup = this.context.selectedGroup;
+        let selectedOwtfRank = this.context.selectedOwtfRank;
+        let selectedStatus = this.context.selectedStatus;
 
-        for (var i = 0; i < pluginDataList.length; i++) {
+        for (let i = 0; i < pluginDataList.length; i++) {
             if ((selectedType.length === 0 || selectedType.indexOf(pluginDataList[i]['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(pluginDataList[i]['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(pluginDataList[i]['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(pluginDataList[i]['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(pluginDataList[i]['status']) !== -1)) {
-                if (pluginDataList[i]['user_rank'] != null && pluginDataList[i]['user_rank'] != -1) {
+                if (pluginDataList[i]['user_rank'] != null && pluginDataList[i]['user_rank'] !== -1) {
                     if (pluginDataList[i]['user_rank'] > maxUserRank) {
                         maxUserRank = pluginDataList[i]['user_rank'];
                     }
-                } else if (pluginDataList[i]['owtf_rank'] != null && pluginDataList[i]['owtf_rank'] != -1) {
+                } else if (pluginDataList[i]['owtf_rank'] != null && pluginDataList[i]['owtf_rank'] !== -1) {
                     if (pluginDataList[i]['owtf_rank'] > maxOWTFRank) {
                         maxOWTFRank = pluginDataList[i]['owtf_rank'];
                     }
@@ -108,7 +108,7 @@ class Accordian extends React.Component {
 
     fetchData(plugin_type) {
         if (this.state.isClicked === false) {
-            var target_id = document.getElementById("report").getAttribute("data-code");
+            let target_id = document.getElementById("report").getAttribute("data-code");
             this.serverRequest = $.get(TARGET_API_URI + target_id + '/poutput/' + '?plugin_code=' + this.state.code, function(result) {
                 this.setState({
                     pluginData: result,
@@ -129,9 +129,9 @@ class Accordian extends React.Component {
       */
 
     patchUserRank(group, type, code, user_rank) {
-        var target_id = document.getElementById("report").getAttribute("data-code");
-        var presentState = this.state.pluginData;
-        var alert = this.alert;
+        let target_id = document.getElementById("report").getAttribute("data-code");
+        let presentState = this.state.pluginData;
+        let alert = this.alert;
         $.ajax({
             url: TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code,
             type: 'PATCH',
@@ -144,32 +144,32 @@ class Accordian extends React.Component {
         });
 
         /* Overall Rank update starts */
-        var localMax = -1;
-        var rankHtml = "";
+        let localMax = -1;
+        let rankHtml = "";
         $.get(TARGET_API_URI + target_id, function(result) {
             localMax = result.max_user_rank > result.max_owtf_rank
                 ? result.max_user_rank
                 : result.max_owtf_rank;
-            if (localMax == 0)
+            if (localMax === 0)
                 rankHtml = "<i><small><label class='alert alert-passing' style='margin-bottom: 0px'>Passing</label></small></i>";
-            else if (localMax == 1)
+            else if (localMax === 1)
                 rankHtml = "<i><small><label class='alert alert-success' style='margin-bottom: 0px'>Info</label></small></i>";
-            else if (localMax == 2)
+            else if (localMax === 2)
                 rankHtml = "<i><small><label class='alert alert-info' style='margin-bottom: 0px'>Low</label></small></i>";
-            else if (localMax == 3)
+            else if (localMax === 3)
                 rankHtml = "<i><small><label class='alert alert-warning' style='margin-bottom: 0px'>Medium</label></small></i>";
-            else if (localMax == 4)
+            else if (localMax === 4)
                 rankHtml = "<i><small><label class='alert alert-danger' style='margin-bottom: 0px'>High</label></small></i>";
-            else if (localMax == 5)
+            else if (localMax === 5)
                 rankHtml = "<i><small><label class='alert alert-critical' style='margin-bottom: 0px'>Critical</label></small></i>";
             $("#overallrank").html(rankHtml);
 
         }.bind(this));
         /* Overall Rank update ends */
 
-        var index = -1;
-        var pactive = this.state.pactive;
-        for (var i = 0; i < presentState.length; i++) {
+        let index = -1;
+        let pactive = this.state.pactive;
+        for (let i = 0; i < presentState.length; i++) {
             if (presentState[i].plugin_group === group && presentState[i].plugin_type === type) {
                 presentState[i].user_rank = user_rank;
                 index = i;
@@ -192,7 +192,7 @@ class Accordian extends React.Component {
     postToWorkList(selectedPluginData, force_overwrite) {
         selectedPluginData["id"] = document.getElementById("report").getAttribute("data-code");
         selectedPluginData["force_overwrite"] = force_overwrite;
-        var alert = this.alert;
+        let alert = this.alert;
         $.ajax({
             url: WORKLIST_API_URI,
             type: 'POST',
@@ -214,23 +214,23 @@ class Accordian extends React.Component {
       */
 
     deletePluginOutput(group, type, code) {
-        var target_id = document.getElementById("report").getAttribute("data-code");
-        var alert = this.alert;
-        var pluginData = this.state.pluginData;
+        let target_id = document.getElementById("report").getAttribute("data-code");
+        let alert = this.alert;
+        let pluginData = this.state.pluginData;
         $.ajax({
             url: TARGET_API_URI + target_id + '/poutput/' + group + '/' + type + '/' + code,
             type: 'DELETE',
             success: function() {
                 alert.call(this, "Deleted plugin output for " + type + "@" + code);
-                for (var i = 0; i < pluginData.length; i++) {
+                for (let i = 0; i < pluginData.length; i++) {
                     if ((pluginData[i]['plugin_type'] === type) && (pluginData[i]['plugin_group'] === group)) {
                         break;
                     }
                 }
-                var pactive = (pluginData.length != 1 && i > 0)
+                let pactive = (pluginData.length !== 1 && i > 0)
                     ? this.state.pluginData[i - 1]['plugin_type']
                     : "";
-                pactive = (pluginData.length != 1 && i === 0)
+                pactive = (pluginData.length !== 1 && i === 0)
                     ? this.state.pluginData[i + 1]['plugin_type']
                     : pactive;
                 this.setState({
@@ -258,32 +258,32 @@ class Accordian extends React.Component {
 
     componentWillMount() {
 
-        var details = this.props.data['details'];
-        var pluginData = this.props.data['data'];
-        var code = this.props.code;
+        let details = this.props.data['details'];
+        let pluginData = this.props.data['data'];
+        let code = this.props.code;
         this.setState({details: details, pluginData: pluginData, code: code, pactive: pluginData[0]['plugin_type']});
     };
 
     render() {
-        var rankAndCount = this.getRankAndTypeCount(this.state.pluginData);
-        var pactive = this.state.pactive;
-        var code = this.state.code;
-        var testCaseMax = rankAndCount.rank;
-        var count = rankAndCount.count;
-        var pluginData = this.state.pluginData;
-        var details = this.state.details;
-        var selectedType = this.context.selectedType;
-        var selectedRank = this.context.selectedRank;
-        var selectedGroup = this.context.selectedGroup;
-        var selectedOwtfRank = this.context.selectedOwtfRank;
-        var selectedStatus = this.context.selectedStatus;
-        var mapping = this.context.selectedMapping;
-        var handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian;
-        var isClicked = this.state.isClicked;
+        let rankAndCount = this.getRankAndTypeCount(this.state.pluginData);
+        let pactive = this.state.pactive;
+        let code = this.state.code;
+        let testCaseMax = rankAndCount.rank;
+        let count = rankAndCount.count;
+        let pluginData = this.state.pluginData;
+        let details = this.state.details;
+        let selectedType = this.context.selectedType;
+        let selectedRank = this.context.selectedRank;
+        let selectedGroup = this.context.selectedGroup;
+        let selectedOwtfRank = this.context.selectedOwtfRank;
+        let selectedStatus = this.context.selectedStatus;
+        let mapping = this.context.selectedMapping;
+        let handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian;
+        let isClicked = this.state.isClicked;
         if (count > 0) {
             return (
                 <div className={(() => {
-                    if (testCaseMax == 0)
+                    if (testCaseMax === 0)
                         return "panel panel-passing";
                     else if (testCaseMax === 1)
                         return "panel panel-success";
@@ -307,7 +307,7 @@ class Accordian extends React.Component {
                                         if ((selectedType.length === 0 || selectedType.indexOf(obj['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(obj['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(obj['status']) !== -1)) {
                                             return (
                                                 <button onClick={handlePluginBtnOnAccordian.bind(this, obj['plugin_type'])} key={code + obj['plugin_type'].split('_').join(' ')} className={(() => {
-                                                    if (testCaseMax == 0)
+                                                    if (testCaseMax === 0)
                                                         return "btn btn-default";
                                                     else if (testCaseMax === 1)
                                                         return "btn btn-success";

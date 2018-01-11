@@ -1,5 +1,5 @@
-var gulp = require('gulp');
-var webpack = require('webpack-stream');
+let gulp = require('gulp');
+let webpack = require('webpack-stream');
 
 gulp.task('default', function() {
   return gulp.src('src/main.js')

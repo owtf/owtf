@@ -1,15 +1,15 @@
-var path = require('path');
-var webpack = require('webpack');
-var merge = require('webpack-merge');
+let path = require('path');
+let webpack = require('webpack');
+let merge = require('webpack-merge');
 const autoprefixer = require('autoprefixer');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const TARGET = process.env.npm_lifecycle_event;
 
-var slash = require('slash');
-var dirname = __dirname;
+let slash = require('slash');
+let dirname = __dirname;
 if (process.platform === 'win32') dirname = slash(dirname);
 
-var common = {
+let common = {
     plugins: [
         new webpack.DefinePlugin({
             'TARGET': '"' + TARGET + '"'
@@ -30,7 +30,7 @@ var common = {
     }
 };
 
-var config = merge(common, {
+let config = merge(common, {
     entry: [
         path.join(__dirname, 'src/main')
     ],
