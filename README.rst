@@ -45,7 +45,9 @@ Recommended:
 ``pip install git+https://github.com/owtf/owtf#egg=owtf`` or clone the
 repo and ``python setup.py install``.
 
-If you want to change the database password in the Docker Compose setup, edit the environment variables in the `docker-compose.yml` file.
+If you want to change the database password in the Docker Compose setup, edit the environment variables in the ``docker-compose.yml`` file.
+If you prefer to override the environment variables in a ``.env`` file, use the file name ``owtf.env`` so that Docker Compose knows to include
+it.
 
 To run OWTF on Windows or MacOS, OWTF uses Docker Compose. You need to have Docker Compose installed (check by ``docker-compose -v``).
 After installing Docker Compose, simply run ``docker-compose up`` and open ``localhost:8009`` for the OWTF web interface.
