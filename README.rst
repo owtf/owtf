@@ -43,26 +43,17 @@ Recommended:
 
 ``pip install owtf`` or
 ``pip install git+https://github.com/owtf/owtf#egg=owtf`` or clone the
-repo and ``python setup.py install``
+repo and ``python setup.py install``.
 
-To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker**
-installed) provided to try OWTF:
+If you want to change the database password in the Docker Compose setup, edit the environment variables in the `docker-compose.yml` file.
 
--  ``make docker-build``
--  ``make docker-run``
--  Open ``~/.owtf/conf`` and change ``SERVER_ADDR: 127.0.0.1`` to
-   ``SERVER_ADDR: 0.0.0.0``.
--  Create a virtualenv, ``virtualenv env`` and activate it
-   ``source env/bin/activate``.
--  Install and run OWTF.
-
-``bash    $ cd owtf/    # Install the develop version, so that any change made is instantly reflected.    $ python setup.py develop    # Run OWTF!    $ python -m owtf``
-- Open ``localhost:8009`` for OWTF web interface.
+To run OWTF on Windows or MacOS, OWTF uses Docker Compose. You need to have Docker Compose installed (check by ``docker-compose -v``).
+After installing Docker Compose, simply run ``docker-compose up`` and open ``localhost:8009`` for the OWTF web interface.
 
 Install on OSX
 --------------
 
-Dependencies: Install homebrew (https://brew.sh/) and follow the steps
+Dependencies: Install Homebrew (https://brew.sh/) and follow the steps
 given below:
 
 .. code:: bash
@@ -76,10 +67,8 @@ given below:
      $ cd owtf
      $ python setup.py install
      # Run OWTF!
-     $ python -m owtf
+     $ owtf-cli
 
-In order to run the tools, install them and point the OWTF config
-``~/.owtf/conf/general.cfg`` to the correct locations.
 
 Features
 ========
