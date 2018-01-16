@@ -41,8 +41,8 @@ def flush_transaction(method):
 
 def get_db_engine():
     engine = create_engine(
-            "postgresql+psycopg2://{}:{}@{}:{}/{}".format(DATABASE_USER, DATABASE_PASS, DATABASE_IP, int(DATABASE_PORT),
-            DATABASE_NAME), pool_recycle=120)
+            "postgresql+psycopg2://{}:{}@{}/{}".format(DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_NAME),
+                pool_recycle=120)
     Base.metadata.create_all(engine)
     return engine
 

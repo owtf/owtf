@@ -14,16 +14,14 @@ CLI = False
 INTERACTIVE = True
 
 ### Database Server
-with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
-    conf = yaml.load(f)
-    DATABASE_PASS = conf["password"]
-    DATABASE_NAME = conf['database_name']
-    DATABASE_USER = conf['username']
-    DATABASE_IP = conf['database_ip']
-    DATABASE_PORT = int(conf['database_port'])
+DATABASE_NAME = os.environ["POSTGRES_DB"]
+DATABASE_PASS = os.environ["POSTGRES_PASSWORD"]
+DATABASE_USER = os.environ["POSTGRES_USER"]
+DATABASE_IP = "db"
+DATABASE_PORT = 5342
 
 ### Interface Server
-SERVER_ADDR = '127.0.0.1'
+SERVER_ADDR = "0.0.0.0"
 UI_SERVER_PORT = 8009
 FILE_SERVER_PORT = 8010
 
@@ -135,3 +133,4 @@ FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'resources.c
 FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, 'data' + 'conf', 'mappings.cfg')
 FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'order.cfg')
 FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'order.cfg')
+

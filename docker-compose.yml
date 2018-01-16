@@ -1,9 +1,28 @@
-version: '1'
+version: "3.3"
 services:
-  web:
+  owtf:
+    restart: always
     build: .
+    command: owtf-cli
+    environment:
+      - POSTGRES_USER=owtf_db_user
+      - POSTGRES_PASSWORD=changeme
+      - POSTGRES_DB=owtf_db
+    env_file:
+      - owtf.env
     ports:
-     - "5000:5000"
-  postgres:
-    image: "redis:alpine"
-  core:
+      - 8080:8080
+      - 8010:8010
+      - 8009:8009
+    depends_on:
+      - db
+  db:
+    image: postgres:alpine
+    ports:
+      - 5342:5432
+    environment:
+      - POSTGRES_USER=owtf_db_user
+      - POSTGRES_PASSWORD=changeme
+      - POSTGRES_DB=owtf_db
+    env_file:
+      - owtf.env
