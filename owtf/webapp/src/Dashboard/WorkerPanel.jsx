@@ -17,7 +17,7 @@ class Worker extends React.Component {
         this.getWork = this.getWork.bind(this);
     };
 
-    /* Function resposible to make enteries for each worker in worker legend */
+    /* Function responsible to make entries for each worker in worker legend */
     getWork() {
         // Function which logs of corresponsing worker and display in modal
         let getLog = function(id, name) {

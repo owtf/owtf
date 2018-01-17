@@ -40,7 +40,7 @@ install-python-requirements: setup.py check-root
 
 install-ui-requirements:
 	@echo "--> Installing Node development dependencies."
-	cd owtf/webui && yarn
+	cd owtf/webapp && yarn
 
 install-docs-requirements:
 	@echo "--> Installing Sphinx dependencies"
@@ -48,14 +48,14 @@ install-docs-requirements:
 install-requirements: install-python-requirements install-node-requirements
 
 react-build:
-	cd owtf/webui && yarn build
+	cd owtf/webapp && yarn build
 
 develop: install-requirements react-build
 
 build-ui: install-ui-requirements react-build
 
 develop-ui:
-	cd owtf/webui && yarn run
+	cd owtf/webapp && yarn run
 
 install-develop-ui: install-node-requirements develop-ui
 
@@ -94,7 +94,7 @@ lint-py:
 
 lint-js:
 	@echo "--> Linting JavaScript files."
-	cd owtf/webui && yarn lint
+	cd owtf/webapp && yarn lint
 
 lint: lint-py lint-js
 
@@ -123,7 +123,7 @@ clean-py:
 
 clean-js:
 	@echo "--> Removing JavaScript build output."
-	rm -rf owtf/webui/build
+	rm -rf owtf/webapp/build
 
 clean-logs:
 	@echo "--> Cleaning the logs and review folders"
@@ -142,7 +142,7 @@ distclean-py: clean-py
 
 distclean-js:
 	@echo "--> Removing node modules."
-	rm -rf owtf/webui/node_modules
+	rm -rf owtf/webapp/node_modules
 
 distclean: distclean-py distclean-js
 

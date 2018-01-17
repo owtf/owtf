@@ -1,8 +1,6 @@
 let path = require('path');
 let webpack = require('webpack');
 let merge = require('webpack-merge');
-const autoprefixer = require('autoprefixer');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const TARGET = process.env.npm_lifecycle_event;
 
 let slash = require('slash');

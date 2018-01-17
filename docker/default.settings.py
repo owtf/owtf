@@ -93,6 +93,24 @@ CERTS_FOLDER = os.path.join(OWTF_CONF, 'proxy', 'certs')
 
 BLACKLIST_COOKIES = ['_ga', '__utma', '__utmb', '__utmc', '__utmz', '__utmv']
 WHITELIST_COOKIES = ""
+PROXY_RESTRICTED_RESPONSE_HEADERS = [
+    "Content-Length",
+    "Content-Encoding",
+    "Etag",
+    "Transfer-Encoding",
+    "Connection",
+    "Vary",
+    "Accept-Ranges",
+    "Pragma"
+]
+
+PROXY_RESTRICTED_REQUEST_HEADERS = [
+    "Connection",
+    "Pragma",
+    "Cache-Control",
+    "If-Modified-Since"
+]
+
 PROXY_LOG = '/var/log/owtf/proxy.log'
 
 ### UI

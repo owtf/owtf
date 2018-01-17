@@ -1,4 +1,4 @@
-import React from 'react';
+import { React } from 'react';
 
 /**
  *  React Component for One block of VulnerabilityPanel.
@@ -82,7 +82,7 @@ class VulnerabilityPanel extends React.Component {
     /* Making an AJAX request on source property */
     componentDidMount() {
         this.serverRequest = $.get(this.props.source, function(result) {
-            var panelData = result.data;
+            let panelData = result.data;
             this.setState({paneldata: panelData});
         }.bind(this));
     };
