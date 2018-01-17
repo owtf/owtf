@@ -56,13 +56,13 @@ DEFAULT_NET_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, 'conf', 'profiles', '
 # logs_dir can be both relative or absolute path ;)
 LOGS_DIR = 'logs'
 # Used for logging in OWTF
-OWTF_LOG_FILE = '/var/log/owtf.log'
+OWTF_LOG_FILE = '/tmp/owtf.log'
 
 
 ### Interface static folders
-TEMPLATES = os.path.join(ROOT_DIR, 'webui', 'templates')
-POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'webui', 'templates', 'poutput')
-STATIC_ROOT = os.path.join(ROOT_DIR, 'webui', 'public')
+TEMPLATES = os.path.join(ROOT_DIR, 'webapp', 'templates')
+POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'webapp', 'templates', 'poutput')
+STATIC_ROOT = os.path.join(ROOT_DIR, 'webapp', 'public')
 
 ### SMTP
 EMAIL_FROM = 'you@your_server.com'
@@ -87,7 +87,7 @@ OUTBOUND_PROXY_AUTH = None
 INBOUND_PROXY_IP = '127.0.0.1'
 INBOUND_PROXY_PORT = 8008
 INBOUND_PROXY_PROCESSES = 0
-INBOUND_PROXY_CACHE_DIR = '/var/log/owtf/proxy-cache'
+INBOUND_PROXY_CACHE_DIR = '/tmp/owtf/proxy-cache'
 CA_CERT = os.path.join(OWTF_CONF, "proxy", "certs", "ca.crt")
 CA_KEY = os.path.join(OWTF_CONF, "proxy", "certs", "ca.key")
 CA_PASS_FILE = os.path.join(OWTF_CONF, 'proxy', "certs", "ca_pass.txt")
@@ -95,11 +95,29 @@ CERTS_FOLDER = os.path.join(OWTF_CONF, 'proxy', 'certs')
 
 BLACKLIST_COOKIES = ['_ga', '__utma', '__utmb', '__utmc', '__utmz', '__utmv']
 WHITELIST_COOKIES = ""
-PROXY_LOG = '/var/log/owtf/proxy.log'
+PROXY_RESTRICTED_RESPONSE_HEADERS = [
+    "Content-Length",
+    "Content-Encoding",
+    "Etag",
+    "Transfer-Encoding",
+    "Connection",
+    "Vary",
+    "Accept-Ranges",
+    "Pragma"
+]
+
+PROXY_RESTRICTED_REQUEST_HEADERS = [
+    "Connection",
+    "Pragma",
+    "Cache-Control",
+    "If-Modified-Since"
+]
+
+PROXY_LOG = '/tmp/owtf/proxy.log'
 
 ### UI
-UI_SERVER_LOG = '/var/log/owtf/ui_server.log'
-FILE_SERVER_LOG = '/var/log/owtf/file_server.log'
+UI_SERVER_LOG = '/tmp/owtf/ui_server.log'
+FILE_SERVER_LOG = '/tmp/owtf/file_server.log'
 
 ### HTTP_AUTH
 HTTP_AUTH_HOST = None

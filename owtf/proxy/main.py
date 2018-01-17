@@ -9,13 +9,13 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 
-from owtf.config import config_handler
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.proxy.proxy import ProxyHandler
 from owtf.proxy.transaction_logger import TransactionLogger
 from owtf.settings import PROXY_LOG, INBOUND_PROXY_PORT, INBOUND_PROXY_IP, INBOUND_PROXY_CACHE_DIR, OUTBOUND_PROXY_AUTH, \
     USE_OUTBOUND_PROXY, INBOUND_PROXY_PROCESSES, CA_CERT, CA_KEY, CA_PASS_FILE, CERTS_FOLDER, WHITELIST_COOKIES, \
-    BLACKLIST_COOKIES, HTTP_AUTH_HOST, HTTP_AUTH_USERNAME, HTTP_AUTH_PASSWORD, HTTP_AUTH_MODE
+    BLACKLIST_COOKIES, HTTP_AUTH_HOST, HTTP_AUTH_USERNAME, HTTP_AUTH_PASSWORD, HTTP_AUTH_MODE, \
+    PROXY_RESTRICTED_REQUEST_HEADERS, PROXY_RESTRICTED_RESPONSE_HEADERS
 from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 
@@ -118,13 +118,10 @@ class ProxyProcess(OWTFProcess):
 
 
         # Header filters
-        # Restricted headers are picked from framework/config/framework_config.cfg
         # These headers are removed from the response obtained from webserver, before sending it to browser
-        restricted_response_headers = config_handler.get_val("PROXY_RESTRICTED_RESPONSE_HEADERS").split(",")
-        ProxyHandler.restricted_response_headers = restricted_response_headers
+        ProxyHandler.restricted_response_headers = PROXY_RESTRICTED_RESPONSE_HEADERS
         #These headers are removed from request obtained from browser, before sending it to webserver
-        restricted_request_headers = config_handler.get_val("PROXY_RESTRICTED_REQUEST_HEADERS").split(",")
-        ProxyHandler.restricted_request_headers = restricted_request_headers
+        ProxyHandler.restricted_request_headers = PROXY_RESTRICTED_REQUEST_HEADERS
 
         # HTTP Auth options
         if HTTP_AUTH_HOST is not None:
@@ -195,3 +192,7 @@ def start_proxy():
         logging.debug("Starting transaction logger process")
         transaction_logger.start()
         logging.debug("Proxy transaction's log file at %s", PROXY_LOG)
+
+
+if __name__ == "__main__":
+    start_proxy()
