@@ -21,6 +21,7 @@ class APIServer(OWTFProcess):
             handlers=HANDLERS,
             template_path=TEMPLATES,
             debug=DEBUG,
+            autoreload=DEBUG,
             gzip=True,
             static_path=STATIC_ROOT,
             compiled_template_cache=True

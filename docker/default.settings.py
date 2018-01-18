@@ -8,20 +8,30 @@ OWTF_CONF = os.path.join(HOME_DIR, ".owtf")
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 CONFIG_DIR = os.path.join(ROOT_DIR, 'data', 'conf')
 
-DEBUG = False
+DEBUG = True
 CLI = False
 # Used by tools like dirbuster to launch gui or cli versions
 INTERACTIVE = True
 
 ### Database Server
-DATABASE_NAME = os.environ["POSTGRES_DB"]
-DATABASE_PASS = os.environ["POSTGRES_PASSWORD"]
-DATABASE_USER = os.environ["POSTGRES_USER"]
-DATABASE_IP = "db"
-DATABASE_PORT = 5342
+if os.environ.get("DOCKER", None):
+    DATABASE_NAME = os.environ["POSTGRES_DB"]
+    DATABASE_PASS = os.environ["POSTGRES_PASSWORD"]
+    DATABASE_USER = os.environ["POSTGRES_USER"]
+    DATABASE_IP = "db"
+    DATABASE_PORT = 5342
+else:
+    with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
+        conf = yaml.load(f)
+        DATABASE_PASS = conf["password"]
+        DATABASE_NAME = conf['database_name']
+        DATABASE_USER = conf['username']
+        DATABASE_IP = conf['database_ip']
+        DATABASE_PORT = int(conf['database_port'])
+
 
 ### Interface Server
-SERVER_ADDR = "0.0.0.0"
+SERVER_ADDR = '0.0.0.0'
 UI_SERVER_PORT = 8009
 FILE_SERVER_PORT = 8010
 
@@ -54,13 +64,13 @@ DEFAULT_NET_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, 'conf', 'profiles', '
 # logs_dir can be both relative or absolute path ;)
 LOGS_DIR = 'logs'
 # Used for logging in OWTF
-OWTF_LOG_FILE = '/var/log/owtf.log'
+OWTF_LOG_FILE = '/tmp/owtf.log'
 
 
 ### Interface static folders
-TEMPLATES = os.path.join(ROOT_DIR, 'webui', 'templates')
-POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'webui', 'templates', 'poutput')
-STATIC_ROOT = os.path.join(ROOT_DIR, 'webui', 'public')
+TEMPLATES = os.path.join(ROOT_DIR, 'webapp', 'build')
+POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'webapp', 'templates', 'poutput')
+STATIC_ROOT = os.path.join(ROOT_DIR, 'webapp', 'build')
 
 ### SMTP
 EMAIL_FROM = 'you@your_server.com'
@@ -85,7 +95,7 @@ OUTBOUND_PROXY_AUTH = None
 INBOUND_PROXY_IP = '127.0.0.1'
 INBOUND_PROXY_PORT = 8008
 INBOUND_PROXY_PROCESSES = 0
-INBOUND_PROXY_CACHE_DIR = '/var/log/owtf/proxy-cache'
+INBOUND_PROXY_CACHE_DIR = '/tmp/owtf/proxy-cache'
 CA_CERT = os.path.join(OWTF_CONF, "proxy", "certs", "ca.crt")
 CA_KEY = os.path.join(OWTF_CONF, "proxy", "certs", "ca.key")
 CA_PASS_FILE = os.path.join(OWTF_CONF, 'proxy', "certs", "ca_pass.txt")
@@ -111,11 +121,11 @@ PROXY_RESTRICTED_REQUEST_HEADERS = [
     "If-Modified-Since"
 ]
 
-PROXY_LOG = '/var/log/owtf/proxy.log'
+PROXY_LOG = '/tmp/owtf/proxy.log'
 
 ### UI
-UI_SERVER_LOG = '/var/log/owtf/ui_server.log'
-FILE_SERVER_LOG = '/var/log/owtf/file_server.log'
+UI_SERVER_LOG = '/tmp/owtf/ui_server.log'
+FILE_SERVER_LOG = '/tmp/owtf/file_server.log'
 
 ### HTTP_AUTH
 HTTP_AUTH_HOST = None
@@ -151,4 +161,3 @@ FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'resources.c
 FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, 'data' + 'conf', 'mappings.cfg')
 FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'order.cfg')
 FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'order.cfg')
-
