@@ -56,15 +56,5 @@ HANDLERS = [
     (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': STATIC_ROOT}),
     tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),
     tornado.web.url(r'/?$', ui_handlers.Redirect, name='redirect_ui_url'),
-    tornado.web.url(r'/ui/?$', ui_handlers.Home, name='home_ui_url'),
-    tornado.web.url(r'/ui/dashboard/?$', ui_handlers.Dashboard, name='dashboard_ui_url'),
-    tornado.web.url(r'/ui/targets/?([0-9]+)?/?$', ui_handlers.TargetManager, name='targets_ui_url'),
-    tornado.web.url(r'/ui/targets/([0-9]+)/transactions/?([0-9]+)?/?$', ui_handlers.TransactionLog, name='transaction_log_url'),
-    tornado.web.url(r'/ui/targets/([0-9]+)/urls/?$', ui_handlers.UrlLog, name='url_log_url'),
-    tornado.web.url(r'/ui/targets/([0-9]+)/poutput/?', ui_handlers.PluginOutput, name='poutput_ui_url'),
-    tornado.web.url(r'/ui/workers/?([0-9])?/?', ui_handlers.WorkerManager, name='workers_ui_url'),
-    tornado.web.url(r'/ui/worklist/?', ui_handlers.WorklistManager, name='worklist_ui_url'),
-    tornado.web.url(r'/ui/configuration/?$', ui_handlers.ConfigurationManager, name='configuration_ui_url'),
-    tornado.web.url(r'/ui/transactions/?', ui_handlers.Transactions, name='transactions_ui_url'),
-    tornado.web.url(r'/ui/help/?', ui_handlers.Help, name='help_ui_url')
+    tornado.web.url(r'/?$', ui_handlers.Index, name='index_url'),
 ]
