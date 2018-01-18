@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React, { Component, PropTypes } from 'react';
 
 /**
  *  React Component for One block of VulnerabilityPanel.
@@ -6,7 +6,7 @@ import { React } from 'react';
  *  Receives - {"id":5, "value":5, "label":"Critical"} as an JS object where value is count of severity and label is name
  */
 
-class Severity extends React.Component {
+class PanelSeverity extends Component {
 
     /* Each severity in vulnerability panel will be rendered */
     render() {
@@ -69,7 +69,7 @@ class Severity extends React.Component {
  *  Each element of data array represent one block of VulnerabilityPanel representing one severity count
  */
 
-class VulnerabilityPanel extends React.Component {
+class VulnerabilityPanel extends Component {
 
     constructor(props) {
         super(props);
@@ -112,3 +112,4 @@ class VulnerabilityPanel extends React.Component {
 }
 
 export default VulnerabilityPanel;
+export default PanelSeverity;

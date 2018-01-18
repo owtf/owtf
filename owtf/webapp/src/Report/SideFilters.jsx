@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 
 /**
   * React Component for SideFilters. It is child component used by Report Component.
@@ -7,7 +7,7 @@ import { React } from 'react';
   * Aim here to prevant SideFilters's re-rendering on props/state updates other than filter arrays.
   */
 
-class SideFilters extends React.PureComponent {
+class SideFilters extends PureComponent {
 
     render() {
         let updateFilter = this.context.updateFilter;
@@ -54,9 +54,5 @@ class SideFilters extends React.PureComponent {
         );
     }
 }
-
-SideFilters.contextTypes = {
-    updateFilter: React.PropTypes.func
-};
 
 export default SideFilters;

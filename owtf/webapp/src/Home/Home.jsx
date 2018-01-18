@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React, { Component, PropTypes } from 'react';
 
 /**
  * React Component for Home.
@@ -6,7 +6,7 @@ import { React } from 'react';
  * - Renders on (URL)  - /ui/
  */
 
-class Home extends React.Component {
+class Home extends Component {
     render() {
         return (
             <div>

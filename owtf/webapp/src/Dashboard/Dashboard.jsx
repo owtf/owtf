@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React, { Component, PropTypes } from 'react';
 import { Chart } from './Chart.jsx';
 import { WorkerPanel } from './WorkerPanel.jsx';
 import { VulnerabilityPanel } from './Panel.jsx';
@@ -16,7 +16,7 @@ import { FILE_SERVER_PORT } from '../constants.jsx';
  *    - WorkerPanel (WorkerPanel.js) - Shows progress of running targets and worker log.
  */
 
-class Dashboard extends React.Component {
+class Dashboard extends Component {
     render() {
         const HOST = location.protocol.concat("//").concat(window.location.hostname).concat(":");
         return (

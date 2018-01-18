@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React, { Component, PropTypes } from 'react';
 import { Header } from './Header.jsx';
 import { SideFilters } from './SideFilters.jsx';
 import { Accordians } from './Accordians.jsx';
@@ -18,7 +18,7 @@ import { update } from 'immutability-helper';
  *  Context is used to maintain code readibility Interesting Read - (https://facebook.github.io/react/docs/context.html)
  */
 
-class Report extends React.Component {
+class Report extends Component {
 
     /**
       * Changes the Report to full width container.
@@ -144,17 +144,5 @@ class Report extends React.Component {
         );
     }
 }
-
-Report.childContextTypes = {
-    selectedType: React.PropTypes.array,
-    selectedRank: React.PropTypes.array,
-    selectedGroup: React.PropTypes.array,
-    selectedOwtfRank: React.PropTypes.array,
-    selectedStatus: React.PropTypes.array,
-    selectedMapping: React.PropTypes.string,
-    updateFilter: React.PropTypes.func,
-    updateReport: React.PropTypes.func,
-    clearFilters: React.PropTypes.func
-};
 
 export default Report;

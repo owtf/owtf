@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React, { Component, PropTypes } from 'react';
 import { Collapse } from './Collapse.jsx'
 import { TARGET_API_URI, WORKLIST_API_URI } from '../constants.jsx';
 import { update } from 'immutability-helper';
@@ -10,7 +10,7 @@ import { Notification } from 'react-notification';
   * Speciality of this React implementation is that the filtering is totally client side no server intraction is happening on filtering as compare to previous implementation.(Super fast filtering)
   */
 
-class Accordian extends React.Component {
+class Accordian extends Component {
 
     constructor(props) {
         super(props);
@@ -384,20 +384,5 @@ class Accordian extends React.Component {
         }
     }
 }
-
-Accordian.contextTypes = {
-    selectedType: React.PropTypes.array,
-    selectedRank: React.PropTypes.array,
-    selectedGroup: React.PropTypes.array,
-    selectedOwtfRank: React.PropTypes.array,
-    selectedStatus: React.PropTypes.array,
-    selectedMapping: React.PropTypes.string
-};
-
-Accordian.childContextTypes = {
-    patchUserRank: React.PropTypes.func,
-    deletePluginOutput: React.PropTypes.func,
-    postToWorkList: React.PropTypes.func
-};
 
 export default Accordian;

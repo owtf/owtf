@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React, { Component, PropTypes } from 'react';
 import { Accordian } from './Accordian.jsx';
 import { TARGET_API_URI, STATIC_URI } from '../constants.jsx';
 
@@ -12,7 +12,7 @@ import { TARGET_API_URI, STATIC_URI } from '../constants.jsx';
   * Output is not visible to user which can be a huge data to request initially. Hence, this optimises the Report a lot.
   */
 
-class Accordians extends React.Component {
+class Accordians extends Component {
 
     constructor(props) {
         super(props);
@@ -57,14 +57,5 @@ class Accordians extends React.Component {
         }
     }
 }
-
-Accordians.contextTypes = {
-    selectedType: React.PropTypes.array,
-    selectedRank: React.PropTypes.array,
-    selectedGroup: React.PropTypes.array,
-    selectedOwtfRank: React.PropTypes.array,
-    selectedStatus: React.PropTypes.array,
-    selectedMapping: React.PropTypes.string
-};
 
 export default Accordians;
