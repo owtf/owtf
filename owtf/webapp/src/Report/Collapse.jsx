@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component, PropTypes } from 'react';
 import RankButtons from './RankButtons.jsx';
 import Table from './Table.jsx';
 
@@ -7,7 +7,7 @@ import Table from './Table.jsx';
   * This is collapse that opens on either clicking plugin_type buttons or Accordian heading.
   */
 
-class Collapse extends React.Component {
+class Collapse extends Component {
 
     render() {
         let plugin = this.props.plugin;
@@ -80,12 +80,5 @@ class Collapse extends React.Component {
     }
 }
 
-Collapse.contextTypes = {
-    selectedType: React.PropTypes.array,
-    selectedRank: React.PropTypes.array,
-    selectedGroup: React.PropTypes.array,
-    selectedOwtfRank: React.PropTypes.array,
-    selectedStatus: React.PropTypes.array
-};
 
 export default Collapse;

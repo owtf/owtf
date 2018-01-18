@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React, { Component, PropTypes } from 'react';
 import { Circle } from 'rc-progress';
 import { TimeAgo } from 'react-timeago';
 import { WORKER_DETAIL_URL } from './constants.jsx';
@@ -11,7 +11,7 @@ import { FILE_SERVER_PORT, STATIC_URI } from '../constants.jsx';
  *  work is array which contains the work assigned to that worker
  */
 
-class Worker extends React.Component {
+class Worker extends Component {
     constructor(props) {
         super(props);
         this.getWork = this.getWork.bind(this);
@@ -102,7 +102,7 @@ class Worker extends React.Component {
  *  Each element of data array represent details of what each worker is doing.
  */
 
-class WorkerLegend extends React.Component {
+class WorkerLegend extends Component {
     constructor(props) {
         super(props);
 
@@ -185,7 +185,7 @@ class WorkerLegend extends React.Component {
  *    }
  */
 
-class ProgressBar extends React.Component {
+class ProgressBar extends Component {
 
     constructor(props) {
         super(props);
@@ -246,7 +246,7 @@ class ProgressBar extends React.Component {
  *  It is child components which is used by Dashboard.js
  */
 
-class WorkerPanel extends React.Component {
+class WorkerPanel extends Component {
 
     render() {
         const HOST = location.protocol.concat("//").concat(window.location.hostname).concat(":");
@@ -274,3 +274,6 @@ class WorkerPanel extends React.Component {
 }
 
 export default WorkerPanel;
+export default Worker;
+export default ProgressBar;
+export default WorkerLegend;

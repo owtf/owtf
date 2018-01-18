@@ -22,36 +22,48 @@ let common = {
         }),
     ],
     output: {
-        path: path.join(__dirname, 'public/build/'),
+        path: path.join(dirname, 'public/build/'),
         filename: 'bundle.js',
         publicPath: path.join(__dirname, 'public/build/')
     }
 };
 
 let config = merge(common, {
+    devtool: '#eval-source-map',
+    devServer: {inline: true},
     entry: [
-        path.join(__dirname, 'src/main')
+        path.join(dirname, 'src/main')
     ],
     resolveLoader: {
-        modulesDirectories: [
-            path.join(__dirname, 'node_modules'),
+        modules: [
+            path.join(dirname, 'node_modules'),
         ]
     },
     resolve: {
-        extensions: ['', '.js', '.jsx']
+        extensions: ['*', '.js', '.jsx']
     },
     module: {
         loaders: [{
             test: /\.jsx?$/,
             exclude: /node_modules/,
-            loaders: ['babel', 'babel?presets[]=react,presets[]=es2015,presets[]=stage-0'],
+            loaders: ['babel-loader', 'babel-loader?presets[]=react,presets[]=es2015,presets[]=stage-0'],
             include: path.join(__dirname, 'src')
-        },
-        {
-            test: /\.docx?$/,
-            loaders: ['binary-loader'],
-        }
-      ]
+            },
+            {
+                test: /\.docx?$/,
+                loaders: ['binary-loader'],
+            },
+            {
+                test: /.(ttf|otf|eot|svg|woff(2)?)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                use: [{
+                    loader: 'file-loader',
+                    options: {
+                        name: '[name].[ext]',
+                        outputPath: 'fonts/' // where the fonts will go
+                    }
+                }]
+            },
+        ]
     }
 
 });

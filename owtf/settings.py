@@ -8,22 +8,28 @@ OWTF_CONF = os.path.join(HOME_DIR, ".owtf")
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 CONFIG_DIR = os.path.join(ROOT_DIR, 'data', 'conf')
 
-DEBUG = False
+DEBUG = True
 CLI = False
 # Used by tools like dirbuster to launch gui or cli versions
 INTERACTIVE = True
 
 ### Database Server
-with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
-    conf = yaml.load(f)
-    DATABASE_PASS = conf["password"]
-    DATABASE_NAME = conf['database_name']
-    DATABASE_USER = conf['username']
-    DATABASE_IP = conf['database_ip']
-    DATABASE_PORT = int(conf['database_port'])
+# with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
+#     conf = yaml.load(f)
+#     DATABASE_PASS = conf["password"]
+#     DATABASE_NAME = conf['database_name']
+#     DATABASE_USER = conf['username']
+#     DATABASE_IP = conf['database_ip']
+#     DATABASE_PORT = int(conf['database_port'])
+DATABASE_NAME = os.environ["POSTGRES_DB"]
+DATABASE_PASS = os.environ["POSTGRES_PASSWORD"]
+DATABASE_USER = os.environ["POSTGRES_USER"]
+DATABASE_IP = "db"
+DATABASE_PORT = 5342
+
 
 ### Interface Server
-SERVER_ADDR = '127.0.0.1'
+SERVER_ADDR = '0.0.0.0'
 UI_SERVER_PORT = 8009
 FILE_SERVER_PORT = 8010
 

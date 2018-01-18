@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import { templatesNames, getDocx } from './Export.js';
 
 /**
@@ -8,7 +8,7 @@ import { templatesNames, getDocx } from './Export.js';
   * Aim here to prevant Toolbar's re-rendering on props/state updates other than selectedRank array.
   */
 
-class Toolbar extends React.PureComponent {
+class Toolbar extends PureComponent {
 
     constructor(props) {
         super(props);
@@ -176,12 +176,5 @@ class Toolbar extends React.PureComponent {
         );
     }
 }
-
-Toolbar.contextTypes = {
-    selectedRank: React.PropTypes.array,
-    updateFilter: React.PropTypes.func,
-    updateReport: React.PropTypes.func,
-    clearFilters: React.PropTypes.func
-};
 
 export default Toolbar;

@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React, { Component, PropTypes } from 'react';
 import { Pie } from 'react-chartjs';
 
 /**
@@ -7,7 +7,7 @@ import { Pie } from 'react-chartjs';
  *  Receives {"color": <color hex>, "id": <id>, "value": <int>, "label": <severity>} as an JS object where color represent color of that severity.
  */
 
-class Severity extends React.Component {
+class Severity extends Component {
 
     render() {
         return (
@@ -29,7 +29,7 @@ class Severity extends React.Component {
  *  Receives JSON object same as JSON response object obtained from REST API (/api/targets/severitychart/)
  */
 
-class ChartLegend extends React.Component {
+class ChartLegend extends Component {
 
     render() {
         return (
@@ -85,7 +85,7 @@ class ChartLegend extends React.Component {
  *  Each element of data array represent details of one severity. Value is number of targets belongs to that severity.
  */
 
-class Chart extends React.Component {
+class Chart extends Component {
 
     constructor(props) {
         super(props);
@@ -132,3 +132,5 @@ class Chart extends React.Component {
 }
 
 export default Chart;
+export default ChartLegend;
+export default Severity;

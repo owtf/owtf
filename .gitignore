@@ -92,6 +92,7 @@ owtf/zest/README.md
 # Pycharm (Jetbrains) IDE Specific files #
 ##########################################
 .idea/*
+owtf/webapp/.idea/*
 
 # PyDev (Eclipse) IDE Specific Files #
 ######################################
@@ -115,9 +116,9 @@ local.properties
 
 # Front End(ReactJS) development Dependencies#
 #############################################
-owtf/webui/node_modules/*
-owtf/webui/public/build/*
-owtf/webui/src/Report/templates/*
+owtf/webapp/node_modules/*
+owtf/webapp/public/build/*
+owtf/webapp/src/Report/templates/*
 
 # Mac/OS specific files
 #############################################

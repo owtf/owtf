@@ -26,10 +26,13 @@ let common = {
         path: path.join(__dirname, 'public/build/'),
         filename: 'bundle.js',
         publicPath: path.join(__dirname, 'public/build/')
-    }
+    },
+    devtool: 'source-map',
 };
 
 let config = merge(common, {
+    devtool: '#eval-source-map',
+    devServer: {inline: true},
     entry: [
         path.join(__dirname, 'src/main'),
         path.join(__dirname, 'scss/main')

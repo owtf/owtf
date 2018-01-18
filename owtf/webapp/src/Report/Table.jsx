@@ -1,11 +1,11 @@
-import { React } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import { TARGET_API_URI } from '../constants.jsx';
 
 /**
   * React Component for Table in collapse. It is child component used by Collapse Component.
   */
 
-class Table extends React.PureComponent {
+class Table extends PureComponent {
 
   /**
     * Function responsible for handling editing of notes.
@@ -176,11 +176,5 @@ class Table extends React.PureComponent {
         );
     }
 }
-
-Table.contextTypes = {
-    deletePluginOutput: React.PropTypes.func,
-    postToWorkList: React.PropTypes.func,
-    alert: React.PropTypes.func
-};
 
 export default Table;

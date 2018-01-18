@@ -1,10 +1,10 @@
-import { React } from 'react';
+import React, { Component, PropTypes } from 'react';
 
 /**
   * React Component for RankButtons. It is child component used by Collapse Component.
   */
 
-class RankButtons extends React.Component {
+class RankButtons extends Component {
 
     render() {
         let obj = this.props.obj;
@@ -83,9 +83,5 @@ class RankButtons extends React.Component {
         }
     }
 }
-
-RankButtons.contextTypes = {
-    patchUserRank: React.PropTypes.func
-};
 
 export default RankButtons;
