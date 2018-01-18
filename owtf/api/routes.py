@@ -55,6 +55,5 @@ HANDLERS = [
 
     (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': STATIC_ROOT}),
     tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),
-    tornado.web.url(r'/?$', ui_handlers.Redirect, name='redirect_ui_url'),
     tornado.web.url(r'/?$', ui_handlers.Index, name='index_url'),
 ]

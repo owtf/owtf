@@ -16,7 +16,7 @@ class Redirect(UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
     def get(self):
-        self.redirect(self.reverse_url('home_ui_url'))
+        self.redirect(self.reverse_url('index_url'))
 
 
 class Index(UIRequestHandler):

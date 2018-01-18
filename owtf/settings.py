@@ -14,18 +14,20 @@ CLI = False
 INTERACTIVE = True
 
 ### Database Server
-# with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
-#     conf = yaml.load(f)
-#     DATABASE_PASS = conf["password"]
-#     DATABASE_NAME = conf['database_name']
-#     DATABASE_USER = conf['username']
-#     DATABASE_IP = conf['database_ip']
-#     DATABASE_PORT = int(conf['database_port'])
-DATABASE_NAME = os.environ["POSTGRES_DB"]
-DATABASE_PASS = os.environ["POSTGRES_PASSWORD"]
-DATABASE_USER = os.environ["POSTGRES_USER"]
-DATABASE_IP = "db"
-DATABASE_PORT = 5342
+if os.environ.get("DOCKER", None):
+    DATABASE_NAME = os.environ["POSTGRES_DB"]
+    DATABASE_PASS = os.environ["POSTGRES_PASSWORD"]
+    DATABASE_USER = os.environ["POSTGRES_USER"]
+    DATABASE_IP = "db"
+    DATABASE_PORT = 5342
+else:
+    with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
+        conf = yaml.load(f)
+        DATABASE_PASS = conf["password"]
+        DATABASE_NAME = conf['database_name']
+        DATABASE_USER = conf['username']
+        DATABASE_IP = conf['database_ip']
+        DATABASE_PORT = int(conf['database_port'])
 
 
 ### Interface Server
@@ -66,9 +68,9 @@ OWTF_LOG_FILE = '/tmp/owtf.log'
 
 
 ### Interface static folders
-TEMPLATES = os.path.join(ROOT_DIR, 'webapp', 'templates')
+TEMPLATES = os.path.join(ROOT_DIR, 'webapp', 'build')
 POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'webapp', 'templates', 'poutput')
-STATIC_ROOT = os.path.join(ROOT_DIR, 'webapp', 'public')
+STATIC_ROOT = os.path.join(ROOT_DIR, 'webapp', 'build')
 
 ### SMTP
 EMAIL_FROM = 'you@your_server.com'

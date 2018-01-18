@@ -5,6 +5,7 @@ services:
     build: .
     command: owtf-cli
     environment:
+      - DOCKER=True
       - POSTGRES_USER=owtf_db_user
       - POSTGRES_PASSWORD=changeme
       - POSTGRES_DB=owtf_db
