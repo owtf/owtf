@@ -41,7 +41,6 @@ RUN apt-get -y install  lbd \
                         metasploit-framework \
                         wpscan \
                         wapiti \
-                        waffit \
                         hydra \
                         metagoofil \
                         o-saft
