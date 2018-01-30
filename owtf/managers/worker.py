@@ -46,6 +46,7 @@ class Worker(OWTFProcess):
                 work = self.input_q.get(True, 2)
                 # If work is empty this means no work is there
                 if work == ():
+                    print("No work")
                     sys.exit(0)
                 target, plugin = work
                 plugin_dir = plugin_handler.get_plugin_group_dir(plugin['group'])
