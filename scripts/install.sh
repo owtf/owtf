@@ -174,7 +174,7 @@ EOF
 
 db_setup() {
     sleep 10
-    if [[ ! -v "DOCKER" ]]; then
+    if [ -z "$DOCKER" ]; then
         write_db_settings
         if [ "$action" = "init" ]; then
             psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass'"

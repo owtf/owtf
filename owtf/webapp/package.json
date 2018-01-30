@@ -1,264 +1,105 @@
 {
   "name": "owtf",
-  "version": "2.0.1",
-  "description": "OWASP OWTF is a project focused on penetration testing efficiency and alignment of security tests to security standards like the OWASP Testing Guide (v3 and v4), the OWASP Top 10, PTES and NIST.",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "webpack --progress --display-error-details --config webpack/common.config.js --watch",
+    "prod": "webpack --progress -p --config webpack/common.config.js",
+    "mocha": "mocha --require tests/require --recursive --compilers js:babel-core/register tests/js",
+    "mocha:watch": "npm run mocha -- --watch tests/js",
+    "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --require tests/require --recursive --compilers js:babel-core/register --colors --reporter dot tests/js/",
+    "lintscss": "sass-lint --verbose --no-exit || true"
+  },
   "repository": {
     "type": "git",
-    "url": "git://github.com/owtf/owtf.git"
+    "url": "git+https://github.com/owtf/owtf.git"
   },
-  "engines": {
-    "npm": ">=3",
-    "node": ">=5"
-  },
-  "author": "",
-  "license": "",
-  "scripts": {
-    "analyze:clean": "rimraf stats.json",
-    "analyze": "node ./internals/scripts/analyze.js",
-    "npmcheckversion": "node ./internals/scripts/npmcheckversion.js",
-    "build": "cross-env NODE_ENV=production webpack --config internals/webpack/webpack.prod.babel.js --color -p --progress",
-    "build:clean": "rimraf ./build",
-    "build:dll": "node ./internals/scripts/dependencies.js",
-    "start": "cross-env NODE_ENV=development node server",
-    "start:tunnel": "cross-env NODE_ENV=development ENABLE_TUNNEL=true node server",
-    "start:production": "npm run build && npm run start:prod",
-    "start:prod": "cross-env NODE_ENV=production node server",
-    "clean": "npm run analyze:clean && npm run build:clean",
-    "generate": "plop --plopfile internals/generators/index.js",
-    "lint": "npm run lint:js",
-    "lint:eslint": "eslint --ignore-path .gitignore --ignore-pattern internals/scripts",
-    "lint:js": "npm run lint:eslint -- . ",
-    "lint:staged": "lint-staged"
-  },
-  "lint-staged": {
-    "*.js": "lint:eslint"
-  },
-  "pre-commit": "lint:staged",
-  "babel": {
-    "presets": [
-      [
-        "latest",
-        {
-          "es2015": {
-            "modules": false
-          }
-        }
-      ],
-      "react",
-      "stage-0"
-    ],
-    "plugins": [
-      [
-        "lodash",
-        {
-          "id": [
-            "lodash",
-            "semantic-ui-react"
-          ]
-        }
-      ]
-    ],
-    "env": {
-      "production": {
-        "only": [
-          "app"
-        ],
-        "plugins": [
-          "transform-react-remove-prop-types",
-          "transform-react-constant-elements",
-          "transform-react-inline-elements"
-        ]
-      },
-      "test": {
-        "plugins": [
-          "transform-es2015-modules-commonjs",
-          "dynamic-import-node"
-        ]
-      }
-    }
-  },
-  "eslintConfig": {
-    "parser": "babel-eslint",
-    "extends": "airbnb",
-    "env": {
-      "browser": true,
-      "node": true,
-      "jest": true,
-      "es6": true
-    },
-    "plugins": [
-      "redux-saga",
-      "react",
-      "jsx-a11y"
-    ],
-    "parserOptions": {
-      "ecmaVersion": 6,
-      "sourceType": "module",
-      "ecmaFeatures": {
-        "jsx": true
-      }
-    },
-    "rules": {
-      "arrow-parens": [
-        "error",
-        "always"
-      ],
-      "arrow-body-style": [
-        2,
-        "as-needed"
-      ],
-      "comma-dangle": [
-        2,
-        "always-multiline"
-      ],
-      "import/imports-first": 0,
-      "import/newline-after-import": 0,
-      "import/no-dynamic-require": 0,
-      "import/no-extraneous-dependencies": 0,
-      "import/no-named-as-default": 0,
-      "import/no-unresolved": 2,
-      "import/prefer-default-export": 0,
-      "indent": [
-        2,
-        2,
-        {
-          "SwitchCase": 1
-        }
-      ],
-      "jsx-a11y/aria-props": 2,
-      "jsx-a11y/heading-has-content": 0,
-      "jsx-a11y/href-no-hash": 2,
-      "jsx-a11y/label-has-for": 2,
-      "jsx-a11y/mouse-events-have-key-events": 2,
-      "jsx-a11y/role-has-required-aria-props": 2,
-      "jsx-a11y/role-supports-aria-props": 2,
-      "max-len": 0,
-      "newline-per-chained-call": 0,
-      "no-confusing-arrow": 0,
-      "no-console": 1,
-      "no-use-before-define": 0,
-      "prefer-template": 2,
-      "class-methods-use-this": 0,
-      "react/forbid-prop-types": 0,
-      "react/jsx-first-prop-new-line": [
-        2,
-        "multiline"
-      ],
-      "react/jsx-filename-extension": 0,
-      "react/jsx-no-target-blank": 0,
-      "react/require-extension": 0,
-      "react/self-closing-comp": 0,
-      "redux-saga/no-yield-in-race": 2,
-      "redux-saga/yield-effects": 2,
-      "require-yield": 0,
-      "import/no-webpack-loader-syntax": 0
-    },
-    "settings": {
-      "import/resolver": {
-        "webpack": {
-          "config": "./internals/webpack/webpack.prod.babel.js"
-        }
-      }
-    }
-  },
-  "dllPlugin": {
-    "path": "node_modules/react-boilerplate-dlls",
-    "exclude": [
-      "chalk",
-      "compression",
-      "cross-env",
-      "express",
-      "ip",
-      "minimist",
-      "semantic-ui-css"
-    ],
-    "include": [
-      "core-js",
-      "lodash",
-      "eventsource-polyfill"
-    ]
-  },
+  "license": "BSD 3-Clause",
   "dependencies": {
-    "babel-polyfill": "^6.26.0",
-    "chalk": "^1.1.3",
-    "compression": "^1.7.1",
-    "cross-env": "3.1.3",
-    "express": "^4.16.2",
-    "fontfaceobserver": "^2.0.13",
-    "immutable": "^3.8.2",
-    "invariant": "^2.2.2",
-    "ip": "^1.1.5",
-    "lodash": "^4.17.4",
-    "minimist": "^1.2.0",
-    "react": "15.4.1",
-    "react-dom": "15.4.1",
-    "react-helmet": "3.2.2",
-    "react-redux": "4.4.6",
-    "react-router": "3.0.0",
-    "react-router-redux": "^4.0.8",
-    "react-router-scroll": "0.4.1",
-    "redux": "^3.7.2",
-    "redux-immutable": "3.0.8",
-    "redux-saga": "0.14.0",
-    "reselect": "2.5.4",
-    "semantic-ui-css": "^2.2.12",
-    "semantic-ui-react": "^0.73.1",
-    "styled-components": "1.1.2",
-    "warning": "^3.0.0",
-    "whatwg-fetch": "^2.0.3"
+    "autoprefixer": "7.1.2",
+    "babel-core": "6.26.0",
+    "babel-loader": "7.1.2",
+    "babel-plugin-react-display-name": "2.0.0",
+    "babel-plugin-react-transform": "2.0.2",
+    "babel-plugin-transform-decorators-legacy": "1.3.4",
+    "babel-plugin-undeclared-variables-check": "6.22.0",
+    "babel-polyfill": "6.26.0",
+    "babel-preset-es2015": "6.24.1",
+    "babel-preset-es2015-loose": "8.0.0",
+    "babel-preset-react": "6.24.1",
+    "babel-preset-stage-1": "6.24.1",
+    "babel-runtime": "6.26.0",
+    "body-parser": "1.17.2",
+    "bootstrap-loader": "2.2.0",
+    "bootstrap-sass": "3.3.7",
+    "classnames": "2.2.5",
+    "clean-webpack-plugin": "0.1.16",
+    "css-loader": "0.28.5",
+    "errorhandler": "1.5.0",
+    "es6-promise": "4.1.1",
+    "exports-loader": "0.6.4",
+    "extract-text-webpack-plugin": "3.0.0",
+    "file-loader": "0.11.2",
+    "font-awesome": "4.7.0",
+    "font-awesome-webpack": "0.0.5-beta.2",
+    "history": "4.7.2",
+    "html-webpack-plugin": "2.30.1",
+    "imports-loader": "0.7.1",
+    "isomorphic-fetch": "2.2.1",
+    "jquery": "3.2.1",
+    "less": "2.7.2",
+    "less-loader": "4.0.5",
+    "node-sass": "4.5.3",
+    "postcss-import": "10.0.0",
+    "postcss-loader": "2.0.6",
+    "prop-types": "15.5.10",
+    "react": "15.6.1",
+    "react-dom": "15.6.1",
+    "react-mixin": "3.1.0",
+    "react-redux": "5.0.6",
+    "react-router": "4.2.0",
+    "react-router-dom": "4.2.2",
+    "react-router-redux": "5.0.0-alpha.6",
+    "redux": "3.7.2",
+    "redux-thunk": "2.2.0",
+    "resolve-url-loader": "2.1.0",
+    "sass-loader": "6.0.6",
+    "style-loader": "0.18.2",
+    "tcomb-form": "0.9.17",
+    "url-loader": "0.5.9",
+    "webpack": "3.5.5",
+    "webpack-merge": "4.1.0",
+    "whatwg-fetch": "2.0.3",
+    "yargs": "8.0.2"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
-    "babel-eslint": "7.1.1",
-    "babel-loader": "6.2.10",
-    "babel-plugin-dynamic-import-node": "^1.2.0",
-    "babel-plugin-lodash": "^3.3.2",
-    "babel-plugin-react-intl": "^2.3.1",
-    "babel-plugin-react-transform": "2.0.2",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
-    "babel-plugin-transform-react-constant-elements": "^6.23.0",
-    "babel-plugin-transform-react-inline-elements": "^6.22.0",
-    "babel-plugin-transform-react-remove-prop-types": "0.2.11",
-    "babel-preset-latest": "^6.24.1",
-    "babel-preset-react": "^6.24.1",
-    "babel-preset-react-hmre": "^1.1.1",
-    "babel-preset-stage-0": "^6.24.1",
-    "cheerio": "^0.22.0",
-    "circular-dependency-plugin": "2.0.0",
-    "coveralls": "2.11.15",
-    "css-loader": "0.26.1",
-    "enzyme": "2.6.0",
-    "eslint": "3.11.1",
-    "eslint-config-airbnb": "13.0.0",
-    "eslint-config-airbnb-base": "10.0.1",
-    "eslint-import-resolver-webpack": "0.8.0",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-jsx-a11y": "2.2.3",
-    "eslint-plugin-react": "6.7.1",
-    "eslint-plugin-redux-saga": "0.1.5",
-    "eventsource-polyfill": "^0.9.6",
-    "exports-loader": "0.6.3",
-    "file-loader": "0.9.0",
-    "html-loader": "0.4.4",
-    "html-webpack-plugin": "^2.30.1",
-    "image-webpack-loader": "2.0.0",
-    "imports-loader": "0.6.5",
-    "lint-staged": "3.2.1",
-    "ngrok": "^2.2.24",
-    "node-plop": "0.5.4",
-    "null-loader": "^0.1.1",
-    "offline-plugin": "^4.9.0",
-    "plop": "^1.9.1",
-    "pre-commit": "^1.2.2",
-    "react-addons-test-utils": "^15.6.2",
-    "rimraf": "^2.6.2",
-    "shelljs": "^0.7.5",
-    "sinon": "2.0.0-pre",
-    "style-loader": "0.13.1",
-    "url-loader": "0.5.7",
-    "webpack": "2.2.0-rc.3",
-    "webpack-dev-middleware": "1.9.0",
-    "webpack-hot-middleware": "^2.21.0"
+    "babel-eslint": "7.2.3",
+    "chai": "4.1.1",
+    "chai-as-promised": "7.1.1",
+    "enzyme": "2.9.1",
+    "eslint": "4.5.0",
+    "eslint-config-airbnb": "15.1.0",
+    "eslint-plugin-import": "2.7.0",
+    "eslint-plugin-jsx-a11y": "5.1.1",
+    "eslint-plugin-react": "7.3.0",
+    "expect": "1.20.2",
+    "ignore-styles": "5.0.01",
+    "istanbul": "1.0.0-alpha.2",
+    "jsdom": "11.2.0",
+    "mocha": "3.5.0",
+    "mocha-junit-reporter": "1.13.0",
+    "nock": "9.0.14",
+    "react-test-renderer": "15.6.1",
+    "react-transform-catch-errors": "1.0.2",
+    "react-transform-hmr": "1.0.4",
+    "redbox-react": "1.5.0",
+    "redux-devtools": "3.4.0",
+    "redux-devtools-dock-monitor": "1.1.2",
+    "redux-devtools-log-monitor": "1.3.0",
+    "redux-logger": "3.0.6",
+    "redux-mock-store": "1.2.3",
+    "sass-lint": "1.10.2",
+    "sinon": "3.2.1",
+    "webpack-dev-middleware": "1.12.0",
+    "webpack-hot-middleware": "2.18.2"
   }
 }
