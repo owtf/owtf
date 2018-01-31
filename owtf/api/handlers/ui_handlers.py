@@ -7,22 +7,14 @@ owtf.api.ui_handlers
 """
 
 from tornado.escape import url_escape
+from tornado.web import RequestHandler
 
 from owtf.api.handlers.base import UIRequestHandler
 from owtf.settings import FILE_SERVER_PORT, UI_SERVER_PORT
 
 
-class Redirect(UIRequestHandler):
-    SUPPORTED_METHODS = ['GET']
-
-    def get(self):
-        self.redirect(self.reverse_url('index_url'))
-
-
-class Index(UIRequestHandler):
-    SUPPORTED_METHODS = ['GET']
-
-    def get(self):
+class Index(RequestHandler):
+    def get(self, path):
         self.render('index.html')
 
 

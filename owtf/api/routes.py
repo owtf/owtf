@@ -29,6 +29,8 @@ plugin_code_re = '([0-9A-Z\-]+)?'
 
 
 HANDLERS = [
+    tornado.web.url(r'/static/(.*)', tornado.web.StaticFileHandler, {'path': STATIC_ROOT}),
+    tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),
 
     tornado.web.url(r'/api/errors/?([0-9]+)?/?$', ErrorDataHandler, name='errors_api_url'),
     tornado.web.url(r'/api/sessions/?([0-9]+)?/?(activate|add|remove)?/?$', OWTFSessionHandler, name='owtf_sessions_api_url'),
@@ -52,8 +54,5 @@ HANDLERS = [
     tornado.web.url(r'/api/worklist/?([0-9]+)?/?(pause|resume|delete)?/?$', WorklistHandler, name='worklist_api_url'),
     tornado.web.url(r'/api/worklist/search/?$', WorklistSearchHandler, name='worklist_search_api_url'),
     tornado.web.url(r'/api/configuration/?$', ConfigurationHandler, name='configuration_api_url'),
-
-    (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': STATIC_ROOT}),
-    tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),
-    tornado.web.url(r'/', ui_handlers.Index, name='index_url'),
+    tornado.web.url(r'^/(?!api|static|output_files)(.*)$', ui_handlers.Index)
 ]
