@@ -117,7 +117,7 @@ local.properties
 # Front End(ReactJS) development Dependencies#
 #############################################
 owtf/webapp/node_modules/*
-owtf/webapp/public/build/*
+owtf/webapp/build/*
 owtf/webapp/src/Report/templates/*
 # Don't check auto-generated stuff into git
 owtf/webapp/coverage
