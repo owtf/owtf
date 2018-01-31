@@ -27,7 +27,7 @@ module.exports = {
                 {
                     loader: 'sass-loader',
                     options: {
-                        data: `@import "${__dirname}/../public/css/config/_variables.scss";`
+                        data: `@import "${__dirname}/../src/static/styles/config/_variables.scss";`
                     }
                 }]
             )
@@ -35,7 +35,7 @@ module.exports = {
     },
 
     plugins: [
-        new ExtractTextPlugin('public/css/[name].css'),
+        new ExtractTextPlugin('styles/[name].css'),
         new webpack.optimize.OccurrenceOrderPlugin(),
         new webpack.optimize.UglifyJsPlugin({
             compress: {
