@@ -10,13 +10,13 @@ export const NavItem = styled(Link)`
   cursor: pointer;
   float: left;
   font-size: 15px;
-  color: #333;
+  color: #fff;
   margin-left: 10px;
   padding: 5px 10px;
   border: 3px solid #fff;
   border-radius: 4px;
   &:hover {
-    color: #333;
+    color: #fff;
   }
   &.active,
   .${props => props.activeClassName} {

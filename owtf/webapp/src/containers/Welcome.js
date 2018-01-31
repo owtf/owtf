@@ -6,15 +6,18 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import Button from '../components/Button';
+import {Nav, NavItem} from '../components/Nav';
+
 
 export default class Welcome extends React.Component {
     render() {
-        return (
+      return (
         <WelcomeWrapper>
             <Header>
             <Container>
                 <Nav>
-                    <Link to="/dashboard">Dashboard</Link>
+                    <NavItem to="/dashboard">Dashboard</NavItem>
+                    <NavItem to="/help">Help</NavItem>
                 </Nav>
             </Container>
             </Header>
@@ -53,7 +56,7 @@ export default class Welcome extends React.Component {
             </Container>
             </Footer>
         </WelcomeWrapper>
-        );
+      );
     }
 }
 
@@ -67,27 +70,15 @@ const Container = styled.div `
 `;
 
 const Header = styled.div `
-  padding: 100px 0;
-  background: #1b1c1d;
+  padding: 60px 0;
+  background: #343a40!important;
   color: #fff;
-`;
-
-const Nav = styled.div `
-  float: right;
-  a {
-    color: #fff;
-    &:active,
-    &:focus,
-    &:hover {
-      color: #fff;
-    }
-  }
 `;
 
 const Hero = styled.div `
   margin-bottom: 40px;
   padding: 20px;
-  background: #1b1c1d;
+  background: #343a40!important;
   color: #fff;
   text-align: center;
 `;

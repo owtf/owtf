@@ -4,6 +4,8 @@ import { bindActionCreators } from 'redux';
 
 import AsyncPage from '../components/AsyncPage';
 import Layout from '../components/Layout';
+import Header from '../components/Header';
+import {Nav, NavItem} from '../components/Nav';
 
 export default class Dashboard extends AsyncPage {
   getTitle() {
@@ -12,8 +14,11 @@ export default class Dashboard extends AsyncPage {
 
   renderBody() {
     return (
-      <Layout>
-      </Layout>
+      <Header>
+        <Nav>
+          <NavItem to={'/'}>Home</NavItem>
+        </Nav>
+      </Header>
     );
   }
 }
