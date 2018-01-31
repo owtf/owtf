@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
+import Button from '../components/Button';
 
 export default class Welcome extends React.Component {
     render() {
@@ -13,19 +14,31 @@ export default class Welcome extends React.Component {
             <Header>
             <Container>
                 <Nav>
-                    <Link to="/login">Login</Link>
+                    <Link to="/dashboard">Dashboard</Link>
                 </Nav>
             </Container>
             </Header>
             <Hero>
                 <Container>
-                    <p>Zeus is a dashboard for your change control process.</p>
+                    <h1>Offensive Web Testing Framework!</h1>
+                    <p>
+                        OWASP OWTF is a project that aims to make security assessments as efficient as possible. Some of the ways in which this is achieved are:
+                    </p>
+                    <Button type="light" href="http://owtf.org">Learn more</Button>
                 </Container>
             </Hero>
             <Body>
                 <Container>
                     <Section>
-                        <h3>Setup is Easy</h3>
+                      <ul>
+                          <li>Separating the tests that require no permission from the ones that require permission (i.e. active/ bruteforce).</li>
+                          <li>Launching a number of tools automatically.</li>
+                          <li>Running tests not found in other tools.</li>
+                          <li>Providing an interactive interface/report.</li>
+                          <li>More info:
+                              <a href="https://www.owasp.org/index.php/OWASP_OWTF" target="__blank__">https://www.owasp.org/index.php/OWASP_OWTF</a>
+                          </li>
+                      </ul>
                     </Section>
                 </Container>
             </Body>
@@ -34,9 +47,9 @@ export default class Welcome extends React.Component {
                 <a
                 href="https://github.com/owtf/owtf"
                 style={{color: 'inherit', fontWeight: 500}}>
-                Zeus
+                OWTF
                 </a>{' '}
-                is Open Source Software
+                is a flagship OWASP project
             </Container>
             </Footer>
         </WelcomeWrapper>
@@ -54,8 +67,8 @@ const Container = styled.div `
 `;
 
 const Header = styled.div `
-  padding: 40px 0;
-  background: #7b6be6;
+  padding: 100px 0;
+  background: #1b1c1d;
   color: #fff;
 `;
 
@@ -74,7 +87,7 @@ const Nav = styled.div `
 const Hero = styled.div `
   margin-bottom: 40px;
   padding: 20px;
-  background: #7b6be6;
+  background: #1b1c1d;
   color: #fff;
   text-align: center;
 `;
@@ -104,5 +117,5 @@ const Footer = styled.div `
   text-align: center;
   color: #333;
   font-size: 0.8em;
-  padding: 20px 0;
+  padding: 10px 0;
 `;

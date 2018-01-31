@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import AsyncPage from '../components/AsyncPage';
+import Layout from '../components/Layout';
 
 export default class Dashboard extends AsyncPage {
   getTitle() {
