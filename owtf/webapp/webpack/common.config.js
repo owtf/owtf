@@ -8,10 +8,8 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const TARGET = process.env.npm_lifecycle_event;
 
 const PATHS = {
-    app: path.join(__dirname, '..'),
-    build: path.join(__dirname, '../build'),
-    jsbuild : path.join(__dirname, '../build/js/'),
-    fontbuild: path.join(__dirname, '../build/fonts/')
+    app: path.join(__dirname, '../src/'),
+    build: path.join(__dirname, '../build/')
 };
 
 const VENDOR = [
@@ -25,10 +23,10 @@ const VENDOR = [
     'classnames',
     'redux',
     'react-router-redux',
-    'jquery'
+    'jquery',
 ];
 
-const basePath = path.resolve(__dirname, '..');
+const basePath = path.resolve(__dirname, '../src/');
 
 const common = {
     context: basePath,
@@ -37,7 +35,7 @@ const common = {
         app: PATHS.app
     },
     output: {
-        filename: '[name].js',
+        filename: '[name].[hash].js',
         path: PATHS.build,
         publicPath: '/static'
     },
@@ -45,7 +43,7 @@ const common = {
         //extract all common modules to vendor so we can load multiple apps in one page
         new webpack.optimize.CommonsChunkPlugin({
             name: 'vendor',
-            filename: 'vendor.js'
+            filename: 'vendor.[hash].js'
         }),
         new webpack.optimize.CommonsChunkPlugin({
             children: true,
@@ -53,7 +51,7 @@ const common = {
             minChunks: 2
         }),
         new HtmlWebpackPlugin({
-            template: path.join(__dirname, '../index.html'),
+            template: path.join(__dirname, '../src/index.html'),
             hash: true,
             chunks: ['vendor', 'app'],
             chunksSortMode: 'manual',
@@ -69,7 +67,7 @@ const common = {
             'jQuery': 'jquery',
             'window.jQuery': 'jquery'
         }),
-        new CleanWebpackPlugin([PATHS.jsbuild, PATHS.fontbuild, PATHS.build], {
+        new CleanWebpackPlugin([PATHS.build], {
             root: process.cwd()
         })
     ],

@@ -1,18 +1,18 @@
 {
   "name": "owtf",
   "version": "1.0.0",
+  "description": "OWASP Offensive Web Testing Framework",
   "scripts": {
     "dev": "webpack --progress --display-error-details --config webpack/common.config.js --watch",
     "prod": "webpack --progress -p --config webpack/common.config.js",
-    "mocha": "mocha --require tests/require --recursive --compilers js:babel-core/register tests/js",
-    "mocha:watch": "npm run mocha -- --watch tests/js",
-    "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --require tests/require --recursive --compilers js:babel-core/register --colors --reporter dot tests/js/",
+    "lintjs": "eslint -c .eslintrc src/static tests/js || true",
     "lintscss": "sass-lint --verbose --no-exit || true"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/owtf/owtf.git"
+    "url": "git+https://github.com/owtf/owtf"
   },
+  "author": "Viyat Bhalodia <viyat.bhalodia@owasp.org>",
   "license": "BSD 3-Clause",
   "dependencies": {
     "autoprefixer": "7.1.2",
@@ -73,6 +73,7 @@
   },
   "devDependencies": {
     "babel-eslint": "7.2.3",
+    "babel-preset-env": "^1.6.1",
     "chai": "4.1.1",
     "chai-as-promised": "7.1.1",
     "enzyme": "2.9.1",
