@@ -4,6 +4,7 @@
   <title>OWASP OWTF</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Styles -->
   <style>
     body {
       font-size: 16px;
@@ -20,7 +21,7 @@
     .sk-cube-grid .sk-cube {
       width: 33%;
       height: 33%;
-      background-color: #7B6BE6;
+      background-color: rgb(46, 7, 122);
       float: left;
       -webkit-animation: sk-cubeGridScaleDelay 1.3s infinite ease-in-out;
       animation: sk-cubeGridScaleDelay 1.3s infinite ease-in-out;
@@ -101,6 +102,9 @@
       flex: 1;
     }
   </style>
+  <link href="{{ static_url('css/app.css') }}" rel="stylesheet">
+  <!-- End Styles -->
+
 </head>
 <body>
   <noscript>
@@ -124,5 +128,9 @@
         </div>
     </div>
   </div>
+  <!-- Bundle File generated using webpack -->
+  <script type="text/javascript" src="{{ static_url('js/vendor.js') }}"></script>
+  <script type="text/javascript" src="{{ static_url('js/app.js') }}"></script>
+  <!-- End container -->
 </body>
 </html>

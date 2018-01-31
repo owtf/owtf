@@ -9,7 +9,8 @@ const TARGET = process.env.npm_lifecycle_event;
 
 const PATHS = {
     app: path.join(__dirname, '../src/'),
-    build: path.join(__dirname, '../build/')
+    build: path.join(__dirname, '../build/'),
+    jsbuild: path.join(__dirname, '../build/js/')
 };
 
 const VENDOR = [
@@ -35,28 +36,20 @@ const common = {
         app: PATHS.app
     },
     output: {
-        filename: '[name].[hash].js',
-        path: PATHS.build,
-        publicPath: '/static'
+        filename: '[name].js',
+        path: PATHS.jsbuild,
+        publicPath: "/static/",
     },
     plugins: [
         //extract all common modules to vendor so we can load multiple apps in one page
         new webpack.optimize.CommonsChunkPlugin({
             name: 'vendor',
-            filename: 'vendor.[hash].js'
+            filename: 'vendor.js'
         }),
         new webpack.optimize.CommonsChunkPlugin({
             children: true,
             async: true,
             minChunks: 2
-        }),
-        new HtmlWebpackPlugin({
-            template: path.join(__dirname, '../src/index.html'),
-            hash: true,
-            chunks: ['vendor', 'app'],
-            chunksSortMode: 'manual',
-            filename: 'index.html',
-            inject: 'body'
         }),
         new webpack.DefinePlugin({
             'process.env': { NODE_ENV: TARGET === 'dev' ? '"development"' : '"production"' },
@@ -67,7 +60,7 @@ const common = {
             'jQuery': 'jquery',
             'window.jQuery': 'jquery'
         }),
-        new CleanWebpackPlugin([PATHS.build], {
+        new CleanWebpackPlugin([PATHS.build, PATHS.jsbuild], {
             root: process.cwd()
         })
     ],
