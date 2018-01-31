@@ -1,11 +1,15 @@
 import React from 'react';
-import { Route, Switch } from 'react-router';
-import { HomeView, NotFoundView } from './containers';
-import requireAuthentication from './utils/requireAuthentication';
+import { Route, IndexRoute } from 'react-router';
+
+import App from './containers/App';
+import Welcome from './containers/Welcome';
+import Dashboard from './containers/Dashboard';
+import NotFoundError from './components/NotFoundError';
 
 export default(
-    <Switch>
-        <Route exact path="/" component={HomeView} />
-        <Route path="*" component={NotFoundView} />
-    </Switch>
+    <Route path="/" component={App}>
+        <IndexRoute component={Welcome} />
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="*" component={NotFoundError} />
+    </Route>
 );
