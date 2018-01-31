@@ -1,27 +1,17 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import createHistory from 'history/createBrowserHistory';
+import {Router, browserHistory} from 'react-router';
+import {render} from 'react-dom';
+import {Provider} from 'react-redux';
 
-import Root from './containers/Root/Root';
-import configureStore from './store/configureStore';
+import routes from './routes';
+import store from './store';
 
+import 'react-select/dist/react-select.css';
+import './index.css';
 
-const initialState = {};
-const target = document.getElementById('root');
-
-const history = createHistory();
-const store = configureStore(initialState, history);
-
-const node = (
-    <Root store={store} history={history} />
+render(
+  <Provider store={store}>
+    <Router history={browserHistory} routes={routes} />
+  </Provider>,
+  document.getElementById('root')
 );
-
-const token = sessionStorage.getItem('token');
-let user = {};
-try {
-    user = JSON.parse(sessionStorage.getItem('user'));
-} catch (e) {
-    // Failed to parse
-}
-
-ReactDOM.render(node, target);
