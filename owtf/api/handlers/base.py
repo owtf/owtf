@@ -42,13 +42,6 @@ class APIRequestHandler(RequestHandler):
 
 
 class UIRequestHandler(RequestHandler):
-
-    def initialize(self):
-        """
-        - Set Content-type for HTML
-        """
-        self.set_header("Content-Type", "text/html")
-
     def reverse_url(self, name, *args):
         url = super(UIRequestHandler, self).reverse_url(name, *args)
         url = url.replace('?', '')
