@@ -1,17 +1,23 @@
 import React from 'react';
-import {Router, browserHistory} from 'react-router';
+import {Router, Route, browserHistory, IndexRoute} from 'react-router';
 import {render} from 'react-dom';
 import {Provider} from 'react-redux';
+import {syncHistoryWithStore} from 'react-router-redux'
 
 import routes from './routes';
-import store from './store';
+import configureStore from './store/configureStore';
 
 import 'react-select/dist/react-select.css';
 import './index.css';
 
+const initialState = {};
+
+const store = configureStore(initialState, browserHistory);
+const history = syncHistoryWithStore(browserHistory, store)
+
 render(
   <Provider store={store}>
-    <Router history={browserHistory} routes={routes} />
+    <Router routes={routes} history={history} />
   </Provider>,
   document.getElementById('root')
 );
