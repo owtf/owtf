@@ -11,3 +11,12 @@ export function checkHttpStatus(response) {
 export function parseJSON(response) {
     return response.json();
 }
+
+export function getRouteTitle(name, route, params) {
+  switch(name) {
+  case 'items':
+    return 'Items';
+  case 'item':
+    return 'Item #' + params.itemId;
+  }
+}

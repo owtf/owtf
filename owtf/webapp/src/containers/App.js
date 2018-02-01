@@ -1,9 +1,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
-import ErrorBoundary from '../components/ErrorBoundary';
-import Indicators from '../components/Indicators';
 import PageLoadingIndicator from '../components/PageLoadingIndicator';
+import Navbar from '../components/Navbar';
 
 
 class App extends Component {
@@ -18,16 +17,23 @@ class App extends Component {
   }
 
   render() {
+    let navbar = {};
+    navbar.brand = 
+    {linkTo: "/", text: "OWASP OWTF"};
+    navbar.links = [
+        {linkTo: "/dashboard", text: "Dashboard"},
+        {linkTo: "/targets", text: "Targets"},
+        {linkTo: "/workers", text: "workers"},
+        {linkTo: "/worklist", text: "Worklist"},
+        {linkTo: "/settings", text: "Settings"},
+        {linkTo: "/help", text: "Help"},
+        {linkTo: "/login", text: "Login"},
+    ];
     return (
-      <div>
-        <ErrorBoundary>
-          {!this.props.isAuthenticated === null ? (
-            <PageLoadingIndicator />
-          ) : (
-            <div>{this.props.children}</div>
-          )}
-        </ErrorBoundary>
-      </div>
+        <div>
+          <Navbar {...navbar} />
+          {this.props.children}
+        </div>
     );
   }
 }

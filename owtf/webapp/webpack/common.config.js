@@ -25,6 +25,7 @@ const VENDOR = [
     'redux',
     'react-router-redux',
     'jquery',
+    'bootstrap-loader'
 ];
 
 const basePath = path.resolve(__dirname, '../src/');
@@ -39,7 +40,9 @@ const common = {
         filename: '[name].js',
         path: PATHS.jsbuild,
         publicPath: "/static/",
+        sourceMapFilename: '[name].js.map',
     },
+    devtool: (TARGET === 'dev') ? '#source-map' : '#cheap-module-eval-source-map',
     plugins: [
         //extract all common modules to vendor so we can load multiple apps in one page
         new webpack.optimize.CommonsChunkPlugin({

@@ -27,7 +27,7 @@ module.exports = {
                 {
                     loader: 'sass-loader',
                     options: {
-                        data: `@import "${__dirname}/../src/static/styles/config/_variables.scss";`
+                        includePaths: [`${__dirname}/../src/`],
                     }
                 }]
             )
