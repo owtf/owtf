@@ -1,30 +1,3 @@
-/* http://meyerweb.com/eric/tools/css/reset/
-   v2.0 | 20110126
-   License: none (public domain)
-*/
-
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	font-size: 100%;
-	font: inherit;
-	vertical-align: baseline;
-}
-
-
 body {
   font-size: 16px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -35,20 +8,63 @@ body {
   margin: 0;
 }
 
-.left {
-    display: flex;
-    align-items: center;
+pre,
+code {
+  font-size: 14px;
+  font-family: 'Monaco', 'Courier', monospace;
+  font-weight: 400;
 }
 
-.right {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-right: 12px;
+img {
+  max-width: 100%;
 }
 
-.nav {
-    color:#171718;
-    display:flex;
-    margin-bottom:0
+a {
+  text-decoration: none;
+  color: #7b6be6;
+}
+
+a:hover {
+  color: #7b6be6;
+}
+
+strong,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 500;
+}
+
+ul,
+ol,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+table,
+form,
+blockquote,
+pre {
+  margin: 0 0 20px 0;
+}
+
+ul,
+ol {
+  padding-left: 20px;
+}
+
+li {
+  margin-bottom: 5px;
+}
+
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }

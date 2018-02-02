@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import Button from '../components/Button';
+import Button from '../../components/Button';
 
 
 export default class Welcome extends React.Component {
