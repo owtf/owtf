@@ -1,13 +1,16 @@
 import React, { Component, PropTypes } from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+
+import { Grid, Row, Col } from 'react-flexbox-grid';
+import './index.scss';
 
 
 export default class Help extends Component {
   render() {
     return (
-      <div className="container">
-        <div className="row-fluid">
+    <div>
+    <Grid fluid>
+        <Row>
+            <Col xs={6} sm={6} md={12} lg={12}>
             <div className="panel panel-info span3">
                 <div className="panel-heading">
                     <div className="panel-title"><i className="fa fa-search"></i> Exploitation</div>
@@ -56,8 +59,11 @@ export default class Help extends Component {
                     </ul>
                 </div>
             </div>
-        </div>
-        <div className="row">
+            </Col>
+        </Row>
+    </Grid>
+    <Grid>
+            <Col xs={6} sm={6} md={12} lg={12}>
             <div className="panel panel-default">
                 <div className="panel-heading">
                     <div className="panel-title"><i className="fa fa-gear"></i> OWTF Help Links</div>
@@ -66,7 +72,7 @@ export default class Help extends Component {
                     <div className="col-md-2">
                     </div>
                     <div className="col-md-3">
-                        <strong>Useful Links:-</strong>
+                        <strong>Useful Links</strong>
                         <ul className="list-unstyled">
                             <li><i className="fa fa-github-alt"></i><a href="https://github.com/owtf/owtf/wiki" target="__blank"> Github wiki</a></li>
                             <li><i className="fa fa-youtube-play"></i><a href="http://www.youtube.com/user/owtfproject" target="__blank"> Youtube Channel</a></li>
@@ -74,7 +80,7 @@ export default class Help extends Component {
                         </ul>
                     </div>
                     <div className="col-md-3">
-                        <strong>Contributor's Links:-</strong>
+                        <strong>Contributor's Links</strong>
                         <ul className="list-unstyled">
                             <li><i className="fa fa-github-square"></i><a href="https://github.com/owtf/owtf" target="__blank"> Github Repo</a></li>
                             <li><i className="fa fa-exclamation-circle"></i><a href="https://github.com/owtf/owtf/issues" target="__blank"> Report an Issue</a></li>
@@ -83,7 +89,7 @@ export default class Help extends Component {
                         </ul>
                     </div>
                     <div className="col-md-3">
-                        <strong>Stay in touch:-</strong>
+                        <strong>Stay in touch</strong>
                         <ul className="list-unstyled">
                             <li><i className="fa fa-comments-o"></i><a href="http://irc.netsplit.de/channels/details.php?room=%23owtf&net=freenode" target="__blank"> IRC Channel</a></li>
                             <li><i className="fa fa-envelope"></i><a href="https://lists.owasp.org/mailman/listinfo/owasp_owtf" target="__blank"> Mailing List</a></li>
@@ -93,8 +99,9 @@ export default class Help extends Component {
                     </div>
                 </div>
             </div>
-        </div>
-      </div>
+            </Col>
+    </Grid>
+    </div>
     );
   }
 }

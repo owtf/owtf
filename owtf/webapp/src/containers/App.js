@@ -23,7 +23,7 @@ class App extends Component {
     navbar.links = [
         {linkTo: "/dashboard", text: "Dashboard"},
         {linkTo: "/targets", text: "Targets"},
-        {linkTo: "/workers", text: "workers"},
+        {linkTo: "/workers", text: "Workers"},
         {linkTo: "/worklist", text: "Worklist"},
         {linkTo: "/settings", text: "Settings"},
         {linkTo: "/help", text: "Help"},

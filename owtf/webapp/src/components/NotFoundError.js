@@ -28,7 +28,7 @@ export default class NotFoundError extends Component {
             more details.
           </li>
           <li>
-            Return to the <a href="/">dashboard</a>
+            Return to <a href="/">home</a>
           </li>
         </ul>
       </Modal>
