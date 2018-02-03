@@ -19,7 +19,8 @@ export default class Targets extends React.Component {
                     <Col xs={12} md={4} lg={4}>
                         <AddTargets onsubmit={this.handleForm}/>
                     </Col>
-                      <Col xs />
+                    <Col xs />
+                    <Col xs />
                     <Col xs={12} sm={12} md={6} lg={6}>
                         <br/><br/><br/>
                         <TargetTable />
