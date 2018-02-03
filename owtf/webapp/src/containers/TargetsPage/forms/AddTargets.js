@@ -12,7 +12,7 @@ const AddTargets = ({ invalid, submitting, reset }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-        <h1>Add targets</h1>
+        <h2>Add targets</h2>
         <div>
           <Field
             name="targets"

@@ -6,37 +6,6 @@ import React from 'react';
  */
 
 export default class VulnerabilityPanel extends React.Component {
-    constructor() {
-        super();
-        this.panelData = [
-    {
-        "id": 5,
-        "value": 1,
-        "label": "Critical"
-    }, {
-        "id": 4,
-        "value": 2,
-        "label": "High"
-    }, {
-        "id": 3,
-        "value": 3,
-        "label": "Medium"
-    }, {
-        "id": 2,
-        "value": 4,
-        "label": "Low"
-    }, {
-        "id": 1,
-        "value": 5,
-        "label": "Info"
-    }, {
-        "id": 0,
-        "value": 1,
-        "label": "Passing"
-    }
-];
-    }
-
     render() {
         return (
             <div>
@@ -48,7 +17,7 @@ export default class VulnerabilityPanel extends React.Component {
                 </div>
                 <div className="row">
                     {/* For loop over each severity */}
-                    {this.panelData.map(function(severity) {
+                    {this.props.panelData.map(function(severity) {
                         return <Severity key={severity.id} data={severity}/>;
                     })}
                 </div>
@@ -65,11 +34,7 @@ class Severity extends React.Component {
         return (
             <div className="col-lg-2 col-md-4 col-sm-4 col-xs-6 panel-div">
                 <div
-                    className={"panel sevpanel-" + this
-                    .props
-                    .data
-                    .label
-                    .toLowerCase()}>
+                    className={"panel sevpanel-" + this.props.data.label.toLowerCase()}>
                     <div className="panel-heading sevpanel">
                         <div className="row">
                             <div className="col-xs-12 text-center">

@@ -1,6 +1,5 @@
 import React from 'react';
 
-import Chart from '../../components/Chart';
 import VulnerabilityPanel from '../../components/Panel';
 import {
     SEVERITY_CHART_URL,
@@ -13,8 +12,6 @@ import {
 
 /**
  * React Component for Dashboard.
- * This is main component which renders the Dashboard page.
- * - Renders on (URL)  - /ui/dashboard/
  */
 
 export default class Dashboard extends React.Component {
@@ -28,12 +25,7 @@ export default class Dashboard extends React.Component {
                         </h1>
                     </div>
                 </div>
-                <VulnerabilityPanel />
-                <div className="row">
-                    <div className="col-xs-12 col-sm-12 com-md-6 col-lg-6">
-                        <Chart />
-                    </div>
-                </div>
+                <VulnerabilityPanel panelData={[]}/>
             </div>
         );
     }

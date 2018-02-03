@@ -8,7 +8,7 @@ import routes from './routes';
 import configureStore from './store/configureStore';
 
 import 'react-select/dist/react-select.css';
-import './index.css';
+import './index.scss';
 
 const initialState = {};
 
