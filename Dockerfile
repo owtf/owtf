@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get -y update && apt-get -y dist-upgrade && apt-get clean
 
+RUN apt-get -y install build-essential libssl-dev libffi-dev python-dev
 RUN apt-get -y install  xvfb \
                         xserver-xephyr \
                         libxml2-dev \
@@ -21,8 +22,7 @@ RUN apt-get -y install  xvfb \
                         postgresql  \
                         libcurl4-openssl-dev \
                         proxychains \
-                        tor \
-                        ca-certificates
+                        tor
 
 # Needed for installation of pycurl using pip in kali
 ENV PYCURL_SSL_LIBRARY openssl

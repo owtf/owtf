@@ -14,9 +14,6 @@ try:
     import configparser as parser
 except ImportError:
     import ConfigParser as parser
-from distutils import dir_util
-
-from owtf.utils import FileOperations
 
 
 def create_directory(directory):
