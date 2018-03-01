@@ -71,8 +71,12 @@ create_directory() {
 }
 
 check_sudo() {
-    timeout 2 sudo id && sudo=1 || sudo=0
-    return $sudo
+    if [[ $EUID -eq 0 ]]; then
+        # The script is invoked with root permission
+        return 1
+    else
+        return 0
+    fi
 }
 
 install_in_dir() {
