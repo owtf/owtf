@@ -1,4 +1,4 @@
-@media (min-width: 1200px) {
+@media (min-width: 1000px) {
   .row {
     margin-left: -30px;
     *zoom: 1;
@@ -27,7 +27,7 @@
     width: 1170px;
   }
   .span11 {
-    width: 1070px;
+    width: 1170px;
   }
   .span10 {
     width: 970px;

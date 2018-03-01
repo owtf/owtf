@@ -1,0 +1,1333 @@
+[INFO] [2018-03-02 02:35:17,675] [File 'process.py', line 133, in fork_processes] - Starting 4 processes
+[INFO] [2018-03-02 02:35:19,935] [File 'web.py', line 2063, in log_request] - 304 GET /ui/targets/12 (127.0.0.1) 26.92ms
+[INFO] [2018-03-02 02:35:20,106] [File 'web.py', line 2063, in log_request] - 304 GET /api/targets/12 (127.0.0.1) 14.76ms
+[INFO] [2018-03-02 02:35:20,139] [File 'web.py', line 2063, in log_request] - 200 GET /api/targets/12/poutput/names/ (127.0.0.1) 45.23ms
+[INFO] [2018-03-02 02:35:21,663] [File 'web.py', line 2063, in log_request] - 304 GET /ui/worklist/ (127.0.0.1) 12.08ms
+[INFO] [2018-03-02 02:35:21,743] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 13.91ms
+[INFO] [2018-03-02 02:35:23,107] [File 'web.py', line 2063, in log_request] - 304 GET /ui/targets/ (127.0.0.1) 20.04ms
+[INFO] [2018-03-02 02:35:23,205] [File 'web.py', line 2063, in log_request] - 304 GET /api/sessions/?active=true (127.0.0.1) 2.84ms
+[INFO] [2018-03-02 02:35:23,240] [File 'web.py', line 2063, in log_request] - 304 GET /api/targets/search/?limit=100&offset=0 (127.0.0.1) 47.03ms
+[INFO] [2018-03-02 02:35:23,283] [File 'web.py', line 2063, in log_request] - 304 GET /api/targets/search/?limit=100&offset=0 (127.0.0.1) 39.83ms
+[WARNING] [2018-03-02 02:35:25,585] [File 'web.py', line 2063, in log_request] - 404 GET /static/build/fontsglyphicons-halflings-regular.woff2 (127.0.0.1) 1.58ms
+[WARNING] [2018-03-02 02:35:25,610] [File 'web.py', line 2063, in log_request] - 404 GET /static/build/fontsglyphicons-halflings-regular.woff (127.0.0.1) 0.97ms
+[WARNING] [2018-03-02 02:35:25,617] [File 'web.py', line 2063, in log_request] - 404 GET /static/build/fontsglyphicons-halflings-regular.ttf (127.0.0.1) 0.88ms
+[INFO] [2018-03-02 02:35:25,715] [File 'web.py', line 2063, in log_request] - 200 GET /api/plugins/?group=web&group=network&_=1519938323136 (127.0.0.1) 285.72ms
+[ERROR] [2018-03-02 02:35:34,980] [File 'pool.py', line 696, in _finalize_fairy] - Exception during reset or similar
+Traceback (most recent call last):
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/pool.py", line 687, in _finalize_fairy
+    fairy._reset(pool)
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/pool.py", line 829, in _reset
+    pool._dialect.do_rollback(self)
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/engine/default.py", line 440, in do_rollback
+    dbapi_connection.rollback()
+DatabaseError: SSL error: decryption failed or bad record mac
+
+[ERROR] [2018-03-02 02:35:34,996] [File 'pool.py', line 696, in _finalize_fairy] - Exception during reset or similar
+Traceback (most recent call last):
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/pool.py", line 687, in _finalize_fairy
+    fairy._reset(pool)
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/pool.py", line 829, in _reset
+    pool._dialect.do_rollback(self)
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/engine/default.py", line 440, in do_rollback
+    dbapi_connection.rollback()
+OperationalError: SSL error: decryption failed or bad record mac
+
+[INFO] [2018-03-02 02:35:35,039] [File 'web.py', line 2063, in log_request] - 201 POST /api/worklist/ (127.0.0.1) 169.17ms
+[INFO] [2018-03-02 02:35:35,051] [File 'web.py', line 2063, in log_request] - 201 POST /api/worklist/ (127.0.0.1) 174.28ms
+[INFO] [2018-03-02 02:35:35,053] [File 'web.py', line 2063, in log_request] - 201 POST /api/worklist/ (127.0.0.1) 183.16ms
+[INFO] [2018-03-02 02:35:35,184] [File 'web.py', line 2063, in log_request] - 201 POST /api/worklist/ (127.0.0.1) 131.72ms
+[INFO] [2018-03-02 02:35:36,736] [File 'web.py', line 2063, in log_request] - 304 GET /ui/worklist/ (127.0.0.1) 40.79ms
+[INFO] [2018-03-02 02:35:36,943] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.65ms
+[INFO] [2018-03-02 02:35:38,950] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 22.90ms
+[ERROR] [2018-03-02 02:35:40,417] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/549/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/549/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:35:40,420] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/549/pause (127.0.0.1) 3.75ms
+[ERROR] [2018-03-02 02:35:40,422] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/551/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/551/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:35:40,424] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/551/pause (127.0.0.1) 2.18ms
+[INFO] [2018-03-02 02:35:40,992] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 62.72ms
+[ERROR] [2018-03-02 02:35:42,295] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist//resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist//resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 113, in patch
+    work_id = int(work_id)
+TypeError: int() argument must be a string or a number, not 'NoneType'
+[ERROR] [2018-03-02 02:35:42,299] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist//resume (127.0.0.1) 5.34ms
+[INFO] [2018-03-02 02:35:42,964] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.70ms
+[INFO] [2018-03-02 02:35:44,958] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.19ms
+[INFO] [2018-03-02 02:35:46,979] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.37ms
+[INFO] [2018-03-02 02:35:48,935] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 12.76ms
+[INFO] [2018-03-02 02:35:49,830] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=wdsa (127.0.0.1) 36.44ms
+[INFO] [2018-03-02 02:35:49,954] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=wdsa (127.0.0.1) 49.27ms
+[INFO] [2018-03-02 02:35:50,955] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=wdsa (127.0.0.1) 28.36ms
+[INFO] [2018-03-02 02:35:52,955] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=wdsa (127.0.0.1) 27.53ms
+[INFO] [2018-03-02 02:35:54,271] [File 'web.py', line 2063, in log_request] - 304 GET /ui/targets/ (127.0.0.1) 27.37ms
+[INFO] [2018-03-02 02:35:54,373] [File 'web.py', line 2063, in log_request] - 304 GET /api/sessions/?active=true (127.0.0.1) 3.05ms
+[INFO] [2018-03-02 02:35:54,400] [File 'web.py', line 2063, in log_request] - 304 GET /api/targets/search/?limit=100&offset=0 (127.0.0.1) 41.95ms
+[INFO] [2018-03-02 02:35:54,443] [File 'web.py', line 2063, in log_request] - 304 GET /api/targets/search/?limit=100&offset=0 (127.0.0.1) 41.81ms
+[INFO] [2018-03-02 02:36:03,095] [File 'config.py', line 485, in get_ip_from_hostname] - The IP address for github.com is: '192.30.253.112'
+[INFO] [2018-03-02 02:36:03,153] [File 'web.py', line 2063, in log_request] - 201 POST /api/targets/ (127.0.0.1) 526.78ms
+[INFO] [2018-03-02 02:36:03,174] [File 'web.py', line 2063, in log_request] - 304 GET /api/sessions/?active=true (127.0.0.1) 9.72ms
+[INFO] [2018-03-02 02:36:03,271] [File 'web.py', line 2063, in log_request] - 200 GET /api/targets/search/?limit=100&offset=0 (127.0.0.1) 97.41ms
+[WARNING] [2018-03-02 02:36:04,098] [File 'web.py', line 2063, in log_request] - 404 GET /static/build/fontsglyphicons-halflings-regular.woff2 (127.0.0.1) 1.31ms
+[WARNING] [2018-03-02 02:36:04,104] [File 'web.py', line 2063, in log_request] - 404 GET /static/build/fontsglyphicons-halflings-regular.woff (127.0.0.1) 0.58ms
+[WARNING] [2018-03-02 02:36:04,131] [File 'web.py', line 2063, in log_request] - 404 GET /static/build/fontsglyphicons-halflings-regular.ttf (127.0.0.1) 0.54ms
+[INFO] [2018-03-02 02:36:04,197] [File 'web.py', line 2063, in log_request] - 200 GET /api/plugins/?group=web&group=network&_=1519938354302 (127.0.0.1) 258.29ms
+[ERROR] [2018-03-02 02:36:10,515] [File 'pool.py', line 696, in _finalize_fairy] - Exception during reset or similar
+Traceback (most recent call last):
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/pool.py", line 687, in _finalize_fairy
+    fairy._reset(pool)
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/pool.py", line 829, in _reset
+    pool._dialect.do_rollback(self)
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/engine/default.py", line 440, in do_rollback
+    dbapi_connection.rollback()
+DatabaseError: SSL error: decryption failed or bad record mac
+
+[INFO] [2018-03-02 02:36:10,772] [File 'web.py', line 2063, in log_request] - 201 POST /api/worklist/ (127.0.0.1) 406.80ms
+[INFO] [2018-03-02 02:36:10,780] [File 'web.py', line 2063, in log_request] - 201 POST /api/worklist/ (127.0.0.1) 420.13ms
+[INFO] [2018-03-02 02:36:10,786] [File 'web.py', line 2063, in log_request] - 201 POST /api/worklist/ (127.0.0.1) 424.50ms
+[ERROR] [2018-03-02 02:36:11,053] [File 'pool.py', line 696, in _finalize_fairy] - Exception during reset or similar
+Traceback (most recent call last):
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/pool.py", line 687, in _finalize_fairy
+    fairy._reset(pool)
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/pool.py", line 829, in _reset
+    pool._dialect.do_rollback(self)
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/engine/default.py", line 440, in do_rollback
+    dbapi_connection.rollback()
+OperationalError: SSL error: decryption failed or bad record mac
+
+[INFO] [2018-03-02 02:36:11,145] [File 'web.py', line 2063, in log_request] - 201 POST /api/worklist/ (127.0.0.1) 369.95ms
+[INFO] [2018-03-02 02:36:12,870] [File 'web.py', line 2063, in log_request] - 304 GET /ui/worklist/ (127.0.0.1) 31.06ms
+[INFO] [2018-03-02 02:36:13,059] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.94ms
+[INFO] [2018-03-02 02:36:15,088] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 42.40ms
+[INFO] [2018-03-02 02:36:17,104] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 65.97ms
+[INFO] [2018-03-02 02:36:18,428] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=ppp (127.0.0.1) 38.43ms
+[INFO] [2018-03-02 02:36:18,500] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=ppp (127.0.0.1) 25.61ms
+[INFO] [2018-03-02 02:36:19,052] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=ppp (127.0.0.1) 18.02ms
+[INFO] [2018-03-02 02:36:19,969] [File 'web.py', line 2063, in log_request] - 200 DELETE /api/worklist/555 (127.0.0.1) 49.14ms
+[INFO] [2018-03-02 02:36:21,056] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=ppp (127.0.0.1) 21.16ms
+[INFO] [2018-03-02 02:36:23,081] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=ppp (127.0.0.1) 42.72ms
+[INFO] [2018-03-02 02:36:25,047] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=ppp (127.0.0.1) 13.01ms
+[INFO] [2018-03-02 02:36:25,671] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 53.73ms
+[INFO] [2018-03-02 02:36:25,725] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 24.45ms
+[INFO] [2018-03-02 02:36:27,141] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 101.58ms
+[ERROR] [2018-03-02 02:36:28,936] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist//resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist//resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 113, in patch
+    work_id = int(work_id)
+TypeError: int() argument must be a string or a number, not 'NoneType'
+[ERROR] [2018-03-02 02:36:28,937] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist//resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist//resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 113, in patch
+    work_id = int(work_id)
+TypeError: int() argument must be a string or a number, not 'NoneType'
+[ERROR] [2018-03-02 02:36:28,938] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist//resume (127.0.0.1) 2.59ms
+[ERROR] [2018-03-02 02:36:28,938] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist//resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist//resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 113, in patch
+    work_id = int(work_id)
+TypeError: int() argument must be a string or a number, not 'NoneType'
+[ERROR] [2018-03-02 02:36:28,939] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist//resume (127.0.0.1) 2.68ms
+[ERROR] [2018-03-02 02:36:28,939] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist//resume (127.0.0.1) 1.65ms
+[ERROR] [2018-03-02 02:36:28,939] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist//resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist//resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 113, in patch
+    work_id = int(work_id)
+TypeError: int() argument must be a string or a number, not 'NoneType'
+[ERROR] [2018-03-02 02:36:28,941] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist//resume (127.0.0.1) 1.57ms
+[INFO] [2018-03-02 02:36:29,059] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.95ms
+[INFO] [2018-03-02 02:36:31,070] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.96ms
+[INFO] [2018-03-02 02:36:33,095] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.91ms
+[INFO] [2018-03-02 02:36:35,100] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 63.27ms
+[INFO] [2018-03-02 02:36:37,071] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.16ms
+[INFO] [2018-03-02 02:36:39,065] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.74ms
+[INFO] [2018-03-02 02:36:41,096] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.74ms
+[INFO] [2018-03-02 02:36:43,162] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 123.30ms
+[INFO] [2018-03-02 02:36:45,077] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.82ms
+[INFO] [2018-03-02 02:36:47,092] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.49ms
+[INFO] [2018-03-02 02:36:49,060] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.88ms
+[INFO] [2018-03-02 02:36:51,070] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.44ms
+[INFO] [2018-03-02 02:36:53,070] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.16ms
+[INFO] [2018-03-02 02:36:55,102] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 64.27ms
+[INFO] [2018-03-02 02:36:57,083] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 47.44ms
+[INFO] [2018-03-02 02:36:59,082] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.80ms
+[INFO] [2018-03-02 02:37:01,071] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.88ms
+[INFO] [2018-03-02 02:37:03,060] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.99ms
+[INFO] [2018-03-02 02:37:05,072] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.98ms
+[INFO] [2018-03-02 02:37:07,098] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 58.31ms
+[INFO] [2018-03-02 02:37:09,070] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 39.33ms
+[INFO] [2018-03-02 02:37:11,111] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 69.74ms
+[INFO] [2018-03-02 02:37:13,076] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 45.15ms
+[INFO] [2018-03-02 02:37:15,074] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 42.91ms
+[INFO] [2018-03-02 02:37:17,115] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 77.18ms
+[INFO] [2018-03-02 02:37:19,156] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 117.60ms
+[INFO] [2018-03-02 02:37:21,061] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.31ms
+[INFO] [2018-03-02 02:37:23,073] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 41.16ms
+[INFO] [2018-03-02 02:37:25,094] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.10ms
+[INFO] [2018-03-02 02:37:27,077] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 39.97ms
+[INFO] [2018-03-02 02:37:29,085] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.91ms
+[INFO] [2018-03-02 02:37:31,091] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.17ms
+[INFO] [2018-03-02 02:37:33,092] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 56.66ms
+[INFO] [2018-03-02 02:37:35,060] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.92ms
+[INFO] [2018-03-02 02:37:37,062] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.83ms
+[INFO] [2018-03-02 02:37:39,090] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 53.26ms
+[INFO] [2018-03-02 02:37:41,100] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 53.12ms
+[INFO] [2018-03-02 02:37:43,071] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.76ms
+[INFO] [2018-03-02 02:37:45,063] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.18ms
+[INFO] [2018-03-02 02:37:47,076] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 39.26ms
+[INFO] [2018-03-02 02:37:49,088] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 51.32ms
+[INFO] [2018-03-02 02:37:51,057] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 26.81ms
+[INFO] [2018-03-02 02:37:53,067] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.46ms
+[INFO] [2018-03-02 02:37:55,067] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.53ms
+[INFO] [2018-03-02 02:37:57,089] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.28ms
+[INFO] [2018-03-02 02:37:59,090] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 53.34ms
+[INFO] [2018-03-02 02:38:01,071] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.70ms
+[INFO] [2018-03-02 02:38:03,062] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.39ms
+[INFO] [2018-03-02 02:38:05,068] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.55ms
+[INFO] [2018-03-02 02:38:07,089] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.69ms
+[INFO] [2018-03-02 02:38:09,081] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.99ms
+[INFO] [2018-03-02 02:38:11,067] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.12ms
+[INFO] [2018-03-02 02:38:13,070] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.09ms
+[INFO] [2018-03-02 02:38:15,073] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 39.02ms
+[INFO] [2018-03-02 02:38:17,070] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.11ms
+[INFO] [2018-03-02 02:38:19,064] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.18ms
+[INFO] [2018-03-02 02:38:21,063] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.85ms
+[INFO] [2018-03-02 02:38:23,068] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.80ms
+[INFO] [2018-03-02 02:38:25,098] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 61.28ms
+[INFO] [2018-03-02 02:38:27,086] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.01ms
+[INFO] [2018-03-02 02:38:29,097] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 59.82ms
+[INFO] [2018-03-02 02:38:31,065] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.14ms
+[INFO] [2018-03-02 02:38:33,063] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.71ms
+[INFO] [2018-03-02 02:38:35,095] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.69ms
+[INFO] [2018-03-02 02:38:37,069] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.05ms
+[INFO] [2018-03-02 02:38:39,061] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.38ms
+[INFO] [2018-03-02 02:38:41,088] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 51.60ms
+[INFO] [2018-03-02 02:38:43,070] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.69ms
+[INFO] [2018-03-02 02:38:45,116] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.83ms
+[INFO] [2018-03-02 02:38:47,061] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.25ms
+[INFO] [2018-03-02 02:38:49,066] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.21ms
+[INFO] [2018-03-02 02:38:51,078] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.34ms
+[INFO] [2018-03-02 02:38:53,423] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 74.55ms
+[INFO] [2018-03-02 02:38:55,434] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 85.05ms
+[INFO] [2018-03-02 02:38:57,376] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.18ms
+[INFO] [2018-03-02 02:38:59,396] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 58.97ms
+[INFO] [2018-03-02 02:39:01,374] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.35ms
+[INFO] [2018-03-02 02:39:03,400] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.63ms
+[INFO] [2018-03-02 02:39:05,373] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.66ms
+[INFO] [2018-03-02 02:39:07,380] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 39.12ms
+[INFO] [2018-03-02 02:39:09,394] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 51.61ms
+[INFO] [2018-03-02 02:39:11,390] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.16ms
+[INFO] [2018-03-02 02:39:13,410] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 69.35ms
+[INFO] [2018-03-02 02:39:15,427] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 81.85ms
+[INFO] [2018-03-02 02:39:17,409] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 67.47ms
+[INFO] [2018-03-02 02:39:19,378] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 38.36ms
+[INFO] [2018-03-02 02:39:21,375] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.88ms
+[INFO] [2018-03-02 02:39:23,386] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.63ms
+[INFO] [2018-03-02 02:39:25,394] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.20ms
+[INFO] [2018-03-02 02:39:27,360] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.32ms
+[INFO] [2018-03-02 02:39:29,382] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.58ms
+[INFO] [2018-03-02 02:39:31,378] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.27ms
+[INFO] [2018-03-02 02:39:33,394] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.90ms
+[INFO] [2018-03-02 02:39:35,372] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.15ms
+[INFO] [2018-03-02 02:39:37,381] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.83ms
+[INFO] [2018-03-02 02:39:39,372] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.82ms
+[INFO] [2018-03-02 02:39:41,394] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 42.90ms
+[INFO] [2018-03-02 02:39:43,431] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 86.62ms
+[INFO] [2018-03-02 02:39:45,372] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.05ms
+[INFO] [2018-03-02 02:39:47,384] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 43.80ms
+[INFO] [2018-03-02 02:39:49,384] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 43.78ms
+[INFO] [2018-03-02 02:39:51,398] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.67ms
+[INFO] [2018-03-02 02:39:53,419] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 79.67ms
+[INFO] [2018-03-02 02:39:55,378] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 41.46ms
+[INFO] [2018-03-02 02:39:57,390] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 47.67ms
+[INFO] [2018-03-02 02:39:59,371] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.52ms
+[INFO] [2018-03-02 02:40:01,374] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.63ms
+[INFO] [2018-03-02 02:40:03,392] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.88ms
+[INFO] [2018-03-02 02:40:05,369] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.94ms
+[INFO] [2018-03-02 02:40:07,397] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.57ms
+[INFO] [2018-03-02 02:40:09,394] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.81ms
+[INFO] [2018-03-02 02:40:11,401] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.52ms
+[INFO] [2018-03-02 02:40:13,073] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.88ms
+[INFO] [2018-03-02 02:40:13,146] [File 'web.py', line 2063, in log_request] - 200 GET /ui/worklist/ (127.0.0.1) 7.43ms
+[INFO] [2018-03-02 02:40:13,300] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.53ms
+[INFO] [2018-03-02 02:40:14,634] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/pause (127.0.0.1) 21.47ms
+[INFO] [2018-03-02 02:40:15,317] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.38ms
+[INFO] [2018-03-02 02:40:16,335] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/pause (127.0.0.1) 25.84ms
+[INFO] [2018-03-02 02:40:17,352] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 71.85ms
+[INFO] [2018-03-02 02:40:18,801] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 17.85ms
+[INFO] [2018-03-02 02:40:19,310] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.95ms
+[INFO] [2018-03-02 02:40:21,311] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.69ms
+[INFO] [2018-03-02 02:40:23,336] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.78ms
+[INFO] [2018-03-02 02:40:25,342] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 60.49ms
+[INFO] [2018-03-02 02:40:27,306] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.26ms
+[INFO] [2018-03-02 02:40:29,302] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.96ms
+[INFO] [2018-03-02 02:40:31,315] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.35ms
+[INFO] [2018-03-02 02:40:33,344] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 61.89ms
+[INFO] [2018-03-02 02:40:35,310] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.89ms
+[INFO] [2018-03-02 02:40:37,304] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.76ms
+[INFO] [2018-03-02 02:40:39,311] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.33ms
+[INFO] [2018-03-02 02:40:41,337] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 51.68ms
+[INFO] [2018-03-02 02:40:43,304] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.96ms
+[INFO] [2018-03-02 02:40:45,311] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.47ms
+[INFO] [2018-03-02 02:40:47,338] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 56.45ms
+[INFO] [2018-03-02 02:40:49,338] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 56.83ms
+[INFO] [2018-03-02 02:40:51,313] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.29ms
+[INFO] [2018-03-02 02:40:53,307] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 26.35ms
+[INFO] [2018-03-02 02:40:55,341] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 59.53ms
+[INFO] [2018-03-02 02:40:57,316] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.27ms
+[INFO] [2018-03-02 02:40:59,331] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.68ms
+[INFO] [2018-03-02 02:41:01,328] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.68ms
+[INFO] [2018-03-02 02:41:03,327] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 42.60ms
+[INFO] [2018-03-02 02:41:05,338] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.78ms
+[INFO] [2018-03-02 02:41:07,368] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 85.34ms
+[INFO] [2018-03-02 02:41:09,317] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 39.93ms
+[INFO] [2018-03-02 02:41:11,309] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.08ms
+[INFO] [2018-03-02 02:41:13,324] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 44.10ms
+[INFO] [2018-03-02 02:41:15,326] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 44.77ms
+[INFO] [2018-03-02 02:41:17,330] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.12ms
+[INFO] [2018-03-02 02:41:19,308] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.74ms
+[INFO] [2018-03-02 02:41:20,345] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/pause (127.0.0.1) 24.56ms
+[INFO] [2018-03-02 02:41:21,331] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.79ms
+[INFO] [2018-03-02 02:41:23,334] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 51.66ms
+[INFO] [2018-03-02 02:41:25,328] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 47.55ms
+[INFO] [2018-03-02 02:41:27,316] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.00ms
+[INFO] [2018-03-02 02:41:29,336] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.72ms
+[INFO] [2018-03-02 02:41:31,317] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.00ms
+[INFO] [2018-03-02 02:41:33,315] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 38.16ms
+[INFO] [2018-03-02 02:41:35,303] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 24.50ms
+[INFO] [2018-03-02 02:41:37,307] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.86ms
+[INFO] [2018-03-02 02:41:39,303] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 23.24ms
+[INFO] [2018-03-02 02:41:41,310] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.42ms
+[INFO] [2018-03-02 02:41:43,318] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.39ms
+[INFO] [2018-03-02 02:41:45,322] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 42.03ms
+[INFO] [2018-03-02 02:41:47,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.08ms
+[INFO] [2018-03-02 02:41:49,308] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.62ms
+[INFO] [2018-03-02 02:41:51,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.36ms
+[INFO] [2018-03-02 02:41:53,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.70ms
+[INFO] [2018-03-02 02:41:55,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.17ms
+[INFO] [2018-03-02 02:41:57,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.57ms
+[INFO] [2018-03-02 02:41:59,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.93ms
+[INFO] [2018-03-02 02:42:01,310] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.90ms
+[INFO] [2018-03-02 02:42:03,318] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.72ms
+[INFO] [2018-03-02 02:42:05,311] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.18ms
+[INFO] [2018-03-02 02:42:07,318] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 38.06ms
+[INFO] [2018-03-02 02:42:09,309] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.53ms
+[INFO] [2018-03-02 02:42:11,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.68ms
+[INFO] [2018-03-02 02:42:13,313] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.58ms
+[INFO] [2018-03-02 02:42:15,322] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 41.83ms
+[INFO] [2018-03-02 02:42:17,308] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.56ms
+[INFO] [2018-03-02 02:42:19,321] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 41.01ms
+[INFO] [2018-03-02 02:42:21,340] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 58.42ms
+[INFO] [2018-03-02 02:42:23,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.68ms
+[INFO] [2018-03-02 02:42:25,305] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.09ms
+[INFO] [2018-03-02 02:42:27,310] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.47ms
+[INFO] [2018-03-02 02:42:29,307] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.87ms
+[INFO] [2018-03-02 02:42:31,308] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.89ms
+[INFO] [2018-03-02 02:42:33,309] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.40ms
+[INFO] [2018-03-02 02:42:35,309] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.85ms
+[INFO] [2018-03-02 02:42:37,310] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.78ms
+[INFO] [2018-03-02 02:42:39,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.28ms
+[INFO] [2018-03-02 02:42:41,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.02ms
+[INFO] [2018-03-02 02:42:43,316] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.36ms
+[INFO] [2018-03-02 02:42:45,320] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 39.89ms
+[INFO] [2018-03-02 02:42:47,313] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.15ms
+[INFO] [2018-03-02 02:42:49,315] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.16ms
+[INFO] [2018-03-02 02:42:51,316] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.32ms
+[INFO] [2018-03-02 02:42:53,309] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.80ms
+[INFO] [2018-03-02 02:42:55,314] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.43ms
+[INFO] [2018-03-02 02:42:57,322] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 42.12ms
+[INFO] [2018-03-02 02:42:59,311] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.48ms
+[INFO] [2018-03-02 02:43:01,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.32ms
+[INFO] [2018-03-02 02:43:03,313] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.90ms
+[INFO] [2018-03-02 02:43:05,311] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.08ms
+[INFO] [2018-03-02 02:43:07,309] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.81ms
+[INFO] [2018-03-02 02:43:09,308] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.34ms
+[INFO] [2018-03-02 02:43:11,311] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.22ms
+[INFO] [2018-03-02 02:43:13,317] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.19ms
+[INFO] [2018-03-02 02:43:15,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.89ms
+[INFO] [2018-03-02 02:43:17,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.48ms
+[INFO] [2018-03-02 02:43:19,311] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.92ms
+[INFO] [2018-03-02 02:43:21,338] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 56.54ms
+[INFO] [2018-03-02 02:43:23,315] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.79ms
+[INFO] [2018-03-02 02:43:25,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.76ms
+[INFO] [2018-03-02 02:43:27,311] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.67ms
+[INFO] [2018-03-02 02:43:29,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.38ms
+[INFO] [2018-03-02 02:43:31,310] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.35ms
+[INFO] [2018-03-02 02:43:33,324] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 43.48ms
+[INFO] [2018-03-02 02:43:35,309] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.30ms
+[INFO] [2018-03-02 02:43:37,317] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.00ms
+[INFO] [2018-03-02 02:43:39,312] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.71ms
+[INFO] [2018-03-02 02:43:41,308] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.26ms
+[INFO] [2018-03-02 02:43:43,316] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.28ms
+[INFO] [2018-03-02 02:43:45,314] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.21ms
+[INFO] [2018-03-02 02:43:47,309] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.37ms
+[INFO] [2018-03-02 02:43:49,305] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.47ms
+[INFO] [2018-03-02 02:43:51,307] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 26.37ms
+[INFO] [2018-03-02 02:43:53,342] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 60.48ms
+[INFO] [2018-03-02 02:43:55,305] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.69ms
+[INFO] [2018-03-02 02:43:57,381] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 104.70ms
+[INFO] [2018-03-02 02:43:59,332] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.86ms
+[INFO] [2018-03-02 02:44:01,318] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.21ms
+[INFO] [2018-03-02 02:44:03,341] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 60.39ms
+[INFO] [2018-03-02 02:44:05,340] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 58.94ms
+[INFO] [2018-03-02 02:44:07,328] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 48.29ms
+[INFO] [2018-03-02 02:44:09,325] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 45.75ms
+[INFO] [2018-03-02 02:44:11,308] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.63ms
+[INFO] [2018-03-02 02:44:13,328] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 47.99ms
+[INFO] [2018-03-02 02:44:15,319] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.81ms
+[INFO] [2018-03-02 02:44:16,534] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 12.95ms
+[INFO] [2018-03-02 02:44:17,314] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.35ms
+[INFO] [2018-03-02 02:44:19,317] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.37ms
+[INFO] [2018-03-02 02:44:21,308] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.27ms
+[INFO] [2018-03-02 02:44:23,334] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 53.10ms
+[INFO] [2018-03-02 02:44:25,326] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 45.82ms
+[INFO] [2018-03-02 02:44:27,341] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 59.39ms
+[INFO] [2018-03-02 02:44:29,331] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.16ms
+[INFO] [2018-03-02 02:44:31,340] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 59.27ms
+[INFO] [2018-03-02 02:44:33,344] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 65.62ms
+[INFO] [2018-03-02 02:44:35,311] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.34ms
+[INFO] [2018-03-02 02:44:37,328] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.27ms
+[INFO] [2018-03-02 02:44:39,303] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.49ms
+[INFO] [2018-03-02 02:44:41,335] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 53.86ms
+[INFO] [2018-03-02 02:44:43,334] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 48.57ms
+[INFO] [2018-03-02 02:44:45,318] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 38.93ms
+[INFO] [2018-03-02 02:44:47,335] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.24ms
+[INFO] [2018-03-02 02:44:49,352] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 70.09ms
+[INFO] [2018-03-02 02:44:51,335] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 53.60ms
+[INFO] [2018-03-02 02:44:53,331] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.27ms
+[INFO] [2018-03-02 02:44:55,372] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 93.29ms
+[INFO] [2018-03-02 02:44:57,340] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 59.20ms
+[INFO] [2018-03-02 02:44:59,321] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.21ms
+[INFO] [2018-03-02 02:45:01,304] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.54ms
+[INFO] [2018-03-02 02:45:03,302] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 26.07ms
+[INFO] [2018-03-02 02:45:05,310] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.12ms
+[INFO] [2018-03-02 02:45:06,306] [File 'web.py', line 2063, in log_request] - 200 GET /ui/worklist/ (127.0.0.1) 9.02ms
+[INFO] [2018-03-02 02:45:06,463] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.72ms
+[INFO] [2018-03-02 02:45:07,757] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 21.03ms
+[INFO] [2018-03-02 02:45:08,497] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.95ms
+[INFO] [2018-03-02 02:45:09,590] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/pause (127.0.0.1) 25.57ms
+[INFO] [2018-03-02 02:45:10,503] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 58.31ms
+[INFO] [2018-03-02 02:45:12,479] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.42ms
+[INFO] [2018-03-02 02:45:14,508] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 62.89ms
+[INFO] [2018-03-02 02:45:16,477] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.81ms
+[INFO] [2018-03-02 02:45:18,506] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 60.73ms
+[INFO] [2018-03-02 02:45:20,497] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.96ms
+[INFO] [2018-03-02 02:45:22,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.26ms
+[INFO] [2018-03-02 02:45:24,498] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 51.68ms
+[INFO] [2018-03-02 02:45:26,478] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.43ms
+[INFO] [2018-03-02 02:45:26,614] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 34.27ms
+[INFO] [2018-03-02 02:45:26,770] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 38.43ms
+[INFO] [2018-03-02 02:45:28,067] [File 'web.py', line 2063, in log_request] - 200 DELETE /api/worklist/0/delete (127.0.0.1) 15.93ms
+[INFO] [2018-03-02 02:45:28,471] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 27.88ms
+[INFO] [2018-03-02 02:45:30,470] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 28.38ms
+[INFO] [2018-03-02 02:45:31,271] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.00ms
+[INFO] [2018-03-02 02:45:31,365] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 26.99ms
+[INFO] [2018-03-02 02:45:32,474] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.01ms
+[INFO] [2018-03-02 02:45:33,443] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.45ms
+[INFO] [2018-03-02 02:45:34,473] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.25ms
+[INFO] [2018-03-02 02:45:36,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.51ms
+[INFO] [2018-03-02 02:45:38,479] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.91ms
+[INFO] [2018-03-02 02:45:40,477] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.62ms
+[INFO] [2018-03-02 02:45:42,467] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 23.38ms
+[INFO] [2018-03-02 02:45:44,454] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 12.58ms
+[INFO] [2018-03-02 02:45:46,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.10ms
+[INFO] [2018-03-02 02:45:48,471] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 26.08ms
+[INFO] [2018-03-02 02:45:50,454] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 14.10ms
+[INFO] [2018-03-02 02:45:52,468] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 23.36ms
+[INFO] [2018-03-02 02:45:54,484] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 39.86ms
+[INFO] [2018-03-02 02:45:56,473] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.58ms
+[INFO] [2018-03-02 02:45:58,454] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 11.83ms
+[INFO] [2018-03-02 02:46:00,478] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.55ms
+[INFO] [2018-03-02 02:46:02,480] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.19ms
+[INFO] [2018-03-02 02:46:04,479] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.09ms
+[INFO] [2018-03-02 02:46:06,477] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.47ms
+[INFO] [2018-03-02 02:46:08,447] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 8.58ms
+[INFO] [2018-03-02 02:46:10,449] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 10.10ms
+[INFO] [2018-03-02 02:46:12,473] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.71ms
+[INFO] [2018-03-02 02:46:14,454] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 14.66ms
+[INFO] [2018-03-02 02:46:16,458] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 17.83ms
+[INFO] [2018-03-02 02:46:18,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.60ms
+[INFO] [2018-03-02 02:46:20,456] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 15.26ms
+[INFO] [2018-03-02 02:46:22,480] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.45ms
+[INFO] [2018-03-02 02:46:24,467] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 23.61ms
+[INFO] [2018-03-02 02:46:26,479] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.43ms
+[INFO] [2018-03-02 02:46:28,474] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.09ms
+[INFO] [2018-03-02 02:46:30,450] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 10.57ms
+[INFO] [2018-03-02 02:46:32,471] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.80ms
+[INFO] [2018-03-02 02:46:34,475] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.26ms
+[INFO] [2018-03-02 02:46:36,460] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.29ms
+[INFO] [2018-03-02 02:46:38,450] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 10.99ms
+[INFO] [2018-03-02 02:46:40,475] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.65ms
+[INFO] [2018-03-02 02:46:42,457] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 18.01ms
+[INFO] [2018-03-02 02:46:44,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.43ms
+[INFO] [2018-03-02 02:46:46,478] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.36ms
+[INFO] [2018-03-02 02:46:48,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.16ms
+[INFO] [2018-03-02 02:46:50,473] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.21ms
+[INFO] [2018-03-02 02:46:52,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.11ms
+[INFO] [2018-03-02 02:46:54,478] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.68ms
+[INFO] [2018-03-02 02:46:56,474] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.42ms
+[INFO] [2018-03-02 02:46:58,477] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.33ms
+[INFO] [2018-03-02 02:47:00,475] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.36ms
+[INFO] [2018-03-02 02:47:02,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.91ms
+[INFO] [2018-03-02 02:47:04,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.21ms
+[INFO] [2018-03-02 02:47:06,477] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.63ms
+[INFO] [2018-03-02 02:47:08,474] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.32ms
+[INFO] [2018-03-02 02:47:10,478] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.89ms
+[INFO] [2018-03-02 02:47:12,481] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 38.23ms
+[INFO] [2018-03-02 02:47:14,477] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.38ms
+[INFO] [2018-03-02 02:47:16,471] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.17ms
+[INFO] [2018-03-02 02:47:18,479] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.44ms
+[INFO] [2018-03-02 02:47:20,478] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.27ms
+[INFO] [2018-03-02 02:47:22,475] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.55ms
+[INFO] [2018-03-02 02:47:24,475] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.18ms
+[INFO] [2018-03-02 02:47:26,452] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 10.93ms
+[INFO] [2018-03-02 02:47:28,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.54ms
+[INFO] [2018-03-02 02:47:30,477] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.79ms
+[INFO] [2018-03-02 02:47:32,472] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.80ms
+[INFO] [2018-03-02 02:47:34,475] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.52ms
+[INFO] [2018-03-02 02:47:36,483] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.34ms
+[INFO] [2018-03-02 02:47:38,482] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.24ms
+[INFO] [2018-03-02 02:47:40,478] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.03ms
+[INFO] [2018-03-02 02:47:42,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.59ms
+[INFO] [2018-03-02 02:47:44,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.57ms
+[INFO] [2018-03-02 02:47:46,477] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.03ms
+[INFO] [2018-03-02 02:47:48,475] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.95ms
+[INFO] [2018-03-02 02:47:50,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.91ms
+[INFO] [2018-03-02 02:47:52,476] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.20ms
+[INFO] [2018-03-02 02:47:54,479] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.87ms
+[INFO] [2018-03-02 02:47:56,477] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.63ms
+[INFO] [2018-03-02 02:47:58,479] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.38ms
+[INFO] [2018-03-02 02:48:00,477] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.83ms
+[INFO] [2018-03-02 02:48:02,467] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 21.18ms
+[INFO] [2018-03-02 02:48:04,449] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 10.84ms
+[INFO] [2018-03-02 02:48:07,349] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 13.88ms
+[INFO] [2018-03-02 02:48:09,378] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 38.71ms
+[INFO] [2018-03-02 02:48:11,360] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 21.73ms
+[INFO] [2018-03-02 02:48:13,366] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 21.15ms
+[INFO] [2018-03-02 02:48:15,367] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 26.51ms
+[INFO] [2018-03-02 02:48:17,349] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 12.10ms
+[INFO] [2018-03-02 02:48:19,364] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 22.40ms
+[INFO] [2018-03-02 02:48:21,356] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 17.88ms
+[INFO] [2018-03-02 02:48:23,353] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 13.78ms
+[INFO] [2018-03-02 02:48:25,353] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.17ms
+[INFO] [2018-03-02 02:48:27,359] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 20.93ms
+[INFO] [2018-03-02 02:48:29,354] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.64ms
+[INFO] [2018-03-02 02:48:31,357] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 20.48ms
+[INFO] [2018-03-02 02:48:33,344] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 9.84ms
+[INFO] [2018-03-02 02:48:35,361] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 18.26ms
+[INFO] [2018-03-02 02:48:37,356] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.45ms
+[INFO] [2018-03-02 02:48:39,358] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 20.10ms
+[INFO] [2018-03-02 02:48:41,353] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 17.30ms
+[INFO] [2018-03-02 02:48:43,360] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 23.11ms
+[INFO] [2018-03-02 02:48:45,357] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 17.57ms
+[INFO] [2018-03-02 02:48:47,359] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 17.96ms
+[INFO] [2018-03-02 02:48:49,358] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 21.40ms
+[INFO] [2018-03-02 02:48:51,360] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 19.85ms
+[INFO] [2018-03-02 02:48:53,364] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.24ms
+[INFO] [2018-03-02 02:48:55,367] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 26.81ms
+[INFO] [2018-03-02 02:48:57,372] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.99ms
+[INFO] [2018-03-02 02:48:59,363] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 20.85ms
+[INFO] [2018-03-02 02:49:01,373] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.37ms
+[INFO] [2018-03-02 02:49:03,353] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 15.67ms
+[INFO] [2018-03-02 02:49:05,358] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.52ms
+[INFO] [2018-03-02 02:49:07,349] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 13.81ms
+[INFO] [2018-03-02 02:49:09,350] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 12.58ms
+[INFO] [2018-03-02 02:49:11,357] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.80ms
+[INFO] [2018-03-02 02:49:13,349] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 12.50ms
+[INFO] [2018-03-02 02:49:15,359] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.01ms
+[INFO] [2018-03-02 02:49:17,351] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 13.82ms
+[INFO] [2018-03-02 02:49:19,372] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.97ms
+[INFO] [2018-03-02 02:49:21,354] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 17.56ms
+[INFO] [2018-03-02 02:49:23,363] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 21.86ms
+[INFO] [2018-03-02 02:49:25,353] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 14.42ms
+[INFO] [2018-03-02 02:49:27,352] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 14.91ms
+[INFO] [2018-03-02 02:49:29,368] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 26.79ms
+[INFO] [2018-03-02 02:49:31,351] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 15.42ms
+[INFO] [2018-03-02 02:49:33,359] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 19.54ms
+[INFO] [2018-03-02 02:49:35,354] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 17.72ms
+[INFO] [2018-03-02 02:49:37,374] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.60ms
+[INFO] [2018-03-02 02:49:39,353] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 14.47ms
+[INFO] [2018-03-02 02:49:41,377] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.15ms
+[INFO] [2018-03-02 02:49:43,351] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 15.08ms
+[INFO] [2018-03-02 02:49:45,354] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 18.17ms
+[INFO] [2018-03-02 02:49:47,359] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 21.78ms
+[INFO] [2018-03-02 02:49:49,356] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 19.49ms
+[INFO] [2018-03-02 02:49:51,363] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.42ms
+[INFO] [2018-03-02 02:49:53,353] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.25ms
+[INFO] [2018-03-02 02:49:55,361] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 22.77ms
+[INFO] [2018-03-02 02:49:57,355] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 17.34ms
+[INFO] [2018-03-02 02:49:59,360] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 22.91ms
+[INFO] [2018-03-02 02:50:01,352] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 15.49ms
+[INFO] [2018-03-02 02:50:03,366] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.49ms
+[INFO] [2018-03-02 02:50:05,363] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 20.35ms
+[INFO] [2018-03-02 02:50:07,378] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 38.21ms
+[INFO] [2018-03-02 02:50:09,346] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 10.78ms
+[INFO] [2018-03-02 02:50:11,390] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.14ms
+[INFO] [2018-03-02 02:50:13,357] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.77ms
+[INFO] [2018-03-02 02:50:15,361] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 21.11ms
+[INFO] [2018-03-02 02:50:17,357] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 15.66ms
+[INFO] [2018-03-02 02:50:19,358] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 18.74ms
+[INFO] [2018-03-02 02:50:21,363] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 23.07ms
+[INFO] [2018-03-02 02:50:23,349] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 12.89ms
+[INFO] [2018-03-02 02:50:25,357] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 18.88ms
+[INFO] [2018-03-02 02:50:27,344] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 9.36ms
+[INFO] [2018-03-02 02:50:29,356] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.80ms
+[INFO] [2018-03-02 02:50:31,352] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 15.70ms
+[INFO] [2018-03-02 02:50:33,362] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 22.08ms
+[INFO] [2018-03-02 02:50:35,363] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 20.22ms
+[INFO] [2018-03-02 02:50:37,352] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 15.51ms
+[INFO] [2018-03-02 02:50:39,354] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 18.65ms
+[INFO] [2018-03-02 02:50:41,368] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.35ms
+[INFO] [2018-03-02 02:50:43,348] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 13.06ms
+[INFO] [2018-03-02 02:50:45,355] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.41ms
+[INFO] [2018-03-02 02:50:47,352] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.70ms
+[INFO] [2018-03-02 02:50:49,352] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 15.61ms
+[INFO] [2018-03-02 02:50:51,352] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 15.66ms
+[INFO] [2018-03-02 02:50:53,355] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 15.80ms
+[INFO] [2018-03-02 02:50:55,348] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 12.87ms
+[INFO] [2018-03-02 02:50:57,363] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 22.08ms
+[INFO] [2018-03-02 02:50:59,360] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 18.58ms
+[INFO] [2018-03-02 02:51:01,352] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.31ms
+[INFO] [2018-03-02 02:51:03,362] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 22.64ms
+[INFO] [2018-03-02 02:51:05,363] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 21.06ms
+[INFO] [2018-03-02 02:51:07,366] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 23.79ms
+[INFO] [2018-03-02 02:51:09,371] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.69ms
+[INFO] [2018-03-02 02:51:11,367] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.71ms
+[INFO] [2018-03-02 02:51:13,362] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 24.24ms
+[INFO] [2018-03-02 02:51:15,356] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 17.37ms
+[INFO] [2018-03-02 02:51:17,372] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.65ms
+[INFO] [2018-03-02 02:51:19,362] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 21.12ms
+[INFO] [2018-03-02 02:51:21,374] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.07ms
+[INFO] [2018-03-02 02:51:23,355] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.93ms
+[INFO] [2018-03-02 02:51:25,367] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.98ms
+[INFO] [2018-03-02 02:51:27,355] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.89ms
+[INFO] [2018-03-02 02:51:29,370] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.93ms
+[INFO] [2018-03-02 02:51:31,355] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 18.06ms
+[INFO] [2018-03-02 02:51:33,363] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 24.40ms
+[INFO] [2018-03-02 02:51:35,356] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 17.53ms
+[INFO] [2018-03-02 02:51:37,353] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.73ms
+[INFO] [2018-03-02 02:51:39,378] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.96ms
+[INFO] [2018-03-02 02:51:41,350] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 13.60ms
+[INFO] [2018-03-02 02:51:43,360] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 22.75ms
+[INFO] [2018-03-02 02:51:45,369] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.90ms
+[INFO] [2018-03-02 02:51:47,378] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.89ms
+[INFO] [2018-03-02 02:51:49,354] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.68ms
+[INFO] [2018-03-02 02:51:51,353] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.01ms
+[INFO] [2018-03-02 02:51:53,364] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 23.21ms
+[INFO] [2018-03-02 02:51:55,352] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 16.08ms
+[INFO] [2018-03-02 02:51:57,347] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 11.35ms
+[INFO] [2018-03-02 02:51:59,347] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 11.88ms
+[INFO] [2018-03-02 02:52:01,349] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 13.42ms
+[INFO] [2018-03-02 02:52:02,475] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.91ms
+[INFO] [2018-03-02 02:52:03,198] [File 'web.py', line 2063, in log_request] - 200 GET /ui/worklist/ (127.0.0.1) 12.55ms
+[INFO] [2018-03-02 02:52:03,369] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 11.64ms
+[INFO] [2018-03-02 02:52:05,412] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.56ms
+[INFO] [2018-03-02 02:52:05,974] [File 'web.py', line 2063, in log_request] - 304 GET /ui/targets/ (127.0.0.1) 48.99ms
+[INFO] [2018-03-02 02:52:06,207] [File 'web.py', line 2063, in log_request] - 304 GET /api/sessions/?active=true (127.0.0.1) 2.70ms
+[INFO] [2018-03-02 02:52:06,240] [File 'web.py', line 2063, in log_request] - 304 GET /api/targets/search/?limit=100&offset=0 (127.0.0.1) 47.83ms
+[INFO] [2018-03-02 02:52:06,283] [File 'web.py', line 2063, in log_request] - 304 GET /api/targets/search/?limit=100&offset=0 (127.0.0.1) 40.48ms
+[WARNING] [2018-03-02 02:52:08,599] [File 'web.py', line 2063, in log_request] - 404 GET /static/build/fontsglyphicons-halflings-regular.woff2 (127.0.0.1) 0.87ms
+[WARNING] [2018-03-02 02:52:08,607] [File 'web.py', line 2063, in log_request] - 404 GET /static/build/fontsglyphicons-halflings-regular.woff (127.0.0.1) 0.74ms
+[WARNING] [2018-03-02 02:52:08,638] [File 'web.py', line 2063, in log_request] - 404 GET /static/build/fontsglyphicons-halflings-regular.ttf (127.0.0.1) 0.82ms
+[INFO] [2018-03-02 02:52:08,766] [File 'web.py', line 2063, in log_request] - 200 GET /api/plugins/?group=web&group=network&_=1519939326051 (127.0.0.1) 327.31ms
+[ERROR] [2018-03-02 02:52:16,931] [File 'pool.py', line 696, in _finalize_fairy] - Exception during reset or similar
+Traceback (most recent call last):
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/pool.py", line 687, in _finalize_fairy
+    fairy._reset(pool)
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/pool.py", line 829, in _reset
+    pool._dialect.do_rollback(self)
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/engine/default.py", line 440, in do_rollback
+    dbapi_connection.rollback()
+OperationalError: SSL SYSCALL error: EOF detected
+
+[INFO] [2018-03-02 02:52:16,945] [File 'web.py', line 2063, in log_request] - 201 POST /api/worklist/ (127.0.0.1) 162.10ms
+[INFO] [2018-03-02 02:52:16,978] [File 'web.py', line 2063, in log_request] - 201 POST /api/worklist/ (127.0.0.1) 196.85ms
+[INFO] [2018-03-02 02:52:16,989] [File 'web.py', line 2063, in log_request] - 201 POST /api/worklist/ (127.0.0.1) 195.14ms
+[INFO] [2018-03-02 02:52:18,717] [File 'web.py', line 2063, in log_request] - 304 GET /ui/worklist/ (127.0.0.1) 42.62ms
+[INFO] [2018-03-02 02:52:18,869] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.96ms
+[INFO] [2018-03-02 02:52:20,897] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.88ms
+[INFO] [2018-03-02 02:52:22,877] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.01ms
+[INFO] [2018-03-02 02:52:24,926] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 79.46ms
+[INFO] [2018-03-02 02:52:26,179] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/pause (127.0.0.1) 15.59ms
+[INFO] [2018-03-02 02:52:26,931] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 81.69ms
+[INFO] [2018-03-02 02:52:27,724] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/pause (127.0.0.1) 22.16ms
+[INFO] [2018-03-02 02:52:28,929] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 78.97ms
+[INFO] [2018-03-02 02:52:30,595] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=pp (127.0.0.1) 50.30ms
+[INFO] [2018-03-02 02:52:30,673] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=pp (127.0.0.1) 17.60ms
+[INFO] [2018-03-02 02:52:30,890] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=pp (127.0.0.1) 43.96ms
+[INFO] [2018-03-02 02:52:32,901] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=pp (127.0.0.1) 53.95ms
+[INFO] [2018-03-02 02:52:34,884] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=pp (127.0.0.1) 38.44ms
+[INFO] [2018-03-02 02:52:35,104] [File 'web.py', line 2063, in log_request] - 200 DELETE /api/worklist/558 (127.0.0.1) 45.13ms
+[INFO] [2018-03-02 02:52:36,887] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=pp (127.0.0.1) 40.11ms
+[INFO] [2018-03-02 02:52:38,883] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=pp (127.0.0.1) 36.82ms
+[INFO] [2018-03-02 02:52:39,530] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.99ms
+[INFO] [2018-03-02 02:52:39,615] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.06ms
+[INFO] [2018-03-02 02:52:40,894] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.64ms
+[INFO] [2018-03-02 02:52:42,909] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 62.29ms
+[INFO] [2018-03-02 02:52:44,882] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.02ms
+[INFO] [2018-03-02 02:52:46,875] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.03ms
+[INFO] [2018-03-02 02:52:48,901] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.71ms
+[INFO] [2018-03-02 02:52:50,938] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 88.09ms
+[INFO] [2018-03-02 02:52:52,872] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.61ms
+[INFO] [2018-03-02 02:52:54,894] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.88ms
+[INFO] [2018-03-02 02:52:56,922] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 77.77ms
+[INFO] [2018-03-02 02:52:58,878] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.77ms
+[INFO] [2018-03-02 02:53:00,905] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 60.47ms
+[INFO] [2018-03-02 02:53:02,861] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 20.28ms
+[INFO] [2018-03-02 02:53:04,924] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 77.42ms
+[INFO] [2018-03-02 02:53:06,909] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 62.95ms
+[INFO] [2018-03-02 02:53:08,879] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 34.95ms
+[INFO] [2018-03-02 02:53:10,911] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 64.26ms
+[INFO] [2018-03-02 02:53:12,880] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 36.94ms
+[INFO] [2018-03-02 02:53:14,876] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.19ms
+[INFO] [2018-03-02 02:53:16,874] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 33.31ms
+[INFO] [2018-03-02 02:53:18,886] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.57ms
+[INFO] [2018-03-02 02:53:20,895] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.42ms
+[INFO] [2018-03-02 02:53:22,915] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 69.07ms
+[INFO] [2018-03-02 02:53:24,878] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.88ms
+[INFO] [2018-03-02 02:53:26,901] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.35ms
+[INFO] [2018-03-02 02:53:28,914] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 67.98ms
+[INFO] [2018-03-02 02:53:30,870] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.77ms
+[ERROR] [2018-03-02 02:53:32,977] [File 'pool.py', line 696, in _finalize_fairy] - Exception during reset or similar
+Traceback (most recent call last):
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/pool.py", line 687, in _finalize_fairy
+    fairy._reset(pool)
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/pool.py", line 829, in _reset
+    pool._dialect.do_rollback(self)
+  File "build/bdist.linux-x86_64/egg/sqlalchemy/engine/default.py", line 440, in do_rollback
+    dbapi_connection.rollback()
+OperationalError: SSL SYSCALL error: EOF detected
+
+[INFO] [2018-03-02 02:53:32,994] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 148.76ms
+[INFO] [2018-03-02 02:53:34,898] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.50ms
+[INFO] [2018-03-02 02:53:36,900] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.22ms
+[INFO] [2018-03-02 02:53:38,885] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 41.27ms
+[INFO] [2018-03-02 02:53:40,875] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.91ms
+[INFO] [2018-03-02 02:53:42,913] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 64.67ms
+[INFO] [2018-03-02 02:53:44,870] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.80ms
+[INFO] [2018-03-02 02:53:46,902] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.98ms
+[INFO] [2018-03-02 02:53:48,915] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 69.34ms
+[INFO] [2018-03-02 02:53:50,955] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 100.81ms
+[INFO] [2018-03-02 02:53:52,945] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 98.28ms
+[INFO] [2018-03-02 02:53:54,902] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 56.43ms
+[INFO] [2018-03-02 02:53:56,873] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.89ms
+[INFO] [2018-03-02 02:53:58,952] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 106.47ms
+[INFO] [2018-03-02 02:54:00,936] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 83.33ms
+[INFO] [2018-03-02 02:54:02,948] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 102.62ms
+[INFO] [2018-03-02 02:54:04,890] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 43.56ms
+[INFO] [2018-03-02 02:54:06,901] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.52ms
+[INFO] [2018-03-02 02:54:08,871] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.75ms
+[INFO] [2018-03-02 02:54:10,913] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 66.70ms
+[INFO] [2018-03-02 02:54:12,880] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 38.41ms
+[INFO] [2018-03-02 02:54:14,890] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.79ms
+[INFO] [2018-03-02 02:54:16,645] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 76.76ms
+[INFO] [2018-03-02 02:54:16,913] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 68.45ms
+[INFO] [2018-03-02 02:54:18,890] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.27ms
+[INFO] [2018-03-02 02:54:20,919] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 72.22ms
+[INFO] [2018-03-02 02:54:22,938] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 92.05ms
+[INFO] [2018-03-02 02:54:24,902] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.47ms
+[INFO] [2018-03-02 02:54:26,908] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 61.63ms
+[INFO] [2018-03-02 02:54:28,901] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.59ms
+[INFO] [2018-03-02 02:54:30,900] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.52ms
+[INFO] [2018-03-02 02:54:31,312] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/pause (127.0.0.1) 18.48ms
+[INFO] [2018-03-02 02:54:32,906] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 60.15ms
+[INFO] [2018-03-02 02:54:34,895] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.46ms
+[INFO] [2018-03-02 02:54:36,908] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 61.88ms
+[INFO] [2018-03-02 02:54:38,902] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.87ms
+[INFO] [2018-03-02 02:54:40,900] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.25ms
+[INFO] [2018-03-02 02:54:42,911] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 65.85ms
+[INFO] [2018-03-02 02:54:44,579] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 28.67ms
+[INFO] [2018-03-02 02:54:44,912] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 65.33ms
+[INFO] [2018-03-02 02:54:46,884] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 42.47ms
+[INFO] [2018-03-02 02:54:48,559] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 62.19ms
+[INFO] [2018-03-02 02:54:48,654] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 30.17ms
+[INFO] [2018-03-02 02:54:48,894] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 49.10ms
+[INFO] [2018-03-02 02:54:50,878] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 35.24ms
+[INFO] [2018-03-02 02:54:51,690] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/pause (127.0.0.1) 19.20ms
+[INFO] [2018-03-02 02:54:52,895] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 50.35ms
+[INFO] [2018-03-02 02:54:54,899] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 53.43ms
+[INFO] [2018-03-02 02:54:56,894] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 47.71ms
+[INFO] [2018-03-02 02:54:58,901] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 56.98ms
+[INFO] [2018-03-02 02:54:58,961] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.84ms
+[INFO] [2018-03-02 02:54:59,049] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.13ms
+[INFO] [2018-03-02 02:55:00,945] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 15.04ms
+[INFO] [2018-03-02 02:55:00,947] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 83.57ms
+[INFO] [2018-03-02 02:55:02,902] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.44ms
+[INFO] [2018-03-02 02:55:04,902] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 56.69ms
+[INFO] [2018-03-02 02:55:06,902] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 56.45ms
+[INFO] [2018-03-02 02:55:08,901] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.17ms
+[INFO] [2018-03-02 02:55:10,892] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.54ms
+[INFO] [2018-03-02 02:55:12,897] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 51.28ms
+[INFO] [2018-03-02 02:55:14,892] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 45.28ms
+[INFO] [2018-03-02 02:55:16,908] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 63.06ms
+[INFO] [2018-03-02 02:55:18,913] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 67.48ms
+[INFO] [2018-03-02 02:55:20,395] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 42.59ms
+[INFO] [2018-03-02 02:55:20,523] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 38.40ms
+[INFO] [2018-03-02 02:55:20,894] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 49.48ms
+[INFO] [2018-03-02 02:55:22,891] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 47.08ms
+[INFO] [2018-03-02 02:55:24,680] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 56.56ms
+[INFO] [2018-03-02 02:55:24,878] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 35.57ms
+[INFO] [2018-03-02 02:55:26,036] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/pause (127.0.0.1) 25.53ms
+[INFO] [2018-03-02 02:55:26,878] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 35.54ms
+[INFO] [2018-03-02 02:55:28,886] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 43.41ms
+[INFO] [2018-03-02 02:55:30,928] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 82.20ms
+[INFO] [2018-03-02 02:55:31,050] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 44.51ms
+[INFO] [2018-03-02 02:55:31,161] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.01ms
+[INFO] [2018-03-02 02:55:32,899] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.43ms
+[INFO] [2018-03-02 02:55:34,956] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 107.85ms
+[INFO] [2018-03-02 02:55:36,895] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.56ms
+[INFO] [2018-03-02 02:55:38,908] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 63.49ms
+[INFO] [2018-03-02 02:55:40,934] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 88.58ms
+[INFO] [2018-03-02 02:55:42,902] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.72ms
+[INFO] [2018-03-02 02:55:44,968] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 122.11ms
+[INFO] [2018-03-02 02:55:46,895] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.77ms
+[INFO] [2018-03-02 02:55:48,895] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.43ms
+[INFO] [2018-03-02 02:55:50,898] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.69ms
+[INFO] [2018-03-02 02:55:52,929] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 83.47ms
+[INFO] [2018-03-02 02:55:54,899] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.05ms
+[INFO] [2018-03-02 02:55:56,886] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 41.92ms
+[INFO] [2018-03-02 02:55:58,896] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 53.68ms
+[INFO] [2018-03-02 02:56:00,895] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.64ms
+[INFO] [2018-03-02 02:56:02,876] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.11ms
+[INFO] [2018-03-02 02:56:04,902] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.53ms
+[INFO] [2018-03-02 02:56:06,899] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 48.80ms
+[INFO] [2018-03-02 02:56:08,391] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 24.53ms
+[INFO] [2018-03-02 02:56:08,566] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 53.94ms
+[INFO] [2018-03-02 02:56:08,870] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 24.51ms
+[INFO] [2018-03-02 02:56:10,468] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 23.21ms
+[INFO] [2018-03-02 02:56:10,919] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 73.36ms
+[INFO] [2018-03-02 02:56:12,888] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 43.66ms
+[INFO] [2018-03-02 02:56:13,713] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 48.52ms
+[INFO] [2018-03-02 02:56:13,790] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.22ms
+[INFO] [2018-03-02 02:56:14,904] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 59.38ms
+[INFO] [2018-03-02 02:56:16,738] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 46.21ms
+[INFO] [2018-03-02 02:56:16,868] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 48.19ms
+[INFO] [2018-03-02 02:56:16,890] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 20.01ms
+[INFO] [2018-03-02 02:56:18,211] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 21.14ms
+[INFO] [2018-03-02 02:56:18,933] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 87.94ms
+[INFO] [2018-03-02 02:56:19,290] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/pause (127.0.0.1) 23.37ms
+[INFO] [2018-03-02 02:56:20,888] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 42.89ms
+[INFO] [2018-03-02 02:56:22,904] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 58.67ms
+[INFO] [2018-03-02 02:56:23,355] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 45.42ms
+[INFO] [2018-03-02 02:56:23,426] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 23.98ms
+[INFO] [2018-03-02 02:56:24,920] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 74.67ms
+[INFO] [2018-03-02 02:56:26,931] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 83.82ms
+[INFO] [2018-03-02 02:56:28,908] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 62.79ms
+[INFO] [2018-03-02 02:56:30,889] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.76ms
+[INFO] [2018-03-02 02:56:32,900] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.15ms
+[INFO] [2018-03-02 02:56:34,887] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 43.90ms
+[INFO] [2018-03-02 02:56:36,893] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.54ms
+[INFO] [2018-03-02 02:56:38,893] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.71ms
+[INFO] [2018-03-02 02:56:40,882] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 38.71ms
+[INFO] [2018-03-02 02:56:42,870] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 25.43ms
+[INFO] [2018-03-02 02:56:44,889] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 47.76ms
+[INFO] [2018-03-02 02:56:46,907] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 58.82ms
+[INFO] [2018-03-02 02:56:48,904] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 56.06ms
+[INFO] [2018-03-02 02:56:50,889] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.41ms
+[INFO] [2018-03-02 02:56:52,896] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.52ms
+[INFO] [2018-03-02 02:56:54,940] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 88.32ms
+[INFO] [2018-03-02 02:56:56,945] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 97.58ms
+[INFO] [2018-03-02 02:56:58,921] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 72.95ms
+[INFO] [2018-03-02 02:57:00,944] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 96.14ms
+[INFO] [2018-03-02 02:57:02,911] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 63.20ms
+[INFO] [2018-03-02 02:57:04,901] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.19ms
+[INFO] [2018-03-02 02:57:06,907] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 61.51ms
+[INFO] [2018-03-02 02:57:08,900] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.15ms
+[INFO] [2018-03-02 02:57:10,894] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 48.58ms
+[INFO] [2018-03-02 02:57:11,902] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 34.21ms
+[INFO] [2018-03-02 02:57:12,916] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 69.24ms
+[INFO] [2018-03-02 02:57:14,887] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 38.24ms
+[INFO] [2018-03-02 02:57:16,877] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.93ms
+[INFO] [2018-03-02 02:57:18,923] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 73.22ms
+[INFO] [2018-03-02 02:57:20,903] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.24ms
+[INFO] [2018-03-02 02:57:22,896] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.23ms
+[INFO] [2018-03-02 02:57:23,418] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 43.72ms
+[INFO] [2018-03-02 02:57:23,538] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 35.96ms
+[INFO] [2018-03-02 02:57:24,864] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 22.01ms
+[INFO] [2018-03-02 02:57:25,890] [File 'web.py', line 2063, in log_request] - 200 GET /ui/worklist/ (127.0.0.1) 9.61ms
+[INFO] [2018-03-02 02:57:26,097] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.68ms
+[INFO] [2018-03-02 02:57:28,121] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.33ms
+[INFO] [2018-03-02 02:57:30,130] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 46.16ms
+[INFO] [2018-03-02 02:57:30,394] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 34.32ms
+[INFO] [2018-03-02 02:57:30,500] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 16.77ms
+[INFO] [2018-03-02 02:57:32,146] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 63.02ms
+[INFO] [2018-03-02 02:57:34,162] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 75.81ms
+[INFO] [2018-03-02 02:57:36,102] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 23.79ms
+[INFO] [2018-03-02 02:57:38,125] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 40.65ms
+[INFO] [2018-03-02 02:57:40,114] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 31.81ms
+[INFO] [2018-03-02 02:57:42,124] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 39.11ms
+[INFO] [2018-03-02 02:57:44,100] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 19.89ms
+[INFO] [2018-03-02 02:57:46,133] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 48.17ms
+[INFO] [2018-03-02 02:57:48,147] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 59.78ms
+[INFO] [2018-03-02 02:57:50,143] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 56.93ms
+[INFO] [2018-03-02 02:57:52,122] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 36.86ms
+[INFO] [2018-03-02 02:57:54,149] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 62.95ms
+[INFO] [2018-03-02 02:57:56,128] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 44.17ms
+[INFO] [2018-03-02 02:57:58,145] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 56.41ms
+[INFO] [2018-03-02 02:58:00,153] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 68.36ms
+[INFO] [2018-03-02 02:58:02,112] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 25.88ms
+[INFO] [2018-03-02 02:58:04,103] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 20.75ms
+[INFO] [2018-03-02 02:58:06,109] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 26.49ms
+[INFO] [2018-03-02 02:58:08,111] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 27.98ms
+[INFO] [2018-03-02 02:58:10,102] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 23.62ms
+[INFO] [2018-03-02 02:58:12,137] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 54.12ms
+[INFO] [2018-03-02 02:58:13,027] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 42.96ms
+[INFO] [2018-03-02 02:58:13,096] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 20.11ms
+[INFO] [2018-03-02 02:58:14,183] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 100.32ms
+[ERROR] [2018-03-02 02:58:14,729] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/559/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/559/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:58:14,744] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/559/pause (127.0.0.1) 16.68ms
+[INFO] [2018-03-02 02:58:16,122] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 42.94ms
+[ERROR] [2018-03-02 02:58:17,374] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/560/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/560/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:58:17,377] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/560/pause (127.0.0.1) 4.66ms
+[INFO] [2018-03-02 02:58:18,144] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.78ms
+[INFO] [2018-03-02 02:58:20,132] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 48.13ms
+[INFO] [2018-03-02 02:58:22,127] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 45.72ms
+[INFO] [2018-03-02 02:58:24,140] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.22ms
+[INFO] [2018-03-02 02:58:26,101] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 23.09ms
+[INFO] [2018-03-02 02:58:28,126] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 43.61ms
+[INFO] [2018-03-02 02:58:30,147] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 63.35ms
+[INFO] [2018-03-02 02:58:31,095] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/559 (127.0.0.1) 1.97ms
+[INFO] [2018-03-02 02:58:31,097] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/560 (127.0.0.1) 2.01ms
+[INFO] [2018-03-02 02:58:31,111] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/561 (127.0.0.1) 1.55ms
+[INFO] [2018-03-02 02:58:32,159] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 75.84ms
+[INFO] [2018-03-02 02:58:33,124] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/559 (127.0.0.1) 1.63ms
+[INFO] [2018-03-02 02:58:33,125] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/560 (127.0.0.1) 1.79ms
+[INFO] [2018-03-02 02:58:33,134] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/561 (127.0.0.1) 1.48ms
+[INFO] [2018-03-02 02:58:34,136] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.00ms
+[INFO] [2018-03-02 02:58:36,134] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 51.24ms
+[INFO] [2018-03-02 02:58:38,129] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 48.09ms
+[INFO] [2018-03-02 02:58:38,394] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/559 (127.0.0.1) 1.48ms
+[INFO] [2018-03-02 02:58:38,395] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/560 (127.0.0.1) 1.12ms
+[INFO] [2018-03-02 02:58:38,398] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/561 (127.0.0.1) 0.79ms
+[ERROR] [2018-03-02 02:58:39,893] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/559/resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/559/resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 116, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=True)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:58:39,895] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/560/resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/560/resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 116, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=True)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:58:39,900] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/560/resume (127.0.0.1) 6.47ms
+[ERROR] [2018-03-02 02:58:39,900] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/559/resume (127.0.0.1) 8.59ms
+[ERROR] [2018-03-02 02:58:39,907] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/561/resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/561/resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 116, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=True)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:58:39,910] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/561/resume (127.0.0.1) 3.99ms
+[INFO] [2018-03-02 02:58:40,169] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 86.07ms
+[INFO] [2018-03-02 02:58:42,177] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 92.86ms
+[INFO] [2018-03-02 02:58:42,789] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/559 (127.0.0.1) 1.93ms
+[INFO] [2018-03-02 02:58:42,792] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/560 (127.0.0.1) 2.88ms
+[INFO] [2018-03-02 02:58:42,799] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/561 (127.0.0.1) 2.04ms
+[INFO] [2018-03-02 02:58:44,175] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 90.09ms
+[INFO] [2018-03-02 02:58:46,131] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 47.81ms
+[INFO] [2018-03-02 02:58:48,139] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.53ms
+[INFO] [2018-03-02 02:58:50,138] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.48ms
+[INFO] [2018-03-02 02:58:52,108] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 26.82ms
+[INFO] [2018-03-02 02:58:54,138] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.23ms
+[INFO] [2018-03-02 02:58:56,139] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.78ms
+[INFO] [2018-03-02 02:58:58,145] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 60.87ms
+[ERROR] [2018-03-02 02:58:59,246] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/559/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/559/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:58:59,249] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/559/pause (127.0.0.1) 4.11ms
+[INFO] [2018-03-02 02:59:00,158] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 76.24ms
+[ERROR] [2018-03-02 02:59:00,365] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/559/resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/559/resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 116, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=True)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:00,367] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/560/resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/560/resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 116, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=True)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:00,369] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/561/resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/561/resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 116, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=True)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:00,372] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/559/resume (127.0.0.1) 8.30ms
+[ERROR] [2018-03-02 02:59:00,374] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/561/resume (127.0.0.1) 6.57ms
+[ERROR] [2018-03-02 02:59:00,375] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/560/resume (127.0.0.1) 9.80ms
+[INFO] [2018-03-02 02:59:01,184] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/559 (127.0.0.1) 2.24ms
+[INFO] [2018-03-02 02:59:01,191] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/560 (127.0.0.1) 2.25ms
+[INFO] [2018-03-02 02:59:01,194] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/561 (127.0.0.1) 2.24ms
+[INFO] [2018-03-02 02:59:02,142] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 60.32ms
+[INFO] [2018-03-02 02:59:04,104] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 26.14ms
+[INFO] [2018-03-02 02:59:06,122] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 38.88ms
+[INFO] [2018-03-02 02:59:08,109] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.31ms
+[INFO] [2018-03-02 02:59:10,118] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 32.77ms
+[INFO] [2018-03-02 02:59:12,106] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.74ms
+[INFO] [2018-03-02 02:59:14,093] [File 'web.py', line 2063, in log_request] - 200 GET /ui/worklist/ (127.0.0.1) 37.90ms
+[INFO] [2018-03-02 02:59:14,155] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 44.69ms
+[INFO] [2018-03-02 02:59:14,274] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.07ms
+[INFO] [2018-03-02 02:59:14,377] [File 'web.py', line 2063, in log_request] - 304 GET /ui/worklist/ (127.0.0.1) 21.10ms
+[INFO] [2018-03-02 02:59:14,481] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 30.09ms
+[ERROR] [2018-03-02 02:59:15,392] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/560/resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/560/resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 116, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=True)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:15,390] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/559/resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/559/resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 116, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=True)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:15,396] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/559/resume (127.0.0.1) 6.98ms
+[ERROR] [2018-03-02 02:59:15,396] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/560/resume (127.0.0.1) 4.98ms
+[ERROR] [2018-03-02 02:59:15,400] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/561/resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/561/resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 116, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=True)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:15,403] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/561/resume (127.0.0.1) 4.50ms
+[ERROR] [2018-03-02 02:59:16,278] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/559/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/559/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:16,282] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/561/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/561/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:16,283] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/559/pause (127.0.0.1) 5.70ms
+[ERROR] [2018-03-02 02:59:16,286] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/561/pause (127.0.0.1) 5.35ms
+[ERROR] [2018-03-02 02:59:16,288] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/560/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/560/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:16,292] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/560/pause (127.0.0.1) 6.21ms
+[INFO] [2018-03-02 02:59:16,553] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 87.66ms
+[INFO] [2018-03-02 02:59:18,535] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 70.26ms
+[ERROR] [2018-03-02 02:59:18,954] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/559/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/559/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:18,956] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/560/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/560/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:18,958] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/559/pause (127.0.0.1) 3.92ms
+[ERROR] [2018-03-02 02:59:18,958] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/560/pause (127.0.0.1) 3.20ms
+[ERROR] [2018-03-02 02:59:18,965] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/561/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/561/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:18,969] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/561/pause (127.0.0.1) 4.44ms
+[INFO] [2018-03-02 02:59:20,503] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.88ms
+[ERROR] [2018-03-02 02:59:21,782] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/559/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/559/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:21,785] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/559/pause (127.0.0.1) 4.41ms
+[INFO] [2018-03-02 02:59:22,515] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.20ms
+[INFO] [2018-03-02 02:59:24,532] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 64.06ms
+[INFO] [2018-03-02 02:59:26,510] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 45.28ms
+[INFO] [2018-03-02 02:59:28,518] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.29ms
+[INFO] [2018-03-02 02:59:30,515] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.39ms
+[INFO] [2018-03-02 02:59:32,568] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 101.74ms
+[INFO] [2018-03-02 02:59:34,515] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.64ms
+[INFO] [2018-03-02 02:59:36,507] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 42.87ms
+[INFO] [2018-03-02 02:59:38,488] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.69ms
+[INFO] [2018-03-02 02:59:40,503] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 42.87ms
+[INFO] [2018-03-02 02:59:42,539] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 71.97ms
+[INFO] [2018-03-02 02:59:44,532] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 69.12ms
+[INFO] [2018-03-02 02:59:46,529] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 64.08ms
+[INFO] [2018-03-02 02:59:48,514] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.74ms
+[INFO] [2018-03-02 02:59:50,535] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 62.96ms
+[INFO] [2018-03-02 02:59:52,092] [File 'web.py', line 2063, in log_request] - 200 GET /ui/worklist/ (127.0.0.1) 8.02ms
+[INFO] [2018-03-02 02:59:52,243] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.81ms
+[ERROR] [2018-03-02 02:59:52,974] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/559/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/559/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 02:59:52,978] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/559/pause (127.0.0.1) 5.15ms
+[INFO] [2018-03-02 02:59:54,277] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 45.55ms
+[INFO] [2018-03-02 02:59:56,257] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 14.61ms
+[INFO] [2018-03-02 02:59:56,294] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 65.30ms
+[INFO] [2018-03-02 02:59:58,247] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 22.31ms
+[INFO] [2018-03-02 02:59:58,691] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/pause (127.0.0.1) 13.47ms
+[INFO] [2018-03-02 03:00:00,275] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 47.84ms
+[INFO] [2018-03-02 03:00:02,266] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.45ms
+[ERROR] [2018-03-02 03:00:03,519] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/559/resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/559/resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 116, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=True)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 03:00:03,521] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/559/resume (127.0.0.1) 3.58ms
+[INFO] [2018-03-02 03:00:04,310] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 79.65ms
+[INFO] [2018-03-02 03:00:06,318] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 86.20ms
+[INFO] [2018-03-02 03:00:08,314] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 84.31ms
+[INFO] [2018-03-02 03:00:10,281] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.36ms
+[INFO] [2018-03-02 03:00:12,253] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.28ms
+[INFO] [2018-03-02 03:00:14,289] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.82ms
+[INFO] [2018-03-02 03:00:16,269] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 43.44ms
+[INFO] [2018-03-02 03:00:18,279] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 48.42ms
+[INFO] [2018-03-02 03:00:20,285] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.52ms
+[INFO] [2018-03-02 03:00:22,285] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.33ms
+[INFO] [2018-03-02 03:00:24,288] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 55.13ms
+[INFO] [2018-03-02 03:00:26,279] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 48.77ms
+[INFO] [2018-03-02 03:00:28,266] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.20ms
+[INFO] [2018-03-02 03:00:30,325] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 95.83ms
+[INFO] [2018-03-02 03:00:32,279] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 47.40ms
+[INFO] [2018-03-02 03:00:34,289] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 59.38ms
+[INFO] [2018-03-02 03:00:36,251] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 26.46ms
+[INFO] [2018-03-02 03:00:38,280] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 51.86ms
+[INFO] [2018-03-02 03:00:40,248] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 23.74ms
+[INFO] [2018-03-02 03:00:42,247] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 22.23ms
+[INFO] [2018-03-02 03:00:44,280] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 49.74ms
+[INFO] [2018-03-02 03:00:46,289] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 59.89ms
+[INFO] [2018-03-02 03:00:48,296] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 66.42ms
+[INFO] [2018-03-02 03:00:50,281] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 51.40ms
+[INFO] [2018-03-02 03:00:52,340] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 110.43ms
+[INFO] [2018-03-02 03:00:54,297] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 65.96ms
+[INFO] [2018-03-02 03:00:56,309] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 78.04ms
+[INFO] [2018-03-02 03:00:58,272] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 42.73ms
+[INFO] [2018-03-02 03:01:00,293] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 62.52ms
+[INFO] [2018-03-02 03:01:02,251] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.34ms
+[INFO] [2018-03-02 03:01:04,352] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 120.11ms
+[INFO] [2018-03-02 03:01:06,282] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 52.01ms
+[INFO] [2018-03-02 03:01:08,288] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.83ms
+[INFO] [2018-03-02 03:01:10,252] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.66ms
+[INFO] [2018-03-02 03:01:12,308] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 79.91ms
+[INFO] [2018-03-02 03:01:14,266] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 39.01ms
+[INFO] [2018-03-02 03:01:16,261] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 35.27ms
+[INFO] [2018-03-02 03:01:18,264] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 37.02ms
+[INFO] [2018-03-02 03:01:20,244] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 20.00ms
+[INFO] [2018-03-02 03:01:22,245] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 21.01ms
+[INFO] [2018-03-02 03:01:24,302] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 71.01ms
+[INFO] [2018-03-02 03:01:26,337] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 105.04ms
+[INFO] [2018-03-02 03:01:28,323] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 89.14ms
+[INFO] [2018-03-02 03:01:30,278] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 48.91ms
+[INFO] [2018-03-02 03:01:32,300] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 71.24ms
+[INFO] [2018-03-02 03:01:34,319] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 88.49ms
+[INFO] [2018-03-02 03:01:36,280] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.25ms
+[INFO] [2018-03-02 03:01:38,251] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 27.08ms
+[INFO] [2018-03-02 03:01:39,709] [File 'web.py', line 2063, in log_request] - 200 GET /ui/worklist/ (127.0.0.1) 12.30ms
+[INFO] [2018-03-02 03:01:39,869] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 28.22ms
+[ERROR] [2018-03-02 03:01:40,718] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/559/resume (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/559/resume', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 116, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=True)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 03:01:40,725] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/559/resume (127.0.0.1) 7.54ms
+[INFO] [2018-03-02 03:01:41,917] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 60.74ms
+[INFO] [2018-03-02 03:01:42,124] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 25.96ms
+[INFO] [2018-03-02 03:01:43,907] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.91ms
+[INFO] [2018-03-02 03:01:45,938] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 80.08ms
+[INFO] [2018-03-02 03:01:47,933] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 76.20ms
+[INFO] [2018-03-02 03:01:49,933] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 76.30ms
+[INFO] [2018-03-02 03:01:51,928] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 70.16ms
+[INFO] [2018-03-02 03:01:53,907] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 50.07ms
+[INFO] [2018-03-02 03:01:55,913] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 57.00ms
+[INFO] [2018-03-02 03:01:57,914] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.00ms
+[INFO] [2018-03-02 03:01:59,899] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 44.43ms
+[INFO] [2018-03-02 03:02:01,693] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 37.17ms
+[INFO] [2018-03-02 03:02:01,824] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 41.47ms
+[INFO] [2018-03-02 03:02:01,872] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 20.61ms
+[INFO] [2018-03-02 03:02:03,896] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 39.60ms
+[INFO] [2018-03-02 03:02:05,908] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 51.24ms
+[INFO] [2018-03-02 03:02:07,899] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 41.93ms
+[INFO] [2018-03-02 03:02:09,905] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 46.41ms
+[INFO] [2018-03-02 03:02:11,901] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 46.46ms
+[INFO] [2018-03-02 03:02:13,903] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 48.11ms
+[INFO] [2018-03-02 03:02:15,875] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 23.86ms
+[INFO] [2018-03-02 03:02:17,889] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 34.91ms
+[INFO] [2018-03-02 03:02:19,868] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 17.36ms
+[INFO] [2018-03-02 03:02:21,891] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 37.36ms
+[INFO] [2018-03-02 03:02:23,900] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 42.54ms
+[INFO] [2018-03-02 03:02:25,914] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 57.85ms
+[INFO] [2018-03-02 03:02:27,898] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 32.94ms
+[INFO] [2018-03-02 03:02:29,897] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 40.28ms
+[INFO] [2018-03-02 03:02:31,915] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 48.24ms
+[INFO] [2018-03-02 03:02:32,415] [File 'web.py', line 2063, in log_request] - 200 GET /ui/worklist/ (127.0.0.1) 10.60ms
+[INFO] [2018-03-02 03:02:32,592] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&target_url=&group=&type=&name= (127.0.0.1) 32.57ms
+[INFO] [2018-03-02 03:02:34,635] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&target_url=&group=&type=&name= (127.0.0.1) 58.59ms
+[INFO] [2018-03-02 03:02:35,192] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&target_url=&group=&type=&name=smb (127.0.0.1) 44.83ms
+[INFO] [2018-03-02 03:02:35,291] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&target_url=&group=&type=&name=smb (127.0.0.1) 25.47ms
+[INFO] [2018-03-02 03:02:36,622] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&target_url=&group=&type=&name=smb (127.0.0.1) 48.46ms
+[INFO] [2018-03-02 03:02:38,634] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&target_url=&group=&type=&name=smb (127.0.0.1) 59.25ms
+[INFO] [2018-03-02 03:02:40,584] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&target_url=&group=&type=&name=smb (127.0.0.1) 16.28ms
+[INFO] [2018-03-02 03:02:42,632] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&target_url=&group=&type=&name=smb (127.0.0.1) 58.51ms
+[INFO] [2018-03-02 03:02:44,647] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&target_url=&group=&type=&name=smb (127.0.0.1) 73.88ms
+[INFO] [2018-03-02 03:02:46,621] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&target_url=&group=&type=&name=smb (127.0.0.1) 48.57ms
+[INFO] [2018-03-02 03:02:48,622] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&target_url=&group=&type=&name=smb (127.0.0.1) 49.15ms
+[INFO] [2018-03-02 03:02:50,596] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&target_url=&group=&type=&name=smb (127.0.0.1) 27.19ms
+[INFO] [2018-03-02 03:02:51,205] [File 'web.py', line 2063, in log_request] - 200 GET /ui/worklist/ (127.0.0.1) 10.33ms
+[INFO] [2018-03-02 03:02:51,389] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 31.52ms
+[INFO] [2018-03-02 03:02:53,430] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 54.54ms
+[INFO] [2018-03-02 03:02:54,409] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 31.02ms
+[INFO] [2018-03-02 03:02:54,573] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 44.74ms
+[INFO] [2018-03-02 03:02:55,428] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 56.96ms
+[INFO] [2018-03-02 03:02:57,416] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 28.05ms
+[INFO] [2018-03-02 03:02:59,426] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 53.70ms
+[INFO] [2018-03-02 03:03:01,416] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 41.42ms
+[INFO] [2018-03-02 03:03:03,418] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 45.03ms
+[INFO] [2018-03-02 03:03:05,413] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 40.39ms
+[INFO] [2018-03-02 03:03:07,421] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 48.40ms
+[INFO] [2018-03-02 03:03:09,415] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 41.67ms
+[INFO] [2018-03-02 03:03:11,409] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 34.24ms
+[INFO] [2018-03-02 03:03:13,390] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 22.42ms
+[INFO] [2018-03-02 03:03:15,424] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 51.27ms
+[INFO] [2018-03-02 03:03:17,409] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 35.84ms
+[INFO] [2018-03-02 03:03:19,421] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 50.58ms
+[INFO] [2018-03-02 03:03:21,387] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 19.03ms
+[INFO] [2018-03-02 03:03:23,419] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 48.68ms
+[INFO] [2018-03-02 03:03:25,418] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 45.02ms
+[INFO] [2018-03-02 03:03:27,420] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 44.49ms
+[INFO] [2018-03-02 03:03:29,444] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 69.40ms
+[INFO] [2018-03-02 03:03:31,410] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 38.72ms
+[INFO] [2018-03-02 03:03:33,428] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 52.22ms
+[INFO] [2018-03-02 03:03:35,388] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 20.70ms
+[INFO] [2018-03-02 03:03:37,388] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 20.58ms
+[INFO] [2018-03-02 03:03:39,428] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 53.82ms
+[INFO] [2018-03-02 03:03:41,443] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 70.12ms
+[INFO] [2018-03-02 03:03:43,423] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 47.46ms
+[INFO] [2018-03-02 03:03:45,417] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 44.84ms
+[INFO] [2018-03-02 03:03:47,401] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 33.13ms
+[INFO] [2018-03-02 03:03:48,779] [File 'web.py', line 2063, in log_request] - 200 GET /ui/worklist/ (127.0.0.1) 9.22ms
+[INFO] [2018-03-02 03:03:49,011] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 107.91ms
+[INFO] [2018-03-02 03:03:51,001] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 72.77ms
+[INFO] [2018-03-02 03:03:51,354] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 65.01ms
+[INFO] [2018-03-02 03:03:51,443] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 35.77ms
+[INFO] [2018-03-02 03:03:52,994] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 73.63ms
+[INFO] [2018-03-02 03:03:55,009] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 84.10ms
+[INFO] [2018-03-02 03:03:55,012] [File 'web.py', line 2063, in log_request] - 200 DELETE /api/worklist/561 (127.0.0.1) 25.64ms
+[INFO] [2018-03-02 03:03:56,964] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 40.65ms
+[INFO] [2018-03-02 03:03:58,969] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 45.28ms
+[INFO] [2018-03-02 03:04:00,962] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0&name=smb (127.0.0.1) 40.31ms
+[INFO] [2018-03-02 03:04:01,012] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 29.30ms
+[INFO] [2018-03-02 03:04:01,158] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 61.33ms
+[INFO] [2018-03-02 03:04:02,992] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 70.85ms
+[INFO] [2018-03-02 03:04:03,280] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/pause (127.0.0.1) 74.62ms
+[INFO] [2018-03-02 03:04:04,990] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 68.45ms
+[INFO] [2018-03-02 03:04:05,468] [File 'web.py', line 2063, in log_request] - 200 PATCH /api/worklist/0/resume (127.0.0.1) 71.34ms
+[INFO] [2018-03-02 03:04:06,997] [File 'web.py', line 2063, in log_request] - 200 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 74.90ms
+[ERROR] [2018-03-02 03:04:08,054] [File 'web.py', line 1590, in log_exception] - Uncaught exception PATCH /api/worklist/559/pause (127.0.0.1)
+HTTPServerRequest(protocol='http', host='localhost:8009', method='PATCH', uri='/api/worklist/559/pause', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Origin': 'http://localhost:8009', 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, br', 'Host': 'localhost:8009', 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36', 'Connection': 'keep-alive', 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'http://localhost:8009/ui/worklist/'})
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/tornado-4.5.2-py2.7-linux-x86_64.egg/tornado/web.py", line 1509, in _execute
+    result = method(*self.path_args, **self.path_kwargs)
+  File "/home/mohit/owtf/owtf/api/handlers/work.py", line 118, in patch
+    self.get_component("db").Worklist.patch_work(work_id, active=False)
+AttributeError: DB instance has no attribute 'Worklist'
+[ERROR] [2018-03-02 03:04:08,058] [File 'web.py', line 2063, in log_request] - 500 PATCH /api/worklist/559/pause (127.0.0.1) 4.94ms
+[INFO] [2018-03-02 03:04:09,009] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 86.56ms
+[INFO] [2018-03-02 03:04:10,959] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 40.57ms
+[INFO] [2018-03-02 03:04:12,998] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 74.41ms
+[INFO] [2018-03-02 03:04:15,006] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 83.24ms
+[INFO] [2018-03-02 03:04:16,991] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 68.22ms
+[INFO] [2018-03-02 03:04:18,979] [File 'web.py', line 2063, in log_request] - 304 GET /api/worklist/search/?limit=100&offset=0 (127.0.0.1) 56.35ms

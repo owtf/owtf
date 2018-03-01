@@ -1,0 +1,14 @@
+[WARNING] [2018-03-02 02:35:17,036] [File 'cli.py', line 264, in main] - OWTF Version: 2.3b, Release: MacinOWTF 
+[INFO] [2018-03-02 02:35:17,036] [File 'core.py', line 201, in initialise_framework] - Loading framework please wait..
+[INFO] [2018-03-02 02:35:17,036] [File 'resource.py', line 43, in load_resources_from_file] - Loading Resources from: /home/mohit/.owtf/conf/resources.cfg..
+[INFO] [2018-03-02 02:35:17,428] [File 'mapping.py', line 51, in load_mappings_from_file] - Loading Mapping from: /home/mohit/.owtf/conf/mappings.cfg..
+[DEBUG] [2018-03-02 02:35:17,529] [File 'requester.py', line 111, in __init__] - Setting up proxy(inbound) for OWTF requests..
+[DEBUG] [2018-03-02 02:35:17,542] [File 'worker.py', line 129, in spawn_worker] - Adding a new worker
+[DEBUG] [2018-03-02 02:35:17,549] [File 'worker.py', line 129, in spawn_worker] - Adding a new worker
+[DEBUG] [2018-03-02 02:35:17,556] [File 'worker.py', line 129, in spawn_worker] - Adding a new worker
+[DEBUG] [2018-03-02 02:35:17,566] [File 'worker.py', line 129, in spawn_worker] - Adding a new worker
+[WARNING] [2018-03-02 02:35:17,601] [File 'core.py', line 128, in start_proxy] - 127.0.0.1:8008 <-- HTTP(S) Proxy to which requests can be directed
+[DEBUG] [2018-03-02 02:35:17,605] [File 'core.py', line 130, in start_proxy] - Starting Transaction logger process
+[DEBUG] [2018-03-02 02:35:17,614] [File 'core.py', line 132, in start_proxy] - Proxy transaction's log file at /tmp/owtf/proxy.log
+[WARNING] [2018-03-02 02:35:17,620] [File 'core.py', line 240, in run_server] - http://0.0.0.0:8009 <-- Web UI URL
+[INFO] [2018-03-02 02:35:17,620] [File 'core.py', line 241, in run_server] - Press Ctrl+C when you spawned a shell ;)
