@@ -73,6 +73,7 @@ create_directory() {
 check_sudo() {
     if [[ $EUID -eq 0 ]]; then
         # The script is invoked with root permission
+        echo "${warning}[!] The script is running with root permissions !${reset}"
         return 1
     else
         return 0
@@ -177,19 +178,35 @@ EOF
 }
 
 db_setup() {
-    sleep 10
     if [ -z "$DOCKER" ]; then
-        write_db_settings
         if [ "$action" = "init" ]; then
-            psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass'"
-            psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"
+            echo "Inside init : $db_user :: $db_pass :: $db_name"
+            # Create a user $db_user if it does not exist
+            if psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$db_user';" &> /dev/null; then
+                echo "${info}[+] User $db_user already exist.${reset}"
+                # User $db_user already exist in postgres database change the password
+                psql postgres -tc "ALTER USER $db_user WITH PASSWORD '$db_pass';"
+            else
+                # Create new user $db_user with password $db_pass
+                psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass';"
+            fi
+            # Create database $db_name if it does not exist.
+            if psql -lqt | cut -d \| -f 1 | grep -qw $db_name \
+               && psql -lqt | cut -d \| -f 2 | grep -qw $db_user; then
+                echo "${info}[+] Database $db_name already exist.${reset}"
+            else
+                # Either database does not exists or the owner of database is not $db_user
+                # Create new database $db_name with owner $db_user
+                psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"
+            fi
+            write_db_settings
             #sudo su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""
             #sudo su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""
         elif [ "$action" = "clean" ]; then
             psql postgres -c "DROP DATABASE $db_name"
             psql postgres -c "DROP USER $db_user"
-            sudo su postgres -c "psql -c \"DROP DATABASE $db_name\""
-            sudo su postgres -c "psql -c \"DROP USER $db_user\""
+            # sudo su postgres -c "psql -c \"DROP DATABASE $db_name\""
+            # sudo su postgres -c "psql -c \"DROP USER $db_user\""
         fi
 
         if [ -z "$postgres_server_ip" ]; then
