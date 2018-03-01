@@ -69,7 +69,7 @@ given below:
      $ cd owtf
      $ python setup.py install
      # Run OWTF!
-     $ owtf-cli
+     $ owtf
 
 
 Features

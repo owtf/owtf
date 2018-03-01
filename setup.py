@@ -99,7 +99,7 @@ setup(
         'develop': PostDevelopCommand,
         'install': PostInstallCommand,
     },
-    scripts=['bin/owtf-cli'],
+    scripts=['bin/owtf'],
     entry_points={
         'console_scripts': [
             'owtf = owtf.core:main'
