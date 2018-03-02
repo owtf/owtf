@@ -48,12 +48,14 @@
 </div>
 
 <script>
+
 var filter_ind = [];
 var mySpace = {
   worklist_api_url: "{{ worklist_api_url }}",
   worklist_search_api_url:"{{ worklist_search_api_url }}",
   targets_ui_url:"{{ targets_ui_url }}"
 };
+
 // Function to pause work using api
 function pauseAllWork() {
     $.ajax({
@@ -64,6 +66,7 @@ function pauseAllWork() {
         }
     });
 }
+
 // Function to resume work using api
 function resumeAllWork() {
     $.ajax({
@@ -74,6 +77,7 @@ function resumeAllWork() {
         }
     });
 }
+
 //function to delete all work using api
 function deleteAll() {
     for (i = 0; i<filter_ind.length; i++){
@@ -86,6 +90,7 @@ function deleteAll() {
         });
     }
 }
+
 // Function to pause work using api
 function pauseWork(id) {
     $.ajax({
@@ -96,6 +101,7 @@ function pauseWork(id) {
         }
     });
 }
+
 // Function to resume work using api
 function resumeWork(id) {
     $.ajax({
@@ -106,6 +112,7 @@ function resumeWork(id) {
         }
     });
 }
+
 // Function to resume work using api
 function deleteWork(id) {
     $.ajax({
@@ -116,6 +123,7 @@ function deleteWork(id) {
         }
     });
 }
+
 // Function to get control buttons based on the present state of a worker i.e return pause button if worker is active & vice versa
 function getControlButtons(obj){
     html = '<div class="btn-group">';
@@ -128,6 +136,8 @@ function getControlButtons(obj){
     html += '</div>';
     return(html);
 }
+
+
 function getArray(data) {
     var table_array = [];
     filter_ind = [];    
@@ -144,9 +154,11 @@ function getArray(data) {
     });
     return(table_array);
 }
+
 function dummyAjax(data, callback, settings) {
   // This function takes care of converting dataTable data into owtf api
   // and then the response back to dataTables type
+
   // Add overlay spinner to transaction log while ajax requests
   // addOverlaySpinner('worklistTable');
   var filter_exist = 0;
@@ -154,12 +166,14 @@ function dummyAjax(data, callback, settings) {
   var draw = data.draw;
   get_parameters['limit'] = data.length;
   get_parameters['offset'] = data.start;
+
   var columnMappings = {
     2: 'target_url',
     3: 'group',
     4: 'type',
     5: 'name',
   };
+
   // Iterate over mappings and add search parameters
   for (var k in columnMappings) {
     if (data.columns[k].search.value){
@@ -191,6 +205,7 @@ function dummyAjax(data, callback, settings) {
     });
   });
 }
+
 function drawTable() {
     $('#worklistTable').dataTable({
       "pagingType": "full_numbers",
@@ -201,11 +216,14 @@ function drawTable() {
       "ajax": dummyAjax,
       "sDom": "ltip", // Remove global search & processing message
     });
+
     var table = $("#worklistTable").DataTable();
+
     $('#worklistTable thead th.textSearch').each(function () {
         var title = $('#worklistTable thead th').eq( $(this).index() ).text();
         $(this).html('<input type="text" style="width: 100%; box-sizing: border-box;" class="form-control" placeholder="'+title+'"/>' );
     });
+
     // Apply search to custom boxes, but since these searches take type, only respond on
     // 'change' or 'return key press'
     table.columns().eq(0).each(function ( colIdx ){
@@ -218,12 +236,14 @@ function drawTable() {
           }
         });
     });
+
     var oTable = $('#worklistTable').dataTable();
     // Draw after every 2 seconds
     setInterval(function() {
         oTable.fnDraw(true);
     }, 2000);
 }
+
 $(document).ready(function() {
     drawTable();
 });
