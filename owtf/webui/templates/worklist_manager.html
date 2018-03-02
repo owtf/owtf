@@ -183,15 +183,9 @@ function dummyAjax(data, callback, settings) {
   }
   if (filter_exist){
       $("#delete_btn").html("<i class='fa fa-times'></i>Delete Selected");
-      //$("#pause_btn").html("<i class='fa fa-pause'></i>Pause Selected");
-      //$("#resume_btn").html("<i class='fa fa-play'></i>Resume Selected");
-      //console.log("select");
   }
   else {
       $("#delete_btn").html("<i class='fa fa-times'></i>Delete All");
-      //$("#pause_btn").html("<i class='fa fa-pause'></i>Pause All");
-      //$("#resume_btn").html("<i class='fa fa-play'></i>Resume All");
-      //console.log("blank");
     }
   $.getJSON(mySpace.worklist_search_api_url+'?'+$.param(get_parameters, true), function (responseData) {
     // Remove the spinner once we have the response, since dataTables takes very less time to populate
