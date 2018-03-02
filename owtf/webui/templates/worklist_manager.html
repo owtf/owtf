@@ -21,9 +21,9 @@
   <div class="row-fluid">
     <div class="col-md-12">
       <div class="btn-toolbar pull-right">
-        <button class="btn btn-warning" href="#" onclick="pauseAllWork()"><i class="fa fa-pause"></i> Pause All</button>
-        <button class="btn btn-success" href="#" onclick="resumeAllWork()"><i class="fa fa-play"></i> Resume All</button>
-        <button class="btn btn-danger" href="#" onclick="deleteAll()"><i class="fa fa-times"></i> Delete All</button>
+        <button id="pause_btn" class="btn btn-warning" href="#" onclick="pauseAllWork()"><i class="fa fa-pause"></i> Pause All</button>
+        <button id="resume_btn" class="btn btn-success" href="#" onclick="resumeAllWork()"><i class="fa fa-play"></i> Resume All</button>
+        <button id="delete_btn" class="btn btn-danger" href="#" onclick="deleteAll()"><i class="fa fa-times"></i> Delete All</button>
       </div>
     </div>
   </div>
@@ -48,13 +48,12 @@
 </div>
 
 <script>
-
+var filter_ind = [];
 var mySpace = {
   worklist_api_url: "{{ worklist_api_url }}",
   worklist_search_api_url:"{{ worklist_search_api_url }}",
   targets_ui_url:"{{ targets_ui_url }}"
 };
-
 // Function to pause work using api
 function pauseAllWork() {
     $.ajax({
@@ -65,7 +64,6 @@ function pauseAllWork() {
         }
     });
 }
-
 // Function to resume work using api
 function resumeAllWork() {
     $.ajax({
@@ -76,18 +74,18 @@ function resumeAllWork() {
         }
     });
 }
-
 //function to delete all work using api
 function deleteAll() {
-    $.ajax({
-      url:mySpace.worklist_api_url+'0/delete',
-      type:'DELETE',
-      error:function(xhr, textStatus, serverResponse){
-          alertFail("Server replied: "+serverResponse);
-      }
-    })
+    for (i = 0; i<filter_ind.length; i++){
+        $.ajax({
+            url:mySpace.worklist_api_url+filter_ind[i],
+            type:'DELETE',
+            error:function(xhr, textStatus, serverResponse){
+                alertFail("Server replied: "+serverResponse);
+            }
+        });
+    }
 }
-
 // Function to pause work using api
 function pauseWork(id) {
     $.ajax({
@@ -98,7 +96,6 @@ function pauseWork(id) {
         }
     });
 }
-
 // Function to resume work using api
 function resumeWork(id) {
     $.ajax({
@@ -109,7 +106,6 @@ function resumeWork(id) {
         }
     });
 }
-
 // Function to resume work using api
 function deleteWork(id) {
     $.ajax({
@@ -120,7 +116,6 @@ function deleteWork(id) {
         }
     });
 }
-
 // Function to get control buttons based on the present state of a worker i.e return pause button if worker is active & vice versa
 function getControlButtons(obj){
     html = '<div class="btn-group">';
@@ -133,11 +128,11 @@ function getControlButtons(obj){
     html += '</div>';
     return(html);
 }
-
-
 function getArray(data) {
     var table_array = [];
+    filter_ind = [];    
     $.each(data, function(index, obj){
+      filter_ind.push(obj.id);
       table_array.push([
         obj.plugin.min_time,
         getControlButtons(obj),
@@ -149,30 +144,41 @@ function getArray(data) {
     });
     return(table_array);
 }
-
 function dummyAjax(data, callback, settings) {
   // This function takes care of converting dataTable data into owtf api
   // and then the response back to dataTables type
-
   // Add overlay spinner to transaction log while ajax requests
   // addOverlaySpinner('worklistTable');
+  var filter_exist = 0;
   var get_parameters = {};
   var draw = data.draw;
   get_parameters['limit'] = data.length;
   get_parameters['offset'] = data.start;
-
   var columnMappings = {
     2: 'target_url',
     3: 'group',
     4: 'type',
     5: 'name',
   };
-
   // Iterate over mappings and add search parameters
   for (var k in columnMappings) {
-    if (data.columns[k].search.value)
+    if (data.columns[k].search.value){
+      filter_exist = 1;
       get_parameters[columnMappings[k]] = data.columns[k].search.value;
+    }
   }
+  if (filter_exist){
+      $("#delete_btn").html("<i class='fa fa-times'></i>Delete Selected");
+      //$("#pause_btn").html("<i class='fa fa-pause'></i>Pause Selected");
+      //$("#resume_btn").html("<i class='fa fa-play'></i>Resume Selected");
+      //console.log("select");
+  }
+  else {
+      $("#delete_btn").html("<i class='fa fa-times'></i>Delete All");
+      //$("#pause_btn").html("<i class='fa fa-pause'></i>Pause All");
+      //$("#resume_btn").html("<i class='fa fa-play'></i>Resume All");
+      //console.log("blank");
+    }
   $.getJSON(mySpace.worklist_search_api_url+'?'+$.param(get_parameters, true), function (responseData) {
     // Remove the spinner once we have the response, since dataTables takes very less time to populate
     // removeOverlaySpinner('worklistTable');
@@ -185,7 +191,6 @@ function dummyAjax(data, callback, settings) {
     });
   });
 }
-
 function drawTable() {
     $('#worklistTable').dataTable({
       "pagingType": "full_numbers",
@@ -196,14 +201,11 @@ function drawTable() {
       "ajax": dummyAjax,
       "sDom": "ltip", // Remove global search & processing message
     });
-
     var table = $("#worklistTable").DataTable();
-
     $('#worklistTable thead th.textSearch').each(function () {
         var title = $('#worklistTable thead th').eq( $(this).index() ).text();
         $(this).html('<input type="text" style="width: 100%; box-sizing: border-box;" class="form-control" placeholder="'+title+'"/>' );
     });
-
     // Apply search to custom boxes, but since these searches take type, only respond on
     // 'change' or 'return key press'
     table.columns().eq(0).each(function ( colIdx ){
@@ -216,14 +218,12 @@ function drawTable() {
           }
         });
     });
-
     var oTable = $('#worklistTable').dataTable();
     // Draw after every 2 seconds
     setInterval(function() {
         oTable.fnDraw(true);
     }, 2000);
 }
-
 $(document).ready(function() {
     drawTable();
 });
