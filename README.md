@@ -36,7 +36,7 @@ Recommended:
 
 > Using a virtualenv is highly recommended!
 
-`pip install owtf` or `pip install git+https://github.com/owtf/owtf#egg=owtf` or clone the repo and `python setup.py install`
+`pip install git+https://github.com/owtf/owtf#egg=owtf` or clone the repo and `python setup.py install`
 
 To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker** installed) provided to try OWTF:
 
