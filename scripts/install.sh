@@ -72,7 +72,7 @@ create_directory() {
 
 check_sudo() {
     if [[ $EUID -eq 0 ]]; then
-        # The script is invoked with root permission
+        # User has administrative privileges.
         return 1
     else
         return 0
@@ -139,26 +139,88 @@ proxy_setup() {
 #   DATABASE setup
 # =======================================
 
+# Check if postgresql service is running or not
+postgresql_check_running_status() {
+    psql postgres -c "SELECT 1;" &> /dev/null
+    if [ $? -ne 0 ]; then
+        echo "${info}[+] PostgreSQL server is not running."
+        echo "${info}[+] Can I start db server for you? [Y/n]"
+        read choice
+        if [ "$choice" != "n" ]; then
+            which service  >> /dev/null 2>&1
+            service_bin=$?
+            which systemctl  >> /dev/null 2>&1
+            systemctl_bin=$?
+            if [ $service_bin -eq 0 ]; then
+                sudo service postgresql start
+                sudo service postgresql status | grep -q "online"
+                status_exitcode=$?
+            elif [ $systemctl_bin -eq 0 ]; then
+                sudo systemctl start postgresql
+                sudo systemctl status postgresql | grep -q "online"
+                status_exitcode=$?
+            else
+                echo "${info}[+] Using pg_ctlcluster to start the server."
+                sudo pg_ctlcluster ${postgres_version} main start
+                status_exitcode=$?
+                if [ $status_exitcode -ne 0 ]; then
+                    echo "${info}[+] We couldn't determine how to start the postgres server, please start it and rerun this script"
+                    exit 1
+                fi
+            fi
+            if [ $status_exitcode -ne 0 ]; then
+                echo "${info}[+] Starting failed because postgreSQL service is not available!"
+                echo "${info}[+] Run # sh scripts/start_postgres.sh and rerun this script"
+                exit 1
+            fi
+        else
+            echo "${info}[+] On DEBIAN based distro [i.e Kali, Ubuntu etc..]"
+            echo "          sudo service postgresql start"
+            echo "${info}[+] On RPM based distro [i.e Fedora etc..]"
+            echo "          sudo systemctl start postgresql"
+            exit 1
+        fi
+    else
+        echo "${info}[+] PostgreSQL server is running ${postgres_server_ip}:${postgres_server_port} :)"
+    fi
+}
+
+# returns postgresql service IP
 get_postgres_server_ip() {
     echo "$(sudo netstat -lptn | grep "^tcp " | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f1)"
 }
+
+# return postgresql service Port
 get_postgres_server_port() {
     echo "$(sudo netstat -lptn | grep "^tcp " | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f2)"
 }
+
 postgresql_create_user() {
-  sudo su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""
+    psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass';"
 }
+
+postgres_alter_user_password() {
+    psql postgres -tc "ALTER USER $db_user WITH PASSWORD '$db_pass';"
+}
+
 postgresql_create_db() {
-  sudo su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""
+    psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"
 }
+
+postgresql_check_user() {
+    psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$db_user';" &> /dev/null
+}
+
 postgresql_drop_user() {
-  sudo su postgres -c "psql -c \"DROP USER $db_user\""
+    psql postgres -c "DROP USER $db_user"
 }
+
 postgresql_drop_db() {
-  sudo su postgres -c "psql -c \"DROP DATABASE $db_name\""
+    psql postgres -c "DROP DATABASE $db_name"
 }
+
 postgresql_check_db() {
-  sudo su - postgres -c "psql -l | grep -w $db_name | grep -w $db_user | wc -l"
+    psql -l | grep -w $db_name | grep -qw $db_user
 }
 
 write_db_settings() {
@@ -179,74 +241,32 @@ EOF
 db_setup() {
     if [ -z "$DOCKER" ]; then
         # Check if the postgres server is running or not.
-        psql postgres -c "SELECT 1;" &> /dev/null
-        if [ $? -ne 0 ]; then
-            echo "${info}[+] PostgreSQL server is not running."
-            echo "${info}[+] Can I start db server for you? [Y/n]"
-            read choice
-            if [ "$choice" != "n" ]; then
-                which service  >> /dev/null 2>&1
-                service_bin=$?
-                which systemctl  >> /dev/null 2>&1
-                systemctl_bin=$?
-                if [ $service_bin -eq 0 ]; then
-                    sudo service postgresql start
-                    sudo service postgresql status | grep -q "online"
-                    status_exitcode=$?
-                elif [ $systemctl_bin -eq 0 ]; then
-                    sudo systemctl start postgresql
-                    sudo systemctl status postgresql | grep -q "online"
-                    status_exitcode=$?
-                else
-                    echo "${info}[+] Using pg_ctlcluster to start the server."
-                    sudo pg_ctlcluster ${postgres_version} main start
-                    status_exitcode=$?
-                    if [ $status_exitcode -ne 0 ]; then
-                        echo "${info}[+] We couldn't determine how to start the postgres server, please start it and rerun this script"
-                        exit 1
-                    fi
-                fi
-                if [ $status_exitcode -ne 0 ]; then
-                    echo "${info}[+] Starting failed because postgreSQL service is not available!"
-                    echo "${info}[+] Run # sh scripts/start_postgres.sh and rerun this script"
-                    exit 1
-                fi
-            else
-                echo "${info}[+] On DEBIAN based distro [i.e Kali, Ubuntu etc..]"
-                echo "          sudo service postgresql start"
-                echo "${info}[+] On RPM based distro [i.e Fedora etc..]"
-                echo "          sudo systemctl start postgresql"
-                exit 1
-            fi
-        else
-            echo "${info}[+] PostgreSQL server is running ${postgres_server_ip}:${postgres_server_port} :)"
-        fi
+        postgresql_check_running_status
 
         # postgres server is running perfectly fine begin with db_setup.
         if [ "$action" = "init" ]; then
-            echo "Inside init : $db_user :: $db_pass :: $db_name"
             # Create a user $db_user if it does not exist
-            if psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$db_user';" &> /dev/null; then
+            if postgresql_check_user; then
                 echo "${info}[+] User $db_user already exist.${reset}"
                 # User $db_user already exist in postgres database change the password
-                psql postgres -tc "ALTER USER $db_user WITH PASSWORD '$db_pass';"
+                postgres_alter_user_password
             else
                 # Create new user $db_user with password $db_pass
-                psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass';"
+                postgresql_create_user
             fi
             # Create database $db_name if it does not exist.
-            if psql -lqt | cut -d \| -f 1 | grep -qw $db_name \
-               && psql -lqt | cut -d \| -f 2 | grep -qw $db_user; then
-                echo "${info}[+] Database $db_name already exist.${reset}"
+            if postgresql_check_db; then
+                echo "${info}[+] Database $db_name already exist."
             else
                 # Either database does not exists or the owner of database is not $db_user
                 # Create new database $db_name with owner $db_user
-                psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"
+                postgresql_create_db
             fi
+            # After the database has been set up write settings to db.yaml
             write_db_settings
         elif [ "$action" = "clean" ]; then
-            psql postgres -c "DROP DATABASE $db_name"
-            psql postgres -c "DROP USER $db_user"
+            postgresql_drop_db
+            postgresql_drop_user
         fi
     fi
 }
