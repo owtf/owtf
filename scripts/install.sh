@@ -73,7 +73,6 @@ create_directory() {
 check_sudo() {
     if [[ $EUID -eq 0 ]]; then
         # The script is invoked with root permission
-        echo "${warning}[!] The script is running with root permissions !${reset}"
         return 1
     else
         return 0
@@ -179,6 +178,51 @@ EOF
 
 db_setup() {
     if [ -z "$DOCKER" ]; then
+        # Check if the postgres server is running or not.
+        psql postgres -c "SELECT 1;" &> /dev/null
+        if [ $? -ne 0 ]; then
+            echo "${info}[+] PostgreSQL server is not running."
+            echo "${info}[+] Can I start db server for you? [Y/n]"
+            read choice
+            if [ "$choice" != "n" ]; then
+                which service  >> /dev/null 2>&1
+                service_bin=$?
+                which systemctl  >> /dev/null 2>&1
+                systemctl_bin=$?
+                if [ $service_bin -eq 0 ]; then
+                    sudo service postgresql start
+                    sudo service postgresql status | grep -q "online"
+                    status_exitcode=$?
+                elif [ $systemctl_bin -eq 0 ]; then
+                    sudo systemctl start postgresql
+                    sudo systemctl status postgresql | grep -q "online"
+                    status_exitcode=$?
+                else
+                    echo "${info}[+] Using pg_ctlcluster to start the server."
+                    sudo pg_ctlcluster ${postgres_version} main start
+                    status_exitcode=$?
+                    if [ $status_exitcode -ne 0 ]; then
+                        echo "${info}[+] We couldn't determine how to start the postgres server, please start it and rerun this script"
+                        exit 1
+                    fi
+                fi
+                if [ $status_exitcode -ne 0 ]; then
+                    echo "${info}[+] Starting failed because postgreSQL service is not available!"
+                    echo "${info}[+] Run # sh scripts/start_postgres.sh and rerun this script"
+                    exit 1
+                fi
+            else
+                echo "${info}[+] On DEBIAN based distro [i.e Kali, Ubuntu etc..]"
+                echo "          sudo service postgresql start"
+                echo "${info}[+] On RPM based distro [i.e Fedora etc..]"
+                echo "          sudo systemctl start postgresql"
+                exit 1
+            fi
+        else
+            echo "${info}[+] PostgreSQL server is running ${postgres_server_ip}:${postgres_server_port} :)"
+        fi
+
+        # postgres server is running perfectly fine begin with db_setup.
         if [ "$action" = "init" ]; then
             echo "Inside init : $db_user :: $db_pass :: $db_name"
             # Create a user $db_user if it does not exist
@@ -200,53 +244,9 @@ db_setup() {
                 psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"
             fi
             write_db_settings
-            #sudo su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""
-            #sudo su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""
         elif [ "$action" = "clean" ]; then
             psql postgres -c "DROP DATABASE $db_name"
             psql postgres -c "DROP USER $db_user"
-            # sudo su postgres -c "psql -c \"DROP DATABASE $db_name\""
-            # sudo su postgres -c "psql -c \"DROP USER $db_user\""
-        fi
-
-        if [ -z "$postgres_server_ip" ]; then
-            echo "${info}[+] PostgreSQL server is not running."
-            echo "${info}[+] Can I start db server for you? [Y/n]"
-            read choice
-            if [ "$choice" != "n" ]; then
-                sudo which service  >> /dev/null 2>&1
-                service_bin=$?
-                sudo which systemctl  >> /dev/null 2>&1
-                systemctl_bin=$?
-                if [ "$service_bin" = "0" ]; then
-                    sudo service postgresql start
-                    sudo service postgresql status | grep -q "Active: active"
-                    status_exitcode="$?"
-                elif [ "$systemctl_bin" = "0" ]; then
-                    sudo systemctl start postgresql
-                    sudo systemctl status postgresql | grep -q "Active: active"
-                    status_exitcode="$?"
-                elif [ "$systemctl_bin" != "0" ] && [ "$service_bin" != "0" ]; then
-                    echo "${info}[+] Using pg_ctlcluster to start the server."
-                    sudo pg_ctlcluster ${postgres_version} main start
-                else
-                    echo "${info}[+] We couldn't determine how to start the postgres server, please start it and rerun this script"
-                    exit 1
-                fi
-                if [ "$status_exitcode" != "0" ]; then
-                    echo "${info}[+] Starting failed because postgreSQL service is not available!"
-                    echo "${info}[+] Run # sh scripts/start_postgres.sh and rerun this script"
-                    exit 1
-                fi
-            else
-                echo "${info}[+] On DEBIAN based distro [i.e Kali, Ubuntu etc..]"
-                echo "          sudo service postgresql start"
-                echo "${info}[+] On RPM based distro [i.e Fedora etc..]"
-                echo "          sudo systemctl start postgresql"
-                exit 1
-            fi
-        else
-            echo "${info}[+] PostgreSQL server is running ${postgres_server_ip}:${postgres_server_port} :)"
         fi
     fi
 }
