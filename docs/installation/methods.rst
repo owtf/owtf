@@ -1,21 +1,22 @@
 Manual Installation
 ^^^^^^^^^^^^^^^^^^^
 
-Manual installation of OWTF is nothing but cloning the repo and running the install script
+Manual installation of OWTF is nothing but cloning the repo and running the owtf setup.
 
 .. code-block:: bash
 
     git clone https://github.com/owtf/owtf.git
     cd owtf/
-    ./install/install.py
+    python setup.py install
 
-Bootstrap Script
-^^^^^^^^^^^^^^^^
+Docker
+^^^^^^
 
-Our bootstrap script automates cloning of the OWTF repo and launching the install script
+Docker automates the task of setting up owtf doing all the bootstraping it needs.
+Just make sure that you have ``docker`` and ``docker-compose`` installed and run:
 
 .. code-block:: bash
 
-    wget https://raw.githubusercontent.com/owtf/bootstrap-script/master/bootstrap.sh
-    chmod +x bootstrap.sh
-    ./bootstrap.sh
+	docker-compose up
+
+* If you wish to override the environment variables for docker setup, use the file named ``owtf.env``
