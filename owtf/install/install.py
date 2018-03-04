@@ -70,12 +70,12 @@ def install_in_directory(directory, command):
         return True
 
 
-def install_restricted_from_cfg(config_file):
+def install_restricted_from_cfg(config_file, pid, root_dir):
     """Install restricted tools and dependencies which are distro independent.
 
     :param config_file: Path to configuration file having information about restricted content.
     """
-    cp = parser.ConfigParser({"RootDir": root_dir, "Pid": pid})
+    cp = parser.ConfigParser({"RootDir": root_dir, "Pid": str(pid)})
     cp.read(config_file)
     for section in cp.sections():
         logging.info("[*] Installing %s" % section)
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     print("[!] There will be lot of output, please be patient")
     if not sys.platform == 'darwin':
         check_sudo()
-    install_restricted_from_cfg(restricted_cfg)
+    install_restricted_from_cfg(restricted_cfg, pid, root_dir)
     print("[*] Finished!")
     print("[*] Start OWTF by running 'cd path/to/pentest/directory; python -m owtf'")
 
