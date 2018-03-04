@@ -127,7 +127,7 @@ proxy_setup() {
             -key "$ca_key" -out "$ca_cert"
         echo "${warning}[!] Don't forget to add the $ca_cert as a trusted CA in your browser${reset}"
     else
-        echo "${info}[*] '${ca_cert}' already exists. Nothing done."
+        echo "${info}[*] '${ca_cert}' already exists. Nothing done.${reset}"
     fi
 }
 
@@ -139,8 +139,8 @@ proxy_setup() {
 postgresql_check_running_status() {
     psql postgres -c "SELECT 1;" &> /dev/null
     if [ $? -ne 0 ]; then
-        echo "${info}[+] PostgreSQL server is not running."
-        echo "${info}[+] Can I start db server for you? [Y/n]"
+        echo "${info}[+] PostgreSQL server is not running.${reset}"
+        echo "${info}[+] Can I start db server for you? [Y/n]${reset}"
         read choice
         if [ "$choice" != "n" ]; then
             which service  >> /dev/null 2>&1
@@ -156,28 +156,28 @@ postgresql_check_running_status() {
                 sudo systemctl status postgresql | grep -q "online"
                 status_exitcode=$?
             else
-                echo "${info}[+] Using pg_ctlcluster to start the server."
+                echo "${info}[+] Using pg_ctlcluster to start the server.${reset}"
                 sudo pg_ctlcluster ${postgres_version} main start
                 status_exitcode=$?
                 if [ $status_exitcode -ne 0 ]; then
-                    echo "${info}[+] We couldn't determine how to start the postgres server, please start it and rerun this script"
+                    echo "${info}[+] We couldn't determine how to start the postgres server, please start it and rerun this script${reset}"
                     exit 1
                 fi
             fi
             if [ $status_exitcode -ne 0 ]; then
-                echo "${info}[+] Starting failed because postgreSQL service is not available!"
-                echo "${info}[+] Run # sh scripts/start_postgres.sh and rerun this script"
+                echo "${info}[+] Starting failed because postgreSQL service is not available!${reset}"
+                echo "${info}[+] Run # sh scripts/start_postgres.sh and rerun this script${reset}"
                 exit 1
             fi
         else
-            echo "${info}[+] On DEBIAN based distro [i.e Kali, Ubuntu etc..]"
-            echo "          sudo service postgresql start"
-            echo "${info}[+] On RPM based distro [i.e Fedora etc..]"
-            echo "          sudo systemctl start postgresql"
+            echo "${info}[+] On DEBIAN based distro [i.e Kali, Ubuntu etc..]${reset}"
+            echo "${info}          sudo service postgresql start${reset}"
+            echo "${info}[+] On RPM based distro [i.e Fedora etc..]${reset}"
+            echo "${info}          sudo systemctl start postgresql${reset}"
             exit 1
         fi
     else
-        echo "${info}[+] PostgreSQL server is running ${postgres_server_ip}:${postgres_server_port} :)"
+        echo "${info}[+] PostgreSQL server is running ${postgres_server_ip}:${postgres_server_port} :)${reset}"
     fi
 }
 
@@ -192,15 +192,15 @@ get_postgres_server_port() {
 }
 
 postgresql_create_user() {
-    psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass';"
+    psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass';" &> /dev/null
 }
 
 postgres_alter_user_password() {
-    psql postgres -tc "ALTER USER $db_user WITH PASSWORD '$db_pass';"
+    psql postgres -tc "ALTER USER $db_user WITH PASSWORD '$db_pass';" &> /dev/null
 }
 
 postgresql_create_db() {
-    psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"
+    psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;" &> /dev/null
 }
 
 postgresql_check_user() {
@@ -208,11 +208,11 @@ postgresql_check_user() {
 }
 
 postgresql_drop_user() {
-    psql postgres -c "DROP USER $db_user"
+    psql postgres -c "DROP USER $db_user" &> /dev/null
 }
 
 postgresql_drop_db() {
-    psql postgres -c "DROP DATABASE $db_name"
+    psql postgres -c "DROP DATABASE $db_name" &> /dev/null
 }
 
 postgresql_check_db() {
@@ -252,14 +252,16 @@ db_setup() {
             fi
             # Create database $db_name if it does not exist.
             if postgresql_check_db; then
-                echo "${info}[+] Database $db_name already exist."
+                echo "${info}[+] Database $db_name already exist.${reset}"
             else
                 # Either database does not exists or the owner of database is not $db_user
                 # Create new database $db_name with owner $db_user
                 postgresql_create_db
             fi
             # After the database has been set up write settings to db.yaml
+            echo "${info}"
             write_db_settings
+            echo "${reset}"
         elif [ "$action" = "clean" ]; then
             postgresql_drop_db
             postgresql_drop_user
