@@ -2,9 +2,12 @@
 '''
 This is the command-line front-end in charge of processing arguments and call the framework
 '''
-import getopt, sys, os
+import getopt
+import os
 import subprocess
+import sys
 from collections import defaultdict
+
 
 def GetName():
 	return sys.argv[0]

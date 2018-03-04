@@ -14,8 +14,8 @@ import tornado.web
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.managers.mapping import get_all_mappings
-from owtf.managers.plugin import get_types_for_plugin_group, get_all_plugin_dicts, get_all_test_groups
-from owtf.managers.poutput import get_all_poutputs, update_poutput, delete_all_poutput
+from owtf.managers.plugin import get_all_plugin_dicts, get_all_test_groups, get_types_for_plugin_group
+from owtf.managers.poutput import delete_all_poutput, get_all_poutputs, update_poutput
 
 
 class PluginDataHandler(APIRequestHandler):

@@ -37,17 +37,18 @@ v2.0: Added Support for https, switched to HTTP 1.1
 v1.0: Initial Release
 """
 
-import socket
-import sys
-import math
-import urllib
-import string
-import time
-import urlparse
 import argparse
-import ssl
-import random
 import itertools
+import math
+import random
+import socket
+import ssl
+import string
+import sys
+import time
+import urllib
+import urlparse
+
 
 class Payloadgenerator:
     # Maximum recursions when searching for collisionchars

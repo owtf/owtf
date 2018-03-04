@@ -7,7 +7,7 @@ Component to handle data storage and search of all commands run
 
 from owtf.db import models
 from owtf.managers.poutput import plugin_output_exists
-from owtf.managers.target import target_required, get_target_url_for_id
+from owtf.managers.target import get_target_url_for_id, target_required
 
 
 def add_command(session, command):

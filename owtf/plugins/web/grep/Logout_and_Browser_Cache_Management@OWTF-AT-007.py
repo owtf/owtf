@@ -4,7 +4,6 @@ NOTE: GREP plugins do NOT send traffic to the target and only grep the HTTP Tran
 """
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Searches transaction DB for Cache snooping protections"
 
 

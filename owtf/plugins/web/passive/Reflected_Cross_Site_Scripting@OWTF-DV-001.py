@@ -4,7 +4,6 @@ Plugin for reflected XSS findings
 from owtf.managers.resource import get_resources
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Plugin to assist passive testing for known XSS vectors"
 
 

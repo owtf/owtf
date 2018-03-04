@@ -3,8 +3,11 @@
 2015/12/13 - Viyat Bhalodia (@delta24) - Updates CMS Explorer lists and merge them with original ones
 """
 from __future__ import print_function
-from lxml import html
+
 import os
+
+from lxml import html
+
 try:
     import urllib2
 except ImportError:

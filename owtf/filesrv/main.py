@@ -1,14 +1,14 @@
 import logging
 
 import tornado
-import tornado.ioloop
 import tornado.httpserver
+import tornado.ioloop
 import tornado.options
 
-from owtf.utils.app import Application
-from owtf.settings import TEMPLATES, FILE_SERVER_PORT, SERVER_ADDR, FILE_SERVER_LOG
 from owtf.filesrv.routes import HANDLERS
 from owtf.managers.worker import worker_manager
+from owtf.settings import FILE_SERVER_LOG, FILE_SERVER_PORT, SERVER_ADDR, TEMPLATES
+from owtf.utils.app import Application
 from owtf.utils.logger import logger
 
 

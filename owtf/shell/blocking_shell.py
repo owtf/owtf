@@ -13,12 +13,12 @@ from collections import defaultdict
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from owtf.managers.command_register import command_already_registered, add_command
+from owtf.managers.command_register import add_command, command_already_registered
 from owtf.managers.target import target_manager
-from owtf.settings import USER_AGENT, INBOUND_PROXY_IP, INBOUND_PROXY_PORT
+from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, USER_AGENT
 from owtf.utils.error import user_abort
 from owtf.utils.logger import logger
-from owtf.utils.strings import scrub_output, multi_replace_dict
+from owtf.utils.strings import multi_replace_dict, scrub_output
 from owtf.utils.timer import timer
 
 

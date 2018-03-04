@@ -8,10 +8,11 @@ import functools
 import logging
 
 from sqlalchemy import create_engine, exc, func
-from sqlalchemy.orm import Session as _Session, sessionmaker
+from sqlalchemy.orm import Session as _Session
+from sqlalchemy.orm import sessionmaker
 
 from owtf.db.models import Base
-from owtf.settings import DATABASE_IP, DATABASE_PORT, DATABASE_NAME, DATABASE_USER, DATABASE_PASS
+from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_PORT, DATABASE_USER
 
 
 def get_count(q):

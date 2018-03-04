@@ -11,7 +11,7 @@ import tornado.web
 
 from owtf.api.routes import HANDLERS
 from owtf.lib.owtf_process import OWTFProcess
-from owtf.settings import STATIC_ROOT, UI_SERVER_LOG, SERVER_ADDR, UI_SERVER_PORT, TEMPLATES, SENTRY_API_KEY, DEBUG
+from owtf.settings import DEBUG, SENTRY_API_KEY, SERVER_ADDR, STATIC_ROOT, TEMPLATES, UI_SERVER_LOG, UI_SERVER_PORT
 from owtf.utils.app import Application
 
 

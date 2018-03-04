@@ -6,7 +6,6 @@ from owtf.http.requester import requester
 from owtf.managers.target import get_targets_as_list
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Normal requests for XSF analysis"
 
 

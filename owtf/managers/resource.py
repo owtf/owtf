@@ -11,7 +11,7 @@ from owtf import get_scoped_session
 from owtf.db import models
 from owtf.managers.config import get_replacement_dict
 from owtf.utils.file import FileOperations
-from owtf.utils.strings import  multi_replace
+from owtf.utils.strings import multi_replace
 
 
 def get_raw_resources(session, resource_type):

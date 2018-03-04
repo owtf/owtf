@@ -2,7 +2,6 @@ from owtf.config import config_handler
 from owtf.plugin.plugin_helper import plugin_helper
 from owtf.plugin.plugin_params import plugin_params
 
-
 DESCRIPTION = "Password Bruteforce Testing plugin"
 BRUTEFORCER = ['hydra']
 CATEGORIES = ['RDP', 'LDAP2', 'LDAP3', 'MSSQL', 'MYSQL', 'CISCO', 'CISCO-ENABLE', 'CVS', 'Firebird', 'FTP', 'FTPS',

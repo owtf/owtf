@@ -12,7 +12,6 @@ from owtf.config import config_handler
 from owtf.shell.blocking_shell import shell
 from owtf.utils.file import FileOperations
 
-
 SCANS_FOLDER = "scans"  # Folder under which all scans will be saved
 PING_SWEEP_FILE = "%s/00_ping_sweep" % SCANS_FOLDER
 DNS_INFO_FILE= "%s/01_dns_info" % SCANS_FOLDER

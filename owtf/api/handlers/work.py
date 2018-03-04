@@ -15,8 +15,8 @@ from owtf.lib import exceptions
 from owtf.managers.plugin import get_all_plugin_dicts
 from owtf.managers.target import get_target_config_dicts
 from owtf.managers.worker import worker_manager
-from owtf.managers.worklist import get_all_work, get_work, add_work, remove_work, delete_all_work, patch_work, \
-    pause_all_work, resume_all_work, search_all_work
+from owtf.managers.worklist import add_work, delete_all_work, get_all_work, get_work, \
+    patch_work, pause_all_work, remove_work, resume_all_work, search_all_work
 from owtf.utils.strings import str2bool
 
 

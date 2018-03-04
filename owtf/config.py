@@ -7,10 +7,10 @@ memory, derives some settings and provides framework modules with a central
 repository to get info.
 """
 
+import logging
 import os
 import re
 from collections import defaultdict
-import logging
 try: #PY3
     from urllib.parse import urlparse
 except ImportError:  #PY2
@@ -20,8 +20,8 @@ try:
 except ImportError:
     import ConfigParser as parser
 
-from owtf.settings import ROOT_DIR, REPLACEMENT_DELIMITER, CONFIG_TYPES
 from owtf.lib.exceptions import PluginAbortException
+from owtf.settings import CONFIG_TYPES, REPLACEMENT_DELIMITER, ROOT_DIR
 
 
 class Config(object):

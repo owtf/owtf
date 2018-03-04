@@ -3,7 +3,6 @@ PASSIVE Plugin
 """
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Panoptic, a tool for testing local file inclusion vulnerabilities"
 
 

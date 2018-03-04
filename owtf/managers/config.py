@@ -6,18 +6,18 @@ owtf.db.config_manager
 import logging
 import os
 
+from owtf.config import config_handler
+from owtf.db import models
+from owtf.lib.exceptions import InvalidConfigurationReference
+from owtf.utils.error import abort_framework
+from owtf.utils.file import FileOperations
+from owtf.utils.strings import multi_replace, str2bool
 
 try:
     import configparser as parser
 except ImportError:
     import ConfigParser as parser
 
-from owtf.utils.strings import multi_replace, str2bool
-from owtf.lib.exceptions import InvalidConfigurationReference
-from owtf.db import models
-from owtf.config import config_handler
-from owtf.utils.error import abort_framework
-from owtf.utils.file import FileOperations
 
 
 def load_config_db_file(session, default, fallback):

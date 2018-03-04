@@ -4,7 +4,6 @@ Plugin for probing x11
 from owtf.managers.resource import get_resources
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = " x11 Probing "
 
 

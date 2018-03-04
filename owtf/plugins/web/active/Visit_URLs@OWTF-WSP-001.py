@@ -10,7 +10,6 @@ from owtf.http.requester import requester
 from owtf.managers.url import get_urls_to_visit
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Visit URLs found by other tools, some could be sensitive: need permission"
 
 

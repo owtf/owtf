@@ -8,18 +8,17 @@ import tornado.web
 
 from owtf.api.handlers import ui_handlers
 from owtf.api.handlers.config import ConfigurationHandler
-from owtf.api.handlers.misc import ErrorDataHandler, DashboardPanelHandler, ProgressBarHandler
+from owtf.api.handlers.misc import DashboardPanelHandler, ErrorDataHandler, ProgressBarHandler
 from owtf.api.handlers.plugin import PluginDataHandler, PluginNameOutput, PluginOutputHandler
 from owtf.api.handlers.report import ReportExportHandler
 from owtf.api.handlers.session import OWTFSessionHandler
-from owtf.api.handlers.targets import TargetSeverityChartHandler, TargetConfigSearchHandler, TargetConfigHandler
-from owtf.api.handlers.transactions import URLDataHandler, URLSearchHandler, TransactionDataHandler, \
-    TransactionHrtHandler, TransactionSearchHandler
+from owtf.api.handlers.targets import TargetConfigHandler, TargetConfigSearchHandler, TargetSeverityChartHandler
+from owtf.api.handlers.transactions import TransactionDataHandler, \
+    TransactionHrtHandler, TransactionSearchHandler, URLDataHandler, URLSearchHandler
 from owtf.api.handlers.work import WorkerHandler, WorklistHandler, WorklistSearchHandler
 from owtf.db.database import get_scoped_session
 from owtf.managers.plugin import get_all_plugin_groups, get_all_plugin_types
 from owtf.settings import STATIC_ROOT
-
 
 session = get_scoped_session()
 

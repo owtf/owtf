@@ -10,23 +10,26 @@ import os
 import signal
 import sys
 import traceback
-try:
-    import queue
-except ImportError:
-    import Queue as queue
 from time import strftime
 
 import psutil
 
-from owtf.managers.worklist import get_work_for_target
-from owtf.settings import PROCESS_PER_CORE, MIN_RAM_NEEDED, CLI
-from owtf.lib.owtf_process import OWTFProcess
-from owtf.lib.exceptions import InvalidWorkerReference
-from owtf.utils.process import check_pid
-from owtf.utils.error import abort_framework
-from owtf.managers.error import add_error
-from owtf.plugin.plugin_handler import plugin_handler
 from owtf.db.database import get_scoped_session
+from owtf.lib.exceptions import InvalidWorkerReference
+from owtf.lib.owtf_process import OWTFProcess
+from owtf.managers.error import add_error
+from owtf.managers.worklist import get_work_for_target
+from owtf.plugin.plugin_handler import plugin_handler
+from owtf.settings import CLI, MIN_RAM_NEEDED, PROCESS_PER_CORE
+from owtf.utils.error import abort_framework
+from owtf.utils.process import check_pid
+
+try:
+    import queue
+except ImportError:
+    import Queue as queue
+
+
 
 
 # For psutil

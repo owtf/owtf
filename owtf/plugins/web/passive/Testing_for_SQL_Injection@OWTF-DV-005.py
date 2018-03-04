@@ -5,7 +5,6 @@ https://www.owasp.org/index.php/Testing_for_SQL_Injection_%28OWASP-DV-005%29
 from owtf.managers.resource import get_resources
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Google Hacking for SQLi"
 
 

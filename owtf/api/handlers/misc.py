@@ -12,7 +12,7 @@ import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
-from owtf.managers.error import get_all_errors, get_error, update_error, delete_error
+from owtf.managers.error import delete_error, get_all_errors, get_error, update_error
 from owtf.managers.poutput import get_severity_freq, plugin_count_output
 
 

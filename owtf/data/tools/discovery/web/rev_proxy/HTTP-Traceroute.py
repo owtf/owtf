@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 
-import getopt, sys, re, urllib2, urllib, BaseHTTPServer
-from urllib2 import Request, urlopen, URLError, HTTPError
+import BaseHTTPServer
+import getopt
+import re
+import sys
+import urllib
+import urllib2
+from urllib2 import HTTPError, Request, URLError, urlopen
 
 ################## HEADER ###################################
 
@@ -311,4 +316,3 @@ if score == 0:
 	zprint('No reverse proxy', '--')
 else:
 	zprint('Found a reverse proxy, score is ' + str(score), '++')
-

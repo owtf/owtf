@@ -12,9 +12,9 @@ import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
-from owtf.lib.exceptions import InvalidTargetReference, InvalidParameterType, InvalidTransactionReference
-from owtf.managers.transaction import get_by_id_as_dict, get_all_transactions_dicts, delete_transaction, \
-    get_hrt_response, search_all_transactions
+from owtf.lib.exceptions import InvalidParameterType, InvalidTargetReference, InvalidTransactionReference
+from owtf.managers.transaction import delete_transaction, get_all_transactions_dicts, \
+    get_by_id_as_dict, get_hrt_response, search_all_transactions
 from owtf.managers.url import get_all_urls, search_all_urls
 
 

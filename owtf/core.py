@@ -6,35 +6,34 @@ This is the command-line front-end in charge of processing arguments and call th
 
 from __future__ import print_function
 
+import logging
 import os
 import sys
-import logging
 from copy import deepcopy
 
+from owtf import db
 from owtf.api.main import start_api_server
 from owtf.cli.main import start_cli
 from owtf.config import config_handler
 from owtf.filesrv.main import start_file_server
 from owtf.lib import exceptions
-from owtf.lib.cli_options import usage, parse_options
-from owtf import db
+from owtf.lib.cli_options import parse_options, usage
 from owtf.managers.config import load_config_db_file, load_framework_config_file
-from owtf.managers.resource import load_resources_from_file
 from owtf.managers.mapping import load_mappings_from_file
-from owtf.managers.plugin import get_groups_for_plugins, get_all_plugin_types, get_all_plugin_groups, \
-    get_types_for_plugin_group, load_test_groups, load_plugins
+from owtf.managers.plugin import get_all_plugin_groups, get_all_plugin_types, \
+    get_groups_for_plugins, get_types_for_plugin_group, load_plugins, load_test_groups
+from owtf.managers.resource import load_resources_from_file
 from owtf.managers.session import _ensure_default_session
 from owtf.managers.target import load_targets
 from owtf.managers.worklist import load_works
-from owtf.plugin.plugin_handler import show_plugin_list, plugin_handler
+from owtf.plugin.plugin_handler import plugin_handler, show_plugin_list
 from owtf.proxy.main import start_proxy
-from owtf.settings import WEB_TEST_GROUPS, AUX_TEST_GROUPS, NET_TEST_GROUPS, DEFAULT_RESOURCES_PROFILE, \
-    FALLBACK_RESOURCES_PROFILE, FALLBACK_AUX_TEST_GROUPS, FALLBACK_NET_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, \
-    FALLBACK_MAPPING_PROFILE, DEFAULT_MAPPING_PROFILE, DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, \
-    DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE, SERVER_ADDR, UI_SERVER_PORT, CLI
+from owtf.settings import AUX_TEST_GROUPS, CLI, DEFAULT_FRAMEWORK_CONFIG, DEFAULT_GENERAL_PROFILE, \
+    DEFAULT_MAPPING_PROFILE, DEFAULT_RESOURCES_PROFILE, FALLBACK_AUX_TEST_GROUPS, FALLBACK_FRAMEWORK_CONFIG, \
+    FALLBACK_GENERAL_PROFILE, FALLBACK_MAPPING_PROFILE, FALLBACK_NET_TEST_GROUPS, FALLBACK_RESOURCES_PROFILE, \
+    FALLBACK_WEB_TEST_GROUPS, NET_TEST_GROUPS, SERVER_ADDR, UI_SERVER_PORT, WEB_TEST_GROUPS
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.process import kill_children
-
 
 owtf_pid = None
 

@@ -2,6 +2,7 @@ import collections
 import inspect
 import types
 from functools import wraps
+
 try: #PY3
     from urllib.parse import urlparse
 except ImportError:  #PY2
@@ -93,4 +94,3 @@ def is_handler_subclass(cls, classnames=("ViewHandler", "APIHandler")):
                 cls
             )
         )
-

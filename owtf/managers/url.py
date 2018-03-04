@@ -9,9 +9,8 @@ from owtf.db import models
 from owtf.db.database import get_count, get_scoped_session
 from owtf.lib.exceptions import InvalidParameterType
 # from owtf.managers import is_small_file_regex, is_file_regex, is_image_regex, is_ssi_regex, is_url_regex
-from owtf.managers.target import target_required, is_url_in_scope
+from owtf.managers.target import is_url_in_scope, target_required
 from owtf.utils.strings import str2bool
-
 
 num_urls_before = 0
 

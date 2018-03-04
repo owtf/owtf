@@ -5,7 +5,6 @@ This will perform a "low-hanging-fruit" pass on the web app for easy to find (to
 from owtf.managers.resource import get_resources
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Active Vulnerability Scanning without credentials via Skipfish"
 
 

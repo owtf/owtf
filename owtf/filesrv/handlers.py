@@ -1,15 +1,15 @@
+import datetime
+import email.utils
+import hashlib
+import mimetypes
 import os
 import stat
-import time
-import hashlib
-import datetime
-import mimetypes
-import email.utils
 import subprocess
+import time
 
 import tornado
-import tornado.web
 import tornado.template
+import tornado.web
 
 
 class StaticFileHandler(tornado.web.StaticFileHandler):

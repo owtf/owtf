@@ -8,14 +8,16 @@ Manages the mapping between different plugin groups and codes
 import json
 import logging
 import os
+
+from owtf.db import models
+from owtf.lib.exceptions import InvalidMappingReference
+from owtf.utils.error import abort_framework
+
 try:
     import configparser as parser
 except ImportError:
     import ConfigParser as parser
 
-from owtf.utils.error import abort_framework
-from owtf.db import models
-from owtf.lib.exceptions import InvalidMappingReference
 
 
 mapping_types = []

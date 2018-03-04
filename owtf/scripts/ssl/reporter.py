@@ -9,7 +9,6 @@ import traceback
 
 from template import RESULTS
 
-
 if not os.path.isfile(sys.argv[1]):
     sys.exit(-1)
 

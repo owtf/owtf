@@ -6,12 +6,11 @@ The SQLAlchemy models for every table in the OWTF DB.
 """
 import datetime
 
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, \
+    Index, Integer, String, Table, Text, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy import Table, Column, Integer, String, Boolean, Float, DateTime, ForeignKey, Text, Index
-from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship
-
 
 Base = declarative_base()
 

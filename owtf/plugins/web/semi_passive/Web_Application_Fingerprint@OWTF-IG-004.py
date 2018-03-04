@@ -5,7 +5,6 @@ from owtf.managers.resource import get_resources
 from owtf.managers.target import get_targets_as_list
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Normal requests to gather fingerprint info"
 
 

@@ -16,7 +16,6 @@ from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 from owtf.utils.timer import timer
 
-
 TEST_GROUPS = ['web', 'network', 'auxiliary']
 
 

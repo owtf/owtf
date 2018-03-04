@@ -4,7 +4,6 @@ PASSIVE Plugin for Testing for Web Application Fingerprint (OWASP-IG-004)
 from owtf.managers.resource import get_resources
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Third party resources and fingerprinting suggestions"
 
 

@@ -8,18 +8,20 @@ Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a
 import glob
 import os
 import time
+
+from owtf.http.transaction import HTTPTransaction
+from owtf.lib.owtf_process import OWTFProcess
+from owtf.managers.target import get_all_in_scope, get_indexed_targets, target_manager
+from owtf.managers.transaction import log_transactions_from_logger
+from owtf.proxy.cache_handler import request_from_cache, response_from_cache
+from owtf.settings import INBOUND_PROXY_CACHE_DIR
+from owtf.utils.timer import Timer
+
 try: #PY3
     from urllib.parse import urlparse
 except ImportError: #PY2
     from urlparse import urlparse
 
-from owtf.proxy.cache_handler import response_from_cache, request_from_cache
-from owtf.lib.owtf_process import OWTFProcess
-from owtf.utils.timer import Timer
-from owtf.http.transaction import HTTPTransaction
-from owtf.managers.target import target_manager, get_all_in_scope, get_indexed_targets
-from owtf.managers.transaction import log_transactions_from_logger
-from owtf.settings import INBOUND_PROXY_CACHE_DIR
 
 
 class TransactionLogger(OWTFProcess):

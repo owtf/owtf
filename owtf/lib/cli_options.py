@@ -7,8 +7,8 @@ Main CLI processing machine
 
 from __future__ import print_function
 
-import sys
 import argparse
+import sys
 
 
 def usage(error_message):

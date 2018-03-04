@@ -5,7 +5,6 @@ https://www.owasp.org/index.php/Testing_for_Old,_Backup_and_Unreferenced_Files_(
 from owtf.managers.resource import get_resources
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Google Hacking for juicy files"
 
 

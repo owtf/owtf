@@ -1,11 +1,11 @@
 import codecs
-import os
-import sys
-import shutil
 import logging
+import os
+import shutil
+import sys
 import tempfile
 
-from owtf.settings import LOGS_DIR, WORKER_LOG_DIR, TARGETS_DIR, OUTPUT_PATH, OWTF_CONF
+from owtf.settings import LOGS_DIR, OUTPUT_PATH, OWTF_CONF, TARGETS_DIR, WORKER_LOG_DIR
 from owtf.utils.error import abort_framework
 from owtf.utils.strings import wipe_bad_chars
 

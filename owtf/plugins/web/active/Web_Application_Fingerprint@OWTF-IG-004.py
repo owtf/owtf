@@ -5,7 +5,6 @@ https://www.owasp.org/index.php/Testing_for_Web_Application_Fingerprint_%28OWASP
 from owtf.managers.resource import get_resources
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Active probing for fingerprint analysis"
 
 

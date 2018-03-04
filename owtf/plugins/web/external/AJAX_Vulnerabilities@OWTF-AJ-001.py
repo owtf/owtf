@@ -3,7 +3,6 @@ AJAX testing
 """
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Plugin to assist manual testing"
 
 

@@ -2,13 +2,12 @@
 SEMI-PASSIVE Plugin for Testing for Session Management Schema (OWASP-SM-001)
 https://www.owasp.org/index.php/Testing_for_Session_Management_Schema_%28OWASP-SM-001%29
 """
-from collections import defaultdict
 import json
+from collections import defaultdict
 
 from owtf.config import config_handler
 from owtf.http.requester import requester
-from owtf.managers.transaction import search_by_regex_names, get_transaction_by_id
-
+from owtf.managers.transaction import get_transaction_by_id, search_by_regex_names
 
 DESCRIPTION = "Normal requests to gather session management info"
 

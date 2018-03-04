@@ -6,11 +6,11 @@ Consists of owtf process class and its manager
 """
 
 import logging
-from multiprocessing import Process, Queue
-import signal
-import sys
 import multiprocessing
 import os
+import signal
+import sys
+from multiprocessing import Process, Queue
 
 from owtf.db.database import get_scoped_session
 from owtf.utils.logger import logger

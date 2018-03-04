@@ -1,10 +1,9 @@
 import tornado.web
 
-from owtf.filesrv.handlers import StaticFileHandler
 from owtf.api.handlers.misc import ProgressBarHandler
 from owtf.api.handlers.work import WorkerHandler
-from owtf.utils.file import get_output_dir_target, get_dir_worker_logs
-
+from owtf.filesrv.handlers import StaticFileHandler
+from owtf.utils.file import get_dir_worker_logs, get_output_dir_target
 
 HANDLERS = [
 

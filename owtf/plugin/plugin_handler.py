@@ -20,8 +20,8 @@ from owtf.config import config_handler
 from owtf.db.database import get_scoped_session
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
 from owtf.managers.config import get_tcp_ports
-from owtf.managers.plugin import get_plugins_by_group, get_types_for_plugin_group, get_plugins_by_group_type
-from owtf.managers.poutput import save_plugin_output, save_partial_output
+from owtf.managers.plugin import get_plugins_by_group, get_plugins_by_group_type, get_types_for_plugin_group
+from owtf.managers.poutput import save_partial_output, save_plugin_output
 from owtf.managers.target import target_manager
 from owtf.managers.transaction import num_transactions
 from owtf.plugin.scanner import Scanner

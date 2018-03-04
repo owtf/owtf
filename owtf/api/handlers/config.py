@@ -26,4 +26,3 @@ class ConfigurationHandler(APIRequestHandler):
                 update_config_val(self.session, key, value_list[0])
             except exceptions.InvalidConfigurationReference:
                 raise tornado.web.HTTPError(400)
-

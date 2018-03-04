@@ -6,10 +6,10 @@ Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a
 """
 
 import datetime
-import pycurl
 import socket
 import ssl
 
+import pycurl
 import tornado.curl_httpclient
 import tornado.escape
 import tornado.gen

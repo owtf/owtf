@@ -18,4 +18,3 @@ class Plugin(object):
     @abstractmethod
     def run(self):
         pass
-

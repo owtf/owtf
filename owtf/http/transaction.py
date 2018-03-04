@@ -12,15 +12,16 @@ import io
 import logging
 import zlib
 
+from cookies import Cookie, InvalidCookieError
+
+from owtf.utils.http import derive_http_method
 
 try:
     from http.client import responses as response_messages
 except ImportError:
     from httplib import responses as response_messages
 
-from cookies import Cookie, InvalidCookieError
 
-from owtf.utils.http import derive_http_method
 
 
 class HTTPTransaction(object):

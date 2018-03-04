@@ -6,21 +6,22 @@ owtf.db.target_manager
 import logging
 import os
 
+from owtf.db import models
+from owtf.db.database import get_count, get_scoped_session
+from owtf.lib.exceptions import DBIntegrityException, InvalidParameterType, \
+    InvalidTargetReference, UnresolvableTargetException
+from owtf.managers.session import add_target_to_session, session_required
 from owtf.plugin.plugin_params import plugin_params
+from owtf.settings import OUTPUT_PATH
+from owtf.utils.file import cleanup_target_dirs, create_output_dir_target, get_target_dir
+from owtf.utils.ip import get_ip_from_hostname, get_ips_from_hostname
+from owtf.utils.strings import str2bool
+
 try:
     from urllib.parse import urlparse
 except ImportError:
     from urlparse import urlparse
 
-from owtf.db.database import get_count, get_scoped_session
-from owtf.settings import OUTPUT_PATH
-from owtf.utils.file import create_output_dir_target, get_target_dir, cleanup_target_dirs
-from owtf.utils.strings import  str2bool
-from owtf.lib.exceptions import DBIntegrityException, InvalidTargetReference, InvalidParameterType, \
-    UnresolvableTargetException
-from owtf.db import models
-from owtf.managers.session import session_required, add_target_to_session
-from owtf.utils.ip import get_ip_from_hostname, get_ips_from_hostname
 
 
 TARGET_CONFIG = {

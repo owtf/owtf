@@ -9,7 +9,7 @@ This is the OWTF SMTP handler, to simplify sending emails.
 import logging
 import os
 import smtplib
-from email import MIMEMultipart, MIMEBase, MIMEText, Encoders
+from email import Encoders, MIMEBase, MIMEMultipart, MIMEText
 
 from owtf.managers.error import add_error
 from owtf.utils.file import FileOperations, get_file_as_list

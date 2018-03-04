@@ -7,7 +7,6 @@ from collections import defaultdict
 
 from owtf.settings import REPLACEMENT_DELIMITER
 
-
 search_regex = re.compile('%s([a-zA-Z0-9-_]*?)%s' % (REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER))
 
 

@@ -12,7 +12,6 @@ import subprocess
 import sys
 import time
 
-
 if subprocess.mswindows:
     from win32file import ReadFile, WriteFile
     from win32pipe import PeekNamedPipe

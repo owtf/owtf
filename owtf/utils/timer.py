@@ -7,8 +7,8 @@ certain actions to execute and present this information in both seconds and
 human-readable form.
 """
 
-import math
 import datetime
+import math
 
 from owtf.settings import DATE_TIME_FORMAT
 

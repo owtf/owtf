@@ -5,7 +5,6 @@ NOTE: GREP plugins do NOT send traffic to the target and only grep the HTTP Tran
 """
 import logging
 
-
 DESCRIPTION = "Searches transaction DB for credentials protections"
 
 def run(PluginInfo):

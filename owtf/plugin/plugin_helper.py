@@ -21,14 +21,13 @@ from owtf.http.requester import requester
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
 from owtf.managers.config import config_handler
 from owtf.managers.target import target_manager
-from owtf.managers.url import import_urls, get_urls_to_visit, add_url
+from owtf.managers.url import add_url, get_urls_to_visit, import_urls
 from owtf.plugin.plugin_handler import plugin_handler
 from owtf.shell.blocking_shell import shell
 from owtf.utils.file import FileOperations
 from owtf.utils.logger import logger
 from owtf.utils.strings import multi_replace
 from owtf.utils.timer import timer
-
 
 PLUGIN_OUTPUT = {"type": None, "output": None}  # This will be json encoded and stored in db as string
 

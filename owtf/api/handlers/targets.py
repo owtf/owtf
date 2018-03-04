@@ -13,8 +13,8 @@ import tornado.web
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.lib.exceptions import InvalidTargetReference
-from owtf.managers.target import get_target_config_by_id, get_target_config_dicts, add_targets, update_target, \
-    delete_target, search_target_configs, get_targets_by_severity_count
+from owtf.managers.target import add_targets, delete_target, get_target_config_by_id, \
+    get_target_config_dicts, get_targets_by_severity_count, search_target_configs, update_target
 
 
 class TargetConfigHandler(APIRequestHandler):

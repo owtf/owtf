@@ -6,8 +6,8 @@ This files actually converts target urls & OSVDB codes into clickable links
 
 import re
 import sys
-import tornado.template
 
+import tornado.template
 
 if len(sys.argv) < 3:
     print "Usage: %s <nikto.txt file> <top_url>" % sys.argv[0]

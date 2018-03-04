@@ -3,8 +3,6 @@ from functools import wraps
 
 import jsonschema
 import tornado.gen
-
-
 try:
     from tornado.concurrent import is_future
 except ImportError:
@@ -12,8 +10,8 @@ except ImportError:
     from tornado.concurrent import Future
     is_future = lambda x: isinstance(x, Future)
 
-from owtf.utils.http import container, deep_update
 from owtf.lib.exceptions import APIError
+from owtf.utils.http import container, deep_update
 
 
 class NoObjectDefaults(Exception):

@@ -11,16 +11,16 @@ import logging
 import re
 
 from hrt.interface import HttpRequestTranslator
-from sqlalchemy import desc, asc
+from sqlalchemy import asc, desc
 
 from owtf.config import config_handler
 from owtf.db import models
 from owtf.db.database import get_count, get_scoped_session
 from owtf.http import transaction
-from owtf.lib.exceptions import InvalidTransactionReference, InvalidParameterType
+from owtf.lib.exceptions import InvalidParameterType, InvalidTransactionReference
 from owtf.managers.target import target_required
 from owtf.managers.url import import_processed_url
-from owtf.utils.strings import str2bool, get_header_list
+from owtf.utils.strings import get_header_list, str2bool
 
 
 @target_required

@@ -1,8 +1,7 @@
-import socket
 import logging
+import socket
 
 from ipaddr import IPAddress
-
 from owtf.config import config_handler
 from owtf.lib.exceptions import UnresolvableTargetException
 

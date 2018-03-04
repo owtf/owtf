@@ -5,7 +5,6 @@ from owtf.managers.resource import get_resources
 from owtf.managers.target import target_manager
 from owtf.plugin.plugin_helper import plugin_helper
 
-
 DESCRIPTION = "Active probing for HTTP methods"
 
 

@@ -2,3 +2,6 @@ dictionaries/* linguist-vendored
 includes/css/* linguist-vendored
 includes/js/* linguist-vendored
 includes/img/* linguist-vendored
+
+# Git merge behaviour
+CHANGES merge=union

@@ -27,10 +27,10 @@ Modifications in this version:
 # original version from http://www.evanfosmark.com/2009/01/cross-platform-file-locking-support-in-python/
 """
 
+import errno
 import os
 import sys
 import time
-import errno
 
 
 class FileLock(object):

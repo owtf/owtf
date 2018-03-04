@@ -2,7 +2,6 @@ from owtf.config import config_handler
 from owtf.plugin.plugin_helper import plugin_helper
 from owtf.plugin.plugin_params import plugin_params
 
-
 DESCRIPTION = "Denial of Service (DoS) Launcher -i.e. for IDS/DoS testing-"
 CATEGORIES = ['HTTP_WIN', 'HTTP', 'DHCP', 'NTFS', 'HP', 'MDNS', 'PPTP', 'SAMBA', 'SCADA', 'SMTP', 'SOLARIS', 'SSL',
               'SYSLOG', 'TCP', 'WIFI', 'WIN_APPIAN', 'WIN_BROWSER', 'WIN_FTP', 'KAILLERA', 'WIN_LLMNR', 'WIN_NAT',

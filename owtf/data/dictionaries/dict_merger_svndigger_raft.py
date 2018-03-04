@@ -2,10 +2,9 @@
 """
 2013/05/08 - Bharadwaj Machiraju (@tunnelshade) - Initial merge script creation
 """
+import codecs
 import os
 import urllib
-import codecs
-
 
 # Order of the files in the list is important
 raft_lowercase = [
