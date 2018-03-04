@@ -75,6 +75,14 @@ check_sudo() {
     return $sudo
 }
 
+check_root() {
+	if [ $EUID -eq 0 ]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
 install_in_dir() {
     tmp=$PWD
     if [ $(create_directory $1) ]; then
@@ -137,8 +145,8 @@ proxy_setup() {
 
 # Check if postgresql service is running or not
 postgresql_check_running_status() {
-    psql postgres -c "SELECT 1;" &> /dev/null
-    if [ $? -ne 0 ]; then
+    postgres_ip_status=$(get_postgres_server_ip)
+    if [ -z "$postgres_ip_status" ]; then
         echo "${info}[+] PostgreSQL server is not running.${reset}"
         echo "${info}[+] Can I start db server for you? [Y/n]${reset}"
         read choice
@@ -149,18 +157,18 @@ postgresql_check_running_status() {
             systemctl_bin=$?
             if [ $service_bin -eq 0 ]; then
                 sudo service postgresql start
-                sudo service postgresql status | grep -q "online"
+                sudo service postgresql status | grep -q "Active: active"
                 status_exitcode=$?
             elif [ $systemctl_bin -eq 0 ]; then
                 sudo systemctl start postgresql
-                sudo systemctl status postgresql | grep -q "online"
+                sudo systemctl status postgresql | grep -q "Active: active"
                 status_exitcode=$?
             else
                 echo "${info}[+] Using pg_ctlcluster to start the server.${reset}"
                 sudo pg_ctlcluster ${postgres_version} main start
                 status_exitcode=$?
                 if [ $status_exitcode -ne 0 ]; then
-                    echo "${info}[+] We couldn't determine how to start the postgres server, please start it and rerun this script${reset}"
+                    echo "${info}[+] We couldn't determine how to start the postgres automatically, please start the server manually.${reset}"
                     exit 1
                 fi
             fi
@@ -171,9 +179,9 @@ postgresql_check_running_status() {
             fi
         else
             echo "${info}[+] On DEBIAN based distro [i.e Kali, Ubuntu etc..]${reset}"
-            echo "${info}          sudo service postgresql start${reset}"
+            echo "${info}    sudo service postgresql start${reset}"
             echo "${info}[+] On RPM based distro [i.e Fedora etc..]${reset}"
-            echo "${info}          sudo systemctl start postgresql${reset}"
+            echo "${info}    sudo systemctl start postgresql${reset}"
             exit 1
         fi
     else
@@ -183,7 +191,11 @@ postgresql_check_running_status() {
 
 # returns postgresql service IP
 get_postgres_server_ip() {
-    echo "$(sudo netstat -lptn | grep "^tcp " | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f1)"
+    if [ "$(uname)" == "Darwin" ]; then
+        echo "$(lsof -i -n -P | grep TCP | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f1 | uniq)"
+    else
+        echo "$(sudo netstat -lptn | grep "^tcp " | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f1)"
+    fi
 }
 
 # return postgresql service Port
@@ -192,31 +204,62 @@ get_postgres_server_port() {
 }
 
 postgresql_create_user() {
-    psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass';" &> /dev/null
+    psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass';"
+    ret=$?
+    if [ $ret -eq 2 ]; then
+        sudo su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""
+    fi
 }
 
 postgres_alter_user_password() {
-    psql postgres -tc "ALTER USER $db_user WITH PASSWORD '$db_pass';" &> /dev/null
+    psql postgres -tc "ALTER USER $db_user WITH PASSWORD '$db_pass';"
+    ret=$?
+    if [ $ret -eq 2 ]; then
+        sudo su postgres -c "psql postgres -tc \"ALTER USER $db_user WITH PASSWORD '$db_pass'\""
+    fi
 }
 
 postgresql_create_db() {
-    psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;" &> /dev/null
+    psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"
+    ret=$?
+    if [ $ret -eq 2 ]; then
+        sudo su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""
+    fi
 }
 
 postgresql_check_user() {
-    psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$db_user';" &> /dev/null
+    cmd="$(psql -l | grep -w $db_name | grep -w $db_user | wc -l | xargs)"
+    if [ "$cmd" != "0" ]; then
+        return 1
+    else
+        return 0
+    fi
 }
 
 postgresql_drop_user() {
-    psql postgres -c "DROP USER $db_user" &> /dev/null
+    psql postgres -c "DROP USER $db_user"
+    ret=$?
+    if [ $ret -eq 2 ]; then
+        sudo su postgres -c "psql -c \"DROP USER $db_user\""
+    fi
 }
 
 postgresql_drop_db() {
-    psql postgres -c "DROP DATABASE $db_name" &> /dev/null
+    psql postgres -c "DROP DATABASE $db_name"
+    ret=$?
+    if [ $ret -eq 2 ]; then
+        sudo su postgres -c "psql -c \"DROP DATABASE $db_name\""
+    fi
 }
 
 postgresql_check_db() {
-    psql -l | grep -w $db_name | grep -qw $db_user
+    cmd="$(psql -l | grep -w $db_name | wc -l | xargs)"
+
+    if [ "$cmd" != "0" ]; then
+        return 1
+    else
+        return 0
+    fi
 }
 
 write_db_settings() {
@@ -242,7 +285,7 @@ db_setup() {
         # postgres server is running perfectly fine begin with db_setup.
         if [ "$action" = "init" ]; then
             # Create a user $db_user if it does not exist
-            if postgresql_check_user; then
+            if [ postgresql_check_user == 1 ]; then
                 echo "${info}[+] User $db_user already exist.${reset}"
                 # User $db_user already exist in postgres database change the password
                 postgres_alter_user_password
@@ -251,7 +294,7 @@ db_setup() {
                 postgresql_create_user
             fi
             # Create database $db_name if it does not exist.
-            if postgresql_check_db; then
+            if [ postgresql_check_db == 1 ]; then
                 echo "${info}[+] Database $db_name already exist.${reset}"
             else
                 # Either database does not exists or the owner of database is not $db_user
