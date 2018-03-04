@@ -71,12 +71,8 @@ create_directory() {
 }
 
 check_sudo() {
-    if [[ $EUID -eq 0 ]]; then
-        # User has administrative privileges.
-        return 1
-    else
-        return 0
-    fi
+    timeout 2 sudo id && sudo=1 || sudo=0
+    return $sudo
 }
 
 install_in_dir() {
