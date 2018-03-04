@@ -41,6 +41,7 @@ Recommended:
 
     Using a virtualenv is highly recommended!
 
+``pip install owtf`` or
 ``pip install git+https://github.com/owtf/owtf#egg=owtf`` or clone the
 repo and ``python setup.py install``.
 

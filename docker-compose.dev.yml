@@ -3,7 +3,7 @@ services:
   owtf:
     restart: always
     build: .
-    command: owtf-cli
+    command: owtf
     environment:
       - DOCKER=True
       - POSTGRES_USER=owtf_db_user
@@ -17,6 +17,8 @@ services:
       - 8009:8009
     depends_on:
       - db
+    volumes:
+      - .:/owtf
   db:
     image: postgres:alpine
     ports:
