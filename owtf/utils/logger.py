@@ -16,9 +16,9 @@ class OWTFLogger(object):
 
          . note::
 
-        + process_name <-- can be specified in kwargs
-        + Must be called from inside the process because we are kind of
-          overriding the root logger
+            + process_name <-- can be specified in kwargs
+            + Must be called from inside the process because we are kind of
+              overriding the root logger
 
         :param kwargs: Additional arguments to the logger
         :type kwargs: `dict`

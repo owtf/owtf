@@ -115,6 +115,7 @@ def get_resources_from_file(resource_file):
 def load_resources_from_file(session, default, fallback):
     """Parses the resources config file and loads data into the DB
     .note::
+
         This needs to be a list instead of a dictionary to preserve order in python < 2.7
 
     :param file_path: Path to the resources config file

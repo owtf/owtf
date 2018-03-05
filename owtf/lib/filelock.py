@@ -7,6 +7,7 @@ This is a modified version of code retrieved on 2013-01-01 from
 http://www.evanfosmark.com/2009/01/cross-platform-file-locking-support-in-python.
 The original code was released under the BSD License, as is this modified version.
 Modifications in this version:
+
  - Tweak docstrings for sphinx.
  - Accept an absolute path for the protected file (instead of a file name relative to cwd).
  - Allow timeout to be None.

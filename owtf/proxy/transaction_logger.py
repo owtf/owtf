@@ -27,8 +27,8 @@ except ImportError: #PY2
 class TransactionLogger(OWTFProcess):
     """
     This transaction logging process is started seperately from tornado proxy
-    This logger checks for *.rd files in cache_dir and saves it as owtf db
-    transaction, *.rd files serve as a message that the file corresponding
+    This logger checks for \*.rd files in cache_dir and saves it as owtf db
+    transaction, \*.rd files serve as a message that the file corresponding
     to the hash is ready to be converted.
     """
 

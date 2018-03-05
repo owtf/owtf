@@ -29,9 +29,6 @@ try:
 except ImportError:
     import Queue as queue
 
-
-
-
 # For psutil
 TIMEOUT = 3
 
@@ -355,9 +352,10 @@ class WorkerManager(object):
     def delete_worker(self, pseudo_index):
         """
         This actually deletes the worker :
-        + Send SIGINT to the worker
-        + Remove it from self.workers so that is is not restarted by
-          manager cron
+
+            + Send SIGINT to the worker
+            + Remove it from self.workers so that is is not restarted by
+              manager cron
         """
         worker_dict = self.get_worker_dict(pseudo_index)
         if not worker_dict["busy"]:
