@@ -9,7 +9,8 @@ This is the OWTF SMTP handler, to simplify sending emails.
 import logging
 import os
 import smtplib
-from email import Encoders, MIMEBase, MIMEMultipart, MIMEText
+from email.mime import base, multipart, text as mimetext
+from email import encoders
 
 from owtf.managers.error import add_error
 from owtf.utils.file import FileOperations, get_file_as_list
@@ -31,7 +32,7 @@ class SMTP(object):
             mail_server = self.create_connection_with_mail_server(options)
             mail_server.ehlo()
         except Exception:
-            pprint("Error connecting to %s on port %s" % (options['SMTP_HOST'], options['SMTP_PORT']))
+            self.pprint("Error connecting to %s on port %s" % (options['SMTP_HOST'], options['SMTP_PORT']))
             return None
         try:
             mail_server.starttls()  # Give start TLS a shot
@@ -77,7 +78,7 @@ class SMTP(object):
         return num_errors == 0
 
     def build_message(self, options, target):
-        message = MIMEMultipart.MIMEMultipart()
+        message = multipart.MIMEMultipart()
         for name, value in list(options.items()):
             if name == 'EMAIL_BODY':
                 self.add_body(message, value)
@@ -105,14 +106,14 @@ class SMTP(object):
             body = FileOperations.open(text).read().strip()
         else:
             body = text
-        message.attach(MIMEText.MIMEText(body, message))
+        message.attach(mimetext.MIMEText(body, message))
 
     def add_attachment(self, message, attachment):
         if not attachment:
             return False
-        binary_blob = MIMEBase.MIMEBase('application', 'octet-stream')
+        binary_blob = base.MIMEBase('application', 'octet-stream')
         binary_blob.set_payload(FileOperations.open(attachment, 'rb').read())
-        Encoders.encode_base64(binary_blob)  # base64 encode the Binary Blob.
+        encoders.encode_base64(binary_blob)  # base64 encode the Binary Blob.
         # Binary Blob headers.
         binary_blob.add_header('Content-Disposition', 'attachment; filename="{}"'.format(os.path.basename(attachment)))
         message.attach(binary_blob)

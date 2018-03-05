@@ -12,7 +12,8 @@ import subprocess
 import sys
 import time
 
-if subprocess.mswindows:
+
+if hasattr(subprocess, 'mswindows'):
     from win32file import ReadFile, WriteFile
     from win32pipe import PeekNamedPipe
     import msvcrt
@@ -53,7 +54,7 @@ class AsyncPopen(subprocess.Popen):
         getattr(self, which).close()
         setattr(self, which, None)
 
-    if subprocess.mswindows:
+    if hasattr(subprocess, 'mswindows'):
         def send(self, input):
             if not self.stdin:
                 return None

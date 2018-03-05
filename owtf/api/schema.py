@@ -86,14 +86,19 @@ def validate(input_schema=None, output_schema=None,
     :type validator_cls: IValidator class
     :type format_checker: jsonschema.FormatChecker or None
     :type on_empty_404: bool
-    :param on_empty_404: If this is set, and the result from the
+    :param on_empty_404: If this is set, and the result from the \
         decorated method is a false value, a 404 will be raised.
     :type use_defaults: bool
     :param use_defaults: If this is set, will put 'default' keys
         from schema to self.body (If schema type is object). Example:
+
+        .. highlight:: python
+        .. code-block:: python
+
             {
                 'published': {'type': 'bool', 'default': False}
             }
+
         self.body will contains 'published' key with value False if no one
         comes from request, also works with nested schemas.
     """
