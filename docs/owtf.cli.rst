@@ -1,22 +1,23 @@
-owtf.install package
-====================
+owtf.cli package
+================
 
 Submodules
 ----------
 
-owtf.install.install module
----------------------------
+owtf.cli.main module
+--------------------
 
-.. automodule:: owtf.install.install
+.. automodule:: owtf.cli.main
     :members:
     :undoc-members:
     :show-inheritance:
 
 
+
 Module contents
 ---------------
 
-.. automodule:: owtf.install
+.. automodule:: owtf.cli
     :members:
     :undoc-members:
     :show-inheritance:

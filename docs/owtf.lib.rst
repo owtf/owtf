@@ -28,22 +28,6 @@ owtf.lib.filelock module
     :undoc-members:
     :show-inheritance:
 
-owtf.lib.formatters module
---------------------------
-
-.. automodule:: owtf.lib.formatters
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-owtf.lib.general module
------------------------
-
-.. automodule:: owtf.lib.general
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 owtf.lib.owtf_process module
 ----------------------------
 
