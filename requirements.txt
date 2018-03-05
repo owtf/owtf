@@ -7,6 +7,7 @@ cffi==1.10.0
 cookies==2.2.1
 dnspython==1.15.0
 hrt==0.1.0
+jsonschema==2.6.0
 # Here till they upload a Python3 compatible version of the library
 -e git+https://github.com/google/ipaddr-py#egg=ipaddr
 Markdown==2.6.9
