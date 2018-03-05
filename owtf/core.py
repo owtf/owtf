@@ -19,7 +19,7 @@ from owtf.config import config_handler
 from owtf.filesrv.main import start_file_server
 from owtf.lib import exceptions
 from owtf.lib.cli_options import parse_options, usage
-from owtf.managers.config import load_config_db_file, load_framework_config_file
+from owtf.managers.config import load_framework_configs, load_general_configs_to_db
 from owtf.managers.mapping import load_mappings_from_file
 from owtf.managers.plugin import get_all_plugin_groups, get_all_plugin_types, \
     get_groups_for_plugins, get_types_for_plugin_group, load_plugins, load_test_groups
@@ -264,8 +264,8 @@ def main(args):
 
     try:
         _ensure_default_session(db)
-        load_framework_config_file(DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid)
-        load_config_db_file(db, DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE)
+        load_framework_configs(DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid)
+        load_general_configs_to_db(db, DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE)
         load_resources_from_file(db, DEFAULT_RESOURCES_PROFILE, FALLBACK_RESOURCES_PROFILE)
         load_mappings_from_file(db, DEFAULT_MAPPING_PROFILE, FALLBACK_MAPPING_PROFILE)
         load_test_groups(db, WEB_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, "web")

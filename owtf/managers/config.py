@@ -5,6 +5,7 @@ owtf.managers.config_manager
 """
 import logging
 import os
+import yaml
 
 from owtf.config import config_handler
 from owtf.db import models
@@ -12,66 +13,86 @@ from owtf.lib.exceptions import InvalidConfigurationReference
 from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 from owtf.utils.strings import multi_replace, str2bool
-
-try:
-    import configparser as parser
-except ImportError:
-    import ConfigParser as parser
+from owtf.utils.pycompat import get_dict_iter_items
 
 
-
-def load_config_db_file(session, default, fallback):
-    """Load Db config from file
+def load_config_file(file_path, fallback_file_path):
+    """Load YAML format configuration file
 
     :param file_path: The path to config file
     :type file_path: `str`
+    :param fallback_file_path: The fallback path to config file
+    :type fallback_file_path: `str`
+    :return: config_map
+    :rtype: dict
+    """
+    file_path = file_path if not os.path.isfile(file_path) else fallback_file_path
+    logging.info("Loading Configuration from: %s.." % file_path)
+    if not os.path.isfile(file_path):
+        # check if the config file exists
+        abort_framework("Config file not found at: %s" % file_path)
+    try:
+        config_map = yaml.load(FileOperations.open(file_path, 'r'))
+        return config_map
+    except yaml.YAMLError:
+        abort_framework("Error parsing config file at: %s" % file_path)
+
+
+def load_general_configs_to_db(session, default, fallback):
+    """Load Db config from file
+
+    :param session: SQLAlchemy database session
+    :type session: `str`
+    :param default: The fallback path to config file
+    :type default: `str`
+    :param fallback: The path to config file
+    :type fallback: `str`
     :return: None
     :rtype: None
     """
-    file_path = default
-    if not os.path.isfile(file_path):
-        file_path = fallback
-    logging.info("Loading general configuration from: %s..", file_path)
-    config_parser = parser.RawConfigParser()
-    config_parser.optionxform = str  # Otherwise all the keys are converted to lowercase xD
-    if not os.path.isfile(file_path):  # check if the config file exists
-        abort_framework("Config file not found at: %s" % file_path)
-    config_parser.read(file_path)
-    for section in config_parser.sections():
-        for key, value in config_parser.items(section):
-            old_config_obj = session.query(models.ConfigSetting).get(key)
-            if not old_config_obj or not old_config_obj.dirty:
-                if not key.endswith("_DESCRIP"):  # _DESCRIP are help values
-                    config_obj = models.ConfigSetting(key=key, value=value, section=section)
-                    # If _DESCRIP at the end, then use it as help text
-                    if config_parser.has_option(section, "%s_DESCRIP" % key):
-                        config_obj.descrip = config_parser.get(section, "%s_DESCRIP" % key)
+    config_dump = load_config_file(default, fallback)
+    for section, config_list in get_dict_iter_items(config_dump):
+        for config_map in config_list:
+            # Check if ``config`` and ``value`` attribute exists
+            if hasattr(config_map, "config") and hasattr(config_map, "value"):
+                old_config_obj = session.query(models.ConfigSetting).get()
+                if not old_config_obj or not old_config_obj.dirty:
+                    config_obj = models.ConfigSetting(
+                        key=config_map["config"],
+                        value=config_map["value"],
+                        section=section)
+                    if hasattr(config_map, "description"):
+                        config_obj.descrip = config_map["description"]
                     session.merge(config_obj)
     session.commit()
 
 
-def load_framework_config_file(default, fallback, root_dir, owtf_pid):
-    """Load the configuration into a global dictionary.
-    :param config_path: The configuration file path
-    :type config_path: `str`
+def load_framework_configs(default, fallback, root_dir, owtf_pid):
+    """Load framework configuration into a global dictionary.
+
+    :param default: The path to config file
+    :type default: `str`
+    :param fallback: The fallback path to config file
+    :type fallback: `str`
+    :param fallback: OWTF root directory
+    :type fallback: `str`
+    :param fallback: PID of running program
+    :type fallback: `int`
     :return: None
     :rtype: None
     """
-    config_path = default
-    if not os.path.isfile(config_path):
-        config_path = fallback
-    logging.info("Loading framework configuration from: {}..".format(config_path))
-    config_file = FileOperations.open(config_path, 'r')
+    config_dump = load_config_file(default, fallback)
     config_handler.set_val('FRAMEWORK_DIR', root_dir)  # Needed Later.
-    for line in config_file:
-        try:
-            key = line.split(':')[0]
-            if key[0] == '#':  # Ignore comment lines.
-                continue
-            value = line.replace("{}: ".format(key), "").strip()
-            config_handler.set_val(key, multi_replace(value, {'FRAMEWORK_DIR': root_dir, 'OWTF_PID': str(owtf_pid)}))
-        except ValueError:
-            abort_framework("Problem in config file: {} -> Cannot parse line: {}".format(config_path, line))
+    for section, config_list in get_dict_iter_items(config_dump):
+        for config_map in config_list:
+            if hasattr(config_map, "config") and hasattr(config_map, "value"):
+                config_handler.set_val(
+                    config_map["config"],
+                    multi_replace(config_map["value"], {
+                        'FRAMEWORK_DIR': root_dir,
+                        'OWTF_PID': str(owtf_pid)
+                    })
+                )
 
 
 def get_config_val(session, key):

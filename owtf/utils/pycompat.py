@@ -20,3 +20,10 @@ else:
 
     def u(s):
         return unicode(s)
+
+
+def get_dict_iter_items(dictionary):
+    if not PY2:
+        return dictionary.items()
+    else:
+        return dictionary.iteritems()

@@ -18,8 +18,6 @@ try:
 except ImportError:
     import ConfigParser as parser
 
-
-
 mapping_types = []
 
 
