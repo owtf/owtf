@@ -31,18 +31,20 @@ def load_config_file(file_path, fallback_file_path):
     if not os.path.isfile(file_path):
         # check if the config file exists
         abort_framework("Config file not found at: %s" % file_path)
-    try:
-        config_map = yaml.load(FileOperations.open(file_path, 'r'))
-        return config_map
-    except yaml.YAMLError:
-        abort_framework("Error parsing config file at: %s" % file_path)
+    # try:
+    #     config_map = yaml.load(FileOperations.open(file_path, 'r'))
+    #     return config_map
+    # except yaml.YAMLError:
+    #     abort_framework("Error parsing config file at: %s" % file_path)
+    config_map = yaml.safe_load(FileOperations.open(file_path, 'r'))
+    return config_map
 
 
 def load_general_configs_to_db(session, default, fallback):
     """Load Db config from file
 
     :param session: SQLAlchemy database session
-    :type session: `str`
+    :type session: `object`
     :param default: The fallback path to config file
     :type default: `str`
     :param fallback: The path to config file
