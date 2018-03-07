@@ -38,11 +38,6 @@ from owtf.utils.process import kill_children
 owtf_pid = None
 
 
-def banner():
-    """Prints a figlet type banner"""
-
-
-
 def get_plugins_from_arg(arg):
     """ Returns a list of requested plugins and plugin groups
 
@@ -255,7 +250,6 @@ def main(args):
     :return:
     :rtype: None
     """
-    banner()
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
     owtf_pid = os.getpid()
