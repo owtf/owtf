@@ -7,7 +7,7 @@ from owtf.utils.file import FileOperations, get_logs_dir
 from .db.database import get_scoped_session
 
 
-__version__ = '2.3b'
+__version__ = '2.3.2'
 __release__ = 'MacOWTF'
 
 print("""\033[92m
