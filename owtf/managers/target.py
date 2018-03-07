@@ -1,6 +1,6 @@
 """
-owtf.db.target_manager
-~~~~~~~~~~~~~~~~~~~~~~
+owtf.managers.target
+~~~~~~~~~~~~~~~~~~~~
 
 """
 import logging

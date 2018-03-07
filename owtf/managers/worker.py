@@ -1,6 +1,6 @@
 """
-owtf.db.worker_manager
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+owtf.managers.worker
+~~~~~~~~~~~~~~~~~~~~
 
 """
 

@@ -1,7 +1,6 @@
 """
-owtf.db.poutput_manager
-~~~~~~~~~~~~~~~~~~~~~~~
-
+owtf.managers.poutput
+~~~~~~~~~~~~~~~~~~~~~
 """
 
 import json

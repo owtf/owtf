@@ -1,5 +1,6 @@
 """
-owtf.cli
+owtf.core
+~~~~~~~~~
 
 This is the command-line front-end in charge of processing arguments and call the framework.
 """

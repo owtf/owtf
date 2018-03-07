@@ -1,3 +1,8 @@
+"""
+owtf.filesrv.handlers
+~~~~~~~~~~~~~~~~~~~~~
+"""
+
 import datetime
 import email.utils
 import hashlib

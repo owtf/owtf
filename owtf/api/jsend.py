@@ -1,3 +1,11 @@
+"""
+owtf.jsend
+~~~~~~~~~~
+
+Module specifying jsend specification that lays down some rules
+for how JSON responses from web servers should be formatted.
+"""
+
 import tornado.web
 
 

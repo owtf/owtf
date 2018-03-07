@@ -1,6 +1,6 @@
 """
-owtf.http.proxy.cache_handler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+owtf.proxy.cache_handler
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013
 """
@@ -169,8 +169,8 @@ def response_from_cache(file_path):
 
     :param file_path: The file path for the cache file
     :type file_path: `str`
-    :return: 
-    :rtype: 
+    :return:
+    :rtype:
     """
     dummy_response = DummyObject()
     cache_dict = json.loads(open(file_path, 'r').read())
@@ -191,11 +191,11 @@ def response_from_cache(file_path):
 
 def request_from_cache(file_path):
     """A fake request object is created with necessary attributes
-    
+
     :param file_path: The file path for the cache file
     :type file_path: `str`
-    :return: 
-    :rtype: 
+    :return:
+    :rtype:
     """
     dummy_request = DummyObject()
     cache_dict = json.loads(open(file_path, 'r').read())

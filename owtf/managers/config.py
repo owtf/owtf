@@ -1,6 +1,6 @@
 """
-owtf.db.config_manager
-~~~~~~~~~~~~~~~~~~~~~~
+owtf.managers.config_manager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
 import logging

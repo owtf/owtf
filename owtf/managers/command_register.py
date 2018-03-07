@@ -1,6 +1,6 @@
 """
-owtf.db.command_register
-~~~~~~~~~~~~~~~~~~~~~~~~
+owtf.managers.command_register
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Component to handle data storage and search of all commands run
 """

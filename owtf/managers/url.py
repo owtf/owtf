@@ -1,6 +1,6 @@
 """
-owtf.db.url_manager
-~~~~~~~~~~~~~~~~~~~
+owtf.managers.url
+~~~~~~~~~~~~~~~~~
 
 The DB stores HTTP transactions, unique URLs and more.
 """

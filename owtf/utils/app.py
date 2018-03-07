@@ -1,3 +1,8 @@
+"""
+owtf.utils.app
+~~~~~~~~~~~~~~
+"""
+
 import tornado.web
 
 from owtf.db.database import Session, get_db_engine

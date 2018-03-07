@@ -1,5 +1,6 @@
 """
-owtf.db.session_manager
+owtf.managers.session
+~~~~~~~~~~~~~~~~~~~~~
 
 Manager functions for sessions
 """

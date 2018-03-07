@@ -1,6 +1,6 @@
 """
-owtf.config.config
-~~~~~~~~~~~~~~~~~~
+owtf.config
+~~~~~~~~~~~
 
 The Configuration object parses all configuration files, loads them into
 memory, derives some settings and provides framework modules with a central

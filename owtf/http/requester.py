@@ -35,7 +35,7 @@ except ImportError:
     from urlparse import urlparse
     from urllib import urlencode
     from urllib2 import urlopen, Request, HTTPError, HTTPHandler, HTTPSHandler, HTTPRedirectHandler, ProxyHandler, \
-                        build_opener, install_opener, URLError
+        build_opener, install_opener, URLError
 
 
 

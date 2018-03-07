@@ -1,6 +1,6 @@
 """
-owtf.lib.formatters
-~~~~~~~~~~~~~~~~~~~
+owtf.utils.formatters
+~~~~~~~~~~~~~~~~~~~~~
 
 CLI string formatting
 """

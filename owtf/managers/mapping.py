@@ -1,6 +1,6 @@
 """
-owtf.db.mapping_manager
-~~~~~~~~~~~~~~~~~~~~~~~
+owtf.managers.mapping
+~~~~~~~~~~~~~~~~~~~~~
 
 Manages the mapping between different plugin groups and codes
 """

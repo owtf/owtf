@@ -1,6 +1,6 @@
 """
-owtf.timer
-~~~~~~~~~~
+owtf.utils.timer
+~~~~~~~~~~~~~~~~
 
 The time module allows the rest of the framework to time how long it takes for
 certain actions to execute and present this information in both seconds and
