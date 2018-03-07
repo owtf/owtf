@@ -20,14 +20,6 @@ owtf.managers.config module
     :undoc-members:
     :show-inheritance:
 
-owtf.managers.debug module
---------------------------
-
-.. automodule:: owtf.managers.debug
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 owtf.managers.error module
 --------------------------
 

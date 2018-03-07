@@ -12,6 +12,14 @@ owtf.api.handlers.auth module
     :undoc-members:
     :show-inheritance:
 
+owtf.api.handlers.base module
+-----------------------------
+
+.. automodule:: owtf.api.handlers.base
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 owtf.api.handlers.config module
 -------------------------------
 

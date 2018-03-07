@@ -1,6 +1,6 @@
 """
-owtf.plugin.plugin_params.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+owtf.plugin.plugin_params
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Manage parameters to the plugins
 """

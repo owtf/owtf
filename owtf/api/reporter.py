@@ -1,6 +1,6 @@
 """
-owtf.interface.reporter
-~~~~~~~~~~~~~~~~~~~~~~~
+owtf.api.reporter
+~~~~~~~~~~~~~~~~~
 
 The reporter module is in charge of producing the HTML Report as well as
 provide plugins with common HTML Rendering functions
@@ -73,9 +73,12 @@ class Reporter(object):
 
     def Tabbedresource_linklist(self, ResourcesList):
         """
-        ResourceList = [
-            "ResourceListName", [["Name1","Resource1"],["Name2","Resource2"]]
-        ]
+        .. highlight:: python
+        .. code-block:: python
+
+            ResourceList = [
+                "ResourceListName", [["Name1","Resource1"],["Name2","Resource2"]]
+            ]
         """
         TabData = []
         Resources = []

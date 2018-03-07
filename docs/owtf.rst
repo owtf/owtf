@@ -6,27 +6,26 @@ Subpackages
 
 .. toctree::
 
-    owtf.config
+    owtf.api
+    owtf.cli
     owtf.db
-    owtf.dependency_management
+    owtf.filesrv
     owtf.http
-    owtf.install
-    owtf.interface
     owtf.lib
+    owtf.managers
     owtf.plugin
     owtf.protocols
     owtf.proxy
-    owtf.selenium
     owtf.shell
-    owtf.wrappers
+    owtf.utils
 
 Submodules
 ----------
 
-owtf.cli module
----------------
+owtf.config module
+------------------
 
-.. automodule:: owtf.cli
+.. automodule:: owtf.config
     :members:
     :undoc-members:
     :show-inheritance:
@@ -47,34 +46,18 @@ owtf.core module
     :undoc-members:
     :show-inheritance:
 
-owtf.dependency_check module
-----------------------------
+owtf.error_reporting module
+---------------------------
 
-.. automodule:: owtf.dependency_check
+.. automodule:: owtf.error_reporting
     :members:
     :undoc-members:
     :show-inheritance:
 
-owtf.error_handler module
--------------------------
+owtf.settings module
+--------------------
 
-.. automodule:: owtf.error_handler
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-owtf.timer module
------------------
-
-.. automodule:: owtf.timer
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-owtf.utils module
------------------
-
-.. automodule:: owtf.utils
+.. automodule:: owtf.settings
     :members:
     :undoc-members:
     :show-inheritance:

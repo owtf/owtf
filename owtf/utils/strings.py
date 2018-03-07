@@ -1,3 +1,9 @@
+"""
+owtf.utils.strings
+~~~~~~~~~~~~~~~~~~
+
+"""
+
 import base64
 import binascii
 import logging

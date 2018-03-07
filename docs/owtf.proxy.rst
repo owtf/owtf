@@ -20,6 +20,14 @@ owtf.proxy.gen_cert module
     :undoc-members:
     :show-inheritance:
 
+owtf.proxy.main module
+----------------------
+
+.. automodule:: owtf.proxy.main
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 owtf.proxy.proxy module
 -----------------------
 

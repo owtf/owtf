@@ -1,3 +1,8 @@
+"""
+owtf.api.cli
+~~~~~~~~~~~~
+"""
+
 import tornado
 import tornado.ioloop
 

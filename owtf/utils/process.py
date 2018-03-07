@@ -1,6 +1,12 @@
-import errno
-import logging
+"""
+owtf.utils.process
+~~~~~~~~~~~~~~~~~~
+
+"""
+
 import os
+import logging
+import errno
 import signal
 
 import psutil

@@ -1,3 +1,9 @@
+"""
+owtf.utils.file
+~~~~~~~~~~~~~~~
+
+"""
+
 import codecs
 import logging
 import os

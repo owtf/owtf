@@ -1,6 +1,6 @@
 """
-owtf.http.proxy.proxy
-~~~~~~~~~~~~~~~~~~~~~
+owtf.proxy.gen_cert
+~~~~~~~~~~~~~~~~~~~
 
 Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013
 """

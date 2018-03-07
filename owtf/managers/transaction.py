@@ -1,6 +1,6 @@
 """
-owtf.db.transaction_manager
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+owtf.managers.transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The DB stores HTTP transactions, unique URLs and more.
 """
@@ -210,9 +210,9 @@ def get_transaction_model(transaction):
     """Generate object to be added to the DB
 
     :param transaction: OWTF transaction
-    :type transaction::`Class:transaction.HTTP_Transaction`
+    :type transaction: `Class:transaction.HTTP_Transaction`
     :return: Transaction object
-    :rtype::`Class:model.Transaction`
+    :rtype: `Class:model.Transaction`
     """
     response_body = None
     binary_response = None
@@ -358,7 +358,7 @@ def get_transaction_by_id(id):
     :param id: ID to fetch
     :type id: `int`
     :return: Transaction object
-    :rtype::`Class:model.Transaction`
+    :rtype: `Class:model.Transaction`
     """
     session = get_scoped_session()
     model_obj = None

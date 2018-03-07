@@ -1,3 +1,8 @@
+"""
+owtf.api.serializers
+~~~~~~~~~~~~~~~~~~~~
+"""
+
 import datetime
 import decimal
 import json
@@ -8,10 +13,11 @@ class MoreTypesJSONEncoder(json.JSONEncoder):
     """
     A JSON encoder that allows for more common Python data types.
     In addition to the defaults handled by ``json``, this also supports:
-        * ``datetime.datetime``
-        * ``datetime.date``
-        * ``datetime.time``
-        * ``decimal.Decimal``
+
+        - ``datetime.datetime``
+        - ``datetime.date``
+        - ``datetime.time``
+        - ``decimal.Decimal``
     """
     def default(self, data):
         if isinstance(data, (datetime.datetime, datetime.date, datetime.time)):

@@ -1,11 +1,17 @@
+"""
+owtf.utils.http
+~~~~~~~~~~~~~~~
+
+"""
+
 import collections
 import inspect
 import types
 from functools import wraps
 
-try: #PY3
+try:  # PY3
     from urllib.parse import urlparse
-except ImportError:  #PY2
+except ImportError:  # PY2
      from urlparse import urlparse
 
 

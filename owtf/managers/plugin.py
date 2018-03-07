@@ -1,5 +1,6 @@
 """
-owtf.db.plugin_manager
+owtf.managers.plugin
+~~~~~~~~~~~~~~~~~~~~
 
 This module manages the plugins and their dependencies
 """
@@ -82,6 +83,7 @@ def load_plugins(session):
         Walks through each sub-directory of `PLUGINS_DIR`.
         For each file, loads it thanks to the imp module.
         Updates the database with the information for each plugin:
+
             + 'title': the title of the plugin
             + 'name': the name of the plugin
             + 'code': the internal code of the plugin
