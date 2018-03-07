@@ -1,6 +1,7 @@
 """
-owtf.lib.pycompat
-~~~~~~~~~~~~~~~~~
+owtf.utils.pycompat
+~~~~~~~~~~~~~~~~~~~
+
 Helpers for compatibility between Python 2.x and 3.x.
 
 """

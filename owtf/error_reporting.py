@@ -1,3 +1,9 @@
+"""
+owtf.error_reporting
+~~~~~~~~~~~~~~~~~~~~
+
+This module set up sentry error reporting and logging.
+"""
 import logging
 import signal
 import sys

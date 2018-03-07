@@ -1,6 +1,6 @@
 """
-owtf.db.resource_manager
-~~~~~~~~~~~~~~~~~~~~~~~~
+owtf.managers.resource
+~~~~~~~~~~~~~~~~~~~~~~
 
 """
 

@@ -1,3 +1,10 @@
+"""
+owtf.settings
+~~~~~~~~~~~~~
+
+It contains all the owtf global configs.
+"""
+
 import os
 
 import yaml

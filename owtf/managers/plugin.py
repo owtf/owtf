@@ -1,5 +1,6 @@
 """
-owtf.db.plugin_manager
+owtf.managers.plugin
+~~~~~~~~~~~~~~~~~~~~
 
 This module manages the plugins and their dependencies
 """

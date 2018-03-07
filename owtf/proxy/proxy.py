@@ -1,6 +1,6 @@
 """
-owtf.http.proxy.proxy
-~~~~~~~~~~~~~~~~~~~~~
+owtf.proxy.proxy
+~~~~~~~~~~~~~~~~
 
 Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013.
 """
@@ -437,7 +437,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_message(self, message):
         """Everytime a message is received from client side, this instance method is called.
-        
+
         :param message: Message to write or store
         :type message: `str`
         :return: None

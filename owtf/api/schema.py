@@ -1,3 +1,8 @@
+"""
+owtf.api.schema
+~~~~~~~~~~~~~~~
+"""
+
 import json
 from functools import wraps
 

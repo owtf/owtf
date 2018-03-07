@@ -1,6 +1,6 @@
 """
-owtf.error_handler
-~~~~~~~~~~~~~~~~~~
+owtf.utils.error
+~~~~~~~~~~~~~~~~
 
 The error handler provides a centralised control for aborting the application
 and logging errors for debugging later.

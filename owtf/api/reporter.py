@@ -1,6 +1,6 @@
 """
-owtf.interface.reporter
-~~~~~~~~~~~~~~~~~~~~~~~
+owtf.api.reporter
+~~~~~~~~~~~~~~~~~
 
 The reporter module is in charge of producing the HTML Report as well as
 provide plugins with common HTML Rendering functions

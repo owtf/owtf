@@ -1,6 +1,6 @@
 """
-owtf.db.db
-~~~~~~~~~~
+owtf.db.database
+~~~~~~~~~~~~~~~~
 
 This file handles all the database transactions.
 """

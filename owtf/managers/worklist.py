@@ -1,6 +1,6 @@
 """
-owtf.db.worklist_manager
-~~~~~~~~~~~~~~~~~~~~~~~~
+owtf.managers.worklist
+~~~~~~~~~~~~~~~~~~~~~~
 
 The DB stores worklist
 """

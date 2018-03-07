@@ -1,6 +1,12 @@
+"""
+owtf.utils.logger
+~~~~~~~~~~~~~~~~~
+
+"""
+
+import sys
 import logging
 import multiprocessing
-import sys
 
 from owtf.utils.file import catch_io_errors, get_log_path
 from owtf.utils.formatters import ConsoleFormatter, FileFormatter
