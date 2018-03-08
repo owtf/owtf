@@ -8,12 +8,13 @@ owtf.shell.async_subprocess
 
 import errno
 import os
+import platform
 import subprocess
 import sys
 import time
 
 
-if hasattr(subprocess, 'mswindows'):
+if platform.system() == 'Windows':
     from win32file import ReadFile, WriteFile
     from win32pipe import PeekNamedPipe
     import msvcrt
