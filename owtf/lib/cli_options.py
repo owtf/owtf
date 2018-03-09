@@ -92,7 +92,6 @@ def usage(error_message):
     )
     if error_message:
         print("\nERROR: " + error_message)
-    sys.exit(-1)
 
 
 def parse_options(cli_options, valid_groups, valid_types):
@@ -226,4 +225,5 @@ def parse_options(cli_options, valid_groups, valid_types):
         action='store_true',
         help='Run OWTF without its Web UI.')
     parser.add_argument('Targets', nargs='*', help='List of Targets')
+
     return parser.parse_args(cli_options)

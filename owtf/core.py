@@ -54,6 +54,18 @@ def get_plugins_from_arg(arg):
     return [plugins, plugin_groups]
 
 
+def cli_options_error(error):
+    """ On CLI option error show owtf usage and then close the framework.
+
+    :param error: User supplied error message to print after usage.
+    :type user_args: `str`
+    :return:
+    :rtype: `None`
+    """
+    usage(error)
+    finish(owtf_pid, 1)
+
+
 def process_options(user_args):
     """ The main argument processing function
 
@@ -66,9 +78,8 @@ def process_options(user_args):
         valid_groups = get_all_plugin_groups(db)
         valid_types = get_all_plugin_types(db) + ['all', 'quiet']
         arg = parse_options(user_args, valid_groups, valid_types)
-    except KeyboardInterrupt as e:
-        usage("Invalid OWTF option(s) %s" % e)
-        sys.exit(0)
+    except SystemExit as e:
+        cli_options_error("Invalid OWTF option(s) %s" % e)
 
     # Default settings:
     plugin_group = arg.PluginGroup
@@ -79,7 +90,7 @@ def process_options(user_args):
             # Set Plugin Group according to plugin list specified
             plugin_group = plugin_groups[0]
         except IndexError:
-            usage("Please use either OWASP/OWTF codes or Plugin names")
+            cli_options_error("Please use either OWASP/OWTF codes or Plugin names")
         logging.info("Defaulting Plugin Group to '%s' based on list of plugins supplied" % plugin_group)
 
     if arg.ExceptPlugins:
@@ -90,12 +101,12 @@ def process_options(user_args):
         if(arg.TOR_mode[0] == "help"):
             from owtf.proxy.tor_manager import TOR_manager
             TOR_manager.msg_configure_tor()
-            exit(0)
+            finish(owtf_pid)
         if len(arg.TOR_mode) == 1:
             if arg.TOR_mode[0] != "help":
-                usage("Invalid argument for TOR-mode")
+                cli_options_error("Invalid argument for TOR-mode")
         elif len(arg.TOR_mode) != 5:
-            usage("Invalid argument for TOR-mode")
+            cli_options_error("Invalid argument for TOR-mode")
         else:
             # Enables OutboundProxy.
             if arg.TOR_mode[0] == '':
@@ -113,28 +124,28 @@ def process_options(user_args):
         if len(arg.OutboundProxy) == 2:
             arg.OutboundProxy = arg.OutboundProxy + arg.OutboundProxy.pop().split(':')
             if arg.OutboundProxy[0] not in ["socks", "http"]:
-                usage("Invalid argument for Outbound Proxy")
+                cli_options_error("Invalid argument for Outbound Proxy")
         else:
             arg.OutboundProxy = arg.OutboundProxy.pop().split(':')
         # OutboundProxy should be type://ip:port
         if (len(arg.OutboundProxy) not in [2, 3]):
-            usage("Invalid argument for Outbound Proxy")
+            cli_options_error("Invalid argument for Outbound Proxy")
         else:  # Check if the port is an int.
             try:
                 int(arg.OutboundProxy[-1])
             except ValueError:
-                usage("Invalid port provided for Outbound Proxy")
+                cli_options_error("Invalid port provided for Outbound Proxy")
 
     if arg.InboundProxy:
         arg.InboundProxy = arg.InboundProxy.split(':')
         # InboundProxy should be (ip:)port:
         if len(arg.InboundProxy) not in [1, 2]:
-            usage("Invalid argument for Inbound Proxy")
+            cli_options_error("Invalid argument for Inbound Proxy")
         else:
             try:
                 int(arg.InboundProxy[-1])
             except ValueError:
-                usage("Invalid port for Inbound Proxy")
+                cli_options_error("Invalid port for Inbound Proxy")
 
     plugin_types_for_group = get_types_for_plugin_group(db, plugin_group)
     if arg.PluginType == 'all':
@@ -157,12 +168,12 @@ def process_options(user_args):
                     continue  # Skip blank lines
                 new_scope.append(CleanTarget)
             if len(new_scope) == 0:  # Bad file
-                usage("Please provide a scope file (1 target x line)")
+                cli_options_error("Please provide a scope file (1 target x line)")
             scope = new_scope
 
     for target in scope:
         if target[0] == "-":
-            usage("Invalid Target: " + target)
+            cli_options_error("Invalid Target: " + target)
 
     args = ''
     if plugin_group == 'auxiliary':
@@ -239,8 +250,16 @@ def x(args):
             start_cli()
 
 
-def finish(owtf_pid):
+def finish(owtf_pid, exit_code=0):
+    """Gracefully closes the owtf process
+
+    :params int owtf_pid: PID of owtf process running.
+    :params int exit_code: exit code to return while exiting.
+    :return:
+    :rtype: None
+    """
     kill_children(owtf_pid)
+    sys.exit(exit_code)
 
 
 def main(args):
@@ -267,7 +286,7 @@ def main(args):
         # After loading the test groups then load the plugins, because of many-to-one relationship
         load_plugins(db)
     except exceptions.DatabaseNotRunningException:
-        sys.exit(-1)
+        finish(owtf_pid, 1)
 
     args = process_options(args[1:])
     cli_env = os.environ.get('CLI', None)
@@ -282,13 +301,13 @@ def main(args):
     try:
         if x(args):
             # Only if Start is for real (i.e. not just listing plugins, etc)
-            sys.exit(0)  # Not Interrupted or Crashed.
+            finish(owtf_pid)  # Not Interrupted or Crashed.
     except KeyboardInterrupt:
         # NOTE: The user chose to interact: interactivity check redundant here:
         logging.warning("OWTF was aborted by the user:")
         logging.info("Please check report/plugin output files for partial results")
         # Interrupted. Must save the DB to disk, finish report, etc.
-        sys.exit(-1)
+        finish(owtf_pid, -1)
     except SystemExit:
         pass  # Report already saved, framework tries to exit.
     finally:  # Needed to rename the temp storage dirs to avoid confusion.
