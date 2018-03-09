@@ -48,7 +48,7 @@ install-docs-requirements:
 install-requirements: install-python-requirements install-node-requirements
 
 react-build:
-	cd owtf/webapp && yarn build
+	cd owtf/webapp && yarn run prod
 
 develop: install-requirements react-build
 

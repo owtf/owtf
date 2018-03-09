@@ -12,7 +12,7 @@ services:
     env_file:
       - owtf.env
     ports:
-      - 8080:8080
+      - 8008:8008
       - 8010:8010
       - 8009:8009
     depends_on:
