@@ -278,7 +278,7 @@ EOF
 }
 
 db_setup() {
-    if [ -z "$DOCKER" ]; then
+    if [ ! -f /.dockerenv ]; then
         # Check if the postgres server is running or not.
         postgresql_check_running_status
 
