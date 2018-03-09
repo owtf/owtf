@@ -1,5 +1,6 @@
 # sphinx build folder
 _build
+*sphinx_build.log*
 
 # OS generated files
 .DS_Store?
