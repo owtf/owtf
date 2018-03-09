@@ -6,19 +6,11 @@ Manages the mapping between different plugin groups and codes
 """
 
 import json
-import logging
-import os
 
 from owtf.db import models
 from owtf.lib.exceptions import InvalidMappingReference
-from owtf.utils.error import abort_framework
 from owtf.managers.config import load_config_file
 from owtf.utils.pycompat import get_dict_iter_items
-
-try:
-    import configparser as parser
-except ImportError:
-    import ConfigParser as parser
 
 mapping_types = []
 
@@ -103,6 +95,7 @@ def get_mapping_category(session, plugin_code):
     # Getting the corresponding category back from db
     return category
 
+
 def load_mappings_to_db(session, default, fallback):
     """Loads the mappings from the config file
 
@@ -121,10 +114,8 @@ def load_mappings_to_db(session, default, fallback):
     config_dump = load_config_file(default, fallback)
     for owtf_code, config_mappings in get_dict_iter_items(config_dump):
         category = None
-        # print(config_mappings)
         if 'category' in config_mappings:
             category = config_mappings.pop('category')
-            print(category)
         session.merge(models.Mapping(
             owtf_code=owtf_code,
             mappings=json.dumps(config_mappings),
