@@ -44,20 +44,16 @@ install-ui-requirements:
 
 install-docs-requirements:
 	@echo "--> Installing Sphinx dependencies"
+	pip install sphinx sphinx_rtd_theme
 
-install-requirements: install-python-requirements install-node-requirements
+install-requirements: install-python-requirements install-ui-requirements install-docs-requirements
 
-react-build:
-	cd owtf/webapp && yarn run prod
-
-develop: install-requirements react-build
-
-build-ui: install-ui-requirements react-build
-
-develop-ui:
-	cd owtf/webapp && yarn run
-
-install-develop-ui: install-node-requirements develop-ui
+web:
+ifdef OWTF_ENV
+	cd owtf/webapp && yarn run ${OWTF_ENV}
+else
+	@echo "--> No environment specified. Usage: make OWTF_ENV={dev, prod} web"
+endif
 
 post-install:
 	@echo "--> Installing dictionaries and tools"
