@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "webpack --progress --display-error-details --config webpack/common.config.js --watch",
     "sass": "sass --watch src/styles/scss:src/styles/css",
-    "prod": "webpack --progress -p --config webpack/common.config.js",
+    "prod": "webpack --progress --config webpack/common.config.js",
     "lintjs": "eslint -c .eslintrc src/static tests/js || true",
     "lintscss": "sass-lint --verbose --no-exit || true"
   },
