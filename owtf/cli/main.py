@@ -24,8 +24,10 @@ class CliServer(object):
         try:
             self.manager_cron.start()
             tornado.ioloop.IOLoop.instance().start()
-        except KeyboardInterrupt:
+        except SystemExit:
             pass
+        finally:
+            self.clean_up()
 
     def clean_up(self):
         """Properly stop any tornado callbacks."""

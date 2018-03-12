@@ -247,7 +247,10 @@ def x(args):
             logging.warn("http://{}:{} <-- Web UI URL".format(SERVER_ADDR, str(UI_SERVER_PORT)))
             start_file_server()
         else:
+            if args["nowebui"]:
+                os.environ["CLI"] = "True"
             start_cli()
+        finish(owtf_pid)
 
 
 def finish(owtf_pid, exit_code=0):
