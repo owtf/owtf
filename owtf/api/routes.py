@@ -54,5 +54,5 @@ HANDLERS = [
     tornado.web.url(r'/api/worklist/?([0-9]+)?/?(pause|resume|delete)?/?$', WorklistHandler, name='worklist_api_url'),
     tornado.web.url(r'/api/worklist/search/?$', WorklistSearchHandler, name='worklist_search_api_url'),
     tornado.web.url(r'/api/configuration/?$', ConfigurationHandler, name='configuration_api_url'),
-    tornado.web.url(r'^/(?!api|static|output_files)(.*)$', ui_handlers.IndexHandler)
+    tornado.web.url(r'^/(?!api|health|static|output_files)(.*)$', ui_handlers.IndexHandler)
 ]

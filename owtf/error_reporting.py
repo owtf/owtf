@@ -7,7 +7,6 @@ This module set up sentry error reporting and logging.
 import logging
 import signal
 import sys
-import traceback
 
 # setup sentry logging
 try:
@@ -17,7 +16,7 @@ except ImportError:
     raven_installed = False
 
 
-__all__ = ['SentryProxy', 'get_sentry_client']
+__all__ = ['SentryProxy', 'get_sentry_client', 'log_and_exit_handler', 'setup_signal_handlers']
 
 
 signame_by_signum = {v: k for k, v in signal.__dict__.items() if k.startswith('SIG') and not
@@ -50,3 +49,14 @@ def get_sentry_client(sentry_key):
         sentry_client = SentryProxy(sentry_client=None)
 
     return sentry_client
+
+
+def log_and_exit_handler(signum, frame):
+    logging.warning("caught signal {}, exiting".format(signame_by_signum[signum]))
+    sys.exit(1)
+
+
+def setup_signal_handlers():
+    """Setup the handlers"""
+    for signum in [signal.SIGINT, signal.SIGTERM]:
+        signal.signal(signum, log_and_exit_handler)
