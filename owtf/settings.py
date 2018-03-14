@@ -9,6 +9,7 @@ import os
 
 import yaml
 
+
 HOME_DIR = os.path.expanduser("~")
 OWTF_CONF = os.path.join(HOME_DIR, ".owtf")
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -167,3 +168,13 @@ FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'resources.c
 FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, 'data' + 'conf', 'mappings.cfg')
 FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'order.cfg')
 FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'order.cfg')
+
+
+# Override the values
+try:
+    local_conf = os.path.join(OWTF_CONF, "settings.py")
+    with open(local_conf) as f:
+        settings = compile(f.read(), local_conf, 'exec')
+        exec(settings, globals(), locals())
+except ImportError:
+    pass
