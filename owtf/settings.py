@@ -6,6 +6,10 @@ It contains all the owtf global configs.
 """
 
 import os
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
 
 import yaml
 
@@ -86,12 +90,6 @@ SMTP_PASS = 'your_password'
 SMTP_HOST = 'your_mail_server.com'
 SMTP_PORT = 25
 
-########## CELERY
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-
 ### OUTBOUND PROXY
 USE_OUTBOUND_PROXY = False
 OUTBOUND_PROXY_IP = ''
@@ -140,7 +138,6 @@ HTTP_AUTH_USERNAME = None
 HTTP_AUTH_PASSWORD = None
 HTTP_AUTH_MODE = 'basic'
 
-
 ### Memory
 RESOURCE_MONITOR_PROFILER = 0
 PROCESS_PER_CORE = 1
@@ -165,16 +162,16 @@ FALLBACK_AUX_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'p
 FALLBACK_PLUGINS_DIR = os.path.join(ROOT_DIR, 'data', 'plugins')
 FALLBACK_GENERAL_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'general.cfg')
 FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'resources.cfg')
-FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, 'data' + 'conf', 'mappings.cfg')
+FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'mappings.cfg')
 FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'order.cfg')
 FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'order.cfg')
 
 
 # Override the values
+local_conf = os.path.join(OWTF_CONF, "settings.py")
 try:
-    local_conf = os.path.join(OWTF_CONF, "settings.py")
     with open(local_conf) as f:
         settings = compile(f.read(), local_conf, 'exec')
         exec(settings, globals(), locals())
-except ImportError:
+except FileNotFoundError:
     pass
