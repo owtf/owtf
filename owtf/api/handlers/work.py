@@ -3,7 +3,6 @@ owtf.api.handlers.work
 ~~~~~~~~~~~~~~~~~~~~~~
 
 """
-
 import logging
 
 import tornado.gen
@@ -18,6 +17,9 @@ from owtf.managers.worker import worker_manager
 from owtf.managers.worklist import add_work, delete_all_work, get_all_work, get_work, \
     patch_work, pause_all_work, remove_work, resume_all_work, search_all_work
 from owtf.utils.strings import str2bool
+
+
+__all__ = ['WorkerHandler', 'WorklistHandler', 'WorklistSearchHandler']
 
 
 class WorkerHandler(APIRequestHandler):

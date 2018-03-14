@@ -15,6 +15,9 @@ from owtf.settings import DEBUG, SENTRY_API_KEY, SERVER_ADDR, STATIC_ROOT, TEMPL
 from owtf.utils.app import Application
 
 
+__all__ = ['start_api_server']
+
+
 class APIServer(OWTFProcess):
     def pseudo_run(self):
         application = Application(

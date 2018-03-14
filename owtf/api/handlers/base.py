@@ -11,8 +11,10 @@ from tornado.web import RequestHandler
 from owtf.settings import FILE_SERVER_PORT, UI_SERVER_PORT
 
 
-class APIRequestHandler(RequestHandler):
+__all__ = ['APIRequestHandler', 'FileRedirectHandler', 'UIRequestHandler']
 
+
+class APIRequestHandler(RequestHandler):
     def initialize(self):
         """
         - Set Content-type for JSON

@@ -5,7 +5,6 @@ owtf.api.ui_handlers
 .note::
     Not been refactored since this is being deprecated
 """
-
 from tornado.escape import url_escape
 from tornado.web import RequestHandler
 
@@ -13,7 +12,10 @@ from owtf.api.handlers.base import UIRequestHandler
 from owtf.settings import FILE_SERVER_PORT, UI_SERVER_PORT
 
 
-class Index(RequestHandler):
+__all__ = ['IndexHandler', 'FileRedirectHandler']
+
+
+class IndexHandler(RequestHandler):
     def get(self, path):
         self.render('index.html')
 

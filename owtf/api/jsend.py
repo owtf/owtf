@@ -9,6 +9,9 @@ for how JSON responses from web servers should be formatted.
 import tornado.web
 
 
+__all__ = ['JSendMixin']
+
+
 class JSendMixin(tornado.web.RequestHandler):
     """http://labs.omniti.com/labs/jsend
 

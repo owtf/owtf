@@ -24,6 +24,9 @@ from owtf.lib.exceptions import PluginAbortException
 from owtf.settings import CONFIG_TYPES, REPLACEMENT_DELIMITER, ROOT_DIR
 
 
+__all__ = ['config_handler']
+
+
 class Config(object):
 
     profiles = {

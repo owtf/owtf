@@ -36,6 +36,8 @@ from owtf.settings import AUX_TEST_GROUPS, CLI, DEFAULT_FRAMEWORK_CONFIG, DEFAUL
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.process import kill_children
 
+__all__ = ['get_plugins_from_arg', 'process_options', 'initialise_framework', 'finish', 'main']
+
 owtf_pid = None
 
 

@@ -17,6 +17,9 @@ except ImportError:
     raven_installed = False
 
 
+__all__ = ['SentryProxy', 'get_sentry_client']
+
+
 signame_by_signum = {v: k for k, v in signal.__dict__.items() if k.startswith('SIG') and not
         k.startswith('SIG_')}
 
@@ -47,22 +50,3 @@ def get_sentry_client(sentry_key):
         sentry_client = SentryProxy(sentry_client=None)
 
     return sentry_client
-
-
-def log_and_exit_handler(signum, frame):
-    logging.warning("[-] Caught signal {}, exiting".format(signame_by_signum[signum]))
-    sys.exit(1)
-
-
-def dump_thread_handler(signum, frame):
-    for thread_id, thread_frame in sys._current_frames().items():
-        print("-- thread id {}:".format(thread_id))
-        print("".join(traceback.format_stack(thread_frame)))
-
-
-def setup_signal_handlers():
-    """Setup the handlers for API, Fileserver and CLI servers. Specifically we message on
-    any signal and we dump thread tracebacks on SIGUSR1."""
-    for signum in [signal.SIGINT, signal.SIGTERM]:
-        signal.signal(signum, log_and_exit_handler)
-    signal.signal(signal.SIGUSR1, dump_thread_handler)

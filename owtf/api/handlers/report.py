@@ -3,7 +3,6 @@ owtf.api.handlers.report
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-
 import collections
 import logging
 from collections import defaultdict
@@ -20,6 +19,9 @@ from owtf.managers.mapping import get_mappings
 from owtf.managers.plugin import get_all_test_groups
 from owtf.managers.poutput import get_all_poutputs
 from owtf.managers.target import get_target_config_by_id
+
+
+__all__ = ['ReportExportHandler']
 
 
 class ReportExportHandler(APIRequestHandler):

@@ -3,7 +3,6 @@ owtf.api.routes
 ~~~~~~~~~~~~~~~
 
 """
-
 import tornado.web
 
 from owtf.api.handlers import ui_handlers
@@ -12,6 +11,7 @@ from owtf.api.handlers.misc import DashboardPanelHandler, ErrorDataHandler, Prog
 from owtf.api.handlers.plugin import PluginDataHandler, PluginNameOutput, PluginOutputHandler
 from owtf.api.handlers.report import ReportExportHandler
 from owtf.api.handlers.session import OWTFSessionHandler
+from owtf.api.handlers.health import HealthCheckHandler
 from owtf.api.handlers.targets import TargetConfigHandler, TargetConfigSearchHandler, TargetSeverityChartHandler
 from owtf.api.handlers.transactions import TransactionDataHandler, \
     TransactionHrtHandler, TransactionSearchHandler, URLDataHandler, URLSearchHandler
@@ -29,6 +29,7 @@ plugin_code_re = '([0-9A-Z\-]+)?'
 
 HANDLERS = [
     tornado.web.url(r'/static/(.*)', tornado.web.StaticFileHandler, {'path': STATIC_ROOT}),
+    tornado.web.url(r'/health/?$', HealthCheckHandler),
     tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),
 
     tornado.web.url(r'/api/errors/?([0-9]+)?/?$', ErrorDataHandler, name='errors_api_url'),
@@ -53,5 +54,5 @@ HANDLERS = [
     tornado.web.url(r'/api/worklist/?([0-9]+)?/?(pause|resume|delete)?/?$', WorklistHandler, name='worklist_api_url'),
     tornado.web.url(r'/api/worklist/search/?$', WorklistSearchHandler, name='worklist_search_api_url'),
     tornado.web.url(r'/api/configuration/?$', ConfigurationHandler, name='configuration_api_url'),
-    tornado.web.url(r'^/(?!api|static|output_files)(.*)$', ui_handlers.Index)
+    tornado.web.url(r'^/(?!api|static|output_files)(.*)$', ui_handlers.IndexHandler)
 ]

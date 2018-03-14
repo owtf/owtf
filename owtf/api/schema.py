@@ -19,10 +19,14 @@ from owtf.lib.exceptions import APIError
 from owtf.utils.http import container, deep_update
 
 
+__all__ = ['NoObjectDefaults', 'get_object_defaults', 'validate', 'input_schema_clean']
+
+
 class NoObjectDefaults(Exception):
     """ Raised when a schema type object ({"type": "object"}) has no "default"
     key and one of their properties also don't have a "default" key.
     """
+    pass
 
 
 def get_object_defaults(object_schema):

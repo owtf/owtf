@@ -1,5 +1,5 @@
 """
-owtf.api.cli
+owtf.cli.main
 ~~~~~~~~~~~~
 """
 
@@ -8,6 +8,7 @@ import tornado.ioloop
 
 from owtf.managers.worker import worker_manager
 
+__all__ = ['CliServer']
 
 class CliServer(object):
     """

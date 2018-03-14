@@ -3,7 +3,6 @@ owtf.api.handlers.session
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-
 import tornado.gen
 import tornado.httpclient
 import tornado.web
@@ -12,6 +11,9 @@ from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.managers.session import add_session, add_target_to_session, delete_session, \
     get_all_session_dicts, get_session_dict, remove_target_from_session, set_session
+
+
+__all__ = ['OWTFSessionHandler']
 
 
 class OWTFSessionHandler(APIRequestHandler):
