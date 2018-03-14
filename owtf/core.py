@@ -79,7 +79,12 @@ def process_options(user_args):
         valid_types = get_all_plugin_types(db) + ['all', 'quiet']
         arg = parse_options(user_args, valid_groups, valid_types)
     except SystemExit as e:
-        cli_options_error("Invalid OWTF option(s) %s" % e)
+        # parse_options raised a SystemExit exception with a success code
+        # and should exit cleanly
+        if e.code == 0:
+            finish(owtf_pid, 0)
+        else:
+            cli_options_error("Invalid OWTF option(s) %s" % e)
 
     # Default settings:
     plugin_group = arg.PluginGroup
