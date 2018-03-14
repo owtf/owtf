@@ -2,7 +2,6 @@
 owtf.filesrv.handlers
 ~~~~~~~~~~~~~~~~~~~~~
 """
-
 import datetime
 import email.utils
 import hashlib
@@ -15,6 +14,9 @@ import time
 import tornado
 import tornado.template
 import tornado.web
+
+
+__all__ = ['StaticFileHandler']
 
 
 class StaticFileHandler(tornado.web.StaticFileHandler):

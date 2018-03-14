@@ -12,6 +12,8 @@ import os
 from owtf.shell import pexpect_shell
 from owtf.utils.file import FileOperations
 
+__all__ = ['smb']
+
 
 class SMB(pexpect_shell.PExpectShell):
 

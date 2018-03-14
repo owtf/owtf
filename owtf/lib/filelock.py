@@ -27,11 +27,13 @@ Modifications in this version:
 # taken from https://github.com/ilastik/lazyflow/blob/master/lazyflow/utility/fileLock.py
 # original version from http://www.evanfosmark.com/2009/01/cross-platform-file-locking-support-in-python/
 """
-
 import errno
 import os
 import sys
 import time
+
+
+__all__ = ['FileLock']
 
 
 class FileLock(object):

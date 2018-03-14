@@ -5,15 +5,16 @@ owtf.protocols.smtp
 Description:
 This is the OWTF SMTP handler, to simplify sending emails.
 """
-
+from email.mime import base, multipart, text as mimetext
+from email import encoders
 import logging
 import os
 import smtplib
-from email.mime import base, multipart, text as mimetext
-from email import encoders
 
 from owtf.managers.error import add_error
 from owtf.utils.file import FileOperations, get_file_as_list
+
+__all__ = ['smtp']
 
 
 class SMTP(object):

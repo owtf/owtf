@@ -22,8 +22,10 @@ from owtf.utils.strings import multi_replace_dict, scrub_output
 from owtf.utils.timer import timer
 
 
-class Shell(object):
+__all__ = ['shell']
 
+
+class Shell(object):
     def __init__(self):
         # Some settings like the plugin output dir are dynamic, config is no place for those
         self.dynamic_replacements = {}

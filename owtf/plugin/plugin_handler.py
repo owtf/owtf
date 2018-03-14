@@ -33,6 +33,9 @@ from owtf.utils.strings import wipe_bad_chars
 from owtf.utils.timer import timer
 
 
+__all__ = ['plugin_handler', 'show_plugin_list', 'show_plugin_types']
+
+
 INTRO_BANNER_GENERAL = """
 Short Intro:
 Current Plugin Groups:

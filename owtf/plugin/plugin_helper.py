@@ -7,7 +7,6 @@ centralising common functionality easy to reuse
 
 NOTE: This module has not been refactored since this is being deprecated
 """
-
 import cgi
 import logging
 import os
@@ -28,6 +27,8 @@ from owtf.utils.file import FileOperations
 from owtf.utils.logger import logger
 from owtf.utils.strings import multi_replace
 from owtf.utils.timer import timer
+
+__all__ = ['plugin_helper']
 
 PLUGIN_OUTPUT = {"type": None, "output": None}  # This will be json encoded and stored in db as string
 

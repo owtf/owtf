@@ -5,23 +5,8 @@ owtf.http.requester
 The Requester module is in charge of simplifying HTTP requests and
 automatically log HTTP transactions by calling the DB module.
 """
-
 import logging
 import sys
-
-from owtf import get_scoped_session
-from owtf.http import transaction
-from owtf.managers.error import add_error
-from owtf.managers.target import is_url_in_scope
-from owtf.managers.transaction import get_first, is_transaction_already_added
-from owtf.managers.url import is_url
-from owtf.plugin.plugin_handler import plugin_handler
-from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, PROXY_CHECK_URL, USER_AGENT
-from owtf.utils.error import abort_framework
-from owtf.utils.http import derive_http_method
-from owtf.utils.strings import str_to_dict
-from owtf.utils.timer import timer
-
 try:
     import http.client as client
 except ImportError:
@@ -37,6 +22,21 @@ except ImportError:
     from urllib2 import urlopen, Request, HTTPError, HTTPHandler, HTTPSHandler, HTTPRedirectHandler, ProxyHandler, \
         build_opener, install_opener, URLError
 
+from owtf import get_scoped_session
+from owtf.http import transaction
+from owtf.managers.error import add_error
+from owtf.managers.target import is_url_in_scope
+from owtf.managers.transaction import get_first, is_transaction_already_added
+from owtf.managers.url import is_url
+from owtf.plugin.plugin_handler import plugin_handler
+from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, PROXY_CHECK_URL, USER_AGENT
+from owtf.utils.error import abort_framework
+from owtf.utils.http import derive_http_method
+from owtf.utils.strings import str_to_dict
+from owtf.utils.timer import timer
+
+
+__all__ = ['requester']
 
 
 # Intercept raw request trick from:

@@ -4,17 +4,17 @@ owtf.lib.owtf_process
 
 Consists of owtf process class and its manager
 """
-
 import logging
 import multiprocessing
+from multiprocessing import Process, Queue
 import signal
 import sys
-from multiprocessing import Process, Queue
-
 
 from owtf.db.database import get_scoped_session
 from owtf.utils.logger import logger
-from owtf.utils.process import kill_children
+
+
+__all__ = ['OWTFProcess']
 
 
 def signal_handler(signal, frame):

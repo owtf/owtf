@@ -15,6 +15,9 @@ from owtf.utils.logger import logger
 from owtf.utils.strings import merge_dicts
 
 
+__all__ = ['plugin_params']
+
+
 class PluginParams(object):
 
     def __init__(self, options):

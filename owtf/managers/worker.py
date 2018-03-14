@@ -3,7 +3,6 @@ owtf.managers.worker
 ~~~~~~~~~~~~~~~~~~~~
 
 """
-
 import logging
 import multiprocessing
 import os
@@ -11,6 +10,10 @@ import signal
 import sys
 import traceback
 from time import strftime
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 
 import psutil
 
@@ -24,10 +27,7 @@ from owtf.settings import CLI, MIN_RAM_NEEDED, PROCESS_PER_CORE
 from owtf.utils.error import abort_framework
 from owtf.utils.process import check_pid
 
-try:
-    import queue
-except ImportError:
-    import Queue as queue
+__all__ = ['worker_manager']
 
 # For psutil
 TIMEOUT = 3
