@@ -112,13 +112,13 @@ def load_mappings_to_db(session, default, fallback):
     :rtype: None
     """
     config_dump = load_config_file(default, fallback)
-    for owtf_code, config_mappings in get_dict_iter_items(config_dump):
+    for owtf_code, mappings in get_dict_iter_items(config_dump):
         category = None
-        if 'category' in config_mappings:
-            category = config_mappings.pop('category')
+        if 'category' in mappings:
+            category = mappings.pop('category')
         session.merge(models.Mapping(
             owtf_code=owtf_code,
-            mappings=json.dumps(config_mappings),
+            mappings=json.dumps(mappings),
             category=category
         ))
     session.commit()

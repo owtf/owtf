@@ -26,18 +26,16 @@ def load_config_file(file_path, fallback_file_path):
     :return: config_map
     :rtype: dict
     """
-    file_path = file_path if not os.path.isfile(file_path) else fallback_file_path
-    logging.info("Loading Configuration from: %s.." % file_path)
+    file_path = file_path if os.path.isfile(file_path) else fallback_file_path
+    logging.info("Loading Configuration from: {}..".format(file_path))
     if not os.path.isfile(file_path):
         # check if the config file exists
-        abort_framework("Config file not found at: %s" % file_path)
-    # try:
-    #     config_map = yaml.load(FileOperations.open(file_path, 'r'))
-    #     return config_map
-    # except yaml.YAMLError:
-    #     abort_framework("Error parsing config file at: %s" % file_path)
-    config_map = yaml.safe_load(FileOperations.open(file_path, 'r'))
-    return config_map
+        abort_framework("Config file not found at: {}".format(file_path))
+    try:
+        config_map = yaml.load(FileOperations.open(file_path, 'r'))
+        return config_map
+    except yaml.YAMLError:
+        abort_framework("Error parsing config file at: {}".format(file_path))
 
 
 def load_general_configs_to_db(session, default, fallback):
@@ -55,17 +53,20 @@ def load_general_configs_to_db(session, default, fallback):
     config_dump = load_config_file(default, fallback)
     for section, config_list in get_dict_iter_items(config_dump):
         for config_map in config_list:
-            # Check if ``config`` and ``value`` attribute exists
-            if hasattr(config_map, "config") and hasattr(config_map, "value"):
-                old_config_obj = session.query(models.ConfigSetting).get()
+            try:
+                old_config_obj = session.query(models.ConfigSetting).get(config_map["config"])
                 if not old_config_obj or not old_config_obj.dirty:
                     config_obj = models.ConfigSetting(
                         key=config_map["config"],
-                        value=config_map["value"],
+                        value=str(config_map["value"]),
                         section=section)
-                    if hasattr(config_map, "description"):
+                    try:
                         config_obj.descrip = config_map["description"]
+                    except KeyError:
+                        pass
                     session.merge(config_obj)
+            except KeyError:
+                pass
     session.commit()
 
 
@@ -87,14 +88,17 @@ def load_framework_configs(default, fallback, root_dir, owtf_pid):
     config_handler.set_val('FRAMEWORK_DIR', root_dir)  # Needed Later.
     for section, config_list in get_dict_iter_items(config_dump):
         for config_map in config_list:
-            if hasattr(config_map, "config") and hasattr(config_map, "value"):
+            try:
                 config_handler.set_val(
                     config_map["config"],
-                    multi_replace(config_map["value"], {
+                    multi_replace(str(config_map["value"]), {
                         'FRAMEWORK_DIR': root_dir,
                         'OWTF_PID': str(owtf_pid)
                     })
                 )
+            except KeyError as e:
+                logging.debug("Exception while parsing framework config: {}".format(str(e)))
+                pass
 
 
 def get_config_val(session, key):
