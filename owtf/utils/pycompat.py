@@ -23,13 +23,6 @@ else:
         return unicode(s)
 
 
-def get_dict_iter_items(dictionary):
-    if not PY2:
-        return dictionary.items()
-    else:
-        return dictionary.iteritems()
-
-
 if PY3:
     def iterkeys(d, **kw):
         return iter(d.keys(**kw))
