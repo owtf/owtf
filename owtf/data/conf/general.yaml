@@ -178,11 +178,7 @@ TCP_UDP_PORTS:
 AUX_PLUGIN_DATA:
 # ************************* Auxiliary Plugin configuration *************************************
 
-  # - config: RHOST_DESCRIP
-  #   value: Remote IP/Hostname
-  # - config: RPORT_DESCRIP
-  #   value: Remote Port
-# Default repeat delimiter (to be used when not supplied by the user), this is really powerful, see REPEAT_DELIM_DESCRIP
+  # Default repeat delimiter (to be used when not supplied by the user), this is really powerful, see REPEAT_DELIM_DESCRIP
   - config: REPEAT_DELIM
     value: ","
     description: Delimiter to repeat the command (i.e. "," -> Means RHOST=1,2 will execute for 1, then 2.\nRHOST=1,2 RPORT=3,4 will execute for RHOST=1 RPORT=3, then RHOST=2 RPORT=3, then RHOST=1 RPORT=4, then RHOST=2 RPORT=4)
@@ -245,20 +241,9 @@ AUX_PLUGIN_DATA:
   - config: OWTF-ASEL-001_selenium_BASE_URL
     value: http://127.0.0.1/
 
-# [SMB]
-# ************************* SMB configuration (Auxiliary Plugin configuration) **************************************************
-# SMB_HOST_DESCRIP: The host containing the SMB share to mount (i.e. \\host_name)
-# SMB_SHARE_DESCRIP: The SMB share to mount (i.e. \\..\share_name)
-# SMB_MOUNT_POINT_DESCRIP: The mount point to mount the SMB share on (i.e. /mnt/share_name)
-# SMB_USER_DESCRIP: User to mount the SMB share
-# SMB_PASS_DESCRIP: Password to mount the SMB share
-# SMB_DOWNLOAD_DESCRIP: Item (or comma-separated list of items) to download from the share
-# SMB_UPLOAD_DESCRIP: Item (or comma-separated list of items) to upload to the share
 
-# [SPEAR_PHISHING]
 # ************************* SE Spear Phishing configuration (Auxiliary Plugin configuration) *************************************
 
-# PHISHING_SCRIPT_DIR: "@@@FRAMEWORK_DIR@@@/scripts/set/phishing
 # New versions of SET are likely to break SET scripts, make this more obvious via dir naming:
   - config: PHISHING_SCRIPT_DIR
     value: "@@@FRAMEWORK_DIR@@@/framework/wrappers/set/scripts/phishing3.2.2"
@@ -301,7 +286,6 @@ AUX_PLUGIN_DATA:
     value: /root/test.doc
     description: Word Template file to use for some of the SET payloads that need it/can use it
 
-# [SMTP]
 # ************************* SMTP Server configuration: SE Spear Phishing configuration (Auxiliary Plugin configuration) *************************************
 
   - config: EMAIL_FROM

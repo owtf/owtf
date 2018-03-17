@@ -13,7 +13,7 @@ from owtf.lib.exceptions import InvalidConfigurationReference
 from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 from owtf.utils.strings import multi_replace, str2bool
-from owtf.utils.pycompat import get_dict_iter_items
+from owtf.utils.pycompat import iter_items
 
 
 def load_config_file(file_path, fallback_file_path):
@@ -38,7 +38,7 @@ def load_config_file(file_path, fallback_file_path):
         abort_framework("Error parsing config file at: {}".format(file_path))
 
 
-def load_general_configs_to_db(session, default, fallback):
+def load_general_config(session, default, fallback):
     """Load Db config from file
 
     :param session: SQLAlchemy database session
@@ -51,7 +51,7 @@ def load_general_configs_to_db(session, default, fallback):
     :rtype: None
     """
     config_dump = load_config_file(default, fallback)
-    for section, config_list in get_dict_iter_items(config_dump):
+    for section, config_list in iter_items(config_dump):
         for config_map in config_list:
             try:
                 old_config_obj = session.query(models.ConfigSetting).get(config_map["config"])
@@ -60,17 +60,14 @@ def load_general_configs_to_db(session, default, fallback):
                         key=config_map["config"],
                         value=str(config_map["value"]),
                         section=section)
-                    try:
-                        config_obj.descrip = config_map["description"]
-                    except KeyError:
-                        pass
+                    config_obj.descrip = config_map.get("description", "")
                     session.merge(config_obj)
             except KeyError:
-                pass
+                logging.debug("Got a key error while parsing general config")
     session.commit()
 
 
-def load_framework_configs(default, fallback, root_dir, owtf_pid):
+def load_framework_config(default, fallback, root_dir, owtf_pid):
     """Load framework configuration into a global dictionary.
 
     :param default: The path to config file
@@ -86,7 +83,7 @@ def load_framework_configs(default, fallback, root_dir, owtf_pid):
     """
     config_dump = load_config_file(default, fallback)
     config_handler.set_val('FRAMEWORK_DIR', root_dir)  # Needed Later.
-    for section, config_list in get_dict_iter_items(config_dump):
+    for section, config_list in iter_items(config_dump):
         for config_map in config_list:
             try:
                 config_handler.set_val(

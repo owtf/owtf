@@ -41,6 +41,8 @@ FRAMEWORK_CONFIGS:
     value: secure,HttpOnly,domain,path,expires
 
   # ------------------------------------------ Response body regexps for grep plugins ------------------------------------------ #
+  # The following must be used to extract urls from responses, but this shouldn't be a grep plugin. Why ?
+  # Because this adds too many unnecessary entries into the grep outputs table
   - config: RESPONSE_REGEXP_FOR_CACHE_PROTECTION
     value: Cache Control Meta Tags_____<META.*?HTTP-EQUIV_____(<META.*?HTTP-EQUIV.*?Pragma.*?>|<META.*?HTTP-EQUIV.*?Expires.*?>|<META.*?HTTP-EQUIV.*?Cache-Control.*?>)
   - config: RESPONSE_REGEXP_FOR_ROBOTS_META_TAG
@@ -63,12 +65,9 @@ FRAMEWORK_CONFIGS:
     value: Hidden fields_____type=.hidden_____(<input[^>]*?type=[^>]*?hidden[^>]*>)
   - config: RESPONSE_REGEXP_FOR_SSI
     value: Server Side Includes_____<!--#_____(<!--(?:#.*)?-->)
-  # The following must be used to extract urls from responses, but this shouldn't be a grep plugin. Why ?
-  # Because this adds too many unnecessary entries into the grep outputs table
-  # RESPONSE_REGEXP_FOR_URLS: Urls_____dummy_____(http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)
 
-  # [DICTIONARIES]
 
+  # ---------------------------------------- DICTIONARIES ----------------------------------------
   # This is possibly one of the best pages on the internet for password lists: http://www.skullsecurity.org/wiki/index.php/Passwords
   # Online password cracking lists must be smaller since they are for brute-forcing services, Offline password cracking is done locally
 
@@ -101,8 +100,9 @@ FRAMEWORK_CONFIGS:
   - config: SAMRDUMP_FILE
     value: /usr/share/doc/python-impacket-doc/examples/samrdump.py
 
-  # [AUX_PLUGIN_DATA]
+  # ---------------------------------------- AUX_PLUGIN_DATA ----------------------------------------
   # Default repeat delimiter (to be used when not supplied by the user), this is really powerful, see REPEAT_DELIM_DESCRIP
+
   - config: REPEAT_DELIM
     value: ","
     description: Delimiter to repeat the command (i.e. "," -> Means RHOST=1,2 will execute for 1, then 2.\nRHOST=1,2 RPORT=3,4 will execute for RHOST=1 RPORT=3, then RHOST=2 RPORT=3, then RHOST=1 RPORT=4, then RHOST=2 RPORT=4)
@@ -171,7 +171,7 @@ FRAMEWORK_CONFIGS:
   - config: OWTF-ASEL-001_selenium_BASE_URL
     value: http://127.0.0.1/
 
-  # [SMB]
+  # --------------------------------------------- SMB ---------------------------------------------
   # SMB_HOST_DESCRIP: The host containing the SMB share to mount (i.e. \\host_name)
   # SMB_SHARE_DESCRIP: The SMB share to mount (i.e. \\..\share_name)
   # SMB_MOUNT_POINT_DESCRIP: The mount point to mount the SMB share on (i.e. /mnt/share_name)
@@ -180,7 +180,8 @@ FRAMEWORK_CONFIGS:
   # SMB_DOWNLOAD_DESCRIP: Item (or comma-separated list of items) to download from the share
   # SMB_UPLOAD_DESCRIP: Item (or comma-separated list of items) to upload to the share
 
-  # [SPEAR_PHISHING]
+
+  # ---------------------------------------- SPEAR_PHISHING ----------------------------------------
 
   - config: PHISHING_SCRIPT_DIR
     value: "@@@FRAMEWORK_DIR@@@/scripts/set/phishing"
@@ -231,7 +232,7 @@ FRAMEWORK_CONFIGS:
     value: /root/test.doc
     description: Word Template file to use for some of the SET payloads that need it/can use it
 
-  # [SMTP]
+  # -------------------------------------------- SMTP --------------------------------------------
 
   - config: EMAIL_FROM
     value: you@your_server.com
