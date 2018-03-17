@@ -10,7 +10,7 @@ import json
 from owtf.db import models
 from owtf.lib.exceptions import InvalidMappingReference
 from owtf.managers.config import load_config_file
-from owtf.utils.pycompat import iter_items
+from owtf.utils.pycompat import iteritems
 
 mapping_types = []
 
@@ -112,7 +112,7 @@ def load_mappings(session, default, fallback):
     :rtype: None
     """
     config_dump = load_config_file(default, fallback)
-    for owtf_code, mappings in iter_items(config_dump):
+    for owtf_code, mappings in iteritems(config_dump):
         category = None
         if 'category' in mappings:
             category = mappings.pop('category')

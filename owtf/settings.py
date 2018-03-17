@@ -163,7 +163,6 @@ FALLBACK_GENERAL_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'general.yaml'
 FALLBACK_FRAMEWORK_CONFIG = os.path.join(ROOT_DIR, 'data', 'conf', 'framework.yaml')
 FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'mappings.yaml')
 FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'resources.cfg')
-FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'mappings.cfg')
 FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'order.cfg')
 FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'order.cfg')
 

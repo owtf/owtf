@@ -13,7 +13,7 @@ from owtf.lib.exceptions import InvalidConfigurationReference
 from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 from owtf.utils.strings import multi_replace, str2bool
-from owtf.utils.pycompat import iter_items
+from owtf.utils.pycompat import iteritems
 
 
 def load_config_file(file_path, fallback_file_path):
@@ -51,7 +51,7 @@ def load_general_config(session, default, fallback):
     :rtype: None
     """
     config_dump = load_config_file(default, fallback)
-    for section, config_list in iter_items(config_dump):
+    for section, config_list in iteritems(config_dump):
         for config_map in config_list:
             try:
                 old_config_obj = session.query(models.ConfigSetting).get(config_map["config"])
@@ -83,7 +83,7 @@ def load_framework_config(default, fallback, root_dir, owtf_pid):
     """
     config_dump = load_config_file(default, fallback)
     config_handler.set_val('FRAMEWORK_DIR', root_dir)  # Needed Later.
-    for section, config_list in iter_items(config_dump):
+    for section, config_list in iteritems(config_dump):
         for config_map in config_list:
             try:
                 config_handler.set_val(

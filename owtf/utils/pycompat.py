@@ -31,27 +31,27 @@ def get_dict_iter_items(dictionary):
 
 
 if PY3:
-    def iter_keys(d, **kw):
+    def iterkeys(d, **kw):
         return iter(d.keys(**kw))
 
-    def iter_values(d, **kw):
+    def itervalues(d, **kw):
         return iter(d.values(**kw))
 
-    def iter_items(d, **kw):
+    def iteritems(d, **kw):
         return iter(d.items(**kw))
 
-    def iter_lists(d, **kw):
+    def iterlists(d, **kw):
         return iter(d.lists(**kw))
 
 else:
-    def iter_keys(d, **kw):
+    def iterkeys(d, **kw):
         return d.iterkeys(**kw)
 
-    def iter_values(d, **kw):
+    def itervalues(d, **kw):
         return d.itervalues(**kw)
 
-    def iter_items(d, **kw):
+    def iteritems(d, **kw):
         return d.iteritems(**kw)
 
-    def iter_lists(d, **kw):
+    def iterlists(d, **kw):
         return d.iterlists(**kw)
