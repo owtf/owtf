@@ -1,0 +1,251 @@
+FRAMEWORK_CONFIGS:
+  # ---------------------------- URL regexps ---------------------------- #
+  # Below is to distinguish what is fuzzable from what isn't, if the question mark is in the URL, owtf will consider it "fuzzable"
+  - config: REGEXP_FILE_URL
+    value: ^[^\?]+\.(xml|exe|pdf|cs|log|inc|dat|bak|conf|cnf|old|zip|7z|rar|tar|gz|bz2|txt|xls|xlsx|doc|docx|ppt|pptx)$
+  # Potentially small files will be retrieved for analysis
+  - config: REGEXP_SMALL_FILE_URL
+    value: ^[^\?]+\.(xml|cs|inc|dat|bak|conf|cnf|old|txt)$
+  - config: REGEXP_IMAGE_URL
+    value: ^[^\?]+\.(jpg|jpeg|png|gif|bmp)$
+  - config: REGEXP_SSI_URL
+    value: ^[^\?]+\.(shtml|shtm|stm)$
+  - config: REGEXP_VALID_URL
+    value: ^(http|ftp)[^ ]+$
+
+  # ---------------------------- Misc Settings ---------------------------- #
+  # This defines a special resource (shell command) in charge of outputting URLs, typically from the previously executed command (hint: search on resources.cfg):
+  - config: EXTRACT_URLS_RESERVED_RESOURCE_NAME
+    value: Extract URLs
+
+  # ---------------------- Headers for grep plugins ---------------------- #
+  - config: HEADERS_FOR_ROBOTS
+    value: X-Robots-Tag
+  - config: HEADERS_FOR_FINGERPRINT
+    value: Server,X-Powered-By,X-AspNet-Version,X-Runtime,X-Version,MicrosoftSharePointTeamServices
+  - config: HEADERS_FOR_CLICKJACKING_PROTECTION
+    value: X-Frame-Options,X-Content-Security-Policy
+  - config: HEADERS_FOR_CORS
+    value: Access-Control-Allow-Origin,Access-Control-Allow-Credentials,Access-Control-Expose-Headers,Access-Control-Max-Age,Access-Control-Allow-Methods,Access-Control-Allow-Headers
+  - config: HEADERS_FOR_CORS_METHODS
+    value: Access-Control-Allow-Methods
+  - config: HEADERS_FOR_XSS_PROTECTION
+    value: X-Content-Security-Policy,X-XSS-Protection
+  - config: HEADERS_FOR_CACHE_PROTECTION
+    value: Cache-Control,Pragma,Expires
+  - config: HEADERS_FOR_COOKIES
+    value: Set-Cookie
+  - config: HEADERS_FOR_SSL_PROTECTION
+    value: Strict-Transport-Security
+  - config: COOKIE_ATTRIBUTES
+    value: secure,HttpOnly,domain,path,expires
+
+  # ------------------------------------------ Response body regexps for grep plugins ------------------------------------------ #
+  # The following must be used to extract urls from responses, but this shouldn't be a grep plugin. Why ?
+  # Because this adds too many unnecessary entries into the grep outputs table
+  - config: RESPONSE_REGEXP_FOR_CACHE_PROTECTION
+    value: Cache Control Meta Tags_____<META.*?HTTP-EQUIV_____(<META.*?HTTP-EQUIV.*?Pragma.*?>|<META.*?HTTP-EQUIV.*?Expires.*?>|<META.*?HTTP-EQUIV.*?Cache-Control.*?>)
+  - config: RESPONSE_REGEXP_FOR_ROBOTS_META_TAG
+    value: Robots Meta Tags_____<meta_____(<meta[^>]*?name=[\"\'][^\"\']*?bot[^\"\']*?[\"\'][^>]*?>)
+  - config: RESPONSE_REGEXP_FOR_HTML_COMMENTS
+    value: HTML Comments_____<!--_____(<!--.*?-->)
+  - config: RESPONSE_REGEXP_FOR_CSS_JS_COMMENTS
+    value: CSS/JS Comments_____/*_____(/\*.*?\*/)
+  - config: RESPONSE_REGEXP_FOR_JS_COMMENTS
+    value: Single Line JS Comments_____[^-:]//_____[^-:](//(^dtd).*?\n)
+  - config: RESPONSE_REGEXP_FOR_PHP_SOURCE
+    value: Potential PHP source code_____<?_____(<\?(?!xml|xml-stylesheet|mso-application).*?\?>)
+  - config: RESPONSE_REGEXP_FOR_ASP_SOURCE
+    value: Potential ASP source code_____<%_____(<%.*?%>)
+  - config: RESPONSE_REGEXP_FOR_AUTOCOMPLETE
+    value: Autocomplete fields_____type=.password_____(<form[^>]*?>|<input[^>]*?type[^>]*?password[^>]*?>)
+  - config: RESPONSE_REGEXP_FOR_PASSWORDS
+    value: Password fields_____type=.password_____(<input[^>]*?type[^>]*?password[^>]*?>)
+  - config: RESPONSE_REGEXP_FOR_HIDDEN
+    value: Hidden fields_____type=.hidden_____(<input[^>]*?type=[^>]*?hidden[^>]*>)
+  - config: RESPONSE_REGEXP_FOR_SSI
+    value: Server Side Includes_____<!--#_____(<!--(?:#.*)?-->)
+
+
+  # ---------------------------------------- DICTIONARIES ----------------------------------------
+  # This is possibly one of the best pages on the internet for password lists: http://www.skullsecurity.org/wiki/index.php/Passwords
+  # Online password cracking lists must be smaller since they are for brute-forcing services, Offline password cracking is done locally
+
+  - config: ONLINE_USER_LIST
+    value: "@@@FRAMEWORK_DIR@@@/dictionaries/users/basic_windows.txt"
+    description: Username list file, entries separated by newline characters
+
+  # ONLINE_PASSWORD_LIST: /pentest/passwords/wordlists/darkc0de.lst
+  - config: ONLINE_PASSWORD_LIST
+    value: ~/.owtf/dictionaries/fuzzdb/fuzzdb-master/wordlists-user-passwd/passwds/phpbb.txt
+    description: Password list file separated by newline characters
+
+  - config: THREADS
+    value: 1
+    description: Number of threads to use
+
+  - config: _RESPONSE_WAIT
+    value: 40
+    description: Number of seconds to wait until the response arrives
+
+  - config: CONNECT_WAIT
+    value: 30
+    description: Number of seconds to wait until the next connection attempt
+
+  # Preferred bruteforcer program:
+  - config: BRUTEFORCER
+    value: hydra
+  - config: USERNAME_PASSWORD_FILE
+    value: "@@@FRAMEWORK_DIR@@@/dictionaries/users/Username_Password.txt"
+  - config: SAMRDUMP_FILE
+    value: /usr/share/doc/python-impacket-doc/examples/samrdump.py
+
+  # ---------------------------------------- AUX_PLUGIN_DATA ----------------------------------------
+  # Default repeat delimiter (to be used when not supplied by the user), this is really powerful, see REPEAT_DELIM_DESCRIP
+
+  - config: REPEAT_DELIM
+    value: ","
+    description: Delimiter to repeat the command (i.e. "," -> Means RHOST=1,2 will execute for 1, then 2.\nRHOST=1,2 RPORT=3,4 will execute for RHOST=1 RPORT=3, then RHOST=2 RPORT=3, then RHOST=1 RPORT=4, then RHOST=2 RPORT=4)
+  - config: OWTF-ARCE-001_rce_RPORT
+    value: 22
+    description: Passphrase to unlock the ssh key (if present)
+
+  # Remote Shell default options
+  - config: ISHELL_REUSE_CONNECTION
+    value: yes
+    description: <yes/no> use the same interactive shell for all commands or not
+  - config: ISHELL_EXIT_METHOD
+    value: wait
+    description: <kill/wait> kill or wait for shell to exit
+  - config: ISHELL_DELAY_BETWEEN_COMMANDS
+    value: 5
+    description: <secs> number of seconds to wait between commands
+  # Initialsing optional arguments with None just to run aux BASH command chainer plugin
+  - config: ISHELL_COMMANDS_BEFORE_EXIT
+    value: None
+  - config: TEST
+    value: None
+  - config: COMMAND_SUFFIX
+    value: None
+
+  - config: ISHELL_COMMANDS_BEFORE_EXIT_DELIM
+    value: "#"
+    description: Delimiting character to indicate new commands
+
+  # SBD connection options
+  - config: SBD_PORT
+    value: 4444
+    description: The port used by the SBD listener
+  - config: SBD_PASSWORD
+    value: OWTFtest
+    description: The SBD password to connect to the remote OWFT agent
+
+  # Default aux plugin values:
+  - config: OWTF-ADoS-001_CATEGORY
+    value: HTTP_WIN,HTTP,SSL,TCP
+  - config: OWTF-ADoS-001_RHOST
+    value: 127.0.0.1
+  - config: OWTF-ADoS-001_RPORT
+    value: 80
+
+  - config: OWTF-AExP-001_CATEGORY
+    value: LINUX,OSX,WINDOWS
+  - config: OWTF-AExP-001_SUBCATEGORY
+    value: DCERPC,FTP,HTTP,IIS,IMAP,ISAPI,LDAP,LPD,MDNS,MISC,MMSP,MSSQL,MYSQL,NFS,NNTP,NOVELL,NTP,ORACLE,PHP,POP3,POSTGRES,PPTP,PROXY,REALSERVER,RPC,RTSP,SAMBA,SCADA,SIP,SMB,SMTP,SSH,SSL,SUNRPC,SVN,TACACS,TELNET,TFTP,VNC,VPN,WINS,WYSE
+  - config: OWTF-AExP-001_RHOST
+    value: 127.0.0.1
+  - config: OWTF-AExP-001_RPORT
+    value: 80
+
+  - config: SELENIUM_URL_VECTORS_XSS
+    value: "@@@FRAMEWORK_DIR@@@/dictionaries/attack_vectors/web/xss/basic.txt"
+  - config: SELENIUM_URL_VECTORS_RCE
+    value: "@@@FRAMEWORK_DIR@@@/dictionaries/attack_vectors/web/rce/basic.txt"
+  - config: SELENIUM_URL_VECTORS_SQLI
+    value: "@@@FRAMEWORK_DIR@@@/dictionaries/attack_vectors/web/sqli/basic.txt"
+  - config: SELENIUM_URL_VECTORS_CHARSET
+    value: "@@@FRAMEWORK_DIR@@@/dictionaries/attack_vectors/web/charset/basic.txt"
+
+  - config: OWTF-ASEL-001_selenium_CATEGORY
+    value: XSS,RCE,SQLI,CHARSET
+  - config: OWTF-ASEL-001_selenium_BASE_URL
+    value: http://127.0.0.1/
+
+  # --------------------------------------------- SMB ---------------------------------------------
+  # SMB_HOST_DESCRIP: The host containing the SMB share to mount (i.e. \\host_name)
+  # SMB_SHARE_DESCRIP: The SMB share to mount (i.e. \\..\share_name)
+  # SMB_MOUNT_POINT_DESCRIP: The mount point to mount the SMB share on (i.e. /mnt/share_name)
+  # SMB_USER_DESCRIP: User to mount the SMB share
+  # SMB_PASS_DESCRIP: Password to mount the SMB share
+  # SMB_DOWNLOAD_DESCRIP: Item (or comma-separated list of items) to download from the share
+  # SMB_UPLOAD_DESCRIP: Item (or comma-separated list of items) to upload to the share
+
+
+  # ---------------------------------------- SPEAR_PHISHING ----------------------------------------
+
+  - config: PHISHING_SCRIPT_DIR
+    value: "@@@FRAMEWORK_DIR@@@/scripts/set/phishing"
+  # New versions of SET are likely to break SET scripts, make this more obvious via dir naming:
+  - config: PHISHING_SCRIPT_DIR
+    value: "@@@FRAMEWORK_DIR@@@/framework/wrappers/set/scripts/phishing3.2.2"
+  # Below is for cases when SET suddenly asks for a listener IP breaking all scripts
+  - config: PHISHING_SCRIPT_DIR
+    value: "@@@FRAMEWORK_DIR@@@/framework/wrappers/set/scripts/phishing3.2.2_listenerIP"
+  - config: SET_FILE_EXTENSION_ATTACK
+    value: 3
+    description: The SET file extension attack to carry out (1-17) -only relevant for 1_rar,1_zip,1_rce,1_zce-
+  - config: PHISHING_PAYLOAD
+    value: 1
+  - config: PHISHING_PAYLOAD
+    value: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
+  - config: PHISHING_PAYLOAD
+    value: 1_zip,1_rar,2_unc,3_win,4_rtf,5_a,6_a,7_a,8_a,9_a,10_a,11_a,12_a,13_cx,14_a,15_a,16_f,17_q,18_n,19_a
+  #SET payload 17 does not work, removing from defaults:
+  - config: PHISHING_PAYLOAD
+    value: 1_zip,1_rar,2_unc,3_win,4_rtf,5_a,6_a,7_a,8_a,9_a,10_a,11_a,12_a,13_cx,14_a,15_a,16_f,18_n,19_a
+    description: SET Payload for the phishing attack (1-18)
+  - config: ATTACHMENT_NAME
+    value: report
+    description: Filename for the attachment to be sent
+  - config: SET_EMAIL_TEMPLATE
+    value: 1,2,3,4,5,6,7,8,9
+    description: SET Email template number to use (1-9)
+  - config: MSF_LISTENER_IP
+    value: 127.0.0.1
+    description: IP where metasploit multi-handler will be listening to get the shells back
+  - config: MSF_LISTENER_PORT
+    value: 443
+    description: Port where metasploit multi-handler will be listening to get the shells back
+  - config: MSF_LISTENER_SETUP
+    value: no
+    description: "Setup the listener (yes/no): 'no' can be useful when the goal is IDS testing"
+  - config: EMAIL_TARGET
+    value: /root/emails.txt
+    description: Email or File containing the target email addresses for phishing attacks
+  - config: EMAIL_PRIORITY
+    value: yes
+    description: Send emails with high importance (use "yes") or no (use "no")
+  - config: PDF_TEMPLATE
+    value: /root/test.pdf
+    description: PDF Template file to use for some of the SET payloads that need it/can use it
+  - config: WORD_TEMPLATE
+    value: /root/test.doc
+    description: Word Template file to use for some of the SET payloads that need it/can use it
+
+  # -------------------------------------------- SMTP --------------------------------------------
+
+  - config: EMAIL_FROM
+    value: you@your_server.com
+    description: Source email address to use for phishing attacks
+  - config: SMTP_LOGIN
+    value: login@your_server.com
+    description: Login to use to connect to the SMTP server
+  - config: SMTP_PASS
+    value: your_password
+    description: SMTP Password to use to connect to the SMTP server
+  - config: SMTP_HOST
+    value: your_mail_server.com
+    description: SMTP Host name or IP address to use to send emails
+  - config: SMTP_PORT
+    value: 25
+    description: SMTP Port to connect to to send the emails

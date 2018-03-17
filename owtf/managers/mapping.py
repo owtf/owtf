@@ -6,19 +6,11 @@ Manages the mapping between different plugin groups and codes
 """
 
 import json
-import logging
-import os
 
 from owtf.db import models
 from owtf.lib.exceptions import InvalidMappingReference
-from owtf.utils.error import abort_framework
-
-try:
-    import configparser as parser
-except ImportError:
-    import ConfigParser as parser
-
-
+from owtf.managers.config import load_config_file
+from owtf.utils.pycompat import iteritems
 
 mapping_types = []
 
@@ -104,37 +96,29 @@ def get_mapping_category(session, plugin_code):
     return category
 
 
-def load_mappings_from_file(session, default, fallback):
+def load_mappings(session, default, fallback):
     """Loads the mappings from the config file
 
     .note::
         This needs to be a list instead of a dictionary to preserve order in python < 2.7
 
-    :param file_path: The path to the mappings config file
-    :type file_path: `str`
+    :param session: SQLAlchemy database session
+    :type session: `object`
+    :param default: The fallback path to config file
+    :type default: `str`
+    :param fallback: The path to config file
+    :type fallback: `str`
     :return: None
     :rtype: None
     """
-    file_path = default
-    if not os.path.isfile(file_path):
-        file_path = fallback
-    logging.info("Loading plugin mappings from: %s..", file_path)
-    config_parser = parser.RawConfigParser()
-    # Otherwise all the keys are converted to lowercase xD
-    config_parser.optionxform = str
-    if not os.path.isfile(file_path):  # check if the mapping file exists
-        abort_framework("Mapping file not found at: %s" % file_path)
-    config_parser.read(file_path)
-    for owtf_code in config_parser.sections():
-        mappings = {}
+    config_dump = load_config_file(default, fallback)
+    for owtf_code, mappings in iteritems(config_dump):
         category = None
-        for mapping_type, data in config_parser.items(owtf_code):
-            if mapping_type != 'category':
-                if mapping_type not in mapping_types:
-                    mapping_types.append(mapping_type)
-                mapped_code, mapped_name = data.split('_____')
-                mappings[mapping_type] = [mapped_code, mapped_name]
-            else:
-                category = data
-        session.merge(models.Mapping(owtf_code=owtf_code, mappings=json.dumps(mappings), category=category))
+        if 'category' in mappings:
+            category = mappings.pop('category')
+        session.merge(models.Mapping(
+            owtf_code=owtf_code,
+            mappings=json.dumps(mappings),
+            category=category
+        ))
     session.commit()

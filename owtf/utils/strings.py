@@ -43,7 +43,7 @@ def multi_replace(text, replace_dict):
             # A recursive call to remove all level occurrences of place
             # holders.
             new_text = new_text.replace(REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER,
-                                        multi_replace(replace_dict[key], replace_dict) )
+                                        multi_replace(replace_dict[key], replace_dict))
     new_text = os.path.expanduser(new_text)
     return new_text
 
@@ -258,6 +258,7 @@ def is_convertable(value, conv):
         return conv(value)
     except ValueError:
         return None
+
 
 def str_to_dict(string):
     """Convert a string to a dict

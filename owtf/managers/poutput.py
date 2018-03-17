@@ -89,6 +89,7 @@ def get_plugin_output_dict(obj, target_id=None, inc_output=False):
         pdict["run_time"] = timer.get_time_as_str(obj.run_time)
         return pdict
 
+
 @target_required
 def get_plugin_output_dicts(obj_list, target_id=None, inc_output=False):
     """Get plugin output dicts from a list of objects
