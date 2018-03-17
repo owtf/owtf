@@ -4,22 +4,15 @@ owtf.lib.owtf_process
 
 Consists of owtf process class and its manager
 """
-import logging
-import multiprocessing
 from multiprocessing import Process, Queue
-import signal
-import sys
 
 from owtf.db.database import get_scoped_session
-from owtf.utils.logger import logger
+from owtf.utils.error import setup_signal_handlers
+from owtf.plugin.plugin_handler import plugin_handler
+from owtf.utils.logger import OWTFLogger
 
 
 __all__ = ['OWTFProcess']
-
-
-def signal_handler(signal, frame):
-    logging.warn('Cleaning up %s', multiprocessing.current_process().name)
-    sys.exit(0)
 
 
 class OWTFProcess(Process):
@@ -35,11 +28,10 @@ class OWTFProcess(Process):
         """
         self.poison_q = Queue()
         self._process = None
-        self.output_q = None
         self.session = get_scoped_session()
-        self.logger = logger
-        signal.signal(signal.SIGINT, signal_handler)
-        self.logger.setup_logging()
+        self.plugin_handler = plugin_handler
+        self.logger = OWTFLogger()
+        setup_signal_handlers()
         for key in list(kwargs.keys()):  # Attach all kwargs to self
             setattr(self, key, kwargs.get(key, None))
         super(OWTFProcess, self).__init__()
@@ -60,6 +52,7 @@ class OWTFProcess(Process):
         :rtype: None
         """
         try:
+            self.logger.enable_logging()
             self.pseudo_run()
         except KeyboardInterrupt:
             # In case of interrupt while listing plugins

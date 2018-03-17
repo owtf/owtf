@@ -31,7 +31,7 @@ def load_config_db_file(session, default, fallback):
     file_path = default
     if not os.path.isfile(file_path):
         file_path = fallback
-    logging.info("Loading Configuration from: %s.." % file_path)
+    logging.info("Loading general configuration from: %s..", file_path)
     config_parser = parser.RawConfigParser()
     config_parser.optionxform = str  # Otherwise all the keys are converted to lowercase xD
     if not os.path.isfile(file_path):  # check if the config file exists
@@ -60,7 +60,7 @@ def load_framework_config_file(default, fallback, root_dir, owtf_pid):
     config_path = default
     if not os.path.isfile(config_path):
         config_path = fallback
-    logging.info("Loading config from: {}..".format(config_path))
+    logging.info("Loading framework configuration from: {}..".format(config_path))
     config_file = FileOperations.open(config_path, 'r')
     config_handler.set_val('FRAMEWORK_DIR', root_dir)  # Needed Later.
     for line in config_file:

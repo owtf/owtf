@@ -11,7 +11,7 @@ __version__ = '2.3.2'
 __release__ = 'MacOWTF'
 
 print("""\033[92m
-    _____ _ _ _ _____ _____
+     _____ _ _ _ _____ _____
     |     | | | |_   _|   __|
     |  |  | | | | | | |   __|
     |_____|_____| |_| |__|
@@ -26,4 +26,3 @@ print("""\033[92m
 
 db = get_scoped_session()
 FileOperations.create_missing_dirs(get_logs_dir())
-

@@ -118,7 +118,7 @@ def load_mappings_from_file(session, default, fallback):
     file_path = default
     if not os.path.isfile(file_path):
         file_path = fallback
-    logging.info("Loading Mapping from: %s..", file_path)
+    logging.info("Loading plugin mappings from: %s..", file_path)
     config_parser = parser.RawConfigParser()
     # Otherwise all the keys are converted to lowercase xD
     config_parser.optionxform = str

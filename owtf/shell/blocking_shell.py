@@ -17,7 +17,6 @@ from owtf.managers.command_register import add_command, command_already_register
 from owtf.managers.target import target_manager
 from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, USER_AGENT
 from owtf.utils.error import user_abort
-from owtf.utils.logger import logger
 from owtf.utils.strings import multi_replace_dict, scrub_output
 from owtf.utils.timer import timer
 
@@ -30,12 +29,10 @@ class Shell(object):
         # Some settings like the plugin output dir are dynamic, config is no place for those
         self.dynamic_replacements = {}
         self.timer = timer
-        self.logger = logger
         self.command_time_offset = 'Command'
         self.old_cmds = defaultdict(list)
         # Environment variables for shell
         self.shell_env = os.environ.copy()
-        self.logger.setup_logging()
 
     def refresh_replacements(self):
         """Refresh the replaced items in the list

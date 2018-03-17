@@ -34,11 +34,16 @@ from owtf.settings import AUX_TEST_GROUPS, CLI, DEFAULT_FRAMEWORK_CONFIG, DEFAUL
     FALLBACK_GENERAL_PROFILE, FALLBACK_MAPPING_PROFILE, FALLBACK_NET_TEST_GROUPS, FALLBACK_RESOURCES_PROFILE, \
     FALLBACK_WEB_TEST_GROUPS, NET_TEST_GROUPS, SERVER_ADDR, UI_SERVER_PORT, WEB_TEST_GROUPS
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
+from owtf.utils.logger import OWTFLogger
 from owtf.utils.process import kill_children
+
 
 __all__ = ['get_plugins_from_arg', 'process_options', 'initialise_framework', 'finish', 'main']
 
+
 owtf_pid = None
+logger = OWTFLogger()
+logger.enable_logging()
 
 
 def get_plugins_from_arg(arg):
@@ -235,7 +240,6 @@ def x(args):
     if initialise_framework(args):
         if not args['nowebui']:
             start_api_server()
-            logging.warn("http://{}:{} <-- Web UI URL".format(SERVER_ADDR, str(UI_SERVER_PORT)))
             start_file_server()
         else:
             start_cli()
@@ -257,6 +261,7 @@ def main(args):
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
     owtf_pid = os.getpid()
     create_temp_storage_dirs(owtf_pid)
+
     try:
         _ensure_default_session(db)
         load_framework_config_file(DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid)

@@ -45,9 +45,6 @@ class ProxyProcess(OWTFProcess):
         self.application.inbound_port = int(INBOUND_PROXY_PORT)
         self.instances = INBOUND_PROXY_PROCESSES
 
-        # Disable console logging
-        self.logger.disable_console_logging()
-
         # Proxy CACHE
         # Cache related settings, including creating required folders according to cache folder structure
         self.application.cache_dir = INBOUND_PROXY_CACHE_DIR
@@ -146,6 +143,8 @@ class ProxyProcess(OWTFProcess):
         :rtype: None
         """
         try:
+            # Disable console logging
+            self.logger.disable_console_logging()
             self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
@@ -188,8 +187,7 @@ def start_proxy():
             abort_framework("Inbound proxy address already in use")
         # If everything is fine.
         proxy_process = ProxyProcess()
-        logging.warn("{0}:{1} <-- HTTP(S) Proxy to which requests can be directed".format(INBOUND_PROXY_IP,
-                                                                                          str(INBOUND_PROXY_PORT)))
+        logging.warn("Starting HTTP(s) proxy server at {0}:{1} ".format(INBOUND_PROXY_IP, str(INBOUND_PROXY_PORT)))
         proxy_process.initialize(USE_OUTBOUND_PROXY, OUTBOUND_PROXY_AUTH)
         transaction_logger = TransactionLogger(cache_dir=INBOUND_PROXY_CACHE_DIR)
         transaction_logger.initialize()

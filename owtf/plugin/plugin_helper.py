@@ -24,11 +24,11 @@ from owtf.managers.url import add_url, get_urls_to_visit, import_urls
 from owtf.plugin.plugin_handler import plugin_handler
 from owtf.shell.blocking_shell import shell
 from owtf.utils.file import FileOperations
-from owtf.utils.logger import logger
 from owtf.utils.strings import multi_replace
 from owtf.utils.timer import timer
 
 __all__ = ['plugin_helper']
+
 
 PLUGIN_OUTPUT = {"type": None, "output": None}  # This will be json encoded and stored in db as string
 
@@ -48,8 +48,6 @@ class PluginHelper(object):
         self.robots_allow_regex = re.compile("Allow: ([^\n  #]+)")
         self.robots_disallow_regex = re.compile("Disallow: ([^\n #]+)")
         self.robots_sitemap = re.compile("Sitemap: ([^\n #]+)")
-        self.logger = logger
-        self.logger.setup_logging()
 
     def multi_replace(self, text, replace_dict):
         """ This redundant method is here so that plugins can use it

@@ -11,7 +11,6 @@ from owtf.config import config_handler
 from owtf.db.database import get_scoped_session
 from owtf.managers.error import add_error
 from owtf.utils.error import abort_framework
-from owtf.utils.logger import logger
 from owtf.utils.strings import merge_dicts
 
 
@@ -23,9 +22,7 @@ class PluginParams(object):
     def __init__(self, options):
         self.init = False
         self.no_args = []
-        self.logger = logger
         self.session = get_scoped_session()
-        self.logger.setup_logging()
 
     def process_args(self):
         """Process args

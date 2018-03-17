@@ -28,7 +28,6 @@ from owtf.plugin.scanner import Scanner
 from owtf.settings import AUX_OUTPUT_PATH, FORCE_OVERWRITE, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
-from owtf.utils.logger import logger
 from owtf.utils.strings import wipe_bad_chars
 from owtf.utils.timer import timer
 
@@ -69,8 +68,6 @@ class PluginHandler(object):
         self.plugin_count = 0
         self.session = get_scoped_session()
         self.scanner = Scanner()
-        self.logger = logger
-        self.logger.setup_logging()
 
     def plugin_already_run(self, session, plugin_info):
         """Check if plugin has already run
