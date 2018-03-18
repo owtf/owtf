@@ -410,6 +410,10 @@ class PluginHandler(object):
             plugin['title'],
             plugin['group'],
             plugin['type'])
+        # Skip processing in simulation mode, but show until line above
+        # to illustrate what will run
+        if self.simulation:
+            return None
         # DB empty => grep plugins will fail, skip!!
         if ('grep' == plugin['type'] and num_transactions(session) == 0):
             logging.info('Skipped - Cannot run grep plugins: The Transaction DB is empty')
