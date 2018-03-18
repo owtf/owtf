@@ -4,7 +4,6 @@ tests.suite.categories
 
 Test categories.
 """
-
 from tests.functional.cli.test_empty_run import OWTFCliEmptyRunTest
 from tests.functional.cli.test_list_plugins import OWTFCliListPluginsTest
 from tests.functional.cli.test_nowebui import OWTFCliNoWebUITest

@@ -8,23 +8,20 @@ import os
 import shutil
 import subprocess
 
-
 DIR_OWTF_REVIEW = 'owtf_review'
 DIR_OWTF_LOGS = 'logs'
-# FIXME: Do not remove user's results. Need OWTF to fix its custom profiles options.
-DIR_SCRIPTS = 'owtf/scripts'
-DB_SETUP_SCRIPT = 'owtf/db_setup.sh'
 
 
 def db_setup(cmd):
     """Reset OWTF database."""
     if cmd not in ['clean', 'init']:
         return
+    formatted_cmd = "make db-{}".format(cmd)
     pwd = os.getcwd()
     db_process = subprocess.Popen(
         "/usr/bin/echo '\n' | %s %s" % (
-            os.path.join(pwd, DIR_SCRIPTS, DB_SETUP_SCRIPT),
-            cmd),
+            os.path.join(pwd),
+            formatted_cmd),
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)

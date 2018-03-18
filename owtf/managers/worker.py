@@ -178,8 +178,7 @@ class WorkerManager(object):
                 if not self.keep_working:
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
-                        from owtf.core import finish
-                        workers_finish.connect(finish)
+                        workers_finish.send(self)
 
     def is_any_worker_busy(self):
         """If a worker is still busy, return True. Return False otherwise.
@@ -440,4 +439,4 @@ class WorkerManager(object):
         self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
 
 
-worker_manager = WorkerManager(keep_working=not os.environ.get('CLI', CLI))
+worker_manager = WorkerManager(keep_working=False)

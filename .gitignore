@@ -29,6 +29,7 @@ wheels/
 *.spec
 
 # Installer logs
+src/*
 pip-log.txt
 pip-delete-this-directory.txt
 

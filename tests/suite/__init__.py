@@ -1,1 +1,1 @@
-from categories import SUITES
+from .categories import SUITES

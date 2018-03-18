@@ -37,6 +37,7 @@ from owtf.settings import AUX_TEST_GROUPS, CLI, DEFAULT_FRAMEWORK_CONFIG, DEFAUL
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.logger import OWTFLogger
 from owtf.utils.process import _signal_process
+from owtf.utils.signals import workers_finish
 
 
 __all__ = ['get_plugins_from_arg', 'process_options', 'initialise_framework', 'finish', 'main']
@@ -245,10 +246,10 @@ def x(args):
         else:
             start_cli()
 
-
+@workers_finish.connect
 def finish(sender=None, **kwargs):
     if sender:
-        print("[{}]: sent the signal".format(sender))
+        logging.debug("[{}]: sent the signal".format(sender))
     global owtf_pid
     _signal_process(pid=owtf_pid, psignal=signal.SIGINT)
 
