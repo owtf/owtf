@@ -68,8 +68,7 @@ class Worker(OWTFProcess):
 
 class WorkerManager(object):
 
-    def __init__(self, keep_working=True):
-        self.keep_working = keep_working
+    def __init__(self):
         self.worklist = []  # List of unprocessed (plugin*target)
         self.workers = []  # list of worker and work (worker, work)
         self.session = get_scoped_session()
@@ -168,10 +167,14 @@ class WorkerManager(object):
                     self.workers[k]["work"] = work_to_assign
                     self.workers[k]["busy"] = True
                     self.workers[k]["start_time"] = strftime("%Y/%m/%d %H:%M:%S")
-                if not self.keep_working:
+                # Check if the worker should keep polling if it has not tasks to get
+                # If CLI environment variable is set then owtf should ideally exit if there are no tasks
+                # to perform.
+                if os.environ.get('CLI', CLI):
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
-                        sys.exit(0)
+                        self.exit()
+                        raise SystemExit
 
     def is_any_worker_busy(self):
         """If a worker is still busy, return True. Return False otherwise.
@@ -432,4 +435,4 @@ class WorkerManager(object):
         self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
 
 
-worker_manager = WorkerManager(keep_working=not os.environ.get('CLI', CLI))
+worker_manager = WorkerManager()
