@@ -7,10 +7,11 @@ This is the command-line front-end in charge of processing arguments and call th
 
 from __future__ import print_function
 
+from copy import deepcopy
 import logging
 import os
+import signal
 import sys
-from copy import deepcopy
 
 from owtf import db
 from owtf.api.main import start_api_server
@@ -35,7 +36,7 @@ from owtf.settings import AUX_TEST_GROUPS, CLI, DEFAULT_FRAMEWORK_CONFIG, DEFAUL
     FALLBACK_WEB_TEST_GROUPS, NET_TEST_GROUPS, SERVER_ADDR, UI_SERVER_PORT, WEB_TEST_GROUPS
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.logger import OWTFLogger
-from owtf.utils.process import kill_children
+from owtf.utils.process import _signal_process
 
 
 __all__ = ['get_plugins_from_arg', 'process_options', 'initialise_framework', 'finish', 'main']
@@ -153,7 +154,7 @@ def process_options(user_args):
     num_targets = len(scope)
     if plugin_group != 'auxiliary' and num_targets == 0 and not arg.list_plugins:
         # TODO: Fix this
-        pass
+        finish()
     elif num_targets == 1:  # Check if this is a file
         if os.path.isfile(scope[0]):
             logging.info("Scope file: trying to load targets from it ..")
@@ -212,7 +213,7 @@ def initialise_framework(options):
     # No processing required, just list available modules.
     if options['list_plugins']:
         show_plugin_list(db, options['list_plugins'])
-        finish(owtf_pid)
+        finish()
     target_urls = load_targets(session=db, options=options)
     load_works(session=db, target_urls=target_urls, options=options)
     start_proxy()
@@ -245,8 +246,11 @@ def x(args):
             start_cli()
 
 
-def finish(owtf_pid):
-    kill_children(owtf_pid)
+def finish(sender=None, **kwargs):
+    if sender:
+        print("[{}]: sent the signal".format(sender))
+    global owtf_pid
+    _signal_process(pid=owtf_pid, psignal=signal.SIGINT)
 
 
 def main(args):
@@ -259,6 +263,7 @@ def main(args):
     """
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
+    global owtf_pid
     owtf_pid = os.getpid()
     create_temp_storage_dirs(owtf_pid)
 
@@ -289,13 +294,13 @@ def main(args):
     try:
         if x(args):
             # Only if Start is for real (i.e. not just listing plugins, etc)
-            sys.exit(0)  # Not Interrupted or Crashed.
+            finish()  # Not Interrupted or Crashed.
     except KeyboardInterrupt:
         # NOTE: The user chose to interact: interactivity check redundant here:
         logging.warning("OWTF was aborted by the user:")
         logging.info("Please check report/plugin output files for partial results")
         # Interrupted. Must save the DB to disk, finish report, etc.
-        sys.exit(-1)
+        finish()
     except SystemExit:
         pass  # Report already saved, framework tries to exit.
     finally:  # Needed to rename the temp storage dirs to avoid confusion.

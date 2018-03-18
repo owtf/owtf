@@ -26,6 +26,8 @@ from owtf.plugin.plugin_handler import plugin_handler
 from owtf.settings import CLI, MIN_RAM_NEEDED, PROCESS_PER_CORE
 from owtf.utils.error import abort_framework
 from owtf.utils.process import check_pid
+from owtf.utils.signals import workers_finish
+
 
 __all__ = ['worker_manager']
 
@@ -34,6 +36,11 @@ TIMEOUT = 3
 
 
 class Worker(OWTFProcess):
+    def initialize(self, **kwargs):
+        super(Worker, self).__init__(**kwargs)
+        self.output_q = None
+        self.input_q = None
+
     def pseudo_run(self):
         """ When run for the first time, put something into output queue ;)
 
@@ -171,7 +178,8 @@ class WorkerManager(object):
                 if not self.keep_working:
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
-                        sys.exit(0)
+                        from owtf.core import finish
+                        workers_finish.connect(finish)
 
     def is_any_worker_busy(self):
         """If a worker is still busy, return True. Return False otherwise.
