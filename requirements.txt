@@ -1,8 +1,3 @@
-# Before editing this file, read this or else XD
-# - The libraries are written in alphabetical order
-# - The version number is important, it is required that you test
-#   the latest version and add it here
-# - The casing of names is critical for dependency checks, eg. pyOpenSSL and not pyopenssl
 cffi==1.10.0
 cookies==2.2.1
 dnspython==1.15.0
@@ -25,3 +20,4 @@ SQLAlchemy==1.1.13
 tornado==4.5.2
 pyyaml==3.12.0
 future==0.16.0
+-e git+https://github.com/jek/blinker#egg=blinker
