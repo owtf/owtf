@@ -16,4 +16,4 @@ class OWTFCliEmptyRunTest(OWTFCliTestCase):
         self.assert_is_in_logs(
             'MainProcess: caught signal SIGINT, exiting',
             name='MainProcess',
-            msg='')
+            msg='OWTF did not finish properly!')
