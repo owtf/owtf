@@ -15,7 +15,7 @@ before_install:
 - sudo apt-get install libffi-dev
 - sudo pip install pyopenssl
 install:
-- echo '\n\n' | python setup.py install
+- echo '\n\n' | python setup.py develop
 before_script:
 - pip install mock pyHamcrest
 - cp -f ./tests/fixtures/profiles/plugin_web/groups.cfg ~/.owtf/conf/profiles/plugin_web/groups.cfg
