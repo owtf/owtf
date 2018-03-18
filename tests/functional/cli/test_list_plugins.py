@@ -1,3 +1,8 @@
+"""
+tests.functional.cli.test_list_plugins
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+"""
 from tests.owtftest import OWTFCliTestCase
 
 

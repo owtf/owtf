@@ -43,10 +43,6 @@ class OWTFCliTestCase(unittest.TestCase):
         self.raw_input_patcher.stop()
         self.clean_logs()
 
-    ###
-    # OWTF utils methods.
-    ###
-
     def run_owtf(self, *extra_args):
         """Run OWTF with args plus ``extra_args`` if any."""
         if self.args:
@@ -108,10 +104,7 @@ class OWTFCliTestCase(unittest.TestCase):
         # Remove old OWTF outputs
         clean_owtf_review()
 
-    ###
     # Specific methods that test logs and function calls.
-    ###
-
     def assert_has_been_logged(self, text, name=None, msg=None):
         if name and name in self.logs:
             assert_that(self.logs[name], has_item(text), msg)
