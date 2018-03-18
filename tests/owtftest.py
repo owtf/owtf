@@ -1,4 +1,11 @@
+"""
+tests.owtftest
+~~~~~~~~~~~~~~
+
+Test cases.
+"""
 from __future__ import print_function
+
 import os
 import copy
 import glob
@@ -8,9 +15,8 @@ import unittest
 import mock
 from hamcrest import *
 
-from tests.utils.clean import db_setup, clean_owtf_review
-from tests.utils.utils import load_log, DIR_OWTF_REVIEW, DIR_OWTF_LOGS
-from tests.utils.service.web.server import WebServerProcess
+from tests.utils import load_log, db_setup, clean_owtf_review, DIR_OWTF_REVIEW, DIR_OWTF_LOGS
+from tests.server import WebServerProcess
 
 
 class OWTFCliTestCase(unittest.TestCase):
@@ -51,7 +57,7 @@ class OWTFCliTestCase(unittest.TestCase):
             args += extra_args
         print("with the following options: %s" % args)
         args_str = ' '.join(args)
-        os.system("CLI=True owtf-cli %s" % args_str)
+        os.system("owtf {}".format(args_str))
         self.load_logs()
 
     def load_logs(self):

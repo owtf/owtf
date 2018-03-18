@@ -1,7 +1,4 @@
-import mock
-from hamcrest import *
-
-from tests.utils.owtftest import OWTFCliTestCase
+from tests.owtftest import OWTFCliTestCase
 
 
 class OWTFCliListPluginsTest(OWTFCliTestCase):

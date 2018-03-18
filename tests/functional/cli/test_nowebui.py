@@ -1,7 +1,9 @@
-import mock
-from hamcrest import *
+"""
+tests.functional.cli.test_nowebui
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-from tests.utils.owtftest import OWTFCliTestCase
+"""
+from tests.owtftest import OWTFCliTestCase
 
 
 class OWTFCliNoWebUITest(OWTFCliTestCase):

@@ -1,8 +1,9 @@
-import mock
-import unittest
-from hamcrest import *
+"""
+tests.functional.cli.test_scope
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-from tests.utils.owtftest import OWTFCliTestCase
+"""
+from tests.owtftest import OWTFCliTestCase
 
 
 class OWTFCliScopeTest(OWTFCliTestCase):

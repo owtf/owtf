@@ -1,13 +1,19 @@
+"""
+tests.utils
+~~~~~~~~~~~
+
+Miscellaneous functions for test cases
+"""
 import os
 import shutil
 import subprocess
 
 
-# FIXME: Do not remove user's results. Need OWTF to fix its custom profiles
-# options.
+DIR_OWTF_REVIEW = 'owtf_review'
+DIR_OWTF_LOGS = 'logs'
+# FIXME: Do not remove user's results. Need OWTF to fix its custom profiles options.
 DIR_SCRIPTS = 'owtf/scripts'
 DB_SETUP_SCRIPT = 'owtf/db_setup.sh'
-DIR_OWTF_REVIEW = 'owtf_review'
 
 
 def db_setup(cmd):
@@ -29,3 +35,15 @@ def clean_owtf_review():
     """Remove OWTF owtf_review output directory."""
     pwd = os.getcwd()
     shutil.rmtree(os.path.join(pwd, DIR_OWTF_REVIEW), ignore_errors=True)
+
+
+def load_log(name, dir_owtf_review=DIR_OWTF_REVIEW, dir_owtf_logs=DIR_OWTF_LOGS, absolute_path=False):
+    """Read the file 'name' and returns its content."""
+    if not name.endswith('.log'):
+        name += '.log'
+    if not absolute_path:
+        fullpath = os.path.join(os.getcwd(), dir_owtf_review, dir_owtf_logs, name)
+    else:
+        fullpath = name
+    with open(fullpath, 'r') as f:
+        return f.readlines()

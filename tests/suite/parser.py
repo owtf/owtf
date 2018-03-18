@@ -1,9 +1,16 @@
+"""
+tests.suite.parser
+~~~~~~~~~~~~~~~~~~
+
+Argument parser for the tests suite.
+"""
 from __future__ import print_function
+
 import sys
 import argparse
 import unittest
 
-from tests.utils.suite import SUITES
+from tests.suite import SUITES
 
 
 def create_parser():

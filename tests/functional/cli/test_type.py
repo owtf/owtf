@@ -1,7 +1,9 @@
-import mock
-from hamcrest import *
+"""
+tests.functional.cli.test_type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-from tests.utils.owtftest import OWTFCliWebPluginTestCase
+"""
+from tests.owtftest import OWTFCliWebPluginTestCase
 
 
 class OWTFCliTypeTest(OWTFCliWebPluginTestCase):
