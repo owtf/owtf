@@ -42,6 +42,6 @@ __all__ = ['_signals', 'owtf_exited', 'owtf_started', 'workers_finish']
 _signals = Namespace()
 
 # Core signals
-owtf_started = _signals.signal('owtf-start')
-owtf_exited = _signals.signal('owtf-exit')
+owtf_start = _signals.signal('owtf-start')
+owtf_exit = _signals.signal('owtf-exit')
 workers_finish = _signals.signal('workers-finish')

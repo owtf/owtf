@@ -6,11 +6,13 @@ Manage parameters to the plugins
 """
 import logging
 from collections import defaultdict
+import copy
 
 from owtf.config import config_handler
 from owtf.db.database import get_scoped_session
 from owtf.managers.error import add_error
 from owtf.utils.error import abort_framework
+from owtf.utils.signals import owtf_start
 from owtf.utils.strings import merge_dicts
 
 
@@ -19,10 +21,20 @@ __all__ = ['plugin_params']
 
 class PluginParams(object):
 
-    def __init__(self, options):
+    def __init__(self):
+        # Complicated stuff to keep everything Pythonic and from blowing up
+        def handle_signal(sender, **kwargs):
+            self.on_start(sender, **kwargs)
+        self.handle_signal = handle_signal
+        owtf_start.connect(handle_signal)
+
+        self.raw_args = None
         self.init = False
         self.no_args = []
         self.session = get_scoped_session()
+
+    def on_start(self, sender, **kwargs):
+        self.raw_args = copy.deepcopy(kwargs["args"]["Args"])
 
     def process_args(self):
         """Process args
@@ -338,4 +350,4 @@ class PluginParams(object):
         return self.set_args(all_args, plugin)
 
 
-plugin_params = PluginParams(options={})
+plugin_params = PluginParams()

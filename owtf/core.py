@@ -4,7 +4,6 @@ owtf.core
 
 This is the command-line front-end in charge of processing arguments and call the framework.
 """
-
 from __future__ import print_function
 
 from copy import deepcopy
@@ -37,7 +36,7 @@ from owtf.settings import AUX_TEST_GROUPS, CLI, DEFAULT_FRAMEWORK_CONFIG, DEFAUL
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.logger import OWTFLogger
 from owtf.utils.process import _signal_process
-from owtf.utils.signals import workers_finish
+from owtf.utils.signals import workers_finish, owtf_start
 
 
 __all__ = ['get_plugins_from_arg', 'process_options', 'initialise_framework', 'finish', 'main']
@@ -221,21 +220,7 @@ def initialise_framework(options):
     return True
 
 
-def patch_obj_args(args):
-    setattr(plugin_handler, "options", args)
-    setattr(plugin_handler, "simulation", args.get('Simulation', None))
-    setattr(plugin_handler, "scope", args['Scope'])
-    setattr(plugin_handler, "plugin_group", args['PluginGroup'])
-    setattr(plugin_handler, "only_plugins", args['OnlyPlugins'])
-    setattr(plugin_handler, "except_plugins", args['ExceptPlugins'])
-    add_plugin_list = getattr(plugin_handler, "validate_format_plugin_list")
-    setattr(plugin_handler, "only_plugins_list", add_plugin_list(session=db, plugin_codes=args['OnlyPlugins']))
-    setattr(plugin_handler, "except_plugins_list", add_plugin_list(session=db, plugin_codes=args['OnlyPlugins']))
-    exec_registry = getattr(plugin_handler, "init_exec_registry")
-    exec_registry()
-
-
-def x(args):
+def init(args):
     """Start OWTF.
     :params dict args: Options from the CLI.
     """
@@ -267,7 +252,6 @@ def main(args):
     global owtf_pid
     owtf_pid = os.getpid()
     create_temp_storage_dirs(owtf_pid)
-
     try:
         _ensure_default_session(db)
         load_framework_config(DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid)
@@ -283,22 +267,17 @@ def main(args):
         sys.exit(-1)
 
     args = process_options(args[1:])
-    cli_env = os.environ.get('CLI', None)
-    if cli_env:
-        args["nowebui"] = cli_env
     config_handler.cli_options = deepcopy(args)
-
-    # Patch args
-    patch_obj_args(args)
-
+    # Patch args by sending the OWTF start signal
+    owtf_start.send(__name__, args=args)
     # Initialise Framework.
     try:
-        if x(args):
+        if init(args):
             # Only if Start is for real (i.e. not just listing plugins, etc)
             finish()  # Not Interrupted or Crashed.
     except KeyboardInterrupt:
         # NOTE: The user chose to interact: interactivity check redundant here:
-        logging.warning("OWTF was aborted by the user:")
+        logging.warning("OWTF was aborted by the user")
         logging.info("Please check report/plugin output files for partial results")
         # Interrupted. Must save the DB to disk, finish report, etc.
         finish()
