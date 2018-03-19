@@ -153,8 +153,8 @@ def process_options(user_args):
     scope = arg.Targets or []  # Arguments at the end are the URL target(s)
     num_targets = len(scope)
     if plugin_group != 'auxiliary' and num_targets == 0 and not arg.list_plugins:
-        # TODO: Fix this
-        finish()
+        if arg.nowebui:
+            finish()
     elif num_targets == 1:  # Check if this is a file
         if os.path.isfile(scope[0]):
             logging.info("Scope file: trying to load targets from it ..")
