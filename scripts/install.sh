@@ -403,4 +403,4 @@ fi
 make post-install
 
 echo "${info}[*] Finished!${reset}"
-echo "${info}[*] Start OWTF by running cd path/to/pentest/directory; python -m owtf${reset}"
+echo "${info}[*] Start OWTF by running cd path/to/pentest/directory; owtf${reset}"

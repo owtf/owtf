@@ -1,8 +1,7 @@
 Offensive Web Testing Framework
 ===============================
 
-|Requirements Status| |Build Status| |License (3-Clause BSD)| |python_2.7|
-|python_3.6|
+|Build Status| |License (3-Clause BSD)| |python_2.7| |python_3.6|
 
 **OWASP OWTF** is a project focused on penetration testing efficiency
 and alignment of security tests to security standards like the OWASP
@@ -41,7 +40,6 @@ Recommended:
 
     Using a virtualenv is highly recommended!
 
-``pip install owtf`` or
 ``pip install git+https://github.com/owtf/owtf#egg=owtf`` or clone the
 repo and ``python setup.py install``.
 
@@ -120,8 +118,7 @@ Links
 -  `Slideshare <http://www.slideshare.net/abrahamaranguren/presentations>`__
 -  `Blog <http://blog.7-a.org/search/label/OWTF>`__
 
-.. |Requirements Status| image:: https://requires.io/github/owtf/owtf/requirements.svg?branch=develop
-   :target: https://requires.io/github/owtf/owtf/requirements/?branch=develop
+
 .. |Build Status| image:: https://travis-ci.org/owtf/owtf.svg?branch=develop
    :target: https://travis-ci.org/owtf/owtf
 .. |License (3-Clause BSD)| image:: https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square
