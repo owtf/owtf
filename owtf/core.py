@@ -4,13 +4,13 @@ owtf.core
 
 This is the command-line front-end in charge of processing arguments and call the framework.
 """
-
 from __future__ import print_function
 
+from copy import deepcopy
 import logging
 import os
+import signal
 import sys
-from copy import deepcopy
 
 from owtf import db
 from owtf.api.main import start_api_server
@@ -35,7 +35,8 @@ from owtf.settings import AUX_TEST_GROUPS, CLI, DEFAULT_FRAMEWORK_CONFIG, DEFAUL
     FALLBACK_WEB_TEST_GROUPS, NET_TEST_GROUPS, SERVER_ADDR, UI_SERVER_PORT, WEB_TEST_GROUPS
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.logger import OWTFLogger
-from owtf.utils.process import kill_children
+from owtf.utils.process import _signal_process
+from owtf.utils.signals import workers_finish, owtf_start
 
 
 __all__ = ['get_plugins_from_arg', 'process_options', 'initialise_framework', 'finish', 'main']
@@ -153,7 +154,7 @@ def process_options(user_args):
     num_targets = len(scope)
     if plugin_group != 'auxiliary' and num_targets == 0 and not arg.list_plugins:
         # TODO: Fix this
-        pass
+        finish()
     elif num_targets == 1:  # Check if this is a file
         if os.path.isfile(scope[0]):
             logging.info("Scope file: trying to load targets from it ..")
@@ -212,28 +213,14 @@ def initialise_framework(options):
     # No processing required, just list available modules.
     if options['list_plugins']:
         show_plugin_list(db, options['list_plugins'])
-        finish(owtf_pid)
+        finish()
     target_urls = load_targets(session=db, options=options)
     load_works(session=db, target_urls=target_urls, options=options)
     start_proxy()
     return True
 
 
-def patch_obj_args(args):
-    setattr(plugin_handler, "options", args)
-    setattr(plugin_handler, "simulation", args.get('Simulation', None))
-    setattr(plugin_handler, "scope", args['Scope'])
-    setattr(plugin_handler, "plugin_group", args['PluginGroup'])
-    setattr(plugin_handler, "only_plugins", args['OnlyPlugins'])
-    setattr(plugin_handler, "except_plugins", args['ExceptPlugins'])
-    add_plugin_list = getattr(plugin_handler, "validate_format_plugin_list")
-    setattr(plugin_handler, "only_plugins_list", add_plugin_list(session=db, plugin_codes=args['OnlyPlugins']))
-    setattr(plugin_handler, "except_plugins_list", add_plugin_list(session=db, plugin_codes=args['OnlyPlugins']))
-    exec_registry = getattr(plugin_handler, "init_exec_registry")
-    exec_registry()
-
-
-def x(args):
+def init(args):
     """Start OWTF.
     :params dict args: Options from the CLI.
     """
@@ -244,9 +231,12 @@ def x(args):
         else:
             start_cli()
 
-
-def finish(owtf_pid):
-    kill_children(owtf_pid)
+@workers_finish.connect
+def finish(sender=None, **kwargs):
+    if sender:
+        logging.debug("[{}]: sent the signal".format(sender))
+    global owtf_pid
+    _signal_process(pid=owtf_pid, psignal=signal.SIGINT)
 
 
 def main(args):
@@ -259,9 +249,9 @@ def main(args):
     """
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
+    global owtf_pid
     owtf_pid = os.getpid()
     create_temp_storage_dirs(owtf_pid)
-
     try:
         _ensure_default_session(db)
         load_framework_config(DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid)
@@ -277,25 +267,20 @@ def main(args):
         sys.exit(-1)
 
     args = process_options(args[1:])
-    cli_env = os.environ.get('CLI', None)
-    if cli_env:
-        args["nowebui"] = cli_env
     config_handler.cli_options = deepcopy(args)
-
-    # Patch args
-    patch_obj_args(args)
-
+    # Patch args by sending the OWTF start signal
+    owtf_start.send(__name__, args=args)
     # Initialise Framework.
     try:
-        if x(args):
+        if init(args):
             # Only if Start is for real (i.e. not just listing plugins, etc)
-            sys.exit(0)  # Not Interrupted or Crashed.
+            finish()  # Not Interrupted or Crashed.
     except KeyboardInterrupt:
         # NOTE: The user chose to interact: interactivity check redundant here:
-        logging.warning("OWTF was aborted by the user:")
+        logging.warning("OWTF was aborted by the user")
         logging.info("Please check report/plugin output files for partial results")
         # Interrupted. Must save the DB to disk, finish report, etc.
-        sys.exit(-1)
+        finish()
     except SystemExit:
         pass  # Report already saved, framework tries to exit.
     finally:  # Needed to rename the temp storage dirs to avoid confusion.

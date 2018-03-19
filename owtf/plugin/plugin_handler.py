@@ -6,10 +6,11 @@ The PluginHandler is in charge of running all plugins taking into account the
 chosen settings.
 """
 
+import copy
+from collections import defaultdict
 import imp
 import logging
 import os
-from collections import defaultdict
 
 from ptp import PTP
 from ptp.libptp.constants import UNKNOWN
@@ -28,6 +29,7 @@ from owtf.plugin.scanner import Scanner
 from owtf.settings import AUX_OUTPUT_PATH, FORCE_OVERWRITE, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
+from owtf.utils.signals import owtf_start
 from owtf.utils.strings import wipe_bad_chars
 from owtf.utils.timer import timer
 
@@ -55,8 +57,13 @@ WEB Plugin Types:
 
 class PluginHandler(object):
 
-    def __init__(self, options):
-        self.timer = timer
+    def __init__(self):
+        # Complicated stuff to keep everything Pythonic and from blowing up
+        def handle_signal(sender, **kwargs):
+            self.on_start(sender, **kwargs)
+        self.handle_signal = handle_signal
+        owtf_start.connect(handle_signal)
+
         self.plugin_group = None
         self.simulation = None
         self.scope = None
@@ -64,10 +71,26 @@ class PluginHandler(object):
         self.except_plugins = None
         self.only_plugins_list = None
         self.except_plugins_list = None
-        self.options = options
+        self.options = {}
+        self.timer = timer
         self.plugin_count = 0
         self.session = get_scoped_session()
+
+    def on_start(self, sender, **kwargs):
+        self.options = copy.deepcopy(kwargs["args"])
+        self.plugin_group = self.options["PluginGroup"]
+        self.simulation = self.options.get("Simulation", None)
+        self.scope = self.options["Scope"]
+        self.only_plugins = self.options["OnlyPlugins"]
+        self.except_plugins = self.options["ExceptPlugins"]
+        self.except_plugins_list = self.validate_format_plugin_list(session=self.session,
+                                                                    plugin_codes=self.only_plugins)
+        # For special plugin types like "quiet" -> "semi_passive" + "passive"
+        if isinstance(self.options.get('PluginType'), str):
+            self.options['PluginType'] = self.options['PluginType'].split(',')
         self.scanner = Scanner()
+        self.init_exec_registry()
+
 
     def plugin_already_run(self, session, plugin_info):
         """Check if plugin has already run
@@ -410,6 +433,10 @@ class PluginHandler(object):
             plugin['title'],
             plugin['group'],
             plugin['type'])
+        # Skip processing in simulation mode, but show until line above
+        # to illustrate what will run
+        if self.simulation:
+            return None
         # DB empty => grep plugins will fail, skip!!
         if ('grep' == plugin['type'] and num_transactions(session) == 0):
             logging.info('Skipped - Cannot run grep plugins: The Transaction DB is empty')
@@ -583,4 +610,4 @@ def show_plugin_types(session, plugin_type, group):
         logging.info("%s%s(%s)%s%s", line_start, pad1, plugin['code'], pad2, plugin['descrip'])
 
 
-plugin_handler = PluginHandler(options={})
+plugin_handler = PluginHandler()

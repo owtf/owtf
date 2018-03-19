@@ -12,6 +12,9 @@ import signal
 import psutil
 
 
+__all__ = ['check_pid', '_signal_process']
+
+
 def check_pid(pid):
     """Check whether pid exists in the current process table.
     UNIX only.
@@ -38,39 +41,30 @@ def check_pid(pid):
         return True
 
 
-def kill_children(parent_pid, sig=signal.SIGINT):
-    """Kill all OWTF child process when the SIGINT is received
+# For psutil
+TIMEOUT = 3
 
-    :param parent_pid: The pid of the parent OWTF process
-    :type parent_pid: `int`
-    :param sig: Signal received
-    :type sig: `int`
-    :return:
+def _signal_process(pid, psignal=signal.SIGINT):
+    """This function kills all children of a process and abort that process
+
+    .note::
+        Child processes are handled at shell level
+
+    :param pid: Pid of the process
+    :type pid: `int`
+    :param psignal: Signal to send
+    :type pid: `int`
+    :return: None
     :rtype: None
     """
-    def on_terminate(proc):
-        """Log debug info on child process termination
-
-        :param proc: Process pid
-        :rtype: None
-        """
-        logging.debug("Process {} terminated with exit code {}".format(
-            proc, proc.returncode))
-
-    parent = psutil.Process(parent_pid)
+    parent = psutil.Process(pid)
     children = parent.children(recursive=True)
-    for child in children:
-        child.send_signal(sig)
-
-    _, alive = psutil.wait_procs(children, callback=on_terminate)
+    children.append(parent)
+    for pid in children:
+        pid.send_signal(psignal)
+    gone, alive = psutil.wait_procs(children, timeout=TIMEOUT)
     if not alive:
         # send SIGKILL
         for pid in alive:
-            logging.debug(
-                "Process {} survived SIGTERM; trying SIGKILL" % pid)
+            logging.debug("Process {} survived SIGTERM; trying SIGKILL" % pid)
             pid.kill()
-    _, alive = psutil.wait_procs(alive, callback=on_terminate)
-    if not alive:
-        # give up
-        for pid in alive:
-            logging.debug("Process {} survived SIGKILL; giving up" % pid)

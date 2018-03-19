@@ -17,6 +17,7 @@ from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 from owtf.utils.timer import timer
 
+
 TEST_GROUPS = ['web', 'network', 'auxiliary']
 
 
@@ -272,7 +273,6 @@ def derive_plugin_dicts(obj_list):
 
 def plugin_gen_query(session, criteria):
     """Generate a SQLAlchemy query based on the filter criteria
-
     :param criteria: Filter criteria
     :type criteria: `dict`
     :return:
@@ -286,12 +286,12 @@ def plugin_gen_query(session, criteria):
             query = query.filter(models.Plugin.type.in_(criteria["type"]))
     if criteria.get("group", None):
         if isinstance(criteria["group"], str):
-            query = query.filter_by(group=criteria["group"])
+            query = query.filter(models.Plugin.group == criteria["group"])
         if isinstance(criteria["group"], list):
             query = query.filter(models.Plugin.group.in_(criteria["group"]))
     if criteria.get("code", None):
         if isinstance(criteria["code"], str):
-            query = query.filter_by(code=criteria["code"])
+            query = query.filter(models.Plugin.code == criteria["code"])
         if isinstance(criteria["code"], list):
             query = query.filter(models.Plugin.code.in_(criteria["code"]))
     if criteria.get("name", None):
@@ -329,7 +329,6 @@ def get_all_plugin_dicts(session, criteria=None):
     """
     if criteria is None:
         criteria = {}
-
     if "code" in criteria:
         criteria["code"] = plugin_name_to_code(session, criteria["code"])
     query = plugin_gen_query(session, criteria)

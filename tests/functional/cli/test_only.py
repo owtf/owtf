@@ -1,4 +1,9 @@
-from tests.utils.owtftest import OWTFCliTestCase
+"""
+tests.functional.cli.test_only
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+"""
+from tests.owtftest import OWTFCliTestCase
 
 
 class OWTFCliOnlyPluginsTest(OWTFCliTestCase):

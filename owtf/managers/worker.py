@@ -10,6 +10,10 @@ import signal
 import sys
 import traceback
 from time import strftime
+
+from owtf.utils.strings import str2bool
+
+
 try:
     import queue
 except ImportError:
@@ -23,9 +27,11 @@ from owtf.lib.owtf_process import OWTFProcess
 from owtf.managers.error import add_error
 from owtf.managers.worklist import get_work_for_target
 from owtf.plugin.plugin_handler import plugin_handler
-from owtf.settings import CLI, MIN_RAM_NEEDED, PROCESS_PER_CORE
+from owtf.settings import MIN_RAM_NEEDED, PROCESS_PER_CORE
 from owtf.utils.error import abort_framework
 from owtf.utils.process import check_pid
+from owtf.utils.signals import workers_finish, owtf_start
+
 
 __all__ = ['worker_manager']
 
@@ -34,6 +40,11 @@ TIMEOUT = 3
 
 
 class Worker(OWTFProcess):
+    def initialize(self, **kwargs):
+        super(Worker, self).__init__(**kwargs)
+        self.output_q = None
+        self.input_q = None
+
     def pseudo_run(self):
         """ When run for the first time, put something into output queue ;)
 
@@ -68,12 +79,19 @@ class Worker(OWTFProcess):
 
 class WorkerManager(object):
 
-    def __init__(self, keep_working=True):
-        self.keep_working = keep_working
+    def __init__(self):
+        # Complicated stuff to keep everything Pythonic and from blowing up
+        def handle_signal(sender, **kwargs):
+            self.on_start(sender, **kwargs)
+        self.handle_signal = handle_signal
+        owtf_start.connect(handle_signal)
         self.worklist = []  # List of unprocessed (plugin*target)
         self.workers = []  # list of worker and work (worker, work)
         self.session = get_scoped_session()
         self.spawn_workers()
+
+    def on_start(self, sender, **kwargs):
+        self.keep_working = not kwargs["args"]["nowebui"]
 
     def get_allowed_process_count(self):
         """Get the number of max processes
@@ -171,7 +189,7 @@ class WorkerManager(object):
                 if not self.keep_working:
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
-                        sys.exit(0)
+                        workers_finish.send(self)
 
     def is_any_worker_busy(self):
         """If a worker is still busy, return True. Return False otherwise.
@@ -432,4 +450,4 @@ class WorkerManager(object):
         self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
 
 
-worker_manager = WorkerManager(keep_working=not os.environ.get('CLI', CLI))
+worker_manager = WorkerManager()

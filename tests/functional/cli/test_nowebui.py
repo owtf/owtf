@@ -1,7 +1,9 @@
-import mock
-from hamcrest import *
+"""
+tests.functional.cli.test_nowebui
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-from tests.utils.owtftest import OWTFCliTestCase
+"""
+from tests.owtftest import OWTFCliTestCase
 
 
 class OWTFCliNoWebUITest(OWTFCliTestCase):
@@ -12,10 +14,10 @@ class OWTFCliNoWebUITest(OWTFCliTestCase):
         """Run OWTF without its Web UI."""
         self.run_owtf()
         self.assert_has_not_been_logged(
-            "http://127.0.0.1:8009 <-- Web UI URL",
+            'Starting web server at http://127.0.0.1:8009',
             name='MainProcess',
             msg='The web UI should not have been run!')
         self.assert_is_in_logs(
-            "All jobs have been done. Exiting.",
+            'MainProcess: caught signal SIGINT, exiting',
             name='MainProcess',
             msg='OWTF did not finish properly!')

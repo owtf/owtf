@@ -1,3 +1,9 @@
+"""
+tests.server
+~~~~~~~~~~~~
+
+Dummy server for the test runner.
+"""
 import os
 import sys
 import time

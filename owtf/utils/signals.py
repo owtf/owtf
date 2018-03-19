@@ -34,10 +34,14 @@ except ImportError:
             temporarily_connected_to = connected_to = _fail
         del _fail
 
+
+__all__ = ['_signals', 'owtf_exited', 'owtf_started', 'workers_finish']
+
+
 # The namespace for code signals.
 _signals = Namespace()
 
 # Core signals
-owtf_started = _signals.signal('owtf_started')
-owtf_exited = _signals.signal('owtf_exited')
-no_work = _signals.signal('no_work')
+owtf_start = _signals.signal('owtf-start')
+owtf_exit = _signals.signal('owtf-exit')
+workers_finish = _signals.signal('workers-finish')
