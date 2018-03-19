@@ -4,8 +4,8 @@ owtf.managers.transaction
 
 The DB stores HTTP transactions, unique URLs and more.
 """
-
 import base64
+from collections import defaultdict
 import json
 import logging
 import re
@@ -21,6 +21,10 @@ from owtf.lib.exceptions import InvalidParameterType, InvalidTransactionReferenc
 from owtf.managers.target import target_required
 from owtf.managers.url import import_processed_url
 from owtf.utils.strings import get_header_list, str2bool
+
+
+# The regex find differs for these types :P
+REGEX_TYPES = ['HEADERS', 'BODY']
 
 
 @target_required
@@ -746,3 +750,10 @@ def get_session_data(session, target_id=None):
     session_data = session.query(models.Transaction.session_tokens).filter_by(target_id=target_id).all()
     results = [json.loads(el[0]) for el in session_data if el and el[0]]
     return results
+
+
+regexes = defaultdict(list)
+for regex_type in REGEX_TYPES:
+    regexes[regex_type] = {}
+compile_regex()
+
