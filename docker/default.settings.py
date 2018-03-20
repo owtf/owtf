@@ -1,4 +1,15 @@
+"""
+owtf.settings
+~~~~~~~~~~~~~
+
+It contains all the owtf global configs.
+"""
+
 import os
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
 
 import yaml
 
@@ -54,10 +65,10 @@ TARGETS_DIR = 'targets'
 WORKER_LOG_DIR = 'logs'
 
 ### Default profile settings
-DEFAULT_GENERAL_PROFILE = os.path.join(OWTF_CONF, 'conf', 'general.cfg')
+DEFAULT_GENERAL_PROFILE = os.path.join(OWTF_CONF, 'conf', 'general.yaml')
+DEFAULT_FRAMEWORK_CONFIG = os.path.join(OWTF_CONF, 'conf', 'framework.yaml')
+DEFAULT_MAPPING_PROFILE = os.path.join(OWTF_CONF, 'conf', 'mappings.yaml')
 DEFAULT_RESOURCES_PROFILE = os.path.join(OWTF_CONF, 'conf', 'resources.cfg')
-DEFAULT_MAPPING_PROFILE = os.path.join(OWTF_CONF, 'conf', 'mappings.cfg')
-DEFAULT_FRAMEWORK_CONFIG = os.path.join(OWTF_CONF, 'conf', 'framework.cfg')
 DEFAULT_WEB_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_web', 'order.cfg')
 DEFAULT_NET_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_net', 'order.cfg')
 
@@ -69,7 +80,7 @@ OWTF_LOG_FILE = '/tmp/owtf.log'
 
 ### Interface static folders
 TEMPLATES = os.path.join(ROOT_DIR, 'templates')
-POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'webapp', 'templates', 'poutput')
+POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'templates')
 STATIC_ROOT = os.path.join(ROOT_DIR, 'webapp', 'build')
 
 ### SMTP
@@ -78,12 +89,6 @@ SMTP_LOGIN = 'login@your_server.com'
 SMTP_PASS = 'your_password'
 SMTP_HOST = 'your_mail_server.com'
 SMTP_PORT = 25
-
-########## CELERY
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
 
 ### OUTBOUND PROXY
 USE_OUTBOUND_PROXY = False
@@ -133,7 +138,6 @@ HTTP_AUTH_USERNAME = None
 HTTP_AUTH_PASSWORD = None
 HTTP_AUTH_MODE = 'basic'
 
-
 ### Memory
 RESOURCE_MONITOR_PROFILER = 0
 PROCESS_PER_CORE = 1
@@ -151,13 +155,23 @@ PROXY_CHECK_URL = 'http://www.google.ie'
 
 
 ### Fallback
-FALLBACK_FRAMEWORK_CONFIG = os.path.join(ROOT_DIR, 'data', 'conf', 'framework.cfg')
 FALLBACK_WEB_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'groups.cfg')
 FALLBACK_NET_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'groups.cfg')
 FALLBACK_AUX_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_aux', 'groups.cfg')
 FALLBACK_PLUGINS_DIR = os.path.join(ROOT_DIR, 'data', 'plugins')
-FALLBACK_GENERAL_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'general.cfg')
+FALLBACK_GENERAL_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'general.yaml')
+FALLBACK_FRAMEWORK_CONFIG = os.path.join(ROOT_DIR, 'data', 'conf', 'framework.yaml')
+FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'mappings.yaml')
 FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'resources.cfg')
-FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, 'data' + 'conf', 'mappings.cfg')
 FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'order.cfg')
 FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'order.cfg')
+
+
+# Override the values
+local_conf = os.path.join(OWTF_CONF, "settings.py")
+try:
+    with open(local_conf) as f:
+        settings = compile(f.read(), local_conf, 'exec')
+        exec(settings, globals(), locals())
+except FileNotFoundError:
+    pass
