@@ -305,9 +305,9 @@ def log_transactions(session, transaction_list, target_id=None):
                             session.merge(existing_grep_output)
                         else:
                             session.add(models.GrepOutput(target_id=target_id,
-                                                                  transactions=[transaction_model],
-                                                                  name=regex_name,
-                                                                  output=match))
+                                                          transactions=[transaction_model],
+                                                          name=regex_name,
+                                                          output=match))
     session.commit()
     import_processed_url(session=session, urls_list=urls_list, target_id=target_id)
 
@@ -756,4 +756,3 @@ regexes = defaultdict(list)
 for regex_type in REGEX_TYPES:
     regexes[regex_type] = {}
 compile_regex()
-

@@ -12,7 +12,7 @@ from functools import wraps
 try:  # PY3
     from urllib.parse import urlparse
 except ImportError:  # PY2
-     from urlparse import urlparse
+    from urlparse import urlparse
 
 
 def derive_http_method(method, data):

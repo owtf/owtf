@@ -76,11 +76,11 @@ class AsyncPopen(subprocess.Popen):
                 return None
             try:
                 x = msvcrt.get_osfhandle(conn.fileno())
-                (read, nAvail, nMessage) = PeekNamedPipe(x, 0)
-                if maxsize < nAvail:
+                (read, navail, nMessage) = PeekNamedPipe(x, 0)
+                if maxsize < navail:
                     nAvail = maxsize
-                if nAvail > 0:
-                    (errCode, read) = ReadFile(x, nAvail, None)
+                if navail > 0:
+                    (errCode, read) = ReadFile(x, navail, None)
             except ValueError:
                 return self._close(which)
             except (subprocess.pywintypes.error, Exception) as why:

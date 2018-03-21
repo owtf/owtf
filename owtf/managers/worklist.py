@@ -46,7 +46,11 @@ def load_works(session, target_urls, options):
             if not plugins:
                 logging.error("No plugin found matching type '%s' and group '%s' for target '%s'!" %
                               (options['PluginType'], group, target))
-            add_work(session=session, target_list=target, plugin_list=plugins, force_overwrite=options["Force_Overwrite"])
+            add_work(
+                session=session,
+                target_list=target,
+                plugin_list=plugins,
+                force_overwrite=options["Force_Overwrite"])
 
 
 def worklist_generate_query(session, criteria=None, for_stats=False):

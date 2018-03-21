@@ -54,7 +54,11 @@ class PluginParams(object):
             try:
                 arg_val = arg.replace(arg_name, '')[1:]
             except ValueError:
-                add_error(self.session, "USER ERROR: %s arguments should be in NAME=VALUE format" % str(arg_name), 'user')
+                add_error(
+                    self.session,
+                    "USER ERROR: %s arguments should be in NAME=VALUE format" %
+                    str(arg_name),
+                    'user')
                 return False
             self.args[arg_name] = arg_val
         return True
@@ -169,7 +173,7 @@ class PluginParams(object):
                     # argument is optional = ok to skip
                     continue
                 add_error(session, "USER ERROR: %s requires argument: '%s'" % (self.show_plugin(plugin), arg_name),
-                                       'user')
+                          'user')
                 return self.ret_arg_error({}, plugin)  # Abort processing (invalid data)
             args[arg_name] = self.args[arg_name]
         return args
@@ -221,7 +225,7 @@ class PluginParams(object):
         """
         if ('Mandatory' not in full_args_list) or ('Optional' not in full_args_list):
             add_error("OWTF PLUGIN BUG: %s requires declared Mandatory and Optional arguments" %
-                                   self.show_plugin(plugin))
+                      self.show_plugin(plugin))
             return self.ret_arg_error(True, plugin)
         if 'Description' not in full_args_list:
             add_error("OWTF PLUGIN BUG: %s  requires a Description" % self.show_plugin(plugin))
@@ -257,7 +261,8 @@ class PluginParams(object):
         """
         for arg_name, arg_val in list(args.items()):
             logging.info("Overriding configuration setting '_%s' with value %s.." % (arg_name, str(arg_val)))
-            config_handler.set_general_val('string', '_%s' % arg_name, arg_val)  # Pre-pend "_" to avoid naming collisions
+            config_handler.set_general_val('string', '_%s' %
+     arg_name, arg_val)  # Pre-pend "_" to avoid naming collisions
 
     def get_permutations(self, args):
         """Get permutations from args
@@ -299,7 +304,8 @@ class PluginParams(object):
                 if count == 0:  # Modify 1st existing record with permutation
                     permutation_list[i] = perm_args
                 else:
-                    permutation_list.append(perm_args)  # 3rd store each subsequent permutation as a different set of args
+                    # 3rd store each subsequent permutation as a different set of args
+                    permutation_list.append(perm_args)
                 count += 1
 
     def set_args(self, all_args, plugin):

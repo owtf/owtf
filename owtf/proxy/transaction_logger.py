@@ -8,9 +8,9 @@ Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a
 import glob
 import os
 import time
-try: #PY3
+try:  # PY3
     from urllib.parse import urlparse
-except ImportError: #PY2
+except ImportError:  # PY2
     from urlparse import urlparse
 
 from owtf.http.transaction import HTTPTransaction

@@ -92,9 +92,9 @@ class SentryProxy(object):
     def __init__(self, sentry_client):
         self.sentry_client = sentry_client
 
-    def captureException(self, exc_info=None, **kwargs):
+    def capture_exception(self, exc_info=None, **kwargs):
         if self.sentry_client:
-            self.sentry_client.captureException(exc_info=exc_info, **kwargs)
+            self.sentry_client.capture_exception(exc_info=exc_info, **kwargs)
 
         logging.exception("exception occurred")
 

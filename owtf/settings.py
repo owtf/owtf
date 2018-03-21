@@ -24,7 +24,7 @@ CLI = False
 # Used by tools like dirbuster to launch gui or cli versions
 INTERACTIVE = True
 
-### Database Server
+# Database Server
 if os.environ.get("DOCKER", None):
     DATABASE_NAME = os.environ["POSTGRES_DB"]
     DATABASE_PASS = os.environ["POSTGRES_PASSWORD"]
@@ -41,7 +41,7 @@ else:
         DATABASE_PORT = int(conf['database_port'])
 
 
-### Interface Server
+# Interface Server
 SERVER_ADDR = '0.0.0.0'
 UI_SERVER_PORT = 8009
 FILE_SERVER_PORT = 8010
@@ -56,7 +56,7 @@ NET_TEST_GROUPS = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_net', 'gro
 AUX_TEST_GROUPS = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_aux', 'groups.cfg')
 PLUGINS_DIR = os.path.join(ROOT_DIR, 'plugins')
 
-### Output Settings
+# Output Settings
 OUTPUT_PATH = 'owtf_review'
 AUX_OUTPUT_PATH = 'owtf_review/auxiliary'
 
@@ -64,7 +64,7 @@ AUX_OUTPUT_PATH = 'owtf_review/auxiliary'
 TARGETS_DIR = 'targets'
 WORKER_LOG_DIR = 'logs'
 
-### Default profile settings
+# Default profile settings
 DEFAULT_GENERAL_PROFILE = os.path.join(OWTF_CONF, 'conf', 'general.yaml')
 DEFAULT_FRAMEWORK_CONFIG = os.path.join(OWTF_CONF, 'conf', 'framework.yaml')
 DEFAULT_MAPPING_PROFILE = os.path.join(OWTF_CONF, 'conf', 'mappings.yaml')
@@ -78,25 +78,25 @@ LOGS_DIR = 'logs'
 OWTF_LOG_FILE = '/tmp/owtf.log'
 
 
-### Interface static folders
+# Interface static folders
 TEMPLATES = os.path.join(ROOT_DIR, 'templates')
 POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'templates')
 STATIC_ROOT = os.path.join(ROOT_DIR, 'webapp', 'build')
 
-### SMTP
+# SMTP
 EMAIL_FROM = 'you@your_server.com'
 SMTP_LOGIN = 'login@your_server.com'
 SMTP_PASS = 'your_password'
 SMTP_HOST = 'your_mail_server.com'
 SMTP_PORT = 25
 
-### OUTBOUND PROXY
+# OUTBOUND PROXY
 USE_OUTBOUND_PROXY = False
 OUTBOUND_PROXY_IP = ''
 OUTBOUND_PROXY_PORT = ''
 OUTBOUND_PROXY_AUTH = None
 
-### Inbound Proxy Configuration
+# Inbound Proxy Configuration
 INBOUND_PROXY_IP = '127.0.0.1'
 INBOUND_PROXY_PORT = 8008
 INBOUND_PROXY_PROCESSES = 0
@@ -128,17 +128,17 @@ PROXY_RESTRICTED_REQUEST_HEADERS = [
 
 PROXY_LOG = '/tmp/owtf/proxy.log'
 
-### UI
+# UI
 UI_SERVER_LOG = '/tmp/owtf/ui_server.log'
 FILE_SERVER_LOG = '/tmp/owtf/file_server.log'
 
-### HTTP_AUTH
+# HTTP_AUTH
 HTTP_AUTH_HOST = None
 HTTP_AUTH_USERNAME = None
 HTTP_AUTH_PASSWORD = None
 HTTP_AUTH_MODE = 'basic'
 
-### Memory
+# Memory
 RESOURCE_MONITOR_PROFILER = 0
 PROCESS_PER_CORE = 1
 MIN_RAM_NEEDED = 20
@@ -154,7 +154,7 @@ USER_AGENT = 'Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0'
 PROXY_CHECK_URL = 'http://www.google.ie'
 
 
-### Fallback
+# Fallback
 FALLBACK_WEB_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'groups.cfg')
 FALLBACK_NET_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'groups.cfg')
 FALLBACK_AUX_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_aux', 'groups.cfg')

@@ -146,7 +146,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             for header in self.restricted_request_headers:
                 try:
                     del self.request.headers[header]
-                except:
+                except BaseException:
                     continue
             # HTTP auth if exists
             http_auth_username = None
@@ -290,7 +290,6 @@ class ProxyHandler(tornado.web.RequestHandler):
             """
             client = tornado.iostream.SSLIOStream(client_socket)
             self.server.handle_stream(client, self.application.inbound_ip)
-
 
         def ssl_fail():
             """Tiny Hack to satisfy proxychains CONNECT request to HTTP port.

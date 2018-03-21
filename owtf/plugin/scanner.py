@@ -16,7 +16,7 @@ __all__ = ['Scanner']
 
 SCANS_FOLDER = "scans"  # Folder under which all scans will be saved
 PING_SWEEP_FILE = "%s/00_ping_sweep" % SCANS_FOLDER
-DNS_INFO_FILE= "%s/01_dns_info" % SCANS_FOLDER
+DNS_INFO_FILE = "%s/01_dns_info" % SCANS_FOLDER
 FAST_SCAN_FILE = "%s/02_fast_scan" % SCANS_FOLDER
 STD_SCAN_FILE = "%s/03_std_scan" % SCANS_FOLDER
 FULL_SCAN_FILE = "%s/04_full_scan" % SCANS_FOLDER
@@ -119,10 +119,10 @@ class Scanner(object):
                                                                                                         file_prefix))
 
         if scan_type == "udp":
-                logging.info("Performing UDP portscan, Service detection, banner grabbing, etc")
-                self.shell.shell_exec("nmap -PN -n -v --min-parallelism=10 -iL %s -sU -sV -O -oA %s.udp %s" % (
-                    file_with_ips, file_prefix, nmap_options))
-                self.shell.shell_exec("amap -1 -i %s.udp.gnmap -Abq -m -o %s.udp.amap" % (file_prefix, file_prefix))
+            logging.info("Performing UDP portscan, Service detection, banner grabbing, etc")
+            self.shell.shell_exec("nmap -PN -n -v --min-parallelism=10 -iL %s -sU -sV -O -oA %s.udp %s" % (
+                file_with_ips, file_prefix, nmap_options))
+            self.shell.shell_exec("amap -1 -i %s.udp.gnmap -Abq -m -o %s.udp.amap" % (file_prefix, file_prefix))
 
     def get_nmap_services_file(self):
         """Return default NMAP services file
@@ -185,7 +185,7 @@ class Scanner(object):
                     continue
                 try:
                     prot = chunk[2].strip()
-                except:
+                except BaseException:
                     continue
                 if port in ports_for_service:
                     response += "%s:%s:%s##" % (host, port, prot)

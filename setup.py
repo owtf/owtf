@@ -19,12 +19,14 @@ _version_re = re.compile(r'__version__\s+=\s+(.*)')
 with open('owtf/__init__.py', 'rb') as f:
     version = str(ast.literal_eval(_version_re.search(f.read().decode('utf-8')).group(1)))
 
+
 def parse_file(filename, encoding='utf-8'):
-  """Return contents of the given file using the given encoding."""
-  path = os.path.join(os.path.abspath(os.path.dirname(__file__)), filename)
-  with io.open(path, encoding=encoding) as fo:
-    contents = fo.read()
-  return contents
+    """Return contents of the given file using the given encoding."""
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), filename)
+    with io.open(path, encoding=encoding) as fo:
+        contents = fo.read()
+    return contents
+
 
 links = []
 requires = []
@@ -52,28 +54,32 @@ docs_requires = [
     'sphinx_py3doc_enhanced_theme'
 ]
 
+
 class PostDevelopCommand(develop):
     """Post-installation for development mode."""
+
     def run(self):
         develop.run(self)
         print('Running post install')
         call(["/bin/bash", post_script])
 
+
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
+
     def run(self):
         # Need because of a setuptools bug: https://github.com/pypa/setuptools/issues/456
         self.do_egg_install()
         print('Running post install')
-        call(["/bin/bash",  post_script])
+        call(["/bin/bash", post_script])
 
 
 if sys.version_info < (2, 7, 9):
-  # SSL connection fixes for Python 2.7
-  requires.extend([
-    'ndg-httpsclient',
-    'pyasn1',
-  ])
+    # SSL connection fixes for Python 2.7
+    requires.extend([
+      'ndg-httpsclient',
+      'pyasn1',
+    ])
 
 
 setup(

@@ -17,7 +17,6 @@ FAIL = '\033[91m'
 RESET = '\033[0m'
 
 
-
 CURR_DIR = os.path.dirname(os.path.realpath(__file__))
 OWTF_CONF = os.path.join(os.path.expanduser('~'), ".owtf")
 

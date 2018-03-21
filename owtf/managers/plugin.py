@@ -41,7 +41,7 @@ def get_test_groups_config(file_path):
             code, priority, descrip, hint, url = line.strip().split(' | ')
         except ValueError:
             abort_framework("Problem in Test Groups file: '%s' -> Cannot parse line: %s" %
-                                               (file_path, line))
+                            (file_path, line))
         if len(descrip) < 2:
             descrip = hint
         if len(hint) < 2:

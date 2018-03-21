@@ -110,7 +110,7 @@ class WorkerManager(object):
         """
         work = None
         avail = psutil.virtual_memory().available
-        if int(avail/1024/1024) > MIN_RAM_NEEDED:
+        if int(avail / 1024 / 1024) > MIN_RAM_NEEDED:
             work = get_work_for_target(self.session, self.targets_in_use())
         else:
             logging.warn("Not enough memory to execute a plugin")

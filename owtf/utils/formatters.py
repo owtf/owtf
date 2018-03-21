@@ -27,7 +27,7 @@ class ConsoleFormatter(logging.Formatter):
     error_fmt = TERMINAL_COLOR_RED + "[-] %(message)s" + TERMINAL_COLOR_END
     warn_fmt = TERMINAL_COLOR_YELLOW + "[!] %(message)s" + TERMINAL_COLOR_END
     debug_fmt = TERMINAL_COLOR_GREEN + "[*] %(message)s" + TERMINAL_COLOR_END
-    info_fmt = TERMINAL_COLOR_BLUE  + "[+] %(message)s" + TERMINAL_COLOR_END
+    info_fmt = TERMINAL_COLOR_BLUE + "[+] %(message)s" + TERMINAL_COLOR_END
 
     def format(self, record):
         """ Choose format according to record level
@@ -64,6 +64,7 @@ class FileFormatter(logging.Formatter):
     """
     Custom formatter for log files
     """
+
     def __init__(self, *args, **kwargs):
         super(FileFormatter, self).__init__()
         self._fmt = "[%(levelname)s] [%(asctime)s] " + "[File '%(filename)s', line %(lineno)s, in %(funcName)s] -" + \

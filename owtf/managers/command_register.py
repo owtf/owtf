@@ -29,6 +29,7 @@ def add_command(session, command):
     ))
     session.commit()
 
+
 def delete_command(session, command):
     """Delete the command from the DB
 

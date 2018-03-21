@@ -374,6 +374,7 @@ def save_partial_output(session, plugin, output, message, target_id=None):
     )
     session.commit()
 
+
 @session_required
 def get_severity_freq(session, session_id=None):
     """Get severity frequencies for the analytics

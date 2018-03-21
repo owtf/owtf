@@ -116,8 +116,8 @@ class PluginHelper(object):
                 if Transaction is not None and Transaction.found:
                     RawHTML = Transaction.get_raw_response_body()
                     FilteredHTML = self.reporter.sanitize_html(RawHTML)
-                    NotSandboxedPath = self.plugin_handler.dump_output_file("NOT_SANDBOXED_%s.html" % Name, FilteredHTML,
-                                                                            PluginInfo)
+                    NotSandboxedPath = self.plugin_handler.dump_output_file(
+                        "NOT_SANDBOXED_%s.html" % Name, FilteredHTML, PluginInfo)
                     logging.info("File: NOT_SANDBOXED_%s.html saved to: %s", Name, NotSandboxedPath)
                     iframe_template = Template("""
                         <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder='0'
@@ -266,7 +266,8 @@ class PluginHelper(object):
 
     def AnalyseRobotsEntries(self, Contents):  # Find the entries of each kind and count them
         num_lines = len(Contents.split("\n"))  # Total number of robots.txt entries
-        AllowedEntries = list(set(self.robots_allow_regex.findall(Contents)))  # list(set()) is to avoid repeated entries
+        AllowedEntries = list(set(self.robots_allow_regex.findall(Contents))
+                              )  # list(set()) is to avoid repeated entries
         num_allow = len(AllowedEntries)  # Number of lines that start with "Allow:"
         DisallowedEntries = list(set(self.robots_disallow_regex.findall(Contents)))
         num_disallow = len(DisallowedEntries)  # Number of lines that start with "Disallow:"
