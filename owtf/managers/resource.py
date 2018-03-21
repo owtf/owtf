@@ -41,7 +41,7 @@ def get_rsrc_replacement_dict(session):
     configuration = get_replacement_dict(session)
     configuration.update(target_manager.get_target_config())
     configuration.update(config_handler.get_replacement_dict())
-    configuration.update(config_handler.get_framework_config_dict()) # for aux plugins
+    configuration.update(config_handler.get_framework_config_dict())  # for aux plugins
     return configuration
 
 
@@ -108,7 +108,8 @@ def get_resources_from_file(resource_file):
             type, name, resource = line.split('_____')
             resources.add((type, name, resource))
         except ValueError:
-            logging.info("ERROR: The delimiter is incorrect in this line at Resource File: %s" % str(line.split('_____')))
+            logging.info("ERROR: The delimiter is incorrect in this line at Resource File: %s" %
+                         str(line.split('_____')))
     return resources
 
 

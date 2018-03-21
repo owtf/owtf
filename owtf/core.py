@@ -231,6 +231,7 @@ def init(args):
         else:
             start_cli()
 
+
 @workers_finish.connect
 def finish(sender=None, **kwargs):
     if sender:

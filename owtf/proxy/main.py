@@ -118,11 +118,10 @@ class ProxyProcess(OWTFProcess):
         # server has to be a class variable, because it is used inside request handler to attach sockets for monitoring
         ProxyHandler.server = self.server
 
-
         # Header filters
         # These headers are removed from the response obtained from webserver, before sending it to browser
         ProxyHandler.restricted_response_headers = PROXY_RESTRICTED_RESPONSE_HEADERS
-        #These headers are removed from request obtained from browser, before sending it to webserver
+        # These headers are removed from request obtained from browser, before sending it to webserver
         ProxyHandler.restricted_request_headers = PROXY_RESTRICTED_REQUEST_HEADERS
 
         # HTTP Auth options
@@ -154,7 +153,7 @@ class ProxyProcess(OWTFProcess):
             # "0" equals the number of cores present in a machine
             self.server.start(int(self.instances))
             tornado.ioloop.IOLoop.instance().start()
-        except:
+        except BaseException:
             # Cleanup code
             self.clean_up()
 

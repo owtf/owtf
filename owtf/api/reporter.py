@@ -93,7 +93,8 @@ class Reporter(object):
                                                                       link_list=link_list, HTMLlink_list=HTMLlink_list)
 
     def Requestlink_list(self, ResourceListName, link_list):
-        return self.Loader.load("request_link_list.html").generate(ResourceListName=ResourceListName, link_list=link_list)
+        return self.Loader.load("request_link_list.html").generate(
+            ResourceListName=ResourceListName, link_list=link_list)
 
     def VulnerabilitySearchBox(self, SearchStr):
         """
@@ -166,8 +167,8 @@ class Reporter(object):
 
 # ---------------------- Grep Plugin Outputs -------------------- #
     def ResponseBodyMatches(self, ResponseRegexpName):
-        RegexpName, GrepOutputs, TransactionIDS, match_percent = self.transaction.search_by_regex_name(ResponseRegexpName,
-                                                                                                       stats=True)
+        RegexpName, GrepOutputs, TransactionIDS, match_percent = self.transaction.search_by_regex_name(
+            ResponseRegexpName, stats=True)
         variables = {
             "name": RegexpName.replace("RESPONSE_REGEXP_FOR_", "").replace('_', ' '),
             "matches": GrepOutputs,
@@ -230,7 +231,7 @@ class Reporter(object):
                         break
                 Table.CreateRow([Attrib, DisplayAttribute])
         if Table.GetNumRows() == 0:
-                return ""  # No Attributes found
+            return ""  # No Attributes found
         return "<h3>Cookie Attribute Analysis</h3>%s" % Table.Render()
 
 

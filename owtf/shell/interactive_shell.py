@@ -150,7 +150,8 @@ class InteractiveShell(blocking_shell.Shell):
         print("Close: %s" % str(self.options))
         if self.options['CommandsBeforeExit']:
             logging.info("Running commands before closing Communication Channel..")
-            self.run_cmd_list(self.options['CommandsBeforeExit'].split(self.options['CommandsBeforeExitDelim']), plugin_info)
+            self.run_cmd_list(self.options['CommandsBeforeExit'].split(
+                self.options['CommandsBeforeExitDelim']), plugin_info)
         logging.info("Trying to close Communication Channel..")
         self.run("exit", plugin_info)
 

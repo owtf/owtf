@@ -186,7 +186,7 @@ def merge_dicts(a, b):
     return new_dict
 
 
-def truncate_lines(str, num_lines, EOL="\n"):
+def truncate_lines(str, num_lines, eol="\n"):
     """Truncate and remove EOL characters
 
     :param str: String to truncate
@@ -198,7 +198,7 @@ def truncate_lines(str, num_lines, EOL="\n"):
     :return: Joined string after truncation
     :rtype: `str`
     """
-    return EOL.join(str.split(EOL)[0:num_lines])
+    return eol.join(str.split(eol)[0:num_lines])
 
 
 def get_random_str(len):

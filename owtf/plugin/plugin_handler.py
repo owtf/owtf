@@ -91,7 +91,6 @@ class PluginHandler(object):
         self.scanner = Scanner()
         self.init_exec_registry()
 
-
     def plugin_already_run(self, session, plugin_info):
         """Check if plugin has already run
 
@@ -126,7 +125,7 @@ class PluginHandler(object):
                     break
             if not found:
                 abort_framework("The code '%s' is not a valid plugin, please use the -l option to see"
-                                                  "available plugin names and codes" % code)
+                                "available plugin names and codes" % code)
         return valid_plugin_codes  # Return list of Codes
 
     def init_exec_registry(self):
@@ -312,7 +311,7 @@ class PluginHandler(object):
         # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active)
         if self.plugin_already_run(session=session, plugin_info=plugin) and \
                 ((not self.force_overwrite() and not ('grep' == plugin['type'])) or
-                                              plugin['type'] == 'external'):
+                 plugin['type'] == 'external'):
             if show_reason:
                 logging.warning(
                     "Plugin: %s (%s/%s) has already been run, skipping...",

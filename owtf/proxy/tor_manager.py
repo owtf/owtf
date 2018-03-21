@@ -148,14 +148,13 @@ class TOR_manager(object):
             logging.info("[TOR]Warning: IP can't renewed")
             return False
 
-
     def tor_control_process(self):
         """This will run in a new process in order to renew the IP address after certain time.
 
         :return: None
         :rtype: None
         """
-        while 1:
+        while True:
             while self.renew_ip() is True:
                 time.sleep(self.time * 60)  # time converted in minutes
             else:

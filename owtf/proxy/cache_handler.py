@@ -27,6 +27,7 @@ class CacheHandler(object):
     * The file locks are managed here
     * .rd files are created here
     """
+
     def __init__(self, cache_dir, request, cookie_regex, blacklist):
         # Initialized with the root cache directory, HTTP request object, cookie_regex, blacklist boolean
         self.request = request
@@ -159,6 +160,7 @@ class DummyObject(object):
     """
     This class is just used to create a fake response object
     """
+
     def __init__(self):
         self.dummy_obj = True
 

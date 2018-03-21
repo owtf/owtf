@@ -11,10 +11,10 @@ import logging
 import os
 import re
 from collections import defaultdict
-try: #PY3
+try:  # PY3
     from urllib.parse import urlparse
-except ImportError:  #PY2
-     from urlparse import urlparse
+except ImportError:  # PY2
+    from urlparse import urlparse
 try:
     import configparser as parser
 except ImportError:

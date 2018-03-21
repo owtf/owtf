@@ -207,7 +207,8 @@ class PExpectShell(blocking_shell.Shell):
             return False
         if 'CommandsBeforeExit' in self.options and self.options['CommandsBeforeExit']:
             logging.info("Running commands before closing Communication Channel..")
-            self.run_cmd_list(self.options['CommandsBeforeExit'].split(self.options['CommandsBeforeExitDelim']), plugin_info)
+            self.run_cmd_list(self.options['CommandsBeforeExit'].split(
+                self.options['CommandsBeforeExitDelim']), plugin_info)
         logging.info("Trying to close Communication Channel..")
         self.run("exit", plugin_info)
 

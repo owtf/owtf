@@ -10,6 +10,7 @@ from owtf.managers.worker import worker_manager
 
 __all__ = ['CliServer']
 
+
 class CliServer(object):
     """
     The CliServer is created only when the user specifies that s-he doesn't
@@ -17,6 +18,7 @@ class CliServer(object):
 
     This can be specify with the '--nowebui' argument in the CLI.
     """
+
     def __init__(self):
         self.worker_manager = worker_manager
         self.manager_cron = tornado.ioloop.PeriodicCallback(self.worker_manager.manage_workers, 2000)

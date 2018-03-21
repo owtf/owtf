@@ -568,13 +568,13 @@ def get_targets_by_severity_count(session, session_id=None):
     # "not ranked" = gray, "passing" = light green, "info" = light sky blue, "low" = blue, medium = yellow,
     # high = red, critical = dark purple
     severity_frequency = [
-        {"id":0, "label": "Not Ranked", "value": 0, "color": "#A9A9A9"},
-        {"id":1, "label": "Passing", "value": 0, "color": "#32CD32"},
-        {"id":2, "label": "Info", "value": 0, "color": "#b1d9f4"},
-        {"id":3, "label": "Low", "value": 0, "color": "#337ab7"},
-        {"id":4, "label": "Medium", "value": 0, "color": "#ffcc00"},
-        {"id":5, "label": "High", "value": 0, "color": "#c12e2a"},
-        {"id":6, "label": "Critical", "value": 0, "color": "#800080"}
+        {"id": 0, "label": "Not Ranked", "value": 0, "color": "#A9A9A9"},
+        {"id": 1, "label": "Passing", "value": 0, "color": "#32CD32"},
+        {"id": 2, "label": "Info", "value": 0, "color": "#b1d9f4"},
+        {"id": 3, "label": "Low", "value": 0, "color": "#337ab7"},
+        {"id": 4, "label": "Medium", "value": 0, "color": "#ffcc00"},
+        {"id": 5, "label": "High", "value": 0, "color": "#c12e2a"},
+        {"id": 6, "label": "Critical", "value": 0, "color": "#800080"}
     ]
     total = session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).count()
     target_objs = session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).all()

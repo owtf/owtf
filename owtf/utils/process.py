@@ -44,6 +44,7 @@ def check_pid(pid):
 # For psutil
 TIMEOUT = 3
 
+
 def _signal_process(pid, psignal=signal.SIGINT):
     """This function kills all children of a process and abort that process
 
