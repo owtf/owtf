@@ -24,10 +24,10 @@ class ConsoleFormatter(logging.Formatter):
     Custom formatter to show logging messages differently on Console
     """
 
-    error_fmt = TERMINAL_COLOR_RED + "[-] %(message)s" + TERMINAL_COLOR_END
-    warn_fmt = TERMINAL_COLOR_YELLOW + "[!] %(message)s" + TERMINAL_COLOR_END
-    debug_fmt = TERMINAL_COLOR_GREEN + "[*] %(message)s" + TERMINAL_COLOR_END
-    info_fmt = TERMINAL_COLOR_BLUE + "[+] %(message)s" + TERMINAL_COLOR_END
+    error_fmt = TERMINAL_COLOR_RED + "[-] {}" + TERMINAL_COLOR_END
+    warn_fmt = TERMINAL_COLOR_YELLOW + "[!] {}" + TERMINAL_COLOR_END
+    debug_fmt = TERMINAL_COLOR_GREEN + "[*] {}" + TERMINAL_COLOR_END
+    info_fmt = TERMINAL_COLOR_BLUE + "[+] {}" + TERMINAL_COLOR_END
 
     def format(self, record):
         """ Choose format according to record level
@@ -37,25 +37,19 @@ class ConsoleFormatter(logging.Formatter):
         :return: Formatted string
         :rtype: `str`
         """
-        # Save the original format configured by the user
-        # when the logger formatter was instantiated
-        format_orig = self._fmt
 
-        # Replace the original format with one customized by logging level
+        # Replace the original message with one customized by logging level
         if record.levelno == logging.DEBUG:
-            self._fmt = self.debug_fmt
+            record.msg = self.debug_fmt.format(record.msg)
         elif record.levelno == logging.INFO:
-            self._fmt = self.info_fmt
+            record.msg = self.info_fmt.format(record.msg)
         elif record.levelno == logging.ERROR:
-            self._fmt = self.error_fmt
+            record.msg = self.error_fmt.format(record.msg)
         elif record.levelno == logging.WARN:
-            self._fmt = self.warn_fmt
+            record.msg = self.warn_fmt.format(record.msg)
 
         # Call the original formatter class to do the grunt work
         result = super(ConsoleFormatter, self).format(record)
-
-        # Restore the original format configured by the user
-        self._fmt = format_orig
 
         return result
 
