@@ -29,7 +29,7 @@ from owtf.managers.worklist import get_work_for_target
 from owtf.plugin.plugin_handler import plugin_handler
 from owtf.settings import MIN_RAM_NEEDED, PROCESS_PER_CORE
 from owtf.utils.error import abort_framework
-from owtf.utils.process import check_pid
+from owtf.utils.process import check_pid, _signal_process
 from owtf.utils.signals import workers_finish, owtf_start
 
 
@@ -210,7 +210,7 @@ class WorkerManager(object):
             # Check if process is doing some work
             if item["busy"]:
                 if item["paused"]:
-                    self._signal_process(item["worker"].pid, signal.SIGCONT)
+                    _signal_process(item["worker"].pid, signal.SIGCONT)
                 trash = item["worker"].output_q.get()
                 item["busy"] = False
                 item["work"] = ()
@@ -245,34 +245,10 @@ class WorkerManager(object):
         self.worklist = []  # It is a list
         for item in self.workers:
             work = item["worker"].poison_q.put("DIE")
-            self._signal_process(item["worker"].pid, signal.SIGINT)
+            _signal_process(item["worker"].pid, signal.SIGINT)
 
-    def _signal_process(self, pid, psignal):
-        """This function kills all children of a process and abort that process
-
-        .note::
-            Child processes are handled at shell level
-
-        :param pid: Pid of the process
-        :type pid: `int`
-        :param psignal: Signal to send
-        :type pid: `int`
-        :return: None
-        :rtype: None
-        """
-        parent = psutil.Process(pid)
-        children = parent.children(recursive=True)
-        children.append(parent)
-        for pid in children:
-            pid.send_signal(psignal)
-        gone, alive = psutil.wait_procs(children, timeout=TIMEOUT)
-        if not alive:
-            # send SIGKILL
-            for pid in alive:
-                logging.debug("Process {} survived SIGTERM; trying SIGKILL" % pid)
-                pid.kill()
-
-    def _signal_children(self, parent_pid, psignal):
+    @staticmethod
+    def _signal_children(parent_pid, psignal):
         """Signal OWTF child processes
 
         :param parent_pid: Parent process PID
@@ -377,7 +353,7 @@ class WorkerManager(object):
         """
         worker_dict = self.get_worker_dict(pseudo_index)
         if not worker_dict["busy"]:
-            self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
+            _signal_process(worker_dict["worker"].pid, signal.SIGINT)
             del self.workers[pseudo_index - 1]
         else:
             raise InvalidWorkerReference("Worker with id %s is busy" % str(pseudo_index))
@@ -393,7 +369,7 @@ class WorkerManager(object):
         worker_dict = self.get_worker_dict(pseudo_index)
         if not worker_dict["paused"]:
             self._signal_children(worker_dict["worker"].pid, signal.SIGSTOP)
-            self._signal_process(worker_dict["worker"].pid, signal.SIGSTOP)
+            _signal_process(worker_dict["worker"].pid, signal.SIGSTOP)
             worker_dict["paused"] = True
 
     def pause_all_workers(self):
@@ -405,7 +381,7 @@ class WorkerManager(object):
         for worker_dict in self.workers:
             if not worker_dict["paused"]:
                 self._signal_children(worker_dict["worker"].pid, signal.SIGSTOP)
-                self._signal_process(worker_dict["worker"].pid, signal.SIGSTOP)
+                _signal_process(worker_dict["worker"].pid, signal.SIGSTOP)
                 worker_dict["paused"] = True
 
     def resume_worker(self, pseudo_index):
@@ -419,7 +395,7 @@ class WorkerManager(object):
         worker_dict = self.get_worker_dict(pseudo_index)
         if worker_dict["paused"]:
             self._signal_children(worker_dict["worker"].pid, signal.SIGCONT)
-            self._signal_process(worker_dict["worker"].pid, signal.SIGCONT)
+            _signal_process(worker_dict["worker"].pid, signal.SIGCONT)
             worker_dict["paused"] = False
 
     def resume_all_workers(self):
@@ -432,7 +408,7 @@ class WorkerManager(object):
         for worker_dict in self.workers:
             if worker_dict["paused"]:
                 self._signal_children(worker_dict["worker"].pid, signal.SIGCONT)
-                self._signal_process(worker_dict["worker"].pid, signal.SIGCONT)
+                _signal_process(worker_dict["worker"].pid, signal.SIGCONT)
                 worker_dict["paused"] = False
 
     def abort_worker(self, pseudo_index):
@@ -447,7 +423,7 @@ class WorkerManager(object):
         worker_dict = self.get_worker_dict(pseudo_index)
         # You only send SIGINT to worker since it will handle it more
         # gracefully and kick the command process's ***
-        self._signal_process(worker_dict["worker"].pid, signal.SIGINT)
+        _signal_process(worker_dict["worker"].pid, signal.SIGINT)
 
 
 worker_manager = WorkerManager()

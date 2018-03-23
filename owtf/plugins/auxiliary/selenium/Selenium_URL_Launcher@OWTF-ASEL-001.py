@@ -21,11 +21,11 @@ def run(PluginInfo):
         'Optional': {'REPEAT_DELIM': config_handler.get_val('REPEAT_DELIM_DESCRIP')}
     }
 
-    for Args in plugin_params.get_args(args, PluginInfo):
-        plugin_params.set_config(Args)
-        InputFile = config_handler.get_val("SELENIUM_URL_VECTORS_" + Args['CATEGORY'])
+    for args in plugin_params.get_args(args, PluginInfo):
+        plugin_params.set_config(args)
+        InputFile = config_handler.get_val("SELENIUM_URL_VECTORS_" + args['CATEGORY'])
         URLLauncher = ServiceLocator.get_component("selenium_handler").CreateURLLauncher({
-            'BASE_URL': Args['BASE_URL'],
+            'BASE_URL': args['BASE_URL'],
             'INPUT_FILE': InputFile
         })
         URLLauncher.run()

@@ -7,7 +7,7 @@ This file handles all the database transactions.
 import functools
 import logging
 
-from sqlalchemy import create_engine, exc, func
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import Session as _Session
 from sqlalchemy.orm import sessionmaker
 

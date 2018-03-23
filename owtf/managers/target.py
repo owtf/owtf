@@ -511,8 +511,8 @@ def load_targets(session, options):
     :return: Added targets
     :rtype: `list`
     """
-    scope = options['Scope']
-    if options['PluginGroup'] == 'auxiliary':
+    scope = options['scope']
+    if options['plugin_group'] == 'auxiliary':
         scope = get_aux_target()
     added_targets = []
     for target in scope:

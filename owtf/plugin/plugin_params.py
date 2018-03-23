@@ -34,7 +34,7 @@ class PluginParams(object):
         self.session = get_scoped_session()
 
     def on_start(self, sender, **kwargs):
-        self.raw_args = copy.deepcopy(kwargs["args"]["Args"])
+        self.raw_args = copy.deepcopy(kwargs["args"]["args"])
 
     def process_args(self):
         """Process args
@@ -66,7 +66,7 @@ class PluginParams(object):
     def list_args(self, args, mandatory=True):
         """List of available arguments
 
-        :param args: Args
+        :param args: args
         :type args: `dict`
         :param mandatory: True/false if mandatory to set
         :type mandatory: `bool`
@@ -254,7 +254,7 @@ class PluginParams(object):
     def set_config(self, args):
         """Set config for args
 
-        :param args: Args to override
+        :param args: args to override
         :type args: `dict`
         :return: None
         :rtype: None

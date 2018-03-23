@@ -21,9 +21,9 @@ def run(PluginInfo):
             'REPEAT_DELIM': config_handler.get_val('REPEAT_DELIM_DESCRIP')
         }
     }
-    for Args in plugin_params.get_args(args, PluginInfo):
-        plugin_params.set_config(Args)
-        resource = config_handler.get_resources('DoS_' + Args['CATEGORY'])
+    for args in plugin_params.get_args(args, PluginInfo):
+        plugin_params.set_config(args)
+        resource = config_handler.get_resources('DoS_' + args['CATEGORY'])
         Content += plugin_helper.CommandDump('Test Command', 'Output', resource,
                                                                              PluginInfo, "")  # No previous output
     return Content

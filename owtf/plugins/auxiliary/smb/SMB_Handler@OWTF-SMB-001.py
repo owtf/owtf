@@ -24,9 +24,9 @@ def run(PluginInfo):
         }
     }
 
-    for Args in plugin_params.get_args(args, PluginInfo):
-        plugin_params.set_config(Args)  # Sets the auxiliary plugin arguments as config
-        smb.Mount(Args, PluginInfo)
+    for args in plugin_params.get_args(args, PluginInfo):
+        plugin_params.set_config(args)  # Sets the auxiliary plugin arguments as config
+        smb.Mount(args, PluginInfo)
         smb.Transfer()
     if not smb.IsClosed():  # Ensure clean exit if reusing connection
         smb.UnMount(PluginInfo)

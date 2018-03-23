@@ -31,26 +31,26 @@ def load_works(session, target_urls, options):
     for target_url in target_urls:
         if target_url:
             target = get_target_config_dicts(session=session, filter_data={'target_url': target_url})
-            group = options['PluginGroup']
-            if options['OnlyPlugins'] is None:
+            group = options['plugin_group']
+            if options['only_plugins'] is None:
                 # If the plugin group option is the default one (not specified by the user).
                 if group is None:
                     group = 'web'  # Default to web plugins.
                     # Run net plugins if target does not start with http (see #375).
                     if not target_url.startswith(('http://', 'https://')):
                         group = 'network'
-                filter_data = {'type': options['PluginType'], 'group': group}
+                filter_data = {'type': options['plugin_type'], 'group': group}
             else:
-                filter_data = {"code": options.get("OnlyPlugins"), "type": options.get("PluginType")}
+                filter_data = {"code": options.get("only_plugins"), "type": options.get("plugin_type")}
             plugins = get_all_plugin_dicts(session=session, criteria=filter_data)
             if not plugins:
                 logging.error("No plugin found matching type '%s' and group '%s' for target '%s'!" %
-                              (options['PluginType'], group, target))
+                              (options['plugin_type'], group, target))
             add_work(
                 session=session,
                 target_list=target,
                 plugin_list=plugins,
-                force_overwrite=options["Force_Overwrite"])
+                force_overwrite=options["force_overwrite"])
 
 
 def worklist_generate_query(session, criteria=None, for_stats=False):

@@ -122,44 +122,44 @@ def parse_options(cli_options, valid_groups, valid_types):
         help="List available plugins in the plugin group (web, network or auxiliary)")
     parser.add_argument(
         "-f", "--force",
-        dest="ForceOverwrite",
+        dest="force_overwrite",
         action='store_true',
         help="Force plugin result overwrite (default is avoid overwrite)")
     parser.add_argument(
         "-i", "--interactive",
-        dest="Interactive",
+        dest="interactive",
         default="yes",
-        help="Interactive: yes (default, more control) / no (script-friendly)")
+        help="interactive: yes (default, more control) / no (script-friendly)")
     parser.add_argument(
         "-e", "--except",
-        dest="ExceptPlugins",
+        dest="except_plugins",
         default=None,
         help="Comma separated list of plugins to be ignored in the test")
     parser.add_argument(
         "-o", "--only",
-        dest="OnlyPlugins",
+        dest="only_plugins",
         default=None,
         help="Comma separated list of the only plugins to be used in the test")
     parser.add_argument(
         "-p", "--inbound_proxy",
-        dest="InboundProxy",
+        dest="inbound_proxy",
         default=None,
         help="(ip:)port - Setup an inbound proxy for manual site analysis")
     parser.add_argument(
         "-x", "--outbound_proxy",
-        dest="OutboundProxy",
+        dest="outbound_proxy",
         default=None,
         help="type://ip:port - Send all OWTF requests using the proxy "
              "for the given ip and port. The 'type' can be 'http'(default) "
              "or 'socks'")
     parser.add_argument(
         "-xa", "--outbound_proxy_auth",
-        dest="OutboundProxyAuth",
+        dest="outbound_proxy_auth",
         default=None,
         help="username:password - Credentials if any for outbound proxy")
     parser.add_argument(
         "-T", "--tor",
-        dest="TOR_mode",
+        dest="tor_mode",
         default=None,
         help="ip:port:tor_control_port:password:IP_renew_time - "
              "Sends all OWTF requests through the TOR network. "
@@ -185,7 +185,7 @@ def parse_options(cli_options, valid_groups, valid_types):
              "r: resources file, m: mappings file")
     parser.add_argument(
         "-g", "--plugin_group",
-        dest="PluginGroup",
+        dest="plugin_group",
         default=None,
         choices=valid_groups,
         help="<web/network/auxiliary> - Initial plugin group: web (default) = "
@@ -196,7 +196,7 @@ def parse_options(cli_options, valid_groups, valid_types):
              "definition to decide what to do with the target")
     parser.add_argument(
         "-t", "--plugin_type",
-        dest="PluginType",
+        dest="plugin_type",
         default="all",
         choices=valid_types,
         help="<plugin type> - For web plugins: passive, semi_passive, "
@@ -205,17 +205,17 @@ def parse_options(cli_options, valid_groups, valid_types):
              "active in the default profile")
     parser.add_argument(
         "-port", "--port",
-        dest="RPort",
+        dest="rport",
         default=None,
         help="<port> - Port to run probes")
     parser.add_argument(
         "-portwaves", "--portwaves",
-        dest="PortWaves",
+        dest="port_waves",
         default="10,100,1000",
         help="<wave1,wave2,wave3> - Waves to run network scanning")
     parser.add_argument(
         "-proxy", "--proxy",
-        dest="ProxyMode",
+        dest="proxy_mode",
         default=True,
         action="store_true",
         help="Use this flag to run OWTF Inbound Proxy")
@@ -225,5 +225,5 @@ def parse_options(cli_options, valid_groups, valid_types):
         default=False,
         action='store_true',
         help='Run OWTF without its Web UI.')
-    parser.add_argument('Targets', nargs='*', help='List of Targets')
+    parser.add_argument('targets', nargs='*', help='List of targets')
     return parser.parse_args(cli_options)

@@ -31,7 +31,7 @@ class HTTPTransaction(object):
     def scope_str(self):
         """Get the scope in a string format
 
-        :return: Scope
+        :return: scope
         :rtype: `str`
         """
         return str(self.is_in_scope)[0]
