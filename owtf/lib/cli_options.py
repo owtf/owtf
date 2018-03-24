@@ -80,19 +80,10 @@ def usage(error_message):
         " -o OWTF-WVS-001 http://my.website.com"
         " --tor 127.0.0.1:9050:9051:password:1".format(main)
     )
-    print()
-    print(
-        "Run Botnet-mode using miner:                    {}"
-        " -o OWTF-WVS-001 http://my.website.com -b miner".format(main)
-    )
-    print()
-    print(
-        "Run Botnet-mode using custom proxy list:                  {}"
-        " -o OWTF-WVS-001 http://my.website.com -b list:proxy_list_path.txt".format(main)
-    )
     if error_message:
         print("\nERROR: {}".format(error_message))
-    sys.exit(-1)
+    from owtf.core import finish
+    finish()
 
 
 def parse_options(cli_options, valid_groups, valid_types):
