@@ -78,16 +78,16 @@ class PluginHandler(object):
 
     def on_start(self, sender, **kwargs):
         self.options = copy.deepcopy(kwargs["args"])
-        self.plugin_group = self.options["PluginGroup"]
+        self.plugin_group = self.options["plugin_group"]
         self.simulation = self.options.get("Simulation", None)
-        self.scope = self.options["Scope"]
-        self.only_plugins = self.options["OnlyPlugins"]
-        self.except_plugins = self.options["ExceptPlugins"]
+        self.scope = self.options["scope"]
+        self.only_plugins = self.options["only_plugins"]
+        self.except_plugins = self.options["except_plugins"]
         self.except_plugins_list = self.validate_format_plugin_list(session=self.session,
                                                                     plugin_codes=self.only_plugins)
         # For special plugin types like "quiet" -> "semi_passive" + "passive"
-        if isinstance(self.options.get('PluginType'), str):
-            self.options['PluginType'] = self.options['PluginType'].split(',')
+        if isinstance(self.options.get('plugin_type'), str):
+            self.options['plugin_type'] = self.options['plugin_type'].split(',')
         self.scanner = Scanner()
         self.init_exec_registry()
 

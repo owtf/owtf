@@ -70,135 +70,141 @@ def process_options(user_args):
     :return: A dictionary of arguments
     :rtype: `dict`
     """
+    arg = None
     try:
         valid_groups = get_all_plugin_groups(db)
         valid_types = get_all_plugin_types(db) + ['all', 'quiet']
         arg = parse_options(user_args, valid_groups, valid_types)
     except KeyboardInterrupt as e:
-        usage("Invalid OWTF option(s) %s" % e)
+        usage("Invalid OWTF option(s) {}".format(e))
         sys.exit(0)
+    except SystemExit:
+        # --help triggers the SystemExit exception, catch it and exit
+        finish()
 
-    # Default settings:
-    plugin_group = arg.PluginGroup
+    if arg:
+        # Default settings:
+        plugin_group = arg.plugin_group
 
-    if arg.OnlyPlugins:
-        arg.OnlyPlugins, plugin_groups = get_plugins_from_arg(arg.OnlyPlugins)
-        try:
-            # Set Plugin Group according to plugin list specified
-            plugin_group = plugin_groups[0]
-        except IndexError:
-            usage("Please use either OWASP/OWTF codes or Plugin names")
-        logging.info("Defaulting Plugin Group to '%s' based on list of plugins supplied" % plugin_group)
+        if arg.only_plugins:
+            arg.only_plugins, plugin_groups = get_plugins_from_arg(arg.only_plugins)
+            try:
+                # Set Plugin Group according to plugin list specified
+                plugin_group = plugin_groups[0]
+            except IndexError:
+                usage("Please use either OWASP/OWTF codes or Plugin names")
+            logging.info("Defaulting plugin group to '%s' based on list of plugins supplied", plugin_group)
 
-    if arg.ExceptPlugins:
-        arg.ExceptPlugins, plugin_groups = get_plugins_from_arg(arg.ExceptPlugins)
+        if arg.except_plugins:
+            arg.except_plugins, plugin_groups = get_plugins_from_arg(arg.except_plugins)
 
-    if arg.TOR_mode:
-        arg.TOR_mode = arg.TOR_mode.split(":")
-        if(arg.TOR_mode[0] == "help"):
-            from owtf.proxy.tor_manager import TOR_manager
-            TOR_manager.msg_configure_tor()
-            exit(0)
-        if len(arg.TOR_mode) == 1:
-            if arg.TOR_mode[0] != "help":
+        if arg.tor_mode:
+            arg.tor_mode = arg.tor_mode.split(":")
+            if arg.tor_mode[0] == "help":
+                from owtf.proxy.tor_manager import TOR_manager
+                TOR_manager.msg_configure_tor()
+                exit(0)
+            if len(arg.tor_mode) == 1:
+                if arg.tor_mode[0] != "help":
+                    usage("Invalid argument for TOR-mode")
+            elif len(arg.tor_mode) != 5:
                 usage("Invalid argument for TOR-mode")
-        elif len(arg.TOR_mode) != 5:
-            usage("Invalid argument for TOR-mode")
-        else:
-            # Enables OutboundProxy.
-            if arg.TOR_mode[0] == '':
-                outbound_proxy_ip = "127.0.0.1"
             else:
-                outbound_proxy_ip = arg.TOR_mode[0]
-            if arg.TOR_mode[1] == '':
-                outbound_proxy_port = "9050"  # default TOR port
+                # Enables outbound_proxy.
+                if arg.tor_mode[0] == '':
+                    outbound_proxy_ip = "127.0.0.1"
+                else:
+                    outbound_proxy_ip = arg.tor_mode[0]
+                if arg.tor_mode[1] == '':
+                    outbound_proxy_port = "9050"  # default TOR port
+                else:
+                    outbound_proxy_port = arg.tor_mode[1]
+                arg.outbound_proxy = "socks://{0}:{1}".format(outbound_proxy_ip, outbound_proxy_port)
+
+        if arg.outbound_proxy:
+            arg.outbound_proxy = arg.outbound_proxy.split('://')
+            if len(arg.outbound_proxy) == 2:
+                arg.outbound_proxy = arg.outbound_proxy + arg.outbound_proxy.pop().split(':')
+                if arg.outbound_proxy[0] not in ["socks", "http"]:
+                    usage("Invalid argument for outbound proxy")
             else:
-                outbound_proxy_port = arg.TOR_mode[1]
-            arg.OutboundProxy = "socks://{0}:{1}".format(outbound_proxy_ip, outbound_proxy_port)
+                arg.outbound_proxy = arg.outbound_proxy.pop().split(':')
+            # outbound_proxy should be type://ip:port
+            if len(arg.outbound_proxy) not in [2, 3]:
+                usage("Invalid argument for outbound proxy")
+            else:  # Check if the port is an int.
+                try:
+                    int(arg.outbound_proxy[-1])
+                except ValueError:
+                    usage("Invalid port provided for Outbound Proxy")
 
-    if arg.OutboundProxy:
-        arg.OutboundProxy = arg.OutboundProxy.split('://')
-        if len(arg.OutboundProxy) == 2:
-            arg.OutboundProxy = arg.OutboundProxy + arg.OutboundProxy.pop().split(':')
-            if arg.OutboundProxy[0] not in ["socks", "http"]:
-                usage("Invalid argument for Outbound Proxy")
-        else:
-            arg.OutboundProxy = arg.OutboundProxy.pop().split(':')
-        # OutboundProxy should be type://ip:port
-        if (len(arg.OutboundProxy) not in [2, 3]):
-            usage("Invalid argument for Outbound Proxy")
-        else:  # Check if the port is an int.
-            try:
-                int(arg.OutboundProxy[-1])
-            except ValueError:
-                usage("Invalid port provided for Outbound Proxy")
+        if arg.inbound_proxy:
+            arg.inbound_proxy = arg.inbound_proxy.split(':')
+            # inbound_proxy should be (ip:)port:
+            if len(arg.inbound_proxy) not in [1, 2]:
+                usage("Invalid argument for Inbound Proxy")
+            else:
+                try:
+                    int(arg.inbound_proxy[-1])
+                except ValueError:
+                    usage("Invalid port for Inbound Proxy")
 
-    if arg.InboundProxy:
-        arg.InboundProxy = arg.InboundProxy.split(':')
-        # InboundProxy should be (ip:)port:
-        if len(arg.InboundProxy) not in [1, 2]:
-            usage("Invalid argument for Inbound Proxy")
-        else:
-            try:
-                int(arg.InboundProxy[-1])
-            except ValueError:
-                usage("Invalid port for Inbound Proxy")
+        plugin_types_for_group = get_types_for_plugin_group(db, plugin_group)
+        if arg.plugin_type == 'all':
+            arg.plugin_type = plugin_types_for_group
+        elif arg.plugin_type == 'quiet':
+            arg.plugin_type = ['passive', 'semi_passive']
 
-    plugin_types_for_group = get_types_for_plugin_group(db, plugin_group)
-    if arg.PluginType == 'all':
-        arg.PluginType = plugin_types_for_group
-    elif arg.PluginType == 'quiet':
-        arg.PluginType = ['passive', 'semi_passive']
+        scope = arg.targets or []  # Arguments at the end are the URL target(s)
+        num_targets = len(scope)
+        if plugin_group != 'auxiliary' and num_targets == 0 and not arg.list_plugins:
+            if arg.nowebui:
+                finish()
+        elif num_targets == 1:  # Check if this is a file
+            if os.path.isfile(scope[0]):
+                logging.info("Scope file: trying to load targets from it ..")
+                new_scope = []
+                for target in open(scope[0]).read().split("\n"):
+                    clean_target = target.strip()
+                    if not clean_target:
+                        continue  # Skip blank lines
+                    new_scope.append(clean_target)
+                if len(new_scope) == 0:  # Bad file
+                    usage("Please provide a scope file (1 target x line)")
+                scope = new_scope
 
-    scope = arg.Targets or []  # Arguments at the end are the URL target(s)
-    num_targets = len(scope)
-    if plugin_group != 'auxiliary' and num_targets == 0 and not arg.list_plugins:
-        if arg.nowebui:
-            finish()
-    elif num_targets == 1:  # Check if this is a file
-        if os.path.isfile(scope[0]):
-            logging.info("Scope file: trying to load targets from it ..")
-            new_scope = []
-            for target in open(scope[0]).read().split("\n"):
-                CleanTarget = target.strip()
-                if not CleanTarget:
-                    continue  # Skip blank lines
-                new_scope.append(CleanTarget)
-            if len(new_scope) == 0:  # Bad file
-                usage("Please provide a scope file (1 target x line)")
-            scope = new_scope
+        for target in scope:
+            if target[0] == "-":
+                usage("Invalid Target: {}".format(target))
 
-    for target in scope:
-        if target[0] == "-":
-            usage("Invalid Target: " + target)
+        args = ''
+        if plugin_group == 'auxiliary':
+            # For auxiliary plugins, the scope are the parameters.
+            args = scope
+            # auxiliary plugins do not have targets, they have metasploit-like parameters.
+            scope = ['auxiliary']
 
-    args = ''
-    if plugin_group == 'auxiliary':
-        # For auxiliary plugins, the scope are the parameters.
-        args = scope
-        # auxiliary plugins do not have targets, they have metasploit-like parameters.
-        scope = ['auxiliary']
-
-    return {
-        'list_plugins': arg.list_plugins,
-        'Force_Overwrite': arg.ForceOverwrite,
-        'Interactive': arg.Interactive == 'yes',
-        'Scope': scope,
-        'argv': sys.argv,
-        'PluginType': arg.PluginType,
-        'OnlyPlugins': arg.OnlyPlugins,
-        'ExceptPlugins': arg.ExceptPlugins,
-        'InboundProxy': arg.InboundProxy,
-        'OutboundProxy': arg.OutboundProxy,
-        'OutboundProxyAuth': arg.OutboundProxyAuth,
-        'PluginGroup': plugin_group,
-        'RPort': arg.RPort,
-        'PortWaves': arg.PortWaves,
-        'ProxyMode': arg.ProxyMode,
-        'TOR_mode': arg.TOR_mode,
-        'nowebui': arg.nowebui,
-        'Args': args
-    }
+        return {
+            'list_plugins': arg.list_plugins,
+            'force_overwrite': arg.force_overwrite,
+            'interactive': arg.interactive == 'yes',
+            'scope': scope,
+            'argv': sys.argv,
+            'plugin_type': arg.plugin_type,
+            'only_plugins': arg.only_plugins,
+            'except_plugins': arg.except_plugins,
+            'inbound_proxy': arg.inbound_proxy,
+            'outbound_proxy': arg.outbound_proxy,
+            'outbound_proxy_auth': arg.outbound_proxy_auth,
+            'plugin_group': plugin_group,
+            'rport': arg.rport,
+            'port_waves': arg.port_waves,
+            'proxy_mode': arg.proxy_mode,
+            'tor_mode': arg.tor_mode,
+            'nowebui': arg.nowebui,
+            'args': args
+        }
+    return {}
 
 
 def initialise_framework(options):
