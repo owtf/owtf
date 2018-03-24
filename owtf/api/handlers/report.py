@@ -20,7 +20,6 @@ from owtf.managers.plugin import get_all_test_groups
 from owtf.managers.poutput import get_all_poutputs
 from owtf.managers.target import get_target_config_by_id
 
-
 __all__ = ['ReportExportHandler']
 
 

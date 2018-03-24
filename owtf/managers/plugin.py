@@ -17,7 +17,6 @@ from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 from owtf.utils.timer import timer
 
-
 TEST_GROUPS = ['web', 'network', 'auxiliary']
 
 
@@ -40,8 +39,7 @@ def get_test_groups_config(file_path):
         try:
             code, priority, descrip, hint, url = line.strip().split(' | ')
         except ValueError:
-            abort_framework("Problem in Test Groups file: '%s' -> Cannot parse line: %s" %
-                            (file_path, line))
+            abort_framework("Problem in Test Groups file: '%s' -> Cannot parse line: %s" % (file_path, line))
         if len(descrip) < 2:
             descrip = hint
         if len(hint) < 2:
@@ -72,8 +70,7 @@ def load_test_groups(session, file_default, file_fallback, plugin_group):
                 descrip=group['descrip'],
                 hint=group['hint'],
                 url=group['url'],
-                group=plugin_group)
-        )
+                group=plugin_group))
     session.commit()
 
 
@@ -124,8 +121,8 @@ def load_plugins(session):
         if session.query(models.TestGroup).get(code) is None:
             continue
         # Load the plugin as a module.
-        filename, pathname, desc = imp.find_module(os.path.splitext(os.path.basename(plugin_path))[0],
-                                                   [os.path.dirname(plugin_path)])
+        filename, pathname, desc = imp.find_module(
+            os.path.splitext(os.path.basename(plugin_path))[0], [os.path.dirname(plugin_path)])
         plugin_module = imp.load_module(os.path.splitext(file)[0], filename, pathname, desc)
         # Try te retrieve the `attr` dictionary from the module and convert
         # it to json in order to save it into the database.
@@ -145,9 +142,7 @@ def load_plugins(session):
                 code=code,
                 file=file,
                 descrip=plugin_module.DESCRIPTION,
-                attr=attr
-            )
-        )
+                attr=attr))
     session.commit()
 
 
@@ -379,7 +374,7 @@ def get_groups_for_plugins(session, plugins):
     :return: List of available plugin groups
     :rtype: `list`
     """
-    groups = session.query(models.Plugin.group).filter(or_(models.Plugin.code.in_(plugins),
-        models.Plugin.name.in_(plugins))).distinct().all()
+    groups = session.query(models.Plugin.group).filter(
+        or_(models.Plugin.code.in_(plugins), models.Plugin.name.in_(plugins))).distinct().all()
     groups = [i[0] for i in groups]
     return groups

@@ -20,11 +20,11 @@ from owtf.utils.error import user_abort
 from owtf.utils.strings import multi_replace_dict, scrub_output
 from owtf.utils.timer import timer
 
-
 __all__ = ['shell']
 
 
 class Shell(object):
+
     def __init__(self):
         # Some settings like the plugin output dir are dynamic, config is no place for those
         self.dynamic_replacements = {}
@@ -106,11 +106,14 @@ class Shell(object):
         :rtype: `str`
         """
         self.refresh_replacements()
-        new_cmd = "cd {};{}".format(self.escape_shell_path(plugin_output_dir),
-                                   multi_replace_dict(command, self.dynamic_replacements))
-        new_cmd = multi_replace_dict(new_cmd, {'@@@USER_AGENT@@@': USER_AGENT,
-                                               '@@@INBOUND_PROXY_IP@@@': INBOUND_PROXY_IP,
-                                               '@@@INBOUND_PROXY_PORT@@@': INBOUND_PROXY_PORT})
+        new_cmd = "cd {};{}".format(
+            self.escape_shell_path(plugin_output_dir), multi_replace_dict(command, self.dynamic_replacements))
+        new_cmd = multi_replace_dict(
+            new_cmd, {
+                '@@@USER_AGENT@@@': USER_AGENT,
+                '@@@INBOUND_PROXY_IP@@@': INBOUND_PROXY_IP,
+                '@@@INBOUND_PROXY_PORT@@@': INBOUND_PROXY_PORT
+            })
         self.old_cmds[new_cmd] = command
         return new_cmd
 
@@ -146,8 +149,7 @@ class Shell(object):
             preexec_fn=os.setsid,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            bufsize=1
-        )
+            bufsize=1)
         return proc
 
     def shell_exec_monitor(self, session, command, plugin_info):

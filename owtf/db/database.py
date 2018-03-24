@@ -22,6 +22,7 @@ def get_count(q):
 
 
 def flush_transaction(method):
+
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         dryrun = kwargs.pop("dryrun", False)
@@ -37,13 +38,14 @@ def flush_transaction(method):
                 self.session.rollback()
             raise
         return ret
+
     return wrapper
 
 
 def get_db_engine():
     engine = create_engine(
-            "postgresql+psycopg2://{}:{}@{}/{}".format(DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_NAME),
-                pool_recycle=120)
+        "postgresql+psycopg2://{}:{}@{}/{}".format(DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_NAME),
+        pool_recycle=120)
     Base.metadata.create_all(engine)
     return engine
 
@@ -63,5 +65,6 @@ class Session(_Session):
     _add = _Session.add
     _add_all = _Session.add_all
     _delete = _Session.delete
+
 
 Session = sessionmaker(class_=Session)

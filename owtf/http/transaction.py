@@ -19,11 +19,11 @@ from cookies import Cookie, InvalidCookieError
 
 from owtf.utils.http import derive_http_method
 
-
 __all__ = ['HTTPTransaction']
 
 
 class HTTPTransaction(object):
+
     def __init__(self, timer):
         self.timer = timer
         self.new = False

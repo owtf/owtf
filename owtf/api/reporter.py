@@ -18,6 +18,7 @@ from owtf.settings import POUTPUT_TEMPLATES_DIR
 
 
 class Reporter(object):
+
     def __init__(self):
         self.requester = None
         self.Init = False
@@ -68,8 +69,8 @@ class Reporter(object):
         """
         Draws an HTML Search box for defined Vuln Search resources
         """
-        return self.Loader.load("resource_link_list.html").generate(ResourceListName=ResourceListName,
-                                                                    ResourceList=ResourceList)
+        return self.Loader.load("resource_link_list.html").generate(
+            ResourceListName=ResourceListName, ResourceList=ResourceList)
 
     def Tabbedresource_linklist(self, ResourcesList):
         """
@@ -89,8 +90,8 @@ class Reporter(object):
         return self.Loader.load("tabbed_resource_link_list.html").generate(TabData=TabData, Resources=Resources)
 
     def ListPostProcessing(self, ResourceListName, link_list, HTMLlink_list):
-        return self.Loader.load("list_post_processing.html").generate(ResourceListName=ResourceListName,
-                                                                      link_list=link_list, HTMLlink_list=HTMLlink_list)
+        return self.Loader.load("list_post_processing.html").generate(
+            ResourceListName=ResourceListName, link_list=link_list, HTMLlink_list=HTMLlink_list)
 
     def Requestlink_list(self, ResourceListName, link_list):
         return self.Loader.load("request_link_list.html").generate(
@@ -101,8 +102,8 @@ class Reporter(object):
         Draws an HTML Search box for defined Vuln Search resources
         """
         VulnSearchResources = self.resource.get_resources('VulnSearch')
-        return self.Loader.load("vulnerability_search_box.html").generate(SearchStr=SearchStr,
-                                                                          VulnSearchResources=VulnSearchResources)
+        return self.Loader.load("vulnerability_search_box.html").generate(
+            SearchStr=SearchStr, VulnSearchResources=VulnSearchResources)
 
     def SuggestedCommandBox(self, PluginOutputDir, CommandCategoryList, Header=''):
         """
@@ -114,8 +115,8 @@ class Reporter(object):
             TitleList.append(item[0])
             CommandList.append(self.resource.get_resources(item[1]))
         # TODO: Fix up the plugin
-        return self.Loader.load("suggested_command_box.html").generate(Header=Header, TitleList=TitleList,
-                                                                       CommandList=CommandList)
+        return self.Loader.load("suggested_command_box.html").generate(
+            Header=Header, TitleList=TitleList, CommandList=CommandList)
 
     def CommandDump(self, Name, CommandIntro, ModifiedCommand, RelativeFilePath, OutputIntro, TimeStr):
         AbsPath = self.plugin_handler.get_abs_path(RelativeFilePath)
@@ -139,8 +140,8 @@ class Reporter(object):
         return self.Loader.load("command_dump.html").generate(**table_vars)
 
     def URLsFromStr(self, TimeStr, VisitURLs, URLList, NumFound):
-        html_content = self.Loader.load("urls_from_str.html").generate(TimeStr=TimeStr, VisitURLs=VisitURLs,
-                                                                       NumURLs=len(URLList), NumFound=NumFound)
+        html_content = self.Loader.load("urls_from_str.html").generate(
+            TimeStr=TimeStr, VisitURLs=VisitURLs, NumURLs=len(URLList), NumFound=NumFound)
         if URLList:
             html_content += self.link_list("URLs Scraped", URLList)
         return html_content
@@ -165,7 +166,9 @@ class Reporter(object):
     def HtmlString(self, String):
         return String
 
+
 # ---------------------- Grep Plugin Outputs -------------------- #
+
     def ResponseBodyMatches(self, ResponseRegexpName):
         RegexpName, GrepOutputs, TransactionIDS, match_percent = self.transaction.search_by_regex_name(
             ResponseRegexpName, stats=True)
@@ -181,11 +184,11 @@ class Reporter(object):
         return self.ResearchHeaders(HeaderRegexpName)[0]
 
     def ResearchHeaders(self, RegexName):
-        regex_name, grep_outputs, transaction_ids, match_percent = self.transaction.search_by_regex_name(RegexName,
-                                                                                                         stats=True)
+        regex_name, grep_outputs, transaction_ids, match_percent = self.transaction.search_by_regex_name(
+            RegexName, stats=True)
         # [[unique_matches, matched_transactions, matched_percentage]]
-        searches = self.Loader.load("header_searches.html").generate(match_percent=match_percent, matches=grep_outputs,
-                                                                     transaction_ids=transaction_ids)
+        searches = self.Loader.load("header_searches.html").generate(
+            match_percent=match_percent, matches=grep_outputs, transaction_ids=transaction_ids)
         return [searches, grep_outputs]
 
     def FingerprintData(self):
@@ -233,6 +236,5 @@ class Reporter(object):
         if Table.GetNumRows() == 0:
             return ""  # No Attributes found
         return "<h3>Cookie Attribute Analysis</h3>%s" % Table.Render()
-
 
 reporter = Reporter()

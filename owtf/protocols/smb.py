@@ -59,9 +59,7 @@ class SMB(pexpect_shell.PExpectShell):
             self.download("{}/{}".format(self.options['SMB_MOUNT_POINT'], self.options['SMB_DOWNLOAD']), ".")
             operation = True
         if self.options['SMB_UPLOAD']:
-            self.upload(
-                self.options['SMB_UPLOAD'],
-                self.options['SMB_MOUNT_POINT'])
+            self.upload(self.options['SMB_UPLOAD'], self.options['SMB_MOUNT_POINT'])
             operation = True
         if not operation:
             logging.info("Nothing to do: no SMB_DOWNLOAD or SMB_UPLOAD specified..")

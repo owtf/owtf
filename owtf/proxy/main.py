@@ -38,7 +38,11 @@ class ProxyProcess(OWTFProcess):
         :rtype: None
         """
         # The tornado application, which is used to pass variables to request handler
-        self.application = tornado.web.Application(handlers=[(r'.*', ProxyHandler)], debug=False, gzip=True,)
+        self.application = tornado.web.Application(
+            handlers=[(r'.*', ProxyHandler)],
+            debug=False,
+            gzip=True,
+        )
         # All required variables in request handler
         # Required variables are added as attributes to application, so that request handler can access these
         self.application.inbound_ip = INBOUND_PROXY_IP
@@ -60,8 +64,8 @@ class ProxyProcess(OWTFProcess):
         self.application.ca_key = os.path.expanduser(CA_KEY)
         # To stop OWTF from breaking for our beloved users :P
         try:
-            self.application.ca_key_pass = FileOperations.open(os.path.expanduser(CA_PASS_FILE),
-                                                               'r', owtf_clean=False).read().strip()
+            self.application.ca_key_pass = FileOperations.open(
+                os.path.expanduser(CA_PASS_FILE), 'r', owtf_clean=False).read().strip()
         except IOError:
             self.application.ca_key_pass = "owtf"  # XXX: Legacy CA key pass for older versions.
         self.application.proxy_folder = os.path.dirname(self.application.ca_cert)

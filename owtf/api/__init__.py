@@ -1,6 +1,5 @@
 from owtf.lib.exceptions import APIError
 
-
 HTTP_METHODS = ["GET", "PUT", "POST", "PATCH", "DELETE", "HEAD", "OPTIONS"]
 
 

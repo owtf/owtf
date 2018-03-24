@@ -116,9 +116,5 @@ def load_mappings(session, default, fallback):
         category = None
         if 'category' in mappings:
             category = mappings.pop('category')
-        session.merge(models.Mapping(
-            owtf_code=owtf_code,
-            mappings=json.dumps(mappings),
-            category=category
-        ))
+        session.merge(models.Mapping(owtf_code=owtf_code, mappings=json.dumps(mappings), category=category))
     session.commit()

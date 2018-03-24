@@ -33,8 +33,7 @@ def get_ips_from_hostname(hostname):
         try:
             ip = socket.gethostbyname(hostname)
         except socket.gaierror:
-            raise UnresolvableTargetException(
-                "Unable to resolve: '%s'" % hostname)
+            raise UnresolvableTargetException("Unable to resolve: '%s'" % hostname)
 
     ipchunks = ip.strip().split("\n")
     return ipchunks
@@ -61,15 +60,13 @@ def get_ip_from_hostname(hostname):
         try:
             ip = socket.gethostbyname(hostname)
         except socket.gaierror:
-            raise UnresolvableTargetException(
-                "Unable to resolve: '%s'" % hostname)
+            raise UnresolvableTargetException("Unable to resolve: '%s'" % hostname)
 
     ipchunks = ip.strip().split("\n")
     alternative_ips = []
     if len(ipchunks) > 1:
         ip = ipchunks[0]
-        logging.info("%s has several IP addresses: (%s).Choosing first: %s" %
-               (hostname, "".join(ipchunks)[0:-3], ip))
+        logging.info("%s has several IP addresses: (%s).Choosing first: %s" % (hostname, "".join(ipchunks)[0:-3], ip))
         alternative_ips = ipchunks[1:]
     config_handler.set_val('alternative_ips', alternative_ips)
     ip = ip.strip()

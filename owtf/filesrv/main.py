@@ -15,7 +15,6 @@ from owtf.settings import FILE_SERVER_LOG, FILE_SERVER_PORT, SERVER_ADDR, TEMPLA
 from owtf.utils.app import Application
 from owtf.utils.logger import OWTFLogger
 
-
 __all__ = ['start_file_server']
 
 
@@ -24,12 +23,7 @@ class FileServer():
     def start(self):
         try:
             self.worker_manager = worker_manager
-            self.application = Application(
-                handlers=HANDLERS,
-                template_path=TEMPLATES,
-                debug=False,
-                gzip=True
-            )
+            self.application = Application(handlers=HANDLERS, template_path=TEMPLATES, debug=False, gzip=True)
             self.server = tornado.httpserver.HTTPServer(self.application)
             self.server.bind(int(FILE_SERVER_PORT), address=SERVER_ADDR)
             tornado.options.parse_command_line(

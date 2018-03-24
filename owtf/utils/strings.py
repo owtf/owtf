@@ -24,7 +24,7 @@ def str2bool(string):
     :return: Boolean equivalent
     :rtype: `bool`
     """
-    return not(string in ['False', 'false', 0, '0'])
+    return not (string in ['False', 'false', 0, '0'])
 
 
 def multi_replace(text, replace_dict):

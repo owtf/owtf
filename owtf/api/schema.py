@@ -18,7 +18,6 @@ except ImportError:
 from owtf.lib.exceptions import APIError
 from owtf.utils.http import container, deep_update
 
-
 __all__ = ['NoObjectDefaults', 'get_object_defaults', 'validate', 'input_schema_clean']
 
 
@@ -85,10 +84,13 @@ def input_schema_clean(input_, input_schema):
     return input_
 
 
-def validate(input_schema=None, output_schema=None,
-             input_example=None, output_example=None,
+def validate(input_schema=None,
+             output_schema=None,
+             input_example=None,
+             output_example=None,
              validator_cls=None,
-             format_checker=None, on_empty_404=False,
+             format_checker=None,
+             on_empty_404=False,
              use_defaults=False):
     """Parameterized decorator for schema validation
 
@@ -111,6 +113,7 @@ def validate(input_schema=None, output_schema=None,
         self.body will contains 'published' key with value False if no one
         comes from request, also works with nested schemas.
     """
+
     @container
     def _validate(rh_method):
         """Decorator for RequestHandler schema validation
@@ -132,6 +135,7 @@ def validate(input_schema=None, output_schema=None,
         :raises APIError: If the output is a false value and
             on_empty_404 is True, an HTTP 404 error is returned
         """
+
         @wraps(rh_method)
         @tornado.gen.coroutine
         def _wrapper(self, *args, **kwargs):
@@ -147,20 +151,13 @@ def validate(input_schema=None, output_schema=None,
                     encoding = "UTF-8"
                     input_ = json.loads(self.request.body.decode(encoding))
                 except ValueError as e:
-                    raise jsonschema.ValidationError(
-                        "Input is malformed; could not decode JSON object."
-                    )
+                    raise jsonschema.ValidationError("Input is malformed; could not decode JSON object.")
 
                 if use_defaults:
                     input_ = input_schema_clean(input_, input_schema)
 
                 # Validate the received input
-                jsonschema.validate(
-                    input_,
-                    input_schema,
-                    cls=validator_cls,
-                    format_checker=format_checker
-                )
+                jsonschema.validate(input_, input_schema, cls=validator_cls, format_checker=format_checker)
             else:
                 input_ = None
 
@@ -182,16 +179,15 @@ def validate(input_schema=None, output_schema=None,
                 # We wrap output in an object before validating in case
                 #  output is a string (and ergo not a validatable JSON object)
                 try:
-                    jsonschema.validate(
-                        {"result": output},
-                        {
-                            "type": "object",
-                            "properties": {
-                                "result": output_schema
-                            },
-                            "required": ["result"]
-                        }
-                    )
+                    jsonschema.validate({
+                        "result": output
+                    }, {
+                        "type": "object",
+                        "properties": {
+                            "result": output_schema
+                        },
+                        "required": ["result"]
+                    })
                 except jsonschema.ValidationError as e:
                     # We essentially re-raise this as a TypeError because
                     #  we don't want this error data passed back to the client
@@ -209,4 +205,5 @@ def validate(input_schema=None, output_schema=None,
         setattr(_wrapper, "output_example", output_example)
 
         return _wrapper
+
     return _validate

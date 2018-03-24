@@ -16,9 +16,9 @@ from owtf.managers.transaction import delete_transaction, get_all_transactions_d
     get_by_id_as_dict, get_hrt_response, search_all_transactions
 from owtf.managers.url import get_all_urls, search_all_urls
 
-
-__all__ = ['TransactionDataHandler', 'TransactionHrtHandler', 'TransactionSearchHandler', 'URLDataHandler',
-           'URLSearchHandler']
+__all__ = [
+    'TransactionDataHandler', 'TransactionHrtHandler', 'TransactionSearchHandler', 'URLDataHandler', 'URLSearchHandler'
+]
 
 
 class TransactionDataHandler(APIRequestHandler):

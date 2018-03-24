@@ -15,11 +15,11 @@ from owtf.lib.owtf_process import OWTFProcess
 from owtf.settings import DEBUG, SERVER_ADDR, STATIC_ROOT, TEMPLATES, UI_SERVER_LOG, UI_SERVER_PORT
 from owtf.utils.app import Application
 
-
 __all__ = ['start_api_server']
 
 
 class APIServer(OWTFProcess):
+
     def pseudo_run(self):
         application = Application(
             handlers=HANDLERS,
@@ -28,8 +28,7 @@ class APIServer(OWTFProcess):
             autoreload=False,
             gzip=True,
             static_path=STATIC_ROOT,
-            compiled_template_cache=True
-        )
+            compiled_template_cache=True)
         self.server = tornado.httpserver.HTTPServer(application)
         try:
             ui_port = int(UI_SERVER_PORT)

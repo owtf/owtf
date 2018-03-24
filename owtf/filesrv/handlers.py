@@ -15,7 +15,6 @@ import tornado
 import tornado.template
 import tornado.web
 
-
 __all__ = ['StaticFileHandler']
 
 

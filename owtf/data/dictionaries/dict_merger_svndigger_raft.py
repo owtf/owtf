@@ -8,21 +8,13 @@ import urllib
 
 # Order of the files in the list is important
 raft_lowercase = [
-    'raft-small-directories-lowercase.txt',
-    'raft-small-files-lowercase.txt',
-    'raft-medium-directories-lowercase.txt',
-    'raft-medium-files-lowercase.txt',
-    'raft-large-directories-lowercase.txt',
-    'raft-large-files-lowercase.txt'
+    'raft-small-directories-lowercase.txt', 'raft-small-files-lowercase.txt', 'raft-medium-directories-lowercase.txt',
+    'raft-medium-files-lowercase.txt', 'raft-large-directories-lowercase.txt', 'raft-large-files-lowercase.txt'
 ]
 
 raft_mixedcase = [
-    'raft-small-directories.txt',
-    'raft-small-files.txt',
-    'raft-medium-directories.txt',
-    'raft-medium-files.txt',
-    'raft-large-directories.txt',
-    'raft-large-files.txt'
+    'raft-small-directories.txt', 'raft-small-files.txt', 'raft-medium-directories.txt', 'raft-medium-files.txt',
+    'raft-large-directories.txt', 'raft-large-files.txt'
 ]
 
 case_dict = {'lowercase': raft_lowercase, 'mixedcase': raft_mixedcase}

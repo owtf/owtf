@@ -197,8 +197,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                     proxy_password=self.application.outbound_password,
                     allow_nonstandard_methods=True,
                     prepare_curl_callback=callback,
-                    validate_cert=False
-                )
+                    validate_cert=False)
                 try:
                     response = yield tornado.gen.Task(async_client.fetch, request)
                 except Exception:
@@ -275,8 +274,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                     self.application.ca_key,
                     self.application.ca_key_pass,
                     self.application.certs_folder,
-                    success=ssl_success
-                )
+                    success=ssl_success)
             except tornado.iostream.StreamClosedError:
                 pass
 
@@ -322,7 +320,6 @@ class ProxyHandler(tornado.web.RequestHandler):
 
 
 class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
-
     """Class is used for handling websocket traffic.
 
     * Object of this class replaces the main request handler for a request with header => "Upgrade: websocket"
@@ -366,8 +363,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             proxy_host=self.application.outbound_ip,
             proxy_port=self.application.outbound_port,
             proxy_username=self.application.outbound_username,
-            proxy_password=self.application.outbound_password
-        )
+            proxy_password=self.application.outbound_password)
         self.upstream_connection = CustomWebSocketClientConnection(io_loop, request)
         if callback is not None:
             io_loop.add_future(self.upstream_connection.connect_future, callback)
@@ -481,20 +477,16 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.handshake_request,
             self.upstream_connection.code,
             headers=self.upstream_connection.headers,
-            request_time=0
-        )
+            request_time=0)
         # Procedure for dumping a tornado request-response
-        self.cache_handler = CacheHandler(
-            self.application.cache_dir,
-            self.handshake_request,
-            self.application.cookie_regex,
-            self.application.cookie_blacklist
-        )
+        self.cache_handler = CacheHandler(self.application.cache_dir, self.handshake_request,
+                                          self.application.cookie_regex, self.application.cookie_blacklist)
         self.cached_response = self.cache_handler.load()
         self.cache_handler.dump(self.handshake_response)
 
 
 class CustomWebSocketClientConnection(tornado.websocket.WebSocketClientConnection):
+
     def _handle_1xx(self, code):
         """Had to extract response code, so it is necessary to override.
 

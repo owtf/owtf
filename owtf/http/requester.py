@@ -35,13 +35,13 @@ from owtf.utils.http import derive_http_method
 from owtf.utils.strings import str_to_dict
 from owtf.utils.timer import timer
 
-
 __all__ = ['requester']
 
 
 # Intercept raw request trick from:
 # http://stackoverflow.com/questions/6085709/get-headers-sent-in-urllib2-http-request
 class MyHTTPConnection(client.HTTPConnection):
+
     def send(self, s):
         global raw_request
         # Saving to global variable for Requester class to see.
@@ -50,6 +50,7 @@ class MyHTTPConnection(client.HTTPConnection):
 
 
 class MyHTTPHandler(HTTPHandler):
+
     def http_open(self, req):
         try:
             return self.do_open(MyHTTPConnection, req)
@@ -61,6 +62,7 @@ class MyHTTPHandler(HTTPHandler):
 
 
 class MyHTTPSConnection(client.HTTPSConnection):
+
     def send(self, s):
         global raw_request
         # Saving to global variable for Requester class to see.
@@ -69,6 +71,7 @@ class MyHTTPSConnection(client.HTTPSConnection):
 
 
 class MyHTTPSHandler(HTTPSHandler):
+
     def https_open(self, req):
         try:
             return self.do_open(MyHTTPSConnection, req)
@@ -82,6 +85,7 @@ class MyHTTPSHandler(HTTPSHandler):
 # SmartRedirectHandler is courtesy of:
 # http://www.diveintopython.net/http_web_services/redirects.html
 class SmartRedirectHandler(HTTPRedirectHandler):
+
     def http_error_301(self, req, fp, code, msg, headers):
         result = HTTPRedirectHandler.http_error_301(self, req, fp, code, msg, headers)
         result.status = code
@@ -105,9 +109,8 @@ class Requester(object):
         self.session = get_scoped_session()
         self.proxy = proxy
         if proxy is None:
-            logging.debug(
-                "WARNING: No outbound proxy selected. It is recommended to "
-                "use an outbound proxy for tactical fuzzing later")
+            logging.debug("WARNING: No outbound proxy selected. It is recommended to "
+                          "use an outbound proxy for tactical fuzzing later")
             self.opener = build_opener(MyHTTPHandler, MyHTTPSHandler, SmartRedirectHandler)
         else:  # All requests must use the outbound proxy.
             logging.debug("Setting up proxy(inbound) for OWTF requests..")
@@ -487,8 +490,7 @@ class Requester(object):
             if not url:
                 continue  # Skip blank lines.
             if not is_url(url):
-                add_error("Minor issue: %s is not a valid URL and has been ignored, processing continues" %
-                        str(url))
+                add_error("Minor issue: %s is not a valid URL and has been ignored, processing continues" % str(url))
                 continue  # Skip garbage URLs.
             transaction = self.get_transaction(use_cache, url, method=method, data=data)
             if transaction is not None:

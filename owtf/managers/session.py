@@ -19,11 +19,13 @@ def session_required(func):
     All this decorator does is check if a valid value is passed for target_id
     if not get the target_id from target manager and pass it
     """
+
     def wrapped_function(*args, **kwargs):
         # True if target_id doesnt exist
         if (kwargs.get("session_id", "None") == "None") or (kwargs.get("session_id", True) is None):
             kwargs["session_id"] = get_session_id(get_scoped_session())
         return func(*args, **kwargs)
+
     return wrapped_function
 
 

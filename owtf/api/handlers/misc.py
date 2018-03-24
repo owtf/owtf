@@ -53,7 +53,6 @@ class ProgressBarHandler(APIRequestHandler):
         raise tornado.web.HTTPError(405)
 
 
-
 class ErrorDataHandler(APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'PATCH']
 

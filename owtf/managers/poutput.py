@@ -211,16 +211,18 @@ def get_unique_dicts(session, target_id=None):
     :rtype: `dict`
     """
     unique_data = {
-        "plugin_type": [i[0] for i in session.query(models.PluginOutput.plugin_type).filter_by(
-            target_id=target_id).distinct().all()],
-        "plugin_group": [i[0] for i in session.query(models.PluginOutput.plugin_group).filter_by(
-            target_id=target_id).distinct().all()],
-        "status": [i[0] for i in session.query(models.PluginOutput.status).filter_by(
-            target_id=target_id).distinct().all()],
-        "user_rank": [i[0] for i in session.query(models.PluginOutput.user_rank).filter_by(
-            target_id=target_id).distinct().all()],
-        "owtf_rank": [i[0] for i in session.query(models.PluginOutput.owtf_rank).filter_by(
-            target_id=target_id).distinct().all()],
+        "plugin_type":
+        [i[0] for i in session.query(models.PluginOutput.plugin_type).filter_by(target_id=target_id).distinct().all()],
+        "plugin_group":
+        [i[0] for i in session.query(models.PluginOutput.plugin_group).filter_by(target_id=target_id).distinct().all()],
+        "status":
+        [i[0] for i in session.query(models.PluginOutput.status).filter_by(target_id=target_id).distinct().all()],
+        "user_rank": [
+            i[0] for i in session.query(models.PluginOutput.user_rank).filter_by(target_id=target_id).distinct().all()
+        ],
+        "owtf_rank": [
+            i[0] for i in session.query(models.PluginOutput.owtf_rank).filter_by(target_id=target_id).distinct().all()
+        ],
     }
     return unique_data
 
@@ -323,20 +325,21 @@ def save_plugin_output(session, plugin, output, target_id=None):
     """
     from owtf.plugin.plugin_handler import plugin_handler
 
-    session.merge(models.PluginOutput(
-        plugin_key=plugin["key"],
-        plugin_code=plugin["code"],
-        plugin_group=plugin["group"],
-        plugin_type=plugin["type"],
-        output=json.dumps(output),
-        start_time=plugin["start"],
-        end_time=plugin["end"],
-        status=plugin["status"],
-        target_id=target_id,
-        # Save path only if path exists i.e if some files were to be stored it will be there
-        output_path=(plugin["output_path"] if os.path.exists(plugin_handler.get_plugin_output_dir(plugin)) else None),
-        owtf_rank=plugin['owtf_rank'])
-    )
+    session.merge(
+        models.PluginOutput(
+            plugin_key=plugin["key"],
+            plugin_code=plugin["code"],
+            plugin_group=plugin["group"],
+            plugin_type=plugin["type"],
+            output=json.dumps(output),
+            start_time=plugin["start"],
+            end_time=plugin["end"],
+            status=plugin["status"],
+            target_id=target_id,
+            # Save path only if path exists i.e if some files were to be stored it will be there
+            output_path=(plugin["output_path"]
+                         if os.path.exists(plugin_handler.get_plugin_output_dir(plugin)) else None),
+            owtf_rank=plugin['owtf_rank']))
     session.commit()
 
 
@@ -357,21 +360,22 @@ def save_partial_output(session, plugin, output, message, target_id=None):
     """
     from owtf.plugin.plugin_handler import plugin_handler
 
-    session.merge(models.PluginOutput(
-        plugin_key=plugin["key"],
-        plugin_code=plugin["code"],
-        plugin_group=plugin["group"],
-        plugin_type=plugin["type"],
-        output=json.dumps(output),
-        error=message,
-        start_time=plugin["start"],
-        end_time=plugin["end"],
-        status=plugin["status"],
-        target_id=target_id,
-        # Save path only if path exists i.e if some files were to be stored it will be there
-        output_path=(plugin["output_path"] if os.path.exists(plugin_handler.get_plugin_output_dir(plugin)) else None),
-        owtf_rank=plugin['owtf_rank'])
-    )
+    session.merge(
+        models.PluginOutput(
+            plugin_key=plugin["key"],
+            plugin_code=plugin["code"],
+            plugin_group=plugin["group"],
+            plugin_type=plugin["type"],
+            output=json.dumps(output),
+            error=message,
+            start_time=plugin["start"],
+            end_time=plugin["end"],
+            status=plugin["status"],
+            target_id=target_id,
+            # Save path only if path exists i.e if some files were to be stored it will be there
+            output_path=(plugin["output_path"]
+                         if os.path.exists(plugin_handler.get_plugin_output_dir(plugin)) else None),
+            owtf_rank=plugin['owtf_rank']))
     session.commit()
 
 
@@ -385,12 +389,36 @@ def get_severity_freq(session, session_id=None):
     :rtype: `dict`
     """
     severity_frequency = [
-        {"id": 0, "label": "Passing", "value": 0},
-        {"id": 1, "label": "Info", "value": 0},
-        {"id": 2, "label": "Low", "value": 0},
-        {"id": 3, "label": "Medium", "value": 0},
-        {"id": 4, "label": "High", "value": 0},
-        {"id": 5, "label": "Critical", "value": 0},
+        {
+            "id": 0,
+            "label": "Passing",
+            "value": 0
+        },
+        {
+            "id": 1,
+            "label": "Info",
+            "value": 0
+        },
+        {
+            "id": 2,
+            "label": "Low",
+            "value": 0
+        },
+        {
+            "id": 3,
+            "label": "Medium",
+            "value": 0
+        },
+        {
+            "id": 4,
+            "label": "High",
+            "value": 0
+        },
+        {
+            "id": 5,
+            "label": "Critical",
+            "value": 0
+        },
     ]
 
     targets = []

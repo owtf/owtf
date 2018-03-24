@@ -4,10 +4,12 @@ from owtf.plugin.plugin_params import plugin_params
 
 DESCRIPTION = "Password Bruteforce Testing plugin"
 BRUTEFORCER = ['hydra']
-CATEGORIES = ['RDP', 'LDAP2', 'LDAP3', 'MSSQL', 'MYSQL', 'CISCO', 'CISCO-ENABLE', 'CVS', 'Firebird', 'FTP', 'FTPS',
-              'HTTP-PROXY', 'ICQ', 'IMAP', 'IRC', 'NCP', 'NNTP', 'ORACLE-LISTENER', 'ORACLE-SID', 'PCANYWHERE', 'PCNFS',
-              'POP3', 'POSTGRES', 'REXEC', 'RLOGIN', 'RSH', 'SIP', 'SMB', 'SMTP', 'SNMP', 'SOCKS5', 'SSH', 'SVN',
-              'TEAMSPEAK', 'TELNET', 'VMAUTHD', 'VNC', 'XMPP']
+CATEGORIES = [
+    'RDP', 'LDAP2', 'LDAP3', 'MSSQL', 'MYSQL', 'CISCO', 'CISCO-ENABLE', 'CVS', 'Firebird', 'FTP', 'FTPS', 'HTTP-PROXY',
+    'ICQ', 'IMAP', 'IRC', 'NCP', 'NNTP', 'ORACLE-LISTENER', 'ORACLE-SID', 'PCANYWHERE', 'PCNFS', 'POP3', 'POSTGRES',
+    'REXEC', 'RLOGIN', 'RSH', 'SIP', 'SMB', 'SMTP', 'SNMP', 'SOCKS5', 'SSH', 'SVN', 'TEAMSPEAK', 'TELNET', 'VMAUTHD',
+    'VNC', 'XMPP'
+]
 
 
 def run(PluginInfo):

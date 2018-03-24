@@ -16,12 +16,12 @@ from owtf.managers.mapping import get_all_mappings
 from owtf.managers.plugin import get_all_plugin_dicts, get_all_test_groups, get_types_for_plugin_group
 from owtf.managers.poutput import delete_all_poutput, get_all_poutputs, update_poutput
 
-
 __all__ = ['PluginNameOutput', 'PluginDataHandler', 'PluginOutputHandler']
 
 
 class PluginDataHandler(APIRequestHandler):
     SUPPORTED_METHODS = ['GET']
+
     # TODO: Creation of user plugins
 
     def get(self, plugin_group=None, plugin_type=None, plugin_code=None):

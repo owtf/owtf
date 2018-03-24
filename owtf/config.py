@@ -23,7 +23,6 @@ except ImportError:
 from owtf.lib.exceptions import PluginAbortException
 from owtf.settings import CONFIG_TYPES, REPLACEMENT_DELIMITER, ROOT_DIR
 
-
 __all__ = ['config_handler']
 
 
@@ -43,7 +42,7 @@ class Config(object):
         self.owtf_pid = os.getppid()
         self.config = defaultdict(list)  # General configuration information.
         for type in CONFIG_TYPES:
-            self.config[type] = {}        # key can consist alphabets, numbers, hyphen & underscore.
+            self.config[type] = {}  # key can consist alphabets, numbers, hyphen & underscore.
         self.cli_options = {}
 
     def is_set(self, key):

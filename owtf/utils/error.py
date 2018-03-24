@@ -19,10 +19,10 @@ except ImportError:
 
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
 
-
-__all__ = ['abort_framework', 'user_abort', 'get_option_from_user', 'SentryProxy', 'get_sentry_client',
-           'log_and_exit_handler', 'setup_signal_handlers']
-
+__all__ = [
+    'abort_framework', 'user_abort', 'get_option_from_user', 'SentryProxy', 'get_sentry_client', 'log_and_exit_handler',
+    'setup_signal_handlers'
+]
 
 command = None
 len_padding = 100
@@ -83,12 +83,12 @@ def user_abort(level, partial_output=''):
     return message
 
 
-signame_by_signum = {v: k for k, v in signal.__dict__.items() if k.startswith('SIG') and not
-        k.startswith('SIG_')}
+signame_by_signum = {v: k for k, v in signal.__dict__.items() if k.startswith('SIG') and not k.startswith('SIG_')}
 
 
 class SentryProxy(object):
     """Simple proxy for sentry client that logs to stderr even if no sentry client exists."""
+
     def __init__(self, sentry_client):
         self.sentry_client = sentry_client
 

@@ -290,9 +290,5 @@ def search_all_urls(session, criteria, target_id=None):
     total = get_count(session.query(models.Url).filter_by(target_id=target_id))
     filtered_url_objs = url_gen_query(session, criteria, target_id).all()
     filtered_number = get_count(url_gen_query(session, criteria, target_id, for_stats=True))
-    results = {
-        "records_total": total,
-        "records_filtered": filtered_number,
-        "data": derive_url_dicts(filtered_url_objs)
-    }
+    results = {"records_total": total, "records_filtered": filtered_number, "data": derive_url_dicts(filtered_url_objs)}
     return results

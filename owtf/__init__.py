@@ -6,7 +6,6 @@ owtf
 from owtf.utils.file import FileOperations, get_logs_dir
 from .db.database import get_scoped_session
 
-
 __version__ = '2.3.2'
 __release__ = 'MacOWTF'
 
@@ -20,9 +19,7 @@ print("""\033[92m
     http://owtf.org
     Version: {0}
     Release: {1}
-    \033[0m""".format(__version__, __release__)
-)
-
+    \033[0m""".format(__version__, __release__))
 
 db = get_scoped_session()
 FileOperations.create_missing_dirs(get_logs_dir())

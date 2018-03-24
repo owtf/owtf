@@ -201,13 +201,13 @@ def request_from_cache(file_path):
     dummy_request = DummyObject()
     cache_dict = json.loads(open(file_path, 'r').read())
     dummy_request.local_timestamp = datetime.datetime.strptime(cache_dict["request_local_timestamp"].strip("\r\n"),
-                                                              '%Y-%m-%dT%H:%M:%S.%f')
+                                                               '%Y-%m-%dT%H:%M:%S.%f')
     dummy_request.method = cache_dict["request_method"]
     dummy_request.url = cache_dict["request_url"]
     dummy_request.headers = cache_dict["request_headers"]
     dummy_request.body = cache_dict["request_body"]
     dummy_request.raw_request = "%s %s %s\r\n" % (cache_dict["request_method"], cache_dict["request_url"],
-                                                 cache_dict["request_version"])
+                                                  cache_dict["request_version"])
     for name, value in cache_dict["request_headers"].items():
         dummy_request.raw_request += "%s: %s\r\n" % (name, value)
     if cache_dict["request_body"]:
