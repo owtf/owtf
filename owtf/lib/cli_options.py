@@ -106,7 +106,7 @@ def parse_options(cli_options, valid_groups, valid_types):
                     "\nAuthor: Abraham Aranguren <name.surname@owasp.org> - "
                     "http://7-a.org - Twitter: @7a_")
     parser.add_argument(
-        "-l", "--list_plugins",
+        "-l", "--list-plugins",
         dest="list_plugins",
         default=None,
         choices=valid_groups,
@@ -132,19 +132,19 @@ def parse_options(cli_options, valid_groups, valid_types):
         default=None,
         help="Comma separated list of the only plugins to be used in the test")
     parser.add_argument(
-        "-p", "--inbound_proxy",
+        "-p", "--inbound-proxy",
         dest="inbound_proxy",
         default=None,
         help="(ip:)port - Setup an inbound proxy for manual site analysis")
     parser.add_argument(
-        "-x", "--outbound_proxy",
+        "-x", "--outbound-proxy",
         dest="outbound_proxy",
         default=None,
         help="type://ip:port - Send all OWTF requests using the proxy "
              "for the given ip and port. The 'type' can be 'http'(default) "
              "or 'socks'")
     parser.add_argument(
-        "-xa", "--outbound_proxy_auth",
+        "-xa", "--outbound-proxy-auth",
         dest="outbound_proxy_auth",
         default=None,
         help="username:password - Credentials if any for outbound proxy")
@@ -161,7 +161,7 @@ def parse_options(cli_options, valid_groups, valid_types):
         action='store_true',
         help="Do not do anything, simply simulate how plugins would run")
     parser.add_argument(
-        "-g", "--plugin_group",
+        "-g", "--plugin-group",
         dest="plugin_group",
         default=None,
         choices=valid_groups,
@@ -172,7 +172,7 @@ def parse_options(cli_options, valid_groups, valid_types):
              "are NOT interpreted, it is up to the plugin/resource "
              "definition to decide what to do with the target")
     parser.add_argument(
-        "-t", "--plugin_type",
+        "-t", "--plugin-type",
         dest="plugin_type",
         default="all",
         choices=valid_types,
