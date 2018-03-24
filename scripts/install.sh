@@ -381,6 +381,11 @@ EOF
 echo "${info}[*] Thanks for installing OWTF! ${reset}"
 echo "${info}[!] There will be lot of output, please be patient :)${reset}"
 
+# Copy git hooks
+echo "${info}[*] Installing git hooks...${reset}"
+yes | cp -rf "$(dirname $SCRIPT_DIR)/hooks/pre-commit.sh" "$(dirname $SCRIPT_DIR)/.git/hooks/pre-commit"
+chmod +x "$(dirname $SCRIPT_DIR)/.git/hooks/pre-commit"
+
 # Copy all necessary directories
 for dir in ${ROOT_DIR}/data/*; do
     copy_dirs "$dir" "${OWTF_DIR}/$(basename $OWTF_DIR/$dir)"
