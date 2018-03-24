@@ -22,11 +22,11 @@ def usage(error_message):
     full_path = sys.argv[0].strip()
     main = full_path.split('/')[-1]
 
-    print("Current Path: %s" % full_path)
+    print("Current Path: {}".format(full_path))
     print(
-        "Syntax: " + main +
+        "Syntax: {}"
         " [ options ] <target1 target2 target3 ..> where target can be:"
-        " <target URL / hostname / IP>"
+        " <target URL / hostname / IP>".format(main)
     )
     print(
         "                    NOTE:"
@@ -35,63 +35,63 @@ def usage(error_message):
     )
     print("Examples: ", end='\n' * 2)
     print(
-        "Run all web plugins:                         " + main +
-        " http://my.website.com"
+        "Run all web plugins:                         {}"
+        " http://my.website.com".format(main)
     )
     print(
-        "Run only passive + semi_passive plugins:             " + main +
-        " -t quiet http://my.website.com"
+        "Run only passive + semi_passive plugins:             {}"
+        " -t quiet http://my.website.com".format(main)
     )
     print(
-        "Run only active plugins:                     " + main +
-        " -t active http://my.website.com"
-    )
-    print()
-    print(
-        "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS': " + main +
-        " -e 'OWASP-CM-001' http://my.website.com"
-    )
-    print(
-        "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS': " + main +
-        " -e 'Testing_for_SSL-TLS' http://my.website.com"
+        "Run only active plugins:                     {}"
+        " -t active http://my.website.com".format(main)
     )
     print()
     print(
-        "Run only 'OWASP-CM-001: Testing_for_SSL-TLS':             " + main +
-        " -o 'OWASP-CM-001' http://my.website.com"
+        "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS': {}"
+        " -e 'OWASP-CM-001' http://my.website.com".format(main)
     )
     print(
-        "Run only 'OWASP-CM-001: Testing_for_SSL-TLS':             " + main +
-        " -o 'Testing_for_SSL-TLS' http://my.website.com"
+        "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS': {}"
+        " -e 'Testing_for_SSL-TLS' http://my.website.com".format(main)
     )
     print()
     print(
-        "Run only OWASP-IG-005 and OWASP-WU-VULN:             " + main +
-        " -o 'OWASP-IG-005,OWASP-WU-VULN' http://my.website.com"
+        "Run only 'OWASP-CM-001: Testing_for_SSL-TLS':             {}"
+        " -o 'OWASP-CM-001' http://my.website.com".format(main)
     )
     print(
-        "Run using my resources file and proxy:             " + main +
+        "Run only 'OWASP-CM-001: Testing_for_SSL-TLS':             {}"
+        " -o 'Testing_for_SSL-TLS' http://my.website.com".format(main)
+    )
+    print()
+    print(
+        "Run only OWASP-IG-005 and OWASP-WU-VULN:             {}"
+        " -o 'OWASP-IG-005,OWASP-WU-VULN' http://my.website.com".format(main)
+    )
+    print(
+        "Run using my resources file and proxy:             {}"
         " -m r:/home/me/owtf_resources.cfg"
-        " -x 127.0.0.1:8080 http://my.website.com"
+        " -x 127.0.0.1:8080 http://my.website.com".format(main)
     )
     print()
     print(
-        "Run using TOR network:                    " + main +
+        "Run using TOR network:                    {}"
         " -o OWTF-WVS-001 http://my.website.com"
-        " --tor 127.0.0.1:9050:9051:password:1"
+        " --tor 127.0.0.1:9050:9051:password:1".format(main)
     )
     print()
     print(
-        "Run Botnet-mode using miner:                    " + main +
-        " -o OWTF-WVS-001 http://my.website.com -b miner"
+        "Run Botnet-mode using miner:                    {}"
+        " -o OWTF-WVS-001 http://my.website.com -b miner".format(main)
     )
     print()
     print(
-        "Run Botnet-mode using custom proxy list:                  " + main +
-        " -o OWTF-WVS-001 http://my.website.com -b list:proxy_list_path.txt"
+        "Run Botnet-mode using custom proxy list:                  {}"
+        " -o OWTF-WVS-001 http://my.website.com -b list:proxy_list_path.txt".format(main)
     )
     if error_message:
-        print("\nERROR: " + error_message)
+        print("\nERROR: {}".format(error_message))
     sys.exit(-1)
 
 
@@ -165,24 +165,10 @@ def parse_options(cli_options, valid_groups, valid_types):
              "Sends all OWTF requests through the TOR network. "
              "For configuration help run -T help.")
     parser.add_argument(
-        "-b", "--botnet-mode",
-        dest="Botnet_mode",
-        default=None,
-        help="miner or list:path_of_list - Sends all OWTF requests "
-             "throw different proxies which can be mined or loaded "
-             "by a list file.")
-    parser.add_argument(
         "-s", "--simulation",
         dest="Simulation",
         action='store_true',
         help="Do not do anything, simply simulate how plugins would run")
-    parser.add_argument(
-        "-m", "--custom_profile",
-        dest="CustomProfile",
-        default=None,
-        help="<g:f,w:f,n:f,r:f,m:f> - Use my profile: 'f' = valid config file. "
-             "g: general config, w: web plugin order, n: network plugin order, "
-             "r: resources file, m: mappings file")
     parser.add_argument(
         "-g", "--plugin_group",
         dest="plugin_group",
