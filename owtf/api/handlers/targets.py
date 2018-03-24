@@ -15,7 +15,6 @@ from owtf.lib.exceptions import InvalidTargetReference
 from owtf.managers.target import add_targets, delete_target, get_target_config_by_id, \
     get_target_config_dicts, get_targets_by_severity_count, search_target_configs, update_target
 
-
 __all__ = ['TargetConfigSearchHandler', 'TargetSeverityChartHandler', 'TargetConfigHandler']
 
 

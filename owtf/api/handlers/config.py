@@ -11,7 +11,6 @@ from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.managers.config import get_all_config_dicts, update_config_val
 
-
 __all__ = ['ConfigurationHandler']
 
 

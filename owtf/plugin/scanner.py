@@ -13,7 +13,6 @@ from owtf.utils.file import FileOperations
 
 __all__ = ['Scanner']
 
-
 SCANS_FOLDER = "scans"  # Folder under which all scans will be saved
 PING_SWEEP_FILE = "%s/00_ping_sweep" % SCANS_FOLDER
 DNS_INFO_FILE = "%s/01_dns_info" % SCANS_FOLDER
@@ -89,8 +88,9 @@ class Scanner(object):
                 logging.info("Attempting zone transfer on $dns_server using domain %s.. Success!" % domain)
                 axfr = "%s.%s.%s.axfr" % (file_prefix, dns_server, domain)
                 self.shell.shell_exec("rm -f %s" % axfr)
-                logging.info(self.shell.shell_exec("grep 'has address' %s | cut -f 1,4 -d ' ' | sort -k 2 -t ' ' "
-                                                   "| sed 's/ /#/g'" % raw_axfr))
+                logging.info(
+                    self.shell.shell_exec("grep 'has address' %s | cut -f 1,4 -d ' ' | sort -k 2 -t ' ' "
+                                          "| sed 's/ /#/g'" % raw_axfr))
             else:
                 logging.info("Attempting zone transfer on $dns_server using domain %s.. Success!" % domain)
                 self.shell.shell_exec("rm -f %s" % raw_axfr)
@@ -120,8 +120,8 @@ class Scanner(object):
 
         if scan_type == "udp":
             logging.info("Performing UDP portscan, Service detection, banner grabbing, etc")
-            self.shell.shell_exec("nmap -PN -n -v --min-parallelism=10 -iL %s -sU -sV -O -oA %s.udp %s" % (
-                file_with_ips, file_prefix, nmap_options))
+            self.shell.shell_exec("nmap -PN -n -v --min-parallelism=10 -iL %s -sU -sV -O -oA %s.udp %s" %
+                                  (file_with_ips, file_prefix, nmap_options))
             self.shell.shell_exec("amap -1 -i %s.udp.gnmap -Abq -m -o %s.udp.amap" % (file_prefix, file_prefix))
 
     def get_nmap_services_file(self):

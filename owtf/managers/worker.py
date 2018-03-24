@@ -13,7 +13,6 @@ from time import strftime
 
 from owtf.utils.strings import str2bool
 
-
 try:
     import queue
 except ImportError:
@@ -32,7 +31,6 @@ from owtf.utils.error import abort_framework
 from owtf.utils.process import check_pid, _signal_process
 from owtf.utils.signals import workers_finish, owtf_start
 
-
 __all__ = ['worker_manager']
 
 # For psutil
@@ -40,6 +38,7 @@ TIMEOUT = 3
 
 
 class Worker(OWTFProcess):
+
     def initialize(self, **kwargs):
         super(Worker, self).__init__(**kwargs)
         self.output_q = None
@@ -83,6 +82,7 @@ class WorkerManager(object):
         # Complicated stuff to keep everything Pythonic and from blowing up
         def handle_signal(sender, **kwargs):
             self.on_start(sender, **kwargs)
+
         self.handle_signal = handle_signal
         owtf_start.connect(handle_signal)
         self.worklist = []  # List of unprocessed (plugin*target)

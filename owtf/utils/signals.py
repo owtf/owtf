@@ -10,7 +10,9 @@ try:
     from blinker import Namespace
     signals_available = True
 except ImportError:
+
     class Namespace(object):
+
         def signal(self, name, doc=None):
             return _FakeSignal(name, doc)
 
@@ -26,9 +28,8 @@ except ImportError:
             self.__doc__ = doc
 
         def _fail(self, *args, **kwargs):
-            raise RuntimeError('signalling support is unavailable '
-                               'because the blinker library is '
-                               'not installed.')
+            raise RuntimeError('signalling support is unavailable ' 'because the blinker library is ' 'not installed.')
+
         send = lambda *a, **kw: None
         connect = disconnect = has_receivers_for = receivers_for = \
             temporarily_connected_to = connected_to = _fail
@@ -36,7 +37,6 @@ except ImportError:
 
 
 __all__ = ['_signals', 'owtf_exited', 'owtf_started', 'workers_finish']
-
 
 # The namespace for code signals.
 _signals = Namespace()

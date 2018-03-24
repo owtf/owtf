@@ -29,7 +29,6 @@ from owtf.utils.timer import timer
 
 __all__ = ['plugin_helper']
 
-
 PLUGIN_OUTPUT = {"type": None, "output": None}  # This will be json encoded and stored in db as string
 
 
@@ -116,8 +115,8 @@ class PluginHelper(object):
                 if Transaction is not None and Transaction.found:
                     RawHTML = Transaction.get_raw_response_body()
                     FilteredHTML = self.reporter.sanitize_html(RawHTML)
-                    NotSandboxedPath = self.plugin_handler.dump_output_file(
-                        "NOT_SANDBOXED_%s.html" % Name, FilteredHTML, PluginInfo)
+                    NotSandboxedPath = self.plugin_handler.dump_output_file("NOT_SANDBOXED_%s.html" % Name,
+                                                                            FilteredHTML, PluginInfo)
                     logging.info("File: NOT_SANDBOXED_%s.html saved to: %s", Name, NotSandboxedPath)
                     iframe_template = Template("""
                         <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder='0'
@@ -203,17 +202,22 @@ class PluginHelper(object):
         for Name, Command in ResourceList:
             dump_file_name = "%s.txt" % os.path.splitext(Name)[0]  # Add txt extension to avoid wrong mimetypes
             plugin_output = dict(PLUGIN_OUTPUT)
-            ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir = self.RunCommand(Command,
-                PluginInfo, PluginOutputDir)
+            ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir = self.RunCommand(
+                Command, PluginInfo, PluginOutputDir)
             plugin_output["type"] = "CommandDump"
             plugin_output["output"] = {
-                "Name": self.GetCommandOutputFileNameAndExtension(Name)[0],
-                "CommandIntro": CommandIntro,
-                "ModifiedCommand": ModifiedCommand,
-                "RelativeFilePath": self.plugin_handler.dump_output_file(dump_file_name, RawOutput, PluginInfo,
-                                                                         relative_path=True),
-                "OutputIntro": OutputIntro,
-                "TimeStr": TimeStr
+                "Name":
+                self.GetCommandOutputFileNameAndExtension(Name)[0],
+                "CommandIntro":
+                CommandIntro,
+                "ModifiedCommand":
+                ModifiedCommand,
+                "RelativeFilePath":
+                self.plugin_handler.dump_output_file(dump_file_name, RawOutput, PluginInfo, relative_path=True),
+                "OutputIntro":
+                OutputIntro,
+                "TimeStr":
+                TimeStr
             }
             plugin_output = [plugin_output]
             # This command returns URLs for processing
@@ -266,8 +270,8 @@ class PluginHelper(object):
 
     def AnalyseRobotsEntries(self, Contents):  # Find the entries of each kind and count them
         num_lines = len(Contents.split("\n"))  # Total number of robots.txt entries
-        AllowedEntries = list(set(self.robots_allow_regex.findall(Contents))
-                              )  # list(set()) is to avoid repeated entries
+        AllowedEntries = list(set(
+            self.robots_allow_regex.findall(Contents)))  # list(set()) is to avoid repeated entries
         num_allow = len(AllowedEntries)  # Number of lines that start with "Allow:"
         DisallowedEntries = list(set(self.robots_disallow_regex.findall(Contents)))
         num_disallow = len(DisallowedEntries)  # Number of lines that start with "Disallow:"
@@ -276,8 +280,10 @@ class PluginHelper(object):
         RobotsFound = True
         if 0 == num_allow and 0 == num_disallow and 0 == num_sitemap:
             RobotsFound = False
-        return [num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap,
-                RobotsFound]
+        return [
+            num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap,
+            RobotsFound
+        ]
 
     def ProcessRobots(self, PluginInfo, Contents, LinkStart, LinkEnd, Filename='robots.txt'):
         plugin_output = dict(PLUGIN_OUTPUT)

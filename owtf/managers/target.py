@@ -21,7 +21,6 @@ from owtf.utils.file import cleanup_target_dirs, create_output_dir_target, get_t
 from owtf.utils.ip import get_ip_from_hostname, get_ips_from_hostname
 from owtf.utils.strings import str2bool
 
-
 TARGET_CONFIG = {
     'id': 0,
     'target_url': '',
@@ -57,10 +56,12 @@ def target_required(func):
     All this decorator does is check if a valid value is passed for target_id
     if not get the target_id from target manager and pass it
     """
+
     def wrapped_function(*args, **kwargs):
         if "target_id" not in kwargs:
             kwargs["target_id"] = target_manager.get_target_id()
         return func(*args, **kwargs)
+
     return wrapped_function
 
 
@@ -567,15 +568,42 @@ def get_targets_by_severity_count(session, session_id=None):
     filtered_severity_objs = []
     # "not ranked" = gray, "passing" = light green, "info" = light sky blue, "low" = blue, medium = yellow,
     # high = red, critical = dark purple
-    severity_frequency = [
-        {"id": 0, "label": "Not Ranked", "value": 0, "color": "#A9A9A9"},
-        {"id": 1, "label": "Passing", "value": 0, "color": "#32CD32"},
-        {"id": 2, "label": "Info", "value": 0, "color": "#b1d9f4"},
-        {"id": 3, "label": "Low", "value": 0, "color": "#337ab7"},
-        {"id": 4, "label": "Medium", "value": 0, "color": "#ffcc00"},
-        {"id": 5, "label": "High", "value": 0, "color": "#c12e2a"},
-        {"id": 6, "label": "Critical", "value": 0, "color": "#800080"}
-    ]
+    severity_frequency = [{
+        "id": 0,
+        "label": "Not Ranked",
+        "value": 0,
+        "color": "#A9A9A9"
+    }, {
+        "id": 1,
+        "label": "Passing",
+        "value": 0,
+        "color": "#32CD32"
+    }, {
+        "id": 2,
+        "label": "Info",
+        "value": 0,
+        "color": "#b1d9f4"
+    }, {
+        "id": 3,
+        "label": "Low",
+        "value": 0,
+        "color": "#337ab7"
+    }, {
+        "id": 4,
+        "label": "Medium",
+        "value": 0,
+        "color": "#ffcc00"
+    }, {
+        "id": 5,
+        "label": "High",
+        "value": 0,
+        "color": "#c12e2a"
+    }, {
+        "id": 6,
+        "label": "Critical",
+        "value": 0,
+        "color": "#800080"
+    }]
     total = session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).count()
     target_objs = session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).all()
 

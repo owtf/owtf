@@ -45,12 +45,12 @@ from urllib2 import HTTPError, Request, URLError, urlopen
 #	- Via headers
 #	- HTML titles
 #	- HTML <address> tags
-#	- X-Forwarded-For values when using TRACE 
+#	- X-Forwarded-For values when using TRACE
 #
 
 ############## GLOBAL VARIABLES ###################################
 
-global_data = { 'StatusCode':{}, 'Server':{} , 'Content-Type':{}, 'Title':{}, 'Address':{}, 'X-Fwd':{}, 'Via':{} }
+global_data = {'StatusCode': {}, 'Server': {}, 'Content-Type': {}, 'Title': {}, 'Address': {}, 'X-Fwd': {}, 'Via': {}}
 score = 0
 verbosity = 0
 scheme = 'http'
@@ -65,16 +65,19 @@ contentType = 'text/html'
 
 ############## FUNCTIONS ###################################
 
+
 # Pretty printing
-def zprint(string, flag = '=='):
-	print '[' + flag + '] ' + string
+def zprint(string, flag='=='):
+    print '[' + flag + '] ' + string
+
 
 # Increment the heuristic score
 def inc_score():
-	global score
-	score = score + 1
-	if verbosity:
-		zprint('Score : ' + str(score), '!!')
+    global score
+    score = score + 1
+    if verbosity:
+        zprint('Score : ' + str(score), '!!')
+
 
 # Help
 def showUsage():
@@ -96,12 +99,13 @@ def showUsage():
     print '  => Debug mode on a specific end-point'
     sys.exit(1)
 
+
 # Parse CLI args
 def getArguments():
     try:
-	if len(sys.argv) < 2:
-		zprint('No arguments ? Probably a bad choice. Use "-h" ...', '!!')
-		sys.exit(1)
+        if len(sys.argv) < 2:
+            zprint('No arguments ? Probably a bad choice. Use "-h" ...', '!!')
+            sys.exit(1)
         optlist, list = getopt.getopt(sys.argv[1:], 'hm:s:t:p:P:v:f:')
     except getopt.GetoptError:
         showUsage()
@@ -130,92 +134,96 @@ def getArguments():
             global max_fwds
             max_fwds = int(opt[1])
 
+
 # Extract some interesting data from the headers
 def analyse_headers(data):
 
-	if verbosity:
-		print
-		zprint('Analyzing headers', '**')
+    if verbosity:
+        print
+        zprint('Analyzing headers', '**')
 
-	wanted_headers = [
-		'Server',
-		'Via',
-		'X-Via',
-		'Set-Cookie',
-		'X-Forwarded-For',
-		'Content-Type',
-		'Content-Length',
-		'Last-Modified',
-		'Location',
-		'Date',
-	]
+    wanted_headers = [
+        'Server',
+        'Via',
+        'X-Via',
+        'Set-Cookie',
+        'X-Forwarded-For',
+        'Content-Type',
+        'Content-Length',
+        'Last-Modified',
+        'Location',
+        'Date',
+    ]
 
-	for h_name in wanted_headers:
-		h_value = data.getheader(h_name)
-		if h_value != None:
-			# Print the value
-			if verbosity:
-				zprint(h_value, h_name)
-			# Add it to the global structure if needed
-			if h_name == 'Server' or h_name == 'Content-Type':
-				global_data[h_name][hop] = h_value
-			# Some heuristics
-			if h_name == 'Via' or h_name == 'X-Via':
-				zprint('"Via" header : Probably a reverse proxy', '++')
-				global_data['Via'][hop] = h_value
-				inc_score()
+    for h_name in wanted_headers:
+        h_value = data.getheader(h_name)
+        if h_value != None:
+            # Print the value
+            if verbosity:
+                zprint(h_value, h_name)
+            # Add it to the global structure if needed
+            if h_name == 'Server' or h_name == 'Content-Type':
+                global_data[h_name][hop] = h_value
+            # Some heuristics
+            if h_name == 'Via' or h_name == 'X-Via':
+                zprint('"Via" header : Probably a reverse proxy', '++')
+                global_data['Via'][hop] = h_value
+                inc_score()
+
 
 # Extract some interesting data from the body
 def analyse_body(data):
 
-	if verbosity:
-		print 
-		zprint('Analyzing body', '**')
+    if verbosity:
+        print
+        zprint('Analyzing body', '**')
 
-	wanted_patterns = [
-		'<title>(.*)</title>',
-		'<address>(.*)</address>',
-		'Reason: <strong>(.*)</strong>',
-		'X-Forwarded-For: (.*)',
-	]
+    wanted_patterns = [
+        '<title>(.*)</title>',
+        '<address>(.*)</address>',
+        'Reason: <strong>(.*)</strong>',
+        'X-Forwarded-For: (.*)',
+    ]
 
-	for p_name in wanted_patterns:
-		# Case insensitive search
-		p_value = re.search(p_name, data, re.IGNORECASE)
-		if p_value != None:
-			# Only the 1st group, without newlines
-			value =  p_value.groups()[0].strip('\r\n')
-			if verbosity:
-				zprint(value, p_name)
-			# Add it to the global structure if needed
-			if p_name == '<title>(.*)</title>':
-				global_data['Title'][hop] = value
-			if p_name == '<address>(.*)</address>':
-				global_data['Address'][hop] = value
-			# Some heuristics
-			if re.search('X-Forwarded-For:' , p_name):
-				global_data['X-Fwd'][hop] = value
-				if method == 'TRACE':
-					zprint('"X-Forwarded-For" in body when using TRACE : Probably a reverse proxy', '++')
-					inc_score()
+    for p_name in wanted_patterns:
+        # Case insensitive search
+        p_value = re.search(p_name, data, re.IGNORECASE)
+        if p_value != None:
+            # Only the 1st group, without newlines
+            value = p_value.groups()[0].strip('\r\n')
+            if verbosity:
+                zprint(value, p_name)
+            # Add it to the global structure if needed
+            if p_name == '<title>(.*)</title>':
+                global_data['Title'][hop] = value
+            if p_name == '<address>(.*)</address>':
+                global_data['Address'][hop] = value
+            # Some heuristics
+            if re.search('X-Forwarded-For:', p_name):
+                global_data['X-Fwd'][hop] = value
+                if method == 'TRACE':
+                    zprint('"X-Forwarded-For" in body when using TRACE : Probably a reverse proxy', '++')
+                    inc_score()
+
 
 # Analyse the data returned by urllib2.*open()
 def debug_and_parse(data):
 
-	# Get data
-	headers = data.info()
-	body = data.read()
+    # Get data
+    headers = data.info()
+    body = data.read()
 
-	# Debug
-	if verbosity == 2:
-		zprint(str(headers), 'DEBUG HEADERS')
-		zprint(str(body), 'DEBUG BODY')
+    # Debug
+    if verbosity == 2:
+        zprint(str(headers), 'DEBUG HEADERS')
+        zprint(str(body), 'DEBUG BODY')
 
-	# Extract some intersting info
-	codes = BaseHTTPServer.BaseHTTPRequestHandler.responses
-	global_data['StatusCode'][hop] =  str(data.code) + ' ' + codes[data.code][0]
-	analyse_headers(headers)
-	analyse_body(body)
+    # Extract some intersting info
+    codes = BaseHTTPServer.BaseHTTPRequestHandler.responses
+    global_data['StatusCode'][hop] = str(data.code) + ' ' + codes[data.code][0]
+    analyse_headers(headers)
+    analyse_body(body)
+
 
 ############## SCAN ###################################
 
@@ -231,52 +239,52 @@ zprint('Max number of hops : ' + str(max_fwds))
 # Scan
 for hop in range(0, max_fwds):
 
-	# Create the request object
-	request = urllib2.Request(url)
-	request.get_method = lambda: method
-	request.add_data(body_content)
-	request.add_header('Content-Type', contentType)
-	request.add_header('User-agent', userAgent)
+    # Create the request object
+    request = urllib2.Request(url)
+    request.get_method = lambda: method
+    request.add_data(body_content)
+    request.add_header('Content-Type', contentType)
+    request.add_header('User-agent', userAgent)
 
-	# Add the 'Max-Forwards' header
-	request.add_header('Max-Forwards', hop)
-	if verbosity:
-		print('-' * 80)
-		zprint('Current value of "Max-Forwards" = ' + str(hop) + ' [' + '-' * 20 + ']', '-' * 19)
-		print('-' * 80)
+    # Add the 'Max-Forwards' header
+    request.add_header('Max-Forwards', hop)
+    if verbosity:
+        print('-' * 80)
+        zprint('Current value of "Max-Forwards" = ' + str(hop) + ' [' + '-' * 20 + ']', '-' * 19)
+        print('-' * 80)
 
-	try:
-		# Do the HTTP request
-		opener = urllib2.build_opener(urllib2.HTTPHandler)
-		result = opener.open(request)
+    try:
+        # Do the HTTP request
+        opener = urllib2.build_opener(urllib2.HTTPHandler)
+        result = opener.open(request)
 
-		# Found something
-		if verbosity:
-			zprint('Status Code => HTTP 200: OK', '**')
+        # Found something
+        if verbosity:
+            zprint('Status Code => HTTP 200: OK', '**')
 
-		# Analyse it
-		debug_and_parse(result)
+        # Analyse it
+        debug_and_parse(result)
 
-	# Not a 200 OK
-	except HTTPError, e:
-		if verbosity:
-			zprint('Status Code => ' + str(e), '**')
-		# Some heuristics
-		if e.code == 502:
-			zprint('HTTP 502 : Probably a reverse proxy', '++')
-			inc_score()
-		if e.code == 483:
-			zprint('HTTP 483 : Probably a reverse proxy (SIP ?)', '++')
-			inc_score()
+    # Not a 200 OK
+    except HTTPError, e:
+        if verbosity:
+            zprint('Status Code => ' + str(e), '**')
+        # Some heuristics
+        if e.code == 502:
+            zprint('HTTP 502 : Probably a reverse proxy', '++')
+            inc_score()
+        if e.code == 483:
+            zprint('HTTP 483 : Probably a reverse proxy (SIP ?)', '++')
+            inc_score()
 
-		# Analyse it
-		debug_and_parse(e)
+        # Analyse it
+        debug_and_parse(e)
 
-	# Network problem
-	except URLError, e:
-		zprint('Network problem !', '!!')
-		zprint('Reason : ' + str(e.reason), '!!')
-		break
+    # Network problem
+    except URLError, e:
+        zprint('Network problem !', '!!')
+        zprint('Reason : ' + str(e.reason), '!!')
+        break
 
 ############## REPORT ###################################
 
@@ -286,33 +294,33 @@ print('-' * 80)
 
 # For each key
 for k in global_data.keys():
-	string = k + ':\n'
-	previous = 'Undef'
-	# For each hop
-	ok = 0
-	for i in range(0, max_fwds):
-		# Try this key
-		try:
-			current = global_data[k][i]
-			# We got a value !
-			ok = 1
-		except KeyError:
-			current = 'Undef'
+    string = k + ':\n'
+    previous = 'Undef'
+    # For each hop
+    ok = 0
+    for i in range(0, max_fwds):
+        # Try this key
+        try:
+            current = global_data[k][i]
+            # We got a value !
+            ok = 1
+        except KeyError:
+            current = 'Undef'
 
-		# Some heuristics
-		if previous != current and i > 0:
-			inc_score()
+        # Some heuristics
+        if previous != current and i > 0:
+            inc_score()
 
-		# Then add it to the current string
-		string = string + '\tHop #' + str(i) + " : " + current + '\n'
-		previous = current 
+        # Then add it to the current string
+        string = string + '\tHop #' + str(i) + " : " + current + '\n'
+        previous = current
 
-	# Display this key only if values were found
-	if ok:
-		print string
+    # Display this key only if values were found
+    if ok:
+        print string
 
 # Final score
 if score == 0:
-	zprint('No reverse proxy', '--')
+    zprint('No reverse proxy', '--')
 else:
-	zprint('Found a reverse proxy, score is ' + str(score), '++')
+    zprint('Found a reverse proxy, score is ' + str(score), '++')

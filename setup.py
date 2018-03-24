@@ -44,6 +44,12 @@ for item in requirements:
 
 post_script = os.path.join(ROOT_DIR, "scripts/install.sh")
 
+dev_requires = [
+    'flake8==3.5.0',
+    'yapf==0.21.0',
+    'isort==4.3.0'
+]
+
 tests_requires = [
     'PyHamcrest==1.9.0',
     'mock>=1.3.0',
@@ -77,8 +83,8 @@ class PostInstallCommand(install):
 if sys.version_info < (2, 7, 9):
     # SSL connection fixes for Python 2.7
     requires.extend([
-      'ndg-httpsclient',
-      'pyasn1',
+        'ndg-httpsclient',
+        'pyasn1',
     ])
 
 
@@ -99,7 +105,8 @@ setup(
     dependency_links=links,
     extras_require={
         'test': tests_requires + requires,
-        'docs': docs_requires
+        'docs': docs_requires,
+        'dev': requires + dev_requires + docs_requires + tests_requires
     },
     cmdclass={
         'develop': PostDevelopCommand,

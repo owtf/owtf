@@ -22,7 +22,6 @@ from owtf.managers.target import target_required
 from owtf.managers.url import import_processed_url
 from owtf.utils.strings import get_header_list, str2bool
 
-
 # The regex find differs for these types :P
 REGEX_TYPES = ['HEADERS', 'BODY']
 
@@ -90,13 +89,11 @@ def transaction_gen_query(session, criteria, target_id, for_stats=False):
         if criteria.get('response_status', None):
             if isinstance(criteria.get('response_status'), list):
                 criteria['response_status'] = criteria['response_status'][0]
-            query = query.filter(models.Transaction.response_status.like('%%%s%%' %
-                                                                         criteria.get('response_status')))
+            query = query.filter(models.Transaction.response_status.like('%%%s%%' % criteria.get('response_status')))
         if criteria.get('response_headers', None):
             if isinstance(criteria.get('response_headers'), list):
                 criteria['response_headers'] = criteria['response_headers'][0]
-            query = query.filter(models.Transaction.response_headers.like('%%%s%%' %
-                                                                          criteria.get('response_headers')))
+            query = query.filter(models.Transaction.response_headers.like('%%%s%%' % criteria.get('response_headers')))
         if criteria.get('response_body', None):
             if isinstance(criteria.get('response_body'), list):
                 criteria['response_body'] = criteria['response_body'][0]
@@ -192,9 +189,9 @@ def get_transaction(trans):
         if trans.binary_response:
             response_body = base64.b64decode(response_body)
         owtf_transaction.set_transaction_from_db(trans.id, trans.url, trans.method, trans.response_status,
-                                                 str(trans.time), trans.time_human, trans.local_timestamp, trans.data,
-                                                 trans.raw_request, trans.response_headers, len(response_body),
-                                                 response_body)
+                                                 str(trans.time), trans.time_human, trans.local_timestamp,
+                                                 trans.data, trans.raw_request, trans.response_headers,
+                                                 len(response_body), response_body)
         return owtf_transaction
     return None
 
@@ -241,8 +238,7 @@ def get_transaction_model(transaction):
             response_body=response_body,
             response_size=len(response_body),
             binary_response=binary_response,
-            session_tokens=json.dumps(transaction.get_session_tokens())
-        )
+            session_tokens=json.dumps(transaction.get_session_tokens()))
         return transaction_model
 
 
@@ -304,10 +300,12 @@ def log_transactions(session, transaction_list, target_id=None):
                             existing_grep_output.transactions.append(transaction_model)
                             session.merge(existing_grep_output)
                         else:
-                            session.add(models.GrepOutput(target_id=target_id,
-                                                          transactions=[transaction_model],
-                                                          name=regex_name,
-                                                          output=match))
+                            session.add(
+                                models.GrepOutput(
+                                    target_id=target_id,
+                                    transactions=[transaction_model],
+                                    name=regex_name,
+                                    output=match))
     session.commit()
     import_processed_url(session=session, urls_list=urls_list, target_id=target_id)
 
@@ -543,20 +541,19 @@ def search_by_regex_name(session, regex_name, stats=False, target_id=None):
     # Get one transaction per match
     transaction_ids = []
     for grep_output in grep_outputs:
-        transaction_ids.append(session.query(models.Transaction.id).join(
-            models.Transaction.grep_outputs).filter(
-                models.GrepOutput.output == grep_output,
-                models.GrepOutput.target_id == target_id).limit(1).all()[0][0])
+        transaction_ids.append(
+            session.query(models.Transaction.id).join(models.Transaction.grep_outputs).filter(
+                models.GrepOutput.output == grep_output, models.GrepOutput.target_id == target_id).limit(1).all()[0][0])
     # Calculate stats if needed
     if stats:
         # Calculate the total number of matches
-        num_matched_transactions = get_count(session.query(models.Transaction).join(
-            models.Transaction.grep_outputs).filter(
-                models.GrepOutput.name == regex_name,
-                models.GrepOutput.target_id == target_id).group_by(models.Transaction))
+        num_matched_transactions = get_count(
+            session.query(models.Transaction).join(models.Transaction.grep_outputs).filter(
+                models.GrepOutput.name == regex_name, models.GrepOutput.target_id == target_id).group_by(
+                    models.Transaction))
         # Calculate total number of transactions in scope
-        num_transactions_in_scope = get_count(session.query(models.Transaction).filter_by(
-            scope=True, target_id=target_id))
+        num_transactions_in_scope = get_count(
+            session.query(models.Transaction).filter_by(scope=True, target_id=target_id))
         # Calculate matched percentage
         if int(num_transactions_in_scope):
             match_percent = int((num_matched_transactions / float(num_transactions_in_scope)) * 100)
@@ -726,11 +723,7 @@ def get_hrt_response(session, filter_data, trans_id, target_id=None):
     raw_request = transaction_obj.raw_request
     try:
         hrt_obj = HttpRequestTranslator(
-            request=raw_request,
-            languages=languages,
-            proxy=proxy,
-            search_string=search_string,
-            data=data)
+            request=raw_request, languages=languages, proxy=proxy, search_string=search_string, data=data)
         codes = hrt_obj.generate_code()
         return ''.join(v for v in list(codes.values()))
     except Exception as e:

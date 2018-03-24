@@ -10,9 +10,8 @@ import sys
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
-
 if not PY2:
-    strtypes = (str, )
+    strtypes = (str,)
 
     def u(s):
         return s
@@ -24,6 +23,7 @@ else:
 
 
 if PY3:
+
     def iterkeys(d, **kw):
         return iter(d.keys(**kw))
 
@@ -37,6 +37,7 @@ if PY3:
         return iter(d.lists(**kw))
 
 else:
+
     def iterkeys(d, **kw):
         return d.iterkeys(**kw)
 

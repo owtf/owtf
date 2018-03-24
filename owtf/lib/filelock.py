@@ -32,7 +32,6 @@ import os
 import sys
 import time
 
-
 __all__ = ['FileLock']
 
 

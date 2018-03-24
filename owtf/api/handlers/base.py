@@ -10,11 +10,11 @@ from tornado.web import RequestHandler
 
 from owtf.settings import FILE_SERVER_PORT, UI_SERVER_PORT
 
-
 __all__ = ['APIRequestHandler', 'FileRedirectHandler', 'UIRequestHandler']
 
 
 class APIRequestHandler(RequestHandler):
+
     def initialize(self):
         """
         - Set Content-type for JSON
@@ -35,6 +35,7 @@ class APIRequestHandler(RequestHandler):
         :type  status_code: int
         :param status_code: HTTP status code
         """
+
         def get_exc_message(exception):
             return exception.log_message if \
                 hasattr(exception, "log_message") else str(exception)
@@ -44,6 +45,7 @@ class APIRequestHandler(RequestHandler):
 
 
 class UIRequestHandler(RequestHandler):
+
     def reverse_url(self, name, *args):
         url = super(UIRequestHandler, self).reverse_url(name, *args)
         url = url.replace('?', '')
@@ -54,7 +56,7 @@ class FileRedirectHandler(RequestHandler):
     SUPPORTED_METHODS = ['GET']
 
     def get(self, file_url):
-        output_files_server = "{}://{}/".format(self.request.protocol, self.request.host.replace(str(UI_SERVER_PORT),
-                                                                                                 str(FILE_SERVER_PORT)))
+        output_files_server = "{}://{}/".format(self.request.protocol,
+                                                self.request.host.replace(str(UI_SERVER_PORT), str(FILE_SERVER_PORT)))
         redirect_file_url = output_files_server + url_escape(file_url, plus=False)
         self.redirect(redirect_file_url, permanent=True)

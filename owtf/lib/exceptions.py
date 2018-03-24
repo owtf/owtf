@@ -9,6 +9,7 @@ import tornado.web
 
 
 class FrameworkException(Exception):
+
     def __init__(self, value):
         self.parameter = value
 

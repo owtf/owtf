@@ -33,9 +33,7 @@ from owtf.utils.signals import owtf_start
 from owtf.utils.strings import wipe_bad_chars
 from owtf.utils.timer import timer
 
-
 __all__ = ['plugin_handler', 'show_plugin_list', 'show_plugin_types']
-
 
 INTRO_BANNER_GENERAL = """
 Short Intro:
@@ -61,6 +59,7 @@ class PluginHandler(object):
         # Complicated stuff to keep everything Pythonic and from blowing up
         def handle_signal(sender, **kwargs):
             self.on_start(sender, **kwargs)
+
         self.handle_signal = handle_signal
         owtf_start.connect(handle_signal)
 
@@ -83,8 +82,8 @@ class PluginHandler(object):
         self.scope = self.options["scope"]
         self.only_plugins = self.options["only_plugins"]
         self.except_plugins = self.options["except_plugins"]
-        self.except_plugins_list = self.validate_format_plugin_list(session=self.session,
-                                                                    plugin_codes=self.only_plugins)
+        self.except_plugins_list = self.validate_format_plugin_list(
+            session=self.session, plugin_codes=self.only_plugins)
         # For special plugin types like "quiet" -> "semi_passive" + "passive"
         if isinstance(self.options.get('plugin_type'), str):
             self.options['plugin_type'] = self.options['plugin_type'].split(',')
@@ -181,8 +180,8 @@ class PluginHandler(object):
         """
         # Organise results by OWASP Test type and then active, passive, semi_passive
         if ((plugin['group'] == 'web') or (plugin['group'] == 'network')):
-            return os.path.join(target_manager.get_path('partial_url_output_path'), wipe_bad_chars(plugin['title']),
-                                plugin['type'])
+            return os.path.join(
+                target_manager.get_path('partial_url_output_path'), wipe_bad_chars(plugin['title']), plugin['type'])
         elif plugin['group'] == 'auxiliary':
             return os.path.join(AUX_OUTPUT_PATH, wipe_bad_chars(plugin['title']), plugin['type'])
 
@@ -280,12 +279,8 @@ class PluginHandler(object):
             chosen = False  # Skip plugin: Not matching selected type
             reason = 'not matching selected type'
         if not chosen and show_reason:
-            logging.warning(
-                'Plugin: %s (%s/%s) has not been chosen by the user (%s), skipping...',
-                plugin['title'],
-                plugin['group'],
-                plugin['type'],
-                reason)
+            logging.warning('Plugin: %s (%s/%s) has not been chosen by the user (%s), skipping...', plugin['title'],
+                            plugin['group'], plugin['type'], reason)
         return chosen
 
     def force_overwrite(self):
@@ -313,12 +308,8 @@ class PluginHandler(object):
                 ((not self.force_overwrite() and not ('grep' == plugin['type'])) or
                  plugin['type'] == 'external'):
             if show_reason:
-                logging.warning(
-                    "Plugin: %s (%s/%s) has already been run, skipping...",
-                    plugin['title'],
-                    plugin['group'],
-                    plugin['type']
-                )
+                logging.warning("Plugin: %s (%s/%s) has already been run, skipping...", plugin['title'],
+                                plugin['group'], plugin['type'])
             return False
         if 'grep' == plugin['type'] and self.plugin_already_run(session=session, plugin_info=plugin):
             # Grep plugins can only run if some active or semi_passive plugin was run since the last time
@@ -369,13 +360,10 @@ class PluginHandler(object):
             otherwise.
 
             """
-            return [
-                (
-                    output['output'].get('ModifiedCommand', '').split(' ')[3],
-                    os.path.basename(output['output'].get('RelativeFilePath', ''))
-                )
-                for output in cmd
-                if ('output' in output and 'metasploit' in output['output'].get('ModifiedCommand', ''))]
+            return [(output['output'].get('ModifiedCommand', '').split(' ')[3],
+                     os.path.basename(output['output'].get('RelativeFilePath', '')))
+                    for output in cmd
+                    if ('output' in output and 'metasploit' in output['output'].get('ModifiedCommand', ''))]
 
         msf_modules = None
         if output:
@@ -425,13 +413,8 @@ class PluginHandler(object):
         status['AllSkipped'] = False  # A plugin is going to be run.
         plugin['status'] = 'Running'
         self.plugin_count += 1
-        logging.info(
-            '_' * 10 + ' %d - Target: %s -> Plugin: %s (%s/%s) ' + '_' * 10,
-            self.plugin_count,
-            target_manager.get_target_url(),
-            plugin['title'],
-            plugin['group'],
-            plugin['type'])
+        logging.info('_' * 10 + ' %d - Target: %s -> Plugin: %s (%s/%s) ' + '_' * 10, self.plugin_count,
+                     target_manager.get_target_url(), plugin['title'], plugin['group'], plugin['type'])
         # Skip processing in simulation mode, but show until line above
         # to illustrate what will run
         if self.simulation:
@@ -556,17 +539,17 @@ class PluginHandler(object):
                     lastwave = waves[i]
                     for http_ports in http:
                         if http_ports == '443':
-                            self.process_plugins_for_target_list(
-                                session,
-                                'web',
-                                {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True},
-                                {"https://{}".format(target.split('//')[1])})
+                            self.process_plugins_for_target_list(session, 'web', {
+                                'SomeAborted': False,
+                                'SomeSuccessful': False,
+                                'AllSkipped': True
+                            }, {"https://{}".format(target.split('//')[1])})
                         else:
-                            self.process_plugins_for_target_list(
-                                session,
-                                'web',
-                                {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True},
-                                {target})
+                            self.process_plugins_for_target_list(session, 'web', {
+                                'SomeAborted': False,
+                                'SomeSuccessful': False,
+                                'AllSkipped': True
+                            }, {target})
         else:
             pass
 

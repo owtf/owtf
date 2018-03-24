@@ -67,6 +67,7 @@ def container(dec):
         decorator = dec(f)
         decorator.orig_func = f
         return decorator
+
     return meta_decorator
 
 
@@ -94,9 +95,4 @@ def is_handler_subclass(cls, classnames=("ViewHandler", "APIHandler")):
     elif isinstance(cls, type):
         return any(c.__name__ in classnames for c in inspect.getmro(cls))
     else:
-        raise TypeError(
-            "Unexpected type `{}` for class `{}`".format(
-                type(cls),
-                cls
-            )
-        )
+        raise TypeError("Unexpected type `{}` for class `{}`".format(type(cls), cls))

@@ -127,11 +127,8 @@ class InteractiveShell(blocking_shell.Shell):
         output = ''
         if not self.connection:
             name, command = options['ConnectVia'][0]
-            self.connection = AsyncPopen(command, shell=True,
-                                         stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT,
-                                         stdin=subprocess.PIPE,
-                                         bufsize=1)
+            self.connection = AsyncPopen(
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, bufsize=1)
             self.options = options  # Store Options for Closing processing and if initial Commands are given
             if options['InitialCommands']:
                 output += self.run_cmd_list([options['InitialCommands']], plugin_info)
@@ -150,8 +147,8 @@ class InteractiveShell(blocking_shell.Shell):
         print("Close: %s" % str(self.options))
         if self.options['CommandsBeforeExit']:
             logging.info("Running commands before closing Communication Channel..")
-            self.run_cmd_list(self.options['CommandsBeforeExit'].split(
-                self.options['CommandsBeforeExitDelim']), plugin_info)
+            self.run_cmd_list(self.options['CommandsBeforeExit'].split(self.options['CommandsBeforeExitDelim']),
+                              plugin_info)
         logging.info("Trying to close Communication Channel..")
         self.run("exit", plugin_info)
 

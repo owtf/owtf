@@ -15,7 +15,6 @@ from owtf.utils.error import abort_framework
 from owtf.utils.signals import owtf_start
 from owtf.utils.strings import merge_dicts
 
-
 __all__ = ['plugin_params']
 
 
@@ -25,6 +24,7 @@ class PluginParams(object):
         # Complicated stuff to keep everything Pythonic and from blowing up
         def handle_signal(sender, **kwargs):
             self.on_start(sender, **kwargs)
+
         self.handle_signal = handle_signal
         owtf_start.connect(handle_signal)
 
@@ -54,11 +54,8 @@ class PluginParams(object):
             try:
                 arg_val = arg.replace(arg_name, '')[1:]
             except ValueError:
-                add_error(
-                    self.session,
-                    "USER ERROR: %s arguments should be in NAME=VALUE format" %
-                    str(arg_name),
-                    'user')
+                add_error(self.session, "USER ERROR: %s arguments should be in NAME=VALUE format" % str(arg_name),
+                          'user')
                 return False
             self.args[arg_name] = arg_val
         return True
@@ -165,8 +162,10 @@ class PluginParams(object):
         args = {}
         for arg_name in arg_list:
             if arg_name not in self.args:
-                config_default_order = ["%s_%s_%s" % (plugin['code'], plugin['type'], arg_name),
-                                      '%s_%s' % (plugin['code'], arg_name), arg_name]
+                config_default_order = [
+                    "%s_%s_%s" % (plugin['code'], plugin['type'], arg_name),
+                    '%s_%s' % (plugin['code'], arg_name), arg_name
+                ]
                 default = self.default_arg_from_config(args, arg_name, config_default_order)
                 if default or mandatory is False:
                     # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or
@@ -224,8 +223,8 @@ class PluginParams(object):
         :rtype: `bool`
         """
         if ('Mandatory' not in full_args_list) or ('Optional' not in full_args_list):
-            add_error("OWTF PLUGIN BUG: %s requires declared Mandatory and Optional arguments" %
-                      self.show_plugin(plugin))
+            add_error(
+                "OWTF PLUGIN BUG: %s requires declared Mandatory and Optional arguments" % self.show_plugin(plugin))
             return self.ret_arg_error(True, plugin)
         if 'Description' not in full_args_list:
             add_error("OWTF PLUGIN BUG: %s  requires a Description" % self.show_plugin(plugin))
@@ -261,8 +260,8 @@ class PluginParams(object):
         """
         for arg_name, arg_val in list(args.items()):
             logging.info("Overriding configuration setting '_%s' with value %s.." % (arg_name, str(arg_val)))
-            config_handler.set_general_val('string', '_%s' %
-     arg_name, arg_val)  # Pre-pend "_" to avoid naming collisions
+            config_handler.set_general_val('string', '_%s' % arg_name,
+                                           arg_val)  # Pre-pend "_" to avoid naming collisions
 
     def get_permutations(self, args):
         """Get permutations from args

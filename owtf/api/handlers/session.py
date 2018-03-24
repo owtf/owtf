@@ -12,7 +12,6 @@ from owtf.lib import exceptions
 from owtf.managers.session import add_session, add_target_to_session, delete_session, \
     get_all_session_dicts, get_session_dict, remove_target_from_session, set_session
 
-
 __all__ = ['OWTFSessionHandler']
 
 
@@ -49,7 +48,8 @@ class OWTFSessionHandler(APIRequestHandler):
             if action == "add":
                 add_target_to_session(self.session, int(self.get_argument("target_id")), session_id=int(session_id))
             elif action == "remove":
-                remove_target_from_session(self.session, int(self.get_argument("target_id")), session_id=int(session_id))
+                remove_target_from_session(
+                    self.session, int(self.get_argument("target_id")), session_id=int(session_id))
             elif action == "activate":
                 set_session(self.session, int(session_id))
         except exceptions.InvalidTargetReference:

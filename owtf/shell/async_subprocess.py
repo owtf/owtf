@@ -13,7 +13,6 @@ import subprocess
 import sys
 import time
 
-
 if platform.system() == 'Windows':
     from win32file import ReadFile, WriteFile
     from win32pipe import PeekNamedPipe
@@ -27,6 +26,7 @@ DISCONNECT_MESSAGE = "Other end disconnected!"
 
 
 class DisconnectException(Exception):
+
     def __init__(self, value):
         self.parameter = value
 
@@ -35,6 +35,7 @@ class DisconnectException(Exception):
 
 
 class AsyncPopen(subprocess.Popen):
+
     def recv(self, maxsize=None):
         return self._recv('stdout', maxsize)
 
@@ -56,6 +57,7 @@ class AsyncPopen(subprocess.Popen):
         setattr(self, which, None)
 
     if hasattr(subprocess, 'mswindows'):
+
         def send(self, input):
             if not self.stdin:
                 return None
@@ -92,6 +94,7 @@ class AsyncPopen(subprocess.Popen):
             return read
 
     else:
+
         def send(self, input):
             if not self.stdin:
                 return None

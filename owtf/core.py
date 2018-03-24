@@ -38,9 +38,7 @@ from owtf.utils.logger import OWTFLogger
 from owtf.utils.process import _signal_process
 from owtf.utils.signals import workers_finish, owtf_start
 
-
 __all__ = ['get_plugins_from_arg', 'process_options', 'initialise_framework', 'finish', 'main']
-
 
 owtf_pid = None
 logger = OWTFLogger()

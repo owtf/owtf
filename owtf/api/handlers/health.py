@@ -4,7 +4,6 @@ owtf.api.health
 """
 from owtf.api.handlers.base import APIRequestHandler
 
-
 __all__ = ['HealthCheckHandler']
 
 

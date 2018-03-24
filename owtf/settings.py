@@ -13,7 +13,6 @@ except NameError:
 
 import yaml
 
-
 HOME_DIR = os.path.expanduser("~")
 OWTF_CONF = os.path.join(HOME_DIR, ".owtf")
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -39,7 +38,6 @@ else:
         DATABASE_USER = conf['username']
         DATABASE_IP = conf['database_ip']
         DATABASE_PORT = int(conf['database_port'])
-
 
 # Interface Server
 SERVER_ADDR = '0.0.0.0'
@@ -77,7 +75,6 @@ LOGS_DIR = 'logs'
 # Used for logging in OWTF
 OWTF_LOG_FILE = '/tmp/owtf.log'
 
-
 # Interface static folders
 TEMPLATES = os.path.join(ROOT_DIR, 'templates')
 POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'templates')
@@ -109,22 +106,10 @@ CERTS_FOLDER = os.path.join(OWTF_CONF, 'proxy', 'certs')
 BLACKLIST_COOKIES = ['_ga', '__utma', '__utmb', '__utmc', '__utmz', '__utmv']
 WHITELIST_COOKIES = ""
 PROXY_RESTRICTED_RESPONSE_HEADERS = [
-    "Content-Length",
-    "Content-Encoding",
-    "Etag",
-    "Transfer-Encoding",
-    "Connection",
-    "Vary",
-    "Accept-Ranges",
-    "Pragma"
+    "Content-Length", "Content-Encoding", "Etag", "Transfer-Encoding", "Connection", "Vary", "Accept-Ranges", "Pragma"
 ]
 
-PROXY_RESTRICTED_REQUEST_HEADERS = [
-    "Connection",
-    "Pragma",
-    "Cache-Control",
-    "If-Modified-Since"
-]
+PROXY_RESTRICTED_REQUEST_HEADERS = ["Connection", "Pragma", "Cache-Control", "If-Modified-Since"]
 
 PROXY_LOG = '/tmp/owtf/proxy.log'
 
@@ -153,7 +138,6 @@ FORCE_OVERWRITE = True
 USER_AGENT = 'Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0'
 PROXY_CHECK_URL = 'http://www.google.ie'
 
-
 # Fallback
 FALLBACK_WEB_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'groups.cfg')
 FALLBACK_NET_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'groups.cfg')
@@ -165,7 +149,6 @@ FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'mappings.yaml
 FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'resources.cfg')
 FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'order.cfg')
 FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'order.cfg')
-
 
 # Override the values
 local_conf = os.path.join(OWTF_CONF, "settings.py")

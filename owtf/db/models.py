@@ -16,12 +16,9 @@ Base = declarative_base()
 
 # This table actually allows us to make a many to many relationship
 # between transactions table and grep_outputs table
-target_association_table = Table(
-    'target_session_association',
-    Base.metadata,
-    Column('target_id', Integer, ForeignKey('targets.id')),
-    Column('session_id', Integer, ForeignKey('sessions.id'))
-)
+target_association_table = Table('target_session_association', Base.metadata,
+                                 Column('target_id', Integer, ForeignKey('targets.id')),
+                                 Column('session_id', Integer, ForeignKey('sessions.id')))
 
 Index('target_id_idx', target_association_table.c.target_id, postgresql_using='btree')
 
@@ -62,13 +59,13 @@ class Target(Base):
     def max_user_rank(self):
         user_ranks = [-1]
         user_ranks += [poutput.user_rank for poutput in self.poutputs]
-        return(max(user_ranks))
+        return (max(user_ranks))
 
     @hybrid_property
     def max_owtf_rank(self):
         owtf_ranks = [-1]
         owtf_ranks += [poutput.owtf_rank for poutput in self.poutputs]
-        return(max(owtf_ranks))
+        return (max(owtf_ranks))
 
     def __repr__(self):
         return "<Target (url='%s')>" % (self.target_url)
@@ -76,12 +73,9 @@ class Target(Base):
 
 # This table actually allows us to make a many to many relationship
 # between transactions table and grep_outputs table
-transaction_association_table = Table(
-    'transaction_grep_association',
-    Base.metadata,
-    Column('transaction_id', Integer, ForeignKey('transactions.id')),
-    Column('grep_output_id', Integer, ForeignKey('grep_outputs.id'))
-)
+transaction_association_table = Table('transaction_grep_association', Base.metadata,
+                                      Column('transaction_id', Integer, ForeignKey('transactions.id')),
+                                      Column('grep_output_id', Integer, ForeignKey('grep_outputs.id')))
 
 Index('transaction_id_idx', transaction_association_table.c.transaction_id, postgresql_using='btree')
 
@@ -108,11 +102,7 @@ class Transaction(Base):
     login = Column(Boolean, nullable=True)
     logout = Column(Boolean, nullable=True)
     grep_outputs = relationship(
-        "GrepOutput",
-        secondary=transaction_association_table,
-        cascade="delete",
-        backref="transactions"
-    )
+        "GrepOutput", secondary=transaction_association_table, cascade="delete", backref="transactions")
 
     def __repr__(self):
         return "<HTTP Transaction (url='%s' method='%s' response_status='%s')>" % (self.url, self.method,

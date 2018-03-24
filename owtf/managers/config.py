@@ -57,9 +57,7 @@ def load_general_config(session, default, fallback):
                 old_config_obj = session.query(models.ConfigSetting).get(config_map["config"])
                 if not old_config_obj or not old_config_obj.dirty:
                     config_obj = models.ConfigSetting(
-                        key=config_map["config"],
-                        value=str(config_map["value"]),
-                        section=section)
+                        key=config_map["config"], value=str(config_map["value"]), section=section)
                     config_obj.descrip = config_map.get("description", "")
                     session.merge(config_obj)
             except KeyError:
@@ -86,13 +84,12 @@ def load_framework_config(default, fallback, root_dir, owtf_pid):
     for section, config_list in iteritems(config_dump):
         for config_map in config_list:
             try:
-                config_handler.set_val(
-                    config_map["config"],
-                    multi_replace(str(config_map["value"]), {
-                        'FRAMEWORK_DIR': root_dir,
-                        'OWTF_PID': str(owtf_pid)
-                    })
-                )
+                config_handler.set_val(config_map["config"],
+                                       multi_replace(
+                                           str(config_map["value"]), {
+                                               'FRAMEWORK_DIR': root_dir,
+                                               'OWTF_PID': str(owtf_pid)
+                                           }))
             except KeyError as e:
                 logging.debug("Exception while parsing framework config: {}".format(str(e)))
                 pass

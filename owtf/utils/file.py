@@ -20,6 +20,7 @@ def catch_io_errors(func):
     """Decorator on I/O functions.
     If an error is detected, force OWTF to quit properly.
     """
+
     def io_error(*args, **kwargs):
         """Call the original function while checking for errors.
         If `owtf_clean` parameter is not explicitely passed or if it is
@@ -32,6 +33,7 @@ def catch_io_errors(func):
             if owtf_clean:
                 abort_framework("Error when calling '%s'! %s." % (func.__name__, str(e)))
             raise e
+
     return io_error
 
 
@@ -113,8 +115,7 @@ def directory_access(path, mode):
     :rtype: `str`
     """
     try:
-        temp_file = tempfile.NamedTemporaryFile(
-            mode=mode, dir=path, delete=True)
+        temp_file = tempfile.NamedTemporaryFile(mode=mode, dir=path, delete=True)
     except (IOError, OSError):
         return False
     return True
@@ -158,8 +159,7 @@ def clean_temp_storage_dirs(owtf_pid):
     :rtype: None
     """
     curr_tmp_dir = os.path.join('/tmp', 'owtf', str(owtf_pid))
-    new_tmp_dir = os.path.join(
-        '/tmp', 'owtf', 'old-%d' % owtf_pid)
+    new_tmp_dir = os.path.join('/tmp', 'owtf', 'old-%d' % owtf_pid)
     if os.path.exists(curr_tmp_dir) and os.access(curr_tmp_dir, os.W_OK):
         os.rename(curr_tmp_dir, new_tmp_dir)
 

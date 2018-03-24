@@ -11,7 +11,6 @@ import signal
 
 import psutil
 
-
 __all__ = ['check_pid', '_signal_process']
 
 

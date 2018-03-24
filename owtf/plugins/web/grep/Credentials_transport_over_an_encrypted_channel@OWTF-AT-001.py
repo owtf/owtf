@@ -7,6 +7,7 @@ import logging
 
 DESCRIPTION = "Searches transaction DB for credentials protections"
 
+
 def run(PluginInfo):
     # TODO: Needs fixing
     # Content = "This plugin looks for password fields and then checks the URL (i.e. http vs. https)<br />"
@@ -17,12 +18,12 @@ def run(PluginInfo):
     # IDs = []
     # InsecureMatches = []
     # for ID, FileMatch in Matches:
-		# if ID not in IDs: # Retrieve Transaction from DB only once
-		# 	IDs.append(ID) # Process each transaction only once
-		# 	Transaction = ServiceLocator.get_component("transaction").GetByID(ID)
-		# if 'https' != Transaction.URL.split(":")[0]:
-		# 	OWTFLogger.log("Transaction: "+ID+" contains passwords fields with a URL different than https")
-		# 	InsecureMatches.append([ID, Transaction.URL+": "+FileMatch]) # Need to make the unique work by URL + password
+    # if ID not in IDs: # Retrieve Transaction from DB only once
+    # 	IDs.append(ID) # Process each transaction only once
+    # 	Transaction = ServiceLocator.get_component("transaction").GetByID(ID)
+    # if 'https' != Transaction.URL.split(":")[0]:
+    # 	OWTFLogger.log("Transaction: "+ID+" contains passwords fields with a URL different than https")
+    # 	InsecureMatches.append([ID, Transaction.URL+": "+FileMatch]) # Need to make the unique work by URL + password
     # Message = "<br /><u>Total insecure matches: "+str(len(InsecureMatches))+'</u>'
     # OWTFLogger.log(Message)
     # Content += Message+"<br />"

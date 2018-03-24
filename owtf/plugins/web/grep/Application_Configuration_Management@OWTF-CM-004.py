@@ -10,11 +10,8 @@ DESCRIPTION = "Searches transaction DB for comments"
 
 def run(PluginInfo):
     regexes = [
-        'RESPONSE_REGEXP_FOR_HTML_COMMENTS',
-        'RESPONSE_REGEXP_FOR_CSS_JS_COMMENTS',
-        'RESPONSE_REGEXP_FOR_JS_COMMENTS',
-        'RESPONSE_REGEXP_FOR_PHP_SOURCE',
-        'RESPONSE_REGEXP_FOR_ASP_SOURCE'
+        'RESPONSE_REGEXP_FOR_HTML_COMMENTS', 'RESPONSE_REGEXP_FOR_CSS_JS_COMMENTS', 'RESPONSE_REGEXP_FOR_JS_COMMENTS',
+        'RESPONSE_REGEXP_FOR_PHP_SOURCE', 'RESPONSE_REGEXP_FOR_ASP_SOURCE'
     ]
     Content = plugin_helper.FindResponseBodyMatchesForRegexpNames(regexes)
     return Content

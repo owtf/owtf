@@ -47,10 +47,7 @@ def load_works(session, target_urls, options):
                 logging.error("No plugin found matching type '%s' and group '%s' for target '%s'!" %
                               (options['plugin_type'], group, target))
             add_work(
-                session=session,
-                target_list=target,
-                plugin_list=plugins,
-                force_overwrite=options["force_overwrite"])
+                session=session, target_list=target, plugin_list=plugins, force_overwrite=options["force_overwrite"])
 
 
 def worklist_generate_query(session, criteria=None, for_stats=False):
@@ -222,16 +219,15 @@ def add_work(session, target_list, plugin_list, force_overwrite=False):
     for target in target_list:
         for plugin in sorted_plugin_list:
             # Check if it already in worklist
-            if get_count(session.query(models.Work).filter_by(target_id=target["id"],
-                                                            plugin_key=plugin["key"])) == 0:
+            if get_count(session.query(models.Work).filter_by(target_id=target["id"], plugin_key=plugin["key"])) == 0:
                 # Check if it is already run ;) before adding
                 is_run = plugin_already_run(session=session, plugin_info=plugin, target_id=target["id"])
                 if (force_overwrite is True) or (force_overwrite is False and is_run is False):
                     # If force overwrite is true then plugin output has
                     # to be deleted first
                     if force_overwrite is True:
-                        delete_all_poutput(session=session, filter_data={"plugin_key": plugin["key"]},
-                                           target_id=target["id"])
+                        delete_all_poutput(
+                            session=session, filter_data={"plugin_key": plugin["key"]}, target_id=target["id"])
                     work_model = models.Work(target_id=target["id"], plugin_key=plugin["key"])
                     session.add(work_model)
     session.commit()

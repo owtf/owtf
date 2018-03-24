@@ -13,7 +13,6 @@ try:
 except ImportError:
     import urllib as urllib2
 
-
 abs_path = os.path.dirname(os.path.abspath(__file__))
 CMS_EXPLORER_DIR = os.path.join(abs_path, "../tools/restricted/cms-explorer/cms-explorer-1.0")
 
@@ -88,6 +87,7 @@ def get_drupal_themes():
         for theme in themes:
             file.write('%s\n' % theme.encode('ascii', 'ignore'))
     print("Drupal themes list updated!")
+
 
 if __name__ == '__main__':
     get_plugins_wp()
