@@ -19,7 +19,6 @@ ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 CONFIG_DIR = os.path.join(ROOT_DIR, 'data', 'conf')
 
 DEBUG = True
-CLI = False
 # Used by tools like dirbuster to launch gui or cli versions
 INTERACTIVE = True
 
@@ -41,11 +40,12 @@ else:
 
 # Interface Server
 SERVER_ADDR = '0.0.0.0'
+API_SERVER_PORT = 8007
 UI_SERVER_PORT = 8009
 FILE_SERVER_PORT = 8010
 
 # ERROR reporting
-USE_SENTRY = True
+USE_SENTRY = False
 SENTRY_API_KEY = ''
 
 # IMP PATHS
@@ -76,8 +76,8 @@ LOGS_DIR = 'logs'
 OWTF_LOG_FILE = '/tmp/owtf.log'
 
 # Interface static folders
-TEMPLATES = os.path.join(ROOT_DIR, 'templates')
-POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'templates')
+TEMPLATES = os.path.join(ROOT_DIR, 'web', 'templates')
+POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'web', 'templates')
 STATIC_ROOT = os.path.join(ROOT_DIR, 'webapp', 'build')
 
 # SMTP
@@ -116,6 +116,7 @@ PROXY_LOG = '/tmp/owtf/proxy.log'
 # UI
 UI_SERVER_LOG = '/tmp/owtf/ui_server.log'
 FILE_SERVER_LOG = '/tmp/owtf/file_server.log'
+API_SERVER_LOG = '/tmp/owtf/api_server.log'
 
 # HTTP_AUTH
 HTTP_AUTH_HOST = None

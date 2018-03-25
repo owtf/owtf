@@ -9,10 +9,12 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 import tornado.web
+from tornado.routing import RuleRouter, PathMatches, Rule
+from tornado.web import Application
 
-from owtf.api.routes import HANDLERS
+from owtf.api.routes import API_v1_HANDLERS
 from owtf.lib.owtf_process import OWTFProcess
-from owtf.settings import DEBUG, SERVER_ADDR, STATIC_ROOT, TEMPLATES, UI_SERVER_LOG, UI_SERVER_PORT
+from owtf.settings import DEBUG, SERVER_ADDR, API_SERVER_PORT, API_SERVER_LOG
 from owtf.utils.app import Application
 
 __all__ = ['start_api_server']
@@ -21,24 +23,20 @@ __all__ = ['start_api_server']
 class APIServer(OWTFProcess):
 
     def pseudo_run(self):
-        application = Application(
-            handlers=HANDLERS,
-            template_path=TEMPLATES,
-            debug=DEBUG,
-            autoreload=False,
-            gzip=True,
-            static_path=STATIC_ROOT,
-            compiled_template_cache=True)
-        self.server = tornado.httpserver.HTTPServer(application)
+        api_v1 = Application(handlers=API_v1_HANDLERS, debug=DEBUG, autoreload=False, gzip=True)
+        router = RuleRouter([
+            Rule(PathMatches("/api/v1/.*"), api_v1),
+        ])
+        self.server = tornado.httpserver.HTTPServer(router)
         try:
-            ui_port = int(UI_SERVER_PORT)
-            ui_address = SERVER_ADDR
-            self.server.bind(ui_port, address=ui_address)
-            logging.warning("Starting web server at http://{}:{}".format(SERVER_ADDR, str(UI_SERVER_PORT)))
+            port = int(API_SERVER_PORT)
+            address = SERVER_ADDR
+            self.server.bind(port, address=address)
+            logging.warning("Starting API server at {}:{}".format(SERVER_ADDR, str(API_SERVER_PORT)))
             self.logger.disable_console_logging()
             tornado.options.parse_command_line(
-                args=['dummy_arg', '--log_file_prefix={}'.format(UI_SERVER_LOG), '--logging=info'])
-            self.server.start()
+                args=['dummy_arg', '--log_file_prefix={}'.format(API_SERVER_LOG), '--logging=info'])
+            self.server.start(0)
             tornado.ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:
             pass

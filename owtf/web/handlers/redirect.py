@@ -1,23 +1,14 @@
 """
-owtf.api.ui_handlers
+owtf.web.handlers.redirect
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.note::
-    Not been refactored since this is being deprecated
 """
 from tornado.escape import url_escape
-from tornado.web import RequestHandler
 
-from owtf.api.handlers.base import UIRequestHandler
+from owtf.web.handlers.base import UIRequestHandler
 from owtf.settings import FILE_SERVER_PORT, UI_SERVER_PORT
 
-__all__ = ['IndexHandler', 'FileRedirectHandler']
-
-
-class IndexHandler(RequestHandler):
-
-    def get(self, path):
-        self.render('index.html')
+__all__ = ['FileRedirectHandler']
 
 
 class FileRedirectHandler(UIRequestHandler):
