@@ -179,5 +179,6 @@ def parse_options(cli_options, valid_groups, valid_types):
         help="Use this flag to run OWTF Inbound Proxy")
     parser.add_argument(
         '--nowebui', dest='nowebui', default=False, action='store_true', help='Run OWTF without its Web UI.')
+    parser.add_argument('--api', dest='api', default=False, action='store_true', help='Run OWTF with the API server')
     parser.add_argument('targets', nargs='*', help='List of targets')
     return parser.parse_args(cli_options)

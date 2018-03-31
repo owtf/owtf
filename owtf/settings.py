@@ -38,11 +38,14 @@ else:
         DATABASE_IP = conf['database_ip']
         DATABASE_PORT = int(conf['database_port'])
 
-# Interface Server
+# API and UI Server
 SERVER_ADDR = '0.0.0.0'
 API_SERVER_PORT = 8007
 UI_SERVER_PORT = 8009
 FILE_SERVER_PORT = 8010
+
+# Default API version
+DEFAULT_API_VERSION = 'v1'
 
 # ERROR reporting
 USE_SENTRY = False

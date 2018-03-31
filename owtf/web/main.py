@@ -48,7 +48,6 @@ def ui_server():
 
 def start_ui_server():
     """This method starts the interface server"""
-    #setup_signal_handlers()
     try:
         ui_server()
     except Exception:
