@@ -1,23 +1,24 @@
+t+https://github.com/jek/blinker#egg=blinker
 cffi==1.10.0
 cookies==2.2.1
 dnspython==1.15.0
+future==0.16.0
 hrt==0.1.0
-jsonschema==2.6.0
 # Here till they upload a Python3 compatible version of the library
 -e git+https://github.com/google/ipaddr-py#egg=ipaddr
+jsonschema==2.6.0
 Markdown==2.6.9
 pexpect==4.2.1
 psutil==5.3.1
-psycopg2==2.7.1
+psycopg2==2.7.4
 PTP==0.4.2
 pycurl==7.43.0
 pyOpenSSL==17.2.0
 PyVirtualDisplay==0.2.1
+pyyaml==3.12.0
 requests==2.18.4
-six==1.10.0
 selenium==3.4.3
+six==1.10.0
 SQLAlchemy==1.1.13
 tornado==5.0.1
-pyyaml==3.12.0
-future==0.16.0
--e git+https://github.com/jek/blinker#egg=blinker
+
