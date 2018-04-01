@@ -181,11 +181,6 @@ class ProxyHandler(tornado.web.RequestHandler):
             success_response = False  # is used to check the response in the botnet mode
 
             while not success_response:
-                # Proxy Switching (botnet_mode) code
-                if self.application.proxy_manager:
-                    proxy = self.application.proxy_manager.get_next_available_proxy()
-                    self.application.outbound_ip = proxy["proxy"][0]
-                    self.application.outbound_port = int(proxy["proxy"][1])
                 # httprequest object is created and then passed to async client with a callback
                 callback = None
                 if self.application.outbound_proxy_type == 'socks':
@@ -224,31 +219,6 @@ class ProxyHandler(tornado.web.RequestHandler):
                     else:
                         success_response = True
                         break
-
-                # Botnet mode code (proxy switching).
-                # Checking the status of the proxy (asynchronous).
-                if self.application.proxy_manager and not success_response:
-                    proxy_check_req = tornado.httpclient.HTTPRequest(
-                        url=self.application.proxy_manager.testing_url,  # testing url is google.com.
-                        use_gzip=True,
-                        proxy_host=self.application.outbound_ip,
-                        proxy_port=self.application.outbound_port,
-                        proxy_username=self.application.outbound_username,
-                        proxy_password=self.application.outbound_password,
-                        prepare_curl_callback=callback,  # socks callback function.
-                        validate_cert=False
-                    )
-                    try:
-                        proxy_check_resp = yield tornado.gen.Task(async_client.fetch, proxy_check_req)
-                    except Exception:
-                        pass
-
-                    if proxy_check_resp.code != 200:
-                        self.application.proxy_manager.remove_proxy(proxy["index"])
-                    else:
-                        success_response = True
-                else:
-                    success_response = True
 
             self.finish_response(response)
             # Cache the response after finishing the response, so caching time is not included in response time

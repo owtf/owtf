@@ -17,7 +17,6 @@ else:
 from owtf.http import transaction
 from owtf.proxy.cache_handler import response_from_cache, request_from_cache
 from owtf.lib.owtf_process import OWTFProcess
-from owtf import timer
 
 
 class TransactionLogger(OWTFProcess):
@@ -30,6 +29,7 @@ class TransactionLogger(OWTFProcess):
 
     def __init__(self, **kwargs):
         super(TransactionLogger, self).__init__(**kwargs)
+        self.timer = self.get_component("timer")
         self.target = self.get_component("target")
         self.transaction = self.get_component("transaction")
 
@@ -90,7 +90,7 @@ class TransactionLogger(OWTFProcess):
                 response = response_from_cache(os.path.join(self.cache_dir, request_hash))
                 target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list,
                                                                                  host_list)
-                owtf_transaction = transaction.HTTP_Transaction(timer.timer())
+                owtf_transaction = transaction.HTTP_Transaction(self.timer)
                 owtf_transaction.import_proxy_req_resp(request, response)
                 try:
                     transactions_dict[target_id].append(owtf_transaction)
@@ -125,7 +125,7 @@ class TransactionLogger(OWTFProcess):
                     hash_list = self.get_hash_list(self.cache_dir)
                     transactions_dict = self.get_owtf_transactions(hash_list)
                     if transactions_dict:  # Make sure you do not have None
-                        self.transaction.log_transactionsFromLogger(transactions_dict)
+                        self.transaction.log_transactions_from_logger(transactions_dict)
                 else:
                     time.sleep(2)
         except KeyboardInterrupt:
