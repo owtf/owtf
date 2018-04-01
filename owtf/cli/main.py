@@ -2,7 +2,6 @@
 owtf.cli.main
 ~~~~~~~~~~~~
 """
-
 import tornado
 import tornado.ioloop
 

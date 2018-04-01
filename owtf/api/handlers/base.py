@@ -5,12 +5,9 @@ owtf.api.base
 """
 import json
 
-from tornado.escape import url_escape
 from tornado.web import RequestHandler
 
-from owtf.settings import FILE_SERVER_PORT, UI_SERVER_PORT
-
-__all__ = ['APIRequestHandler', 'FileRedirectHandler', 'UIRequestHandler']
+__all__ = ['APIRequestHandler', 'UIRequestHandler']
 
 
 class APIRequestHandler(RequestHandler):
@@ -50,13 +47,3 @@ class UIRequestHandler(RequestHandler):
         url = super(UIRequestHandler, self).reverse_url(name, *args)
         url = url.replace('?', '')
         return url.split('None')[0]
-
-
-class FileRedirectHandler(RequestHandler):
-    SUPPORTED_METHODS = ['GET']
-
-    def get(self, file_url):
-        output_files_server = "{}://{}/".format(self.request.protocol,
-                                                self.request.host.replace(str(UI_SERVER_PORT), str(FILE_SERVER_PORT)))
-        redirect_file_url = output_files_server + url_escape(file_url, plus=False)
-        self.redirect(redirect_file_url, permanent=True)

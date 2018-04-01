@@ -19,7 +19,6 @@ ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 CONFIG_DIR = os.path.join(ROOT_DIR, 'data', 'conf')
 
 DEBUG = True
-CLI = False
 # Used by tools like dirbuster to launch gui or cli versions
 INTERACTIVE = True
 
@@ -39,13 +38,16 @@ else:
         DATABASE_IP = conf['database_ip']
         DATABASE_PORT = int(conf['database_port'])
 
-# Interface Server
+# API and UI Server
 SERVER_ADDR = '0.0.0.0'
-UI_SERVER_PORT = 8009
+SERVER_PORT = 8009
 FILE_SERVER_PORT = 8010
 
+# Default API version
+DEFAULT_API_VERSION = 'v1'
+
 # ERROR reporting
-USE_SENTRY = True
+USE_SENTRY = False
 SENTRY_API_KEY = ''
 
 # IMP PATHS
@@ -114,7 +116,7 @@ PROXY_RESTRICTED_REQUEST_HEADERS = ["Connection", "Pragma", "Cache-Control", "If
 PROXY_LOG = '/tmp/owtf/proxy.log'
 
 # UI
-UI_SERVER_LOG = '/tmp/owtf/ui_server.log'
+SERVER_LOG = '/tmp/owtf/ui_server.log'
 FILE_SERVER_LOG = '/tmp/owtf/file_server.log'
 
 # HTTP_AUTH

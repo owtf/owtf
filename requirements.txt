@@ -17,7 +17,7 @@ requests==2.18.4
 six==1.10.0
 selenium==3.4.3
 SQLAlchemy==1.1.13
-tornado==4.5.2
+tornado==5.0.1
 pyyaml==3.12.0
 future==0.16.0
 -e git+https://github.com/jek/blinker#egg=blinker

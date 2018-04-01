@@ -13,7 +13,7 @@ import signal
 import sys
 
 from owtf import db
-from owtf.api.main import start_api_server
+from owtf.api.main import start_server
 from owtf.cli.main import start_cli
 from owtf.config import config_handler
 from owtf.filesrv.main import start_file_server
@@ -27,12 +27,12 @@ from owtf.managers.resource import load_resources_from_file
 from owtf.managers.session import _ensure_default_session
 from owtf.managers.target import load_targets
 from owtf.managers.worklist import load_works
-from owtf.plugin.plugin_handler import plugin_handler, show_plugin_list
+from owtf.plugin.plugin_handler import show_plugin_list
 from owtf.proxy.main import start_proxy
-from owtf.settings import AUX_TEST_GROUPS, CLI, DEFAULT_FRAMEWORK_CONFIG, DEFAULT_GENERAL_PROFILE, \
+from owtf.settings import AUX_TEST_GROUPS, DEFAULT_FRAMEWORK_CONFIG, DEFAULT_GENERAL_PROFILE, \
     DEFAULT_MAPPING_PROFILE, DEFAULT_RESOURCES_PROFILE, FALLBACK_AUX_TEST_GROUPS, FALLBACK_FRAMEWORK_CONFIG, \
     FALLBACK_GENERAL_PROFILE, FALLBACK_MAPPING_PROFILE, FALLBACK_NET_TEST_GROUPS, FALLBACK_RESOURCES_PROFILE, \
-    FALLBACK_WEB_TEST_GROUPS, NET_TEST_GROUPS, SERVER_ADDR, UI_SERVER_PORT, WEB_TEST_GROUPS
+    FALLBACK_WEB_TEST_GROUPS, NET_TEST_GROUPS, WEB_TEST_GROUPS
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.logger import OWTFLogger
 from owtf.utils.process import _signal_process
@@ -230,7 +230,7 @@ def init(args):
     """
     if initialise_framework(args):
         if not args['nowebui']:
-            start_api_server()
+            start_server()
             start_file_server()
         else:
             start_cli()
