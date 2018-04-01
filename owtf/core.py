@@ -13,8 +13,7 @@ import signal
 import sys
 
 from owtf import db
-from owtf.api.main import start_api_server
-from owtf.web.main import start_ui_server
+from owtf.api.main import start_server
 from owtf.cli.main import start_cli
 from owtf.config import config_handler
 from owtf.filesrv.main import start_file_server
@@ -232,8 +231,7 @@ def init(args):
     """
     if initialise_framework(args):
         if not args['nowebui']:
-            start_api_server()
-            start_ui_server()
+            start_server()
             start_file_server()
         else:
             start_cli()

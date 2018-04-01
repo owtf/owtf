@@ -1,9 +1,9 @@
 """
-owtf.web.handlers.index
+owtf.api.handlers.index
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-from owtf.web.handlers.base import UIRequestHandler
+from owtf.api.handlers.base import UIRequestHandler
 
 
 class IndexHandler(UIRequestHandler):

@@ -7,7 +7,7 @@ import json
 
 from tornado.web import RequestHandler
 
-__all__ = ['APIRequestHandler']
+__all__ = ['APIRequestHandler', 'UIRequestHandler']
 
 
 class APIRequestHandler(RequestHandler):
@@ -39,3 +39,11 @@ class APIRequestHandler(RequestHandler):
 
         self.clear()
         self.set_status(status_code)
+
+
+class UIRequestHandler(RequestHandler):
+
+    def reverse_url(self, name, *args):
+        url = super(UIRequestHandler, self).reverse_url(name, *args)
+        url = url.replace('?', '')
+        return url.split('None')[0]

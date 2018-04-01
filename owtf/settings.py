@@ -40,8 +40,7 @@ else:
 
 # API and UI Server
 SERVER_ADDR = '0.0.0.0'
-API_SERVER_PORT = 8007
-UI_SERVER_PORT = 8009
+SERVER_PORT = 8009
 FILE_SERVER_PORT = 8010
 
 # Default API version
@@ -79,8 +78,8 @@ LOGS_DIR = 'logs'
 OWTF_LOG_FILE = '/tmp/owtf.log'
 
 # Interface static folders
-TEMPLATES = os.path.join(ROOT_DIR, 'web', 'templates')
-POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'web', 'templates')
+TEMPLATES = os.path.join(ROOT_DIR, 'templates')
+POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'templates')
 STATIC_ROOT = os.path.join(ROOT_DIR, 'webapp', 'build')
 
 # SMTP
@@ -117,9 +116,8 @@ PROXY_RESTRICTED_REQUEST_HEADERS = ["Connection", "Pragma", "Cache-Control", "If
 PROXY_LOG = '/tmp/owtf/proxy.log'
 
 # UI
-UI_SERVER_LOG = '/tmp/owtf/ui_server.log'
+SERVER_LOG = '/tmp/owtf/ui_server.log'
 FILE_SERVER_LOG = '/tmp/owtf/file_server.log'
-API_SERVER_LOG = '/tmp/owtf/api_server.log'
 
 # HTTP_AUTH
 HTTP_AUTH_HOST = None

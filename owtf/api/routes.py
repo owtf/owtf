@@ -6,8 +6,11 @@ owtf.api.routes
 import tornado.web
 
 from owtf.api.handlers.config import ConfigurationHandler
+from owtf.api.handlers.health import HealthCheckHandler
+from owtf.api.handlers.index import IndexHandler
 from owtf.api.handlers.misc import DashboardPanelHandler, ErrorDataHandler, ProgressBarHandler
 from owtf.api.handlers.plugin import PluginDataHandler, PluginNameOutput, PluginOutputHandler
+from owtf.api.handlers.redirect import FileRedirectHandler
 from owtf.api.handlers.report import ReportExportHandler
 from owtf.api.handlers.session import OWTFSessionHandler
 from owtf.api.handlers.targets import TargetConfigHandler, TargetConfigSearchHandler, TargetSeverityChartHandler
@@ -16,8 +19,9 @@ from owtf.api.handlers.transactions import TransactionDataHandler, \
 from owtf.api.handlers.work import WorkerHandler, WorklistHandler, WorklistSearchHandler
 from owtf.db.database import get_scoped_session
 from owtf.managers.plugin import get_all_plugin_groups, get_all_plugin_types
+from owtf.settings import STATIC_ROOT
 
-__all__ = ['API_v1_HANDLERS']
+__all__ = ['API_v1_HANDLERS', 'UI_HANDLERS']
 
 session = get_scoped_session()
 plugin_group_re = '(%s)?' % '|'.join(get_all_plugin_groups(session))
@@ -61,4 +65,11 @@ API_v1_HANDLERS = [
         r'/api/v1/worklist/?([0-9]+)?/?(pause|resume|delete)?/?$', WorklistHandler, name='worklist_api_url'),
     tornado.web.url(r'/api/v1/worklist/search/?$', WorklistSearchHandler, name='worklist_search_api_url'),
     tornado.web.url(r'/api/v1/configuration/?$', ConfigurationHandler, name='configuration_api_url')
+]
+
+UI_HANDLERS = [
+    tornado.web.url(r'/static/(.*)', tornado.web.StaticFileHandler, {'path': STATIC_ROOT}),
+    tornado.web.url(r'/debug/health/?$', HealthCheckHandler),
+    tornado.web.url(r'/output_files/(.*)', FileRedirectHandler, name='file_redirect_url'),
+    tornado.web.url(r'^/(?!api|debug|static|output_files)(.*)$', IndexHandler)
 ]
