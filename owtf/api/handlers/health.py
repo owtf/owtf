@@ -1,6 +1,6 @@
 """
 owtf.api.handlers.health
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
 from owtf.api.handlers.base import APIRequestHandler

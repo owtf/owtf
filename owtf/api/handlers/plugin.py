@@ -1,6 +1,6 @@
 """
-owtf.api.plugin
-~~~~~~~~~~~~~~~
+owtf.api.handlers.plugin
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
 import collections

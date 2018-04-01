@@ -21,7 +21,6 @@ owtf.db.models module
     :show-inheritance:
 
 
-
 Module contents
 ---------------
 
