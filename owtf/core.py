@@ -156,7 +156,7 @@ def process_options(user_args):
         scope = arg.targets or []  # Arguments at the end are the URL target(s)
         num_targets = len(scope)
         if plugin_group != 'auxiliary' and num_targets == 0 and not arg.list_plugins:
-            if arg.nowebui and not arg.api:
+            if arg.nowebui:
                 finish()
         elif num_targets == 1:  # Check if this is a file
             if os.path.isfile(scope[0]):
@@ -200,7 +200,6 @@ def process_options(user_args):
             'proxy_mode': arg.proxy_mode,
             'tor_mode': arg.tor_mode,
             'nowebui': arg.nowebui,
-            'api_server': arg.api,
             'args': args
         }
     return {}
