@@ -47,7 +47,7 @@ TIMEOUT = 3
 def _signal_process(pid, psignal=signal.SIGINT):
     """This function kills all children of a process and abort that process
 
-    .note::
+    .. note::
         Child processes are handled at shell level
 
     :param pid: Pid of the process

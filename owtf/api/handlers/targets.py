@@ -19,9 +19,43 @@ __all__ = ['TargetConfigSearchHandler', 'TargetSeverityChartHandler', 'TargetCon
 
 
 class TargetConfigHandler(APIRequestHandler):
+    """Manage target config data."""
     SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
     def get(self, target_id=None):
+        """Get target config data by id or fetch all target configs.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/targets/2 HTTP/1.1
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json; charset=UTF-8
+
+            {
+                "top_url": "https://google.com:443",
+                "top_domain": "com",
+                "target_url": "https://google.com",
+                "max_user_rank": 0,
+                "url_scheme": "https",
+                "host_path": "google.com",
+                "ip_url": "https://172.217.10.238",
+                "host_ip": "172.217.10.238",
+                "max_owtf_rank": -1,
+                "port_number": "443",
+                "host_name": "google.com",
+                "alternative_ips": "['172.217.10.238']",
+                "scope": true,
+                "id": 2
+            }
+        """
         try:
             # If no target_id, means /target is accessed with or without filters
             if not target_id:
@@ -35,6 +69,24 @@ class TargetConfigHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
     def post(self, target_id=None):
+        """Add a target to the current session.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            POST /api/v1/targets/ HTTP/1.1
+            Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 201 Created
+            Content-Length: 0
+            Content-Type: text/html; charset=UTF-8
+        """
         if (target_id) or (not self.get_argument("target_url", default=None)):  # How can one post using an id xD
             raise tornado.web.HTTPError(400)
         try:
@@ -51,6 +103,7 @@ class TargetConfigHandler(APIRequestHandler):
         return self.patch(target_id)
 
     def patch(self, target_id=None):
+        """Update a target."""
         if not target_id or not self.request.arguments:
             raise tornado.web.HTTPError(400)
         try:
@@ -61,6 +114,22 @@ class TargetConfigHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
     def delete(self, target_id=None):
+        """Delete a target.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            DELETE /api/v1/targets/4 HTTP/1.1
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Length: 0
+        """
         if not target_id:
             raise tornado.web.HTTPError(400)
         try:
@@ -71,9 +140,67 @@ class TargetConfigHandler(APIRequestHandler):
 
 
 class TargetConfigSearchHandler(APIRequestHandler):
+    """Filter targets."""
     SUPPORTED_METHODS = ['GET']
 
     def get(self):
+        """Get target config data based on user filter.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/targets/search/?limit=100&offset=0&target_url=google HTTP/1.1
+            Accept: application/json, text/javascript, */*; q=0.01
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json; charset=UTF-8
+
+
+            {
+                "records_total": 4,
+                "records_filtered": 2,
+                "data": [
+                    {
+                        "top_url": "https://google.com:443",
+                        "top_domain": "com",
+                        "target_url": "https://google.com",
+                        "max_user_rank": -1,
+                        "url_scheme": "https",
+                        "host_path": "google.com",
+                        "ip_url": "https://172.217.10.238",
+                        "host_ip": "172.217.10.238",
+                        "max_owtf_rank": -1,
+                        "port_number": "443",
+                        "host_name": "google.com",
+                        "alternative_ips": "['172.217.10.238']",
+                        "scope": true,
+                        "id": 2
+                    },
+                    {
+                        "top_url": "http://google.com:80",
+                        "top_domain": "com",
+                        "target_url": "http://google.com",
+                        "max_user_rank": -1,
+                        "url_scheme": "http",
+                        "host_path": "google.com",
+                        "ip_url": "http://172.217.10.238",
+                        "host_ip": "172.217.10.238",
+                        "max_owtf_rank": -1,
+                        "port_number": "80",
+                        "host_name": "google.com",
+                        "alternative_ips": "['172.217.10.238']",
+                        "scope": true,
+                        "id": 1
+                    }
+                ]
+            }
+        """
         try:
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
@@ -83,9 +210,38 @@ class TargetConfigSearchHandler(APIRequestHandler):
 
 
 class TargetSeverityChartHandler(APIRequestHandler):
+    """Get targets with severity."""
     SUPPORTED_METHODS = ['GET']
 
     def get(self):
+        """Get data for target severity chart.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/targets/severitychart/ HTTP/1.1
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json; charset=UTF-8
+
+
+            {
+                "data": [
+                    {
+                        "color": "#A9A9A9",
+                        "id": 0,
+                        "value": 100,
+                        "label": "Not Ranked"
+                    }
+                ]
+            }
+        """
         try:
             self.write(get_targets_by_severity_count(self.session))
         except exceptions.InvalidParameterType as e:

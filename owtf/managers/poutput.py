@@ -231,7 +231,7 @@ def get_unique_dicts(session, target_id=None):
 def delete_all_poutput(session, filter_data, target_id=None):
     """Delete all plugin output
 
-    .note::
+    .. note::
         Here keeping filter_data optional is very risky
 
     :param filter_data: Filter data

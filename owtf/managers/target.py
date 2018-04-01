@@ -623,7 +623,7 @@ def get_targets_by_severity_count(session, session_id=None):
 def derive_config_from_url(target_url):
     """Automatically find target information based on target name.
 
-    .note::
+    .. note::
         If target does not start with 'http' or 'https', then it is considered as a network target.
 
     :param target_URL: Target url supplied

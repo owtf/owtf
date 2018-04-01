@@ -41,7 +41,7 @@ class ProxyHandler(tornado.web.RequestHandler):
 
     def __new__(cls, application, request, **kwargs):
         """
-        .note::
+        .. note::
 
             http://stackoverflow.com/questions/3209233/how-to-replace-an-instance-in-init-with-a-different-object
             Based on upgrade header, websocket request handler must be used
@@ -329,7 +329,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
     def upstream_connect(self, io_loop=None, callback=None):
         """Custom alternative to tornado.websocket.websocket_connect.
 
-        .note::
+        .. note::
             Returns a future instance.
 
         :param io_loop:

@@ -274,7 +274,7 @@ def get_all_urls(session, criteria, target_id=None):
 def search_all_urls(session, criteria, target_id=None):
     """Search all URLs based on criteria and target ID
 
-    .note::
+    .. note::
         Three things needed
             + Total number of urls
             + Filtered url
