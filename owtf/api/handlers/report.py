@@ -50,9 +50,6 @@ class ReportExportHandler(APIRequestHandler):
 
             HTTP/1.1 200 OK
             Content-Type: application/json
-
-
-            {}
         """
         if not target_id:
             raise tornado.web.HTTPError(400)

@@ -33,6 +33,5 @@ class HealthCheckHandler(APIRequestHandler):
             {
                 'ok': true
             }
-
         """
         self.write({'ok': True})
