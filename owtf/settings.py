@@ -30,13 +30,23 @@ if os.environ.get("DOCKER", None):
     DATABASE_IP = "db"
     DATABASE_PORT = 5342
 else:
-    with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
-        conf = yaml.load(f)
-        DATABASE_PASS = conf["password"]
-        DATABASE_NAME = conf['database_name']
-        DATABASE_USER = conf['username']
-        DATABASE_IP = conf['database_ip']
-        DATABASE_PORT = int(conf['database_port'])
+    try:
+        with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
+            conf = yaml.load(f)
+            DATABASE_PASS = conf["password"]
+            DATABASE_NAME = conf['database_name']
+            DATABASE_USER = conf['username']
+            DATABASE_IP = conf['database_ip']
+            DATABASE_PORT = int(conf['database_port'])
+    except FileNotFoundError:
+        # Dummy values for Sphinx docs
+        DATABASE_PASS = ""
+        DATABASE_NAME = ""
+        DATABASE_USER = ""
+        DATABASE_IP = ""
+        DATABASE_PORT = 5342
+        print("[debug] db.yaml not found. Maybe you are building some docs...")
+        pass
 
 # API and UI Server
 SERVER_ADDR = '0.0.0.0'
