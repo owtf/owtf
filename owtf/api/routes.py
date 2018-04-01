@@ -10,7 +10,7 @@ from owtf.api.handlers.health import HealthCheckHandler
 from owtf.api.handlers.index import IndexHandler
 from owtf.api.handlers.misc import DashboardPanelHandler, ErrorDataHandler, ProgressBarHandler
 from owtf.api.handlers.plugin import PluginDataHandler, PluginNameOutput, PluginOutputHandler
-from owtf.api.handlers.redirect import FileRedirectHandler
+from owtf.api.handlers.base import FileRedirectHandler
 from owtf.api.handlers.report import ReportExportHandler
 from owtf.api.handlers.session import OWTFSessionHandler
 from owtf.api.handlers.targets import TargetConfigHandler, TargetConfigSearchHandler, TargetSeverityChartHandler
