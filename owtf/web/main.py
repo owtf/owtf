@@ -52,3 +52,7 @@ def start_ui_server():
         ui_server()
     except Exception:
         logging.error("Unexpected error occurred!")
+
+
+if __name__ == "__main__":
+    start_ui_server()

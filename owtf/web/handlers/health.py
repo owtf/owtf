@@ -14,4 +14,5 @@ class HealthCheckHandler(UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
     def get(self):
+        self.set_header("Content-Type", "application/json")
         self.write(json.dumps({'ok': True}))
