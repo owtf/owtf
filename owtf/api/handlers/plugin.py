@@ -20,11 +20,58 @@ __all__ = ['PluginNameOutput', 'PluginDataHandler', 'PluginOutputHandler']
 
 
 class PluginDataHandler(APIRequestHandler):
+    """Get completed plugin output data from the DB."""
+
     SUPPORTED_METHODS = ['GET']
 
     # TODO: Creation of user plugins
-
     def get(self, plugin_group=None, plugin_type=None, plugin_code=None):
+        """Get plugin data based on user filter data.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/plugins/?group=web&group=network HTTP/1.1
+            Accept: application/json, text/javascript, */*
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Encoding: gzip
+            Vary: Accept-Encoding
+            Content-Type: application/json
+
+            [
+                {
+                    "file": "Old_Backup_and_Unreferenced_Files@OWTF-CM-006.py",
+                    "code": "OWTF-CM-006",
+                    "group": "web",
+                    "attr": null,
+                    "title": "Old Backup And Unreferenced Files",
+                    "key": "external@OWTF-CM-006",
+                    "descrip": "Plugin to assist manual testing",
+                    "min_time": null,
+                    "type": "external",
+                    "name": "Old_Backup_and_Unreferenced_Files"
+                },
+                {
+                    "file": "Old_Backup_and_Unreferenced_Files@OWTF-CM-006.py",
+                    "code": "OWTF-CM-006",
+                    "group": "web",
+                    "attr": null,
+                    "title": "Old Backup And Unreferenced Files",
+                    "key": "passive@OWTF-CM-006",
+                    "descrip": "Google Hacking for juicy files",
+                    "min_time": null,
+                    "type": "passive",
+                    "name": "Old_Backup_and_Unreferenced_Files"
+                }
+            ]
+        """
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group:  # Check if plugin_group is present in url
@@ -53,14 +100,82 @@ class PluginDataHandler(APIRequestHandler):
 
 
 class PluginNameOutput(APIRequestHandler):
+    """Get the scan results for a target."""
     SUPPORTED_METHODS = ['GET']
 
     def get(self, target_id=None):
         """Retrieve scan results for a target.
-        :return: {code: {data: [], details: {}}, code2: {data: [], details: {}} }
-        This API doesn't return `output` section as part of optimization.
-        `data` is array of scan results according to `plugin_types`.
-        `details` contains info about `code`.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/targets/2/poutput/names/ HTTP/1.1
+            Accept: */*
+            Accept-Encoding: gzip, deflate
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Encoding: gzip
+            Content-Type: application/json; charset=UTF-8
+
+            {
+                "OWTF-AT-004": {
+                    "data": [
+                        {
+                            "status": "Successful",
+                            "owtf_rank": -1,
+                            "plugin_group": "web",
+                            "start_time": "01/04/2018-14:05",
+                            "target_id": 2,
+                            "run_time": "0s,   1ms",
+                            "user_rank": -1,
+                            "plugin_key": "external@OWTF-AT-004",
+                            "id": 5,
+                            "plugin_code": "OWTF-AT-004",
+                            "user_notes": null,
+                            "output_path": null,
+                            "end_time": "01/04/2018-14:05",
+                            "error": null,
+                            "plugin_type": "external"
+                        }
+                    ],
+                    "details": {
+                        "priority": 99,
+                        "code": "OWTF-AT-004",
+                        "group": "web",
+                        "mappings": {
+                            "OWASP_V3": [
+                                "OWASP-AT-004",
+                                "Brute Force Testing"
+                            ],
+                            "OWASP_V4": [
+                                "OTG-AUTHN-003",
+                                "Testing for Weak lock out mechanism"
+                            ],
+                            "CWE": [
+                                "CWE-16",
+                                "Configuration - Brute force"
+                            ],
+                            "NIST": [
+                                "IA-6",
+                                "Authenticator Feedback - Brute force"
+                            ],
+                            "OWASP_TOP_10": [
+                                "A5",
+                                "Security Misconfiguration - Brute force"
+                            ]
+                        },
+                        "hint": "Brute Force",
+                        "url": "https://www.owasp.org/index.php/Testing_for_Brute_Force_(OWASP-AT-004)",
+                        "descrip": "Testing for Brute Force"
+                    }
+                },
+            }
         """
         try:
             filter_data = dict(self.request.arguments)
@@ -100,9 +215,49 @@ class PluginNameOutput(APIRequestHandler):
 
 
 class PluginOutputHandler(APIRequestHandler):
+    """Filter plugin output data."""
+
     SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
     def get(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
+        """Get the plugin output based on query filter params.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/targets/2/poutput/?plugin_code=OWTF-AJ-001 HTTP/1.1
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+
+            [
+                {
+                    "status": "Successful",
+                    "owtf_rank": -1,
+                    "plugin_group": "web",
+                    "start_time": "01/04/2018-14:06",
+                    "target_id": 2,
+                    "run_time": "0s,   1ms",
+                    "user_rank": -1,
+                    "plugin_key": "external@OWTF-AJ-001",
+                    "id": 27,
+                    "plugin_code": "OWTF-AJ-001",
+                    "user_notes": null,
+                    "output_path": null,
+                    "end_time": "01/04/2018-14:06",
+                    "error": null,
+                    "output": "Intended to show helpful info in the future",
+                    "plugin_type": "external"
+                }
+            ]
+        """
         try:
             filter_data = dict(self.request.arguments)
             if plugin_group and (not plugin_type):
@@ -139,6 +294,27 @@ class PluginOutputHandler(APIRequestHandler):
         raise tornado.web.HTTPError(405)
 
     def patch(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
+        """Modify plugin output data like ranking, severity, notes, etc.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            PATCH /api/v1/targets/2/poutput/web/external/OWTF-CM-008 HTTP/1.1
+            Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+            X-Requested-With: XMLHttpRequest
+
+
+            user_rank=0
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Length: 0
+            Content-Type: text/html; charset=UTF-8
+        """
         try:
             if (not target_id) or (not plugin_group) or (not plugin_type) or (not plugin_code):
                 raise tornado.web.HTTPError(400)
@@ -153,6 +329,23 @@ class PluginOutputHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
     def delete(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
+        """Delete a plugin output.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            DELETE /api/v1/targets/2/poutput/web/external/OWTF-AJ-001 HTTP/1.1
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Length: 0
+            Content-Type: text/html; charset=UTF-8
+        """
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group:  # First check if plugin_group is present in url

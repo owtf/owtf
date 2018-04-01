@@ -22,7 +22,7 @@ except ImportError:
     from urllib2 import urlopen, Request, HTTPError, HTTPHandler, HTTPSHandler, HTTPRedirectHandler, ProxyHandler, \
         build_opener, install_opener, URLError
 
-from owtf import get_scoped_session
+from owtf.db.database import get_scoped_session
 from owtf.http import transaction
 from owtf.managers.error import add_error
 from owtf.managers.target import is_url_in_scope
@@ -154,7 +154,7 @@ class Requester(object):
     def proxy_check(self):
         """Checks if the target URL can be accessed through proxy
 
-        .note::
+        .. note::
             Verify proxy works! www.google.com might not work in a restricted network, try target URL :)
 
         :return: Result of the check

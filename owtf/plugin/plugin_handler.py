@@ -187,7 +187,7 @@ class PluginHandler(object):
 
     def requests_possible(self):
         """Check if requests are possible
-        .note::
+        .. note::
 
              Even passive plugins will make requests to external resources
 

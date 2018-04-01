@@ -12,7 +12,7 @@ import os
 import signal
 import sys
 
-from owtf import db
+from owtf import __release__, __version__
 from owtf.api.main import start_server
 from owtf.cli.main import start_cli
 from owtf.config import config_handler
@@ -40,9 +40,33 @@ from owtf.utils.signals import workers_finish, owtf_start
 
 __all__ = ['get_plugins_from_arg', 'process_options', 'initialise_framework', 'finish', 'main']
 
+# Store parent PID for clean exit
 owtf_pid = None
+
+# Get a global DB connection instance
+from owtf.db.database import get_scoped_session
+db = get_scoped_session()
+
+# Initialize logger
 logger = OWTFLogger()
 logger.enable_logging()
+
+
+def print_banner():
+    """
+    Print the application banner.
+    """
+    print("""\033[92m
+         _____ _ _ _ _____ _____
+        |     | | | |_   _|   __|
+        |  |  | | | | | | |   __|
+        |_____|_____| |_| |__|
+
+            @owtfp
+        http://owtf.org
+        Version: {0}
+        Release: {1}
+        \033[0m""".format(__version__, __release__))
 
 
 def get_plugins_from_arg(arg):
@@ -252,10 +276,13 @@ def main(args):
     :return:
     :rtype: None
     """
+    print_banner()
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
     global owtf_pid
     owtf_pid = os.getpid()
+
+    # Bootstrap the DB
     create_temp_storage_dirs(owtf_pid)
     try:
         _ensure_default_session(db)

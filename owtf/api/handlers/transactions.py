@@ -22,9 +22,49 @@ __all__ = [
 
 
 class TransactionDataHandler(APIRequestHandler):
+    """Handle transaction data for the target by ID or all."""
+
     SUPPORTED_METHODS = ['GET', 'DELETE']
 
     def get(self, target_id=None, transaction_id=None):
+        """Get transaction data by target and transaction id.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/targets/5/transactions/2/ HTTP/1.1
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Encoding: gzip
+            Vary: Accept-Encoding
+            Content-Type: application/json; charset=UTF-8
+
+            {
+                "binary_response": false,
+                "response_headers": "Content-Length: 9605\\r\\nExpires: -1\\r\\nX-Aspnet-Version: 2.0.50727",
+                "target_id": 5,
+                "session_tokens": "{}",
+                "logout": null,
+                "raw_request": "GET http://demo.testfire.net/ HTTP/1.1",
+                "time_human": "0s, 255ms",
+                "data": "",
+                "id": 2,
+                "url": "http://demo.testfire.net/",
+                "response_body": "",
+                "local_timestamp": "01-04 15:42:08",
+                "response_size": 9605,
+                "response_status": "200 OK",
+                "scope": true,
+                "login": null,
+                "method": "GET"
+            }
+        """
         try:
             if transaction_id:
                 self.write(get_by_id_as_dict(self.session, int(transaction_id), target_id=int(target_id)))
@@ -52,6 +92,22 @@ class TransactionDataHandler(APIRequestHandler):
         raise tornado.web.HTTPError(405)
 
     def delete(self, target_id=None, transaction_id=None):
+        """Delete a transaction.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            DELETE /api/v1/targets/5/transactions/2/ HTTP/1.1
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Length: 0
+        """
         try:
             if transaction_id:
                 delete_transaction(self.session, int(transaction_id), int(target_id))
@@ -63,9 +119,37 @@ class TransactionDataHandler(APIRequestHandler):
 
 
 class TransactionHrtHandler(APIRequestHandler):
+    """Integrate HTTP request translator tool."""
     SUPPORTED_METHODS = ['POST']
 
     def post(self, target_id=None, transaction_id=None):
+        """Get the transaction as output from the tool.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            POST /api/targets/5/transactions/hrt/2/ HTTP/1.1
+            Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+            X-Requested-With: XMLHttpRequest
+            Content-Length: 13
+
+
+            language=bash
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Length: 594
+            Content-Type: text/html; charset=UTF-8
+
+
+            #!/usr/bin/env bash
+            curl -v --request GET http://demo.testfire.net/  --header "Accept-Language: en-US,en;q=0.5"  \
+            --header "Accept-Encoding: gzip, deflate"
+        """
         try:
             if transaction_id:
                 filter_data = dict(self.request.arguments)
@@ -78,9 +162,33 @@ class TransactionHrtHandler(APIRequestHandler):
 
 
 class TransactionSearchHandler(APIRequestHandler):
+    """Search transaction data in the DB."""
     SUPPORTED_METHODS = ['GET']
 
     def get(self, target_id=None):
+        """Get transactions by target ID.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/targets/5/transactions/search/ HTTP/1.1
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json; charset=UTF-8
+
+
+            {
+                "records_total": 0,
+                "records_filtered": 0,
+                "data": []
+            }
+        """
         if not target_id:  # Must be a integer target id
             raise tornado.web.HTTPError(400)
         try:
@@ -99,6 +207,7 @@ class TransactionSearchHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
 
+# To be deprecated!
 class URLDataHandler(APIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 

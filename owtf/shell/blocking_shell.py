@@ -208,7 +208,7 @@ class Shell(object):
     def shell_exec(self, command, **kwargs):
         """This is mostly used for internal framework commands
 
-        .note::
+        .. note::
 
             # Stolen from (added shell=True tweak, necessary for easy piping straight via the command line, etc):
             # http://stackoverflow.com/questions/236737/making-a-system-call-that-returns-the-stdout-output-as-a-string/

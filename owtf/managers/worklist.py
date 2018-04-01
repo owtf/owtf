@@ -182,7 +182,7 @@ def get_work(session, work_id):
 def group_sort_order(plugin_list):
     """Sort work into a priority of plugin type
 
-    .note::
+    .. note::
         TODO: Fix for individual plugins
         # Right now only for plugin groups launched not individual plugins
         # Giving priority to plugin type based on type
@@ -332,7 +332,7 @@ def stop_targets(session, target_list):
 def search_all_work(session, criteria):
     """Search the worklist
 
-    .note::
+    .. note::
         Three things needed
             + Total number of work
             + Filtered work dicts

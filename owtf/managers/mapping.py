@@ -99,7 +99,7 @@ def get_mapping_category(session, plugin_code):
 def load_mappings(session, default, fallback):
     """Loads the mappings from the config file
 
-    .note::
+    .. note::
         This needs to be a list instead of a dictionary to preserve order in python < 2.7
 
     :param session: SQLAlchemy database session

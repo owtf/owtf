@@ -1,6 +1,13 @@
 owtf.api package
 ================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    owtf.api.handlers
+
 Submodules
 ----------
 

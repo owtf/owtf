@@ -313,7 +313,7 @@ def log_transactions(session, transaction_list, target_id=None):
 def log_transactions_from_logger(transactions_dict):
     """Logs transactions as they come into the DB
 
-    .note::
+    .. note::
         Transaction_dict is a dictionary with target_id as key and list of owtf transactions
 
     :param transactions_dict: Dict of target id and corresponding owtf transactions
@@ -518,7 +518,7 @@ def grep(regex_name, regex, data):
 def search_by_regex_name(session, regex_name, stats=False, target_id=None):
     """Allows searching of the grep_outputs table using a regex name
 
-    .note::
+    .. note::
         What this function returns :
         + regex_name
         + grep_outputs - list of unique matches
@@ -568,7 +568,7 @@ def search_by_regex_name(session, regex_name, stats=False, target_id=None):
 def search_by_regex_names(name_list, stats=False, target_id=None):
     """Allows searching of the grep_outputs table using a regex name
 
-    .note::
+    .. note::
         What this function returns is a list of list containing
         + regex_name
         + grep_outputs - list of unique matches

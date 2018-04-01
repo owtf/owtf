@@ -36,7 +36,7 @@ except ImportError:
         del _fail
 
 
-__all__ = ['_signals', 'owtf_exited', 'owtf_started', 'workers_finish']
+__all__ = ['_signals', 'owtf_exit', 'owtf_start', 'workers_finish']
 
 # The namespace for code signals.
 _signals = Namespace()

@@ -24,19 +24,35 @@ __all__ = ['ReportExportHandler']
 
 
 class ReportExportHandler(APIRequestHandler):
-    """
-    Class handling API methods related to export report funtionality.
+    """Class handling API methods related to export report funtionality.
     This API returns all information about a target scan present in OWTF.
+
     :raise InvalidTargetReference: If target doesn't exists.
     :raise InvalidParameterType: If some unknown parameter in `filter_data`.
     """
-    # TODO: Add API documentation.
+    # TODO: Add correct API response.
 
     SUPPORTED_METHODS = ['GET']
 
     def get(self, target_id=None):
-        """
-        REST API - /api/targets/<target_id>/export/ returns JSON(data) for template.
+        """Returns JSON(data) for the template.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/targets/2/export HTTP/1.1
+            Accept: application/json
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+
+            {}
         """
         if not target_id:
             raise tornado.web.HTTPError(400)

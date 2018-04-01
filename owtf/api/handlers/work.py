@@ -22,6 +22,7 @@ __all__ = ['WorkerHandler', 'WorklistHandler', 'WorklistSearchHandler']
 
 
 class WorkerHandler(APIRequestHandler):
+    """Manage workers."""
     SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'OPTIONS']
 
     def set_default_headers(self):
@@ -29,6 +30,64 @@ class WorkerHandler(APIRequestHandler):
         self.add_header("Access-Control-Allow-Methods", "GET, POST, DELETE")
 
     def get(self, worker_id=None, action=None):
+        """Get all workers by ID.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/workers/ HTTP/1.1
+            Accept: application/json, text/javascript, */*; q=0.01
+            Origin: http://localhost:8009
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Access-Control-Allow-Origin: *
+            Access-Control-Allow-Methods: GET, POST, DELETE
+            Content-Type: application/json
+
+            [
+                {
+                    "busy": false,
+                    "name": "Worker-1",
+                    "start_time": "NA",
+                    "work": [],
+                    "worker": 43775,
+                    "paused": false,
+                    "id": 1
+                },
+                {
+                    "busy": false,
+                    "name": "Worker-2",
+                    "start_time": "NA",
+                    "work": [],
+                    "worker": 43778,
+                    "paused": false,
+                    "id": 2
+                },
+                {
+                    "busy": false,
+                    "name": "Worker-3",
+                    "start_time": "NA",
+                    "work": [],
+                    "worker": 43781,
+                    "paused": false,
+                    "id": 3
+                },
+                {
+                    "busy": false,
+                    "name": "Worker-4",
+                    "start_time": "NA",
+                    "work": [],
+                    "worker": 43784,
+                    "paused": false,
+                    "id": 4
+                }
+            ]
+        """
         if not worker_id:
             self.write(worker_manager.get_worker_details())
         try:
@@ -43,15 +102,76 @@ class WorkerHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
     def post(self, worker_id=None, action=None):
+        """Add a new worker.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            POST /api/v1/workers/ HTTP/1.1
+            Origin: http://localhost:8009
+            Content-Length: 0
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 201 Created
+            Content-Length: 0
+            Access-Control-Allow-Origin: *
+            Access-Control-Allow-Methods: GET, POST, DELETE
+            Content-Type: text/html; charset=UTF-8
+        """
         if worker_id or action:
             raise tornado.web.HTTPError(400)
         worker_manager.create_worker()
         self.set_status(201)  # Stands for "201 Created"
 
     def options(self, worker_id=None, action=None):
+        """OPTIONS check (pre-flight) for CORS.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            OPTIONS /api/v1/workers/1 HTTP/1.1
+            Host: localhost:8010
+            Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+            Access-Control-Request-Method: DELETE
+            Origin: http://localhost:8009
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Length: 0
+            Access-Control-Allow-Origin: *
+            Access-Control-Allow-Methods: GET, POST, DELETE
+            Content-Type: text/html; charset=UTF-8
+        """
         self.set_status(200)
 
     def delete(self, worker_id=None, action=None):
+        """Delete a worker.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            DELETE /api/v1/workers/1 HTTP/1.1
+            Origin: http://localhost:8009
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Length: 0
+            Access-Control-Allow-Origin: *
+            Access-Control-Allow-Methods: GET, POST, DELETE
+            Content-Type: text/html; charset=UTF-8
+        """
         if (not worker_id) or action:
             raise tornado.web.HTTPError(400)
         try:
@@ -62,6 +182,7 @@ class WorkerHandler(APIRequestHandler):
 
 
 class WorklistHandler(APIRequestHandler):
+    """Handle the worklist."""
     SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'PATCH']
 
     def get(self, work_id=None, action=None):
@@ -77,6 +198,28 @@ class WorklistHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
     def post(self, work_id=None, action=None):
+        """Add plugins for a target.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            POST /api/v1/worklist/ HTTP/1.1
+            Origin: http://localhost:8009
+            Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+            X-Requested-With: XMLHttpRequest
+
+
+            group=web&type=external&id=5&force_overwrite=true
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 201 Created
+            Content-Length: 0
+            Content-Type: text/html; charset=UTF-8
+        """
         if work_id is not None or action is not None:
             tornado.web.HTTPError(400)
         try:
@@ -96,6 +239,23 @@ class WorklistHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
     def delete(self, work_id=None, action=None):
+        """Delete work from the worklist queue.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            DELETE /api/v1/worklist/207 HTTP/1.1
+            Origin: http://localhost:8009
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Length: 0
+        """
         if work_id is None or action is not None:
             tornado.web.HTTPError(400)
         try:
@@ -114,6 +274,25 @@ class WorklistHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
     def patch(self, work_id=None, action=None):
+        """Resume or pause the work in the worklist.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            PATCH /api/v1/worklist/212/pause HTTP/1.1
+            Host: localhost:8009
+            Accept: */*
+            Origin: http://localhost:8009
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Length: 0
+        """
         if work_id is None or action is None:
             tornado.web.HTTPError(400)
         try:
@@ -133,9 +312,35 @@ class WorklistHandler(APIRequestHandler):
 
 
 class WorklistSearchHandler(APIRequestHandler):
+    """Search worklist."""
     SUPPORTED_METHODS = ['GET']
 
     def get(self):
+        """
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/worklist/search/?limit=100&offset=0&target_url=google.com HTTP/1.1
+            Host: localhost:8009
+            Accept: application/json, text/javascript, */*; q=0.01
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json; charset=UTF-8
+
+
+            {
+                "records_total": 0,
+                "records_filtered": 0,
+                "data": []
+            }
+        """
         try:
             criteria = dict(self.request.arguments)
             criteria["search"] = True
