@@ -12,6 +12,7 @@ import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
+from owtf.lib.exceptions import APIError
 from owtf.managers.mapping import get_all_mappings
 from owtf.managers.plugin import get_all_plugin_dicts, get_all_test_groups, get_types_for_plugin_group
 from owtf.managers.poutput import delete_all_poutput, get_all_poutputs, update_poutput
@@ -75,32 +76,32 @@ class PluginDataHandler(APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group:  # Check if plugin_group is present in url
-                self.write(get_all_plugin_dicts(self.session, filter_data))
+                self.success(get_all_plugin_dicts(self.session, filter_data))
             if plugin_group and (not plugin_type) and (not plugin_code):
                 filter_data.update({"group": plugin_group})
-                self.write(get_all_plugin_dicts(self.session, filter_data))
+                self.success(get_all_plugin_dicts(self.session, filter_data))
             if plugin_group and plugin_type and (not plugin_code):
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
-                    raise tornado.web.HTTPError(400)
+                    raise APIError(400, "Plugin type not found in selected plugin group")
                 filter_data.update({"type": plugin_type, "group": plugin_group})
-                self.write(get_all_plugin_dicts(self.session, filter_data))
+                self.success(get_all_plugin_dicts(self.session, filter_data))
             if plugin_group and plugin_type and plugin_code:
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
-                    raise tornado.web.HTTPError(400)
+                    raise APIError(400, "Plugin type not found in selected plugin group")
                 filter_data.update({"type": plugin_type, "group": plugin_group, "code": plugin_code})
                 # This combination will be unique, so have to return a dict
                 results = get_all_plugin_dicts(self.session, filter_data)
                 if results:
-                    self.write(results[0])
+                    self.success(results[0])
                 else:
-                    raise tornado.web.HTTPError(400)
-        except exceptions.InvalidTargetReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+                    raise APIError(400, "Cannot get any plugin dict")
+        except exceptions.InvalidTargetReference:
+            raise APIError(400, "Invalid target provided.")
 
 
 class PluginNameOutput(APIRequestHandler):
     """Get the scan results for a target."""
+
     SUPPORTED_METHODS = ['GET']
 
     def get(self, target_id=None):
@@ -202,16 +203,14 @@ class PluginNameOutput(APIRequestHandler):
                     dict_to_return[item["plugin_code"]]["details"] = groups[item["plugin_code"]]
             dict_to_return = collections.OrderedDict(sorted(dict_to_return.items()))
             if results:
-                self.write(dict_to_return)
+                self.success(dict_to_return)
             else:
-                raise tornado.web.HTTPError(400)
+                raise APIError(400, "Cannot fetch plugin outputs")
 
         except exceptions.InvalidTargetReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid target provided")
         except exceptions.InvalidParameterType as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid parameter type provided")
 
 
 class PluginOutputHandler(APIRequestHandler):
@@ -264,11 +263,11 @@ class PluginOutputHandler(APIRequestHandler):
                 filter_data.update({"plugin_group": plugin_group})
             if plugin_type and plugin_group and (not plugin_code):
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
-                    raise tornado.web.HTTPError(400)
+                    raise APIError(400, "Plugin type not found in selected plugin group")
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
-                    raise tornado.web.HTTPError(400)
+                    raise APIError(400, "Plugin type not found in selected plugin group")
                 filter_data.update({
                     "plugin_type": plugin_type,
                     "plugin_group": plugin_group,
@@ -276,22 +275,20 @@ class PluginOutputHandler(APIRequestHandler):
                 })
             results = get_all_poutputs(self.session, filter_data, target_id=int(target_id), inc_output=True)
             if results:
-                self.write(results)
+                self.success(results)
             else:
-                raise tornado.web.HTTPError(400)
+                raise APIError(400, "Cannot fetch plugin outputs")
 
         except exceptions.InvalidTargetReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidParameterType as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid parameter type provided")
 
     def post(self, target_url):
-        raise tornado.web.HTTPError(405)
+        raise APIError(405)
 
     def put(self):
-        raise tornado.web.HTTPError(405)
+        raise APIError(405)
 
     def patch(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
         """Modify plugin output data like ranking, severity, notes, etc.
@@ -317,16 +314,15 @@ class PluginOutputHandler(APIRequestHandler):
         """
         try:
             if (not target_id) or (not plugin_group) or (not plugin_type) or (not plugin_code):
-                raise tornado.web.HTTPError(400)
+                raise APIError(400, "Missing requirement arguments")
             else:
                 patch_data = dict(self.request.arguments)
                 update_poutput(self.session, plugin_group, plugin_type, plugin_code, patch_data, target_id=target_id)
+                self.success({})
         except exceptions.InvalidTargetReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidParameterType as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid parameter type provided")
 
     def delete(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
         """Delete a plugin output.
@@ -355,21 +351,20 @@ class PluginOutputHandler(APIRequestHandler):
                 delete_all_poutput(self.session, filter_data, target_id=int(target_id))
             if plugin_type and plugin_group and (not plugin_code):
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
-                    raise tornado.web.HTTPError(400)
+                    raise APIError(400, "Plugin type not found in the selected plugin group")
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
                 delete_all_poutput(self.session, filter_data, target_id=int(target_id))
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
-                    raise tornado.web.HTTPError(400)
+                    raise APIError(400, "Plugin type not found in the selected plugin group")
                 filter_data.update({
                     "plugin_type": plugin_type,
                     "plugin_group": plugin_group,
                     "plugin_code": plugin_code
                 })
                 delete_all_poutput(self.session, filter_data, target_id=int(target_id))
+                self.success({})
         except exceptions.InvalidTargetReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidParameterType as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid parameter type provided")

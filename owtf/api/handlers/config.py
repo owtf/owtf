@@ -9,6 +9,7 @@ import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
+from owtf.lib.exceptions import APIError
 from owtf.managers.config import get_all_config_dicts, update_config_val
 
 __all__ = ['ConfigurationHandler']
@@ -55,7 +56,7 @@ class ConfigurationHandler(APIRequestHandler):
             ]
         """
         filter_data = dict(self.request.arguments)
-        self.write(get_all_config_dicts(self.session, filter_data))
+        self.success(get_all_config_dicts(self.session, filter_data))
 
     def patch(self):
         """Update configuration item
@@ -81,5 +82,6 @@ class ConfigurationHandler(APIRequestHandler):
         for key, value_list in list(self.request.arguments.items()):
             try:
                 update_config_val(self.session, key, value_list[0])
-            except exceptions.InvalidConfigurationReference:
-                raise tornado.web.HTTPError(400)
+                self.success({})
+            except exceptions.InvalidConfigurationReference as e:
+                raise APIError(400, 'Invalid configuration item specified')

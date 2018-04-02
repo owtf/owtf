@@ -11,7 +11,7 @@ import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
-from owtf.lib.exceptions import InvalidParameterType, InvalidTargetReference, InvalidTransactionReference
+from owtf.lib.exceptions import InvalidParameterType, InvalidTargetReference, InvalidTransactionReference, APIError
 from owtf.managers.transaction import delete_transaction, get_all_transactions_dicts, \
     get_by_id_as_dict, get_hrt_response, search_all_transactions
 from owtf.managers.url import get_all_urls, search_all_urls
@@ -67,29 +67,26 @@ class TransactionDataHandler(APIRequestHandler):
         """
         try:
             if transaction_id:
-                self.write(get_by_id_as_dict(self.session, int(transaction_id), target_id=int(target_id)))
+                self.success(get_by_id_as_dict(self.session, int(transaction_id), target_id=int(target_id)))
             else:
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
-                self.write(get_all_transactions_dicts(self.session, filter_data, target_id=int(target_id)))
+                self.success(get_all_transactions_dicts(self.session, filter_data, target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidTransactionReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid transaction referenced")
         except exceptions.InvalidParameterType as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid parameter type provided")
 
     def post(self, target_url):
-        raise tornado.web.HTTPError(405)
+        raise APIError(405)
 
     def put(self):
-        raise tornado.web.HTTPError(405)
+        raise APIError(405)
 
     def patch(self):
-        raise tornado.web.HTTPError(405)
+        raise APIError(405)
 
     def delete(self, target_id=None, transaction_id=None):
         """Delete a transaction.
@@ -112,14 +109,14 @@ class TransactionDataHandler(APIRequestHandler):
             if transaction_id:
                 delete_transaction(self.session, int(transaction_id), int(target_id))
             else:
-                raise tornado.web.HTTPError(400)
+                raise APIError(400, "Needs transaction id")
         except exceptions.InvalidTargetReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid target reference provided")
 
 
 class TransactionHrtHandler(APIRequestHandler):
     """Integrate HTTP request translator tool."""
+
     SUPPORTED_METHODS = ['POST']
 
     def post(self, target_id=None, transaction_id=None):
@@ -155,14 +152,18 @@ class TransactionHrtHandler(APIRequestHandler):
                 filter_data = dict(self.request.arguments)
                 self.write(get_hrt_response(self.session, filter_data, int(transaction_id), target_id=int(target_id)))
             else:
-                raise tornado.web.HTTPError(400)
-        except (InvalidTargetReference, InvalidTransactionReference, InvalidParameterType) as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+                raise APIError(400, "Needs transaction id")
+        except InvalidTargetReference:
+            raise APIError(400, "Invalid target reference provided")
+        except InvalidTransactionReference:
+            raise APIError(400, "Invalid transaction referenced")
+        except InvalidParameterType:
+            raise APIError(400, "Invalid parameter type provided")
 
 
 class TransactionSearchHandler(APIRequestHandler):
     """Search transaction data in the DB."""
+
     SUPPORTED_METHODS = ['GET']
 
     def get(self, target_id=None):
@@ -190,21 +191,18 @@ class TransactionSearchHandler(APIRequestHandler):
             }
         """
         if not target_id:  # Must be a integer target id
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Missing target_id")
         try:
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
             self.write(search_all_transactions(self.session, filter_data, target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidTransactionReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid transaction referenced")
         except exceptions.InvalidParameterType as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid parameter type provided")
 
 
 # To be deprecated!
