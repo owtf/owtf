@@ -130,7 +130,6 @@ class OWTFSessionHandler(APIRequestHandler):
                     self.session, int(self.get_argument("target_id")), session_id=int(session_id))
             elif action == "activate":
                 set_session(self.session, int(session_id))
-            self.set_status(204)
             self.success(None)
         except exceptions.InvalidTargetReference as e:
             raise APIError(400, "Invalid target reference provided")
@@ -163,7 +162,6 @@ class OWTFSessionHandler(APIRequestHandler):
             raise APIError(400, "Incorrect query parameters")
         try:
             delete_session(self.session, int(session_id))
-            self.set_status(204)
             self.success(None)
         except exceptions.InvalidSessionReference as e:
             raise APIError(400, "Invalid session id provided")

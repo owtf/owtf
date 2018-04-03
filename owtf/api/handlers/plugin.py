@@ -331,7 +331,6 @@ class PluginOutputHandler(APIRequestHandler):
             else:
                 patch_data = dict(self.request.arguments)
                 update_poutput(self.session, plugin_group, plugin_type, plugin_code, patch_data, target_id=target_id)
-                self.set_status(204)
                 self.success(None)
         except exceptions.InvalidTargetReference as e:
             raise APIError(400, "Invalid target reference provided")
@@ -380,7 +379,6 @@ class PluginOutputHandler(APIRequestHandler):
                     "plugin_code": plugin_code
                 })
                 delete_all_poutput(self.session, filter_data, target_id=int(target_id))
-                self.set_status(204)
                 self.success(None)
         except exceptions.InvalidTargetReference as e:
             raise APIError(400, "Invalid target reference provided")
