@@ -34,7 +34,6 @@ from owtf.settings import AUX_TEST_GROUPS, DEFAULT_FRAMEWORK_CONFIG, DEFAULT_GEN
     FALLBACK_GENERAL_PROFILE, FALLBACK_MAPPING_PROFILE, FALLBACK_NET_TEST_GROUPS, FALLBACK_RESOURCES_PROFILE, \
     FALLBACK_WEB_TEST_GROUPS, NET_TEST_GROUPS, WEB_TEST_GROUPS
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
-from owtf.utils.logger import OWTFLogger
 from owtf.utils.process import _signal_process
 from owtf.utils.signals import workers_finish, owtf_start
 
@@ -46,10 +45,6 @@ owtf_pid = None
 # Get a global DB connection instance
 from owtf.db.database import get_scoped_session
 db = get_scoped_session()
-
-# Initialize logger
-logger = OWTFLogger()
-logger.enable_logging()
 
 
 def print_banner():

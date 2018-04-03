@@ -19,6 +19,7 @@ class OWTFLogger(object):
         # Bootstrap log files directory.
         FileOperations.create_missing_dirs(get_logs_dir())
         self.file_handler = catch_io_errors(logging.FileHandler)
+        self.enable_logging()
 
     def enable_logging(self, **kwargs):
         """Enables both file and console logging
