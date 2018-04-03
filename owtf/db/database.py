@@ -52,7 +52,7 @@ def get_db_engine():
         Base.metadata.create_all(engine)
         return engine
     except exc.OperationalError as e:
-        logging.error("Could not create database engine - Exception occured\n{}".format(str(e)))
+        logging.error("Could not create database engine - Exception occured\n%s", str(e))
         sys.exit(1)
 
 
