@@ -9,6 +9,7 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 
+from owtf import OWTFLogger
 from owtf.filesrv.routes import HANDLERS
 from owtf.managers.worker import worker_manager
 from owtf.settings import FILE_SERVER_LOG, FILE_SERVER_PORT, SERVER_ADDR, TEMPLATES
@@ -25,6 +26,8 @@ class FileServer():
             self.application = Application(handlers=HANDLERS, template_path=TEMPLATES, debug=False, gzip=True)
             self.server = tornado.httpserver.HTTPServer(self.application)
             self.server.bind(int(FILE_SERVER_PORT), address=SERVER_ADDR)
+            self.logger = OWTFLogger()
+            self.logger.disable_console_logging()
             tornado.options.parse_command_line(
                 args=['dummy_arg', '--log_file_prefix={}'.format(FILE_SERVER_LOG), '--logging=info'])
             self.server.start()

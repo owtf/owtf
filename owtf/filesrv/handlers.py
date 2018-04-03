@@ -21,8 +21,8 @@ __all__ = ['StaticFileHandler']
 class StaticFileHandler(tornado.web.StaticFileHandler):
 
     def set_default_headers(self):
-        self.add_header("Access-Control-Allow-Origin", "*")
-        self.add_header("Access-Control-Allow-Methods", "GET, POST, DELETE")
+        self.add_header("Access-Control-Allow-Origin", '*')
+        self.add_header("Access-Control-Allow-Methods", 'GET')
 
     def get(self, path, include_body=True):
         """
@@ -82,7 +82,7 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
             cache_time = self.get_cache_time(path, modified, mime_type)
             if cache_time > 0:
                 self.set_header("Expires", datetime.datetime.utcnow() + datetime.timedelta(seconds=cache_time))
-                self.set_header("Cache-Control", "max-age=%s" % str(cache_time))
+                self.set_header("Cache-Control", "max-age={}".format(str(cache_time)))
             else:
                 self.set_header("Cache-Control", "public")
 
@@ -107,7 +107,7 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
 
             hasher = hashlib.sha1()
             hasher.update(data)
-            self.set_header("Etag", '"%s"' % hasher.hexdigest())
+            self.set_header("Etag", '"{}"'.format(hasher.hexdigest()))
             if include_body:
                 self.write(data)
             else:
