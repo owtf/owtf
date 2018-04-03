@@ -130,6 +130,7 @@ class TargetConfigHandler(APIRequestHandler):
         try:
             patch_data = dict(self.request.arguments)
             update_target(self.session, patch_data, id=target_id)
+            self.set_status(204)
             self.success(None)
         except InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
@@ -160,6 +161,7 @@ class TargetConfigHandler(APIRequestHandler):
             raise APIError(400, "Missing target_id")
         try:
             delete_target(self.session, id=target_id)
+            self.set_status(204)
             self.success(None)
         except InvalidTargetReference as e:
             raise APIError(400, "Invalid target reference provided")

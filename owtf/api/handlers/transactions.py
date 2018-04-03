@@ -116,6 +116,7 @@ class TransactionDataHandler(APIRequestHandler):
         try:
             if transaction_id:
                 delete_transaction(self.session, int(transaction_id), int(target_id))
+                self.set_status(204)
                 self.success(None)
             else:
                 raise APIError(400, "Needs transaction id")

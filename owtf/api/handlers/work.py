@@ -193,6 +193,7 @@ class WorkerHandler(APIRequestHandler):
             raise APIError(400, "Needs worker id")
         try:
             worker_manager.delete_worker(int(worker_id))
+            self.set_status(204)
             self.success(None)
         except exceptions.InvalidWorkerReference:
             raise APIError(400, "Invalid worker referenced")
@@ -352,10 +353,10 @@ class WorklistHandler(APIRequestHandler):
             work_id = int(work_id)
             if work_id != 0:
                 remove_work(self.session, work_id)
-                self.set_status(200)
             else:
                 if action == 'delete':
                     delete_all_work(self.session)
+            self.set_status(204)
             self.success(None)
         except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
@@ -405,6 +406,7 @@ class WorklistHandler(APIRequestHandler):
                     pause_all_work(self.session)
                 elif action == 'resume':
                     resume_all_work(self.session)
+            self.set_status(204)
             self.success(None)
         except exceptions.InvalidWorkReference:
             raise APIError(400, "Invalid worker referenced")
