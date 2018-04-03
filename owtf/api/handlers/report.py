@@ -15,6 +15,7 @@ import tornado.web
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.constants import RANKS
 from owtf.lib import exceptions
+from owtf.lib.exceptions import APIError
 from owtf.managers.mapping import get_mappings
 from owtf.managers.plugin import get_all_test_groups
 from owtf.managers.poutput import get_all_poutputs
@@ -30,7 +31,6 @@ class ReportExportHandler(APIRequestHandler):
     :raise InvalidTargetReference: If target doesn't exists.
     :raise InvalidParameterType: If some unknown parameter in `filter_data`.
     """
-    # TODO: Add correct API response.
 
     SUPPORTED_METHODS = ['GET']
 
@@ -50,18 +50,38 @@ class ReportExportHandler(APIRequestHandler):
 
             HTTP/1.1 200 OK
             Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {
+                    "top_url": "https://google.com:443",
+                    "top_domain": "com",
+                    "target_url": "https://google.com",
+                    "time": "2018-04-03 09:21:27",
+                    "max_user_rank": -1,
+                    "url_scheme": "https",
+                    "host_path": "google.com",
+                    "ip_url": "https://104.28.0.9",
+                    "host_ip": "104.28.0.9",
+                    "vulnerabilities": [],
+                    "max_owtf_rank": -1,
+                    "port_number": "443",
+                    "host_name": "google.com",
+                    "alternative_ips": "['104.28.1.9']",
+                    "scope": true,
+                    "id": 2
+                }
+            }
         """
         if not target_id:
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Missing target id")
         try:
             filter_data = dict(self.request.arguments)
             plugin_outputs = get_all_poutputs(filter_data, target_id=target_id, inc_output=True)
         except exceptions.InvalidTargetReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidParameterType as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid parameter type provided")
         # Group the plugin outputs to make it easier in template
         grouped_plugin_outputs = defaultdict(list)
         for output in plugin_outputs:
@@ -97,6 +117,6 @@ class ReportExportHandler(APIRequestHandler):
         result["time"] = strftime("%Y-%m-%d %H:%M:%S", gmtime())
 
         if result:
-            self.write(result)
+            self.success(result)
         else:
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "No config object exists for the given target")

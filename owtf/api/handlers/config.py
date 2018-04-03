@@ -9,6 +9,7 @@ import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
+from owtf.lib.exceptions import APIError
 from owtf.managers.config import get_all_config_dicts, update_config_val
 
 __all__ = ['ConfigurationHandler']
@@ -34,28 +35,31 @@ class ConfigurationHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Vary: Accept-Encoding
+            Content-Type: application/json
 
 
-            [
-               {
-                  "dirty":false,
-                  "section":"AUX_PLUGIN_DATA",
-                  "value":"report",
-                  "descrip":"Filename for the attachment to be sent",
-                  "key":"ATTACHMENT_NAME"
-               },
-               {
-                  "dirty":false,
-                  "section":"DICTIONARIES",
-                  "value":"hydra",
-                  "descrip":"",
-                  "key":"BRUTEFORCER"
-               }
-            ]
+            {
+                "status": "success",
+                "data": [
+                    {
+                        "dirty": false,
+                        "key": "ATTACHMENT_NAME",
+                        "descrip": "Filename for the attachment to be sent",
+                        "section": "AUX_PLUGIN_DATA",
+                        "value": "report"
+                    },
+                    {
+                        "dirty": false,
+                        "key": "BRUTEFORCER",
+                        "descrip": "",
+                        "section": "DICTIONARIES",
+                        "value": "hydra"
+                    },
+                ]
+            }
         """
         filter_data = dict(self.request.arguments)
-        self.write(get_all_config_dicts(self.session, filter_data))
+        self.success(get_all_config_dicts(self.session, filter_data))
 
     def patch(self):
         """Update configuration item
@@ -74,12 +78,17 @@ class ConfigurationHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Vary: Accept-Encoding
-            Content-Length: 0
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         for key, value_list in list(self.request.arguments.items()):
             try:
                 update_config_val(self.session, key, value_list[0])
-            except exceptions.InvalidConfigurationReference:
-                raise tornado.web.HTTPError(400)
+                self.success({})
+            except exceptions.InvalidConfigurationReference as e:
+                raise APIError(400, 'Invalid configuration item specified')

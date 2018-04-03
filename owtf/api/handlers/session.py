@@ -9,6 +9,7 @@ import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
+from owtf.lib.exceptions import APIError
 from owtf.managers.session import add_session, add_target_to_session, delete_session, \
     get_all_session_dicts, get_session_dict, remove_target_from_session, set_session
 
@@ -38,24 +39,27 @@ class OWTFSessionHandler(APIRequestHandler):
             HTTP/1.1 200 OK
             Content-Type: application/json
 
-            [
-                {
-                    "active": true,
-                    "name": "default session",
-                    "id": 1
-                }
-            ]
+            {
+                "status": "success",
+                "data": [
+                    {
+                        "active": true,
+                        "name": "default session",
+                        "id": 1
+                    }
+                ]
+            }
         """
-        if action is not None:  # Action must be there only for put
-            raise tornado.web.HTTPError(400)
+        if action is not None:
+            raise APIError(400, "Action must be None")
         if session_id is None:
             filter_data = dict(self.request.arguments)
-            self.write(get_all_session_dicts(self.session, filter_data))
+            self.success(get_all_session_dicts(self.session, filter_data))
         else:
             try:
-                self.write(get_session_dict(self.session, session_id))
-            except exceptions.InvalidSessionReference:
-                raise tornado.web.HTTPError(400)
+                self.success(get_session_dict(self.session, session_id))
+            except exceptions.InvalidSessionReference as e:
+                raise APIError(400, "Invalid session id provided")
 
     def post(self, session_id=None, action=None):
         """Create a new session.
@@ -76,17 +80,22 @@ class OWTFSessionHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 201 Created
-            Content-Length: 0
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         if (session_id is not None) or (self.get_argument("name", None) is None) or (action is not None):
             # Not supposed to post on specific session
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Incorrect query parameters")
         try:
             add_session(self.session, self.get_argument("name"))
             self.set_status(201)  # Stands for "201 Created"
-        except exceptions.DBIntegrityException:
-            raise tornado.web.HTTPError(409)
+            self.success({})
+        except exceptions.DBIntegrityException as e:
+            raise APIError(409, "An unknown exception occurred when performing a DB operation")
 
     def patch(self, session_id=None, action=None):
         """Change session.
@@ -95,7 +104,7 @@ class OWTFSessionHandler(APIRequestHandler):
 
         .. sourcecode:: http
 
-            PATCH /api/v1/essions/1/activate HTTP/1.1
+            PATCH /api/v1/sessions/1/activate HTTP/1.1
             X-Requested-With: XMLHttpRequest
 
         **Example response**:
@@ -103,12 +112,16 @@ class OWTFSessionHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Length: 0
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         target_id = self.get_argument("target_id", None)
         if (session_id is None) or (target_id is None and action in ["add", "remove"]):
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Incorrect query parameters")
         try:
             if action == "add":
                 add_target_to_session(self.session, int(self.get_argument("target_id")), session_id=int(session_id))
@@ -117,10 +130,11 @@ class OWTFSessionHandler(APIRequestHandler):
                     self.session, int(self.get_argument("target_id")), session_id=int(session_id))
             elif action == "activate":
                 set_session(self.session, int(session_id))
-        except exceptions.InvalidTargetReference:
-            raise tornado.web.HTTPError(400)
-        except exceptions.InvalidSessionReference:
-            raise tornado.web.HTTPError(400)
+            self.success({})
+        except exceptions.InvalidTargetReference as e:
+            raise APIError(400, "Invalid target reference provided")
+        except exceptions.InvalidSessionReference as e:
+            raise APIError(400, "Invalid parameter type provided")
 
     def delete(self, session_id=None, action=None):
         """Delete a session.
@@ -137,12 +151,17 @@ class OWTFSessionHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Length: 0
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         if (session_id is None) or action is not None:
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Incorrect query parameters")
         try:
             delete_session(self.session, int(session_id))
-        except exceptions.InvalidSessionReference:
-            raise tornado.web.HTTPError(400)
+            self.success({})
+        except exceptions.InvalidSessionReference as e:
+            raise APIError(400, "Invalid session id provided")

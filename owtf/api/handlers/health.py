@@ -31,7 +31,10 @@ class HealthCheckHandler(APIRequestHandler):
             Content-Type: application/json
 
             {
-                'ok': true
+                "status": "success",
+                "data": {
+                    "status": "ok"
+                }
             }
         """
-        self.write({'ok': True})
+        self.success({'status': 'ok'})

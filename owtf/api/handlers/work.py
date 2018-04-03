@@ -11,6 +11,7 @@ import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
+from owtf.lib.exceptions import APIError
 from owtf.managers.plugin import get_all_plugin_dicts
 from owtf.managers.target import get_target_config_dicts
 from owtf.managers.worker import worker_manager
@@ -23,6 +24,7 @@ __all__ = ['WorkerHandler', 'WorklistHandler', 'WorklistSearchHandler']
 
 class WorkerHandler(APIRequestHandler):
     """Manage workers."""
+
     SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'OPTIONS']
 
     def set_default_headers(self):
@@ -49,57 +51,59 @@ class WorkerHandler(APIRequestHandler):
             Access-Control-Allow-Methods: GET, POST, DELETE
             Content-Type: application/json
 
-            [
-                {
-                    "busy": false,
-                    "name": "Worker-1",
-                    "start_time": "NA",
-                    "work": [],
-                    "worker": 43775,
-                    "paused": false,
-                    "id": 1
-                },
-                {
-                    "busy": false,
-                    "name": "Worker-2",
-                    "start_time": "NA",
-                    "work": [],
-                    "worker": 43778,
-                    "paused": false,
-                    "id": 2
-                },
-                {
-                    "busy": false,
-                    "name": "Worker-3",
-                    "start_time": "NA",
-                    "work": [],
-                    "worker": 43781,
-                    "paused": false,
-                    "id": 3
-                },
-                {
-                    "busy": false,
-                    "name": "Worker-4",
-                    "start_time": "NA",
-                    "work": [],
-                    "worker": 43784,
-                    "paused": false,
-                    "id": 4
-                }
-            ]
+            {
+                "status": "success",
+                "data": [
+                    {
+                        "busy": false,
+                        "name": "Worker-1",
+                        "start_time": "NA",
+                        "work": [],
+                        "worker": 43775,
+                        "paused": false,
+                        "id": 1
+                    },
+                    {
+                        "busy": false,
+                        "name": "Worker-2",
+                        "start_time": "NA",
+                        "work": [],
+                        "worker": 43778,
+                        "paused": false,
+                        "id": 2
+                    },
+                    {
+                        "busy": false,
+                        "name": "Worker-3",
+                        "start_time": "NA",
+                        "work": [],
+                        "worker": 43781,
+                        "paused": false,
+                        "id": 3
+                    },
+                    {
+                        "busy": false,
+                        "name": "Worker-4",
+                        "start_time": "NA",
+                        "work": [],
+                        "worker": 43784,
+                        "paused": false,
+                        "id": 4
+                    }
+                ]
+            }
         """
         if not worker_id:
-            self.write(worker_manager.get_worker_details())
+            self.success(worker_manager.get_worker_details())
         try:
             if worker_id and (not action):
-                self.write(worker_manager.get_worker_details(int(worker_id)))
+                self.success(worker_manager.get_worker_details(int(worker_id)))
             if worker_id and action:
                 if int(worker_id) == 0:
                     getattr(worker_manager, '%s_all_workers' % action)()
                 getattr(worker_manager, '%s_worker' % action)(int(worker_id))
-        except exceptions.InvalidWorkerReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+        except exceptions.InvalidWorkerReference:
+            raise APIError(400, "Invalid worker referenced")
 
     def post(self, worker_id=None, action=None):
         """Add a new worker.
@@ -120,12 +124,19 @@ class WorkerHandler(APIRequestHandler):
             Content-Length: 0
             Access-Control-Allow-Origin: *
             Access-Control-Allow-Methods: GET, POST, DELETE
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
+
         """
         if worker_id or action:
             raise tornado.web.HTTPError(400)
         worker_manager.create_worker()
         self.set_status(201)  # Stands for "201 Created"
+        self.success({})
 
     def options(self, worker_id=None, action=None):
         """OPTIONS check (pre-flight) for CORS.
@@ -151,6 +162,7 @@ class WorkerHandler(APIRequestHandler):
             Content-Type: text/html; charset=UTF-8
         """
         self.set_status(200)
+        self.finish()
 
     def delete(self, worker_id=None, action=None):
         """Delete a worker.
@@ -170,32 +182,95 @@ class WorkerHandler(APIRequestHandler):
             Content-Length: 0
             Access-Control-Allow-Origin: *
             Access-Control-Allow-Methods: GET, POST, DELETE
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
-        if (not worker_id) or action:
-            raise tornado.web.HTTPError(400)
+        if not worker_id and action:
+            raise APIError(400, "Needs worker id")
         try:
             worker_manager.delete_worker(int(worker_id))
-        except exceptions.InvalidWorkerReference as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
+            self.success({})
+        except exceptions.InvalidWorkerReference:
+            raise APIError(400, "Invalid worker referenced")
 
 
 class WorklistHandler(APIRequestHandler):
     """Handle the worklist."""
+
     SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'PATCH']
 
     def get(self, work_id=None, action=None):
+        """Get worklist
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/worklist/ HTTP/1.1
+            Accept: application/json, text/javascript, */*; q=0.01
+            Origin: http://localhost:8009
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Access-Control-Allow-Origin: *
+            Access-Control-Allow-Methods: GET, POST, DELETE
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": [
+                    {
+                        "id": 10,
+                        "active": true,
+                        "target": {
+                            "top_url": "https://google.com:443",
+                            "top_domain": "com",
+                            "target_url": "https://google.com",
+                            "max_user_rank": -1,
+                            "url_scheme": "https",
+                            "host_path": "google.com",
+                            "ip_url": "https://104.28.0.9",
+                            "host_ip": "104.28.0.9",
+                            "max_owtf_rank": -1,
+                            "port_number": "443",
+                            "host_name": "google.com",
+                            "alternative_ips": "['104.28.1.9']",
+                            "scope": true,
+                            "id": 2
+                        },
+                        "plugin": {
+                            "file": "smb@PTES-009.py",
+                            "group": "network",
+                            "attr": null,
+                            "title": "Smb",
+                            "code": "PTES-009",
+                            "key": "active@PTES-009",
+                            "descrip": " SMB Probing ",
+                            "min_time": null,
+                            "type": "active",
+                            "name": "smb"
+                        }
+                    }
+                ]
+            }
+        """
         try:
             if work_id is None:
                 criteria = dict(self.request.arguments)
-                self.write(get_all_work(self.session, criteria))
+                self.success(get_all_work(self.session, criteria))
             else:
-                self.write(get_work(self.session, (work_id)))
+                self.success(get_work(self.session, (work_id)))
         except exceptions.InvalidParameterType:
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid parameter type provided")
         except exceptions.InvalidWorkReference:
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid worker referenced")
 
     def post(self, work_id=None, action=None):
         """Add plugins for a target.
@@ -218,25 +293,33 @@ class WorklistHandler(APIRequestHandler):
 
             HTTP/1.1 201 Created
             Content-Length: 0
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         if work_id is not None or action is not None:
-            tornado.web.HTTPError(400)
+            raise APIError(400, "worker_id and action should be None")
         try:
             filter_data = dict(self.request.arguments)
             if not filter_data:
-                raise tornado.web.HTTPError(400)
+                raise APIError(400, "Arguments should not be null")
             plugin_list = get_all_plugin_dicts(self.session, filter_data)
             target_list = get_target_config_dicts(self.session, filter_data)
-            if (not plugin_list) or (not target_list):
-                raise tornado.web.HTTPError(400)
+            if not plugin_list:
+                raise APIError(400, "Plugin list should not be empty")
+            if not target_list:
+                raise APIError(400, "Target list should not be empty")
             force_overwrite = str2bool(self.get_argument("force_overwrite", "False"))
             add_work(self.session, target_list, plugin_list, force_overwrite=force_overwrite)
             self.set_status(201)
+            self.success({})
         except exceptions.InvalidTargetReference:
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidParameterType:
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid parameter type provided")
 
     def delete(self, work_id=None, action=None):
         """Delete work from the worklist queue.
@@ -254,10 +337,17 @@ class WorklistHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Length: 0
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
-        if work_id is None or action is not None:
-            tornado.web.HTTPError(400)
+        if work_id is None:
+            raise APIError(400, "work_id should not be None")
+        if action is not None:
+            raise APIError(400, "action should be None")
         try:
             work_id = int(work_id)
             if work_id != 0:
@@ -266,12 +356,13 @@ class WorklistHandler(APIRequestHandler):
             else:
                 if action == 'delete':
                     delete_all_work(self.session)
+            self.success({})
         except exceptions.InvalidTargetReference:
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidParameterType:
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid parameter type provided")
         except exceptions.InvalidWorkReference:
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid worker referenced")
 
     def patch(self, work_id=None, action=None):
         """Resume or pause the work in the worklist.
@@ -291,10 +382,17 @@ class WorklistHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Length: 0
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
-        if work_id is None or action is None:
-            tornado.web.HTTPError(400)
+        if work_id is None:
+            raise APIError(400, "work_id should not be None")
+        if action is None:
+            raise APIError(400, "action should be None")
         try:
             work_id = int(work_id)
             if work_id != 0:  # 0 is like broadcast address
@@ -307,12 +405,14 @@ class WorklistHandler(APIRequestHandler):
                     pause_all_work(self.session)
                 elif action == 'resume':
                     resume_all_work(self.session)
+            self.success({})
         except exceptions.InvalidWorkReference:
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid worker referenced")
 
 
 class WorklistSearchHandler(APIRequestHandler):
     """Search worklist."""
+
     SUPPORTED_METHODS = ['GET']
 
     def get(self):
@@ -334,16 +434,18 @@ class WorklistSearchHandler(APIRequestHandler):
             HTTP/1.1 200 OK
             Content-Type: application/json; charset=UTF-8
 
-
             {
-                "records_total": 0,
-                "records_filtered": 0,
-                "data": []
+                "status": "success",
+                "data": {
+                    "records_total": 0,
+                    "records_filtered": 0,
+                    "data": []
+                }
             }
         """
         try:
             criteria = dict(self.request.arguments)
             criteria["search"] = True
-            self.write(search_all_work(self.session, criteria))
+            self.success(search_all_work(self.session, criteria))
         except exceptions.InvalidParameterType:
-            raise tornado.web.HTTPError(400)
+            raise APIError(400, "Invalid parameter type provided")

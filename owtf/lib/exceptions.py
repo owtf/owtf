@@ -4,6 +4,10 @@ owtf.lib.exceptions
 
 Declares the framework exceptions and HTTP errors
 """
+try:
+    from http.client import responses
+except ImportError:
+    from httplib import responses
 
 import tornado.web
 
@@ -13,16 +17,22 @@ class FrameworkException(Exception):
     def __init__(self, value):
         self.parameter = value
 
-    def __str__(self):
-        return repr(self.parameter)
+    def __repr__(self):
+        return self.parameter
 
 
 class APIError(tornado.web.HTTPError):
-    """Exception for API-based errors"""
+    """Equivalent to ``RequestHandler.HTTPError`` except for in name"""
 
-    def __init__(self, message, code=400):
-        super(APIError, self).__init__(code)
-        self.message = message
+
+def api_assert(condition, *args, **kwargs):
+    """Assertion to fail with if not ``condition``
+    Asserts that ``condition`` is ``True``, else raises an ``APIError``
+    with the provided ``args`` and ``kwargs``
+    :type  condition: bool
+    """
+    if not condition:
+        raise APIError(*args, **kwargs)
 
 
 class FrameworkAbortException(FrameworkException):

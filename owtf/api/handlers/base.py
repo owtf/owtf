@@ -9,7 +9,7 @@ from tornado.escape import url_escape
 from tornado.web import RequestHandler
 
 from owtf.lib.exceptions import APIError
-from owtf.settings import SERVER_PORT, FILE_SERVER_PORT
+from owtf.settings import SERVER_PORT, FILE_SERVER_PORT, DEBUG
 
 __all__ = ['APIRequestHandler', 'FileRedirectHandler', 'UIRequestHandler']
 
@@ -89,21 +89,24 @@ class APIRequestHandler(RequestHandler):
         self.clear()
         self.set_status(status_code)
 
-        # Any APIError exceptions raised will result in a JSend fail written
-        # back with the log_message as data. Hence, log_message should NEVER
-        # expose internals. Since log_message is proprietary to HTTPError
-        # class exceptions, all exceptions without it will return their
-        # __str__ representation.
-        # All other exceptions result in a JSend error being written back,
-        # with log_message only written if debug mode is enabled
-        exception = kwargs["exc_info"][1]
+        try:
+            exception = kwargs["exc_info"][1]
+        except:
+            exception = ""
         if any(isinstance(exception, c) for c in [APIError]):
-            self.fail(get_exc_message(exception))
+            # ValidationError is always due to a malformed request
+            if not isinstance(exception, APIError):
+                self.set_status(400)
+            self.write({'status': 'fail', 'data': get_exc_message(exception)})
+            self.finish()
         else:
-            self.error(
-                message=self._reason,
-                data=get_exc_message(exception) if self.settings.get("debug") else None,
-                code=status_code)
+            self.write({
+                "status": "fail",
+                "message": self._reason,
+                "data": get_exc_message(exception),
+                "code": status_code
+            })
+            self.finish()
 
 
 class UIRequestHandler(RequestHandler):
