@@ -9,7 +9,20 @@ from tornado.escape import url_escape
 from tornado.web import RequestHandler
 
 from owtf.lib.exceptions import APIError
-from owtf.settings import SERVER_PORT, FILE_SERVER_PORT, DEBUG
+from owtf.settings import SERVER_PORT, FILE_SERVER_PORT, USE_SENTRY
+
+# if Sentry raven library around, pull in SentryMixin
+try:
+    from raven.contrib.tornado import SentryMixin
+except ImportError:
+    pass
+else:
+
+    class SentryHandler(SentryMixin, RequestHandler):
+        pass
+
+    if USE_SENTRY:
+        RequestHandler = SentryHandler
 
 __all__ = ['APIRequestHandler', 'FileRedirectHandler', 'UIRequestHandler']
 

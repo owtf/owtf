@@ -11,6 +11,8 @@ import multiprocessing
 import signal
 import sys
 
+from owtf.settings import SENTRY_API_KEY
+
 try:
     from raven.contrib.tornado import AsyncSentryClient
     raven_installed = True
@@ -99,7 +101,7 @@ class SentryProxy(object):
         logging.exception("exception occurred")
 
 
-def get_sentry_client(sentry_key):
+def get_sentry_client(sentry_key=SENTRY_API_KEY):
     if sentry_key and raven_installed:
         logging.info("[+] Sentry client setup key={}".format(sentry_key))
         sentry_client = SentryProxy(sentry_client=AsyncSentryClient(sentry_key))
