@@ -46,32 +46,35 @@ class PluginDataHandler(APIRequestHandler):
             Vary: Accept-Encoding
             Content-Type: application/json
 
-            [
-                {
-                    "file": "Old_Backup_and_Unreferenced_Files@OWTF-CM-006.py",
-                    "code": "OWTF-CM-006",
-                    "group": "web",
-                    "attr": null,
-                    "title": "Old Backup And Unreferenced Files",
-                    "key": "external@OWTF-CM-006",
-                    "descrip": "Plugin to assist manual testing",
-                    "min_time": null,
-                    "type": "external",
-                    "name": "Old_Backup_and_Unreferenced_Files"
-                },
-                {
-                    "file": "Old_Backup_and_Unreferenced_Files@OWTF-CM-006.py",
-                    "code": "OWTF-CM-006",
-                    "group": "web",
-                    "attr": null,
-                    "title": "Old Backup And Unreferenced Files",
-                    "key": "passive@OWTF-CM-006",
-                    "descrip": "Google Hacking for juicy files",
-                    "min_time": null,
-                    "type": "passive",
-                    "name": "Old_Backup_and_Unreferenced_Files"
-                }
-            ]
+            {
+                "status": "success",
+                "data": [
+                    {
+                        "file": "Old_Backup_and_Unreferenced_Files@OWTF-CM-006.py",
+                        "code": "OWTF-CM-006",
+                        "group": "web",
+                        "attr": null,
+                        "title": "Old Backup And Unreferenced Files",
+                        "key": "external@OWTF-CM-006",
+                        "descrip": "Plugin to assist manual testing",
+                        "min_time": null,
+                        "type": "external",
+                        "name": "Old_Backup_and_Unreferenced_Files"
+                    },
+                    {
+                        "file": "Old_Backup_and_Unreferenced_Files@OWTF-CM-006.py",
+                        "code": "OWTF-CM-006",
+                        "group": "web",
+                        "attr": null,
+                        "title": "Old Backup And Unreferenced Files",
+                        "key": "passive@OWTF-CM-006",
+                        "descrip": "Google Hacking for juicy files",
+                        "min_time": null,
+                        "type": "passive",
+                        "name": "Old_Backup_and_Unreferenced_Files"
+                    }
+                ]
+            }
         """
         try:
             filter_data = dict(self.request.arguments)
@@ -125,57 +128,60 @@ class PluginNameOutput(APIRequestHandler):
             Content-Type: application/json; charset=UTF-8
 
             {
-                "OWTF-AT-004": {
-                    "data": [
-                        {
-                            "status": "Successful",
-                            "owtf_rank": -1,
-                            "plugin_group": "web",
-                            "start_time": "01/04/2018-14:05",
-                            "target_id": 2,
-                            "run_time": "0s,   1ms",
-                            "user_rank": -1,
-                            "plugin_key": "external@OWTF-AT-004",
-                            "id": 5,
-                            "plugin_code": "OWTF-AT-004",
-                            "user_notes": null,
-                            "output_path": null,
-                            "end_time": "01/04/2018-14:05",
-                            "error": null,
-                            "plugin_type": "external"
+                "status": "success",
+                "data": {
+                    "OWTF-AT-004": {
+                        "data": [
+                            {
+                                "status": "Successful",
+                                "owtf_rank": -1,
+                                "plugin_group": "web",
+                                "start_time": "01/04/2018-14:05",
+                                "target_id": 2,
+                                "run_time": "0s,   1ms",
+                                "user_rank": -1,
+                                "plugin_key": "external@OWTF-AT-004",
+                                "id": 5,
+                                "plugin_code": "OWTF-AT-004",
+                                "user_notes": null,
+                                "output_path": null,
+                                "end_time": "01/04/2018-14:05",
+                                "error": null,
+                                "plugin_type": "external"
+                            }
+                        ],
+                        "details": {
+                            "priority": 99,
+                            "code": "OWTF-AT-004",
+                            "group": "web",
+                            "mappings": {
+                                "OWASP_V3": [
+                                    "OWASP-AT-004",
+                                    "Brute Force Testing"
+                                ],
+                                "OWASP_V4": [
+                                    "OTG-AUTHN-003",
+                                    "Testing for Weak lock out mechanism"
+                                ],
+                                "CWE": [
+                                    "CWE-16",
+                                    "Configuration - Brute force"
+                                ],
+                                "NIST": [
+                                    "IA-6",
+                                    "Authenticator Feedback - Brute force"
+                                ],
+                                "OWASP_TOP_10": [
+                                    "A5",
+                                    "Security Misconfiguration - Brute force"
+                                ]
+                            },
+                            "hint": "Brute Force",
+                            "url": "https://www.owasp.org/index.php/Testing_for_Brute_Force_(OWASP-AT-004)",
+                            "descrip": "Testing for Brute Force"
                         }
-                    ],
-                    "details": {
-                        "priority": 99,
-                        "code": "OWTF-AT-004",
-                        "group": "web",
-                        "mappings": {
-                            "OWASP_V3": [
-                                "OWASP-AT-004",
-                                "Brute Force Testing"
-                            ],
-                            "OWASP_V4": [
-                                "OTG-AUTHN-003",
-                                "Testing for Weak lock out mechanism"
-                            ],
-                            "CWE": [
-                                "CWE-16",
-                                "Configuration - Brute force"
-                            ],
-                            "NIST": [
-                                "IA-6",
-                                "Authenticator Feedback - Brute force"
-                            ],
-                            "OWASP_TOP_10": [
-                                "A5",
-                                "Security Misconfiguration - Brute force"
-                            ]
-                        },
-                        "hint": "Brute Force",
-                        "url": "https://www.owasp.org/index.php/Testing_for_Brute_Force_(OWASP-AT-004)",
-                        "descrip": "Testing for Brute Force"
-                    }
-                },
+                    },
+                }
             }
         """
         try:
@@ -235,27 +241,29 @@ class PluginOutputHandler(APIRequestHandler):
             HTTP/1.1 200 OK
             Content-Type: application/json
 
-
-            [
-                {
-                    "status": "Successful",
-                    "owtf_rank": -1,
-                    "plugin_group": "web",
-                    "start_time": "01/04/2018-14:06",
-                    "target_id": 2,
-                    "run_time": "0s,   1ms",
-                    "user_rank": -1,
-                    "plugin_key": "external@OWTF-AJ-001",
-                    "id": 27,
-                    "plugin_code": "OWTF-AJ-001",
-                    "user_notes": null,
-                    "output_path": null,
-                    "end_time": "01/04/2018-14:06",
-                    "error": null,
-                    "output": "Intended to show helpful info in the future",
-                    "plugin_type": "external"
-                }
-            ]
+            {
+                "status": "success",
+                "data": [
+                    {
+                        "status": "Successful",
+                        "owtf_rank": -1,
+                        "plugin_group": "web",
+                        "start_time": "01/04/2018-14:06",
+                        "target_id": 2,
+                        "run_time": "0s,   1ms",
+                        "user_rank": -1,
+                        "plugin_key": "external@OWTF-AJ-001",
+                        "id": 27,
+                        "plugin_code": "OWTF-AJ-001",
+                        "user_notes": null,
+                        "output_path": null,
+                        "end_time": "01/04/2018-14:06",
+                        "error": null,
+                        "output": "Intended to show helpful info in the future",
+                        "plugin_type": "external"
+                    }
+                ]
+            }
         """
         try:
             filter_data = dict(self.request.arguments)
@@ -310,7 +318,12 @@ class PluginOutputHandler(APIRequestHandler):
 
             HTTP/1.1 200 OK
             Content-Length: 0
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         try:
             if (not target_id) or (not plugin_group) or (not plugin_type) or (not plugin_code):
@@ -339,8 +352,11 @@ class PluginOutputHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Length: 0
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         try:
             filter_data = dict(self.request.arguments)

@@ -31,7 +31,6 @@ class ReportExportHandler(APIRequestHandler):
     :raise InvalidTargetReference: If target doesn't exists.
     :raise InvalidParameterType: If some unknown parameter in `filter_data`.
     """
-    # TODO: Add correct API response.
 
     SUPPORTED_METHODS = ['GET']
 
@@ -51,6 +50,28 @@ class ReportExportHandler(APIRequestHandler):
 
             HTTP/1.1 200 OK
             Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {
+                    "top_url": "https://google.com:443",
+                    "top_domain": "com",
+                    "target_url": "https://google.com",
+                    "time": "2018-04-03 09:21:27",
+                    "max_user_rank": -1,
+                    "url_scheme": "https",
+                    "host_path": "google.com",
+                    "ip_url": "https://104.28.0.9",
+                    "host_ip": "104.28.0.9",
+                    "vulnerabilities": [],
+                    "max_owtf_rank": -1,
+                    "port_number": "443",
+                    "host_name": "google.com",
+                    "alternative_ips": "['104.28.1.9']",
+                    "scope": true,
+                    "id": 2
+                }
+            }
         """
         if not target_id:
             raise APIError(400, "Missing target id")

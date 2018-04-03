@@ -51,44 +51,47 @@ class WorkerHandler(APIRequestHandler):
             Access-Control-Allow-Methods: GET, POST, DELETE
             Content-Type: application/json
 
-            [
-                {
-                    "busy": false,
-                    "name": "Worker-1",
-                    "start_time": "NA",
-                    "work": [],
-                    "worker": 43775,
-                    "paused": false,
-                    "id": 1
-                },
-                {
-                    "busy": false,
-                    "name": "Worker-2",
-                    "start_time": "NA",
-                    "work": [],
-                    "worker": 43778,
-                    "paused": false,
-                    "id": 2
-                },
-                {
-                    "busy": false,
-                    "name": "Worker-3",
-                    "start_time": "NA",
-                    "work": [],
-                    "worker": 43781,
-                    "paused": false,
-                    "id": 3
-                },
-                {
-                    "busy": false,
-                    "name": "Worker-4",
-                    "start_time": "NA",
-                    "work": [],
-                    "worker": 43784,
-                    "paused": false,
-                    "id": 4
-                }
-            ]
+            {
+                "status": "success",
+                "data": [
+                    {
+                        "busy": false,
+                        "name": "Worker-1",
+                        "start_time": "NA",
+                        "work": [],
+                        "worker": 43775,
+                        "paused": false,
+                        "id": 1
+                    },
+                    {
+                        "busy": false,
+                        "name": "Worker-2",
+                        "start_time": "NA",
+                        "work": [],
+                        "worker": 43778,
+                        "paused": false,
+                        "id": 2
+                    },
+                    {
+                        "busy": false,
+                        "name": "Worker-3",
+                        "start_time": "NA",
+                        "work": [],
+                        "worker": 43781,
+                        "paused": false,
+                        "id": 3
+                    },
+                    {
+                        "busy": false,
+                        "name": "Worker-4",
+                        "start_time": "NA",
+                        "work": [],
+                        "worker": 43784,
+                        "paused": false,
+                        "id": 4
+                    }
+                ]
+            }
         """
         if not worker_id:
             self.success(worker_manager.get_worker_details())
@@ -121,7 +124,13 @@ class WorkerHandler(APIRequestHandler):
             Content-Length: 0
             Access-Control-Allow-Origin: *
             Access-Control-Allow-Methods: GET, POST, DELETE
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
+
         """
         if worker_id or action:
             raise tornado.web.HTTPError(400)
@@ -173,7 +182,12 @@ class WorkerHandler(APIRequestHandler):
             Content-Length: 0
             Access-Control-Allow-Origin: *
             Access-Control-Allow-Methods: GET, POST, DELETE
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         if not worker_id and action:
             raise APIError(400, "Needs worker id")
@@ -190,6 +204,63 @@ class WorklistHandler(APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'PATCH']
 
     def get(self, work_id=None, action=None):
+        """Get worklist
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/worklist/ HTTP/1.1
+            Accept: application/json, text/javascript, */*; q=0.01
+            Origin: http://localhost:8009
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Access-Control-Allow-Origin: *
+            Access-Control-Allow-Methods: GET, POST, DELETE
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": [
+                    {
+                        "id": 10,
+                        "active": true,
+                        "target": {
+                            "top_url": "https://google.com:443",
+                            "top_domain": "com",
+                            "target_url": "https://google.com",
+                            "max_user_rank": -1,
+                            "url_scheme": "https",
+                            "host_path": "google.com",
+                            "ip_url": "https://104.28.0.9",
+                            "host_ip": "104.28.0.9",
+                            "max_owtf_rank": -1,
+                            "port_number": "443",
+                            "host_name": "google.com",
+                            "alternative_ips": "['104.28.1.9']",
+                            "scope": true,
+                            "id": 2
+                        },
+                        "plugin": {
+                            "file": "smb@PTES-009.py",
+                            "group": "network",
+                            "attr": null,
+                            "title": "Smb",
+                            "code": "PTES-009",
+                            "key": "active@PTES-009",
+                            "descrip": " SMB Probing ",
+                            "min_time": null,
+                            "type": "active",
+                            "name": "smb"
+                        }
+                    }
+                ]
+            }
+        """
         try:
             if work_id is None:
                 criteria = dict(self.request.arguments)
@@ -222,7 +293,12 @@ class WorklistHandler(APIRequestHandler):
 
             HTTP/1.1 201 Created
             Content-Length: 0
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         if work_id is not None or action is not None:
             raise APIError(400, "worker_id and action should be None")
@@ -261,7 +337,12 @@ class WorklistHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Length: 0
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         if work_id is None:
             raise APIError(400, "work_id should not be None")
@@ -301,7 +382,12 @@ class WorklistHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Length: 0
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         if work_id is None:
             raise APIError(400, "work_id should not be None")
@@ -348,11 +434,13 @@ class WorklistSearchHandler(APIRequestHandler):
             HTTP/1.1 200 OK
             Content-Type: application/json; charset=UTF-8
 
-
             {
-                "records_total": 0,
-                "records_filtered": 0,
-                "data": []
+                "status": "success",
+                "data": {
+                    "records_total": 0,
+                    "records_filtered": 0,
+                    "data": []
+                }
             }
         """
         try:

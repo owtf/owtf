@@ -39,13 +39,16 @@ class OWTFSessionHandler(APIRequestHandler):
             HTTP/1.1 200 OK
             Content-Type: application/json
 
-            [
-                {
-                    "active": true,
-                    "name": "default session",
-                    "id": 1
-                }
-            ]
+            {
+                "status": "success",
+                "data": [
+                    {
+                        "active": true,
+                        "name": "default session",
+                        "id": 1
+                    }
+                ]
+            }
         """
         if action is not None:
             raise APIError(400, "Action must be None")
@@ -77,8 +80,12 @@ class OWTFSessionHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 201 Created
-            Content-Length: 0
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         if (session_id is not None) or (self.get_argument("name", None) is None) or (action is not None):
             # Not supposed to post on specific session
@@ -105,8 +112,12 @@ class OWTFSessionHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Length: 0
-            Content-Type: assignment/json; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         target_id = self.get_argument("target_id", None)
         if (session_id is None) or (target_id is None and action in ["add", "remove"]):
@@ -140,8 +151,12 @@ class OWTFSessionHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Length: 0
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         if (session_id is None) or action is not None:
             raise APIError(400, "Incorrect query parameters")

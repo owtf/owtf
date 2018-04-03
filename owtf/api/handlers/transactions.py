@@ -46,23 +46,26 @@ class TransactionDataHandler(APIRequestHandler):
             Content-Type: application/json; charset=UTF-8
 
             {
-                "binary_response": false,
-                "response_headers": "Content-Length: 9605\\r\\nExpires: -1\\r\\nX-Aspnet-Version: 2.0.50727",
-                "target_id": 5,
-                "session_tokens": "{}",
-                "logout": null,
-                "raw_request": "GET http://demo.testfire.net/ HTTP/1.1",
-                "time_human": "0s, 255ms",
-                "data": "",
-                "id": 2,
-                "url": "http://demo.testfire.net/",
-                "response_body": "",
-                "local_timestamp": "01-04 15:42:08",
-                "response_size": 9605,
-                "response_status": "200 OK",
-                "scope": true,
-                "login": null,
-                "method": "GET"
+                "status": "success",
+                "data": {
+                    "binary_response": false,
+                    "response_headers": "Content-Length: 9605\\r\\nExpires: -1\\r\\nX-Aspnet-Version: 2.0.50727",
+                    "target_id": 5,
+                    "session_tokens": "{}",
+                    "logout": null,
+                    "raw_request": "GET http://demo.testfire.net/ HTTP/1.1",
+                    "time_human": "0s, 255ms",
+                    "data": "",
+                    "id": 2,
+                    "url": "http://demo.testfire.net/",
+                    "response_body": "",
+                    "local_timestamp": "01-04 15:42:08",
+                    "response_size": 9605,
+                    "response_status": "200 OK",
+                    "scope": true,
+                    "login": null,
+                    "method": "GET"
+                }
             }
         """
         try:
@@ -103,11 +106,17 @@ class TransactionDataHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Length: 0
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         try:
             if transaction_id:
                 delete_transaction(self.session, int(transaction_id), int(target_id))
+                self.success({})
             else:
                 raise APIError(400, "Needs transaction id")
         except exceptions.InvalidTargetReference as e:
@@ -126,7 +135,7 @@ class TransactionHrtHandler(APIRequestHandler):
 
         .. sourcecode:: http
 
-            POST /api/targets/5/transactions/hrt/2/ HTTP/1.1
+            POST /api/v1/targets/5/transactions/hrt/2/ HTTP/1.1
             Content-Type: application/x-www-form-urlencoded; charset=UTF-8
             X-Requested-With: XMLHttpRequest
             Content-Length: 13
@@ -173,7 +182,7 @@ class TransactionSearchHandler(APIRequestHandler):
 
         .. sourcecode:: http
 
-            GET /api/targets/5/transactions/search/ HTTP/1.1
+            GET /api/v1/targets/5/transactions/search/ HTTP/1.1
             X-Requested-With: XMLHttpRequest
 
         **Example response**:
@@ -183,11 +192,13 @@ class TransactionSearchHandler(APIRequestHandler):
             HTTP/1.1 200 OK
             Content-Type: application/json; charset=UTF-8
 
-
             {
-                "records_total": 0,
-                "records_filtered": 0,
-                "data": []
+                "status": "success",
+                "data": {
+                    "records_total": 0,
+                    "records_filtered": 0,
+                    "data": []
+                }
             }
         """
         if not target_id:  # Must be a integer target id
@@ -196,7 +207,7 @@ class TransactionSearchHandler(APIRequestHandler):
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
-            self.write(search_all_transactions(self.session, filter_data, target_id=int(target_id)))
+            self.success(search_all_transactions(self.session, filter_data, target_id=int(target_id)))
         except exceptions.InvalidTargetReference as e:
             raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidTransactionReference as e:
