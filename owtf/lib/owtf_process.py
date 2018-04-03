@@ -51,7 +51,6 @@ class OWTFProcess(Process):
         :rtype: None
         """
         try:
-            self.logger.enable_logging()
             self.pseudo_run()
         except KeyboardInterrupt:
             # In case of interrupt while listing plugins

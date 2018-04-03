@@ -10,7 +10,7 @@ import multiprocessing
 from owtf.utils.file import catch_io_errors, get_log_path, FileOperations, get_logs_dir
 from owtf.utils.formatters import ConsoleFormatter, FileFormatter
 
-__all__ = ['OWTFLogger', 'get_logger']
+__all__ = ['OWTFLogger']
 
 
 class OWTFLogger(object):
@@ -19,6 +19,7 @@ class OWTFLogger(object):
         # Bootstrap log files directory.
         FileOperations.create_missing_dirs(get_logs_dir())
         self.file_handler = catch_io_errors(logging.FileHandler)
+        self.enable_logging()
 
     def enable_logging(self, **kwargs):
         """Enables both file and console logging
@@ -60,8 +61,3 @@ class OWTFLogger(object):
         logger = logging.getLogger()
         if isinstance(logger.handlers[-1], logging.StreamHandler):
             logger.removeHandler(logger.handlers[-1])
-
-
-def get_logger():
-    logger = OWTFLogger()
-    logger.enable_logging()
