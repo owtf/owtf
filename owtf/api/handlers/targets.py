@@ -41,20 +41,23 @@ class TargetConfigHandler(APIRequestHandler):
             Content-Type: application/json; charset=UTF-8
 
             {
-                "top_url": "https://google.com:443",
-                "top_domain": "com",
-                "target_url": "https://google.com",
-                "max_user_rank": 0,
-                "url_scheme": "https",
-                "host_path": "google.com",
-                "ip_url": "https://172.217.10.238",
-                "host_ip": "172.217.10.238",
-                "max_owtf_rank": -1,
-                "port_number": "443",
-                "host_name": "google.com",
-                "alternative_ips": "['172.217.10.238']",
-                "scope": true,
-                "id": 2
+                "status": "success",
+                "data": {
+                    "top_url": "https://google.com:443",
+                    "top_domain": "com",
+                    "target_url": "https://google.com",
+                    "max_user_rank": 0,
+                    "url_scheme": "https",
+                    "host_path": "google.com",
+                    "ip_url": "https://172.217.10.238",
+                    "host_ip": "172.217.10.238",
+                    "max_owtf_rank": -1,
+                    "port_number": "443",
+                    "host_name": "google.com",
+                    "alternative_ips": "['172.217.10.238']",
+                    "scope": true,
+                    "id": 2
+                }
             }
         """
         try:
@@ -85,7 +88,12 @@ class TargetConfigHandler(APIRequestHandler):
 
             HTTP/1.1 201 Created
             Content-Length: 0
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         if (target_id) or (not self.get_argument("target_url", default=None)):  # How can one post using an id xD
             raise APIError(400, "Incorrect query parameters")
@@ -102,7 +110,27 @@ class TargetConfigHandler(APIRequestHandler):
         return self.patch(target_id)
 
     def patch(self, target_id=None):
-        """Update a target."""
+        """Update a target.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            PATCH /api/v1/targets/1 HTTP/1.1
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
+        """
         if not target_id or not self.request.arguments:
             raise APIError(400, "Incorrect query parameters")
         try:
@@ -127,7 +155,12 @@ class TargetConfigHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Length: 0
+            Content-Type: application/json
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         if not target_id:
             raise APIError(400, "Missing target_id")
@@ -160,44 +193,46 @@ class TargetConfigSearchHandler(APIRequestHandler):
             HTTP/1.1 200 OK
             Content-Type: application/json; charset=UTF-8
 
-
             {
-                "records_total": 4,
-                "records_filtered": 2,
-                "data": [
-                    {
-                        "top_url": "https://google.com:443",
-                        "top_domain": "com",
-                        "target_url": "https://google.com",
-                        "max_user_rank": -1,
-                        "url_scheme": "https",
-                        "host_path": "google.com",
-                        "ip_url": "https://172.217.10.238",
-                        "host_ip": "172.217.10.238",
-                        "max_owtf_rank": -1,
-                        "port_number": "443",
-                        "host_name": "google.com",
-                        "alternative_ips": "['172.217.10.238']",
-                        "scope": true,
-                        "id": 2
-                    },
-                    {
-                        "top_url": "http://google.com:80",
-                        "top_domain": "com",
-                        "target_url": "http://google.com",
-                        "max_user_rank": -1,
-                        "url_scheme": "http",
-                        "host_path": "google.com",
-                        "ip_url": "http://172.217.10.238",
-                        "host_ip": "172.217.10.238",
-                        "max_owtf_rank": -1,
-                        "port_number": "80",
-                        "host_name": "google.com",
-                        "alternative_ips": "['172.217.10.238']",
-                        "scope": true,
-                        "id": 1
-                    }
-                ]
+                "status": "success",
+                "data": {
+                    "records_total": 4,
+                    "records_filtered": 2,
+                    "data": [
+                        {
+                            "top_url": "https://google.com:443",
+                            "top_domain": "com",
+                            "target_url": "https://google.com",
+                            "max_user_rank": -1,
+                            "url_scheme": "https",
+                            "host_path": "google.com",
+                            "ip_url": "https://172.217.10.238",
+                            "host_ip": "172.217.10.238",
+                            "max_owtf_rank": -1,
+                            "port_number": "443",
+                            "host_name": "google.com",
+                            "alternative_ips": "['172.217.10.238']",
+                            "scope": true,
+                            "id": 2
+                        },
+                        {
+                            "top_url": "http://google.com:80",
+                            "top_domain": "com",
+                            "target_url": "http://google.com",
+                            "max_user_rank": -1,
+                            "url_scheme": "http",
+                            "host_path": "google.com",
+                            "ip_url": "http://172.217.10.238",
+                            "host_ip": "172.217.10.238",
+                            "max_owtf_rank": -1,
+                            "port_number": "80",
+                            "host_name": "google.com",
+                            "alternative_ips": "['172.217.10.238']",
+                            "scope": true,
+                            "id": 1
+                        }
+                    ]
+                }
             }
         """
         try:
@@ -229,16 +264,18 @@ class TargetSeverityChartHandler(APIRequestHandler):
             HTTP/1.1 200 OK
             Content-Type: application/json; charset=UTF-8
 
-
             {
-                "data": [
-                    {
-                        "color": "#A9A9A9",
-                        "id": 0,
-                        "value": 100,
-                        "label": "Not Ranked"
-                    }
-                ]
+                "status": "success",
+                "data": {
+                    "data": [
+                        {
+                            "color": "#A9A9A9",
+                            "id": 0,
+                            "value": 100,
+                            "label": "Not Ranked"
+                        }
+                    ]
+                }
             }
         """
         try:

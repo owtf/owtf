@@ -35,25 +35,28 @@ class ConfigurationHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Vary: Accept-Encoding
+            Content-Type: application/json
 
 
-            [
-               {
-                  "dirty":false,
-                  "section":"AUX_PLUGIN_DATA",
-                  "value":"report",
-                  "descrip":"Filename for the attachment to be sent",
-                  "key":"ATTACHMENT_NAME"
-               },
-               {
-                  "dirty":false,
-                  "section":"DICTIONARIES",
-                  "value":"hydra",
-                  "descrip":"",
-                  "key":"BRUTEFORCER"
-               }
-            ]
+            {
+                "status": "success",
+                "data": [
+                    {
+                        "dirty": false,
+                        "key": "ATTACHMENT_NAME",
+                        "descrip": "Filename for the attachment to be sent",
+                        "section": "AUX_PLUGIN_DATA",
+                        "value": "report"
+                    },
+                    {
+                        "dirty": false,
+                        "key": "BRUTEFORCER",
+                        "descrip": "",
+                        "section": "DICTIONARIES",
+                        "value": "hydra"
+                    },
+                ]
+            }
         """
         filter_data = dict(self.request.arguments)
         self.success(get_all_config_dicts(self.session, filter_data))
@@ -75,9 +78,13 @@ class ConfigurationHandler(APIRequestHandler):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Vary: Accept-Encoding
-            Content-Length: 0
-            Content-Type: text/html; charset=UTF-8
+            Content-Type: application/json
+
+
+            {
+                "status": "success",
+                "data": {}
+            }
         """
         for key, value_list in list(self.request.arguments.items()):
             try:
