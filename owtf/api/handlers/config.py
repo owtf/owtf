@@ -83,12 +83,12 @@ class ConfigurationHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
         """
         for key, value_list in list(self.request.arguments.items()):
             try:
                 update_config_val(self.session, key, value_list[0])
-                self.success({})
+                self.success(None)
             except exceptions.InvalidConfigurationReference as e:
                 raise APIError(400, 'Invalid configuration item specified')

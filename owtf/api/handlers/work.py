@@ -128,7 +128,7 @@ class WorkerHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
 
         """
@@ -136,7 +136,7 @@ class WorkerHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
         worker_manager.create_worker()
         self.set_status(201)  # Stands for "201 Created"
-        self.success({})
+        self.success(None)
 
     def options(self, worker_id=None, action=None):
         """OPTIONS check (pre-flight) for CORS.
@@ -186,14 +186,14 @@ class WorkerHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
         """
         if not worker_id and action:
             raise APIError(400, "Needs worker id")
         try:
             worker_manager.delete_worker(int(worker_id))
-            self.success({})
+            self.success(None)
         except exceptions.InvalidWorkerReference:
             raise APIError(400, "Invalid worker referenced")
 
@@ -297,7 +297,7 @@ class WorklistHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
         """
         if work_id is not None or action is not None:
@@ -315,7 +315,7 @@ class WorklistHandler(APIRequestHandler):
             force_overwrite = str2bool(self.get_argument("force_overwrite", "False"))
             add_work(self.session, target_list, plugin_list, force_overwrite=force_overwrite)
             self.set_status(201)
-            self.success({})
+            self.success(None)
         except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidParameterType:
@@ -341,7 +341,7 @@ class WorklistHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
         """
         if work_id is None:
@@ -356,7 +356,7 @@ class WorklistHandler(APIRequestHandler):
             else:
                 if action == 'delete':
                     delete_all_work(self.session)
-            self.success({})
+            self.success(None)
         except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidParameterType:
@@ -386,7 +386,7 @@ class WorklistHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
         """
         if work_id is None:
@@ -405,7 +405,7 @@ class WorklistHandler(APIRequestHandler):
                     pause_all_work(self.session)
                 elif action == 'resume':
                     resume_all_work(self.session)
-            self.success({})
+            self.success(None)
         except exceptions.InvalidWorkReference:
             raise APIError(400, "Invalid worker referenced")
 

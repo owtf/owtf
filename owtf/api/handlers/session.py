@@ -84,7 +84,7 @@ class OWTFSessionHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
         """
         if (session_id is not None) or (self.get_argument("name", None) is None) or (action is not None):
@@ -93,7 +93,7 @@ class OWTFSessionHandler(APIRequestHandler):
         try:
             add_session(self.session, self.get_argument("name"))
             self.set_status(201)  # Stands for "201 Created"
-            self.success({})
+            self.success(None)
         except exceptions.DBIntegrityException as e:
             raise APIError(409, "An unknown exception occurred when performing a DB operation")
 
@@ -116,7 +116,7 @@ class OWTFSessionHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
         """
         target_id = self.get_argument("target_id", None)
@@ -130,7 +130,7 @@ class OWTFSessionHandler(APIRequestHandler):
                     self.session, int(self.get_argument("target_id")), session_id=int(session_id))
             elif action == "activate":
                 set_session(self.session, int(session_id))
-            self.success({})
+            self.success(None)
         except exceptions.InvalidTargetReference as e:
             raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidSessionReference as e:
@@ -155,13 +155,13 @@ class OWTFSessionHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
         """
         if (session_id is None) or action is not None:
             raise APIError(400, "Incorrect query parameters")
         try:
             delete_session(self.session, int(session_id))
-            self.success({})
+            self.success(None)
         except exceptions.InvalidSessionReference as e:
             raise APIError(400, "Invalid session id provided")

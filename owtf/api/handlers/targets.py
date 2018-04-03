@@ -3,12 +3,6 @@ owtf.api.handlers.targets
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-import logging
-
-import tornado.gen
-import tornado.httpclient
-import tornado.web
-
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.lib.exceptions import InvalidTargetReference, APIError
@@ -92,7 +86,7 @@ class TargetConfigHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
         """
         if (target_id) or (not self.get_argument("target_url", default=None)):  # How can one post using an id xD
@@ -100,7 +94,7 @@ class TargetConfigHandler(APIRequestHandler):
         try:
             add_targets(self.session, dict(self.request.arguments)["target_url"])
             self.set_status(201)  # Stands for "201 Created"
-            self.success({})
+            self.success(None)
         except exceptions.DBIntegrityException:
             raise APIError(409, "An unknown exception occurred when performing a DB operation")
         except exceptions.UnresolvableTargetException:
@@ -128,7 +122,7 @@ class TargetConfigHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
         """
         if not target_id or not self.request.arguments:
@@ -136,7 +130,7 @@ class TargetConfigHandler(APIRequestHandler):
         try:
             patch_data = dict(self.request.arguments)
             update_target(self.session, patch_data, id=target_id)
-            self.success({})
+            self.success(None)
         except InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
 
@@ -159,14 +153,14 @@ class TargetConfigHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
         """
         if not target_id:
             raise APIError(400, "Missing target_id")
         try:
             delete_target(self.session, id=target_id)
-            self.success({})
+            self.success(None)
         except InvalidTargetReference as e:
             raise APIError(400, "Invalid target reference provided")
 

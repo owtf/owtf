@@ -110,13 +110,13 @@ class TransactionDataHandler(APIRequestHandler):
 
             {
                 "status": "success",
-                "data": {}
+                "data": null
             }
         """
         try:
             if transaction_id:
                 delete_transaction(self.session, int(transaction_id), int(target_id))
-                self.success({})
+                self.success(None)
             else:
                 raise APIError(400, "Needs transaction id")
         except exceptions.InvalidTargetReference as e:
