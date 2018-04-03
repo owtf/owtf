@@ -62,7 +62,7 @@ class TargetConfigHandler(APIRequestHandler):
                 self.success(get_target_config_dicts(self.session, filter_data))
             else:
                 self.success(get_target_config_by_id(self.session, target_id))
-        except InvalidTargetReference as e:
+        except InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
 
     def post(self, target_id=None):
@@ -96,9 +96,9 @@ class TargetConfigHandler(APIRequestHandler):
             self.set_status(201)  # Stands for "201 Created"
             self.success(None)
         except exceptions.DBIntegrityException:
-            raise APIError(409, "An unknown exception occurred when performing a DB operation")
+            raise APIError(400, "An unknown exception occurred when performing a DB operation")
         except exceptions.UnresolvableTargetException:
-            raise APIError(409, "The target url can not be resolved")
+            raise APIError(400, "The target url can not be resolved")
 
     def put(self, target_id=None):
         return self.patch(target_id)
@@ -163,7 +163,7 @@ class TargetConfigHandler(APIRequestHandler):
             delete_target(self.session, id=target_id)
             self.set_status(204)
             self.success(None)
-        except InvalidTargetReference as e:
+        except InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
 
 
@@ -235,7 +235,7 @@ class TargetConfigSearchHandler(APIRequestHandler):
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
             self.success(search_target_configs(self.session, filter_data=filter_data))
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")
 
 
@@ -276,5 +276,5 @@ class TargetSeverityChartHandler(APIRequestHandler):
         """
         try:
             self.success(get_targets_by_severity_count(self.session))
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")

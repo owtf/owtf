@@ -100,8 +100,8 @@ class WorkerHandler(APIRequestHandler):
                 self.success(worker_manager.get_worker_details(int(worker_id)))
             if worker_id and action:
                 if int(worker_id) == 0:
-                    getattr(worker_manager, '%s_all_workers' % action)()
-                getattr(worker_manager, '%s_worker' % action)(int(worker_id))
+                    getattr(worker_manager, '{}_all_workers'.format(action))()
+                getattr(worker_manager, '{}_worker'.format(action))(int(worker_id))
         except exceptions.InvalidWorkerReference:
             raise APIError(400, "Invalid worker referenced")
 

@@ -222,7 +222,7 @@ def update_config_val(session, key, value):
         session.merge(config_obj)
         session.commit()
     else:
-        raise InvalidConfigurationReference("No setting exists with key: %s" % str(key))
+        raise InvalidConfigurationReference("No setting exists with key: {}".format(str(key)))
 
 
 def get_replacement_dict(session):
