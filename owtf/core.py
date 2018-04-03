@@ -47,10 +47,6 @@ owtf_pid = None
 from owtf.db.database import get_scoped_session
 db = get_scoped_session()
 
-# Initialize logger
-logger = OWTFLogger()
-logger.enable_logging()
-
 
 def print_banner():
     """

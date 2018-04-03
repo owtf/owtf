@@ -5,14 +5,15 @@ owtf.db.database
 This file handles all the database transactions.
 """
 import functools
+import sys
 import logging
 
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine, exc, func
 from sqlalchemy.orm import Session as _Session
 from sqlalchemy.orm import sessionmaker
 
 from owtf.db.models import Base
-from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_PORT, DATABASE_USER
+from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_USER, DATABASE_PORT
 
 
 def get_count(q):
@@ -43,11 +44,16 @@ def flush_transaction(method):
 
 
 def get_db_engine():
-    engine = create_engine(
-        "postgresql+psycopg2://{}:{}@{}/{}".format(DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_NAME),
-        pool_recycle=120)
-    Base.metadata.create_all(engine)
-    return engine
+    try:
+        engine = create_engine(
+            "postgresql+psycopg2://{}:{}@{}:{}/{}".format(DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_PORT,
+                                                          DATABASE_NAME),
+            pool_recycle=120)
+        Base.metadata.create_all(engine)
+        return engine
+    except exc.OperationalError as e:
+        logging.error("Could not create database engine - Exception occured\n{}".format(str(e)))
+        sys.exit(1)
 
 
 def get_scoped_session():

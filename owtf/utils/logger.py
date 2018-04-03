@@ -10,7 +10,7 @@ import multiprocessing
 from owtf.utils.file import catch_io_errors, get_log_path, FileOperations, get_logs_dir
 from owtf.utils.formatters import ConsoleFormatter, FileFormatter
 
-__all__ = ['OWTFLogger']
+__all__ = ['OWTFLogger', 'get_logger']
 
 
 class OWTFLogger(object):
@@ -60,3 +60,8 @@ class OWTFLogger(object):
         logger = logging.getLogger()
         if isinstance(logger.handlers[-1], logging.StreamHandler):
             logger.removeHandler(logger.handlers[-1])
+
+
+def get_logger():
+    logger = OWTFLogger()
+    logger.enable_logging()
