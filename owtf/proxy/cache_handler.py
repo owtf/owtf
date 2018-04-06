@@ -92,7 +92,7 @@ class CacheHandler(object):
         """This function takes in a HTTPResponse object and dumps the request
         and response data. It also creates a .rd file with same file name
 
-        .note::
+        .. note::
             This is used by transaction logger
 
         :param response: The proxy response

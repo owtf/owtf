@@ -6,6 +6,7 @@ Submodules
 
 owtf.utils.app module
 ---------------------
+
 .. automodule:: owtf.utils.app
     :members:
     :undoc-members:
@@ -79,6 +80,14 @@ owtf.utils.pycompat module
 --------------------------
 
 .. automodule:: owtf.utils.pycompat
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+owtf.utils.signals module
+-------------------------
+
+.. automodule:: owtf.utils.signals
     :members:
     :undoc-members:
     :show-inheritance:

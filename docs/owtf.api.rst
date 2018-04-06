@@ -11,15 +11,6 @@ Subpackages
 Submodules
 ----------
 
-owtf.api.jsend module
----------------------
-
-.. automodule:: owtf.api.jsend
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
 owtf.api.main module
 --------------------
 
@@ -44,22 +35,13 @@ owtf.api.routes module
     :undoc-members:
     :show-inheritance:
 
-owtf.api.schema module
-----------------------
+owtf.api.utils module
+---------------------
 
-.. automodule:: owtf.api.schema
+.. automodule:: owtf.api.utils
     :members:
     :undoc-members:
     :show-inheritance:
-
-owtf.api.serializers module
----------------------------
-
-.. automodule:: owtf.api.serializers
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 
 Module contents
@@ -69,3 +51,4 @@ Module contents
     :members:
     :undoc-members:
     :show-inheritance:
+

@@ -13,7 +13,6 @@ owtf.cli.main module
     :show-inheritance:
 
 
-
 Module contents
 ---------------
 

@@ -3,11 +3,10 @@ owtf.managers.resource
 ~~~~~~~~~~~~~~~~~~~~~~
 
 """
-
 import logging
 import os
 
-from owtf import get_scoped_session
+from owtf.db.database import get_scoped_session
 from owtf.db import models
 from owtf.managers.config import get_replacement_dict
 from owtf.utils.file import FileOperations
@@ -115,7 +114,7 @@ def get_resources_from_file(resource_file):
 
 def load_resources_from_file(session, default, fallback):
     """Parses the resources config file and loads data into the DB
-    .note::
+    .. note::
 
         This needs to be a list instead of a dictionary to preserve order in python < 2.7
 

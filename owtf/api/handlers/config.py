@@ -9,21 +9,86 @@ import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
+from owtf.lib.exceptions import APIError
 from owtf.managers.config import get_all_config_dicts, update_config_val
 
 __all__ = ['ConfigurationHandler']
 
 
 class ConfigurationHandler(APIRequestHandler):
-    SUPPORTED_METHODS = ('GET', 'PATCH')
+    """Update framework settings and tool paths."""
+
+    SUPPORTED_METHODS = ['GET', 'PATCH']
 
     def get(self):
+        """Return all configuration items.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/configuration HTTP/1.1
+            Accept: application/json
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+
+            {
+                "status": "success",
+                "data": [
+                    {
+                        "dirty": false,
+                        "key": "ATTACHMENT_NAME",
+                        "descrip": "Filename for the attachment to be sent",
+                        "section": "AUX_PLUGIN_DATA",
+                        "value": "report"
+                    },
+                    {
+                        "dirty": false,
+                        "key": "BRUTEFORCER",
+                        "descrip": "",
+                        "section": "DICTIONARIES",
+                        "value": "hydra"
+                    },
+                ]
+            }
+        """
         filter_data = dict(self.request.arguments)
-        self.write(get_all_config_dicts(self.session, filter_data))
+        self.success(get_all_config_dicts(self.session, filter_data))
 
     def patch(self):
+        """Update configuration item
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            PATCH /api/v1/configuration/ HTTP/1.1
+            Accept: */*
+            Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+            X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+
+            {
+                "status": "success",
+                "data": null
+            }
+        """
         for key, value_list in list(self.request.arguments.items()):
             try:
                 update_config_val(self.session, key, value_list[0])
-            except exceptions.InvalidConfigurationReference:
-                raise tornado.web.HTTPError(400)
+                self.success(None)
+            except exceptions.InvalidConfigurationReference as e:
+                raise APIError(400, 'Invalid configuration item specified')

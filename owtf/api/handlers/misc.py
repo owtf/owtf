@@ -2,6 +2,7 @@
 owtf.api.handlers.misc
 ~~~~~~~~~~~~~~~~~~~~~~
 
+To be deprecated.
 """
 
 import logging

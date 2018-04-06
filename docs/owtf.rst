@@ -46,14 +46,6 @@ owtf.core module
     :undoc-members:
     :show-inheritance:
 
-owtf.error_reporting module
----------------------------
-
-.. automodule:: owtf.error_reporting
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 owtf.settings module
 --------------------
 

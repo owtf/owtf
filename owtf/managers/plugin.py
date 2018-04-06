@@ -23,7 +23,7 @@ TEST_GROUPS = ['web', 'network', 'auxiliary']
 def get_test_groups_config(file_path):
     """Reads the test groups from a config file
 
-    .note::
+    .. note::
         This needs to be a list instead of a dictionary to preserve order in python < 2.7
 
     :param file_path: The path to the config file
@@ -77,7 +77,7 @@ def load_test_groups(session, file_default, file_fallback, plugin_group):
 def load_plugins(session):
     """Loads the plugins from the filesystem and updates their info.
 
-    .note::
+    .. note::
         Walks through each sub-directory of `PLUGINS_DIR`.
         For each file, loads it thanks to the imp module.
         Updates the database with the information for each plugin:

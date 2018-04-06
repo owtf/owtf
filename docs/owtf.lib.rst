@@ -4,8 +4,8 @@ owtf.lib package
 Submodules
 ----------
 
-owtf.lib.cli_options module
----------------------------
+owtf.lib.cli\_options module
+----------------------------
 
 .. automodule:: owtf.lib.cli_options
     :members:
@@ -28,8 +28,8 @@ owtf.lib.filelock module
     :undoc-members:
     :show-inheritance:
 
-owtf.lib.owtf_process module
-----------------------------
+owtf.lib.owtf\_process module
+-----------------------------
 
 .. automodule:: owtf.lib.owtf_process
     :members:

@@ -4,8 +4,8 @@ owtf.managers package
 Submodules
 ----------
 
-owtf.managers.command_register module
--------------------------------------
+owtf.managers.command\_register module
+--------------------------------------
 
 .. automodule:: owtf.managers.command_register
     :members:

@@ -7,8 +7,16 @@ import sys
 import logging
 import multiprocessing
 
-from owtf.utils.file import catch_io_errors, get_log_path
+from owtf.settings import USE_SENTRY
+from owtf.utils.error import get_sentry_client
+from owtf.utils.file import catch_io_errors, get_log_path, FileOperations, get_logs_dir
 from owtf.utils.formatters import ConsoleFormatter, FileFormatter
+
+try:
+    from raven.handlers.logging import SentryHandler
+    from raven.conf import setup_logging
+except ImportError:
+    SentryHandler = None
 
 __all__ = ['OWTFLogger']
 
@@ -16,14 +24,27 @@ __all__ = ['OWTFLogger']
 class OWTFLogger(object):
 
     def __init__(self):
+        # Bootstrap log files directory.
+        FileOperations.create_missing_dirs(get_logs_dir())
         self.file_handler = catch_io_errors(logging.FileHandler)
+        # If Sentry raven is installed
+        try:
+            if SentryHandler and USE_SENTRY:
+                self.sentry_client = get_sentry_client()
+                handler = SentryHandler(self.sentry_client)
+                handler.setLevel(logging.DEBUG)
+                setup_logging(handler)
+        except:
+            pass
+        self.enable_logging()
 
     def enable_logging(self, **kwargs):
         """Enables both file and console logging
-         . note::
+
+         .. note::
             + process_name <-- can be specified in kwargs
-            + Must be called from inside the process because we are kind of
-              overriding the root logger
+            + Must be called from inside the process because we are kind of overriding the root logger
+
         :param kwargs: Additional arguments to the logger
         :type kwargs: `dict`
         :return:
@@ -44,9 +65,11 @@ class OWTFLogger(object):
 
     def disable_console_logging(self, **kwargs):
         """Disables console logging
-        . note::
+
+        .. note::
             Must be called from inside the process because we should remove handler for that root logger. Since we add
             console handler in the last, we can remove the last handler to disable console logging
+
         :param kwargs: Additional arguments to the logger
         :type kwargs: `dict`
         :return:

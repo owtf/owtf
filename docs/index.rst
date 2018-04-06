@@ -14,7 +14,6 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   owtf
    install.rst
    modules.rst
    config.rst

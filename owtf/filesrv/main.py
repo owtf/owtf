@@ -13,7 +13,6 @@ from owtf.filesrv.routes import HANDLERS
 from owtf.managers.worker import worker_manager
 from owtf.settings import FILE_SERVER_LOG, FILE_SERVER_PORT, SERVER_ADDR, TEMPLATES
 from owtf.utils.app import Application
-from owtf.utils.logger import OWTFLogger
 
 __all__ = ['start_file_server']
 

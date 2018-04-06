@@ -4,14 +4,6 @@ owtf.api.handlers package
 Submodules
 ----------
 
-owtf.api.handlers.auth module
------------------------------
-
-.. automodule:: owtf.api.handlers.auth
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 owtf.api.handlers.base module
 -----------------------------
 
@@ -24,6 +16,22 @@ owtf.api.handlers.config module
 -------------------------------
 
 .. automodule:: owtf.api.handlers.config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+owtf.api.handlers.health module
+-------------------------------
+
+.. automodule:: owtf.api.handlers.health
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+owtf.api.handlers.index module
+------------------------------
+
+.. automodule:: owtf.api.handlers.index
     :members:
     :undoc-members:
     :show-inheritance:
@@ -72,14 +80,6 @@ owtf.api.handlers.transactions module
 -------------------------------------
 
 .. automodule:: owtf.api.handlers.transactions
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-owtf.api.handlers.ui_handlers module
-------------------------------------
-
-.. automodule:: owtf.api.handlers.ui_handlers
     :members:
     :undoc-members:
     :show-inheritance:
