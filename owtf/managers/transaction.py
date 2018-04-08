@@ -73,32 +73,35 @@ def transaction_gen_query(session, criteria, target_id, for_stats=False):
         if criteria.get('url', None):
             if isinstance(criteria.get('url'), list):
                 criteria['url'] = criteria['url'][0]
-            query = query.filter(models.Transaction.url.like('%%%s%%' % criteria['url']))
+            query = query.filter(models.Transaction.url.like('%%{!s}%%'.format(criteria['url'])))
         if criteria.get('method', None):
             if isinstance(criteria.get('method'), list):
                 criteria['method'] = criteria['method'][0]
-            query = query.filter(models.Transaction.method.like('%%%s%%' % criteria.get('method')))
+            query = query.filter(models.Transaction.method.like('%%{!s}%%'.format(criteria.get('method'))))
         if criteria.get('data', None):
             if isinstance(criteria.get('data'), list):
                 criteria['data'] = criteria['data'][0]
-            query = query.filter(models.Transaction.data.like('%%%s%%' % criteria.get('data')))
+            query = query.filter(models.Transaction.data.like('%%{!s}%%'.format(criteria.get('data'))))
         if criteria.get('raw_request', None):
             if isinstance(criteria.get('raw_request'), list):
                 criteria['raw_request'] = criteria['raw_request'][0]
-            query = query.filter(models.Transaction.raw_request.like('%%%s%%' % criteria.get('raw_request')))
+            query = query.filter(models.Transaction.raw_request.like('%%{!s}%%'.format(criteria.get('raw_request'))))
         if criteria.get('response_status', None):
             if isinstance(criteria.get('response_status'), list):
                 criteria['response_status'] = criteria['response_status'][0]
-            query = query.filter(models.Transaction.response_status.like('%%%s%%' % criteria.get('response_status')))
+            query = query.filter(
+                models.Transaction.response_status.like('%%{!s}%%'.format(criteria.get('response_status'))))
         if criteria.get('response_headers', None):
             if isinstance(criteria.get('response_headers'), list):
                 criteria['response_headers'] = criteria['response_headers'][0]
-            query = query.filter(models.Transaction.response_headers.like('%%%s%%' % criteria.get('response_headers')))
+            query = query.filter(
+                models.Transaction.response_headers.like('%%{!s}%%'.format(criteria.get('response_headers'))))
         if criteria.get('response_body', None):
             if isinstance(criteria.get('response_body'), list):
                 criteria['response_body'] = criteria['response_body'][0]
             query = query.filter(models.Transaction.binary_response is False,
-                                 models.Transaction.response_body.like('%%%s%%' % criteria.get('response_body')))
+                                 models.Transaction.response_body.like('%%{!s}%%'.format(
+                                     criteria.get('response_body'))))
     else:  # If transaction filter is being done
         if criteria.get('url', None):
             if isinstance(criteria.get('url'), str):
@@ -354,7 +357,7 @@ def get_num_transactions_inscope(target_id=None):
     return num_transactions(target_id=target_id)
 
 
-def get_transaction_by_id(id):
+def get_transaction_by_id(session, id):
     """Get transaction object by id
 
     :param id: ID to fetch
@@ -362,7 +365,6 @@ def get_transaction_by_id(id):
     :return: Transaction object
     :rtype: `Class:model.Transaction`
     """
-    session = get_scoped_session()
     model_obj = None
     try:
         id = int(id)
@@ -439,7 +441,7 @@ def compile_regex():
     :return: None
     :rtype: None
     """
-    for key in list(config_handler.get_framework_config_dict().keys()):
+    for key in list(config_handler.get_framework_config_dict.keys()):
         key = key[3:-3]  # Remove "@@@"
         if key.startswith('HEADERS'):
             header_list = get_header_list(key)
@@ -684,7 +686,7 @@ def get_by_id_as_dict(session, trans_id, target_id=None):
     """
     transaction_obj = session.query(models.Transaction).filter_by(target_id=target_id, id=trans_id).first()
     if not transaction_obj:
-        raise InvalidTransactionReference("No transaction with %s exists" % str(trans_id))
+        raise InvalidTransactionReference("No transaction with {!s} exists".format(trans_id))
     return get_transaction_dict(transaction_obj, include_raw_data=True)
 
 
@@ -719,7 +721,7 @@ def get_hrt_response(session, filter_data, trans_id, target_id=None):
         data = filter_data['data'][0]
     # If target not found. Raise error.
     if not transaction_obj:
-        raise InvalidTransactionReference("No transaction with %s exists" % str(trans_id))
+        raise InvalidTransactionReference("No transaction with {!s} exists".format(trans_id))
     raw_request = transaction_obj.raw_request
     try:
         hrt_obj = HttpRequestTranslator(
@@ -727,7 +729,7 @@ def get_hrt_response(session, filter_data, trans_id, target_id=None):
         codes = hrt_obj.generate_code()
         return ''.join(v for v in list(codes.values()))
     except Exception as e:
-        logging.error('Unexpected exception when running HRT: %s' % e)
+        logging.error('Unexpected exception when running HRT: $s', str(e))
         return str(e)
 
 

@@ -48,13 +48,14 @@ class PluginParams(object):
                 continue
             chunks = arg.split('=')
             if len(chunks) < 2:
-                add_error(self.session, "USER ERROR: %s arguments should be in NAME=VALUE format" % str(chunks), 'user')
+                add_error(self.session, "USER ERROR: {!s} arguments should be in NAME=VALUE format".format(str(chunks)),
+                          'user')
                 return False
             arg_name = chunks[0]
             try:
                 arg_val = arg.replace(arg_name, '')[1:]
             except ValueError:
-                add_error(self.session, "USER ERROR: %s arguments should be in NAME=VALUE format" % str(arg_name),
+                add_error(self.session, "USER ERROR: {!s} arguments should be in NAME=VALUE format".format(arg_name),
                           'user')
                 return False
             self.args[arg_name] = arg_val
@@ -78,7 +79,7 @@ class PluginParams(object):
         for arg_name, arg_description in list(args.items()):
             if arg_description is None:
                 arg_description = ""
-            logging.info("- %s%s%s" % (arg_name, (30 - len(arg_name)) * '_', arg_description.replace('\n', "\n")))
+            logging.info("- %s%s%s", arg_name, (30 - len(arg_name)) * '_', arg_description.replace('\n', "\n"))
 
     def get_args_example(self, full_args_list):
         """Arguments for an example plugin
@@ -104,12 +105,12 @@ class PluginParams(object):
         :return: None
         :rtype: None
         """
-        logging.info("\nInformation for %s" % self.show_plugin(plugin))
-        logging.info("\nDescription: %s" % str(full_args_list['Description']))
+        logging.info("\nInformation for %s", self.show_plugin(plugin))
+        logging.info("\nDescription: %s", str(full_args_list['Description']))
         self.list_args(full_args_list['mandatory'], True)
         if len(full_args_list['Optional']) > 0:
             self.list_args(full_args_list['Optional'], False)
-        logging.info("\nUsage: %s\n" % self.get_args_example(full_args_list))
+        logging.info("\nUsage: %s\n", self.get_args_example(full_args_list))
         abort_framework("User is only viewing options, exiting")
 
     def show_plugin(self, plugin):
@@ -134,13 +135,13 @@ class PluginParams(object):
         :return: True if run is successful
         :rtype: `bool`
         """
-        default_order_str = " (Default order is: %s)" % str(settings_list)
+        default_order_str = " (Default order is: {!s})".format(settings_list)
         for setting in settings_list:
             if config_handler.is_set(setting):  # argument is set in config
                 args[arg_name] = config_handler.get_val(setting)
-                logging.info("default not passed '%s' to '%s'%s" % (arg_name, str(args[arg_name]), default_order_str))
+                logging.info("default not passed '%s' to '%s'%s", arg_name, str(args[arg_name]), default_order_str)
                 return True
-        logging.info("Could not default not passed: '%s'%s" % (arg_name, default_order_str))
+        logging.info("Could not default not passed: '%s'%s", arg_name, default_order_str)
         return False
 
     def get_arg_list(self, session, arg_list, plugin, mandatory=True):
@@ -163,16 +164,16 @@ class PluginParams(object):
         for arg_name in arg_list:
             if arg_name not in self.args:
                 config_default_order = [
-                    "%s_%s_%s" % (plugin['code'], plugin['type'], arg_name),
-                    '%s_%s' % (plugin['code'], arg_name), arg_name
+                    "{0}_{1}_{2}".format(plugin['code'], plugin['type'], arg_name), '{0}_{1}'.format(
+                        plugin['code'], arg_name), arg_name
                 ]
                 default = self.default_arg_from_config(args, arg_name, config_default_order)
                 if default or mandatory is False:
                     # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or
                     # argument is optional = ok to skip
                     continue
-                add_error(session, "USER ERROR: %s requires argument: '%s'" % (self.show_plugin(plugin), arg_name),
-                          'user')
+                add_error(session, "USER ERROR: {!s} requires argument: '{!s}'".format(
+                    self.show_plugin(plugin), arg_name), 'user')
                 return self.ret_arg_error({}, plugin)  # Abort processing (invalid data)
             args[arg_name] = self.args[arg_name]
         return args
@@ -224,10 +225,16 @@ class PluginParams(object):
         """
         if ('Mandatory' not in full_args_list) or ('Optional' not in full_args_list):
             add_error(
-                "OWTF PLUGIN BUG: %s requires declared Mandatory and Optional arguments" % self.show_plugin(plugin))
+                self.session,
+                "OWTF PLUGIN BUG: {!s} requires declared Mandatory and Optional arguments".format(
+                    self.show_plugin(plugin)),
+                trace='')
             return self.ret_arg_error(True, plugin)
         if 'Description' not in full_args_list:
-            add_error("OWTF PLUGIN BUG: %s  requires a Description" % self.show_plugin(plugin))
+            add_error(
+                self.session,
+                "OWTF PLUGIN BUG: {!s}  requires a Description".format(self.show_plugin(plugin)),
+                trace="")
             return self.ret_arg_error(False, plugin)
         return True
 
@@ -259,8 +266,8 @@ class PluginParams(object):
         :rtype: None
         """
         for arg_name, arg_val in list(args.items()):
-            logging.info("Overriding configuration setting '_%s' with value %s.." % (arg_name, str(arg_val)))
-            config_handler.set_general_val('string', '_%s' % arg_name,
+            logging.info("Overriding configuration setting '_%s' with value %s..", arg_name, str(arg_val))
+            config_handler.set_general_val('string', '_{!s}'.format(arg_name),
                                            arg_val)  # Pre-pend "_" to avoid naming collisions
 
     def get_permutations(self, args):

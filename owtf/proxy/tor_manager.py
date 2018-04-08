@@ -4,7 +4,6 @@ owtf.proxy.tor_manager
 
 TOR manager module developed by Marios Kourtesis <name.surname@gmail.com>
 """
-
 import logging
 import socket
 import time

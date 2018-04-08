@@ -115,7 +115,10 @@ setup(
     scripts=['bin/owtf'],
     entry_points={
         'console_scripts': [
-            'owtf = owtf.core:main'
+            'owtf = owtf.core:main',
+            'owtf-api-server = owtf.api.main:start_server',
+            'owtf-file-server = owtf.filesrv.main:start_file_server',
+            'owtf-proxy = owtf.proxy.main:start_proxy'
         ]
     },
     classifiers=[

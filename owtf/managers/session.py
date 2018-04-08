@@ -4,7 +4,6 @@ owtf.managers.session
 
 Manager functions for sessions
 """
-
 from owtf.db import models
 from owtf.db.database import get_scoped_session
 from owtf.lib import exceptions
@@ -50,7 +49,7 @@ def set_session(session, session_id):
     query = session.query(models.Session)
     session_obj = query.get(session_id)
     if session_obj is None:
-        raise exceptions.InvalidSessionReference("No session with session_id: %s" % str(session_id))
+        raise exceptions.InvalidSessionReference("No session with session_id: {!s}".format(session_id))
     query.update({'active': False})
     session_obj.active = True
     session.commit()
@@ -81,7 +80,7 @@ def add_session(session, session_name):
         session.commit()
         set_session(session, session_obj.id)
     else:
-        raise exceptions.DBIntegrityException("Session already exists with session name: %s" % session_name)
+        raise exceptions.DBIntegrityException("Session already exists with session name: {!s}".format(session_name))
 
 
 @session_required
@@ -98,9 +97,9 @@ def add_target_to_session(session, target_id, session_id=None):
     session_obj = session.query(models.Session).get(session_id)
     target_obj = session.query(models.Target).get(target_id)
     if session_obj is None:
-        raise exceptions.InvalidSessionReference("No session with id: %s" % str(session_id))
+        raise exceptions.InvalidSessionReference("No session with id: {!s}".format(session_id))
     if target_obj is None:
-        raise exceptions.InvalidTargetReference("No target with id: %s" % str(target_id))
+        raise exceptions.InvalidTargetReference("No target with id: {!s}".format(target_id))
     if session_obj not in target_obj.sessions:
         session_obj.targets.append(target_obj)
     session.commit()
@@ -120,9 +119,9 @@ def remove_target_from_session(session, target_id, session_id=None):
     session_obj = session.query(models.Session).get(session_id)
     target_obj = session.query(models.Target).get(target_id)
     if session_obj is None:
-        raise exceptions.InvalidSessionReference("No session with id: %s" % str(session_id))
+        raise exceptions.InvalidSessionReference("No session with id: {!s}".format(session_id))
     if target_obj is None:
-        raise exceptions.InvalidTargetReference("No target with id: %s" % str(target_id))
+        raise exceptions.InvalidTargetReference("No target with id: {!s}".format(target_id))
     session_obj.targets.remove(target_obj)
     # Delete target whole together if present in this session alone
     if len(target_obj.sessions) == 0:
@@ -141,7 +140,7 @@ def delete_session(session, session_id):
     """
     session_obj = session.query(models.Session).get(session_id)
     if session_obj is None:
-        raise exceptions.InvalidSessionReference("No session with id: %s" % str(session_id))
+        raise exceptions.InvalidSessionReference("No session with id: {!s}".format(session_id))
     for target in session_obj.targets:
         # Means attached to only this session obj
         if len(target.sessions) == 1:
@@ -221,5 +220,5 @@ def get_session_dict(session, session_id):
     """
     session_obj = session.query(models.Session).get(session_id)
     if session_obj is None:
-        raise exceptions.InvalidSessionReference("No session with id: %s" % str(session_id))
+        raise exceptions.InvalidSessionReference("No session with id: {!s}".format(session_id))
     return derive_session_dict(session_obj)

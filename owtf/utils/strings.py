@@ -3,7 +3,6 @@ owtf.utils.strings
 ~~~~~~~~~~~~~~~~~~
 
 """
-
 import base64
 import binascii
 import logging
@@ -13,7 +12,7 @@ from collections import defaultdict
 
 from owtf.settings import REPLACEMENT_DELIMITER
 
-search_regex = re.compile('%s([a-zA-Z0-9-_]*?)%s' % (REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER))
+search_regex = re.compile('{!s}([a-zA-Z0-9-_]*?){!s}'.format(REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER))
 
 
 def str2bool(string):

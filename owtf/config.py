@@ -6,10 +6,8 @@ The Configuration object parses all configuration files, loads them into
 memory, derives some settings and provides framework modules with a central
 repository to get info.
 """
-
 import logging
 import os
-import re
 from collections import defaultdict
 try:  # PY3
     from urllib.parse import urlparse
@@ -27,19 +25,10 @@ __all__ = ['config_handler']
 
 
 class Config(object):
-
-    profiles = {
-        "GENERAL_PROFILE": None,
-        "RESOURCES_PROFILE": None,
-        "WEB_PLUGIN_ORDER_PROFILE": None,
-        "NET_PLUGIN_ORDER_PROFILE": None,
-        "MAPPING_PROFILE": None
-    }
     target = None
 
     def __init__(self):
         self.root_dir = ROOT_DIR
-        self.owtf_pid = os.getppid()
         self.config = defaultdict(list)  # General configuration information.
         for type in CONFIG_TYPES:
             self.config[type] = {}  # key can consist alphabets, numbers, hyphen & underscore.
@@ -54,7 +43,7 @@ class Config(object):
         :rtype: `bool`
         """
         key = self.pad_key(key)
-        config = self.get_config_dict()
+        config = self.get_config_dict
         for type in CONFIG_TYPES:
             if key in config[type]:
                 return True
@@ -67,7 +56,7 @@ class Config(object):
         :type key: `str`
         :return: Value for the key
         """
-        config = self.get_config_dict()
+        config = self.get_config_dict
         for type in CONFIG_TYPES:
             if key in config[type]:
                 return config[type][key]
@@ -155,8 +144,9 @@ class Config(object):
             type = 'string'
         return self.set_general_val(type, key, value)
 
+    @property
     def get_framework_config_dict(self):
-        return self.get_config_dict()['string']
+        return self.get_config_dict['string']
 
     def __getitem__(self, key):
         return self.get_val(key)
@@ -164,6 +154,7 @@ class Config(object):
     def __setitem__(self, key, value):
         return self.set_val(key, value)
 
+    @property
     def get_config_dict(self):
         """Get the global config dictionary
 
@@ -172,6 +163,7 @@ class Config(object):
         """
         return self.config
 
+    @property
     def get_replacement_dict(self):
         return {"FRAMEWORK_DIR": self.root_dir}
 
@@ -182,8 +174,8 @@ class Config(object):
         :rtype: None
         """
         logging.info("Configuration settings: ")
-        for k, v in list(self.get_config_dict().items()):
-            logging.info("%s => %s" % (str(k), str(v)))
+        for k, v in list(self.get_config_dict.items()):
+            logging.info("%s => %s", (str(k), str(v)))
 
 
 config_handler = Config()

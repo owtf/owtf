@@ -27,7 +27,7 @@ def load_config_file(file_path, fallback_file_path):
     :rtype: dict
     """
     file_path = file_path if os.path.isfile(file_path) else fallback_file_path
-    logging.info("Loading data from {}..".format(file_path))
+    logging.info("Loading data from %s..", file_path)
     if not os.path.isfile(file_path):
         # check if the config file exists
         abort_framework("Config file not found at: {}".format(file_path))
@@ -91,7 +91,7 @@ def load_framework_config(default, fallback, root_dir, owtf_pid):
                                                'OWTF_PID': str(owtf_pid)
                                            }))
             except KeyError as e:
-                logging.debug("Exception while parsing framework config: {}".format(str(e)))
+                logging.debug("Exception while parsing framework config: %s", str(e))
                 pass
 
 
@@ -222,7 +222,7 @@ def update_config_val(session, key, value):
         session.merge(config_obj)
         session.commit()
     else:
-        raise InvalidConfigurationReference("No setting exists with key: %s" % str(key))
+        raise InvalidConfigurationReference("No setting exists with key: {!s}".format(key))
 
 
 def get_replacement_dict(session):
