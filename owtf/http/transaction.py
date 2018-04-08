@@ -5,7 +5,6 @@ owtf.http.transaction
 HTTP_Transaction is a container of useful HTTP Transaction information to
 simplify code both in the framework and the plugins.
 """
-import cgi
 import gzip
 import io
 import logging
@@ -28,14 +27,7 @@ class HTTPTransaction(object):
         self.timer = timer
         self.new = False
 
-    def scope_str(self):
-        """Get the scope in a string format
-
-        :return: scope
-        :rtype: `str`
-        """
-        return str(self.is_in_scope)[0]
-
+    @property
     def in_scope(self):
         """Check if the transaction is in scope
 
@@ -59,9 +51,10 @@ class HTTPTransaction(object):
         :rtype:
         """
         self.is_in_scope = is_in_scope
-        self.start_request()
+        self.timer.start_timer('Request')
+        self.time = self.time_human = ''
         self.url = url
-        self.init_data(data)
+        self.data = data if data is not None else ''
         self.method = derive_http_method(method, data)
         self.found = None
         self.raw_request = ''
@@ -71,28 +64,6 @@ class HTTPTransaction(object):
         self.id = ''
         self.html_link_id = ''
         self.new = True  # Flag new transaction.
-
-    def init_data(self, data):
-        """Sets the data for the transaction
-
-        :param data: Data to set
-        :type data: `str`
-        :return: None
-        :rtype: None
-        """
-        self.data = data
-        if self.data is None:
-            # This simplifies other code later, no need to cast to str if None, etc.
-            self.data = ''
-
-    def start_request(self):
-        """Start timer for the request
-
-        :return: None
-        :rtype: None
-        """
-        self.timer.start_timer('Request')
-        self.time = self.time_human = ''
 
     def end_request(self):
         """End timer for the request
@@ -207,6 +178,7 @@ class HTTPTransaction(object):
         self.response_contents = error_message
         self.end_request()
 
+    @property
     def get_id(self):
         """Get transaction ID
 
@@ -229,9 +201,8 @@ class HTTPTransaction(object):
         self.html_link_id = html_link_to_id
         # Only for new transactions, not when retrieved from DB, etc.
         if self.new:
-            log = logging.getLogger('general')
-            log.info("New OWTF HTTP Transaction: %s",
-                     " - ".join([self.id, self.time_human, self.status, self.method, self.url]))
+            logging.info("New OWTF HTTP Transaction: %s",
+                         " - ".join([self.id, self.time_human, self.status, self.method, self.url]))
 
     def get_html_link(self, link_name=''):
         """Get the HTML link to the transaction ID
@@ -245,32 +216,15 @@ class HTTPTransaction(object):
             link_name = "Transaction {}".format(self.id)
         return self.html_link_id.replace('@@@PLACE_HOLDER@@@', link_name)
 
-    def get_html_link_time(self, link_name=''):
-        """Get the HTML link to the transaction ID
-
-        :param link_name: Name of the link
-        :type link_name: `str`
-        :return: Formatted HTML link
-        :rtype: `str`
-        """
-        return "{0} ({1})".format(self.get_html_link(link_name), self.time_human)
-
-    def get_raw_escaped(self):
-        """Get escaped request and response
-
-        :return: None
-        :rtype: None
-        """
-        return "<pre>{}</pre>".format(cgi.escape(self.get_raw()))
-
     def get_raw(self):
         """Get raw transaction request and response
 
         :return: Raw string with response and request
         :rtype: `str`
         """
-        return "{}\n\n{}".format(self.get_raw_request(), self.get_raw_response())
+        return "{}\n\n{}".format(self.get_raw_request, self.get_raw_response())
 
+    @property
     def get_raw_request(self):
         """Return raw request
 
@@ -279,6 +233,7 @@ class HTTPTransaction(object):
         """
         return self.raw_request
 
+    @property
     def get_status(self):
         """Get status for transaction response
 
@@ -287,6 +242,7 @@ class HTTPTransaction(object):
         """
         return self.status
 
+    @property
     def get_response_headers(self):
         """Get response headers for the transaction
 
@@ -304,20 +260,11 @@ class HTTPTransaction(object):
         :rtype: `str`
         """
         try:
-            return "{}\r\n{}\n\n{}".format(self.get_status(), str(self.response_headers), self.response_contents)
+            return "{}\r\n{}\n\n{}".format(self.get_status, str(self.response_headers), self.response_contents)
         except UnicodeDecodeError:
-            return "{}\r\n{}\n\n[Binary Content]".format(self.get_status(), str(self.response_headers))
+            return "{}\r\n{}\n\n[Binary Content]".format(self.get_status, str(self.response_headers))
 
-    def get_raw_response_headers(self, with_status=True):
-        """Get raw response headers for the transaction
-
-        :param with_status: Want status?
-        :type with_status: `bool`
-        :return: Raw response headers as a string
-        :rtype: `str`
-        """
-        return "{}\r\n{}".format(self.get_status(), str(self.response_headers))
-
+    @property
     def get_raw_response_body(self):
         """Return raw response content
 
@@ -338,7 +285,7 @@ class HTTPTransaction(object):
         """
         self.is_in_scope = request.in_scope
         self.url = request.url
-        self.init_data(request.body)
+        self.data = request.body if request.body is not None else ''
         self.method = request.method
         try:
             self.status = "{!s} {!s}".format(str(response.code), response_messages[int(response.code)])
@@ -357,16 +304,18 @@ class HTTPTransaction(object):
         self.id = ''
         self.html_link_id = ''
 
+    @property
     def get_decode_response(self):
         return self.decoded_content
 
     def check_if_compressed(self, response, content):
-        if response.info().get('Content-Encoding') == 'gzip':  # check for gzip compression
+        if response.info().get('Content-Encoding', '') == 'gzip':  # check for gzip compression
             compressed_file = io.StringIO()
             compressed_file.write(content)
             compressed_file.seek(0)
             f = gzip.GzipFile(fileobj=compressed_file, mode='rb')
             self.decoded_content = f.read()
+            f.close()
         elif response.info().get('Content-Encoding') == 'deflate':  # check for deflate compression
             self.decoded_content = zlib.decompress(content)
         else:
