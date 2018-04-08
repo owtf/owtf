@@ -362,7 +362,7 @@ ui_setup() {
 
     # Building the ReactJS project
     echo "${normal}[*] Building using webpack.${reset}"
-    yarn run prod &> /dev/null
+    yarn build &> /dev/null
     echo "${normal}[*] Build successful${reset}"
     cd ${TMP_DIR}
 }

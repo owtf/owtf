@@ -7,8 +7,16 @@ import sys
 import logging
 import multiprocessing
 
+from owtf.settings import USE_SENTRY
+from owtf.utils.error import get_sentry_client
 from owtf.utils.file import catch_io_errors, get_log_path, FileOperations, get_logs_dir
 from owtf.utils.formatters import ConsoleFormatter, FileFormatter
+
+try:
+    from raven.handlers.logging import SentryHandler
+    from raven.conf import setup_logging
+except ImportError:
+    SentryHandler = None
 
 __all__ = ['OWTFLogger']
 
@@ -19,6 +27,15 @@ class OWTFLogger(object):
         # Bootstrap log files directory.
         FileOperations.create_missing_dirs(get_logs_dir())
         self.file_handler = catch_io_errors(logging.FileHandler)
+        # If Sentry raven is installed
+        try:
+            if SentryHandler and USE_SENTRY:
+                self.sentry_client = get_sentry_client()
+                handler = SentryHandler(self.sentry_client)
+                handler.setLevel(logging.DEBUG)
+                setup_logging(handler)
+        except:
+            pass
         self.enable_logging()
 
     def enable_logging(self, **kwargs):

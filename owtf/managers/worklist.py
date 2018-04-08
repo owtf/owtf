@@ -44,8 +44,8 @@ def load_works(session, target_urls, options):
                 filter_data = {"code": options.get("only_plugins"), "type": options.get("plugin_type")}
             plugins = get_all_plugin_dicts(session=session, criteria=filter_data)
             if not plugins:
-                logging.error("No plugin found matching type '%s' and group '%s' for target '%s'!" %
-                              (options['plugin_type'], group, target))
+                logging.error("No plugin found matching type '%s' and group '%s' for target '%s'!",
+                              options['plugin_type'], group, target)
             add_work(
                 session=session, target_list=target, plugin_list=plugins, force_overwrite=options["force_overwrite"])
 
@@ -67,19 +67,19 @@ def worklist_generate_query(session, criteria=None, for_stats=False):
         if criteria.get('target_url', None):
             if isinstance(criteria.get('target_url'), list):
                 criteria['target_url'] = criteria['target_url'][0]
-            query = query.filter(models.Target.target_url.like('%%%s%%' % criteria['target_url']))
+            query = query.filter(models.Target.target_url.like('%%{!s}%%'.format(criteria['target_url'])))
         if criteria.get('type', None):
             if isinstance(criteria.get('type'), list):
                 criteria['type'] = criteria['type'][0]
-            query = query.filter(models.Plugin.type.like('%%%s%%' % criteria['type']))
+            query = query.filter(models.Plugin.type.like('%%{!s}%%'.format(criteria['type'])))
         if criteria.get('group', None):
             if isinstance(criteria.get('group'), list):
                 criteria['group'] = criteria['group'][0]
-            query = query.filter(models.Plugin.group.like('%%%s%%' % criteria['group']))
+            query = query.filter(models.Plugin.group.like('%%{!s}%%'.format(criteria['group'])))
         if criteria.get('name', None):
             if isinstance(criteria.get('name'), list):
                 criteria['name'] = criteria['name'][0]
-            query = query.filter(models.Plugin.name.ilike('%%%s%%' % criteria['name']))
+            query = query.filter(models.Plugin.name.ilike('%%{!s}%%'.format(criteria['name'])))
     try:
         if criteria.get('id', None):
             if isinstance(criteria.get('id'), list):
@@ -175,7 +175,7 @@ def get_work(session, work_id):
     """
     work = session.query(models.Work).get(work_id)
     if work is None:
-        raise exceptions.InvalidWorkReference("No work with id %s" % str(work_id))
+        raise exceptions.InvalidWorkReference("No work with id {!s}".format(str(work_id)))
     return _derive_work_dict(work)
 
 
@@ -243,7 +243,7 @@ def remove_work(session, work_id):
     """
     work_obj = session.query(models.Work).get(work_id)
     if work_obj is None:
-        raise exceptions.InvalidWorkReference("No work with id %s" % str(work_id))
+        raise exceptions.InvalidWorkReference("No work with id {!s}".format(str(work_id)))
     session.delete(work_obj)
     session.commit()
 
@@ -272,7 +272,7 @@ def patch_work(session, work_id, active=True):
     """
     work_obj = session.query(models.Work).get(work_id)
     if work_obj is None:
-        raise exceptions.InvalidWorkReference("No work with id %s" % str(work_id))
+        raise exceptions.InvalidWorkReference("No work with id {!s}".format(str(work_id)))
     if active != work_obj.active:
         work_obj.active = active
         session.merge(work_obj)

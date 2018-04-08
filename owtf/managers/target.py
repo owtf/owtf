@@ -86,7 +86,7 @@ class TargetManager(object):
             self.target_config = get_target_config_by_id(self.session, target_id)
             self.path_config = self.get_path_configs(self.target_config)
         except InvalidTargetReference:
-            raise InvalidTargetReference("0. Target doesn't exist: %s" % str(target_id))
+            raise InvalidTargetReference("0. Target doesn't exist: {!s}".format(target_id))
 
     def get_path_configs(self, target_config):
         """Get paths to output directories
@@ -205,7 +205,7 @@ def add_target(session, target_url, session_id=None):
         session_obj = session.query(models.Session).get(session_id)
         target_obj = session.query(models.Target).filter_by(target_url=target_url).one()
         if session_obj in target_obj.sessions:
-            raise DBIntegrityException("%s already present in Target DB & session" % target_url)
+            raise DBIntegrityException("{!s} already present in Target DB & session".format(target_url))
         else:
             add_target_to_session(session, target_obj.id, session_id=session_obj.id)
 
@@ -243,7 +243,7 @@ def update_target(session, data_dict, target_url=None, id=None):
     if target_url:
         target_obj = session.query(models.Target).filter_by(target_url=target_url).one()
     if not target_obj:
-        raise InvalidTargetReference("2. Target doesn't exist: %s" % str(id) if id else str(target_url))
+        raise InvalidTargetReference("2. Target doesn't exist: {!s}".format(id) if id else str(target_url))
     # TODO: Updating all related attributes when one attribute is changed
     if data_dict.get("scope", None) is not None:
         target_obj.scope = str2bool(data_dict.get("scope", None))
@@ -266,7 +266,7 @@ def delete_target(session, target_url=None, id=None):
     if target_url:
         target_obj = session.query(models.Target).filter_by(target_url=target_url).one()
     if not target_obj:
-        raise InvalidTargetReference("3. Target doesn't exist: %s" % str(id) if id else str(target_url))
+        raise InvalidTargetReference("3. Target doesn't exist: {!s}".format(id) if id else str(target_url))
     if target_obj:
         target_url = target_obj.target_url
         session.delete(target_obj)
@@ -296,7 +296,7 @@ def get_target_url_for_id(session, id):
     target_obj = session.query(models.Target).get(id)
     if not target_obj:
         logging.info("Failing with ID: %s" % str(id))
-        raise InvalidTargetReference("1. Target doesn't exist with ID: %s" % str(id))
+        raise InvalidTargetReference("1. Target doesn't exist with ID: {!s}".format(id))
     return target_obj.target_url
 
 
@@ -310,7 +310,7 @@ def get_target_config_by_id(session, id):
     """
     target_obj = session.query(models.Target).get(id)
     if not target_obj:
-        raise InvalidTargetReference("5. Target doesn't exist: %s" % str(id))
+        raise InvalidTargetReference("5. Target doesn't exist: {!s}".format(id))
     return get_target_config_dict(target_obj)
 
 
@@ -331,7 +331,7 @@ def target_gen_query(session, filter_data, session_id, for_stats=False):
         if filter_data.get('target_url', None):
             if isinstance(filter_data.get('target_url'), list):
                 filter_data['target_url'] = filter_data['target_url'][0]
-            query = query.filter(models.Target.target_url.like("%%%s%%" % filter_data['target_url']))
+            query = query.filter(models.Target.target_url.like("%%{!s}%%".format(filter_data['target_url'])))
     else:
         if filter_data.get("target_url", None):
             if isinstance(filter_data["target_url"], str):
@@ -521,10 +521,10 @@ def load_targets(session, options):
             add_target(session=session, target_url=target)
             added_targets.append(target)
         except DBIntegrityException:
-            logging.warning("%s already exists in DB" % target)
+            logging.warning("%s already exists in DB", target)
             added_targets.append(target)
         except UnresolvableTargetException as e:
-            logging.error("%s" % e.parameter)
+            logging.error("%s", e.parameter)
     return added_targets
 
 
@@ -638,7 +638,7 @@ def derive_config_from_url(target_url):
         if not parsed_url.hostname and not parsed_url.path:  # No hostname and no path, urlparse failed.
             raise ValueError
     except ValueError:  # Occurs sometimes when parsing invalid IPv6 host for instance
-        raise UnresolvableTargetException("Invalid hostname '{}'".format(str(target_url)))
+        raise UnresolvableTargetException("Invalid hostname '{!s}'".format(target_url))
 
     host = parsed_url.hostname
     if not host:  # Happens when target is an IP (e.g. 127.0.0.1)

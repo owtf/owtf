@@ -5,7 +5,6 @@ owtf.utils.error
 The error handler provides a centralised control for aborting the application
 and logging errors for debugging later.
 """
-
 import logging
 import multiprocessing
 import signal
@@ -17,6 +16,7 @@ try:
 except ImportError:
     raven_installed = False
 
+from owtf.settings import SENTRY_API_KEY
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
 
 __all__ = [
@@ -26,8 +26,8 @@ __all__ = [
 
 command = None
 len_padding = 100
-padding = "\n%s\n\n" % ("_" * len_padding)
-sub_padding = "\n%s\n" % ("*" * len_padding)
+padding = "\n{}\n\n".format("_" * len_padding)
+sub_padding = "\n{}\n".format("*" * len_padding)
 
 
 def abort_framework(message):
@@ -56,7 +56,7 @@ def get_option_from_user(options):
     :return: The different options for the user to choose from
     :rtype: `str`
     """
-    return input("Options: 'e'+Enter= Exit %s, Enter= Next test\n".format(options))
+    return input("Options: 'e'+Enter= Exit {!s}, Enter= Next test\n".format(options))
 
 
 def user_abort(level, partial_output=''):
@@ -71,7 +71,7 @@ def user_abort(level, partial_output=''):
     """
     # Levels so far can be Command or Plugin
     logging.info("\nThe %s was aborted by the user: Please check the report and plugin output files", level)
-    message = ("\nThe {0} was aborted by the user: Please check the report and plugin output files".format(level))
+    message = ("\nThe {} was aborted by the user: Please check the report and plugin output files".format(level))
     if level == 'Command':
         option = 'p'
         if option == 'e':
@@ -99,9 +99,9 @@ class SentryProxy(object):
         logging.exception("exception occurred")
 
 
-def get_sentry_client(sentry_key):
+def get_sentry_client(sentry_key=SENTRY_API_KEY):
     if sentry_key and raven_installed:
-        logging.info("[+] Sentry client setup key={}".format(sentry_key))
+        logging.info("[+] Sentry client setup key: %s", sentry_key)
         sentry_client = SentryProxy(sentry_client=AsyncSentryClient(sentry_key))
     else:
         if not sentry_key:
@@ -116,8 +116,7 @@ def get_sentry_client(sentry_key):
 
 
 def log_and_exit_handler(signum, frame):
-    logging.debug("{}: caught signal {}, exiting".format(multiprocessing.current_process().name,
-                                                         signame_by_signum[signum]))
+    logging.debug("%s: caught signal %s, exiting", multiprocessing.current_process().name, signame_by_signum[signum])
     sys.exit(1)
 
 

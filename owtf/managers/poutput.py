@@ -2,7 +2,6 @@
 owtf.managers.poutput
 ~~~~~~~~~~~~~~~~~~~~~
 """
-
 import json
 import os
 
@@ -314,10 +313,11 @@ def plugin_already_run(session, plugin_info, target_id=None):
 def save_plugin_output(session, plugin, output, target_id=None):
     """Save into the database the command output of the plugin.
 
-    :param plugin: Plugin dict
+    :param session: `Session`
+    :param plugin: Plugin
     :type plugin: `dict`
     :param output: Plugin output
-    :type output: `str`
+    :type output: `dict`
     :param target_id: target ID
     :type target_id: `int`
     :return: None
