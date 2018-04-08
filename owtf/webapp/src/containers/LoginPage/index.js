@@ -1,14 +1,20 @@
+/*
+ * LoginPage.
+ */
 import React from 'react';
+import UnderconstructionPage from "components/UnderconstructionPage";
 
-class LoginPage extends React.Component {
+export default class LoginPage extends React.Component {
+
+  // Since state and props are static,
+  // there's no need to re-render this component
+  shouldComponentUpdate() {
+    return false;
+  }
+
   render() {
     return (
-      <div className="row">
-        <div className="col-md-4 col-md-offset-4">
-        </div>
-      </div>
+      <UnderconstructionPage />
     );
   }
 }
-
-export default LoginPage;

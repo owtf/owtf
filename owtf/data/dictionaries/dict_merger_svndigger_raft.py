@@ -4,7 +4,10 @@
 """
 import codecs
 import os
-import urllib
+try:  #PY2
+    from urllib import quote_plus
+except ImportError:  #PY3
+    from urllib.parse import quote_plus
 
 # Order of the files in the list is important
 raft_lowercase = [
@@ -47,5 +50,5 @@ for case in ['lowercase', 'mixedcase']:
     # Prepare filtered version for using with dirbuster
     f = codecs.open(os.path.join(output_path, 'filtered_combined_%s.txt' % case), 'w', 'UTF-8')
     for line in codecs.open(os.path.join(output_path, 'combined_%s.txt' % case), 'r', 'UTF-8').readlines():
-        f.write(urllib.quote_plus(line.encode('utf-8'), './\r\n'))
+        f.write(quote_plus(line.encode('utf-8'), './\r\n'))
     f.close()

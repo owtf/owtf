@@ -1,128 +1,122 @@
+/**
+ * COMMON WEBPACK CONFIGURATION BETWEEN DEVELOPMENT AND PRODUCTION
+ */
+
 const path = require('path');
-const autoprefixer = require('autoprefixer');
-const merge = require('webpack-merge');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-
-const TARGET = process.env.npm_lifecycle_event;
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 const PATHS = {
-    app: path.join(__dirname, '../src/'),
-    build: path.join(__dirname, '../build/'),
-    jsbuild: path.join(__dirname, '../build/js/')
+  app: path.join(process.cwd(), 'src'),
+  build: path.join(process.cwd(), 'build'),
 };
 
-const VENDOR = [
-    'babel-polyfill',
-    'history',
-    'react',
-    'react-dom',
-    'react-redux',
-    'react-router',
-    'react-mixin',
-    'classnames',
-    'redux',
-    'react-router-redux',
-    'jquery',
-    'bootstrap-loader'
-];
+module.exports = {
+  entry: [
+    PATHS.app,
+  ],
+  output: {
+    path: PATHS.build,
+    publicPath: '/static/',
+  },
+  plugins: [
+    new webpack.ProvidePlugin({
+      // make fetch available
+      fetch: 'exports-loader?self.fetch!whatwg-fetch',
+    }),
 
-const basePath = path.resolve(__dirname, '../src/');
-
-const common = {
-    context: basePath,
-    entry: {
-        vendor: VENDOR,
-        app: PATHS.app
-    },
-    output: {
-        filename: '[name].js',
-        path: PATHS.jsbuild,
-        publicPath: "/static/",
-        sourceMapFilename: '[name].js.map',
-    },
-    devtool: (TARGET === 'dev') ? '#source-map' : '#cheap-module-eval-source-map',
-    plugins: [
-        //extract all common modules to vendor so we can load multiple apps in one page
-        new webpack.optimize.CommonsChunkPlugin({
-            name: 'vendor',
-            filename: 'vendor.js'
-        }),
-        new webpack.optimize.CommonsChunkPlugin({
-            children: true,
-            async: true,
-            minChunks: 2
-        }),
-        new webpack.DefinePlugin({
-            'process.env': { NODE_ENV: TARGET === 'dev' ? '"development"' : '"production"' },
-            '__DEVELOPMENT__': TARGET === 'dev'
-        }),
-        new webpack.ProvidePlugin({
-            '$': 'jquery',
-            'jQuery': 'jquery',
-            'window.jQuery': 'jquery'
-        }),
-        new CleanWebpackPlugin([PATHS.build, PATHS.jsbuild], {
-            root: process.cwd()
+    // Always expose NODE_ENV to webpack, in order to use `process.env.NODE_ENV`
+    // inside your code for any environment checks; UglifyJS will automatically
+    // drop any unreachable code.
+    new webpack.DefinePlugin({
+      'process.env': {
+        NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+      },
+    }),
+    new webpack.NamedModulesPlugin(),
+    new ExtractTextPlugin("styles.css"),
+    new CleanWebpackPlugin([PATHS.build], {
+      root: process.cwd()
+    })
+  ],
+  resolve: {
+    modules: ['src', 'node_modules'],
+    extensions: [
+      '.js',
+      '.jsx'
+    ]
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/, // Transform all .js files required somewhere with Babel
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader'
+        },
+      },
+      {
+        // Preprocess our own .css files
+        // This is the place to add your own loaders (e.g. sass/less etc.)
+        // for a list of loaders, see https://webpack.js.org/loaders/#styling
+        test: /\.css$/,
+        exclude: /node_modules/,
+        use: ExtractTextPlugin.extract({
+          fallback: "style-loader",
+          use: "css-loader",
+          disable: process.env.NODE_ENV !== 'production'
         })
+      },
+      {
+        // Preprocess 3rd party .css files located in node_modules
+        test: /\.css$/,
+        include: /node_modules/,
+        use: ExtractTextPlugin.extract({
+          fallback: "style-loader",
+          use: "css-loader",
+          disable: process.env.NODE_ENV !== 'production'
+        })
+      },
+      {
+        test: /\.(eot|svg|otf|ttf|woff|woff2)$/,
+        use: 'file-loader',
+      },
+      {
+        test: /\.(jpg|png|gif)$/,
+        use: [
+          'file-loader',
+          {
+            loader: 'image-webpack-loader',
+            options: {
+              progressive: true,
+              optimizationLevel: 7,
+              interlaced: false,
+              pngquant: {
+                quality: '65-90',
+                speed: 4,
+              },
+            },
+          },
+        ],
+      },
+      {
+        test: /\.html$/,
+        use: 'html-loader',
+      },
+      {
+        test: /\.json$/,
+        use: 'json-loader',
+      },
+      {
+        test: /\.(mp4|webm)$/,
+        use: {
+          loader: 'url-loader',
+          options: {
+            limit: 10000,
+          },
+        },
+      },
     ],
-    resolve: {
-        extensions: ['.jsx', '.js', '.json', '.scss', '.css'],
-        modules: ['node_modules']
-    },
-    module: {
-        rules: [
-            {
-                test: /\.js$/,
-                use: {
-                    loader: 'babel-loader'
-                },
-                exclude: /node_modules/
-            },
-            {
-                test: /\.jpe?g$|\.gif$|\.png$/,
-                loader: 'file-loader?name=/images/[name].[ext]?[hash]'
-            },
-            {
-                test: /\.woff(\?.*)?$/,
-                loader: 'url-loader?name=/fonts/[name].[ext]&limit=10000&mimetype=application/font-woff'
-            },
-            {
-                test: /\.woff2(\?.*)?$/,
-                loader: 'url-loader?name=/fonts/[name].[ext]&limit=10000&mimetype=application/font-woff2'
-            },
-            {
-                test: /\.ttf(\?.*)?$/,
-                loader: 'url-loader?name=/fonts/[name].[ext]&limit=10000&mimetype=application/octet-stream'
-            },
-            {
-                test: /\.eot(\?.*)?$/,
-                loader: 'file-loader?name=/fonts/[name].[ext]'
-            },
-            {
-                test: /\.otf(\?.*)?$/,
-                loader: 'file-loader?name=/fonts/[name].[ext]&mimetype=application/font-otf'
-            },
-            {
-                test: /\.svg(\?.*)?$/,
-                loader: 'url-loader?name=/fonts/[name].[ext]&limit=10000&mimetype=image/svg+xml'
-            },
-            {
-                test: /\.json(\?.*)?$/,
-                loader: 'file-loader?name=/files/[name].[ext]'
-            }
-        ]
-    },
+  },
 };
-
-switch (TARGET) {
-    case 'dev':
-        module.exports = merge(require('./dev.config'), common);
-        break;
-    case 'prod':
-        module.exports = merge(require('./prod.config'), common);
-        break;
-    default:
-        console.log('Target configuration not found. Valid targets: "dev" or "prod".');
-}

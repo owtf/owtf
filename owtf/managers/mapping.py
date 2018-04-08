@@ -4,7 +4,6 @@ owtf.managers.mapping
 
 Manages the mapping between different plugin groups and codes
 """
-
 import json
 
 from owtf.db import models
@@ -80,7 +79,7 @@ def get_mappings(session, mapping_type):
                 mappings[mapping_dict["owtf_code"]] = mapping_dict["mappings"][mapping_type]
         return mappings
     else:
-        raise InvalidMappingReference("InvalidMappingReference %s requested" % mapping_type)
+        raise InvalidMappingReference("InvalidMappingReference {!s} requested".format(mapping_type))
 
 
 def get_mapping_category(session, plugin_code):

@@ -5,7 +5,6 @@ owtf.plugin.plugin_handler
 The PluginHandler is in charge of running all plugins taking into account the
 chosen settings.
 """
-
 import copy
 from collections import defaultdict
 import imp
@@ -123,8 +122,8 @@ class PluginHandler(object):
                     found = True
                     break
             if not found:
-                abort_framework("The code '%s' is not a valid plugin, please use the -l option to see"
-                                "available plugin names and codes" % code)
+                abort_framework("The code '{!s}' is not a valid plugin, please use the -l option to see"
+                                "available plugin names and codes".format(code))
         return valid_plugin_codes  # Return list of Codes
 
     def init_exec_registry(self):
@@ -383,7 +382,7 @@ class PluginHandler(object):
         except PTPError:  # Not supported tool or report not found.
             pass
         except Exception as e:
-            logging.error('Unexpected exception when running PTP: %s' % e)
+            logging.error('Unexpected exception when running PTP: %s', str(e))
         if owtf_rank == UNKNOWN:  # Ugly truth... PTP gives 0 for unranked but OWTF uses -1 instead...
             owtf_rank = -1
         return owtf_rank
@@ -391,6 +390,7 @@ class PluginHandler(object):
     def process_plugin(self, session, plugin_dir, plugin, status=None):
         """Process a plugin from running to ranking.
 
+        :param `Session` session: SQLAlchemy session
         :param str plugin_dir: Path to the plugin directory.
         :param dict plugin: The plugin dictionary with all the information.
         :param dict status: Running status of the plugin.
@@ -420,7 +420,7 @@ class PluginHandler(object):
         if self.simulation:
             return None
         # DB empty => grep plugins will fail, skip!!
-        if ('grep' == plugin['type'] and num_transactions(session) == 0):
+        if 'grep' == plugin['type'] and num_transactions(session) == 0:
             logging.info('Skipped - Cannot run grep plugins: The Transaction DB is empty')
             return None
         output = None
@@ -514,7 +514,7 @@ class PluginHandler(object):
         :param status: Plugin exec status
         :type status: `dict`
         :param target_list: List of targets
-        :type target_list: `list`
+        :type target_list: `set`
         :return: None
         :rtype: None
         """
@@ -529,7 +529,7 @@ class PluginHandler(object):
                 # Scanning and processing the first part of the ports
                 for i in range(1):
                     ports = get_tcp_ports(lastwave, waves[i])
-                    print("Probing for ports %s" % str(ports))
+                    logging.info("Probing for ports %s", str(ports))
                     http = self.scanner.probe_network(target, 'tcp', ports)
                     # Tell Config that all Gets/Sets are now
                     # Target-specific.
@@ -586,7 +586,7 @@ def show_plugin_types(session, plugin_type, group):
     """
     logging.info("\n%s %s plugins %s", '*' * 40, plugin_type.title().replace('_', '-'), '*' * 40)
     for plugin in get_plugins_by_group_type(session, group, plugin_type):
-        line_start = " %s:%s" % (plugin['type'], plugin['name'])
+        line_start = " {!s}:{!s}".format(plugin['type'], plugin['name'])
         pad1 = "_" * (60 - len(line_start))
         pad2 = "_" * (20 - len(plugin['code']))
         logging.info("%s%s(%s)%s%s", line_start, pad1, plugin['code'], pad2, plugin['descrip'])

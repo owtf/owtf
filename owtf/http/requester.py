@@ -29,11 +29,11 @@ from owtf.managers.target import is_url_in_scope
 from owtf.managers.transaction import get_first, is_transaction_already_added
 from owtf.managers.url import is_url
 from owtf.plugin.plugin_handler import plugin_handler
-from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, PROXY_CHECK_URL, USER_AGENT
-from owtf.utils.error import abort_framework
+from owtf.settings import PROXY_CHECK_URL, USER_AGENT, INBOUND_PROXY_IP, INBOUND_PROXY_PORT
 from owtf.utils.http import derive_http_method
 from owtf.utils.strings import str_to_dict
 from owtf.utils.timer import timer
+from owtf.utils.error import abort_framework
 
 __all__ = ['requester']
 
@@ -294,7 +294,7 @@ class Requester(object):
             err_message = self.process_http_error_code(error, url)
             self.http_transaction.set_error(err_message)
         except IOError:
-            err_message = "ERROR: Requester Object -> Unknown HTTP Request error: {}\n{}".format(
+            err_message = "ERROR: Requester Object -> Unknown HTTP Request error: {!s}\n{!s}".format(
                 url, str(sys.exc_info()))
             self.http_transaction.set_error(err_message)
         if self.log_transactions:
@@ -304,7 +304,6 @@ class Requester(object):
 
     def process_http_error_code(self, error, url):
         """Process HTTP error code
-
         :param error: Error
         :type error:
         :param url: Target URL
@@ -314,14 +313,15 @@ class Requester(object):
         """
         message = ""
         if str(error.reason).startswith("[Errno 111]"):
-            message = "ERROR: The connection was refused!: %s".format(str(error))
+            message = "ERROR: The connection was refused!: {!s}".format(error)
             self.req_count_refused += 1
         elif str(error.reason).startswith("[Errno -2]"):
-            abort_framework("ERROR: cannot resolve hostname!: {}".format(str(error)))
+            abort_framework("ERROR: cannot resolve hostname!: {!s}".format(error))
         else:
             message = "ERROR: The connection was not refused, unknown error!"
-        logging.info(message)
-        return "%s (Requester Object): %s\n%s" % (message, url, str(sys.exc_info()))
+        log = logging.getLogger('general')
+        log.info(message)
+        return "{!s} (Requester Object): {!s}\n{!s}".format(message, url, str(sys.exc_info()))
 
     def get(self, url):
         """Wrapper for get requests
@@ -478,8 +478,10 @@ class Requester(object):
             if not url:
                 continue  # Skip blank lines.
             if not is_url(url):
-                add_error("Minor issue: {} is not a valid URL and has been ignored, processing continues".format(
-                    str(url)))
+                add_error(
+                    self.session,
+                    "Minor issue: {!s} is not a valid URL and has been ignored, processing continues".format(url),
+                    trace="")
                 continue  # Skip garbage URLs.
             transaction = self.get_transaction(use_cache, url, method=method, data=data)
             if transaction is not None:

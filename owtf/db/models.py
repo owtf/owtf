@@ -68,7 +68,7 @@ class Target(Base):
         return (max(owtf_ranks))
 
     def __repr__(self):
-        return "<Target (url='%s')>" % (self.target_url)
+        return "<Target (url='{!s}')>".format(self.target_url)
 
 
 # This table actually allows us to make a many to many relationship
@@ -105,8 +105,8 @@ class Transaction(Base):
         "GrepOutput", secondary=transaction_association_table, cascade="delete", backref="transactions")
 
     def __repr__(self):
-        return "<HTTP Transaction (url='%s' method='%s' response_status='%s')>" % (self.url, self.method,
-                                                                                   self.response_status)
+        return "<HTTP Transaction (url='{!s}' method='{!s}' response_status='{!s}')>".format(
+            self.url, self.method, self.response_status)
 
 
 class GrepOutput(Base):
@@ -131,7 +131,7 @@ class Url(Base):
     scope = Column(Boolean, default=True)
 
     def __repr__(self):
-        return "<URL (url='%s')>" % (self.url)
+        return "<URL (url='{!s}')>".format(self.url)
 
 
 class PluginOutput(Base):
@@ -189,7 +189,7 @@ class Error(Base):
     github_issue_url = Column(String, nullable=True)
 
     def __repr__(self):
-        return "<Error (traceback='%s')>" % (self.traceback)
+        return "<Error (traceback='{!s}')>".format(self.traceback)
 
 
 class Resource(Base):
@@ -213,7 +213,7 @@ class ConfigSetting(Base):
     dirty = Column(Boolean, default=False)
 
     def __repr__(self):
-        return "<ConfigSetting (key='%s', value='%s', dirty='%r')>" % (self.key, self.value, self.dirty)
+        return "<ConfigSetting (key='{!s}', value='{!s}', dirty='{!r}')>".format(self.key, self.value, self.dirty)
 
 
 class TestGroup(Base):
@@ -244,7 +244,7 @@ class Plugin(Base):
     outputs = relationship("PluginOutput", backref="plugin")
 
     def __repr__(self):
-        return "<Plugin (code='%s', group='%s', type='%s')>" % (self.code, self.group, self.type)
+        return "<Plugin (code='{!s}', group='{!s}', type='{!s}')>".format(self.code, self.group, self.type)
 
     @hybrid_property
     def min_time(self):
@@ -291,7 +291,7 @@ class Work(Base):
     __table_args__ = (UniqueConstraint('target_id', 'plugin_key'),)
 
     def __repr__(self):
-        return "<Work (target='%s', plugin='%s')>" % (self.target_id, self.plugin_key)
+        return "<Work (target='{!s}', plugin='{!s}')>".format(self.target_id, self.plugin_key)
 
 
 class Mapping(Base):

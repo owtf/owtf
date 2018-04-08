@@ -165,12 +165,12 @@ class Shell(object):
         cmd_info = self.start_cmd(command, command)
         target, can_run = self.can_run_cmd(session=session, command=cmd_info)
         if not can_run:
-            message = "The command was already run for target: {}".format(target)
+            message = "The command was already run for target: {!s}".format(target)
             return message
         logging.info("")
         logging.info("Executing :\n\n%s\n\n", command)
         logging.info("")
-        logging.info("------> Execution Start Date/Time: %s" % self.timer.get_start_date_time_as_str('Command'))
+        logging.info("------> Execution Start Date/Time: %s", self.timer.get_start_date_time_as_str('Command'))
         logging.info("")
         output = ''
         cancelled = False
@@ -184,7 +184,7 @@ class Shell(object):
                 line = proc.stdout.readline()
                 if not line:
                     break
-                print(line.strip())  # Show progress on the screen too!
+                logging.info(line.strip())  # Show progress on the screen too!
                 output += line  # Save as much output as possible before a tool crashes! :)
         except KeyboardInterrupt:
             os.killpg(proc.pid, signal.SIGINT)

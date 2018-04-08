@@ -4,7 +4,6 @@ owtf.lib.cli_options
 
 Main CLI processing machine
 """
-
 from __future__ import print_function
 
 import argparse

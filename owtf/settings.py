@@ -88,7 +88,7 @@ LOGS_DIR = 'logs'
 OWTF_LOG_FILE = '/tmp/owtf.log'
 
 # Interface static folders
-TEMPLATES = os.path.join(ROOT_DIR, 'templates')
+TEMPLATES = os.path.join(ROOT_DIR, 'webapp', 'build')
 POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'templates')
 STATIC_ROOT = os.path.join(ROOT_DIR, 'webapp', 'build')
 

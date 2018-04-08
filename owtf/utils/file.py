@@ -3,7 +3,6 @@ owtf.utils.file
 ~~~~~~~~~~~~~~~
 
 """
-
 import codecs
 import logging
 import os
@@ -31,7 +30,7 @@ def catch_io_errors(func):
             return func(*args, **kwargs)
         except (OSError, IOError) as e:
             if owtf_clean:
-                abort_framework("Error when calling '%s'! %s." % (func.__name__, str(e)))
+                abort_framework("Error when calling '{!s}'! {!s}.".format(func.__name__, str(e)))
             raise e
 
     return io_error
@@ -132,9 +131,9 @@ def get_file_as_list(filename):
     try:
         with open(filename, 'r') as f:
             output = f.read().split("\n")
-            logging.info("Loaded file: %s" % filename)
+            logging.info("Loaded file: %s", filename)
     except IOError:
-        logging.error("Cannot open file: %s (%s)" % (filename, str(sys.exc_info())))
+        logging.error("Cannot open file: %s (%s)", filename, str(sys.exc_info()))
         output = []
     return output
 
@@ -159,7 +158,7 @@ def clean_temp_storage_dirs(owtf_pid):
     :rtype: None
     """
     curr_tmp_dir = os.path.join('/tmp', 'owtf', str(owtf_pid))
-    new_tmp_dir = os.path.join('/tmp', 'owtf', 'old-%d' % owtf_pid)
+    new_tmp_dir = os.path.join('/tmp', 'owtf', 'old-{!s}'.format(owtf_pid))
     if os.path.exists(curr_tmp_dir) and os.access(curr_tmp_dir, os.W_OK):
         os.rename(curr_tmp_dir, new_tmp_dir)
 
@@ -249,5 +248,5 @@ def get_log_path(process_name):
     :return: Path to the specific log file
     :rtype: `str`
     """
-    log_file_name = "{}.log".format(process_name)
+    log_file_name = "{!s}.log".format(process_name)
     return os.path.join(get_logs_dir(), log_file_name)

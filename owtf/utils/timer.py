@@ -6,11 +6,12 @@ The time module allows the rest of the framework to time how long it takes for
 certain actions to execute and present this information in both seconds and
 human-readable form.
 """
-
 import datetime
 import math
 
 from owtf.settings import DATE_TIME_FORMAT
+
+__all__ = ['Timer', 'timer']
 
 
 class Timer(object):

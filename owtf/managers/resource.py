@@ -107,8 +107,8 @@ def get_resources_from_file(resource_file):
             type, name, resource = line.split('_____')
             resources.add((type, name, resource))
         except ValueError:
-            logging.info(
-                "ERROR: The delimiter is incorrect in this line at Resource File: %s" % str(line.split('_____')))
+            logging.info("ERROR: The delimiter is incorrect in this line at Resource File: %s", str(
+                line.split('_____')))
     return resources
 
 

@@ -1,46 +1,46 @@
+/**
+ * PRODUCTION WEBPACK CONFIGURATION
+ */
+
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const merge = require('webpack-merge');
 
-// importLoader:1 from https://blog.madewithenvy.com/webpack-2-postcss-cssnext-fdcd2fd7d0bd
+const production = {
 
-module.exports = {
-    // devtool: 'source-map', // No need for dev tool in production
-
-    module: {
-        rules: [{
-            test: /\.css$/,
-            use: ExtractTextPlugin.extract([
-                {
-                    loader: 'css-loader',
-                    options: { importLoaders: 1 },
-                },
-                'postcss-loader']
-            )
-        }, {
-            test: /\.scss$/,
-            use: ExtractTextPlugin.extract([
-                {
-                    loader: 'css-loader',
-                    options: { importLoaders: 1 },
-                },
-                'postcss-loader',
-                {
-                    loader: 'sass-loader',
-                    options: {
-                        includePaths: [`${__dirname}/../src/`],
-                    }
-                }]
-            )
-        }],
+    // Utilize long-term caching by adding content hashes (not compilation hashes) to compiled assets
+    output: {
+        filename: '[name].[chunkhash].js',
+        chunkFilename: '[name].[chunkhash].chunk.js',
     },
 
     plugins: [
-        new ExtractTextPlugin('../css/[name].css'),
-        new webpack.optimize.OccurrenceOrderPlugin(),
-        new webpack.optimize.UglifyJsPlugin({
-            compress: {
-                warnings: false
-            }
+        new webpack.optimize.ModuleConcatenationPlugin(),
+        new webpack.optimize.CommonsChunkPlugin({
+            name: 'vendor',
+            children: true,
+            minChunks: 2,
+            async: true
+        }),
+
+        // Minify and optimize the index.html
+        new HtmlWebpackPlugin({
+            template: 'src/index.html',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+                removeRedundantAttributes: true,
+                useShortDoctype: true,
+                removeEmptyAttributes: true,
+                removeStyleLinkTypeAttributes: true,
+                keepClosingSlash: true,
+                minifyJS: true,
+                minifyCSS: true,
+                minifyURLs: true
+            },
+            inject: true
         })
     ]
 };
+
+module.exports = merge(production, require('./common.config'));
