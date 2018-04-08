@@ -78,9 +78,9 @@ class ReportExportHandler(APIRequestHandler):
         try:
             filter_data = dict(self.request.arguments)
             plugin_outputs = get_all_poutputs(filter_data, target_id=target_id, inc_output=True)
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")
         # Group the plugin outputs to make it easier in template
         grouped_plugin_outputs = defaultdict(list)
@@ -119,4 +119,4 @@ class ReportExportHandler(APIRequestHandler):
         if result:
             self.success(result)
         else:
-            raise APIError(400, "No config object exists for the given target")
+            raise APIError(500, "No config object exists for the given target")

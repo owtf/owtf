@@ -51,14 +51,14 @@ class OWTFSessionHandler(APIRequestHandler):
             }
         """
         if action is not None:
-            raise APIError(400, "Action must be None")
+            raise APIError(422, "Action must be None")
         if session_id is None:
             filter_data = dict(self.request.arguments)
             self.success(get_all_session_dicts(self.session, filter_data))
         else:
             try:
                 self.success(get_session_dict(self.session, session_id))
-            except exceptions.InvalidSessionReference as e:
+            except exceptions.InvalidSessionReference:
                 raise APIError(400, "Invalid session id provided")
 
     def post(self, session_id=None, action=None):
@@ -94,8 +94,8 @@ class OWTFSessionHandler(APIRequestHandler):
             add_session(self.session, self.get_argument("name"))
             self.set_status(201)  # Stands for "201 Created"
             self.success(None)
-        except exceptions.DBIntegrityException as e:
-            raise APIError(409, "An unknown exception occurred when performing a DB operation")
+        except exceptions.DBIntegrityException:
+            raise APIError(400, "An unknown exception occurred when performing a DB operation")
 
     def patch(self, session_id=None, action=None):
         """Change session.
@@ -131,9 +131,9 @@ class OWTFSessionHandler(APIRequestHandler):
             elif action == "activate":
                 set_session(self.session, int(session_id))
             self.success(None)
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
-        except exceptions.InvalidSessionReference as e:
+        except exceptions.InvalidSessionReference:
             raise APIError(400, "Invalid parameter type provided")
 
     def delete(self, session_id=None, action=None):
@@ -163,5 +163,5 @@ class OWTFSessionHandler(APIRequestHandler):
         try:
             delete_session(self.session, int(session_id))
             self.success(None)
-        except exceptions.InvalidSessionReference as e:
+        except exceptions.InvalidSessionReference:
             raise APIError(400, "Invalid session id provided")

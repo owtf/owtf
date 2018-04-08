@@ -75,11 +75,11 @@ class TransactionDataHandler(APIRequestHandler):
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
                 self.success(get_all_transactions_dicts(self.session, filter_data, target_id=int(target_id)))
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
-        except exceptions.InvalidTransactionReference as e:
+        except exceptions.InvalidTransactionReference:
             raise APIError(400, "Invalid transaction referenced")
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")
 
     def post(self, target_url):
@@ -119,7 +119,7 @@ class TransactionDataHandler(APIRequestHandler):
                 self.success(None)
             else:
                 raise APIError(400, "Needs transaction id")
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
 
 
@@ -208,11 +208,11 @@ class TransactionSearchHandler(APIRequestHandler):
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
             self.success(search_all_transactions(self.session, filter_data, target_id=int(target_id)))
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
-        except exceptions.InvalidTransactionReference as e:
+        except exceptions.InvalidTransactionReference:
             raise APIError(400, "Invalid transaction referenced")
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")
 
 

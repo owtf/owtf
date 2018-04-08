@@ -85,19 +85,19 @@ class PluginDataHandler(APIRequestHandler):
                 self.success(get_all_plugin_dicts(self.session, filter_data))
             if plugin_group and plugin_type and (not plugin_code):
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
-                    raise APIError(400, "Plugin type not found in selected plugin group")
+                    raise APIError(422, "Plugin type not found in selected plugin group")
                 filter_data.update({"type": plugin_type, "group": plugin_group})
                 self.success(get_all_plugin_dicts(self.session, filter_data))
             if plugin_group and plugin_type and plugin_code:
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
-                    raise APIError(400, "Plugin type not found in selected plugin group")
+                    raise APIError(422, "Plugin type not found in selected plugin group")
                 filter_data.update({"type": plugin_type, "group": plugin_group, "code": plugin_code})
                 # This combination will be unique, so have to return a dict
                 results = get_all_plugin_dicts(self.session, filter_data)
                 if results:
                     self.success(results[0])
                 else:
-                    raise APIError(400, "Cannot get any plugin dict")
+                    raise APIError(500, "Cannot get any plugin dict")
         except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target provided.")
 
@@ -211,11 +211,11 @@ class PluginNameOutput(APIRequestHandler):
             if results:
                 self.success(dict_to_return)
             else:
-                raise APIError(400, "Cannot fetch plugin outputs")
+                raise APIError(500, "Cannot fetch plugin outputs")
 
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target provided")
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")
 
 
@@ -271,11 +271,11 @@ class PluginOutputHandler(APIRequestHandler):
                 filter_data.update({"plugin_group": plugin_group})
             if plugin_type and plugin_group and (not plugin_code):
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
-                    raise APIError(400, "Plugin type not found in selected plugin group")
+                    raise APIError(422, "Plugin type not found in selected plugin group")
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
-                    raise APIError(400, "Plugin type not found in selected plugin group")
+                    raise APIError(422, "Plugin type not found in selected plugin group")
                 filter_data.update({
                     "plugin_type": plugin_type,
                     "plugin_group": plugin_group,
@@ -285,11 +285,11 @@ class PluginOutputHandler(APIRequestHandler):
             if results:
                 self.success(results)
             else:
-                raise APIError(400, "Cannot fetch plugin outputs")
+                raise APIError(500, "Cannot fetch plugin outputs")
 
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")
 
     def post(self, target_url):
@@ -332,9 +332,9 @@ class PluginOutputHandler(APIRequestHandler):
                 patch_data = dict(self.request.arguments)
                 update_poutput(self.session, plugin_group, plugin_type, plugin_code, patch_data, target_id=target_id)
                 self.success(None)
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")
 
     def delete(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
@@ -367,12 +367,12 @@ class PluginOutputHandler(APIRequestHandler):
                 delete_all_poutput(self.session, filter_data, target_id=int(target_id))
             if plugin_type and plugin_group and (not plugin_code):
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
-                    raise APIError(400, "Plugin type not found in the selected plugin group")
+                    raise APIError(422, "Plugin type not found in the selected plugin group")
                 filter_data.update({"plugin_type": plugin_type, "plugin_group": plugin_group})
                 delete_all_poutput(self.session, filter_data, target_id=int(target_id))
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
-                    raise APIError(400, "Plugin type not found in the selected plugin group")
+                    raise APIError(422, "Plugin type not found in the selected plugin group")
                 filter_data.update({
                     "plugin_type": plugin_type,
                     "plugin_group": plugin_group,
@@ -380,7 +380,7 @@ class PluginOutputHandler(APIRequestHandler):
                 })
                 delete_all_poutput(self.session, filter_data, target_id=int(target_id))
                 self.success(None)
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")
