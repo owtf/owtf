@@ -82,7 +82,7 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
             cache_time = self.get_cache_time(path, modified, mime_type)
             if cache_time > 0:
                 self.set_header("Expires", datetime.datetime.utcnow() + datetime.timedelta(seconds=cache_time))
-                self.set_header("Cache-Control", "max-age=%s" % str(cache_time))
+                self.set_header("Cache-Control", "max-age={!s}".format(cache_time))
             else:
                 self.set_header("Cache-Control", "public")
 
@@ -107,7 +107,7 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
 
             hasher = hashlib.sha1()
             hasher.update(data)
-            self.set_header("Etag", '"%s"' % hasher.hexdigest())
+            self.set_header("Etag", '"{!s}"'.format(hasher.hexdigest()))
             if include_body:
                 self.write(data)
             else:

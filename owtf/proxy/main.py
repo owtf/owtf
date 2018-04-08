@@ -2,7 +2,6 @@
 owtf.proxy.main
 ~~~~~~~~~~~~~~~
 """
-
 import logging
 import os
 import re
@@ -190,7 +189,7 @@ def start_proxy():
             abort_framework("Inbound proxy address already in use")
         # If everything is fine.
         proxy_process = ProxyProcess()
-        logging.warn("Starting HTTP(s) proxy server at {0}:{1} ".format(INBOUND_PROXY_IP, str(INBOUND_PROXY_PORT)))
+        logging.warn("Starting HTTP(s) proxy server at %s:%d", INBOUND_PROXY_IP, INBOUND_PROXY_PORT)
         proxy_process.initialize(USE_OUTBOUND_PROXY, OUTBOUND_PROXY_AUTH)
         transaction_logger = TransactionLogger(cache_dir=INBOUND_PROXY_CACHE_DIR)
         transaction_logger.initialize()

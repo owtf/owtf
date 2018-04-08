@@ -147,7 +147,7 @@ class CacheHandler(object):
                 try:
                     self.file_lock.acquire()
                 except FileLockTimeoutException:
-                    logging.debug("Lock could not be acquired %s" % traceback.print_exc)
+                    logging.debug("Lock could not be acquired %s", traceback.print_exc)
                 # For handling race conditions
                 if os.path.isfile(self.file_path):
                     self.file_lock.release()
@@ -174,11 +174,12 @@ def response_from_cache(file_path):
     :rtype:
     """
     dummy_response = DummyObject()
-    cache_dict = json.loads(open(file_path, 'r').read())
+    with open(file_path, 'r') as f:
+        cache_dict = json.loads(f.read())
     dummy_response.code = cache_dict["response_code"]
     dummy_response.headers = tornado.httputil.HTTPHeaders(cache_dict["response_headers"])
     dummy_response.header_string = '\r\n'.join(
-        ["%s: %s" % (name, value) for name, value in cache_dict["response_headers"].items()])
+        ["{!s}: {!s}".format(name, value) for name, value in cache_dict["response_headers"].items()])
     if cache_dict["binary_response"] is True:
         dummy_response.body = base64.b64decode(cache_dict["response_body"])
     else:
@@ -199,17 +200,18 @@ def request_from_cache(file_path):
     :rtype:
     """
     dummy_request = DummyObject()
-    cache_dict = json.loads(open(file_path, 'r').read())
+    with open(file_path, 'r') as f:
+        cache_dict = json.loads(f.read())
     dummy_request.local_timestamp = datetime.datetime.strptime(cache_dict["request_local_timestamp"].strip("\r\n"),
                                                                '%Y-%m-%dT%H:%M:%S.%f')
     dummy_request.method = cache_dict["request_method"]
     dummy_request.url = cache_dict["request_url"]
     dummy_request.headers = cache_dict["request_headers"]
     dummy_request.body = cache_dict["request_body"]
-    dummy_request.raw_request = "%s %s %s\r\n" % (cache_dict["request_method"], cache_dict["request_url"],
-                                                  cache_dict["request_version"])
+    dummy_request.raw_request = "{!s} {!s} {!s}\r\n".format(cache_dict["request_method"], cache_dict["request_url"],
+                                                            cache_dict["request_version"])
     for name, value in cache_dict["request_headers"].items():
-        dummy_request.raw_request += "%s: %s\r\n" % (name, value)
+        dummy_request.raw_request += "{!s}: {!s}\r\n".format(name, value)
     if cache_dict["request_body"]:
-        dummy_request.raw_request += "%s\r\n\r\n" % cache_dict["request_body"]
+        dummy_request.raw_request += "{!s}\r\n\r\n".format(cache_dict["request_body"])
     return dummy_request

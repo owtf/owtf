@@ -4,7 +4,6 @@ owtf.managers.url
 
 The DB stores HTTP transactions, unique URLs and more.
 """
-
 from owtf.db import models
 from owtf.db.database import get_count, get_scoped_session
 from owtf.lib.exceptions import InvalidParameterType
@@ -222,7 +221,7 @@ def url_gen_query(session, criteria, target_id, for_stats=False):
         if criteria.get('url', None):
             if isinstance(criteria.get('url'), list):
                 criteria['url'] = criteria['url'][0]
-            query = query.filter(models.Url.url.like('%%%s%%' % criteria['url']))
+            query = query.filter(models.Url.url.like('%%{!s}%%'.format(criteria['url'])))
     else:  # If not search
         if criteria.get('url', None):
             if isinstance(criteria.get('url'), str):

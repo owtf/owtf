@@ -115,7 +115,7 @@ class Requester(object):
         else:  # All requests must use the outbound proxy.
             logging.debug("Setting up proxy(inbound) for OWTF requests..")
             ip, port = proxy
-            proxy_conf = {'http': 'http://%s:%s' % (ip, port), 'https': 'http://%s:%s' % (ip, port)}
+            proxy_conf = {'http': 'http://{!s}:{!s}'.format(ip, port), 'https': 'http://{!s}:{!s}'.format(ip, port)}
             proxy_handler = ProxyHandler(proxy_conf)
             # FIXME: Works except no raw request on https.
             self.opener = build_opener(proxy_handler, MyHTTPHandler, MyHTTPSHandler, SmartRedirectHandler)
@@ -306,7 +306,8 @@ class Requester(object):
             err_message = self.process_http_error_code(error, url)
             self.http_transaction.set_error(err_message)
         except IOError:
-            err_message = "ERROR: Requester Object -> Unknown HTTP Request error: %s\n%s" % (url, str(sys.exc_info()))
+            err_message = "ERROR: Requester Object -> Unknown HTTP Request error: {!s}\n{!s}".format(
+                url, str(sys.exc_info()))
             self.http_transaction.set_error(err_message)
         if self.log_transactions:
             # Log transaction in DB for analysis later and return modified Transaction with ID.
@@ -325,15 +326,15 @@ class Requester(object):
         """
         message = ""
         if str(error.reason).startswith("[Errno 111]"):
-            message = "ERROR: The connection was refused!: %s" % str(error)
+            message = "ERROR: The connection was refused!: {!s}".format(error)
             self.req_count_refused += 1
         elif str(error.reason).startswith("[Errno -2]"):
-            abort_framework("ERROR: cannot resolve hostname!: %s" % str(error))
+            abort_framework("ERROR: cannot resolve hostname!: {!s}".format(error))
         else:
             message = "ERROR: The connection was not refused, unknown error!"
         log = logging.getLogger('general')
         log.info(message)
-        return "%s (Requester Object): %s\n%s" % (message, url, str(sys.exc_info()))
+        return "{!s} (Requester Object): {!s}\n{!s}".format(message, url, str(sys.exc_info()))
 
     def get(self, url):
         """Wrapper for get requests
@@ -490,7 +491,10 @@ class Requester(object):
             if not url:
                 continue  # Skip blank lines.
             if not is_url(url):
-                add_error("Minor issue: %s is not a valid URL and has been ignored, processing continues" % str(url))
+                add_error(
+                    self.session,
+                    "Minor issue: {!s} is not a valid URL and has been ignored, processing continues".format(url),
+                    trace="")
                 continue  # Skip garbage URLs.
             transaction = self.get_transaction(use_cache, url, method=method, data=data)
             if transaction is not None:

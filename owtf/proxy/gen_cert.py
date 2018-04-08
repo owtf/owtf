@@ -75,9 +75,9 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                 cert.sign(ca_key, "sha256")
 
                 # The key and cert files are dumped and their paths are returned
-                domain_key = open(key_path, "w")
-                domain_key.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
+                with open(key_path, "w") as domain_key:
+                    domain_key.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
 
-                domain_cert = open(cert_path, "w")
-                domain_cert.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+                with open(cert_path, "w") as domain_cert:
+                    domain_cert.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
     return key_path, cert_path

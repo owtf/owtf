@@ -4,7 +4,6 @@ owtf.db.error_manager
 
 Component to handle data storage and search of all errors
 """
-
 from owtf.db import models
 from owtf.lib.exceptions import InvalidErrorReference
 from owtf.utils.strings import str2bool
@@ -38,7 +37,7 @@ def delete_error(session, error_id):
         session.delete(error)
         session.commit()
     else:
-        raise InvalidErrorReference("No error with id %s" % str(error_id))
+        raise InvalidErrorReference("No error with id {!s}".format(error_id))
 
 
 def gen_query_error(session, criteria):
@@ -69,7 +68,7 @@ def update_error(session, error_id, user_message):
     """
     error = session.query(models.Error).get(error_id)
     if not error:  # If invalid error id, bail out
-        raise InvalidErrorReference("No error with id %s" % str(error_id))
+        raise InvalidErrorReference("No error with id {!s}".format(error_id))
     error.user_message = user_message
     session.merge(error)
     session.commit()
@@ -128,5 +127,5 @@ def get_error(session, error_id):
     """
     error = session.query(models.Error).get(error_id)
     if not error:  # If invalid error id, bail out
-        raise InvalidErrorReference("No error with id %s" % str(error_id))
+        raise InvalidErrorReference("No error with id {!s}".format(error_id))
     return derive_error_dict(error)

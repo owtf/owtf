@@ -101,7 +101,7 @@ class FileLock(object):
                 if e.errno != errno.EEXIST:
                     raise
                 if self.timeout is not None and (time.time() - start_time) >= self.timeout:
-                    raise FileLock.FileLockException("Timeout occurred for lock '%s'." % self.lockfile)
+                    raise FileLock.FileLockException("Timeout occurred for lock '{!s}'.".format(self.lockfile))
                 if not blocking:
                     return False
                 time.sleep(self.delay)

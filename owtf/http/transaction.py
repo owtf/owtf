@@ -119,15 +119,15 @@ class HTTPTransaction(object):
         if self.url != response.url:
             if response.code not in [302, 301]:  # No way, error in hook.
                 # Mark as a redirect, dirty but more accurate than 200 :P
-                self.status = "%s Found" % str(302)
-                self.status += " --Redirect--> %s " % str(response.code)
+                self.status = "302 Found"
+                self.status += " --Redirect--> {!s} ".format(response.code)
                 self.status += response.msg
             # Redirect differs in schema (i.e. https instead of http).
             if self.url.split(':')[0] != response.url.split(':')[0]:
                 pass
             self.url = response.url
         else:
-            self.status = "%s %s" % (str(response.code), response.msg)
+            self.status = "{!s} {!s}".format(str(response.code), response.msg)
         self.raw_request = request
         self.found = found
         self.response_headers = response.headers
@@ -341,9 +341,9 @@ class HTTPTransaction(object):
         self.init_data(request.body)
         self.method = request.method
         try:
-            self.status = "%s %s" % (str(response.code), response_messages[int(response.code)])
+            self.status = "{!s} {!s}".format(str(response.code), response_messages[int(response.code)])
         except KeyError:
-            self.status = "%s Unknown Error" % str(response.code)
+            self.status = "{!s} Unknown Error".format(response.code)
         self.raw_request = request.raw_request
         self.response_headers = response.header_string
         self.response_contents = response.body
