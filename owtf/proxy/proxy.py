@@ -126,7 +126,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         if self.request.uri.startswith(self.request.protocol, 0):  # Normal Proxy Request.
             self.request.url = self.request.uri
         else:  # Transparent Proxy Request.
-            self.request.url = "%s://%s" % (self.request.protocol, self.request.host)
+            self.request.url = "{!s}://{!s}".format(self.request.protocol, self.request.host)
             if self.request.uri != '/':  # Add uri only if needed.
                 self.request.url += self.request.uri
 
@@ -157,7 +157,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                 if ':' not in self.request.host:
                     default_ports = {'http': '80', 'https': '443'}
                     if self.request.protocol in default_ports:
-                        host = '%s:%s' % (self.request.host, default_ports[self.request.protocol])
+                        host = '{!s}:{!s}'.format(self.request.host, default_ports[self.request.protocol])
                 # Check if auth is provided for that host
                 try:
                     index = self.application.http_auth_hosts.index(host)
@@ -347,7 +347,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.request.url = self.request.uri
         # Transparent Proxy Request
         else:
-            self.request.url = "%s://%s%s" % (self.request.protocol, self.request.host, self.request.uri)
+            self.request.url = "{!s}://{!s}{!s}".format(self.request.protocol, self.request.host, self.request.uri)
         self.request.url = self.request.url.replace("http", "ws", 1)
 
         # Have to add cookies and stuff
@@ -408,10 +408,8 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         :return: None
         :rtype: None
         """
-        """
-        """
         try:  # Cannot write binary content as a string, so catch it
-            self.handshake_request.response_buffer += (">>> %s\r\n" % message)
+            self.handshake_request.response_buffer += (">>> {}\r\n".format(message))
         except TypeError:
             self.handshake_request.response_buffer += (">>> May be binary\r\n")
 
@@ -425,7 +423,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         :rtype: None
         """
         try:  # Cannot write binary content as a string, so catch it.
-            self.handshake_request.response_buffer += ("<<< %s\r\n" % message)
+            self.handshake_request.response_buffer += ("<<< {}\r\n".format(message))
         except TypeError:
             self.handshake_request.response_buffer += ("<<< May be binary\r\n")
 
