@@ -3,10 +3,6 @@ owtf.api.handlers.config
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-import tornado.gen
-import tornado.httpclient
-import tornado.web
-
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError

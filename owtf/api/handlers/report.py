@@ -4,13 +4,8 @@ owtf.api.handlers.report
 
 """
 import collections
-import logging
 from collections import defaultdict
 from time import gmtime, strftime
-
-import tornado.gen
-import tornado.httpclient
-import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.constants import RANKS

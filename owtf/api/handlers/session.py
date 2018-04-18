@@ -3,10 +3,6 @@ owtf.api.handlers.session
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-import tornado.gen
-import tornado.httpclient
-import tornado.web
-
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
@@ -158,7 +154,7 @@ class OWTFSessionHandler(APIRequestHandler):
                 "data": null
             }
         """
-        if (session_id is None) or action is not None:
+        if session_id is None or action is not None:
             raise APIError(400, "Incorrect query parameters")
         try:
             delete_session(self.session, int(session_id))

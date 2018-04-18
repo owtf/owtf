@@ -3,8 +3,6 @@ owtf.api.handlers.work
 ~~~~~~~~~~~~~~~~~~~~~~
 
 """
-import logging
-
 import tornado.gen
 import tornado.httpclient
 import tornado.web

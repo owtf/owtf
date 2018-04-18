@@ -4,11 +4,6 @@ owtf.api.handlers.plugin
 
 """
 import collections
-import logging
-
-import tornado.gen
-import tornado.httpclient
-import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
