@@ -8,4 +8,4 @@ __release__ = 'MacOWTF'
 
 from owtf.utils.logger import OWTFLogger
 
-OWTFLogger()
+OWTFLogger().enable_logging()

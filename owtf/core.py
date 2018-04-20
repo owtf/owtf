@@ -12,9 +12,10 @@ import os
 import signal
 import sys
 
+from tornado.ioloop import IOLoop, PeriodicCallback
+
 from owtf import __release__, __version__
 from owtf.api.main import start_server
-from owtf.cli.main import start_cli
 from owtf.config import config_handler
 from owtf.filesrv.main import start_file_server
 from owtf.lib import exceptions
@@ -243,6 +244,17 @@ def initialise_framework(options):
     return True
 
 
+def poll_workers():
+    from owtf.managers.worker import worker_manager
+
+    callback = PeriodicCallback(worker_manager.manage_workers, 2000)
+    try:
+        callback.start()
+        IOLoop.instance().start()
+    except SystemExit as e:
+        callback.stop()
+
+
 def init(args):
     """Start OWTF.
     :params dict args: Options from the CLI.
@@ -251,8 +263,8 @@ def init(args):
         if not args['nowebui']:
             start_server()
             start_file_server()
-        else:
-            start_cli()
+
+        poll_workers()
 
 
 @workers_finish.connect

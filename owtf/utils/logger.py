@@ -36,7 +36,6 @@ class OWTFLogger(object):
                 setup_logging(handler)
         except:
             pass
-        self.enable_logging()
 
     def enable_logging(self, **kwargs):
         """Enables both file and console logging

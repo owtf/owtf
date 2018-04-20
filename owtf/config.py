@@ -7,7 +7,6 @@ memory, derives some settings and provides framework modules with a central
 repository to get info.
 """
 import logging
-import os
 from collections import defaultdict
 try:  # PY3
     from urllib.parse import urlparse
