@@ -44,7 +44,7 @@ __all__ = ['get_plugins_from_arg', 'process_options', 'initialise_framework', 'f
 owtf_pid = None
 
 # Get a global DB connection instance
-from owtf.db.database import get_scoped_session
+from owtf.db.session import get_scoped_session
 db = get_scoped_session()
 
 

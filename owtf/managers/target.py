@@ -5,13 +5,16 @@ owtf.managers.target
 """
 import logging
 import os
+
+from owtf.models.session import Session
+from owtf.models.target import Target
+
 try:
     from urllib.parse import urlparse
 except ImportError:
     from urlparse import urlparse
 
-from owtf.db import models
-from owtf.db.database import get_count, get_scoped_session
+from owtf.db.session import get_count, get_scoped_session
 from owtf.lib.exceptions import DBIntegrityException, InvalidParameterType, \
     InvalidTargetReference, UnresolvableTargetException
 from owtf.managers.session import add_target_to_session, session_required
@@ -166,7 +169,7 @@ def get_indexed_targets():
     :rtype:
     """
     session = get_scoped_session()
-    results = session.query(models.Target.id, models.Target.target_url).all()
+    results = session.query(Target.id, Target.target_url).all()
     return results
 
 
@@ -185,7 +188,7 @@ def add_target(session, target_url, session_id=None):
         # A try-except can be used here, but then ip-resolution takes time
         # even if target is present
         target_config = derive_config_from_url(target_url)
-        config_obj = models.Target(target_url=target_url)
+        config_obj = Target(target_url=target_url)
         config_obj.host_name = target_config["host_name"]
         config_obj.host_path = target_config["host_path"]
         config_obj.url_scheme = target_config["url_scheme"]
@@ -196,14 +199,14 @@ def add_target(session, target_url, session_id=None):
         config_obj.top_domain = target_config["top_domain"]
         config_obj.top_url = target_config["top_url"]
         session.add(config_obj)
-        config_obj.sessions.append(session.query(models.Session).get(session_id))
+        config_obj.sessions.append(session.query(Session).get(session_id))
         session.commit()
         target_id = config_obj.id
         create_missing_dirs_target(target_url)
         target_manager.set_target(target_id)
     else:
-        session_obj = session.query(models.Session).get(session_id)
-        target_obj = session.query(models.Target).filter_by(target_url=target_url).one()
+        session_obj = session.query(Session).get(session_id)
+        target_obj = session.query(Target).filter_by(target_url=target_url).one()
         if session_obj in target_obj.sessions:
             raise DBIntegrityException("{!s} already present in Target DB & session".format(target_url))
         else:
@@ -239,9 +242,9 @@ def update_target(session, data_dict, target_url=None, id=None):
     """
     target_obj = None
     if id:
-        target_obj = session.query(models.Target).get(id)
+        target_obj = session.query(Target).get(id)
     if target_url:
-        target_obj = session.query(models.Target).filter_by(target_url=target_url).one()
+        target_obj = session.query(Target).filter_by(target_url=target_url).one()
     if not target_obj:
         raise InvalidTargetReference("2. Target doesn't exist: {!s}".format(id) if id else str(target_url))
     # TODO: Updating all related attributes when one attribute is changed
@@ -262,9 +265,9 @@ def delete_target(session, target_url=None, id=None):
     """
     target_obj = None
     if id:
-        target_obj = session.query(models.Target).get(id)
+        target_obj = session.query(Target).get(id)
     if target_url:
-        target_obj = session.query(models.Target).filter_by(target_url=target_url).one()
+        target_obj = session.query(Target).filter_by(target_url=target_url).one()
     if not target_obj:
         raise InvalidTargetReference("3. Target doesn't exist: {!s}".format(id) if id else str(target_url))
     if target_obj:
@@ -293,7 +296,7 @@ def get_target_url_for_id(session, id):
     :return: Target url
     :rtype: `str`
     """
-    target_obj = session.query(models.Target).get(id)
+    target_obj = session.query(Target).get(id)
     if not target_obj:
         logging.info("Failing with ID: %s" % str(id))
         raise InvalidTargetReference("1. Target doesn't exist with ID: {!s}".format(id))
@@ -308,7 +311,7 @@ def get_target_config_by_id(session, id):
     :return: Config dict
     :rtype: `dict`
     """
-    target_obj = session.query(models.Target).get(id)
+    target_obj = session.query(Target).get(id)
     if not target_obj:
         raise InvalidTargetReference("5. Target doesn't exist: {!s}".format(id))
     return get_target_config_dict(target_obj)
@@ -326,23 +329,23 @@ def target_gen_query(session, filter_data, session_id, for_stats=False):
     :return:
     :rtype:
     """
-    query = session.query(models.Target).filter(models.Target.sessions.any(id=session_id))
+    query = session.query(Target).filter(Target.sessions.any(id=session_id))
     if filter_data.get("search") is not None:
         if filter_data.get('target_url', None):
             if isinstance(filter_data.get('target_url'), list):
                 filter_data['target_url'] = filter_data['target_url'][0]
-            query = query.filter(models.Target.target_url.like("%%{!s}%%".format(filter_data['target_url'])))
+            query = query.filter(Target.target_url.like("%%{!s}%%".format(filter_data['target_url'])))
     else:
         if filter_data.get("target_url", None):
             if isinstance(filter_data["target_url"], str):
                 query = query.filter_by(target_url=filter_data["target_url"])
             if isinstance(filter_data["target_url"], list):
-                query = query.filter(models.Target.target_url.in_(filter_data.get("target_url")))
+                query = query.filter(Target.target_url.in_(filter_data.get("target_url")))
         if filter_data.get("host_ip", None):
             if isinstance(filter_data["host_ip"], str):
                 query = query.filter_by(host_ip=filter_data["host_ip"])
             if isinstance(filter_data["host_ip"], list):
-                query = query.filter(models.Target.host_ip.in_(filter_data.get("host_ip")))
+                query = query.filter(Target.host_ip.in_(filter_data.get("host_ip")))
         if filter_data.get("scope", None):
             filter_data["scope"] = filter_data["scope"][0]
             query = query.filter_by(scope=str2bool(filter_data.get("scope")))
@@ -350,14 +353,14 @@ def target_gen_query(session, filter_data, session_id, for_stats=False):
             if isinstance(filter_data["host_name"], str):
                 query = query.filter_by(host_name=filter_data["host_name"])
             if isinstance(filter_data["host_name"], list):
-                query = query.filter(models.Target.host_name.in_(filter_data.get("host_name")))
+                query = query.filter(Target.host_name.in_(filter_data.get("host_name")))
         if filter_data.get("id", None):
             if isinstance(filter_data["id"], str):
                 query = query.filter_by(id=filter_data["id"])
             if isinstance(filter_data["id"], list):
-                query = query.filter(models.Target.id.in_(filter_data.get("id")))
+                query = query.filter(Target.id.in_(filter_data.get("id")))
     # This will allow new targets to be at the start
-    query = query.order_by(models.Target.id.desc())
+    query = query.order_by(Target.id.desc())
     if not for_stats:  # query for stats shouldn't have limit and offset
         try:
             if filter_data.get('offset', None):
@@ -388,7 +391,7 @@ def search_target_configs(session, filter_data=None, session_id=None):
     :return: results
     :rtype: `dict`
     """
-    total = get_count(session.query(models.Target).filter(models.Target.sessions.any(id=session_id)))
+    total = get_count(session.query(Target).filter(Target.sessions.any(id=session_id)))
     filtered_target_objs = target_gen_query(session, filter_data, session_id).all()
     filtered_number = get_count(target_gen_query(session, filter_data, session_id, for_stats=True))
     results = {
@@ -469,7 +472,7 @@ def get_all_targets(session, key):
     :return:
     :rtype:
     """
-    results = session.query(getattr(models.Target, key.lower())).all()
+    results = session.query(getattr(Target, key.lower())).all()
     results = [result[0] for result in results]
     return results
 
@@ -483,7 +486,7 @@ def get_all_in_scope(key):
     :rtype: `list`
     """
     session = get_scoped_session()
-    results = session.query(getattr(models.Target, key.lower())).filter_by(scope=True).all()
+    results = session.query(getattr(Target, key.lower())).filter_by(scope=True).all()
     results = [result[0] for result in results]
     return results
 
@@ -604,8 +607,8 @@ def get_targets_by_severity_count(session, session_id=None):
         "value": 0,
         "color": "#800080"
     }]
-    total = session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).count()
-    target_objs = session.query(models.Target).filter(models.Target.sessions.any(id=session_id)).all()
+    total = session.query(Target).filter(Target.sessions.any(id=session_id)).count()
+    target_objs = session.query(Target).filter(Target.sessions.any(id=session_id)).all()
 
     for target_obj in target_objs:
         if target_obj.max_user_rank != -1:

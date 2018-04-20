@@ -9,7 +9,7 @@ from collections import defaultdict
 import copy
 
 from owtf.config import config_handler
-from owtf.db.database import get_scoped_session
+from owtf.db.session import get_scoped_session
 from owtf.managers.error import add_error
 from owtf.utils.error import abort_framework
 from owtf.utils.signals import owtf_start

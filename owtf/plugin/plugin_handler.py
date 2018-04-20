@@ -17,7 +17,7 @@ from ptp.libptp.exceptions import PTPError
 from sqlalchemy.exc import SQLAlchemyError
 
 from owtf.config import config_handler
-from owtf.db.database import get_scoped_session
+from owtf.db.session import get_scoped_session
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
 from owtf.managers.config import get_tcp_ports
 from owtf.managers.plugin import get_plugins_by_group, get_plugins_by_group_type, get_types_for_plugin_group

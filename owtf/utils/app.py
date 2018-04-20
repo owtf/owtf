@@ -10,7 +10,7 @@ try:
 except ImportError:
     raven_installed = False
 
-from owtf.db.database import Session, get_db_engine
+from owtf.db.session import Session, get_db_engine
 from owtf.settings import USE_SENTRY
 from owtf.utils.error import get_sentry_client
 

@@ -1,6 +1,6 @@
 """
-owtf.db.database
-~~~~~~~~~~~~~~~~
+owtf.db.session
+~~~~~~~~~~~~~~~
 
 This file handles all the database transactions.
 """
@@ -12,7 +12,7 @@ from sqlalchemy import create_engine, exc, func
 from sqlalchemy.orm import Session as _Session
 from sqlalchemy.orm import sessionmaker
 
-from owtf.db.models import Base
+from owtf.db.model_base import Model
 from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_USER, DATABASE_PORT
 
 
@@ -49,7 +49,7 @@ def get_db_engine():
             "postgresql+psycopg2://{}:{}@{}:{}/{}".format(DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_PORT,
                                                           DATABASE_NAME),
             pool_recycle=120)
-        Base.metadata.create_all(engine)
+        Model.metadata.create_all(engine)
         return engine
     except exc.OperationalError as e:
         logging.error("Could not create database engine - Exception occured\n%s", str(e))

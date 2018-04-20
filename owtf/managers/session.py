@@ -4,9 +4,10 @@ owtf.managers.session
 
 Manager functions for sessions
 """
-from owtf.db import models
-from owtf.db.database import get_scoped_session
+from owtf.db.session import get_scoped_session
 from owtf.lib import exceptions
+from owtf.models.session import Session
+from owtf.models.target import Target
 from owtf.utils.strings import str2bool
 
 
@@ -34,7 +35,7 @@ def _ensure_default_session(session):
     :return: None
     :rtype: None
     """
-    if session.query(models.Session).count() == 0:
+    if session.query(Session).count() == 0:
         add_session(session, "default session")
 
 
@@ -46,7 +47,7 @@ def set_session(session, session_id):
     :return: None
     :rtype: None
     """
-    query = session.query(models.Session)
+    query = session.query(Session)
     session_obj = query.get(session_id)
     if session_obj is None:
         raise exceptions.InvalidSessionReference("No session with session_id: {!s}".format(session_id))
@@ -61,7 +62,7 @@ def get_session_id(session):
     :return: ID of the active session
     :rtype: `int`
     """
-    session_id = session.query(models.Session.id).filter_by(active=True).first()
+    session_id = session.query(Session.id).filter_by(active=True).first()
     return session_id
 
 
@@ -73,9 +74,9 @@ def add_session(session, session_name):
     :return: None
     :rtype: None
     """
-    existing_obj = session.query(models.Session).filter_by(name=session_name).first()
+    existing_obj = session.query(Session).filter_by(name=session_name).first()
     if existing_obj is None:
-        session_obj = models.Session(name=session_name[:50])
+        session_obj = Session(name=session_name[:50])
         session.add(session_obj)
         session.commit()
         set_session(session, session_obj.id)
@@ -94,8 +95,8 @@ def add_target_to_session(session, target_id, session_id=None):
     :return: None
     :rtype: None
     """
-    session_obj = session.query(models.Session).get(session_id)
-    target_obj = session.query(models.Target).get(target_id)
+    session_obj = session.query(Session).get(session_id)
+    target_obj = session.query(Target).get(target_id)
     if session_obj is None:
         raise exceptions.InvalidSessionReference("No session with id: {!s}".format(session_id))
     if target_obj is None:
@@ -116,8 +117,8 @@ def remove_target_from_session(session, target_id, session_id=None):
     :return: None
     :rtype: None
     """
-    session_obj = session.query(models.Session).get(session_id)
-    target_obj = session.query(models.Target).get(target_id)
+    session_obj = session.query(Session).get(session_id)
+    target_obj = session.query(Target).get(target_id)
     if session_obj is None:
         raise exceptions.InvalidSessionReference("No session with id: {!s}".format(session_id))
     if target_obj is None:
@@ -138,7 +139,7 @@ def delete_session(session, session_id):
     :return: None
     :rtype: None
     """
-    session_obj = session.query(models.Session).get(session_id)
+    session_obj = session.query(Session).get(session_id)
     if session_obj is None:
         raise exceptions.InvalidSessionReference("No session with id: {!s}".format(session_id))
     for target in session_obj.targets:
@@ -189,13 +190,13 @@ def session_generate_query(session, filter_data=None):
     """
     if filter_data is None:
         filter_data = {}
-    query = session.query(models.Session)
+    query = session.query(Session)
     # it doesn't make sense to search in a boolean column :P
     if filter_data.get('active', None):
         if isinstance(filter_data.get('active'), list):
             filter_data['active'] = filter_data['active'][0]
         query = query.filter_by(active=str2bool(filter_data['active']))
-    return query.order_by(models.Session.id)
+    return query.order_by(Session.id)
 
 
 def get_all_session_dicts(session, filter_data):
@@ -218,7 +219,7 @@ def get_session_dict(session, session_id):
     :return: Session dict
     :rtype: `dict`
     """
-    session_obj = session.query(models.Session).get(session_id)
+    session_obj = session.query(Session).get(session_id)
     if session_obj is None:
         raise exceptions.InvalidSessionReference("No session with id: {!s}".format(session_id))
     return derive_session_dict(session_obj)
