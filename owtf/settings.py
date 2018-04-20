@@ -4,8 +4,8 @@ owtf.settings
 
 It contains all the owtf global configs.
 """
-
 import os
+import re
 try:
     FileNotFoundError
 except NameError:
@@ -122,8 +122,22 @@ PROXY_RESTRICTED_RESPONSE_HEADERS = [
 ]
 
 PROXY_RESTRICTED_REQUEST_HEADERS = ["Connection", "Pragma", "Cache-Control", "If-Modified-Since"]
-
 PROXY_LOG = '/tmp/owtf/proxy.log'
+
+# Define regex patterns
+REGEXP_FILE_URL = "^[^\?]+\.(xml|exe|pdf|cs|log|inc|dat|bak|conf|cnf|old|zip|7z|rar|tar|gz|bz2|txt|xls|xlsx|doc|docx|ppt|pptx)$"
+# Potentially small files will be retrieved for analysis
+REGEXP_SMALL_FILE_URL = "^[^\?]+\.(xml|cs|inc|dat|bak|conf|cnf|old|txt)$"
+REGEXP_IMAGE_URL = "^[^\?]+\.(jpg|jpeg|png|gif|bmp)$"
+REGEXP_VALID_URL = "^[^\?]+\.(shtml|shtm|stm)$"
+REGEXP_SSI_URL = "^(http|ftp)[^ ]+$"
+
+# Compile regular expressions once at the beginning for speed purposes:
+is_file_regex = re.compile(REGEXP_FILE_URL, re.IGNORECASE)
+is_small_file_regex = re.compile(REGEXP_SMALL_FILE_URL, re.IGNORECASE)
+is_image_regex = re.compile(REGEXP_IMAGE_URL, re.IGNORECASE)
+is_url_regex = re.compile(REGEXP_VALID_URL, re.IGNORECASE)
+is_ssi_regex = re.compile(REGEXP_SSI_URL, re.IGNORECASE)
 
 # UI
 SERVER_LOG = '/tmp/owtf/ui_server.log'

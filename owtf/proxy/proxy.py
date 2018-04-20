@@ -23,7 +23,7 @@ import tornado.web
 import tornado.websocket
 
 from owtf.proxy.cache_handler import CacheHandler
-from owtf.proxy.socket_wrapper import wrap_socket
+from owtf.proxy.socket_wrapper import starttls
 
 
 def prepare_curl_callback(curl):
@@ -50,7 +50,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                 return CustomWebSocketHandler(application, request, **kwargs)
         except KeyError:
             pass
-        return tornado.web.RequestHandler.__new__(cls, application, request, **kwargs)
+        return tornado.web.RequestHandler.__new__(cls)
 
     def set_default_headers(self):
         """Automatically called by Tornado, and is used to remove "Server" header set by tornado
@@ -133,7 +133,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         # This block here checks for already cached response and if present returns one
         self.cache_handler = CacheHandler(self.application.cache_dir, self.request, self.application.cookie_regex,
                                           self.application.cookie_blacklist)
-        request_hash = yield tornado.gen.Task(self.cache_handler.calculate_hash)
+        yield tornado.gen.Task(self.cache_handler.calculate_hash)
         self.cached_response = self.cache_handler.load()
 
         if self.cached_response:
@@ -266,7 +266,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             """
             try:
                 self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
-                wrap_socket(
+                starttls(
                     self.request.connection.stream.socket,
                     host,
                     self.application.ca_cert,

@@ -6,10 +6,10 @@ The DB stores HTTP transactions, unique URLs and more.
 """
 from owtf.db.session import get_count, get_scoped_session
 from owtf.lib.exceptions import InvalidParameterType
-# from owtf.managers import is_small_file_regex, is_file_regex, is_image_regex, is_ssi_regex, is_url_regex
 from owtf.managers.target import is_url_in_scope, target_required
 from owtf.models.url import Url
 from owtf.utils.strings import str2bool
+from owtf.settings import is_file_regex, is_image_regex, is_small_file_regex, is_ssi_regex, is_url_regex
 
 num_urls_before = 0
 

@@ -1,8 +1,6 @@
 """
 owtf.proxy.socket_wrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013
 """
 import ssl
 
@@ -11,8 +9,10 @@ from tornado import ioloop
 from owtf.proxy.gen_cert import gen_signed_cert
 
 
-def wrap_socket(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=None, failure=None, io=None, **options):
+def starttls(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=None, failure=None, io=None, **options):
     """Wrap an active socket in an SSL socket.
+
+    Taken from https://gist.github.com/weaver/293449/4d9f64652583611d267604531a1d5f8c32ac6b16.
 
     :param socket:
     :type socket:
@@ -68,10 +68,7 @@ def wrap_socket(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=N
         wrapped.close()
 
     def handshake(fd, events):
-        """Handler fGetting the same error here... also looking for answers....
-        TheHippo Dec 19 '12 at 20:29or SSL handshake negotiation.
-        See Python docs for ssl.do_handshake().
-
+        """Handshake sequence with Tornado
 
         :param fd:
         :type fd:
