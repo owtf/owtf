@@ -6,9 +6,9 @@ Manages the mapping between different plugin groups and codes
 """
 import json
 
-from owtf.db import models
 from owtf.lib.exceptions import InvalidMappingReference
 from owtf.managers.config import load_config_file
+from owtf.models.mapping import Mapping
 from owtf.utils.pycompat import iteritems
 
 mapping_types = []
@@ -59,7 +59,7 @@ def get_all_mappings(session):
     :return: Mapping dictionary {code: [mapped_code, mapped_description], code2: [mapped_code, mapped_description], ...}
     :rtype: dict
     """
-    mapping_objs = session.query(models.Mapping).all()
+    mapping_objs = session.query(Mapping).all()
     return {mapping['owtf_code']: mapping['mappings'] for mapping in derive_mapping_dicts(mapping_objs)}
 
 
@@ -72,7 +72,7 @@ def get_mappings(session, mapping_type):
     :rtype: `dict`
     """
     if mapping_type in mapping_types:
-        mapping_objs = session.query(models.Mapping).all()
+        mapping_objs = session.query(Mapping).all()
         mappings = {}
         for mapping_dict in derive_mapping_dicts(mapping_objs):
             if mapping_dict["mappings"].get(mapping_type, None):
@@ -90,7 +90,7 @@ def get_mapping_category(session, plugin_code):
     :return: category for the plugin code
     :rtype: `str`
     """
-    category = session.query(models.Mapping.category).get(plugin_code)
+    category = session.query(Mapping.category).get(plugin_code)
     # Getting the corresponding category back from db
     return category
 
@@ -115,5 +115,5 @@ def load_mappings(session, default, fallback):
         category = None
         if 'category' in mappings:
             category = mappings.pop('category')
-        session.merge(models.Mapping(owtf_code=owtf_code, mappings=json.dumps(mappings), category=category))
+        session.merge(Mapping(owtf_code=owtf_code, mappings=json.dumps(mappings), category=category))
     session.commit()

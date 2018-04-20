@@ -5,14 +5,10 @@ owtf.managers.worker
 """
 import logging
 import multiprocessing
-import os
 import signal
 import sys
 import traceback
 from time import strftime
-
-from owtf.utils.strings import str2bool
-
 try:
     import queue
 except ImportError:
@@ -20,7 +16,7 @@ except ImportError:
 
 import psutil
 
-from owtf.db.database import get_scoped_session
+from owtf.db.session import get_scoped_session
 from owtf.lib.exceptions import InvalidWorkerReference
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.managers.error import add_error

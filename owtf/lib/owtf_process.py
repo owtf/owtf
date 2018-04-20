@@ -6,7 +6,7 @@ Consists of owtf process class and its manager
 """
 from multiprocessing import Process, Queue
 
-from owtf.db.database import get_scoped_session
+from owtf.db.session import get_scoped_session
 from owtf.utils.error import setup_signal_handlers
 from owtf.plugin.plugin_handler import plugin_handler
 from owtf.utils.logger import OWTFLogger

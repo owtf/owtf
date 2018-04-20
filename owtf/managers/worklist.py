@@ -8,12 +8,14 @@ import logging
 
 from sqlalchemy.sql import not_
 
-from owtf.db import models
-from owtf.db.database import get_count
+from owtf.db.session import get_count
 from owtf.lib import exceptions
 from owtf.managers.plugin import derive_plugin_dict, get_all_plugin_dicts
 from owtf.managers.poutput import delete_all_poutput, plugin_already_run
 from owtf.managers.target import get_target_config_dict, get_target_config_dicts
+from owtf.models.plugin import Plugin
+from owtf.models.target import Target
+from owtf.models.work import Work
 
 
 def load_works(session, target_urls, options):
@@ -62,28 +64,28 @@ def worklist_generate_query(session, criteria=None, for_stats=False):
     """
     if criteria is None:
         criteria = {}
-    query = session.query(models.Work).join(models.Target).join(models.Plugin).order_by(models.Work.id)
+    query = session.query(Work).join(Target).join(Plugin).order_by(Work.id)
     if criteria.get('search', None):
         if criteria.get('target_url', None):
             if isinstance(criteria.get('target_url'), list):
                 criteria['target_url'] = criteria['target_url'][0]
-            query = query.filter(models.Target.target_url.like('%%{!s}%%'.format(criteria['target_url'])))
+            query = query.filter(Target.target_url.like('%%{!s}%%'.format(criteria['target_url'])))
         if criteria.get('type', None):
             if isinstance(criteria.get('type'), list):
                 criteria['type'] = criteria['type'][0]
-            query = query.filter(models.Plugin.type.like('%%{!s}%%'.format(criteria['type'])))
+            query = query.filter(Plugin.type.like('%%{!s}%%'.format(criteria['type'])))
         if criteria.get('group', None):
             if isinstance(criteria.get('group'), list):
                 criteria['group'] = criteria['group'][0]
-            query = query.filter(models.Plugin.group.like('%%{!s}%%'.format(criteria['group'])))
+            query = query.filter(Plugin.group.like('%%{!s}%%'.format(criteria['group'])))
         if criteria.get('name', None):
             if isinstance(criteria.get('name'), list):
                 criteria['name'] = criteria['name'][0]
-            query = query.filter(models.Plugin.name.ilike('%%{!s}%%'.format(criteria['name'])))
+            query = query.filter(Plugin.name.ilike('%%{!s}%%'.format(criteria['name'])))
     try:
         if criteria.get('id', None):
             if isinstance(criteria.get('id'), list):
-                query = query.filter(models.Work.target_id.in_(criteria.get('id')))
+                query = query.filter(Work.target_id.in_(criteria.get('id')))
             if isinstance(criteria.get('id'), str):
                 query = query.filter_by(target_id=int(criteria.get('id')))
         if not for_stats:
@@ -140,9 +142,9 @@ def get_work_for_target(session, in_use_target_list):
     :return: A tuple of target, plugin work
     :rtype: `tuple`
     """
-    query = session.query(models.Work).filter_by(active=True).order_by(models.Work.id)
+    query = session.query(Work).filter_by(active=True).order_by(Work.id)
     if len(in_use_target_list) > 0:
-        query = query.filter(not_(models.Work.target_id.in_(in_use_target_list)))
+        query = query.filter(not_(Work.target_id.in_(in_use_target_list)))
     work_obj = query.first()
     if work_obj:
         # First get the worker dict and then delete
@@ -173,7 +175,7 @@ def get_work(session, work_id):
     :return: List of work dicts
     :rtype: `list`
     """
-    work = session.query(models.Work).get(work_id)
+    work = session.query(Work).get(work_id)
     if work is None:
         raise exceptions.InvalidWorkReference("No work with id {!s}".format(str(work_id)))
     return _derive_work_dict(work)
@@ -219,7 +221,7 @@ def add_work(session, target_list, plugin_list, force_overwrite=False):
     for target in target_list:
         for plugin in sorted_plugin_list:
             # Check if it already in worklist
-            if get_count(session.query(models.Work).filter_by(target_id=target["id"], plugin_key=plugin["key"])) == 0:
+            if get_count(session.query(Work).filter_by(target_id=target["id"], plugin_key=plugin["key"])) == 0:
                 # Check if it is already run ;) before adding
                 is_run = plugin_already_run(session=session, plugin_info=plugin, target_id=target["id"])
                 if (force_overwrite is True) or (force_overwrite is False and is_run is False):
@@ -228,7 +230,7 @@ def add_work(session, target_list, plugin_list, force_overwrite=False):
                     if force_overwrite is True:
                         delete_all_poutput(
                             session=session, filter_data={"plugin_key": plugin["key"]}, target_id=target["id"])
-                    work_model = models.Work(target_id=target["id"], plugin_key=plugin["key"])
+                    work_model = Work(target_id=target["id"], plugin_key=plugin["key"])
                     session.add(work_model)
     session.commit()
 
@@ -241,7 +243,7 @@ def remove_work(session, work_id):
     :return: None
     :rtype: None
     """
-    work_obj = session.query(models.Work).get(work_id)
+    work_obj = session.query(Work).get(work_id)
     if work_obj is None:
         raise exceptions.InvalidWorkReference("No work with id {!s}".format(str(work_id)))
     session.delete(work_obj)
@@ -254,7 +256,7 @@ def delete_all_work(session):
     :return: None
     :rtype: None
     """
-    query = session.query(models.Work)
+    query = session.query(Work)
     for work_obj in query:
         session.delete(work_obj)
     session.commit()
@@ -270,7 +272,7 @@ def patch_work(session, work_id, active=True):
     :return: None
     :rtype: None
     """
-    work_obj = session.query(models.Work).get(work_id)
+    work_obj = session.query(Work).get(work_id)
     if work_obj is None:
         raise exceptions.InvalidWorkReference("No work with id {!s}".format(str(work_id)))
     if active != work_obj.active:
@@ -285,7 +287,7 @@ def pause_all_work(session):
     :return: None
     :rtype: None
     """
-    query = session.query(models.Work)
+    query = session.query(Work)
     query.update({"active": False})
     session.commit()
 
@@ -296,7 +298,7 @@ def resume_all_work(session):
     :return: None
     :rtype: None
     """
-    query = session.query(models.Work)
+    query = session.query(Work)
     query.update({"active": True})
     session.commit()
 
@@ -309,7 +311,7 @@ def stop_plugins(session, plugin_list):
     :return: None
     :rtype: None
     """
-    query = session.query(models.Work)
+    query = session.query(Work)
     for plugin in plugin_list:
         query.filter_by(plugin_key=plugin["key"]).update({"active": False})
     session.commit()
@@ -323,7 +325,7 @@ def stop_targets(session, target_list):
     :return: None
     :rtype: None
     """
-    query = session.query(models.Work)
+    query = session.query(Work)
     for target in target_list:
         query.filter_by(target_id=target["id"]).update({"active": False})
     session.commit()
@@ -343,7 +345,7 @@ def search_all_work(session, criteria):
     :return: Results of the search query
     :rtype: `dict`
     """
-    total = get_count(session.query(models.Work))
+    total = get_count(session.query(Work))
     filtered_work_objs = worklist_generate_query(session, criteria).all()
     filtered_number = worklist_generate_query(session, criteria, for_stats=True).count()
     results = {

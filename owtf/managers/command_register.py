@@ -4,9 +4,9 @@ owtf.managers.command_register
 
 Component to handle data storage and search of all commands run
 """
-from owtf.db import models
 from owtf.managers.poutput import plugin_output_exists
 from owtf.managers.target import get_target_url_for_id, target_required
+from owtf.models.command import Command
 
 
 def add_command(session, command):
@@ -18,7 +18,7 @@ def add_command(session, command):
     :rtype: None
     """
     session.merge(
-        models.Command(
+        Command(
             start_time=command['Start'],
             end_time=command['End'],
             success=command['Success'],
@@ -37,7 +37,7 @@ def delete_command(session, command):
     :return: None
     :rtype: None
     """
-    command_obj = session.query(models.Command).get(command)
+    command_obj = session.query(Command).get(command)
     session.delete(command_obj)
     session.commit()
 
@@ -53,7 +53,7 @@ def command_already_registered(session, original_command, target_id=None):
     :return: None
     :rtype: None
     """
-    register_entry = session.query(models.Command).get(original_command)
+    register_entry = session.query(Command).get(original_command)
     if register_entry:
         # If the command was completed and the plugin output to which it
         # is referring exists

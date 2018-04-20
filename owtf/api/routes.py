@@ -17,7 +17,7 @@ from owtf.api.handlers.targets import TargetConfigHandler, TargetConfigSearchHan
 from owtf.api.handlers.transactions import TransactionDataHandler, \
     TransactionHrtHandler, TransactionSearchHandler, URLDataHandler, URLSearchHandler
 from owtf.api.handlers.work import WorkerHandler, WorklistHandler, WorklistSearchHandler
-from owtf.db.database import get_scoped_session
+from owtf.db.session import get_scoped_session
 from owtf.managers.plugin import get_all_plugin_groups, get_all_plugin_types
 from owtf.settings import STATIC_ROOT
 

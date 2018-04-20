@@ -22,7 +22,7 @@ except ImportError:
     from urllib2 import urlopen, Request, HTTPError, HTTPHandler, HTTPSHandler, HTTPRedirectHandler, ProxyHandler, \
         build_opener, install_opener, URLError
 
-from owtf.db.database import get_scoped_session
+from owtf.db.session import get_scoped_session
 from owtf.http import transaction
 from owtf.managers.error import add_error
 from owtf.managers.target import is_url_in_scope
