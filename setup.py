@@ -45,7 +45,7 @@ for item in requirements:
 
 post_script = os.path.join(ROOT_DIR, "scripts/install.sh")
 
-dev_requires = ["flake8==3.5.0", "yapf==0.21.0", "isort==4.3.0"]
+dev_requires = ["pre-commit==1.8.2", "black==18.4a3"]
 
 tests_requires = ["PyHamcrest==1.9.0", "mock>=1.3.0"]
 
