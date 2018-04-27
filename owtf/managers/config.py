@@ -32,7 +32,7 @@ def load_config_file(file_path, fallback_file_path):
         # check if the config file exists
         abort_framework("Config file not found at: {}".format(file_path))
     try:
-        config_map = yaml.load(FileOperations.open(file_path, 'r'))
+        config_map = yaml.load(FileOperations.open(file_path, "r"))
         return config_map
     except yaml.YAMLError:
         abort_framework("Error parsing config file at: {}".format(file_path))
@@ -79,16 +79,14 @@ def load_framework_config(default, fallback, root_dir, owtf_pid):
     :rtype: None
     """
     config_dump = load_config_file(default, fallback)
-    config_handler.set_val('FRAMEWORK_DIR', root_dir)  # Needed Later.
+    config_handler.set_val("FRAMEWORK_DIR", root_dir)  # Needed Later.
     for section, config_list in iteritems(config_dump):
         for config_map in config_list:
             try:
-                config_handler.set_val(config_map["config"],
-                                       multi_replace(
-                                           str(config_map["value"]), {
-                                               'FRAMEWORK_DIR': root_dir,
-                                               'OWTF_PID': str(owtf_pid)
-                                           }))
+                config_handler.set_val(
+                    config_map["config"],
+                    multi_replace(str(config_map["value"]), {"FRAMEWORK_DIR": root_dir, "OWTF_PID": str(owtf_pid)}),
+                )
             except KeyError as e:
                 logging.debug("Exception while parsing framework config: %s", str(e))
                 pass
@@ -159,10 +157,10 @@ def config_gen_query(session, criteria):
             query = query.filter_by(section=criteria["section"])
         if isinstance(criteria["section"], list):
             query = query.filter(Config.section.in_(criteria["section"]))
-    if criteria.get('dirty', None):
-        if isinstance(criteria.get('dirty'), list):
-            criteria['dirty'] = criteria['dirty'][0]
-        query = query.filter_by(dirty=str2bool(criteria['dirty']))
+    if criteria.get("dirty", None):
+        if isinstance(criteria.get("dirty"), list):
+            criteria["dirty"] = criteria["dirty"][0]
+        query = query.filter_by(dirty=str2bool(criteria["dirty"]))
     return query.order_by(Config.key)
 
 
@@ -247,7 +245,7 @@ def get_tcp_ports(start_port, end_port):
     :return: Comma-separate string of tcp ports
     :rtype: `str`
     """
-    return ','.join(config_handler.get("TCP_PORTS").split(',')[int(start_port):int(end_port)])
+    return ",".join(config_handler.get("TCP_PORTS").split(",")[int(start_port):int(end_port)])
 
 
 def get_udp_ports(start_port, end_port):
@@ -260,4 +258,4 @@ def get_udp_ports(start_port, end_port):
     :return: Comma-separate string of udp ports
     :rtype: `str`
     """
-    return ','.join(config_handler.get("UDP_PORTS").split(',')[int(start_port):int(end_port)])
+    return ",".join(config_handler.get("UDP_PORTS").split(",")[int(start_port):int(end_port)])

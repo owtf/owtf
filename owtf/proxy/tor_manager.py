@@ -17,29 +17,29 @@ class TOR_manager(object):
     # Initialization of arguments and connections
     def __init__(self, args):
         # If the args are empty it will filled with the default values
-        if args[0] == '':
+        if args[0] == "":
             self.ip = "127.0.0.1"
         else:
             self.ip = args[0]
-        if args[1] == '':
+        if args[1] == "":
             self.port = 9050
         else:
             try:
                 self.port = int(args[1])
             except ValueError:
                 abort_framework("Invalid TOR port")
-        if args[2] == '':
+        if args[2] == "":
             self.tor_control_port = 9051
         else:
             try:
                 self.tor_control_port = int(args[2])
             except ValueError:
                 abort_framework("Invalid TOR Controlport")
-        if args[3] == '':
+        if args[3] == "":
             self.password = "owtf"
         else:
             self.password = args[3]
-        if args[4] == '':
+        if args[4] == "":
             self.time = 5
         else:
             try:
@@ -60,7 +60,7 @@ class TOR_manager(object):
         """
         self.tor_conn.send('AUTHENTICATE "%s"\r\n' % self.password)
         response = self.tor_conn.recv(1024)
-        if response.startswith('250'):  # 250 is the success response
+        if response.startswith("250"):  # 250 is the success response
             logging.info("Successfully Authenticated to TOR control")
         else:
             abort_framework("Authentication Error : %s" % response)
@@ -97,7 +97,7 @@ class TOR_manager(object):
         :return: True if running, else False
         :rtype: `bool`
         """
-        output = commands.getoutput("ps -A|grep -a \" tor$\"|wc -l")
+        output = commands.getoutput('ps -A|grep -a " tor$"|wc -l')
         if output == "1":
             return True
         elif output == "0":
@@ -110,7 +110,8 @@ class TOR_manager(object):
     # TOR configuration Info
     @staticmethod
     def msg_configure_tor():
-        logging.info("""
+        logging.info(
+            """
         1)Open torrc file usually located at '/etc/tor/torrc'
           if you can't find torrc file visit https://www.torproject.org/docs/faq.html.en#torrc
         2)Enable the TOR control port by uncommenting(removing the hash(#) symbol)
@@ -130,7 +131,8 @@ class TOR_manager(object):
            You can run owtf TOR mode without specifying the options
                ex.  ./owtf.py -o OWTF-WVS-001 http:my.website.com --tor ::::
                  which is the same with 127.0.0.1:9050:9051:owtf:5
-        """)
+        """
+        )
 
     def renew_ip(self):
         """Sends an NEWNYM message to TOR control in order to renew the IP address
@@ -140,7 +142,7 @@ class TOR_manager(object):
         """
         self.tor_conn.send("signal NEWNYM\r\n")
         response = self.tor_conn.recv(1024)
-        if response.startswith('250'):
+        if response.startswith("250"):
             logging.info("TOR : IP renewed")
             return True
         else:

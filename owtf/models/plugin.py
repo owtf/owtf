@@ -58,4 +58,4 @@ class Plugin(Model):
         else:
             return None
 
-    __table_args__ = (UniqueConstraint('type', 'code'),)
+    __table_args__ = (UniqueConstraint("type", "code"),)

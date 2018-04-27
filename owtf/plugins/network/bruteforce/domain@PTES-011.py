@@ -8,4 +8,4 @@ DESCRIPTION = " DNS Probing "
 
 
 def run(PluginInfo):
-    return plugin_helper.CommandDump('Test Command', 'Output', get_resources('DomainBruteForcing'), PluginInfo, "")
+    return plugin_helper.CommandDump("Test Command", "Output", get_resources("DomainBruteForcing"), PluginInfo, "")

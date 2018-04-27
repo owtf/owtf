@@ -8,6 +8,6 @@ DESCRIPTION = " MsSql Probing "
 
 
 def run(PluginInfo):
-    resource = get_resources('MsSqlProbeMethods')
+    resource = get_resources("MsSqlProbeMethods")
     # No previous output
-    return plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])
+    return plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])

@@ -9,7 +9,7 @@ from owtf.api.handlers.base import UIRequestHandler
 class IndexHandler(UIRequestHandler):
     """Serves the main webapp"""
 
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     def get(self, path):
         """Render the homepage with all JavaScript and context.
@@ -32,4 +32,4 @@ class IndexHandler(UIRequestHandler):
             Server: TornadoServer/5.0.1
             Content-Type: text/html; charset=UTF-8
         """
-        self.render('index.html')
+        self.render("index.html")

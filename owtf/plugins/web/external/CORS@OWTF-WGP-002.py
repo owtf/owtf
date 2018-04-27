@@ -8,6 +8,6 @@ DESCRIPTION = "CORS Plugin to assist manual testing"
 
 
 def run(PluginInfo):
-    resource = get_resources('ExternalCORS')
-    Content = plugin_helper.resource_linklist('Online Resources', resource)
+    resource = get_resources("ExternalCORS")
+    Content = plugin_helper.resource_linklist("Online Resources", resource)
     return Content

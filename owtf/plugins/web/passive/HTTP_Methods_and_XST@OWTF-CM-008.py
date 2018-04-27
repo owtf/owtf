@@ -11,7 +11,7 @@ DESCRIPTION = "Third party resources"
 
 def run(PluginInfo):
     # Vuln search box to be built in core and resued in different plugins:
-    resource = get_resources('PassiveMethods')
-    Content = plugin_helper.resource_linklist('Online Resources', resource)
+    resource = get_resources("PassiveMethods")
+    Content = plugin_helper.resource_linklist("Online Resources", resource)
     logging.info("Passive links generated for target")
     return Content

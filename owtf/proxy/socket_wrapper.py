@@ -39,17 +39,17 @@ def starttls(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=None
     """
 
     # # Default Options
-    options.setdefault('do_handshake_on_connect', False)
-    options.setdefault('ssl_version', ssl.PROTOCOL_SSLv23)
-    options.setdefault('server_side', True)
+    options.setdefault("do_handshake_on_connect", False)
+    options.setdefault("ssl_version", ssl.PROTOCOL_SSLv23)
+    options.setdefault("server_side", True)
 
     # The idea is to handle domains with greater than 3 dots using wildcard certs
     if domain.count(".") >= 3:
         key, cert = gen_signed_cert("*." + ".".join(domain.split(".")[-3:]), ca_crt, ca_key, ca_pass, certs_folder)
     else:
         key, cert = gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder)
-    options.setdefault('certfile', cert)
-    options.setdefault('keyfile', key)
+    options.setdefault("certfile", cert)
+    options.setdefault("keyfile", key)
 
     # Handlers
 

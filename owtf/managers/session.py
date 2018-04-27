@@ -51,7 +51,7 @@ def set_session(session, session_id):
     session_obj = query.get(session_id)
     if session_obj is None:
         raise exceptions.InvalidSessionReference("No session with session_id: {!s}".format(session_id))
-    query.update({'active': False})
+    query.update({"active": False})
     session_obj.active = True
     session.commit()
 
@@ -127,6 +127,7 @@ def remove_target_from_session(session, target_id, session_id=None):
     # Delete target whole together if present in this session alone
     if len(target_obj.sessions) == 0:
         from owtf.managers.target import delete_target
+
         delete_target(session, id=target_obj.id)
     session.commit()
 
@@ -146,6 +147,7 @@ def delete_session(session, session_id):
         # Means attached to only this session obj
         if len(target.sessions) == 1:
             from owtf.managers.target import delete_target
+
             delete_target(session, id=target.id)
     session.delete(session_obj)
     _ensure_default_session(session)  # i.e if there are no sessions, add one
@@ -192,10 +194,10 @@ def session_generate_query(session, filter_data=None):
         filter_data = {}
     query = session.query(Session)
     # it doesn't make sense to search in a boolean column :P
-    if filter_data.get('active', None):
-        if isinstance(filter_data.get('active'), list):
-            filter_data['active'] = filter_data['active'][0]
-        query = query.filter_by(active=str2bool(filter_data['active']))
+    if filter_data.get("active", None):
+        if isinstance(filter_data.get("active"), list):
+            filter_data["active"] = filter_data["active"][0]
+        query = query.filter_by(active=str2bool(filter_data["active"]))
     return query.order_by(Session.id)
 
 

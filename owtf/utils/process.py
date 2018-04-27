@@ -10,7 +10,7 @@ import signal
 
 import psutil
 
-__all__ = ['check_pid', '_signal_process']
+__all__ = ["check_pid", "_signal_process"]
 
 
 def check_pid(pid):

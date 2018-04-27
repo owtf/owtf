@@ -9,5 +9,5 @@ DESCRIPTION = " FTP Probing "
 
 
 def run(PluginInfo):
-    resource = get_resources('BruteFtpProbeMethods')
-    return plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])
+    resource = get_resources("BruteFtpProbeMethods")
+    return plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])

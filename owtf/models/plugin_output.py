@@ -36,4 +36,4 @@ class PluginOutput(Model):
     def run_time(self):
         return self.end_time - self.start_time
 
-    __table_args__ = (UniqueConstraint('plugin_key', 'target_id'),)
+    __table_args__ = (UniqueConstraint("plugin_key", "target_id"),)

@@ -49,10 +49,10 @@ def gen_query_error(session, criteria):
     :rtype:
     """
     query = session.query(Error)
-    if criteria.get('reported', None):
-        if isinstance(criteria.get('reported'), list):
-            criteria['reported'] = criteria['reported'][0]
-        query = query.filter_by(reported=str2bool(criteria['reported']))
+    if criteria.get("reported", None):
+        if isinstance(criteria.get("reported"), list):
+            criteria["reported"] = criteria["reported"][0]
+        query = query.filter_by(reported=str2bool(criteria["reported"]))
     return query
 
 

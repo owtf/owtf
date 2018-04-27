@@ -25,7 +25,7 @@ def catch_io_errors(func):
         If `owtf_clean` parameter is not explicitely passed or if it is
         set to `True`, it force OWTF to properly exit.
         """
-        owtf_clean = kwargs.pop('owtf_clean', True)
+        owtf_clean = kwargs.pop("owtf_clean", True)
         try:
             return func(*args, **kwargs)
         except (OSError, IOError) as e:
@@ -79,8 +79,8 @@ class FileOperations(object):
         """
         save_path = os.path.join(directory, wipe_bad_chars(filename))
         FileOperations.create_missing_dirs(directory)
-        with FileOperations.codecs_open(save_path, 'w', 'utf-8') as f:
-            f.write(contents.decode('utf-8', 'replace'))
+        with FileOperations.codecs_open(save_path, "w", "utf-8") as f:
+            f.write(contents.decode("utf-8", "replace"))
         return save_path
 
     @staticmethod
@@ -129,7 +129,7 @@ def get_file_as_list(filename):
     :rtype: `list`
     """
     try:
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             output = f.read().split("\n")
             logging.info("Loaded file: %s", filename)
     except IOError:
@@ -144,7 +144,7 @@ def create_temp_storage_dirs(owtf_pid):
     :return:
     :rtype: None
     """
-    tmp_dir = os.path.join('/tmp', 'owtf')
+    tmp_dir = os.path.join("/tmp", "owtf")
     if not os.path.exists(tmp_dir):
         tmp_dir = os.path.join(tmp_dir, str(owtf_pid))
         if not os.path.exists(tmp_dir):
@@ -157,8 +157,8 @@ def clean_temp_storage_dirs(owtf_pid):
     :return:
     :rtype: None
     """
-    curr_tmp_dir = os.path.join('/tmp', 'owtf', str(owtf_pid))
-    new_tmp_dir = os.path.join('/tmp', 'owtf', 'old-{!s}'.format(owtf_pid))
+    curr_tmp_dir = os.path.join("/tmp", "owtf", str(owtf_pid))
+    new_tmp_dir = os.path.join("/tmp", "owtf", "old-{!s}".format(owtf_pid))
     if os.path.exists(curr_tmp_dir) and os.access(curr_tmp_dir, os.W_OK):
         os.rename(curr_tmp_dir, new_tmp_dir)
 

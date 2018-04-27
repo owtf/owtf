@@ -12,7 +12,7 @@ from collections import defaultdict
 
 from owtf.settings import REPLACEMENT_DELIMITER
 
-search_regex = re.compile('{!s}([a-zA-Z0-9-_]*?){!s}'.format(REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER))
+search_regex = re.compile("{!s}([a-zA-Z0-9-_]*?){!s}".format(REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER))
 
 
 def str2bool(string):
@@ -23,7 +23,7 @@ def str2bool(string):
     :return: Boolean equivalent
     :rtype: `bool`
     """
-    return not (string in ['False', 'false', 0, '0'])
+    return not (string in ["False", "false", 0, "0"])
 
 
 def multi_replace(text, replace_dict):
@@ -41,8 +41,9 @@ def multi_replace(text, replace_dict):
         if replace_dict.get(key, None):
             # A recursive call to remove all level occurrences of place
             # holders.
-            new_text = new_text.replace(REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER,
-                                        multi_replace(replace_dict[key], replace_dict))
+            new_text = new_text.replace(
+                REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER, multi_replace(replace_dict[key], replace_dict)
+            )
     new_text = os.path.expanduser(new_text)
     return new_text
 
@@ -73,7 +74,7 @@ def get_header_list(key):
     """
     from owtf.config import config_handler
 
-    return config_handler.get_val(key).split(',')
+    return config_handler.get_val(key).split(",")
 
 
 def pad_key(key):
@@ -95,7 +96,7 @@ def strip_key(key):
     :return: Empty key
     :rtype: `str`
     """
-    return key.replace(REPLACEMENT_DELIMITER, '')
+    return key.replace(REPLACEMENT_DELIMITER, "")
 
 
 def multi_replace_dict(text, replace_dict):
@@ -123,7 +124,7 @@ def wipe_bad_chars(filename):
     :return: New replaced file filename
     :rtype: `str`
     """
-    return multi_replace(filename, {'(': '', ' ': '_', ')': '', '/': '_'})
+    return multi_replace(filename, {"(": "", " ": "_", ")": "", "/": "_"})
 
 
 def remove_blanks_list(src):
@@ -147,7 +148,7 @@ def list_to_dict_keys(list):
     """
     dictionary = defaultdict(list)
     for item in list:
-        dictionary[item] = ''
+        dictionary[item] = ""
     return dictionary
 
 
@@ -162,7 +163,7 @@ def add_to_dict(from_dict, to_dict):
     :rtype: None
     """
     for k, v in list(from_dict.items()):
-        if hasattr(v, 'copy') and callable(getattr(v, 'copy')):
+        if hasattr(v, "copy") and callable(getattr(v, "copy")):
             to_dict[k] = v.copy()
         else:
             to_dict[k] = v
@@ -223,8 +224,8 @@ def scrub_output(output):
     :return: Scrubbed output
     :rtype: `str`
     """
-    ansi_escape = re.compile(r'\x1b[^m]*m')
-    return ansi_escape.sub('', output)
+    ansi_escape = re.compile(r"\x1b[^m]*m")
+    return ansi_escape.sub("", output)
 
 
 def paths_exist(path_list):
@@ -269,12 +270,12 @@ def str_to_dict(string):
     """
     dict = defaultdict(list)
     count = 0
-    prev_item = ''
-    for item in string.strip().split('='):
+    prev_item = ""
+    for item in string.strip().split("="):
         if count % 2 == 1:  # Key.
             dict[prev_item] = item
         else:  # Value.
-            dict[item] = ''
+            dict[item] = ""
             prev_item = item
         count += 1
     return dict

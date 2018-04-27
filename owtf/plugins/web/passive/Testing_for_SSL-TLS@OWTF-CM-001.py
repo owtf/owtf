@@ -8,6 +8,6 @@ DESCRIPTION = "Third party resources"
 
 def run(PluginInfo):
     # Vuln search box to be built in core and resued in different plugins:
-    resource = get_resources('PassiveSSL')
-    Content = plugin_helper.resource_linklist('Online Resources', resource)
+    resource = get_resources("PassiveSSL")
+    Content = plugin_helper.resource_linklist("Online Resources", resource)
     return Content

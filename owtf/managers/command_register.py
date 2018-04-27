@@ -19,13 +19,15 @@ def add_command(session, command):
     """
     session.merge(
         Command(
-            start_time=command['Start'],
-            end_time=command['End'],
-            success=command['Success'],
-            target_id=command['Target'],
-            plugin_key=command['PluginKey'],
-            modified_command=command['ModifiedCommand'].strip(),
-            original_command=command['OriginalCommand'].strip()))
+            start_time=command["Start"],
+            end_time=command["End"],
+            success=command["Success"],
+            target_id=command["Target"],
+            plugin_key=command["PluginKey"],
+            modified_command=command["ModifiedCommand"].strip(),
+            original_command=command["OriginalCommand"].strip(),
+        )
+    )
     session.commit()
 
 

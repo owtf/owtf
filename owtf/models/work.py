@@ -17,7 +17,7 @@ class Work(Model):
     active = Column(Boolean, default=True)
     # Columns plugin and target are created using backrefs
 
-    __table_args__ = (UniqueConstraint('target_id', 'plugin_key'),)
+    __table_args__ = (UniqueConstraint("target_id", "plugin_key"),)
 
     def __repr__(self):
         return "<Work (target='{!s}', plugin='{!s}')>".format(self.target_id, self.plugin_key)

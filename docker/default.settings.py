@@ -6,6 +6,7 @@ It contains all the owtf global configs.
 """
 
 import os
+
 try:
     FileNotFoundError
 except NameError:
@@ -16,7 +17,7 @@ import yaml
 HOME_DIR = os.path.expanduser("~")
 OWTF_CONF = os.path.join(HOME_DIR, ".owtf")
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
-CONFIG_DIR = os.path.join(ROOT_DIR, 'data', 'conf')
+CONFIG_DIR = os.path.join(ROOT_DIR, "data", "conf")
 
 DEBUG = True
 # Used by tools like dirbuster to launch gui or cli versions
@@ -33,79 +34,79 @@ else:
     with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
         conf = yaml.load(f)
         DATABASE_PASS = conf["password"]
-        DATABASE_NAME = conf['database_name']
-        DATABASE_USER = conf['username']
-        DATABASE_IP = conf['database_ip']
-        DATABASE_PORT = int(conf['database_port'])
+        DATABASE_NAME = conf["database_name"]
+        DATABASE_USER = conf["username"]
+        DATABASE_IP = conf["database_ip"]
+        DATABASE_PORT = int(conf["database_port"])
 
 # API and UI Server
-SERVER_ADDR = '0.0.0.0'
+SERVER_ADDR = "0.0.0.0"
 SERVER_PORT = 8009
 FILE_SERVER_PORT = 8010
 
 # Default API version
-DEFAULT_API_VERSION = 'v1'
+DEFAULT_API_VERSION = "v1"
 
 # ERROR reporting
 USE_SENTRY = False
-SENTRY_API_KEY = ''
+SENTRY_API_KEY = ""
 
 # IMP PATHS
-WEB_TEST_GROUPS = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_web', 'groups.cfg')
-NET_TEST_GROUPS = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_net', 'groups.cfg')
-AUX_TEST_GROUPS = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_aux', 'groups.cfg')
-PLUGINS_DIR = os.path.join(ROOT_DIR, 'plugins')
+WEB_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_web", "groups.cfg")
+NET_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_net", "groups.cfg")
+AUX_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_aux", "groups.cfg")
+PLUGINS_DIR = os.path.join(ROOT_DIR, "plugins")
 
 # Output Settings
-OUTPUT_PATH = 'owtf_review'
-AUX_OUTPUT_PATH = 'owtf_review/auxiliary'
+OUTPUT_PATH = "owtf_review"
+AUX_OUTPUT_PATH = "owtf_review/auxiliary"
 
 # The name of the directories relative to output path
-TARGETS_DIR = 'targets'
-WORKER_LOG_DIR = 'logs'
+TARGETS_DIR = "targets"
+WORKER_LOG_DIR = "logs"
 
 # Default profile settings
-DEFAULT_GENERAL_PROFILE = os.path.join(OWTF_CONF, 'conf', 'general.yaml')
-DEFAULT_FRAMEWORK_CONFIG = os.path.join(OWTF_CONF, 'conf', 'framework.yaml')
-DEFAULT_MAPPING_PROFILE = os.path.join(OWTF_CONF, 'conf', 'mappings.yaml')
-DEFAULT_RESOURCES_PROFILE = os.path.join(OWTF_CONF, 'conf', 'resources.cfg')
-DEFAULT_WEB_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_web', 'order.cfg')
-DEFAULT_NET_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, 'conf', 'profiles', 'plugin_net', 'order.cfg')
+DEFAULT_GENERAL_PROFILE = os.path.join(OWTF_CONF, "conf", "general.yaml")
+DEFAULT_FRAMEWORK_CONFIG = os.path.join(OWTF_CONF, "conf", "framework.yaml")
+DEFAULT_MAPPING_PROFILE = os.path.join(OWTF_CONF, "conf", "mappings.yaml")
+DEFAULT_RESOURCES_PROFILE = os.path.join(OWTF_CONF, "conf", "resources.cfg")
+DEFAULT_WEB_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_web", "order.cfg")
+DEFAULT_NET_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_net", "order.cfg")
 
 # logs_dir can be both relative or absolute path ;)
-LOGS_DIR = 'logs'
+LOGS_DIR = "logs"
 # Used for logging in OWTF
-OWTF_LOG_FILE = '/tmp/owtf.log'
+OWTF_LOG_FILE = "/tmp/owtf.log"
 
 # Interface static folders
-STATIC_ROOT = os.path.join(ROOT_DIR, 'webapp', 'build')
-POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'templates')
-STATIC_ROOT = os.path.join(ROOT_DIR, 'webapp', 'build')
+STATIC_ROOT = os.path.join(ROOT_DIR, "webapp", "build")
+POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, "templates")
+STATIC_ROOT = os.path.join(ROOT_DIR, "webapp", "build")
 
 # SMTP
-EMAIL_FROM = 'you@your_server.com'
-SMTP_LOGIN = 'login@your_server.com'
-SMTP_PASS = 'your_password'
-SMTP_HOST = 'your_mail_server.com'
+EMAIL_FROM = "you@your_server.com"
+SMTP_LOGIN = "login@your_server.com"
+SMTP_PASS = "your_password"
+SMTP_HOST = "your_mail_server.com"
 SMTP_PORT = 25
 
 # OUTBOUND PROXY
 USE_OUTBOUND_PROXY = False
-OUTBOUND_PROXY_IP = ''
-OUTBOUND_PROXY_PORT = ''
+OUTBOUND_PROXY_IP = ""
+OUTBOUND_PROXY_PORT = ""
 OUTBOUND_PROXY_AUTH = None
 
 # Inbound Proxy Configuration
-INBOUND_PROXY_IP = '127.0.0.1'
+INBOUND_PROXY_IP = "127.0.0.1"
 INBOUND_PROXY_PORT = 8008
 INBOUND_PROXY_PROCESSES = 0
-INBOUND_PROXY_CACHE_DIR = '/tmp/owtf/proxy-cache'
+INBOUND_PROXY_CACHE_DIR = "/tmp/owtf/proxy-cache"
 CA_CERT = os.path.join(OWTF_CONF, "proxy", "certs", "ca.crt")
 CA_KEY = os.path.join(OWTF_CONF, "proxy", "certs", "ca.key")
-CA_PASS_FILE = os.path.join(OWTF_CONF, 'proxy', "certs", "ca_pass.txt")
-CERTS_FOLDER = os.path.join(OWTF_CONF, 'proxy', 'certs')
+CA_PASS_FILE = os.path.join(OWTF_CONF, "proxy", "certs", "ca_pass.txt")
+CERTS_FOLDER = os.path.join(OWTF_CONF, "proxy", "certs")
 
-BLACKLIST_COOKIES = ['_ga', '__utma', '__utmb', '__utmc', '__utmz', '__utmv']
+BLACKLIST_COOKIES = ["_ga", "__utma", "__utmb", "__utmc", "__utmz", "__utmv"]
 WHITELIST_COOKIES = ""
 PROXY_RESTRICTED_RESPONSE_HEADERS = [
     "Content-Length", "Content-Encoding", "Etag", "Transfer-Encoding", "Connection", "Vary", "Accept-Ranges", "Pragma"
@@ -113,17 +114,17 @@ PROXY_RESTRICTED_RESPONSE_HEADERS = [
 
 PROXY_RESTRICTED_REQUEST_HEADERS = ["Connection", "Pragma", "Cache-Control", "If-Modified-Since"]
 
-PROXY_LOG = '/tmp/owtf/proxy.log'
+PROXY_LOG = "/tmp/owtf/proxy.log"
 
 # UI
-SERVER_LOG = '/tmp/owtf/ui_server.log'
-FILE_SERVER_LOG = '/tmp/owtf/file_server.log'
+SERVER_LOG = "/tmp/owtf/ui_server.log"
+FILE_SERVER_LOG = "/tmp/owtf/file_server.log"
 
 # HTTP_AUTH
 HTTP_AUTH_HOST = None
 HTTP_AUTH_USERNAME = None
 HTTP_AUTH_PASSWORD = None
-HTTP_AUTH_MODE = 'basic'
+HTTP_AUTH_MODE = "basic"
 
 # Memory
 RESOURCE_MONITOR_PROFILER = 0
@@ -131,32 +132,32 @@ PROCESS_PER_CORE = 1
 MIN_RAM_NEEDED = 20
 
 # misc
-DATE_TIME_FORMAT = '%d/%m/%Y-%H:%M'
+DATE_TIME_FORMAT = "%d/%m/%Y-%H:%M"
 REPLACEMENT_DELIMITER = "@@@"
 REPLACEMENT_DELIMITER_LENGTH = len(REPLACEMENT_DELIMITER)
-CONFIG_TYPES = ['string', 'other']
+CONFIG_TYPES = ["string", "other"]
 
 FORCE_OVERWRITE = True
-USER_AGENT = 'Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0'
-PROXY_CHECK_URL = 'http://www.google.ie'
+USER_AGENT = "Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0"
+PROXY_CHECK_URL = "http://www.google.ie"
 
 # Fallback
-FALLBACK_WEB_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'groups.cfg')
-FALLBACK_NET_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'groups.cfg')
-FALLBACK_AUX_TEST_GROUPS = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_aux', 'groups.cfg')
-FALLBACK_PLUGINS_DIR = os.path.join(ROOT_DIR, 'data', 'plugins')
-FALLBACK_GENERAL_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'general.yaml')
-FALLBACK_FRAMEWORK_CONFIG = os.path.join(ROOT_DIR, 'data', 'conf', 'framework.yaml')
-FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'mappings.yaml')
-FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'resources.cfg')
-FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_web', 'order.cfg')
-FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, 'data', 'conf', 'profiles', 'plugin_net', 'order.cfg')
+FALLBACK_WEB_TEST_GROUPS = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_web", "groups.cfg")
+FALLBACK_NET_TEST_GROUPS = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_net", "groups.cfg")
+FALLBACK_AUX_TEST_GROUPS = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_aux", "groups.cfg")
+FALLBACK_PLUGINS_DIR = os.path.join(ROOT_DIR, "data", "plugins")
+FALLBACK_GENERAL_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "general.yaml")
+FALLBACK_FRAMEWORK_CONFIG = os.path.join(ROOT_DIR, "data", "conf", "framework.yaml")
+FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "mappings.yaml")
+FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "resources.cfg")
+FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_web", "order.cfg")
+FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_net", "order.cfg")
 
 # Override the values
 local_conf = os.path.join(OWTF_CONF, "settings.py")
 try:
     with open(local_conf) as f:
-        settings = compile(f.read(), local_conf, 'exec')
+        settings = compile(f.read(), local_conf, "exec")
         exec(settings, globals(), locals())
 except FileNotFoundError:
     pass

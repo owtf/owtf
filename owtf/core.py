@@ -17,34 +17,53 @@ from tornado.ioloop import IOLoop, PeriodicCallback
 from owtf import __release__, __version__
 from owtf.api.main import start_server
 from owtf.config import config_handler
-from owtf.filesrv.main import start_file_server
+from owtf.files.main import start_file_server
 from owtf.lib import exceptions
 from owtf.lib.cli_options import parse_options, usage
 from owtf.managers.config import load_framework_config, load_general_config
 from owtf.managers.mapping import load_mappings
-from owtf.managers.plugin import get_all_plugin_groups, get_all_plugin_types, \
-    get_groups_for_plugins, get_types_for_plugin_group, load_plugins, load_test_groups
+from owtf.managers.plugin import (
+    get_all_plugin_groups,
+    get_all_plugin_types,
+    get_groups_for_plugins,
+    get_types_for_plugin_group,
+    load_plugins,
+    load_test_groups,
+)
 from owtf.managers.resource import load_resources_from_file
 from owtf.managers.session import _ensure_default_session
 from owtf.managers.target import load_targets
 from owtf.managers.worklist import load_works
 from owtf.plugin.plugin_handler import show_plugin_list
 from owtf.proxy.main import start_proxy
-from owtf.settings import AUX_TEST_GROUPS, DEFAULT_FRAMEWORK_CONFIG, DEFAULT_GENERAL_PROFILE, \
-    DEFAULT_MAPPING_PROFILE, DEFAULT_RESOURCES_PROFILE, FALLBACK_AUX_TEST_GROUPS, FALLBACK_FRAMEWORK_CONFIG, \
-    FALLBACK_GENERAL_PROFILE, FALLBACK_MAPPING_PROFILE, FALLBACK_NET_TEST_GROUPS, FALLBACK_RESOURCES_PROFILE, \
-    FALLBACK_WEB_TEST_GROUPS, NET_TEST_GROUPS, WEB_TEST_GROUPS
+from owtf.settings import (
+    AUX_TEST_GROUPS,
+    DEFAULT_FRAMEWORK_CONFIG,
+    DEFAULT_GENERAL_PROFILE,
+    DEFAULT_MAPPING_PROFILE,
+    DEFAULT_RESOURCES_PROFILE,
+    FALLBACK_AUX_TEST_GROUPS,
+    FALLBACK_FRAMEWORK_CONFIG,
+    FALLBACK_GENERAL_PROFILE,
+    FALLBACK_MAPPING_PROFILE,
+    FALLBACK_NET_TEST_GROUPS,
+    FALLBACK_RESOURCES_PROFILE,
+    FALLBACK_WEB_TEST_GROUPS,
+    NET_TEST_GROUPS,
+    WEB_TEST_GROUPS,
+)
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.process import _signal_process
 from owtf.utils.signals import workers_finish, owtf_start
 
-__all__ = ['get_plugins_from_arg', 'process_options', 'initialise_framework', 'finish', 'main']
+__all__ = ["get_plugins_from_arg", "process_options", "initialise_framework", "finish", "main"]
 
 # Store parent PID for clean exit
 owtf_pid = None
 
 # Get a global DB connection instance
 from owtf.db.session import get_scoped_session
+
 db = get_scoped_session()
 
 
@@ -52,7 +71,8 @@ def print_banner():
     """
     Print the application banner.
     """
-    print("""\033[92m
+    print(
+        """\033[92m
          _____ _ _ _ _____ _____
         |     | | | |_   _|   __|
         |  |  | | | | | | |   __|
@@ -62,7 +82,10 @@ def print_banner():
         http://owtf.org
         Version: {0}
         Release: {1}
-        \033[0m""".format(__version__, __release__))
+        \033[0m""".format(
+            __version__, __release__
+        )
+    )
 
 
 def get_plugins_from_arg(arg):
@@ -73,7 +96,7 @@ def get_plugins_from_arg(arg):
     :return: List of plugins and plugin groups
     :rtype: `list`
     """
-    plugins = arg.split(',')
+    plugins = arg.split(",")
     plugin_groups = get_groups_for_plugins(db, plugins)
     if len(plugin_groups) > 1:
         usage("The plugins specified belong to several plugin groups: '%s'".format(str(plugin_groups)))
@@ -91,7 +114,7 @@ def process_options(user_args):
     arg = None
     try:
         valid_groups = get_all_plugin_groups(db)
-        valid_types = get_all_plugin_types(db) + ['all', 'quiet']
+        valid_types = get_all_plugin_types(db) + ["all", "quiet"]
         arg = parse_options(user_args, valid_groups, valid_types)
     except KeyboardInterrupt as e:
         usage("Invalid OWTF option(s) {}".format(e))
@@ -120,6 +143,7 @@ def process_options(user_args):
             arg.tor_mode = arg.tor_mode.split(":")
             if arg.tor_mode[0] == "help":
                 from owtf.proxy.tor_manager import TOR_manager
+
                 TOR_manager.msg_configure_tor()
                 exit(0)
             if len(arg.tor_mode) == 1:
@@ -129,24 +153,24 @@ def process_options(user_args):
                 usage("Invalid argument for TOR-mode")
             else:
                 # Enables outbound_proxy.
-                if arg.tor_mode[0] == '':
+                if arg.tor_mode[0] == "":
                     outbound_proxy_ip = "127.0.0.1"
                 else:
                     outbound_proxy_ip = arg.tor_mode[0]
-                if arg.tor_mode[1] == '':
+                if arg.tor_mode[1] == "":
                     outbound_proxy_port = "9050"  # default TOR port
                 else:
                     outbound_proxy_port = arg.tor_mode[1]
                 arg.outbound_proxy = "socks://{0}:{1}".format(outbound_proxy_ip, outbound_proxy_port)
 
         if arg.outbound_proxy:
-            arg.outbound_proxy = arg.outbound_proxy.split('://')
+            arg.outbound_proxy = arg.outbound_proxy.split("://")
             if len(arg.outbound_proxy) == 2:
-                arg.outbound_proxy = arg.outbound_proxy + arg.outbound_proxy.pop().split(':')
+                arg.outbound_proxy = arg.outbound_proxy + arg.outbound_proxy.pop().split(":")
                 if arg.outbound_proxy[0] not in ["socks", "http"]:
                     usage("Invalid argument for outbound proxy")
             else:
-                arg.outbound_proxy = arg.outbound_proxy.pop().split(':')
+                arg.outbound_proxy = arg.outbound_proxy.pop().split(":")
             # outbound_proxy should be type://ip:port
             if len(arg.outbound_proxy) not in [2, 3]:
                 usage("Invalid argument for outbound proxy")
@@ -157,7 +181,7 @@ def process_options(user_args):
                     usage("Invalid port provided for Outbound Proxy")
 
         if arg.inbound_proxy:
-            arg.inbound_proxy = arg.inbound_proxy.split(':')
+            arg.inbound_proxy = arg.inbound_proxy.split(":")
             # inbound_proxy should be (ip:)port:
             if len(arg.inbound_proxy) not in [1, 2]:
                 usage("Invalid argument for Inbound Proxy")
@@ -168,14 +192,14 @@ def process_options(user_args):
                     usage("Invalid port for Inbound Proxy")
 
         plugin_types_for_group = get_types_for_plugin_group(db, plugin_group)
-        if arg.plugin_type == 'all':
+        if arg.plugin_type == "all":
             arg.plugin_type = plugin_types_for_group
-        elif arg.plugin_type == 'quiet':
-            arg.plugin_type = ['passive', 'semi_passive']
+        elif arg.plugin_type == "quiet":
+            arg.plugin_type = ["passive", "semi_passive"]
 
         scope = arg.targets or []  # Arguments at the end are the URL target(s)
         num_targets = len(scope)
-        if plugin_group != 'auxiliary' and num_targets == 0 and not arg.list_plugins:
+        if plugin_group != "auxiliary" and num_targets == 0 and not arg.list_plugins:
             if arg.nowebui:
                 finish()
         elif num_targets == 1:  # Check if this is a file
@@ -195,32 +219,32 @@ def process_options(user_args):
             if target[0] == "-":
                 usage("Invalid Target: {}".format(target))
 
-        args = ''
-        if plugin_group == 'auxiliary':
+        args = ""
+        if plugin_group == "auxiliary":
             # For auxiliary plugins, the scope are the parameters.
             args = scope
             # auxiliary plugins do not have targets, they have metasploit-like parameters.
-            scope = ['auxiliary']
+            scope = ["auxiliary"]
 
         return {
-            'list_plugins': arg.list_plugins,
-            'force_overwrite': arg.force_overwrite,
-            'interactive': arg.interactive == 'yes',
-            'scope': scope,
-            'argv': sys.argv,
-            'plugin_type': arg.plugin_type,
-            'only_plugins': arg.only_plugins,
-            'except_plugins': arg.except_plugins,
-            'inbound_proxy': arg.inbound_proxy,
-            'outbound_proxy': arg.outbound_proxy,
-            'outbound_proxy_auth': arg.outbound_proxy_auth,
-            'plugin_group': plugin_group,
-            'rport': arg.rport,
-            'port_waves': arg.port_waves,
-            'proxy_mode': arg.proxy_mode,
-            'tor_mode': arg.tor_mode,
-            'nowebui': arg.nowebui,
-            'args': args
+            "list_plugins": arg.list_plugins,
+            "force_overwrite": arg.force_overwrite,
+            "interactive": arg.interactive == "yes",
+            "scope": scope,
+            "argv": sys.argv,
+            "plugin_type": arg.plugin_type,
+            "only_plugins": arg.only_plugins,
+            "except_plugins": arg.except_plugins,
+            "inbound_proxy": arg.inbound_proxy,
+            "outbound_proxy": arg.outbound_proxy,
+            "outbound_proxy_auth": arg.outbound_proxy_auth,
+            "plugin_group": plugin_group,
+            "rport": arg.rport,
+            "port_waves": arg.port_waves,
+            "proxy_mode": arg.proxy_mode,
+            "tor_mode": arg.tor_mode,
+            "nowebui": arg.nowebui,
+            "args": args,
         }
     return {}
 
@@ -235,8 +259,8 @@ def initialise_framework(options):
     """
     logging.info("Loading framework please wait..")
     # No processing required, just list available modules.
-    if options['list_plugins']:
-        show_plugin_list(db, options['list_plugins'])
+    if options["list_plugins"]:
+        show_plugin_list(db, options["list_plugins"])
         finish()
     target_urls = load_targets(session=db, options=options)
     load_works(session=db, target_urls=target_urls, options=options)
@@ -260,7 +284,7 @@ def init(args):
     :params dict args: Options from the CLI.
     """
     if initialise_framework(args):
-        if not args['nowebui']:
+        if not args["nowebui"]:
             start_server()
             start_file_server()
 
@@ -285,7 +309,7 @@ def main(args):
     """
     print_banner()
     # Get tool path from script path:
-    root_dir = os.path.dirname(os.path.abspath(args[0])) or '.'
+    root_dir = os.path.dirname(os.path.abspath(args[0])) or "."
     global owtf_pid
     owtf_pid = os.getpid()
 

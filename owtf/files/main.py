@@ -1,6 +1,6 @@
 """
-owtf.filesrv.main
-~~~~~~~~~~~~~~~~~
+owtf.files.main
+~~~~~~~~~~~~~~~
 """
 import logging
 
@@ -9,12 +9,11 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 
-from owtf.filesrv.routes import HANDLERS
-from owtf.managers.worker import worker_manager
+from owtf.files.routes import HANDLERS
 from owtf.settings import FILE_SERVER_LOG, FILE_SERVER_PORT, SERVER_ADDR, TEMPLATES
 from owtf.utils.app import Application
 
-__all__ = ['start_file_server']
+__all__ = ["start_file_server"]
 
 
 class FileServer():
@@ -25,7 +24,8 @@ class FileServer():
             self.server = tornado.httpserver.HTTPServer(self.application)
             self.server.bind(int(FILE_SERVER_PORT), address=SERVER_ADDR)
             tornado.options.parse_command_line(
-                args=['dummy_arg', '--log_file_prefix={}'.format(FILE_SERVER_LOG), '--logging=info'])
+                args=["dummy_arg", "--log_file_prefix={}".format(FILE_SERVER_LOG), "--logging=info"]
+            )
             self.server.start()
         except Exception as e:
             logging.error(e)

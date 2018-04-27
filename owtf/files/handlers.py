@@ -1,6 +1,6 @@
 """
-owtf.filesrv.handlers
-~~~~~~~~~~~~~~~~~~~~~
+owtf.files.handlers
+~~~~~~~~~~~~~~~~~~~
 """
 import datetime
 import email.utils
@@ -15,7 +15,7 @@ import tornado
 import tornado.template
 import tornado.web
 
-__all__ = ['StaticFileHandler']
+__all__ = ["StaticFileHandler"]
 
 
 class StaticFileHandler(tornado.web.StaticFileHandler):
@@ -43,7 +43,8 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
             # Just loop once to get dirnames and filenames :P
             for abspath, dirnames, filenames in os.walk(abspath):
                 break
-            directory_listing_template = tornado.template.Template("""
+            directory_listing_template = tornado.template.Template(
+                """
                 <html>
                 <head>
                     <title>Directory Listing</title>
@@ -68,7 +69,8 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
                     </ul>
                 </body>
                 </html>
-                """)
+                """
+            )
             self.write(directory_listing_template.generate(dirnames=dirnames, filenames=filenames))
             return
 

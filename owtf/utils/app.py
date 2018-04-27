@@ -4,8 +4,10 @@ owtf.utils.app
 
 """
 import tornado.web
+
 try:
     from raven.contrib.tornado import AsyncSentryClient
+
     raven_installed = True
 except ImportError:
     raven_installed = False

@@ -15,6 +15,8 @@ if not PY2:
 
     def u(s):
         return s
+
+
 else:
     strtypes = (str, unicode)
 
@@ -35,6 +37,7 @@ if PY3:
 
     def iterlists(d, **kw):
         return iter(d.lists(**kw))
+
 
 else:
 

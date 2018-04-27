@@ -33,7 +33,7 @@ def prepare_curl_callback(curl):
 class ProxyHandler(tornado.web.RequestHandler):
     """This RequestHandler processes all the requests that the application received."""
 
-    SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE']
+    SUPPORTED_METHODS = ["GET", "POST", "CONNECT", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE"]
     server = None
     restricted_request_headers = None
     restricted_response_headers = None
@@ -46,7 +46,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             Based on upgrade header, websocket request handler must be used
         """
         try:
-            if request.headers['Upgrade'].lower() == 'websocket':
+            if request.headers["Upgrade"].lower() == "websocket":
                 return CustomWebSocketHandler(application, request, **kwargs)
         except KeyError:
             pass
@@ -119,7 +119,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         """
         # The flow starts here
         self.request.local_timestamp = datetime.datetime.now()
-        self.request.response_buffer = ''
+        self.request.response_buffer = ""
 
         # The requests that come through ssl streams are relative requests, so transparent proxying is required. The
         # following snippet decides the url that should be passed to the async client
@@ -127,12 +127,13 @@ class ProxyHandler(tornado.web.RequestHandler):
             self.request.url = self.request.uri
         else:  # Transparent Proxy Request.
             self.request.url = "{!s}://{!s}".format(self.request.protocol, self.request.host)
-            if self.request.uri != '/':  # Add uri only if needed.
+            if self.request.uri != "/":  # Add uri only if needed.
                 self.request.url += self.request.uri
 
         # This block here checks for already cached response and if present returns one
-        self.cache_handler = CacheHandler(self.application.cache_dir, self.request, self.application.cookie_regex,
-                                          self.application.cookie_blacklist)
+        self.cache_handler = CacheHandler(
+            self.application.cache_dir, self.request, self.application.cookie_regex, self.application.cookie_blacklist
+        )
         yield tornado.gen.Task(self.cache_handler.calculate_hash)
         self.cached_response = self.cache_handler.load()
 
@@ -154,10 +155,10 @@ class ProxyHandler(tornado.web.RequestHandler):
             if self.application.http_auth:
                 host = self.request.host
                 # If default ports are not provided, they are added
-                if ':' not in self.request.host:
-                    default_ports = {'http': '80', 'https': '443'}
+                if ":" not in self.request.host:
+                    default_ports = {"http": "80", "https": "443"}
                     if self.request.protocol in default_ports:
-                        host = '{!s}:{!s}'.format(self.request.host, default_ports[self.request.protocol])
+                        host = "{!s}:{!s}".format(self.request.host, default_ports[self.request.protocol])
                 # Check if auth is provided for that host
                 try:
                     index = self.application.http_auth_hosts.index(host)
@@ -175,7 +176,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             while not success_response:
                 # httprequest object is created and then passed to async client with a callback
                 callback = None
-                if self.application.outbound_proxy_type == 'socks':
+                if self.application.outbound_proxy_type == "socks":
                     callback = prepare_curl_callback  # socks callback function.
                 body = self.request.body or None
                 request = tornado.httpclient.HTTPRequest(
@@ -196,7 +197,8 @@ class ProxyHandler(tornado.web.RequestHandler):
                     proxy_password=self.application.outbound_password,
                     allow_nonstandard_methods=True,
                     prepare_curl_callback=callback,
-                    validate_cert=False)
+                    validate_cert=False,
+                )
                 try:
                     response = yield tornado.gen.Task(async_client.fetch, request)
                 except Exception:
@@ -205,7 +207,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                 # Request retries
                 for i in range(0, 3):
                     if (response is None) or response.code in [408, 599]:
-                        self.request.response_buffer = ''
+                        self.request.response_buffer = ""
                         response = yield tornado.gen.Task(async_client.fetch, request)
                     else:
                         success_response = True
@@ -256,7 +258,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         :return: None
         :rtype: None
         """
-        host, port = self.request.uri.split(':')
+        host, port = self.request.uri.split(":")
 
         def start_tunnel():
             """Init steps for a HTTPS tunnel
@@ -273,7 +275,8 @@ class ProxyHandler(tornado.web.RequestHandler):
                     self.application.ca_key,
                     self.application.ca_key_pass,
                     self.application.certs_folder,
-                    success=ssl_success)
+                    success=ssl_success,
+                )
             except tornado.iostream.StreamClosedError:
                 pass
 
@@ -362,7 +365,8 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             proxy_host=self.application.outbound_ip,
             proxy_port=self.application.outbound_port,
             proxy_username=self.application.outbound_username,
-            proxy_password=self.application.outbound_password)
+            proxy_password=self.application.outbound_password,
+        )
         self.upstream_connection = CustomWebSocketClientConnection(io_loop, request)
         if callback is not None:
             io_loop.add_future(self.upstream_connection.connect_future, callback)
@@ -388,11 +392,11 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             # HTTPRequest needed for caching
             self.handshake_request = self.upstream_connection.request
             # Needed for websocket data & compliance with cache_handler stuff
-            self.handshake_request.response_buffer = ''
+            self.handshake_request.response_buffer = ""
             # Tiny hack to protect caching (according to websocket standards)
-            self.handshake_request.version = 'HTTP/1.1'
+            self.handshake_request.version = "HTTP/1.1"
             # XXX: I dont know why a None is coming
-            self.handshake_request.body = self.handshake_request.body or ''
+            self.handshake_request.body = self.handshake_request.body or ""
             # The regular procedures are to be done
             tornado.websocket.WebSocketHandler._execute(self, transforms, *args, **kwargs)
 
@@ -474,10 +478,15 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.handshake_request,
             self.upstream_connection.code,
             headers=self.upstream_connection.headers,
-            request_time=0)
+            request_time=0,
+        )
         # Procedure for dumping a tornado request-response
-        self.cache_handler = CacheHandler(self.application.cache_dir, self.handshake_request,
-                                          self.application.cookie_regex, self.application.cookie_blacklist)
+        self.cache_handler = CacheHandler(
+            self.application.cache_dir,
+            self.handshake_request,
+            self.application.cookie_regex,
+            self.application.cookie_blacklist,
+        )
         self.cached_response = self.cache_handler.load()
         self.cache_handler.dump(self.handshake_response)
 

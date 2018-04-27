@@ -69,7 +69,8 @@ def get_raw_resource_list(session, resource_list):
     :rtype: `list`
     """
     raw_resources = session.query(Resource.resource_name, Resource.resource).filter(
-        Resource.resource_type.in_(resource_list)).all()
+        Resource.resource_type.in_(resource_list)
+    ).all()
     return raw_resources
 
 
@@ -98,16 +99,17 @@ def get_resources_from_file(resource_file):
     :rtype: `set`
     """
     resources = set()
-    config_file = FileOperations.open(resource_file, 'r').read().splitlines()  # To remove stupid '\n' at the end
+    config_file = FileOperations.open(resource_file, "r").read().splitlines()  # To remove stupid '\n' at the end
     for line in config_file:
-        if '#' == line[0]:
+        if "#" == line[0]:
             continue  # Skip comment lines
         try:
-            type, name, resource = line.split('_____')
+            type, name, resource = line.split("_____")
             resources.add((type, name, resource))
         except ValueError:
-            logging.info("ERROR: The delimiter is incorrect in this line at Resource File: %s", str(
-                line.split('_____')))
+            logging.info(
+                "ERROR: The delimiter is incorrect in this line at Resource File: %s", str(line.split("_____"))
+            )
     return resources
 
 

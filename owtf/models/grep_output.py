@@ -18,4 +18,4 @@ class GrepOutput(Model):
     # Also has a column transactions, which is added by
     # using backref in transaction
 
-    __table_args__ = (UniqueConstraint('name', 'output', target_id),)
+    __table_args__ = (UniqueConstraint("name", "output", target_id),)

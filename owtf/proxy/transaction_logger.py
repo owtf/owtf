@@ -7,6 +7,7 @@ Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a
 import glob
 import os
 import time
+
 try:  # PY3
     from urllib.parse import urlparse
 except ImportError:  # PY2
@@ -82,13 +83,14 @@ class TransactionLogger(OWTFProcess):
         target_list = get_indexed_targets()
         if target_list:  # If there are no targets in db, where are we going to add. OMG
             transactions_dict = {}
-            host_list = get_all_in_scope('host_name')
+            host_list = get_all_in_scope("host_name")
 
             for request_hash in hash_list:
                 request = request_from_cache(os.path.join(INBOUND_PROXY_CACHE_DIR, request_hash))
                 response = response_from_cache(os.path.join(INBOUND_PROXY_CACHE_DIR, request_hash))
-                target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list,
-                                                                                 host_list)
+                target_id, request.in_scope = self.derive_target_for_transaction(
+                    request, response, target_list, host_list
+                )
                 owtf_transaction = HTTPTransaction(Timer())
                 owtf_transaction.import_proxy_req_resp(request, response)
                 try:

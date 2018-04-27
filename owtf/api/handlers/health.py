@@ -5,13 +5,13 @@ owtf.api.handlers.health
 """
 from owtf.api.handlers.base import APIRequestHandler
 
-__all__ = ['HealthCheckHandler']
+__all__ = ["HealthCheckHandler"]
 
 
 class HealthCheckHandler(APIRequestHandler):
     """API server health check"""
 
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     def get(self):
         """A debug endpoint to check whether the application is alive.
@@ -37,4 +37,4 @@ class HealthCheckHandler(APIRequestHandler):
                 }
             }
         """
-        self.success({'status': 'ok'})
+        self.success({"status": "ok"})

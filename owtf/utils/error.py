@@ -12,6 +12,7 @@ import sys
 
 try:
     from raven.contrib.tornado import AsyncSentryClient
+
     raven_installed = True
 except ImportError:
     raven_installed = False
@@ -20,8 +21,13 @@ from owtf.settings import SENTRY_API_KEY
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
 
 __all__ = [
-    'abort_framework', 'user_abort', 'get_option_from_user', 'SentryProxy', 'get_sentry_client', 'log_and_exit_handler',
-    'setup_signal_handlers'
+    "abort_framework",
+    "user_abort",
+    "get_option_from_user",
+    "SentryProxy",
+    "get_sentry_client",
+    "log_and_exit_handler",
+    "setup_signal_handlers",
 ]
 
 command = None
@@ -59,7 +65,7 @@ def get_option_from_user(options):
     return input("Options: 'e'+Enter= Exit {!s}, Enter= Next test\n".format(options))
 
 
-def user_abort(level, partial_output=''):
+def user_abort(level, partial_output=""):
     """This function handles the next steps when a user presses Ctrl-C
 
     :param level: The level which was aborted
@@ -72,18 +78,18 @@ def user_abort(level, partial_output=''):
     # Levels so far can be Command or Plugin
     logging.info("\nThe %s was aborted by the user: Please check the report and plugin output files", level)
     message = ("\nThe {} was aborted by the user: Please check the report and plugin output files".format(level))
-    if level == 'Command':
-        option = 'p'
-        if option == 'e':
+    if level == "Command":
+        option = "p"
+        if option == "e":
             # Try to save partial plugin results.
             raise FrameworkAbortException(partial_output)
-        elif option == 'p':  # Move on to next plugin.
+        elif option == "p":  # Move on to next plugin.
             # Jump to next handler and pass partial output to avoid losing results.
             raise PluginAbortException(partial_output)
     return message
 
 
-signame_by_signum = {v: k for k, v in signal.__dict__.items() if k.startswith('SIG') and not k.startswith('SIG_')}
+signame_by_signum = {v: k for k, v in signal.__dict__.items() if k.startswith("SIG") and not k.startswith("SIG_")}
 
 
 class SentryProxy(object):

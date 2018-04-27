@@ -18,7 +18,7 @@ from owtf.managers.poutput import get_severity_freq, plugin_count_output
 
 
 class DashboardPanelHandler(APIRequestHandler):
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     def get(self):
         try:
@@ -28,7 +28,7 @@ class DashboardPanelHandler(APIRequestHandler):
 
 
 class ProgressBarHandler(APIRequestHandler):
-    SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+    SUPPORTED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
     def set_default_headers(self):
         self.add_header("Access-Control-Allow-Origin", "*")
@@ -55,7 +55,7 @@ class ProgressBarHandler(APIRequestHandler):
 
 
 class ErrorDataHandler(APIRequestHandler):
-    SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'PATCH']
+    SUPPORTED_METHODS = ["GET", "POST", "DELETE", "PATCH"]
 
     def get(self, error_id=None):
         if error_id is None:

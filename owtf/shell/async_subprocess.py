@@ -13,7 +13,7 @@ import subprocess
 import sys
 import time
 
-if platform.system() == 'Windows':
+if platform.system() == "Windows":
     from win32file import ReadFile, WriteFile
     from win32pipe import PeekNamedPipe
     import msvcrt
@@ -37,12 +37,12 @@ class DisconnectException(Exception):
 class AsyncPopen(subprocess.Popen):
 
     def recv(self, maxsize=None):
-        return self._recv('stdout', maxsize)
+        return self._recv("stdout", maxsize)
 
     def recv_err(self, maxsize=None):
-        return self._recv('stderr', maxsize)
+        return self._recv("stderr", maxsize)
 
-    def send_recv(self, input='', maxsize=None):
+    def send_recv(self, input="", maxsize=None):
         return self.send(input), self.recv(maxsize), self.recv_err(maxsize)
 
     def get_conn_maxsize(self, which, maxsize):
@@ -56,7 +56,7 @@ class AsyncPopen(subprocess.Popen):
         getattr(self, which).close()
         setattr(self, which, None)
 
-    if hasattr(subprocess, 'mswindows'):
+    if hasattr(subprocess, "mswindows"):
 
         def send(self, input):
             if not self.stdin:
@@ -65,10 +65,10 @@ class AsyncPopen(subprocess.Popen):
                 x = msvcrt.get_osfhandle(self.stdin.fileno())
                 (errCode, written) = WriteFile(x, input)
             except ValueError:
-                return self._close('stdin')
+                return self._close("stdin")
             except (subprocess.pywintypes.error, Exception) as why:
                 if why[0] in (109, errno.ESHUTDOWN):
-                    return self._close('stdin')
+                    return self._close("stdin")
                 raise
             return written
 
@@ -104,7 +104,7 @@ class AsyncPopen(subprocess.Popen):
                 written = os.write(self.stdin.fileno(), input)
             except OSError as why:
                 if why[0] == errno.EPIPE:  # broken pipe
-                    return self._close('stdin')
+                    return self._close("stdin")
                 raise
             return written
 
@@ -117,7 +117,7 @@ class AsyncPopen(subprocess.Popen):
                 fcntl.fcntl(conn, fcntl.F_SETFL, flags | os.O_NONBLOCK)
             try:
                 if not select.select([conn], [], [], 0)[0]:
-                    return ''
+                    return ""
                 r = conn.read(maxsize)
                 if not r:
                     return self._close(which)
@@ -134,7 +134,7 @@ def recv_some(p, t=.1, e=1, tr=5, stderr=0):
         tr = 1
     x = time.time() + t
     y = []
-    r = ''
+    r = ""
     pr = p.recv
     if stderr:
         pr = p.recv_err
@@ -149,7 +149,7 @@ def recv_some(p, t=.1, e=1, tr=5, stderr=0):
             y.append(r)
         else:
             time.sleep(max((x - time.time()) / tr, 0))
-    return ''.join(y)
+    return "".join(y)
 
 
 def send_all(p, data):
@@ -158,22 +158,23 @@ def send_all(p, data):
         if sent is None:
             raise DisconnectException(DISCONNECT_MESSAGE)
         import sys
+
         if sys.version_info > (3,):
             buffer = memoryview
         data = buffer(data)
 
 
-if __name__ == '__main__':
-    if sys.platform == 'win32':
-        shell, commands, tail = ('cmd', ('dir /w', 'echo HELLO WORLD'), '\r\n')
+if __name__ == "__main__":
+    if sys.platform == "win32":
+        shell, commands, tail = ("cmd", ("dir /w", "echo HELLO WORLD"), "\r\n")
     else:
-        shell, commands, tail = ('sh', ('ls', 'echo HELLO WORLD'), '\n')
+        shell, commands, tail = ("sh", ("ls", "echo HELLO WORLD"), "\n")
 
     a = AsyncPopen(shell, stdin=PIPE, stdout=PIPE)
     print(recv_some(a))
     for cmd in commands:
         send_all(a, cmd + tail)
         print(recv_some(a))
-    send_all(a, 'exit' + tail)
+    send_all(a, "exit" + tail)
     print(recv_some(a, e=0))
     a.wait()

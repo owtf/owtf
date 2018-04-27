@@ -8,6 +8,7 @@ Most of it taken from the Flask code.
 signals_available = False
 try:
     from blinker import Namespace
+
     signals_available = True
 except ImportError:
 
@@ -28,20 +29,19 @@ except ImportError:
             self.__doc__ = doc
 
         def _fail(self, *args, **kwargs):
-            raise RuntimeError('Signalling support is unavailable because the blinker library is not installed.')
+            raise RuntimeError("Signalling support is unavailable because the blinker library is not installed.")
 
         send = lambda *a, **kw: None
-        connect = disconnect = has_receivers_for = receivers_for = \
-            temporarily_connected_to = connected_to = _fail
+        connect = disconnect = has_receivers_for = receivers_for = temporarily_connected_to = connected_to = _fail
         del _fail
 
 
-__all__ = ['_signals', 'owtf_exit', 'owtf_start', 'workers_finish']
+__all__ = ["_signals", "owtf_exit", "owtf_start", "workers_finish"]
 
 # The namespace for code signals.
 _signals = Namespace()
 
 # Core signals
-owtf_start = _signals.signal('owtf-start')
-owtf_exit = _signals.signal('owtf-exit')
-workers_finish = _signals.signal('workers-finish')
+owtf_start = _signals.signal("owtf-start")
+owtf_exit = _signals.signal("owtf-exit")
+workers_finish = _signals.signal("workers-finish")

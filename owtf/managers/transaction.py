@@ -24,7 +24,7 @@ from owtf.models.transaction import Transaction
 from owtf.utils.strings import get_header_list, str2bool
 
 # The regex find differs for these types :P
-REGEX_TYPES = ['HEADERS', 'BODY']
+REGEX_TYPES = ["HEADERS", "BODY"]
 
 
 @target_required
@@ -70,75 +70,77 @@ def transaction_gen_query(session, criteria, target_id, for_stats=False):
     """
     query = session.query(Transaction).filter_by(target_id=target_id)
     # If transaction search is being done
-    if criteria.get('search', None):
-        if criteria.get('url', None):
-            if isinstance(criteria.get('url'), list):
-                criteria['url'] = criteria['url'][0]
-            query = query.filter(Transaction.url.like('%%{!s}%%'.format(criteria['url'])))
-        if criteria.get('method', None):
-            if isinstance(criteria.get('method'), list):
-                criteria['method'] = criteria['method'][0]
-            query = query.filter(Transaction.method.like('%%{!s}%%'.format(criteria.get('method'))))
-        if criteria.get('data', None):
-            if isinstance(criteria.get('data'), list):
-                criteria['data'] = criteria['data'][0]
-            query = query.filter(Transaction.data.like('%%{!s}%%'.format(criteria.get('data'))))
-        if criteria.get('raw_request', None):
-            if isinstance(criteria.get('raw_request'), list):
-                criteria['raw_request'] = criteria['raw_request'][0]
-            query = query.filter(Transaction.raw_request.like('%%{!s}%%'.format(criteria.get('raw_request'))))
-        if criteria.get('response_status', None):
-            if isinstance(criteria.get('response_status'), list):
-                criteria['response_status'] = criteria['response_status'][0]
-            query = query.filter(Transaction.response_status.like('%%{!s}%%'.format(criteria.get('response_status'))))
-        if criteria.get('response_headers', None):
-            if isinstance(criteria.get('response_headers'), list):
-                criteria['response_headers'] = criteria['response_headers'][0]
-            query = query.filter(Transaction.response_headers.like('%%{!s}%%'.format(criteria.get('response_headers'))))
-        if criteria.get('response_body', None):
-            if isinstance(criteria.get('response_body'), list):
-                criteria['response_body'] = criteria['response_body'][0]
-            query = query.filter(Transaction.binary_response is False,
-                                 Transaction.response_body.like('%%{!s}%%'.format(criteria.get('response_body'))))
+    if criteria.get("search", None):
+        if criteria.get("url", None):
+            if isinstance(criteria.get("url"), list):
+                criteria["url"] = criteria["url"][0]
+            query = query.filter(Transaction.url.like("%%{!s}%%".format(criteria["url"])))
+        if criteria.get("method", None):
+            if isinstance(criteria.get("method"), list):
+                criteria["method"] = criteria["method"][0]
+            query = query.filter(Transaction.method.like("%%{!s}%%".format(criteria.get("method"))))
+        if criteria.get("data", None):
+            if isinstance(criteria.get("data"), list):
+                criteria["data"] = criteria["data"][0]
+            query = query.filter(Transaction.data.like("%%{!s}%%".format(criteria.get("data"))))
+        if criteria.get("raw_request", None):
+            if isinstance(criteria.get("raw_request"), list):
+                criteria["raw_request"] = criteria["raw_request"][0]
+            query = query.filter(Transaction.raw_request.like("%%{!s}%%".format(criteria.get("raw_request"))))
+        if criteria.get("response_status", None):
+            if isinstance(criteria.get("response_status"), list):
+                criteria["response_status"] = criteria["response_status"][0]
+            query = query.filter(Transaction.response_status.like("%%{!s}%%".format(criteria.get("response_status"))))
+        if criteria.get("response_headers", None):
+            if isinstance(criteria.get("response_headers"), list):
+                criteria["response_headers"] = criteria["response_headers"][0]
+            query = query.filter(Transaction.response_headers.like("%%{!s}%%".format(criteria.get("response_headers"))))
+        if criteria.get("response_body", None):
+            if isinstance(criteria.get("response_body"), list):
+                criteria["response_body"] = criteria["response_body"][0]
+            query = query.filter(
+                Transaction.binary_response is False,
+                Transaction.response_body.like("%%{!s}%%".format(criteria.get("response_body"))),
+            )
     else:  # If transaction filter is being done
-        if criteria.get('url', None):
-            if isinstance(criteria.get('url'), str):
-                query = query.filter_by(url=criteria['url'])
-            if isinstance(criteria.get('url'), list):
-                query = query.filter(Transaction.url.in_(criteria.get('url')))
-        if criteria.get('method', None):
-            if isinstance(criteria.get('method'), str):
-                query = query.filter_by(method=criteria['method'])
-            if isinstance(criteria.get('method'), list):
-                query = query.filter(Transaction.method.in_(criteria.get('method')))
-        if criteria.get('data', None):
-            if isinstance(criteria.get('data'), str):
-                query = query.filter_by(data=criteria['data'])
-            if isinstance(criteria.get('data'), list):
-                query = query.filter(Transaction.data.in_(criteria.get('data')))
+        if criteria.get("url", None):
+            if isinstance(criteria.get("url"), str):
+                query = query.filter_by(url=criteria["url"])
+            if isinstance(criteria.get("url"), list):
+                query = query.filter(Transaction.url.in_(criteria.get("url")))
+        if criteria.get("method", None):
+            if isinstance(criteria.get("method"), str):
+                query = query.filter_by(method=criteria["method"])
+            if isinstance(criteria.get("method"), list):
+                query = query.filter(Transaction.method.in_(criteria.get("method")))
+        if criteria.get("data", None):
+            if isinstance(criteria.get("data"), str):
+                query = query.filter_by(data=criteria["data"])
+            if isinstance(criteria.get("data"), list):
+                query = query.filter(Transaction.data.in_(criteria.get("data")))
     # For the following section doesn't matter if filter/search because
     # it doesn't make sense to search in a boolean column :P
-    if criteria.get('scope', None):
-        if isinstance(criteria.get('scope'), list):
-            criteria['scope'] = criteria['scope'][0]
-        query = query.filter_by(scope=str2bool(criteria['scope']))
-    if criteria.get('binary_response', None):
-        if isinstance(criteria.get('binary_response'), list):
-            criteria['binary_response'] = criteria['binary_response'][0]
-        query = query.filter_by(binary_response=str2bool(criteria['binary_response']))
+    if criteria.get("scope", None):
+        if isinstance(criteria.get("scope"), list):
+            criteria["scope"] = criteria["scope"][0]
+        query = query.filter_by(scope=str2bool(criteria["scope"]))
+    if criteria.get("binary_response", None):
+        if isinstance(criteria.get("binary_response"), list):
+            criteria["binary_response"] = criteria["binary_response"][0]
+        query = query.filter_by(binary_response=str2bool(criteria["binary_response"]))
     if not for_stats:  # query for stats shouldn't have limit and offset
         try:
             query.order_by(Transaction.local_timestamp)
-            if criteria.get('offset', None):
-                if isinstance(criteria.get('offset'), list):
-                    criteria['offset'] = int(criteria['offset'][0])
-                if criteria['offset'] >= 0:
-                    query = query.offset(criteria['offset'])
-            if criteria.get('limit', None):
-                if isinstance(criteria.get('limit'), list):
-                    criteria['limit'] = int(criteria['limit'][0])
-                if criteria['limit'] >= 0:
-                    query = query.limit(criteria['limit'])
+            if criteria.get("offset", None):
+                if isinstance(criteria.get("offset"), list):
+                    criteria["offset"] = int(criteria["offset"][0])
+                if criteria["offset"] >= 0:
+                    query = query.offset(criteria["offset"])
+            if criteria.get("limit", None):
+                if isinstance(criteria.get("limit"), list):
+                    criteria["limit"] = int(criteria["limit"][0])
+                if criteria["limit"] >= 0:
+                    query = query.limit(criteria["limit"])
             else:  # It is too dangerous without a limit argument
                 query.limit(10)  # Default limit value is 10
         except ValueError:
@@ -189,10 +191,20 @@ def get_transaction(trans):
         response_body = trans.response_body
         if trans.binary_response:
             response_body = base64.b64decode(response_body)
-        owtf_transaction.set_transaction_from_db(trans.id, trans.url, trans.method, trans.response_status,
-                                                 str(trans.time), trans.time_human, trans.local_timestamp,
-                                                 trans.data, trans.raw_request, trans.response_headers,
-                                                 len(response_body), response_body)
+        owtf_transaction.set_transaction_from_db(
+            trans.id,
+            trans.url,
+            trans.method,
+            trans.response_status,
+            str(trans.time),
+            trans.time_human,
+            trans.local_timestamp,
+            trans.data,
+            trans.raw_request,
+            trans.response_headers,
+            len(response_body),
+            response_body,
+        )
         return owtf_transaction
     return None
 
@@ -239,7 +251,8 @@ def get_transaction_model(transaction):
             response_body=response_body,
             response_size=len(response_body),
             binary_response=binary_response,
-            session_tokens=json.dumps(transaction.get_session_tokens()))
+            session_tokens=json.dumps(transaction.get_session_tokens()),
+        )
         return transaction_model
 
 
@@ -296,17 +309,17 @@ def log_transactions(session, transaction_list, target_id=None):
                         match = json.dumps(match)
                         # Fetch if any existing entry
                         existing_grep_output = session.query(GrepOutput).filter_by(
-                            target_id=target_id, name=regex_name, output=match).first()
+                            target_id=target_id, name=regex_name, output=match
+                        ).first()
                         if existing_grep_output:
                             existing_grep_output.transactions.append(transaction_model)
                             session.merge(existing_grep_output)
                         else:
                             session.add(
                                 GrepOutput(
-                                    target_id=target_id,
-                                    transactions=[transaction_model],
-                                    name=regex_name,
-                                    output=match))
+                                    target_id=target_id, transactions=[transaction_model], name=regex_name, output=match
+                                )
+                            )
     session.commit()
     import_processed_url(session=session, urls_list=urls_list, target_id=target_id)
 
@@ -417,7 +430,7 @@ def compile_header_regex(header_list):
     :return:
     :rtype:
     """
-    return re.compile('(%s): ([^\r]*)' % '|'.join(header_list), re.IGNORECASE)
+    return re.compile("(%s): ([^\r]*)" % "|".join(header_list), re.IGNORECASE)
 
 
 def compile_response_regex(regexp):
@@ -439,12 +452,12 @@ def compile_regex():
     """
     for key in list(config_handler.get_framework_config_dict.keys()):
         key = key[3:-3]  # Remove "@@@"
-        if key.startswith('HEADERS'):
+        if key.startswith("HEADERS"):
             header_list = get_header_list(key)
-            regexes['HEADERS'][key] = compile_header_regex(header_list)
-        elif key.startswith('RESPONSE'):
-            _, _, python_regexp = config_handler.get_val(key).split('_____')
-            regexes['BODY'][key] = compile_response_regex(python_regexp)
+            regexes["HEADERS"][key] = compile_header_regex(header_list)
+        elif key.startswith("RESPONSE"):
+            _, _, python_regexp = config_handler.get_val(key).split("_____")
+            regexes["BODY"][key] = compile_response_regex(python_regexp)
 
 
 def grep_transaction(owtf_transaction):
@@ -456,9 +469,9 @@ def grep_transaction(owtf_transaction):
     :rtype: `dict`
     """
     grep_output = {}
-    for regex_name, regex in list(regexes['HEADERS'].items()):
+    for regex_name, regex in list(regexes["HEADERS"].items()):
         grep_output.update(grep_response_headers(regex_name, regex, owtf_transaction))
-    for regex_name, regex in list(regexes['BODY'].items()):
+    for regex_name, regex in list(regexes["BODY"].items()):
         grep_output.update(grep_response_body(regex_name, regex, owtf_transaction))
     return grep_output
 
@@ -533,21 +546,34 @@ def search_by_regex_name(session, regex_name, stats=False, target_id=None):
     :rtype: `list`
     """
     # Get the grep outputs and only unique values
-    grep_outputs = session.query(GrepOutput.output).filter_by(
-        name=regex_name, target_id=target_id).group_by(GrepOutput.output).all()
+    grep_outputs = session.query(GrepOutput.output).filter_by(name=regex_name, target_id=target_id).group_by(
+        GrepOutput.output
+    ).all()
     grep_outputs = [i[0] for i in grep_outputs]
     # Get one transaction per match
     transaction_ids = []
     for grep_output in grep_outputs:
         transaction_ids.append(
             session.query(Transaction.id).join(Transaction.grep_outputs).filter(
-                GrepOutput.output == grep_output, GrepOutput.target_id == target_id).limit(1).all()[0][0])
+                GrepOutput.output == grep_output, GrepOutput.target_id == target_id
+            ).limit(
+                1
+            ).all()[
+                0
+            ][
+                0
+            ]
+        )
     # Calculate stats if needed
     if stats:
         # Calculate the total number of matches
         num_matched_transactions = get_count(
             session.query(Transaction).join(Transaction.grep_outputs).filter(
-                GrepOutput.name == regex_name, GrepOutput.target_id == target_id).group_by(Transaction))
+                GrepOutput.name == regex_name, GrepOutput.target_id == target_id
+            ).group_by(
+                Transaction
+            )
+        )
         # Calculate total number of transactions in scope
         num_transactions_in_scope = get_count(session.query(Transaction).filter_by(scope=True, target_id=target_id))
         # Calculate matched percentage
@@ -644,7 +670,7 @@ def search_all_transactions(session, criteria, target_id=None, include_raw_data=
     results = {
         "records_total": total,
         "records_filtered": filtered_number,
-        "data": get_transaction_dicts(filtered_transaction_objs, include_raw_data)
+        "data": get_transaction_dicts(filtered_transaction_objs, include_raw_data),
     }
     return results
 
@@ -700,30 +726,31 @@ def get_hrt_response(session, filter_data, trans_id, target_id=None):
     transaction_obj = session.query(Transaction).filter_by(target_id=target_id, id=trans_id).first()
 
     # Data validation
-    languages = ['bash']  # Default script language is set to bash.
-    if filter_data.get('language'):
-        languages = [x.strip() for x in filter_data['language']]
+    languages = ["bash"]  # Default script language is set to bash.
+    if filter_data.get("language"):
+        languages = [x.strip() for x in filter_data["language"]]
 
     proxy = None
     search_string = None
     data = None
-    if filter_data.get('proxy'):
-        proxy = filter_data['proxy'][0]
-    if filter_data.get('search_string'):
-        search_string = filter_data['search_string'][0]
-    if filter_data.get('data'):
-        data = filter_data['data'][0]
+    if filter_data.get("proxy"):
+        proxy = filter_data["proxy"][0]
+    if filter_data.get("search_string"):
+        search_string = filter_data["search_string"][0]
+    if filter_data.get("data"):
+        data = filter_data["data"][0]
     # If target not found. Raise error.
     if not transaction_obj:
         raise InvalidTransactionReference("No transaction with {!s} exists".format(trans_id))
     raw_request = transaction_obj.raw_request
     try:
         hrt_obj = HttpRequestTranslator(
-            request=raw_request, languages=languages, proxy=proxy, search_string=search_string, data=data)
+            request=raw_request, languages=languages, proxy=proxy, search_string=search_string, data=data
+        )
         codes = hrt_obj.generate_code()
-        return ''.join(v for v in list(codes.values()))
+        return "".join(v for v in list(codes.values()))
     except Exception as e:
-        logging.error('Unexpected exception when running HRT: $s', str(e))
+        logging.error("Unexpected exception when running HRT: $s", str(e))
         return str(e)
 
 

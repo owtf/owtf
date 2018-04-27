@@ -17,7 +17,7 @@ from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 from owtf.utils.timer import timer
 
-TEST_GROUPS = ['web', 'network', 'auxiliary']
+TEST_GROUPS = ["web", "network", "auxiliary"]
 
 
 def get_test_groups_config(file_path):
@@ -32,19 +32,19 @@ def get_test_groups_config(file_path):
     :rtype: `list`
     """
     test_groups = []
-    config_file = FileOperations.open(file_path, 'r').read().splitlines()
+    config_file = FileOperations.open(file_path, "r").read().splitlines()
     for line in config_file:
-        if '#' == line[0]:
+        if "#" == line[0]:
             continue  # Skip comments
         try:
-            code, priority, descrip, hint, url = line.strip().split(' | ')
+            code, priority, descrip, hint, url = line.strip().split(" | ")
         except ValueError:
             abort_framework("Problem in Test Groups file: '{!s}' -> Cannot parse line: {!s}".format(file_path, line))
         if len(descrip) < 2:
             descrip = hint
         if len(hint) < 2:
             hint = ""
-        test_groups.append({'code': code, 'priority': priority, 'descrip': descrip, 'hint': hint, 'url': url})
+        test_groups.append({"code": code, "priority": priority, "descrip": descrip, "hint": hint, "url": url})
     return test_groups
 
 
@@ -65,12 +65,14 @@ def load_test_groups(session, file_default, file_fallback, plugin_group):
     for group in test_groups:
         session.merge(
             TestGroup(
-                code=group['code'],
-                priority=group['priority'],
-                descrip=group['descrip'],
-                hint=group['hint'],
-                url=group['url'],
-                group=plugin_group))
+                code=group["code"],
+                priority=group["priority"],
+                descrip=group["descrip"],
+                hint=group["hint"],
+                url=group["url"],
+                group=plugin_group,
+            )
+        )
     session.commit()
 
 
@@ -100,12 +102,12 @@ def load_plugins(session):
     # 'PLUGIN_DIR'.
     plugins = []
     for root, _, files in os.walk(PLUGINS_DIR):
-        plugins.extend([os.path.join(root, filename) for filename in files if filename.endswith('py')])
+        plugins.extend([os.path.join(root, filename) for filename in files if filename.endswith("py")])
     plugins = sorted(plugins)
     # Retrieve the information of the plugin.
     for plugin_path in plugins:
         # Only keep the relative path to the plugin
-        plugin = plugin_path.replace(PLUGINS_DIR, '')
+        plugin = plugin_path.replace(PLUGINS_DIR, "")
         # TODO: Using os.path.sep might not be portable especially on
         # Windows platform since it allows '/' and '\' in the path.
         # Retrieve the group, the type and the file of the plugin.
@@ -116,13 +118,14 @@ def load_plugins(session):
         if len(chunks) == 3:
             group, type, file = chunks
         # Retrieve the internal name and code of the plugin.
-        name, code = os.path.splitext(file)[0].split('@')
+        name, code = os.path.splitext(file)[0].split("@")
         # Only load the plugin if in XXX_TEST_GROUPS configuration (e.g. web_testgroups.cfg)
         if session.query(TestGroup).get(code) is None:
             continue
         # Load the plugin as a module.
         filename, pathname, desc = imp.find_module(
-            os.path.splitext(os.path.basename(plugin_path))[0], [os.path.dirname(plugin_path)])
+            os.path.splitext(os.path.basename(plugin_path))[0], [os.path.dirname(plugin_path)]
+        )
         plugin_module = imp.load_module(os.path.splitext(file)[0], filename, pathname, desc)
         # Try te retrieve the `attr` dictionary from the module and convert
         # it to json in order to save it into the database.
@@ -134,15 +137,17 @@ def load_plugins(session):
         # Save the plugin into the database.
         session.merge(
             Plugin(
-                key='%s@%s' % (type, code),
+                key="%s@%s" % (type, code),
                 group=group,
                 type=type,
-                title=name.title().replace('_', ' '),
+                title=name.title().replace("_", " "),
                 name=name,
                 code=code,
                 file=file,
                 descrip=plugin_module.DESCRIPTION,
-                attr=attr))
+                attr=attr,
+            )
+        )
     session.commit()
 
 
@@ -374,7 +379,8 @@ def get_groups_for_plugins(session, plugins):
     :return: List of available plugin groups
     :rtype: `list`
     """
-    groups = session.query(Plugin.group).filter(or_(Plugin.code.in_(plugins),
-                                                    Plugin.name.in_(plugins))).distinct().all()
+    groups = session.query(Plugin.group).filter(
+        or_(Plugin.code.in_(plugins), Plugin.name.in_(plugins))
+    ).distinct().all()
     groups = [i[0] for i in groups]
     return groups

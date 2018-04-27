@@ -9,5 +9,5 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via Skipfish"
 
 
 def run(PluginInfo):
-    resource = get_resources('Skipfish_Unauth')
-    return plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])
+    resource = get_resources("Skipfish_Unauth")
+    return plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])

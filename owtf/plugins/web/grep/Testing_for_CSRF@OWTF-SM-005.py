@@ -9,4 +9,4 @@ DESCRIPTION = "Searches transaction DB for CSRF protections"
 
 
 def run(PluginInfo):
-    return plugin_helper.FindResponseBodyMatchesForRegexpName('RESPONSE_REGEXP_FOR_HIDDEN')
+    return plugin_helper.FindResponseBodyMatchesForRegexpName("RESPONSE_REGEXP_FOR_HIDDEN")

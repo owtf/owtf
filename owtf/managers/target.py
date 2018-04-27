@@ -15,8 +15,12 @@ except ImportError:
     from urlparse import urlparse
 
 from owtf.db.session import get_count, get_scoped_session
-from owtf.lib.exceptions import DBIntegrityException, InvalidParameterType, \
-    InvalidTargetReference, UnresolvableTargetException
+from owtf.lib.exceptions import (
+    DBIntegrityException,
+    InvalidParameterType,
+    InvalidTargetReference,
+    UnresolvableTargetException,
+)
 from owtf.managers.session import add_target_to_session, session_required
 from owtf.plugin.plugin_params import plugin_params
 from owtf.settings import OUTPUT_PATH
@@ -25,28 +29,24 @@ from owtf.utils.ip import get_ip_from_hostname, get_ips_from_hostname
 from owtf.utils.strings import str2bool
 
 TARGET_CONFIG = {
-    'id': 0,
-    'target_url': '',
-    'host_name': '',
-    'host_path': '',
-    'url_scheme': '',
-    'port_number': '',  # In str form
-    'host_ip': '',
-    'alternative_ips': '',  # str(list), so it can easily reversed using list(str)
-    'ip_url': '',
-    'top_domain': '',
-    'top_url': '',
-    'scope': True,
+    "id": 0,
+    "target_url": "",
+    "host_name": "",
+    "host_path": "",
+    "url_scheme": "",
+    "port_number": "",  # In str form
+    "host_ip": "",
+    "alternative_ips": "",  # str(list), so it can easily reversed using list(str)
+    "ip_url": "",
+    "top_domain": "",
+    "top_url": "",
+    "scope": True,
     "max_user_rank": -1,
-    "max_owtf_rank": -1
+    "max_owtf_rank": -1,
 }
 
 PATH_CONFIG = {
-    'partial_url_output_path': '',
-    'host_output': '',
-    'port_output': '',
-    'url_output': '',
-    'plugin_output_dir': ''
+    "partial_url_output_path": "", "host_output": "", "port_output": "", "url_output": "", "plugin_output_dir": ""
 }
 
 
@@ -101,12 +101,12 @@ class TargetManager(object):
         """
         path_config = {}
         # Set the output directory.
-        path_config['host_output'] = os.path.join(OUTPUT_PATH, target_config['host_ip'])
-        path_config['port_output'] = os.path.join(path_config['host_output'], target_config['port_number'])
+        path_config["host_output"] = os.path.join(OUTPUT_PATH, target_config["host_ip"])
+        path_config["port_output"] = os.path.join(path_config["host_output"], target_config["port_number"])
         # Set the URL output directory (plugins will save their data here).
-        path_config['url_output'] = os.path.join(get_target_dir(target_config['target_url']))
+        path_config["url_output"] = os.path.join(get_target_dir(target_config["target_url"]))
         # Set the partial results path.
-        path_config['partial_url_output_path'] = os.path.join(path_config['url_output'], 'partial')
+        path_config["partial_url_output_path"] = os.path.join(path_config["url_output"], "partial")
         return path_config
 
     def get_target_id(self):
@@ -331,10 +331,10 @@ def target_gen_query(session, filter_data, session_id, for_stats=False):
     """
     query = session.query(Target).filter(Target.sessions.any(id=session_id))
     if filter_data.get("search") is not None:
-        if filter_data.get('target_url', None):
-            if isinstance(filter_data.get('target_url'), list):
-                filter_data['target_url'] = filter_data['target_url'][0]
-            query = query.filter(Target.target_url.like("%%{!s}%%".format(filter_data['target_url'])))
+        if filter_data.get("target_url", None):
+            if isinstance(filter_data.get("target_url"), list):
+                filter_data["target_url"] = filter_data["target_url"][0]
+            query = query.filter(Target.target_url.like("%%{!s}%%".format(filter_data["target_url"])))
     else:
         if filter_data.get("target_url", None):
             if isinstance(filter_data["target_url"], str):
@@ -363,15 +363,15 @@ def target_gen_query(session, filter_data, session_id, for_stats=False):
     query = query.order_by(Target.id.desc())
     if not for_stats:  # query for stats shouldn't have limit and offset
         try:
-            if filter_data.get('offset', None):
-                if isinstance(filter_data.get('offset'), list):
-                    filter_data['offset'] = filter_data['offset'][0]
-                query = query.offset(int(filter_data['offset']))
-            if filter_data.get('limit', None):
-                if isinstance(filter_data.get('limit'), list):
-                    filter_data['limit'] = filter_data['limit'][0]
-                if int(filter_data['limit']) != -1:
-                    query = query.limit(int(filter_data['limit']))
+            if filter_data.get("offset", None):
+                if isinstance(filter_data.get("offset"), list):
+                    filter_data["offset"] = filter_data["offset"][0]
+                query = query.offset(int(filter_data["offset"]))
+            if filter_data.get("limit", None):
+                if isinstance(filter_data.get("limit"), list):
+                    filter_data["limit"] = filter_data["limit"][0]
+                if int(filter_data["limit"]) != -1:
+                    query = query.limit(int(filter_data["limit"]))
         except ValueError:
             raise InvalidParameterType("Invalid parameter type for target db for id[lt] or id[gt]")
     return query
@@ -395,9 +395,7 @@ def search_target_configs(session, filter_data=None, session_id=None):
     filtered_target_objs = target_gen_query(session, filter_data, session_id).all()
     filtered_number = get_count(target_gen_query(session, filter_data, session_id, for_stats=True))
     results = {
-        "records_total": total,
-        "records_filtered": filtered_number,
-        "data": get_target_configs(filtered_target_objs)
+        "records_total": total, "records_filtered": filtered_number, "data": get_target_configs(filtered_target_objs)
     }
     return results
 
@@ -501,7 +499,7 @@ def is_url_in_scope(url):
     """
     parsed_url = urlparse(url)
     # Get all known Host Names in Scope.
-    for host_name in get_all_in_scope(key='host_name'):
+    for host_name in get_all_in_scope(key="host_name"):
         if parsed_url.hostname == host_name:
             return True
     return False
@@ -515,8 +513,8 @@ def load_targets(session, options):
     :return: Added targets
     :rtype: `list`
     """
-    scope = options['scope']
-    if options['plugin_group'] == 'auxiliary':
+    scope = options["scope"]
+    if options["plugin_group"] == "auxiliary":
         scope = get_aux_target()
     added_targets = []
     for target in scope:
@@ -541,19 +539,19 @@ def get_aux_target():
     """
     # targets can be given by different params depending on the aux plugin we are running
     # so "target_params" is a list of possible parameters by which user can give target
-    target_params = ['RHOST', 'TARGET', 'SMB_HOST', 'BASE_URL', 'SMTP_HOST']
+    target_params = ["RHOST", "TARGET", "SMB_HOST", "BASE_URL", "SMTP_HOST"]
     targets = None
     if plugin_params.process_args():
         for param in target_params:
             if param in plugin_params.args:
                 targets = plugin_params.args[param]
                 break  # it will capture only the first one matched
-        repeat_delim = ','
+        repeat_delim = ","
         if targets is None:
             logging.error("Aux target not found! See your plugin accepted parameters in ./plugins/ folder")
             return []
-        if 'REPEAT_DELIM' in plugin_params.args:
-            repeat_delim = plugin_params.args['REPEAT_DELIM']
+        if "REPEAT_DELIM" in plugin_params.args:
+            repeat_delim = plugin_params.args["REPEAT_DELIM"]
         return targets.split(repeat_delim)
     else:
         return []
@@ -571,42 +569,15 @@ def get_targets_by_severity_count(session, session_id=None):
     filtered_severity_objs = []
     # "not ranked" = gray, "passing" = light green, "info" = light sky blue, "low" = blue, medium = yellow,
     # high = red, critical = dark purple
-    severity_frequency = [{
-        "id": 0,
-        "label": "Not Ranked",
-        "value": 0,
-        "color": "#A9A9A9"
-    }, {
-        "id": 1,
-        "label": "Passing",
-        "value": 0,
-        "color": "#32CD32"
-    }, {
-        "id": 2,
-        "label": "Info",
-        "value": 0,
-        "color": "#b1d9f4"
-    }, {
-        "id": 3,
-        "label": "Low",
-        "value": 0,
-        "color": "#337ab7"
-    }, {
-        "id": 4,
-        "label": "Medium",
-        "value": 0,
-        "color": "#ffcc00"
-    }, {
-        "id": 5,
-        "label": "High",
-        "value": 0,
-        "color": "#c12e2a"
-    }, {
-        "id": 6,
-        "label": "Critical",
-        "value": 0,
-        "color": "#800080"
-    }]
+    severity_frequency = [
+        {"id": 0, "label": "Not Ranked", "value": 0, "color": "#A9A9A9"},
+        {"id": 1, "label": "Passing", "value": 0, "color": "#32CD32"},
+        {"id": 2, "label": "Info", "value": 0, "color": "#b1d9f4"},
+        {"id": 3, "label": "Low", "value": 0, "color": "#337ab7"},
+        {"id": 4, "label": "Medium", "value": 0, "color": "#ffcc00"},
+        {"id": 5, "label": "High", "value": 0, "color": "#c12e2a"},
+        {"id": 6, "label": "Critical", "value": 0, "color": "#800080"},
+    ]
     total = session.query(Target).filter(Target.sessions.any(id=session_id)).count()
     target_objs = session.query(Target).filter(Target.sessions.any(id=session_id)).all()
 
@@ -635,7 +606,7 @@ def derive_config_from_url(target_url):
     :rtype: `dict`
     """
     target_config = dict(TARGET_CONFIG)
-    target_config['target_url'] = target_url
+    target_config["target_url"] = target_url
     try:
         parsed_url = urlparse(target_url)
         if not parsed_url.hostname and not parsed_url.path:  # No hostname and no path, urlparse failed.
@@ -654,41 +625,41 @@ def derive_config_from_url(target_url):
     protocol = parsed_url.scheme
     if parsed_url.port is None:  # Port is blank: Derive from scheme (default port set to 80).
         try:
-            host, port = host.rsplit(':')
+            host, port = host.rsplit(":")
         except ValueError:  # Raised when target doesn't contain the port (e.g. google.fr)
-            port = '80'
-            if 'https' == url_scheme:
-                port = '443'
+            port = "80"
+            if "https" == url_scheme:
+                port = "443"
     else:  # Port found by urlparse.
         port = str(parsed_url.port)
 
     # Needed for google resource search.
-    target_config['host_path'] = host_path
+    target_config["host_path"] = host_path
     # Some tools need this!
-    target_config['url_scheme'] = url_scheme
+    target_config["url_scheme"] = url_scheme
     # Some tools need this!
-    target_config['port_number'] = port
+    target_config["port_number"] = port
     # Set the top URL.
-    target_config['host_name'] = host
+    target_config["host_name"] = host
 
     host_ip = get_ip_from_hostname(host)
     host_ips = get_ips_from_hostname(host)
-    target_config['host_ip'] = host_ip
-    target_config['alternative_ips'] = host_ips
+    target_config["host_ip"] = host_ip
+    target_config["alternative_ips"] = host_ips
 
-    ip_url = target_config['target_url'].replace(host, host_ip)
-    target_config['ip_url'] = ip_url
-    target_config['top_domain'] = target_config['host_name']
+    ip_url = target_config["target_url"].replace(host, host_ip)
+    target_config["ip_url"] = ip_url
+    target_config["top_domain"] = target_config["host_name"]
 
-    hostname_chunks = target_config['host_name'].split('.')
-    if target_config['target_url'].startswith(('http', 'https')):  # target considered as hostname (web plugins)
-        if not target_config['host_name'] in target_config['alternative_ips']:
-            target_config['top_domain'] = '.'.join(hostname_chunks[1:])
+    hostname_chunks = target_config["host_name"].split(".")
+    if target_config["target_url"].startswith(("http", "https")):  # target considered as hostname (web plugins)
+        if not target_config["host_name"] in target_config["alternative_ips"]:
+            target_config["top_domain"] = ".".join(hostname_chunks[1:])
         # Set the top URL (get "example.com" from "www.example.com").
-        target_config['top_url'] = "{0}://{1}:{2}".format(protocol, host, port)
+        target_config["top_url"] = "{0}://{1}:{2}".format(protocol, host, port)
     else:  # target considered as IP (net plugins)
-        target_config['top_domain'] = ''
-        target_config['top_url'] = ''
+        target_config["top_domain"] = ""
+        target_config["top_url"] = ""
     return target_config
 
 

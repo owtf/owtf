@@ -6,16 +6,23 @@ owtf.api.handlers.session
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
-from owtf.managers.session import add_session, add_target_to_session, delete_session, \
-    get_all_session_dicts, get_session_dict, remove_target_from_session, set_session
+from owtf.managers.session import (
+    add_session,
+    add_target_to_session,
+    delete_session,
+    get_all_session_dicts,
+    get_session_dict,
+    remove_target_from_session,
+    set_session,
+)
 
-__all__ = ['OWTFSessionHandler']
+__all__ = ["OWTFSessionHandler"]
 
 
 class OWTFSessionHandler(APIRequestHandler):
     """Handles OWTF sessions."""
 
-    SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+    SUPPORTED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
     def get(self, session_id=None, action=None):
         """Get all registered sessions.
@@ -123,7 +130,8 @@ class OWTFSessionHandler(APIRequestHandler):
                 add_target_to_session(self.session, int(self.get_argument("target_id")), session_id=int(session_id))
             elif action == "remove":
                 remove_target_from_session(
-                    self.session, int(self.get_argument("target_id")), session_id=int(session_id))
+                    self.session, int(self.get_argument("target_id")), session_id=int(session_id)
+                )
             elif action == "activate":
                 set_session(self.session, int(session_id))
             self.success(None)

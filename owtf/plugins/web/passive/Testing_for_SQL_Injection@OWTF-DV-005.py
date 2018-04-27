@@ -9,6 +9,6 @@ DESCRIPTION = "Google Hacking for SQLi"
 
 
 def run(PluginInfo):
-    resource = get_resources('PassiveSQLInjectionLnk')
-    Content = plugin_helper.resource_linklist('Online Resources', resource)
+    resource = get_resources("PassiveSQLInjectionLnk")
+    Content = plugin_helper.resource_linklist("Online Resources", resource)
     return Content

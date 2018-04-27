@@ -9,5 +9,5 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via Wapiti"
 
 
 def run(PluginInfo):
-    resource = get_resources('Wapiti_Unauth')
-    return plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])
+    resource = get_resources("Wapiti_Unauth")
+    return plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])

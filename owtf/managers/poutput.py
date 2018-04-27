@@ -38,10 +38,11 @@ def plugin_count_output(session):
     :rtype: `dict`
     """
     from owtf.managers.worker import worker_manager
+
     complete_count = get_count(session.query(PluginOutput))
     left_count = get_count(session.query(Work))
     left_count += worker_manager.get_busy_workers()
-    results = {'complete_count': complete_count, 'left_count': left_count}
+    results = {"complete_count": complete_count, "left_count": left_count}
     return results
 
 
@@ -54,7 +55,8 @@ def get_html_output(plugin_output):
     :rtype: `str`
     """
     from owtf.api.reporter import reporter
-    content = ''
+
+    content = ""
     for item in plugin_output:
         content += getattr(reporter, item["type"])(**item["output"])
     return content
@@ -212,13 +214,16 @@ def get_unique_dicts(session, target_id=None):
     :rtype: `dict`
     """
     unique_data = {
-        "plugin_type":
-        [i[0] for i in session.query(PluginOutput.plugin_type).filter_by(target_id=target_id).distinct().all()],
-        "plugin_group":
-        [i[0] for i in session.query(PluginOutput.plugin_group).filter_by(target_id=target_id).distinct().all()],
+        "plugin_type": [
+            i[0] for i in session.query(PluginOutput.plugin_type).filter_by(target_id=target_id).distinct().all()
+        ],
+        "plugin_group": [
+            i[0] for i in session.query(PluginOutput.plugin_group).filter_by(target_id=target_id).distinct().all()
+        ],
         "status": [i[0] for i in session.query(PluginOutput.status).filter_by(target_id=target_id).distinct().all()],
-        "user_rank":
-        [i[0] for i in session.query(PluginOutput.user_rank).filter_by(target_id=target_id).distinct().all()],
+        "user_rank": [
+            i[0] for i in session.query(PluginOutput.user_rank).filter_by(target_id=target_id).distinct().all()
+        ],
         "owtf_rank": [
             i[0] for i in session.query(PluginOutput.owtf_rank).filter_by(target_id=target_id).distinct().all()
         ],
@@ -305,7 +310,8 @@ def plugin_already_run(session, plugin_info, target_id=None):
         target_id=target_id,
         plugin_code=plugin_info["code"],
         plugin_type=plugin_info["type"],
-        plugin_group=plugin_info["group"]).count()
+        plugin_group=plugin_info["group"],
+    ).count()
     return plugin_output_count > 0  # This is nothing but a "None" returned
 
 
@@ -337,9 +343,12 @@ def save_plugin_output(session, plugin, output, target_id=None):
             status=plugin["status"],
             target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored it will be there
-            output_path=(plugin["output_path"]
-                         if os.path.exists(plugin_handler.get_plugin_output_dir(plugin)) else None),
-            owtf_rank=plugin['owtf_rank']))
+            output_path=(
+                plugin["output_path"] if os.path.exists(plugin_handler.get_plugin_output_dir(plugin)) else None
+            ),
+            owtf_rank=plugin["owtf_rank"],
+        )
+    )
     session.commit()
 
 
@@ -373,9 +382,12 @@ def save_partial_output(session, plugin, output, message, target_id=None):
             status=plugin["status"],
             target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored it will be there
-            output_path=(plugin["output_path"]
-                         if os.path.exists(plugin_handler.get_plugin_output_dir(plugin)) else None),
-            owtf_rank=plugin['owtf_rank']))
+            output_path=(
+                plugin["output_path"] if os.path.exists(plugin_handler.get_plugin_output_dir(plugin)) else None
+            ),
+            owtf_rank=plugin["owtf_rank"],
+        )
+    )
     session.commit()
 
 
@@ -389,36 +401,12 @@ def get_severity_freq(session, session_id=None):
     :rtype: `dict`
     """
     severity_frequency = [
-        {
-            "id": 0,
-            "label": "Passing",
-            "value": 0
-        },
-        {
-            "id": 1,
-            "label": "Info",
-            "value": 0
-        },
-        {
-            "id": 2,
-            "label": "Low",
-            "value": 0
-        },
-        {
-            "id": 3,
-            "label": "Medium",
-            "value": 0
-        },
-        {
-            "id": 4,
-            "label": "High",
-            "value": 0
-        },
-        {
-            "id": 5,
-            "label": "Critical",
-            "value": 0
-        },
+        {"id": 0, "label": "Passing", "value": 0},
+        {"id": 1, "label": "Info", "value": 0},
+        {"id": 2, "label": "Low", "value": 0},
+        {"id": 3, "label": "Medium", "value": 0},
+        {"id": 4, "label": "High", "value": 0},
+        {"id": 5, "label": "Critical", "value": 0},
     ]
 
     targets = []

@@ -217,37 +217,37 @@ def url_gen_query(session, criteria, target_id, for_stats=False):
     """
     query = session.query(Url).filter_by(target_id=target_id)
     # Check if criteria is url search
-    if criteria.get('search', None):
-        if criteria.get('url', None):
-            if isinstance(criteria.get('url'), list):
-                criteria['url'] = criteria['url'][0]
-            query = query.filter(Url.url.like('%%{!s}%%'.format(criteria['url'])))
+    if criteria.get("search", None):
+        if criteria.get("url", None):
+            if isinstance(criteria.get("url"), list):
+                criteria["url"] = criteria["url"][0]
+            query = query.filter(Url.url.like("%%{!s}%%".format(criteria["url"])))
     else:  # If not search
-        if criteria.get('url', None):
-            if isinstance(criteria.get('url'), str):
-                query = query.filter_by(url=criteria['url'])
-            if isinstance(criteria.get('url'), list):
-                query = query.filter(Url.url.in_(criteria['url']))
+        if criteria.get("url", None):
+            if isinstance(criteria.get("url"), str):
+                query = query.filter_by(url=criteria["url"])
+            if isinstance(criteria.get("url"), list):
+                query = query.filter(Url.url.in_(criteria["url"]))
     # For the following section doesn't matter if filter/search because
     # it doesn't make sense to search in a boolean column :P
-    if criteria.get('visited', None):
-        if isinstance(criteria.get('visited'), list):
-            criteria['visited'] = criteria['visited'][0]
-        query = query.filter_by(visited=str2bool(criteria['visited']))
-    if criteria.get('scope', None):
-        if isinstance(criteria.get('scope'), list):
-            criteria['scope'] = criteria['scope'][0]
-        query = query.filter_by(scope=str2bool(criteria['scope']))
+    if criteria.get("visited", None):
+        if isinstance(criteria.get("visited"), list):
+            criteria["visited"] = criteria["visited"][0]
+        query = query.filter_by(visited=str2bool(criteria["visited"]))
+    if criteria.get("scope", None):
+        if isinstance(criteria.get("scope"), list):
+            criteria["scope"] = criteria["scope"][0]
+        query = query.filter_by(scope=str2bool(criteria["scope"]))
     if not for_stats:  # Query for stats can't have limit and offset
         try:
-            if criteria.get('offset', None):
-                if isinstance(criteria.get('offset'), list):
-                    criteria['offset'] = criteria['offset'][0]
-                query = query.offset(int(criteria['offset']))
-            if criteria.get('limit', None):
-                if isinstance(criteria.get('limit'), list):
-                    criteria['limit'] = criteria['limit'][0]
-                query = query.limit(int(criteria['limit']))
+            if criteria.get("offset", None):
+                if isinstance(criteria.get("offset"), list):
+                    criteria["offset"] = criteria["offset"][0]
+                query = query.offset(int(criteria["offset"]))
+            if criteria.get("limit", None):
+                if isinstance(criteria.get("limit"), list):
+                    criteria["limit"] = criteria["limit"][0]
+                query = query.limit(int(criteria["limit"]))
         except ValueError:
             raise InvalidParameterType("Invalid parameter type for transaction db")
     return query

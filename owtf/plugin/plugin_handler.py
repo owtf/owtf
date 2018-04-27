@@ -32,7 +32,7 @@ from owtf.utils.signals import owtf_start
 from owtf.utils.strings import wipe_bad_chars
 from owtf.utils.timer import timer
 
-__all__ = ['plugin_handler', 'show_plugin_list', 'show_plugin_types']
+__all__ = ["plugin_handler", "show_plugin_list", "show_plugin_types"]
 
 INTRO_BANNER_GENERAL = """
 Short Intro:
@@ -82,10 +82,11 @@ class PluginHandler(object):
         self.only_plugins = self.options["only_plugins"]
         self.except_plugins = self.options["except_plugins"]
         self.except_plugins_list = self.validate_format_plugin_list(
-            session=self.session, plugin_codes=self.only_plugins)
+            session=self.session, plugin_codes=self.only_plugins
+        )
         # For special plugin types like "quiet" -> "semi_passive" + "passive"
-        if isinstance(self.options.get('plugin_type'), str):
-            self.options['plugin_type'] = self.options['plugin_type'].split(',')
+        if isinstance(self.options.get("plugin_type"), str):
+            self.options["plugin_type"] = self.options["plugin_type"].split(",")
         self.scanner = Scanner()
         self.init_exec_registry()
 
@@ -98,6 +99,7 @@ class PluginHandler(object):
         :rtype: `bool`
         """
         from owtf.managers.poutput import plugin_already_run
+
         return plugin_already_run(session, plugin_info)
 
     def validate_format_plugin_list(self, session, plugin_codes):
@@ -117,13 +119,15 @@ class PluginHandler(object):
         for code in plugin_codes:
             found = False
             for plugin in plugins_by_group:  # Processing Loop
-                if code in [plugin['code'], plugin['name']]:
-                    valid_plugin_codes.append(plugin['code'])
+                if code in [plugin["code"], plugin["name"]]:
+                    valid_plugin_codes.append(plugin["code"])
                     found = True
                     break
             if not found:
-                abort_framework("The code '{!s}' is not a valid plugin, please use the -l option to see"
-                                "available plugin names and codes".format(code))
+                abort_framework(
+                    "The code '{!s}' is not a valid plugin, please use the -l option to see"
+                    "available plugin names and codes".format(code)
+                )
         return valid_plugin_codes  # Return list of Codes
 
     def init_exec_registry(self):
@@ -178,11 +182,12 @@ class PluginHandler(object):
         :rtype: `str`
         """
         # Organise results by OWASP Test type and then active, passive, semi_passive
-        if ((plugin['group'] == 'web') or (plugin['group'] == 'network')):
+        if (plugin["group"] == "web") or (plugin["group"] == "network"):
             return os.path.join(
-                target_manager.get_path('partial_url_output_path'), wipe_bad_chars(plugin['title']), plugin['type'])
-        elif plugin['group'] == 'auxiliary':
-            return os.path.join(AUX_OUTPUT_PATH, wipe_bad_chars(plugin['title']), plugin['type'])
+                target_manager.get_path("partial_url_output_path"), wipe_bad_chars(plugin["title"]), plugin["type"]
+            )
+        elif plugin["group"] == "auxiliary":
+            return os.path.join(AUX_OUTPUT_PATH, wipe_bad_chars(plugin["title"]), plugin["type"])
 
     def requests_possible(self):
         """Check if requests are possible
@@ -193,7 +198,7 @@ class PluginHandler(object):
         :return:
         :rtype: `bool`
         """
-        return ['grep'] != get_types_for_plugin_group(self.session, 'web')
+        return ["grep"] != get_types_for_plugin_group(self.session, "web")
 
     def dump_output_file(self, filename, contents, plugin, relative_path=False):
         """Dumps output file to path
@@ -250,7 +255,7 @@ class PluginHandler(object):
         :return: None
         :rtype: None
         """
-        f, filename, desc = imp.find_module(module_file.split('.')[0], [module_path])
+        f, filename, desc = imp.find_module(module_file.split(".")[0], [module_path])
         return imp.load_module(module_name, f, filename, desc)
 
     def chosen_plugin(self, session, plugin, show_reason=False):
@@ -264,22 +269,27 @@ class PluginHandler(object):
 
         """
         chosen = True
-        reason = 'not-specified'
-        if plugin['group'] == self.plugin_group:
+        reason = "not-specified"
+        if plugin["group"] == self.plugin_group:
             # Skip plugins not present in the white-list defined by the user.
-            if self.only_plugins_list and plugin['code'] not in self.only_plugins_list:
+            if self.only_plugins_list and plugin["code"] not in self.only_plugins_list:
                 chosen = False
-                reason = 'not in white-list'
+                reason = "not in white-list"
             # Skip plugins present in the black-list defined by the user.
-            if self.except_plugins_list and plugin['code'] in self.except_plugins_list:
+            if self.except_plugins_list and plugin["code"] in self.except_plugins_list:
                 chosen = False
-                reason = 'in black-list'
-        if plugin['type'] not in get_types_for_plugin_group(session=session, plugin_group=plugin['group']):
+                reason = "in black-list"
+        if plugin["type"] not in get_types_for_plugin_group(session=session, plugin_group=plugin["group"]):
             chosen = False  # Skip plugin: Not matching selected type
-            reason = 'not matching selected type'
+            reason = "not matching selected type"
         if not chosen and show_reason:
-            logging.warning('Plugin: %s (%s/%s) has not been chosen by the user (%s), skipping...', plugin['title'],
-                            plugin['group'], plugin['type'], reason)
+            logging.warning(
+                "Plugin: %s (%s/%s) has not been chosen by the user (%s), skipping...",
+                plugin["title"],
+                plugin["group"],
+                plugin["type"],
+                reason,
+            )
         return chosen
 
     def force_overwrite(self):
@@ -303,14 +313,19 @@ class PluginHandler(object):
         if not self.chosen_plugin(session=session, plugin=plugin, show_reason=show_reason):
             return False  # Skip not chosen plugins
         # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active)
-        if self.plugin_already_run(session=session, plugin_info=plugin) and \
-                ((not self.force_overwrite() and not ('grep' == plugin['type'])) or
-                 plugin['type'] == 'external'):
+        if (
+            self.plugin_already_run(session=session, plugin_info=plugin)
+            and ((not self.force_overwrite() and not ("grep" == plugin["type"])) or plugin["type"] == "external")
+        ):
             if show_reason:
-                logging.warning("Plugin: %s (%s/%s) has already been run, skipping...", plugin['title'],
-                                plugin['group'], plugin['type'])
+                logging.warning(
+                    "Plugin: %s (%s/%s) has already been run, skipping...",
+                    plugin["title"],
+                    plugin["group"],
+                    plugin["type"],
+                )
             return False
-        if 'grep' == plugin['type'] and self.plugin_already_run(session=session, plugin_info=plugin):
+        if "grep" == plugin["type"] and self.plugin_already_run(session=session, plugin_info=plugin):
             # Grep plugins can only run if some active or semi_passive plugin was run since the last time
             return False
         return True
@@ -325,7 +340,7 @@ class PluginHandler(object):
         :return: Full path to the plugin
         :rtype: `str`
         """
-        return "{0}/{1}/{2}".format(plugin_dir, plugin['type'], plugin['file'])  # Path to run the plugin
+        return "{0}/{1}/{2}".format(plugin_dir, plugin["type"], plugin["file"])  # Path to run the plugin
 
     def run_plugin(self, plugin_dir, plugin, save_output=True):
         """Run a specific plugin
@@ -359,10 +374,14 @@ class PluginHandler(object):
             otherwise.
 
             """
-            return [(output['output'].get('ModifiedCommand', '').split(' ')[3],
-                     os.path.basename(output['output'].get('RelativeFilePath', '')))
-                    for output in cmd
-                    if ('output' in output and 'metasploit' in output['output'].get('ModifiedCommand', ''))]
+            return [
+                (
+                    output["output"].get("ModifiedCommand", "").split(" ")[3],
+                    os.path.basename(output["output"].get("RelativeFilePath", "")),
+                )
+                for output in cmd
+                if ("output" in output and "metasploit" in output["output"].get("ModifiedCommand", ""))
+            ]
 
         msf_modules = None
         if output:
@@ -382,7 +401,7 @@ class PluginHandler(object):
         except PTPError:  # Not supported tool or report not found.
             pass
         except Exception as e:
-            logging.error('Unexpected exception when running PTP: %s', str(e))
+            logging.error("Unexpected exception when running PTP: %s", str(e))
         if owtf_rank == UNKNOWN:  # Ugly truth... PTP gives 0 for unranked but OWTF uses -1 instead...
             owtf_rank = -1
         return owtf_rank
@@ -406,71 +425,77 @@ class PluginHandler(object):
         if not self.plugin_can_run(session=session, plugin=plugin, show_reason=True):
             return None
         # Save how long it takes for the plugin to run.
-        self.timer.start_timer('Plugin')
-        plugin['start'] = self.timer.get_start_date_time('Plugin')
+        self.timer.start_timer("Plugin")
+        plugin["start"] = self.timer.get_start_date_time("Plugin")
         # Use relative path from targets folders while saving
-        plugin['output_path'] = os.path.relpath(self.get_plugin_output_dir(plugin), get_output_dir_target())
-        status['AllSkipped'] = False  # A plugin is going to be run.
-        plugin['status'] = 'Running'
+        plugin["output_path"] = os.path.relpath(self.get_plugin_output_dir(plugin), get_output_dir_target())
+        status["AllSkipped"] = False  # A plugin is going to be run.
+        plugin["status"] = "Running"
         self.plugin_count += 1
-        logging.info('_' * 10 + ' %d - Target: %s -> Plugin: %s (%s/%s) ' + '_' * 10, self.plugin_count,
-                     target_manager.get_target_url(), plugin['title'], plugin['group'], plugin['type'])
+        logging.info(
+            "_" * 10 + " %d - Target: %s -> Plugin: %s (%s/%s) " + "_" * 10,
+            self.plugin_count,
+            target_manager.get_target_url(),
+            plugin["title"],
+            plugin["group"],
+            plugin["type"],
+        )
         # Skip processing in simulation mode, but show until line above
         # to illustrate what will run
         if self.simulation:
             return None
         # DB empty => grep plugins will fail, skip!!
-        if 'grep' == plugin['type'] and num_transactions(session) == 0:
-            logging.info('Skipped - Cannot run grep plugins: The Transaction DB is empty')
+        if "grep" == plugin["type"] and num_transactions(session) == 0:
+            logging.info("Skipped - Cannot run grep plugins: The Transaction DB is empty")
             return None
         output = None
-        status_msg = ''
+        status_msg = ""
         partial_output = []
-        abort_reason = ''
+        abort_reason = ""
         try:
             output = self.run_plugin(plugin_dir, plugin)
-            status_msg = 'Successful'
-            status['SomeSuccessful'] = True
+            status_msg = "Successful"
+            status["SomeSuccessful"] = True
         except KeyboardInterrupt:
             # Just explain why crashed.
-            status_msg = 'Aborted'
-            abort_reason = 'Aborted by User'
-            status['SomeAborted (Keyboard Interrupt)'] = True
+            status_msg = "Aborted"
+            abort_reason = "Aborted by User"
+            status["SomeAborted (Keyboard Interrupt)"] = True
         except SystemExit:
             # Abort plugin processing and get out to external exception
             # handling, information saved elsewhere.
             raise SystemExit
         except PluginAbortException as PartialOutput:
-            status_msg = 'Aborted (by user)'
+            status_msg = "Aborted (by user)"
             partial_output = PartialOutput.parameter
-            abort_reason = 'Aborted by User'
-            status['SomeAborted'] = True
+            abort_reason = "Aborted by User"
+            status["SomeAborted"] = True
         except UnreachableTargetException as PartialOutput:
-            status_msg = 'Unreachable Target'
+            status_msg = "Unreachable Target"
             partial_output = PartialOutput.parameter
-            abort_reason = 'Unreachable Target'
-            status['SomeAborted'] = True
+            abort_reason = "Unreachable Target"
+            status["SomeAborted"] = True
         except FrameworkAbortException as PartialOutput:
-            status_msg = 'Aborted (Framework Exit)'
+            status_msg = "Aborted (Framework Exit)"
             partial_output = PartialOutput.parameter
-            abort_reason = 'Framework Aborted'
+            abort_reason = "Framework Aborted"
         # TODO: Handle this gracefully
         # Replace print by logging
         finally:
-            plugin['status'] = status_msg
-            plugin['end'] = self.timer.get_end_date_time('Plugin')
-            plugin['owtf_rank'] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
+            plugin["status"] = status_msg
+            plugin["end"] = self.timer.get_end_date_time("Plugin")
+            plugin["owtf_rank"] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
             try:
-                if status_msg == 'Successful':
+                if status_msg == "Successful":
                     save_plugin_output(session=session, plugin=plugin, output=output)
                 else:
                     save_partial_output(session=session, plugin=plugin, output=partial_output, message=abort_reason)
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)
-            if status_msg == 'Aborted':
-                user_abort('Plugin')
-            if abort_reason == 'Framework Aborted':
+            if status_msg == "Aborted":
+                user_abort("Plugin")
+            if abort_reason == "Framework Aborted":
                 abort_framework("Framework abort")
         return output
 
@@ -480,8 +505,8 @@ class PluginHandler(object):
         :return:
         :rtype:
         """
-        status = {'SomeAborted': False, 'SomeSuccessful': False, 'AllSkipped': True}
-        if self.plugin_group in ['web', 'auxiliary', 'network']:
+        status = {"SomeAborted": False, "SomeSuccessful": False, "AllSkipped": True}
+        if self.plugin_group in ["web", "auxiliary", "network"]:
             self.process_plugins_for_target_list(self.session, self.plugin_group, status, target_manager.get_all("ID"))
         return status
 
@@ -519,10 +544,10 @@ class PluginHandler(object):
         :rtype: None
         """
         plugin_dir = self.get_plugin_group_dir(plugin_group)
-        if plugin_group == 'network':
-            portwaves = config_handler.get('PORTWAVES')
-            waves = portwaves.split(',')
-            waves.append('-1')
+        if plugin_group == "network":
+            portwaves = config_handler.get("PORTWAVES")
+            waves = portwaves.split(",")
+            waves.append("-1")
             lastwave = 0
             for target in target_list:  # For each Target
                 self.scanner.scan_network(target)
@@ -530,7 +555,7 @@ class PluginHandler(object):
                 for i in range(1):
                     ports = get_tcp_ports(lastwave, waves[i])
                     logging.info("Probing for ports %s", str(ports))
-                    http = self.scanner.probe_network(target, 'tcp', ports)
+                    http = self.scanner.probe_network(target, "tcp", ports)
                     # Tell Config that all Gets/Sets are now
                     # Target-specific.
                     self.switch_to_target(target)
@@ -538,18 +563,20 @@ class PluginHandler(object):
                         self.process_plugin(session=session, plugin_dir=plugin_dir, plugin=plugin, status=status)
                     lastwave = waves[i]
                     for http_ports in http:
-                        if http_ports == '443':
-                            self.process_plugins_for_target_list(session, 'web', {
-                                'SomeAborted': False,
-                                'SomeSuccessful': False,
-                                'AllSkipped': True
-                            }, {"https://{}".format(target.split('//')[1])})
+                        if http_ports == "443":
+                            self.process_plugins_for_target_list(
+                                session,
+                                "web",
+                                {"SomeAborted": False, "SomeSuccessful": False, "AllSkipped": True},
+                                {"https://{}".format(target.split("//")[1])},
+                            )
                         else:
-                            self.process_plugins_for_target_list(session, 'web', {
-                                'SomeAborted': False,
-                                'SomeSuccessful': False,
-                                'AllSkipped': True
-                            }, {target})
+                            self.process_plugins_for_target_list(
+                                session,
+                                "web",
+                                {"SomeAborted": False, "SomeSuccessful": False, "AllSkipped": True},
+                                {target},
+                            )
         else:
             pass
 
@@ -564,11 +591,11 @@ def show_plugin_list(session, group, msg=INTRO_BANNER_GENERAL):
     :return: None
     :rtype: None
     """
-    if group == 'web':
+    if group == "web":
         logging.info("%s%s\nAvailable WEB plugins:", msg, INTRO_BANNER_WEB_PLUGIN_TYPE)
-    elif group == 'auxiliary':
+    elif group == "auxiliary":
         logging.info("%s\nAvailable AUXILIARY plugins:", msg)
-    elif group == 'network':
+    elif group == "network":
         logging.info("%s\nAvailable NETWORK plugins:", msg)
     for plugin_type in get_types_for_plugin_group(session, group):
         show_plugin_types(session, plugin_type, group)
@@ -584,12 +611,12 @@ def show_plugin_types(session, plugin_type, group):
     :return: None
     :rtype: None
     """
-    logging.info("\n%s %s plugins %s", '*' * 40, plugin_type.title().replace('_', '-'), '*' * 40)
+    logging.info("\n%s %s plugins %s", "*" * 40, plugin_type.title().replace("_", "-"), "*" * 40)
     for plugin in get_plugins_by_group_type(session, group, plugin_type):
-        line_start = " {!s}:{!s}".format(plugin['type'], plugin['name'])
+        line_start = " {!s}:{!s}".format(plugin["type"], plugin["name"])
         pad1 = "_" * (60 - len(line_start))
-        pad2 = "_" * (20 - len(plugin['code']))
-        logging.info("%s%s(%s)%s%s", line_start, pad1, plugin['code'], pad2, plugin['descrip'])
+        pad2 = "_" * (20 - len(plugin["code"]))
+        logging.info("%s%s(%s)%s%s", line_start, pad1, plugin["code"], pad2, plugin["descrip"])
 
 
 plugin_handler = PluginHandler()

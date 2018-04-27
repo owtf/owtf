@@ -16,11 +16,11 @@ OWTF_CRITICAL = 5
 
 # Maps `int` value of ranks with `string` value.
 RANKS = {
-    OWTF_UNRANKED: 'Unranked',
-    OWTF_PASSING: 'Passing',
-    OWTF_INFO: 'Informational',
-    OWTF_LOW: 'Low',
-    OWTF_MEDIUM: 'Medium',
-    OWTF_HIGH: 'High',
-    OWTF_CRITICAL: 'Critical',
+    OWTF_UNRANKED: "Unranked",
+    OWTF_PASSING: "Passing",
+    OWTF_INFO: "Informational",
+    OWTF_LOW: "Low",
+    OWTF_MEDIUM: "Medium",
+    OWTF_HIGH: "High",
+    OWTF_CRITICAL: "Critical",
 }

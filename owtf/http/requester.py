@@ -7,6 +7,7 @@ automatically log HTTP transactions by calling the DB module.
 """
 import logging
 import sys
+
 try:
     import http.client as client
 except ImportError:
@@ -15,12 +16,29 @@ try:
     from urllib.parse import urlparse, urlencode
     from urllib.request import urlopen, Request
     from urllib.error import HTTPError, URLError
-    from urllib.request import HTTPHandler, HTTPSHandler, HTTPRedirectHandler, ProxyHandler, build_opener, install_opener
+    from urllib.request import (
+        HTTPHandler,
+        HTTPSHandler,
+        HTTPRedirectHandler,
+        ProxyHandler,
+        build_opener,
+        install_opener,
+    )
 except ImportError:
     from urlparse import urlparse
     from urllib import urlencode
-    from urllib2 import urlopen, Request, HTTPError, HTTPHandler, HTTPSHandler, HTTPRedirectHandler, ProxyHandler, \
-        build_opener, install_opener, URLError
+    from urllib2 import (
+        urlopen,
+        Request,
+        HTTPError,
+        HTTPHandler,
+        HTTPSHandler,
+        HTTPRedirectHandler,
+        ProxyHandler,
+        build_opener,
+        install_opener,
+        URLError,
+    )
 
 from owtf.db.session import get_scoped_session
 from owtf.http import transaction
@@ -35,7 +53,7 @@ from owtf.utils.strings import str_to_dict
 from owtf.utils.timer import timer
 from owtf.utils.error import abort_framework
 
-__all__ = ['requester']
+__all__ = ["requester"]
 
 
 # Intercept raw request trick from:
@@ -58,7 +76,7 @@ class _HTTPHandler(HTTPHandler):
             raise KeyboardInterrupt  # Not handled here.
         except Exception:
             # Can't have OWTF crash due to a library exception -i.e. raise BadStatusLine(line)-
-            return ''
+            return ""
 
 
 class _HTTPSConnection(client.HTTPSConnection):
@@ -79,7 +97,7 @@ class _HTTPSHandler(HTTPSHandler):
             raise KeyboardInterrupt  # Not handled here.
         except Exception:
             # Can't have OWTF crash due to a library exception -i.e. raise BadStatusLine(line)-.
-            return ''
+            return ""
 
 
 # SmartRedirectHandler is courtesy of:
@@ -101,7 +119,7 @@ class Requester(object):
 
     def __init__(self, proxy):
         self.http_transaction = None
-        self.headers = {'User-Agent': USER_AGENT}
+        self.headers = {"User-Agent": USER_AGENT}
         self.req_count_refused = 0
         self.req_count_total = 0
         self.log_transactions = False
@@ -109,13 +127,15 @@ class Requester(object):
         self.session = get_scoped_session()
         self.proxy = proxy
         if proxy is None:
-            logging.debug("WARNING: No outbound proxy selected. It is recommended to "
-                          "use an outbound proxy for tactical fuzzing later")
+            logging.debug(
+                "WARNING: No outbound proxy selected. It is recommended to "
+                "use an outbound proxy for tactical fuzzing later"
+            )
             self.opener = build_opener(_HTTPHandler, _HTTPSHandler, SmartRedirectHandler)
         else:  # All requests must use the outbound proxy.
             logging.debug("Setting up proxy(inbound) for OWTF requests..")
             ip, port = proxy
-            proxy_conf = {'http': 'http://{!s}:{!s}'.format(ip, port), 'https': 'http://{!s}:{!s}'.format(ip, port)}
+            proxy_conf = {"http": "http://{!s}:{!s}".format(ip, port), "https": "http://{!s}:{!s}".format(ip, port)}
             proxy_handler = ProxyHandler(proxy_conf)
             # FIXME: Works except no raw request on https.
             self.opener = build_opener(proxy_handler, _HTTPHandler, _HTTPSHandler, SmartRedirectHandler)
@@ -129,7 +149,7 @@ class Requester(object):
         :return: True/False
         :rtype: `bool`
         """
-        return is_transaction_already_added(self.session, {'url': url.strip()})
+        return is_transaction_already_added(self.session, {"url": url.strip()})
 
     def is_request_possible(self):
         """Check if requests are possible
@@ -204,7 +224,7 @@ class Requester(object):
         """
         post = self.get_post(post)
         if post is None:
-            return ''
+            return ""
         return post
 
     def get_post(self, post=None):
@@ -215,7 +235,7 @@ class Requester(object):
         :return: Processed POST request
         :rtype: `str`
         """
-        if '' == post:
+        if "" == post:
             post = None
         if post:
             if isinstance(post, str) or isinstance(post, unicode):
@@ -295,7 +315,8 @@ class Requester(object):
             self.http_transaction.set_error(err_message)
         except IOError:
             err_message = "ERROR: Requester Object -> Unknown HTTP Request error: {!s}\n{!s}".format(
-                url, str(sys.exc_info()))
+                url, str(sys.exc_info())
+            )
             self.http_transaction.set_error(err_message)
         if self.log_transactions:
             # Log transaction in DB for analysis later and return modified Transaction with ID.
@@ -319,7 +340,7 @@ class Requester(object):
             abort_framework("ERROR: cannot resolve hostname!: {!s}".format(error))
         else:
             message = "ERROR: The connection was not refused, unknown error!"
-        log = logging.getLogger('general')
+        log = logging.getLogger("general")
         log.info(message)
         return "{!s} (Requester Object): {!s}\n{!s}".format(message, url, str(sys.exc_info()))
 
@@ -343,7 +364,7 @@ class Requester(object):
         :return:
         :rtype:
         """
-        return self.request(url, 'POST', data)
+        return self.request(url, "POST", data)
 
     def trace(self, url):
         """Wrapper for trace requests
@@ -353,7 +374,7 @@ class Requester(object):
         :return:
         :rtype:
         """
-        return self.request(url, 'TRACE', None)
+        return self.request(url, "TRACE", None)
 
     def options(self, url):
         """Wrapper for options requests
@@ -363,7 +384,7 @@ class Requester(object):
         :return:
         :rtype:
         """
-        return self.request(url, 'OPTIONS', None)
+        return self.request(url, "OPTIONS", None)
 
     def head(self, url):
         """Wrapper for head requests
@@ -373,7 +394,7 @@ class Requester(object):
         :return:
         :rtype:
         """
-        return self.request(url, 'HEAD', None)
+        return self.request(url, "HEAD", None)
 
     def debug(self, url):
         """Debug request
@@ -384,12 +405,12 @@ class Requester(object):
         :rtype:
         """
         self.backup_headers()
-        self.headers['Command'] = 'start-debug'
-        result = self.request(url, 'DEBUG', None)
+        self.headers["Command"] = "start-debug"
+        result = self.request(url, "DEBUG", None)
         self.restore_headers()
         return result
 
-    def put(self, url, content_type='text/plain'):
+    def put(self, url, content_type="text/plain"):
         """Wrapper for put requests
 
         :param url: Target url
@@ -400,9 +421,9 @@ class Requester(object):
         :rtype:
         """
         self.backup_headers()
-        self.headers['Content-Type'] = content_type
-        self.headers['Content-Length'] = "0"
-        result = self.request(url, 'PUT', None)
+        self.headers["Content-Type"] = content_type
+        self.headers["Content-Length"] = "0"
+        result = self.request(url, "PUT", None)
         self.restore_headers()
         return result
 
@@ -436,19 +457,19 @@ class Requester(object):
         :return:
         :rtype:
         """
-        criteria = {'url': url.strip()}
+        criteria = {"url": url.strip()}
         if method is not None:
-            criteria['method'] = method
+            criteria["method"] = method
         # Must clean-up data to ensure match is found.
         if data is not None:
-            criteria['data'] = self.get_post_to_str(data)
+            criteria["data"] = self.get_post_to_str(data)
         # Visit URL if not already visited.
         if not use_cache or not is_transaction_already_added(self.session, criteria):
-            if method in ['', 'GET', 'POST', 'HEAD', 'TRACE', 'OPTIONS']:
+            if method in ["", "GET", "POST", "HEAD", "TRACE", "OPTIONS"]:
                 return self.request(url, method, data)
-            elif method == 'DEBUG':
+            elif method == "DEBUG":
                 return self.debug(url)
-            elif method == 'PUT':
+            elif method == "PUT":
                 return self.put(url, data)
         else:  # Retrieve from DB = faster.
             # Important since there is no transaction ID with transactions objects created by Requester.
@@ -481,7 +502,8 @@ class Requester(object):
                 add_error(
                     self.session,
                     "Minor issue: {!s} is not a valid URL and has been ignored, processing continues".format(url),
-                    trace="")
+                    trace="",
+                )
                 continue  # Skip garbage URLs.
             transaction = self.get_transaction(use_cache, url, method=method, data=data)
             if transaction is not None:

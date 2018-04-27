@@ -9,17 +9,14 @@ import yaml
 
 import yamlordereddictloader
 
-
-BLUE = '\033[94m'
-GREEN = '\033[92m'
-WARNING = '\033[93m'
-FAIL = '\033[91m'
-RESET = '\033[0m'
-
+BLUE = "\033[94m"
+GREEN = "\033[92m"
+WARNING = "\033[93m"
+FAIL = "\033[91m"
+RESET = "\033[0m"
 
 CURR_DIR = os.path.dirname(os.path.realpath(__file__))
-OWTF_CONF = os.path.join(os.path.expanduser('~'), ".owtf")
-
+OWTF_CONF = os.path.join(os.path.expanduser("~"), ".owtf")
 
 with open(os.path.join(CURR_DIR, "tools.yaml"), "r") as f:
     conf = yaml.load(f, Loader=yamlordereddictloader.Loader)
@@ -62,5 +59,5 @@ def parse_and_install():
         install_in_directory(directory, cmd)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parse_and_install()

@@ -9,6 +9,7 @@ import signal
 import sys
 import traceback
 from time import strftime
+
 try:
     import queue
 except ImportError:
@@ -27,7 +28,7 @@ from owtf.utils.error import abort_framework
 from owtf.utils.process import check_pid, _signal_process
 from owtf.utils.signals import workers_finish, owtf_start
 
-__all__ = ['worker_manager']
+__all__ = ["worker_manager"]
 
 # For psutil
 TIMEOUT = 3
@@ -46,7 +47,7 @@ class Worker(OWTFProcess):
         :return: None
         :rtype: None
         """
-        self.output_q.put('Started')
+        self.output_q.put("Started")
         while self.poison_q.empty():
             try:
                 work = self.input_q.get(True, 2)
@@ -55,10 +56,10 @@ class Worker(OWTFProcess):
                     print("No work")
                     sys.exit(0)
                 target, plugin = work
-                plugin_dir = plugin_handler.get_plugin_group_dir(plugin['group'])
+                plugin_dir = plugin_handler.get_plugin_group_dir(plugin["group"])
                 plugin_handler.switch_to_target(target["id"])
                 plugin_handler.process_plugin(session=self.session, plugin_dir=plugin_dir, plugin=plugin)
-                self.output_q.put('done')
+                self.output_q.put("done")
             except queue.Empty:
                 pass
             except KeyboardInterrupt:
@@ -66,8 +67,11 @@ class Worker(OWTFProcess):
                 sys.exit(0)
             except Exception as e:
                 e, ex, tb = sys.exc_info()
-                add_error(self.session, "Exception occurred while running plugin: {}, {}".format(str(e), str(ex)),
-                          str(traceback.format_tb(tb, 4096)))
+                add_error(
+                    self.session,
+                    "Exception occurred while running plugin: {}, {}".format(str(e), str(ex)),
+                    str(traceback.format_tb(tb, 4096)),
+                )
         logging.debug("Worker (%d): Exiting...", self.pid)
         sys.exit(0)
 
@@ -119,7 +123,7 @@ class WorkerManager(object):
         :rtype: None
         """
         # Check if maximum limit of processes has reached
-        while (len(self.workers) < self.get_allowed_process_count()):
+        while len(self.workers) < self.get_allowed_process_count():
             self.spawn_worker()
         if not len(self.workers):
             abort_framework("Zero worker processes created because of lack of memory")
@@ -169,13 +173,17 @@ class WorkerManager(object):
                     self.workers[k]["busy"] = False  # Worker is IDLE
                     self.workers[k]["start_time"] = "NA"
                 else:
-                    logging.info("Worker with name %s and pid %d seems dead", self.workers[k]["worker"].name,
-                                 self.workers[k]["worker"].pid)
+                    logging.info(
+                        "Worker with name %s and pid %d seems dead",
+                        self.workers[k]["worker"].name,
+                        self.workers[k]["worker"].pid,
+                    )
                     self.spawn_worker(index=k)
                 work_to_assign = self.get_task()
                 if work_to_assign:
-                    logging.info("Work assigned to %s with pid %d", self.workers[k]["worker"].name,
-                                 self.workers[k]["worker"].pid)
+                    logging.info(
+                        "Work assigned to %s with pid %d", self.workers[k]["worker"].name, self.workers[k]["worker"].pid
+                    )
                     trash_can = self.workers[k]["worker"].output_q.get()
                     # Assign work ,set target to used,and process to busy
                     self.workers[k]["worker"].input_q.put(work_to_assign)
@@ -193,7 +201,7 @@ class WorkerManager(object):
         :return: True if any worker is busy
         :return: `bool`
         """
-        return True in [worker['busy'] for worker in self.workers]
+        return True in [worker["busy"] for worker in self.workers]
 
     def poison_pill_to_workers(self):
         """This function waits for each worker to complete his work and

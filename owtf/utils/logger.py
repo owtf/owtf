@@ -18,7 +18,7 @@ try:
 except ImportError:
     SentryHandler = None
 
-__all__ = ['OWTFLogger']
+__all__ = ["OWTFLogger"]
 
 
 class OWTFLogger(object):

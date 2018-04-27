@@ -32,7 +32,7 @@ import os
 import sys
 import time
 
-__all__ = ['FileLock']
+__all__ = ["FileLock"]
 
 
 class FileLock(object):
@@ -93,7 +93,7 @@ class FileLock(object):
                 # Attempt to create the lockfile.
                 # These flags cause os.open to raise an OSError if the file already exists.
                 fd = os.open(self.lockfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
-                with os.fdopen(fd, 'a') as f:
+                with os.fdopen(fd, "a") as f:
                     # Print some info about the current process as debug info for anyone who bothers to look.
                     f.write(self._lock_file_contents)
                 break

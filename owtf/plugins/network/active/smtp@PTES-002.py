@@ -8,5 +8,5 @@ DESCRIPTION = " SMTP Probing "
 
 
 def run(PluginInfo):
-    resource = get_resources('SmtpProbeMethods')
-    return plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])
+    resource = get_resources("SmtpProbeMethods")
+    return plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])

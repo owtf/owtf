@@ -13,7 +13,6 @@ from tests.functional.cli.test_only import OWTFCliOnlyPluginsTest
 from tests.functional.plugins.web.test_web import OWTFCliWebPluginTest
 from tests.functional.plugins.web.active.test_web_active import OWTFCliWebActivePluginTest
 
-
 SUITES = [
     OWTFCliEmptyRunTest,
     OWTFCliListPluginsTest,
@@ -22,5 +21,5 @@ SUITES = [
     OWTFCliExceptTest,
     OWTFCliOnlyPluginsTest,
     OWTFCliWebPluginTest,
-    OWTFCliWebActivePluginTest
+    OWTFCliWebActivePluginTest,
 ]

@@ -11,11 +11,14 @@ from owtf.db.model_base import Model
 
 # This table actually allows us to make a many to many relationship
 # between transactions table and grep_outputs table
-target_association_table = Table('target_session_association', Model.metadata,
-                                 Column('target_id', Integer, ForeignKey('targets.id')),
-                                 Column('session_id', Integer, ForeignKey('sessions.id')))
+target_association_table = Table(
+    "target_session_association",
+    Model.metadata,
+    Column("target_id", Integer, ForeignKey("targets.id")),
+    Column("session_id", Integer, ForeignKey("sessions.id")),
+)
 
-Index('target_id_idx', target_association_table.c.target_id, postgresql_using='btree')
+Index("target_id_idx", target_association_table.c.target_id, postgresql_using="btree")
 
 
 class Target(Model):

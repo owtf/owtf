@@ -9,7 +9,7 @@ from owtf.db.model_base import Model
 
 
 class Mapping(Model):
-    __tablename__ = 'mappings'
+    __tablename__ = "mappings"
 
     owtf_code = Column(String, primary_key=True)
     mappings = Column(String)

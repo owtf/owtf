@@ -10,5 +10,5 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via Arachni"
 
 
 def run(PluginInfo):
-    resource = get_resources('Arachni_Unauth')
-    return plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])
+    resource = get_resources("Arachni_Unauth")
+    return plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])

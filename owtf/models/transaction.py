@@ -10,11 +10,14 @@ from owtf.db.model_base import Model
 
 # This table actually allows us to make a many to many relationship
 # between transactions table and grep_outputs table
-transaction_association_table = Table('transaction_grep_association', Model.metadata,
-                                      Column('transaction_id', Integer, ForeignKey('transactions.id')),
-                                      Column('grep_output_id', Integer, ForeignKey('grep_outputs.id')))
+transaction_association_table = Table(
+    "transaction_grep_association",
+    Model.metadata,
+    Column("transaction_id", Integer, ForeignKey("transactions.id")),
+    Column("grep_output_id", Integer, ForeignKey("grep_outputs.id")),
+)
 
-Index('transaction_id_idx', transaction_association_table.c.transaction_id, postgresql_using='btree')
+Index("transaction_id_idx", transaction_association_table.c.transaction_id, postgresql_using="btree")
 
 
 class Transaction(Model):
@@ -39,8 +42,10 @@ class Transaction(Model):
     login = Column(Boolean, nullable=True)
     logout = Column(Boolean, nullable=True)
     grep_outputs = relationship(
-        "GrepOutput", secondary=transaction_association_table, cascade="delete", backref="transactions")
+        "GrepOutput", secondary=transaction_association_table, cascade="delete", backref="transactions"
+    )
 
     def __repr__(self):
         return "<HTTP Transaction (url='{!s}' method='{!s}' response_status='{!s}')>".format(
-            self.url, self.method, self.response_status)
+            self.url, self.method, self.response_status
+        )

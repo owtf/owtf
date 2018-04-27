@@ -32,24 +32,29 @@ def load_works(session, target_urls, options):
     """
     for target_url in target_urls:
         if target_url:
-            target = get_target_config_dicts(session=session, filter_data={'target_url': target_url})
-            group = options['plugin_group']
-            if options['only_plugins'] is None:
+            target = get_target_config_dicts(session=session, filter_data={"target_url": target_url})
+            group = options["plugin_group"]
+            if options["only_plugins"] is None:
                 # If the plugin group option is the default one (not specified by the user).
                 if group is None:
-                    group = 'web'  # Default to web plugins.
+                    group = "web"  # Default to web plugins.
                     # Run net plugins if target does not start with http (see #375).
-                    if not target_url.startswith(('http://', 'https://')):
-                        group = 'network'
-                filter_data = {'type': options['plugin_type'], 'group': group}
+                    if not target_url.startswith(("http://", "https://")):
+                        group = "network"
+                filter_data = {"type": options["plugin_type"], "group": group}
             else:
                 filter_data = {"code": options.get("only_plugins"), "type": options.get("plugin_type")}
             plugins = get_all_plugin_dicts(session=session, criteria=filter_data)
             if not plugins:
-                logging.error("No plugin found matching type '%s' and group '%s' for target '%s'!",
-                              options['plugin_type'], group, target)
+                logging.error(
+                    "No plugin found matching type '%s' and group '%s' for target '%s'!",
+                    options["plugin_type"],
+                    group,
+                    target,
+                )
             add_work(
-                session=session, target_list=target, plugin_list=plugins, force_overwrite=options["force_overwrite"])
+                session=session, target_list=target, plugin_list=plugins, force_overwrite=options["force_overwrite"]
+            )
 
 
 def worklist_generate_query(session, criteria=None, for_stats=False):
@@ -65,38 +70,38 @@ def worklist_generate_query(session, criteria=None, for_stats=False):
     if criteria is None:
         criteria = {}
     query = session.query(Work).join(Target).join(Plugin).order_by(Work.id)
-    if criteria.get('search', None):
-        if criteria.get('target_url', None):
-            if isinstance(criteria.get('target_url'), list):
-                criteria['target_url'] = criteria['target_url'][0]
-            query = query.filter(Target.target_url.like('%%{!s}%%'.format(criteria['target_url'])))
-        if criteria.get('type', None):
-            if isinstance(criteria.get('type'), list):
-                criteria['type'] = criteria['type'][0]
-            query = query.filter(Plugin.type.like('%%{!s}%%'.format(criteria['type'])))
-        if criteria.get('group', None):
-            if isinstance(criteria.get('group'), list):
-                criteria['group'] = criteria['group'][0]
-            query = query.filter(Plugin.group.like('%%{!s}%%'.format(criteria['group'])))
-        if criteria.get('name', None):
-            if isinstance(criteria.get('name'), list):
-                criteria['name'] = criteria['name'][0]
-            query = query.filter(Plugin.name.ilike('%%{!s}%%'.format(criteria['name'])))
+    if criteria.get("search", None):
+        if criteria.get("target_url", None):
+            if isinstance(criteria.get("target_url"), list):
+                criteria["target_url"] = criteria["target_url"][0]
+            query = query.filter(Target.target_url.like("%%{!s}%%".format(criteria["target_url"])))
+        if criteria.get("type", None):
+            if isinstance(criteria.get("type"), list):
+                criteria["type"] = criteria["type"][0]
+            query = query.filter(Plugin.type.like("%%{!s}%%".format(criteria["type"])))
+        if criteria.get("group", None):
+            if isinstance(criteria.get("group"), list):
+                criteria["group"] = criteria["group"][0]
+            query = query.filter(Plugin.group.like("%%{!s}%%".format(criteria["group"])))
+        if criteria.get("name", None):
+            if isinstance(criteria.get("name"), list):
+                criteria["name"] = criteria["name"][0]
+            query = query.filter(Plugin.name.ilike("%%{!s}%%".format(criteria["name"])))
     try:
-        if criteria.get('id', None):
-            if isinstance(criteria.get('id'), list):
-                query = query.filter(Work.target_id.in_(criteria.get('id')))
-            if isinstance(criteria.get('id'), str):
-                query = query.filter_by(target_id=int(criteria.get('id')))
+        if criteria.get("id", None):
+            if isinstance(criteria.get("id"), list):
+                query = query.filter(Work.target_id.in_(criteria.get("id")))
+            if isinstance(criteria.get("id"), str):
+                query = query.filter_by(target_id=int(criteria.get("id")))
         if not for_stats:
-            if criteria.get('offset', None):
-                if isinstance(criteria.get('offset'), list):
-                    criteria['offset'] = criteria['offset'][0]
-                query = query.offset(int(criteria['offset']))
-            if criteria.get('limit', None):
-                if isinstance(criteria.get('limit'), list):
-                    criteria['limit'] = criteria['limit'][0]
-                query = query.limit(int(criteria['limit']))
+            if criteria.get("offset", None):
+                if isinstance(criteria.get("offset"), list):
+                    criteria["offset"] = criteria["offset"][0]
+                query = query.offset(int(criteria["offset"]))
+            if criteria.get("limit", None):
+                if isinstance(criteria.get("limit"), list):
+                    criteria["limit"] = criteria["limit"][0]
+                query = query.limit(int(criteria["limit"]))
     except ValueError:
         raise exceptions.InvalidParameterType("Invalid parameter type for transaction db")
     return query
@@ -197,7 +202,7 @@ def group_sort_order(plugin_list):
     """
     priority = {"grep": -1, "bruteforce": 0, "active": 1, "semi_passive": 2, "passive": 3, "external": 4}
     # reverse = True so that descending order is maintained
-    sorted_plugin_list = sorted(plugin_list, key=lambda k: priority[k['type']], reverse=True)
+    sorted_plugin_list = sorted(plugin_list, key=lambda k: priority[k["type"]], reverse=True)
     return sorted_plugin_list
 
 
@@ -213,7 +218,7 @@ def add_work(session, target_list, plugin_list, force_overwrite=False):
     :return: None
     :rtype: None
     """
-    if any(plugin['group'] == 'auxiliary' for plugin in plugin_list):
+    if any(plugin["group"] == "auxiliary" for plugin in plugin_list):
         # No sorting if aux plugins are run
         sorted_plugin_list = plugin_list
     else:
@@ -229,7 +234,8 @@ def add_work(session, target_list, plugin_list, force_overwrite=False):
                     # to be deleted first
                     if force_overwrite is True:
                         delete_all_poutput(
-                            session=session, filter_data={"plugin_key": plugin["key"]}, target_id=target["id"])
+                            session=session, filter_data={"plugin_key": plugin["key"]}, target_id=target["id"]
+                        )
                     work_model = Work(target_id=target["id"], plugin_key=plugin["key"])
                     session.add(work_model)
     session.commit()
@@ -349,8 +355,6 @@ def search_all_work(session, criteria):
     filtered_work_objs = worklist_generate_query(session, criteria).all()
     filtered_number = worklist_generate_query(session, criteria, for_stats=True).count()
     results = {
-        "records_total": total,
-        "records_filtered": filtered_number,
-        "data": _derive_work_dicts(filtered_work_objs)
+        "records_total": total, "records_filtered": filtered_number, "data": _derive_work_dicts(filtered_work_objs)
     }
     return results

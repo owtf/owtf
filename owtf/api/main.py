@@ -18,7 +18,7 @@ from owtf.lib.owtf_process import OWTFProcess
 from owtf.settings import DEBUG, SERVER_ADDR, TEMPLATES, STATIC_ROOT, SERVER_PORT, SERVER_LOG
 from owtf.utils.app import Application
 
-__all__ = ['start_server']
+__all__ = ["start_server"]
 
 
 class APIServer(OWTFProcess):
@@ -31,7 +31,8 @@ class APIServer(OWTFProcess):
             debug=DEBUG,
             template_path=TEMPLATES,
             static_path=STATIC_ROOT,
-            compiled_template_cache=True)
+            compiled_template_cache=True,
+        )
         # yapf: disable
         router = RuleRouter([
             Rule(PathMatches("/api/.*"), RuleRouter([
@@ -47,7 +48,8 @@ class APIServer(OWTFProcess):
             logging.warning("Starting API and UI server at http://{}:{}".format(SERVER_ADDR, str(SERVER_PORT)))
             self.logger.disable_console_logging()
             tornado.options.parse_command_line(
-                args=['dummy_arg', '--log_file_prefix={}'.format(SERVER_LOG), '--logging=info'])
+                args=["dummy_arg", "--log_file_prefix={}".format(SERVER_LOG), "--logging=info"]
+            )
             self.server.start(0)
             tornado.ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:

@@ -8,6 +8,7 @@ repository to get info.
 """
 import logging
 from collections import defaultdict
+
 try:  # PY3
     from urllib.parse import urlparse
 except ImportError:  # PY2
@@ -20,7 +21,7 @@ except ImportError:
 from owtf.lib.exceptions import PluginAbortException
 from owtf.settings import CONFIG_TYPES, REPLACEMENT_DELIMITER, ROOT_DIR
 
-__all__ = ['config_handler']
+__all__ = ["config_handler"]
 
 
 class Config(object):
@@ -78,7 +79,7 @@ class Config(object):
         :return: Empty key
         :rtype: `str`
         """
-        return key.replace(REPLACEMENT_DELIMITER, '')
+        return key.replace(REPLACEMENT_DELIMITER, "")
 
     def get_val(self, key):
         """Transparently gets config info from target or General.
@@ -116,7 +117,7 @@ class Config(object):
         :return: List of values
         :rtype: `list`
         """
-        return self.get_val(key).split(',')
+        return self.get_val(key).split(",")
 
     def set_general_val(self, type, key, value):
         """ Set value for a key in any config file
@@ -137,15 +138,15 @@ class Config(object):
         # Store config in "replacement mode", that way we can multiple-replace
         # the config on resources, etc.
         key = REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER
-        type = 'other'
+        type = "other"
         # Only when value is a string, store in replacements config.
         if isinstance(value, str):
-            type = 'string'
+            type = "string"
         return self.set_general_val(type, key, value)
 
     @property
     def get_framework_config_dict(self):
-        return self.get_config_dict['string']
+        return self.get_config_dict["string"]
 
     def __getitem__(self, key):
         return self.get_val(key)

@@ -8,6 +8,6 @@ DESCRIPTION = " MsRpc Probing "
 
 
 def run(PluginInfo):
-    resource = get_resources('MsRpcProbeMethods')
+    resource = get_resources("MsRpcProbeMethods")
     # No previous output
-    return plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])
+    return plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])

@@ -9,4 +9,4 @@ DESCRIPTION = "Searches transaction DB for SSI directives"
 
 
 def run(PluginInfo):
-    return plugin_helper.FindResponseBodyMatchesForRegexpName('RESPONSE_REGEXP_FOR_SSI')
+    return plugin_helper.FindResponseBodyMatchesForRegexpName("RESPONSE_REGEXP_FOR_SSI")

@@ -12,13 +12,13 @@ from owtf.managers.mapping import get_all_mappings
 from owtf.managers.plugin import get_all_plugin_dicts, get_all_test_groups, get_types_for_plugin_group
 from owtf.managers.poutput import delete_all_poutput, get_all_poutputs, update_poutput
 
-__all__ = ['PluginNameOutput', 'PluginDataHandler', 'PluginOutputHandler']
+__all__ = ["PluginNameOutput", "PluginDataHandler", "PluginOutputHandler"]
 
 
 class PluginDataHandler(APIRequestHandler):
     """Get completed plugin output data from the DB."""
 
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     # TODO: Creation of user plugins
     def get(self, plugin_group=None, plugin_type=None, plugin_code=None):
@@ -100,7 +100,7 @@ class PluginDataHandler(APIRequestHandler):
 class PluginNameOutput(APIRequestHandler):
     """Get the scan results for a target."""
 
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     def get(self, target_id=None):
         """Retrieve scan results for a target.
@@ -189,13 +189,13 @@ class PluginNameOutput(APIRequestHandler):
             # Get test groups as well, for names and info links
             groups = {}
             for group in get_all_test_groups(self.session):
-                group['mappings'] = mappings.get(group['code'], {})
-                groups[group['code']] = group
+                group["mappings"] = mappings.get(group["code"], {})
+                groups[group["code"]] = group
 
             dict_to_return = {}
             for item in results:
-                if (dict_to_return.has_key(item['plugin_code'])):
-                    dict_to_return[item['plugin_code']]['data'].append(item)
+                if dict_to_return.has_key(item["plugin_code"]):
+                    dict_to_return[item["plugin_code"]]["data"].append(item)
                 else:
                     ini_list = []
                     ini_list.append(item)
@@ -217,7 +217,7 @@ class PluginNameOutput(APIRequestHandler):
 class PluginOutputHandler(APIRequestHandler):
     """Filter plugin output data."""
 
-    SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+    SUPPORTED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
     def get(self, target_id=None, plugin_group=None, plugin_type=None, plugin_code=None):
         """Get the plugin output based on query filter params.
@@ -271,11 +271,9 @@ class PluginOutputHandler(APIRequestHandler):
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
                     raise APIError(422, "Plugin type not found in selected plugin group")
-                filter_data.update({
-                    "plugin_type": plugin_type,
-                    "plugin_group": plugin_group,
-                    "plugin_code": plugin_code
-                })
+                filter_data.update(
+                    {"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code}
+                )
             results = get_all_poutputs(self.session, filter_data, target_id=int(target_id), inc_output=True)
             if results:
                 self.success(results)
@@ -368,11 +366,9 @@ class PluginOutputHandler(APIRequestHandler):
             if plugin_type and plugin_group and plugin_code:
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
                     raise APIError(422, "Plugin type not found in the selected plugin group")
-                filter_data.update({
-                    "plugin_type": plugin_type,
-                    "plugin_group": plugin_group,
-                    "plugin_code": plugin_code
-                })
+                filter_data.update(
+                    {"plugin_type": plugin_type, "plugin_group": plugin_group, "plugin_code": plugin_code}
+                )
                 delete_all_poutput(self.session, filter_data, target_id=int(target_id))
                 self.success(None)
         except exceptions.InvalidTargetReference:

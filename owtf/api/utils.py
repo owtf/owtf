@@ -16,7 +16,7 @@ class VersionMatches(Matcher):
         if self.api_version in request.path:
             return {}
 
-        header_version = request.headers.get('X-API-VERSION', None)
+        header_version = request.headers.get("X-API-VERSION", None)
         if "v{}".format(header_version) in request.path:
             return {}
 

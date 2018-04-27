@@ -60,7 +60,7 @@ def get_all_mappings(session):
     :rtype: dict
     """
     mapping_objs = session.query(Mapping).all()
-    return {mapping['owtf_code']: mapping['mappings'] for mapping in derive_mapping_dicts(mapping_objs)}
+    return {mapping["owtf_code"]: mapping["mappings"] for mapping in derive_mapping_dicts(mapping_objs)}
 
 
 def get_mappings(session, mapping_type):
@@ -113,7 +113,7 @@ def load_mappings(session, default, fallback):
     config_dump = load_config_file(default, fallback)
     for owtf_code, mappings in iteritems(config_dump):
         category = None
-        if 'category' in mappings:
-            category = mappings.pop('category')
+        if "category" in mappings:
+            category = mappings.pop("category")
         session.merge(Mapping(owtf_code=owtf_code, mappings=json.dumps(mappings), category=category))
     session.commit()

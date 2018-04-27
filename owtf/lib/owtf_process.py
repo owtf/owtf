@@ -11,7 +11,7 @@ from owtf.utils.error import setup_signal_handlers
 from owtf.plugin.plugin_handler import plugin_handler
 from owtf.utils.logger import OWTFLogger
 
-__all__ = ['OWTFProcess']
+__all__ = ["OWTFProcess"]
 
 
 class OWTFProcess(Process):

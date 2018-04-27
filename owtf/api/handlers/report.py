@@ -16,7 +16,7 @@ from owtf.managers.plugin import get_all_test_groups
 from owtf.managers.poutput import get_all_poutputs
 from owtf.managers.target import get_target_config_by_id
 
-__all__ = ['ReportExportHandler']
+__all__ = ["ReportExportHandler"]
 
 
 class ReportExportHandler(APIRequestHandler):
@@ -27,7 +27,7 @@ class ReportExportHandler(APIRequestHandler):
     :raise InvalidParameterType: If some unknown parameter in `filter_data`.
     """
 
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     def get(self, target_id=None):
         """Returns JSON(data) for the template.
@@ -80,8 +80,8 @@ class ReportExportHandler(APIRequestHandler):
         # Group the plugin outputs to make it easier in template
         grouped_plugin_outputs = defaultdict(list)
         for output in plugin_outputs:
-            output['rank'] = RANKS.get(max(output['user_rank'], output['owtf_rank']))
-            grouped_plugin_outputs[output['plugin_code']].append(output)
+            output["rank"] = RANKS.get(max(output["user_rank"], output["owtf_rank"]))
+            grouped_plugin_outputs[output["plugin_code"]].append(output)
 
         # Needed ordered list for ease in templates
         grouped_plugin_outputs = collections.OrderedDict(sorted(grouped_plugin_outputs.items()))
@@ -96,11 +96,11 @@ class ReportExportHandler(APIRequestHandler):
         for test_group in get_all_test_groups(self.session):
             test_group["mapped_code"] = test_group["code"]
             test_group["mapped_descrip"] = test_group["descrip"]
-            if mappings and test_group['code'] in mappings:
-                code, description = mappings[test_group['code']]
+            if mappings and test_group["code"] in mappings:
+                code, description = mappings[test_group["code"]]
                 test_group["mapped_code"] = code
                 test_group["mapped_descrip"] = description
-            test_groups[test_group['code']] = test_group
+            test_groups[test_group["code"]] = test_group
 
         vulnerabilities = []
         for key, value in list(grouped_plugin_outputs.items()):

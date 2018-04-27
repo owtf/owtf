@@ -8,6 +8,6 @@ DESCRIPTION = " HTTP Rpc Probing "
 
 
 def run(PluginInfo):
-    resource = get_resources('HttpRpcProbeMethods')
+    resource = get_resources("HttpRpcProbeMethods")
     # No previous output
-    return plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])
+    return plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])

@@ -46,9 +46,11 @@ def flush_transaction(method):
 def get_db_engine():
     try:
         engine = create_engine(
-            "postgresql+psycopg2://{}:{}@{}:{}/{}".format(DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_PORT,
-                                                          DATABASE_NAME),
-            pool_recycle=120)
+            "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
+                DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_PORT, DATABASE_NAME
+            ),
+            pool_recycle=120,
+        )
         Model.metadata.create_all(engine)
         return engine
     except exc.OperationalError as e:

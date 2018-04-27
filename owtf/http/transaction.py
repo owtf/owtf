@@ -9,6 +9,7 @@ import gzip
 import io
 import logging
 import zlib
+
 try:
     from http.client import responses as response_messages
 except ImportError:
@@ -18,7 +19,7 @@ from cookies import Cookie, InvalidCookieError
 
 from owtf.utils.http import derive_http_method
 
-__all__ = ['HTTPTransaction']
+__all__ = ["HTTPTransaction"]
 
 
 class HTTPTransaction(object):
@@ -51,18 +52,18 @@ class HTTPTransaction(object):
         :rtype:
         """
         self.is_in_scope = is_in_scope
-        self.timer.start_timer('Request')
-        self.time = self.time_human = ''
+        self.timer.start_timer("Request")
+        self.time = self.time_human = ""
         self.url = url
-        self.data = data if data is not None else ''
+        self.data = data if data is not None else ""
         self.method = derive_http_method(method, data)
         self.found = None
-        self.raw_request = ''
+        self.raw_request = ""
         self.response_headers = []
-        self.response_size = ''
-        self.status = ''
-        self.id = ''
-        self.html_link_id = ''
+        self.response_size = ""
+        self.status = ""
+        self.id = ""
+        self.html_link_id = ""
         self.new = True  # Flag new transaction.
 
     def end_request(self):
@@ -71,7 +72,7 @@ class HTTPTransaction(object):
         :return: None
         :rtype: None
         """
-        self.time = self.timer.get_elapsed_time_as_str('Request')
+        self.time = self.timer.get_elapsed_time_as_str("Request")
         self.time_human = self.time
         self.local_timestamp = self.timer.get_current_date_time()
 
@@ -94,7 +95,7 @@ class HTTPTransaction(object):
                 self.status += " --Redirect--> {!s} ".format(response.code)
                 self.status += response.msg
             # Redirect differs in schema (i.e. https instead of http).
-            if self.url.split(':')[0] != response.url.split(':')[0]:
+            if self.url.split(":")[0] != response.url.split(":")[0]:
                 pass
             self.url = response.url
         else:
@@ -106,8 +107,21 @@ class HTTPTransaction(object):
         self.check_if_compressed(response, self.response_contents)
         self.end_request()
 
-    def set_transaction_from_db(self, id, url, method, status, time, time_human, local_timestamp, request_data,
-                                raw_request, response_headers, response_size, response_body):
+    def set_transaction_from_db(
+        self,
+        id,
+        url,
+        method,
+        status,
+        time,
+        time_human,
+        local_timestamp,
+        request_data,
+        raw_request,
+        response_headers,
+        response_size,
+        response_body,
+    ):
         """Set the transaction from the DB
 
         :param id:
@@ -201,10 +215,12 @@ class HTTPTransaction(object):
         self.html_link_id = html_link_to_id
         # Only for new transactions, not when retrieved from DB, etc.
         if self.new:
-            logging.info("New OWTF HTTP Transaction: %s",
-                         " - ".join([self.id, self.time_human, self.status, self.method, self.url]))
+            logging.info(
+                "New OWTF HTTP Transaction: %s",
+                " - ".join([self.id, self.time_human, self.status, self.method, self.url]),
+            )
 
-    def get_html_link(self, link_name=''):
+    def get_html_link(self, link_name=""):
         """Get the HTML link to the transaction ID
 
         :param link_name: Name of the link
@@ -212,9 +228,9 @@ class HTTPTransaction(object):
         :return: Formatted HTML link
         :rtype: `str`
         """
-        if '' == link_name:
+        if "" == link_name:
             link_name = "Transaction {}".format(self.id)
-        return self.html_link_id.replace('@@@PLACE_HOLDER@@@', link_name)
+        return self.html_link_id.replace("@@@PLACE_HOLDER@@@", link_name)
 
     def get_raw(self):
         """Get raw transaction request and response
@@ -285,7 +301,7 @@ class HTTPTransaction(object):
         """
         self.is_in_scope = request.in_scope
         self.url = request.url
-        self.data = request.body if request.body is not None else ''
+        self.data = request.body if request.body is not None else ""
         self.method = request.method
         try:
             self.status = "{!s} {!s}".format(str(response.code), response_messages[int(response.code)])
@@ -301,22 +317,22 @@ class HTTPTransaction(object):
         self.found = (self.status == "200 OK")
         self.cookies_list = response.cookies
         self.new = True
-        self.id = ''
-        self.html_link_id = ''
+        self.id = ""
+        self.html_link_id = ""
 
     @property
     def get_decode_response(self):
         return self.decoded_content
 
     def check_if_compressed(self, response, content):
-        if response.info().get('Content-Encoding', '') == 'gzip':  # check for gzip compression
+        if response.info().get("Content-Encoding", "") == "gzip":  # check for gzip compression
             compressed_file = io.StringIO()
             compressed_file.write(content)
             compressed_file.seek(0)
-            f = gzip.GzipFile(fileobj=compressed_file, mode='rb')
+            f = gzip.GzipFile(fileobj=compressed_file, mode="rb")
             self.decoded_content = f.read()
             f.close()
-        elif response.info().get('Content-Encoding') == 'deflate':  # check for deflate compression
+        elif response.info().get("Content-Encoding") == "deflate":  # check for deflate compression
             self.decoded_content = zlib.decompress(content)
         else:
             self.decoded_content = content  # else the no compression
