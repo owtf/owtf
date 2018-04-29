@@ -8,11 +8,13 @@ import tornado.httpclient
 import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
+from owtf.api.utils import _filter_headers
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
 from owtf.managers.plugin import get_all_plugin_dicts
 from owtf.managers.target import get_target_config_dicts
 from owtf.managers.worker import worker_manager
+from owtf.settings import ALLOWED_METHODS, SIMPLE_HEADERS, ALLOWED_ORIGINS, SEND_CREDENTIALS
 from owtf.managers.worklist import (
     add_work,
     delete_all_work,
@@ -162,14 +164,38 @@ class WorkerHandler(APIRequestHandler):
 
         .. sourcecode:: http
 
-            HTTP/1.1 200 OK
+            HTTP/1.1 204 No Content
             Content-Length: 0
-            Access-Control-Allow-Origin: *
+            Access-Control-Allow-Origin: http://localhost:8009, http://localhost:8010
             Access-Control-Allow-Methods: GET, POST, DELETE
             Content-Type: text/html; charset=UTF-8
         """
-        self.set_status(200)
+        self.set_header("Allow", ",".join(ALLOWED_METHODS))
+        self.set_status(204)
+        if "Origin" in self.request.headers:
+            if self._cors_preflight_checks():
+                self._build_preflight_response(self.request.headers)
+            else:
+                self.set_status(403)
         self.finish()
+
+    def _cors_preflight_checks(self):
+        try:
+            origin = self.request.headers["Origin"]
+            method = self.request.headers["Access-Control-Request-Method"]
+            headers = self.request.headers.get("Access-Control-Request-Headers", "")
+        except KeyError:
+            return False
+
+        headers = _filter_headers(headers, SIMPLE_HEADERS)
+        return (origin in ALLOWED_ORIGINS and method in ALLOWED_METHODS and len(headers) == 0)
+
+    def _build_preflight_response(self, headers):
+        self.set_header("Access-Control-Allow-Origin", headers["Origin"])
+        self.set_header("Access-Control-Allow-Methods", ",".join(ALLOWED_METHODS))
+        self.set_header("Access-Control-Allow-Headers", ",".join(headers.keys() - SIMPLE_HEADERS))
+        if SEND_CREDENTIALS:
+            self.set_header("Access-Control-Allow-Credentials", "true")
 
     def delete(self, worker_id=None, action=None):
         """Delete a worker.
