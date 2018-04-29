@@ -473,7 +473,7 @@ class Requester(object):
                 return self.put(url, data)
         else:  # Retrieve from DB = faster.
             # Important since there is no transaction ID with transactions objects created by Requester.
-            return get_first(criteria)
+            return get_first(self.session, criteria)
 
     def get_transactions(self, use_cache, url_list, method=None, data=None, unique=True):
         """Get transaction from request, response

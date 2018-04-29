@@ -186,7 +186,7 @@ def get_transaction(trans):
     :return:
     :rtype:
     """
-    if trans and len(trans) > 0:
+    if trans:
         owtf_transaction = transaction.HTTPTransaction(None)
         response_body = trans.response_body
         if trans.binary_response:
@@ -217,7 +217,7 @@ def get_transactions(transactions):
     :return: List of transactions
     :rtype: `list`
     """
-    return [get_transaction(transaction) for transaction in transactions if get_transaction(transaction) is not None]
+    return [get_transaction(transaction) for transaction in transactions if transaction is not None]
 
 
 def get_transaction_model(transaction):

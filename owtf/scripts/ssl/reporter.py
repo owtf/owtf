@@ -8,15 +8,22 @@ import sys
 import traceback
 
 from template import RESULTS
+from owtf.utils.file import FileOperations
+
 
 if not os.path.isfile(sys.argv[1]):
-    sys.exit(-1)
+    sys.exit(1)
 
-with open(str(sys.argv[1]), "r") as data_file:
-    data = json.load(data_file)
+data = None
+try:
+    data = FileOperations.open(json.loads(str(sys.argv[1])))
+except Exception:
+    sys.exit(1)
+
+if data is None:
+    sys.exit(1)
 
 org_name = str(sys.argv[1]).split(".json", 1)[0]
-
 try:
     if data[0]["status"] == "ERROR":
         print("[-] SSLLabs scan finished with errors")

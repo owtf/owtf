@@ -261,7 +261,7 @@ class PluginHelper(object):
             """
         )
 
-        return [save_path, template.generate(LinkName=LinkName, Link="../../../%s" % save_path)]
+        return [save_path, template.generate(LinkName=LinkName, Link="../../../{}".format(save_path))]
 
     def DumpFileGetLink(self, Filename, Contents, PluginInfo, LinkName=""):
         return self.DumpFile(Filename, Contents, PluginInfo, LinkName)[1]
