@@ -42,7 +42,7 @@ except ImportError:
 
 from owtf.db.session import get_scoped_session
 from owtf.http import transaction
-from owtf.managers.error import add_error
+from owtf.models.error import Error
 from owtf.managers.target import is_url_in_scope
 from owtf.managers.transaction import get_first, is_transaction_already_added
 from owtf.managers.url import is_url
@@ -499,11 +499,7 @@ class Requester(object):
             if not url:
                 continue  # Skip blank lines.
             if not is_url(url):
-                add_error(
-                    self.session,
-                    "Minor issue: {!s} is not a valid URL and has been ignored, processing continues".format(url),
-                    trace="",
-                )
+                logging.info("Minor issue: %s is not a valid URL and has been ignored, processing continues", url)
                 continue  # Skip garbage URLs.
             transaction = self.get_transaction(use_cache, url, method=method, data=data)
             if transaction is not None:

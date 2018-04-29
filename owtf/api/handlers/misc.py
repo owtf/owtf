@@ -4,54 +4,13 @@ owtf.api.handlers.misc
 
 To be deprecated.
 """
-
-import logging
-
 import tornado.gen
 import tornado.httpclient
 import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
-from owtf.managers.error import delete_error, get_all_errors, get_error, update_error
-from owtf.managers.poutput import get_severity_freq, plugin_count_output
-
-
-class DashboardPanelHandler(APIRequestHandler):
-    SUPPORTED_METHODS = ["GET"]
-
-    def get(self):
-        try:
-            self.write(get_severity_freq(self.session))
-        except exceptions.InvalidParameterType:
-            raise tornado.web.HTTPError(400)
-
-
-class ProgressBarHandler(APIRequestHandler):
-    SUPPORTED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-
-    def set_default_headers(self):
-        self.add_header("Access-Control-Allow-Origin", "*")
-        self.add_header("Access-Control-Allow-Methods", "GET, POST, DELETE")
-
-    def get(self):
-        try:
-            self.write(plugin_count_output(self.session))
-        except exceptions.InvalidParameterType as e:
-            logging.warn(e.parameter)
-            raise tornado.web.HTTPError(400)
-
-    def post(self):
-        raise tornado.web.HTTPError(405)
-
-    def put(self):
-        raise tornado.web.HTTPError(405)
-
-    def patch(self):
-        raise tornado.web.HTTPError(405)
-
-    def delete(self):
-        raise tornado.web.HTTPError(405)
+from owtf.models.error import Error
 
 
 class ErrorDataHandler(APIRequestHandler):
@@ -59,11 +18,12 @@ class ErrorDataHandler(APIRequestHandler):
 
     def get(self, error_id=None):
         if error_id is None:
-            filter_data = dict(self.request.arguments)
-            self.write(get_all_errors(self.session, filter_data))
+            error_objs = Error.get_all_dict(self.session)
+            self.write(error_objs)
         else:
             try:
-                self.write(get_error(self.session, error_id))
+                err_obj = Error.get_error(self.session, error_id)
+                self.write(err_obj)
             except exceptions.InvalidErrorReference:
                 raise tornado.web.HTTPError(400)
 
@@ -72,12 +32,14 @@ class ErrorDataHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
         if self.request.arguments.get_argument("user_message", default=None):
             raise tornado.web.HTTPError(400)
-        update_error(self.session, error_id, self.request.arguments.get_argument("user_message"))
+        err_obj = Error.update_error(self.session, error_id, self.request.arguments.get_argument("user_message"))
+        self.finish()
 
     def delete(self, error_id=None):
         if error_id is None:
             raise tornado.web.HTTPError(400)
         try:
-            delete_error(self.session, error_id)
+            Error.delete_error(self.session, error_id)
+            self.finish()
         except exceptions.InvalidErrorReference:
             raise tornado.web.HTTPError(400)

@@ -10,10 +10,6 @@ from sqlalchemy.orm import object_session
 class _Model(object):
     """ Custom model mixin with helper methods. """
 
-    @property
-    def session(self):
-        return object_session(self)
-
     @classmethod
     def get(cls, session, **kwargs):
         instance = session.query(cls).filter_by(**kwargs).scalar()

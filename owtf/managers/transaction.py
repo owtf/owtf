@@ -231,25 +231,25 @@ def get_transaction_model(transaction):
     response_body = None
     binary_response = None
     try:
-        response_body = transaction.get_raw_response_body().encode("utf-8")
+        response_body = transaction.get_raw_response_body.encode("utf-8")
         binary_response = False
     except UnicodeDecodeError:
-        response_body = base64.b64encode(transaction.get_raw_response_body())
+        response_body = base64.b64encode(transaction.get_raw_response_body)
         binary_response = True
     finally:
         transaction_model = Transaction(
             url=transaction.url,
-            scope=transaction.in_scope(),
+            scope=transaction.in_scope,
             method=transaction.method,
             data=transaction.data,
             time=float(transaction.time),
             time_human=transaction.time_human,
             local_timestamp=transaction.local_timestamp,
-            raw_request=transaction.get_raw_request(),
-            response_status=transaction.get_status(),
-            response_headers=transaction.get_response_headers(),
+            raw_request=transaction.get_raw_request,
+            response_status=transaction.get_status,
+            response_headers=transaction.get_response_headers,
             response_body=response_body,
-            response_size=len(response_body),
+            response_size=len(response_body) if response_body is not None else 0,
             binary_response=binary_response,
             session_tokens=json.dumps(transaction.get_session_tokens()),
         )
@@ -282,7 +282,7 @@ def log_transactions(session, transaction_list, target_id=None):
         transaction_model.target_id = target_id
         transaction_model_list.append(transaction_model)
         session.add(transaction_model)
-        urls_list.append([transaction_obj.url, True, transaction_obj.in_scope()])
+        urls_list.append([transaction_obj.url, True, transaction_obj.in_scope])
     session.commit()
     # Now since we have the ids ready, we can process the grep output and
     # add accordingly. So iterate over transactions and their
@@ -368,7 +368,7 @@ def get_num_transactions_inscope(target_id=None):
     return num_transactions(target_id=target_id)
 
 
-def get_transaction_by_id(session, id):
+def get_transaction_by_id(id):
     """Get transaction object by id
 
     :param id: ID to fetch
@@ -376,6 +376,8 @@ def get_transaction_by_id(session, id):
     :return: Transaction object
     :rtype: `Class:model.Transaction`
     """
+    session = get_scoped_session()
+
     model_obj = None
     try:
         id = int(id)
@@ -386,7 +388,7 @@ def get_transaction_by_id(session, id):
         return model_obj  # None returned if no such transaction.
 
 
-def get_transactions_by_id(session, id_list):
+def get_transactions_by_id(id_list):
     """Get transactions by id list
 
     :param id_list: List of ids
@@ -396,7 +398,7 @@ def get_transactions_by_id(session, id_list):
     """
     model_objs = []
     for id in id_list:
-        model_obj = get_transaction_by_id(session, id)
+        model_obj = get_transaction_by_id(id)
         if model_obj:
             model_objs.append(model_obj)
     return get_transactions(model_objs)
@@ -488,7 +490,7 @@ def grep_response_body(regex_name, regex, owtf_transaction):
     :return: Output
     :rtype: `dict`
     """
-    return grep(regex_name, regex, owtf_transaction.get_raw_response_body())
+    return grep(regex_name, regex, owtf_transaction.get_raw_response_body)
 
 
 def grep_response_headers(regex_name, regex, owtf_transaction):
@@ -503,7 +505,7 @@ def grep_response_headers(regex_name, regex, owtf_transaction):
     :return: Output
     :rtype: `dict`
     """
-    return grep(regex_name, regex, owtf_transaction.get_response_headers())
+    return grep(regex_name, regex, owtf_transaction.get_response_headers)
 
 
 def grep(regex_name, regex, data):

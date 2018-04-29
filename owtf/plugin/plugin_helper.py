@@ -111,7 +111,7 @@ class PluginHelper(object):
                 POST = Chunks[1]
                 Transaction = self.requester.get_transaction(True, URL, Method, POST)
                 if Transaction is not None and Transaction.found:
-                    RawHTML = Transaction.get_raw_response_body()
+                    RawHTML = Transaction.get_raw_response_body
                     FilteredHTML = self.reporter.sanitize_html(RawHTML)
                     NotSandboxedPath = self.plugin_handler.dump_output_file(
                         "NOT_SANDBOXED_%s.html" % Name, FilteredHTML, PluginInfo

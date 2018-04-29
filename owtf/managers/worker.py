@@ -20,7 +20,7 @@ import psutil
 from owtf.db.session import get_scoped_session
 from owtf.lib.exceptions import InvalidWorkerReference
 from owtf.lib.owtf_process import OWTFProcess
-from owtf.managers.error import add_error
+from owtf.models.error import Error
 from owtf.managers.worklist import get_work_for_target
 from owtf.plugin.plugin_handler import plugin_handler
 from owtf.settings import MIN_RAM_NEEDED, PROCESS_PER_CORE
@@ -53,7 +53,7 @@ class Worker(OWTFProcess):
                 work = self.input_q.get(True, 2)
                 # If work is empty this means no work is there
                 if work == ():
-                    print("No work")
+                    logging.info("No work")
                     sys.exit(0)
                 target, plugin = work
                 plugin_dir = plugin_handler.get_plugin_group_dir(plugin["group"])
@@ -67,10 +67,11 @@ class Worker(OWTFProcess):
                 sys.exit(0)
             except Exception as e:
                 e, ex, tb = sys.exc_info()
-                add_error(
-                    self.session,
-                    "Exception occurred while running plugin: {}, {}".format(str(e), str(ex)),
-                    str(traceback.format_tb(tb, 4096)),
+                trace = traceback.format_tb(tb)
+                Error.add_error(
+                    session=self.session,
+                    message="Exception occurred while running plugin: {}, {}".format(str(e), str(ex)),
+                    trace=trace,
                 )
         logging.debug("Worker (%d): Exiting...", self.pid)
         sys.exit(0)

@@ -27,7 +27,7 @@ def run(PluginInfo):
         Transaction = requester.get_transaction(True, URL)
         if Transaction is not None and Transaction.found:
             Content += plugin_helper.ProcessRobots(
-                PluginInfo, Transaction.get_raw_response_body(), LinkStart, LinkFinish, "robots%s.txt" % str(Count)
+                PluginInfo, Transaction.get_raw_response_body, LinkStart, LinkFinish, "robots%s.txt" % str(Count)
             )
             Count += 1
         else:  # Not found or unknown request error

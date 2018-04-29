@@ -139,6 +139,7 @@ class TargetManager(object):
         """
         return get_all_targets(self.session, "target_url")
 
+    @property
     def get_target_config(self):
         """Return target config
         :return: Target config
@@ -146,6 +147,7 @@ class TargetManager(object):
         """
         return self.target_config
 
+    @property
     def get_path_config(self):
         """Return path config
         :return: Path config

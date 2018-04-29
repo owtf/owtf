@@ -10,7 +10,7 @@ import copy
 
 from owtf.config import config_handler
 from owtf.db.session import get_scoped_session
-from owtf.managers.error import add_error
+from owtf.models.error import Error
 from owtf.utils.error import abort_framework
 from owtf.utils.signals import owtf_start
 from owtf.utils.strings import merge_dicts
@@ -48,7 +48,7 @@ class PluginParams(object):
                 continue
             chunks = arg.split("=")
             if len(chunks) < 2:
-                add_error(
+                Error.add_error(
                     self.session,
                     "USER ERROR: {!s} arguments should be in NAME=VALUE format".format(str(chunks)),
                     "user",
@@ -58,7 +58,7 @@ class PluginParams(object):
             try:
                 arg_val = arg.replace(arg_name, "")[1:]
             except ValueError:
-                add_error(
+                Error.add_error(
                     self.session, "USER ERROR: {!s} arguments should be in NAME=VALUE format".format(arg_name), "user"
                 )
                 return False
@@ -177,7 +177,7 @@ class PluginParams(object):
                     # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or
                     # argument is optional = ok to skip
                     continue
-                add_error(
+                Error.add_error(
                     session,
                     "USER ERROR: {!s} requires argument: '{!s}'".format(self.show_plugin(plugin), arg_name),
                     "user",
@@ -232,7 +232,7 @@ class PluginParams(object):
         :rtype: `bool`
         """
         if ("Mandatory" not in full_args_list) or ("Optional" not in full_args_list):
-            add_error(
+            Error.add_error(
                 self.session,
                 "OWTF PLUGIN BUG: {!s} requires declared Mandatory and Optional arguments".format(
                     self.show_plugin(plugin)
@@ -241,7 +241,7 @@ class PluginParams(object):
             )
             return self.ret_arg_error(True, plugin)
         if "Description" not in full_args_list:
-            add_error(
+            Error.add_error(
                 self.session, "OWTF PLUGIN BUG: {!s}  requires a Description".format(self.show_plugin(plugin)), trace=""
             )
             return self.ret_arg_error(False, plugin)

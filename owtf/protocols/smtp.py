@@ -11,7 +11,7 @@ import logging
 import os
 import smtplib
 
-from owtf.managers.error import add_error
+from owtf.models.error import Error
 from owtf.utils.file import FileOperations, get_file_as_list
 
 __all__ = ["smtp"]
@@ -74,7 +74,7 @@ class SMTP(object):
                 mail_server.sendmail(options["SMTP_LOGIN"], target, message.as_string())
                 self.pprint("Email relay successful!")
             except Exception as e:
-                add_error("Error delivering email: %s" % str(e), "")
+                Error.add_error("Error delivering email: %s" % str(e), "")
                 num_errors += 1
         return num_errors == 0
 

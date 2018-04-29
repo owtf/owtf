@@ -172,6 +172,9 @@ class Reporter(object):
     def HtmlString(self, String):
         return String
 
+    def sanitize_html(self, raw_html):
+        return cgi.escape(raw_html)
+
     # ---------------------- Grep Plugin Outputs -------------------- #
 
     def ResponseBodyMatches(self, ResponseRegexpName):
