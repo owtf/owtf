@@ -3,7 +3,6 @@ owtf.utils.ip
 ~~~~~~~~~~~~~
 
 """
-
 import logging
 import socket
 
@@ -20,7 +19,7 @@ def get_ips_from_hostname(hostname):
     :return: IP addresses of the target hostname as a list
     :rtype: `list`
     """
-    ip = ''
+    ip = ""
     # IP validation based on @marcwickenden's pull request, thanks!
     for sck in [socket.AF_INET, socket.AF_INET6]:
         try:
@@ -33,7 +32,7 @@ def get_ips_from_hostname(hostname):
         try:
             ip = socket.gethostbyname(hostname)
         except socket.gaierror:
-            raise UnresolvableTargetException("Unable to resolve: '%s'" % hostname)
+            raise UnresolvableTargetException("Unable to resolve: '{!s}'".format(hostname))
 
     ipchunks = ip.strip().split("\n")
     return ipchunks
@@ -47,7 +46,7 @@ def get_ip_from_hostname(hostname):
     :return: IP address of the target hostname
     :rtype: `str`
     """
-    ip = ''
+    ip = ""
     # IP validation based on @marcwickenden's pull request, thanks!
     for sck in [socket.AF_INET, socket.AF_INET6]:
         try:
@@ -60,18 +59,18 @@ def get_ip_from_hostname(hostname):
         try:
             ip = socket.gethostbyname(hostname)
         except socket.gaierror:
-            raise UnresolvableTargetException("Unable to resolve: '%s'" % hostname)
+            raise UnresolvableTargetException("Unable to resolve: '{!s}'".format(hostname))
 
     ipchunks = ip.strip().split("\n")
     alternative_ips = []
     if len(ipchunks) > 1:
         ip = ipchunks[0]
-        logging.info("%s has several IP addresses: (%s).Choosing first: %s" % (hostname, "".join(ipchunks)[0:-3], ip))
+        logging.info("%s has several IP addresses: (%s).Choosing first: %s", hostname, "".join(ipchunks)[0:-3], ip)
         alternative_ips = ipchunks[1:]
-    config_handler.set_val('alternative_ips', alternative_ips)
+    config_handler.set_val("alternative_ips", alternative_ips)
     ip = ip.strip()
-    config_handler.set_val('INTERNAL_IP', is_internal_ip(ip))
-    logging.info("The IP address for %s is: '%s'" % (hostname, ip))
+    config_handler.set_val("INTERNAL_IP", is_internal_ip(ip))
+    logging.info("The IP address for %s is: '%s'", hostname, ip)
     return ip
 
 

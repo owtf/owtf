@@ -362,7 +362,7 @@ ui_setup() {
 
     # Building the ReactJS project
     echo "${normal}[*] Building using webpack.${reset}"
-    yarn run prod &> /dev/null
+    yarn build &> /dev/null
     echo "${normal}[*] Build successful${reset}"
     cd ${TMP_DIR}
 }
@@ -382,9 +382,10 @@ echo "${info}[*] Thanks for installing OWTF! ${reset}"
 echo "${info}[!] There will be lot of output, please be patient :)${reset}"
 
 # Copy git hooks
-echo "${info}[*] Installing git hooks...${reset}"
-yes | cp -rf "$(dirname $SCRIPT_DIR)/hooks/pre-commit.sh" "$(dirname $SCRIPT_DIR)/.git/hooks/pre-commit"
-chmod +x "$(dirname $SCRIPT_DIR)/.git/hooks/pre-commit"
+echo "${info}[*] Installing pre-commit and black for git hooks...${reset}"
+pip install pre-commit==1.8.2
+pip install black==18.4a3
+pre-commit install
 
 # Copy all necessary directories
 for dir in ${ROOT_DIR}/data/*; do

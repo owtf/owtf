@@ -8,5 +8,5 @@ DESCRIPTION = " x11 Probing "
 
 
 def run(PluginInfo):
-    resource = get_resources('X11ProbeMethods')
-    return plugin_helper.CommandDump('Test Command', 'Output', resource, PluginInfo, [])  # No previous output
+    resource = get_resources("X11ProbeMethods")
+    return plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])  # No previous output

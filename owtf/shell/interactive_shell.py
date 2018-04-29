@@ -19,7 +19,7 @@ class InteractiveShell(blocking_shell.Shell):
         blocking_shell.Shell.__init__(self)  # Calling parent class to do its init part
         self.connection = None
         self.options = None
-        self.command_time_offset = 'InteractiveCommand'
+        self.command_time_offset = "InteractiveCommand"
 
     def check_conn(self, abort_message):
         """Check the connection is alive or not
@@ -42,8 +42,8 @@ class InteractiveShell(blocking_shell.Shell):
          :return: Output from the channel
          :rtype: `str`
          """
-        output = ''
-        if not self.check_conn('Cannot read'):
+        output = ""
+        if not self.check_conn("Cannot read"):
             return output
         try:
             output = recv_some(self.connection, time)
@@ -61,8 +61,8 @@ class InteractiveShell(blocking_shell.Shell):
         :return: Formatted command string
         :rtype: `str`
         """
-        if "RHOST" in self.options and 'RPORT' in self.options:  # Interactive shell on remote connection
-            return "%s:%s-%s" % (self.options['RHOST'], self.options['RPORT'], command)
+        if "RHOST" in self.options and "RPORT" in self.options:  # Interactive shell on remote connection
+            return "%s:%s-%s" % (self.options["RHOST"], self.options["RPORT"], command)
         else:
             return "Interactive - %s" % command
 
@@ -74,7 +74,7 @@ class InteractiveShell(blocking_shell.Shell):
          :return: Formatted command string
          :rtype: `str`
          """
-        output = ''
+        output = ""
         cancelled = False
         if not self.check_conn("NOT RUNNING Interactive command: %s" % command):
             return output
@@ -93,7 +93,7 @@ class InteractiveShell(blocking_shell.Shell):
         except KeyboardInterrupt:
             cancelled = True
             self.finish_cmd(cmd_info, cancelled, plugin_info)
-            output += self.error_handler.user_abort('Command', output)  # Identify as Command Level abort
+            output += self.error_handler.user_abort("Command", output)  # Identify as Command Level abort
         if not cancelled:
             self.finish_cmd(cmd_info, cancelled, plugin_info)
         return output
@@ -110,7 +110,7 @@ class InteractiveShell(blocking_shell.Shell):
         """
         output = ""
         for command in cmd_list:
-            if command != 'None':
+            if command != "None":
                 output += self.run(command, plugin_info)
         return output
 
@@ -124,14 +124,15 @@ class InteractiveShell(blocking_shell.Shell):
         :return: Plugin output
         :rtype: `str`
         """
-        output = ''
+        output = ""
         if not self.connection:
-            name, command = options['ConnectVia'][0]
+            name, command = options["ConnectVia"][0]
             self.connection = AsyncPopen(
-                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, bufsize=1)
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, bufsize=1
+            )
             self.options = options  # Store Options for Closing processing and if initial Commands are given
-            if options['InitialCommands']:
-                output += self.run_cmd_list([options['InitialCommands']], plugin_info)
+            if options["InitialCommands"]:
+                output += self.run_cmd_list([options["InitialCommands"]], plugin_info)
             output += self.read()
         output += self.read()
         return output
@@ -145,14 +146,15 @@ class InteractiveShell(blocking_shell.Shell):
         :rtype: None
         """
         print("Close: %s" % str(self.options))
-        if self.options['CommandsBeforeExit']:
+        if self.options["CommandsBeforeExit"]:
             logging.info("Running commands before closing Communication Channel..")
-            self.run_cmd_list(self.options['CommandsBeforeExit'].split(self.options['CommandsBeforeExitDelim']),
-                              plugin_info)
+            self.run_cmd_list(
+                self.options["CommandsBeforeExit"].split(self.options["CommandsBeforeExitDelim"]), plugin_info
+            )
         logging.info("Trying to close Communication Channel..")
         self.run("exit", plugin_info)
 
-        if self.options['ExitMethod'] == 'kill':
+        if self.options["ExitMethod"] == "kill":
             logging.info("Killing Communication Channel..")
             self.connection.kill()
         else:  # By default wait

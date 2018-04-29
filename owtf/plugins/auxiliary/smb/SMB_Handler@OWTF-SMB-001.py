@@ -9,19 +9,19 @@ def run(PluginInfo):
     Content = []
     smb = SMB()
     args = {
-        'Description': DESCRIPTION,
-        'Mandatory': {
-            'SMB_HOST': config_handler.get_val('SMB_HOST_DESCRIP'),
-            'SMB_SHARE': config_handler.get_val('SMB_SHARE_DESCRIP'),
-            'SMB_MOUNT_POINT': config_handler.get_val('SMB_MOUNT_POINT_DESCRIP'),
+        "Description": DESCRIPTION,
+        "Mandatory": {
+            "SMB_HOST": config_handler.get_val("SMB_HOST_DESCRIP"),
+            "SMB_SHARE": config_handler.get_val("SMB_SHARE_DESCRIP"),
+            "SMB_MOUNT_POINT": config_handler.get_val("SMB_MOUNT_POINT_DESCRIP"),
         },
-        'Optional': {
-            'SMB_USER': config_handler.get_val('SMB_USER_DESCRIP'),
-            'SMB_PASS': config_handler.get_val('SMB_PASS_DESCRIP'),
-            'SMB_DOWNLOAD': config_handler.get_val('SMB_DOWNLOAD_DESCRIP'),
-            'SMB_UPLOAD': config_handler.get_val('SMB_UPLOAD_DESCRIP'),
-            'REPEAT_DELIM': config_handler.get_val('REPEAT_DELIM_DESCRIP')
-        }
+        "Optional": {
+            "SMB_USER": config_handler.get_val("SMB_USER_DESCRIP"),
+            "SMB_PASS": config_handler.get_val("SMB_PASS_DESCRIP"),
+            "SMB_DOWNLOAD": config_handler.get_val("SMB_DOWNLOAD_DESCRIP"),
+            "SMB_UPLOAD": config_handler.get_val("SMB_UPLOAD_DESCRIP"),
+            "REPEAT_DELIM": config_handler.get_val("REPEAT_DELIM_DESCRIP"),
+        },
     }
 
     for args in plugin_params.get_args(args, PluginInfo):

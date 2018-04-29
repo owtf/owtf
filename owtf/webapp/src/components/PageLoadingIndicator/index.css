@@ -1,0 +1,12 @@
+@keyframes pageLoadingAnim {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    background-color: #7B6BE6;
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

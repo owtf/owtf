@@ -3,23 +3,26 @@ owtf.api.handlers.session
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-import tornado.gen
-import tornado.httpclient
-import tornado.web
-
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
-from owtf.managers.session import add_session, add_target_to_session, delete_session, \
-    get_all_session_dicts, get_session_dict, remove_target_from_session, set_session
+from owtf.managers.session import (
+    add_session,
+    add_target_to_session,
+    delete_session,
+    get_all_session_dicts,
+    get_session_dict,
+    remove_target_from_session,
+    set_session,
+)
 
-__all__ = ['OWTFSessionHandler']
+__all__ = ["OWTFSessionHandler"]
 
 
 class OWTFSessionHandler(APIRequestHandler):
     """Handles OWTF sessions."""
 
-    SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+    SUPPORTED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
     def get(self, session_id=None, action=None):
         """Get all registered sessions.
@@ -51,14 +54,14 @@ class OWTFSessionHandler(APIRequestHandler):
             }
         """
         if action is not None:
-            raise APIError(400, "Action must be None")
+            raise APIError(422, "Action must be None")
         if session_id is None:
             filter_data = dict(self.request.arguments)
             self.success(get_all_session_dicts(self.session, filter_data))
         else:
             try:
                 self.success(get_session_dict(self.session, session_id))
-            except exceptions.InvalidSessionReference as e:
+            except exceptions.InvalidSessionReference:
                 raise APIError(400, "Invalid session id provided")
 
     def post(self, session_id=None, action=None):
@@ -94,8 +97,8 @@ class OWTFSessionHandler(APIRequestHandler):
             add_session(self.session, self.get_argument("name"))
             self.set_status(201)  # Stands for "201 Created"
             self.success(None)
-        except exceptions.DBIntegrityException as e:
-            raise APIError(409, "An unknown exception occurred when performing a DB operation")
+        except exceptions.DBIntegrityException:
+            raise APIError(400, "An unknown exception occurred when performing a DB operation")
 
     def patch(self, session_id=None, action=None):
         """Change session.
@@ -127,14 +130,14 @@ class OWTFSessionHandler(APIRequestHandler):
                 add_target_to_session(self.session, int(self.get_argument("target_id")), session_id=int(session_id))
             elif action == "remove":
                 remove_target_from_session(
-                    self.session, int(self.get_argument("target_id")), session_id=int(session_id))
+                    self.session, int(self.get_argument("target_id")), session_id=int(session_id)
+                )
             elif action == "activate":
                 set_session(self.session, int(session_id))
-            self.set_status(204)
             self.success(None)
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
-        except exceptions.InvalidSessionReference as e:
+        except exceptions.InvalidSessionReference:
             raise APIError(400, "Invalid parameter type provided")
 
     def delete(self, session_id=None, action=None):
@@ -159,11 +162,10 @@ class OWTFSessionHandler(APIRequestHandler):
                 "data": null
             }
         """
-        if (session_id is None) or action is not None:
+        if session_id is None or action is not None:
             raise APIError(400, "Incorrect query parameters")
         try:
             delete_session(self.session, int(session_id))
-            self.set_status(204)
             self.success(None)
-        except exceptions.InvalidSessionReference as e:
+        except exceptions.InvalidSessionReference:
             raise APIError(400, "Invalid session id provided")

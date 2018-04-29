@@ -44,13 +44,13 @@ class CacheHandler(object):
         :return:
         :rtype:
         """
-        cookie_string = ''
+        cookie_string = ""
         try:
             if self.blacklist:
-                string_with_spaces = re.sub(self.cookie_regex, '', self.request.headers['Cookie']).strip()
-                cookie_string = ''.join(string_with_spaces.split(' '))
+                string_with_spaces = re.sub(self.cookie_regex, "", self.request.headers["Cookie"]).strip()
+                cookie_string = "".join(string_with_spaces.split(" "))
             else:
-                cookies_matrix = re.findall(self.cookie_regex, self.request.headers['Cookie'])
+                cookies_matrix = re.findall(self.cookie_regex, self.request.headers["Cookie"])
                 for cookie_tuple in cookies_matrix:
                     for item in cookie_tuple:
                         if item:
@@ -107,25 +107,25 @@ class CacheHandler(object):
             response_body = base64.b64encode(self.request.response_buffer)
             binary_response = True
         cache_dict = {
-            'request_method': self.request.method,
-            'request_url': self.request.url,
-            'request_version': self.request.version,
-            'request_headers': dict(self.request.headers),
-            'request_body': self.request.body.decode('utf-8'),
-            'request_time': response.request_time,
-            'request_local_timestamp': self.request.local_timestamp.isoformat(),
-            'response_code': response.code,
-            'response_headers': dict(response.headers),
-            'response_body': response_body,
-            'response_cookies': response.headers.get_list("Set-Cookie"),
-            'binary_response': binary_response
+            "request_method": self.request.method,
+            "request_url": self.request.url,
+            "request_version": self.request.version,
+            "request_headers": dict(self.request.headers),
+            "request_body": self.request.body.decode("utf-8"),
+            "request_time": response.request_time,
+            "request_local_timestamp": self.request.local_timestamp.isoformat(),
+            "response_code": response.code,
+            "response_headers": dict(response.headers),
+            "response_body": response_body,
+            "response_cookies": response.headers.get_list("Set-Cookie"),
+            "binary_response": binary_response,
         }
-        with open(self.file_path, 'w') as outfile:
+        with open(self.file_path, "w") as outfile:
             json.dump(cache_dict, outfile)
 
         # This approach can be used as an alternative for object sharing
         # This creates a file with hash as name and .rd as extension
-        open('%s.rd' % self.file_path, 'w').close()
+        open("%s.rd" % self.file_path, "w").close()
         self.file_lock.release()
 
     def load(self):
@@ -147,7 +147,7 @@ class CacheHandler(object):
                 try:
                     self.file_lock.acquire()
                 except FileLockTimeoutException:
-                    logging.debug("Lock could not be acquired %s" % traceback.print_exc)
+                    logging.debug("Lock could not be acquired %s", traceback.print_exc)
                 # For handling race conditions
                 if os.path.isfile(self.file_path):
                     self.file_lock.release()
@@ -174,11 +174,13 @@ def response_from_cache(file_path):
     :rtype:
     """
     dummy_response = DummyObject()
-    cache_dict = json.loads(open(file_path, 'r').read())
+    with open(file_path, "r") as f:
+        cache_dict = json.loads(f.read())
     dummy_response.code = cache_dict["response_code"]
     dummy_response.headers = tornado.httputil.HTTPHeaders(cache_dict["response_headers"])
-    dummy_response.header_string = '\r\n'.join(
-        ["%s: %s" % (name, value) for name, value in cache_dict["response_headers"].items()])
+    dummy_response.header_string = "\r\n".join(
+        ["{!s}: {!s}".format(name, value) for name, value in cache_dict["response_headers"].items()]
+    )
     if cache_dict["binary_response"] is True:
         dummy_response.body = base64.b64decode(cache_dict["response_body"])
     else:
@@ -199,17 +201,20 @@ def request_from_cache(file_path):
     :rtype:
     """
     dummy_request = DummyObject()
-    cache_dict = json.loads(open(file_path, 'r').read())
-    dummy_request.local_timestamp = datetime.datetime.strptime(cache_dict["request_local_timestamp"].strip("\r\n"),
-                                                               '%Y-%m-%dT%H:%M:%S.%f')
+    with open(file_path, "r") as f:
+        cache_dict = json.loads(f.read())
+    dummy_request.local_timestamp = datetime.datetime.strptime(
+        cache_dict["request_local_timestamp"].strip("\r\n"), "%Y-%m-%dT%H:%M:%S.%f"
+    )
     dummy_request.method = cache_dict["request_method"]
     dummy_request.url = cache_dict["request_url"]
     dummy_request.headers = cache_dict["request_headers"]
     dummy_request.body = cache_dict["request_body"]
-    dummy_request.raw_request = "%s %s %s\r\n" % (cache_dict["request_method"], cache_dict["request_url"],
-                                                  cache_dict["request_version"])
+    dummy_request.raw_request = "{!s} {!s} {!s}\r\n".format(
+        cache_dict["request_method"], cache_dict["request_url"], cache_dict["request_version"]
+    )
     for name, value in cache_dict["request_headers"].items():
-        dummy_request.raw_request += "%s: %s\r\n" % (name, value)
+        dummy_request.raw_request += "{!s}: {!s}\r\n".format(name, value)
     if cache_dict["request_body"]:
-        dummy_request.raw_request += "%s\r\n\r\n" % cache_dict["request_body"]
+        dummy_request.raw_request += "{!s}\r\n\r\n".format(cache_dict["request_body"])
     return dummy_request

@@ -8,8 +8,8 @@ import os
 import yaml
 
 from owtf.config import config_handler
-from owtf.db import models
 from owtf.lib.exceptions import InvalidConfigurationReference
+from owtf.models.config import Config
 from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 from owtf.utils.strings import multi_replace, str2bool
@@ -27,12 +27,12 @@ def load_config_file(file_path, fallback_file_path):
     :rtype: dict
     """
     file_path = file_path if os.path.isfile(file_path) else fallback_file_path
-    logging.info("Loading data from {}..".format(file_path))
+    logging.info("Loading data from %s..", file_path)
     if not os.path.isfile(file_path):
         # check if the config file exists
         abort_framework("Config file not found at: {}".format(file_path))
     try:
-        config_map = yaml.load(FileOperations.open(file_path, 'r'))
+        config_map = yaml.load(FileOperations.open(file_path, "r"))
         return config_map
     except yaml.YAMLError:
         abort_framework("Error parsing config file at: {}".format(file_path))
@@ -54,10 +54,9 @@ def load_general_config(session, default, fallback):
     for section, config_list in iteritems(config_dump):
         for config_map in config_list:
             try:
-                old_config_obj = session.query(models.ConfigSetting).get(config_map["config"])
+                old_config_obj = session.query(Config).get(config_map["config"])
                 if not old_config_obj or not old_config_obj.dirty:
-                    config_obj = models.ConfigSetting(
-                        key=config_map["config"], value=str(config_map["value"]), section=section)
+                    config_obj = Config(key=config_map["config"], value=str(config_map["value"]), section=section)
                     config_obj.descrip = config_map.get("description", "")
                     session.merge(config_obj)
             except KeyError:
@@ -80,18 +79,16 @@ def load_framework_config(default, fallback, root_dir, owtf_pid):
     :rtype: None
     """
     config_dump = load_config_file(default, fallback)
-    config_handler.set_val('FRAMEWORK_DIR', root_dir)  # Needed Later.
+    config_handler.set_val("FRAMEWORK_DIR", root_dir)  # Needed Later.
     for section, config_list in iteritems(config_dump):
         for config_map in config_list:
             try:
-                config_handler.set_val(config_map["config"],
-                                       multi_replace(
-                                           str(config_map["value"]), {
-                                               'FRAMEWORK_DIR': root_dir,
-                                               'OWTF_PID': str(owtf_pid)
-                                           }))
+                config_handler.set_val(
+                    config_map["config"],
+                    multi_replace(str(config_map["value"]), {"FRAMEWORK_DIR": root_dir, "OWTF_PID": str(owtf_pid)}),
+                )
             except KeyError as e:
-                logging.debug("Exception while parsing framework config: {}".format(str(e)))
+                logging.debug("Exception while parsing framework config: %s", str(e))
                 pass
 
 
@@ -103,7 +100,7 @@ def get_config_val(session, key):
     :return: Value
     :rtype: `str`
     """
-    obj = session.query(models.ConfigSetting).get(key)
+    obj = session.query(Config).get(key)
     if obj:
         return multi_replace(obj.value, config_handler.get_replacement_dict())
     else:
@@ -149,22 +146,22 @@ def config_gen_query(session, criteria):
     :return:
     :rtype:
     """
-    query = session.query(models.ConfigSetting)
+    query = session.query(Config)
     if criteria.get("key", None):
         if isinstance(criteria["key"], str):
             query = query.filter_by(key=criteria["key"])
         if isinstance(criteria["key"], list):
-            query = query.filter(models.ConfigSetting.key.in_(criteria["key"]))
+            query = query.filter(Config.key.in_(criteria["key"]))
     if criteria.get("section", None):
         if isinstance(criteria["section"], str):
             query = query.filter_by(section=criteria["section"])
         if isinstance(criteria["section"], list):
-            query = query.filter(models.ConfigSetting.section.in_(criteria["section"]))
-    if criteria.get('dirty', None):
-        if isinstance(criteria.get('dirty'), list):
-            criteria['dirty'] = criteria['dirty'][0]
-        query = query.filter_by(dirty=str2bool(criteria['dirty']))
-    return query.order_by(models.ConfigSetting.key)
+            query = query.filter(Config.section.in_(criteria["section"]))
+    if criteria.get("dirty", None):
+        if isinstance(criteria.get("dirty"), list):
+            criteria["dirty"] = criteria["dirty"][0]
+        query = query.filter_by(dirty=str2bool(criteria["dirty"]))
+    return query.order_by(Config.key)
 
 
 def get_all_config_dicts(session, criteria=None):
@@ -187,7 +184,7 @@ def get_all_tools(session):
     :return: Config dict for all tools
     :rtype: `dict`
     """
-    results = session.query(models.ConfigSetting).filter(models.ConfigSetting.key.like("%TOOL_%")).all()
+    results = session.query(Config).filter(Config.key.like("%TOOL_%")).all()
     config_dicts = derive_config_dicts(results)
     for config_dict in config_dicts:
         config_dict["value"] = multi_replace(config_dict["value"], config_handler.get_replacement_dict())
@@ -200,7 +197,7 @@ def get_sections_config(session):
     :return: List of sections
     :rtype: `list`
     """
-    sections = session.query(models.ConfigSetting.section).distinct().all()
+    sections = session.query(Config.section).distinct().all()
     sections = [i[0] for i in sections]
     return sections
 
@@ -215,14 +212,14 @@ def update_config_val(session, key, value):
     :return: None
     :rtype: None
     """
-    config_obj = session.query(models.ConfigSetting).get(key)
+    config_obj = session.query(Config).get(key)
     if config_obj:
         config_obj.value = value
         config_obj.dirty = True
         session.merge(config_obj)
         session.commit()
     else:
-        raise InvalidConfigurationReference("No setting exists with key: %s" % str(key))
+        raise InvalidConfigurationReference("No setting exists with key: {!s}".format(key))
 
 
 def get_replacement_dict(session):
@@ -232,7 +229,7 @@ def get_replacement_dict(session):
     :rtype: `dict`
     """
     config_dict = {}
-    config_list = session.query(models.ConfigSetting.key, models.ConfigSetting.value).all()
+    config_list = session.query(Config.key, Config.value).all()
     for key, value in config_list:  # Need a dict
         config_dict[key] = value
     return config_dict
@@ -248,7 +245,7 @@ def get_tcp_ports(start_port, end_port):
     :return: Comma-separate string of tcp ports
     :rtype: `str`
     """
-    return ','.join(config_handler.get("TCP_PORTS").split(',')[int(start_port):int(end_port)])
+    return ",".join(config_handler.get("TCP_PORTS").split(",")[int(start_port):int(end_port)])
 
 
 def get_udp_ports(start_port, end_port):
@@ -261,4 +258,4 @@ def get_udp_ports(start_port, end_port):
     :return: Comma-separate string of udp ports
     :rtype: `str`
     """
-    return ','.join(config_handler.get("UDP_PORTS").split(',')[int(start_port):int(end_port)])
+    return ",".join(config_handler.get("UDP_PORTS").split(",")[int(start_port):int(end_port)])

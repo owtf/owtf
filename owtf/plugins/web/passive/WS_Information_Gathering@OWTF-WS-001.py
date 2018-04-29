@@ -8,5 +8,5 @@ DESCRIPTION = "Google Hacking/Third party sites for Web Services"
 
 
 def run(PluginInfo):
-    resource = get_resources('WSPassiveSearchEngineDiscoveryLnk')
-    return plugin_helper.resource_linklist('Online Resources', resource)
+    resource = get_resources("WSPassiveSearchEngineDiscoveryLnk")
+    return plugin_helper.resource_linklist("Online Resources", resource)

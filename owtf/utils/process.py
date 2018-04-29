@@ -3,7 +3,6 @@ owtf.utils.process
 ~~~~~~~~~~~~~~~~~~
 
 """
-
 import os
 import logging
 import errno
@@ -11,7 +10,7 @@ import signal
 
 import psutil
 
-__all__ = ['check_pid', '_signal_process']
+__all__ = ["check_pid", "_signal_process"]
 
 
 def check_pid(pid):
@@ -66,5 +65,5 @@ def _signal_process(pid, psignal=signal.SIGINT):
     if not alive:
         # send SIGKILL
         for pid in alive:
-            logging.debug("Process {} survived SIGTERM; trying SIGKILL" % pid)
+            logging.debug("Process %d survived SIGTERM; trying SIGKILL", pid)
             pid.kill()

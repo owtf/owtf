@@ -6,16 +6,23 @@ owtf.api.handlers.targets
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.lib.exceptions import InvalidTargetReference, APIError
-from owtf.managers.target import add_targets, delete_target, get_target_config_by_id, \
-    get_target_config_dicts, get_targets_by_severity_count, search_target_configs, update_target
+from owtf.managers.target import (
+    add_targets,
+    delete_target,
+    get_target_config_by_id,
+    get_target_config_dicts,
+    get_targets_by_severity_count,
+    search_target_configs,
+    update_target,
+)
 
-__all__ = ['TargetConfigSearchHandler', 'TargetSeverityChartHandler', 'TargetConfigHandler']
+__all__ = ["TargetConfigSearchHandler", "TargetSeverityChartHandler", "TargetConfigHandler"]
 
 
 class TargetConfigHandler(APIRequestHandler):
     """Manage target config data."""
 
-    SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+    SUPPORTED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
     def get(self, target_id=None):
         """Get target config data by id or fetch all target configs.
@@ -62,7 +69,7 @@ class TargetConfigHandler(APIRequestHandler):
                 self.success(get_target_config_dicts(self.session, filter_data))
             else:
                 self.success(get_target_config_by_id(self.session, target_id))
-        except InvalidTargetReference as e:
+        except InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
 
     def post(self, target_id=None):
@@ -96,9 +103,9 @@ class TargetConfigHandler(APIRequestHandler):
             self.set_status(201)  # Stands for "201 Created"
             self.success(None)
         except exceptions.DBIntegrityException:
-            raise APIError(409, "An unknown exception occurred when performing a DB operation")
+            raise APIError(400, "An unknown exception occurred when performing a DB operation")
         except exceptions.UnresolvableTargetException:
-            raise APIError(409, "The target url can not be resolved")
+            raise APIError(400, "The target url can not be resolved")
 
     def put(self, target_id=None):
         return self.patch(target_id)
@@ -130,7 +137,6 @@ class TargetConfigHandler(APIRequestHandler):
         try:
             patch_data = dict(self.request.arguments)
             update_target(self.session, patch_data, id=target_id)
-            self.set_status(204)
             self.success(None)
         except InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
@@ -161,15 +167,14 @@ class TargetConfigHandler(APIRequestHandler):
             raise APIError(400, "Missing target_id")
         try:
             delete_target(self.session, id=target_id)
-            self.set_status(204)
             self.success(None)
-        except InvalidTargetReference as e:
+        except InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
 
 
 class TargetConfigSearchHandler(APIRequestHandler):
     """Filter targets."""
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     def get(self):
         """Get target config data based on user filter.
@@ -235,13 +240,13 @@ class TargetConfigSearchHandler(APIRequestHandler):
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
             self.success(search_target_configs(self.session, filter_data=filter_data))
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")
 
 
 class TargetSeverityChartHandler(APIRequestHandler):
     """Get targets with severity."""
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     def get(self):
         """Get data for target severity chart.
@@ -276,5 +281,5 @@ class TargetSeverityChartHandler(APIRequestHandler):
         """
         try:
             self.success(get_targets_by_severity_count(self.session))
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")

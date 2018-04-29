@@ -1,27 +1,33 @@
+/*
+ * WelcomePage
+ */
 import React from 'react';
-import { push } from 'react-router-redux';
-import { Link } from 'react-router';
-import styled from 'styled-components';
-import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
+import { LinkContainer } from "react-router-bootstrap";
+import { Button } from 'react-bootstrap';
 
-import Button from '../../components/Button';
+export default class WelcomePage extends React.Component {
 
+  // Since state and props are static,
+  // there's no need to re-render this component
+  shouldComponentUpdate() {
+    return false;
+  }
 
-export default class Welcome extends React.Component {
-    render() {
-        return (
-           <div>
-                <div className="container">
-                <div className="jumbotron">
-                    <h1>Offensive Web Testing Framework!</h1>
-                    <p> OWASP OWTF is a project that aims to make security assessments as efficient as possible. </p>
-                    <div className="row" style={{display: 'flex', justifyContent: 'center'}}>
-                        <Button type="primary" href="/login">Login</Button>
-                    </div>
-                </div>
-                </div>
+  render() {
+    return (
+      <div>
+        <div className="container">
+          <div className="jumbotron">
+            <h1>Offensive Web Testing Framework!</h1>
+            <p>OWASP OWTF test is a project that aims to make security assessments as efficient as possible.</p>
+            <div className="row" style={{display: 'flex', justifyContent: 'center'}}>
+              <LinkContainer to="/login">
+                <Button bsStyle="primary">Login</Button>
+              </LinkContainer>
             </div>
-        );
-    }
+          </div>
+        </div>
+      </div>
+    );
+  }
 }

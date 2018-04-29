@@ -21,7 +21,7 @@ class PExpectShell(blocking_shell.Shell):
         blocking_shell.Shell.__init__(self)  # Calling parent class to do its init part
         self.connection = None
         self.options = None
-        self.command_time_offset = 'PExpectCommand'
+        self.command_time_offset = "PExpectCommand"
 
     def check_conn(self, abort_message):
         """Check the connection is alive or not
@@ -44,13 +44,13 @@ class PExpectShell(blocking_shell.Shell):
         :return: Output from the channel
         :rtype: `str`
         """
-        output = ''
-        if not self.check_conn('Cannot read'):
+        output = ""
+        if not self.check_conn("Cannot read"):
             return output
         try:
             output = self.connection.after
             if output is None:
-                output = ''
+                output = ""
             print(output)  # Show progress on screen
         except pexpect.EOF:
             logging.warn("ERROR: read - The Communication channel is down!")
@@ -65,8 +65,8 @@ class PExpectShell(blocking_shell.Shell):
         :return: Formatted command string
         :rtype: `str`
         """
-        if "RHOST" in self.options and 'RPORT' in self.options:  # Interactive shell on remote connection
-            return "%s:%s-%s" % (self.options['RHOST'], self.options['RPORT'], command)
+        if "RHOST" in self.options and "RPORT" in self.options:  # Interactive shell on remote connection
+            return "%s:%s-%s" % (self.options["RHOST"], self.options["RPORT"], command)
         else:
             return "Interactive - %s" % command
 
@@ -80,7 +80,7 @@ class PExpectShell(blocking_shell.Shell):
         :return: Plugin output
         :rtype: `str`
         """
-        output = ''
+        output = ""
         cancelled = False
         if not self.check_conn("NOT RUNNING Interactive command: %s" % command):
             return output
@@ -98,7 +98,7 @@ class PExpectShell(blocking_shell.Shell):
         except KeyboardInterrupt:
             cancelled = True
             self.finish_cmd(cmd_info, cancelled, plugin_info)
-            output += self.error_handler.user_abort('Command', output)  # Identify as Command Level abort
+            output += self.error_handler.user_abort("Command", output)  # Identify as Command Level abort
         if not cancelled:
             self.finish_cmd(cmd_info, cancelled, plugin_info)
         return output
@@ -153,11 +153,11 @@ class PExpectShell(blocking_shell.Shell):
         :rtype: `str`
         """
         self.options = options  # Store options for Closing processing
-        output = ''
+        output = ""
         if not self.connection:
-            cmd_list = ['bash']
-            if 'ConnectVia' in options:
-                name, command = options['ConnectVia'][0]
+            cmd_list = ["bash"]
+            if "ConnectVia" in options:
+                name, command = options["ConnectVia"][0]
                 cmd_list += command.split(";")
             cmd_count = 1
             for cmd in cmd_list:
@@ -170,8 +170,8 @@ class PExpectShell(blocking_shell.Shell):
                 else:
                     self.run(cmd, plugin_info)
                 cmd_count += 1
-            if 'InitialCommands' in options and options['InitialCommands']:
-                output += self.run_cmd_list(options['InitialCommands'], plugin_info)
+            if "InitialCommands" in options and options["InitialCommands"]:
+                output += self.run_cmd_list(options["InitialCommands"], plugin_info)
         return output
 
     def kill(self):
@@ -206,14 +206,15 @@ class PExpectShell(blocking_shell.Shell):
         if self.connection is None:
             logging.info("Close: Connection already closed")
             return False
-        if 'CommandsBeforeExit' in self.options and self.options['CommandsBeforeExit']:
+        if "CommandsBeforeExit" in self.options and self.options["CommandsBeforeExit"]:
             logging.info("Running commands before closing Communication Channel..")
-            self.run_cmd_list(self.options['CommandsBeforeExit'].split(self.options['CommandsBeforeExitDelim']),
-                              plugin_info)
+            self.run_cmd_list(
+                self.options["CommandsBeforeExit"].split(self.options["CommandsBeforeExitDelim"]), plugin_info
+            )
         logging.info("Trying to close Communication Channel..")
         self.run("exit", plugin_info)
 
-        if 'ExitMethod' in self.options and self.options['ExitMethod'] == 'kill':
+        if "ExitMethod" in self.options and self.options["ExitMethod"] == "kill":
             self.kill()
         else:  # By default wait
             self.wait()

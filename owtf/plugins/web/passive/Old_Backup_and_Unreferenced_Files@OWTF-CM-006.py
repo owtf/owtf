@@ -9,5 +9,5 @@ DESCRIPTION = "Google Hacking for juicy files"
 
 
 def run(PluginInfo):
-    resource = get_resources('PassiveOldBackupUnreferencedFilesLnk')
-    return plugin_helper.resource_linklist('Online Resources', resource)
+    resource = get_resources("PassiveOldBackupUnreferencedFilesLnk")
+    return plugin_helper.resource_linklist("Online Resources", resource)

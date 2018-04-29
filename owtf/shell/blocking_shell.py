@@ -20,7 +20,7 @@ from owtf.utils.error import user_abort
 from owtf.utils.strings import multi_replace_dict, scrub_output
 from owtf.utils.timer import timer
 
-__all__ = ['shell']
+__all__ = ["shell"]
 
 
 class Shell(object):
@@ -29,7 +29,7 @@ class Shell(object):
         # Some settings like the plugin output dir are dynamic, config is no place for those
         self.dynamic_replacements = {}
         self.timer = timer
-        self.command_time_offset = 'Command'
+        self.command_time_offset = "Command"
         self.old_cmds = defaultdict(list)
         # Environment variables for shell
         self.shell_env = os.environ.copy()
@@ -40,7 +40,7 @@ class Shell(object):
         :return: None
         :rtype: None
         """
-        self.dynamic_replacements['###plugin_output_dir###'] = target_manager.get_path('plugin_output_dir')
+        self.dynamic_replacements["###plugin_output_dir###"] = target_manager.get_path("plugin_output_dir")
 
     def start_cmd(self, original_cmd, modified_cmd):
         """Start the timer and return the list of commands to run
@@ -57,9 +57,9 @@ class Shell(object):
             original_cmd = self.old_cmds[modified_cmd]
         self.timer.start_timer(self.command_time_offset)
         commands = {
-            'OriginalCommand': original_cmd,
-            'ModifiedCommand': modified_cmd,
-            'Start': self.timer.get_start_date_time(self.command_time_offset)
+            "OriginalCommand": original_cmd,
+            "ModifiedCommand": modified_cmd,
+            "Start": self.timer.get_start_date_time(self.command_time_offset),
         }
         return commands
 
@@ -75,14 +75,14 @@ class Shell(object):
         :return: None
         :rtype: None
         """
-        cmd_info['End'] = self.timer.get_end_date_time(self.command_time_offset)
+        cmd_info["End"] = self.timer.get_end_date_time(self.command_time_offset)
         success = True
         if was_cancelled:
             success = False
-        cmd_info['Success'] = success
-        cmd_info['RunTime'] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
-        cmd_info['Target'] = target_manager.get_target_id()
-        cmd_info['PluginKey'] = plugin_info["key"]
+        cmd_info["Success"] = success
+        cmd_info["RunTime"] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
+        cmd_info["Target"] = target_manager.get_target_id()
+        cmd_info["PluginKey"] = plugin_info["key"]
         add_command(session=session, command=cmd_info)
 
     def escape_shell_path(self, text):
@@ -93,7 +93,7 @@ class Shell(object):
         :return: Modified text
         :rtype: `str`
         """
-        return multi_replace_dict(text, {' ': '\ ', '(': '\(', ')': '\)'})
+        return multi_replace_dict(text, {" ": "\ ", "(": "\(", ")": "\)"})
 
     def get_modified_shell_cmd(self, command, plugin_output_dir):
         """Returns the modified shell command to run
@@ -107,13 +107,16 @@ class Shell(object):
         """
         self.refresh_replacements()
         new_cmd = "cd {};{}".format(
-            self.escape_shell_path(plugin_output_dir), multi_replace_dict(command, self.dynamic_replacements))
+            self.escape_shell_path(plugin_output_dir), multi_replace_dict(command, self.dynamic_replacements)
+        )
         new_cmd = multi_replace_dict(
-            new_cmd, {
-                '@@@USER_AGENT@@@': USER_AGENT,
-                '@@@INBOUND_PROXY_IP@@@': INBOUND_PROXY_IP,
-                '@@@INBOUND_PROXY_PORT@@@': INBOUND_PROXY_PORT
-            })
+            new_cmd,
+            {
+                "@@@USER_AGENT@@@": USER_AGENT,
+                "@@@INBOUND_PROXY_IP@@@": INBOUND_PROXY_IP,
+                "@@@INBOUND_PROXY_PORT@@@": INBOUND_PROXY_PORT,
+            },
+        )
         self.old_cmds[new_cmd] = command
         return new_cmd
 
@@ -125,7 +128,7 @@ class Shell(object):
         :return: List of return values
         :rtype: `list`
         """
-        target = command_already_registered(session=session, original_command=command['OriginalCommand'])
+        target = command_already_registered(session=session, original_command=command["OriginalCommand"])
         if target:  # target_config will be None for a not found match
             return [target, False]
         return [None, True]
@@ -149,7 +152,8 @@ class Shell(object):
             preexec_fn=os.setsid,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            bufsize=1)
+            bufsize=1,
+        )
         return proc
 
     def shell_exec_monitor(self, session, command, plugin_info):
@@ -165,14 +169,14 @@ class Shell(object):
         cmd_info = self.start_cmd(command, command)
         target, can_run = self.can_run_cmd(session=session, command=cmd_info)
         if not can_run:
-            message = "The command was already run for target: {}".format(target)
+            message = "The command was already run for target: {!s}".format(target)
             return message
         logging.info("")
         logging.info("Executing :\n\n%s\n\n", command)
         logging.info("")
-        logging.info("------> Execution Start Date/Time: %s" % self.timer.get_start_date_time_as_str('Command'))
+        logging.info("------> Execution Start Date/Time: %s", self.timer.get_start_date_time_as_str("Command"))
         logging.info("")
-        output = ''
+        output = ""
         cancelled = False
 
         # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-
@@ -184,7 +188,7 @@ class Shell(object):
                 line = proc.stdout.readline()
                 if not line:
                     break
-                print(line.strip())  # Show progress on the screen too!
+                logging.info(line.strip())  # Show progress on the screen too!
                 output += line  # Save as much output as possible before a tool crashes! :)
         except KeyboardInterrupt:
             os.killpg(proc.pid, signal.SIGINT)
@@ -196,7 +200,7 @@ class Shell(object):
             except OSError:
                 pass  # Plugin RIP (Rested In Peace)
             cancelled = True
-            output += user_abort('Command', output)  # Identify as Command Level abort
+            output += user_abort("Command", output)  # Identify as Command Level abort
         finally:
             try:
                 self.finish_cmd(session=session, cmd_info=cmd_info, was_cancelled=cancelled, plugin_info=plugin_info)

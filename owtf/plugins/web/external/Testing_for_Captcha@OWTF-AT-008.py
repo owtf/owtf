@@ -8,7 +8,7 @@ DESCRIPTION = "Plugin to assist manual testing"
 
 
 def run(PluginInfo):
-    Content = plugin_helper.VulnerabilitySearchBox('')
-    resource = get_resources('ExternalCAPTCHA')
-    Content += plugin_helper.resource_linklist('Tools', resource)
+    Content = plugin_helper.VulnerabilitySearchBox("")
+    resource = get_resources("ExternalCAPTCHA")
+    Content += plugin_helper.resource_linklist("Tools", resource)
     return Content

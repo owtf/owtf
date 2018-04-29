@@ -8,6 +8,7 @@ import os
 import sys
 import time
 import signal
+
 try:
     import http.server as httplib
 except:
@@ -19,6 +20,7 @@ import tornado.web
 
 
 class DummyGetHandler(tornado.web.RequestHandler):
+
     def get(self):
         self.write("Hello, world!")
 
@@ -43,10 +45,8 @@ class WebServerProcess(object):
             handle requests.
         """
         # Create the web application
-        self.application = DummyWebApplication([(r'/', DummyGetHandler)])
-        self.process = Process(
-            target=start_application,
-            args=(self.application, self.ip, self.port))
+        self.application = DummyWebApplication([(r"/", DummyGetHandler)])
+        self.process = Process(target=start_application, args=(self.application, self.ip, self.port))
         self.process.start()
         self.wait_until_server_is_ready()
 
@@ -79,7 +79,7 @@ class WebServerProcess(object):
 
     def is_alive(self):
         """Test if the server process is alive and running."""
-        if (self.process is None):
+        if self.process is None:
             return False
         else:
             return self.process.is_alive()

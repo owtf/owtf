@@ -14,18 +14,27 @@ from owtf.lib.exceptions import APIError
 from owtf.managers.plugin import get_all_plugin_dicts
 from owtf.managers.target import get_target_config_dicts
 from owtf.managers.worker import worker_manager
-from owtf.managers.worklist import add_work, delete_all_work, get_all_work, get_work, \
-    patch_work, pause_all_work, remove_work, resume_all_work, search_all_work
 from owtf.settings import ALLOWED_METHODS, SIMPLE_HEADERS, ALLOWED_ORIGINS, SEND_CREDENTIALS
+from owtf.managers.worklist import (
+    add_work,
+    delete_all_work,
+    get_all_work,
+    get_work,
+    patch_work,
+    pause_all_work,
+    remove_work,
+    resume_all_work,
+    search_all_work,
+)
 from owtf.utils.strings import str2bool
 
-__all__ = ['WorkerHandler', 'WorklistHandler', 'WorklistSearchHandler']
+__all__ = ["WorkerHandler", "WorklistHandler", "WorklistSearchHandler"]
 
 
 class WorkerHandler(APIRequestHandler):
     """Manage workers."""
 
-    SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'OPTIONS']
+    SUPPORTED_METHODS = ["GET", "POST", "DELETE", "OPTIONS"]
 
     def set_default_headers(self):
         self.add_header("Access-Control-Allow-Origin", "*")
@@ -100,8 +109,8 @@ class WorkerHandler(APIRequestHandler):
                 self.success(worker_manager.get_worker_details(int(worker_id)))
             if worker_id and action:
                 if int(worker_id) == 0:
-                    getattr(worker_manager, '%s_all_workers' % action)()
-                getattr(worker_manager, '%s_worker' % action)(int(worker_id))
+                    getattr(worker_manager, "{}_all_workers".format(action))()
+                getattr(worker_manager, "{}_worker".format(action))(int(worker_id))
         except exceptions.InvalidWorkerReference:
             raise APIError(400, "Invalid worker referenced")
 
@@ -161,9 +170,9 @@ class WorkerHandler(APIRequestHandler):
             Access-Control-Allow-Methods: GET, POST, DELETE
             Content-Type: text/html; charset=UTF-8
         """
-        self.set_header('Allow', ','.join(ALLOWED_METHODS))
+        self.set_header("Allow", ",".join(ALLOWED_METHODS))
         self.set_status(204)
-        if 'Origin' in self.request.headers:
+        if "Origin" in self.request.headers:
             if self._cors_preflight_checks():
                 self._build_preflight_response(self.request.headers)
             else:
@@ -172,9 +181,9 @@ class WorkerHandler(APIRequestHandler):
 
     def _cors_preflight_checks(self):
         try:
-            origin = self.request.headers['Origin']
-            method = self.request.headers['Access-Control-Request-Method']
-            headers = self.request.headers.get('Access-Control-Request-Headers', '')
+            origin = self.request.headers["Origin"]
+            method = self.request.headers["Access-Control-Request-Method"]
+            headers = self.request.headers.get("Access-Control-Request-Headers", "")
         except KeyError:
             return False
 
@@ -182,11 +191,11 @@ class WorkerHandler(APIRequestHandler):
         return (origin in ALLOWED_ORIGINS and method in ALLOWED_METHODS and len(headers) == 0)
 
     def _build_preflight_response(self, headers):
-        self.set_header('Access-Control-Allow-Origin', headers['Origin'])
-        self.set_header('Access-Control-Allow-Methods', ','.join(ALLOWED_METHODS))
-        self.set_header('Access-Control-Allow-Headers', ','.join(headers.keys() - SIMPLE_HEADERS))
+        self.set_header("Access-Control-Allow-Origin", headers["Origin"])
+        self.set_header("Access-Control-Allow-Methods", ",".join(ALLOWED_METHODS))
+        self.set_header("Access-Control-Allow-Headers", ",".join(headers.keys() - SIMPLE_HEADERS))
         if SEND_CREDENTIALS:
-            self.set_header('Access-Control-Allow-Credentials', 'true')
+            self.set_header("Access-Control-Allow-Credentials", "true")
 
     def delete(self, worker_id=None, action=None):
         """Delete a worker.
@@ -217,7 +226,6 @@ class WorkerHandler(APIRequestHandler):
             raise APIError(400, "Needs worker id")
         try:
             worker_manager.delete_worker(int(worker_id))
-            self.set_status(204)
             self.success(None)
         except exceptions.InvalidWorkerReference:
             raise APIError(400, "Invalid worker referenced")
@@ -226,7 +234,7 @@ class WorkerHandler(APIRequestHandler):
 class WorklistHandler(APIRequestHandler):
     """Handle the worklist."""
 
-    SUPPORTED_METHODS = ['GET', 'POST', 'DELETE', 'PATCH']
+    SUPPORTED_METHODS = ["GET", "POST", "DELETE", "PATCH"]
 
     def get(self, work_id=None, action=None):
         """Get worklist
@@ -377,10 +385,10 @@ class WorklistHandler(APIRequestHandler):
             work_id = int(work_id)
             if work_id != 0:
                 remove_work(self.session, work_id)
+                self.set_status(200)
             else:
-                if action == 'delete':
+                if action == "delete":
                     delete_all_work(self.session)
-            self.set_status(204)
             self.success(None)
         except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
@@ -421,16 +429,15 @@ class WorklistHandler(APIRequestHandler):
         try:
             work_id = int(work_id)
             if work_id != 0:  # 0 is like broadcast address
-                if action == 'resume':
+                if action == "resume":
                     patch_work(self.session, work_id, active=True)
-                elif action == 'pause':
+                elif action == "pause":
                     patch_work(self.session, work_id, active=False)
             else:
-                if action == 'pause':
+                if action == "pause":
                     pause_all_work(self.session)
-                elif action == 'resume':
+                elif action == "resume":
                     resume_all_work(self.session)
-            self.set_status(204)
             self.success(None)
         except exceptions.InvalidWorkReference:
             raise APIError(400, "Invalid worker referenced")
@@ -439,7 +446,7 @@ class WorklistHandler(APIRequestHandler):
 class WorklistSearchHandler(APIRequestHandler):
     """Search worklist."""
 
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     def get(self):
         """

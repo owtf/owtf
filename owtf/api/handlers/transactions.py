@@ -12,19 +12,24 @@ import tornado.web
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.lib.exceptions import InvalidParameterType, InvalidTargetReference, InvalidTransactionReference, APIError
-from owtf.managers.transaction import delete_transaction, get_all_transactions_dicts, \
-    get_by_id_as_dict, get_hrt_response, search_all_transactions
+from owtf.managers.transaction import (
+    delete_transaction,
+    get_all_transactions_dicts,
+    get_by_id_as_dict,
+    get_hrt_response,
+    search_all_transactions,
+)
 from owtf.managers.url import get_all_urls, search_all_urls
 
 __all__ = [
-    'TransactionDataHandler', 'TransactionHrtHandler', 'TransactionSearchHandler', 'URLDataHandler', 'URLSearchHandler'
+    "TransactionDataHandler", "TransactionHrtHandler", "TransactionSearchHandler", "URLDataHandler", "URLSearchHandler"
 ]
 
 
 class TransactionDataHandler(APIRequestHandler):
     """Handle transaction data for the target by ID or all."""
 
-    SUPPORTED_METHODS = ['GET', 'DELETE']
+    SUPPORTED_METHODS = ["GET", "DELETE"]
 
     def get(self, target_id=None, transaction_id=None):
         """Get transaction data by target and transaction id.
@@ -75,11 +80,11 @@ class TransactionDataHandler(APIRequestHandler):
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
                 self.success(get_all_transactions_dicts(self.session, filter_data, target_id=int(target_id)))
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
-        except exceptions.InvalidTransactionReference as e:
+        except exceptions.InvalidTransactionReference:
             raise APIError(400, "Invalid transaction referenced")
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")
 
     def post(self, target_url):
@@ -116,18 +121,17 @@ class TransactionDataHandler(APIRequestHandler):
         try:
             if transaction_id:
                 delete_transaction(self.session, int(transaction_id), int(target_id))
-                self.set_status(204)
                 self.success(None)
             else:
                 raise APIError(400, "Needs transaction id")
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
 
 
 class TransactionHrtHandler(APIRequestHandler):
     """Integrate HTTP request translator tool."""
 
-    SUPPORTED_METHODS = ['POST']
+    SUPPORTED_METHODS = ["POST"]
 
     def post(self, target_id=None, transaction_id=None):
         """Get the transaction as output from the tool.
@@ -174,7 +178,7 @@ class TransactionHrtHandler(APIRequestHandler):
 class TransactionSearchHandler(APIRequestHandler):
     """Search transaction data in the DB."""
 
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     def get(self, target_id=None):
         """Get transactions by target ID.
@@ -209,17 +213,17 @@ class TransactionSearchHandler(APIRequestHandler):
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
             self.success(search_all_transactions(self.session, filter_data, target_id=int(target_id)))
-        except exceptions.InvalidTargetReference as e:
+        except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
-        except exceptions.InvalidTransactionReference as e:
+        except exceptions.InvalidTransactionReference:
             raise APIError(400, "Invalid transaction referenced")
-        except exceptions.InvalidParameterType as e:
+        except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")
 
 
 # To be deprecated!
 class URLDataHandler(APIRequestHandler):
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     def get(self, target_id=None):
         try:
@@ -251,7 +255,7 @@ class URLDataHandler(APIRequestHandler):
 
 
 class URLSearchHandler(APIRequestHandler):
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     def get(self, target_id=None):
         if not target_id:  # Must be a integer target id

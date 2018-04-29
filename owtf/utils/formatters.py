@@ -11,12 +11,12 @@ import logging
 LOG_LEVEL_TOOL = 25
 
 # Terminal colors
-TERMINAL_COLOR_BLUE = '\033[94m'
-TERMINAL_COLOR_GREEN = '\033[92m'
-TERMINAL_COLOR_YELLOW = '\033[93m'
-TERMINAL_COLOR_RED = '\033[91m'
-TERMINAL_COLOR_END = '\033[0m'
-TERMINAL_COLOR_LIGHT_BLUE = '\033[96m'
+TERMINAL_COLOR_BLUE = "\033[94m"
+TERMINAL_COLOR_GREEN = "\033[92m"
+TERMINAL_COLOR_YELLOW = "\033[93m"
+TERMINAL_COLOR_RED = "\033[91m"
+TERMINAL_COLOR_END = "\033[0m"
+TERMINAL_COLOR_LIGHT_BLUE = "\033[96m"
 
 
 class ConsoleFormatter(logging.Formatter):
@@ -61,5 +61,4 @@ class FileFormatter(logging.Formatter):
 
     def __init__(self, *args, **kwargs):
         super(FileFormatter, self).__init__()
-        self._fmt = "[%(levelname)s] [%(asctime)s] " + "[File '%(filename)s', line %(lineno)s, in %(funcName)s] -" + \
-            " %(message)s"
+        self._fmt = "[%(levelname)s] [%(asctime)s] " + "[File '%(filename)s', line %(lineno)s, in %(funcName)s] -" + " %(message)s"

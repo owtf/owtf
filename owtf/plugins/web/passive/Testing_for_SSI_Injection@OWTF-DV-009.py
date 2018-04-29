@@ -8,6 +8,6 @@ DESCRIPTION = "Searching for pages that are susceptible to SSI-Injection"
 
 
 def run(PluginInfo):
-    resource = get_resources('PassiveSSIDiscoveryLnk')
-    Content = plugin_helper.resource_linklist('Online Resources', resource)
+    resource = get_resources("PassiveSSIDiscoveryLnk")
+    Content = plugin_helper.resource_linklist("Online Resources", resource)
     return Content

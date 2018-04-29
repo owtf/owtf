@@ -3,22 +3,18 @@ owtf.api.handlers.config
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-import tornado.gen
-import tornado.httpclient
-import tornado.web
-
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
 from owtf.managers.config import get_all_config_dicts, update_config_val
 
-__all__ = ['ConfigurationHandler']
+__all__ = ["ConfigurationHandler"]
 
 
 class ConfigurationHandler(APIRequestHandler):
     """Update framework settings and tool paths."""
 
-    SUPPORTED_METHODS = ['GET', 'PATCH']
+    SUPPORTED_METHODS = ["GET", "PATCH"]
 
     def get(self):
         """Return all configuration items.
@@ -89,7 +85,6 @@ class ConfigurationHandler(APIRequestHandler):
         for key, value_list in list(self.request.arguments.items()):
             try:
                 update_config_val(self.session, key, value_list[0])
-                self.set_status(204)
                 self.success(None)
-            except exceptions.InvalidConfigurationReference as e:
-                raise APIError(400, 'Invalid configuration item specified')
+            except exceptions.InvalidConfigurationReference:
+                raise APIError(422, "Invalid configuration item specified")

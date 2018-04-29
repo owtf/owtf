@@ -7,6 +7,7 @@ import collections
 import inspect
 import types
 from functools import wraps
+
 try:  # PY3
     from urllib.parse import urlparse
 except ImportError:  # PY2
@@ -25,10 +26,10 @@ def derive_http_method(method, data):
     """
     d_method = method
     # Method not provided: Determine method from params
-    if d_method is None or d_method == '':
-        d_method = 'GET'
-        if data != '' and data is not None:
-            d_method = 'POST'
+    if d_method is None or d_method == "":
+        d_method = "GET"
+        if data != "" and data is not None:
+            d_method = "POST"
     return d_method
 
 
@@ -76,8 +77,7 @@ def extract_method(wrapped_method):
     """
     # If method was decorated with validate, the original method
     #   is available as orig_func thanks to our container decorator
-    return wrapped_method.orig_func if \
-        hasattr(wrapped_method, "orig_func") else wrapped_method
+    return wrapped_method.orig_func if hasattr(wrapped_method, "orig_func") else wrapped_method
 
 
 def is_method(method):

@@ -9,9 +9,22 @@ from tornado.escape import url_escape
 from tornado.web import RequestHandler
 
 from owtf.lib.exceptions import APIError
-from owtf.settings import SERVER_PORT, FILE_SERVER_PORT, DEBUG
+from owtf.settings import SERVER_PORT, FILE_SERVER_PORT, USE_SENTRY
 
-__all__ = ['APIRequestHandler', 'FileRedirectHandler', 'UIRequestHandler']
+# if Sentry raven library around, pull in SentryMixin
+try:
+    from raven.contrib.tornado import SentryMixin
+except ImportError:
+    pass
+else:
+
+    class SentryHandler(SentryMixin, RequestHandler):
+        pass
+
+    if USE_SENTRY:
+        RequestHandler = SentryHandler
+
+__all__ = ["APIRequestHandler", "FileRedirectHandler", "UIRequestHandler"]
 
 
 class APIRequestHandler(RequestHandler):
@@ -37,7 +50,7 @@ class APIRequestHandler(RequestHandler):
         :param data: Acts as the wrapper for any data returned by the API
             call. If the call returns no data, data should be set to null.
         """
-        self.write({'status': 'success', 'data': data})
+        self.write({"status": "success", "data": data})
         self.finish()
 
     def fail(self, data):
@@ -49,7 +62,7 @@ class APIRequestHandler(RequestHandler):
             failed. If the reasons for failure correspond to POST values,
             the response object's keys SHOULD correspond to those POST values.
         """
-        self.write({'status': 'fail', 'data': data})
+        self.write({"status": "fail", "data": data})
         self.finish()
 
     def error(self, message, data=None, code=None):
@@ -66,11 +79,11 @@ class APIRequestHandler(RequestHandler):
         :type  code: int
         :param code: A numeric code corresponding to the error, if applicable
         """
-        result = {'status': 'error', 'message': message}
+        result = {"status": "error", "message": message}
         if data:
-            result['data'] = data
+            result["data"] = data
         if code:
-            result['code'] = code
+            result["code"] = code
         self.write(result)
         self.finish()
 
@@ -83,8 +96,7 @@ class APIRequestHandler(RequestHandler):
         """
 
         def get_exc_message(exception):
-            return exception.log_message if \
-                hasattr(exception, "log_message") else str(exception)
+            return exception.log_message if hasattr(exception, "log_message") else str(exception)
 
         self.clear()
         self.set_status(status_code)
@@ -97,15 +109,12 @@ class APIRequestHandler(RequestHandler):
             # ValidationError is always due to a malformed request
             if not isinstance(exception, APIError):
                 self.set_status(400)
-            self.write({'status': 'fail', 'data': get_exc_message(exception)})
+            self.write({"status": "fail", "data": get_exc_message(exception)})
             self.finish()
         else:
-            self.write({
-                "status": "fail",
-                "message": self._reason,
-                "data": get_exc_message(exception),
-                "code": status_code
-            })
+            self.write(
+                {"status": "fail", "message": self._reason, "data": get_exc_message(exception), "code": status_code}
+            )
             self.finish()
 
 
@@ -113,15 +122,16 @@ class UIRequestHandler(RequestHandler):
 
     def reverse_url(self, name, *args):
         url = super(UIRequestHandler, self).reverse_url(name, *args)
-        url = url.replace('?', '')
-        return url.split('None')[0]
+        url = url.replace("?", "")
+        return url.split("None")[0]
 
 
 class FileRedirectHandler(RequestHandler):
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ["GET"]
 
     def get(self, file_url):
-        output_files_server = "{}://{}/".format(self.request.protocol,
-                                                self.request.host.replace(str(SERVER_PORT), str(FILE_SERVER_PORT)))
+        output_files_server = "{}://{}/".format(
+            self.request.protocol, self.request.host.replace(str(SERVER_PORT), str(FILE_SERVER_PORT))
+        )
         redirect_file_url = output_files_server + url_escape(file_url, plus=False)
         self.redirect(redirect_file_url, permanent=True)

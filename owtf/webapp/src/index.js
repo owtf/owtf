@@ -1,23 +1,45 @@
+/**
+ * index.js
+ *
+ * This is the entry file for the application.
+ */
+
+// Needed for redux-saga es6 generator support
+import 'babel-polyfill';
+
+// Import all the third party stuff
 import React from 'react';
-import {Router, Route, browserHistory, IndexRoute} from 'react-router';
-import {render} from 'react-dom';
-import {Provider} from 'react-redux';
-import {syncHistoryWithStore} from 'react-router-redux'
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import { ConnectedRouter } from 'react-router-redux';
+import createHistory from 'history/createBrowserHistory';
 
-import routes from './routes';
-import configureStore from './store/configureStore';
+// Import root app
+import App from 'containers/App';
 
-import 'react-select/dist/react-select.css';
-import './index.scss';
+import configureStore from './configureStore';
 
+// Create redux store with history
 const initialState = {};
+const history = createHistory();
+const store = configureStore(initialState, history);
+const MOUNT_NODE = document.getElementById('root');
 
-const store = configureStore(initialState, browserHistory);
-const history = syncHistoryWithStore(browserHistory, store)
-
-render(
+ReactDOM.render(
   <Provider store={store}>
-    <Router routes={routes} history={history} />
+    <ConnectedRouter history={history}>
+      <App />
+    </ConnectedRouter>
   </Provider>,
-  document.getElementById('root')
+  MOUNT_NODE
 );
+
+if (module.hot) {
+  module.hot.accept('containers/App', () => {
+    const HotApp = require('containers/App').default;
+    ReactDOM.render(
+      <HotApp />,
+      MOUNT_NODE
+    )
+  })
+}

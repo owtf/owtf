@@ -4,13 +4,12 @@ owtf.managers.url
 
 The DB stores HTTP transactions, unique URLs and more.
 """
-
-from owtf.db import models
-from owtf.db.database import get_count, get_scoped_session
+from owtf.db.session import get_count, get_scoped_session
 from owtf.lib.exceptions import InvalidParameterType
-# from owtf.managers import is_small_file_regex, is_file_regex, is_image_regex, is_ssi_regex, is_url_regex
 from owtf.managers.target import is_url_in_scope, target_required
+from owtf.models.url import Url
 from owtf.utils.strings import str2bool
+from owtf.settings import is_file_regex, is_image_regex, is_small_file_regex, is_ssi_regex, is_url_regex
 
 num_urls_before = 0
 
@@ -92,7 +91,7 @@ def add_urls_to_db(session, url, visited, found=None, target_id=None):
         # can happen without this
         url = url.strip()
         scope = is_url_in_scope(url)
-        session.merge(models.Url(target_id=target_id, url=url, visited=visited, scope=scope))
+        session.merge(Url(target_id=target_id, url=url, visited=visited, scope=scope))
         session.commit()
 
 
@@ -105,7 +104,7 @@ def get_urls_to_visit():
     :rtype: `list`
     """
     session = get_scoped_session()
-    urls = session.query(models.Url.url).filter_by(visited=False).all()
+    urls = session.query(Url.url).filter_by(visited=False).all()
     urls = [i[0] for i in urls]
     return urls
 
@@ -152,7 +151,7 @@ def import_processed_url(session, urls_list, target_id=None):
     :rtype: None
     """
     for url, visited, scope in urls_list:
-        session.merge(models.Url(target_id=target_id, url=url, visited=visited, scope=scope))
+        session.merge(Url(target_id=target_id, url=url, visited=visited, scope=scope))
     session.commit()
 
 
@@ -172,7 +171,7 @@ def import_urls(session, url_list, target_id=None):
     for url in url_list:
         if is_url(url):
             imported_urls.append(url)
-            session.merge(models.Url(url=url, target_id=target_id))
+            session.merge(Url(url=url, target_id=target_id))
     session.commit()
     return imported_urls  # Return imported urls
 
@@ -216,39 +215,39 @@ def url_gen_query(session, criteria, target_id, for_stats=False):
     :return:
     :rtype:
     """
-    query = session.query(models.Url).filter_by(target_id=target_id)
+    query = session.query(Url).filter_by(target_id=target_id)
     # Check if criteria is url search
-    if criteria.get('search', None):
-        if criteria.get('url', None):
-            if isinstance(criteria.get('url'), list):
-                criteria['url'] = criteria['url'][0]
-            query = query.filter(models.Url.url.like('%%%s%%' % criteria['url']))
+    if criteria.get("search", None):
+        if criteria.get("url", None):
+            if isinstance(criteria.get("url"), list):
+                criteria["url"] = criteria["url"][0]
+            query = query.filter(Url.url.like("%%{!s}%%".format(criteria["url"])))
     else:  # If not search
-        if criteria.get('url', None):
-            if isinstance(criteria.get('url'), str):
-                query = query.filter_by(url=criteria['url'])
-            if isinstance(criteria.get('url'), list):
-                query = query.filter(models.Url.url.in_(criteria['url']))
+        if criteria.get("url", None):
+            if isinstance(criteria.get("url"), str):
+                query = query.filter_by(url=criteria["url"])
+            if isinstance(criteria.get("url"), list):
+                query = query.filter(Url.url.in_(criteria["url"]))
     # For the following section doesn't matter if filter/search because
     # it doesn't make sense to search in a boolean column :P
-    if criteria.get('visited', None):
-        if isinstance(criteria.get('visited'), list):
-            criteria['visited'] = criteria['visited'][0]
-        query = query.filter_by(visited=str2bool(criteria['visited']))
-    if criteria.get('scope', None):
-        if isinstance(criteria.get('scope'), list):
-            criteria['scope'] = criteria['scope'][0]
-        query = query.filter_by(scope=str2bool(criteria['scope']))
+    if criteria.get("visited", None):
+        if isinstance(criteria.get("visited"), list):
+            criteria["visited"] = criteria["visited"][0]
+        query = query.filter_by(visited=str2bool(criteria["visited"]))
+    if criteria.get("scope", None):
+        if isinstance(criteria.get("scope"), list):
+            criteria["scope"] = criteria["scope"][0]
+        query = query.filter_by(scope=str2bool(criteria["scope"]))
     if not for_stats:  # Query for stats can't have limit and offset
         try:
-            if criteria.get('offset', None):
-                if isinstance(criteria.get('offset'), list):
-                    criteria['offset'] = criteria['offset'][0]
-                query = query.offset(int(criteria['offset']))
-            if criteria.get('limit', None):
-                if isinstance(criteria.get('limit'), list):
-                    criteria['limit'] = criteria['limit'][0]
-                query = query.limit(int(criteria['limit']))
+            if criteria.get("offset", None):
+                if isinstance(criteria.get("offset"), list):
+                    criteria["offset"] = criteria["offset"][0]
+                query = query.offset(int(criteria["offset"]))
+            if criteria.get("limit", None):
+                if isinstance(criteria.get("limit"), list):
+                    criteria["limit"] = criteria["limit"][0]
+                query = query.limit(int(criteria["limit"]))
         except ValueError:
             raise InvalidParameterType("Invalid parameter type for transaction db")
     return query
@@ -287,7 +286,7 @@ def search_all_urls(session, criteria, target_id=None):
     :return: Search result dict
     :rtype: `dict`
     """
-    total = get_count(session.query(models.Url).filter_by(target_id=target_id))
+    total = get_count(session.query(Url).filter_by(target_id=target_id))
     filtered_url_objs = url_gen_query(session, criteria, target_id).all()
     filtered_number = get_count(url_gen_query(session, criteria, target_id, for_stats=True))
     results = {"records_total": total, "records_filtered": filtered_number, "data": derive_url_dicts(filtered_url_objs)}

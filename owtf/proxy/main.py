@@ -2,7 +2,6 @@
 owtf.proxy.main
 ~~~~~~~~~~~~~~~
 """
-
 import logging
 import os
 import re
@@ -17,10 +16,27 @@ import tornado.web
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.proxy.proxy import ProxyHandler
 from owtf.proxy.transaction_logger import TransactionLogger
-from owtf.settings import BLACKLIST_COOKIES, CA_CERT, CA_KEY, CA_PASS_FILE, CERTS_FOLDER, HTTP_AUTH_HOST, \
-    HTTP_AUTH_MODE, HTTP_AUTH_PASSWORD, HTTP_AUTH_USERNAME, INBOUND_PROXY_CACHE_DIR, INBOUND_PROXY_IP, \
-    INBOUND_PROXY_PORT, INBOUND_PROXY_PROCESSES, OUTBOUND_PROXY_AUTH, PROXY_LOG, PROXY_RESTRICTED_REQUEST_HEADERS, \
-    PROXY_RESTRICTED_RESPONSE_HEADERS, USE_OUTBOUND_PROXY, WHITELIST_COOKIES
+from owtf.settings import (
+    BLACKLIST_COOKIES,
+    CA_CERT,
+    CA_KEY,
+    CA_PASS_FILE,
+    CERTS_FOLDER,
+    HTTP_AUTH_HOST,
+    HTTP_AUTH_MODE,
+    HTTP_AUTH_PASSWORD,
+    HTTP_AUTH_USERNAME,
+    INBOUND_PROXY_CACHE_DIR,
+    INBOUND_PROXY_IP,
+    INBOUND_PROXY_PORT,
+    INBOUND_PROXY_PROCESSES,
+    OUTBOUND_PROXY_AUTH,
+    PROXY_LOG,
+    PROXY_RESTRICTED_REQUEST_HEADERS,
+    PROXY_RESTRICTED_RESPONSE_HEADERS,
+    USE_OUTBOUND_PROXY,
+    WHITELIST_COOKIES,
+)
 from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 
@@ -38,11 +54,7 @@ class ProxyProcess(OWTFProcess):
         :rtype: None
         """
         # The tornado application, which is used to pass variables to request handler
-        self.application = tornado.web.Application(
-            handlers=[(r'.*', ProxyHandler)],
-            debug=False,
-            gzip=True,
-        )
+        self.application = tornado.web.Application(handlers=[(r".*", ProxyHandler)], debug=False, gzip=True)
         # All required variables in request handler
         # Required variables are added as attributes to application, so that request handler can access these
         self.application.inbound_ip = INBOUND_PROXY_IP
@@ -65,7 +77,8 @@ class ProxyProcess(OWTFProcess):
         # To stop OWTF from breaking for our beloved users :P
         try:
             self.application.ca_key_pass = FileOperations.open(
-                os.path.expanduser(CA_PASS_FILE), 'r', owtf_clean=False).read().strip()
+                os.path.expanduser(CA_PASS_FILE), "r", owtf_clean=False
+            ).read().strip()
         except IOError:
             self.application.ca_key_pass = "owtf"  # XXX: Legacy CA key pass for older versions.
         self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
@@ -84,17 +97,17 @@ class ProxyProcess(OWTFProcess):
 
         # Blacklist (or) Whitelist Cookies
         # Building cookie regex to be used for cookie filtering for caching
-        if WHITELIST_COOKIES == 'None':
-            cookies_list = BLACKLIST_COOKIES.split(',')
+        if WHITELIST_COOKIES == "None":
+            cookies_list = BLACKLIST_COOKIES.split(",")
             self.application.cookie_blacklist = True
         else:
-            cookies_list = WHITELIST_COOKIES.split(',')
+            cookies_list = WHITELIST_COOKIES.split(",")
             self.application.cookie_blacklist = False
         if self.application.cookie_blacklist:
             regex_cookies_list = [cookie + "=([^;]+;?)" for cookie in cookies_list]
         else:
             regex_cookies_list = ["(" + cookie + "=[^;]+;?)" for cookie in cookies_list]
-        regex_string = '|'.join(regex_cookies_list)
+        regex_string = "|".join(regex_cookies_list)
         self.application.cookie_regex = re.compile(regex_string)
 
         # Outbound Proxy
@@ -132,10 +145,10 @@ class ProxyProcess(OWTFProcess):
         if HTTP_AUTH_HOST is not None:
             self.application.http_auth = True
             # All the variables are lists
-            self.application.http_auth_hosts = HTTP_AUTH_HOST.strip().split(',')
-            self.application.http_auth_usernames = HTTP_AUTH_USERNAME.strip().split(',')
-            self.application.http_auth_passwords = HTTP_AUTH_PASSWORD.strip().split(',')
-            self.application.http_auth_modes = HTTP_AUTH_MODE.strip().split(',')
+            self.application.http_auth_hosts = HTTP_AUTH_HOST.strip().split(",")
+            self.application.http_auth_usernames = HTTP_AUTH_USERNAME.strip().split(",")
+            self.application.http_auth_passwords = HTTP_AUTH_PASSWORD.strip().split(",")
+            self.application.http_auth_modes = HTTP_AUTH_MODE.strip().split(",")
         else:
             self.application.http_auth = False
 
@@ -152,7 +165,8 @@ class ProxyProcess(OWTFProcess):
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
             tornado.options.parse_command_line(
-                args=["dummy_arg", "--log_file_prefix={}".format(PROXY_LOG), "--logging=info"])
+                args=["dummy_arg", "--log_file_prefix={}".format(PROXY_LOG), "--logging=info"]
+            )
             # To run any number of instances
             # "0" equals the number of cores present in a machine
             self.server.start(int(self.instances))
@@ -190,7 +204,7 @@ def start_proxy():
             abort_framework("Inbound proxy address already in use")
         # If everything is fine.
         proxy_process = ProxyProcess()
-        logging.warn("Starting HTTP(s) proxy server at {0}:{1} ".format(INBOUND_PROXY_IP, str(INBOUND_PROXY_PORT)))
+        logging.warn("Starting HTTP(s) proxy server at %s:%d", INBOUND_PROXY_IP, INBOUND_PROXY_PORT)
         proxy_process.initialize(USE_OUTBOUND_PROXY, OUTBOUND_PROXY_AUTH)
         transaction_logger = TransactionLogger(cache_dir=INBOUND_PROXY_CACHE_DIR)
         transaction_logger.initialize()
