@@ -10,6 +10,7 @@ import uuid
 from tornado.escape import url_escape
 from tornado.web import RequestHandler
 
+from owtf.db.session import Session, get_db_engine
 from owtf.lib.exceptions import APIError
 from owtf.settings import SERVER_PORT, FILE_SERVER_PORT, USE_SENTRY, SERVER_ADDR, SESSION_COOKIE_NAME
 
@@ -38,7 +39,8 @@ class APIRequestHandler(RequestHandler):
         """
         - Set Content-type for JSON
         """
-        self.session = self.application.session
+        Session.configure(bind=get_db_engine())
+        self.session = Session()
         self.set_header("Content-Type", "application/json")
 
     def on_finish(self):
