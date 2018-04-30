@@ -2,29 +2,30 @@
 owtf.shell.pexpect_shell
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The shell module allows running arbitrary shell commands and is critical to the framework
-in order to run third party tools. The interactive shell module allows non-blocking
-interaction with subprocesses running tools or remote connections (i.e. shells)
 """
-
 import logging
 import sys
 
 import pexpect
 
-from owtf.shell import blocking_shell
+from owtf.db.session import get_scoped_session
+from owtf.shell.base import BaseShell
+from owtf.utils.error import user_abort
+
+__all__ = ["PExpectShell"]
 
 
-class PExpectShell(blocking_shell.Shell):
+class PExpectShell(BaseShell):
 
     def __init__(self):
-        blocking_shell.Shell.__init__(self)  # Calling parent class to do its init part
+        BaseShell.__init__(self)  # Calling parent class to do its init part
         self.connection = None
         self.options = None
+        self.session = get_scoped_session()
         self.command_time_offset = "PExpectCommand"
 
     def check_conn(self, abort_message):
-        """Check the connection is alive or not
+        """Check the connection is alive or notp
 
         :param abort_message: Abort message to print
         :type abort_message: `str`
@@ -32,7 +33,7 @@ class PExpectShell(blocking_shell.Shell):
         :rtype: `bool`
         """
         if not self.connection:
-            logging.warn("ERROR - Communication channel closed - %s" % abort_message)
+            logging.warn("ERROR - Communication channel closed - %s", abort_message)
             return False
         return True
 
@@ -51,7 +52,7 @@ class PExpectShell(blocking_shell.Shell):
             output = self.connection.after
             if output is None:
                 output = ""
-            print(output)  # Show progress on screen
+            logging.info(output)  # Show progress on screen
         except pexpect.EOF:
             logging.warn("ERROR: read - The Communication channel is down!")
             return output  # End of communication channel
@@ -66,9 +67,9 @@ class PExpectShell(blocking_shell.Shell):
         :rtype: `str`
         """
         if "RHOST" in self.options and "RPORT" in self.options:  # Interactive shell on remote connection
-            return "%s:%s-%s" % (self.options["RHOST"], self.options["RPORT"], command)
+            return "{!s}:{!s}-{!s}".format(self.options["RHOST"], self.options["RPORT"], command)
         else:
-            return "Interactive - %s" % command
+            return "Interactive - {!s}".format(command)
 
     def run(self, command, plugin_info):
         """Run the interactive command
@@ -82,25 +83,25 @@ class PExpectShell(blocking_shell.Shell):
         """
         output = ""
         cancelled = False
-        if not self.check_conn("NOT RUNNING Interactive command: %s" % command):
+        if not self.check_conn("NOT RUNNING Interactive command: {!s}".format(command)):
             return output
         # TODO: tail to be configurable: \n for *nix, \r\n for win32
         log_cmd = self.format_cmd(command)
         cmd_info = self.start_cmd(log_cmd, log_cmd)
         try:
-            logging.info("Running Interactive command: %s" % command)
+            logging.info("Running Interactive command: %s", command)
             self.connection.sendline(command)
-            self.finish_cmd(cmd_info, cancelled, plugin_info)
+            self.finish_cmd(self.session, cmd_info, cancelled, plugin_info)
         except pexpect.EOF:
             cancelled = True
             logging.warn("ERROR: Run - The Communication Channel is down!")
-            self.finish_cmd(cmd_info, cancelled, plugin_info)
+            self.finish_cmd(self.session, cmd_info, cancelled, plugin_info)
         except KeyboardInterrupt:
             cancelled = True
-            self.finish_cmd(cmd_info, cancelled, plugin_info)
-            output += self.error_handler.user_abort("Command", output)  # Identify as Command Level abort
+            self.finish_cmd(self.session, cmd_info, cancelled, plugin_info)
+            output += user_abort("Command", output)  # Identify as Command Level abort
         if not cancelled:
-            self.finish_cmd(cmd_info, cancelled, plugin_info)
+            self.finish_cmd(self.session, cmd_info, cancelled, plugin_info)
         return output
 
     def expect(self, pattern, timeout=-1):
@@ -120,11 +121,11 @@ class PExpectShell(blocking_shell.Shell):
         except pexpect.EOF:
             logging.warn("ERROR: Expect - The Communication Channel is down!")
         except pexpect.TIMEOUT:
-            logging.warn("ERROR: Expect timeout threshold exceeded for pattern %s!" % pattern)
+            logging.warn("ERROR: Expect timeout threshold exceeded for pattern %s!", pattern)
             logging.info("Before:")
-            print(self.connection.after)
+            logging.info(self.connection.after)
             logging.info("After:")
-            print(self.connection.after)
+            logging.info(self.connection.after)
         return True
 
     def run_cmd_list(self, cmd_list, plugin_info):

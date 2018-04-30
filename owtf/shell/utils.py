@@ -1,7 +1,6 @@
 """
-owtf.shell.async_subprocess
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+owtf.shell.utils
+~~~~~~~~~~~~~~~~
 # Inspired from:
 # http://code.activestate.com/recipes/440554-module-to-allow-asynchronous-subprocess-use-on-win/
 """

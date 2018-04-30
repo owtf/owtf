@@ -6,19 +6,24 @@ The shell module allows running arbitrary shell commands and is critical
 to the framework in order to run third party tools. The interactive shell module allows non-blocking
 interaction with subprocesses running tools or remote connections (i.e. shells)
 """
-
 import logging
+import subprocess
 
-from owtf.shell import blocking_shell
-from owtf.shell.async_subprocess import *
+from owtf.db.session import get_scoped_session
+from owtf.shell.base import BaseShell
+from owtf.shell.utils import DisconnectException, recv_some, send_all, AsyncPopen
+from owtf.utils.error import user_abort
+
+__all__ = ["InteractiveBaseShell"]
 
 
-class InteractiveShell(blocking_shell.Shell):
+class InteractiveBaseShell(BaseShell):
 
     def __init__(self):
-        blocking_shell.Shell.__init__(self)  # Calling parent class to do its init part
+        BaseShell.__init__(self)  # Calling parent class to do its init part
         self.connection = None
         self.options = None
+        self.session = get_scoped_session()
         self.command_time_offset = "InteractiveCommand"
 
     def check_conn(self, abort_message):
@@ -30,7 +35,7 @@ class InteractiveShell(blocking_shell.Shell):
         :rtype: `bool`
         """
         if not self.connection:
-            logging.warn("ERROR - Communication channel closed - %s".format(AbortMessage))
+            logging.warn("ERROR - Communication channel closed - %s", abort_message)
             return False
         return True
 
@@ -50,7 +55,7 @@ class InteractiveShell(blocking_shell.Shell):
         except DisconnectException:
             logging.warn("ERROR: read - The Communication channel is down!")
             return output  # End of communication channel
-        print(output)  # Show progress on screen
+        logging.info(output)  # Show progress on screen
         return output
 
     def format_cmd(self, command):
@@ -62,9 +67,9 @@ class InteractiveShell(blocking_shell.Shell):
         :rtype: `str`
         """
         if "RHOST" in self.options and "RPORT" in self.options:  # Interactive shell on remote connection
-            return "%s:%s-%s" % (self.options["RHOST"], self.options["RPORT"], command)
+            return "{!s}:{!s}-{!s}".format(self.options["RHOST"], self.options["RPORT"], command)
         else:
-            return "Interactive - %s" % command
+            return "Interactive - {!s}".format(command)
 
     def run(self, command, plugin_info):
         """Format the command to be printed on console
@@ -76,26 +81,26 @@ class InteractiveShell(blocking_shell.Shell):
          """
         output = ""
         cancelled = False
-        if not self.check_conn("NOT RUNNING Interactive command: %s" % command):
+        if not self.check_conn("NOT RUNNING Interactive command: {!s}".format(command)):
             return output
         # TODO: tail to be configurable: \n for *nix, \r\n for win32
         log_cmd = self.format_cmd(command)
         cmd_info = self.start_cmd(log_cmd, log_cmd)
         try:
-            logging.info("Running Interactive command: %s" % command)
+            logging.info("Running Interactive command: %s", command)
             send_all(self.connection, command + "\n")
             output += self.read()
-            self.finish_cmd(cmd_info, cancelled, plugin_info)
+            self.finish_cmd(self.session, cmd_info, cancelled, plugin_info)
         except DisconnectException:
             cancelled = True
             logging.warn("ERROR: Run - The Communication Channel is down!")
-            self.finish_cmd(cmd_info, cancelled, plugin_info)
+            self.finish_cmd(self.session, cmd_info, cancelled, plugin_info)
         except KeyboardInterrupt:
             cancelled = True
-            self.finish_cmd(cmd_info, cancelled, plugin_info)
-            output += self.error_handler.user_abort("Command", output)  # Identify as Command Level abort
+            self.finish_cmd(self.session, cmd_info, cancelled, plugin_info)
+            output += user_abort("Command", output)  # Identify as Command Level abort
         if not cancelled:
-            self.finish_cmd(cmd_info, cancelled, plugin_info)
+            self.finish_cmd(self.session, cmd_info, cancelled, plugin_info)
         return output
 
     def run_cmd_list(self, cmd_list, plugin_info):
@@ -145,7 +150,7 @@ class InteractiveShell(blocking_shell.Shell):
         :return: None
         :rtype: None
         """
-        print("Close: %s" % str(self.options))
+        logging.info("Close: %s", str(self.options))
         if self.options["CommandsBeforeExit"]:
             logging.info("Running commands before closing Communication Channel..")
             self.run_cmd_list(

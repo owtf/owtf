@@ -22,7 +22,7 @@ from owtf.managers.config import config_handler
 from owtf.managers.target import target_manager
 from owtf.managers.url import add_url, get_urls_to_visit, import_urls
 from owtf.plugin.plugin_handler import plugin_handler
-from owtf.shell.blocking_shell import shell
+from owtf.shell.base import shell
 from owtf.utils.file import FileOperations
 from owtf.utils.strings import multi_replace
 from owtf.utils.timer import timer

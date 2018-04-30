@@ -10,7 +10,7 @@ import re
 from owtf.config import config_handler
 from owtf.db.session import get_scoped_session
 from owtf.managers.plugin import get_plugins_by_group
-from owtf.shell.blocking_shell import shell
+from owtf.shell.base import shell
 from owtf.utils.file import FileOperations
 
 __all__ = ["Scanner"]
