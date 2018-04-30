@@ -188,13 +188,13 @@ class Shell(object):
                 line = proc.stdout.readline()
                 if not line:
                     break
-                logging.info(line.strip())  # Show progress on the screen too!
-                output += line  # Save as much output as possible before a tool crashes! :)
+                logging.info(line.decode("utf-8").strip())  # Show progress on the screen too!
+                output += line.decode("utf-8")  # Save as much output as possible before a tool crashes! :)
         except KeyboardInterrupt:
             os.killpg(proc.pid, signal.SIGINT)
             out, err = proc.communicate()
-            logging.warn(out)
-            output += out
+            logging.warn(out.decode("utf-8"))
+            output += out.decode("utf-8")
             try:
                 os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # Plugin KIA (Killed in Action)
             except OSError:

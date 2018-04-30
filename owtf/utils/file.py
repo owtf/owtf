@@ -80,7 +80,7 @@ class FileOperations(object):
         save_path = os.path.join(directory, wipe_bad_chars(filename))
         FileOperations.create_missing_dirs(directory)
         with FileOperations.codecs_open(save_path, "w", "utf-8") as f:
-            f.write(contents.decode("utf-8", "replace"))
+            f.write(contents)
         return save_path
 
     @staticmethod
