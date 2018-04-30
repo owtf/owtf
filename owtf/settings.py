@@ -61,6 +61,8 @@ DEFAULT_API_VERSION = "v1"
 # Change this
 APP_SECRET = "changeme"
 
+SESSION_COOKIE_NAME = "owtf-session"
+
 # CORS settings. Fine grained, do not override if possible.
 SIMPLE_HEADERS = ["accept", "accept-language", "content-language"]
 ALLOWED_ORIGINS = ["http:/localhost:8009", "http://localhost:8010"]

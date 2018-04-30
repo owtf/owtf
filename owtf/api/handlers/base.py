@@ -4,12 +4,14 @@ owtf.api.handlers.base
 
 """
 import json
+import re
+import uuid
 
 from tornado.escape import url_escape
 from tornado.web import RequestHandler
 
 from owtf.lib.exceptions import APIError
-from owtf.settings import SERVER_PORT, FILE_SERVER_PORT, USE_SENTRY
+from owtf.settings import SERVER_PORT, FILE_SERVER_PORT, USE_SENTRY, SERVER_ADDR, SESSION_COOKIE_NAME
 
 # if Sentry raven library around, pull in SentryMixin
 try:
@@ -25,6 +27,9 @@ else:
         RequestHandler = SentryHandler
 
 __all__ = ["APIRequestHandler", "FileRedirectHandler", "UIRequestHandler"]
+
+# pattern for the authentication token header
+auth_header_pat = re.compile(r"^(?:token|bearer)\s+([^\s]+)$", flags=re.IGNORECASE)
 
 
 class APIRequestHandler(RequestHandler):
@@ -120,6 +125,14 @@ class APIRequestHandler(RequestHandler):
             )
             self.finish()
 
+    def get_auth_token(self):
+        """Get the authorization token from Authorization header"""
+        auth_header = self.request.headers.get("Authorization", "")
+        match = auth_header_pat.match(auth_header)
+        if not match:
+            return None
+        return match.group(1)
+
 
 class UIRequestHandler(RequestHandler):
 
@@ -127,6 +140,52 @@ class UIRequestHandler(RequestHandler):
         url = super(UIRequestHandler, self).reverse_url(name, *args)
         url = url.replace("?", "")
         return url.split("None")[0]
+
+    def _set_cookie(self, key, value, encrypted=True, **overrides):
+        """Setting any cookie should go through here
+        if encrypted use tornado's set_secure_cookie,
+        otherwise set plaintext cookies.
+        """
+        # tornado <4.2 have a bug that consider secure==True as soon as
+        # 'secure' kwarg is passed to set_secure_cookie
+        kwargs = {"httponly": True}
+        if self.request.protocol == "https":
+            kwargs["secure"] = True
+        kwargs["domain"] = SERVER_ADDR
+        kwargs.update(overrides)
+
+        if encrypted:
+            set_cookie = self.set_secure_cookie
+        else:
+            set_cookie = self.set_cookie
+
+        self.application.log.debug("Setting cookie %s: %s", key, kwargs)
+        set_cookie(key, value, **kwargs)
+
+    def _set_user_cookie(self, user, server):
+        self.application.log.debug("Setting cookie for %s: %s", user.name, server.cookie_name)
+        self._set_cookie(server.cookie_name, user.cookie_id, encrypted=True, path=server.base_url)
+
+    def get_session_cookie(self):
+        """Get the session id from a cookie
+        Returns None if no session id is stored
+        """
+        return self.get_cookie(SESSION_COOKIE_NAME, None)
+
+    def set_session_cookie(self):
+        """Set a new session id cookie
+        new session id is returned
+        Session id cookie is *not* encrypted,
+        so other services on this domain can read it.
+        """
+        session_id = uuid.uuid4().hex
+        self._set_cookie(SESSION_COOKIE_NAME, session_id, encrypted=False)
+        return session_id
+
+    @property
+    def template_context(self):
+        user = self.get_current_user()
+        return dict(user=user)
 
 
 class FileRedirectHandler(RequestHandler):
