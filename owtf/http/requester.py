@@ -241,7 +241,7 @@ class Requester(object):
             if isinstance(post, str) or isinstance(post, unicode):
                 # Must be a dictionary prior to urlencode.
                 post = str_to_dict(str(post))
-            post = urlencode(post)
+            post = urlencode(post).encode("utf-8")
         return post
 
     def perform_request(self, request):
