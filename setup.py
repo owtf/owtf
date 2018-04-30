@@ -45,8 +45,6 @@ for item in requirements:
 
 post_script = os.path.join(ROOT_DIR, "scripts/install.sh")
 
-dev_requires = ["pre-commit==1.8.2", "black==18.4a3"]
-
 tests_requires = ["PyHamcrest==1.9.0", "mock>=1.3.0"]
 
 docs_requires = ["sphinx", "sphinx_py3doc_enhanced_theme"]
@@ -91,11 +89,7 @@ setup(
     platforms="any",
     install_requires=sorted(requires, key=lambda s: s.split("==")[0].lower()),
     dependency_links=links,
-    extras_require={
-        "test": tests_requires + requires,
-        "docs": docs_requires,
-        "dev": requires + dev_requires + docs_requires + tests_requires,
-    },
+    extras_require={"docs": docs_requires, "test": tests_requires},
     cmdclass={"develop": PostDevelopCommand, "install": PostInstallCommand},
     scripts=["bin/owtf"],
     entry_points={
