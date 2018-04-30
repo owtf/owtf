@@ -4,8 +4,8 @@ owtf.settings
 
 It contains all the owtf global configs.
 """
-
 import os
+import re
 
 try:
     FileNotFoundError
@@ -31,13 +31,23 @@ if os.environ.get("DOCKER", None):
     DATABASE_IP = "db"
     DATABASE_PORT = 5342
 else:
-    with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
-        conf = yaml.load(f)
-        DATABASE_PASS = conf["password"]
-        DATABASE_NAME = conf["database_name"]
-        DATABASE_USER = conf["username"]
-        DATABASE_IP = conf["database_ip"]
-        DATABASE_PORT = int(conf["database_port"])
+    try:
+        with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
+            conf = yaml.load(f)
+            DATABASE_PASS = conf["password"]
+            DATABASE_NAME = conf["database_name"]
+            DATABASE_USER = conf["username"]
+            DATABASE_IP = conf["database_ip"]
+            DATABASE_PORT = int(conf["database_port"])
+    except FileNotFoundError:
+        # Dummy values for Sphinx docs
+        DATABASE_PASS = ""
+        DATABASE_NAME = ""
+        DATABASE_USER = ""
+        DATABASE_IP = ""
+        DATABASE_PORT = 5342
+        print("[debug] db.yaml not found. Maybe you are building some docs...")
+        pass
 
 # API and UI Server
 SERVER_ADDR = "0.0.0.0"
@@ -46,6 +56,16 @@ FILE_SERVER_PORT = 8010
 
 # Default API version
 DEFAULT_API_VERSION = "v1"
+
+# Application secret
+# Change this
+APP_SECRET = "changeme"
+
+# CORS settings. Fine grained, do not override if possible.
+SIMPLE_HEADERS = ["accept", "accept-language", "content-language"]
+ALLOWED_ORIGINS = ["http:/localhost:8009", "http://localhost:8010"]
+ALLOWED_METHODS = ["GET", "POST", "DELETE"]
+SEND_CREDENTIALS = False
 
 # ERROR reporting
 USE_SENTRY = False
@@ -79,7 +99,7 @@ LOGS_DIR = "logs"
 OWTF_LOG_FILE = "/tmp/owtf.log"
 
 # Interface static folders
-STATIC_ROOT = os.path.join(ROOT_DIR, "webapp", "build")
+TEMPLATES = os.path.join(ROOT_DIR, "webapp", "build")
 POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, "templates")
 STATIC_ROOT = os.path.join(ROOT_DIR, "webapp", "build")
 
@@ -113,8 +133,22 @@ PROXY_RESTRICTED_RESPONSE_HEADERS = [
 ]
 
 PROXY_RESTRICTED_REQUEST_HEADERS = ["Connection", "Pragma", "Cache-Control", "If-Modified-Since"]
-
 PROXY_LOG = "/tmp/owtf/proxy.log"
+
+# Define regex patterns
+REGEXP_FILE_URL = "^[^\?]+\.(xml|exe|pdf|cs|log|inc|dat|bak|conf|cnf|old|zip|7z|rar|tar|gz|bz2|txt|xls|xlsx|doc|docx|ppt|pptx)$"
+# Potentially small files will be retrieved for analysis
+REGEXP_SMALL_FILE_URL = "^[^\?]+\.(xml|cs|inc|dat|bak|conf|cnf|old|txt)$"
+REGEXP_IMAGE_URL = "^[^\?]+\.(jpg|jpeg|png|gif|bmp)$"
+REGEXP_VALID_URL = "^[^\?]+\.(shtml|shtm|stm)$"
+REGEXP_SSI_URL = "^(http|ftp)[^ ]+$"
+
+# Compile regular expressions once at the beginning for speed purposes:
+is_file_regex = re.compile(REGEXP_FILE_URL, re.IGNORECASE)
+is_small_file_regex = re.compile(REGEXP_SMALL_FILE_URL, re.IGNORECASE)
+is_image_regex = re.compile(REGEXP_IMAGE_URL, re.IGNORECASE)
+is_url_regex = re.compile(REGEXP_VALID_URL, re.IGNORECASE)
+is_ssi_regex = re.compile(REGEXP_SSI_URL, re.IGNORECASE)
 
 # UI
 SERVER_LOG = "/tmp/owtf/ui_server.log"

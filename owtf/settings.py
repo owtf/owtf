@@ -57,6 +57,10 @@ FILE_SERVER_PORT = 8010
 # Default API version
 DEFAULT_API_VERSION = "v1"
 
+# Application secret
+# Change this
+APP_SECRET = "changeme"
+
 # CORS settings. Fine grained, do not override if possible.
 SIMPLE_HEADERS = ["accept", "accept-language", "content-language"]
 ALLOWED_ORIGINS = ["http:/localhost:8009", "http://localhost:8010"]

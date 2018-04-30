@@ -36,6 +36,9 @@ class APIRequestHandler(RequestHandler):
         self.session = self.application.session
         self.set_header("Content-Type", "application/json")
 
+    def on_finish(self):
+        self.session.close()
+
     def write(self, chunk):
         if isinstance(chunk, list):
             super(APIRequestHandler, self).write(json.dumps(chunk))
