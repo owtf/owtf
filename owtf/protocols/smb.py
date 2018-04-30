@@ -10,17 +10,17 @@ import logging
 import os
 
 from owtf.db.session import get_scoped_session
-from owtf.shell import pexpect_shell
+from owtf.shell import pexpect_sh
 from owtf.utils.file import FileOperations
 
 __all__ = ["smb"]
 
 
-class SMB(pexpect_shell.PExpectShell):
+class SMB(pexpect_sh.PExpectShell):
 
     def __init__(self):
         # Calling parent class to do its init part.
-        pexpect_shell.PExpectShell.__init__(self)
+        pexpect_sh.PExpectShell.__init__(self)
         self.session = get_scoped_session()
         self.command_time_offset = "SMBCommand"
         self.mounted = False
