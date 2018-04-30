@@ -1,14 +1,40 @@
 #!/usr/bin/env python
-from __future__ import print_function
 
-import BaseHTTPServer
+try:
+    import http.server as server
+except ImportError:
+    import BaseHTTPServer as server
 import getopt
 import re
 import sys
-import urllib
-import urllib2
-from urllib2 import HTTPError, Request, URLError, urlopen
 
+try:
+    from urllib.parse import urlparse, urlencode
+    from urllib.request import urlopen, Request
+    from urllib.error import HTTPError, URLError
+    from urllib.request import (
+        HTTPHandler,
+        HTTPSHandler,
+        HTTPRedirectHandler,
+        ProxyHandler,
+        build_opener,
+        install_opener,
+    )
+except ImportError:
+    from urlparse import urlparse
+    from urllib import urlencode
+    from urllib2 import (
+        urlopen,
+        Request,
+        HTTPError,
+        HTTPHandler,
+        HTTPSHandler,
+        HTTPRedirectHandler,
+        ProxyHandler,
+        build_opener,
+        install_opener,
+        URLError,
+    )
 ################## HEADER ###################################
 
 #
@@ -219,7 +245,7 @@ def debug_and_parse(data):
         zprint(str(body), "DEBUG BODY")
 
     # Extract some intersting info
-    codes = BaseHTTPServer.BaseHTTPRequestHandler.responses
+    codes = server.BaseHTTPRequestHandler.responses
     global_data["StatusCode"][hop] = str(data.code) + " " + codes[data.code][0]
     analyse_headers(headers)
     analyse_body(body)
@@ -240,7 +266,7 @@ zprint("Max number of hops : " + str(max_fwds))
 for hop in range(0, max_fwds):
 
     # Create the request object
-    request = urllib2.Request(url)
+    request = urllib.request.Request(url)
     request.get_method = lambda: method
     request.add_data(body_content)
     request.add_header("Content-Type", contentType)
@@ -255,7 +281,7 @@ for hop in range(0, max_fwds):
 
     try:
         # Do the HTTP request
-        opener = urllib2.build_opener(urllib2.HTTPHandler)
+        opener = urllib.request.build_opener(urllib.request.HTTPHandler)
         result = opener.open(request)
 
         # Found something
@@ -293,7 +319,7 @@ zprint("Heuristic Report [" + "-" * 31 + "]", "-" * 27)
 print("-" * 80)
 
 # For each key
-for k in global_data.keys():
+for k in list(global_data.keys()):
     string = k + ":\n"
     previous = "Undef"
     # For each hop

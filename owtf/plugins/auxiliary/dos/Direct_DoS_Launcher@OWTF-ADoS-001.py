@@ -1,6 +1,6 @@
 from owtf.config import config_handler
 from owtf.plugin.plugin_helper import plugin_helper
-from owtf.plugin.plugin_params import plugin_params
+from owtf.plugin.params import plugin_params
 
 DESCRIPTION = "Denial of Service (DoS) Launcher -i.e. for IDS/DoS testing-"
 CATEGORIES = [

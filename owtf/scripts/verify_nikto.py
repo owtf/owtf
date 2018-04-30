@@ -3,7 +3,6 @@
 Tries to put links around nikto findings to save a bit of time in manual verification
 This files actually converts target urls & OSVDB codes into clickable links
 """
-
 import re
 import sys
 
@@ -38,12 +37,12 @@ for match in url_regexp.findall(nikto_output):
     url = top_url + match
     if url not in link_list:
         link_list.append(url)
-    nikto_output = nikto_output.replace(match, link_template.generate(link=url, text=match))
+    nikto_output = nikto_output.replace(match, link_template.generate(link=url, text=match).decode("utf-8"))
 
 for match in osvdb_regexp.findall(nikto_output):
     osvdb_id = match.split("-")[1]
     osvdb_url = "http://osvdb.org/show/osvdb/" + osvdb_id
-    nikto_output = nikto_output.replace(match, link_template.generate(link=osvdb_url, text=match))
+    nikto_output = nikto_output.replace(match, link_template.generate(link=osvdb_url, text=match).decode("utf-8"))
     if osvdb_url not in link_list:
         link_list.append(osvdb_url)
 

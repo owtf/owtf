@@ -6,9 +6,6 @@ owtf.managers.target
 import logging
 import os
 
-from owtf.models.session import Session
-from owtf.models.target import Target
-
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -21,8 +18,10 @@ from owtf.lib.exceptions import (
     InvalidTargetReference,
     UnresolvableTargetException,
 )
+from owtf.models.session import Session
+from owtf.models.target import Target
 from owtf.managers.session import add_target_to_session, session_required
-from owtf.plugin.plugin_params import plugin_params
+from owtf.plugin.params import plugin_params
 from owtf.settings import OUTPUT_PATH
 from owtf.utils.file import cleanup_target_dirs, create_output_dir_target, get_target_dir
 from owtf.utils.ip import get_ip_from_hostname, get_ips_from_hostname

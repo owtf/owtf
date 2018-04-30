@@ -56,7 +56,7 @@ from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.process import _signal_process
 from owtf.utils.signals import workers_finish, owtf_start
 
-__all__ = ["get_plugins_from_arg", "process_options", "initialise_framework", "finish", "main"]
+__all__ = ["finish", "main"]
 
 # Store parent PID for clean exit
 owtf_pid = None

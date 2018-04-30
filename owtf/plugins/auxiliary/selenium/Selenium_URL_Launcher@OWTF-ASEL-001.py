@@ -1,7 +1,7 @@
 import logging
 
 from owtf.config import config_handler
-from owtf.plugin.plugin_params import plugin_params
+from owtf.plugin.params import plugin_params
 
 DESCRIPTION = "Sends a bunch of URLs through selenium"
 CATEGORIES = ["RCE", "SQLI", "XSS", "CHARSET"]

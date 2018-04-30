@@ -1,6 +1,6 @@
 """
-owtf.plugin.plugin_params
-~~~~~~~~~~~~~~~~~~~~~~~~~
+owtf.plugin.params
+~~~~~~~~~~~~~~~~~~
 
 Manage parameters to the plugins
 """
@@ -231,7 +231,7 @@ class PluginParams(object):
         :return: True if run successful
         :rtype: `bool`
         """
-        if ("Mandatory" not in full_args_list) or ("Optional" not in full_args_list):
+        if "Mandatory" not in full_args_list or "Optional" not in full_args_list:
             Error.add_error(
                 self.session,
                 "OWTF PLUGIN BUG: {!s} requires declared Mandatory and Optional arguments".format(
@@ -312,13 +312,13 @@ class PluginParams(object):
         :return: None
         :rtype: None
         """
-        for i in range(0, len(permutation_list)):
+        for index, permutation in enumerate(permutation_list):
             count = 0
             for perm in permutations:
-                perm_args = permutation_list[i].copy()  # 1st copy by value original arguments
+                perm_args = permutation_list[index].copy()  # 1st copy by value original arguments
                 perm_args[arg_name] = perm  # 2nd override argument with permutation
                 if count == 0:  # Modify 1st existing record with permutation
-                    permutation_list[i] = perm_args
+                    permutation_list[index] = perm_args
                 else:
                     # 3rd store each subsequent permutation as a different set of args
                     permutation_list.append(perm_args)

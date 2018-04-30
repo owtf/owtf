@@ -1,5 +1,5 @@
 from owtf.config import config_handler
-from owtf.plugin.plugin_params import plugin_params
+from owtf.plugin.params import plugin_params
 from owtf.protocols.smb import SMB
 
 DESCRIPTION = "Mounts and/or uploads/downloads files to an SMB share -i.e. for IDS testing-"
