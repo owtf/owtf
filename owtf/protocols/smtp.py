@@ -11,7 +11,6 @@ import logging
 import os
 import smtplib
 
-from owtf.models.error import Error
 from owtf.utils.file import FileOperations, get_file_as_list
 
 __all__ = ["smtp"]
@@ -33,7 +32,7 @@ class SMTP(object):
             mail_server = self.create_connection_with_mail_server(options)
             mail_server.ehlo()
         except Exception:
-            self.pprint("Error connecting to %s on port %s" % (options["SMTP_HOST"], options["SMTP_PORT"]))
+            self.pprint("Error connecting to {!s} on port {!s}".format(options["SMTP_HOST"], options["SMTP_PORT"]))
             return None
         try:
             mail_server.starttls()  # Give start TLS a shot
@@ -65,16 +64,16 @@ class SMTP(object):
             target = target.strip()
             if not target:
                 continue  # Skip blank lines!
-            self.pprint("Sending email for target: " + target)
+            self.pprint("Sending email for target: {!s}".format(target))
             try:
                 message = self.build_message(options, target)
                 mail_server = self.connect(options)
                 if mail_server is None:
-                    raise Exception("error connecting to %s" % str(target))
+                    raise Exception("Error connecting to {}".format(str(target)))
                 mail_server.sendmail(options["SMTP_LOGIN"], target, message.as_string())
                 self.pprint("Email relay successful!")
             except Exception as e:
-                Error.add_error("Error delivering email: %s" % str(e), "")
+                logging.error("Error delivering email: %s", str(e))
                 num_errors += 1
         return num_errors == 0
 
