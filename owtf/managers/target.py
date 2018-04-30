@@ -18,6 +18,7 @@ from owtf.lib.exceptions import (
     InvalidTargetReference,
     UnresolvableTargetException,
 )
+from owtf.models.command import Command
 from owtf.models.session import Session
 from owtf.models.target import Target
 from owtf.managers.session import add_target_to_session, session_required
@@ -65,6 +66,34 @@ def target_required(func):
         return func(*args, **kwargs)
 
     return wrapped_function
+
+
+@target_required
+def command_already_registered(session, original_command, target_id=None):
+    """Checks if the command has already been registered
+    :param original_command: Original command to check
+    :type original_command: `dict`
+    :param target_id: Target ID
+    :type target_id: `int`
+    :return: None
+    :rtype: None
+    """
+    from owtf.managers.poutput import plugin_output_exists
+
+    register_entry = session.query(Command).get(original_command)
+    if register_entry:
+        # If the command was completed and the plugin output to which it
+        # is referring exists
+        if register_entry.success:
+            if plugin_output_exists(session, register_entry.plugin_key, register_entry.target_id):
+                return get_target_url_for_id(session, register_entry.target_id)
+            else:
+                Command.delete_cmd(session, original_command)
+                return None
+        else:  # Command failed
+            Command.delete_cmd(session, original_command)
+            return get_target_url_for_id(session, register_entry.target_id)
+    return None
 
 
 class TargetManager(object):

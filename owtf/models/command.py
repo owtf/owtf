@@ -7,6 +7,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from owtf.db.model_base import Model
+from owtf.db.session import flush_transaction
 
 
 class Command(Model):
@@ -23,3 +24,25 @@ class Command(Model):
     @hybrid_property
     def run_time(self):
         return self.end_time - self.start_time
+
+    @classmethod
+    def add_cmd(cls, session, command):
+        """Adds a command to the DB"""
+        cmd = cls(
+            start_time=command["Start"],
+            end_time=command["End"],
+            success=command["Success"],
+            target_id=command["Target"],
+            plugin_key=command["PluginKey"],
+            modified_command=command["ModifiedCommand"].strip(),
+            original_command=command["OriginalCommand"].strip(),
+        )
+        session.add(cmd)
+        session.commit()
+
+    @classmethod
+    def delete_cmd(cls, session, command):
+        """Delete the command from the DB"""
+        command_obj = session.query(Command).get(command)
+        session.delete(command_obj)
+        session.commit()

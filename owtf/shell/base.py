@@ -12,8 +12,8 @@ from collections import defaultdict
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from owtf.managers.command_register import add_command, command_already_registered
-from owtf.managers.target import target_manager
+from owtf.managers.target import target_manager, command_already_registered
+from owtf.models.command import Command
 from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, USER_AGENT
 from owtf.utils.error import user_abort
 from owtf.utils.strings import multi_replace_dict, scrub_output
@@ -82,7 +82,7 @@ class BaseShell(object):
         cmd_info["RunTime"] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
         cmd_info["Target"] = target_manager.get_target_id()
         cmd_info["PluginKey"] = plugin_info["key"]
-        add_command(session=session, command=cmd_info)
+        Command.add_cmd(session=session, command=cmd_info)
 
     def escape_shell_path(self, text):
         """Escape shell path characters in the text
