@@ -292,14 +292,6 @@ class PluginHandler(object):
             )
         return chosen
 
-    def force_overwrite(self):
-        """Force overwrite default config
-
-        :return:
-        :rtype:
-        """
-        return FORCE_OVERWRITE
-
     def can_plugin_run(self, session, plugin, show_reason=False):
         """Verify that a plugin can be run by OWTF.
 

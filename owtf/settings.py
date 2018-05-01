@@ -173,7 +173,6 @@ REPLACEMENT_DELIMITER = "@@@"
 REPLACEMENT_DELIMITER_LENGTH = len(REPLACEMENT_DELIMITER)
 CONFIG_TYPES = ["string", "other"]
 
-FORCE_OVERWRITE = True
 USER_AGENT = "Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0"
 PROXY_CHECK_URL = "http://www.google.ie"
 
