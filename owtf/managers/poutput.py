@@ -46,22 +46,6 @@ def plugin_count_output(session):
     return results
 
 
-def get_html_output(plugin_output):
-    """Get html output
-
-    :param plugin_output: Plugin output
-    :type plugin_output: `list`
-    :return: HTML string
-    :rtype: `str`
-    """
-    from owtf.api.reporter import reporter
-
-    content = ""
-    for item in plugin_output:
-        content += getattr(reporter, item["type"])(**item["output"])
-    return content
-
-
 @target_required
 def get_plugin_output_dict(obj, target_id=None, inc_output=False):
     """Gets plugin outputs as dict
@@ -84,7 +68,7 @@ def get_plugin_output_dict(obj, target_id=None, inc_output=False):
         # If output is present, json decode it
         if inc_output:
             if pdict.get("output", None):
-                pdict["output"] = get_html_output(json.loads(pdict["output"]))
+                pdict["output"] = json.loads(pdict["output"])
         else:
             pdict.pop("output")
         pdict["start_time"] = obj.start_time.strftime(DATE_TIME_FORMAT)

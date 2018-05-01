@@ -14,7 +14,6 @@ import re
 
 from tornado.template import Template
 
-from owtf.api.reporter import reporter
 from owtf.db.session import get_scoped_session
 from owtf.http.requester import requester
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
@@ -38,7 +37,6 @@ class PluginHelper(object):
 
     def __init__(self):
         self.plugin_handler = plugin_handler
-        self.reporter = reporter
         self.requester = requester
         self.shell = shell
         self.timer = timer
@@ -112,7 +110,7 @@ class PluginHelper(object):
                 Transaction = self.requester.get_transaction(True, URL, Method, POST)
                 if Transaction is not None and Transaction.found:
                     RawHTML = Transaction.get_raw_response_body
-                    FilteredHTML = self.reporter.sanitize_html(RawHTML)
+                    FilteredHTML = cgi.escape(RawHTML)
                     NotSandboxedPath = self.plugin_handler.dump_output_file(
                         "NOT_SANDBOXED_%s.html" % Name, FilteredHTML, PluginInfo
                     )
