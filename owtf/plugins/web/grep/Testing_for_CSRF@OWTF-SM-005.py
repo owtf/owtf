@@ -3,7 +3,7 @@ GREP Plugin for Testing for CSRF (OWASP-SM-005)
 https://www.owasp.org/index.php/Testing_for_CSRF_%28OWASP-SM-005%29
 NOTE: GREP plugins do NOT send traffic to the target and only grep the HTTP Transaction Log
 """
-from owtf.plugin.plugin_helper import plugin_helper
+from owtf.plugin.helper import plugin_helper
 
 DESCRIPTION = "Searches transaction DB for CSRF protections"
 

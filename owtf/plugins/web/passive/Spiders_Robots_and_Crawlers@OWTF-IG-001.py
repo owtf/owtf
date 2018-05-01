@@ -5,7 +5,7 @@ import logging
 
 from owtf.http.requester import requester
 from owtf.managers.resource import get_resources
-from owtf.plugin.plugin_helper import plugin_helper
+from owtf.plugin.helper import plugin_helper
 
 DESCRIPTION = "robots.txt analysis through third party sites"
 

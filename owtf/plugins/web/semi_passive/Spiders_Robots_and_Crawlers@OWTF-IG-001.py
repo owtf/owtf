@@ -6,7 +6,7 @@ import logging
 
 from owtf.http.requester import requester
 from owtf.managers.target import target_manager
-from owtf.plugin.plugin_helper import plugin_helper
+from owtf.plugin.helper import plugin_helper
 
 DESCRIPTION = "Normal request for robots.txt analysis"
 

@@ -2,7 +2,7 @@
 PASSIVE Plugin for Search engine discovery/reconnaissance (OWASP-IG-002)
 """
 from owtf.managers.resource import get_resources
-from owtf.plugin.plugin_helper import plugin_helper
+from owtf.plugin.helper import plugin_helper
 
 DESCRIPTION = "General Google Hacking/Email harvesting, etc"
 ATTR = {"INTERNET_RESOURCES": True}

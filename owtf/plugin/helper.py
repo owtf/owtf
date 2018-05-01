@@ -1,6 +1,6 @@
 """
-owtf.plugin.plugin_helper
-~~~~~~~~~~~~~~~~~~~~~~~~~
+owtf.plugin.helper
+~~~~~~~~~~~~~~~~~~
 
 This module contains helper functions to make plugins simpler to read and write,
 centralising common functionality easy to reuse
@@ -20,7 +20,7 @@ from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
 from owtf.managers.config import config_handler
 from owtf.managers.target import target_manager
 from owtf.managers.url import add_url, get_urls_to_visit, import_urls
-from owtf.plugin.plugin_handler import plugin_handler
+from owtf.plugin.runner import runner
 from owtf.shell.base import shell
 from owtf.utils.file import FileOperations
 from owtf.utils.strings import multi_replace
@@ -36,7 +36,7 @@ class PluginHelper(object):
     mNumLinesToShow = 25
 
     def __init__(self):
-        self.plugin_handler = plugin_handler
+        self.runner = runner
         self.requester = requester
         self.shell = shell
         self.timer = timer
@@ -111,7 +111,7 @@ class PluginHelper(object):
                 if Transaction is not None and Transaction.found:
                     RawHTML = Transaction.get_raw_response_body
                     FilteredHTML = cgi.escape(RawHTML)
-                    NotSandboxedPath = self.plugin_handler.dump_output_file(
+                    NotSandboxedPath = self.runner.dump_output_file(
                         "NOT_SANDBOXED_%s.html" % Name, FilteredHTML, PluginInfo
                     )
                     logging.info("File: NOT_SANDBOXED_%s.html saved to: %s", Name, NotSandboxedPath)
@@ -124,7 +124,7 @@ class PluginHelper(object):
                         """
                     )
                     iframe = iframe_template.generate(NotSandboxedPath=NotSandboxedPath.split("/")[-1])
-                    SandboxedPath = self.plugin_handler.dump_output_file("SANDBOXED_%s.html" % Name, iframe, PluginInfo)
+                    SandboxedPath = self.runner.dump_output_file("SANDBOXED_%s.html" % Name, iframe, PluginInfo)
                     logging.info("File: SANDBOXED_%s.html saved to: %s", Name, SandboxedPath)
                     link_list.append((Name, SandboxedPath))
         plugin_output = dict(PLUGIN_OUTPUT)
@@ -148,9 +148,9 @@ class PluginHelper(object):
         return ([plugin_output])
 
     def SetConfigPluginOutputDir(self, PluginInfo):
-        PluginOutputDir = self.plugin_handler.get_plugin_output_dir(PluginInfo)
+        PluginOutputDir = self.runner.get_plugin_output_dir(PluginInfo)
         # FULL output path for plugins to use
-        target_manager.set_path("plugin_output_dir", "%s/%s" % (os.getcwd(), PluginOutputDir))
+        target_manager.set_path("plugin_output_dir", "{}/{}".format(os.getcwd(), PluginOutputDir))
         self.shell.refresh_replacements()  # Get dynamic replacement, i.e. plugin-specific output directory
         return PluginOutputDir
 
@@ -207,7 +207,7 @@ class PluginHelper(object):
                 "Name": self.GetCommandOutputFileNameAndExtension(Name)[0],
                 "CommandIntro": CommandIntro,
                 "ModifiedCommand": ModifiedCommand,
-                "RelativeFilePath": self.plugin_handler.dump_output_file(
+                "RelativeFilePath": self.runner.dump_output_file(
                     dump_file_name, RawOutput, PluginInfo, relative_path=True
                 ),
                 "OutputIntro": OutputIntro,
@@ -247,7 +247,7 @@ class PluginHelper(object):
         return [plugin_output]
 
     def DumpFile(self, Filename, Contents, PluginInfo, LinkName=""):
-        save_path = self.plugin_handler.dump_output_file(Filename, Contents, PluginInfo)
+        save_path = self.runner.dump_output_file(Filename, Contents, PluginInfo)
         if not LinkName:
             LinkName = save_path
         logging.info("File: %s saved to: %s", Filename, save_path)
@@ -294,7 +294,7 @@ class PluginHelper(object):
         num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = self.AnalyseRobotsEntries(
             Contents
         )
-        SavePath = self.plugin_handler.dump_output_file(Filename, Contents, PluginInfo, True)
+        SavePath = self.runner.dump_output_file(Filename, Contents, PluginInfo, True)
         TopURL = target_manager.get_val("top_url")
         EntriesList = []
         # robots.txt contains some entries, show browsable list! :)

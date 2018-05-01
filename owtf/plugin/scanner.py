@@ -10,17 +10,18 @@ import re
 from owtf.config import config_handler
 from owtf.db.session import get_scoped_session
 from owtf.managers.plugin import get_plugins_by_group
+from owtf.settings import NET_SCANS_PATH
 from owtf.shell.base import shell
 from owtf.utils.file import FileOperations
 
 __all__ = ["Scanner"]
 
-SCANS_FOLDER = "scans"  # Folder under which all scans will be saved
-PING_SWEEP_FILE = "{}/00_ping_sweep".format(SCANS_FOLDER)
-DNS_INFO_FILE = "{}/01_dns_info".format(SCANS_FOLDER)
-FAST_SCAN_FILE = "{}/02_fast_scan".format(SCANS_FOLDER)
-STD_SCAN_FILE = "{}/03_std_scan".format(SCANS_FOLDER)
-FULL_SCAN_FILE = "{}/04_full_scan".format(SCANS_FOLDER)
+# Folder under which all scans will be saved
+PING_SWEEP_FILE = "{}/00_ping_sweep".format(NET_SCANS_PATH)
+DNS_INFO_FILE = "{}/01_dns_info".format(NET_SCANS_PATH)
+FAST_SCAN_FILE = "{}/02_fast_scan".format(NET_SCANS_PATH)
+STD_SCAN_FILE = "{}/03_std_scan".format(NET_SCANS_PATH)
+FULL_SCAN_FILE = "{}/04_full_scan".format(NET_SCANS_PATH)
 
 
 class Scanner(object):
@@ -28,7 +29,8 @@ class Scanner(object):
     def __init__(self):
         self.shell = shell
         self.session = get_scoped_session()
-        self.shell.shell_exec("mkdir {}".format(SCANS_FOLDER))
+        # Create the missing scans folder inside the owtf_review directory.
+        FileOperations.create_missing_dirs(NET_SCANS_PATH)
 
     def ping_sweep(self, target, scantype):
         """Do a ping sweep

@@ -82,6 +82,7 @@ PLUGINS_DIR = os.path.join(ROOT_DIR, "plugins")
 # Output Settings
 OUTPUT_PATH = "owtf_review"
 AUX_OUTPUT_PATH = "owtf_review/auxiliary"
+NET_SCANS_PATH = "owtf_review/scans"
 
 # The name of the directories relative to output path
 TARGETS_DIR = "targets"
@@ -102,7 +103,6 @@ OWTF_LOG_FILE = "/tmp/owtf.log"
 
 # Interface static folders
 TEMPLATES = os.path.join(ROOT_DIR, "webapp", "build")
-POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, "templates")
 STATIC_ROOT = os.path.join(ROOT_DIR, "webapp", "build")
 
 # SMTP

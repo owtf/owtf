@@ -3,7 +3,7 @@ PASSIVE Plugin for Testing for Error Code (OWASP-IG-006)
 https://www.owasp.org/index.php/Testing_for_Error_Code_%28OWASP-IG-006%29
 """
 from owtf.managers.resource import get_resources
-from owtf.plugin.plugin_helper import plugin_helper
+from owtf.plugin.helper import plugin_helper
 
 DESCRIPTION = "Google Hacking for Error codes"
 

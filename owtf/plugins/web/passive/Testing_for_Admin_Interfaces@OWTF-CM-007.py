@@ -3,7 +3,7 @@ PASSIVE Plugin for Testing for Admin Interfaces (OWASP-CM-007)
 https://www.owasp.org/index.php/Testing_for_Admin_Interfaces_%28OWASP-CM-007%29
 """
 from owtf.managers.resource import get_resources
-from owtf.plugin.plugin_helper import plugin_helper
+from owtf.plugin.helper import plugin_helper
 
 DESCRIPTION = "Google Hacking for Admin interfaces"
 

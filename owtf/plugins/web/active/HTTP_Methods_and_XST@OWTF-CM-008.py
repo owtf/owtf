@@ -3,7 +3,7 @@ ACTIVE Plugin for Testing for HTTP Methods and XST (OWASP-CM-008)
 """
 from owtf.managers.resource import get_resources
 from owtf.managers.target import target_manager
-from owtf.plugin.plugin_helper import plugin_helper
+from owtf.plugin.helper import plugin_helper
 
 DESCRIPTION = "Active probing for HTTP methods"
 

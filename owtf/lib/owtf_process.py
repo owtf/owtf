@@ -8,7 +8,7 @@ from multiprocessing import Process, Queue
 
 from owtf.db.session import get_scoped_session
 from owtf.utils.error import setup_signal_handlers
-from owtf.plugin.plugin_handler import plugin_handler
+from owtf.plugin.runner import runner
 from owtf.utils.logger import OWTFLogger
 
 __all__ = ["OWTFProcess"]
@@ -28,7 +28,7 @@ class OWTFProcess(Process):
         self.poison_q = Queue()
         self._process = None
         self.session = get_scoped_session()
-        self.plugin_handler = plugin_handler
+        self.plugin_handler = runner
         self.logger = OWTFLogger()
         setup_signal_handlers()
         for key in list(kwargs.keys()):  # Attach all kwargs to self

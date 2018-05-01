@@ -45,7 +45,7 @@ from owtf.http import transaction
 from owtf.managers.target import is_url_in_scope
 from owtf.managers.transaction import get_first, is_transaction_already_added
 from owtf.managers.url import is_url
-from owtf.plugin.plugin_handler import plugin_handler
+from owtf.plugin.runner import runner
 from owtf.settings import PROXY_CHECK_URL, USER_AGENT, INBOUND_PROXY_IP, INBOUND_PROXY_PORT
 from owtf.utils.http import derive_http_method
 from owtf.utils.strings import str_to_dict
@@ -156,7 +156,7 @@ class Requester(object):
         :return: True if yes, else False
         :rtype: `bool`
         """
-        return plugin_handler.requests_possible()
+        return runner.requests_possible()
 
     def proxy_check(self):
         """Checks if the target URL can be accessed through proxy

@@ -2,7 +2,7 @@
 GREP Plugin for Spiders,Crawlers and Robots
 NOTE: GREP plugins do NOT send traffic to the target and only grep the HTTP Transaction Log
 """
-from owtf.plugin.plugin_helper import plugin_helper
+from owtf.plugin.helper import plugin_helper
 
 DESCRIPTION = "Searches transaction DB for Robots meta tag and X-Robots-Tag HTTP header"
 

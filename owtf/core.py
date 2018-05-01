@@ -28,7 +28,7 @@ from owtf.managers.session import _ensure_default_session
 from owtf.managers.target import load_targets
 from owtf.managers.worklist import load_works
 from owtf.models.plugin import Plugin
-from owtf.plugin.plugin_handler import show_plugin_list
+from owtf.plugin.runner import show_plugin_list
 from owtf.proxy.main import start_proxy
 from owtf.settings import (
     AUX_TEST_GROUPS,

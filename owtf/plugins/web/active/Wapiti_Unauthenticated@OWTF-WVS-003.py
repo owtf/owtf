@@ -3,7 +3,7 @@ ACTIVE Plugin for Generic Unauthenticated Web App Fuzzing via Wapiti
 This will perform a "low-hanging-fruit" pass on the web app for easy to find (tool-findable) vulns
 """
 from owtf.managers.resource import get_resources
-from owtf.plugin.plugin_helper import plugin_helper
+from owtf.plugin.helper import plugin_helper
 
 DESCRIPTION = "Active Vulnerability Scanning without credentials via Wapiti"
 

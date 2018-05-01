@@ -2,7 +2,7 @@
 PASSIVE Plugin for Testing: WS Information Gathering (OWASP-WS-001)
 """
 from owtf.managers.resource import get_resources
-from owtf.plugin.plugin_helper import plugin_helper
+from owtf.plugin.helper import plugin_helper
 
 DESCRIPTION = "Google Hacking/Third party sites for Web Services"
 

@@ -140,9 +140,8 @@ class BaseShell(object):
         :return:
         :rtype:
         """
-        # Add proxy settings to environment variables so that tools can pick it up
-        # TODO: Uncomment the following lines, when testing has been ensured for using environment variables for
-        # proxification, because these variables are set for every command that is run
+        # Add proxy settings to environment variables so that tools can pick it up proxification, because these
+        #  variables are set for every command that is run
         # http://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612)
         proc = subprocess.Popen(
             command,
@@ -172,14 +171,10 @@ class BaseShell(object):
             return message
         logging.info("")
         logging.info("Executing :\n\n%s\n\n", command)
-        logging.info("")
         logging.info("------> Execution Start Date/Time: %s", self.timer.get_start_date_time_as_str("Command"))
         logging.info("")
         output = ""
         cancelled = False
-
-        # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-
-        # in-a-separate-process-in-a-wxpyt
         proc = None
         try:
             proc = self.create_subprocess(command)

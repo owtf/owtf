@@ -23,7 +23,7 @@ from owtf.lib.owtf_process import OWTFProcess
 from owtf.models.error import Error
 from owtf.managers.worklist import get_work_for_target
 from owtf.managers.target import target_manager
-from owtf.plugin.plugin_handler import plugin_handler
+from owtf.plugin.runner import runner
 from owtf.settings import MIN_RAM_NEEDED, PROCESS_PER_CORE
 from owtf.utils.error import abort_framework
 from owtf.utils.process import check_pid, _signal_process
@@ -57,10 +57,10 @@ class Worker(OWTFProcess):
                     logging.info("No work")
                     sys.exit(0)
                 target, plugin = work
-                plugin_dir = plugin_handler.get_plugin_group_dir(plugin["group"])
+                plugin_dir = runner.get_plugin_group_dir(plugin["group"])
                 # Set the target specific thing here
                 target_manager.set_target(target["id"])
-                plugin_handler.process_plugin(session=self.session, plugin_dir=plugin_dir, plugin=plugin)
+                runner.process_plugin(session=self.session, plugin_dir=plugin_dir, plugin=plugin)
                 self.output_q.put("done")
             except queue.Empty:
                 pass

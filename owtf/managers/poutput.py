@@ -260,7 +260,7 @@ def save_plugin_output(session, plugin, output, target_id=None):
     :return: None
     :rtype: None
     """
-    from owtf.plugin.plugin_handler import plugin_handler
+    from owtf.plugin.runner import runner
 
     session.merge(
         PluginOutput(
@@ -274,9 +274,7 @@ def save_plugin_output(session, plugin, output, target_id=None):
             status=plugin["status"],
             target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored it will be there
-            output_path=(
-                plugin["output_path"] if os.path.exists(plugin_handler.get_plugin_output_dir(plugin)) else None
-            ),
+            output_path=(plugin["output_path"] if os.path.exists(runner.get_plugin_output_dir(plugin)) else None),
             owtf_rank=plugin["owtf_rank"],
         )
     )
@@ -298,7 +296,7 @@ def save_partial_output(session, plugin, output, message, target_id=None):
     :return: None
     :rtype: None
     """
-    from owtf.plugin.plugin_handler import plugin_handler
+    from owtf.plugin.runner import runner
 
     session.merge(
         PluginOutput(
@@ -313,9 +311,7 @@ def save_partial_output(session, plugin, output, message, target_id=None):
             status=plugin["status"],
             target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored it will be there
-            output_path=(
-                plugin["output_path"] if os.path.exists(plugin_handler.get_plugin_output_dir(plugin)) else None
-            ),
+            output_path=(plugin["output_path"] if os.path.exists(runner.get_plugin_output_dir(plugin)) else None),
             owtf_rank=plugin["owtf_rank"],
         )
     )

@@ -1,8 +1,8 @@
 """
-owtf.plugin.plugin_handler
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+owtf.plugin.runner
+~~~~~~~~~~~~~~~~~~
 
-The PluginHandler is in charge of running all plugins taking into account the
+The module is in charge of running all plugins taking into account the
 chosen settings.
 """
 import copy
@@ -32,7 +32,7 @@ from owtf.utils.signals import owtf_start
 from owtf.utils.strings import wipe_bad_chars
 from owtf.utils.timer import timer
 
-__all__ = ["plugin_handler", "show_plugin_list", "show_plugin_types"]
+__all__ = ["runner", "show_plugin_list", "show_plugin_types"]
 
 INTRO_BANNER_GENERAL = """
 Short Intro:
@@ -52,7 +52,7 @@ WEB Plugin Types:
 """
 
 
-class PluginHandler(object):
+class PluginRunner(object):
 
     def __init__(self):
         # Complicated stuff to keep everything Pythonic and from blowing up
@@ -589,4 +589,4 @@ def show_plugin_types(session, plugin_type, group):
         logging.info("%s%s(%s)%s%s", line_start, pad1, plugin["code"], pad2, plugin["descrip"])
 
 
-plugin_handler = PluginHandler()
+runner = PluginRunner()
