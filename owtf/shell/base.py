@@ -80,7 +80,7 @@ class BaseShell(object):
             success = False
         cmd_info["Success"] = success
         cmd_info["RunTime"] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
-        cmd_info["Target"] = target_manager.get_target_id()
+        cmd_info["Target"] = target_manager.get_target_id
         cmd_info["PluginKey"] = plugin_info["key"]
         Command.add_cmd(session=session, command=cmd_info)
 

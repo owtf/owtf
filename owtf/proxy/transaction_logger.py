@@ -57,7 +57,7 @@ class TransactionLogger(OWTFProcess):
             # This check must be at the last
             elif urlparse(request.url).hostname == urlparse(target).hostname:
                 return [target_id, True]
-        return [target_manager.get_target_id(), self.get_scope_for_url(request.url, host_list)]
+        return [target_manager.get_target_id, self.get_scope_for_url(request.url, host_list)]
 
     def get_scope_for_url(self, url, host_list):
         """Check the scope for the url in the transaction

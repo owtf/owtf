@@ -62,7 +62,7 @@ def target_required(func):
 
     def wrapped_function(*args, **kwargs):
         if "target_id" not in kwargs:
-            kwargs["target_id"] = target_manager.get_target_id()
+            kwargs["target_id"] = target_manager.get_target_id
         return func(*args, **kwargs)
 
     return wrapped_function
@@ -137,6 +137,7 @@ class TargetManager(object):
         path_config["partial_url_output_path"] = os.path.join(path_config["url_output"], "partial")
         return path_config
 
+    @property
     def get_target_id(self):
         """Return target ID
         :return: target ID
