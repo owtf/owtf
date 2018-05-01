@@ -22,6 +22,7 @@ from owtf.lib.exceptions import InvalidWorkerReference
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.models.error import Error
 from owtf.managers.worklist import get_work_for_target
+from owtf.managers.target import target_manager
 from owtf.plugin.plugin_handler import plugin_handler
 from owtf.settings import MIN_RAM_NEEDED, PROCESS_PER_CORE
 from owtf.utils.error import abort_framework
@@ -57,7 +58,8 @@ class Worker(OWTFProcess):
                     sys.exit(0)
                 target, plugin = work
                 plugin_dir = plugin_handler.get_plugin_group_dir(plugin["group"])
-                plugin_handler.switch_to_target(target["id"])
+                # Set the target specific thing here
+                target_manager.set_target(target["id"])
                 plugin_handler.process_plugin(session=self.session, plugin_dir=plugin_dir, plugin=plugin)
                 self.output_q.put("done")
             except queue.Empty:

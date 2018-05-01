@@ -25,7 +25,7 @@ from owtf.managers.poutput import save_partial_output, save_plugin_output
 from owtf.managers.target import target_manager
 from owtf.managers.transaction import num_transactions
 from owtf.plugin.scanner import Scanner
-from owtf.settings import AUX_OUTPUT_PATH, FORCE_OVERWRITE, PLUGINS_DIR
+from owtf.settings import AUX_OUTPUT_PATH, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
 from owtf.utils.signals import owtf_start
@@ -76,6 +76,7 @@ class PluginHandler(object):
 
     def on_start(self, sender, **kwargs):
         self.options = copy.deepcopy(kwargs["args"])
+        self.force_overwrite = self.options["force_overwrite"]
         self.plugin_group = self.options["plugin_group"]
         self.simulation = self.options.get("Simulation", None)
         self.scope = self.options["scope"]
@@ -89,18 +90,6 @@ class PluginHandler(object):
             self.options["plugin_type"] = self.options["plugin_type"].split(",")
         self.scanner = Scanner()
         self.init_exec_registry()
-
-    def plugin_already_run(self, session, plugin_info):
-        """Check if plugin has already run
-
-        :param plugin_info: Plugin info
-        :type plugin_info: `dict`
-        :return: true/false
-        :rtype: `bool`
-        """
-        from owtf.managers.poutput import plugin_already_run
-
-        return plugin_already_run(session, plugin_info)
 
     def validate_format_plugin_list(self, session, plugin_codes):
         """Validate the plugin codes by checking if they exist.
@@ -302,12 +291,14 @@ class PluginHandler(object):
         :rtype: bool
 
         """
+        from owtf.managers.poutput import plugin_already_run
+
         if not self.chosen_plugin(session=session, plugin=plugin, show_reason=show_reason):
             return False  # Skip not chosen plugins
         # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active)
         if (
-            self.plugin_already_run(session=session, plugin_info=plugin)
-            and ((not self.force_overwrite() and not ("grep" == plugin["type"])) or plugin["type"] == "external")
+            plugin_already_run(session=session, plugin_info=plugin)
+            and ((not self.force_overwrite and not ("grep" == plugin["type"])) or plugin["type"] == "external")
         ):
             if show_reason:
                 logging.warning(
@@ -317,7 +308,7 @@ class PluginHandler(object):
                     plugin["type"],
                 )
             return False
-        if "grep" == plugin["type"] and self.plugin_already_run(session=session, plugin_info=plugin):
+        if "grep" == plugin["type"] and plugin_already_run(session=session, plugin_info=plugin):
             # Grep plugins can only run if some active or semi_passive plugin was run since the last time
             return False
         return True
@@ -510,18 +501,7 @@ class PluginHandler(object):
         :return: Path to the output dir for plugin group
         :rtype: `str`
         """
-        plugin_dir = PLUGINS_DIR + "/" + plugin_group
-        return plugin_dir
-
-    def switch_to_target(self, target):
-        """Switch to target
-
-        :param target: target id
-        :type target: `int`
-        :return: None
-        :rtype: None
-        """
-        target_manager.set_target(target)  # Tell Target DB that all Gets/Sets are now Target-specific
+        return "{}/{}".format(PLUGINS_DIR, plugin_group)
 
     def process_plugins_for_target_list(self, session, plugin_group, status, target_list):
         """Process plugins for all targets in the list
@@ -547,9 +527,8 @@ class PluginHandler(object):
                     ports = get_tcp_ports(lastwave, waves[i])
                     logging.info("Probing for ports %s", str(ports))
                     http = self.scanner.probe_network(target, "tcp", ports)
-                    # Tell Config that all Gets/Sets are now
-                    # Target-specific.
-                    self.switch_to_target(target)
+                    # Tell Config that all Gets/Sets are now target-specific.
+                    target_manager.set_target(target)
                     for plugin in plugin_group:
                         self.process_plugin(session=session, plugin_dir=plugin_dir, plugin=plugin, status=status)
                     lastwave = waves[i]
