@@ -47,10 +47,10 @@ def load_works(session, target_urls, options):
             plugins = get_all_plugin_dicts(session=session, criteria=filter_data)
             if not plugins:
                 logging.error(
-                    "No plugin found matching type '%s' and group '%s' for target '%s'!",
+                    "No plugin found matching type '%s' and group '%s' for target %s!",
                     options["plugin_type"],
                     group,
-                    target,
+                    target[0]["target_url"],
                 )
             add_work(
                 session=session, target_list=target, plugin_list=plugins, force_overwrite=options["force_overwrite"]

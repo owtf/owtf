@@ -269,8 +269,8 @@ class Scanner(object):
         :type protocol: `str`
         :param port: Port number for target
         :type port: `str`
-        :return: None
-        :rtype: None
+        :return: List of services running
+        :rtype: list
         """
         self.scan_and_grab_banners("{0}.ips".format(PING_SWEEP_FILE), FAST_SCAN_FILE, protocol, "-p" + str(port))
         return self.probe_service_for_hosts("{0}.{1}.gnmap".format(FAST_SCAN_FILE, protocol), target.split("//")[1])

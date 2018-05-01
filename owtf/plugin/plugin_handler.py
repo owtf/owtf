@@ -176,13 +176,13 @@ class PluginHandler(object):
     def get_plugin_output_dir(self, plugin):
         """Get plugin directory by test type
 
-        :param plugin: Plugin dict
+        :param plugin: Plugin
         :type plugin: `dict`
         :return: Path to the plugin's output dir
         :rtype: `str`
         """
         # Organise results by OWASP Test type and then active, passive, semi_passive
-        if (plugin["group"] == "web") or (plugin["group"] == "network"):
+        if plugin["group"] in ["web", "network"]:
             return os.path.join(
                 target_manager.get_path("partial_url_output_path"), wipe_bad_chars(plugin["title"]), plugin["type"]
             )
@@ -300,7 +300,7 @@ class PluginHandler(object):
         """
         return FORCE_OVERWRITE
 
-    def plugin_can_run(self, session, plugin, show_reason=False):
+    def can_plugin_run(self, session, plugin, show_reason=False):
         """Verify that a plugin can be run by OWTF.
 
         :param dict plugin: The plugin dictionary with all the information.
@@ -422,7 +422,7 @@ class PluginHandler(object):
         if status is None:
             status = {}
         # Ensure that the plugin CAN be run before starting anything.
-        if not self.plugin_can_run(session=session, plugin=plugin, show_reason=True):
+        if not self.can_plugin_run(session=session, plugin=plugin, show_reason=True):
             return None
         # Save how long it takes for the plugin to run.
         self.timer.start_timer("Plugin")
@@ -533,7 +533,6 @@ class PluginHandler(object):
 
     def process_plugins_for_target_list(self, session, plugin_group, status, target_list):
         """Process plugins for all targets in the list
-
         :param plugin_group: Plugin group
         :type plugin_group: `str`
         :param status: Plugin exec status
