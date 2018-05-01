@@ -22,47 +22,6 @@ def get_mapping_types():
     return mapping_types
 
 
-def derive_mapping_dict(obj):
-    """Fetch the mapping dict from an object
-
-    :param obj: The mapping object
-    :type obj:
-    :return: Mappings dict
-    :rtype: `dict`
-    """
-    if obj:
-        pdict = dict(obj.__dict__)
-        pdict.pop("_sa_instance_state", None)
-        # If output is present, json decode it
-        if pdict.get("mappings", None):
-            pdict["mappings"] = json.loads(pdict["mappings"])
-        return pdict
-
-
-def derive_mapping_dicts(obj_list):
-    """Fetches the mapping dicts based on the objects list
-
-    :param obj_list: The plugin object list
-    :type obj_list: `list`
-    :return: Mapping dicts as a list
-    :rtype: `list`
-    """
-    dict_list = []
-    for obj in obj_list:
-        dict_list.append(derive_mapping_dict(obj))
-    return dict_list
-
-
-def get_all_mappings(session):
-    """Create a mapping between OWTF plugins code and OWTF plugins description.
-
-    :return: Mapping dictionary {code: [mapped_code, mapped_description], code2: [mapped_code, mapped_description], ...}
-    :rtype: dict
-    """
-    mapping_objs = session.query(Mapping).all()
-    return {mapping["owtf_code"]: mapping["mappings"] for mapping in derive_mapping_dicts(mapping_objs)}
-
-
 def get_mappings(session, mapping_type):
     """Fetches mappings from DB based on mapping type
 
@@ -73,26 +32,14 @@ def get_mappings(session, mapping_type):
     """
     if mapping_type in mapping_types:
         mapping_objs = session.query(Mapping).all()
+        obj_dicts = [obj.to_dict() for obj in mapping_objs]
         mappings = {}
-        for mapping_dict in derive_mapping_dicts(mapping_objs):
+        for mapping_dict in obj_dicts:
             if mapping_dict["mappings"].get(mapping_type, None):
                 mappings[mapping_dict["owtf_code"]] = mapping_dict["mappings"][mapping_type]
         return mappings
     else:
         raise InvalidMappingReference("InvalidMappingReference {!s} requested".format(mapping_type))
-
-
-def get_mapping_category(session, plugin_code):
-    """Get the categories for a plugin code
-
-    :param plugin_code: The code for the specific plugin
-    :type plugin_code:  `int`
-    :return: category for the plugin code
-    :rtype: `str`
-    """
-    category = session.query(Mapping.category).get(plugin_code)
-    # Getting the corresponding category back from db
-    return category
 
 
 def load_mappings(session, default, fallback):

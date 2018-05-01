@@ -7,6 +7,7 @@ from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.orm import relationship
 
 from owtf.db.model_base import Model
+from owtf.lib import exceptions
 from owtf.models.target import target_association_table
 
 
@@ -17,3 +18,30 @@ class Session(Model):
     name = Column(String, unique=True)
     active = Column(Boolean, default=False)
     targets = relationship("Target", secondary=target_association_table, backref="sessions")
+
+    def to_dict(self):
+        sdict = dict(self.__dict__)
+        sdict.pop("_sa_instance_state")
+        return sdict
+
+    @classmethod
+    def get_by_id(cls, session, id):
+        session_obj = session.query(Session).get(id)
+        if session_obj is None:
+            raise exceptions.InvalidSessionReference("No session with id: {!s}".format(id))
+        return session_obj.to_dict()
+
+    @classmethod
+    def get_active(cls, session):
+        session_id = session.query(Session.id).filter_by(active=True).first()
+        return session_id
+
+    @classmethod
+    def set_by_id(cls, session, session_id):
+        query = session.query(Session)
+        session_obj = query.get(session_id)
+        if session_obj is None:
+            raise exceptions.InvalidSessionReference("No session with session_id: {!s}".format(session_id))
+        query.update({"active": False})
+        session_obj.active = True
+        session.commit()

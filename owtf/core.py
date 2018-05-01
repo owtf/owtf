@@ -22,18 +22,12 @@ from owtf.lib import exceptions
 from owtf.lib.cli_options import parse_options, usage
 from owtf.managers.config import load_framework_config, load_general_config
 from owtf.managers.mapping import load_mappings
-from owtf.managers.plugin import (
-    get_all_plugin_groups,
-    get_all_plugin_types,
-    get_groups_for_plugins,
-    get_types_for_plugin_group,
-    load_plugins,
-    load_test_groups,
-)
+from owtf.managers.plugin import get_types_for_plugin_group, load_plugins, load_test_groups
 from owtf.managers.resource import load_resources_from_file
 from owtf.managers.session import _ensure_default_session
 from owtf.managers.target import load_targets
 from owtf.managers.worklist import load_works
+from owtf.models.plugin import Plugin
 from owtf.plugin.plugin_handler import show_plugin_list
 from owtf.proxy.main import start_proxy
 from owtf.settings import (
@@ -97,7 +91,7 @@ def get_plugins_from_arg(arg):
     :rtype: `list`
     """
     plugins = arg.split(",")
-    plugin_groups = get_groups_for_plugins(db, plugins)
+    plugin_groups = Plugin.get_groups_for_plugins(db, plugins)
     if len(plugin_groups) > 1:
         usage("The plugins specified belong to several plugin groups: '%s'".format(str(plugin_groups)))
     return [plugins, plugin_groups]
@@ -113,8 +107,8 @@ def process_options(user_args):
     """
     arg = None
     try:
-        valid_groups = get_all_plugin_groups(db)
-        valid_types = get_all_plugin_types(db) + ["all", "quiet"]
+        valid_groups = Plugin.get_all_plugin_groups(db)
+        valid_types = Plugin.get_all_plugin_types(db) + ["all", "quiet"]
         arg = parse_options(user_args, valid_groups, valid_types)
     except KeyboardInterrupt as e:
         usage("Invalid OWTF option(s) {}".format(e))

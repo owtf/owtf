@@ -4,11 +4,14 @@ owtf.models.plugin_output
 
 """
 import datetime
+import json
 
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, UniqueConstraint
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from owtf.db.model_base import Model
+from owtf.settings import DATE_TIME_FORMAT
+from owtf.utils.timer import timer
 
 
 class PluginOutput(Model):
@@ -35,5 +38,20 @@ class PluginOutput(Model):
     @hybrid_property
     def run_time(self):
         return self.end_time - self.start_time
+
+    def to_dict(self, inc_output=False):
+        pdict = dict(self.__dict__)
+        pdict.pop("_sa_instance_state", None)
+        pdict.pop("date_time")
+        # If output is present, json decode it
+        if inc_output:
+            if pdict.get("output", None):
+                pdict["output"] = json.loads(pdict["output"])
+        else:
+            pdict.pop("output")
+        pdict["start_time"] = self.start_time.strftime(DATE_TIME_FORMAT)
+        pdict["end_time"] = self.end_time.strftime(DATE_TIME_FORMAT)
+        pdict["run_time"] = timer.get_time_as_str(self.run_time)
+        return pdict
 
     __table_args__ = (UniqueConstraint("plugin_key", "target_id"),)

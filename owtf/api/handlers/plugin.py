@@ -8,9 +8,11 @@ import collections
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
-from owtf.managers.mapping import get_all_mappings
-from owtf.managers.plugin import get_all_plugin_dicts, get_all_test_groups, get_types_for_plugin_group
+from owtf.managers.plugin import get_all_plugin_dicts, get_types_for_plugin_group
 from owtf.managers.poutput import delete_all_poutput, get_all_poutputs, update_poutput
+from owtf.models.mapping import Mapping
+from owtf.models.test_group import TestGroup
+
 
 __all__ = ["PluginNameOutput", "PluginDataHandler", "PluginOutputHandler"]
 
@@ -184,11 +186,11 @@ class PluginNameOutput(APIRequestHandler):
             results = get_all_poutputs(self.session, filter_data, target_id=int(target_id), inc_output=False)
 
             # Get mappings
-            mappings = get_all_mappings(self.session)
+            mappings = Mapping.get_all(self.session)
 
             # Get test groups as well, for names and info links
             groups = {}
-            for group in get_all_test_groups(self.session):
+            for group in TestGroup.get_all(self.session):
                 group["mappings"] = mappings.get(group["code"], {})
                 groups[group["code"]] = group
 

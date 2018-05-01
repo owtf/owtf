@@ -16,5 +16,10 @@ class Url(Model):
     visited = Column(Boolean, default=False)
     scope = Column(Boolean, default=True)
 
+    def to_dict(self):
+        udict = dict(self.__dict__)
+        udict.pop("_sa_instance_state")
+        return udict
+
     def __repr__(self):
         return "<URL (url='{!s}')>".format(self.url)

@@ -23,14 +23,14 @@ from owtf.api.handlers.transactions import (
 )
 from owtf.api.handlers.work import WorkerHandler, WorklistHandler, WorklistSearchHandler
 from owtf.db.session import get_scoped_session
-from owtf.managers.plugin import get_all_plugin_groups, get_all_plugin_types
+from owtf.models.plugin import Plugin
 from owtf.settings import STATIC_ROOT
 
 __all__ = ["API_v1_HANDLERS", "UI_HANDLERS"]
 
 session = get_scoped_session()
-plugin_group_re = "(%s)?" % "|".join(get_all_plugin_groups(session))
-plugin_type_re = "(%s)?" % "|".join(get_all_plugin_types(session))
+plugin_group_re = "(%s)?" % "|".join(Plugin.get_all_plugin_groups(session))
+plugin_type_re = "(%s)?" % "|".join(Plugin.get_all_plugin_types(session))
 plugin_code_re = "([0-9A-Z\-]+)?"
 
 API_v1_HANDLERS = [

@@ -22,8 +22,8 @@ def session_required(func):
 
     def wrapped_function(*args, **kwargs):
         # True if target_id doesnt exist
-        if (kwargs.get("session_id", "None") == "None") or (kwargs.get("session_id", True) is None):
-            kwargs["session_id"] = get_session_id(get_scoped_session())
+        if kwargs.get("session_id", "None") == "None" or kwargs.get("session_id", True) is None:
+            kwargs["session_id"] = Session.get_active(get_scoped_session())
         return func(*args, **kwargs)
 
     return wrapped_function
@@ -39,33 +39,6 @@ def _ensure_default_session(session):
         add_session(session, "default session")
 
 
-def set_session(session, session_id):
-    """Sets the session based on the session id
-
-    :param session_id: Session id
-    :type session_id: `int`
-    :return: None
-    :rtype: None
-    """
-    query = session.query(Session)
-    session_obj = query.get(session_id)
-    if session_obj is None:
-        raise exceptions.InvalidSessionReference("No session with session_id: {!s}".format(session_id))
-    query.update({"active": False})
-    session_obj.active = True
-    session.commit()
-
-
-def get_session_id(session):
-    """Gets the active session's id
-
-    :return: ID of the active session
-    :rtype: `int`
-    """
-    session_id = session.query(Session.id).filter_by(active=True).first()
-    return session_id
-
-
 def add_session(session, session_name):
     """Adds a new session to the DB
 
@@ -79,7 +52,7 @@ def add_session(session, session_name):
         session_obj = Session(name=session_name[:50])
         session.add(session_obj)
         session.commit()
-        set_session(session, session_obj.id)
+        Session.set_by_id(session, session_obj.id)
     else:
         raise exceptions.DBIntegrityException("Session already exists with session name: {!s}".format(session_name))
 
@@ -154,34 +127,6 @@ def delete_session(session, session_id):
     session.commit()
 
 
-def derive_session_dict(session_obj):
-    """Fetch the session dict from session obj
-
-    :param session_obj: Session object
-    :type session_obj:
-    :return: Session dict
-    :rtype: `dict`
-    """
-    sdict = dict(session_obj.__dict__)
-    sdict.pop("_sa_instance_state")
-    return sdict
-
-
-def derive_session_dicts(session_objs):
-    """Fetch the session dicts from list of session objects
-
-    :param session_obj: List of session objects
-    :type session_obj: `list`
-    :return: List of session dicts
-    :rtype: `list`
-    """
-    results = []
-    for session_obj in session_objs:
-        if session_obj:
-            results.append(derive_session_dict(session_obj))
-    return results
-
-
 def session_generate_query(session, filter_data=None):
     """Generate query based on filter data
 
@@ -210,18 +155,8 @@ def get_all_session_dicts(session, filter_data):
     :rtype: `dict`
     """
     session_objs = session_generate_query(session, filter_data).all()
-    return derive_session_dicts(session_objs)
-
-
-def get_session_dict(session, session_id):
-    """Get the session dict based on the ID
-
-    :param session_id: ID of the session
-    :type session_id: `int`
-    :return: Session dict
-    :rtype: `dict`
-    """
-    session_obj = session.query(Session).get(session_id)
-    if session_obj is None:
-        raise exceptions.InvalidSessionReference("No session with id: {!s}".format(session_id))
-    return derive_session_dict(session_obj)
+    results = []
+    for session_obj in session_objs:
+        if session_obj:
+            results.append(session_obj.to_dict())
+    return results

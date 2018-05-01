@@ -68,13 +68,13 @@ def load_framework_config(default, fallback, root_dir, owtf_pid):
     """Load framework configuration into a global dictionary.
 
     :param default: The path to config file
-    :type default: `str`
+    :type default: str
     :param fallback: The fallback path to config file
-    :type fallback: `str`
+    :type fallback: str
     :param fallback: OWTF root directory
-    :type fallback: `str`
+    :type fallback: str
     :param fallback: PID of running program
-    :type fallback: `int`
+    :type fallback: int
     :return: None
     :rtype: None
     """
@@ -102,7 +102,7 @@ def get_config_val(session, key):
     """
     obj = session.query(Config).get(key)
     if obj:
-        return multi_replace(obj.value, config_handler.get_replacement_dict())
+        return multi_replace(obj.value, config_handler.get_replacement_dict)
     else:
         return None
 
@@ -187,7 +187,7 @@ def get_all_tools(session):
     results = session.query(Config).filter(Config.key.like("%TOOL_%")).all()
     config_dicts = derive_config_dicts(results)
     for config_dict in config_dicts:
-        config_dict["value"] = multi_replace(config_dict["value"], config_handler.get_replacement_dict())
+        config_dict["value"] = multi_replace(config_dict["value"], config_handler.get_replacement_dict)
     return config_dicts
 
 

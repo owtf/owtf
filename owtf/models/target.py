@@ -40,21 +40,25 @@ class Target(Model):
     poutputs = relationship("PluginOutput", cascade="delete")
     urls = relationship("Url", cascade="delete")
     commands = relationship("Command", cascade="delete")
-    # Also has a column session specified as backref in
-    # session model
+    # Also has a column session specified as backref in session model
     works = relationship("Work", backref="target", cascade="delete")
 
     @hybrid_property
     def max_user_rank(self):
         user_ranks = [-1]
         user_ranks += [poutput.user_rank for poutput in self.poutputs]
-        return (max(user_ranks))
+        return max(user_ranks)
 
     @hybrid_property
     def max_owtf_rank(self):
         owtf_ranks = [-1]
         owtf_ranks += [poutput.owtf_rank for poutput in self.poutputs]
-        return (max(owtf_ranks))
+        return max(owtf_ranks)
+
+    @classmethod
+    def get_indexed(cls, session):
+        results = session.query(Target.id, Target.target_url).all()
+        return results
 
     def __repr__(self):
         return "<Target (url='{!s}')>".format(self.target_url)

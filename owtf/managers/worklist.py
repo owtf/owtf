@@ -10,7 +10,7 @@ from sqlalchemy.sql import not_
 
 from owtf.db.session import get_count
 from owtf.lib import exceptions
-from owtf.managers.plugin import derive_plugin_dict, get_all_plugin_dicts
+from owtf.managers.plugin import get_all_plugin_dicts
 from owtf.managers.poutput import delete_all_poutput, plugin_already_run
 from owtf.managers.target import get_target_config_dict, get_target_config_dicts
 from owtf.models.plugin import Plugin
@@ -118,7 +118,7 @@ def _derive_work_dict(work_model):
     if work_model is not None:
         wdict = {}
         wdict["target"] = get_target_config_dict(work_model.target)
-        wdict["plugin"] = derive_plugin_dict(work_model.plugin)
+        wdict["plugin"] = work_model.plugin.to_dict()
         wdict["id"] = work_model.id
         wdict["active"] = work_model.active
         return wdict

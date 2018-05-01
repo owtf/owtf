@@ -12,9 +12,10 @@ from owtf.constants import RANKS
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
 from owtf.managers.mapping import get_mappings
-from owtf.managers.plugin import get_all_test_groups
 from owtf.managers.poutput import get_all_poutputs
 from owtf.managers.target import get_target_config_by_id
+from owtf.models.test_group import TestGroup
+
 
 __all__ = ["ReportExportHandler"]
 
@@ -93,7 +94,7 @@ class ReportExportHandler(APIRequestHandler):
 
         # Get test groups as well, for names and info links
         test_groups = {}
-        for test_group in get_all_test_groups(self.session):
+        for test_group in TestGroup.get_all(self.session):
             test_group["mapped_code"] = test_group["code"]
             test_group["mapped_descrip"] = test_group["descrip"]
             if mappings and test_group["code"] in mappings:

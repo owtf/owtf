@@ -176,33 +176,6 @@ def import_urls(session, url_list, target_id=None):
     return imported_urls  # Return imported urls
 
 
-def derive_url_dict(url_obj):
-    """Fetch URL dict from object
-
-    :param url_obj: URL object
-    :type url_obj:
-    :return: URL dict
-    :rtype: `dict`
-    """
-    udict = dict(url_obj.__dict__)
-    udict.pop("_sa_instance_state")
-    return udict
-
-
-def derive_url_dicts(url_obj_list):
-    """Derive a list of url dicts from the obj list
-
-    :param url_obj_list: List of URL objects
-    :type url_obj_list: `list`
-    :return: List of URL dicts
-    :rtype: `list`
-    """
-    dict_list = []
-    for url_obj in url_obj_list:
-        dict_list.append(derive_url_dict(url_obj))
-    return dict_list
-
-
 def url_gen_query(session, criteria, target_id, for_stats=False):
     """Generate query based on criteria and target ID
 
@@ -266,7 +239,7 @@ def get_all_urls(session, criteria, target_id=None):
     """
     query = url_gen_query(session, criteria, target_id)
     results = query.all()
-    return derive_url_dicts(results)
+    return [url_obj.to_dict() for url_obj in results]
 
 
 @target_required
@@ -289,5 +262,9 @@ def search_all_urls(session, criteria, target_id=None):
     total = get_count(session.query(Url).filter_by(target_id=target_id))
     filtered_url_objs = url_gen_query(session, criteria, target_id).all()
     filtered_number = get_count(url_gen_query(session, criteria, target_id, for_stats=True))
-    results = {"records_total": total, "records_filtered": filtered_number, "data": derive_url_dicts(filtered_url_objs)}
+    results = {
+        "records_total": total,
+        "records_filtered": filtered_number,
+        "data": [url_obj.to_dict() for url_obj in filtered_url_objs],
+    }
     return results

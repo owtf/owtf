@@ -4,6 +4,7 @@ owtf.api.handlers.session
 
 """
 from owtf.api.handlers.base import APIRequestHandler
+from owtf.db.session import Session
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
 from owtf.managers.session import (
@@ -11,9 +12,7 @@ from owtf.managers.session import (
     add_target_to_session,
     delete_session,
     get_all_session_dicts,
-    get_session_dict,
     remove_target_from_session,
-    set_session,
 )
 
 __all__ = ["OWTFSessionHandler"]
@@ -60,7 +59,7 @@ class OWTFSessionHandler(APIRequestHandler):
             self.success(get_all_session_dicts(self.session, filter_data))
         else:
             try:
-                self.success(get_session_dict(self.session, session_id))
+                self.success(Session.get_by_id(self.session, session_id))
             except exceptions.InvalidSessionReference:
                 raise APIError(400, "Invalid session id provided")
 
@@ -133,7 +132,7 @@ class OWTFSessionHandler(APIRequestHandler):
                     self.session, int(self.get_argument("target_id")), session_id=int(session_id)
                 )
             elif action == "activate":
-                set_session(self.session, int(session_id))
+                Session.set_by_id(self.session, int(session_id))
             self.success(None)
         except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")

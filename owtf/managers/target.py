@@ -80,6 +80,9 @@ def command_already_registered(session, original_command, target_id=None):
     """
     from owtf.managers.poutput import plugin_output_exists
 
+    if target_id is not None:
+        target_manager.set_target(target_id)
+
     register_entry = session.query(Command).get(original_command)
     if register_entry:
         # If the command was completed and the plugin output to which it
@@ -191,17 +194,6 @@ class TargetManager(object):
         # Mainly used for setting output paths for individual plugins, which
         # need not be saved: plugin_output_dir.
         self.path_config[output_type] = path
-
-
-def get_indexed_targets():
-    """Get indexed targets
-
-    :return:
-    :rtype:
-    """
-    session = get_scoped_session()
-    results = session.query(Target.id, Target.target_url).all()
-    return results
 
 
 @session_required

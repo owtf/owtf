@@ -46,58 +46,6 @@ def plugin_count_output(session):
     return results
 
 
-@target_required
-def get_plugin_output_dict(obj, target_id=None, inc_output=False):
-    """Gets plugin outputs as dict
-
-    :param obj: output obj
-    :type obj:
-    :param target_id: target ID
-    :type target_id: `int`
-    :param inc_output: Is there?
-    :type inc_output: `bool`
-    :return: Plugin output as a dict
-    :rtype: `dict`
-    """
-    if target_id:
-        target_manager.set_target(target_id)
-    if obj:
-        pdict = dict(obj.__dict__)
-        pdict.pop("_sa_instance_state", None)
-        pdict.pop("date_time")
-        # If output is present, json decode it
-        if inc_output:
-            if pdict.get("output", None):
-                pdict["output"] = json.loads(pdict["output"])
-        else:
-            pdict.pop("output")
-        pdict["start_time"] = obj.start_time.strftime(DATE_TIME_FORMAT)
-        pdict["end_time"] = obj.end_time.strftime(DATE_TIME_FORMAT)
-        pdict["run_time"] = timer.get_time_as_str(obj.run_time)
-        return pdict
-
-
-@target_required
-def get_plugin_output_dicts(obj_list, target_id=None, inc_output=False):
-    """Get plugin output dicts from a list of objects
-
-    :param obj_list: List of objects
-    :type obj_list: `list`
-    :param target_id: target ID
-    :type target_id: `int`
-    :param inc_output: True/false
-    :type inc_output: `bool`
-    :return: List of output dicts
-    :rtype: `list`
-    """
-    if target_id:
-        target_manager.set_target(target_id)
-    dict_list = []
-    for obj in obj_list:
-        dict_list.append(get_plugin_output_dict(obj, target_id=target_id, inc_output=inc_output))
-    return dict_list
-
-
 def poutput_gen_query(session, filter_data, target_id, for_delete=False):
     """Generate query
 
@@ -183,9 +131,8 @@ def get_all_poutputs(session, filter_data=None, target_id=None, inc_output=False
     if not filter_data:
         filter_data = {}
     target_manager.set_target(target_id)
-    query = poutput_gen_query(session, filter_data, target_id)
-    results = query.all()
-    return get_plugin_output_dicts(results, target_id=target_id, inc_output=inc_output)
+    results = poutput_gen_query(session, filter_data, target_id).all()
+    return [obj.to_dict(inc_output) for obj in results if obj]
 
 
 @target_required

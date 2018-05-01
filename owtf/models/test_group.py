@@ -19,3 +19,33 @@ class TestGroup(Model):
     url = Column(String)
     priority = Column(Integer)
     plugins = relationship("Plugin")
+
+    def to_dict(self):
+        obj = dict(self.__dict__)
+        obj.pop("_sa_instance_state")
+        return obj
+
+    @classmethod
+    def get_by_code(cls, session, code):
+        """Get the test group based on plugin code
+
+        :param code: Plugin code
+        :type code: `str`
+        :return: Test group dict
+        :rtype: `dict`
+        """
+        group = session.query(TestGroup).get(code)
+        return group.to_dict()
+
+    @classmethod
+    def get_all(cls, session):
+        """Get all test groups from th DB
+
+        :return:
+        :rtype:
+        """
+        test_groups = session.query(TestGroup).order_by(TestGroup.priority.desc()).all()
+        dict_list = []
+        for obj in test_groups:
+            dict_list.append(obj.to_dict())
+        return dict_list

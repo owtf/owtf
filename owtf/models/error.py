@@ -38,7 +38,6 @@ class Error(Model):
         return error.to_dict()
 
     @classmethod
-    @flush_transaction
     def delete_error(cls, session, id):
         error = session.query(cls).get(id)
         if error:
@@ -48,7 +47,7 @@ class Error(Model):
             raise InvalidErrorReference("No error with id {!s}".format(id))
 
     def to_dict(self):
-        obj = self.__dict__
+        obj = dict(self.__dict__)
         obj.pop("_sa_instance_state", None)
         return obj
 
@@ -61,7 +60,6 @@ class Error(Model):
         return result
 
     @classmethod
-    @flush_transaction
     def update_error(cls, session, error_id, user_message):
         obj = session.query(Error).filter(id=error_id)
         if not obj:  # If invalid error id, bail out

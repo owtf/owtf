@@ -42,7 +42,6 @@ except ImportError:
 
 from owtf.db.session import get_scoped_session
 from owtf.http import transaction
-from owtf.models.error import Error
 from owtf.managers.target import is_url_in_scope
 from owtf.managers.transaction import get_first, is_transaction_already_added
 from owtf.managers.url import is_url

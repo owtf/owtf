@@ -15,7 +15,8 @@ except ImportError:  # PY2
 
 from owtf.http.transaction import HTTPTransaction
 from owtf.lib.owtf_process import OWTFProcess
-from owtf.managers.target import get_all_in_scope, get_indexed_targets, target_manager
+from owtf.models.target import Target
+from owtf.managers.target import get_all_in_scope, target_manager
 from owtf.managers.transaction import log_transactions_from_logger
 from owtf.proxy.cache_handler import request_from_cache, response_from_cache
 from owtf.settings import INBOUND_PROXY_CACHE_DIR
@@ -80,7 +81,7 @@ class TransactionLogger(OWTFProcess):
         :rtype: `dict`
         """
         transactions_dict = None
-        target_list = get_indexed_targets()
+        target_list = Target.get_indexed(self.session)
         if target_list:  # If there are no targets in db, where are we going to add. OMG
             transactions_dict = {}
             host_list = get_all_in_scope("host_name")

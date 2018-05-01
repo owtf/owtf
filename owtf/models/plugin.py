@@ -3,11 +3,12 @@ owtf.models.plugin
 ~~~~~~~~~~~~~~~~~~
 
 """
-from sqlalchemy import Column, String, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, String, ForeignKey, UniqueConstraint, or_
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 
 from owtf.db.model_base import Model
+from owtf.utils.timer import timer
 
 
 class Plugin(Model):
@@ -57,5 +58,66 @@ class Plugin(Model):
             return max(run_times)
         else:
             return None
+
+    def to_dict(self):
+        pdict = dict(self.__dict__)
+        pdict.pop("_sa_instance_state")
+        # Remove outputs array if present
+        if "outputs" in list(pdict.keys()):
+            pdict.pop("outputs")
+        pdict["min_time"] = None
+        min_time = self.min_time
+        if min_time is not None:
+            pdict["min_time"] = timer.get_time_as_str(min_time)
+        return pdict
+
+    @classmethod
+    def get_all_plugin_groups(cls, session):
+        groups = session.query(Plugin.group).distinct().all()
+        groups = [i[0] for i in groups]
+        return groups
+
+    @classmethod
+    def get_all_plugin_types(cls, session):
+        """Get all plugin types from the DB
+
+        :return: All available plugin types
+        :rtype: `list`
+        """
+        plugin_types = session.query(Plugin.type).distinct().all()
+        plugin_types = [i[0] for i in plugin_types]  # Necessary because of sqlalchemy
+        return plugin_types
+
+    @classmethod
+    def get_groups_for_plugins(cls, session, plugins):
+        """Gets available groups for selected plugins
+
+        :param plugins: Plugins selected
+        :type plugins: `list`
+        :return: List of available plugin groups
+        :rtype: `list`
+        """
+        groups = session.query(Plugin.group).filter(
+            or_(Plugin.code.in_(plugins), Plugin.name.in_(plugins))
+        ).distinct().all()
+        groups = [i[0] for i in groups]
+        return groups
+
+    @classmethod
+    def name_to_code(cls, session, codes):
+        """Given list of names, get the corresponding codes
+
+        :param codes: The codes to fetch
+        :type codes: `list`
+        :return: Corresponding plugin codes as a list
+        :rtype: `list`
+        """
+        checklist = ["OWTF-", "PTES-"]
+        query = session.query(Plugin.code)
+        for count, name in enumerate(codes):
+            if all(check not in name for check in checklist):
+                code = query.filter(Plugin.name == name).first()
+                codes[count] = str(code[0])
+        return codes
 
     __table_args__ = (UniqueConstraint("type", "code"),)
