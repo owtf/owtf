@@ -24,7 +24,7 @@ from owtf.managers.plugin import get_plugins_by_group, get_plugins_by_group_type
 from owtf.managers.poutput import save_partial_output, save_plugin_output
 from owtf.managers.target import target_manager
 from owtf.managers.transaction import num_transactions
-from owtf.plugin.scanner import Scanner
+from owtf.net.scanner import Scanner
 from owtf.settings import AUX_OUTPUT_PATH, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
@@ -78,6 +78,7 @@ class PluginRunner(object):
         self.options = copy.deepcopy(kwargs["args"])
         self.force_overwrite = self.options["force_overwrite"]
         self.plugin_group = self.options["plugin_group"]
+        self.portwaves = self.options["port_waves"]
         self.simulation = self.options.get("Simulation", None)
         self.scope = self.options["scope"]
         self.only_plugins = self.options["only_plugins"]
@@ -482,7 +483,7 @@ class PluginRunner(object):
                 abort_framework("Framework abort")
         return output
 
-    def process_plugins(self):
+    def process_plugin_list(self):
         """Process plugins
 
         :return:
@@ -503,6 +504,8 @@ class PluginRunner(object):
         """
         return "{}/{}".format(PLUGINS_DIR, plugin_group)
 
+    # TODO(viyatb): Make this run for normal plugin runs
+    # This is not called anywhere - why? Seems it was always broken.
     def process_plugins_for_target_list(self, session, plugin_group, status, target_list):
         """Process plugins for all targets in the list
         :param plugin_group: Plugin group
@@ -516,8 +519,7 @@ class PluginRunner(object):
         """
         plugin_dir = self.get_plugin_group_dir(plugin_group)
         if plugin_group == "network":
-            portwaves = config_handler.get("PORTWAVES")
-            waves = portwaves.split(",")
+            waves = self.portwaves.split(",")
             waves.append("-1")
             lastwave = 0
             for target in target_list:  # For each Target

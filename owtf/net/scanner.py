@@ -1,6 +1,6 @@
 """
-owtf.plugin.scanner
-~~~~~~~~~~~~~~~~~~~
+owtf.net.scanner
+~~~~~~~~~~~~~~~~
 
 The scan_network scans the network for different ports and call network plugins for different services running on target
 """
@@ -172,7 +172,7 @@ class Scanner(object):
                 if match:
                     port = match[0][1].split("/")[0]
                     prot = match[0][1].split("/")[1]
-                    if (not protocol or protocol == prot) and port not in list:
+                    if not protocol or protocol == prot and port not in list:
                         list.append(port)
         f.close()
         return list

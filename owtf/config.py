@@ -175,7 +175,7 @@ class Config(object):
         """
         logging.info("Configuration settings: ")
         for k, v in list(self.get_config_dict.items()):
-            logging.info("%s => %s", (str(k), str(v)))
+            logging.info("%s => %s", str(k), str(v))
 
 
 config_handler = Config()
