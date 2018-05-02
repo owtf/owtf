@@ -82,7 +82,7 @@ setup(
     author="Abraham Aranguren",
     author_email="abraham.aranguren@owasp.org",
     description="OWASP+PTES focused try to unite great tools and make pen testing more efficient",
-    long_description=parse_file("README.rst"),
+    long_description=parse_file("README.md"),
     packages=find_packages(exclude=["node_modules", "node_modules.*"]),
     include_package_data=True,
     zip_safe=False,
