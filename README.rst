@@ -77,7 +77,7 @@ Features
    next tool/test, saving the partial output of the tool until it
    crashed.
 
--  **Flexibile**: Pause and resume your work.
+-  **Flexible**: Pause and resume your work.
 
 -  **Tests Separation**: **OWTF** separates its traffic to the target
    into mainly 3 types of plugins:
