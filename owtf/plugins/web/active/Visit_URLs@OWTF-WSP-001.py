@@ -6,7 +6,7 @@ which may be considered sensitive or include vulnerability probing
 """
 import logging
 
-from owtf.http.requester import requester
+from owtf.requester.base import requester
 from owtf.managers.url import get_urls_to_visit
 from owtf.plugin.helper import plugin_helper
 

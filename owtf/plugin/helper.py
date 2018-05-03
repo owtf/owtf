@@ -15,7 +15,7 @@ import re
 from tornado.template import Template
 
 from owtf.db.session import get_scoped_session
-from owtf.http.requester import requester
+from owtf.requester.base import requester
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
 from owtf.managers.config import config_handler
 from owtf.managers.target import target_manager

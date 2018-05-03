@@ -1,7 +1,6 @@
 """
-owtf.http.requester
+owtf.requester.base
 ~~~~~~~~~~~~~~~~~~~
-
 The Requester module is in charge of simplifying HTTP requests and
 automatically log HTTP transactions by calling the DB module.
 """
