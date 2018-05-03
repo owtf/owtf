@@ -41,7 +41,7 @@ except ImportError:
     )
 
 from owtf.db.session import get_scoped_session
-from owtf.http import transaction
+from owtf.transactions.base import HTTPTransaction
 from owtf.managers.target import is_url_in_scope
 from owtf.managers.transaction import get_first, is_transaction_already_added
 from owtf.managers.url import is_url
@@ -300,7 +300,7 @@ class Requester(object):
         # MUST create a new Transaction object each time so that lists of
         # transactions can be created and process at plugin-level
         # Pass the timer object to avoid instantiating each time.
-        self.http_transaction = transaction.HTTPTransaction(self.timer)
+        self.http_transaction = HTTPTransaction(self.timer)
         self.http_transaction.start(url, post, method, is_url_in_scope(url))
         self.req_count_total += 1
         try:
