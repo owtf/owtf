@@ -12,6 +12,7 @@ import re
 from OpenSSL import crypto
 
 from owtf.lib.filelock import FileLock
+from owtf.utils.strings import utf8
 
 
 def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
@@ -49,13 +50,15 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                 # Serial Generation - Serial number must be unique for each certificate,
                 # so serial is generated based on domain name
                 md5_hash = hashlib.md5()
-                md5_hash.update(domain)
+                md5_hash.update(domain.encode("utf-8"))
                 serial = int(md5_hash.hexdigest(), 36)
 
                 # The CA stuff is loaded from the same folder as this script
                 ca_cert = crypto.load_certificate(crypto.FILETYPE_PEM, open(ca_crt, "rb").read())
                 # The last parameter is the password for your CA key file
-                ca_key = crypto.load_privatekey(crypto.FILETYPE_PEM, open(ca_key, "rb").read(), passphrase=ca_pass)
+                ca_key = crypto.load_privatekey(
+                    crypto.FILETYPE_PEM, open(ca_key, "rb").read(), passphrase=utf8(ca_pass)
+                )
 
                 key = crypto.PKey()
                 key.generate_key(crypto.TYPE_RSA, 4096)
@@ -75,9 +78,9 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                 cert.sign(ca_key, "sha256")
 
                 # The key and cert files are dumped and their paths are returned
-                with open(key_path, "w") as domain_key:
+                with open(key_path, "wb") as domain_key:
                     domain_key.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
 
-                with open(cert_path, "w") as domain_cert:
+                with open(cert_path, "wb") as domain_cert:
                     domain_cert.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
     return key_path, cert_path

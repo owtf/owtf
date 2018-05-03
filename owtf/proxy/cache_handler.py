@@ -16,6 +16,7 @@ import traceback
 import tornado.httputil
 
 from owtf.lib.filelock import FileLock
+from owtf.utils.strings import to_str, utf8
 
 
 class CacheHandler(object):
@@ -58,7 +59,7 @@ class CacheHandler(object):
         except KeyError:
             pass
         request_mod = self.request.method + self.request.url + self.request.version
-        request_mod = request_mod + self.request.body + cookie_string
+        request_mod = request_mod + to_str(self.request.body) + cookie_string
 
         # To support proxying of ua-tester
         try:
@@ -73,7 +74,7 @@ class CacheHandler(object):
             pass
 
         md5_hash = hashlib.md5()
-        md5_hash.update(request_mod)
+        md5_hash.update(utf8(request_mod))
         self.request_hash = md5_hash.hexdigest()
         # This is the path to file inside url folder. This can be used for updating a html file
         self.file_path = os.path.join(self.cache_dir, self.request_hash)
@@ -101,7 +102,7 @@ class CacheHandler(object):
         :rtype:
         """
         try:
-            response_body = self.request.response_buffer.decode("utf-8")
+            response_body = self.request.response_buffer
             binary_response = False
         except UnicodeDecodeError:
             response_body = base64.b64encode(self.request.response_buffer)
@@ -111,7 +112,7 @@ class CacheHandler(object):
             "request_url": self.request.url,
             "request_version": self.request.version,
             "request_headers": dict(self.request.headers),
-            "request_body": self.request.body.decode("utf-8"),
+            "request_body": to_str(self.request.body),
             "request_time": response.request_time,
             "request_local_timestamp": self.request.local_timestamp.isoformat(),
             "response_code": response.code,
@@ -125,7 +126,7 @@ class CacheHandler(object):
 
         # This approach can be used as an alternative for object sharing
         # This creates a file with hash as name and .rd as extension
-        open("%s.rd" % self.file_path, "w").close()
+        open("{}.rd".format(self.file_path), "w").close()
         self.file_lock.release()
 
     def load(self):
