@@ -224,7 +224,7 @@ class ProxyHandler(tornado.web.RequestHandler):
     options = get
     trace = get
 
-    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def connect(self):
         """Gets called when a connect request is received.
 
@@ -293,8 +293,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
             context.check_hostname = False
             context.load_default_certs()
-            # When connecting through a new socket, no need to wrap the socket before passing
-            # to SSIOStream
+            # When connecting through a new socket, no need to wrap the socket before passing to SSIOStream
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
             upstream = tornado.iostream.SSLIOStream(s, ssl_options=context)
             upstream.set_close_callback(ssl_fail)

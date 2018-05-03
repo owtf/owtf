@@ -50,7 +50,7 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                 # Serial Generation - Serial number must be unique for each certificate,
                 # so serial is generated based on domain name
                 md5_hash = hashlib.md5()
-                md5_hash.update(domain.encode("utf-8"))
+                md5_hash.update(utf8(domain))
                 serial = int(md5_hash.hexdigest(), 36)
 
                 # The CA stuff is loaded from the same folder as this script
