@@ -1,7 +1,6 @@
 """
 owtf.managers.worklist
 ~~~~~~~~~~~~~~~~~~~~~~
-
 The DB stores worklist
 """
 import logging

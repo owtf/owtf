@@ -1,7 +1,7 @@
 """
 owtf.managers.worker
 ~~~~~~~~~~~~~~~~~~~~
-
+Manage workers and assign work to them.
 """
 import logging
 import multiprocessing

@@ -1,6 +1,7 @@
 """
 owtf.managers.poutput
 ~~~~~~~~~~~~~~~~~~~~~
+Manage plugin output.
 """
 import json
 import os

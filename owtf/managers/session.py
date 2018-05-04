@@ -1,7 +1,6 @@
 """
 owtf.managers.session
 ~~~~~~~~~~~~~~~~~~~~~
-
 Manager functions for sessions
 """
 from owtf.db.session import get_scoped_session
