@@ -2,7 +2,7 @@
  * Dashboard
  */
 import React from 'react';
-import {Grid, Jumbotron, Col, Row} from 'react-bootstrap';
+import {Grid, PageHeader, Col, Row} from 'react-bootstrap';
 
 
 export default class Dashboard extends React.Component {
@@ -17,9 +17,9 @@ export default class Dashboard extends React.Component {
       <Grid>
         <Row>
           <Col xs={12} md={12}>
-            <Jumbotron>
-              <h1>Welcome to OWTF<small>, this is your dashboard</small></h1>
-            </Jumbotron>
+            <PageHeader>
+              Welcome to OWTF<small>, this is your dashboard</small>
+            </PageHeader>
           </Col>
         </Row>
       </Grid>
