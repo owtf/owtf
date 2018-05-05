@@ -42,7 +42,7 @@ from owtf.utils.file import FileOperations
 
 class ProxyProcess(OWTFProcess):
 
-    def initialize(self, outbound_options=[], outbound_auth=""):
+    def initialize(self, outbound_options=None, outbound_auth=""):
         """Initialize the proxy process
 
         :param outbound_options: Outbound proxy options
@@ -111,7 +111,7 @@ class ProxyProcess(OWTFProcess):
 
         # Outbound Proxy
         # Outbound proxy settings to be used inside request handler
-        if outbound_options:
+        if outbound_options and outbound_options is not None:
             if len(outbound_options) == 3:
                 self.application.outbound_proxy_type = outbound_options[0]
                 self.application.outbound_ip = outbound_options[1]
