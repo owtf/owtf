@@ -73,6 +73,14 @@ export class Sessions extends React.Component {
           <Modal.Header closeButton>
             <Modal.Title>Sessions</Modal.Title>
           </Modal.Header>
+          <FormGroup>
+            <InputGroup>
+              <FormControl type="text" placeholder= "New Session" />
+              <InputGroup.Button>
+                <Button bsStyle="primary" onClick={this.handleShow}>Add</Button>
+              </InputGroup.Button>
+            </InputGroup>
+          </FormGroup>
           <Modal.Body>
             <SessionsTable {...sessionsListProps} />
           </Modal.Body>
