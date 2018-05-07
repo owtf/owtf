@@ -22,6 +22,9 @@ import {
   LOAD_SESSIONS,
   LOAD_SESSIONS_SUCCESS,
   LOAD_SESSIONS_ERROR,
+  CREATE_SESSION,
+  CREATE_SESSION_SUCCESS,
+  CREATE_SESSION_ERROR,
 } from './constants';
 
 /**
@@ -101,6 +104,51 @@ export function sessionsLoaded(sessions) {
 export function sessionsLoadingError(error) {
   return {
     type: LOAD_SESSIONS_ERROR,
+    error,
+  };
+}
+
+
+let nextSession = 0 //Id for the next created session.
+/**
+ * Creates the session, this action starts the request saga POST.
+ *
+ * @param  {string} sessionName Name of the session to be created.
+ *
+ * @return {object} An action object with a type of CREATE_SESSION
+ */
+export function createSession(sessionName) {
+  return {
+    type: CREATE_SESSION,
+    sessionId: nextSession++,
+    sessionName
+  };
+}
+
+/**
+ * Dispatched when the session is created by the request saga
+ *
+ * @param  {object} session Activated Session.
+ *
+ * @return {object} An action object with a type of CREATE_SESSION_SUCCESS
+ */
+export function sessionsCreated(session) {
+  return {
+    type: CREATE_SESSION_SUCCESS,
+    session,
+  };
+}
+
+/**
+ * Dispatched when creating the session fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of CREATE_SESSION_ERROR passing the error
+ */
+export function sessionsCreatingError(error) {
+  return {
+    type: CREATE_SESSION_ERROR,
     error,
   };
 }
