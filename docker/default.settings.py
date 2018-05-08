@@ -82,6 +82,7 @@ PLUGINS_DIR = os.path.join(ROOT_DIR, "plugins")
 # Output Settings
 OUTPUT_PATH = "owtf_review"
 AUX_OUTPUT_PATH = "owtf_review/auxiliary"
+NET_SCANS_PATH = "owtf_review/scans"
 
 # The name of the directories relative to output path
 TARGETS_DIR = "targets"
@@ -90,7 +91,6 @@ WORKER_LOG_DIR = "logs"
 # Default profile settings
 DEFAULT_GENERAL_PROFILE = os.path.join(OWTF_CONF, "conf", "general.yaml")
 DEFAULT_FRAMEWORK_CONFIG = os.path.join(OWTF_CONF, "conf", "framework.yaml")
-DEFAULT_MAPPING_PROFILE = os.path.join(OWTF_CONF, "conf", "mappings.yaml")
 DEFAULT_RESOURCES_PROFILE = os.path.join(OWTF_CONF, "conf", "resources.cfg")
 DEFAULT_WEB_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_web", "order.cfg")
 DEFAULT_NET_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_net", "order.cfg")
@@ -102,7 +102,6 @@ OWTF_LOG_FILE = "/tmp/owtf.log"
 
 # Interface static folders
 TEMPLATES = os.path.join(ROOT_DIR, "webapp", "build")
-POUTPUT_TEMPLATES_DIR = os.path.join(ROOT_DIR, "templates")
 STATIC_ROOT = os.path.join(ROOT_DIR, "webapp", "build")
 
 # SMTP
@@ -173,7 +172,6 @@ REPLACEMENT_DELIMITER = "@@@"
 REPLACEMENT_DELIMITER_LENGTH = len(REPLACEMENT_DELIMITER)
 CONFIG_TYPES = ["string", "other"]
 
-FORCE_OVERWRITE = True
 USER_AGENT = "Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0"
 PROXY_CHECK_URL = "http://www.google.ie"
 
@@ -184,7 +182,6 @@ FALLBACK_AUX_TEST_GROUPS = os.path.join(ROOT_DIR, "data", "conf", "profiles", "p
 FALLBACK_PLUGINS_DIR = os.path.join(ROOT_DIR, "data", "plugins")
 FALLBACK_GENERAL_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "general.yaml")
 FALLBACK_FRAMEWORK_CONFIG = os.path.join(ROOT_DIR, "data", "conf", "framework.yaml")
-FALLBACK_MAPPING_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "mappings.yaml")
 FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "resources.cfg")
 FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_web", "order.cfg")
 FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_net", "order.cfg")

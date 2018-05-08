@@ -27,7 +27,7 @@ def load_config_file(file_path, fallback_file_path):
     :rtype: dict
     """
     file_path = file_path if os.path.isfile(file_path) else fallback_file_path
-    logging.info("Loading data from %s..", file_path)
+    logging.info("Loading %s..", file_path)
     if not os.path.isfile(file_path):
         # check if the config file exists
         abort_framework("Config file not found at: {}".format(file_path))
