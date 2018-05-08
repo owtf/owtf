@@ -243,12 +243,53 @@ AUX_PLUGIN_DATA:
 
 
 # ************************* SE Spear Phishing configuration (Auxiliary Plugin configuration) *************************************
+<<<<<<< HEAD:owtf/data/conf/general.yaml
 
+=======
+>>>>>>> 65355ce8bf4a4ea0177e24ee106f77e2f87c17fa:owtf/data/conf/general.cfg
 # New versions of SET are likely to break SET scripts, make this more obvious via dir naming:
   - config: PHISHING_SCRIPT_DIR
     value: "@@@FRAMEWORK_DIR@@@/framework/wrappers/set/scripts/phishing3.2.2"
     description: The directory where the SET phishing wrapper scripts are located
 # Below is for cases when SET suddenly asks for a listener IP breaking all scripts
+<<<<<<< HEAD:owtf/data/conf/general.yaml
+=======
+#PHISHING_SCRIPT_DIR: @@@FRAMEWORK_DIR@@@/framework/wrappers/set/scripts/phishing3.2.2_listenerIP
+PHISHING_SCRIPT_DIR_DESCRIP: The directory where the SET phishing wrapper scripts are located
+SET_FILE_EXTENSION_ATTACK: 3
+SET_FILE_EXTENSION_ATTACK_DESCRIP: The SET file extension attack to carry out (1-17) -only relevant for 1_rar,1_zip,1_rce,1_zce-
+PHISHING_PAYLOAD: 1
+#PHISHING_PAYLOAD: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
+#PHISHING_PAYLOAD: 1_zip,1_rar,2_unc,3_win,4_rtf,5_a,6_a,7_a,8_a,9_a,10_a,11_a,12_a,13_cx,14_a,15_a,16_f,17_q,18_n,19_a
+#SET payload 17 does not work, removing from defaults:
+#PHISHING_PAYLOAD: 1_zip,1_rar,2_unc,3_win,4_rtf,5_a,6_a,7_a,8_a,9_a,10_a,11_a,12_a,13_cx,14_a,15_a,16_f,18_n,19_a
+PHISHING_PAYLOAD_DESCRIP: SET Payload for the phishing attack (1-18)
+PHISHING_CUSTOM_EXE_PAYLOAD_DIR_DESCRIP: Directory to store custom SET payloads (custom exes, etc)
+PHISHING_CUSTOM_EXE_PAYLOAD_DESCRIP: Custom EXE to use for SET/Phishing
+EMAIL_SUBJECT_DESCRIP: The Email subject text
+EMAIL_BODY_DESCRIP: The content of the email body or path to a file containing it
+ATTACHMENT_NAME: report
+ATTACHMENT_NAME_DESCRIP: Filename for the attachment to be sent
+#SET_EMAIL_TEMPLATE: 1
+#All Email templates (i.e. IDS/Spam filter testing)
+SET_EMAIL_TEMPLATE: 1,2,3,4,5,6,7,8,9
+SET_EMAIL_TEMPLATE_DESCRIP: SET Email template number to use (1-9)
+MSF_LISTENER_IP: 127.0.0.1
+MSF_LISTENER_IP_DESCRIP: IP where metasploit multi-handler will be listening to get the shells back
+MSF_LISTENER_PORT: 443
+MSF_LISTENER_PORT_DESCRIP: Port where metasploit multi-handler will be listening to get the shells back
+MSF_LISTENER_SETUP: no
+MSF_LISTENER_SETUP_DESCRIP: Setup the listener (yes/no): "no" can be useful when the goal is IDS testing
+EMAIL_TARGET: /root/emails.txt
+EMAIL_TARGET_DESCRIP: Email or File containing the target email addresses for phishing attacks
+EMAIL_PRIORITY: yes
+EMAIL_PRIORITY_DESCRIP: Send emails with high importance (use "yes") or no (use "no")
+PDF_TEMPLATE: /root/test.pdf
+PDF_TEMPLATE_DESCRIP: PDF Template file to use for some of the SET payloads that need it/can use it
+ WORD_TEMPLATE Example: /root/test.doc
+WORD_TEMPLATE:
+WORD_TEMPLATE_DESCRIP: Word Template file to use for some of the SET payloads that need it/can use it
+>>>>>>> 65355ce8bf4a4ea0177e24ee106f77e2f87c17fa:owtf/data/conf/general.cfg
 
   - config: SET_FILE_EXTENSION_ATTACK
     value: 3

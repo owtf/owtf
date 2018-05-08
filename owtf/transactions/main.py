@@ -15,12 +15,15 @@ except ImportError:  # PY2
 
 from owtf.transactions.base import HTTPTransaction
 from owtf.lib.owtf_process import OWTFProcess
+<<<<<<< HEAD:owtf/transactions/main.py
 from owtf.models.target import Target
 from owtf.managers.target import get_all_in_scope, target_manager
 from owtf.managers.transaction import log_transactions_from_logger
 from owtf.proxy.cache_handler import request_from_cache, response_from_cache
 from owtf.settings import INBOUND_PROXY_CACHE_DIR
 from owtf.utils.timer import Timer
+=======
+>>>>>>> 65355ce8bf4a4ea0177e24ee106f77e2f87c17fa:owtf/proxy/transaction_logger.py
 
 
 class TransactionLogger(OWTFProcess):
@@ -31,8 +34,16 @@ class TransactionLogger(OWTFProcess):
     to the hash is ready to be converted.
     """
 
+<<<<<<< HEAD:owtf/transactions/main.py
     def initialize(self, **kwargs):
         self.logger.disable_console_logging()
+=======
+    def __init__(self, **kwargs):
+        super(TransactionLogger, self).__init__(**kwargs)
+        self.timer = self.get_component("timer")
+        self.target = self.get_component("target")
+        self.transaction = self.get_component("transaction")
+>>>>>>> 65355ce8bf4a4ea0177e24ee106f77e2f87c17fa:owtf/proxy/transaction_logger.py
 
     def derive_target_for_transaction(self, request, response, target_list, host_list):
         """Get the target and target ID for transaction
@@ -87,12 +98,20 @@ class TransactionLogger(OWTFProcess):
             host_list = get_all_in_scope("host_name")
 
             for request_hash in hash_list:
+<<<<<<< HEAD:owtf/transactions/main.py
                 request = request_from_cache(os.path.join(INBOUND_PROXY_CACHE_DIR, request_hash))
                 response = response_from_cache(os.path.join(INBOUND_PROXY_CACHE_DIR, request_hash))
                 target_id, request.in_scope = self.derive_target_for_transaction(
                     request, response, target_list, host_list
                 )
                 owtf_transaction = HTTPTransaction(Timer())
+=======
+                request = request_from_cache(os.path.join(self.cache_dir, request_hash))
+                response = response_from_cache(os.path.join(self.cache_dir, request_hash))
+                target_id, request.in_scope = self.derive_target_for_transaction(request, response, target_list,
+                                                                                 host_list)
+                owtf_transaction = transaction.HTTP_Transaction(self.timer)
+>>>>>>> 65355ce8bf4a4ea0177e24ee106f77e2f87c17fa:owtf/proxy/transaction_logger.py
                 owtf_transaction.import_proxy_req_resp(request, response)
                 try:
                     transactions_dict[target_id].append(owtf_transaction)
@@ -127,7 +146,11 @@ class TransactionLogger(OWTFProcess):
                     hash_list = self.get_hash_list(INBOUND_PROXY_CACHE_DIR)
                     transactions_dict = self.get_owtf_transactions(hash_list)
                     if transactions_dict:  # Make sure you do not have None
+<<<<<<< HEAD:owtf/transactions/main.py
                         log_transactions_from_logger(transactions_dict)
+=======
+                        self.transaction.log_transactions_from_logger(transactions_dict)
+>>>>>>> 65355ce8bf4a4ea0177e24ee106f77e2f87c17fa:owtf/proxy/transaction_logger.py
                 else:
                     time.sleep(2)
         except KeyboardInterrupt:

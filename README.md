@@ -45,6 +45,7 @@ Recommended:
 
 > Using a virtualenv is highly recommended!
 
+<<<<<<< HEAD
 `pip install git+https://github.com/owtf/owtf#egg=owtf` or clone the
 repo and `python setup.py install`.
 
@@ -75,6 +76,43 @@ $ cd owtf
 $ python setup.py install
 # Run OWTF!
 $ owtf
+=======
+`pip install git+https://github.com/owtf/owtf#egg=owtf` or clone the repo and `python setup.py install`
+
+To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker** installed) provided to try OWTF:
+
+ - `make docker-build`
+ - `make docker-run`
+ - Open `~/.owtf/conf` and change `SERVER_ADDR: 127.0.0.1` to `SERVER_ADDR: 0.0.0.0`.
+ - Create a virtualenv, `virtualenv env` and activate it `source env/bin/activate`.
+ - Install and run OWTF.
+ 
+  ```bash
+   $ cd owtf/
+   # Install the develop version, so that any change made is instantly reflected.
+   $ python setup.py develop
+   # Run OWTF!
+   $ python -m owtf
+  ```
+ - Open `localhost:8009` for OWTF web interface.
+
+## Install on OSX
+
+Dependencies: Install homebrew (https://brew.sh/) and follow the steps given below:
+
+ 
+```bash
+ $ virtualenv <venv name>
+ $ source <venv name>/bin/activate
+ $ brew install coreutils gnu-sed openssl
+ # We need to install 'cryptography' first to avoid issues
+ $ pip install cryptography --global-option=build_ext --global-option="-L/usr/local/opt/openssl/lib" --global-option="-I/usr/local/opt/openssl/include"
+ $ git clone <this repo>
+ $ cd owtf
+ $ python setup.py install
+ # Run OWTF!
+ $ python -m owtf
+>>>>>>> 65355ce8bf4a4ea0177e24ee106f77e2f87c17fa
 ```
 
 Features
