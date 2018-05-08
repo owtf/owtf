@@ -1,6 +1,6 @@
 BSD 3-Clause License
 
-Copyright (c) 2011-2017, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
+Copyright (c) 2011-2018, Abraham Aranguren <name.surname@gmail.com> Twitter: @7a_ http://7-a.org
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

@@ -84,7 +84,7 @@ def starttls(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=None
             new_state = io.ERROR
             wrapped.do_handshake()
             return done()
-        except ssl.SSLError as exc:
+        except ssl.SSLError or ssl.SSLEOFError as exc:
             if exc.args[0] == ssl.SSL_ERROR_WANT_READ:
                 new_state |= io.READ
             elif exc.args[0] == ssl.SSL_ERROR_WANT_WRITE:
@@ -97,7 +97,7 @@ def starttls(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=None
             io.update_handler(fd, new_state)
 
     # set up handshake state; use a list as a mutable cell.
-    io = io or ioloop.IOLoop.instance()
+    io = io or ioloop.IOLoop.current()
     state = [io.ERROR]
     # Wrap the socket; swap out handlers.
     io.remove_handler(socket.fileno())

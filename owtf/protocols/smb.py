@@ -1,8 +1,6 @@
 """
 owtf.protocols.smb
 ~~~~~~~~~~~~~~~~~~
-
-Description:
 This is the handler for the Social Engineering Toolkit (SET) trying to overcome
 the limitations of set-automate.
 """

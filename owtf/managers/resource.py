@@ -1,7 +1,7 @@
 """
 owtf.managers.resource
 ~~~~~~~~~~~~~~~~~~~~~~
-
+Provides helper functions for plugins to fetch resources.
 """
 import logging
 import os

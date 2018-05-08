@@ -1,13 +1,11 @@
 """
 owtf.managers.worker
 ~~~~~~~~~~~~~~~~~~~~
-
+Manage workers and assign work to them.
 """
 import logging
 import multiprocessing
 import signal
-import sys
-import traceback
 from time import strftime
 
 try:
@@ -19,11 +17,8 @@ import psutil
 
 from owtf.db.session import get_scoped_session
 from owtf.lib.exceptions import InvalidWorkerReference
-from owtf.lib.owtf_process import OWTFProcess
-from owtf.models.error import Error
 from owtf.managers.worklist import get_work_for_target
-from owtf.managers.target import target_manager
-from owtf.plugin.runner import runner
+from owtf.workers.local import LocalWorker
 from owtf.settings import MIN_RAM_NEEDED, PROCESS_PER_CORE
 from owtf.utils.error import abort_framework
 from owtf.utils.process import check_pid, _signal_process
@@ -33,50 +28,6 @@ __all__ = ["worker_manager"]
 
 # For psutil
 TIMEOUT = 3
-
-
-class Worker(OWTFProcess):
-
-    def initialize(self, **kwargs):
-        super(Worker, self).__init__(**kwargs)
-        self.output_q = None
-        self.input_q = None
-
-    def pseudo_run(self):
-        """ When run for the first time, put something into output queue ;)
-
-        :return: None
-        :rtype: None
-        """
-        self.output_q.put("Started")
-        while self.poison_q.empty():
-            try:
-                work = self.input_q.get(True, 2)
-                # If work is empty this means no work is there
-                if work == ():
-                    logging.info("No work")
-                    sys.exit(0)
-                target, plugin = work
-                plugin_dir = runner.get_plugin_group_dir(plugin["group"])
-                # Set the target specific thing here
-                target_manager.set_target(target["id"])
-                runner.process_plugin(session=self.session, plugin_dir=plugin_dir, plugin=plugin)
-                self.output_q.put("done")
-            except queue.Empty:
-                pass
-            except KeyboardInterrupt:
-                logging.debug("Worker (%d): Finished", self.pid)
-                sys.exit(0)
-            except Exception as e:
-                e, ex, tb = sys.exc_info()
-                trace = traceback.format_tb(tb)
-                Error.add_error(
-                    session=self.session,
-                    message="Exception occurred while running plugin: {}, {}".format(str(e), str(ex)),
-                    trace=trace,
-                )
-        logging.debug("Worker (%d): Exiting...", self.pid)
-        sys.exit(0)
 
 
 class WorkerManager(object):
@@ -139,7 +90,7 @@ class WorkerManager(object):
         :return: None
         :rtype: None
         """
-        w = Worker(input_q=multiprocessing.Queue(), output_q=multiprocessing.Queue(), index=index)
+        w = LocalWorker(input_q=multiprocessing.Queue(), output_q=multiprocessing.Queue(), index=index)
         worker_dict = {"worker": w, "work": (), "busy": False, "paused": False}
 
         if index is not None:

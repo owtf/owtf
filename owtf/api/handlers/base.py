@@ -10,9 +10,11 @@ import uuid
 from tornado.escape import url_escape
 from tornado.web import RequestHandler
 
+from owtf import __version__
 from owtf.db.session import Session, get_db_engine
 from owtf.lib.exceptions import APIError
 from owtf.settings import SERVER_PORT, FILE_SERVER_PORT, USE_SENTRY, SERVER_ADDR, SESSION_COOKIE_NAME
+from owtf.utils.strings import utf8
 
 # if Sentry raven library around, pull in SentryMixin
 try:
@@ -33,7 +35,13 @@ __all__ = ["APIRequestHandler", "FileRedirectHandler", "UIRequestHandler"]
 auth_header_pat = re.compile(r"^(?:token|bearer)\s+([^\s]+)$", flags=re.IGNORECASE)
 
 
-class APIRequestHandler(RequestHandler):
+class BaseRequestHandler(RequestHandler):
+
+    def set_default_headers(self):
+        self.add_header("X-OWTF-Version", __version__)
+
+
+class APIRequestHandler(BaseRequestHandler):
 
     def initialize(self):
         """
@@ -112,9 +120,9 @@ class APIRequestHandler(RequestHandler):
         self.set_status(status_code)
 
         try:
-            exception = kwargs["exc_info"][1]
+            exception = utf8(kwargs["exc_info"][1])
         except:
-            exception = ""
+            exception = b""
         if any(isinstance(exception, c) for c in [APIError]):
             # ValidationError is always due to a malformed request
             if not isinstance(exception, APIError):
@@ -136,7 +144,7 @@ class APIRequestHandler(RequestHandler):
         return match.group(1)
 
 
-class UIRequestHandler(RequestHandler):
+class UIRequestHandler(BaseRequestHandler):
 
     def reverse_url(self, name, *args):
         url = super(UIRequestHandler, self).reverse_url(name, *args)
@@ -190,7 +198,7 @@ class UIRequestHandler(RequestHandler):
         return dict(user=user)
 
 
-class FileRedirectHandler(RequestHandler):
+class FileRedirectHandler(BaseRequestHandler):
     SUPPORTED_METHODS = ["GET"]
 
     def get(self, file_url):

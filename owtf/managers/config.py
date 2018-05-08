@@ -1,7 +1,7 @@
 """
 owtf.managers.config_manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+Manage configuration methods.
 """
 import logging
 import os
@@ -107,22 +107,6 @@ def get_config_val(session, key):
         return None
 
 
-def derive_config_dict(config_obj):
-    """Get the config dict from the obj
-
-    :param config_obj: The config object
-    :type config_obj:
-    :return:
-    :rtype:
-    """
-    if config_obj:
-        config_dict = dict(config_obj.__dict__)
-        config_dict.pop("_sa_instance_state")
-        return config_dict
-    else:
-        return config_obj
-
-
 def derive_config_dicts(config_obj_list):
     """Derive multiple config dicts
 
@@ -131,11 +115,7 @@ def derive_config_dicts(config_obj_list):
     :return: List of config dicts
     :rtype: `list`
     """
-    config_dict_list = []
-    for config_obj in config_obj_list:
-        if config_obj:
-            config_dict_list.append(derive_config_dict(config_obj))
-    return config_dict_list
+    return [config_obj.to_dict() for config_obj in config_obj_list if config_obj]
 
 
 def config_gen_query(session, criteria):
@@ -175,7 +155,7 @@ def get_all_config_dicts(session, criteria=None):
     if not criteria:
         criteria = {}
     query = config_gen_query(session, criteria)
-    return derive_config_dicts(query.all())
+    return [config_obj.to_dict() for config_obj in query.all() if config_obj]
 
 
 def get_all_tools(session):
@@ -185,7 +165,7 @@ def get_all_tools(session):
     :rtype: `dict`
     """
     results = session.query(Config).filter(Config.key.like("%TOOL_%")).all()
-    config_dicts = derive_config_dicts(results)
+    config_dicts = [config_obj.to_dict() for config_obj in results if config_obj]
     for config_dict in config_dicts:
         config_dict["value"] = multi_replace(config_dict["value"], config_handler.get_replacement_dict)
     return config_dicts

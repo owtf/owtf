@@ -4,7 +4,7 @@ links and save them for later spidering and analysis
 """
 import logging
 
-from owtf.http.requester import requester
+from owtf.requester.base import requester
 from owtf.managers.target import target_manager
 from owtf.plugin.helper import plugin_helper
 

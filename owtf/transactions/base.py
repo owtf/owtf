@@ -1,7 +1,6 @@
 """
-owtf.http.transaction
-~~~~~~~~~~~~~~~~~~~~~
-
+owtf.transactions.base
+~~~~~~~~~~~~~~~~~~~~~~
 HTTP_Transaction is a container of useful HTTP Transaction information to
 simplify code both in the framework and the plugins.
 """

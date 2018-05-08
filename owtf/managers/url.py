@@ -1,7 +1,6 @@
 """
 owtf.managers.url
 ~~~~~~~~~~~~~~~~~
-
 The DB stores HTTP transactions, unique URLs and more.
 """
 from owtf.db.session import get_count, get_scoped_session

@@ -1,7 +1,6 @@
 """
 owtf.lib.exceptions
 ~~~~~~~~~~~~~~~~~~~
-
 Declares the framework exceptions and HTTP errors
 """
 try:

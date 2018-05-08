@@ -6,7 +6,7 @@ import json
 from collections import defaultdict
 
 from owtf.config import config_handler
-from owtf.http.requester import requester
+from owtf.requester.base import requester
 from owtf.managers.transaction import get_transaction_by_id, search_by_regex_names
 
 DESCRIPTION = "Normal requests to gather session management info"

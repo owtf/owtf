@@ -1,7 +1,6 @@
 """
 owtf.managers.transaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-
 The DB stores HTTP transactions, unique URLs and more.
 """
 import base64
@@ -15,7 +14,7 @@ from sqlalchemy import asc, desc
 
 from owtf.config import config_handler
 from owtf.db.session import get_count, get_scoped_session
-from owtf.http import transaction
+from owtf.transactions.base import HTTPTransaction
 from owtf.lib.exceptions import InvalidParameterType, InvalidTransactionReference
 from owtf.managers.target import target_required
 from owtf.managers.url import import_processed_url
@@ -187,7 +186,7 @@ def get_transaction(trans):
     :rtype:
     """
     if trans:
-        owtf_transaction = transaction.HTTPTransaction(None)
+        owtf_transaction = HTTPTransaction(None)
         response_body = trans.response_body
         if trans.binary_response:
             response_body = base64.b64decode(response_body)

@@ -46,6 +46,7 @@ from owtf.settings import (
     NET_TEST_GROUPS,
     WEB_TEST_GROUPS,
 )
+from owtf.transactions.main import start_transaction_logger
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.process import _signal_process
 from owtf.utils.signals import workers_finish, owtf_start
@@ -259,6 +260,7 @@ def initialise_framework(options):
     target_urls = load_targets(session=db, options=options)
     load_works(session=db, target_urls=target_urls, options=options)
     start_proxy()
+    start_transaction_logger()
     return True
 
 

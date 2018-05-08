@@ -9,10 +9,23 @@ import logging
 import os
 import re
 from collections import defaultdict
+import six
 
 from owtf.settings import REPLACEMENT_DELIMITER
 
 search_regex = re.compile("{!s}([a-zA-Z0-9-_]*?){!s}".format(REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER))
+
+
+def utf8(string):
+    if isinstance(string, six.string_types):
+        return string.encode("utf8")
+    return string
+
+
+def to_str(byte):
+    if isinstance(byte, bytes):
+        return byte.decode("utf-8", "ignore")
+    return byte
 
 
 def str2bool(string):

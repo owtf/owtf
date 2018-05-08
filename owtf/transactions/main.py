@@ -1,10 +1,10 @@
 """
-owtf.proxy.transaction_logger
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+owtf.transactions.main
+~~~~~~~~~~~~~~~~~~~~~~
 Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013
 """
 import glob
+import logging
 import os
 import time
 
@@ -13,7 +13,7 @@ try:  # PY3
 except ImportError:  # PY2
     from urlparse import urlparse
 
-from owtf.http.transaction import HTTPTransaction
+from owtf.transactions.base import HTTPTransaction
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.models.target import Target
 from owtf.managers.target import get_all_in_scope, target_manager
@@ -25,7 +25,7 @@ from owtf.utils.timer import Timer
 
 class TransactionLogger(OWTFProcess):
     """
-    This transaction logging process is started seperately from tornado proxy
+    This transaction logging process is started separately from tornado proxy
     This logger checks for \*.rd files in cache_dir and saves it as owtf db
     transaction, \*.rd files serve as a message that the file corresponding
     to the hash is ready to be converted.
@@ -132,3 +132,14 @@ class TransactionLogger(OWTFProcess):
                     time.sleep(2)
         except KeyboardInterrupt:
             exit(-1)
+
+
+def start_transaction_logger():
+    try:
+        transaction_logger = TransactionLogger(cache_dir=INBOUND_PROXY_CACHE_DIR)
+        transaction_logger.initialize()
+        logging.debug("Starting transaction logger process")
+        transaction_logger.start()
+    except Exception as exc:
+        logging.debug(str(exc))
+        pass

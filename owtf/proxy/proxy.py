@@ -24,6 +24,7 @@ import tornado.websocket
 
 from owtf.proxy.cache_handler import CacheHandler
 from owtf.proxy.socket_wrapper import starttls
+from owtf.utils.strings import utf8, to_str
 
 
 def prepare_curl_callback(curl):
@@ -106,9 +107,8 @@ class ProxyHandler(tornado.web.RequestHandler):
         """
         if data:
             self.write(data)
-            self.request.response_buffer += data
+            self.request.response_buffer += to_str(data)
 
-    @tornado.web.asynchronous
     @tornado.gen.coroutine
     def get(self):
         """Handle all requests except the connect request. Once ssl stream is formed between browser and proxy,
@@ -206,7 +206,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                     pass
                 # Request retries
                 for i in range(0, 3):
-                    if (response is None) or response.code in [408, 599]:
+                    if response is None or response.code in [408, 599]:
                         self.request.response_buffer = ""
                         response = yield tornado.gen.Task(async_client.fetch, request)
                     else:
@@ -217,32 +217,14 @@ class ProxyHandler(tornado.web.RequestHandler):
             # Cache the response after finishing the response, so caching time is not included in response time
             self.cache_handler.dump(response)
 
-    # The following 5 methods can be handled through the above implementation.
-    @tornado.web.asynchronous
-    def post(self):
-        return self.get()
+    head = get
+    post = get
+    put = get
+    delete = get
+    options = get
+    trace = get
 
-    @tornado.web.asynchronous
-    def head(self):
-        return self.get()
-
-    @tornado.web.asynchronous
-    def put(self):
-        return self.get()
-
-    @tornado.web.asynchronous
-    def delete(self):
-        return self.get()
-
-    @tornado.web.asynchronous
-    def options(self):
-        return self.get()
-
-    @tornado.web.asynchronous
-    def trace(self):
-        return self.get()
-
-    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def connect(self):
         """Gets called when a connect request is received.
 
@@ -311,8 +293,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
             context.check_hostname = False
             context.load_default_certs()
-            # When connecting through a new socket, no need to wrap the socket before passing
-            # to SSIOStream
+            # When connecting through a new socket, no need to wrap the socket before passing to SSIOStream
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
             upstream = tornado.iostream.SSLIOStream(s, ssl_options=context)
             upstream.set_close_callback(ssl_fail)

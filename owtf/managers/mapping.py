@@ -1,7 +1,6 @@
 """
 owtf.managers.mapping
 ~~~~~~~~~~~~~~~~~~~~~
-
 Manages the mapping between different plugin groups and codes
 """
 import json

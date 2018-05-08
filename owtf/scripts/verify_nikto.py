@@ -8,6 +8,9 @@ import sys
 
 import tornado.template
 
+from owtf.utils.strings import to_str
+
+
 if len(sys.argv) < 3:
     print("Usage: %s <nikto.txt file> <top_url>" % sys.argv[0])
     exit(-1)
@@ -54,4 +57,5 @@ nikto_output = nikto_output.replace("\n", "</br>")
 
 # Generate html output directly to stdout, looks better in the report
 with open(destination, "w") as file:
-    file.write(output_template.generate(content=nikto_output))
+    out = output_template.generate(content=nikto_output)
+    file.write(to_str(out))

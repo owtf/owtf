@@ -3,7 +3,7 @@ Robots.txt analysis
 """
 import logging
 
-from owtf.http.requester import requester
+from owtf.requester.base import requester
 from owtf.managers.resource import get_resources
 from owtf.plugin.helper import plugin_helper
 

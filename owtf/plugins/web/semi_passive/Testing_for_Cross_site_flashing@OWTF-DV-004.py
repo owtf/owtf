@@ -2,7 +2,7 @@
 Cross Site Flashing semi passive plugin: Tries to retrieve the crossdomain.xml
 file and display it for review
 """
-from owtf.http.requester import requester
+from owtf.requester.base import requester
 from owtf.managers.target import get_targets_as_list
 from owtf.plugin.helper import plugin_helper
 

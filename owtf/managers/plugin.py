@@ -1,7 +1,6 @@
 """
 owtf.managers.plugin
 ~~~~~~~~~~~~~~~~~~~~
-
 This module manages the plugins and their dependencies
 """
 import imp
