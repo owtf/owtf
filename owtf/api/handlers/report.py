@@ -8,13 +8,13 @@ from collections import defaultdict
 from time import gmtime, strftime
 
 from owtf.api.handlers.base import APIRequestHandler
-from owtf.constants import RANKS
+from owtf.constants import RANKS, MAPPINGS, SUPPORTED_MAPPINGS
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
-from owtf.managers.mapping import get_mappings
 from owtf.managers.poutput import get_all_poutputs
 from owtf.managers.target import get_target_config_by_id
 from owtf.models.test_group import TestGroup
+from owtf.utils.pycompat import iteritems
 
 
 __all__ = ["ReportExportHandler"]
@@ -88,9 +88,12 @@ class ReportExportHandler(APIRequestHandler):
         grouped_plugin_outputs = collections.OrderedDict(sorted(grouped_plugin_outputs.items()))
 
         # Get mappings
-        mappings = self.get_argument("mapping", None)
-        if mappings:
-            mappings = get_mappings(self.session, mappings)
+        mapping_type = self.get_argument("mapping", None)
+        mappings = {}
+        if mapping_type and mapping_type in SUPPORTED_MAPPINGS:
+            for k, v in iteritems(MAPPINGS):
+                if v.get(mapping_type, None) is not None:
+                    mappings[k] = v[mapping_type]
 
         # Get test groups as well, for names and info links
         test_groups = {}
