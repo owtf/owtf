@@ -45,16 +45,15 @@ export function* patchSession(action) {
  * Post Session request/response handler
  */
 export function* postSession(action) {
-  const sessionId = action.sessionId;
-  const requestURL = `${API_BASE_URL}sessions/${sessionId.toString()}`;
+  const requestURL = `${API_BASE_URL}sessions/`;
 
   try {
     const request = new Request(requestURL);
     const session = yield call(request.post.bind(request));
-    yield put(sessionsCreated(session));
+    yield put(sessionsCreated(session.data));
     yield put(loadSessions());
   } catch (error) {
-    yield put(sessionsCreatingError(error));
+    yield put(sessionsCreatingError(error));  
   }
 }
 

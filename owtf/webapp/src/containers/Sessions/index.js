@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { Modal, Button, FormGroup } from 'react-bootstrap';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchSessions } from './selectors';
-import { loadSessions } from "./actions";
+import { loadSessions, createSession, changeSession } from "./actions";
 import SessionsTable from './SessionTable';
 import InputGroup from "react-bootstrap/es/InputGroup";
 import FormControl from "react-bootstrap/es/FormControl";
@@ -77,7 +77,7 @@ export class Sessions extends React.Component {
             <InputGroup>
               <FormControl type="text" placeholder= "New Session" />
               <InputGroup.Button>
-                <Button bsStyle="primary" onClick={this.handleShow}>Add</Button>
+                <Button bsStyle="primary" onClick={() => this.props.onCreateSession('test')}>Add!</Button>
               </InputGroup.Button>
             </InputGroup>
           </FormGroup>
@@ -104,6 +104,7 @@ Sessions.propTypes = {
     PropTypes.bool,
   ]),
   onFetchSession: PropTypes.func,
+  onCreateSession: PropTypes.func,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -115,6 +116,7 @@ const mapStateToProps = createStructuredSelector({
 const mapDispatchToProps = (dispatch) => {
   return {
     onFetchSession: () => dispatch(loadSessions()),
+    onCreateSession: (sessionName) => dispatch(createSession(sessionName)),
   };
 };
 

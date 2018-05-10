@@ -83,17 +83,17 @@ function sessionsLoadReducer(state = initialSessionState, action) {
 const initialCreateState = fromJS({
   loading: false,
   error: false,
-  sessions: [],
-  currentSession: fromJS({id: 1, name: "default session"}),  
 });
 
 function sessionCreateReducer(state = initialCreateState, action) {
+  const sessions = initialSessionState.sessions;
+  const currentSession = initialChangeState.currentSession;
   switch (action.type) {
     case CREATE_SESSION:
       return state
         .set('loading', true)
         .set('error', false)
-        .set('sessions', [...sessions, {id:action.sessionId, name: action.sessionName}])
+        .set('sessions', [...sessions, {id:sessions.length+1, name: action.sessionName}])
         .set('currentSession', false);
     case CREATE_SESSION_SUCCESS:
       return state

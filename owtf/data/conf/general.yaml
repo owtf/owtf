@@ -243,7 +243,6 @@ AUX_PLUGIN_DATA:
 
 
 # ************************* SE Spear Phishing configuration (Auxiliary Plugin configuration) *************************************
-
 # New versions of SET are likely to break SET scripts, make this more obvious via dir naming:
   - config: PHISHING_SCRIPT_DIR
     value: "@@@FRAMEWORK_DIR@@@/framework/wrappers/set/scripts/phishing3.2.2"

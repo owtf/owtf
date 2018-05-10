@@ -109,7 +109,6 @@ export function sessionsLoadingError(error) {
 }
 
 
-let nextSession = 0 //Id for the next created session.
 /**
  * Creates the session, this action starts the request saga POST.
  *
@@ -120,7 +119,6 @@ let nextSession = 0 //Id for the next created session.
 export function createSession(sessionName) {
   return {
     type: CREATE_SESSION,
-    sessionId: nextSession++,
     sessionName
   };
 }
