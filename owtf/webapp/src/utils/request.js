@@ -98,7 +98,6 @@ export default class Request {
 
     Request._addDefaults(opts.headers, {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
     });
 
     if (queryParams) {
