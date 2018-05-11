@@ -86,19 +86,14 @@ const initialCreateState = fromJS({
 });
 
 function sessionCreateReducer(state = initialCreateState, action) {
-  const sessions = initialSessionState.sessions;
-  const currentSession = initialChangeState.currentSession;
   switch (action.type) {
     case CREATE_SESSION:
       return state
         .set('loading', true)
         .set('error', false)
-        .set('sessions', [...sessions, {id:sessions.length+1, name: action.sessionName}])
-        .set('currentSession', false);
     case CREATE_SESSION_SUCCESS:
       return state
         .set('loading', false)
-        .set('currentSession', action.session);
     case CREATE_SESSION_ERROR:
       return state
         .set('error', action.error)
