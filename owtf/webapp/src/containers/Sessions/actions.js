@@ -150,3 +150,42 @@ export function sessionsCreatingError(error) {
     error,
   };
 }
+
+/**
+ * Deletes the session, this action starts the request saga DELETE.
+ *
+ * @param  {string} session Session to be deleted.
+ *
+ * @return {object} An action object with a type of DELETE_SESSION
+ */
+export function deleteSession(session) {
+  return {
+    type: DELETE_SESSION,
+    session
+  };
+}
+
+/**
+ * Dispatched when the session is deleted by the request saga
+ *
+ * @return {object} An action object with a type of DELETE_SESSION_SUCCESS
+ */
+export function sessionsDeleted() {
+  return {
+    type: DELETE_SESSION_SUCCESS,
+  };
+}
+
+/**
+ * Dispatched when deleting the session fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of DELETE_SESSION_ERROR passing the error
+ */
+export function sessionsDeletingError(error) {
+  return {
+    type: DELETE_SESSION_ERROR,
+    error,
+  };
+}

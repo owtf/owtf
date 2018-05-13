@@ -22,7 +22,7 @@ export class Sessions extends React.Component {
     this.handleShow = this.handleShow.bind(this);
     this.handleClose = this.handleClose.bind(this);
     this.getCurrentSession = this.getCurrentSession.bind(this);
-    this.handleChange = this.handleChange.bind(this);
+    this.handleAddSession = this.handleAddSession.bind(this);
 
     this.state = {
       show: false,
@@ -46,7 +46,7 @@ export class Sessions extends React.Component {
     }
   }
 
-  handleChange({ target }) {
+  handleAddSession({ target }) {
     this.setState({
       [target.name]: target.value
     });
@@ -66,7 +66,6 @@ export class Sessions extends React.Component {
       sessions,
       currentSession,
     };
-    var newSession = this.state.newSessionName;
 
     return (
       <article>
@@ -84,9 +83,9 @@ export class Sessions extends React.Component {
           </Modal.Header>
           <FormGroup>
             <InputGroup>
-              <FormControl name="newSessionName" type="text" placeholder= "New Session" onChange={ this.handleChange }  />
+              <FormControl name="newSessionName" type="text" placeholder= "New Session" onChange={ this.handleAddSession }  />
               <InputGroup.Button>
-                <Button bsStyle="primary" onClick={() => this.props.onCreateSession({newSession})}>Add!</Button>
+                <Button bsStyle="primary" onClick={() => this.props.onCreateSession(this.state.newSessionName)}>Add!</Button>
               </InputGroup.Button>
             </InputGroup>
           </FormGroup>

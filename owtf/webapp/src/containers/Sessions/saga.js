@@ -3,8 +3,8 @@
  */
 
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { CHANGE_SESSION, LOAD_SESSIONS, CREATE_SESSION } from './constants';
-import {loadSessions, sessionsChanged, sessionsChangingError, sessionsLoaded, sessionsLoadingError, sessionsCreated, sessionsCreatingError} from './actions';
+import { CHANGE_SESSION, LOAD_SESSIONS, CREATE_SESSION, DELETE_SESSION } from './constants';
+import {loadSessions, sessionsChanged, sessionsChangingError, sessionsLoaded, sessionsLoadingError, sessionsCreated, sessionsCreatingError, sessionsDeleted, sessionsDeletingError} from './actions';
 
 import Request from 'utils/request';
 import { API_BASE_URL } from 'configuration';
@@ -49,12 +49,30 @@ export function* postSession(action) {
 
   try {
     const request = new Request(requestURL);
-    const session = yield call(request.post.bind(request));
+    const session = yield call(request.post.bind(request), {name: action.sessionName});
     yield put(sessionsCreated(session));
     yield put(sessionsChanged(session));
     yield put(loadSessions());
   } catch (error) {
     yield put(sessionsCreatingError(error));  
+  }
+}
+
+/**
+ * Delete Session request/response handler
+ */
+export function* deleteSession(action) {
+  const session = action.session;  
+  const requestURL = `${API_BASE_URL}sessions/${session.id.toString()}/`;
+
+  try {
+    const request = new Request(requestURL);
+    yield call(request.delete.bind(request));
+    yield put(sessionsDeleted());
+    yield put(sessionsChanged(null));
+    yield put(loadSessions());
+  } catch (error) {
+    yield put(sessionsDeletingError(error));  
   }
 }
 
@@ -69,4 +87,5 @@ export default function* sessionSaga() {
   yield takeLatest(LOAD_SESSIONS, getSessions);
   yield takeLatest(CHANGE_SESSION, patchSession);
   yield takeLatest(CREATE_SESSION, postSession);
+  yield takeLatest(DELETE_SESSION, deleteSession);
 }
