@@ -7,7 +7,7 @@ import logging
 import os
 
 from owtf.db.session import get_scoped_session
-from owtf.managers.config import get_replacement_dict
+from owtf.managers.config import get_conf
 from owtf.models.resource import Resource
 from owtf.utils.file import FileOperations
 from owtf.utils.strings import multi_replace
@@ -36,7 +36,7 @@ def get_rsrc_replacement_dict(session):
     from owtf.managers.target import target_manager
     from owtf.managers.config import config_handler
 
-    configuration = get_replacement_dict(session)
+    configuration = get_conf(session)
     configuration.update(target_manager.get_target_config)
     configuration.update(config_handler.get_replacement_dict)
     configuration.update(config_handler.get_framework_config_dict)  # for aux plugins

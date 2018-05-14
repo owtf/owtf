@@ -612,30 +612,6 @@ def search_by_regex_names(name_list, stats=False, target_id=None):
     return results
 
 
-def get_transaction_dict(tdb_obj, include_raw_data=False):
-    """Derive a transaction dict from an object
-
-    :param tdb_obj_list: Transaction object
-    :type tdb_obj_list:
-    :param include_raw_data: true/false to include raw transactions
-    :type include_raw_data: `bool`
-    :return: transaction dict
-    :rtype: `dict`
-    """
-    # Create a new copy so no accidental changes
-    tdict = dict(tdb_obj.__dict__)
-    tdict.pop("_sa_instance_state")
-    tdict["local_timestamp"] = tdict["local_timestamp"].strftime("%d-%m %H:%M:%S")
-    if not include_raw_data:
-        tdict.pop("raw_request", None)
-        tdict.pop("response_headers", None)
-        tdict.pop("response_body", None)
-    else:
-        if tdict["binary_response"]:
-            tdict["response_body"] = base64.b64encode(str(tdict["response_body"]))
-    return tdict
-
-
 def get_transaction_dicts(tdb_obj_list, include_raw_data=False):
     """Derive a list of transaction dicts from an object list
 
@@ -646,7 +622,7 @@ def get_transaction_dicts(tdb_obj_list, include_raw_data=False):
     :return: List of transaction dicts
     :rtype: `list`
     """
-    return [get_transaction_dict(tdb_obj, include_raw_data) for tdb_obj in tdb_obj_list]
+    return [tdb_obj.to_dict(include_raw_data) for tdb_obj in tdb_obj_list]
 
 
 @target_required
@@ -708,7 +684,7 @@ def get_by_id_as_dict(session, trans_id, target_id=None):
     transaction_obj = session.query(Transaction).filter_by(target_id=target_id, id=trans_id).first()
     if not transaction_obj:
         raise InvalidTransactionReference("No transaction with {!s} exists".format(trans_id))
-    return get_transaction_dict(transaction_obj, include_raw_data=True)
+    return transaction_obj.to_dict(include_raw_data=True)
 
 
 @target_required
@@ -753,20 +729,6 @@ def get_hrt_response(session, filter_data, trans_id, target_id=None):
     except Exception as e:
         logging.error("Unexpected exception when running HRT: $s", str(e))
         return str(e)
-
-
-@target_required
-def get_session_data(session, target_id=None):
-    """This will return the data from the `session_tokens` column in the form of a list, having no `null` values
-
-    :param target_id: target ID
-    :type target_id: `int`
-    :return: List of cookie dicts
-    :rtype: `list`
-    """
-    session_data = session.query(Transaction.session_tokens).filter_by(target_id=target_id).all()
-    results = [json.loads(el[0]) for el in session_data if el and el[0]]
-    return results
 
 
 regexes = defaultdict(list)

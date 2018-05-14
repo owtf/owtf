@@ -3,6 +3,8 @@ owtf.models.transaction
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 """
+import base64
+
 from sqlalchemy import Boolean, Column, Integer, String, Float, DateTime, Text, ForeignKey, Table, Index
 from sqlalchemy.orm import relationship
 
@@ -44,6 +46,19 @@ class Transaction(Model):
     grep_outputs = relationship(
         "GrepOutput", secondary=transaction_association_table, cascade="delete", backref="transactions"
     )
+
+    def to_dict(self, include_raw_data=False):
+        tdict = dict(self.__dict__)
+        tdict.pop("_sa_instance_state")
+        tdict["local_timestamp"] = tdict["local_timestamp"].strftime("%d-%m %H:%M:%S")
+        if not include_raw_data:
+            tdict.pop("raw_request", None)
+            tdict.pop("response_headers", None)
+            tdict.pop("response_body", None)
+        else:
+            if tdict["binary_response"]:
+                tdict["response_body"] = base64.b64encode(str(tdict["response_body"]))
+        return tdict
 
     def __repr__(self):
         return "<HTTP Transaction (url='{!s}' method='{!s}' response_status='{!s}')>".format(

@@ -19,7 +19,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from owtf.config import config_handler
 from owtf.db.session import get_scoped_session
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
-from owtf.managers.config import get_tcp_ports
 from owtf.managers.plugin import get_plugins_by_group, get_plugins_by_group_type, get_types_for_plugin_group
 from owtf.managers.poutput import save_partial_output, save_plugin_output
 from owtf.managers.target import target_manager
@@ -526,7 +525,7 @@ class PluginRunner(object):
                 self.scanner.scan_network(target)
                 # Scanning and processing the first part of the ports
                 for i in range(1):
-                    ports = get_tcp_ports(lastwave, waves[i])
+                    ports = config_handler.get_tcp_ports(lastwave, waves[i])
                     logging.info("Probing for ports %s", str(ports))
                     http = self.scanner.probe_network(target, "tcp", ports)
                     # Tell Config that all Gets/Sets are now target-specific.
