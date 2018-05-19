@@ -17,12 +17,6 @@ import FormControl from "react-bootstrap/es/FormControl";
 
 class SettingsPage extends React.Component {
 
-  // Since state and props are static,
-  // there's no need to re-render this component
-  // shouldComponentUpdate() {
-  //   return false;
-  // }
-
   constructor(props, context) {
     super(props, context);
 
@@ -31,12 +25,13 @@ class SettingsPage extends React.Component {
     this.renderKeyDetails = this.renderKeyDetails.bind(this);
 
     this.state = {
-      groupedConfigurations: {},
+      groupedConfigurations: {}, //list with section as key and configuartion as value
     };
 
   }
 
-  renderSections() {
+  //Renders the configuratons tabs
+  renderconfigurationTabsNav() {
     let eventkey = 1;
     return Object.keys(this.state.groupedConfigurations).map((section, object) => {
         return (
@@ -47,7 +42,8 @@ class SettingsPage extends React.Component {
     });
   }
 
-  renderKeys() {
+  //Renders the configuration tabs content
+  renderconfigurationTabsContent() {
     let eventKey=1;
     return Object.keys(this.state.groupedConfigurations).map((section, object) => {
       return (
@@ -60,6 +56,7 @@ class SettingsPage extends React.Component {
     });
   }
 
+  //Renders the content for each key of a configuration
   renderKeyDetails(section){
     return this.state.groupedConfigurations[section].map((config) => {
       return (
@@ -91,7 +88,6 @@ class SettingsPage extends React.Component {
         this.state.groupedConfigurations[config.section].push(config);
       })
     }
-    //console.log(this.state.groupedConfigurations);
 
     return (
         <Grid>
