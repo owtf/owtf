@@ -13,7 +13,7 @@ DATE=$(date +%F_%R_%S | sed 's/:/_/g')
 OUTPUTFILE="wapiti_report$DATE"
 DIR=$(pwd)
 FORMAT="xml"
-COMMAND="$TOOL_BIN $URL -f $FORMAT --output $OUTPUTFILE.$FORMAT"
+COMMAND="$TOOL_BIN -u $URL/ -f $FORMAT --output $OUTPUTFILE.$FORMAT"
 
 echo "[*] Running: $COMMAND"
 
