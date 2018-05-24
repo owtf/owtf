@@ -331,9 +331,9 @@ kali_install() {
 
 ui_setup() {
     # Download community written templates for export report functionality.
-    if [ ! -d "${ROOT_DIR}/webapp/src/Report/templates" ]; then
+    if [ ! -d "${ROOT_DIR}/webapp/src/containers/Report/templates" ]; then
         echo "${warning} Templates not found, fetching the latest ones...${reset}"
-        git clone https://github.com/owtf/templates.git "$ROOT_DIR/webapp/src/Report/templates"
+        git clone https://github.com/owtf/templates.git "$ROOT_DIR/webapp/src/containers/Report/templates"
     fi
 
     if [ ! -d ${NVM_DIR} ]; then

@@ -1,5 +1,5 @@
 /*
- * Help
+ * HelpPage
  */
 import React from 'react';
 import {Grid, Panel, Col, Row} from 'react-bootstrap';

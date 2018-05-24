@@ -14,7 +14,7 @@ import WelcomePage from 'containers/WelcomePage/Loadable';
 import Dashboard from "containers/Dashboard/Loadable";
 import TargetsPage from "containers/TargetsPage/Loadable";
 import SettingsPage from "containers/SettingsPage/Loadable";
-import Help from "containers/Help/Loadable";
+import Help from "containers/HelpPage/Loadable";
 import LoginPage from "containers/LoginPage/Loadable";
 import WorkersPage from "containers/WorkersPage/Loadable";
 import WorklistPage from "containers/WorklistPage/Loadable";
