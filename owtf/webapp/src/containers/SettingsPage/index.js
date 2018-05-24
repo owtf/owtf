@@ -20,8 +20,8 @@ class SettingsPage extends React.Component {
   constructor(props, context) {
     super(props, context);
 
-    this.renderSections = this.renderSections.bind(this);
-    this.renderKeys = this.renderKeys.bind(this);
+    this.renderconfigurationTabsNav = this.renderconfigurationTabsNav.bind(this);
+    this.renderconfigurationTabsContent = this.renderconfigurationTabsContent.bind(this);
     this.renderKeyDetails = this.renderKeyDetails.bind(this);
 
     this.state = {
@@ -101,12 +101,12 @@ class SettingsPage extends React.Component {
             <Row className="fluid">
               <Col xs={4} md={3} id="configurationTabsNav">
                 <Nav bsStyle="pills" stacked>
-                  {this.renderSections()}
+                  {this.renderconfigurationTabsNav()}
                 </Nav>
               </Col>
               <Col xs={8} md={9} id="configurationTabsContent">
                 <Tab.content animation>
-                  {this.renderKeys()}
+                  {this.renderconfigurationTabsContent()}
                 </Tab.content>
               </Col>  
             </Row>
