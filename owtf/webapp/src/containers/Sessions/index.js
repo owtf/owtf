@@ -80,15 +80,16 @@ export class Sessions extends React.Component {
         <Modal show={this.state.show} onHide={this.handleClose}>
           <Modal.Header closeButton>
             <Modal.Title>Sessions</Modal.Title>
+            <br />
+            <FormGroup>
+              <InputGroup>
+                <FormControl name="newSessionName" type="text" placeholder= "New Session" onChange={ this.handleAddSession }  />
+                <InputGroup.Button>
+                  <Button bsStyle="primary" onClick={() => this.props.onCreateSession(this.state.newSessionName)}>Add!</Button>
+                </InputGroup.Button>
+              </InputGroup>
+            </FormGroup>
           </Modal.Header>
-          <FormGroup>
-            <InputGroup>
-              <FormControl name="newSessionName" type="text" placeholder= "New Session" onChange={ this.handleAddSession }  />
-              <InputGroup.Button>
-                <Button bsStyle="primary" onClick={() => this.props.onCreateSession(this.state.newSessionName)}>Add!</Button>
-              </InputGroup.Button>
-            </InputGroup>
-          </FormGroup>
           <Modal.Body>
             <SessionsTable {...sessionsListProps} />
           </Modal.Body>
