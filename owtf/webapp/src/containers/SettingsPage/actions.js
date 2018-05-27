@@ -54,7 +54,7 @@ export function configurationsLoadingError(error) {
  *
  * @return {object} An action object with a type of CHANGE_CONFIGURATION
  */
-export function changeConfigurations() {
+export function changeConfigurations(configurations) {
   return {
     type: CHANGE_CONFIGURATIONS,
     configurations,

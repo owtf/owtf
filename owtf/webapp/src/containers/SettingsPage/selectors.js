@@ -11,6 +11,11 @@ const makeSelectFetch = createSelector(
   (configurationState) => configurationState.get('load')
 );
 
+const makeSelectChange = createSelector(
+  selectConfiguration,
+  (configurationState) => configurationState.get('change')
+);
+
 const makeSelectFetchLoading = createSelector(
   makeSelectFetch,
   (fetchState) => fetchState.get('loading')
@@ -26,9 +31,14 @@ const makeSelectFetchConfigurations = createSelector(
   (fetchState) => fetchState.get('configurations')
 );
 
+const makeSelectChangeError = createSelector(
+  makeSelectChange,
+  (changeState) => changeState.get('error')
+);
 
 export {
   makeSelectFetchLoading,
   makeSelectFetchError,
   makeSelectFetchConfigurations,
+  makeSelectChangeError,
 };
