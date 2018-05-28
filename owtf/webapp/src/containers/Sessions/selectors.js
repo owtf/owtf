@@ -16,10 +16,6 @@ const makeSelectChange = createSelector(
   (sessionState) => sessionState.get('change')
 );
 
-const makeSelectCreate = createSelector(
-  selectSession,
-  (sessionState) => sessionState.get('create')
-);
 
 const makeSelectFetchLoading = createSelector(
   makeSelectFetch,
