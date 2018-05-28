@@ -62,6 +62,7 @@ class SettingsPage extends React.Component {
       updateDisabled: true,
       show: true,
     });
+    setTimeout(() => {this.setState({ show: false })}, 3000);
   }
 
   renderAlert(error){
@@ -86,9 +87,9 @@ class SettingsPage extends React.Component {
   //Renders the configuratons tabs
   renderconfigurationTabsNav() {
     let eventkey = 1;
-    return Object.keys(this.state.groupedConfigurations).map((section, object) => {
+    return Object.keys(this.state.groupedConfigurations).map((section, key) => {
       return (
-          <NavItem eventKey={eventkey++}>
+          <NavItem eventKey={eventkey++} key={key}>
               {section.replace(/_/g,' ')}
           </NavItem>
       );
@@ -98,9 +99,9 @@ class SettingsPage extends React.Component {
   //Renders the configuration tabs content
   renderconfigurationTabsContent() {
     let eventKey=1;
-    return Object.keys(this.state.groupedConfigurations).map((section, object) => {
+    return Object.keys(this.state.groupedConfigurations).map((section, key) => {
       return (
-        <Tab.Pane eventKey={eventKey++}>
+        <Tab.Pane eventKey={eventKey++} key={key}>
           <Form horizontal id={"form_"+section}> 
             {this.renderKeyDetails(section)}
           </Form>
@@ -111,9 +112,9 @@ class SettingsPage extends React.Component {
 
   //Renders the content for each key of a configuration
   renderKeyDetails(section){
-    return this.state.groupedConfigurations[section].map((config) => {
+    return this.state.groupedConfigurations[section].map((config, key) => {
       return (
-        <FormGroup>
+        <FormGroup key={key}>
           <Col xs={4} md={4}>
             <ControlLabel className="pull-right" htmlFor={config.key}>{config.key.replace(/_/g,' ')}</ControlLabel>
           </Col>
