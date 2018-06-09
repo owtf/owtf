@@ -7,6 +7,7 @@ import { combineReducers } from 'redux-immutable'; // combineReducers of 'redux'
 import { LOCATION_CHANGE } from 'react-router-redux';
 
 import sessionsReducer from 'containers/Sessions/reducer';
+import targetsReducer from 'containers/Transactions/reducer'
 /*
  * routeReducer
  *
@@ -40,6 +41,7 @@ function routeReducer(state = routeInitialState, action) {
 export default function createReducer() {
   return combineReducers({
     route: routeReducer,
-    sessions: sessionsReducer
+    sessions: sessionsReducer,
+    targets: targetsReducer,
   });
 }

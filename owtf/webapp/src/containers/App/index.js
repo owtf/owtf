@@ -19,6 +19,7 @@ import LoginPage from "containers/LoginPage/Loadable";
 import WorkersPage from "containers/WorkersPage/Loadable";
 import WorklistPage from "containers/WorklistPage/Loadable";
 import NotFoundPage from "components/NotFoundPage";
+import TransactionsPage from "containers/Transactions/Loadable";
 
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
     {linkTo: "/workers", text: "Workers"},
     {linkTo: "/worklist", text: "Worklist"},
     {linkTo: "/settings", text: "Settings"},
+    {linkTo: "/transactions", text: "Transactions"},
     {linkTo: "/help", text: "Help"},
     {linkTo: "/login", text: "Login"},
   ];
@@ -44,6 +46,7 @@ export default function App() {
         <Route path="/workers" component={WorkersPage} />
         <Route path="/worklist" component={WorklistPage} />
         <Route path="/settings" component={SettingsPage} />
+        <Route path="/transactions" component={TransactionsPage} />
         <Route path="/help" component={Help} />
         <Route path="/login" component={LoginPage} />
         <Route path="*" component={NotFoundPage} />
