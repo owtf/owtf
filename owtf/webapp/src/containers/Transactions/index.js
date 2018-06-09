@@ -91,7 +91,6 @@ class Transactions extends React.Component {
   };
 
   render() {
-    console.log('yoyo '+this.props);
     return (
       <Grid>
         <Row>
@@ -99,7 +98,7 @@ class Transactions extends React.Component {
               width: this.state.widthTargetList.toString() + "%",
               overflow: "hidden"
           }}>
-            <TargetList />
+            <TargetList {...this.props} />
           </Col>
           <Col id="drag-left" onMouseDown={e => this.handleMouseDown(e)} onMouseUp={e => this.handleMouseUp(e)}></Col>
           <Col id="right_panel" style={{
