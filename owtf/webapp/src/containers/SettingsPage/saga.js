@@ -7,7 +7,7 @@ import { LOAD_CONFIGURATIONS, CHANGE_CONFIGURATIONS } from './constants';
 import {loadConfigurations, configurationsLoaded, configurationsLoadingError, changeConfigurations, configurationsChangingError, configurationsChanged} from './actions';
 
 import Request from 'utils/request';
-import { API_BASE_URL } from 'configuration';
+import { API_BASE_URL } from 'utils/constants';
 
 /**
  * Fetch Configuration request/response handler
