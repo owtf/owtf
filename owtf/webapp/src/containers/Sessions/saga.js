@@ -7,7 +7,7 @@ import { CHANGE_SESSION, LOAD_SESSIONS, CREATE_SESSION, DELETE_SESSION } from '.
 import {loadSessions, sessionsChanged, sessionsChangingError, sessionsLoaded, sessionsLoadingError, sessionsCreated, sessionsCreatingError, sessionsDeleted, sessionsDeletingError} from './actions';
 
 import Request from 'utils/request';
-import { API_BASE_URL } from 'configuration';
+import { API_BASE_URL } from 'utils/constants';
 
 /**
  * Fetch Session request/response handler
