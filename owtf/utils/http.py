@@ -4,9 +4,7 @@ owtf.utils.http
 
 """
 import collections
-import inspect
 import types
-from functools import wraps
 
 try:  # PY3
     from urllib.parse import urlparse
@@ -51,25 +49,6 @@ def deep_update(source, overrides):
     return source
 
 
-def container(dec):
-    """Meta-decorator (for decorating decorators)
-
-    Keeps around original decorated function as a property ``orig_func``
-
-    :param dec: Decorator to decorate
-    :type  dec: function
-    :returns: Decorated decorator
-    """
-    # Credits: http://stackoverflow.com/a/1167248/1798683
-    @wraps(dec)
-    def meta_decorator(f):
-        decorator = dec(f)
-        decorator.orig_func = f
-        return decorator
-
-    return meta_decorator
-
-
 def extract_method(wrapped_method):
     """Gets original method if wrapped_method was decorated
 
@@ -84,13 +63,3 @@ def is_method(method):
     method = extract_method(method)
     # Can be either a method or a function
     return type(method) in [types.MethodType, types.FunctionType]
-
-
-def is_handler_subclass(cls, classnames=("ViewHandler", "APIHandler")):
-    """Determines if ``cls`` is indeed a subclass of ``classnames``"""
-    if isinstance(cls, list):
-        return any(is_handler_subclass(c) for c in cls)
-    elif isinstance(cls, type):
-        return any(c.__name__ in classnames for c in inspect.getmro(cls))
-    else:
-        raise TypeError("Unexpected type `{}` for class `{}`".format(type(cls), cls))

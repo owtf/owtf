@@ -41,7 +41,7 @@ TOOLS:
   - config: TOOL_W3AF_BIN
     value: /usr/share/w3af/w3af_console
   - config: TOOL_WAPITI_BIN
-    value: /usr/bin/wapiti
+    value: /usr/local/bin/wapiti
   - config: TOOL_DIRBUSTER_BIN
     value: /usr/share/dirbuster/DirBuster-1.0-RC1.jar
   - config: TOOL_METASPLOIT_DIR

@@ -92,32 +92,6 @@ def load_framework_config(default, fallback, root_dir, owtf_pid):
                 pass
 
 
-def get_config_val(session, key):
-    """Get the value of the key from DB
-
-    :param key: Key to lookup
-    :type key: `str`
-    :return: Value
-    :rtype: `str`
-    """
-    obj = session.query(Config).get(key)
-    if obj:
-        return multi_replace(obj.value, config_handler.get_replacement_dict)
-    else:
-        return None
-
-
-def derive_config_dicts(config_obj_list):
-    """Derive multiple config dicts
-
-    :param config_obj_list: List of all config objects
-    :type config_obj_list: `list`
-    :return: List of config dicts
-    :rtype: `list`
-    """
-    return [config_obj.to_dict() for config_obj in config_obj_list if config_obj]
-
-
 def config_gen_query(session, criteria):
     """Generate query
 
@@ -171,17 +145,6 @@ def get_all_tools(session):
     return config_dicts
 
 
-def get_sections_config(session):
-    """Get all sections in from the config db
-
-    :return: List of sections
-    :rtype: `list`
-    """
-    sections = session.query(Config.section).distinct().all()
-    sections = [i[0] for i in sections]
-    return sections
-
-
 def update_config_val(session, key, value):
     """Update the configuration value for a key
 
@@ -202,7 +165,7 @@ def update_config_val(session, key, value):
         raise InvalidConfigurationReference("No setting exists with key: {!s}".format(key))
 
 
-def get_replacement_dict(session):
+def get_conf(session):
     """Get the config dict
 
     :return: Replaced dict
@@ -213,29 +176,3 @@ def get_replacement_dict(session):
     for key, value in config_list:  # Need a dict
         config_dict[key] = value
     return config_dict
-
-
-def get_tcp_ports(start_port, end_port):
-    """Get TCP ports from the config file
-
-    :param start_port: Start port in a range
-    :type start_port: `str`
-    :param end_port: End port
-    :type end_port: `str`
-    :return: Comma-separate string of tcp ports
-    :rtype: `str`
-    """
-    return ",".join(config_handler.get("TCP_PORTS").split(",")[int(start_port):int(end_port)])
-
-
-def get_udp_ports(start_port, end_port):
-    """Get UDP ports from the config file
-
-    :param start_ort: Start port in a range
-    :type start_port: `str`
-    :param end_port: End port
-    :type end_port: `str`
-    :return: Comma-separate string of udp ports
-    :rtype: `str`
-    """
-    return ",".join(config_handler.get("UDP_PORTS").split(",")[int(start_port):int(end_port)])

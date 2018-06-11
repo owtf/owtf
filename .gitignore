@@ -120,7 +120,7 @@ local.properties
 owtf/webapp/node_modules/*
 owtf/webapp/yarn-error.log
 owtf/webapp/build/*
-owtf/webapp/src/Report/templates/*
+owtf/webapp/src/containers/Report/templates/*
 # Don't check auto-generated stuff into git
 owtf/webapp/coverage
 owtf/webapp/stats.json

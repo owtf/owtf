@@ -177,5 +177,29 @@ class Config(object):
         for k, v in list(self.get_config_dict.items()):
             logging.info("%s => %s", str(k), str(v))
 
+    def get_tcp_ports(self, start_port, end_port):
+        """Get TCP ports from the config file
+
+        :param start_port: Start port in a range
+        :type start_port: `str`
+        :param end_port: End port
+        :type end_port: `str`
+        :return: Comma-separate string of tcp ports
+        :rtype: `str`
+        """
+        return ",".join(self.get_val("TCP_PORTS").split(",")[int(start_port):int(end_port)])
+
+    def get_udp_ports(self, start_port, end_port):
+        """Get UDP ports from the config file
+
+        :param start_ort: Start port in a range
+        :type start_port: `str`
+        :param end_port: End port
+        :type end_port: `str`
+        :return: Comma-separate string of udp ports
+        :rtype: `str`
+        """
+        return ",".join(self.get_val("UDP_PORTS").split(",")[int(start_port):int(end_port)])
+
 
 config_handler = Config()

@@ -1,5 +1,5 @@
 /**
- * Asynchronously loads the component for Help
+ * Asynchronously loads the component for HelpPage
  */
 import Loadable from 'react-loadable';
 

@@ -120,7 +120,7 @@ class WorkerManager(object):
         """
         # Loop while there is some work in worklist
         for k in range(0, len(self.workers)):
-            if (not self.workers[k]["worker"].output_q.empty()) or (not check_pid(self.workers[k]["worker"].pid)):
+            if not self.workers[k]["worker"].output_q.empty() or not check_pid(self.workers[k]["worker"].pid):
                 if check_pid(self.workers[k]["worker"].pid):
                     # Assign target, plugin from tuple work and empty the tuple
                     self.workers[k]["work"] = ()
