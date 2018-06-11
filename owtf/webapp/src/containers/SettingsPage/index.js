@@ -2,9 +2,8 @@
  * SettingsPage
  */
 import React from 'react';
-import UnderconstructionPage from "components/UnderconstructionPage";
 import { Button , Alert } from 'react-bootstrap';
-import {Grid, Panel, Col, Row, FormGroup, Form, ControlLabel, Nav, NavItem} from 'react-bootstrap';
+import {Grid, Col, Row, FormGroup, Form, ControlLabel, Nav, NavItem} from 'react-bootstrap';
 import { Tabs, Tab , TabContainer, TabContent, TabPane } from 'react-bootstrap';
 
 import PropTypes from 'prop-types';
@@ -12,8 +11,8 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchConfigurations, makeSelectChangeError } from './selectors';
 import { loadConfigurations, changeConfigurations } from "./actions";
-import InputGroup from "react-bootstrap/es/InputGroup";
 import FormControl from "react-bootstrap/es/FormControl";
+import { ClipLoader } from 'react-spinners';
 
 class SettingsPage extends React.Component {
 
@@ -31,7 +30,6 @@ class SettingsPage extends React.Component {
 
     this.state = {
       updateDisabled: true, //for update configuration button 
-      groupedConfigurations: {}, //object with section as key and configuartion as value
       patch_data: {}, //contains information of the updated configurations
       show: false, //handle alert visibility
     };
@@ -85,9 +83,9 @@ class SettingsPage extends React.Component {
   }
 
   //Renders the configuratons tabs
-  renderconfigurationTabsNav() {
+  renderconfigurationTabsNav(groupedConfigurations) {
     let eventkey = 1;
-    return Object.keys(this.state.groupedConfigurations).map((section, key) => {
+    return Object.keys(groupedConfigurations).map((section, key) => {
       return (
           <NavItem eventKey={eventkey++} key={key}>
               {section.replace(/_/g,' ')}
@@ -97,13 +95,13 @@ class SettingsPage extends React.Component {
   }
 
   //Renders the configuration tabs content
-  renderconfigurationTabsContent() {
+  renderconfigurationTabsContent(groupedConfigurations) {
     let eventKey=1;
-    return Object.keys(this.state.groupedConfigurations).map((section, key) => {
+    return Object.keys(groupedConfigurations).map((section, key) => {
       return (
         <Tab.Pane eventKey={eventKey++} key={key}>
           <Form horizontal id={"form_"+section}> 
-            {this.renderKeyDetails(section)}
+            {this.renderKeyDetails(groupedConfigurations[section])}
           </Form>
         </Tab.Pane>
       );
@@ -111,15 +109,15 @@ class SettingsPage extends React.Component {
   }
 
   //Renders the content for each key of a configuration
-  renderKeyDetails(section){
-    return this.state.groupedConfigurations[section].map((config, key) => {
+  renderKeyDetails(groupedConfigurationsSection){
+    return groupedConfigurationsSection.map((config, key) => {
       return (
         <FormGroup key={key}>
           <Col xs={4} md={4}>
             <ControlLabel className="pull-right" htmlFor={config.key}>{config.key.replace(/_/g,' ')}</ControlLabel>
           </Col>
           <Col xs={8} md={8}>
-              <FormControl type="text" name={config.key} data-toggle="tooltip" title={config.descrip} defaultValue={config.value} onChange={this.handleConfigurationChange} />
+            <FormControl type="text" name={config.key} data-toggle="tooltip" title={config.descrip} defaultValue={config.value} onChange={this.handleConfigurationChange} />
           </Col>
         </FormGroup>
       );
@@ -134,14 +132,26 @@ class SettingsPage extends React.Component {
 
     const { configurations, loading, fetchError, changeError } = this.props;
     
-    this.state.groupedConfigurations = {}
-    if(configurations){
+    let groupedConfigurations = {}
+    if(configurations !== false){
       configurations.map((config) => {
-        if (!(config.section in this.state.groupedConfigurations)){
-          this.state.groupedConfigurations[config.section] = [];
+        if (!(config.section in groupedConfigurations)){
+          groupedConfigurations[config.section] = [];
         }
-        this.state.groupedConfigurations[config.section].push(config);
+        groupedConfigurations[config.section].push(config);
       })
+    }
+    
+    if (loading) {
+      return (
+        <ClipLoader color={'#000000'} loading={loading} />
+      );
+    }
+
+    if(fetchError !== false){
+      return (
+        <p>Something went wrong, please try again!</p>
+      );
     }
 
     return (
@@ -161,12 +171,12 @@ class SettingsPage extends React.Component {
             <Row className="fluid">
               <Col xs={4} md={3}>
                 <Nav bsStyle="pills" stacked>
-                  {this.renderconfigurationTabsNav()}
+                  {this.renderconfigurationTabsNav(groupedConfigurations)}
                 </Nav>
               </Col>
               <Col xs={8} md={9}>
                 <Tab.Content animation>
-                  {this.renderconfigurationTabsContent()}
+                  {this.renderconfigurationTabsContent(groupedConfigurations)}
                 </Tab.Content>
               </Col>
             </Row>
