@@ -12,7 +12,7 @@ import { createStructuredSelector } from 'reselect';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchConfigurations, makeSelectChangeError } from './selectors';
 import { loadConfigurations, changeConfigurations } from "./actions";
 import FormControl from "react-bootstrap/es/FormControl";
-import { ClipLoader } from 'react-spinners';
+import './index.css';
 
 class SettingsPage extends React.Component {
 
@@ -84,10 +84,9 @@ class SettingsPage extends React.Component {
 
   //Renders the configuratons tabs
   renderconfigurationTabsNav(groupedConfigurations) {
-    let eventkey = 1;
     return Object.keys(groupedConfigurations).map((section, key) => {
       return (
-          <NavItem eventKey={eventkey++} key={key}>
+          <NavItem eventKey={key} key={key}>
               {section.replace(/_/g,' ')}
           </NavItem>
       );
@@ -96,10 +95,9 @@ class SettingsPage extends React.Component {
 
   //Renders the configuration tabs content
   renderconfigurationTabsContent(groupedConfigurations) {
-    let eventKey=1;
     return Object.keys(groupedConfigurations).map((section, key) => {
       return (
-        <Tab.Pane eventKey={eventKey++} key={key}>
+        <Tab.Pane eventKey={key} key={key}>
           <Form horizontal id={"form_"+section}> 
             {this.renderKeyDetails(groupedConfigurations[section])}
           </Form>
@@ -131,7 +129,7 @@ class SettingsPage extends React.Component {
   render() {
 
     const { configurations, loading, fetchError, changeError } = this.props;
-    
+
     let groupedConfigurations = {}
     if(configurations !== false){
       configurations.map((config) => {
@@ -141,10 +139,10 @@ class SettingsPage extends React.Component {
         groupedConfigurations[config.section].push(config);
       })
     }
-    
+
     if (loading) {
       return (
-        <ClipLoader color={'#000000'} loading={loading} />
+        <div className="spinner" />
       );
     }
 
