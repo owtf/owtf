@@ -23,10 +23,10 @@ export function loadTargets() {
  *
  * @return {object} An action object with a type of LOAD_TARGETS_SUCCESS passing the targets
  */
-export function targetsLoaded(targets) {
+export function targetsLoaded(targetsData) {
   return {
     type: LOAD_TARGETS_SUCCESS,
-    targets,
+    targetsData,
   };
 }
 

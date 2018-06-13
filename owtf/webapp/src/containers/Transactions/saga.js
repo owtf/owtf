@@ -4,7 +4,7 @@
 
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { LOAD_TARGETS } from './constants';
-import {loadTargets, targetsLoaded, targetsLoadingError} from './actions';
+import {targetsLoaded, targetsLoadingError} from './actions';
 
 import Request from 'utils/request';
 import { API_BASE_URL } from 'utils/constants';

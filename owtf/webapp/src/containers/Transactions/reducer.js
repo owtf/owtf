@@ -16,7 +16,6 @@ const initialTargetState = fromJS({
 });
 
 function targetsLoadReducer(state = initialTargetState, action) {
-  console.log('state '+state);
   switch (action.type) {
     case LOAD_TARGETS:
       return state
@@ -26,7 +25,7 @@ function targetsLoadReducer(state = initialTargetState, action) {
     case LOAD_TARGETS_SUCCESS:
       return state
         .set('loading', false)
-        .set('targets', action.targets);
+        .set('targets', action.targetsData.data);
     case LOAD_TARGETS_ERROR:
       return state
         .set('loading', false)

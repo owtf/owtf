@@ -54,19 +54,19 @@ export default class TransactionHeader extends React.Component {
                         <Row>
                             <Col>
                             <Nav bsStyle="tabs">
-                                <NavItem eventKey={1}>Request</NavItem>
-                                <NavItem eventKey={2}>Response</NavItem>
+                                <NavItem eventKey={1} key={1}>Request</NavItem>
+                                <NavItem eventKey={2} key={2}>Response</NavItem>
                             </Nav>
                             </Col>
                         </Row>
                         <Row>
                             <Col>
                             <Tab.Content animation>
-                                <Tab.Pane eventKey={1}>
+                                <Tab.Pane eventKey={1} key={1}>
                                     <Col componentClass="p">Request Header</Col>
                                     <pre style={{width: 1000}}></pre>
                                 </Tab.Pane>
-                                <Tab.Pane eventKey={2}>Tab 2 content</Tab.Pane>
+                                <Tab.Pane eventKey={2} key={2}>Tab 2 content</Tab.Pane>
                             </Tab.Content>
                             </Col>
                         </Row>

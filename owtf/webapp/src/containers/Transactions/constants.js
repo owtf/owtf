@@ -8,3 +8,7 @@ export const TRANSACTION_ZCONSOLE_URL = '/ui/targets/target_id/transactions/zcon
 export const LOAD_TARGETS = 'owtf/Targets/LOAD_TARGETS',
     LOAD_TARGETS_SUCCESS = 'owtf/Targets/LOAD_TARGETS_SUCCESS',
     LOAD_TARGETS_ERROR = 'owtf/Targets/LOAD_TARGETS_ERROR';
+
+export const LOAD_SESSIONS = 'owtf/Sessions/LOAD_SESSIONS',
+    LOAD_SESSIONS_SUCCESS = 'owtf/Sessions/LOAD_SESSIONS_SUCCESS',
+    LOAD_SESSIONS_ERROR = 'owtf/Sessions/LOAD_SESSIONS_ERROR';

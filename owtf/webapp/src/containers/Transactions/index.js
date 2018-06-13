@@ -23,6 +23,9 @@ class Transactions extends React.Component {
   constructor(props, context) {
     super(props, context);
 
+    this.updateZestState = this.updateZestState.bind(this);
+    this.closeZestState = this.closeZestState.bind(this);
+
     this.state = {
       resizeTableActiveLeft: false,
       widthTargetList: 16.66666667,
@@ -40,7 +43,6 @@ class Transactions extends React.Component {
       hrtResponse: '',
       limitValue: 100,
       offsetValue: 0,
-      targetsData: [],
       selectedTransactionRows: [],
       zestActive: false,
       snackbarOpen: false,
@@ -48,6 +50,28 @@ class Transactions extends React.Component {
       alertMessage: ""
     };
   }
+
+  /* Imp: Function which is handling all the stuff when create zest script button is clicked. This
+    function basically update zestActive state which means that zest script creation stuff is going on
+    and due to change in state all the stuff like forming checkboxes, displaying footer happens */
+  updateZestState() {
+    console.log('mohit');
+    this.setState({zestActive: true});
+  };
+
+  /* This function basically updates the selected row when  zest is acticated. After selection this data is passed to
+    footer so that the selected row can be read by requestSender function which is forming zest script.*/
+  updateSelectedRowsInZest(rowsArray) {
+      var transactionsData = this.state.transactionsData;
+      var selected_trans_ids = rowsArray.map(function(item) {
+          return transactionsData[item].id.toString();
+      });
+      this.setState({selectedTransactionRows: selected_trans_ids});
+  }
+
+  closeZestState() {
+      this.setState({zestActive: false});
+  };
 
   componentDidMount() {
     this.props.onFetchTarget();
@@ -91,6 +115,11 @@ class Transactions extends React.Component {
   };
 
   render() {
+    const headerProps = {
+      zestActive: this.state.zestActive,
+      target_id: this.state.target_id,
+      updateZestState: this.updateZestState,
+    };
     return (
       <Grid>
         <Row>
@@ -104,7 +133,7 @@ class Transactions extends React.Component {
           <Col id="right_panel" style={{
               width: this.state.widthTable.toString() + "%"
           }}>
-            <Header/>
+            <Header {...headerProps} />
             <Row>
               <TransactionTable />
             </Row>
