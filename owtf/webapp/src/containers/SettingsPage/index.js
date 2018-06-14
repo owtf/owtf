@@ -161,7 +161,7 @@ class SettingsPage extends React.Component {
           </Row>
           <Row className="container-fluid">
             <Col>
-              <Button bsStyle="primary" className="pull-right" disabled={this.state.updateDisabled} type="submit" onClick={this.onUpdateConfiguration} >Update Confuguration!</Button>
+              <Button bsStyle="primary" className="pull-right" disabled={this.state.updateDisabled} type="submit" onClick={this.onUpdateConfiguration} >Update Configuration!</Button>
             </Col>
           </Row>
           <br />
