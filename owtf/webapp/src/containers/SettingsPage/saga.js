@@ -4,7 +4,7 @@
 
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { LOAD_CONFIGURATIONS, CHANGE_CONFIGURATIONS } from './constants';
-import {configurationsLoaded, configurationsLoadingError, configurationsChangingError, configurationsChanged} from './actions';
+import {configurationsLoaded, configurationsLoadingError, configurationsChangingError, configurationsChanged, loadConfigurations} from './actions';
 
 import Request from 'utils/request';
 import { API_BASE_URL } from 'utils/constants';
@@ -31,7 +31,12 @@ export function* patchConfigurations(action) {
   const patch_data = action.configurations;
   const requestURL = `${API_BASE_URL}configuration/`;
   try {
-    const request = new Request(requestURL);
+    const options = {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+      }
+    }
+    const request = new Request(requestURL, options);
     yield call(request.patch.bind(request), patch_data);
     yield put(configurationsChanged());
     yield put(loadConfigurations());
