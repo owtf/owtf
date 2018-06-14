@@ -67,6 +67,24 @@ export default class Request {
   }
 
   /**
+   * Converts post/patch/put json data to application/x-www-form-urlencoded data format.
+   *
+   * @param data Data in JSON format
+   *
+   * @return {string} form-url-encoded string
+   */
+
+  _getFormEncodedData(data) {
+    const formBody = [];
+    for (const property in data) {
+      const encodedKey = encodeURIComponent(property);
+      const encodedValue = encodeURIComponent(data[property]);
+      formBody.push(encodedKey + "=" + encodedValue);
+    }
+    return formBody.join("&");
+  }
+
+  /**
    * Adds default headers for request if not passed by saga.
    *
    * @param  {object} target Object in which we are adding default headers.
@@ -105,7 +123,7 @@ export default class Request {
     }
 
     if (data) {
-      opts.body = JSON.stringify(data);
+      opts.body = this._getFormEncodedData(data);
     } else {
       delete opts.body;
     }
