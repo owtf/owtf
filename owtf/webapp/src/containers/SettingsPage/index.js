@@ -12,7 +12,7 @@ import { createStructuredSelector } from 'reselect';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchConfigurations, makeSelectChangeError } from './selectors';
 import { loadConfigurations, changeConfigurations } from "./actions";
 import FormControl from "react-bootstrap/es/FormControl";
-import './index.css';
+import './index.scss';
 
 class SettingsPage extends React.Component {
 
@@ -75,7 +75,7 @@ class SettingsPage extends React.Component {
       else{
         return(
           <Alert bsStyle="success" onDismiss={this.handleDismiss}>
-            Confuguration updated successfully!
+            Configuration updated successfully!
           </Alert>
         )
       }
