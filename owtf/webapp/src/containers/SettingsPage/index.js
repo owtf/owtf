@@ -3,25 +3,23 @@
  */
 import React from 'react';
 import { Button , Alert } from 'react-bootstrap';
-import {Grid, Col, Row, FormGroup, Form, ControlLabel, Nav, NavItem} from 'react-bootstrap';
-import { Tabs, Tab , TabContainer, TabContent, TabPane } from 'react-bootstrap';
+import {Grid, Col, Row} from 'react-bootstrap';
+import { Tabs, Tab , TabContainer, TabContent } from 'react-bootstrap';
 
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchConfigurations, makeSelectChangeError } from './selectors';
 import { loadConfigurations, changeConfigurations } from "./actions";
-import FormControl from "react-bootstrap/es/FormControl";
 import './index.scss';
+import ConfigurationTabsContent from 'components/ConfigurationTabsContent';
+import ConfigurationTabsNav from 'components/ConfigurationTabsNav';
 
 class SettingsPage extends React.Component {
 
   constructor(props, context) {
     super(props, context);
 
-    this.renderconfigurationTabsNav = this.renderconfigurationTabsNav.bind(this);
-    this.renderconfigurationTabsContent = this.renderconfigurationTabsContent.bind(this);
-    this.renderKeyDetails = this.renderKeyDetails.bind(this);
     this.handleConfigurationChange = this.handleConfigurationChange.bind(this);
     this.onUpdateConfiguration = this.onUpdateConfiguration.bind(this);
     this.renderAlert = this.renderAlert.bind(this);
@@ -82,46 +80,6 @@ class SettingsPage extends React.Component {
     }
   }
 
-  //Renders the configuratons tabs
-  renderconfigurationTabsNav(groupedConfigurations) {
-    return Object.keys(groupedConfigurations).map((section, key) => {
-      return (
-          <NavItem eventKey={key} key={key}>
-              {section.replace(/_/g,' ')}
-          </NavItem>
-      );
-    });
-  }
-
-  //Renders the configuration tabs content
-  renderconfigurationTabsContent(groupedConfigurations) {
-    return Object.keys(groupedConfigurations).map((section, key) => {
-      return (
-        <Tab.Pane eventKey={key} key={key}>
-          <Form horizontal id={"form_"+section}> 
-            {this.renderKeyDetails(groupedConfigurations[section])}
-          </Form>
-        </Tab.Pane>
-      );
-    });
-  }
-
-  //Renders the content for each key of a configuration
-  renderKeyDetails(groupedConfigurationsSection){
-    return groupedConfigurationsSection.map((config, key) => {
-      return (
-        <FormGroup key={key}>
-          <Col xs={4} md={4}>
-            <ControlLabel className="pull-right" htmlFor={config.key}>{config.key.replace(/_/g,' ')}</ControlLabel>
-          </Col>
-          <Col xs={8} md={8}>
-            <FormControl type="text" name={config.key} data-toggle="tooltip" title={config.descrip} defaultValue={config.value} onChange={this.handleConfigurationChange} />
-          </Col>
-        </FormGroup>
-      );
-    });
-  }
-
   componentDidMount() {
     this.props.onFetchConfiguration();
   }
@@ -168,13 +126,11 @@ class SettingsPage extends React.Component {
           <Tab.Container id="left-tabs">
             <Row className="fluid">
               <Col xs={4} md={3}>
-                <Nav bsStyle="pills" stacked>
-                  {this.renderconfigurationTabsNav(groupedConfigurations)}
-                </Nav>
+                <ConfigurationTabsNav configurations={groupedConfigurations} />
               </Col>
               <Col xs={8} md={9}>
                 <Tab.Content animation>
-                  {this.renderconfigurationTabsContent(groupedConfigurations)}
+                  <ConfigurationTabsContent configurations={groupedConfigurations} handleConfigurationChange={this.handleConfigurationChange} />
                 </Tab.Content>
               </Col>
             </Row>
