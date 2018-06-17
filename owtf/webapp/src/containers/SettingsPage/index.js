@@ -142,7 +142,7 @@ SettingsPage.propTypes = {
     PropTypes.bool,
   ]),
   configurations: PropTypes.oneOfType([
-    PropTypes.array.isRequired,
+    PropTypes.object.isRequired,
     PropTypes.bool.isRequired,
   ]),
   onFetchConfiguration: PropTypes.func,
