@@ -13,7 +13,7 @@ import {
 
 // The initial state of the configurations.
 const initialConfigurationState = fromJS({
-  loading: false,
+  loading: true,
   error: false,
   configurations: false,
 });

@@ -87,17 +87,6 @@ class SettingsPage extends React.Component {
   render() {
 
     const { configurations, loading, fetchError, changeError } = this.props;
-
-    let groupedConfigurations = {}
-    if(configurations !== false){
-      configurations.map((config) => {
-        if (!(config.section in groupedConfigurations)){
-          groupedConfigurations[config.section] = [];
-        }
-        groupedConfigurations[config.section].push(config);
-      })
-    }
-
     if (loading) {
       return (
         <div className="spinner" />
@@ -110,33 +99,35 @@ class SettingsPage extends React.Component {
       );
     }
 
-    return (
-        <Grid>
-          <Row className="container-fluid">
-            <Col>
-              {this.renderAlert(this.props.changeError)}
-            </Col>
-          </Row>
-          <Row className="container-fluid">
-            <Col>
-              <Button bsStyle="primary" className="pull-right" disabled={this.state.updateDisabled} type="submit" onClick={this.onUpdateConfiguration} >Update Configuration!</Button>
-            </Col>
-          </Row>
-          <br />
-          <Tab.Container id="left-tabs">
-            <Row className="fluid">
-              <Col xs={4} md={3}>
-                <ConfigurationTabsNav configurations={groupedConfigurations} />
-              </Col>
-              <Col xs={8} md={9}>
-                <Tab.Content animation>
-                  <ConfigurationTabsContent configurations={groupedConfigurations} handleConfigurationChange={this.handleConfigurationChange} />
-                </Tab.Content>
+    if(configurations !== false){
+      return (
+          <Grid>
+            <Row className="container-fluid">
+              <Col>
+                {this.renderAlert(this.props.changeError)}
               </Col>
             </Row>
-          </Tab.Container>
-        </Grid>
-    );
+            <Row className="container-fluid">
+              <Col>
+                <Button bsStyle="primary" className="pull-right" disabled={this.state.updateDisabled} type="submit" onClick={this.onUpdateConfiguration} >Update Configuration!</Button>
+              </Col>
+            </Row>
+            <br />
+            <Tab.Container id="left-tabs">
+              <Row className="fluid">
+                <Col xs={4} md={3}>
+                  <ConfigurationTabsNav configurations={configurations} />
+                </Col>
+                <Col xs={8} md={9}>
+                  <Tab.Content animation>
+                    <ConfigurationTabsContent configurations={configurations} handleConfigurationChange={this.handleConfigurationChange} />
+                  </Tab.Content>
+                </Col>
+              </Row>
+            </Tab.Container>
+          </Grid>
+      );
+    }
   }
 }
 
