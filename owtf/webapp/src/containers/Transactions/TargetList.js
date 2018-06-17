@@ -25,7 +25,6 @@ export default class TargetList extends React.Component {
     }
 
     render() {
-        console.log(this.props.targets);
         return (
             <Row>
                 <Col componentClass="h4">Targets</Col>

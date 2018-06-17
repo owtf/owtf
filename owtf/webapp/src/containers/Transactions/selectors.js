@@ -4,30 +4,76 @@
 
 import { createSelector } from 'reselect';
 
-const selectTarget = (state) => state.get('targets');
+const selectTransaction = (state) => state.get('transactions');
 
-const makeSelectFetch = createSelector(
-  selectTarget,
-  (targetState) => targetState.get('load')
+const makeSelectTargets = createSelector(
+  selectTransaction,
+  (transactionState) => transactionState.get('loadTargets')
 );
 
-const makeSelectFetchLoading = createSelector(
-  makeSelectFetch,
+const makeSelectTransactions = createSelector(
+  selectTransaction,
+  (transactionState) => transactionState.get('loadTransactions')
+);
+
+const makeSelectTransaction = createSelector(
+  selectTransaction,
+  (transactionState) => transactionState.get('loadTransaction')
+);
+
+const makeSelectTargetsLoading = createSelector(
+  makeSelectTargets,
   (fetchState) => fetchState.get('loading')
 );
 
-const makeSelectFetchError = createSelector(
-  makeSelectFetch,
+const makeSelectTargetsError = createSelector(
+  makeSelectTargets,
   (fetchState) => fetchState.get('error')
 );
 
 const makeSelectFetchTargets = createSelector(
-  makeSelectFetch,
+  makeSelectTargets,
   (fetchState) => fetchState.get('targets')
 );
 
+const makeSelectTransactionsLoading = createSelector(
+  makeSelectTransactions,
+  (fetchState) => fetchState.get('loading')
+);
+
+const makeSelectTransactionsError = createSelector(
+  makeSelectTransactions,
+  (fetchState) => fetchState.get('error')
+);
+
+const makeSelectFetchTransactions = createSelector(
+  makeSelectTransactions,
+  (fetchState) => fetchState.get('transactions')
+);
+
+const makeSelectTransactionLoading = createSelector(
+  makeSelectTransaction,
+  (fetchState) => fetchState.get('loading')
+);
+
+const makeSelectTransactionError = createSelector(
+  makeSelectTransaction,
+  (fetchState) => fetchState.get('error')
+);
+
+const makeSelectFetchTransaction = createSelector(
+  makeSelectTransaction,
+  (fetchState) => fetchState.get('transaction')
+);
+
 export {
-  makeSelectFetchLoading,
-  makeSelectFetchError,
+  makeSelectTargetsLoading,
+  makeSelectTargetsError,
   makeSelectFetchTargets,
+  makeSelectTransactionsLoading,
+  makeSelectTransactionsError,
+  makeSelectFetchTransactions,
+  makeSelectTransactionLoading,
+  makeSelectTransactionError,
+  makeSelectFetchTransaction,  
 };

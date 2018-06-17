@@ -3,17 +3,18 @@
  */
 
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { LOAD_TARGETS } from './constants';
-import {targetsLoaded, targetsLoadingError} from './actions';
+import { LOAD_TARGETS, LOAD_TRANSACTIONS, LOAD_TRANSACTION } from './constants';
+import {targetsLoaded, targetsLoadingError, transactionsLoaded, transactionsLoadingError, transactionLoaded, transactionLoadingError} from './actions';
 
 import Request from 'utils/request';
 import { API_BASE_URL } from 'utils/constants';
+import {TARGET_URL, TRANSACTIONS_URL, TRANSACTION_HEADER_URL, TRANSACTION_HRT_URL} from './constants';
 
 /**
- * Fetch Target request/response handler
+ * Fetch Targets request/response handler
  */
 export function* getTargets() {
-    const requestURL = `${API_BASE_URL}targets/search/`;
+    const requestURL = `${TARGET_URL}`;
   try {
     // Call our request helper (see 'utils/request')
     const request = new Request(requestURL);
@@ -24,10 +25,48 @@ export function* getTargets() {
   }
 }
 
+/**
+ * Fetch Transactions request/response handler
+ */
+export function* getTransactions(action) {
+  const target_id = action.target_id;
+  const URL = TRANSACTIONS_URL.replace("target_id", target_id.toString());  
+  const requestURL = `${URL}`;
+try {
+  // Call our request helper (see 'utils/request')
+  const request = new Request(requestURL);
+  const transactions = yield call(request.get.bind(request));
+  yield put(transactionsLoaded(transactions.data));
+} catch (error) {
+  yield put(transactionsLoadingError(error));
+}
+}
+
+/**
+ * Fetch Transaction request/response handler
+ */
+export function* getTransaction(action) {
+  const target_id = action.target_id;
+  const transaction_id = action.transaction_id;
+  let URL = TRANSACTIONS_HRT_URL.replace("target_id", target_id.toString());  
+  URL = URL.replace("transaction_id", transaction_id.toString());
+  const requestURL = `${URL}`;
+try {
+  // Call our request helper (see 'utils/request')
+  const request = new Request(requestURL);
+  const transaction = yield call(request.get.bind(request));
+  yield put(transactionLoaded(transaction));
+} catch (error) {
+  yield put(transactionLoadingError(error));
+}
+}
+
 export default function* targetSaga() {
   // Watches for LOAD_TARGETS actions and calls getTargets when one comes in.
   // By using `takeLatest` only the result of the latest API call is applied.
   // It returns task descriptor (just like fork) so we can continue execution
   // It will be cancelled automatically on component unmount
   yield takeLatest(LOAD_TARGETS, getTargets);
+  yield takeLatest(LOAD_TRANSACTIONS, getTransactions);
+  yield takeLatest(LOAD_TRANSACTION, getTransaction);
 }

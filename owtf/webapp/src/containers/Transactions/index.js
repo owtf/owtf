@@ -16,8 +16,10 @@ import TargetList from './TargetList.js';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchTargets } from './selectors';
-import { loadTargets } from "./actions";
+import { makeSelectTargetsError, makeSelectTargetsLoading, makeSelectFetchTargets } from './selectors';
+import { makeSelectTransactionsError, makeSelectTransactionsLoading, makeSelectFetchTransactions } from './selectors';
+import { makeSelectTransactionError, makeSelectTransactionLoading, makeSelectFetchTransaction } from './selectors';
+import { loadTargets, loadTransactions, loadTransaction } from "./actions";
 
 class Transactions extends React.Component {
   constructor(props, context) {
@@ -25,6 +27,8 @@ class Transactions extends React.Component {
 
     this.updateZestState = this.updateZestState.bind(this);
     this.closeZestState = this.closeZestState.bind(this);
+    this.getTransactions = this.getTransactions.bind(this);
+    this.getTransactionsHeaders = this.getTransactionsHeaders.bind(this);
 
     this.state = {
       resizeTableActiveLeft: false,
@@ -51,11 +55,41 @@ class Transactions extends React.Component {
     };
   }
 
+  /* Function responsible for filling transaction table */
+  getTransactions(target_id) {
+    this.props.onFetchTransactions(target_id);
+    this.setState({
+        target_id: target_id,
+        transactionsData: this.props.transactions,
+        transactionHeaderData: {
+            id: '',
+            requestHeader: '',
+            responseHeader: '',
+            responseBody: ''
+        },
+        hrtResponse: ''
+    });
+  };
+
+  /* Function responsible for filling data TransactionHeaders and Body component */
+  getTransactionsHeaders(target_id, transaction_id, language) {
+    this.props.onFetchTransaction(target_id, transaction_id);
+    const transaction = this.props.transaction;
+    this.setState({
+      transactionHeaderData: {
+          id: transaction.id,
+          requestHeader: transaction.raw_request,
+          responseHeader: transaction.response_headers,
+          responseBody: transaction.response_body
+      },
+      hrtResponse: ''
+    });
+  }
+
   /* Imp: Function which is handling all the stuff when create zest script button is clicked. This
     function basically update zestActive state which means that zest script creation stuff is going on
     and due to change in state all the stuff like forming checkboxes, displaying footer happens */
   updateZestState() {
-    console.log('mohit');
     this.setState({zestActive: true});
   };
 
@@ -74,7 +108,7 @@ class Transactions extends React.Component {
   };
 
   componentDidMount() {
-    this.props.onFetchTarget();
+    this.props.onFetchTargets();
     document.addEventListener('mousemove', e => this.handleMouseDragLeft(e));
     document.addEventListener('mouseup', e => this.handleMouseUp(e));
   };
@@ -115,11 +149,15 @@ class Transactions extends React.Component {
   };
 
   render() {
-    const headerProps = {
+    const HeaderProps = {
       zestActive: this.state.zestActive,
       target_id: this.state.target_id,
       updateZestState: this.updateZestState,
     };
+    const TransactionHeaderProps = {
+      transactionHeaderData: this.state.transactionHeaderData,
+      hrtResponse: this.state.hrtResponse,
+    }
     return (
       <Grid>
         <Row>
@@ -133,12 +171,12 @@ class Transactions extends React.Component {
           <Col id="right_panel" style={{
               width: this.state.widthTable.toString() + "%"
           }}>
-            <Header {...headerProps} />
+            <Header {...HeaderProps} />
             <Row>
               <TransactionTable />
             </Row>
             <Row>
-              <TransactionHeaders />
+              <TransactionHeaders {...TransactionHeaderProps} />
             </Row>
           </Col>
         </Row>
@@ -149,8 +187,8 @@ class Transactions extends React.Component {
 }
 
 Transactions.propTypes = {
-  loading: PropTypes.bool,
-  error: PropTypes.oneOfType([
+  targetsLoading: PropTypes.bool,
+  targetsError: PropTypes.oneOfType([
     PropTypes.object,
     PropTypes.bool,
   ]),
@@ -158,18 +196,48 @@ Transactions.propTypes = {
     PropTypes.array.isRequired,
     PropTypes.bool.isRequired,
   ]),
+  transactionsLoading: PropTypes.bool,
+  transactionsError: PropTypes.oneOfType([
+    PropTypes.object,
+    PropTypes.bool,
+  ]),
+  transactions: PropTypes.oneOfType([
+    PropTypes.array.isRequired,
+    PropTypes.bool.isRequired,
+  ]),
+  transactionLoading: PropTypes.bool,
+  transactionError: PropTypes.oneOfType([
+    PropTypes.object,
+    PropTypes.bool,
+  ]),
+  transaction: PropTypes.oneOfType([
+    PropTypes.array.isRequired,
+    PropTypes.bool.isRequired,
+  ]),
   onFetchTarget: PropTypes.func,
+  onFetchTransactions: PropTypes.func,
+  onFetchTransaction: PropTypes.func,
 };
 
 const mapStateToProps = createStructuredSelector({
   targets: makeSelectFetchTargets,
-  loading: makeSelectFetchLoading,
-  error: makeSelectFetchError,
+  targetsLoading: makeSelectTargetsLoading,
+  targetsError: makeSelectTargetsError,
+
+  transactions: makeSelectFetchTransactions,
+  transactionsLoading: makeSelectTransactionsLoading,
+  transactionsError: makeSelectTransactionsError,
+
+  transaction: makeSelectFetchTransaction,
+  transactionLoading: makeSelectTransactionLoading,
+  transactionError: makeSelectTransactionError,
 });
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    onFetchTarget: () => dispatch(loadTargets()),
+    onFetchTargets: () => dispatch(loadTargets()),
+    onFetchTransactions: (target_id) => dispatch(loadTransactions(target_id)),
+    onFetchTransaction: (target_id, transaction_id) => dispatch(loadTransaction(target_id, transaction_id)),
   };
 };
 
