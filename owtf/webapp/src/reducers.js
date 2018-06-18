@@ -7,12 +7,13 @@ import { combineReducers } from 'redux-immutable'; // combineReducers of 'redux'
 import { LOCATION_CHANGE } from 'react-router-redux';
 
 import sessionsReducer from 'containers/Sessions/reducer';
-import configurationsReducer from 'containers/SettingsPage/reducer'
+import configurationsReducer from 'containers/SettingsPage/reducer';
 /*
  * routeReducer
  *
  * The reducer merges route location changes into our immutable state.
- * The change is necessitated by moving to react-router-redux@5(react-router-redux@5 is for react-router v4)
+ * The change is necessitated by moving to react-router-redux@5(react-router-redux@5 is for
+ * react-router v4)
  */
 
 // Initial routing state

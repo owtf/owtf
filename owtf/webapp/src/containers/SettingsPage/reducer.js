@@ -49,10 +49,10 @@ function configurationsChangeReducer(state = initialChangeState, action) {
     case CHANGE_CONFIGURATIONS:
       return state
         .set('loading', true)
-        .set('error', false)
+        .set('error', false);
     case CHANGE_CONFIGURATIONS_SUCCESS:
       return state
-        .set('loading', false)
+        .set('loading', false);
     case CHANGE_CONFIGURATIONS_ERROR:
       return state
         .set('error', action.error)
@@ -64,5 +64,5 @@ function configurationsChangeReducer(state = initialChangeState, action) {
 
 export default combineReducers({
   load: configurationsLoadReducer,
-  change: configurationsChangeReducer
-})
+  change: configurationsChangeReducer,
+});

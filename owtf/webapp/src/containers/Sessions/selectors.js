@@ -4,42 +4,42 @@
 
 import { createSelector } from 'reselect';
 
-const selectSession = (state) => state.get('sessions');
+const selectSession = state => state.get('sessions');
 
 const makeSelectFetch = createSelector(
   selectSession,
-  (sessionState) => sessionState.get('load')
+  sessionState => sessionState.get('load'),
 );
 
 const makeSelectChange = createSelector(
   selectSession,
-  (sessionState) => sessionState.get('change')
+  sessionState => sessionState.get('change'),
 );
 
 
 const makeSelectFetchLoading = createSelector(
   makeSelectFetch,
-  (fetchState) => fetchState.get('loading')
+  fetchState => fetchState.get('loading'),
 );
 
 const makeSelectFetchError = createSelector(
   makeSelectFetch,
-  (fetchState) => fetchState.get('error')
+  fetchState => fetchState.get('error'),
 );
 
 const makeSelectFetchSessions = createSelector(
   makeSelectFetch,
-  (fetchState) => fetchState.get('sessions')
+  fetchState => fetchState.get('sessions'),
 );
 
 const makeSelectCurrentSession = createSelector(
   makeSelectChange,
-  (changeState) => changeState.get('currentSession')
+  changeState => changeState.get('currentSession'),
 );
 
 export {
   makeSelectFetchLoading,
   makeSelectFetchError,
   makeSelectFetchSessions,
-  makeSelectCurrentSession
+  makeSelectCurrentSession,
 };

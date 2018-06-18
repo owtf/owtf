@@ -6,22 +6,19 @@ import { Nav, NavItem } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 
 export default class ConfigurationTabsNav extends React.Component {
-    
-    render() {
-        return (
-            <Nav bsStyle="pills" stacked>
-                {Object.keys(this.props.configurations).map((section, key) => {
-                    return (
-                        <NavItem eventKey={key} key={key}>
-                            {section.replace(/_/g,' ')}
-                        </NavItem>
-                    );
-                })}
-            </Nav>
-        );
-    }
+  render() {
+    return (
+      <Nav bsStyle="pills" stacked>
+        {Object.keys(this.props.configurations).map((section, key) => (
+          <NavItem eventKey={key} key={key}>
+            {section.replace(/_/g, ' ')}
+          </NavItem>
+                    ))}
+      </Nav>
+    );
+  }
 }
 
 ConfigurationTabsNav.propTypes = {
-    configurations: PropTypes.object,
+  configurations: PropTypes.object,
 };

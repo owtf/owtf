@@ -4,36 +4,36 @@
 
 import { createSelector } from 'reselect';
 
-const selectConfiguration = (state) => state.get('configurations');
+const selectConfiguration = state => state.get('configurations');
 
 const makeSelectFetch = createSelector(
   selectConfiguration,
-  (configurationState) => configurationState.get('load')
+  configurationState => configurationState.get('load'),
 );
 
 const makeSelectChange = createSelector(
   selectConfiguration,
-  (configurationState) => configurationState.get('change')
+  configurationState => configurationState.get('change'),
 );
 
 const makeSelectFetchLoading = createSelector(
   makeSelectFetch,
-  (fetchState) => fetchState.get('loading')
+  fetchState => fetchState.get('loading'),
 );
 
 const makeSelectFetchError = createSelector(
   makeSelectFetch,
-  (fetchState) => fetchState.get('error')
+  fetchState => fetchState.get('error'),
 );
 
 const makeSelectFetchConfigurations = createSelector(
   makeSelectFetch,
-  (fetchState) => fetchState.get('configurations')
+  fetchState => fetchState.get('configurations'),
 );
 
 const makeSelectChangeError = createSelector(
   makeSelectChange,
-  (changeState) => changeState.get('error')
+  changeState => changeState.get('error'),
 );
 
 export {

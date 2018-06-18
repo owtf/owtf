@@ -31,7 +31,7 @@ ReactDOM.render(
       <App />
     </ConnectedRouter>
   </Provider>,
-  MOUNT_NODE
+  MOUNT_NODE,
 );
 
 if (module.hot) {
@@ -39,7 +39,7 @@ if (module.hot) {
     const HotApp = require('containers/App').default;
     ReactDOM.render(
       <HotApp />,
-      MOUNT_NODE
-    )
-  })
+      MOUNT_NODE,
+    );
+  });
 }

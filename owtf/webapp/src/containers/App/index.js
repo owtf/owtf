@@ -11,28 +11,28 @@ import { Switch, Route } from 'react-router-dom';
 
 import NavigationBar from 'components/NavigationBar';
 import WelcomePage from 'containers/WelcomePage/Loadable';
-import Dashboard from "containers/Dashboard/Loadable";
-import TargetsPage from "containers/TargetsPage/Loadable";
-import SettingsPage from "containers/SettingsPage/Loadable";
-import Help from "containers/HelpPage/Loadable";
-import LoginPage from "containers/LoginPage/Loadable";
-import WorkersPage from "containers/WorkersPage/Loadable";
-import WorklistPage from "containers/WorklistPage/Loadable";
-import NotFoundPage from "components/NotFoundPage";
+import Dashboard from 'containers/Dashboard/Loadable';
+import TargetsPage from 'containers/TargetsPage/Loadable';
+import SettingsPage from 'containers/SettingsPage/Loadable';
+import Help from 'containers/HelpPage/Loadable';
+import LoginPage from 'containers/LoginPage/Loadable';
+import WorkersPage from 'containers/WorkersPage/Loadable';
+import WorklistPage from 'containers/WorklistPage/Loadable';
+import NotFoundPage from 'components/NotFoundPage';
 
 
 export default function App() {
-  let navbar = {};
+  const navbar = {};
   navbar.brand =
-    {linkTo: "/", text: "OWASP OWTF"};
+    { linkTo: '/', text: 'OWASP OWTF' };
   navbar.links = [
-    {linkTo: "/dashboard", text: "Dashboard"},
-    {linkTo: "/targets", text: "Targets"},
-    {linkTo: "/workers", text: "Workers"},
-    {linkTo: "/worklist", text: "Worklist"},
-    {linkTo: "/settings", text: "Settings"},
-    {linkTo: "/help", text: "Help"},
-    {linkTo: "/login", text: "Login"},
+    { linkTo: '/dashboard', text: 'Dashboard' },
+    { linkTo: '/targets', text: 'Targets' },
+    { linkTo: '/workers', text: 'Workers' },
+    { linkTo: '/worklist', text: 'Worklist' },
+    { linkTo: '/settings', text: 'Settings' },
+    { linkTo: '/help', text: 'Help' },
+    { linkTo: '/login', text: 'Login' },
   ];
   return (
     <div>
