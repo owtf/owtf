@@ -1,6 +1,8 @@
 import React from 'react';
 import { Tabs, Tab, TabContainer, TabContent, TabPane, Nav, NavItem } from 'react-bootstrap';
 import { Grid, Col, Row, Button, ButtonGroup, Form, FormControl, ControlLabel, FormGroup } from 'react-bootstrap';
+import CopyToClipboard from 'react-copy-to-clipboard';
+import {Notification} from 'react-notification';
 import './style.css';
 
 
@@ -105,11 +107,12 @@ export default class TransactionHeader extends React.Component {
                                                             </FormGroup>
                                                             <ButtonGroup className="pull-right">
                                                                 <Button bsStyle="danger" type="submit">Generate code</Button>
-                                                                {/* <CopyToClipboard text={this.props.hrtResponse}>
+                                                                <CopyToClipboard text={this.props.hrtResponse}>
                                                                     <Button className="pull-right" bsStyle="success" onClick={this.setState.bind(this, {snackbarOpen: true})}>Copy to clipboard</Button>
-                                                                </CopyToClipboard>&nbsp; */}
+                                                                </CopyToClipboard>&nbsp;
                                                             </ButtonGroup>
                                                         </Form>
+                                                        <Notification isActive={this.state.snackbarOpen} message="Copied to clipboard" action="close" dismissAfter={5000} onClick={this.handleSnackBarRequestClose}/>
                                                     </Col>
                                                 </Row>
                                                 <br />
