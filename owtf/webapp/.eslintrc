@@ -1,6 +1,6 @@
 {
-  "extends": "airbnb",
+  "extends": ["plugin:prettier/recommended"],
   "rules": {
-    "func-names": ["error", "never"]
+    "prettier/prettier": "error"
   }
 }

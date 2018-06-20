@@ -2,12 +2,12 @@
  * Combine all reducers in this file and export the combined reducers.
  */
 
-import { fromJS } from 'immutable';
-import { combineReducers } from 'redux-immutable'; // combineReducers of 'redux' doesn't work with immutable.js
-import { LOCATION_CHANGE } from 'react-router-redux';
+import { fromJS } from "immutable";
+import { combineReducers } from "redux-immutable"; // combineReducers of 'redux' doesn't work with immutable.js
+import { LOCATION_CHANGE } from "react-router-redux";
 
-import sessionsReducer from 'containers/Sessions/reducer';
-import configurationsReducer from 'containers/SettingsPage/reducer';
+import sessionsReducer from "containers/Sessions/reducer";
+import configurationsReducer from "containers/SettingsPage/reducer";
 /*
  * routeReducer
  *
@@ -18,7 +18,7 @@ import configurationsReducer from 'containers/SettingsPage/reducer';
 
 // Initial routing state
 const routeInitialState = fromJS({
-  location: null,
+  location: null
 });
 
 /**
@@ -28,7 +28,7 @@ function routeReducer(state = routeInitialState, action) {
   switch (action.type) {
     case LOCATION_CHANGE:
       return state.merge({
-        location: action.payload,
+        location: action.payload
       });
     default:
       return state;
@@ -43,6 +43,6 @@ export default function createReducer() {
   return combineReducers({
     route: routeReducer,
     sessions: sessionsReducer,
-    configurations: configurationsReducer,
+    configurations: configurationsReducer
   });
 }
