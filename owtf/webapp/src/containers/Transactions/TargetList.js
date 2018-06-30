@@ -1,24 +1,33 @@
 import React from 'react';
-import UnderconstructionPage from "components/UnderconstructionPage";
 import { Nav, NavItem, Row, Col } from 'react-bootstrap';
-
-const style = {
-    margin: 12
-};
+import PropTypes from 'prop-types';
 
 export default class TargetList extends React.Component {
 
     constructor(props, context) {
         super(props, context);
-    
+
         this.renderTargetList = this.renderTargetList.bind(this);
+
+        this.state = {
+            activeKey : null,
+        };
     }
 
-    renderTargetList(){
-        if(this.props.targets !== false){
+    handleSelect(eventKey) {
+        event.preventDefault();
+        this.setState({
+            activeKey: eventKey
+        });
+    }    
+
+    renderTargetList() {
+        if (this.props.targets !== false) {
             return this.props.targets.map((target) => {
                 return (
-                    <NavItem key={target.id}>{target.target_url}</NavItem>
+                    <NavItem key={target.id} eventKey={target.id} onClick={(param) => this.props.getTransactions(target.id)}>
+                        {target.target_url}
+                    </NavItem>
                 );
             });
         }
@@ -26,13 +35,18 @@ export default class TargetList extends React.Component {
 
     render() {
         return (
-            <Row>
+            <Col>
                 <Col componentClass="h4">Targets</Col>
-                <br/>
-                <Nav bsStyle="pills" stacked>
+                <br />
+                <Nav bsStyle="pills" role="presentation" activeKey={this.state.activeKey} onSelect={k => this.handleSelect(k)} stacked>
                     {this.renderTargetList()}
                 </Nav>
-            </Row>
+            </Col>
         );
     }
 }
+
+TargetList.PropTypes = {
+    targets: PropTypes.array,
+    getTransactions: PropTypes.func
+};

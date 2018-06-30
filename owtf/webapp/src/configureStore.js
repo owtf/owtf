@@ -6,7 +6,7 @@ import { createStore, applyMiddleware, compose } from 'redux';
 import { fromJS } from 'immutable';
 import { routerMiddleware } from 'react-router-redux';
 import createSagaMiddleware from 'redux-saga';
-import {createLogger} from 'redux-logger';
+import { createLogger } from 'redux-logger';
 import createReducer from './reducers';
 import rootSaga from './sagas';
 
@@ -31,15 +31,15 @@ export default function configureStore(initialState = {}, history) {
   const enhancers = [
     applyMiddleware(...middlewares),
   ];
-    /**
-     * If Redux DevTools Extension is installed use it, otherwise use Redux compose
-     * http://extension.remotedev.io/#usage
-     * https://medium.com/@zalmoxis/improve-your-development-workflow-with-redux-devtools-extension-f0379227ff83
-     */
+  /**
+   * If Redux DevTools Extension is installed use it, otherwise use Redux compose
+   * http://extension.remotedev.io/#usage
+   * https://medium.com/@zalmoxis/improve-your-development-workflow-with-redux-devtools-extension-f0379227ff83
+   */
   const composeEnhancers =
     process.env.NODE_ENV !== 'production' &&
-    typeof window === 'object' &&
-    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
+      typeof window === 'object' &&
+      window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
       ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
         // TODO Try to remove when `react-router-redux` is out of beta, LOCATION_CHANGE should not be fired more than once after hot reloading
         shouldHotReload: false,

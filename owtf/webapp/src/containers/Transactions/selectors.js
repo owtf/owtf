@@ -21,6 +21,16 @@ const makeSelectTransaction = createSelector(
   (transactionState) => transactionState.get('loadTransaction')
 );
 
+const makeSelectHrtResponse = createSelector(
+  selectTransaction,
+  (transactionState) => transactionState.get('loadHrtResponse')
+);
+
+const makeSelectCreateRequest = createSelector(
+  selectTransaction,
+  (transactionState) => transactionState.get('createRequest')
+);
+
 const makeSelectTargetsLoading = createSelector(
   makeSelectTargets,
   (fetchState) => fetchState.get('loading')
@@ -66,6 +76,37 @@ const makeSelectFetchTransaction = createSelector(
   (fetchState) => fetchState.get('transaction')
 );
 
+const makeSelectHrtResponseLoading = createSelector(
+  makeSelectHrtResponse,
+  (fetchState) => fetchState.get('loading')
+);
+
+const makeSelectHrtResponseError = createSelector(
+  makeSelectHrtResponse,
+  (fetchState) => fetchState.get('error')
+);
+
+const makeSelectFetchHrtResponse = createSelector(
+  makeSelectHrtResponse,
+  (fetchState) => fetchState.get('hrtResponse')
+);
+
+const makeSelectFetchResult = createSelector(
+  makeSelectCreateRequest,
+  (createState) => createState.get('result')
+);
+
+const makeSelectResultError = createSelector(
+  makeSelectCreateRequest,
+  (createState) => createState.get('error')
+);
+
+const makeSelectResultLoading = createSelector(
+  makeSelectCreateRequest,
+  (createState) => createState.get('load')
+);
+
+
 export {
   makeSelectTargetsLoading,
   makeSelectTargetsError,
@@ -75,5 +116,11 @@ export {
   makeSelectFetchTransactions,
   makeSelectTransactionLoading,
   makeSelectTransactionError,
-  makeSelectFetchTransaction,  
+  makeSelectFetchTransaction,
+  makeSelectHrtResponseLoading,
+  makeSelectHrtResponseError,
+  makeSelectFetchHrtResponse,
+  makeSelectResultLoading,
+  makeSelectResultError,
+  makeSelectFetchResult,
 };

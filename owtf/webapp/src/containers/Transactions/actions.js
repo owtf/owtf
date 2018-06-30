@@ -5,9 +5,18 @@ import {
   LOAD_TRANSACTIONS,
   LOAD_TRANSACTIONS_SUCCESS,
   LOAD_TRANSACTIONS_ERROR,
+  LOAD_TRANSACTION,
+  LOAD_TRANSACTION_SUCCESS,
+  LOAD_TRANSACTION_ERROR,
+  LOAD_HRT_RESPONSE,
+  LOAD_HRT_RESPONSE_SUCCESS,
+  LOAD_HRT_RESPONSE_ERROR,
+  CREATE_REQUEST,
+  CREATE_REQUEST_SUCCESS,
+  CREATE_REQUEST_ERROR,
 } from './constants';
-  
-  
+
+
 /**
  * Load the targets, this action starts the request saga GET
  *
@@ -129,6 +138,96 @@ export function transactionLoaded(transaction) {
 export function transactionLoadingError(error) {
   return {
     type: LOAD_TRANSACTION_ERROR,
+    error,
+  };
+}
+
+/**
+ * Load the hrtResponse, this action starts the request saga GET
+ *
+ * @param {number} target_id Target Id for which transaction is to be loaded
+ * @param {number} transaction_id Transaction Id of the transaction to be loaded
+ * @param {object} data selected languages
+ * 
+ * @return {object} An action object with a type of LOAD_HRT_RESPONSE
+ */
+export function loadHrtResponse(target_id, transaction_id, data) {
+  return {
+    type: LOAD_HRT_RESPONSE,
+    target_id,
+    transaction_id,
+    data,
+  };
+}
+
+/**
+ * Dispatched when the hrtResponse are loaded by the request saga
+ *
+ * @param  {array} hrtResponse The hrtResponse data
+ *
+ * @return {object} An action object with a type of LOAD_HRT_RESPONSE_SUCCESS passing the hrtResponse
+ */
+export function hrtResponseLoaded(hrtResponse) {
+  return {
+    type: LOAD_HRT_RESPONSE_SUCCESS,
+    hrtResponse,
+  };
+}
+
+/**
+ * Dispatched when loading the hrtResponse fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of LOAD_HRT_RESPONSE_ERROR passing the error
+ */
+export function hrtResponseLoadingError(error) {
+  return {
+    type: LOAD_HRT_RESPONSE_ERROR,
+    error,
+  };
+}
+
+/**
+ * Creates the request, this action starts the request saga POST.
+ *
+ * @param  {string} target_id Target Id for which request is to be created.
+ *
+ * @return {object} An action object with a type of CREATE_REQUEST
+ */
+export function createRequest(target_id, trans_str, file_name) {
+  return {
+    type: CREATE_REQUEST,
+    target_id,
+    trans_str,
+    file_name,
+  };
+}
+
+/**
+ * Dispatched when the request is created by the request saga
+ *
+ * @param  {object} request Activated Request.
+ *
+ * @return {object} An action object with a type of CREATE_REQUEST_SUCCESS
+ */
+export function requestCreated(result) {
+  return {
+    type: CREATE_REQUEST_SUCCESS,
+    result,
+  };
+}
+
+/**
+ * Dispatched when creating the request fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of CREATE_REQUEST_ERROR passing the error
+ */
+export function requestCreatingError(error) {
+  return {
+    type: CREATE_REQUEST_ERROR,
     error,
   };
 }
