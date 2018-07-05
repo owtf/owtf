@@ -20,6 +20,7 @@
     "prop-types": "^15.6.1",
     "react": "^16.2.0",
     "react-bootstrap": "^0.32.1",
+    "react-bootstrap-table": "^4.3.1",
     "react-bootstrap-table-next": "^0.1.6",
     "react-dom": "^16.2.0",
     "react-loadable": "^5.3.1",
