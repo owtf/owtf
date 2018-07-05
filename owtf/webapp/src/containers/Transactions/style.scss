@@ -33,6 +33,7 @@
   min-height: 1px;
   padding-right: 15px;
   padding-left: 15px;
+  overflow: hidden;
 }
 #right_panel {
   float: left;
@@ -49,4 +50,33 @@
   height: 100vh;
   margin-right: 15px;
   cursor: w-resize;
+}
+
+.footer-col {
+  text-align: center;
+}
+
+.footer-btn {
+  margin: 15px;
+}
+
+.footer-btn-disabled {
+  margin: 15px;
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.header-tab {
+  padding-top: 16px;
+  margin-bottom: 12px;
+  font-weight: 400;
+}
+
+.transaction-table {
+  overflow: scroll;
 }

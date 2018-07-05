@@ -6,14 +6,6 @@ import { Notification } from 'react-notification';
 import './style.scss';
 import PropTypes from 'prop-types';
 
-const styles = {
-    tab: {
-        paddingTop: 16,
-        marginBottom: 12,
-        fontWeight: 400
-    }
-};
-
 export default class TransactionHeader extends React.Component {
 
     constructor(props) {
@@ -39,11 +31,9 @@ export default class TransactionHeader extends React.Component {
             'proxy': formElements.data.value,
             'searchstring': formElements.data.value,
         };
-        if (!this.props.zestActive) {
-            const transaction_id = this.props.transactionHeaderData.id;
-            const target_id = this.props.target_id;
-            this.props.getHrtResponse(target_id, transaction_id, values);
-        }
+        const transaction_id = this.props.transactionHeaderData.id;
+        const target_id = this.props.target_id;
+        this.props.getHrtResponse(target_id, transaction_id, values);
     }
 
 
@@ -60,13 +50,13 @@ export default class TransactionHeader extends React.Component {
     };
 
     render() {
-        const { zestActive, target_id, transactionHeaderData, hrtResponse, getHrtResponse, height } = this.props;
+        const { target_id, transactionHeaderData, hrtResponse, getHrtResponse, height } = this.props;
         return (
             <Tab.Container defaultActiveKey={1} id="uncontrolled-tab-example">
                 <Grid fluid={true}>
                     <Row>
                         <Col>
-                            <Nav bsStyle="tabs" style={styles.tab}>
+                            <Nav bsStyle="tabs" className="header-tab">
                                 <NavItem eventKey={1} key={1}>Request</NavItem>
                                 <NavItem eventKey={2} key={2}>Response</NavItem>
                             </Nav>
@@ -75,10 +65,7 @@ export default class TransactionHeader extends React.Component {
                     <Row>
                         <Col>
                             <Tab.Content animation>
-                                <Tab.Pane eventKey={1} key={1}
-                                    style={{
-                                        height: height
-                                    }}>
+                                <Tab.Pane eventKey={1} key={1} style={{ height: height}}>
                                     <Col componentClass="p">Request Header</Col>
                                     <pre>{transactionHeaderData.requestHeader}</pre>
                                     {transactionHeaderData.requestHeader !== '' &&
@@ -157,7 +144,6 @@ export default class TransactionHeader extends React.Component {
 
 TransactionHeader.PropTypes = {
     target_id: PropTypes.number,
-    zestActive: PropTypes.bool,
     transactionHeaderData: PropTypes.object,
     hrtResponse: PropTypes.string,
     headerHeight: PropTypes.number,

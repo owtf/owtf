@@ -60,11 +60,11 @@ module.exports = {
         // Preprocess our own .css files
         // This is the place to add your own loaders (e.g. sass/less etc.)
         // for a list of loaders, see https://webpack.js.org/loaders/#styling
-        test: /\.css$/,
+        test: /\.(css|sass|scss)$/,
         exclude: /node_modules/,
         use: ExtractTextPlugin.extract({
           fallback: "style-loader",
-          use: "css-loader",
+          use: ['css-loader', 'sass-loader'],
           disable: process.env.NODE_ENV !== 'production'
         })
       },

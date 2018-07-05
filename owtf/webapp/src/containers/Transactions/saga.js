@@ -3,12 +3,12 @@
  */
 
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { LOAD_TARGETS, LOAD_TRANSACTIONS, LOAD_TRANSACTION, LOAD_HRT_RESPONSE, CREATE_REQUEST } from './constants';
-import { targetsLoaded, targetsLoadingError, transactionsLoaded, transactionsLoadingError, transactionLoaded, transactionLoadingError, hrtResponseLoaded, hrtResponseLoadingError, requestCreated, requestCreatingError } from './actions';
+import { LOAD_TARGETS, LOAD_TRANSACTIONS, LOAD_TRANSACTION, LOAD_HRT_RESPONSE } from './constants';
+import { targetsLoaded, targetsLoadingError, transactionsLoaded, transactionsLoadingError, transactionLoaded, transactionLoadingError, hrtResponseLoaded, hrtResponseLoadingError } from './actions';
 
 import Request from 'utils/request';
 import { API_BASE_URL } from 'utils/constants';
-import { TARGET_URL, TRANSACTIONS_URL, TRANSACTION_HEADER_URL, TRANSACTION_HRT_URL, TRANSACTION_API_URL } from './constants';
+import { TARGET_URL, TRANSACTIONS_URL, TRANSACTION_HEADER_URL, TRANSACTION_HRT_URL } from './constants';
 
 /**
  * Fetch Targets request/response handler
@@ -67,7 +67,7 @@ export function* getTransaction(action) {
 export function* getHrtResponse(action) {
   const target_id = action.target_id;
   const transaction_id = action.transaction_id;
-  let URL = TRANSACTIONS_HRT_URL.replace("target_id", target_id.toString());
+  let URL = TRANSACTION_HRT_URL.replace("target_id", target_id.toString());
   URL = URL.replace("transaction_id", transaction_id.toString());
   const requestURL = `${URL}`;
   try {
@@ -84,27 +84,6 @@ export function* getHrtResponse(action) {
   }
 }
 
-/**
- * Post Request request/response handler
- */
-export function* postRequest(action) {
-  const target_id = action.target_id;
-  const URL = TRANSACTIONS_URL.replace("target_id", target_id.toString()) + "zest";
-  const requestURL = `${URL}`;
-  try {
-    const options = {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-      }
-    }
-    const request = new Request(requestURL, options);
-    const result = yield call(request.post.bind(request), {trans: action.trans_str, name: action.file_name});
-    yield put(requestCreated(result));
-  } catch (error) {
-    yield put(requestCreatingError(error));  
-  }
-}
-
 export default function* transactionSaga() {
   // Watches for LOAD_TARGETS actions and calls getTargets when one comes in.
   // By using `takeLatest` only the result of the latest API call is applied.
@@ -114,5 +93,4 @@ export default function* transactionSaga() {
   yield takeLatest(LOAD_TRANSACTIONS, getTransactions);
   yield takeLatest(LOAD_TRANSACTION, getTransaction);
   yield takeLatest(LOAD_HRT_RESPONSE, getHrtResponse);
-  yield takeLatest(CREATE_REQUEST, postRequest);
 }

@@ -23,9 +23,9 @@ import TransactionsPage from "containers/Transactions/Loadable";
 
 
 export default function App() {
-  let navbar = {};
+  const navbar = {};
   navbar.brand =
-    {linkTo: "/", text: "OWASP OWTF"};
+    { linkTo: '/', text: 'OWASP OWTF' };
   navbar.links = [
     {linkTo: "/dashboard", text: "Dashboard"},
     {linkTo: "/targets", text: "Targets"},

@@ -10,10 +10,10 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { Modal, Button, FormGroup } from 'react-bootstrap';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchSessions } from './selectors';
-import { loadSessions } from "./actions";
+import { loadSessions } from './actions';
 import SessionsTable from './SessionTable';
-import InputGroup from "react-bootstrap/es/InputGroup";
-import FormControl from "react-bootstrap/es/FormControl";
+import InputGroup from 'react-bootstrap/es/InputGroup';
+import FormControl from 'react-bootstrap/es/FormControl';
 
 export class Sessions extends React.Component {
   constructor(props, context) {
@@ -24,7 +24,7 @@ export class Sessions extends React.Component {
     this.getCurrentSession = this.getCurrentSession.bind(this);
 
     this.state = {
-      show: false
+      show: false,
     };
   }
 
@@ -39,7 +39,7 @@ export class Sessions extends React.Component {
   getCurrentSession() {
     const sessions = this.props.sessions;
     if (sessions === false) return false;
-    for (let session of sessions) {
+    for (const session of sessions) {
       if (session.active) return session;
     }
   }
@@ -49,8 +49,7 @@ export class Sessions extends React.Component {
   }
 
   render() {
-
-    const { loading, error, sessions} = this.props;
+    const { loading, error, sessions } = this.props;
     const currentSession = this.getCurrentSession();
     const sessionsListProps = {
       loading,
@@ -104,10 +103,8 @@ const mapStateToProps = createStructuredSelector({
   error: makeSelectFetchError,
 });
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    onFetchSession: () => dispatch(loadSessions()),
-  };
-};
+const mapDispatchToProps = dispatch => ({
+  onFetchSession: () => dispatch(loadSessions()),
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(Sessions);

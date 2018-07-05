@@ -15,7 +15,6 @@ import 'whatwg-fetch';
  * @return {object}           The response promise
  */
 export default class Request {
-
   constructor(url, options) {
     this._url = url;
     this._options = (options === undefined) ? {} : options;
@@ -33,7 +32,7 @@ export default class Request {
     if (response.status === 204 || response.status === 205) {
       return null;
     }
-    return (type === "json") ? response.json() : response.text();
+    return (type === 'json') ? response.json() : response.text();
   }
 
   /**
@@ -61,9 +60,27 @@ export default class Request {
    * @return {string} string to append in URL.
    */
 
-  _getQuery (queryParams) {
+  _getQuery(queryParams) {
     const arr = Object.keys(queryParams).map(k => `${k}=${encodeURIComponent(queryParams[k])}`);
-    return `?${arr.join('&')}`
+    return `?${arr.join('&')}`;
+  }
+
+  /**
+   * Converts post/patch/put json data to application/x-www-form-urlencoded data format.
+   *
+   * @param data Data in JSON format
+   *
+   * @return {string} form-url-encoded string
+   */
+
+  _getFormEncodedData(data) {
+    const formBody = [];
+    for (const property in data) {
+      const encodedKey = encodeURIComponent(property);
+      const encodedValue = encodeURIComponent(data[property]);
+      formBody.push(`${encodedKey}=${encodedValue}`);
+    }
+    return formBody.join('&');
   }
 
   /**
@@ -73,7 +90,7 @@ export default class Request {
    * @param  {object} headers Default headers to add.
    */
 
-  static _addDefaults (target, headers) {
+  static _addDefaults(target, headers) {
     for (const prop in headers) {
       target[prop] = target[prop] || headers[prop];
     }
@@ -91,21 +108,21 @@ export default class Request {
    * @return {object} The response data.
    */
 
-  _fetch (method, url, opts, data = null, queryParams = null) {
+  _fetch(method, url, opts, data = null, queryParams = null) {
     opts.method = method;
     opts.headers = opts.headers || {};
     opts.responseAs = (opts.responseAs && ['json', 'text'].includes(opts.responseAs)) ? opts.responseAs : 'json';
 
     Request._addDefaults(opts.headers, {
-      'Accept': 'application/json',
+      Accept: 'application/json',
     });
 
     if (queryParams) {
-      url += this._getQuery(queryParams)
+      url += this._getQuery(queryParams);
     }
 
     if (data) {
-      opts.body = JSON.stringify(data);
+      opts.body = this._getFormEncodedData(data);
     } else {
       delete opts.body;
     }
@@ -136,7 +153,7 @@ export default class Request {
    */
 
   post(data) {
-    return this._fetch('POST', this._url, this._options, data)
+    return this._fetch('POST', this._url, this._options, data);
   }
 
   /**
@@ -148,7 +165,7 @@ export default class Request {
    */
 
   patch(data) {
-    return this._fetch('PATCH', this._url, this._options, data)
+    return this._fetch('PATCH', this._url, this._options, data);
   }
 
   /**
@@ -160,7 +177,7 @@ export default class Request {
    */
 
   put(data) {
-    return this._fetch('PUT', this._url, this._options, data)
+    return this._fetch('PUT', this._url, this._options, data);
   }
 
   /**
@@ -170,7 +187,6 @@ export default class Request {
    */
 
   delete() {
-    return this._fetch('DELETE', this._url, this._options)
+    return this._fetch('DELETE', this._url, this._options);
   }
-
 }

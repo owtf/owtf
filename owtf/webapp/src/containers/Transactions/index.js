@@ -8,10 +8,7 @@ import './style.scss';
 import FormControl from 'react-bootstrap/es/FormControl';
 import TransactionTable from './TransactionTable.js';
 import TransactionHeaders from './TransactionHeader.js';
-import Header from './Header.js';
-import Footer from './Footer.js';
 import TargetList from './TargetList.js';
-import { Notification } from 'react-notification';
 
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -43,14 +40,9 @@ class Transactions extends React.Component {
     super(props, context);
 
     this.getTransactions = this.getTransactions.bind(this);
-    this.alert = this.alert.bind(this);
-    this.handleSnackBarRequestClose = this.handleSnackBarRequestClose.bind(this);
     this.getTransactionsHeaders = this.getTransactionsHeaders.bind(this);
     this.getHrtResponse = this.getHrtResponse.bind(this);
-    this.updateZestState = this.updateZestState.bind(this);
-    this.closeZestState = this.closeZestState.bind(this);
     this.handleHeaderContainerHeight = this.handleHeaderContainerHeight.bind(this);
-    this.updateSelectedRowsInZest = this.updateSelectedRowsInZest.bind(this);
     this.updateHeaderData = this.updateHeaderData.bind(this);
 
     this.state = {
@@ -68,11 +60,7 @@ class Transactions extends React.Component {
       },
       transactionsData: [],
       hrtResponse: '',
-      selectedTransactionRows: [],
-      zestActive: false,
-      snackbarOpen: false,
       headerHeight: 0,
-      alertMessage: '',
     };
   }
 
@@ -91,14 +79,6 @@ class Transactions extends React.Component {
       hrtResponse: '',
     });
   }
-
-  alert(message) {
-    this.setState({ snackbarOpen: true, alertMessage: message });
-  };
-
-  handleSnackBarRequestClose() {
-    this.setState({ snackbarOpen: false, alertMessage: '' });
-  };
 
   /* Function responsible for filling data TransactionHeaders and Body component */
   getTransactionsHeaders(target_id, transaction_id) {
@@ -123,31 +103,10 @@ class Transactions extends React.Component {
                Response - output of HRT.
   */
   getHrtResponse(target_id, transaction_id, values) {
-    onFetchHrtResponse(target_id, transaction_id, values);
+    this.props.onFetchHrtResponse(target_id, transaction_id, values);
     if (this.props.hrtResponse) {
       this.setState({ hrtResponse: this.props.hrtResponse })
     }
-  }
-
-  /* Imp: Function which is handling all the stuff when create zest script button is clicked. This
-    function basically update zestActive state which means that zest script creation stuff is going on
-    and due to change in state all the stuff like forming checkboxes, displaying footer happens */
-  updateZestState() {
-    this.setState({ zestActive: true });
-  }
-
-  /* This function basically updates the selected row when  zest is acticated. After selection this data is passed to
-    footer so that the selected row can be read by requestSender function which is forming zest script.*/
-  updateSelectedRowsInZest(rowsArray) {
-    const transactionsData = this.state.transactionsData;
-    const selected_trans_ids = rowsArray.map(function (item) {
-      return transactionsData[item - 1].id.toString();
-    });
-    this.setState({ selectedTransactionRows: selected_trans_ids });
-  }
-
-  closeZestState() {
-    this.setState({ zestActive: false });
   }
 
   componentDidMount() {
@@ -209,13 +168,7 @@ class Transactions extends React.Component {
   }
 
   render() {
-    const HeaderProps = {
-      zestActive: this.state.zestActive,
-      target_id: this.state.target_id,
-      updateZestState: this.updateZestState,
-    };
     const TransactionHeaderProps = {
-      zestActive: this.state.zestActive,
       target_id: this.state.target_id,
       transactionHeaderData: this.state.transactionHeaderData,
       hrtResponse: this.state.hrtResponse,
@@ -227,19 +180,11 @@ class Transactions extends React.Component {
       getTransactions: this.getTransactions,
     };
     const TransactionTableProps = {
-      zestActive: this.state.zestActive,
       getTransactionsHeaders: this.getTransactionsHeaders,
       target_id: this.state.target_id,
       updateHeaderData: this.updateHeaderData,
       handleHeaderContainerHeight: this.handleHeaderContainerHeight,
-      updateSelectedRowsInZest: this.updateSelectedRowsInZest,
       transactions: this.state.transactionsData,
-    }
-    const FooterProps = {
-      selectedTransactionRows: this.state.selectedTransactionRows,
-      target_id: this.state.target_id,
-      closeZestState: this.closeZestState,
-      alert: this.alert,
     }
     return (
       <Grid fluid={true}>
@@ -248,7 +193,6 @@ class Transactions extends React.Component {
             id="left_panel"
             style={{
               width: this.state.widthTargetList.toString() + '%',
-              overflow: 'hidden',
             }}
           >
             <TargetList {...TargetListProps} />
@@ -264,7 +208,6 @@ class Transactions extends React.Component {
               width: this.state.widthTable.toString() + '%',
             }}
           >
-            <Header {...HeaderProps} />
             <Row>
               {this.state.target_id !== 0
                 ? <TransactionTable {...TransactionTableProps} />
@@ -277,17 +220,6 @@ class Transactions extends React.Component {
             </Row>
           </Col>
         </Row>
-        {this.state.zestActive
-          ? <Footer {...FooterProps} />
-          : null}
-        <Notification
-          isActive={this.state.snackbarOpen}
-          message={this.state.alertMessage}
-          action="close"
-          dismissAfter={5000}
-          onDismiss={this.handleSnackBarRequestClose}
-          onClick={this.handleSnackBarRequestClose}
-        />
       </Grid>
     );
   }
@@ -309,15 +241,12 @@ Transactions.propTypes = {
   transactionLoading: PropTypes.bool,
   transactionError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   transaction: PropTypes.oneOfType([
-    PropTypes.array.isRequired,
+    PropTypes.object.isRequired,
     PropTypes.bool.isRequired,
   ]),
   hrtResponseLoading: PropTypes.bool,
   hrtResponseError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  hrtResponse: PropTypes.oneOfType([
-    PropTypes.array.isRequired,
-    PropTypes.bool.isRequired,
-  ]),
+  hrtResponse: PropTypes.any,
   onFetchTarget: PropTypes.func,
   onFetchTransactions: PropTypes.func,
   onFetchTransaction: PropTypes.func,

@@ -6,7 +6,7 @@ import filterFactory, { textFilter, Comparator } from 'react-bootstrap-table2-fi
 import PropTypes from 'prop-types';
 import './style.scss';
 
-const RemoteFilter = ({ data, columns, options, onTableChange, selectRow, rowEvents, rowStyle }) => (
+const RemoteFilter = ({ data, columns, options, onTableChange, rowEvents, rowStyle }) => (
     <BootstrapTable
         remote={{ filter: true }}
         keyField="id"
@@ -15,7 +15,6 @@ const RemoteFilter = ({ data, columns, options, onTableChange, selectRow, rowEve
         filter={filterFactory()}
         onTableChange={onTableChange}
         bordered={false}
-        selectRow={selectRow}
         rowEvents={rowEvents}
         rowStyle={rowStyle}
     />
@@ -31,7 +30,6 @@ export default class TransactionTable extends React.Component {
 
         this.state = {
             data: this.props.transactions,
-            selectedRows: [],
             activeRow: -1,
             resizeTableActive: false,
             tableHeight: 0,
@@ -63,51 +61,15 @@ export default class TransactionTable extends React.Component {
         }, 100);
     }
 
-
-    /**
-      * Function responsible for
-      * 1) When zest is not active, updating Header and Body when some row is clicked
-      * 2) When zest is active, this function manage multi selection of rows and immediately updates selected row in zest (parentstate) that we will going to be used by requestSender to form zest script
-      * 3) handle click is called onRowSelection(material-ui default)
-      */
     handleOnClick = (selectedRow) => {
-        if (!this.props.zestActive) {
-            this.setState(() => ({
-                activeRow: selectedRow
-            }));
-            const transaction_id = this.props.transactions[selectedRow].id;
-            const target_id = this.props.target_id;
-            /* To update header and body for selected row */
-            this.props.getTransactionsHeaders(target_id, transaction_id);
-        }
+        this.setState(() => ({
+            activeRow: selectedRow
+        }));
+        const transaction_id = this.props.transactions[selectedRow].id;
+        const target_id = this.props.target_id;
+        /* To update header and body for selected row */
+        this.props.getTransactionsHeaders(target_id, transaction_id);
     };
-
-    handleOnSelect = (row, isSelect) => {
-        if (isSelect) {
-            this.setState(() => ({
-                selectedRows: [...this.state.selectedRows, row.id]
-            }));
-        } else {
-            this.setState(() => ({
-                selectedRows: this.state.selectedRows.filter(x => x !== row.id)
-            }));
-        }
-        this.props.updateSelectedRowsInZest(selectedRows);
-    }
-
-    handleOnSelectAll = (isSelect, rows) => {
-        const ids = rows.map(r => r.id);
-        if (isSelect) {
-            this.setState(() => ({
-                selectedRows: ids
-            }));
-        } else {
-            this.setState(() => ({
-                selectedRows: []
-            }));
-        }
-        this.props.updateSelectedRowsInZest(this.state.selectedRows);
-    }
 
     componentDidMount() {
         document.addEventListener('mousemove', this.handleMouseMove);
@@ -148,7 +110,7 @@ export default class TransactionTable extends React.Component {
     };
 
     render() {
-        const { zestActive, getTransactionsHeaders, target_id, transactions } = this.props;
+        const { getTransactionsHeaders, target_id, transactions } = this.props;
         const columns = [{
             dataField: 'url',
             text: '',
@@ -184,15 +146,6 @@ export default class TransactionTable extends React.Component {
             text: 'Time'
         }];
 
-        const selectRow = {
-            mode: 'checkbox',
-            clickToSelect: false,
-            hideSelectColumn: !zestActive,
-            selected: this.state.selectedRows,
-            onSelect: this.handleOnSelect,
-            onSelectAll: this.handleOnSelectAll
-        };
-
         const rowEvents = {
             onClick: (e, row, rowIndex) => {
                 this.handleOnClick(rowIndex);
@@ -210,15 +163,13 @@ export default class TransactionTable extends React.Component {
 
         return (
             <Row>
-                <Col ref="table" style={{
+                <Col ref="table" className="transaction-table" style={{
                     "height": this.state.tableHeight,
-                    "overflow": "scroll"
                 }}>
                     <RemoteFilter
                         data={this.state.data}
                         columns={columns}
                         onTableChange={this.handleTableChange}
-                        selectRow={selectRow}
                         rowEvents={rowEvents}
                         rowStyle={rowStyle}
                     />
@@ -236,9 +187,7 @@ export default class TransactionTable extends React.Component {
 TransactionTable.PropTypes = {
     target_id: PropTypes.number,
     transactions: PropTypes.array,
-    zestActive: PropTypes.bool,
     getTransactionsHeaders: PropTypes.func,
     handleHeaderContainerHeight: PropTypes.func,
-    updateSelectedRowsInZest: PropTypes.func,
     updateHeaderData: PropTypes.func,
 };

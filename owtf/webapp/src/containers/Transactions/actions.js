@@ -11,9 +11,6 @@ import {
   LOAD_HRT_RESPONSE,
   LOAD_HRT_RESPONSE_SUCCESS,
   LOAD_HRT_RESPONSE_ERROR,
-  CREATE_REQUEST,
-  CREATE_REQUEST_SUCCESS,
-  CREATE_REQUEST_ERROR,
 } from './constants';
 
 
@@ -184,50 +181,6 @@ export function hrtResponseLoaded(hrtResponse) {
 export function hrtResponseLoadingError(error) {
   return {
     type: LOAD_HRT_RESPONSE_ERROR,
-    error,
-  };
-}
-
-/**
- * Creates the request, this action starts the request saga POST.
- *
- * @param  {string} target_id Target Id for which request is to be created.
- *
- * @return {object} An action object with a type of CREATE_REQUEST
- */
-export function createRequest(target_id, trans_str, file_name) {
-  return {
-    type: CREATE_REQUEST,
-    target_id,
-    trans_str,
-    file_name,
-  };
-}
-
-/**
- * Dispatched when the request is created by the request saga
- *
- * @param  {object} request Activated Request.
- *
- * @return {object} An action object with a type of CREATE_REQUEST_SUCCESS
- */
-export function requestCreated(result) {
-  return {
-    type: CREATE_REQUEST_SUCCESS,
-    result,
-  };
-}
-
-/**
- * Dispatched when creating the request fails
- *
- * @param  {object} error The error
- *
- * @return {object} An action object with a type of CREATE_REQUEST_ERROR passing the error
- */
-export function requestCreatingError(error) {
-  return {
-    type: CREATE_REQUEST_ERROR,
     error,
   };
 }
