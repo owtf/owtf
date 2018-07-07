@@ -165,7 +165,7 @@ class TargetsPage extends React.Component {
           </Breadcrumb>
         </Row>
         <Row>
-          <Col xs={12} sm={12} md={5} lg={5}>
+          <Col xs={12} sm={12} md={6} lg={6}>
             <Row>
               <h3>Add Targets</h3>
             </Row>
@@ -184,7 +184,7 @@ class TargetsPage extends React.Component {
               </Button>
             </Row>
           </Col>
-          <Col xs={12} sm={12} md={7} lg={7}>
+          <Col xs={12} sm={12} md={6} lg={6}>
             <Row>
               <Col xs={6} md={6}>
                 <Sessions />
