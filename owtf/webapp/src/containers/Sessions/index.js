@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { Modal, Button, FormGroup } from 'react-bootstrap';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchSessions } from './selectors';
-import { loadSessions } from './actions';
+import { loadSessions, createSession, changeSession } from "./actions";
 import SessionsTable from './SessionTable';
 import InputGroup from 'react-bootstrap/es/InputGroup';
 import FormControl from 'react-bootstrap/es/FormControl';
@@ -22,9 +22,11 @@ export class Sessions extends React.Component {
     this.handleShow = this.handleShow.bind(this);
     this.handleClose = this.handleClose.bind(this);
     this.getCurrentSession = this.getCurrentSession.bind(this);
+    this.handleAddSession = this.handleAddSession.bind(this);
 
     this.state = {
       show: false,
+      newSessionName: null
     };
   }
 
@@ -42,6 +44,12 @@ export class Sessions extends React.Component {
     for (const session of sessions) {
       if (session.active) return session;
     }
+  }
+
+  handleAddSession({ target }) {
+    this.setState({
+      [target.name]: target.value
+    });
   }
 
   componentDidMount() {
@@ -71,6 +79,15 @@ export class Sessions extends React.Component {
         <Modal show={this.state.show} onHide={this.handleClose}>
           <Modal.Header closeButton>
             <Modal.Title>Sessions</Modal.Title>
+            <br />
+            <FormGroup>
+              <InputGroup>
+                <FormControl name="newSessionName" type="text" placeholder= "New Session" onChange={ this.handleAddSession }  />
+                <InputGroup.Button>
+                  <Button bsStyle="primary" onClick={() => this.props.onCreateSession(this.state.newSessionName)}>Add!</Button>
+                </InputGroup.Button>
+              </InputGroup>
+            </FormGroup>
           </Modal.Header>
           <Modal.Body>
             <SessionsTable {...sessionsListProps} />
@@ -95,6 +112,7 @@ Sessions.propTypes = {
     PropTypes.bool,
   ]),
   onFetchSession: PropTypes.func,
+  onCreateSession: PropTypes.func,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -103,8 +121,11 @@ const mapStateToProps = createStructuredSelector({
   error: makeSelectFetchError,
 });
 
-const mapDispatchToProps = dispatch => ({
-  onFetchSession: () => dispatch(loadSessions()),
-});
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onFetchSession: () => dispatch(loadSessions()),
+    onCreateSession: (sessionName) => dispatch(createSession(sessionName)),
+  };
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(Sessions);
