@@ -2,14 +2,14 @@
  * Navigation Bar
  */
 
-import React, {Component} from 'react';
-import { Link } from "react-router-dom";
-import { LinkContainer } from "react-router-bootstrap";
+import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
+import { LinkContainer } from 'react-router-bootstrap';
 import { Navbar, NavItem, Nav, NavDropdown, MenuItem } from 'react-bootstrap';
 
 export default class NavigationBar extends Component {
   render() {
-    return(
+    return (
       <Navbar inverse collapseOnSelect>
         <Navbar.Header>
           <Navbar.Brand>
@@ -25,22 +25,21 @@ export default class NavigationBar extends Component {
 
 export class NavMenu extends Component {
   render() {
-    let links = this.props.links.map(function(link, index){
+    const links = this.props.links.map((link, index) => {
       if (link.dropdown) {
         return (
           <NavLinkDropdown key={index} index={index} links={link.links} text={link.text} />
         );
       }
-      else {
-        return (
-          <LinkContainer key={index} to={link.linkTo}>
-            <NavItem key={link.text} eventKey={index}>
-              {link.text}
-            </NavItem>
-          </LinkContainer>
 
-        );
-      }
+      return (
+        <LinkContainer key={index} to={link.linkTo}>
+          <NavItem key={link.text} eventKey={index}>
+            {link.text}
+          </NavItem>
+        </LinkContainer>
+
+      );
     });
     return (
       <Navbar.Collapse>
@@ -54,7 +53,7 @@ export class NavMenu extends Component {
 
 export class NavLinkDropdown extends Component {
   render() {
-    let links = this.props.links.map(function(link, index){
+    const links = this.props.links.map(function (link, index) {
       return (
         <LinkContainer key={link.text} to={link.linkTo}>
           <MenuItem key={link.text} eventKey={this.props.index + (index * 0.1)}>{link.text}</MenuItem>

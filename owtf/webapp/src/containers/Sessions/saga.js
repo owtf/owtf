@@ -5,7 +5,6 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { CHANGE_SESSION, LOAD_SESSIONS, CREATE_SESSION, DELETE_SESSION } from './constants';
 import {loadSessions, sessionsChanged, sessionsChangingError, sessionsLoaded, sessionsLoadingError, sessionsCreated, sessionsCreatingError, sessionsDeleted, sessionsDeletingError} from './actions';
-
 import Request from 'utils/request';
 import { API_BASE_URL } from 'utils/constants';
 

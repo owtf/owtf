@@ -26,7 +26,8 @@ from owtf.plugin.params import plugin_params
 from owtf.settings import OUTPUT_PATH
 from owtf.utils.file import cleanup_target_dirs, create_output_dir_target, get_target_dir
 from owtf.utils.ip import get_ip_from_hostname, get_ips_from_hostname
-from owtf.utils.strings import str2bool
+from owtf.utils.strings import str2bool, to_str
+
 
 TARGET_CONFIG = {
     "id": 0,
@@ -248,7 +249,7 @@ def add_targets(session, target_urls, session_id=None):
     :rtype: None
     """
     for target_url in target_urls:
-        add_target(session, target_url, session_id=session_id)
+        add_target(session, to_str(target_url), session_id=session_id)
 
 
 def update_target(session, data_dict, target_url=None, id=None):

@@ -32,7 +32,7 @@ import {
 const initialChangeState = fromJS({
   loading: false,
   error: false,
-  currentSession: fromJS({id: 1, name: "default session"}),
+  currentSession: fromJS({ id: 1, name: 'default session' }),
 });
 
 function sessionChangeReducer(state = initialChangeState, action) {
@@ -135,4 +135,4 @@ export default combineReducers({
   load: sessionsLoadReducer,
   create: sessionCreateReducer,
   delete: sessionDeleteReducer,
-})
+});

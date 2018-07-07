@@ -55,7 +55,13 @@ class ConfigurationHandler(APIRequestHandler):
             }
         """
         filter_data = dict(self.request.arguments)
-        self.success(get_all_config_dicts(self.session, filter_data))
+        configurations = get_all_config_dicts(self.session, filter_data)
+        grouped_configurations = {}
+        for config in configurations:
+            if config["section"] not in grouped_configurations:
+                grouped_configurations[config["section"]] = []
+            grouped_configurations[config["section"]].append(config)
+        self.success(grouped_configurations)
 
     def patch(self):
         """Update configuration item
