@@ -1,6 +1,6 @@
-FROM kalilinux/kali-linux-docker
+FROM kalilinux/kali-linux-docker:latest
 
-MAINTAINER Viyat Bhalodia viyat.bhalodia@owasp.org
+LABEL Viyat Bhalodia viyat.bhalodia@owasp.org
 
 # Bypass confirmations
 ENV DEBIAN_FRONTEND noninteractive
@@ -22,7 +22,7 @@ RUN apt-get -y update && apt-get clean
 RUN apt-get -y install  xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev \
                         python-pip postgresql-server-dev-all postgresql-client postgresql-client-common \
                         postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev python-dev \
-                        libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev libffi-dev
+                        libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof
 
 # Install optional tools (LBD, arachni, gnutls-bin, o-saft and metagoofil)
 RUN apt-get -y install  lbd arachni theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster \
