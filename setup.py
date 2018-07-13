@@ -97,7 +97,7 @@ setup(
     extras_require={"docs": docs_requires, "test": tests_requires},
     cmdclass={"develop": PostDevelopCommand, "install": PostInstallCommand},
     scripts=["bin/owtf"],
-    entry_points={"console_scripts": ["owtf = owtf.core:main"]},
+    entry_points={"console_scripts": ["owtf=owtf.core:main"]},
     classifiers=[
         "License :: OSI Approved :: BSD License",
         "Development Status :: 5 - Production/Stable",

@@ -278,37 +278,33 @@ EOF
 }
 
 db_setup() {
-    if [ ! -f /.dockerenv ]; then
-        # Check if the postgres server is running or not.
-        postgresql_check_running_status
+    # Check if the postgres server is running or not.
+    postgresql_check_running_status
 
-        # postgres server is running perfectly fine begin with db_setup.
-        if [ "$action" = "init" ]; then
-            # Create a user $db_user if it does not exist
-            if [ postgresql_check_user == 1 ]; then
-                echo "${info}[+] User $db_user already exist.${reset}"
-                # User $db_user already exist in postgres database change the password
-                postgres_alter_user_password
-            else
-                # Create new user $db_user with password $db_pass
-                postgresql_create_user
-            fi
-            # Create database $db_name if it does not exist.
-            if [ postgresql_check_db == 1 ]; then
-                echo "${info}[+] Database $db_name already exist.${reset}"
-            else
-                # Either database does not exists or the owner of database is not $db_user
-                # Create new database $db_name with owner $db_user
-                postgresql_create_db
-            fi
-            # After the database has been set up write settings to db.yaml
-            echo "${info}"
-            write_db_settings
-            echo "${reset}"
-        elif [ "$action" = "clean" ]; then
-            postgresql_drop_db
-            postgresql_drop_user
+    # postgres server is running perfectly fine begin with db_setup.
+    if [ "$action" = "init" ]; then
+        # Create a user $db_user if it does not exist
+        if [ postgresql_check_user == 1 ]; then
+            echo "${info}[+] User $db_user already exist.${reset}"
+            # User $db_user already exist in postgres database change the password
+            postgres_alter_user_password
+        else
+            # Create new user $db_user with password $db_pass
+            postgresql_create_user
         fi
+        # Create database $db_name if it does not exist.
+        if [ postgresql_check_db == 1 ]; then
+            echo "${info}[+] Database $db_name already exist.${reset}"
+        else
+            # Either database does not exists or the owner of database is not $db_user
+            # Create new database $db_name with owner $db_user
+            postgresql_create_db
+        fi
+        # After the database has been set up write settings to db.yaml
+        write_db_settings
+    elif [ "$action" = "clean" ]; then
+        postgresql_drop_db
+        postgresql_drop_user
     fi
 }
 
@@ -393,7 +389,7 @@ for dir in ${ROOT_DIR}/data/*; do
 done
 
 if [ ! "$(uname)" == "Darwin" ]; then
-    check_sudo
+    check_sudo > /dev/null
 fi
 
 proxy_setup

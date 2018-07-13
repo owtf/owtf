@@ -5,12 +5,7 @@ A __main__ method for OWTF so that internal services can be called as Python mod
 """
 import sys
 
-from owtf.core import main as owtf_main
-
-
-def main():
-    owtf_main(sys.argv)
-
+from owtf.core import main
 
 if __name__ == "__main__":
     main()

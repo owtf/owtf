@@ -953,7 +953,7 @@ babel-register@^6.26.0:
     mkdirp "^0.5.1"
     source-map-support "^0.4.15"
 
-babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.22.0, babel-runtime@^6.26.0:
+babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.22.0, babel-runtime@^6.23.0, babel-runtime@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
   dependencies:
@@ -5620,6 +5620,13 @@ react-bootstrap-table-next@^0.1.6:
   resolved "https://registry.yarnpkg.com/react-bootstrap-table-next/-/react-bootstrap-table-next-0.1.7.tgz#afa9c7aa89f4ff442268f16e982082f6936e8a1d"
   dependencies:
     classnames "2.2.5"
+
+react-bootstrap-tabs@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-bootstrap-tabs/-/react-bootstrap-tabs-1.0.2.tgz#32b8f8119c095493477b696e5a273b6e2adc6d0f"
+  dependencies:
+    babel-runtime "^6.23.0"
+    classnames "^2.2.5"
 
 react-bootstrap@^0.32.1:
   version "0.32.1"

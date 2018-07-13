@@ -31,9 +31,9 @@ TOOLS:
   - config: TOOL_SKIPFISH_DIR
     value: /usr/share/skipfish/
   - config: TOOL_ARACHNI_BIN
-    value: /usr/share/arachni/bin/arachni
+    value: /usr/bin/arachni
   - config: TOOL_ARACHNI_REPORTER_BIN
-    value: /usr/share/arachni/bin/arachni_reporter
+    value: /usr/bin/arachni_reporter
   - config: TOOL_NIKTO_BIN
     value: /usr/bin/nikto
   - config: TOOL_NIKTO_DIR
@@ -243,7 +243,6 @@ AUX_PLUGIN_DATA:
 
 
 # ************************* SE Spear Phishing configuration (Auxiliary Plugin configuration) *************************************
-
 # New versions of SET are likely to break SET scripts, make this more obvious via dir naming:
   - config: PHISHING_SCRIPT_DIR
     value: "@@@FRAMEWORK_DIR@@@/framework/wrappers/set/scripts/phishing3.2.2"
