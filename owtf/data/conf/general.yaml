@@ -31,9 +31,9 @@ TOOLS:
   - config: TOOL_SKIPFISH_DIR
     value: /usr/share/skipfish/
   - config: TOOL_ARACHNI_BIN
-    value: /usr/share/arachni/bin/arachni
+    value: /usr/bin/arachni
   - config: TOOL_ARACHNI_REPORTER_BIN
-    value: /usr/share/arachni/bin/arachni_reporter
+    value: /usr/bin/arachni_reporter
   - config: TOOL_NIKTO_BIN
     value: /usr/bin/nikto
   - config: TOOL_NIKTO_DIR
