@@ -1,0 +1,82 @@
+.top-buffer {
+  margin-bottom: 30px;
+}
+
+.modal-dialog-center {
+  width: 320px;
+  margin: 0;
+  position: absolute;
+  top: 35%;
+  left: 42%;
+}
+.clear {
+  clear: both;
+  height: 80px;
+}
+
+.scrollablePre {
+  overflow: auto;
+  word-wrap: normal;
+  overflow-wrap: normal;
+  white-space: pre;
+  width: 1000;
+}
+
+#drag {
+  background-color: rgb(224, 224, 224);
+  height: 3px;
+  cursor: n-resize;
+}
+#left_panel {
+  float: left;
+  position: relative;
+  min-height: 1px;
+  padding-right: 15px;
+  padding-left: 15px;
+  overflow: hidden;
+}
+#right_panel {
+  float: left;
+  position: relative;
+  min-height: 1px;
+  padding-right: 15px;
+  padding-left: 15px;
+}
+#drag-left {
+  background-color: rgb(224, 224, 224);
+  width: 3px;
+  float: left;
+  position: relative;
+  height: 100vh;
+  margin-right: 15px;
+  cursor: w-resize;
+}
+
+.footer-col {
+  text-align: center;
+}
+
+.footer-btn {
+  margin: 15px;
+}
+
+.footer-btn-disabled {
+  margin: 15px;
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.header-tab {
+  padding-top: 16px;
+  margin-bottom: 12px;
+  font-weight: 400;
+}
+
+.transaction-table {
+  overflow: scroll;
+}

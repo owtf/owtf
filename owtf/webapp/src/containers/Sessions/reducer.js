@@ -20,6 +20,12 @@ import {
   LOAD_SESSIONS,
   LOAD_SESSIONS_SUCCESS,
   LOAD_SESSIONS_ERROR,
+  CREATE_SESSION,
+  CREATE_SESSION_SUCCESS,
+  CREATE_SESSION_ERROR,
+  DELETE_SESSION,
+  DELETE_SESSION_SUCCESS,
+  DELETE_SESSION_ERROR,
 } from './constants';
 
 // The initial state of the session change
@@ -76,7 +82,57 @@ function sessionsLoadReducer(state = initialSessionState, action) {
   }
 }
 
+// The initial state of the session create
+const initialCreateState = fromJS({
+  loading: false,
+  error: false,
+});
+
+function sessionCreateReducer(state = initialCreateState, action) {
+  switch (action.type) {
+    case CREATE_SESSION:
+      return state
+        .set('loading', true)
+        .set('error', false)
+    case CREATE_SESSION_SUCCESS:
+      return state
+        .set('loading', false)
+    case CREATE_SESSION_ERROR:
+      return state
+        .set('error', action.error)
+        .set('loading', false);
+    default:
+      return state;
+  }
+}
+
+// The initial state of the session delete
+const initialDeleteState = fromJS({
+  loading: false,
+  error: false,
+});
+
+function sessionDeleteReducer(state = initialDeleteState, action) {
+  switch (action.type) {
+    case DELETE_SESSION:
+      return state
+        .set('loading', true)
+        .set('error', false)
+    case DELETE_SESSION_SUCCESS:
+      return state
+        .set('loading', false)
+    case DELETE_SESSION_ERROR:
+      return state
+        .set('error', action.error)
+        .set('loading', false);
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   change: sessionChangeReducer,
   load: sessionsLoadReducer,
+  create: sessionCreateReducer,
+  delete: sessionDeleteReducer,
 });

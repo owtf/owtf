@@ -5,8 +5,9 @@
 import { all } from "redux-saga/effects";
 import sessionSaga from "containers/Sessions/saga";
 import configurationSaga from "containers/SettingsPage/saga";
+import transactionSaga from "./containers/Transactions/saga";
 import targetSaga from './containers/TargetsPage/saga';
 
 export default function* rootSaga() {
-  yield all([configurationSaga(), sessionSaga(), targetSaga(),]);
+  yield all([configurationSaga(), sessionSaga(), transactionSaga(), targetSaga(),]);
 }

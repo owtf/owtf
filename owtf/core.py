@@ -292,14 +292,13 @@ def finish(sender=None, **kwargs):
     _signal_process(pid=owtf_pid, psignal=signal.SIGINT)
 
 
-def main(args):
+def main():
     """ The main wrapper which loads everything
 
-    :param args: User supplied arguments dictionary
-    :type args: `dict`
     :return:
     :rtype: None
     """
+    args = sys.argv
     print_banner()
     # Get tool path from script path:
     root_dir = os.path.dirname(os.path.abspath(args[0])) or "."

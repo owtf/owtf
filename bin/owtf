@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/env/python
 
 """ Command-line interface to OWTF commands."""
 
@@ -8,5 +8,5 @@ from owtf.core import main
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    main()
 

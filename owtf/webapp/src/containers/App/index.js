@@ -11,14 +11,15 @@ import { Switch, Route } from 'react-router-dom';
 
 import NavigationBar from 'components/NavigationBar';
 import WelcomePage from 'containers/WelcomePage/Loadable';
-import Dashboard from 'containers/Dashboard/Loadable';
-import TargetsPage from 'containers/TargetsPage/Loadable';
-import SettingsPage from 'containers/SettingsPage/Loadable';
-import Help from 'containers/HelpPage/Loadable';
-import LoginPage from 'containers/LoginPage/Loadable';
-import WorkersPage from 'containers/WorkersPage/Loadable';
-import WorklistPage from 'containers/WorklistPage/Loadable';
-import NotFoundPage from 'components/NotFoundPage';
+import Dashboard from "containers/Dashboard/Loadable";
+import TargetsPage from "containers/TargetsPage/Loadable";
+import SettingsPage from "containers/SettingsPage/Loadable";
+import Help from "containers/HelpPage/Loadable";
+import LoginPage from "containers/LoginPage/Loadable";
+import WorkersPage from "containers/WorkersPage/Loadable";
+import WorklistPage from "containers/WorklistPage/Loadable";
+import NotFoundPage from "components/NotFoundPage";
+import TransactionsPage from "containers/Transactions/Loadable";
 
 
 export default function App() {
@@ -26,13 +27,14 @@ export default function App() {
   navbar.brand =
     { linkTo: '/', text: 'OWASP OWTF' };
   navbar.links = [
-    { linkTo: '/dashboard', text: 'Dashboard' },
-    { linkTo: '/targets', text: 'Targets' },
-    { linkTo: '/workers', text: 'Workers' },
-    { linkTo: '/worklist', text: 'Worklist' },
-    { linkTo: '/settings', text: 'Settings' },
-    { linkTo: '/help', text: 'Help' },
-    { linkTo: '/login', text: 'Login' },
+    {linkTo: "/dashboard", text: "Dashboard"},
+    {linkTo: "/targets", text: "Targets"},
+    {linkTo: "/workers", text: "Workers"},
+    {linkTo: "/worklist", text: "Worklist"},
+    {linkTo: "/settings", text: "Settings"},
+    {linkTo: "/transactions", text: "Transactions"},
+    {linkTo: "/help", text: "Help"},
+    {linkTo: "/login", text: "Login"},
   ];
   return (
     <div>
@@ -44,6 +46,7 @@ export default function App() {
         <Route path="/workers" component={WorkersPage} />
         <Route path="/worklist" component={WorklistPage} />
         <Route path="/settings" component={SettingsPage} />
+        <Route path="/transactions" component={TransactionsPage} />
         <Route path="/help" component={Help} />
         <Route path="/login" component={LoginPage} />
         <Route path="*" component={NotFoundPage} />
