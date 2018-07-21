@@ -1,19 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button, ButtonGroup, Glyphicon } from 'react-bootstrap';
+import { Row, Col, Button, ButtonGroup, Glyphicon, ControlLabel, FormGroup, Label } from 'react-bootstrap';
 import { BootstrapTable, TableHeaderColumn, search } from 'react-bootstrap-table';
 import {connect} from "react-redux";
 import { ClipLoader } from 'react-spinners';
 import './style.scss';
+import FormControl from 'react-bootstrap/es/FormControl';
+import { changeTarget, deleteTarget } from './actions';
 
 
-export default class TargetsTable extends React.Component {
+class TargetsTable extends React.Component {
   constructor(props, context) {
     super(props, context);
 
     this.onPageChange = this.onPageChange.bind(this);
     this.onSearchChange = this.onSearchChange.bind(this);
     this.onSizePerPageList = this.onSizePerPageList.bind(this);
+    this.buttonFormatter = this.buttonFormatter.bind(this);
 
     this.state = {
       data: this.props.targets.slice(0, 10),
@@ -86,25 +89,59 @@ export default class TargetsTable extends React.Component {
     });
   }
 
+  buttonFormatter(cell, row, enumObject, index){
+    return (
+      <ButtonGroup>
+        <Button bsStyle="warning" bsSize="xsmall" type="submit" title="Remove target from this session">
+          <Glyphicon glyph="minus" />
+        </Button>
+        <Button bsStyle="danger" bsSize="xsmall" type="submit" title="Delete target from everywhere"  onClick={() => this.props.onDeleteTarget(this.state.data[index])}>
+          <Glyphicon glyph="remove" />
+        </Button>   
+      </ButtonGroup>
+    );
+  }
+
   render() {
     return (
       <RemotePaging onPageChange={ this.onPageChange }
                     onSizePerPageList={ this.onSizePerPageList }
-                    onSearchChange={ this.onSearchChange }  { ...this.state } />
+                    onSearchChange={ this.onSearchChange }
+                    buttonFormatter={ this.buttonFormatter }  { ...this.state } />
     );
   }
 }
 
 TargetsTable.propTypes = {
-  targets: PropTypes.any,
+  targets: PropTypes.array,
+  onChangeTarget: PropTypes.func,
+  onDeleteTarget: PropTypes.func,
 };
+
+export function mapDispatchToProps(dispatch) {
+  return {
+    onChangeTarget: (target) => dispatch(changeTarget(target)),
+    onDeleteTarget: (target) => dispatch(deleteTarget(target)), 
+  };
+}
+
+export default connect(null, mapDispatchToProps)(TargetsTable);
+
+class MySearchPanel extends React.Component {
+  render() {
+    return (
+      <Col style={{width: 200}}>
+        { this.props.searchField }
+      </Col>
+    );
+  }
+}
 
 class RemotePaging extends React.Component {
   constructor(props) {
     super(props);
 
     this.renderCustomClearSearch = this.renderCustomClearSearch.bind(this);
-    this.buttonFormatter = this.buttonFormatter.bind(this);
   }
 
   renderCustomClearSearch = (onClick) => {
@@ -114,20 +151,6 @@ class RemotePaging extends React.Component {
       </Button>
     );
   }
-
-  buttonFormatter(cell, row) {
-    return (
-      <ButtonGroup>
-        <Button bsStyle="warning" bsSize="xsmall" type="submit" title="Remove target from this session">
-          <Glyphicon glyph="minus" />
-        </Button>
-        <Button bsStyle="danger" bsSize="xsmall" type="submit" title="Delete target from everywhere">
-          <Glyphicon glyph="remove" />
-        </Button>   
-      </ButtonGroup>
-    );
-  }
-  
 
   render() {
 
@@ -161,6 +184,7 @@ class RemotePaging extends React.Component {
       onSearchChange: this.props.onSearchChange, 
       clearSearch: true,
       clearSearchBtn: this.renderCustomClearSearch,
+      searchPanel: (props) => (<MySearchPanel { ...props }/>),
     };
 
     const selectRowProp = {
@@ -170,6 +194,59 @@ class RemotePaging extends React.Component {
 
     const targetFormatter = (cell, row, enumObject, index) => {
       return ` ${cell} (${this.props.data[index].host_ip})`;
+    }
+
+    const labelFormatter = (cell, row, enumObject, index) => {
+      const obj = this.props.data[index];
+      let rank = obj.max_user_rank;
+      if(obj.max_user_rank <= obj.max_owtf_rank){
+        rank = obj.max_owtf_rank;
+      }
+      switch (rank){
+        case 0:
+          return (
+            <Label bsStyle="primary">Passing</Label>
+          );
+        case 1:
+          return (
+            <Label bsStyle="success">Info</Label>
+          );
+        case 2:
+          return (
+            <Label bsStyle="info">Low</Label>
+          );
+        case 3:
+          return (
+            <Label bsStyle="warning">Medium</Label>
+          );
+        case 4:
+          return (
+            <Label bsStyle="danger">High</Label>
+          );
+        case 5:
+          return (
+            <Label bsStyle="danger">Critical</Label>
+          );
+        default:
+          return ""
+      }
+    }
+
+    const severityType = {
+      0: 'Passing',
+      1: 'Info',
+      2: 'Low',
+      3: 'Medium',
+      4: 'High',
+      5: 'Critical',
+    };
+
+    const trStyle = (row, rowIndex) => {
+      const style = {};
+      if (rowIndex === -1) {
+          style.visibility =  'hidden';
+      }
+      return style;
     }
     
     return (
@@ -185,11 +262,15 @@ class RemotePaging extends React.Component {
         condensed
         search={true}
         multiColumnSearch={ true }
+        trStyle={ trStyle }
         >
         <TableHeaderColumn dataField='id' isKey hidden searchable={ false }>Product ID</TableHeaderColumn>
-        <TableHeaderColumn dataField='target_url' dataFormat={ targetFormatter }>Target</TableHeaderColumn>
-        <TableHeaderColumn dataField='actionButtons' dataFormat={ this.buttonFormatter }>Actions</TableHeaderColumn>
+        <TableHeaderColumn width="60%" dataField='target_url' dataFormat={ targetFormatter }>Target</TableHeaderColumn>
+        <TableHeaderColumn width="20%" dataField='severityLabel' filterFormatted dataFormat={ labelFormatter } formatExtraData={ severityType }
+          filter={ { type: 'SelectFilter', options: severityType } }>Severity</TableHeaderColumn>
+        <TableHeaderColumn width="20%" dataField='actionButtons' dataFormat={ this.props.buttonFormatter }>Actions</TableHeaderColumn>
       </BootstrapTable>
     );
   }
 }
+
