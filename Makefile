@@ -1,6 +1,9 @@
 USER := $(shell whoami)
+PROJ=owtf
+PYTHON=python3
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
+VENV_PATH=$$HOME/.virtualenvs/${PROJ}
 
 check-root:
 ifeq ($(USER), root)
@@ -20,8 +23,13 @@ install-dependencies:
 
 opt-tools:
 	sudo apt-get install -y lbd gnutls-bin arachni o-saft metagoofil lbd arachni \
-                        theharvester tlssled nikto dnsrecon nmap whatweb skipfish \
-                        dirbuster metasploit-framework wpscan wapiti waffit hydra metagoofil o-saft
+	                        theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster metasploit-framework \
+	                        wpscan wapiti waffit hydra metagoofil o-saft
+
+venv:
+	@echo "Installing the virtualenv for OWTF"
+	rm -rf $(VENV_PATH)
+	$(PYTHON) -m venv $(VENV_PATH) --clear
 
 web-tools:
 	sudo apt-get install kali-linux-web
@@ -30,6 +38,10 @@ activate-virtualenv:
 	pip install virtualenv
 	virtualenv ${HOME}/.venv/owtf
 	source "${HOME}/.venv/owtf/bin/activate"
+
+
+setup:  activate-virtualenv install-requirements
+
 
 ### REQUIREMENTS
 
@@ -143,3 +155,19 @@ distclean-js:
 
 distclean: distclean-py distclean-js
 
+## MAINTAINERS
+
+bump:
+	bumpversion patch
+
+bump-minor:
+	bumpversion minor
+
+bump-major:
+	bumpversion major
+
+release:
+	python setup.py register sdist bdist_wheel upload
+
+build:
+	$(PYTHON) setup.py sdist bdist_wheel
