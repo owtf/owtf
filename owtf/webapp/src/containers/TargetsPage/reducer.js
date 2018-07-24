@@ -26,6 +26,9 @@ import {
   DELETE_TARGET,
   DELETE_TARGET_SUCCESS,
   DELETE_TARGET_ERROR,
+  REMOVE_TARGET_FROM_SESSION,
+  REMOVE_TARGET_FROM_SESSION_SUCCESS,
+  REMOVE_TARGET_FROM_SESSION_ERROR,
 } from './constants';
 
 // The initial state of the targets.
@@ -127,9 +130,34 @@ function targetDeleteReducer(state = initialDeleteState, action) {
   }
 }
 
+// The initial state of the remove target from session
+const initialRemoveState = fromJS({
+  loading: false,
+  error: false,
+});
+
+function targetRemoveReducer(state = initialRemoveState, action) {
+  switch (action.type) {
+    case REMOVE_TARGET_FROM_SESSION:
+      return state
+        .set('loading', true)
+        .set('error', false)
+    case REMOVE_TARGET_FROM_SESSION_SUCCESS:
+      return state
+        .set('loading', false)
+    case REMOVE_TARGET_FROM_SESSION_ERROR:
+      return state
+        .set('error', action.error)
+        .set('loading', false);
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   load: targetsLoadReducer,
   create: targetCreateReducer,
   change: targetChangeReducer,
   delete: targetDeleteReducer,
+  remove: targetRemoveReducer,
 })

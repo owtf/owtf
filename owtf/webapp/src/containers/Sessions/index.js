@@ -63,6 +63,7 @@ export class Sessions extends React.Component {
         <FormGroup>
           <InputGroup>
             <FormControl type="text" placeholder={currentSession.name} readOnly />
+            <FormControl type="hidden" defaultValue={currentSession.id} />
             <InputGroup.Button>
               <Button bsStyle="primary" onClick={this.handleShow}>Session</Button>
             </InputGroup.Button>
@@ -107,4 +108,4 @@ const mapDispatchToProps = dispatch => ({
   onFetchSession: () => dispatch(loadSessions()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Sessions);
+export default connect(mapStateToProps, mapDispatchToProps, null, {withRef: true})(Sessions);

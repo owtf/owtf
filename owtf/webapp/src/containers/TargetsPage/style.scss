@@ -24,3 +24,5 @@
     transform: rotate(360deg);
   }
 }
+
+input[type="checkbox"][disabled] { display: none;}
