@@ -27,15 +27,16 @@ class TargetsTable extends React.Component {
     this.handleRemoveTargetFromSession = this.handleRemoveTargetFromSession.bind(this);
 
     this.state = {
-      data: this.props.targets.slice(0, 10),
-      totalDataSize: this.props.targets.length,
+      data: this.props.targets.slice(0, 10), //data contains per page targets 
+      totalDataSize: this.props.targets.length, 
       sizePerPage: 10,
       currentPage: 1,
-      selectedRows: [],
-      showExtraRow: false,
+      selectedRows: [], //array of checked targets IDs 
+      showExtraRow: false, // row containing bulk target delete and remove actions
     };
   }
 
+  //Changes the table data according to the text value in the search box
   onSearchChange(searchText, colInfos, multiColumnSearch) {
     const currentIndex = (this.state.currentPage - 1) * this.state.sizePerPage;
     const text = searchText.trim();
@@ -83,6 +84,7 @@ class TargetsTable extends React.Component {
     }));
   }
 
+  //function changes the target data according to the selected page 
   onPageChange(page, sizePerPage) {
     const currentIndex = (page - 1) * sizePerPage;
     this.setState({
@@ -99,14 +101,16 @@ class TargetsTable extends React.Component {
     });
   }
 
+  //function responsible for bulk deletion of targets
   handleDeleteTargets(target_ids) {
     const target_count = target_ids.length;
     const status = {
-        complete: [],
-        failed: []
+        complete: [], //contains IDs of targets that are successfully deleted
+        failed: [] //contains IDs of targets that fails to delete
     };
     target_ids.map((id) => {
       this.props.onDeleteTarget(id);
+      //
       setTimeout(()=> {
         if(this.props.deleteError !== false){
           status.failed.push(id);
@@ -128,6 +132,7 @@ class TargetsTable extends React.Component {
     }
   }
 
+  // function to delete a single target
   handleDeleteTarget(target_id) {
     this.props.onDeleteTarget(target_id);
     setTimeout(()=> {
@@ -140,10 +145,11 @@ class TargetsTable extends React.Component {
     }, 200);
   }
 
+  //function responsible for removing all the selected targets at the same time  
   handleRemoveTargetsFromSession(target_ids) {
     const target_count = target_ids.length;
     const status = {
-        complete: [],
+        complete: [], 
         failed: []
     };
     target_ids.map((id) => {
@@ -169,6 +175,7 @@ class TargetsTable extends React.Component {
     }
   }
 
+  // function to delete a single target
   handleRemoveTargetFromSession(target_id) {
     this.props.onRemoveTargetFromSession(this.props.getCurrentSession(), target_id);
     setTimeout(()=> {
@@ -181,9 +188,11 @@ class TargetsTable extends React.Component {
     }, 200);
   }
 
+  //action delete and remove buttons 
   buttonFormatter(cell, row, enumObject, index){
     if(this.state.showExtraRow && index === 0){
       return (
+        //for bulk remove and delete
         <ButtonGroup>
           <Button bsStyle="warning" bsSize="xsmall" type="submit" title="Remove selected targets from this session" onClick={() => this.handleRemoveTargetsFromSession(this.state.selectedRows)}>
             <Glyphicon glyph="minus" />
@@ -195,6 +204,7 @@ class TargetsTable extends React.Component {
       );
     }
     return (
+      //single target delete and remove
       <ButtonGroup>
         <Button bsStyle="warning" bsSize="xsmall" type="submit" title="Remove target from this session" onClick={() => this.handleRemoveTargetFromSession(this.state.data[index].id)}>
           <Glyphicon glyph="minus" />
@@ -206,6 +216,7 @@ class TargetsTable extends React.Component {
     );
   }
 
+  //update selected target IDs 
   handleOnSelect = (row, isSelect) => {
     if (isSelect) {
       this.setState({ selectedRows: [...this.state.selectedRows, row.id] }, () => {
@@ -231,6 +242,7 @@ class TargetsTable extends React.Component {
     }
   }
 
+  //handles the visibility of bulk delete and remove target function row
   addExtraRow = () => {
     if(this.state.selectedRows.length > 0){
       if(this.state.showExtraRow){
@@ -267,6 +279,8 @@ class TargetsTable extends React.Component {
 
 TargetsTable.propTypes = {
   targets: PropTypes.array,
+  getCurrentSession: PropTypes.func,
+  handleAlertMsg: PropTypes.func,
   onChangeTarget: PropTypes.func,
   onDeleteTarget: PropTypes.func,
   onRemoveTargetFromSession: PropTypes.func,
@@ -289,6 +303,7 @@ const mapDispatchToProps = (dispatch) => {
 
 export default connect(mapStateToProps, mapDispatchToProps)(TargetsTable);
 
+//customize search box
 class MySearchPanel extends React.Component {
   render() {
     return (
@@ -352,6 +367,7 @@ class RemotePaging extends React.Component {
         return `${cell}`;
     }
 
+    //formatted column field for severity level
     const labelFormatter = (cell, row, enumObject, index) => {
       console.log(row);
       const obj = this.props.data[index];

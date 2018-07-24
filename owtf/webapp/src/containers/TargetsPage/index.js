@@ -41,11 +41,11 @@ class TargetsPage extends React.Component {
     this.handleAlertMsg = this.handleAlertMsg.bind(this);
     this.exportTargets = this.exportTargets.bind(this);
     this.state = {
-      newTargetUrls: "",
-      show: false,
-      alertStyle: null,
+      newTargetUrls: "",//URLs of new targets to be added
+      show: false, //handles visibility of alert box
+      alertStyle: null, 
       alertMsg: "", 
-      disabled: false,
+      disabled: false, //for target URL textbox
     };
   }
 
@@ -84,6 +84,7 @@ class TargetsPage extends React.Component {
     }
   }
 
+  //invoke an alert box based on given params
   handleAlertMsg(alertStyle, alertMsg){
     this.setState({
       show: true,
@@ -147,10 +148,12 @@ class TargetsPage extends React.Component {
     this.props.onFetchTarget();
   }
 
+  //return current active session
   getCurrentSession() {
     return this.refs.sessionReference.getWrappedInstance().getCurrentSession()
   }
 
+  //download list of targets as txt file
   exportTargets() {
     const targetsArray = [];
     this.props.targets.map((target) => {
