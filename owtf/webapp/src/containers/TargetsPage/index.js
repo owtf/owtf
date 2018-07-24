@@ -37,12 +37,15 @@ class TargetsPage extends React.Component {
     this.isUrl = this.isUrl.bind(this);
     this.addNewTargets = this.addNewTargets.bind(this);
     this.renderAlert = this.renderAlert.bind(this);
+    this.getCurrentSession = this.getCurrentSession.bind(this);
+    this.handleAlertMsg = this.handleAlertMsg.bind(this);
+    this.exportTargets = this.exportTargets.bind(this);
     this.state = {
-      newTargetUrls: "",
-      show: false,
-      alertStyle: null,
+      newTargetUrls: "",//URLs of new targets to be added
+      show: false, //handles visibility of alert box
+      alertStyle: null, 
       alertMsg: "", 
-      disabled: false,
+      disabled: false, //for target URL textbox
     };
   }
 
@@ -81,6 +84,18 @@ class TargetsPage extends React.Component {
     }
   }
 
+  //invoke an alert box based on given params
+  handleAlertMsg(alertStyle, alertMsg){
+    this.setState({
+      show: true,
+      alertStyle: alertStyle,
+      alertMsg: alertMsg
+    });
+    setTimeout(() => {
+      this.setState({ show: false });
+    }, 5000);
+  }
+
   handleTargetUrlsChange({ target }) {
     this.setState({
       [target.name]: target.value
@@ -109,38 +124,23 @@ class TargetsPage extends React.Component {
         targetUrls.push("https://" + line);
         this.setState({ newTargetUrls: "" });
       } else {
-        // Not a valid url
-        this.setState({
-          show: true,
-          alertStyle: "danger",
-          alertMsg: line + " is not a valid url"
-        });
+        this.handleAlertMsg("danger", line + " is not a valid url");
       }
     });
 
     // Since we only have valid urls now in targetUrls, add them using api
     // Proceed only if there is atleast one valid url
     if (targetUrls.length > 0) {
-      this.setState({
-        show: true,
-        alertStyle: "info",
-        alertMsg: "Targets are being added in the background, and will appear in the table soon"
-      }); 
+      this.handleAlertMsg("info", "Targets are being added in the background, and will appear in the table soon"); 
       targetUrls.map(target_url => {
         this.props.onCreateTarget(target_url);
-        // console.log('error '+this.props.createError+' loading '+this.props.createLoading);
-        if(this.props.createError !== false){
-          this.setState({
-            show: true,
-            alertStyle: "danger",
-            alertMsg: "Unable to add " + unescape(target_url.split("//")[1])
-          });
-        }
+        setTimeout(()=> {
+          if(this.props.createError !== false){
+            this.handleAlertMsg("danger", "Unable to add " + unescape(target_url.split("//")[1]));
+          }
+        }, 200);
       });
     }
-    setTimeout(() => {
-      this.setState({ show: false });
-    }, 5000);
     this.setState({ disabled: false });
   }
 
@@ -148,10 +148,30 @@ class TargetsPage extends React.Component {
     this.props.onFetchTarget();
   }
 
+  //return current active session
+  getCurrentSession() {
+    return this.refs.sessionReference.getWrappedInstance().getCurrentSession()
+  }
+
+  //download list of targets as txt file
+  exportTargets() {
+    const targetsArray = [];
+    this.props.targets.map((target) => {
+      targetsArray.push(target.target_url+'\n');
+    });
+    const element = document.createElement("a");
+    const file = new Blob(targetsArray, {type: 'text/plain;charset=utf-8'});
+    element.href = URL.createObjectURL(file);
+    element.download = "targets.txt";
+    element.click();
+  }
+
   render() {
     const { targets, fetchLoading, fetchError } = this.props;
     const TargetsTableProps = {
-      targets,
+      targets: targets,
+      getCurrentSession: this.getCurrentSession,
+      handleAlertMsg: this.handleAlertMsg,
     }
     return (
       <Grid>
@@ -187,11 +207,11 @@ class TargetsPage extends React.Component {
           <Col xs={12} sm={12} md={6} lg={6}>
             <Row>
               <Col xs={6} md={6}>
-                <Sessions />
+                <Sessions ref="sessionReference" />
               </Col>
               <Col xs={6} md={6}>
                 <ButtonGroup>
-                  <Button>
+                  <Button onClick={this.exportTargets}>
                     <Glyphicon glyph="list" /> Export
                   </Button>
                   <Button bsStyle="success">
@@ -238,7 +258,7 @@ const mapStateToProps = createStructuredSelector({
 const mapDispatchToProps = dispatch => {
   return {
     onFetchTarget: () => dispatch(loadTargets()),
-    onCreateTarget: target_url => dispatch(createTarget(target_url))
+    onCreateTarget: (target_url) => dispatch(createTarget(target_url))
   };
 };
 

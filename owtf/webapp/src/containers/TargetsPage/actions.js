@@ -28,6 +28,9 @@ import {
     DELETE_TARGET,
     DELETE_TARGET_SUCCESS,
     DELETE_TARGET_ERROR,
+    REMOVE_TARGET_FROM_SESSION,
+    REMOVE_TARGET_FROM_SESSION_SUCCESS,
+    REMOVE_TARGET_FROM_SESSION_ERROR,
   } from './constants';
   
   /**
@@ -154,14 +157,14 @@ import {
   /**
    * Deletes the target, this action starts the request saga DELETE.
    *
-   * @param  {string} target Target to be deleted.
+   * @param  {string} target_id Id of the Target to be deleted.
    *
    * @return {object} An action object with a type of DELETE_TARGET
    */
-  export function deleteTarget(target) {
+  export function deleteTarget(target_id) {
     return {
       type: DELETE_TARGET,
-      target
+      target_id,
     };
   }
   
@@ -189,3 +192,44 @@ import {
       error,
     };
   }
+
+/**
+ * Removes the target from session, this action starts the request saga PATCH.
+ *
+ * @param  {object} session active session.
+ * @param  {object} target_id Id of the target to be removed from session.
+ *
+ * @return {object} An action object with a type of CHANGE_SESSION
+ */
+export function removeTargetFromSession(session, target_id) {
+  return {
+    type: REMOVE_TARGET_FROM_SESSION,
+    session,
+    target_id,
+  };
+}
+
+/**
+ * Dispatched when the targets are removed from session by the request saga
+ *
+ * @return {object} An action object with a type of CHANGE_SESSION_SUCCESS
+ */
+export function targetFromSessionRemoved() {
+  return {
+    type: REMOVE_TARGET_FROM_SESSION_SUCCESS,
+  };
+}
+
+/**
+ * Dispatched when changing the sessions fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of CHANGE_SESSION_ERROR passing the error
+ */
+export function targetFromSessionRemovingError(error) {
+  return {
+    type: REMOVE_TARGET_FROM_SESSION_ERROR,
+    error,
+  };
+}

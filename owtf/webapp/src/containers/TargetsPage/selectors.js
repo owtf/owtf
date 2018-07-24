@@ -16,6 +16,16 @@ const makeSelectCreate = createSelector(
   (targetState) => targetState.get('create')
 );
 
+const makeSelectDelete = createSelector(
+  selectTarget,
+  (targetState) => targetState.get('delete')
+);
+
+const makeSelectRemove = createSelector(
+  selectTarget,
+  (targetState) => targetState.get('remove')
+);
+
 const makeSelectFetchLoading = createSelector(
   makeSelectFetch,
   (fetchState) => fetchState.get('loading')
@@ -41,10 +51,22 @@ const makeSelectCreateError = createSelector(
   (fetchState) => fetchState.get('error')
 );
 
+const makeSelectDeleteError = createSelector(
+  makeSelectDelete,
+  (fetchState) => fetchState.get('error')
+);
+
+const makeSelectRemoveError = createSelector(
+  makeSelectRemove,
+  (fetchState) => fetchState.get('error')
+);
+
 export {
   makeSelectFetchLoading,
   makeSelectFetchError,
   makeSelectFetchTargets,
   makeSelectCreateLoading,
   makeSelectCreateError,
+  makeSelectDeleteError,
+  makeSelectRemoveError,
 };

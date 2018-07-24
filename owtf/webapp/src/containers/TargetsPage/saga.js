@@ -3,9 +3,12 @@
  */
 
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { LOAD_TARGETS, CREATE_TARGET, CHANGE_TARGET, DELETE_TARGET } from './constants';
-import { loadTargets, targetsLoaded, targetsLoadingError, targetCreated, targetCreatingError, targetChanged, targetChangingError, targetDeleted, targetDeletingError } from './actions';
-
+import { LOAD_TARGETS, CREATE_TARGET, CHANGE_TARGET, DELETE_TARGET, REMOVE_TARGET_FROM_SESSION } from './constants';
+import { loadTargets, targetsLoaded, targetsLoadingError,
+        targetCreated, targetCreatingError,
+        targetChanged, targetChangingError,
+        targetDeleted, targetDeletingError,
+        targetFromSessionRemoved, targetFromSessionRemovingError } from './actions';
 import Request from 'utils/request';
 import { API_BASE_URL } from 'utils/constants';
 
@@ -38,6 +41,7 @@ export function* postTarget(action) {
     const request = new Request(requestURL, options);
     const target = yield call(request.post.bind(request), {target_url: action.target_url});
     yield put(targetCreated(target));
+    yield put(loadTargets());
   } catch (error) {
     yield put(targetCreatingError(error));  
   }
@@ -69,8 +73,8 @@ export function* patchTarget(action) {
  * Delete Target request/response handler
  */
 export function* deleteTarget(action) {
-  const target = action.target;  
-  const requestURL = `${API_BASE_URL}targets/${target.id.toString()}/`;
+  const target_id = action.target_id;  
+  const requestURL = `${API_BASE_URL}targets/${target_id.toString()}/`;
 
   try {
     const request = new Request(requestURL);
@@ -79,6 +83,29 @@ export function* deleteTarget(action) {
     yield put(loadTargets());
   } catch (error) {
     yield put(targetDeletingError(error));  
+  }
+}
+
+/**
+ * Remove Target From Session request/response handler
+ */
+export function* removeTargetFromSession(action) {
+  const session = action.session;
+  const target_id = action.target_id;
+  const requestURL = `${API_BASE_URL}sessions/${session.id.toString()}/remove/`;
+
+  try {
+    const options = {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      },
+    };
+    const request = new Request(requestURL, options);
+    yield call(request.patch.bind(request), {target_id: target_id});
+    yield put(targetFromSessionRemoved());
+    yield put(loadTargets());
+  } catch (error) {
+    yield put(targetFromSessionRemovingError(error));
   }
 }
 
@@ -94,4 +121,5 @@ export default function* targetSaga() {
   yield takeLatest(CREATE_TARGET, postTarget);
   yield takeLatest(CHANGE_TARGET, patchTarget);
   yield takeLatest(DELETE_TARGET, deleteTarget);
+  yield takeLatest(REMOVE_TARGET_FROM_SESSION, removeTargetFromSession);
 }
