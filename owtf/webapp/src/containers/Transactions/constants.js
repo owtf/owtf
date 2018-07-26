@@ -5,10 +5,6 @@ export const TRANSACTION_HRT_URL = '/api/v1/targets/target_id/transactions/hrt/t
 export const TRANSACTION_API_URL = '/api/v1/targets/target_id/transactions/'
 export const TRANSACTION_ZCONSOLE_URL = '/ui/v1/targets/target_id/transactions/zconsole'
 
-export const LOAD_TARGETS = 'owtf/Targets/LOAD_TARGETS',
-    LOAD_TARGETS_SUCCESS = 'owtf/Targets/LOAD_TARGETS_SUCCESS',
-    LOAD_TARGETS_ERROR = 'owtf/Targets/LOAD_TARGETS_ERROR';
-
 export const LOAD_TRANSACTIONS = 'owtf/Transactions/LOAD_TRANSACTIONS',
     LOAD_TRANSACTIONS_SUCCESS = 'owtf/Transactions/LOAD_TRANSACTIONS_SUCCESS',
     LOAD_TRANSACTIONS_ERROR = 'owtf/Transactions/LOAD_TRANSACTIONS_ERROR';

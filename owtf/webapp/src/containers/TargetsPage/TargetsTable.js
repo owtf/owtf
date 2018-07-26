@@ -369,7 +369,6 @@ class RemotePaging extends React.Component {
 
     //formatted column field for severity level
     const labelFormatter = (cell, row, enumObject, index) => {
-      console.log(row);
       const obj = this.props.data[index];
       let rank = obj.max_user_rank;
       if(obj.max_user_rank <= obj.max_owtf_rank){
