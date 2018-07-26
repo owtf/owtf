@@ -1003,7 +1003,7 @@ babel-register@^6.26.0:
     mkdirp "^0.5.1"
     source-map-support "^0.4.15"
 
-babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.22.0, babel-runtime@^6.26.0:
+babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.22.0, babel-runtime@^6.23.0, babel-runtime@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
   dependencies:
@@ -1412,8 +1412,8 @@ caniuse-api@^1.5.2:
     lodash.uniq "^4.5.0"
 
 caniuse-db@^1.0.30000529, caniuse-db@^1.0.30000634, caniuse-db@^1.0.30000639:
-  version "1.0.30000870"
-  resolved "https://registry.yarnpkg.com/caniuse-db/-/caniuse-db-1.0.30000870.tgz#f397cd64922c24f85d0ce7803c9bd5c5a1571b16"
+  version "1.0.30000871"
+  resolved "https://registry.yarnpkg.com/caniuse-db/-/caniuse-db-1.0.30000871.tgz#f1995c1fe31892649a7605957a80c92518423d4d"
 
 caniuse-lite@^1.0.30000844:
   version "1.0.30000865"
@@ -1531,7 +1531,7 @@ classnames@2.2.5:
   version "2.2.5"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.5.tgz#fb3801d453467649ef3603c7d61a02bd129bde6d"
 
-classnames@^2.2.5:
+classnames@^2.1.2, classnames@^2.2.5:
   version "2.2.6"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.6.tgz#43935bffdd291f326dad0a205309b38d00f650ce"
 
@@ -4939,8 +4939,8 @@ npm-conf@^1.1.0:
     pify "^3.0.0"
 
 npm-packlist@^1.1.6:
-  version "1.1.10"
-  resolved "https://registry.yarnpkg.com/npm-packlist/-/npm-packlist-1.1.10.tgz#1039db9e985727e464df066f4cf0ab6ef85c398a"
+  version "1.1.11"
+  resolved "https://registry.yarnpkg.com/npm-packlist/-/npm-packlist-1.1.11.tgz#84e8c683cbe7867d34b1d357d893ce29e28a02de"
   dependencies:
     ignore-walk "^3.0.1"
     npm-bundled "^1.0.1"
@@ -5751,8 +5751,14 @@ react-bootstrap-table-next@^0.1.6:
   dependencies:
     classnames "2.2.5"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+react-bootstrap-table2-filter@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/react-bootstrap-table2-filter/-/react-bootstrap-table2-filter-0.2.0.tgz#28f0a26619bd5e1108ae1f162ade1b2aa4e195ea"
+
+react-bootstrap-table2-paginator@^0.1.4:
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/react-bootstrap-table2-paginator/-/react-bootstrap-table2-paginator-0.1.6.tgz#79c779ef0ba1c5530b39559cf7b4cde8bc274c04"
+
 react-bootstrap-table@^4.3.1:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/react-bootstrap-table/-/react-bootstrap-table-4.3.1.tgz#f704be55b7f6bf0557d2fc5bec6d25fd307d0cde"
@@ -5761,23 +5767,6 @@ react-bootstrap-table@^4.3.1:
     prop-types "^15.5.10"
     react-modal "^3.1.7"
     react-s-alert "^1.3.2"
-=======
-react-bootstrap-tabs@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/react-bootstrap-tabs/-/react-bootstrap-tabs-1.0.2.tgz#32b8f8119c095493477b696e5a273b6e2adc6d0f"
-  dependencies:
-    babel-runtime "^6.23.0"
-    classnames "^2.2.5"
->>>>>>> upstream/develop
-=======
-react-bootstrap-table2-filter@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/react-bootstrap-table2-filter/-/react-bootstrap-table2-filter-0.2.0.tgz#28f0a26619bd5e1108ae1f162ade1b2aa4e195ea"
-
-react-bootstrap-table2-paginator@^0.1.4:
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/react-bootstrap-table2-paginator/-/react-bootstrap-table2-paginator-0.1.6.tgz#79c779ef0ba1c5530b39559cf7b4cde8bc274c04"
->>>>>>> upstream/develop
 
 react-bootstrap@^0.32.1:
   version "0.32.1"
@@ -5824,11 +5813,7 @@ react-is@^16.3.2:
   version "16.4.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.4.1.tgz#d624c4650d2c65dbd52c72622bbf389435d9776e"
 
-<<<<<<< HEAD
 react-lifecycles-compat@^3.0.0, react-lifecycles-compat@^3.0.4:
-=======
-react-lifecycles-compat@^3.0.4:
->>>>>>> upstream/develop
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz#4f1a273afdfc8f3488a8c516bfda78f872352362"
 
@@ -5838,7 +5823,6 @@ react-loadable@^5.3.1:
   dependencies:
     prop-types "^15.5.0"
 
-<<<<<<< HEAD
 react-modal@^3.1.7:
   version "3.5.1"
   resolved "https://registry.yarnpkg.com/react-modal/-/react-modal-3.5.1.tgz#33d38527def90ea324848f7d63e53acc4468a451"
@@ -5847,13 +5831,12 @@ react-modal@^3.1.7:
     prop-types "^15.5.10"
     react-lifecycles-compat "^3.0.0"
     warning "^3.0.0"
-=======
+
 react-notification@^6.1.0:
   version "6.8.2"
   resolved "https://registry.yarnpkg.com/react-notification/-/react-notification-6.8.2.tgz#5d9910cc2993bd51a234d3809e94a98dc490cfb0"
   dependencies:
     prop-types "^15.5.10"
->>>>>>> upstream/develop
 
 react-overlays@^0.8.0:
   version "0.8.3"
@@ -5919,7 +5902,6 @@ react-router@^4.2.0, react-router@^4.3.1:
     path-to-regexp "^1.7.0"
     prop-types "^15.6.1"
     warning "^4.0.1"
-<<<<<<< HEAD
 
 react-s-alert@^1.3.2:
   version "1.4.1"
@@ -5928,14 +5910,8 @@ react-s-alert@^1.3.2:
     babel-runtime "^6.23.0"
 
 react-spinners@^0.3.1:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/react-spinners/-/react-spinners-0.3.2.tgz#faf2ecfdd54b887fa3728bd15e48840b938c7736"
-=======
-
-react-spinners@^0.3.1:
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/react-spinners/-/react-spinners-0.3.3.tgz#8b59d6343b46ca303b0cf4c1b663afb4106e89d6"
->>>>>>> upstream/develop
   dependencies:
     emotion "^9.1.1"
     prop-types "^15.5.10"
@@ -7020,13 +6996,10 @@ to-regex@^3.0.1, to-regex@^3.0.2:
     regex-not "^1.0.2"
     safe-regex "^1.1.0"
 
-<<<<<<< HEAD
-=======
 toggle-selection@^1.0.3:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/toggle-selection/-/toggle-selection-1.0.6.tgz#6e45b1263f2017fa0acc7d89d78b15b8bf77da32"
 
->>>>>>> upstream/develop
 toposort@^1.0.0:
   version "1.0.7"
   resolved "https://registry.yarnpkg.com/toposort/-/toposort-1.0.7.tgz#2e68442d9f64ec720b8cc89e6443ac6caa950029"
