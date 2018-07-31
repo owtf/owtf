@@ -7,7 +7,8 @@ import sessionSaga from "containers/Sessions/saga";
 import configurationSaga from "containers/SettingsPage/saga";
 import transactionSaga from "./containers/Transactions/saga";
 import targetSaga from './containers/TargetsPage/saga';
+import pluginSaga from './containers/Plugins/saga';
 
 export default function* rootSaga() {
-  yield all([configurationSaga(), sessionSaga(), transactionSaga(), targetSaga(),]);
+  yield all([configurationSaga(), sessionSaga(), transactionSaga(), targetSaga(), pluginSaga(), ]);
 }

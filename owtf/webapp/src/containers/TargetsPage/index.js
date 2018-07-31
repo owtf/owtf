@@ -3,6 +3,7 @@
  */
 import React from "react";
 import Sessions from "containers/Sessions";
+import Plugins from "containers/Plugins";
 import TargetsTable from "./TargetsTable";
 import {
   Grid,
@@ -16,6 +17,7 @@ import {
 import { Breadcrumb } from "react-bootstrap";
 import InputGroup from "react-bootstrap/es/InputGroup";
 import FormControl from "react-bootstrap/es/FormControl";
+import "../../style.scss";
 import "./style.scss";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
@@ -27,7 +29,9 @@ import {
   makeSelectCreateLoading,
   makeSelectCreateError,
 } from "./selectors";
+import { makeSelectFetchSessions } from "../Sessions/selectors";
 import { loadTargets, createTarget } from "./actions";
+import { loadSessions } from "../Sessions/actions";
 
 class TargetsPage extends React.Component {
   constructor(props, context) {
@@ -37,15 +41,21 @@ class TargetsPage extends React.Component {
     this.isUrl = this.isUrl.bind(this);
     this.addNewTargets = this.addNewTargets.bind(this);
     this.renderAlert = this.renderAlert.bind(this);
-    this.getCurrentSession = this.getCurrentSession.bind(this);
     this.handleAlertMsg = this.handleAlertMsg.bind(this);
     this.exportTargets = this.exportTargets.bind(this);
+    this.handlePluginShow = this.handlePluginShow.bind(this);
+    this.handlePluginClose = this.handlePluginClose.bind(this);
+    this.getCurrentSession = this.getCurrentSession.bind(this);
+    this.updateSelectedTargets = this.updateSelectedTargets.bind(this);
+
     this.state = {
       newTargetUrls: "",//URLs of new targets to be added
       show: false, //handles visibility of alert box
       alertStyle: null, 
       alertMsg: "", 
       disabled: false, //for target URL textbox
+      pluginShow: false, //handles plugin component
+      selectedTargets: [],
     };
   }
 
@@ -131,7 +141,6 @@ class TargetsPage extends React.Component {
     // Since we only have valid urls now in targetUrls, add them using api
     // Proceed only if there is atleast one valid url
     if (targetUrls.length > 0) {
-      this.handleAlertMsg("info", "Targets are being added in the background, and will appear in the table soon"); 
       targetUrls.map(target_url => {
         this.props.onCreateTarget(target_url);
         setTimeout(()=> {
@@ -140,17 +149,22 @@ class TargetsPage extends React.Component {
           }
         }, 200);
       });
+      this.handleAlertMsg("info", "Targets are being added in the background, and will appear in the table soon");       
     }
     this.setState({ disabled: false });
   }
 
   componentDidMount() {
     this.props.onFetchTarget();
+    this.props.onFetchSession();
   }
 
-  //return current active session
   getCurrentSession() {
-    return this.refs.sessionReference.getWrappedInstance().getCurrentSession()
+    const sessions = this.props.sessions;
+    if (sessions === false) return false;
+    for (const session of sessions) {
+      if (session.active) return session;
+    }
   }
 
   //download list of targets as txt file
@@ -166,12 +180,32 @@ class TargetsPage extends React.Component {
     element.click();
   }
 
+  handlePluginClose() {
+    this.setState({ pluginShow: false });
+  }
+
+  handlePluginShow() {
+    this.setState({ pluginShow: true });
+  }
+
+  updateSelectedTargets(selectedTargets) {
+    this.setState({ selectedTargets: selectedTargets});
+  }
+
   render() {
     const { targets, fetchLoading, fetchError } = this.props;
     const TargetsTableProps = {
       targets: targets,
-      getCurrentSession: this.getCurrentSession,
       handleAlertMsg: this.handleAlertMsg,
+      getCurrentSession: this.getCurrentSession,
+      updateSelectedTargets: this.updateSelectedTargets,
+    }
+    const PluginProps = {
+      handlePluginShow: this.handlePluginShow,
+      handlePluginClose: this.handlePluginClose,
+      pluginShow: this.state.pluginShow,
+      selectedTargets: this.state.selectedTargets,
+      handleAlertMsg: this.handleAlertMsg,      
     }
     return (
       <Grid>
@@ -202,19 +236,20 @@ class TargetsPage extends React.Component {
               <Button bsStyle="primary" disabled={this.state.disabled} onClick={this.addNewTargets}>
                 Add Targets
               </Button>
+              <Plugins {...PluginProps} />
             </Row>
           </Col>
           <Col xs={12} sm={12} md={6} lg={6}>
             <Row>
               <Col xs={6} md={6}>
-                <Sessions ref="sessionReference" />
+                <Sessions />
               </Col>
               <Col xs={6} md={6}>
                 <ButtonGroup>
                   <Button onClick={this.exportTargets}>
                     <Glyphicon glyph="list" /> Export
                   </Button>
-                  <Button bsStyle="success">
+                  <Button bsStyle="success" onClick={this.handlePluginShow}>
                     <Glyphicon glyph="flash" /> Run
                   </Button>
                 </ButtonGroup>
@@ -241,6 +276,7 @@ TargetsPage.propTypes = {
   fetchLoading: PropTypes.bool,
   fetchError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   targets: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
+  sessions: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
   onFetchTarget: PropTypes.func,
   createLoading: PropTypes.bool,
   createError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
@@ -248,6 +284,7 @@ TargetsPage.propTypes = {
 };
 
 const mapStateToProps = createStructuredSelector({
+  sessions: makeSelectFetchSessions,
   targets: makeSelectFetchTargets,
   fetchLoading: makeSelectFetchLoading,
   fetchError: makeSelectFetchError,
@@ -257,6 +294,7 @@ const mapStateToProps = createStructuredSelector({
 
 const mapDispatchToProps = dispatch => {
   return {
+    onFetchSession: () => dispatch(loadSessions()),
     onFetchTarget: () => dispatch(loadTargets()),
     onCreateTarget: (target_url) => dispatch(createTarget(target_url))
   };

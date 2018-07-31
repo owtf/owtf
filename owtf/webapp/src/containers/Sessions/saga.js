@@ -31,7 +31,12 @@ export function* patchSession(action) {
   const requestURL = `${API_BASE_URL}sessions/${session.id.toString()}/activate/`;
 
   try {
-    const request = new Request(requestURL);
+    const options = {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      },
+    };
+    const request = new Request(requestURL, options);
     yield call(request.patch.bind(request));
     yield put(sessionsChanged(session));
     yield put(loadSessions());
@@ -47,7 +52,12 @@ export function* postSession(action) {
   const requestURL = `${API_BASE_URL}sessions/`;
 
   try {
-    const request = new Request(requestURL);
+    const options = {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      },
+    };
+    const request = new Request(requestURL, options);
     const session = yield call(request.post.bind(request), {name: action.sessionName});
     yield put(sessionsCreated(session));
     yield put(sessionsChanged(session));
