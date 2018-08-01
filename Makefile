@@ -10,6 +10,12 @@ ifeq ($(USER), root)
 	@echo "WARNING: Installing as root should be avoided at all costs. Use a virtualenv."
 endif
 
+clean-pyc:
+	-find . -type f -a \( -name "*.pyc" -o -name "*$$py.class" \) | xargs rm
+	-find . -type d -name "__pycache__" | xargs rm -r
+
+clean-build:
+	rm -rf build/ dist/ .eggs/ *.egg-info/ .tox/ .coverage cover/
 
 ### INSTALL
 
@@ -35,12 +41,10 @@ web-tools:
 	sudo apt-get install kali-linux-web
 
 activate-virtualenv:
-	pip install virtualenv
-	virtualenv ${HOME}/.venv/owtf
-	source "${HOME}/.venv/owtf/bin/activate"
+	source $(VENV_PATH)/bin/activate
 
 
-setup:  activate-virtualenv install-requirements
+setup:  venv activate-virtualenv install-requirements
 
 
 ### REQUIREMENTS
@@ -76,8 +80,6 @@ post-install:
 docs:
 	@echo "--> Building docs"
 	cd docs/ && make html
-
-
 
 ### DOCKER
 

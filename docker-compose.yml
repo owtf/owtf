@@ -7,10 +7,8 @@ services:
     environment:
       - DOCKER=True
       - POSTGRES_USER=owtf_db_user
-      - POSTGRES_PASSWORD=changeme
+      - POSTGRES_PASSWORD=jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=
       - POSTGRES_DB=owtf_db
-    env_file:
-      - owtf.env
     ports:
       - 8008:8008
       - 8010:8010
@@ -23,7 +21,5 @@ services:
       - 5342:5432
     environment:
       - POSTGRES_USER=owtf_db_user
-      - POSTGRES_PASSWORD=changeme
+      - POSTGRES_PASSWORD=jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=
       - POSTGRES_DB=owtf_db
-    env_file:
-      - owtf.env

@@ -29,25 +29,14 @@ if os.environ.get("DOCKER", None):
     DATABASE_PASS = os.environ["POSTGRES_PASSWORD"]
     DATABASE_USER = os.environ["POSTGRES_USER"]
     DATABASE_IP = "db"
-    DATABASE_PORT = 5342
+    DATABASE_PORT = 5432
 else:
-    try:
-        with open(os.path.join(OWTF_CONF, "db.yaml"), "r") as f:
-            conf = yaml.load(f)
-            DATABASE_PASS = conf["password"]
-            DATABASE_NAME = conf["database_name"]
-            DATABASE_USER = conf["username"]
-            DATABASE_IP = conf["database_ip"]
-            DATABASE_PORT = int(conf["database_port"])
-    except FileNotFoundError:
-        # Dummy values for Sphinx docs
-        DATABASE_PASS = ""
-        DATABASE_NAME = ""
-        DATABASE_USER = ""
-        DATABASE_IP = ""
-        DATABASE_PORT = 5342
-        print("[debug] db.yaml not found. Maybe you are building some docs...")
-        pass
+    # Change this if you deploy OWTF to a public facing server
+    DATABASE_PASS = "jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g="
+    DATABASE_NAME = "owtf_db"
+    DATABASE_USER = "owtf_db_user"
+    DATABASE_IP = "127.0.0.1"
+    DATABASE_PORT = 5432
 
 # API and UI Server
 SERVER_ADDR = "0.0.0.0"
@@ -130,14 +119,23 @@ CERTS_FOLDER = os.path.join(OWTF_CONF, "proxy", "certs")
 BLACKLIST_COOKIES = ["_ga", "__utma", "__utmb", "__utmc", "__utmz", "__utmv"]
 WHITELIST_COOKIES = ""
 PROXY_RESTRICTED_RESPONSE_HEADERS = [
-    "Content-Length", "Content-Encoding", "Etag", "Transfer-Encoding", "Connection", "Vary", "Accept-Ranges", "Pragma"
+    "Content-Length",
+    "Content-Encoding",
+    "Etag",
+    "Transfer-Encoding",
+    "Connection",
+    "Vary",
+    "Accept-Ranges",
+    "Pragma",
 ]
 
 PROXY_RESTRICTED_REQUEST_HEADERS = ["Connection", "Pragma", "Cache-Control", "If-Modified-Since"]
 PROXY_LOG = "/tmp/owtf/proxy.log"
 
 # Define regex patterns
-REGEXP_FILE_URL = "^[^\?]+\.(xml|exe|pdf|cs|log|inc|dat|bak|conf|cnf|old|zip|7z|rar|tar|gz|bz2|txt|xls|xlsx|doc|docx|ppt|pptx)$"
+REGEXP_FILE_URL = (
+    "^[^\?]+\.(xml|exe|pdf|cs|log|inc|dat|bak|conf|cnf|old|zip|7z|rar|tar|gz|bz2|txt|xls|xlsx|doc|docx|ppt|pptx)$"
+)
 # Potentially small files will be retrieved for analysis
 REGEXP_SMALL_FILE_URL = "^[^\?]+\.(xml|cs|inc|dat|bak|conf|cnf|old|txt)$"
 REGEXP_IMAGE_URL = "^[^\?]+\.(jpg|jpeg|png|gif|bmp)$"

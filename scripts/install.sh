@@ -6,6 +6,8 @@ SCRIPT_DIR="$(pwd -P)/scripts"
 OWTF_DIR="${HOME}/.owtf"
 ROOT_DIR="$(dirname $SCRIPT_DIR)/owtf"
 CWD="$(dirname $ROOT_DIR)"
+os=${OSTYPE//[0-9.-]*/}
+
 
 . ${SCRIPT_DIR}/platform_config.sh
 export NVM_DIR="${HOME}/.nvm"
@@ -49,9 +51,6 @@ ca_key="${OWTF_DIR}/proxy/certs/ca.key"
 ca_pass_file="${OWTF_DIR}/proxy/certs/ca_pass.txt"
 ca_key_pass="$(openssl rand -base64 16)"
 
-db_user="owtf_db_user"
-db_name="owtf_db"
-db_pass="$(openssl rand -base64 32)"
 postgres_server_ip="127.0.0.1"
 postgres_server_port=5432
 postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | $SED_CMD 's/\./ /g' | awk '{print $1 "." $2}')"
@@ -60,6 +59,11 @@ postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | $SED_CMD 
 # =======================================
 #   COMMON FUNCTIONS
 # =======================================
+if [[ "$(cat /proc/1/cgroup 2> /dev/null | grep docker | wc -l)" > 0 ]] || [ -f /.dockerenv ]; then
+  IS_DOCKER=true
+else
+  IS_DOCKER=false
+fi
 
 create_directory() {
     if [ ! -d $1 ]; then
@@ -147,43 +151,10 @@ proxy_setup() {
 postgresql_check_running_status() {
     postgres_ip_status=$(get_postgres_server_ip)
     if [ -z "$postgres_ip_status" ]; then
-        echo "${info}[+] PostgreSQL server is not running.${reset}"
-        echo "${info}[+] Can I start db server for you? [Y/n]${reset}"
-        read choice
-        if [ "$choice" != "n" ]; then
-            which service  >> /dev/null 2>&1
-            service_bin=$?
-            which systemctl  >> /dev/null 2>&1
-            systemctl_bin=$?
-            if [ $service_bin -eq 0 ]; then
-                sudo service postgresql start
-                sudo service postgresql status | grep -q "Active: active"
-                status_exitcode=$?
-            elif [ $systemctl_bin -eq 0 ]; then
-                sudo systemctl start postgresql
-                sudo systemctl status postgresql | grep -q "Active: active"
-                status_exitcode=$?
-            else
-                echo "${info}[+] Using pg_ctlcluster to start the server.${reset}"
-                sudo pg_ctlcluster ${postgres_version} main start
-                status_exitcode=$?
-                if [ $status_exitcode -ne 0 ]; then
-                    echo "${info}[+] We couldn't determine how to start the postgres automatically, please start the server manually.${reset}"
-                    exit 1
-                fi
-            fi
-            if [ $status_exitcode -ne 0 ]; then
-                echo "${info}[+] Starting failed because postgreSQL service is not available!${reset}"
-                echo "${info}[+] Run # sh scripts/start_postgres.sh and rerun this script${reset}"
-                exit 1
-            fi
-        else
-            echo "${info}[+] On DEBIAN based distro [i.e Kali, Ubuntu etc..]${reset}"
-            echo "${info}    sudo service postgresql start${reset}"
-            echo "${info}[+] On RPM based distro [i.e Fedora etc..]${reset}"
-            echo "${info}    sudo systemctl start postgresql${reset}"
-            exit 1
-        fi
+        echo "${info}PostgreSQL server is not running.${reset}"
+        echo "${info}Please start the PostgreSQL server and rerun.${reset}"
+        echo "${info}For Kali/Debian like systems, try sudo service postgresql start or sudo systemctl start postgresql ${reset}"
+        echo "${info}For macOS, use pg_ctl -D /usr/local/var/postgres start ${reset}"
     else
         echo "${info}[+] PostgreSQL server is running ${postgres_server_ip}:${postgres_server_port} :)${reset}"
     fi
@@ -191,38 +162,33 @@ postgresql_check_running_status() {
 
 # returns postgresql service IP
 get_postgres_server_ip() {
-    if [ "$(uname)" == "Darwin" ]; then
+    if [ $os == "darwin" ]; then
         echo "$(lsof -i -n -P | grep TCP | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f1 | uniq)"
     else
         echo "$(sudo netstat -lptn | grep "^tcp " | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f1)"
     fi
 }
 
-# return postgresql service Port
-get_postgres_server_port() {
-    echo "$(sudo netstat -lptn | grep "^tcp " | grep postgres | sed 's/\s\+/ /g' | cut -d ' ' -f4 | cut -d ':' -f2)"
-}
-
 postgresql_create_user() {
-    psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass';"
-    ret=$?
-    if [ $ret -eq 2 ]; then
+    if [ $os == "darwin" ]; then
+        psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass';"
+    else
         sudo su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""
     fi
 }
 
 postgres_alter_user_password() {
-    psql postgres -tc "ALTER USER $db_user WITH PASSWORD '$db_pass';"
-    ret=$?
-    if [ $ret -eq 2 ]; then
+    if [ $os == "darwin" ]; then
+        psql postgres -tc "ALTER USER $db_user WITH PASSWORD '$db_pass';"
+    else
         sudo su postgres -c "psql postgres -tc \"ALTER USER $db_user WITH PASSWORD '$db_pass'\""
     fi
 }
 
 postgresql_create_db() {
-    psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"
-    ret=$?
-    if [ $ret -eq 2 ]; then
+    if [ $os == "darwin" ]; then
+        psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"
+    else
         sudo su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""
     fi
 }
@@ -237,24 +203,23 @@ postgresql_check_user() {
 }
 
 postgresql_drop_user() {
-    psql postgres -c "DROP USER $db_user"
-    ret=$?
-    if [ $ret -eq 2 ]; then
+    if [ $os == "darwin" ]; then
+        psql postgres -c "DROP USER $db_user"
+    else
         sudo su postgres -c "psql -c \"DROP USER $db_user\""
     fi
 }
 
 postgresql_drop_db() {
-    psql postgres -c "DROP DATABASE $db_name"
-    ret=$?
-    if [ $ret -eq 2 ]; then
+    if [ $os == "darwin" ]; then
+        psql postgres -c "DROP DATABASE $db_name"
+    else
         sudo su postgres -c "psql -c \"DROP DATABASE $db_name\""
     fi
 }
 
 postgresql_check_db() {
     cmd="$(psql -l | grep -w $db_name | wc -l | xargs)"
-
     if [ "$cmd" != "0" ]; then
         return 1
     else
@@ -262,49 +227,29 @@ postgresql_check_db() {
     fi
 }
 
-write_db_settings() {
-    # Store the password in the .owtf directory
-    db_file="$OWTF_DIR/db.yaml"
-    if [ -f $db_file ]; then
-        rm $db_file
-    fi
-cat << EOF | tee -ai $db_file
-username: "${db_user}"
-password: "${db_pass}"
-database_name: "${db_name}"
-database_ip: "${postgres_server_ip}"
-database_port: "${postgres_server_port}"
-EOF
-}
 
 db_setup() {
     # Check if the postgres server is running or not.
     postgresql_check_running_status
 
     # postgres server is running perfectly fine begin with db_setup.
-    if [ "$action" = "init" ]; then
-        # Create a user $db_user if it does not exist
-        if [ postgresql_check_user == 1 ]; then
-            echo "${info}[+] User $db_user already exist.${reset}"
-            # User $db_user already exist in postgres database change the password
-            postgres_alter_user_password
-        else
-            # Create new user $db_user with password $db_pass
-            postgresql_create_user
-        fi
-        # Create database $db_name if it does not exist.
-        if [ postgresql_check_db == 1 ]; then
-            echo "${info}[+] Database $db_name already exist.${reset}"
-        else
-            # Either database does not exists or the owner of database is not $db_user
-            # Create new database $db_name with owner $db_user
-            postgresql_create_db
-        fi
-        # After the database has been set up write settings to db.yaml
-        write_db_settings
-    elif [ "$action" = "clean" ]; then
-        postgresql_drop_db
-        postgresql_drop_user
+    # Create a user $db_user if it does not exist
+    if [ postgresql_check_user == 1 ]; then
+        echo "${info}[+] User $db_user already exist.${reset}"
+        # User $db_user already exist in postgres database change the password
+        continue
+    else
+        # Create new user $db_user with password $db_pass
+        postgresql_create_user
+    fi
+    # Create database $db_name if it does not exist.
+    if [ postgresql_check_db == 1 ]; then
+       echo "${info}[+] Database $db_name already exist.${reset}"
+       continue
+    else
+       # Either database does not exists or the owner of database is not $db_user
+       # Create new database $db_name with owner $db_user
+       postgresql_create_db
     fi
 }
 
@@ -394,7 +339,11 @@ fi
 
 proxy_setup
 
-db_setup
+if [ ! $IS_DOCKER ]; then
+    db_setup
+else
+    echo "${info}Running inside Docker, no need to configure DB"
+fi
 
 ui_setup
 

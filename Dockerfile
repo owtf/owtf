@@ -46,6 +46,8 @@ RUN pip install virtualenv && virtualenv ~/.venv/owtf && . ~/.venv/owtf/bin/acti
 # Create a dedicated OWTF directory to copy source to and run from.
 RUN cd / && /bin/mkdir -p owtf
 ADD . /owtf
+ADD docker/wait-for-it.sh /usr/bin/wait-for-it.sh
+RUN chmod +x /usr/bin/wait-for-it.sh
 
 # Copy the configuration file intended for the Docker environment
 RUN cp -f /owtf/docker/default.settings.py /owtf/owtf/settings.py
