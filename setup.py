@@ -3,6 +3,7 @@ import sys
 import re
 import ast
 from subprocess import call
+from itertools import chain
 import io
 import pip
 
@@ -38,7 +39,11 @@ links = []
 requires = []
 
 # new versions of pip requires a session
-requirements = parse_requirements("requirements.txt", session=False)
+base_req = parse_requirements("requirements/base.txt", session=False)
+docs_req = parse_requirements("requirements/docs.txt", session=False)
+test_req = parse_requirements("requirements/test.txt", session=False)
+
+requirements = chain(base_req, docs_req, test_req)
 
 for item in requirements:
     if getattr(item, "url", None):  # older pip has url
@@ -49,10 +54,6 @@ for item in requirements:
         requires.append(str(item.req))  # always the package name
 
 post_script = os.path.join(ROOT_DIR, "scripts/install.sh")
-
-tests_requires = ["PyHamcrest==1.9.0", "mock>=1.3.0"]
-
-docs_requires = ["sphinx", "sphinx_py3doc_enhanced_theme"]
 
 
 class PostDevelopCommand(develop):
@@ -78,6 +79,8 @@ if sys.version_info < (2, 7, 9):
     # SSL connection fixes for Python 2.7
     requires.extend(["ndg-httpsclient", "pyasn1"])
 
+if sys.version_info > (3, 0, 0):
+    requires.extend(["black", "pre-commit"])
 
 setup(
     name="owtf",
@@ -94,7 +97,6 @@ setup(
     platforms="any",
     install_requires=sorted(requires, key=lambda s: s.split("==")[0].lower()),
     dependency_links=links,
-    extras_require={"docs": docs_requires, "test": tests_requires},
     cmdclass={"develop": PostDevelopCommand, "install": PostInstallCommand},
     scripts=["bin/owtf"],
     entry_points={"console_scripts": ["owtf=owtf.core:main"]},
@@ -102,8 +104,6 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Development Status :: 5 - Production/Stable",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Operating System :: POSIX :: Linux",

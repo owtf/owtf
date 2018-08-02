@@ -1,0 +1,2 @@
+sphinx==1.7.4
+sphinx_py3doc_enhanced_theme==2.3.1

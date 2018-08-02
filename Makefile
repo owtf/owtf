@@ -52,7 +52,7 @@ setup:  venv activate-virtualenv install-requirements
 install-python-requirements: setup.py check-root
 	@echo "--> Installing Python development dependencies."
 	pip install setuptools
-	pip install -r requirements.txt
+	for f in `ls requirements/` ; do pip install -r requirements/$$f ; done
 
 install-ui-requirements:
 	@echo "--> Installing Node development dependencies."
@@ -85,11 +85,15 @@ docs:
 
 docker-build:
 	@echo "--> Building the docker image for develop"
-	docker build -t owtf/owtf -f Dockerfile.dev .
+	docker build -t owtf/owtf -f docker/Dockerfile .
 
 docker-run:
 	@echo "--> Running the Docker development image"
 	docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v $(current_dir):/owtf owtf/owtf /bin/bash
+
+compose:
+	@echo "--> Running the Docker Compose setup"
+	docker-compose -f docker/docker-compose.dev.yml up
 
 ### DEBIAN PACKAGING
 
