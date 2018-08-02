@@ -117,6 +117,10 @@ $ owtf
 
 Checkout [LICENSE](LICENSE.md)
 
+# Code of Conduct
+
+Checkout [Code of Conduct](CODE_OF_CONDUCT.md)
+
 # Links
 
 - [Project homepage](http://owtf.github.io/)
