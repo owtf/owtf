@@ -11,7 +11,7 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchConfigurations, makeSelectChangeError } from './selectors';
 import { loadConfigurations, changeConfigurations } from './actions';
-import './index.scss';
+import '../../style.scss';
 import ConfigurationTabsContent from 'components/ConfigurationTabsContent';
 import ConfigurationTabsNav from 'components/ConfigurationTabsNav';
 

@@ -3,27 +3,12 @@
  */
 
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { LOAD_TARGETS, LOAD_TRANSACTIONS, LOAD_TRANSACTION, LOAD_HRT_RESPONSE } from './constants';
-import { targetsLoaded, targetsLoadingError, transactionsLoaded, transactionsLoadingError, transactionLoaded, transactionLoadingError, hrtResponseLoaded, hrtResponseLoadingError } from './actions';
+import { LOAD_TRANSACTIONS, LOAD_TRANSACTION, LOAD_HRT_RESPONSE } from './constants';
+import { transactionsLoaded, transactionsLoadingError, transactionLoaded, transactionLoadingError, hrtResponseLoaded, hrtResponseLoadingError } from './actions';
 
 import Request from 'utils/request';
 import { API_BASE_URL } from 'utils/constants';
 import { TARGET_URL, TRANSACTIONS_URL, TRANSACTION_HEADER_URL, TRANSACTION_HRT_URL } from './constants';
-
-/**
- * Fetch Targets request/response handler
- */
-export function* getTargets() {
-  const requestURL = `${TARGET_URL}`;
-  try {
-    // Call our request helper (see 'utils/request')
-    const request = new Request(requestURL);
-    const targets = yield call(request.get.bind(request));
-    yield put(targetsLoaded(targets.data));
-  } catch (error) {
-    yield put(targetsLoadingError(error));
-  }
-}
 
 /**
  * Fetch Transactions request/response handler
@@ -89,7 +74,6 @@ export default function* transactionSaga() {
   // By using `takeLatest` only the result of the latest API call is applied.
   // It returns task descriptor (just like fork) so we can continue execution
   // It will be cancelled automatically on component unmount
-  yield takeLatest(LOAD_TARGETS, getTargets);
   yield takeLatest(LOAD_TRANSACTIONS, getTransactions);
   yield takeLatest(LOAD_TRANSACTION, getTransaction);
   yield takeLatest(LOAD_HRT_RESPONSE, getHrtResponse);

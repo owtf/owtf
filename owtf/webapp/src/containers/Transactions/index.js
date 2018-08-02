@@ -14,10 +14,10 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import {
-  makeSelectTargetsError,
-  makeSelectTargetsLoading,
+  makeSelectFetchError,
+  makeSelectFetchLoading,
   makeSelectFetchTargets,
-} from './selectors';
+} from '../TargetsPage/selectors';
 import {
   makeSelectTransactionsError,
   makeSelectTransactionsLoading,
@@ -33,7 +33,8 @@ import {
   makeSelectHrtResponseError,
   makeSelectHrtResponseLoading,
 } from './selectors';
-import { loadTargets, loadTransactions, loadTransaction, loadHrtResponse } from './actions';
+import { loadTargets } from '../TargetsPage/actions';
+import {loadTransactions, loadTransaction, loadHrtResponse } from './actions';
 
 class Transactions extends React.Component {
   constructor(props, context) {
@@ -255,8 +256,8 @@ Transactions.propTypes = {
 
 const mapStateToProps = createStructuredSelector({
   targets: makeSelectFetchTargets,
-  targetsLoading: makeSelectTargetsLoading,
-  targetsError: makeSelectTargetsError,
+  targetsLoading: makeSelectFetchLoading,
+  targetsError: makeSelectFetchError,
 
   transactions: makeSelectFetchTransactions,
   transactionsLoading: makeSelectTransactionsLoading,

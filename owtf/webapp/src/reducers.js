@@ -9,6 +9,8 @@ import { LOCATION_CHANGE } from "react-router-redux";
 import sessionsReducer from 'containers/Sessions/reducer';
 import transactionsReducer from 'containers/Transactions/reducer';
 import configurationsReducer from "containers/SettingsPage/reducer";
+import targetsReducer from "containers/TargetsPage/reducer";
+import pluginsReducer from "containers/Plugins/reducer";
 /*
  * routeReducer
  *
@@ -45,6 +47,8 @@ export default function createReducer() {
     route: routeReducer,
     sessions: sessionsReducer,
     configurations: configurationsReducer,
+    targets: targetsReducer,
     transactions: transactionsReducer,
+    plugins: pluginsReducer,
   });
 }
