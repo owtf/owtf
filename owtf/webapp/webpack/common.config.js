@@ -2,37 +2,38 @@
  * COMMON WEBPACK CONFIGURATION BETWEEN DEVELOPMENT AND PRODUCTION
  */
 
-const path = require('path');
-const webpack = require('webpack');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const path = require("path");
+const webpack = require("webpack");
+const CleanWebpackPlugin = require("clean-webpack-plugin");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
+const home = require("os").homedir();
+const owtfDir = path.join(home, ".owtf", "build");
+
 const PATHS = {
-  app: path.join(process.cwd(), 'src'),
-  build: path.join(process.cwd(), 'build'),
+  app: path.join(process.cwd(), "src"),
+  build: owtfDir
 };
 
 module.exports = {
-  entry: [
-    PATHS.app,
-  ],
+  entry: [PATHS.app],
   output: {
     path: PATHS.build,
-    publicPath: '/static/',
+    publicPath: "/static/"
   },
   plugins: [
     new webpack.ProvidePlugin({
       // make fetch available
-      fetch: 'exports-loader?self.fetch!whatwg-fetch',
+      fetch: "exports-loader?self.fetch!whatwg-fetch"
     }),
 
     // Always expose NODE_ENV to webpack, in order to use `process.env.NODE_ENV`
     // inside your code for any environment checks; UglifyJS will automatically
     // drop any unreachable code.
     new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: JSON.stringify(process.env.NODE_ENV),
-      },
+      "process.env": {
+        NODE_ENV: JSON.stringify(process.env.NODE_ENV)
+      }
     }),
     new webpack.NamedModulesPlugin(),
     new ExtractTextPlugin("styles.css"),
@@ -41,11 +42,8 @@ module.exports = {
     })
   ],
   resolve: {
-    modules: ['src', 'node_modules'],
-    extensions: [
-      '.js',
-      '.jsx'
-    ]
+    modules: ["src", "node_modules"],
+    extensions: [".js", ".jsx"]
   },
   module: {
     rules: [
@@ -53,8 +51,8 @@ module.exports = {
         test: /\.js$/, // Transform all .js files required somewhere with Babel
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader'
-        },
+          loader: "babel-loader"
+        }
       },
       {
         // Preprocess our own .css files
@@ -64,8 +62,8 @@ module.exports = {
         exclude: /node_modules/,
         use: ExtractTextPlugin.extract({
           fallback: "style-loader",
-          use: ['css-loader', 'sass-loader'],
-          disable: process.env.NODE_ENV !== 'production'
+          use: ["css-loader", "sass-loader"],
+          disable: process.env.NODE_ENV !== "production"
         })
       },
       {
@@ -75,48 +73,44 @@ module.exports = {
         use: ExtractTextPlugin.extract({
           fallback: "style-loader",
           use: "css-loader",
-          disable: process.env.NODE_ENV !== 'production'
+          disable: process.env.NODE_ENV !== "production"
         })
       },
       {
         test: /\.(eot|svg|otf|ttf|woff|woff2)$/,
-        use: 'file-loader',
+        use: "file-loader"
       },
       {
         test: /\.(jpg|png|gif)$/,
         use: [
-          'file-loader',
+          "file-loader",
           {
-            loader: 'image-webpack-loader',
+            loader: "image-webpack-loader",
             options: {
               progressive: true,
               optimizationLevel: 7,
-              interlaced: false,
-              pngquant: {
-                quality: '65-90',
-                speed: 4,
-              },
-            },
-          },
-        ],
+              interlaced: false
+            }
+          }
+        ]
       },
       {
         test: /\.html$/,
-        use: 'html-loader',
+        use: "html-loader"
       },
       {
         test: /\.json$/,
-        use: 'json-loader',
+        use: "json-loader"
       },
       {
         test: /\.(mp4|webm)$/,
         use: {
-          loader: 'url-loader',
+          loader: "url-loader",
           options: {
-            limit: 10000,
-          },
-        },
-      },
-    ],
-  },
+            limit: 10000
+          }
+        }
+      }
+    ]
+  }
 };
