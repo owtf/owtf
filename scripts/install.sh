@@ -52,6 +52,9 @@ ca_pass_file="${OWTF_DIR}/proxy/certs/ca_pass.txt"
 ca_key_pass="$(openssl rand -base64 16)"
 
 postgres_server_ip="127.0.0.1"
+db_name="owtf_db"
+db_user="owtf_db_user"
+db_pass="jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g="
 postgres_server_port=5432
 postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | $SED_CMD 's/\./ /g' | awk '{print $1 "." $2}')"
 
@@ -60,9 +63,9 @@ postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | $SED_CMD 
 #   COMMON FUNCTIONS
 # =======================================
 if [[ "$(cat /proc/1/cgroup 2> /dev/null | grep docker | wc -l)" > 0 ]] || [ -f /.dockerenv ]; then
-  IS_DOCKER=true
+  IS_DOCKER=1
 else
-  IS_DOCKER=false
+  IS_DOCKER=0
 fi
 
 create_directory() {
@@ -339,7 +342,7 @@ fi
 
 proxy_setup
 
-if [ ! $IS_DOCKER ]; then
+if [ "$IS_DOCKER" -eq "0" ]; then
     db_setup
 else
     echo "${info}Running inside Docker, no need to configure DB"
