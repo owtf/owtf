@@ -62,7 +62,7 @@ export function transactionsLoadingError(error) {
  */
 export function loadTransaction(target_id, transaction_id) {
   return {
-    type: LOAD_TRANSACTIONS,
+    type: LOAD_TRANSACTION,
     target_id,
     transaction_id
   };
