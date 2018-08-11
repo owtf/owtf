@@ -209,13 +209,13 @@ Plugins.propTypes = {
 		PropTypes.object,
 		PropTypes.bool,
 	]),
+	pluginShow: PropTypes.bool,	
 	onFetchPlugins: PropTypes.func,
 	onPostToWorklist: PropTypes.func,
 	handlePluginShow: PropTypes.func,
-  handlePluginClose: PropTypes.func,
-  pluginShow: PropTypes.func,
-  selectedTargets: PropTypes.func,
-  handleAlertMsg: PropTypes.func,      
+	handlePluginClose: PropTypes.func,
+	selectedTargets: PropTypes.array,
+	handleAlertMsg: PropTypes.func,      
 };
 
 const mapStateToProps = createStructuredSelector({

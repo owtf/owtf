@@ -25,9 +25,9 @@ class Report extends React.Component {
     super(props, context);
 
     this.updateFilter = this.updateFilter.bind(this);
+    this.clearFilters = this.clearFilters.bind(this);
 
     this.state = {
-      targetData: {},
       selectedGroup: [],
       selectedType: [],
       selectedRank: [],
@@ -40,9 +40,6 @@ class Report extends React.Component {
   componentDidMount() {
     const { id } = this.props.match.params;
     this.props.onFetchTarget(id);
-    setTimeout(() => {
-      this.setState({ targetData: this.props.target });
-    }, 200);
   }
 
   /**
@@ -85,11 +82,22 @@ class Report extends React.Component {
 
   };
 
+  clearFilters() {
+    // $(".filterCheckbox").attr("checked", false);
+    this.setState({
+      selectedStatus: [],
+      selectedRank: [],
+      selectedGroup: [],
+      selectedMapping: "",
+      selectedOwtfRank: [],
+      selectedType: []
+    });
+  };
+
 
   render() {
-    console.log(this.state);
     const HeaderProps = {
-      targetData: this.state.targetData,
+      targetData: this.props.target,
     }
     const SideFiltersProps = {
       selectedGroup: this.state.selectedGroup,
@@ -99,10 +107,16 @@ class Report extends React.Component {
     const ToolbarProps = {
       selectedRank: this.state.selectedRank,
       updateFilter: this.updateFilter,
+      clearFilters: this.clearFilters,
+    }
+    const AccordiansProps = {
+      targetData: this.props.target,
     }
     return (
       <Grid fluid={true}>
-        <Header {...HeaderProps} />
+        {this.props.target !== false
+          ? <Header {...HeaderProps} />
+          : null}
         <Row>
           <Col xs={2} sm={2} md={2} lg={2}>
             <SideFilters {...SideFiltersProps} />
@@ -110,7 +124,9 @@ class Report extends React.Component {
           <Col xs={10} sm={10} md={10} lg={10}>
             <Toolbar {...ToolbarProps} />
             <br />
-            <Accordians />
+            {this.props.target !== false
+              ? <Accordians {...AccordiansProps} {...this.state}/>
+              : null}
           </Col>
         </Row>
       </Grid>

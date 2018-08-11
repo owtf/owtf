@@ -2,9 +2,15 @@ import { fromJS } from 'immutable';
 import { combineReducers } from 'redux-immutable'; // combineReducers of 'redux' doesn't work with immutable.js
 
 import {
-  LOAD_TARGET,
-  LOAD_TARGET_SUCCESS,
-  LOAD_TARGET_ERROR,
+    LOAD_TARGET,
+    LOAD_TARGET_SUCCESS,
+    LOAD_TARGET_ERROR,
+    LOAD_PLUGIN_OUTPUT,
+    LOAD_PLUGIN_OUTPUT_SUCCESS,
+    LOAD_PLUGIN_OUTPUT_ERROR,
+    CHANGE_USER_RANK,
+    CHANGE_USER_RANK_SUCCESS,
+    CHANGE_USER_RANK_ERROR,
 } from './constants';
 
 // The initial state of the target.
@@ -34,6 +40,59 @@ function targetLoadReducer(state = initialTargetState, action) {
   }
 }
 
+// The initial state of the plugin output.
+const initialPluginOutputState = fromJS({
+    loading: true,
+    error: false,
+    pluginOutput: false,
+});
+
+function pluginOutputLoadReducer(state = initialPluginOutputState, action) {
+  switch (action.type) {
+    case LOAD_PLUGIN_OUTPUT:
+      return state
+        .set('loading', true)
+        .set('error', false)
+        .set('pluginOutput', false);
+    case LOAD_PLUGIN_OUTPUT_SUCCESS:
+      return state
+        .set('loading', false)
+        .set('pluginOutput', action.pluginOutputData);
+    case LOAD_PLUGIN_OUTPUT_ERROR:
+      return state
+        .set('loading', false)
+        .set('error', action.error);
+    default:
+      return state;
+  }
+}
+
+// The initial state of the user rank change
+const initialRankChangeState = fromJS({
+  loading: false,
+  error: false,
+});
+
+function userRankChangeReducer(state = initialRankChangeState, action) {
+  switch (action.type) {
+    case CHANGE_USER_RANK:
+      return state
+        .set('loading', true)
+        .set('error', false)
+    case CHANGE_USER_RANK_SUCCESS:
+      return state
+        .set('loading', false)
+    case CHANGE_USER_RANK_ERROR:
+      return state
+        .set('error', action.error)
+        .set('loading', false);
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   loadTarget: targetLoadReducer,
+  loadPluginOutput: pluginOutputLoadReducer,
+  changeUserRank: userRankChangeReducer,
 })

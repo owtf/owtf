@@ -22,17 +22,17 @@ export default class Report extends React.Component {
       ? this.props.targetData.max_user_rank
 			: this.props.targetData.max_owtf_rank;
 		if (localMax == 0)
-			return <i><small><ControlLabel><Alert bsStyle="success">Passing</Alert></ControlLabel></small></i>
+			return <i><small><ControlLabel><Alert bsStyle="success" className="rank-alert">Passing</Alert></ControlLabel></small></i>
 		else if (localMax == 1)
-			return <i><small><ControlLabel><Alert bsStyle="success">Info</Alert></ControlLabel></small></i>
+			return <i><small><ControlLabel><Alert bsStyle="success" className="rank-alert">Info</Alert></ControlLabel></small></i>
 		else if (localMax == 2)
-			return <i><small><ControlLabel><Alert bsStyle="info">Low</Alert></ControlLabel></small></i>
+			return <i><small><ControlLabel><Alert bsStyle="info" className="rank-alert">Low</Alert></ControlLabel></small></i>
 		else if (localMax == 3)
-			return <i><small><ControlLabel><Alert bsStyle="warning">Medium</Alert></ControlLabel></small></i>
+			return <i><small><ControlLabel><Alert bsStyle="warning" className="rank-alert">Medium</Alert></ControlLabel></small></i>
 		else if (localMax == 4)
-			return <i><small><ControlLabel><Alert bsStyle="danger">High</Alert></ControlLabel></small></i>
+			return <i><small><ControlLabel><Alert bsStyle="danger" className="rank-alert">High</Alert></ControlLabel></small></i>
 		else if (localMax == 5)
-			return <i><small><ControlLabel><Alert bsStyle="danger">Critical</Alert></ControlLabel></small></i>
+			return <i><small><ControlLabel><Alert bsStyle="danger" className="rank-alert">Critical</Alert></ControlLabel></small></i>
 		return null;
 	}
   

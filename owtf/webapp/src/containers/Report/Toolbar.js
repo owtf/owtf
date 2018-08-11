@@ -31,7 +31,7 @@ export default class Toolbar extends React.Component {
 	}
 
 	render() {
-		const { selectedRank, updateFilter } = this.props;
+		const { selectedRank, updateFilter, clearFilters } = this.props;
 		return (
 			<Grid fluid={true}>
 				{/* Buttons for few actions and logs */}
@@ -40,19 +40,19 @@ export default class Toolbar extends React.Component {
 						<Button bsStyle="primary" onClick={this.handleShow}>
 							<Glyphicon glyph="filter" />
 							Filter
-					</Button>
+						</Button>
 						<Button bsStyle="success">
 							<Glyphicon glyph="refresh" />
 							Refresh
-					</Button>
+						</Button>
 						<Button bsStyle="danger">
 							<Glyphicon glyph="flash" />
 							Run Plugins
-					</Button>
+						</Button>
 						<Button bsStyle="info">
 							<Glyphicon glyph="flag" />
 							User Sessions
-					</Button>
+						</Button>
 						<DropdownButton title="Export Report" id="bg-nested-dropdown">
 							<MenuItem header>Select Template</MenuItem>
 							<MenuItem eventKey="1">Dropdown link</MenuItem>
@@ -138,7 +138,7 @@ export default class Toolbar extends React.Component {
 				>
 					<Modal.Header closeButton>
 						<Modal.Title id="contained-modal-title">
-							Contained Modal
+							Advance Filter
             </Modal.Title>
 					</Modal.Header>
 					<Modal.Body>
@@ -146,7 +146,7 @@ export default class Toolbar extends React.Component {
             ipsam, beatae, rem fuga id earum? Inventore et facilis obcaecati.
           </Modal.Body>
 					<Modal.Footer>
-						<Button onClick={this.handleClose}>Close</Button>
+						<Button bsStyle="danger" onClick={clearFilters}>Clear Filters</Button>
 					</Modal.Footer>
 				</Modal>
 			</Grid>
