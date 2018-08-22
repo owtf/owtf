@@ -11,6 +11,12 @@ import {
     CHANGE_USER_RANK,
     CHANGE_USER_RANK_SUCCESS,
     CHANGE_USER_RANK_ERROR,
+    DELETE_PLUGIN_OUTPUT,
+    DELETE_PLUGIN_OUTPUT_SUCCESS,
+    DELETE_PLUGIN_OUTPUT_ERROR,
+    CHANGE_USER_NOTES,
+    CHANGE_USER_NOTES_SUCCESS,
+    CHANGE_USER_NOTES_ERROR,
 } from './constants';
 
 // The initial state of the target.
@@ -91,8 +97,58 @@ function userRankChangeReducer(state = initialRankChangeState, action) {
   }
 }
 
+// The initial state of the plugin output delete
+const initialDeleteState = fromJS({
+  loading: false,
+  error: false,
+});
+
+function pluginOutputDeleteReducer(state = initialDeleteState, action) {
+  switch (action.type) {
+    case DELETE_PLUGIN_OUTPUT:
+      return state
+        .set('loading', true)
+        .set('error', false)
+    case DELETE_PLUGIN_OUTPUT_SUCCESS:
+      return state
+        .set('loading', false)
+    case DELETE_PLUGIN_OUTPUT_ERROR:
+      return state
+        .set('error', action.error)
+        .set('loading', false);
+    default:
+      return state;
+  }
+}
+
+// The initial state of the user notes change
+const initialNotesChangeState = fromJS({
+  loading: false,
+  error: false,
+});
+
+function userNotesChangeReducer(state = initialNotesChangeState, action) {
+  switch (action.type) {
+    case CHANGE_USER_NOTES:
+      return state
+        .set('loading', true)
+        .set('error', false)
+    case CHANGE_USER_NOTES_SUCCESS:
+      return state
+        .set('loading', false)
+    case CHANGE_USER_NOTES_ERROR:
+      return state
+        .set('error', action.error)
+        .set('loading', false);
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   loadTarget: targetLoadReducer,
   loadPluginOutput: pluginOutputLoadReducer,
   changeUserRank: userRankChangeReducer,
+  deletePluginOutput: pluginOutputDeleteReducer,
+  changeUserNotes: userNotesChangeReducer,
 })

@@ -9,6 +9,7 @@ import { Panel, PanelGroup, Accordion, Row, Col, ButtonGroup, Button, ControlLab
 import { Notification } from 'react-notification';
 import './style.scss';
 import Collapse from './Collapse';
+import update from 'immutability-helper';
 
 export default class Accordian extends React.Component {
 
@@ -16,9 +17,11 @@ export default class Accordian extends React.Component {
     super(props, context);
 
     this.getRankAndTypeCount = this.getRankAndTypeCount.bind(this);
+    this.patchUserRank = this.patchUserRank.bind(this);
+    this.postToWorklist = this.postToWorklist.bind(this);
+    this.deletePluginOutput = this.deletePluginOutput.bind(this);
     this.panelStyle = this.panelStyle.bind(this);
     this.renderSeverity = this.renderSeverity.bind(this);
-    this.patchUserRank = this.patchUserRank.bind(this);
     this.alert = this.alert.bind(this);
     this.handleSnackBarRequestClose = this.handleSnackBarRequestClose.bind(this);
 
@@ -31,48 +34,6 @@ export default class Accordian extends React.Component {
       snackbarOpen: false,
       alertMessage: "",
     };
-  }
-
-  alert(message) {
-    this.setState({ snackbarOpen: true, alertMessage: message });
-  };
-
-  handleSnackBarRequestClose() {
-    this.setState({ snackbarOpen: false, alertMessage: '' });
-  };
-
-  /**
-    * Function responsible for changing/ranking the plugins.
-    * Uses REST API - /api/targets/<target_id>/poutput/<group>/<type>/<code>/
-    * @param {group, type, code, user_rank} values group:group of plugin clicked, type: type of plugin clicked, code: code of plugin clicked, user_rank: rank changed to.
-    * Re-Renders the **single** Accordian, closed tje Accordia if is the last plugin_type, move to next plugin_type if not.
-    */
-
-  patchUserRank(group, type, code, user_rank) {
-    const target_id = this.props.targetData.id;
-    const presentState = this.state.pluginData;
-    this.props.onChangeUserRank({ target_id, group, type, code, user_rank });
-    setTimeout(() => {
-      if (this.props.changeError !== false) {
-        this.alert("Server replied: " + this.props.changeError);
-      } else {
-        let index = -1;
-        let pactive = this.state.pactive;
-        for (let i = 0; i < presentState.length; i++) {
-          if (presentState[i].plugin_group === group && presentState[i].plugin_type === type) {
-            presentState[i].user_rank = user_rank;
-            index = i;
-          }
-        }
-        if (index === presentState.length - 1) {
-          // $('#' + code).collapse('hide');
-        } else {
-          pactive = presentState[index + 1]['plugin_type'];
-        }
-        this.setState({ pluginData: presentState, pactive: pactive });
-      }
-    }, 200);
-
   }
 
   /**
@@ -130,6 +91,101 @@ export default class Accordian extends React.Component {
     }
   };
 
+  /**
+    * Function responsible for changing/ranking the plugins.
+    * Uses REST API - /api/targets/<target_id>/poutput/<group>/<type>/<code>/
+    * @param {group, type, code, user_rank} values group:group of plugin clicked, type: type of plugin clicked, code: code of plugin clicked, user_rank: rank changed to.
+    * Re-Renders the **single** Accordian, closed tje Accordia if is the last plugin_type, move to next plugin_type if not.
+    */
+
+  patchUserRank(group, type, code, user_rank) {
+    const target_id = this.props.targetData.id;
+    const presentState = this.state.pluginData;
+    this.props.onChangeUserRank({ target_id, group, type, code, user_rank });
+    setTimeout(() => {
+      if (this.props.changeError !== false) {
+        this.alert("Server replied: " + this.props.changeError);
+      } else {
+        let index = -1;
+        let pactive = this.state.pactive;
+        for (let i = 0; i < presentState.length; i++) {
+          if (presentState[i].plugin_group === group && presentState[i].plugin_type === type) {
+            presentState[i].user_rank = user_rank;
+            index = i;
+          }
+        }
+        if (index === presentState.length - 1) {
+          // $('#' + code).collapse('hide');
+        } else {
+          pactive = presentState[index + 1]['plugin_type'];
+        }
+        this.setState({ pluginData: presentState, pactive: pactive });
+      }
+    }, 500);
+  };
+
+  /**
+    * Function responsible for re-scanning of one plugin.
+    * Uses REST API - /api/worklist/
+    * It adds the plugins(work) to worklist.
+    */
+
+  postToWorklist(selectedPluginData, force_overwrite) {
+    selectedPluginData["id"] = this.props.targetData.id;
+    selectedPluginData["force_overwrite"] = force_overwrite;
+    const data = Object.keys(selectedPluginData).map(function (key) { //seriliaze the selectedPluginData object 
+      return encodeURIComponent(key) + '=' + encodeURIComponent(selectedPluginData[key])
+    }).join('&');
+
+    this.props.onPostToWorklist(data);
+    setTimeout(() => {
+      if (this.props.postToWorklistError !== false) {
+        this.alert("Server replied: " + this.props.changeError);
+      } else {
+        this.alert("Selected plugins launched, please check worklist to manage :D");
+      }
+    }, 1000);
+  };
+
+  /**
+    * Function responsible for deleting a instance of plugin.
+    * Uses REST API - /api/targets/<target_id>/poutput/<group>/<type>/<code>/
+    * @param {group, type, code} values group:group of plugin clicked, type: type of plugin clicked, code: code of plugin clicked.
+    * Re-Renders the **single** Accordian, move to previous/next plugin_type
+    */
+
+  deletePluginOutput(group, type, code) {
+    const target_id = this.props.targetData.id;
+    const pluginData = this.state.pluginData;
+    this.props.onDeletePluginOutput({ target_id, group, type, code });
+    setTimeout(() => {
+      if (this.props.deleteError !== false) {
+        this.alert("Server replied: " + this.props.deleteError);
+      } else {
+        this.alert("Deleted plugin output for " + type + "@" + code);
+        for (let i = 0; i < pluginData.length; i++) {
+          if ((pluginData[i]['plugin_type'] === type) && (pluginData[i]['plugin_group'] === group)) {
+            break;
+          }
+        }
+        let pactive = (pluginData.length != 1 && i > 0)
+          ? this.state.pluginData[i - 1]['plugin_type']
+          : "";
+        pactive = (pluginData.length != 1 && i === 0)
+          ? this.state.pluginData[i + 1]['plugin_type']
+          : pactive;
+        this.setState({
+          pluginData: update(this.state.pluginData, {
+            $splice: [
+              [i, 1]
+            ]
+          }),
+          pactive: pactive
+        });
+      }
+    }, 500);
+  };
+
   panelStyle(testCaseMax) {
     switch (testCaseMax) {
       case 0:
@@ -171,6 +227,14 @@ export default class Accordian extends React.Component {
     return null;
   }
 
+  alert(message) {
+    this.setState({ snackbarOpen: true, alertMessage: message });
+  };
+
+  handleSnackBarRequestClose() {
+    this.setState({ snackbarOpen: false, alertMessage: '' });
+  };
+
   componentWillMount() {
     const details = this.props.data['details'];
     const pluginData = this.props.data['data'];
@@ -196,6 +260,7 @@ export default class Accordian extends React.Component {
     const isClicked = this.state.isClicked;
     const style = this.panelStyle(testCaseMax);
     const CollapseProps = {
+      targetData: this.props.targetData,
       plugin: details,
       pluginData: pluginData,
       pactive: pactive,
@@ -205,6 +270,8 @@ export default class Accordian extends React.Component {
       selectedStatus: selectedStatus,
       selectedOwtfRank: selectedOwtfRank,
       patchUserRank: this.patchUserRank,
+      deletePluginOutput: this.deletePluginOutput,
+      postToWorklist: this.postToWorklist,
     }
     if (count > 0) {
       return (

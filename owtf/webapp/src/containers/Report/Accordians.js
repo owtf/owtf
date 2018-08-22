@@ -3,14 +3,18 @@
  */
 import React from 'react';
 import Accordian from './Accordian';
-import { loadPluginOutput, changeUserRank } from './actions';
+import { loadPluginOutput, changeUserRank, deletePluginOutput } from './actions';
+import { postToWorklist } from '../Plugins/actions';
 import {
 	makeSelectFetchPluginOutput,
 	makeSelectPluginOutputError,
 	makeSelectPluginOutputLoading,
 	makeSelectChangeRankError,
 	makeSelectChangeRankLoading,
+	makeSelectDeletePluginError,
+	makeSelectDeletePluginLoading,
 } from './selectors';
+import { makeSelectPostToWorklistError } from '../Plugins/selectors';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
@@ -40,6 +44,10 @@ class Accordians extends React.Component {
 			selectedStatus: this.props.selectedStatus,
 			onChangeUserRank: this.props.onChangeUserRank,
 			changeError: this.props.changeError,
+			onPostToWorklist: this.props.onPostToWorklist,
+			postToWorklistError: this.props.postToWorklistError,
+			onDeletePluginOutput: this.props.onDeletePluginOutput,
+			deleteError: this.props.deleteError,
 		}
 		if (loading) {
 			return (
@@ -75,8 +83,13 @@ Accordians.propTypes = {
 	]),
 	changeLoading: PropTypes.bool,
 	changeError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+	deleteLoading: PropTypes.bool,
+	deleteError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+	postToWorklistError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
 	onFetchPluginOutput: PropTypes.func,
 	onChangeUserRank: PropTypes.func,
+	onPostToWorklist: PropTypes.func,
+	onDeletePluginOutput: PropTypes.func,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -85,12 +98,17 @@ const mapStateToProps = createStructuredSelector({
 	error: makeSelectPluginOutputError,
 	changeLoading: makeSelectChangeRankLoading,
 	changeError: makeSelectChangeRankError,
+	postToWorklistError: makeSelectPostToWorklistError,
+	deleteError: makeSelectDeletePluginError,
+	deleteLoading: makeSelectDeletePluginLoading,
 });
 
 const mapDispatchToProps = dispatch => {
 	return {
 		onFetchPluginOutput: (target_id) => dispatch(loadPluginOutput(target_id)),
-		onChangeUserRank: (values) => dispatch(changeUserRank(values)),
+		onChangeUserRank: (plugin_data) => dispatch(changeUserRank(plugin_data)),
+		onPostToWorklist: (plugin_data) => dispatch(postToWorklist(plugin_data)),
+		onDeletePluginOutput: (plugin_data) => dispatch(deletePluginOutput(plugin_data)),
 	};
 };
 

@@ -3,10 +3,12 @@
  */
 
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { LOAD_TARGET, LOAD_PLUGIN_OUTPUT, CHANGE_USER_RANK } from './constants';
+import { LOAD_TARGET, LOAD_PLUGIN_OUTPUT, CHANGE_USER_RANK, DELETE_PLUGIN_OUTPUT, CHANGE_USER_NOTES } from './constants';
 import { loadTarget, targetLoaded, targetLoadingError,
   pluginOutputLoaded, pluginOutputLoadingError,
-  userRankChanged, userRankChangingError } from './actions';
+  userRankChanged, userRankChangingError,
+  pluginOutputDeleted, pluginOutputDeletingError,
+  userNotesChanged, userNotesChangingError } from './actions';
 
 import Request from 'utils/request';
 import { API_BASE_URL } from 'utils/constants';
@@ -45,11 +47,11 @@ export function* getPluginOutput(action) {
  * Patch user rank request/response handler
  */
 export function* patchUserRank(action) {
-  const values = action.values;
-  const target_id = values.target_id.toString();
-  const group = values.group.toString();
-  const type = values.type.toString();
-  const code = values.code.toString();
+  const plugin_data = action.plugin_data;
+  const target_id = plugin_data.target_id.toString();
+  const group = plugin_data.group.toString();
+  const type = plugin_data.type.toString();
+  const code = plugin_data.code.toString();
   const requestURL = `${API_BASE_URL}targets/${target_id}/poutput/${group}/${type}/${code}/`;
 
   try {
@@ -59,11 +61,56 @@ export function* patchUserRank(action) {
       },
     };
     const request = new Request(requestURL, options);
-    yield call(request.patch.bind(request), {user_rank: values.user_rank});
+    yield call(request.patch.bind(request), {user_rank: plugin_data.user_rank});
     yield put(userRankChanged());
     yield put(loadTarget(target_id));
   } catch (error) {
     yield put(userRankChangingError(error));
+  }
+}
+
+/**
+ * Delete Plugin output request/response handler
+ */
+export function* deletePluginOutput(action) {
+  const plugin_data = action.plugin_data;
+  const target_id = plugin_data.target_id.toString();
+  const group = plugin_data.group.toString();
+  const type = plugin_data.type.toString();
+  const code = plugin_data.code.toString();
+  const requestURL = `${API_BASE_URL}targets/${target_id}/poutput/${group}/${type}/${code}/`;
+
+  try {
+    const request = new Request(requestURL);
+    yield call(request.delete.bind(request));
+    yield put(pluginOutputDeleted());
+  } catch (error) {
+    yield put(pluginOutputDeletingError(error));  
+  }
+}
+
+/**
+ * Patch user notes request/response handler
+ */
+export function* patchUserNotes(action) {
+  const plugin_data = action.plugin_data;
+  const target_id = plugin_data.target_id.toString();
+  const group = plugin_data.group.toString();
+  const type = plugin_data.type.toString();
+  const code = plugin_data.code.toString();
+  const requestURL = `${API_BASE_URL}targets/${target_id}/poutput/${group}/${type}/${code}/`;
+
+  try {
+    const options = {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      },
+    };
+    const request = new Request(requestURL, options);
+    yield call(request.patch.bind(request), {user_notes: plugin_data.user_notes});
+    yield put(userNotesChanged());
+  } catch (error) {
+    yield put(userNotesChangingError(error));
   }
 }
 
@@ -75,4 +122,6 @@ export default function* reportSaga() {
   yield takeLatest(LOAD_TARGET, getTarget);
   yield takeLatest(LOAD_PLUGIN_OUTPUT, getPluginOutput);
   yield takeLatest(CHANGE_USER_RANK, patchUserRank);
+  yield takeLatest(DELETE_PLUGIN_OUTPUT, deletePluginOutput);
+  yield takeLatest(CHANGE_USER_NOTES, patchUserNotes);  
 }

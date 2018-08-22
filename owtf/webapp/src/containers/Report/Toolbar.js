@@ -139,12 +139,12 @@ export default class Toolbar extends React.Component {
 					<Modal.Header closeButton>
 						<Modal.Title id="contained-modal-title">
 							Advance Filter
-            </Modal.Title>
+            		</Modal.Title>
 					</Modal.Header>
 					<Modal.Body>
 						Elit est explicabo ipsum eaque dolorem blanditiis doloribus sed id
-            ipsam, beatae, rem fuga id earum? Inventore et facilis obcaecati.
-          </Modal.Body>
+            			ipsam, beatae, rem fuga id earum? Inventore et facilis obcaecati.
+          			</Modal.Body>
 					<Modal.Footer>
 						<Button bsStyle="danger" onClick={clearFilters}>Clear Filters</Button>
 					</Modal.Footer>

@@ -4,7 +4,7 @@
   */
 
 import React from 'react';
-import Table from './Table';
+import DataTable from './Table';
 import RankButtons from './RankButtons';
 import { Tabs, Tab, TabContainer, TabContent, TabPane, Panel, Grid, Row, Col, Nav, NavItem, Glyphicon } from 'react-bootstrap';
 
@@ -13,6 +13,11 @@ export default class Collapse extends React.Component {
 	render() {
 		const { plugin, pluginData, pactive, selectedType, selectedRank,
 			selectedGroup, selectedStatus, selectedOwtfRank, patchUserRank } = this.props;
+		const DataTableProps = {
+			targetData: this.props.targetData,
+			deletePluginOutput: this.props.deletePluginOutput,
+			postToWorklist: this.props.postToWorklist,
+		} 
 		return (
 			<Panel.Body collapsible>
 				<Tab.Container id="uncontrolled-tab-example">
@@ -64,7 +69,7 @@ export default class Collapse extends React.Component {
 													<br />
 													<br />
 													<br />
-													<Table obj={obj} />
+													<DataTable obj={obj} {...DataTableProps} />
 												</Tab.Pane>
 											);
 										}

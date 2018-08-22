@@ -21,6 +21,16 @@ const makeSelectUserRank = createSelector(
 	(reportState) => reportState.get('changeUserRank')
 );
 
+const makeSelectDeletePluginOutput = createSelector(
+	selectReport,
+	(reportState) => reportState.get('deletePluginOutput')
+);
+
+const makeSelectUserNotes = createSelector(
+	selectReport,
+	(reportState) => reportState.get('changeUserNotes')
+);
+
 const makeSelectTargetLoading = createSelector(
 	makeSelectTarget,
 	(fetchState) => fetchState.get('loading')
@@ -61,6 +71,26 @@ const makeSelectChangeRankError = createSelector(
 	(changeState) => changeState.get('error')
 );
 
+const makeSelectDeletePluginLoading = createSelector(
+	makeSelectDeletePluginOutput,
+	(deleteState) => deleteState.get('loading')
+);
+
+const makeSelectDeletePluginError = createSelector(
+	makeSelectDeletePluginOutput,
+	(deleteState) => deleteState.get('error')
+);
+
+const makeSelectChangeNotesLoading = createSelector(
+	makeSelectUserNotes,
+	(changeState) => changeState.get('loading')
+);
+
+const makeSelectChangeNotesError = createSelector(
+	makeSelectUserNotes,
+	(changeState) => changeState.get('error')
+);
+
 export {
 	makeSelectTargetLoading,
 	makeSelectTargetError,
@@ -70,4 +100,8 @@ export {
 	makeSelectFetchPluginOutput,
 	makeSelectChangeRankLoading,
 	makeSelectChangeRankError,
+	makeSelectDeletePluginError,
+	makeSelectDeletePluginLoading,
+	makeSelectChangeNotesError,
+	makeSelectChangeNotesLoading,
 };
