@@ -14,7 +14,7 @@ import sys
 
 from tornado.ioloop import IOLoop, PeriodicCallback
 
-from owtf import __release__, __version__
+from owtf import __version__
 from owtf.api.main import start_server
 from owtf.config import config_handler
 from owtf.files.main import start_file_server
@@ -73,9 +73,8 @@ def print_banner():
             @owtfp
         http://owtf.org
         Version: {0}
-        Release: {1}
         \033[0m""".format(
-            __version__, __release__
+            __version__,
         )
     )
 

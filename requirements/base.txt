@@ -1,11 +1,11 @@
--e git+https://github.com/jek/blinker#egg=blinker
+blinker
 cffi==1.10.0
 cookies==2.2.1
 dnspython==1.15.0
 future==0.16.0
 hrt==0.1.0
 # Here till they upload a Python3 compatible version of the library
--e git+https://github.com/google/ipaddr-py#egg=ipaddr
+ipaddr
 Markdown==2.6.9
 pexpect==4.2.1
 psutil==5.3.1
