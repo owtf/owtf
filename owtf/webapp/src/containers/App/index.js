@@ -20,6 +20,7 @@ import WorkersPage from "containers/WorkersPage/Loadable";
 import WorklistPage from "containers/WorklistPage/Loadable";
 import NotFoundPage from "components/NotFoundPage";
 import TransactionsPage from "containers/Transactions/Loadable";
+import Report from "containers/Report/Loadable";
 
 
 export default function App() {
@@ -42,6 +43,7 @@ export default function App() {
       <Switch>
         <Route exact path="/" component={WelcomePage} />
         <Route path="/dashboard" component={Dashboard} />
+        <Route path="/targets/:id" component={Report} />
         <Route path="/targets" component={TargetsPage} />
         <Route path="/workers" component={WorkersPage} />
         <Route path="/worklist" component={WorklistPage} />

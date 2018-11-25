@@ -89,14 +89,11 @@ import {
   /**
    * Dispatched when the target is created by the request saga
    *
-   * @param  {object} target Activated Target.
-   *
    * @return {object} An action object with a type of CREATE_TARGET_SUCCESS
    */
-  export function targetCreated(target) {
+  export function targetCreated() {
     return {
       type: CREATE_TARGET_SUCCESS,
-      target,
     };
   }
   

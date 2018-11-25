@@ -50,7 +50,9 @@ export default class RemotePaging extends React.Component {
   
       const targetFormatter = (cell, row, enumObject, index) => {
         if(row.id > -1)
-          return ` ${cell} (${this.props.data[index].host_ip})`;
+          return (
+            <a href={`/targets/${this.props.data[index].id}`} > {cell} ({this.props.data[index].host_ip})</a>
+          );
         else
           return `${cell}`;
       }
@@ -65,7 +67,7 @@ export default class RemotePaging extends React.Component {
         switch (rank){
           case 0:
             return (
-              <Label bsStyle="primary">Passing</Label>
+              <Label bsStyle="default">Passing</Label>
             );
           case 1:
             return (
@@ -85,7 +87,7 @@ export default class RemotePaging extends React.Component {
             );
           case 5:
             return (
-              <Label bsStyle="danger">Critical</Label>
+              <Label bsStyle="primary">Critical</Label>
             );
           default:
             return ""

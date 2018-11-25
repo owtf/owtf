@@ -11,6 +11,7 @@ import transactionsReducer from 'containers/Transactions/reducer';
 import configurationsReducer from "containers/SettingsPage/reducer";
 import targetsReducer from "containers/TargetsPage/reducer";
 import pluginsReducer from "containers/Plugins/reducer";
+import reportsReducer from "containers/Report/reducer";
 /*
  * routeReducer
  *
@@ -50,5 +51,6 @@ export default function createReducer() {
     targets: targetsReducer,
     transactions: transactionsReducer,
     plugins: pluginsReducer,
+    reports: reportsReducer
   });
 }

@@ -39,8 +39,8 @@ export function* postTarget(action) {
       },
     };
     const request = new Request(requestURL, options);
-    const target = yield call(request.post.bind(request), {target_url: action.target_url});
-    yield put(targetCreated(target));
+    yield call(request.post.bind(request), {target_url: action.target_url});
+    yield put(targetCreated());
     yield put(loadTargets());
   } catch (error) {
     yield put(targetCreatingError(error));  
