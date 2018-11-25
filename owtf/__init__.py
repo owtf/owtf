@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import re
-from typing import NamedTuple
+from collections import namedtuple as NamedTuple
 
 from owtf.utils.logger import OWTFLogger
 
@@ -11,9 +11,9 @@ __docformat__ = "markdown"
 
 
 version_info_t = NamedTuple("version_info_t", [
-    ("major", int),
-    ("minor", int),
-    ("patch", int),
+    "major",
+    "minor",
+    "patch",
 ])
 
 # bumpversion can only search for {current_version}
