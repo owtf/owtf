@@ -300,7 +300,7 @@ class Accordian extends React.Component {
                     <div className="panel-heading" style={{
                         padding: '0 15px'
                     }}>
-                        <div className="row">
+                        <div className="row-fluid">
                             <div className="col-md-2">
                                 <div className="btn-group btn-group-xs" role="group">
                                     {pluginData.map(function(obj) {

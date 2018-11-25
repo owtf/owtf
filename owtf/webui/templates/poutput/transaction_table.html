@@ -7,11 +7,11 @@
         {% for Transaction in TransactionList %}
                 <tr>
                     <td>
-                        <pre class="wrappedPre">{{ escape(Transaction.GetRawRequest()) }}</pre>
+                        <pre class="wrappedPre">{{ escape(Transaction.get_raw_request()) }}</pre>
                     </td>
                     <td>
-                        <pre class="wrappedPre">{{ escape(Transaction.GetRawResponseHeaders()) }} ...
-                        <a class="btn btn-default btn-xs" onclick="navigateToTransaction({{ Transaction.GetID() }})">
+                        <pre class="wrappedPre">{{ escape(Transaction.get_raw_response_headers()) }} ...
+                        <a class="btn btn-default btn-xs" onclick="navigateToTransaction({{ Transaction.get_id() }})">
                             <i class="fa fa-chevron-circle-right"></i> Full Transaction
                         </a>
                         </pre>

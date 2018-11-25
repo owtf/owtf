@@ -34,26 +34,22 @@ class Toolbar extends React.PureComponent {
         var getDocx = this.getDocx;
 
         return (
-            <div className="container">
+            <div className="container-fluid">
                 {/* Buttons for few actions and logs */}
                 <div className="row">
                     <div className="pull-right">
                         <div className="btn-group">
                             <button className="btn btn-primary" data-toggle="modal" data-target="#pluginOutputFilterModal">
-                                <i className="fa fa-filter"></i>
+                                <i className="fa fa-filter"></i>&nbsp;
                                 Filter
                             </button>
                             <button className="btn btn-success" onClick={this.context.updateReport.bind(this)} href="#">
-                                <i className="fa fa-refresh"></i>
+                                <i className="fa fa-refresh"></i>&nbsp;
                                 Refresh
                             </button>
                             <button className="btn btn-danger" data-toggle="modal" data-target="#pluginLaunchModal">
-                                <i className="fa fa-flash"></i>
+                                <i className="fa fa-flash"></i>&nbsp;
                                 Run Plugins
-                            </button>
-                            <button className="btn btn-info" onClick={this.loadSessionManager.bind(this)} href="#">
-                                <i className="fa fa-flag"></i>
-                                User Sessions
                             </button>
                             <div className="btn-group">
                                 <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown">

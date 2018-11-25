@@ -25,7 +25,7 @@ class Report extends React.Component {
       */
 
     replaceContainer() {
-        document.getElementById("app").parentElement.className = "container-fluid";
+        document.getElementById("app").parentElement.className = "container";
     };
 
     constructor(props) {

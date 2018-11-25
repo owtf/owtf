@@ -51,3 +51,5 @@ ENV SHELL /bin/bash
 
 # Install and create a Python virtualenv
 RUN pip install virtualenv && virtualenv env/ && . env/bin/activate
+
+ADD . /owtf

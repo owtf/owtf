@@ -56,7 +56,7 @@ export class TransactionHeaders extends React.Component {
     render() {
         var height = this.context.headerHeight;
         return (
-            <div>
+            <div className="container">
                 <ul className="nav nav-tabs" style={styles.tab}>
                     <li className="active">
                         <a href="#request" data-toggle="tab">Request</a>

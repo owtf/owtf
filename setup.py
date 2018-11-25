@@ -6,6 +6,11 @@ from subprocess import call
 import io
 import pip
 try:
+    from pip.req import parse_requirements
+except ImportError:
+    # The req module has been moved to pip._internal in the 10 release.
+    from pip._internal.req import parse_requirements
+try:
     from setuptools import setup, find_packages
 except ImportError:
     from distutils.core import setup, find_packages
@@ -30,7 +35,7 @@ links = []
 requires = []
 
 # new versions of pip requires a session
-requirements = pip.req.parse_requirements('requirements.txt', session=pip.download.PipSession())
+requirements = parse_requirements('requirements.txt', session=False)
 
 for item in requirements:
     if getattr(item, 'url', None):  # older pip has url

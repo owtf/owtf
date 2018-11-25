@@ -195,7 +195,7 @@ class TransactionManager(BaseComponent, TransactionInterface):
         :return:
         :rtype:
         """
-        if trans and len(trans) > 0:
+        if trans:
             owtf_transaction = transaction.HTTP_Transaction(None)
             response_body = trans.response_body
             if trans.binary_response:

@@ -51,7 +51,7 @@ class TargetConfigHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
         try:
             patch_data = dict(self.request.arguments)
-            self.get_component("target").update_target(patch_data, ID=target_id)
+            self.get_component("target").update_target(patch_data, id=target_id)
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -60,7 +60,7 @@ class TargetConfigHandler(APIRequestHandler):
         if not target_id:
             raise tornado.web.HTTPError(400)
         try:
-            self.get_component("target").delete_target(ID=target_id)
+            self.get_component("target").delete_target(id=target_id)
         except InvalidTargetReference as e:
             cprint(e.parameter)
             raise tornado.web.HTTPError(400)

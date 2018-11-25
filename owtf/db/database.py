@@ -11,7 +11,7 @@ from multiprocessing.util import register_after_fork
 
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine, exc
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import QueuePool, NullPool
 from sqlalchemy.orm import Session as BaseSession
 
 from owtf.utils import FileOperations
@@ -151,12 +151,12 @@ class DB(BaseComponent, DBInterface):
                     self._db_settings['DATABASE_IP'],
                     self._db_settings['DATABASE_PORT'],
                     self._db_settings['DATABASE_NAME']),
-                poolclass=QueuePool,
-                pool_size=5,
-                max_overflow=10)
+                poolclass=NullPool)
+                #pool_size=5,
+                #max_overflow=10)
             base.metadata.create_all(engine)
             # Fix for forking
-            register_after_fork(engine, engine.dispose)
+            #register_after_fork(engine, engine.dispose)
             return engine
         except ValueError as e:  # Potentially corrupted DB config.
             self.error_handler.abort_framework(
@@ -178,5 +178,6 @@ class DB(BaseComponent, DBInterface):
         :rtype:
         """
         self.engine = self.create_engine(models.Base)
-        session_factory = sessionmaker(bind=self.engine, class_=Session)
+        session_factory = sessionmaker(bind=self.engine) 
+            #class_=Session)
         return scoped_session(session_factory)
