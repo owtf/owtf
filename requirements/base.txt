@@ -14,7 +14,7 @@ PTP==0.4.2
 pycurl==7.43.0
 pyOpenSSL==17.5.0
 PyVirtualDisplay==0.2.1
-pyyaml==3.13
+PyYAML==3.13
 requests==2.18.4
 selenium==3.4.3
 six==1.10.0
