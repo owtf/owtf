@@ -13,7 +13,7 @@ sudo:
 - required
 before_install:
 - sudo apt-get purge python-openssl
-- sudo apt-get install libffi-dev libyaml-dev
+- sudo apt-get install libffi-dev libyaml-dev python-yaml
 - sudo pip install pyopenssl
 - psql postgres -c "CREATE USER owtf_db_user WITH PASSWORD 'jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=';"
 - psql postgres -c "CREATE DATABASE owtf_db WITH OWNER owtf_db_user ENCODING 'utf-8' TEMPLATE template0;"
