@@ -126,7 +126,7 @@ Checkout [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Project homepage](http://owtf.github.io/)
 - [IRC](http://webchat.freenode.net/?randomnick=1&channels=%23owtf&prompt=1&uio=MTE9MjM20f)
 - [Wiki](https://www.owasp.org/index.php/OWASP_OWTF)
-- [Slack](https://owasp.herokuapp.com) and join channel
+- [Slack](https://join.slack.com/t/owasp/shared_invite/enQtNDI5MzgxMDQ2MTAwLTEyNzIzYWQ2NDZiMGIwNmJhYzYxZDJiNTM0ZmZiZmJlY2EwZmMwYjAyNmJjNzQxNzMyMWY4OTk3ZTQ0MzFhMDY) and join channel
   `#project-owtf`
 - [User Documentation](http://docs.owtf.org/en/latest/)
 - [Youtube channel](https://www.youtube.com/user/owtfproject)
