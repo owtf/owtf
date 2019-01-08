@@ -65,7 +65,7 @@
     "image-webpack-loader": "^4.2.0",
     "ip": "^1.1.5",
     "json-loader": "^0.5.7",
-    "node-sass": "^4.5.3",
+    "node-sass": "^4.11.0",
     "offline-plugin": "^4.9.0",
     "prettier": "^1.13.5",
     "pretty-quick": "^1.6.0",

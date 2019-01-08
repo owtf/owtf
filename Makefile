@@ -177,3 +177,9 @@ release:
 
 build:
 	$(PYTHON) setup.py sdist bdist_wheel
+
+startdb:
+	docker-compose -p $(PROJ) -f docker/docker-compose.yml up -d --no-recreate
+
+stopdb:
+	docker-compose -p $(PROJ) -f docker/docker-compose.yml down
