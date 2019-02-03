@@ -2,7 +2,7 @@
  * HelpPage
  */
 import React from 'react';
-import { Grid, Panel, Col, Row } from 'react-bootstrap';
+import { Pane, Text, Heading, Icon } from 'evergreen-ui';
 
 
 export default class Help extends React.Component {
@@ -56,82 +56,106 @@ export default class Help extends React.Component {
     ];
 
     return (
-      <Grid>
-        <Row>
-          <Col xs={6} md={4}>
-            <Panel>
-              <Panel.Heading>Exploitation</Panel.Heading>
-              <Panel.Body>
+      <Pane clearfix display="flex" flexDirection="row" flexWrap= "wrap" justifyContent="center">
+        <Pane
+          elevation={1}
+          width={350}
+          margin={20}
+          display="flex"
+          flexDirection="column"
+        >
+          <Heading height={40} background="#e1eaea">
+            <Pane margin={10}><Icon icon="search"/> Exploitation </Pane>
+          </Heading>
+          <Text margin={20}>
+            <ul>
+              {exploitationLinks.map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
+            </ul>
+          </Text>
+        </Pane>
+        <Pane
+          elevation={1}
+          width={350}
+          margin={20}
+          display="flex"
+          flexDirection="column"
+        >
+          <Heading height={40} background="#e1eaea">
+            <Pane margin={10}><Icon icon="horizontal-bar-chart-desc"/> Methodology </Pane>
+          </Heading>
+          <Text margin={20}>
+            <ul>
+              {methodologyLinks.map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
+            </ul>
+          </Text>
+        </Pane>
+        <Pane
+          elevation={1}
+          width={350}
+          margin={20}
+          display="flex"
+          flexDirection="column"
+        >
+          <Heading height={40} background="#e1eaea">
+            <Pane margin={10}><Icon icon="calculator"/> Calculators </Pane>
+          </Heading>
+          <Text margin={20}>
+            <ul>
+              {calculatorLinks.map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
+            </ul>
+          </Text>
+        </Pane>
+        <Pane
+          elevation={1}
+          width={500}
+          margin={20}
+          display="flex"
+          flexDirection="column"
+        >
+          <Heading height={40} background="#e1eaea">
+            <Pane margin={10}><Icon icon="book"/> Test/Learn </Pane>
+          </Heading>
+          <Text margin={20}>
+            <ul>
+              {learnTestLinks.map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
+            </ul>
+          </Text>
+        </Pane>
+        <Pane
+          elevation={1}
+          width={600}
+          margin={20}
+          display="flex"
+          flexDirection="column"
+        >
+          <Heading height={40} background="#e1eaea">
+            <Pane margin={10}><Icon icon="help"/> OWTF Help Links </Pane>
+          </Heading>
+          <Pane display="flex" flexDirection="row">
+            <Pane display="flex" flexDirection="column">
+              <Text margin={20}>
                 <ul>
-                  {exploitationLinks.map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
+                  {owtfHelpLinks[0].map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
                 </ul>
-              </Panel.Body>
-            </Panel>
-          </Col>
-          <Col xs={6} md={4}>
-            <Panel>
-              <Panel.Heading>
-                <Panel.Title componentClass="h3">Methodology</Panel.Title>
-              </Panel.Heading>
-              <Panel.Body>
+              </Text>
+            </Pane>
+            <Pane display="flex" flexDirection="column">
+              <Text margin={20}>
                 <ul>
-                  {methodologyLinks.map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
+                  {owtfHelpLinks[1].map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
                 </ul>
-              </Panel.Body>
-            </Panel>
-          </Col>
-          <Col xsHidden md={4}>
-            <Panel>
-              <Panel.Heading>
-                <Panel.Title componentClass="h3">Calculators</Panel.Title>
-              </Panel.Heading>
-              <Panel.Body>
+              </Text>
+            </Pane>
+            <Pane display="flex" flexDirection="column">
+              <Text margin={20}>
                 <ul>
-                  {calculatorLinks.map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
+                  {owtfHelpLinks[2].map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
                 </ul>
-              </Panel.Body>
-            </Panel>
-          </Col>
-        </Row>
-        <Row>
-          <Col xs={6} md={6}>
-            <Panel>
-              <Panel.Heading>Test/Learn</Panel.Heading>
-              <Panel.Body>
-                <ul>
-                  {learnTestLinks.map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
-                </ul>
-              </Panel.Body>
-            </Panel>
-          </Col>
-          <Col xs={6} md={6}>
-            <Panel>
-              <Panel.Heading>
-                <Panel.Title componentClass="h3">OWTF Help Links</Panel.Title>
-              </Panel.Heading>
-              <Panel.Body>
-                <Row>
-                  <Col xs={6} md={4}>
-                    <ul>
-                      {owtfHelpLinks[0].map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
-                    </ul>
-                  </Col>
-                  <Col xs={6} md={4}>
-                    <ul>
-                      {owtfHelpLinks[1].map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
-                    </ul>
-                  </Col>
-                  <Col xs={6} md={4}>
-                    <ul>
-                      {owtfHelpLinks[2].map(obj => <li key={obj.id}><a href={obj.link} target="_blank">{obj.text}</a></li>)}
-                    </ul>
-                  </Col>
-                </Row>
-              </Panel.Body>
-            </Panel>
-          </Col>
-        </Row>
-      </Grid>
+              </Text>
+            </Pane>
+          </Pane>
+        </Pane>
+      </Pane>
     );
   }
 }
