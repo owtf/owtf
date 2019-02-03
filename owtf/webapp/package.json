@@ -16,6 +16,7 @@
   "dependencies": {
     "chalk": "^2.3.2",
     "classnames": "^2.2.5",
+    "evergreen-ui": "^4.11.3",
     "history": "^4.7.2",
     "immutable": "^3.8.2",
     "prop-types": "^15.6.1",
