@@ -2,9 +2,7 @@
  * SettingsPage
  */
 import React from 'react';
-import { Button, Alert } from 'react-bootstrap';
-import { Grid, Col, Row } from 'react-bootstrap';
-import { Tabs, Tab, TabContainer, TabContent } from 'react-bootstrap';
+import {Pane, Button, Alert} from 'evergreen-ui';
 
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -23,12 +21,12 @@ class SettingsPage extends React.Component {
     this.onUpdateConfiguration = this.onUpdateConfiguration.bind(this);
     this.renderAlert = this.renderAlert.bind(this);
     this.handleDismiss = this.handleDismiss.bind(this);
-    this.handleShow = this.handleShow.bind(this);
-
+    this.handleTabSelect = this.handleTabSelect.bind(this);
     this.state = {
       updateDisabled: true, // for update configuration button
       patch_data: {}, // contains information of the updated configurations
       show: false, // handle alert visibility
+      selectedIndex: -1,
     };
   }
 
@@ -55,28 +53,36 @@ class SettingsPage extends React.Component {
     });
   }
 
-  handleDismiss() {
-    this.setState({ show: false });
+  handleTabSelect(index) {
+    this.setState({ selectedIndex: index });
   }
 
-  handleShow() {
-    this.setState({ show: true });
+  handleDismiss() {
+    this.setState({ show: false });
   }
 
   renderAlert(error) {
     if (this.state.show) {
       if (error !== false) {
         return (
-          <Alert bsStyle="danger" onDismiss={this.handleDismiss}>
-            {error.toString()}
-          </Alert>
+          <Alert
+            appearance="card"
+            intent="danger"
+            title={error.toString()}
+            isRemoveable={true}
+            onRemove={this.handleDismiss}
+          />
         );
       }
 
       return (
-        <Alert bsStyle="success" onDismiss={this.handleDismiss}>
-            Configuration updated successfully!
-        </Alert>
+        <Alert
+            appearance="card"
+            intent="success"
+            title="Configuration updated successfully!"
+            isRemoveable={true}
+            onRemove={this.handleDismiss}
+          />
       );
     }
   }
@@ -99,31 +105,33 @@ class SettingsPage extends React.Component {
 
     if (configurations !== false) {
       return (
-        <Grid>
-          <Row className="container-fluid">
-            <Col>
-              {this.renderAlert(this.props.changeError)}
-            </Col>
-          </Row>
-          <Row className="container-fluid">
-            <Col>
-              <Button bsStyle="primary" className="pull-right" disabled={this.state.updateDisabled} type="submit" onClick={this.onUpdateConfiguration} >Update Configuration!</Button>
-            </Col>
-          </Row>
-          <br />
-          <Tab.Container id="left-tabs">
-            <Row className="fluid">
-              <Col xs={4} md={3}>
-                <ConfigurationTabsNav configurations={configurations} />
-              </Col>
-              <Col xs={8} md={9}>
-                <Tab.Content animation>
-                  <ConfigurationTabsContent configurations={configurations} handleConfigurationChange={this.handleConfigurationChange} />
-                </Tab.Content>
-              </Col>
-            </Row>
-          </Tab.Container>
-        </Grid>
+        <Pane display="flex" flexDirection="column" margin={20}>
+          <Pane>
+            {this.renderAlert(changeError)}
+          </Pane>
+          <Pane margin={20}>
+            <Button
+              appearance="primary"
+              className="pull-right"
+              disabled={this.state.updateDisabled}
+              onClick={this.onUpdateConfiguration}>
+              Update Configuration!
+            </Button>
+          </Pane>
+          <Pane display="flex" margin={20}>
+            <ConfigurationTabsNav
+              configurations={configurations}
+              handleTabSelect={this.handleTabSelect}
+              selectedIndex={this.state.selectedIndex} />
+
+            <Pane padding={16} flex="1">
+              <ConfigurationTabsContent
+                configurations={configurations}
+                handleConfigurationChange={this.handleConfigurationChange}
+                selectedIndex={this.state.selectedIndex} />
+            </Pane>
+          </Pane>
+        </Pane>
       );
     }
   }

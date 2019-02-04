@@ -2,31 +2,34 @@
  * Component that renders the configuration tabs content on the settings page.
  */
 import React from 'react';
-import { Tabs, Tab, TabPane } from 'react-bootstrap';
-import { FormGroup, Form, ControlLabel, Col } from 'react-bootstrap';
-import FormControl from 'react-bootstrap/es/FormControl';
+import { Pane, TextInputField } from 'evergreen-ui';
 import PropTypes from 'prop-types';
 
 
 export default class ConfigurationTabsContent extends React.Component {
   render() {
-    const { configurations, handleConfigurationChange } = this.props;
+    const { configurations, handleConfigurationChange, selectedIndex } = this.props;
 
     return Object.keys(configurations).map((section, key) => (
-      <Tab.Pane eventKey={key} key={key}>
-        <Form horizontal id={`form_${section}`}>
-          {configurations[section].map((config, key) => (
-            <FormGroup key={key}>
-              <Col xs={4} md={4}>
-                <ControlLabel className="pull-right" htmlFor={config.key}>{config.key.replace(/_/g, ' ')}</ControlLabel>
-              </Col>
-              <Col xs={8} md={8}>
-                <FormControl type="text" name={config.key} data-toggle="tooltip" title={config.descrip} defaultValue={config.value} onChange={handleConfigurationChange} />
-              </Col>
-            </FormGroup>
-                        ))}
-        </Form>
-      </Tab.Pane>
+      <Pane
+        key={key}
+        id={`panel-${key}`}
+        role="tabpanel"
+        aria-labelledby={key}
+        aria-hidden={key !== selectedIndex}
+        display={key === selectedIndex ? 'block' : 'none'}
+      >
+        {configurations[section].map((config, index) => (
+          <TextInputField
+            key={index}
+            name={config.key}
+            label={config.key.replace(/_/g, ' ')}
+            defaultValue={config.value}
+            title={config.descrip}
+            onChange={handleConfigurationChange}
+          />
+        ))}
+      </Pane>
     ));
   }
 }
@@ -34,4 +37,5 @@ export default class ConfigurationTabsContent extends React.Component {
 ConfigurationTabsContent.propTypes = {
   configurations: PropTypes.object,
   handleConfigurationChange: PropTypes.func,
+  selectedIndex: PropTypes.number,
 };
