@@ -2,10 +2,8 @@
  * Transactions
  */
 import React from 'react';
-import { Modal, ButtonGroup, Button, Alert, Glyphicon } from 'react-bootstrap';
-import { Grid, Panel, Col, Row, FormGroup, Form, ControlLabel, Nav, NavItem } from 'react-bootstrap';
+import {Pane} from 'evergreen-ui';
 import './style.scss';
-import FormControl from 'react-bootstrap/es/FormControl';
 import TransactionTable from './TransactionTable.js';
 import TransactionHeaders from './TransactionHeader.js';
 import TargetList from './TargetList.js';
@@ -188,40 +186,39 @@ class Transactions extends React.Component {
       transactions: this.state.transactionsData,
     }
     return (
-      <Grid fluid={true}>
-        <Row>
-          <Col
-            id="left_panel"
-            style={{
-              width: this.state.widthTargetList.toString() + '%',
-            }}
-          >
-            <TargetList {...TargetListProps} />
-          </Col>
-          <Col
-            id="drag-left"
-            onMouseDown={e => this.handleMouseDown(e)}
-            onMouseUp={e => this.handleMouseUp(e)}
-          />
-          <Col
-            id="right_panel"
-            style={{
-              width: this.state.widthTable.toString() + '%',
-            }}
-          >
-            <Row>
-              {this.state.target_id !== 0
-                ? <TransactionTable {...TransactionTableProps} />
-                : null}
-            </Row>
-            <Row>
-              {this.state.target_id !== 0
-                ? <TransactionHeaders {...TransactionHeaderProps} />
-                : null}
-            </Row>
-          </Col>
-        </Row>
-      </Grid>
+      <Pane display="flex" flexDirection="row">
+        <Pane
+          id="left_panel"
+          style={{
+            width: this.state.widthTargetList.toString() + '%',
+          }}
+        >
+          <TargetList {...TargetListProps} />
+        </Pane>
+        <Pane
+          id="drag-left"
+          onMouseDown={e => this.handleMouseDown(e)}
+          onMouseUp={e => this.handleMouseUp(e)}
+        />
+        <Pane
+          flexDirection="column"
+          id="right_panel"
+          style={{
+            width: this.state.widthTable.toString() + '%',
+          }}
+        >
+          <Pane>
+            {this.state.target_id !== 0
+              ? <TransactionTable {...TransactionTableProps} />
+              : null}
+          </Pane>
+          <Pane>
+            {this.state.target_id !== 0
+              ? <TransactionHeaders {...TransactionHeaderProps} />
+              : null}
+          </Pane>
+        </Pane>
+      </Pane>
     );
   }
 }
@@ -267,9 +264,9 @@ const mapStateToProps = createStructuredSelector({
   transactionLoading: makeSelectTransactionLoading,
   transactionError: makeSelectTransactionError,
 
-  hrtResponse: makeSelectFetchTransaction,
-  hrtResponseLoading: makeSelectTransactionLoading,
-  hrtResponseError: makeSelectTransactionError,
+  hrtResponse: makeSelectFetchHrtResponse,
+  hrtResponseLoading: makeSelectHrtResponseLoading,
+  hrtResponseError: makeSelectHrtResponseError,
 });
 
 const mapDispatchToProps = dispatch => {
