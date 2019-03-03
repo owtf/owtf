@@ -180,7 +180,7 @@ export default class TransactionHeader extends React.Component {
   }
 }
 
-TransactionHeader.PropTypes = {
+TransactionHeader.propTypes = {
   target_id: PropTypes.number,
   transactionHeaderData: PropTypes.object,
   hrtResponse: PropTypes.string,

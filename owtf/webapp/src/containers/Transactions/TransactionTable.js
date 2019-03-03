@@ -167,7 +167,7 @@ export default class TransactionTable extends React.Component {
   }
 }
 
-TransactionTable.PropTypes = {
+TransactionTable.propTypes = {
   target_id: PropTypes.number,
   transactions: PropTypes.array,
   getTransactionsHeaders: PropTypes.func,

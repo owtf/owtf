@@ -56,7 +56,7 @@ export default class TargetList extends React.Component {
   }
 }
 
-TargetList.PropTypes = {
+TargetList.propTypes = {
   targets: PropTypes.array,
   getTransactions: PropTypes.func
 };
