@@ -1,4 +1,4 @@
-#!/usr/env/python
+#!/usr/bin/env python
 
 """ Command-line interface to OWTF commands."""
 
@@ -9,4 +9,3 @@ from owtf.core import main
 
 if __name__ == "__main__":
     main()
-

@@ -24,19 +24,12 @@ DEBUG = True
 INTERACTIVE = True
 
 # Database Server
-if os.environ.get("DOCKER", None):
-    DATABASE_NAME = os.environ["POSTGRES_DB"]
-    DATABASE_PASS = os.environ["POSTGRES_PASSWORD"]
-    DATABASE_USER = os.environ["POSTGRES_USER"]
-    DATABASE_IP = "db"
-    DATABASE_PORT = 5432
-else:
-    # Change this if you deploy OWTF to a public facing server
-    DATABASE_PASS = "jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g="
-    DATABASE_NAME = "owtf_db"
-    DATABASE_USER = "owtf_db_user"
-    DATABASE_IP = "127.0.0.1"
-    DATABASE_PORT = 5432
+# Change this if you deploy OWTF to a public facing server
+DATABASE_PASS = "jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g="
+DATABASE_NAME = "owtf_db"
+DATABASE_USER = "owtf_db_user"
+DATABASE_IP = "127.0.0.1"
+DATABASE_PORT = 5432
 
 # API and UI Server
 SERVER_ADDR = "0.0.0.0"

@@ -23,7 +23,6 @@ def get_count(q):
 
 
 def flush_transaction(method):
-
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         dryrun = kwargs.pop("dryrun", False)
@@ -56,6 +55,9 @@ def get_db_engine():
     except exc.OperationalError as e:
         logging.error("Could not create database engine - Exception occured\n%s", str(e))
         sys.exit(1)
+
+
+Session = sessionmaker(class_=Session)
 
 
 def get_scoped_session():

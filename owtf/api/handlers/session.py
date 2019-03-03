@@ -4,7 +4,7 @@ owtf.api.handlers.session
 
 """
 from owtf.api.handlers.base import APIRequestHandler
-from owtf.db.session import Session
+from owtf.models.session import Session
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
 from owtf.managers.session import (
