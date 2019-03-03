@@ -57,9 +57,6 @@ def get_db_engine():
         sys.exit(1)
 
 
-Session = sessionmaker(class_=Session)
-
-
 def get_scoped_session():
     Session.configure(bind=get_db_engine())
     return Session()

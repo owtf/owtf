@@ -5,6 +5,7 @@ owtf.db.model_base
 """
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import object_session
+from sqlalchemy_mixins import AllFeaturesMixin
 
 
 class _Model(object):
@@ -41,4 +42,9 @@ class _Model(object):
         return self
 
 
-Model = declarative_base(cls=_Model)
+Base = declarative_base(cls=_Model)
+
+
+class Model(Base, AllFeaturesMixin):
+    __abstract__ = True
+    pass
