@@ -19,15 +19,10 @@ class Session(Model):
     active = Column(Boolean, default=False)
     targets = relationship("Target", secondary=target_association_table, backref="sessions")
 
-    def to_dict(self):
-        sdict = dict(self.__dict__)
-        sdict.pop("_sa_instance_state")
-        return sdict
-
     @classmethod
     def get_by_id(cls, session, id):
         session_obj = session.query(Session).get(id)
-        if session_obj is None:
+        if not session_obj:
             raise exceptions.InvalidSessionReference("No session with id: {!s}".format(id))
         return session_obj.to_dict()
 
@@ -40,7 +35,7 @@ class Session(Model):
     def set_by_id(cls, session, session_id):
         query = session.query(Session)
         session_obj = query.get(session_id)
-        if session_obj is None:
+        if not session_obj:
             raise exceptions.InvalidSessionReference("No session with session_id: {!s}".format(session_id))
         query.update({"active": False})
         session_obj.active = True

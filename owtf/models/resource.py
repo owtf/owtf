@@ -16,4 +16,5 @@ class Resource(Model):
     resource_name = Column(String)
     resource_type = Column(String)
     resource = Column(String)
+
     __table_args__ = (UniqueConstraint("resource", "resource_type", "resource_name"),)

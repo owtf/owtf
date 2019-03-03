@@ -61,6 +61,6 @@ class Transaction(Model):
         return tdict
 
     def __repr__(self):
-        return "<HTTP Transaction (url='{!s}' method='{!s}' response_status='{!s}')>".format(
+        return "HTTP Transaction (url='{!s}' method='{!s}' response_status='{!s}')>".format(
             self.url, self.method, self.response_status
         )

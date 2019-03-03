@@ -17,10 +17,5 @@ class Config(Model):
     descrip = Column(String, nullable=True)
     dirty = Column(Boolean, default=False)
 
-    def to_dict(self):
-        config_dict = dict(self.__dict__)
-        config_dict.pop("_sa_instance_state")
-        return config_dict
-
     def __repr__(self):
         return "<Config (key='{!s}', value='{!s}', dirty='{!r}')>".format(self.key, self.value, self.dirty)

@@ -97,9 +97,9 @@ class Plugin(Model):
         :return: List of available plugin groups
         :rtype: `list`
         """
-        groups = session.query(Plugin.group).filter(
-            or_(Plugin.code.in_(plugins), Plugin.name.in_(plugins))
-        ).distinct().all()
+        groups = (
+            session.query(Plugin.group).filter(or_(Plugin.code.in_(plugins), Plugin.name.in_(plugins))).distinct().all()
+        )
         groups = [i[0] for i in groups]
         return groups
 

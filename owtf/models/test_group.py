@@ -20,11 +20,6 @@ class TestGroup(Model):
     priority = Column(Integer)
     plugins = relationship("Plugin")
 
-    def to_dict(self):
-        obj = dict(self.__dict__)
-        obj.pop("_sa_instance_state")
-        return obj
-
     @classmethod
     def get_by_code(cls, session, code):
         """Get the test group based on plugin code
