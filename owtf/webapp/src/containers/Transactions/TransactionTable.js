@@ -1,193 +1,176 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Row, Col } from 'react-bootstrap';
-import BootstrapTable from 'react-bootstrap-table-next';
-import filterFactory, { textFilter, Comparator } from 'react-bootstrap-table2-filter';
+import { filter } from 'fuzzaldrin-plus'
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Pane, Table } from 'evergreen-ui'
 import PropTypes from 'prop-types';
 import './style.scss';
 
-const RemoteFilter = ({ data, columns, options, onTableChange, rowEvents, rowStyle }) => (
-    <BootstrapTable
-        remote={{ filter: true }}
-        keyField="id"
-        data={data}
-        columns={columns}
-        filter={filterFactory()}
-        onTableChange={onTableChange}
-        bordered={false}
-        rowEvents={rowEvents}
-        rowStyle={rowStyle}
-    />
-);
-
 export default class TransactionTable extends React.Component {
 
-    constructor(props) {
-        super(props);
+  constructor(props) {
+    super(props);
 
-        this.handleMouseMove = this.handleMouseMove.bind(this);
-        this.handleTableChange = this.handleTableChange.bind(this);
+    this.handleMouseMove = this.handleMouseMove.bind(this);
+    this.handleTableFilter = this.handleTableFilter.bind(this);
+    this.handleUrlFilterChange = this.handleUrlFilterChange.bind(this);
+    this.handleMethodFilterChange = this.handleMethodFilterChange.bind(this);
+    this.handleStatusFilterChange = this.handleStatusFilterChange.bind(this);
 
-        this.state = {
-            data: this.props.transactions,
-            activeRow: -1,
-            resizeTableActive: false,
-            tableHeight: 0,
-        };
+    this.state = {
+      urlSearch: '',
+      methodSearch: '',
+      statusSearch: '',
+      resizeTableActive: false,
+      tableHeight: 0,
     };
+  };
 
-    handleTableChange = (type, { filters }) => {
-        setTimeout(() => {
-            const result = this.props.transactions.filter((row) => {
-                let valid = true;
-                for (const dataField in filters) {
-                    const { filterVal, filterType, comparator } = filters[dataField];
+  // Filter the transactions based on the url, method and status property.
+  handleTableFilter = (transactions) => {
+    const urlSearch = this.state.urlSearch.trim()
+    const methodSearch = this.state.methodSearch.trim()
+    const statusSearch = this.state.statusSearch.trim()
 
-                    if (filterType === 'TEXT') {
-                        if (comparator === Comparator.LIKE) {
-                            valid = row[dataField].toString().indexOf(filterVal) > -1;
-                        } else {
-                            valid = row[dataField] === filterVal;
-                        }
-                    }
-                    if (!valid) break;
-                }
-                return valid;
-            });
-            this.setState(() => ({
-                data: result
-            }));
-            this.props.updateHeaderData();
-        }, 100);
+    // If the searchQuery is empty, return the transactions as it is.
+    if (urlSearch.length === 0 && methodSearch.length === 0 && statusSearch.length === 0)
+      return transactions
+
+    return transactions.filter(tr => {
+      // Use the filter from fuzzaldrin-plus to filter by url, method and status.
+      var res = true
+      if (urlSearch.length) {
+        const resultUrl = filter([tr.url], urlSearch);
+        res = res && resultUrl.length === 1;
+      }
+      if (methodSearch.length) {
+        const resultMethod = filter([tr.method], methodSearch);
+        res = res && resultMethod.length === 1;
+      }
+      if (statusSearch.length) {
+        const resultStatus = filter([tr.response_status], statusSearch);
+        res = res && resultStatus.length === 1;
+      }
+      return res
+    })
+  }
+
+  handleUrlFilterChange = (value) => {
+    this.setState({ urlSearch: value })
+  }
+
+  handleMethodFilterChange = (value) => {
+    this.setState({ methodSearch: value })
+  }
+
+  handleStatusFilterChange = (value) => {
+    this.setState({ statusSearch: value })
+  }
+
+  handleOnClick = (transaction_id) => {
+
+    const target_id = this.props.target_id;
+    /* To update header and body for selected row */
+    this.props.getTransactionsHeaders(target_id, transaction_id);
+  };
+
+  componentDidMount() {
+    document.addEventListener('mousemove', this.handleMouseMove);
+    document.addEventListener('mouseup', e => this.handleMouseUp(e));
+    const tablePos = ReactDOM.findDOMNode(this.refs['table'])
+      .getBoundingClientRect()
+    this.setState({
+      tableHeight: (window.innerHeight - tablePos.top) / 2
+    });
+  };
+
+  componentWillUnmount() {
+    document.removeEventListener('mousemove', this.handleMouseMove);
+    document.removeEventListener('mouseup', e => this.handleMouseUp(e));
+
+  };
+
+  handleMouseDown(e) {
+    this.setState({ resizeTableActive: true });
+  };
+
+  handleMouseUp(e) {
+    this.setState({ resizeTableActive: false });
+  };
+
+  handleMouseMove(e) {
+    if (!this.state.resizeTableActive) {
+      return;
     }
 
-    handleOnClick = (selectedRow) => {
-        this.setState(() => ({
-            activeRow: selectedRow
-        }));
-        const transaction_id = this.props.transactions[selectedRow].id;
-        const target_id = this.props.target_id;
-        /* To update header and body for selected row */
-        this.props.getTransactionsHeaders(target_id, transaction_id);
-    };
+    const tablePos = ReactDOM.findDOMNode(this.refs['table'])
+      .getBoundingClientRect()
+    this.setState({
+      tableHeight: e.clientY - tablePos.top
+    });
 
-    componentDidMount() {
-        document.addEventListener('mousemove', this.handleMouseMove);
-        document.addEventListener('mouseup', e => this.handleMouseUp(e));
-        const tablePos = ReactDOM.findDOMNode(this.refs['table'])
-            .getBoundingClientRect()
-        this.setState({
-            tableHeight: (window.innerHeight - tablePos.top) / 2
-        });
-    };
+    this.props.handleHeaderContainerHeight(window.innerHeight - e.clientY);
+  };
 
-    componentWillUnmount() {
-        document.removeEventListener('mousemove', this.handleMouseMove);
-        document.removeEventListener('mouseup', e => this.handleMouseUp(e));
+  render() {
+    const items = this.handleTableFilter(this.props.transactions);
 
-    };
-
-    handleMouseDown(e) {
-        this.setState({ resizeTableActive: true });
-    };
-
-    handleMouseUp(e) {
-        this.setState({ resizeTableActive: false });
-    };
-
-    handleMouseMove(e) {
-        if (!this.state.resizeTableActive) {
-            return;
-        }
-
-        const tablePos = ReactDOM.findDOMNode(this.refs['table'])
-            .getBoundingClientRect()
-        this.setState({
-            tableHeight: e.clientY - tablePos.top
-        });
-
-        this.props.handleHeaderContainerHeight(window.innerHeight - e.clientY);
-    };
-
-    render() {
-        const { getTransactionsHeaders, target_id, transactions } = this.props;
-        const columns = [{
-            dataField: 'url',
-            text: '',
-            filter: textFilter({
-                placeholder: 'URL',
-                style: {
-                    width: '300px',
-                }
-            }),
-            headerStyle: {
-                width: '600px'
-            }
-        }, {
-            dataField: 'method',
-            text: '',
-            filter: textFilter({
-                placeholder: 'Method'
-            }),
-            headerStyle: {
-                width: '100px'
-            }
-        }, {
-            dataField: 'response_status',
-            text: '',
-            filter: textFilter({
-                placeholder: 'Status'
-            })
-        }, {
-            dataField: 'time_human',
-            text: 'Duration'
-        }, {
-            dataField: 'local_timestamp',
-            text: 'Time'
-        }];
-
-        const rowEvents = {
-            onClick: (e, row, rowIndex) => {
-                this.handleOnClick(rowIndex);
-            }
-        };
-
-        const rowStyle = (row, rowIndex) => {
-            const style = {};
-            style.cursor = "pointer";
-            if (rowIndex === this.state.activeRow) {
-                style.backgroundColor = '#c8e6c9';
-            }
-            return style;
-        };
-
-        return (
-            <Row>
-                <Col ref="table" className="transaction-table" style={{
-                    "height": this.state.tableHeight,
-                }}>
-                    <RemoteFilter
-                        data={this.state.data}
-                        columns={columns}
-                        onTableChange={this.handleTableChange}
-                        rowEvents={rowEvents}
-                        rowStyle={rowStyle}
-                    />
-                </Col>
-                <Col
-                    id="drag"
-                    onMouseDown={e => this.handleMouseDown(e)}
-                    onMouseUp={e => this.handleMouseUp(e)}
-                />
-            </Row>
-        );
-    }
+    return (
+      <Pane>
+        <Pane ref="table" overflow='scroll' height={this.state.tableHeight}>
+          <Table>
+            <Table.Head>
+              <Table.SearchHeaderCell
+                onChange={this.handleUrlFilterChange}
+                value={this.state.urlSearch}
+                placeholder='URL'
+                flexShrink={0}
+                flexGrow={3}
+              />
+              <Table.SearchHeaderCell
+                onChange={this.handleMethodFilterChange}
+                value={this.state.methodSearch}
+                placeholder='Method'
+              />
+              <Table.SearchHeaderCell
+                onChange={this.handleStatusFilterChange}
+                value={this.state.statusSearch}
+                placeholder='Status'
+              />
+              <Table.TextHeaderCell>
+                Duration
+              </Table.TextHeaderCell>
+              <Table.TextHeaderCell>
+                Time
+              </Table.TextHeaderCell>
+            </Table.Head>
+            <Table.Body>
+              {items.map(tr => (
+                <Table.Row key={tr.id} isSelectable onSelect={() => this.handleOnClick(tr.id)}>
+                  <Table.TextCell flexShrink={0} flexGrow={3}>{tr.url}</Table.TextCell>
+                  <Table.TextCell>{tr.method}</Table.TextCell>
+                  <Table.TextCell>{tr.response_status}</Table.TextCell>
+                  <Table.TextCell>{tr.time_human}</Table.TextCell>
+                  <Table.TextCell>{tr.local_timestamp}</Table.TextCell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
+        </Pane>
+        <Pane
+          id="drag"
+          onMouseDown={e => this.handleMouseDown(e)}
+          onMouseUp={e => this.handleMouseUp(e)}
+        />
+      </Pane>
+    );
+  }
 }
 
 TransactionTable.PropTypes = {
-    target_id: PropTypes.number,
-    transactions: PropTypes.array,
-    getTransactionsHeaders: PropTypes.func,
-    handleHeaderContainerHeight: PropTypes.func,
-    updateHeaderData: PropTypes.func,
+  target_id: PropTypes.number,
+  transactions: PropTypes.array,
+  getTransactionsHeaders: PropTypes.func,
+  handleHeaderContainerHeight: PropTypes.func,
+  updateHeaderData: PropTypes.func,
 };

@@ -7,8 +7,7 @@ import { LOAD_TRANSACTIONS, LOAD_TRANSACTION, LOAD_HRT_RESPONSE } from './consta
 import { transactionsLoaded, transactionsLoadingError, transactionLoaded, transactionLoadingError, hrtResponseLoaded, hrtResponseLoadingError } from './actions';
 
 import Request from 'utils/request';
-import { API_BASE_URL } from 'utils/constants';
-import { TARGET_URL, TRANSACTIONS_URL, TRANSACTION_HEADER_URL, TRANSACTION_HRT_URL } from './constants';
+import { TRANSACTIONS_URL, TRANSACTION_HEADER_URL, TRANSACTION_HRT_URL } from './constants';
 
 /**
  * Fetch Transactions request/response handler
@@ -33,7 +32,7 @@ export function* getTransactions(action) {
 export function* getTransaction(action) {
   const target_id = action.target_id;
   const transaction_id = action.transaction_id;
-  let URL = TRANSACTIONS_HRT_URL.replace("target_id", target_id.toString());
+  let URL = TRANSACTION_HEADER_URL.replace("target_id", target_id.toString());
   URL = URL.replace("transaction_id", transaction_id.toString());
   const requestURL = `${URL}`;
   try {
