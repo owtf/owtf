@@ -1,6 +1,6 @@
 language: python
 python:
-- '2.7'
+  - '3.6'
 branches:
   only:
   - master
@@ -8,25 +8,25 @@ branches:
 services:
   - postgresql
 dist:
-- trusty
+  - xenial
 sudo:
-- required
+  - required
 before_install:
-- sudo apt-get purge python-openssl
-- sudo apt-get install libffi-dev libyaml-dev python-yaml
-- sudo pip install pyopenssl
-- psql postgres -c "CREATE USER owtf_db_user WITH PASSWORD 'jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=';"
-- psql postgres -c "CREATE DATABASE owtf_db WITH OWNER owtf_db_user ENCODING 'utf-8' TEMPLATE template0;"
+  - sudo apt-get purge python-openssl
+  - sudo apt-get install libffi-dev libyaml-dev python-yaml
+  - sudo pip install pyopenssl 
+  - psql postgres -c "CREATE USER owtf_db_user WITH PASSWORD 'jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=';"
+  - psql postgres -c "CREATE DATABASE owtf_db WITH OWNER owtf_db_user ENCODING 'utf-8' TEMPLATE template0;"
 install:
-- echo '\n\n' | python setup.py develop
+  - echo '\n\n' | python setup.py develop
 before_script:
-- pip install mock pyHamcrest
-- cp -f ./tests/fixtures/profiles/plugin_web/groups.cfg ~/.owtf/conf/profiles/plugin_web/groups.cfg
-- cp -f ./tests/fixtures/profiles/plugin_net/groups.cfg ~/.owtf/conf/profiles/plugin_net/groups.cfg
-- cp -f ./tests/fixtures/profiles/plugin_aux/groups.cfg ~/.owtf/conf/profiles/plugin_aux/groups.cfg
-- git config --global user.email "tasty@mac.test"
-- git config --global user.name "Tasty Test"
-- "./tests/fixtures/skipfish.sh"
+  - pip install mock pyHamcrest
+  - cp -f ./tests/fixtures/profiles/plugin_web/groups.cfg ~/.owtf/conf/profiles/plugin_web/groups.cfg
+  - cp -f ./tests/fixtures/profiles/plugin_net/groups.cfg ~/.owtf/conf/profiles/plugin_net/groups.cfg
+  - cp -f ./tests/fixtures/profiles/plugin_aux/groups.cfg ~/.owtf/conf/profiles/plugin_aux/groups.cfg
+  - git config --global user.email "tasty@mac.test"
+  - git config --global user.name "Tasty Test"
+  - "./tests/fixtures/skipfish.sh"
 script:
   - python -m unittest tests.functional.cli.test_empty_run
   #- python -m unittest tests.functional.cli.test_except
@@ -38,11 +38,5 @@ script:
   - python -m unittest tests.functional.plugins.web
 notifications:
   email: false
-  irc:
-    channels:
-    - irc.freenode.net#owtf
-    on_success: change
-    on_failure: always
-    use_notice: true
   slack:
     secure: okaGyJfCrXFExrF9j71HPQQQXyU5ZMKvteRjBC1Tnx7EpjtAtTm4f0f08PY/EtqSpkQpWDqcXea/0OkQIsks5slaa+vZHxEoW13bzqHQRBikE0nsgQVmV3g1U06gBilE9cqY+8D3fJcAEIZDHIeguf1B0vNzFL14s3nFgn4QVjg=
