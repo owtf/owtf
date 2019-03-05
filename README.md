@@ -36,60 +36,59 @@ OWTF is developed on KaliLinux and macOS but it is made for Kali Linux
 
 OWTF supports both Python2 and Python3.
 
-# Installation
 
-Recommended:
-
-> Using a virtualenv is highly recommended!
-
-#### Manually set up the database
-
-Replace the variables `db_name`, `$db_user` and `$db_pass` with values from the `settings.py` file. Make sure the values
-are exactly the same.
-
-- Start the postgreSQL server,
-
-  - macOS: `brew install postgresql` and `pg_ctl -D /usr/local/var/postgres start`
-  - Kali: `sudo systemctl enable postgresql; sudo systemctl start postgresql`
-    or `sudo service postgresql start`
-
-- Create the `owtf_db_user` user,
-
-  - macOS: `psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass';"`
-  - Kali: `sudo su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""`
-
-- Create the database,
-  - macOS: `psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"`
-  - Kali: `sudo su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""`
-
-`pip install git+https://github.com/owtf/owtf#egg=owtf` or clone the
-repo and `python setup.py develop`.
-
-If you want to change the database password in the Docker Compose setup,
-edit the environment variables in the `docker-compose.yml` file.
-
-To run OWTF on Windows or MacOS, OWTF uses Docker Compose. You need to
-have Docker Compose installed (check by `docker-compose -v`). After
-installing Docker Compose, simply run `make compose` and open
-`localhost:8009` for the OWTF web interface.
-
-## Install on OSX
+## OSX pre-requisites
 
 Dependencies: Install Homebrew (<https://brew.sh/>) and follow the steps
 given below:
 
 ```{.sourceCode .bash}
-$ virtualenv <venv name>
-$ source <venv name>/bin/activate
+$ python3 -m venv ~/.virtualenvs/owtf
+$ source ~/.virtualenvs/owtf/bin/activate
 $ brew install coreutils gnu-sed openssl
 # We need to install 'cryptography' first to avoid issues
 $ pip install cryptography --global-option=build_ext --global-option="-L/usr/local/opt/openssl/lib" --global-option="-I/usr/local/opt/openssl/include"
-$ git clone <this repo>
-$ cd owtf
-$ python setup.py install
-# Run OWTF!
-$ owtf
 ```
+
+# Installation
+
+Recommended:
+
+* `docker` is installed (https://www.docker.com/products/docker-desktop)
+
+> Using a virtualenv is highly recommended!
+
+
+### Create and start the PostgreSQL database server
+
+> Please make sure you have Docker installed!
+
+Run `make startdb` to create and start the PostgreSQL server in a Docker container. In the default configuration, it listens on port 5342 exposed from Docker container.
+
+#### Manual setup (painful and error-prone)
+
+Start the postgreSQL server,
+
+* macOS: `brew install postgresql` and `pg_ctl -D /usr/local/var/postgres start`
+* Kali: `sudo systemctl enable postgresql; sudo systemctl start postgresql or sudo service postgresql start`
+
+Create the `owtf_db_user` user,
+
+* macOS: `psql postgres -c "CREATE USER $db_user WITH PASSWORD '$db_pass';"`
+* Kali: `sudo su postgres -c "psql -c \"CREATE USER $db_user WITH PASSWORD '$db_pass'\""`
+
+Create the database,
+
+* macOS: `psql postgres -c "CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;"`
+* Kali: `sudo su postgres -c "psql -c \"CREATE DATABASE $db_name WITH OWNER $db_user ENCODING 'utf-8' TEMPLATE template0;\""`
+
+
+### Installing OWTF
+
+- `pip install git+https://github.com/owtf/owtf#egg=owtf` or clone the
+repo and `python setup.py develop`.
+- `owtf` and open `localhost:8009` for the OWTF web interface or `owtf --help` for all available commands.
+
 
 # Features
 
