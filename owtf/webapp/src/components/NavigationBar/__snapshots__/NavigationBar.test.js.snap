@@ -1,0 +1,106 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NavigationBar Component Should contain a Link component 1`] = `
+<Uncontrolled(Navbar)
+  bsStyle="default"
+  collapseOnSelect={true}
+  data-test="navbarTest"
+  inverse={true}
+>
+  <NavbarHeader>
+    <NavbarBrand>
+      <Link
+        replace={false}
+        to="/"
+      >
+        OWASP OWTF
+      </Link>
+    </NavbarBrand>
+    <NavbarToggle />
+  </NavbarHeader>
+  <NavMenu
+    links={
+      Array [
+        Object {
+          "linkTo": "/dashboard",
+          "text": "Dashboard",
+        },
+        Object {
+          "linkTo": "/targets",
+          "text": "Targets",
+        },
+      ]
+    }
+  />
+</Uncontrolled(Navbar)>
+`;
+
+exports[`NavigationBar Component Should contain a NavMenu children component 1`] = `
+<Uncontrolled(Navbar)
+  bsStyle="default"
+  collapseOnSelect={true}
+  data-test="navbarTest"
+  inverse={true}
+>
+  <NavbarHeader>
+    <NavbarBrand>
+      <Link
+        replace={false}
+        to="/"
+      >
+        OWASP OWTF
+      </Link>
+    </NavbarBrand>
+    <NavbarToggle />
+  </NavbarHeader>
+  <NavMenu
+    links={
+      Array [
+        Object {
+          "linkTo": "/dashboard",
+          "text": "Dashboard",
+        },
+        Object {
+          "linkTo": "/targets",
+          "text": "Targets",
+        },
+      ]
+    }
+  />
+</Uncontrolled(Navbar)>
+`;
+
+exports[`NavigationBar Component Should render without errors 1`] = `
+<Uncontrolled(Navbar)
+  bsStyle="default"
+  collapseOnSelect={true}
+  data-test="navbarTest"
+  inverse={true}
+>
+  <NavbarHeader>
+    <NavbarBrand>
+      <Link
+        replace={false}
+        to="/"
+      >
+        OWASP OWTF
+      </Link>
+    </NavbarBrand>
+    <NavbarToggle />
+  </NavbarHeader>
+  <NavMenu
+    links={
+      Array [
+        Object {
+          "linkTo": "/dashboard",
+          "text": "Dashboard",
+        },
+        Object {
+          "linkTo": "/targets",
+          "text": "Targets",
+        },
+      ]
+    }
+  />
+</Uncontrolled(Navbar)>
+`;
