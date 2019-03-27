@@ -36,8 +36,6 @@ describe('NavigationBar Component', () => {
   it('Should contain a Link component', () => {
     const tree = toJson(component)
     expect(component.find('Link').length).toBe(1);
-    // console.log(component.find('Link').first().text())
-    // expect(component.find('Link').first().text()).toBe('OWASP OWTF');
     expect(tree).toMatchSnapshot();
 
   });
