@@ -164,6 +164,9 @@ distclean-js:
 distclean: distclean-py distclean-js
 
 ## MAINTAINERS
+rollback:
+	git reset --hard HEAD~1
+	git tag -d `git describe --tags --abbrev=0`
 
 bump:
 	bumpversion patch
